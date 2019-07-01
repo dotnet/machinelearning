@@ -24,11 +24,13 @@ using Microsoft.ML.Trainers.Ensemble;
 namespace Microsoft.ML.Trainers.Ensemble
 {
     using TVectorPredictor = IPredictorProducing<VBuffer<Single>>;
+    using TVectorTrainer = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<VBuffer<float>>>, IPredictorProducing<VBuffer<float>>>;
+
     /// <summary>
     /// A generic ensemble classifier for multi-class classification
     /// </summary>
     internal sealed class MulticlassDataPartitionEnsembleTrainer :
-        EnsembleTrainerBase<VBuffer<Single>, EnsembleMulticlassModelParameters,
+        EnsembleTrainerBase<VBuffer<Single>,
         IMulticlassSubModelSelector, IMulticlassOutputCombiner>,
         IModelCombiner
     {
@@ -48,26 +50,21 @@ namespace Microsoft.ML.Trainers.Ensemble
 
             // REVIEW: If we make this public again it should be an *estimator* of this type of predictor, rather than the (deprecated) ITrainer.
             [Argument(ArgumentType.Multiple, HelpText = "Base predictor type", ShortName = "bp,basePredictorTypes", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureMulticlassClassifierTrainer))]
-            internal IComponentFactory<ITrainer<TVectorPredictor>>[] BasePredictors;
+            internal IComponentFactory<TVectorTrainer>[] BasePredictors;
 
-            internal override IComponentFactory<ITrainer<TVectorPredictor>>[] GetPredictorFactories() => BasePredictors;
+            internal override IComponentFactory<TVectorTrainer>[] GetPredictorFactories() => BasePredictors;
 
             public Arguments()
             {
                 BasePredictors = new[]
                 {
-                    ComponentFactoryUtils.CreateFromFunction(
-                        env => {
-                            // Note that this illustrates a fundamnetal problem with the mixture of `ITrainer` and `ITrainerEstimator`
-                            // present in this class. The options to the estimator have no way of being communicated to the `ITrainer`
-                            // implementation, so there is a fundamnetal disconnect if someone chooses to ever use the *estimator* with
-                            // non-default column names. Unfortuantely no method of resolving this temporary strikes me as being any
-                            // less laborious than the proper fix, which is that this "meta" component should itself be a trainer
-                            // estimator, as opposed to a regular trainer.
-                            var trainerEstimator = new LbfgsMaximumEntropyMulticlassTrainer(env, LabelColumnName, FeatureColumnName);
-                            return TrainerUtils.MapTrainerEstimatorToTrainer<LbfgsMaximumEntropyMulticlassTrainer,
-                                MaximumEntropyModelParameters, MaximumEntropyModelParameters>(env, trainerEstimator);
-                        })
+                    // Note that this illustrates a fundamnetal problem with the mixture of `ITrainer` and `ITrainerEstimator`
+                    // present in this class. The options to the estimator have no way of being communicated to the `ITrainer`
+                    // implementation, so there is a fundamnetal disconnect if someone chooses to ever use the *estimator* with
+                    // non-default column names. Unfortuantely no method of resolving this temporary strikes me as being any
+                    // less laborious than the proper fix, which is that this "meta" component should itself be a trainer
+                    // estimator, as opposed to a regular trainer.
+                    ComponentFactoryUtils.CreateFromFunction(env => new LbfgsMaximumEntropyMulticlassTrainer(env, LabelColumnName, FeatureColumnName))
                 };
             }
         }
@@ -90,7 +87,7 @@ namespace Microsoft.ML.Trainers.Ensemble
 
         private protected override PredictionKind PredictionKind => PredictionKind.MulticlassClassification;
 
-        private protected override EnsembleMulticlassModelParameters CreatePredictor(List<FeatureSubsetModel<VBuffer<float>>> models)
+        private protected override IPredictor CreatePredictor(List<FeatureSubsetModel<VBuffer<float>>> models)
         {
             return new EnsembleMulticlassModelParameters(Host, CreateModels<TVectorPredictor>(models), Combiner as IMulticlassOutputCombiner);
         }

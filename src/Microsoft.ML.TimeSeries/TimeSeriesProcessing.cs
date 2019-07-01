@@ -124,5 +124,19 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 OutputData = view
             };
         }
+
+        [TlcModule.EntryPoint(Desc = TimeSeries.SsaForecastingTransformer.Summary,
+            UserName = TimeSeries.SsaForecastingTransformer.UserName,
+            ShortName = TimeSeries.SsaForecastingTransformer.ShortName)]
+        internal static CommonOutputs.TransformOutput SsaForecasting(IHostEnvironment env, SsaForecastingTransformer.Options options)
+        {
+            var h = EntryPointUtils.CheckArgsAndCreateHost(env, "SsaForecasting", options);
+            var view = new SsaForecastingEstimator(h, options).Fit(options.Data).Transform(options.Data);
+            return new CommonOutputs.TransformOutput()
+            {
+                Model = new TransformModelImpl(h, view, options.Data),
+                OutputData = view
+            };
+        }
     }
 }

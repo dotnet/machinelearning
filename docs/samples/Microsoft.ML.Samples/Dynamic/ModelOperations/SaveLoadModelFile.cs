@@ -9,8 +9,8 @@ namespace Samples.Dynamic.ModelOperations
     {
         public static void Example()
         {
-            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
+            // Create a new ML context, for ML.NET operations. It can be used for
+            // exception tracking and logging, as well as the source of randomness.
             var mlContext = new MLContext();
 
             // Generate sample data.
@@ -25,7 +25,8 @@ namespace Samples.Dynamic.ModelOperations
             var outputColumnName = nameof(Transformation.Key);
 
             // Transform.
-            ITransformer model = mlContext.Transforms.Conversion.MapValueToKey(outputColumnName, inputColumnName).Fit(dataView);
+            ITransformer model = mlContext.Transforms.Conversion
+                .MapValueToKey(outputColumnName, inputColumnName).Fit(dataView);
 
             // Save model.
             mlContext.Model.Save(model, dataView.Schema, "model.zip");
@@ -34,11 +35,15 @@ namespace Samples.Dynamic.ModelOperations
             model = mlContext.Model.Load("model.zip", out DataViewSchema schema);
 
             // Create a prediction engine from the model for feeding new data.
-            var engine = mlContext.Model.CreatePredictionEngine<Data, Transformation>(model);
+            var engine = mlContext.Model
+                .CreatePredictionEngine<Data, Transformation>(model);
+
             var transformation = engine.Predict(new Data() { Value = "abc" });
 
             // Print transformation to console.
-            Console.WriteLine("Value: {0}\t Key:{1}", transformation.Value, transformation.Key);
+            Console.WriteLine("Value: {0}\t Key:{1}", transformation.Value,
+                transformation.Key);
+
             // Value: abc       Key:1
 
         }
