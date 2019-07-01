@@ -25,8 +25,6 @@ namespace Microsoft.ML.FastTree.Utils
             var builder = new ArrayDataViewBuilder(host);
             var numberOfRows = trees.Select(tree => tree.NumberOfNodes).Sum() + trees.Select(tree => tree.NumberOfLeaves).Sum();
 
-
-            // Bias can be added directly, it is the same across trees, so we don't need a list for that.
             var treeWeightsList = new List<double>();
             var treeId = new List<int>();
             var isLeaf = new List<ReadOnlyMemory<char>>();
@@ -63,108 +61,40 @@ namespace Microsoft.ML.FastTree.Utils
                 // NumericalSplitFeatureIndexes column.
                 numericalSplitFeatureIndexes.AddRange(trees[i].NumericalSplitFeatureIndexes.AsEnumerable());
                 numericalSplitFeatureIndexes.AddRange(Enumerable.Repeat(0, trees[i].NumberOfLeaves));
-            }
 
-
-            // NumericalSplitThresholds column.
-            for (int i = 0; i < trees.Count; i++)
-            {
+                // NumericalSplitThresholds column.
                 numericalSplitThresholds.AddRange(trees[i].NumericalSplitThresholds.AsEnumerable());
                 numericalSplitThresholds.AddRange(Enumerable.Repeat(0f, trees[i].NumberOfLeaves));
-            }
 
-            builder.AddColumn(nameof(RegressionTreeBase.NumericalSplitThresholds), NumberDataViewType.Single, numericalSplitThresholds.ToArray());
-
-            // CategoricalSplitFlags column.
-            for (int i = 0; i < trees.Count; i++)
-            {
+                // CategoricalSplitFlags column.
                 categoricalSplitFlags.AddRange(trees[i].CategoricalSplitFlags.AsEnumerable());
                 categoricalSplitFlags.AddRange(Enumerable.Repeat(false, trees[i].NumberOfLeaves));
-            }
 
-            builder.AddColumn(nameof(RegressionTreeBase.CategoricalSplitFlags), BooleanDataViewType.Instance, categoricalSplitFlags.ToArray());
-
-            // LeafValues column.
-            for (int i = 0; i < trees.Count; i++)
-            {
+                // LeafValues column.
                 leafValues.AddRange(Enumerable.Repeat(0d, trees[i].NumberOfNodes));
                 leafValues.AddRange(trees[i].LeafValues.AsEnumerable());
-            }
 
-            builder.AddColumn(nameof(RegressionTreeBase.LeafValues), NumberDataViewType.Double, leafValues.ToArray());
-
-            // SplitGains column.
-            for (int i = 0; i < trees.Count; i++)
-            {
+                // SplitGains column.
                 splitGains.AddRange(trees[i].SplitGains.AsEnumerable());
                 splitGains.AddRange(Enumerable.Repeat(0d, trees[i].NumberOfLeaves));
-            }
 
-            builder.AddColumn(nameof(RegressionTreeBase.SplitGains), NumberDataViewType.Double, splitGains.ToArray());
-
-            // CategoricalSplitFeatures column.
-            for (int i = 0; i < trees.Count; i++)
-            {
                 for (int j = 0; j < trees[i].NumberOfNodes; j++)
                 {
+                    // CategoricalSplitFeatures column.
                     var categoricalSplitFeaturesArray = trees[i].GetCategoricalSplitFeaturesAt(j).ToArray();
                     categoricalSplitFeatures.Add(new VBuffer<int>(categoricalSplitFeaturesArray.Length, categoricalSplitFeaturesArray));
                     var len = trees[i].GetCategoricalSplitFeaturesAt(j).ToArray().Length;
+
+                    // CategoricalCategoricalSplitFeatureRange column.
+                    var categoricalCategoricalSplitFeatureRangeArray = trees[i].GetCategoricalCategoricalSplitFeatureRangeAt(j).ToArray();
+                    categoricalCategoricalSplitFeatureRange.Add(new VBuffer<int>(categoricalCategoricalSplitFeatureRangeArray.Length, categoricalCategoricalSplitFeatureRangeArray));
+                    len = trees[i].GetCategoricalCategoricalSplitFeatureRangeAt(j).ToArray().Length;
                 }
 
                 categoricalSplitFeatures.AddRange(Enumerable.Repeat(new VBuffer<int>(), trees[i].NumberOfLeaves));
-            }
-
-            builder.AddColumn("CategoricalSplitFeatures", NumberDataViewType.Int32, categoricalSplitFeatures.ToArray());
-
-            // CategoricalCategoricalSplitFeatureRange column.
-            for (int i = 0; i < trees.Count; i++)
-            {
-                for (int j = 0; j < trees[i].NumberOfNodes; j++)
-                {
-                    var categoricalCategoricalSplitFeatureRangeArray = trees[i].GetCategoricalCategoricalSplitFeatureRangeAt(j).ToArray();
-                    categoricalCategoricalSplitFeatureRange.Add(new VBuffer<int>(categoricalCategoricalSplitFeatureRangeArray.Length, categoricalCategoricalSplitFeatureRangeArray));
-                    var len = trees[i].GetCategoricalCategoricalSplitFeatureRangeAt(j).ToArray().Length;
-                }
                 categoricalCategoricalSplitFeatureRange.AddRange(Enumerable.Repeat(new VBuffer<int>(), trees[i].NumberOfLeaves));
             }
 
-            builder.AddColumn("CategoricalCategoricalSplitFeatureRange", NumberDataViewType.Int32, categoricalCategoricalSplitFeatureRange.ToArray());
-
-            // If the input tree array is a quantile regression tree we need to add two more columns.
-            var quantileTrees = trees as IReadOnlyList<QuantileRegressionTree>;
-            if (quantileTrees != null)
-            {
-                // LeafSamples column.
-                var leafSamples = new List<VBuffer<double>>();
-                for (int i = 0; i < quantileTrees.Count; i++)
-                {
-                    leafSamples.AddRange(Enumerable.Repeat(new VBuffer<double>(), quantileTrees[i].NumberOfNodes));
-                    for (int j = 0; j < quantileTrees[i].NumberOfLeaves; j++)
-                    {
-                        var leafSamplesArray = quantileTrees[i].GetLeafSamplesAt(j).ToArray();
-                        leafSamples.Add(new VBuffer<double>(leafSamplesArray.Length, leafSamplesArray));
-                        var len = quantileTrees[i].GetLeafSamplesAt(j).ToArray().Length;
-                    }
-                }
-
-                builder.AddColumn("LeafSamples", NumberDataViewType.Double, leafSamples.ToArray());
-
-                // LeafSampleWeights column.
-                var leafSampleWeights = new List<VBuffer<double>>();
-                for (int i = 0; i < quantileTrees.Count; i++)
-                {
-                    leafSampleWeights.AddRange(Enumerable.Repeat(new VBuffer<double>(), quantileTrees[i].NumberOfNodes));
-                    for (int j = 0; j < quantileTrees[i].NumberOfLeaves; j++)
-                    {
-                        var leafSampleWeightsArray = quantileTrees[i].GetLeafSampleWeightsAt(j).ToArray();
-                        leafSampleWeights.Add(new VBuffer<double>(leafSampleWeightsArray.Length, leafSampleWeightsArray));
-                        var len = quantileTrees[i].GetLeafSampleWeightsAt(j).ToArray().Length;
-                    }
-                }
-
-                builder.AddColumn("LeafSampleWeights", NumberDataViewType.Double, leafSampleWeights.ToArray());
-            }
             // Bias column. This will be a repeated value for all rows in the resulting IDataView.
             builder.AddColumn("Bias", NumberDataViewType.Double, Enumerable.Repeat(bias, numberOfRows).ToArray());
             builder.AddColumn("TreeWeights", NumberDataViewType.Double, treeWeightsList.ToArray());
@@ -173,8 +103,41 @@ namespace Microsoft.ML.FastTree.Utils
             builder.AddColumn(nameof(RegressionTreeBase.LeftChild), NumberDataViewType.Int32, leftChild.ToArray());
             builder.AddColumn(nameof(RegressionTreeBase.RightChild), NumberDataViewType.Int32, rightChild.ToArray());
             builder.AddColumn(nameof(RegressionTreeBase.NumericalSplitFeatureIndexes), NumberDataViewType.Int32, numericalSplitFeatureIndexes.ToArray());
+            builder.AddColumn(nameof(RegressionTreeBase.NumericalSplitThresholds), NumberDataViewType.Single, numericalSplitThresholds.ToArray());
+            builder.AddColumn(nameof(RegressionTreeBase.CategoricalSplitFlags), BooleanDataViewType.Instance, categoricalSplitFlags.ToArray());
+            builder.AddColumn(nameof(RegressionTreeBase.LeafValues), NumberDataViewType.Double, leafValues.ToArray());
+            builder.AddColumn(nameof(RegressionTreeBase.SplitGains), NumberDataViewType.Double, splitGains.ToArray());
+            builder.AddColumn("CategoricalSplitFeatures", NumberDataViewType.Int32, categoricalSplitFeatures.ToArray());
+            builder.AddColumn("CategoricalCategoricalSplitFeatureRange", NumberDataViewType.Int32, categoricalCategoricalSplitFeatureRange.ToArray());
 
+            // If the input tree array is a quantile regression tree we need to add two more columns.
+            var quantileTrees = trees as IReadOnlyList<QuantileRegressionTree>;
+            if (quantileTrees != null)
+            {
+                // LeafSamples column.
+                var leafSamples = new List<VBuffer<double>>();
 
+                // LeafSampleWeights column.
+                var leafSampleWeights = new List<VBuffer<double>>();
+                for (int i = 0; i < quantileTrees.Count; i++)
+                {
+                    leafSamples.AddRange(Enumerable.Repeat(new VBuffer<double>(), quantileTrees[i].NumberOfNodes));
+                    leafSampleWeights.AddRange(Enumerable.Repeat(new VBuffer<double>(), quantileTrees[i].NumberOfNodes));
+                    for (int j = 0; j < quantileTrees[i].NumberOfLeaves; j++)
+                    {
+                        var leafSamplesArray = quantileTrees[i].GetLeafSamplesAt(j).ToArray();
+                        leafSamples.Add(new VBuffer<double>(leafSamplesArray.Length, leafSamplesArray));
+                        var len = quantileTrees[i].GetLeafSamplesAt(j).ToArray().Length;
+
+                        var leafSampleWeightsArray = quantileTrees[i].GetLeafSampleWeightsAt(j).ToArray();
+                        leafSampleWeights.Add(new VBuffer<double>(leafSampleWeightsArray.Length, leafSampleWeightsArray));
+                        len = quantileTrees[i].GetLeafSampleWeightsAt(j).ToArray().Length;
+                    }
+                }
+
+                builder.AddColumn("LeafSamples", NumberDataViewType.Double, leafSamples.ToArray());
+                builder.AddColumn("LeafSampleWeights", NumberDataViewType.Double, leafSampleWeights.ToArray());
+            }
 
             var data = builder.GetDataView();
             return data;
