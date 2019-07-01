@@ -16,7 +16,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// The wrapper to <see cref="SsaForecastingBase"/> that implements the general anomaly detection transform based on Singular Spectrum modeling of the time-series.
     /// For the details of the Singular Spectrum Analysis (SSA), refer to http://arxiv.org/pdf/1206.6910.pdf.
     /// </summary>
-    public class SsaForecastingBaseWrapper : IForecastTransformer, ICanSaveModel
+    public class SsaForecastingBaseWrapper : IStatefulTransformer, ICanSaveModel
     {
         /// <summary>
         /// Whether a call to <see cref="ITransformer.GetRowToRowMapper(DataViewSchema)"/> should succeed, on an
@@ -77,45 +77,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// </summary>
         internal IDataTransform MakeDataTransform(IDataView input) => InternalTransform.MakeDataTransform(input);
 
-        public IDataView Forecast(int horizon, bool includeConfidenceInterval = false, float confidenceLevel = 0.95f)
-        {
-            var model = ((AdaptiveSingularSpectrumSequenceModelerInternal)InternalTransform.Model);
-
-            if (includeConfidenceInterval)
-            {
-                model.ForecastWithConfidenceIntervals(horizon, out float[] forecast,
-                    out float[] confidenceIntervalLowerBounds, out float[] confidenceIntervalUpperBounds, confidenceLevel);
-
-                return DataViewConstructionUtils.CreateFromEnumerable(InternalTransform.Host, GetForecastWithConfidenceIntervals(forecast,
-                    confidenceIntervalLowerBounds, confidenceIntervalUpperBounds));
-            }
-            else
-                return DataViewConstructionUtils.CreateFromEnumerable(InternalTransform.Host, GetForecast(model.Forecast(horizon)));
-        }
-
-        private IEnumerable<SsaForecast> GetForecast(float[] forecast)
-        {
-            foreach (var value in forecast)
-                yield return new SsaForecast() { Forecast = value };
-        }
-
-        private IEnumerable<SsaForecastWithConfidenceInterval> GetForecastWithConfidenceIntervals(float[] forecast, float[] min, float[] max)
-        {
-            for (int index = 0; index < forecast.Length; index += 1)
-                yield return new SsaForecastWithConfidenceInterval() { Forecast = forecast[index], ConfidenceIntervalLowerBound = min[index], ConfidenceIntervalUpperBound = max[index] };
-        }
-
-        internal class SsaForecast
-        {
-            public float Forecast;
-        }
-
-        internal class SsaForecastWithConfidenceInterval : SsaForecast
-        {
-            public float ConfidenceIntervalLowerBound;
-            public float ConfidenceIntervalUpperBound;
-        }
-
         /// <summary>
         /// Options for SSA Anomaly Detection.
         /// </summary>
@@ -138,6 +99,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             public GrowthRatio? MaxGrowth;
             public int Horizon;
             public float ConfidenceLevel;
+            public bool VariableHorizon;
         }
 
         internal SsaForecastingBase InternalTransform;
@@ -166,7 +128,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             public SsaForecastingBase(SsaForecastingOptions options, string name, IHostEnvironment env, SsaForecastingBaseWrapper parent)
                 : base(options.TrainSize, 0, options.Source, options.Name, options.ForcastingConfidentLowerBoundColumnName,
-                      options.ForcastingConfidentUpperBoundColumnName, name, options.Horizon, env)
+                      options.ForcastingConfidentUpperBoundColumnName, name, options.VariableHorizon ? 0: options.Horizon, env)
             {
                 Host.CheckUserArg(0 <= options.DiscountFactor && options.DiscountFactor <= 1, nameof(options.DiscountFactor), "Must be in the range [0, 1].");
                 IsAdaptive = options.IsAdaptive;
@@ -294,14 +256,14 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     _model = _parentForecaster.Model;
                 }
 
-                private protected override void TransformCore(ref float input, FixedSizeQueue<float> windowedBuffer, long iteration, ref VBuffer<float> dst)
+                public override void TransformCore(ref float input, FixedSizeQueue<float> windowedBuffer, long iteration, ref VBuffer<float> dst)
                 {
                     // Forecasting is being done without prediction engine. Update the model
                     // with the observation.
                     if (PreviousPosition == -1)
                         Consume(input);
 
-                    dst = new VBuffer<float>(_parentForecaster.Horizon,
+                    dst = new VBuffer<float>(LocalHorizon ?? _parentForecaster.Horizon,
                         ((AdaptiveSingularSpectrumSequenceModelerInternal)_model).Forecast(_parentForecaster.Horizon));
                 }
 
@@ -313,12 +275,36 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     if (PreviousPosition == -1)
                         Consume(input);
 
-                    ((AdaptiveSingularSpectrumSequenceModelerInternal)_model).ForecastWithConfidenceIntervals(_parentForecaster.Horizon,
-                        out float[] forecast, out float[] min, out float[] max, _parentForecaster.ConfidenceLevel);
+                    ((AdaptiveSingularSpectrumSequenceModelerInternal)_model).ForecastWithConfidenceIntervals(LocalHorizon ?? _parentForecaster.Horizon,
+                        out float[] forecast, out float[] min, out float[] max, LocalConfidenceLevel ?? _parentForecaster.ConfidenceLevel);
 
                     dst1 = new VBuffer<float>(_parentForecaster.Horizon, forecast);
                     dst2 = new VBuffer<float>(_parentForecaster.Horizon, min);
                     dst3 = new VBuffer<float>(_parentForecaster.Horizon, max);
+                }
+
+                public override void Forecast( ref VBuffer<float> dst)
+                {
+                    int horizon = LocalHorizon ?? _parentForecaster.Horizon;
+                    dst = new VBuffer<float>(horizon, ((AdaptiveSingularSpectrumSequenceModelerInternal)_model).Forecast(horizon));
+                }
+
+                public override void ConfidenceIntervalLowerBound(ref VBuffer<float> dst)
+                {
+                    int horizon = LocalHorizon ?? _parentForecaster.Horizon;
+                    ((AdaptiveSingularSpectrumSequenceModelerInternal)_model).ForecastWithConfidenceIntervals(horizon,
+                        out float[] forecast, out float[] min, out float[] max, LocalConfidenceLevel ?? _parentForecaster.ConfidenceLevel);
+
+                    dst = new VBuffer<float>(horizon, min);
+                }
+
+                public override void ConfidenceIntervalUpperBound(ref VBuffer<float> dst)
+                {
+                    int horizon = LocalHorizon ?? _parentForecaster.Horizon;
+                    ((AdaptiveSingularSpectrumSequenceModelerInternal)_model).ForecastWithConfidenceIntervals(horizon,
+                        out float[] forecast, out float[] min, out float[] max, LocalConfidenceLevel ?? _parentForecaster.ConfidenceLevel);
+
+                    dst = new VBuffer<float>(horizon, max);
                 }
 
                 public override void Consume(Single input) => _model.Consume(ref input, _parentForecaster.IsAdaptive);

@@ -101,6 +101,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             private readonly DataViewSchema _parentSchema;
             private readonly int _inputColumnIndex;
             private ForecastingStateBase State { get; set; }
+            private bool _dontFetchSrcValue;
 
             public Mapper(IHostEnvironment env, SequentialForecastingTransformBase<TInput, TState> parent, DataViewSchema inputSchema)
             {
@@ -119,6 +120,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 _parent = parent;
                 _parentSchema = inputSchema;
                 State = (ForecastingStateBase)_parent.StateRef;
+                _dontFetchSrcValue = false;
             }
 
             public DataViewSchema.DetachedColumn[] GetOutputColumns()
@@ -154,11 +156,38 @@ namespace Microsoft.ML.Transforms.TimeSeries
             public Delegate[] CreateGetters(DataViewRow input, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
-                var getters = new Delegate[3];
-                if (activeOutput(0))
-                    getters[0] = MakeGetter(input, State);
+                var getters = string.IsNullOrEmpty(_parent.ForecastingConfidenceIntervalMaxOutputColumnName) ? new Delegate[1] : new Delegate[3];
 
-                getters[1] = getters[2] = getters[0];
+                if (activeOutput(0))
+                {
+                    ValueGetter<VBuffer<float>> valueGetter = (ref VBuffer<float> dst) =>
+                    {
+                        State.Forecast(ref dst);
+                    };
+
+                    getters[0] = valueGetter;
+                }
+
+                if (activeOutput(1))
+                {
+                    ValueGetter<VBuffer<float>> valueGetter = (ref VBuffer<float> dst) =>
+                    {
+                        State.ConfidenceIntervalLowerBound(ref dst);
+                    };
+
+                    getters[1] = valueGetter;
+                }
+
+                if (activeOutput(2))
+                {
+                    ValueGetter<VBuffer<float>> valueGetter = (ref VBuffer<float> dst) =>
+                    {
+                        State.ConfidenceIntervalUpperBound(ref dst);
+                    };
+
+                    getters[2] = valueGetter;
+                }
+
                 return getters;
             }
 
@@ -174,31 +203,49 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 ValueGetter<VBuffer<float>> valueGetter = (ref VBuffer<float> dst) =>
                 {
                     TInput src = default;
+                    if (_dontFetchSrcValue)
+                    {
+                        state.TransformCore(ref src, null, 0, ref dst);
+                        return;
+                    }
+
                     srcGetter(ref src);
                     processData(ref src, ref dst);
+
                 };
                 return valueGetter;
             }
 
-            public Action<long> CreatePinger(DataViewRow input, Func<int, bool> activeOutput, out Action disposer)
+            public Action<PingerArgument> CreatePinger(DataViewRow input, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
-                Action<long> pinger = null;
+                Action<PingerArgument> pinger = null;
                 if (activeOutput(0))
                     pinger = MakePinger(input, State);
 
                 return pinger;
             }
 
-            private Action<long> MakePinger(DataViewRow input, ForecastingStateBase state)
+            private Action<PingerArgument> MakePinger(DataViewRow input, ForecastingStateBase state)
             {
                 _host.AssertValue(input);
                 var srcGetter = input.GetGetter<TInput>(input.Schema[_inputColumnIndex]);
-                Action<long> pinger = (long rowPosition) =>
+                Action<PingerArgument> pinger = (PingerArgument args) =>
                 {
+                    state.LocalConfidenceLevel = args.ConfidenceLevel;
+                    state.LocalHorizon = args.Horizon;
+
+                    // This means don't call srcGetter in getters.
+                    if (args.DontConsumeSource)
+                    {
+                        _dontFetchSrcValue = true;
+                        return;
+                    }
+
+                    _dontFetchSrcValue = false;
                     TInput src = default;
                     srcGetter(ref src);
-                    state.UpdateState(ref src, rowPosition, _parent.WindowSize > 0);
+                    state.UpdateState(ref src, args.RowPosition, _parent.WindowSize > 0);
                 };
                 return pinger;
             }
@@ -224,6 +271,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
         {
             // A reference to the parent transform.
             protected SequentialForecastingTransformBase<TInput, TState> Parent;
+            internal int? LocalHorizon;
+            internal float? LocalConfidenceLevel;
 
             private protected ForecastingStateBase() { }
 

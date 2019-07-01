@@ -42,7 +42,7 @@ namespace Samples.Dynamic
             var dataView = ml.Data.LoadFromEnumerable(data);
 
             // Setup arguments.
-            var inputColumnName = nameof(TimeSeriesData.Value);
+            /*var inputColumnName = nameof(TimeSeriesData.Value);
 
             // Instantiate the forecasting model.
             var model = ml.Forecasting.ForecastBySsa(inputColumnName, inputColumnName, 5, 11, data.Count, 5);
@@ -74,7 +74,7 @@ namespace Samples.Dynamic
                 modelCopy = ml.Model.Load(file, out DataViewSchema schema);
 
             // We must create a new prediction engine from the persisted model.
-            var forecastEngineCopy = modelCopy.CreateForecastingEngine<TimeSeriesData>(ml);
+            /*var forecastEngineCopy = modelCopy.CreateForecastingEngine<TimeSeriesData>(ml);
 
             // Forecast with the checkpointed model loaded from disk.
             forecast = ml.Data.CreateEnumerable<ForecastResult>(forecastEngineCopy.Forecast(5), false);
@@ -84,7 +84,7 @@ namespace Samples.Dynamic
             // Forecast with the original model(that was checkpointed to disk).
             forecast = ml.Data.CreateEnumerable<ForecastResult>(forecastEngine.Forecast(5), false);
             Console.WriteLine("[{0}]", string.Join(", ", forecast));
-            // [0.8681176, 0.8185108, 0.8069275, 0.84405, 0.9455081]
+            // [0.8681176, 0.8185108, 0.8069275, 0.84405, 0.9455081]*/
 
         }
 

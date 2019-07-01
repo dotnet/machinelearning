@@ -15,15 +15,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
     {
     }
 
-    /// <summary>
-    /// Used to expose standalone <see cref="Forecast(int, bool, float)"/> that allows
-    /// modifying transformer parameters such as horizon, confidence intervals.
-    /// </summary>
-    internal interface IForecastTransformer : IStatefulTransformer
-    {
-        IDataView Forecast(int horizon, bool includeConfidenceInterval = false, float confidenceLevel = 0.95f);
-    }
-
     internal interface IStatefulTransformer : ITransformer
     {
         /// <summary>
@@ -43,14 +34,22 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
     internal abstract class StatefulRow : DataViewRow
     {
-        public abstract Action<long> GetPinger();
+        public abstract Action<PingerArgument> GetPinger();
     }
 
     internal interface IStatefulRowMapper : IRowMapper
     {
         void CloneState();
 
-        Action<long> CreatePinger(DataViewRow input, Func<int, bool> activeOutput, out Action disposer);
+        Action<PingerArgument> CreatePinger(DataViewRow input, Func<int, bool> activeOutput, out Action disposer);
+    }
+
+    internal class PingerArgument
+    {
+        public long RowPosition;
+        public float? ConfidenceLevel;
+        public int? Horizon;
+        public bool DontConsumeSource;
     }
 
     /// <summary>
@@ -61,13 +60,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// </summary>
     /// <typeparam name="TSrc">The user-defined type that holds the example.</typeparam>
     /// <typeparam name="TDst">The user-defined type that holds the prediction.</typeparam>
-    public abstract class TimeSeriesPredictionEngine<TSrc, TDst> : PredictionEngineBase<TSrc, TDst>
+    public sealed class TimeSeriesPredictionEngine<TSrc, TDst> : PredictionEngineBase<TSrc, TDst>
         where TSrc : class
         where TDst : class, new()
     {
-        protected Action<long> Pinger;
-        protected long RowPosition;
-        protected ITransformer InputTransformer { get; set; }
+        private Action<PingerArgument> _pinger;
+        private long _rowPosition;
+        private ITransformer InputTransformer { get; set; }
 
         /// <summary>
         /// Checkpoints <see cref="TimeSeriesPredictionEngine{TSrc, TDst}"/> to disk with the updated
@@ -198,11 +197,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
             return result;
         }
 
-        internal Action<long> CreatePinger(List<StatefulRow> rows)
+        internal Action<PingerArgument> CreatePinger(List<StatefulRow> rows)
         {
             if (rows.Count == 0)
                 return position => { };
-            Action<long> pinger = null;
+            Action<PingerArgument> pinger = null;
             foreach (var row in rows)
                 pinger += row.GetPinger();
             return pinger;
@@ -214,7 +213,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             List<StatefulRow> rows = new List<StatefulRow>();
             DataViewRow outputRowLocal = outputRowLocal = GetStatefulRows(inputRow, mapper, mapper.OutputSchema, rows);
             var cursorable = TypedCursorable<TDst>.Create(env, new EmptyDataView(env, mapper.OutputSchema), ignoreMissingColumns, outputSchemaDefinition);
-            Pinger = CreatePinger(rows);
+            _pinger = CreatePinger(rows);
             disposer = outputRowLocal.Dispose;
             outputRow = cursorable.GetRow(outputRowLocal);
         }
@@ -270,103 +269,83 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="example">The example to run on.</param>
         /// <param name="prediction">The object to store the prediction in. If it's <c>null</c>, a new one will be created, otherwise the old one
         /// is reused.</param>
-        public override void Predict(TSrc example, ref TDst prediction)
+        /// <param name="horizon"></param>
+        /// <param name="confidenceLevel"></param>
+        public void Predict(TSrc example, ref TDst prediction, int? horizon = null, float? confidenceLevel = null)
         {
-            Contracts.CheckValue(example, nameof(example));
-            ExtractValues(example);
-            if (prediction == null)
-                prediction = new TDst();
+            if (example != null && prediction != null)
+            {
+                //Update models and make a prediction after updating.
+                Contracts.CheckValue(example, nameof(example));
+                ExtractValues(example);
 
-            // Update state.
-            Pinger(RowPosition);
+                // Update state.
+                _pinger(new PingerArgument()
+                {
+                    RowPosition = _rowPosition,
+                    ConfidenceLevel = confidenceLevel,
+                    Horizon = horizon
+                });
 
-            // Predict.
-            FillValues(prediction);
+                // Predict.
+                FillValues(prediction);
 
-            RowPosition++;
+                _rowPosition++;
+            }
+            else if (prediction != null)
+            {
+                //Forecast.
+
+                // Signal all time series models to not fetch src values in getters.
+                _pinger(new PingerArgument()
+                {
+                    RowPosition = _rowPosition,
+                    DontConsumeSource = true,
+                    ConfidenceLevel = confidenceLevel,
+                    Horizon = horizon
+                });
+
+                // Predict. The expectation is user has asked for columns that are
+                // forecasting columns and hence will not trigger a getter that needs an input.
+                FillValues(prediction);
+            }
+            else if (example != null)
+            {
+                //Update models.
+
+                //Extract value that needs to propagated to all the models.
+                Contracts.CheckValue(example, nameof(example));
+                ExtractValues(example);
+
+                // Update state.
+                _pinger(new PingerArgument()
+                {
+                    RowPosition = _rowPosition,
+                    ConfidenceLevel = confidenceLevel,
+                    Horizon = horizon
+                });
+
+                _rowPosition++;
+            }
         }
-    }
-
-    /// <summary>
-    /// A class that runs the previously trained model (and the preceding transform pipeline) on the
-    /// in-memory data, one example at a time.
-    /// This can also be used with trained pipelines that do not end with a predictor: in this case, the
-    /// 'prediction' will be just the outcome of all the transformations.
-    /// Creates an anomaly detection engine for a time series pipeline
-    /// It updates the state of time series model with observations seen at prediction phase and allows checkpointing the model.
-    /// </summary>
-    /// <typeparam name="TSrc">The user-defined type that holds the example.</typeparam>
-    /// <typeparam name="TDst">The user-defined type that holds the prediction.</typeparam>
-    public sealed class TimeSeriesAnomalyDetection<TSrc, TDst> : TimeSeriesPredictionEngine<TSrc, TDst>
-        where TSrc : class
-        where TDst : class, new()
-    {
-        public TimeSeriesAnomalyDetection(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
-            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null) :
-            base(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
-        {
-        }
-    }
-
-    /// <summary>
-    /// Creates forecasting engine for a time series pipeline that allows updating the state of time series forecasting model
-    /// with new observations and checkpointing the model. It also allows forecasting values without passing any input values and
-    /// dynamically configuring paramaters such as horizon and confidence interval.
-    /// </summary>
-    /// <typeparam name="TSrc">The user-defined type that holds the example.</typeparam>
-    public sealed class TimeSeriesForecasting<TSrc> : TimeSeriesPredictionEngine<TSrc, object>
-        where TSrc : class
-    {
-        public TimeSeriesForecasting(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
-            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null) :
-            base(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
-        {
-        }
-
-        private protected override void PredictionEngineCore(IHostEnvironment env, DataViewConstructionUtils.InputRow<TSrc> inputRow,
-            IRowToRowMapper mapper, bool ignoreMissingColumns, SchemaDefinition outputSchemaDefinition, out Action disposer, out IRowReadableAs<object> outputRow)
-        {
-            List<StatefulRow> rows = new List<StatefulRow>();
-            DataViewRow outputRowLocal = outputRowLocal = GetStatefulRows(inputRow, mapper, mapper.OutputSchema, rows);
-            Pinger = CreatePinger(rows);
-            disposer = outputRowLocal.Dispose;
-            outputRow = null;
-        }
-
-        /// <summary>
-        /// Update the time series model with one observation.
-        /// </summary>
-        /// <param name="example">The observation to update the forecasting model with.</param>
-        public void Update(TSrc example)
-        {
-            Contracts.CheckValue(example, nameof(example));
-            ExtractValues(example);
-            // Update state.
-            Pinger(RowPosition);
-            RowPosition++;
-        }
-
-        /// <summary>
-        /// Standalone forecasting method. Allows dynamic configuration of forecasting parameters such as horizon
-        /// and confidence level.
-        /// </summary>
-        /// <param name="horizon">The number of values to forecast.</param>
-        /// <param name="includeConfidenceInterval">Whether to include confidence intervals for each forecasted value.</param>
-        /// <param name="confidenceLevel">The confidence level for forecasting.</param>
-        /// <returns></returns>
-        public IDataView Forecast(int horizon, bool includeConfidenceInterval = false, float confidenceLevel = 0.95f) =>
-            ((IForecastTransformer)InputTransformer).Forecast(horizon, includeConfidenceInterval, confidenceLevel);
 
         /// <summary>
         /// This method should not be used.
         /// </summary>
-        public override void Predict(TSrc example, ref object prediction) => throw new NotSupportedException();
+        public override void Predict(TSrc example, ref TDst prediction) => Predict(example, ref prediction);
+
+        public TDst Predict(TSrc example, int? horizon = null, float? confidenceLevel = null)
+        {
+            TDst dst = new TDst();
+            Predict(example, ref dst, horizon, confidenceLevel);
+            return dst;
+        }
     }
 
     public static class PredictionFunctionExtensions
     {
         /// <summary>
-        /// <see cref="TimeSeriesAnomalyDetection{TSrc, TDst}"/> creates an anomaly detection engine for a time series pipeline
+        /// <see cref="TimeSeriesPredictionEngine{TSrc, TDst}"/> creates a prediction engine for a time series pipeline.
         /// It updates the state of time series model with observations seen at prediction phase and allows checkpointing the model.
         /// </summary>
         /// <typeparam name="TSrc">Class describing input schema to the model.</typeparam>
@@ -385,7 +364,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// ]]>
         /// </format>
         /// </example>
-        public static TimeSeriesAnomalyDetection<TSrc, TDst> CreateAnomalyDetectionEngine<TSrc, TDst>(this ITransformer transformer, IHostEnvironment env,
+        public static TimeSeriesPredictionEngine<TSrc, TDst> CreateTimeSeriesEngine<TSrc, TDst>(this ITransformer transformer, IHostEnvironment env,
             bool ignoreMissingColumns = false, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
             where TSrc : class
             where TDst : class, new()
@@ -394,37 +373,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             env.CheckValue(transformer, nameof(transformer));
             env.CheckValueOrNull(inputSchemaDefinition);
             env.CheckValueOrNull(outputSchemaDefinition);
-            return new TimeSeriesAnomalyDetection<TSrc, TDst>(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition);
-        }
-
-        /// <summary>
-        /// <see cref="TimeSeriesForecasting{TSrc}"/> creates a forecasting engine for a time series pipeline
-        /// It allows updating the state of time series forecasting model with new observations and allows checkpointing the model.
-        /// </summary>
-        /// <typeparam name="TSrc">Class describing input schema to the model.</typeparam>
-        /// <param name="transformer">The time series pipeline in the form of a <see cref="ITransformer"/>.</param>
-        /// <param name="env">Usually <see cref="MLContext"/></param>
-        /// <param name="ignoreMissingColumns">To ignore missing columns. Default is false.</param>
-        /// <param name="inputSchemaDefinition">Input schema definition. Default is null.</param>
-        /// <param name="outputSchemaDefinition">Output schema definition. Default is null.</param>
-        /// <p>Example code can be found by searching for <i>TimeSeriesPredictionFunction</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// This is an example for detecting change point using Singular Spectrum Analysis (SSA) model.
-        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/Forecast.cs)]
-        /// ]]>
-        /// </format>
-        /// </example>
-        public static TimeSeriesForecasting<TSrc> CreateForecastingEngine<TSrc>(this ITransformer transformer, IHostEnvironment env,
-            bool ignoreMissingColumns = false, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
-            where TSrc : class
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(transformer, nameof(transformer));
-            env.CheckValueOrNull(inputSchemaDefinition);
-            env.CheckValueOrNull(outputSchemaDefinition);
-            return new TimeSeriesForecasting<TSrc>(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition);
+            return new TimeSeriesPredictionEngine<TSrc, TDst>(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition);
         }
     }
 }

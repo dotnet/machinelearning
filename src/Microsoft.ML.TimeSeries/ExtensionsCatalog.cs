@@ -169,7 +169,8 @@ namespace Microsoft.ML
         /// <param name="maxGrowth">The maximum growth on the exponential trend.</param>
         /// <param name="forcastingConfidentLowerBoundColumnName">The name of the confidence interval lower bound column. If not specified then confidence intervals will not be calculated.</param>
         /// <param name="forcastingConfidentUpperBoundColumnName">The name of the confidence interval upper bound column. If not specified then confidence intervals will not be calculated.</param>
-        /// <param name="confidenceLevel"></param>
+        /// <param name="confidenceLevel">The confidence level for forecasting.</param>
+        /// <param name="variableHorizon">Set this to true if horizon will change after training.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -182,9 +183,9 @@ namespace Microsoft.ML
             this ForecastingCatalog catalog, string outputColumnName, string inputColumnName, int windowSize, int seriesLength, int trainSize, int horizon,
             bool isAdaptive = false, float discountFactor = 1, RankSelectionMethod rankSelectionMethod = RankSelectionMethod.Exact, int? rank = null,
             int? maxRank = null, bool shouldStablize = true, bool shouldMaintainInfo = false, GrowthRatio? maxGrowth = null, string forcastingConfidentLowerBoundColumnName = null,
-            string forcastingConfidentUpperBoundColumnName = null, float confidenceLevel = 0.95f) =>
+            string forcastingConfidentUpperBoundColumnName = null, float confidenceLevel = 0.95f, bool variableHorizon = false) =>
             new SsaForecastingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, windowSize, seriesLength, trainSize,
                 horizon, isAdaptive, discountFactor, rankSelectionMethod, rank, maxRank, shouldStablize, shouldMaintainInfo, maxGrowth, forcastingConfidentLowerBoundColumnName,
-                forcastingConfidentUpperBoundColumnName, confidenceLevel);
+                forcastingConfidentUpperBoundColumnName, confidenceLevel, variableHorizon);
     }
 }

@@ -60,6 +60,15 @@ namespace Microsoft.ML.Tests
 #pragma warning restore CS0649
         }
 
+        class ForecastResultArray
+        {
+#pragma warning disable CS0649
+            public float[] Forecast;
+            public float[] ConfidenceLowerBound;
+            public float[] ConfidenceUpperBound;
+#pragma warning restore CS0649
+        }
+
         private sealed class TimeSeriesData
         {
             public float Value;
@@ -204,7 +213,7 @@ namespace Microsoft.ML.Tests
             var model = pipeline.Fit(dataView);
 
             //Create prediction function.
-            var engine = model.CreateAnomalyDetectionEngine<Data, Prediction1>(ml);
+            var engine = model.CreateTimeSeriesEngine<Data, Prediction1>(ml);
 
             //Checkpoint with no inputs passed at prediction.
             var modelPath = "temp.zip";
@@ -217,7 +226,7 @@ namespace Microsoft.ML.Tests
                 model2 = ml.Model.Load(file, out var schema);
 
             //Raw score after state gets updated with two inputs.
-            var engine2 = model2.CreateAnomalyDetectionEngine<Data, Prediction>(ml);
+            var engine2 = model2.CreateTimeSeriesEngine<Data, Prediction>(ml);
             var prediction2 = engine2.Predict(new Data(1));
             //Raw score after first input.
             Assert.Equal(1.1661833524703979, prediction2.Change[1], precision: 5); // Raw score
@@ -238,7 +247,7 @@ namespace Microsoft.ML.Tests
 
             //Load the model with state updated with just one input, then pass in the second input
             //and raw score should match the raw score obtained by passing the two input in the first model.
-            var engine3 = model3.CreateAnomalyDetectionEngine<Data, Prediction>(ml);
+            var engine3 = model3.CreateTimeSeriesEngine<Data, Prediction>(ml);
             var prediction3 = engine3.Predict(new Data(1));
             Assert.Equal(0.12216401100158691, prediction2.Change[1], precision: 5); // Raw score
         }
@@ -279,9 +288,9 @@ namespace Microsoft.ML.Tests
 
             // Train.
             var model = pipeline.Fit(dataView);
-            
+
             //Model 1: Prediction #1.
-            var engine = model.CreateAnomalyDetectionEngine<Data, Prediction>(ml);
+            var engine = model.CreateTimeSeriesEngine<Data, Prediction>(ml);
             var prediction = engine.Predict(new Data(1));
             Assert.Equal(0, prediction.Change[0], precision: 7); // Alert
             Assert.Equal(1.1661833524703979, prediction.Change[1], precision: 5); // Raw score
@@ -305,7 +314,7 @@ namespace Microsoft.ML.Tests
                 model2 = ml.Model.Load(file, out var schema);
 
             //Predict and expect the same result after checkpointing(Prediction #2).
-            engine = model2.CreateAnomalyDetectionEngine<Data, Prediction>(ml);
+            engine = model2.CreateTimeSeriesEngine<Data, Prediction>(ml);
             prediction = engine.Predict(new Data(1));
             Assert.Equal(0, prediction.Change[0], precision: 7); // Alert
             Assert.Equal(0.12216401100158691, prediction.Change[1], precision: 5); // Raw score
@@ -383,11 +392,14 @@ namespace Microsoft.ML.Tests
             {
                 ConfidenceLevel = 0.95f,
                 Source = "Value",
-                Name = "Change",
+                Name = "Forecast",
                 WindowSize = 10,
                 SeriesLength = 11,
                 TrainSize = 22,
                 Horizon = 4,
+                ForcastingConfidentLowerBoundColumnName = "ConfidenceLowerBound",
+                ForcastingConfidentUpperBoundColumnName = "ConfidenceUpperBound",
+                VariableHorizon = true
             };
 
             for (int j = 0; j < NumberOfSeasonsInTraining; j++)
@@ -398,23 +410,60 @@ namespace Microsoft.ML.Tests
                 data.Add(new Data(i * 100));
 
             // Train
-            var model = new SsaForecastingEstimator(ml, args).Fit(dataView);
+            var model = ml.Transforms.Text.FeaturizeText("Text_Featurized", "Text")
+                .Append(ml.Transforms.Conversion.ConvertType("Value", "Value", DataKind.Single))
+                .Append(ml.Forecasting.ForecastBySsa("Forecast", "Value", 10, 11, 22, 4,
+                    forcastingConfidentLowerBoundColumnName: "ConfidenceLowerBound",
+                    forcastingConfidentUpperBoundColumnName: "ConfidenceUpperBound", variableHorizon: true))
+                .Append(ml.Transforms.Concatenate("Forecast", "Forecast", "ConfidenceLowerBound", "ConfidenceUpperBound"))
+                .Fit(dataView);
 
-            //Model 1: Prediction #1.
-            var engine = model.CreateForecastingEngine<Data>(ml);
-            engine.Update(new Data(1));
-            engine.Update(new Data(2));
-            var forecast = engine.Forecast(horizon: 5);
-            var prediction = ml.Data.CreateEnumerable<ForecastResult>(forecast, reuseRowObject: false).GetEnumerator();
+            //Prediction engine.
+            var engine = model.CreateTimeSeriesEngine<Data, ForecastResultArray>(ml);
+            ForecastResultArray result = new ForecastResultArray();
 
-            int index = 0;
-            List<float> expectedForecast = new List<float>() { 3.9516573f, 6.212672f, 7.732854f, 8.125769f, 7.22453928f };
-            while (prediction.MoveNext())
-            {
-                Assert.Equal(prediction.Current.Forecast, expectedForecast[index++]);
-            }
+            // Forecast and change the horizon to 5.
+            engine.Predict(null, ref result, horizon: 5);
+            // [Forecast, ConfidenceLowerBound, ConfidenceUpperBound]
+            Assert.Equal(result.Forecast, new float[] { -1.02245092f, 0.08333081f, 2.60737085f, 5.397319f, 7.500832f, -5.188142f, -4.82533741f,
+                -2.563095f, 0.213172823f, 2.29317045f, 3.14324f, 4.991999f, 7.777837f, 10.5814648f, 12.7084932f });
 
-            Assert.Equal(5, index);
+            // Update the forecasting model.
+            engine.Predict(new Data(2));
+
+            // Update the model and then forecast.
+            engine.Predict(new Data(2), ref result);
+
+            engine.CheckPoint(ml, "model.zip");
+            // [Forecast, ConfidenceLowerBound, ConfidenceUpperBound]
+            Assert.Equal(result.Forecast, new float[] { 4.310587f, 6.39716768f, 7.73934f, 8.029469f, 0.144895911f,
+                1.48849952f, 2.568874f, 2.84532261f, 8.476278f, 11.3058357f, 12.9098063f, 13.2136145f });
+
+            // Checkpoint the model.
+            ITransformer modelCopy;
+            using (var file = File.OpenRead("model.zip"))
+                modelCopy = ml.Model.Load(file, out DataViewSchema schema);
+
+            // We must create a new prediction engine from the persisted model.
+            var forecastEngineCopy = modelCopy.CreateTimeSeriesEngine<Data, ForecastResultArray>(ml);
+            ForecastResultArray resultCopy = new ForecastResultArray();
+
+            // Update both the models.
+            engine.Predict(new Data(3));
+            forecastEngineCopy.Predict(new Data(3));
+
+            // Forecast values with the original and check-pointed model.
+            forecastEngineCopy.Predict(null, ref resultCopy, horizon: 5);
+            engine.Predict(null, ref result, horizon: 5);
+            // [Forecast, ConfidenceLowerBound, ConfidenceUpperBound]
+            Assert.Equal(result.Forecast, new float[] { 6.00658846f, 7.506871f, 7.96424866f, 7.17514229f,
+                5.02655172f, 1.84089744f, 2.59820318f, 2.79378271f, 1.99099624f,
+                -0.181109816f, 10.1722794f, 12.41554f, 13.1347151f, 12.3592882f, 10.2342129f});
+
+            // The forecasted results should be the same because the state of the models
+            // is the same.
+            Assert.Equal(result.Forecast, resultCopy.Forecast);
+            
         }
 
         [Fact]

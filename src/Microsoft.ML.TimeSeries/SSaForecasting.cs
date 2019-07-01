@@ -27,7 +27,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// <summary>
     /// <see cref="ITransformer"/> resulting from fitting a <see cref="SsaForecastingEstimator"/>.
     /// </summary>
-    public sealed class SsaForecasting : SsaForecastingBaseWrapper, IStatefulTransformer, IForecastTransformer
+    public sealed class SsaForecasting : SsaForecastingBaseWrapper, IStatefulTransformer
     {
         internal const string Summary = "This transform forecasts using Singular Spectrum Analysis (SSA).";
         internal const string LoaderSignature = "SsaForecasting";
@@ -87,6 +87,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The confidence level in [0, 1) for forecasting.", SortOrder = 2)]
             public float ConfidenceLevel = 0.95f;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Set this to true horizon will change at prediction time.", SortOrder = 2)]
+            public bool VariableHorizon;
         }
 
         private sealed class BaseArguments : SsaForecastingOptions
@@ -108,6 +111,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 TrainSize = options.TrainSize;
                 Horizon = options.Horizon;
                 ConfidenceLevel = options.ConfidenceLevel;
+                VariableHorizon = options.VariableHorizon;
             }
         }
 
@@ -251,7 +255,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="maxGrowth">The maximum growth on the exponential trend.</param>
         /// <param name="forcastingConfidentLowerBoundColumnName">The name of the confidence interval lower bound column. If not specified then confidence intervals will not be calculated.</param>
         /// <param name="forcastingConfidentUpperBoundColumnName">The name of the confidence interval upper bound column. If not specified then confidence intervals will not be calculated.</param>
-        /// <param name="confidenceLevel"></param>
+        /// <param name="confidenceLevel">The confidence level for forecasting.</param>
+        /// <param name="variableHorizon">Set this to true if horizon will change after training.</param>
         internal SsaForecastingEstimator(IHostEnvironment env,
             string outputColumnName,
             string inputColumnName,
@@ -269,7 +274,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
             GrowthRatio? maxGrowth = null,
             string forcastingConfidentLowerBoundColumnName = null,
             string forcastingConfidentUpperBoundColumnName = null,
-            float confidenceLevel = 0.95f)
+            float confidenceLevel = 0.95f,
+            bool variableHorizon = false)
             : this(env, new SsaForecasting.Options
             {
                 Source = inputColumnName ?? outputColumnName,
@@ -287,7 +293,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 ForcastingConfidentLowerBoundColumnName = forcastingConfidentLowerBoundColumnName,
                 ForcastingConfidentUpperBoundColumnName = forcastingConfidentUpperBoundColumnName,
                 SeriesLength = seriesLength,
-                TrainSize = trainSize
+                TrainSize = trainSize,
+                VariableHorizon = variableHorizon,
+                Horizon = horizon
             })
         {
         }

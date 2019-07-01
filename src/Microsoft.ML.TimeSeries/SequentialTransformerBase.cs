@@ -251,7 +251,22 @@ namespace Microsoft.ML.Transforms.TimeSeries
             /// <param name="dst">A reference to the dst object.</param>
             /// <param name="windowedBuffer">A reference to the windowed buffer.</param>
             /// <param name="iteration">A long number that indicates the number of times TransformCore has been called so far (starting value = 0).</param>
-            private protected virtual void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration, ref TOutput dst)
+            public virtual void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration, ref TOutput dst)
+            {
+
+            }
+
+            public virtual void Forecast(ref TOutput dst)
+            {
+
+            }
+
+            public virtual void ConfidenceIntervalLowerBound(ref TOutput dst)
+            {
+
+            }
+
+            public virtual void ConfidenceIntervalUpperBound(ref TOutput dst)
             {
 
             }
@@ -606,7 +621,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             private readonly DataViewSchema _schema;
             private readonly DataViewRow _input;
             private readonly Delegate[] _getters;
-            private readonly Action<long> _pinger;
+            private readonly Action<PingerArgument> _pinger;
             private readonly Action _disposer;
             private bool _disposed;
             private readonly ColumnBindings _bindings;
@@ -617,7 +632,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             public override long Batch => _input.Batch;
 
-            public RowImpl(ColumnBindings bindings, DataViewRow input, Delegate[] getters, Action<long> pinger, Action disposer)
+            public RowImpl(ColumnBindings bindings, DataViewRow input, Delegate[] getters, Action<PingerArgument> pinger, Action disposer)
             {
                 Contracts.CheckValue(bindings, nameof(bindings));
                 Contracts.CheckValue(input, nameof(input));
@@ -656,8 +671,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return fn;
             }
 
-            public override Action<long> GetPinger() =>
-                _pinger as Action<long> ?? throw Contracts.Except("Invalid TValue in GetPinger: '{0}'", typeof(long));
+            public override Action<PingerArgument> GetPinger() =>
+                _pinger as Action<PingerArgument> ?? throw Contracts.Except("Invalid TValue in GetPinger: '{0}'", typeof(PingerArgument));
 
             /// <summary>
             /// Returns whether the given column is active in this row.
@@ -930,7 +945,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         {
             private readonly DataViewRow _input;
             private readonly Delegate[] _getters;
-            private readonly Action<long> _pinger;
+            private readonly Action<PingerArgument> _pinger;
             private readonly Action _disposer;
 
             private readonly TimeSeriesRowToRowMapperTransform _parent;
@@ -942,7 +957,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             public override DataViewSchema Schema { get; }
 
             public StatefulRowImpl(DataViewRow input, TimeSeriesRowToRowMapperTransform parent,
-                DataViewSchema schema, Delegate[] getters, Action<long> pinger, Action disposer)
+                DataViewSchema schema, Delegate[] getters, Action<PingerArgument> pinger, Action disposer)
             {
                 _input = input;
                 _parent = parent;
@@ -979,8 +994,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return fn;
             }
 
-            public override Action<long> GetPinger() =>
-                _pinger as Action<long> ?? throw Contracts.Except("Invalid TValue in GetPinger: '{0}'", typeof(long));
+            public override Action<PingerArgument> GetPinger() =>
+                _pinger as Action<PingerArgument> ?? throw Contracts.Except("Invalid TValue in GetPinger: '{0}'", typeof(PingerArgument));
 
             public override ValueGetter<DataViewRowId> GetIdGetter() => _input.GetIdGetter();
 
