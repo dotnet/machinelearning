@@ -141,7 +141,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
 
         /// <summary>
-        /// Contructor for creating time series specific prediction engine. It allows update the time series model to be updated with the observations
+        /// Contructor for creating time series specific prediction engine. It allows the time series model to be updated with the observations
         /// seen at prediction time via <see cref="CheckPoint(IHostEnvironment, string)"/>
         /// </summary>
         public TimeSeriesPredictionEngine(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
@@ -269,8 +269,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="example">The example to run on.</param>
         /// <param name="prediction">The object to store the prediction in. If it's <c>null</c>, a new one will be created, otherwise the old one
         /// is reused.</param>
-        /// <param name="horizon"></param>
-        /// <param name="confidenceLevel"></param>
+        /// <param name="horizon">Used to indicate the number of values to forecast.</param>
+        /// <param name="confidenceLevel">Used in forecasting model for confidence.</param>
         public void Predict(TSrc example, ref TDst prediction, int? horizon = null, float? confidenceLevel = null)
         {
             if (example != null && prediction != null)
@@ -330,14 +330,38 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
 
         /// <summary>
-        /// This method should not be used.
+        /// Performs prediction. In the case of forecasting only task <paramref name="example"/> can be left as null.
+        /// If <paramref name="example"/> is not null then it could be used to update forecasting models with new obervation.
+        /// For anomaly detection the model is always updated with <paramref name="example"/>.
         /// </summary>
+        /// <param name="example">Input to the prediction engine.</param>
+        /// <param name="prediction">Forecasting/Prediction from the engine.</param>
         public override void Predict(TSrc example, ref TDst prediction) => Predict(example, ref prediction);
 
+        /// <summary>
+        /// Performs prediction. In the case of forecasting only task <paramref name="example"/> can be left as null.
+        /// If <paramref name="example"/> is not null then it could be used to update forecasting models with new obervation.
+        /// </summary>
+        /// <param name="example">Input to the prediction engine.</param>
+        /// <param name="horizon">Number of values to forecast.</param>
+        /// <param name="confidenceLevel">Confidence level for forecasting.</param>
+        /// <returns>Prediction/Forecasting after the model has been updated with <paramref name="example"/></returns>
         public TDst Predict(TSrc example, int? horizon = null, float? confidenceLevel = null)
         {
             TDst dst = new TDst();
             Predict(example, ref dst, horizon, confidenceLevel);
+            return dst;
+        }
+
+        /// <summary>
+        /// Forecasting only task.
+        /// </summary>
+        /// <param name="horizon">Number of values to forecast.</param>
+        /// <param name="confidenceLevel">Confidence level for forecasting.</param>
+        public TDst Predict(int? horizon = null, float? confidenceLevel = null)
+        {
+            TDst dst = new TDst();
+            Predict(null, ref dst, horizon, confidenceLevel);
             return dst;
         }
     }
@@ -355,7 +379,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="ignoreMissingColumns">To ignore missing columns. Default is false.</param>
         /// <param name="inputSchemaDefinition">Input schema definition. Default is null.</param>
         /// <param name="outputSchemaDefinition">Output schema definition. Default is null.</param>
-        /// <p>Example code can be found by searching for <i>TimeSeriesPredictionFunction</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
+        /// <p>Example code can be found by searching for <i>TimeSeriesPredictionEngine</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[

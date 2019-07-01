@@ -147,7 +147,7 @@ namespace Microsoft.ML
             => new SrCnnAnomalyEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, windowSize, backAddWindowSize, lookaheadWindowSize, averageingWindowSize, judgementWindowSize, threshold, inputColumnName);
 
         /// <summary>
-        /// Singular Spectrum Analysis (SSA) model for modeling univariate time-series forecasting.
+        /// Singular Spectrum Analysis (SSA) model for univariate time-series forecasting.
         /// For the details of the model, refer to http://arxiv.org/pdf/1206.6910.pdf.
         /// </summary>
         /// <param name="catalog">Catalog.</param>
@@ -170,7 +170,7 @@ namespace Microsoft.ML
         /// <param name="forcastingConfidentLowerBoundColumnName">The name of the confidence interval lower bound column. If not specified then confidence intervals will not be calculated.</param>
         /// <param name="forcastingConfidentUpperBoundColumnName">The name of the confidence interval upper bound column. If not specified then confidence intervals will not be calculated.</param>
         /// <param name="confidenceLevel">The confidence level for forecasting.</param>
-        /// <param name="variableHorizon">Set this to true if horizon will change after training.</param>
+        /// <param name="variableHorizon">Set this to true if horizon will change after training(at prediction time).</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[

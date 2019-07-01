@@ -53,8 +53,7 @@ namespace Samples.Dynamic
 
             // Forecast next five values.
             var forecastEngine = transformer.CreateTimeSeriesEngine<TimeSeriesData, ForecastResult>(ml);
-            var forecast = new ForecastResult();
-            forecastEngine.Predict(null, ref forecast);
+            var forecast = forecastEngine.Predict();
 
             Console.WriteLine($"Forecasted values:");
             Console.WriteLine("[{0}]", string.Join(", ", forecast.Forecast));
@@ -80,12 +79,12 @@ namespace Samples.Dynamic
             var forecastEngineCopy = modelCopy.CreateTimeSeriesEngine<TimeSeriesData, ForecastResult>(ml);
 
             // Forecast with the checkpointed model loaded from disk.
-            forecastEngineCopy.Predict(null, ref forecast);
+            forecast = forecastEngineCopy.Predict();
             Console.WriteLine("[{0}]", string.Join(", ", forecast.Forecast));
             // [1.791331, 1.255525, 0.3060154, -0.200446, 0.5657795]
 
             // Forecast with the original model(that was checkpointed to disk).
-            forecastEngine.Predict(null, ref forecast);
+            forecast = forecastEngine.Predict();
             Console.WriteLine("[{0}]", string.Join(", ", forecast.Forecast));
             // [1.791331, 1.255525, 0.3060154, -0.200446, 0.5657795]
 

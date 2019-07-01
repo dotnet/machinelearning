@@ -56,8 +56,7 @@ namespace Samples.Dynamic
 
             // Forecast next five values.
             var forecastEngine = transformer.CreateTimeSeriesEngine<TimeSeriesData, ForecastResult>(ml);
-            var forecast = new ForecastResult();
-            forecastEngine.Predict(null, ref forecast);
+            var forecast = forecastEngine.Predict();
 
             PrintForecastValuesAndIntervals(forecast.Forecast, forecast.ConfidenceLowerBound, forecast.ConfidenceUpperBound);
             // Forecasted values:
@@ -84,14 +83,14 @@ namespace Samples.Dynamic
             var forecastEngineCopy = modelCopy.CreateTimeSeriesEngine<TimeSeriesData, ForecastResult>(ml);
 
             // Forecast with the checkpointed model loaded from disk.
-            forecastEngineCopy.Predict(null, ref forecast);
+            forecast = forecastEngineCopy.Predict();
             PrintForecastValuesAndIntervals(forecast.Forecast, forecast.ConfidenceLowerBound, forecast.ConfidenceUpperBound);
             // [1.791331, 1.255525, 0.3060154, -0.200446, 0.5657795]
             // Confidence intervals:
             // [0.1592142 - 3.423448] [-0.5617217 - 3.072772] [-1.512994 - 2.125025] [-2.022905 - 1.622013] [-1.351382 - 2.482941]
 
             // Forecast with the original model(that was checkpointed to disk).
-            forecastEngine.Predict(null, ref forecast);
+            forecast = forecastEngine.Predict();
             PrintForecastValuesAndIntervals(forecast.Forecast, forecast.ConfidenceLowerBound, forecast.ConfidenceUpperBound);
             // [1.791331, 1.255525, 0.3060154, -0.200446, 0.5657795]
             // Confidence intervals:

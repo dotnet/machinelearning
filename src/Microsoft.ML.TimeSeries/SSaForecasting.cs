@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
@@ -211,7 +210,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// <format type="text/markdown"><![CDATA[
     /// To create this estimator, use [ForecastBySsa](xref:Microsoft.ML.TimeSeriesCatalog.ForecastBySsa(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32,System.Boolean, System.Single, Microsoft.ML.Transforms.TimeSeries.AnomalySide,Microsoft.ML.Transforms.TimeSeries.ErrorFunction))
     ///
-    /// [!include[io](~/../docs/samples/docs/api-reference/io-time-series-spike.md)]
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-time-series-ssa-forecast.md)]
     ///
     /// ###  Estimator Characteristics
     /// |  |  |
@@ -219,6 +218,12 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
     /// | Input column data type | <xref:System.Single> |
     /// | Output column data type | Vector of <xref:System.Single> |
+    ///
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | Yes |
+    /// | Input column data type | <xref:System.Single> |
+    /// | Output column data type | Three vectors of <xref:System.Single> |
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/time-series-props.md)]
     ///
