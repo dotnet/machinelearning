@@ -30,7 +30,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 	    // data can fit into memory, a solution is to cache the data in memory.
 	    // Caching is especially helpful when working with iterative algorithms 
 	    // which needs many data passes.
-			trainingData = mlContext.Data.Cache(trainingData);
+	    trainingData = mlContext.Data.Cache(trainingData);
 
             // Define trainer options.
             var options = new SdcaMaximumEntropyMulticlassTrainer.Options
@@ -47,7 +47,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
                     mlContext.Transforms.Conversion.MapValueToKey("Label")
                     // Apply SdcaMaximumEntropy multiclass trainer.
                     .Append(mlContext.MulticlassClassification.Trainers
-					    .SdcaMaximumEntropy(options));
+	                .SdcaMaximumEntropy(options));
 			
 
             // Train the model.
@@ -56,20 +56,20 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             // Create testing data. Use different random seed to make it different
 	    // from training data.
             var testData = mlContext.Data
-			    .LoadFromEnumerable(GenerateRandomDataPoints(500, seed: 123));
+	        .LoadFromEnumerable(GenerateRandomDataPoints(500, seed: 123));
 
             // Run the model on test data set.
             var transformedTestData = model.Transform(testData);
 
             // Convert IDataView object to a list.
             var predictions = mlContext.Data
-			    .CreateEnumerable<Prediction>(transformedTestData,
-				reuseRowObject: false).ToList();
+	        .CreateEnumerable<Prediction>(transformedTestData,
+		reuseRowObject: false).ToList();
 
             // Look at 5 predictions
             foreach (var p in predictions.Take(5))
                 Console.WriteLine($"Label: {p.Label}, " + 
-				    $"Prediction: {p.PredictedLabel}");
+		    $"Prediction: {p.PredictedLabel}");
 
             // Expected output:
             //   Label: 1, Prediction: 1
@@ -80,7 +80,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 
             // Evaluate the overall metrics
             var metrics = mlContext.MulticlassClassification
-			    .Evaluate(transformedTestData);
+	        .Evaluate(transformedTestData);
 
             PrintMetrics(metrics);
             
@@ -104,7 +104,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
         // Generates random uniform doubles in [-0.5, 0.5)
         // range with labels 1, 2 or 3.
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,
-		    int seed=0)
+	    int seed=0)
 
         {
             var random = new Random(seed);
@@ -120,7 +120,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
                     // The feature values are slightly increased by adding a
 		    // constant multiple of label.
                     Features = Enumerable.Repeat(label, 20)
-					    .Select(x => randomFloat() + label * 0.2f).ToArray()
+		        .Select(x => randomFloat() + label * 0.2f).ToArray()
 
                 };
             }
@@ -151,7 +151,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             Console.WriteLine($"Macro Accuracy: {metrics.MacroAccuracy:F2}");
             Console.WriteLine($"Log Loss: {metrics.LogLoss:F2}");
             Console.WriteLine(
-			    $"Log Loss Reduction: {metrics.LogLossReduction:F2}\n");
+	        $"Log Loss Reduction: {metrics.LogLossReduction:F2}\n");
 
             Console.WriteLine(metrics.ConfusionMatrix.GetFormattedConfusionTable());
         }
