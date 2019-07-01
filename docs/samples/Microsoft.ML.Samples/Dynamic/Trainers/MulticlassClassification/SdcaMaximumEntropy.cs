@@ -35,11 +35,11 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             var pipeline =
                     // Convert the string labels into key types.
                     mlContext.Transforms.Conversion
-		    .MapValueToKey(nameof(DataPoint.Label))
+		        .MapValueToKey(nameof(DataPoint.Label))
 
                     // Apply SdcaMaximumEntropy multiclass trainer.
                     .Append(mlContext.MulticlassClassification.Trainers
-		    .SdcaMaximumEntropy());
+		        .SdcaMaximumEntropy());
 
 
             // Train the model.
