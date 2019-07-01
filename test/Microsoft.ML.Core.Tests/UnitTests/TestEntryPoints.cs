@@ -1339,7 +1339,12 @@ namespace Microsoft.ML.RunTests
                 }
                 else if (i % 2 == 1)
                 {
-                    var trainer = new FastTreeBinaryTrainer(Env, "Label", "Features");
+                    var ftInput = new FastTreeBinaryTrainer.Options
+                    {
+                        NumberOfThreads = 1
+                    };
+
+                    var trainer = new FastTreeBinaryTrainer(Env, ftInput);
                     var rmd = new RoleMappedData(data, false,
                         RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Feature, "Features"),
                         RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, "Label"));
