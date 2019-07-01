@@ -4008,6 +4008,244 @@
       ]
     },
     {
+      "Name": "TimeSeriesProcessingEntryPoints.SsaForecasting",
+      "Desc": "This transform forecasts using Singular Spectrum Analysis (SSA).",
+      "FriendlyName": "SSA Forecasting",
+      "ShortName": "ssafcst",
+      "Inputs": [
+        {
+          "Name": "Source",
+          "Type": "String",
+          "Desc": "The name of the source column.",
+          "Aliases": [
+            "src"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Name",
+          "Type": "String",
+          "Desc": "The name of the new column.",
+          "Required": true,
+          "SortOrder": 2.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "WindowSize",
+          "Type": "Int",
+          "Desc": "The length of the window on the series for building the trajectory matrix (parameter L).",
+          "Required": true,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": 0
+        },
+        {
+          "Name": "SeriesLength",
+          "Type": "Int",
+          "Desc": "The length of series that is kept in buffer for modeling (parameter N).",
+          "Required": true,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": 0
+        },
+        {
+          "Name": "TrainSize",
+          "Type": "Int",
+          "Desc": "The length of series from the begining used for training.",
+          "Required": true,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": 0
+        },
+        {
+          "Name": "Horizon",
+          "Type": "Int",
+          "Desc": "The number of values to forecast.",
+          "Required": true,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": 0
+        },
+        {
+          "Name": "ConfidenceLevel",
+          "Type": "Float",
+          "Desc": "The confidence level in [0, 1) for forecasting.",
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": 0.95
+        },
+        {
+          "Name": "VariableHorizon",
+          "Type": "Bool",
+          "Desc": "Set this to true horizon will change at prediction time.",
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "ForcastingConfidentLowerBoundColumnName",
+          "Type": "String",
+          "Desc": "The name of the confidence interval lower bound column.",
+          "Aliases": [
+            "cnfminname"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "ForcastingConfidentUpperBoundColumnName",
+          "Type": "String",
+          "Desc": "The name of the confidence interval upper bound column.",
+          "Aliases": [
+            "cnfmaxnname"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "RankSelectionMethod",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Fixed",
+              "Exact",
+              "Fast"
+            ]
+          },
+          "Desc": "The rank selection method.",
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": "Exact"
+        },
+        {
+          "Name": "Rank",
+          "Type": "Int",
+          "Desc": "The desired rank of the subspace used for SSA projection (parameter r). This parameter should be in the range in [1, windowSize]. If set to null, the rank is automatically determined based on prediction error minimization.",
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
+          "Name": "MaxRank",
+          "Type": "Int",
+          "Desc": "The maximum rank considered during the rank selection process. If not provided (i.e. set to null), it is set to windowSize - 1.",
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
+          "Name": "ShouldStablize",
+          "Type": "Bool",
+          "Desc": "The flag determining whether the model should be stabilized.",
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "ShouldMaintainInfo",
+          "Type": "Bool",
+          "Desc": "The flag determining whether the meta information for the model needs to be maintained.",
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "MaxGrowth",
+          "Type": {
+            "Kind": "Struct",
+            "Fields": [
+              {
+                "Name": "TimeSpan",
+                "Type": "Int",
+                "Desc": "Time span of growth ratio. Must be strictly positive.",
+                "Required": false,
+                "SortOrder": 1.0,
+                "IsNullable": false,
+                "Default": 0
+              },
+              {
+                "Name": "Growth",
+                "Type": "Float",
+                "Desc": "Growth. Must be non-negative.",
+                "Required": false,
+                "SortOrder": 2.0,
+                "IsNullable": false,
+                "Default": 0.0
+              }
+            ]
+          },
+          "Desc": "The maximum growth on the exponential trend.",
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
+          "Name": "DiscountFactor",
+          "Type": "Float",
+          "Desc": "The discount factor in [0,1] used for online updates.",
+          "Aliases": [
+            "disc"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": 1.0
+        },
+        {
+          "Name": "IsAdaptive",
+          "Type": "Bool",
+          "Desc": "The flag determing whether the model is adaptive",
+          "Aliases": [
+            "adp"
+          ],
+          "Required": false,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
       "Name": "TimeSeriesProcessingEntryPoints.SsaSpikeDetector",
       "Desc": "This transform detects the spikes in a seasonal time-series using Singular Spectrum Analysis (SSA).",
       "FriendlyName": "SSA Spike Detection",

@@ -40,7 +40,7 @@ namespace Samples.Dynamic
             ITransformer model = ml.Transforms.DetectAnomalyBySrCnn(outputColumnName, inputColumnName, 16, 5, 5, 3, 8, 0.35).Fit(dataView);
 
             // Create a time series prediction engine from the model.
-            var engine = model.CreateTimeSeriesPredictionFunction<TimeSeriesData, SrCnnAnomalyDetection>(ml);
+            var engine = model.CreateTimeSeriesEngine<TimeSeriesData, SrCnnAnomalyDetection>(ml);
 
             Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
             Console.WriteLine("Data\tAlert\tScore\tMag");

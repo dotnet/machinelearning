@@ -220,25 +220,28 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return valueGetter;
             }
 
-            public Action<long> CreatePinger(DataViewRow input, Func<int, bool> activeOutput, out Action disposer)
+            public Action<PingerArgument> CreatePinger(DataViewRow input, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
-                Action<long> pinger = null;
+                Action<PingerArgument> pinger = null;
                 if (activeOutput(0))
                     pinger = MakePinger(input, State);
 
                 return pinger;
             }
 
-            private Action<long> MakePinger(DataViewRow input, SrCnnStateBase state)
+            private Action<PingerArgument> MakePinger(DataViewRow input, SrCnnStateBase state)
             {
                 _host.AssertValue(input);
                 var srcGetter = input.GetGetter<TInput>(input.Schema[_inputColumnIndex]);
-                Action<long> pinger = (long rowPosition) =>
+                Action<PingerArgument> pinger = (PingerArgument args) =>
                 {
+                    if (args.DontConsumeSource)
+                        return;
+
                     TInput src = default;
                     srcGetter(ref src);
-                    state.UpdateState(ref src, rowPosition, _parent.WindowSize > 0);
+                    state.UpdateState(ref src, args.RowPosition, _parent.WindowSize > 0);
                 };
                 return pinger;
             }
@@ -289,7 +292,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 dst = editor.Commit();
             }
 
-            private protected sealed override void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration, ref VBuffer<double> dst)
+            public sealed override void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration, ref VBuffer<double> dst)
             {
                 var outputLength = Parent.OutputLength;
 
