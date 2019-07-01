@@ -5653,41 +5653,80 @@ namespace Microsoft.ML.RunTests
                 }
             }
         }
-        /// <summary>
-        /// The model that is loaded was generated with the command line.
-        /// The below graph loads the model and calls the summarizer entrypoint.
-        /// We verify in this test that the output looks as expected.
-        /// </summary>
+
         [Fact]
-        public void SummarizeTreeEntryPointTest()
+        public void SummarizeEntryPointTest2()
         {
-            var modelPath = GetDataPath("EntryPointModels/FastTreeModelSummaryTest.bin");
+            var dataPath = GetDataPath(@"breast-cancer.txt");
             var outputPath = GetOutputPath("EntryPoints", "Summarize.txt");
-            string inputGraph =
-                $@"
-                {{
-                  'Nodes': [
-                   {{
-                    'Inputs': {{ 'PredictorModel': '$predictor_model' }},
-                    'Name': 'Models.Summarizer',
-                    'Outputs': {{ 'Summary': '$output_data' }}
-                   }}],
-                  'Inputs' : {{
-                    'predictor_model': '{modelPath.Replace(@"\", @"\\")}'
-                  }},
-                  'Outputs' : {{
-                    'output_data': '{outputPath.Replace(@"\", @"\\")}'
-                  }}
-                }}";
 
-            var jsonPath = DeleteOutputPath("graph.json");
-            File.WriteAllLines(jsonPath, new[] { inputGraph });
+            string inputGraph = @"
+             {
+                'Nodes':
+                [
+                    {
+                        'Name': 'Data.TextLoader',
+                        'Inputs':
+                        {
+                            'InputFile': '$inputFile',
+                            'Arguments':
+                            {
+                                'UseThreads': true,
+                                'HeaderFile': null,
+                                'MaxRows': null,
+                                'AllowQuoting': true,
+                                'AllowSparse': true,
+                                'InputSize': null,
+                                'Separator':
+                                [
+                                    '\t'
+                                ],
+                                'Column':
+                                [
+                                    {'Name':'Label','Type':null,'Source':[{'Min':0,'Max':0,'AutoEnd':false,'VariableEnd':false,'AllOther':false,'ForceVector':false}],'KeyCount':null},
+                                    {'Name':'Strat','Type':null,'Source':[{'Min':1,'Max':1,'AutoEnd':false,'VariableEnd':false,'AllOther':false,'ForceVector':false}],'KeyCount':null},
+                                    {'Name':'Features','Type':null,'Source':[{'Min':2,'Max':9,'AutoEnd':false,'VariableEnd':false,'AllOther':false,'ForceVector':false}],'KeyCount':null}
+                                ],
+                                'TrimWhitespace': false,
+                                'HasHeader': false
+                            }
+                        },
+                        'Outputs':
+                        {
+                            'Data': '$data'
+                        }
+                    },
+                    {
+                        'Name': 'Trainers.FastTreeBinaryClassifier',
+                        'Inputs': {'TrainingData':'$data','NumberOfThreads':1},
+                        'Outputs': {'PredictorModel':'$model'}
+                    },
+                    {
+                        'Inputs':
+                        {
+                            'PredictorModel': '$model'
+                        },
+                        'Name': 'Models.Summarizer',
+                        'Outputs':
+                        {
+                            'Summary': '$output_data'
+                        }
+                    }
+                ]
+            }
+            ";
 
-            var args = new ExecuteGraphCommand.Arguments() { GraphPath = jsonPath };
-            var cmd = new ExecuteGraphCommand(Env, args);
+            JObject graph = JObject.Parse(inputGraph);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
+            runner.SetInput("inputFile", inputFile);
+            runner.RunAll();
+            var data = runner.GetOutput<IDataView>("output_data");
+
+            using (var f = File.Open(outputPath, FileMode.OpenOrCreate))
+                ML.Data.SaveAsText(data, f);
 
             CheckEquality("EntryPoints", "Summarize.txt");
-            cmd.Run();
 
             Done();
         }
