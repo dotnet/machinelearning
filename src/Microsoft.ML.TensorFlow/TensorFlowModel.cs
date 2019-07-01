@@ -105,7 +105,7 @@ namespace Microsoft.ML.Transforms
         /// <remarks>
         /// The support for retraining is experimental.
         /// </remarks>
-        public TensorFlowEstimator RetrainTensorFlowModel(
+        internal TensorFlowEstimator RetrainTensorFlowModel(
             string[] outputColumnNames,
             string[] inputColumnNames,
             string labelColumnName,
