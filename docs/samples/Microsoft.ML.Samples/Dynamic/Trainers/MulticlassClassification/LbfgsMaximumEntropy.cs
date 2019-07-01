@@ -38,7 +38,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             var model = pipeline.Fit(trainingData);
 
             // Create testing data. Use different random seed to make it different
-			// from training data.
+	    // from training data.
             var testData = mlContext.Data
 			    .LoadFromEnumerable(GenerateRandomDataPoints(500, seed: 123));
 
