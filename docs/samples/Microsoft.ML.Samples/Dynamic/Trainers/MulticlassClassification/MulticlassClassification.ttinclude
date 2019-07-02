@@ -46,7 +46,6 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
                 .Append(mlContext.MulticlassClassification.Trainers
                 .<#=MetaTrainer#>(
                 <#=Trainer#>()));
-
 <# } else if (TrainerOptions == null) { #>
             // Define the trainer.
             var pipeline =
@@ -56,7 +55,6 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
                 // Apply <#=Trainer#> multiclass trainer.
                 .Append(mlContext.MulticlassClassification.Trainers
                 .<#=Trainer#>());
-
 <# } else { #>
             // Define trainer options.
             var options = new <#=TrainerOptions#>;
@@ -68,7 +66,6 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
                 // Apply <#=Trainer#> multiclass trainer.
                 .Append(mlContext.MulticlassClassification.Trainers
                 .<#=Trainer#>(options));
-            
 <# } #>
 
             // Train the model.

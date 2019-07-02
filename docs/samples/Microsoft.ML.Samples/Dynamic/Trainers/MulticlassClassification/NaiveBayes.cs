@@ -38,7 +38,6 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
                 .Append(mlContext.MulticlassClassification.Trainers
                 .NaiveBayes());
 
-
             // Train the model.
             var model = pipeline.Fit(trainingData);
 
