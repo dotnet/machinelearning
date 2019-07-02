@@ -25,7 +25,7 @@ namespace Microsoft.ML.CLI.Templates.Console
         /// </summary>
         public virtual string TransformText()
         {
-            Write(@"//*****************************************************************************************
+            this.Write(@"//*****************************************************************************************
 //*                                                                                       *
 //* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *
 //*                                                                                       *
@@ -35,26 +35,26 @@ using System;
 using Microsoft.ML.Data;
 
 namespace  ");
-            Write(ToStringHelper.ToStringWithCulture(Namespace));
-            Write(".Model.DataModels\r\n{\r\n    public class ModelOutput\r\n    {\r\n");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
+            this.Write(".Model.DataModels\r\n{\r\n    public class ModelOutput\r\n    {\r\n");
 if("BinaryClassification".Equals(TaskType)){ 
-            Write("        // ColumnName attribute is used to change the column name from\r\n        /" +
+            this.Write("        // ColumnName attribute is used to change the column name from\r\n        /" +
                     "/ its default value, which is the name of the field.\r\n        [ColumnName(\"Predi" +
                     "ctedLabel\")]\r\n        public bool Prediction { get; set; }\r\n\r\n");
  } if("MulticlassClassification".Equals(TaskType)){ 
-            Write("        // ColumnName attribute is used to change the column name from\r\n        /" +
+            this.Write("        // ColumnName attribute is used to change the column name from\r\n        /" +
                     "/ its default value, which is the name of the field.\r\n        [ColumnName(\"Predi" +
                     "ctedLabel\")]\r\n        public ");
-            Write(ToStringHelper.ToStringWithCulture(PredictionLabelType));
-            Write(" Prediction { get; set; }\r\n");
+            this.Write(this.ToStringHelper.ToStringWithCulture(PredictionLabelType));
+            this.Write(" Prediction { get; set; }\r\n");
  }
 if("MulticlassClassification".Equals(TaskType)){ 
-            Write("        public float[] Score { get; set; }\r\n");
+            this.Write("        public float[] Score { get; set; }\r\n");
 }else{ 
-            Write("        public float Score { get; set; }\r\n");
+            this.Write("        public float Score { get; set; }\r\n");
 }
-            Write("    }\r\n}\r\n");
-            return GenerationEnvironment.ToString();
+            this.Write("    }\r\n}\r\n");
+            return this.GenerationEnvironment.ToString();
         }
 
 public string TaskType {get;set;}
@@ -85,15 +85,15 @@ public string Namespace {get;set;}
         {
             get
             {
-                if ((generationEnvironmentField == null))
+                if ((this.generationEnvironmentField == null))
                 {
-                    generationEnvironmentField = new global::System.Text.StringBuilder();
+                    this.generationEnvironmentField = new global::System.Text.StringBuilder();
                 }
-                return generationEnvironmentField;
+                return this.generationEnvironmentField;
             }
             set
             {
-                generationEnvironmentField = value;
+                this.generationEnvironmentField = value;
             }
         }
         /// <summary>
@@ -103,11 +103,11 @@ public string Namespace {get;set;}
         {
             get
             {
-                if ((errorsField == null))
+                if ((this.errorsField == null))
                 {
-                    errorsField = new global::System.CodeDom.Compiler.CompilerErrorCollection();
+                    this.errorsField = new global::System.CodeDom.Compiler.CompilerErrorCollection();
                 }
-                return errorsField;
+                return this.errorsField;
             }
         }
         /// <summary>
@@ -117,11 +117,11 @@ public string Namespace {get;set;}
         {
             get
             {
-                if ((indentLengthsField == null))
+                if ((this.indentLengthsField == null))
                 {
-                    indentLengthsField = new global::System.Collections.Generic.List<int>();
+                    this.indentLengthsField = new global::System.Collections.Generic.List<int>();
                 }
-                return indentLengthsField;
+                return this.indentLengthsField;
             }
         }
         /// <summary>
@@ -131,7 +131,7 @@ public string Namespace {get;set;}
         {
             get
             {
-                return currentIndentField;
+                return this.currentIndentField;
             }
         }
         /// <summary>
@@ -141,11 +141,11 @@ public string Namespace {get;set;}
         {
             get
             {
-                return sessionField;
+                return this.sessionField;
             }
             set
             {
-                sessionField = value;
+                this.sessionField = value;
             }
         }
         #endregion
@@ -161,35 +161,35 @@ public string Namespace {get;set;}
             }
             // If we're starting off, or if the previous text ended with a newline,
             // we have to append the current indent first.
-            if (((GenerationEnvironment.Length == 0) 
-                        || endsWithNewline))
+            if (((this.GenerationEnvironment.Length == 0) 
+                        || this.endsWithNewline))
             {
-                GenerationEnvironment.Append(currentIndentField);
-                endsWithNewline = false;
+                this.GenerationEnvironment.Append(this.currentIndentField);
+                this.endsWithNewline = false;
             }
             // Check if the current text ends with a newline
             if (textToAppend.EndsWith(global::System.Environment.NewLine, global::System.StringComparison.CurrentCulture))
             {
-                endsWithNewline = true;
+                this.endsWithNewline = true;
             }
             // This is an optimization. If the current indent is "", then we don't have to do any
             // of the more complex stuff further down.
-            if ((currentIndentField.Length == 0))
+            if ((this.currentIndentField.Length == 0))
             {
-                GenerationEnvironment.Append(textToAppend);
+                this.GenerationEnvironment.Append(textToAppend);
                 return;
             }
             // Everywhere there is a newline in the text, add an indent after it
-            textToAppend = textToAppend.Replace(global::System.Environment.NewLine, (global::System.Environment.NewLine + currentIndentField));
+            textToAppend = textToAppend.Replace(global::System.Environment.NewLine, (global::System.Environment.NewLine + this.currentIndentField));
             // If the text ends with a newline, then we should strip off the indent added at the very end
             // because the appropriate indent will be added when the next time Write() is called
-            if (endsWithNewline)
+            if (this.endsWithNewline)
             {
-                GenerationEnvironment.Append(textToAppend, 0, (textToAppend.Length - currentIndentField.Length));
+                this.GenerationEnvironment.Append(textToAppend, 0, (textToAppend.Length - this.currentIndentField.Length));
             }
             else
             {
-                GenerationEnvironment.Append(textToAppend);
+                this.GenerationEnvironment.Append(textToAppend);
             }
         }
         /// <summary>
@@ -197,23 +197,23 @@ public string Namespace {get;set;}
         /// </summary>
         public void WriteLine(string textToAppend)
         {
-            Write(textToAppend);
-            GenerationEnvironment.AppendLine();
-            endsWithNewline = true;
+            this.Write(textToAppend);
+            this.GenerationEnvironment.AppendLine();
+            this.endsWithNewline = true;
         }
         /// <summary>
         /// Write formatted text directly into the generated output
         /// </summary>
         public void Write(string format, params object[] args)
         {
-            Write(string.Format(global::System.Globalization.CultureInfo.CurrentCulture, format, args));
+            this.Write(string.Format(global::System.Globalization.CultureInfo.CurrentCulture, format, args));
         }
         /// <summary>
         /// Write formatted text directly into the generated output
         /// </summary>
         public void WriteLine(string format, params object[] args)
         {
-            WriteLine(string.Format(global::System.Globalization.CultureInfo.CurrentCulture, format, args));
+            this.WriteLine(string.Format(global::System.Globalization.CultureInfo.CurrentCulture, format, args));
         }
         /// <summary>
         /// Raise an error
@@ -222,7 +222,7 @@ public string Namespace {get;set;}
         {
             System.CodeDom.Compiler.CompilerError error = new global::System.CodeDom.Compiler.CompilerError();
             error.ErrorText = message;
-            Errors.Add(error);
+            this.Errors.Add(error);
         }
         /// <summary>
         /// Raise a warning
@@ -232,7 +232,7 @@ public string Namespace {get;set;}
             System.CodeDom.Compiler.CompilerError error = new global::System.CodeDom.Compiler.CompilerError();
             error.ErrorText = message;
             error.IsWarning = true;
-            Errors.Add(error);
+            this.Errors.Add(error);
         }
         /// <summary>
         /// Increase the indent
@@ -243,8 +243,8 @@ public string Namespace {get;set;}
             {
                 throw new global::System.ArgumentNullException("indent");
             }
-            currentIndentField = (currentIndentField + indent);
-            indentLengths.Add(indent.Length);
+            this.currentIndentField = (this.currentIndentField + indent);
+            this.indentLengths.Add(indent.Length);
         }
         /// <summary>
         /// Remove the last indent that was added with PushIndent
@@ -252,14 +252,14 @@ public string Namespace {get;set;}
         public string PopIndent()
         {
             string returnValue = "";
-            if ((indentLengths.Count > 0))
+            if ((this.indentLengths.Count > 0))
             {
-                int indentLength = indentLengths[(indentLengths.Count - 1)];
-                indentLengths.RemoveAt((indentLengths.Count - 1));
+                int indentLength = this.indentLengths[(this.indentLengths.Count - 1)];
+                this.indentLengths.RemoveAt((this.indentLengths.Count - 1));
                 if ((indentLength > 0))
                 {
-                    returnValue = currentIndentField.Substring((currentIndentField.Length - indentLength));
-                    currentIndentField = currentIndentField.Remove((currentIndentField.Length - indentLength));
+                    returnValue = this.currentIndentField.Substring((this.currentIndentField.Length - indentLength));
+                    this.currentIndentField = this.currentIndentField.Remove((this.currentIndentField.Length - indentLength));
                 }
             }
             return returnValue;
@@ -269,8 +269,8 @@ public string Namespace {get;set;}
         /// </summary>
         public void ClearIndent()
         {
-            indentLengths.Clear();
-            currentIndentField = "";
+            this.indentLengths.Clear();
+            this.currentIndentField = "";
         }
         #endregion
         #region ToString Helpers
@@ -287,13 +287,13 @@ public string Namespace {get;set;}
             {
                 get
                 {
-                    return formatProviderField ;
+                    return this.formatProviderField ;
                 }
                 set
                 {
                     if ((value != null))
                     {
-                        formatProviderField  = value;
+                        this.formatProviderField  = value;
                     }
                 }
             }
@@ -316,7 +316,7 @@ public string Namespace {get;set;}
                 else
                 {
                     return ((string)(method.Invoke(objectToConvert, new object[] {
-                                formatProviderField })));
+                                this.formatProviderField })));
                 }
             }
         }
@@ -328,7 +328,7 @@ public string Namespace {get;set;}
         {
             get
             {
-                return toStringHelperField;
+                return this.toStringHelperField;
             }
         }
         #endregion
