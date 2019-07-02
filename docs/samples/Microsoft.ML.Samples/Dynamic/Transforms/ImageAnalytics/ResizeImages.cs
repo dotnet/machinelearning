@@ -64,6 +64,7 @@ namespace Samples.Dynamic
         {
             Console.WriteLine("{0, -25} {1, -25} {2, -25} {3, -25}", "ImagePath",
                 "Name", "ImageObject", "ImageObjectResized");
+
             using (var cursor = transformedData.GetRowCursor(transformedData
                 .Schema))
             {

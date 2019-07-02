@@ -47,8 +47,8 @@ namespace Samples.Dynamic
 
             foreach (var featureRow in features)
                 Console.WriteLine($"{featureRow.StudyTime}\t\t" +
-                $"{featureRow.StudyTimeCategory}\t\t\t{featureRow.Course}\t\t" +
-                $"{featureRow.CourseCategory}");
+                    $"{featureRow.StudyTimeCategory}\t\t\t{featureRow.Course}\t\t" +
+                    $"{featureRow.CourseCategory}");
 
             // TransformedData obtained post-transformation.
             //
