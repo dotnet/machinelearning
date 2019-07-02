@@ -9,8 +9,8 @@ string Trainer = @"OnlineGradientDescent(
                 featureColumnName: nameof(DataPoint.Features))";
 string TrainerOptions = null;
 
-string ExpectedOutputPerInstance= @"
-    // This trainer is not numerically stable. Please see issue #2425.";
+string ExpectedOutputPerInstance= @"// This trainer is not numerically stable.
+            // Please see issue #2425.";
 
 string ExpectedOutput = @"";
 #>

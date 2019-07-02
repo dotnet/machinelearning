@@ -48,8 +48,8 @@ namespace Samples.Dynamic.Trainers.Regression
             foreach (var p in predictions)
                 Console.WriteLine($"Label: {p.Label:F3}, Prediction: {p.Score:F3}");
 
-            
-    // This trainer is not numerically stable. Please see issue #2425.
+            // This trainer is not numerically stable.
+            // Please see issue #2425.
 
             // Evaluate the overall metrics
             var metrics = mlContext.Regression.Evaluate(transformedTestData);
