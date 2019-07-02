@@ -1,7 +1,6 @@
-﻿using System;
+using System;
 using System.Reflection;
 using Samples.Dynamic;
-using Samples.Dynamic.Trainers.BinaryClassification;
 
 namespace Microsoft.ML.Samples
 {
