@@ -14,6 +14,9 @@
     <PackageReference Include="Microsoft.ML.LightGbm" Version="1.2.0" />
     <PackageReference Include="Microsoft.ML.ImageAnalytics" Version="1.2.0" />
     <PackageReference Include="Microsoft.ML.Mkl.Components" Version="1.2.0" />
+    <PackageReference Include="Microsoft.ML.TimeSeries" Version="1.2.0" />
+    <PackageReference Include="Microsoft.ML.TensorFlow" Version="1.2.0" />
+    <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="1.2.0" />
   </ItemGroup>
 
   <!-- The purpose of this target is to return a path from a referenced
