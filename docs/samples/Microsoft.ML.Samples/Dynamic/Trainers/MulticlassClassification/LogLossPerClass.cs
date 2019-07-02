@@ -30,7 +30,8 @@ namespace Samples.Dynamic
                         .MapValueToKey(nameof(DataPoint.Label))
 
                     // Apply a multiclass trainer.
-                    .Append(mlContext.MulticlassClassification.Trainers.LightGbm());
+                        .Append(mlContext.MulticlassClassification.Trainers
+                        .LightGbm());
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
