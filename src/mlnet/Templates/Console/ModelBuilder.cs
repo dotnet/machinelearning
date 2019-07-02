@@ -27,7 +27,7 @@ namespace Microsoft.ML.CLI.Templates.Console
         /// </summary>
         public virtual string TransformText()
         {
-            Write(@"//*****************************************************************************************
+            this.Write(@"//*****************************************************************************************
 //*                                                                                       *
 //* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *
 //*                                                                                       *
@@ -40,23 +40,23 @@ using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using ");
-            Write(ToStringHelper.ToStringWithCulture(Namespace));
-            Write(".Model.DataModels;\r\n");
-            Write(ToStringHelper.ToStringWithCulture(GeneratedUsings));
-            Write("\r\nnamespace ");
-            Write(ToStringHelper.ToStringWithCulture(Namespace));
-            Write(".ConsoleApp\r\n{\r\n    public static class ModelBuilder\r\n    {\r\n        private stat" +
+            this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
+            this.Write(".Model.DataModels;\r\n");
+            this.Write(this.ToStringHelper.ToStringWithCulture(GeneratedUsings));
+            this.Write("\r\nnamespace ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
+            this.Write(".ConsoleApp\r\n{\r\n    public static class ModelBuilder\r\n    {\r\n        private stat" +
                     "ic string TRAIN_DATA_FILEPATH = @\"");
-            Write(ToStringHelper.ToStringWithCulture(Path));
-            Write("\";\r\n");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Path));
+            this.Write("\";\r\n");
 if(!string.IsNullOrEmpty(TestPath)){ 
-            Write("        private static string TEST_DATA_FILEPATH = @\"");
-            Write(ToStringHelper.ToStringWithCulture(TestPath));
-            Write("\";\r\n");
+            this.Write("        private static string TEST_DATA_FILEPATH = @\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(TestPath));
+            this.Write("\";\r\n");
  } 
-            Write("        private static string MODEL_FILEPATH = @\"../../../../");
-            Write(ToStringHelper.ToStringWithCulture(Namespace));
-            Write(@".Model/MLModel.zip"";
+            this.Write("        private static string MODEL_FILEPATH = @\"../../../../");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
+            this.Write(@".Model/MLModel.zip"";
 
         // Create MLContext to be shared across the model creation workflow objects 
         // Set a random seed for repeatable/deterministic results across multiple trainings.
@@ -68,44 +68,44 @@ if(!string.IsNullOrEmpty(TestPath)){
             IDataView trainingDataView = mlContext.Data.LoadFromTextFile<ModelInput>(
                                             path: TRAIN_DATA_FILEPATH,
                                             hasHeader : ");
-            Write(ToStringHelper.ToStringWithCulture(HasHeader.ToString().ToLowerInvariant()));
-            Write(",\r\n                                            separatorChar : \'");
-            Write(ToStringHelper.ToStringWithCulture(Regex.Escape(Separator.ToString())));
-            Write("\',\r\n                                            allowQuoting : ");
-            Write(ToStringHelper.ToStringWithCulture(AllowQuoting.ToString().ToLowerInvariant()));
-            Write(",\r\n                                            allowSparse: ");
-            Write(ToStringHelper.ToStringWithCulture(AllowSparse.ToString().ToLowerInvariant()));
-            Write(");\r\n\r\n");
+            this.Write(this.ToStringHelper.ToStringWithCulture(HasHeader.ToString().ToLowerInvariant()));
+            this.Write(",\r\n                                            separatorChar : \'");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Regex.Escape(Separator.ToString())));
+            this.Write("\',\r\n                                            allowQuoting : ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(AllowQuoting.ToString().ToLowerInvariant()));
+            this.Write(",\r\n                                            allowSparse: ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(AllowSparse.ToString().ToLowerInvariant()));
+            this.Write(");\r\n\r\n");
  if(!string.IsNullOrEmpty(TestPath)){ 
-            Write("            IDataView testDataView = mlContext.Data.LoadFromTextFile<ModelInput>(" +
+            this.Write("            IDataView testDataView = mlContext.Data.LoadFromTextFile<ModelInput>(" +
                     "\r\n                                            path: TEST_DATA_FILEPATH,\r\n       " +
                     "                                     hasHeader : ");
-            Write(ToStringHelper.ToStringWithCulture(HasHeader.ToString().ToLowerInvariant()));
-            Write(",\r\n                                            separatorChar : \'");
-            Write(ToStringHelper.ToStringWithCulture(Regex.Escape(Separator.ToString())));
-            Write("\',\r\n                                            allowQuoting : ");
-            Write(ToStringHelper.ToStringWithCulture(AllowQuoting.ToString().ToLowerInvariant()));
-            Write(",\r\n                                            allowSparse: ");
-            Write(ToStringHelper.ToStringWithCulture(AllowSparse.ToString().ToLowerInvariant()));
-            Write(");\r\n");
+            this.Write(this.ToStringHelper.ToStringWithCulture(HasHeader.ToString().ToLowerInvariant()));
+            this.Write(",\r\n                                            separatorChar : \'");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Regex.Escape(Separator.ToString())));
+            this.Write("\',\r\n                                            allowQuoting : ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(AllowQuoting.ToString().ToLowerInvariant()));
+            this.Write(",\r\n                                            allowSparse: ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(AllowSparse.ToString().ToLowerInvariant()));
+            this.Write(");\r\n");
 }
-            Write("            // Build training pipeline\r\n            IEstimator<ITransformer> trai" +
+            this.Write("            // Build training pipeline\r\n            IEstimator<ITransformer> trai" +
                     "ningPipeline = BuildTrainingPipeline(mlContext);\r\n\r\n");
  if(string.IsNullOrEmpty(TestPath)){ 
-            Write("            // Evaluate quality of Model\r\n            Evaluate(mlContext, trainin" +
+            this.Write("            // Evaluate quality of Model\r\n            Evaluate(mlContext, trainin" +
                     "gDataView, trainingPipeline);\r\n\r\n");
 }
-            Write("            // Train Model\r\n            ITransformer mlModel = TrainModel(mlConte" +
+            this.Write("            // Train Model\r\n            ITransformer mlModel = TrainModel(mlConte" +
                     "xt, trainingDataView, trainingPipeline);\r\n");
  if(!string.IsNullOrEmpty(TestPath)){ 
-            Write("\r\n            // Evaluate quality of Model\r\n            EvaluateModel(mlContext, " +
+            this.Write("\r\n            // Evaluate quality of Model\r\n            EvaluateModel(mlContext, " +
                     "mlModel, testDataView);\r\n");
 }
-            Write("\r\n            // Save model\r\n            SaveModel(mlContext, mlModel, MODEL_FILE" +
+            this.Write("\r\n            // Save model\r\n            SaveModel(mlContext, mlModel, MODEL_FILE" +
                     "PATH, trainingDataView.Schema);\r\n        }\r\n\r\n        public static IEstimator<I" +
                     "Transformer> BuildTrainingPipeline(MLContext mlContext)\r\n        {\r\n");
  if(PreTrainerTransforms.Count >0 ) {
-            Write("            // Data process configuration with pipeline data transformations \r\n  " +
+            this.Write("            // Data process configuration with pipeline data transformations \r\n  " +
                     "          var dataProcessPipeline = ");
  for(int i=0;i<PreTrainerTransforms.Count;i++) 
                                          { 
@@ -120,27 +120,27 @@ if(!string.IsNullOrEmpty(TestPath)){
                                       if(CacheBeforeTrainer){ 
                                            Write("\r\n                                      .AppendCacheCheckpoint(mlContext)");
                                            } 
-            Write(";\r\n");
+            this.Write(";\r\n");
 }
-            Write("\r\n            // Set the training algorithm \r\n            var trainer = mlContext" +
+            this.Write("\r\n            // Set the training algorithm \r\n            var trainer = mlContext" +
                     ".");
-            Write(ToStringHelper.ToStringWithCulture(TaskType));
-            Write(".Trainers.");
-            Write(ToStringHelper.ToStringWithCulture(Trainer));
+            this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
+            this.Write(".Trainers.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Trainer));
  for(int i=0;i<PostTrainerTransforms.Count;i++) 
                                          { 
                                              Write("\r\n                                      .Append(");
                                              Write("mlContext.Transforms."+PostTrainerTransforms[i]);
                                              Write(")");
                                          }
-            Write(";\r\n");
+            this.Write(";\r\n");
  if(PreTrainerTransforms.Count >0 ) {
-            Write("            var trainingPipeline = dataProcessPipeline.Append(trainer);\r\n");
+            this.Write("            var trainingPipeline = dataProcessPipeline.Append(trainer);\r\n");
  }
 else{
-            Write("            var trainingPipeline = trainer;\r\n");
+            this.Write("            var trainingPipeline = trainer;\r\n");
 }
-            Write(@"
+            this.Write(@"
             return trainingPipeline;
         }
 
@@ -156,71 +156,71 @@ else{
 
 ");
  if(!string.IsNullOrEmpty(TestPath)){ 
-            Write(@"        private static void EvaluateModel(MLContext mlContext, ITransformer mlModel, IDataView testDataView)
+            this.Write(@"        private static void EvaluateModel(MLContext mlContext, ITransformer mlModel, IDataView testDataView)
         {
             // Evaluate the model and show accuracy stats
             Console.WriteLine(""===== Evaluating Model's accuracy with Test data ====="");
             IDataView predictions = mlModel.Transform(testDataView);
 ");
 if("BinaryClassification".Equals(TaskType)){ 
-            Write("            var metrics = mlContext.");
-            Write(ToStringHelper.ToStringWithCulture(TaskType));
-            Write(".EvaluateNonCalibrated(predictions, \"");
-            Write(ToStringHelper.ToStringWithCulture(LabelName));
-            Write("\", \"Score\");\r\n            PrintBinaryClassificationMetrics(metrics);\r\n");
+            this.Write("            var metrics = mlContext.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
+            this.Write(".EvaluateNonCalibrated(predictions, \"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
+            this.Write("\", \"Score\");\r\n            PrintBinaryClassificationMetrics(metrics);\r\n");
 } if("MulticlassClassification".Equals(TaskType)){ 
-            Write("            var metrics = mlContext.");
-            Write(ToStringHelper.ToStringWithCulture(TaskType));
-            Write(".Evaluate(predictions, \"");
-            Write(ToStringHelper.ToStringWithCulture(LabelName));
-            Write("\", \"Score\");\r\n            PrintMulticlassClassificationMetrics(metrics);\r\n");
+            this.Write("            var metrics = mlContext.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
+            this.Write(".Evaluate(predictions, \"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
+            this.Write("\", \"Score\");\r\n            PrintMulticlassClassificationMetrics(metrics);\r\n");
 }if("Regression".Equals(TaskType)){ 
-            Write("            var metrics = mlContext.");
-            Write(ToStringHelper.ToStringWithCulture(TaskType));
-            Write(".Evaluate(predictions, \"");
-            Write(ToStringHelper.ToStringWithCulture(LabelName));
-            Write("\", \"Score\");\r\n            PrintRegressionMetrics(metrics);\r\n");
+            this.Write("            var metrics = mlContext.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
+            this.Write(".Evaluate(predictions, \"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
+            this.Write("\", \"Score\");\r\n            PrintRegressionMetrics(metrics);\r\n");
 } 
-            Write("        }\r\n");
+            this.Write("        }\r\n");
 }else{
-            Write(@"        private static void Evaluate(MLContext mlContext, IDataView trainingDataView, IEstimator<ITransformer> trainingPipeline)
+            this.Write(@"        private static void Evaluate(MLContext mlContext, IDataView trainingDataView, IEstimator<ITransformer> trainingPipeline)
         {
             // Cross-Validate with single dataset (since we don't have two datasets, one for training and for evaluate)
             // in order to evaluate and get the model's accuracy metrics
             Console.WriteLine(""=============== Cross-validating to get model's accuracy metrics ==============="");
 ");
 if("BinaryClassification".Equals(TaskType)){ 
-            Write("            var crossValidationResults = mlContext.");
-            Write(ToStringHelper.ToStringWithCulture(TaskType));
-            Write(".CrossValidateNonCalibrated(trainingDataView, trainingPipeline, numberOfFolds: ");
-            Write(ToStringHelper.ToStringWithCulture(Kfolds));
-            Write(", labelColumnName:\"");
-            Write(ToStringHelper.ToStringWithCulture(LabelName));
-            Write("\");\r\n            PrintBinaryClassificationFoldsAverageMetrics(crossValidationResu" +
+            this.Write("            var crossValidationResults = mlContext.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
+            this.Write(".CrossValidateNonCalibrated(trainingDataView, trainingPipeline, numberOfFolds: ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Kfolds));
+            this.Write(", labelColumnName:\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
+            this.Write("\");\r\n            PrintBinaryClassificationFoldsAverageMetrics(crossValidationResu" +
                     "lts);\r\n");
 }
 if("MulticlassClassification".Equals(TaskType)){ 
-            Write("            var crossValidationResults = mlContext.");
-            Write(ToStringHelper.ToStringWithCulture(TaskType));
-            Write(".CrossValidate(trainingDataView, trainingPipeline, numberOfFolds: ");
-            Write(ToStringHelper.ToStringWithCulture(Kfolds));
-            Write(", labelColumnName:\"");
-            Write(ToStringHelper.ToStringWithCulture(LabelName));
-            Write("\");\r\n            PrintMulticlassClassificationFoldsAverageMetrics(crossValidation" +
+            this.Write("            var crossValidationResults = mlContext.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
+            this.Write(".CrossValidate(trainingDataView, trainingPipeline, numberOfFolds: ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Kfolds));
+            this.Write(", labelColumnName:\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
+            this.Write("\");\r\n            PrintMulticlassClassificationFoldsAverageMetrics(crossValidation" +
                     "Results);\r\n");
 }
 if("Regression".Equals(TaskType)){ 
-            Write("            var crossValidationResults = mlContext.");
-            Write(ToStringHelper.ToStringWithCulture(TaskType));
-            Write(".CrossValidate(trainingDataView, trainingPipeline, numberOfFolds: ");
-            Write(ToStringHelper.ToStringWithCulture(Kfolds));
-            Write(", labelColumnName:\"");
-            Write(ToStringHelper.ToStringWithCulture(LabelName));
-            Write("\");\r\n            PrintRegressionFoldsAverageMetrics(crossValidationResults);\r\n");
+            this.Write("            var crossValidationResults = mlContext.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
+            this.Write(".CrossValidate(trainingDataView, trainingPipeline, numberOfFolds: ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Kfolds));
+            this.Write(", labelColumnName:\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
+            this.Write("\");\r\n            PrintRegressionFoldsAverageMetrics(crossValidationResults);\r\n");
 }
-            Write("        }\r\n");
+            this.Write("        }\r\n");
 }
-            Write(@"        private static void SaveModel(MLContext mlContext, ITransformer mlModel, string modelRelativePath, DataViewSchema modelInputSchema)
+            this.Write(@"        private static void SaveModel(MLContext mlContext, ITransformer mlModel, string modelRelativePath, DataViewSchema modelInputSchema)
         {
             // Save/persist the trained model to a .ZIP file
             Console.WriteLine($""=============== Saving the model  ==============="");
@@ -240,7 +240,7 @@ if("Regression".Equals(TaskType)){
 
 ");
 if("Regression".Equals(TaskType)){ 
-            Write("        public static void PrintRegressionMetrics(RegressionMetrics metrics)\r\n   " +
+            this.Write("        public static void PrintRegressionMetrics(RegressionMetrics metrics)\r\n   " +
                     "     {\r\n            Console.WriteLine($\"****************************************" +
                     "*********\");\r\n            Console.WriteLine($\"*       Metrics for regression mod" +
                     "el      \");\r\n            Console.WriteLine($\"*----------------------------------" +
@@ -272,7 +272,7 @@ if("Regression".Equals(TaskType)){
                     "\r\n            Console.WriteLine($\"**********************************************" +
                     "***************************************************************\");\r\n        }\r\n");
  } if("BinaryClassification".Equals(TaskType)){ 
-            Write("        public static void PrintBinaryClassificationMetrics(BinaryClassificationM" +
+            this.Write("        public static void PrintBinaryClassificationMetrics(BinaryClassificationM" +
                     "etrics metrics)\r\n        {\r\n            Console.WriteLine($\"********************" +
                     "****************************************\");\r\n            Console.WriteLine($\"*  " +
                     "     Metrics for binary classification model      \");\r\n            Console.Write" +
@@ -307,7 +307,7 @@ if("Regression".Equals(TaskType)){
                     "95 = 1.96 * CalculateStandardDeviation(values) / Math.Sqrt((values.Count() - 1))" +
                     ";\r\n            return confidenceInterval95;\r\n        }\r\n");
 } if("MulticlassClassification".Equals(TaskType)){
-            Write("        public static void PrintMulticlassClassificationMetrics(MulticlassClassif" +
+            this.Write("        public static void PrintMulticlassClassificationMetrics(MulticlassClassif" +
                     "icationMetrics metrics)\r\n        {\r\n            Console.WriteLine($\"************" +
                     "************************************************\");\r\n            Console.WriteLi" +
                     "ne($\"*    Metrics for multi-class classification model   \");\r\n            Consol" +
@@ -371,8 +371,8 @@ if("Regression".Equals(TaskType)){
                     "ndardDeviation(values) / Math.Sqrt((values.Count() - 1));\r\n            return co" +
                     "nfidenceInterval95;\r\n        }\r\n");
 }
-            Write("    }\r\n}\r\n");
-            return GenerationEnvironment.ToString();
+            this.Write("    }\r\n}\r\n");
+            return this.GenerationEnvironment.ToString();
         }
 
 public string Path {get;set;}
@@ -415,15 +415,15 @@ public IList<string> PostTrainerTransforms {get;set;}
         {
             get
             {
-                if ((generationEnvironmentField == null))
+                if ((this.generationEnvironmentField == null))
                 {
-                    generationEnvironmentField = new global::System.Text.StringBuilder();
+                    this.generationEnvironmentField = new global::System.Text.StringBuilder();
                 }
-                return generationEnvironmentField;
+                return this.generationEnvironmentField;
             }
             set
             {
-                generationEnvironmentField = value;
+                this.generationEnvironmentField = value;
             }
         }
         /// <summary>
@@ -433,11 +433,11 @@ public IList<string> PostTrainerTransforms {get;set;}
         {
             get
             {
-                if ((errorsField == null))
+                if ((this.errorsField == null))
                 {
-                    errorsField = new global::System.CodeDom.Compiler.CompilerErrorCollection();
+                    this.errorsField = new global::System.CodeDom.Compiler.CompilerErrorCollection();
                 }
-                return errorsField;
+                return this.errorsField;
             }
         }
         /// <summary>
@@ -447,11 +447,11 @@ public IList<string> PostTrainerTransforms {get;set;}
         {
             get
             {
-                if ((indentLengthsField == null))
+                if ((this.indentLengthsField == null))
                 {
-                    indentLengthsField = new global::System.Collections.Generic.List<int>();
+                    this.indentLengthsField = new global::System.Collections.Generic.List<int>();
                 }
-                return indentLengthsField;
+                return this.indentLengthsField;
             }
         }
         /// <summary>
@@ -461,7 +461,7 @@ public IList<string> PostTrainerTransforms {get;set;}
         {
             get
             {
-                return currentIndentField;
+                return this.currentIndentField;
             }
         }
         /// <summary>
@@ -471,11 +471,11 @@ public IList<string> PostTrainerTransforms {get;set;}
         {
             get
             {
-                return sessionField;
+                return this.sessionField;
             }
             set
             {
-                sessionField = value;
+                this.sessionField = value;
             }
         }
         #endregion
@@ -491,35 +491,35 @@ public IList<string> PostTrainerTransforms {get;set;}
             }
             // If we're starting off, or if the previous text ended with a newline,
             // we have to append the current indent first.
-            if (((GenerationEnvironment.Length == 0) 
-                        || endsWithNewline))
+            if (((this.GenerationEnvironment.Length == 0) 
+                        || this.endsWithNewline))
             {
-                GenerationEnvironment.Append(currentIndentField);
-                endsWithNewline = false;
+                this.GenerationEnvironment.Append(this.currentIndentField);
+                this.endsWithNewline = false;
             }
             // Check if the current text ends with a newline
             if (textToAppend.EndsWith(global::System.Environment.NewLine, global::System.StringComparison.CurrentCulture))
             {
-                endsWithNewline = true;
+                this.endsWithNewline = true;
             }
             // This is an optimization. If the current indent is "", then we don't have to do any
             // of the more complex stuff further down.
-            if ((currentIndentField.Length == 0))
+            if ((this.currentIndentField.Length == 0))
             {
-                GenerationEnvironment.Append(textToAppend);
+                this.GenerationEnvironment.Append(textToAppend);
                 return;
             }
             // Everywhere there is a newline in the text, add an indent after it
-            textToAppend = textToAppend.Replace(global::System.Environment.NewLine, (global::System.Environment.NewLine + currentIndentField));
+            textToAppend = textToAppend.Replace(global::System.Environment.NewLine, (global::System.Environment.NewLine + this.currentIndentField));
             // If the text ends with a newline, then we should strip off the indent added at the very end
             // because the appropriate indent will be added when the next time Write() is called
-            if (endsWithNewline)
+            if (this.endsWithNewline)
             {
-                GenerationEnvironment.Append(textToAppend, 0, (textToAppend.Length - currentIndentField.Length));
+                this.GenerationEnvironment.Append(textToAppend, 0, (textToAppend.Length - this.currentIndentField.Length));
             }
             else
             {
-                GenerationEnvironment.Append(textToAppend);
+                this.GenerationEnvironment.Append(textToAppend);
             }
         }
         /// <summary>
@@ -527,23 +527,23 @@ public IList<string> PostTrainerTransforms {get;set;}
         /// </summary>
         public void WriteLine(string textToAppend)
         {
-            Write(textToAppend);
-            GenerationEnvironment.AppendLine();
-            endsWithNewline = true;
+            this.Write(textToAppend);
+            this.GenerationEnvironment.AppendLine();
+            this.endsWithNewline = true;
         }
         /// <summary>
         /// Write formatted text directly into the generated output
         /// </summary>
         public void Write(string format, params object[] args)
         {
-            Write(string.Format(global::System.Globalization.CultureInfo.CurrentCulture, format, args));
+            this.Write(string.Format(global::System.Globalization.CultureInfo.CurrentCulture, format, args));
         }
         /// <summary>
         /// Write formatted text directly into the generated output
         /// </summary>
         public void WriteLine(string format, params object[] args)
         {
-            WriteLine(string.Format(global::System.Globalization.CultureInfo.CurrentCulture, format, args));
+            this.WriteLine(string.Format(global::System.Globalization.CultureInfo.CurrentCulture, format, args));
         }
         /// <summary>
         /// Raise an error
@@ -552,7 +552,7 @@ public IList<string> PostTrainerTransforms {get;set;}
         {
             System.CodeDom.Compiler.CompilerError error = new global::System.CodeDom.Compiler.CompilerError();
             error.ErrorText = message;
-            Errors.Add(error);
+            this.Errors.Add(error);
         }
         /// <summary>
         /// Raise a warning
@@ -562,7 +562,7 @@ public IList<string> PostTrainerTransforms {get;set;}
             System.CodeDom.Compiler.CompilerError error = new global::System.CodeDom.Compiler.CompilerError();
             error.ErrorText = message;
             error.IsWarning = true;
-            Errors.Add(error);
+            this.Errors.Add(error);
         }
         /// <summary>
         /// Increase the indent
@@ -573,8 +573,8 @@ public IList<string> PostTrainerTransforms {get;set;}
             {
                 throw new global::System.ArgumentNullException("indent");
             }
-            currentIndentField = (currentIndentField + indent);
-            indentLengths.Add(indent.Length);
+            this.currentIndentField = (this.currentIndentField + indent);
+            this.indentLengths.Add(indent.Length);
         }
         /// <summary>
         /// Remove the last indent that was added with PushIndent
@@ -582,14 +582,14 @@ public IList<string> PostTrainerTransforms {get;set;}
         public string PopIndent()
         {
             string returnValue = "";
-            if ((indentLengths.Count > 0))
+            if ((this.indentLengths.Count > 0))
             {
-                int indentLength = indentLengths[(indentLengths.Count - 1)];
-                indentLengths.RemoveAt((indentLengths.Count - 1));
+                int indentLength = this.indentLengths[(this.indentLengths.Count - 1)];
+                this.indentLengths.RemoveAt((this.indentLengths.Count - 1));
                 if ((indentLength > 0))
                 {
-                    returnValue = currentIndentField.Substring((currentIndentField.Length - indentLength));
-                    currentIndentField = currentIndentField.Remove((currentIndentField.Length - indentLength));
+                    returnValue = this.currentIndentField.Substring((this.currentIndentField.Length - indentLength));
+                    this.currentIndentField = this.currentIndentField.Remove((this.currentIndentField.Length - indentLength));
                 }
             }
             return returnValue;
@@ -599,8 +599,8 @@ public IList<string> PostTrainerTransforms {get;set;}
         /// </summary>
         public void ClearIndent()
         {
-            indentLengths.Clear();
-            currentIndentField = "";
+            this.indentLengths.Clear();
+            this.currentIndentField = "";
         }
         #endregion
         #region ToString Helpers
@@ -617,13 +617,13 @@ public IList<string> PostTrainerTransforms {get;set;}
             {
                 get
                 {
-                    return formatProviderField ;
+                    return this.formatProviderField ;
                 }
                 set
                 {
                     if ((value != null))
                     {
-                        formatProviderField  = value;
+                        this.formatProviderField  = value;
                     }
                 }
             }
@@ -646,7 +646,7 @@ public IList<string> PostTrainerTransforms {get;set;}
                 else
                 {
                     return ((string)(method.Invoke(objectToConvert, new object[] {
-                                formatProviderField })));
+                                this.formatProviderField })));
                 }
             }
         }
@@ -658,7 +658,7 @@ public IList<string> PostTrainerTransforms {get;set;}
         {
             get
             {
-                return toStringHelperField;
+                return this.toStringHelperField;
             }
         }
         #endregion
