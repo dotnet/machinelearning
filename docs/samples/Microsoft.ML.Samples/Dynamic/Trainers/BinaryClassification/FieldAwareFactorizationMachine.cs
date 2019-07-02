@@ -191,7 +191,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
 
         // Function used to show evaluation metrics such as accuracy of predictions.
         private static void PrintMetrics(
-		    CalibratedBinaryClassificationMetrics metrics)
+	    CalibratedBinaryClassificationMetrics metrics)
 
         {
             Console.WriteLine($"Accuracy: {metrics.Accuracy:F2}");
