@@ -970,8 +970,8 @@ namespace Microsoft.ML.RunTests
                 var data = splitOutput.TrainData[i];
                 if (i % 2 == 0)
                 {
-                    data = new TextFeaturizingEstimator(Env, "Features", new List<string> { "Text" }, 
-                        new TextFeaturizingEstimator.Options { 
+                    data = new TextFeaturizingEstimator(Env, "Features", new List<string> { "Text" },
+                        new TextFeaturizingEstimator.Options {
                             StopWordsRemoverOptions = new StopWordsRemovingEstimator.Options(),
                         }).Fit(data).Transform(data);
                 }
@@ -1339,7 +1339,14 @@ namespace Microsoft.ML.RunTests
                 }
                 else if (i % 2 == 1)
                 {
-                    var trainer = new FastTreeBinaryTrainer(Env, "Label", "Features");
+                    var ftInput = new FastTreeBinaryTrainer.Options
+                    {
+                        NumberOfThreads = 1,
+                        NumberOfLeaves = 5,
+                        NumberOfTrees = 2
+                    };
+
+                    var trainer = new FastTreeBinaryTrainer(Env, ftInput);
                     var rmd = new RoleMappedData(data, false,
                         RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Feature, "Features"),
                         RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, "Label"));
@@ -5652,6 +5659,83 @@ namespace Microsoft.ML.RunTests
                     loadedModel = ml.Model.Load(stream, out var inputSchema);
                 }
             }
+        }
+
+        [Fact]
+        public void SummarizeEntryPointTest()
+        {
+            var dataPath = GetDataPath(@"breast-cancer.txt");
+            var outputPath = GetOutputPath("EntryPoints", "Summarize.txt");
+
+            string inputGraph = @"
+             {
+                'Nodes':
+                [
+                    {
+                        'Name': 'Data.TextLoader',
+                        'Inputs':
+                        {
+                            'InputFile': '$inputFile',
+                            'Arguments':
+                            {
+                                'UseThreads': true,
+                                'HeaderFile': null,
+                                'MaxRows': null,
+                                'AllowQuoting': true,
+                                'AllowSparse': true,
+                                'InputSize': null,
+                                'Separator':
+                                [
+                                    '\t'
+                                ],
+                                'Column':
+                                [
+                                    {'Name':'Label','Type':null,'Source':[{'Min':0,'Max':0,'AutoEnd':false,'VariableEnd':false,'AllOther':false,'ForceVector':false}],'KeyCount':null},
+                                    {'Name':'Strat','Type':null,'Source':[{'Min':1,'Max':1,'AutoEnd':false,'VariableEnd':false,'AllOther':false,'ForceVector':false}],'KeyCount':null},
+                                    {'Name':'Features','Type':null,'Source':[{'Min':2,'Max':9,'AutoEnd':false,'VariableEnd':false,'AllOther':false,'ForceVector':false}],'KeyCount':null}
+                                ],
+                                'TrimWhitespace': false,
+                                'HasHeader': false
+                            }
+                        },
+                        'Outputs':
+                        {
+                            'Data': '$data'
+                        }
+                    },
+                    {
+                        'Name': 'Trainers.FastTreeBinaryClassifier',
+                        'Inputs': {'TrainingData':'$data','NumberOfThreads':1},
+                        'Outputs': {'PredictorModel':'$model'}
+                    },
+                    {
+                        'Inputs':
+                        {
+                            'PredictorModel': '$model'
+                        },
+                        'Name': 'Models.Summarizer',
+                        'Outputs':
+                        {
+                            'Summary': '$output_data'
+                        }
+                    }
+                ]
+            }
+            ";
+
+            JObject graph = JObject.Parse(inputGraph);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
+            runner.SetInput("inputFile", inputFile);
+            runner.RunAll();
+            var data = runner.GetOutput<IDataView>("output_data");
+
+            using (var f = File.Open(outputPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                ML.Data.SaveAsText(data, f);
+
+            CheckEquality("EntryPoints", "Summarize.txt");
+
+            Done();
         }
     }
 }

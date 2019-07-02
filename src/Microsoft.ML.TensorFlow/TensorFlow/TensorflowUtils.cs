@@ -14,7 +14,7 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms.TensorFlow
 {
-    public static class TensorFlowUtils
+    internal static class TensorFlowUtils
     {
         /// <summary>
         /// Key to access operator's type (a string) in <see cref="DataViewSchema.Column.Annotations"/>.
