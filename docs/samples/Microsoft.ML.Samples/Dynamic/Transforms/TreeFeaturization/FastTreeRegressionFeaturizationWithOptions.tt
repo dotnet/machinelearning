@@ -32,15 +32,18 @@ string Options = @"FastTreeRegressionFeaturizationEstimator.Options
             }";
 
 string ExpectedOutput = @"// Expected output:
-            //   The original feature vector [1.543569,1.494266,1.284405] is transformed to three different tree-based feature vectors:
+            //   The original feature vector [1.543569,1.494266,1.284405] is
+            //   transformed to three different tree-based feature vectors:
             //     Trees' output values: [0.1507567,0.1372715,0.1019326].
             //     Leave IDs' 0-1 representation: [0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0].
             //     Paths IDs' 0-1 representation: [1,0,0,0,0,1,1,1,0,0,1,1,1,1,0].
-            //   The original feature vector [0.764918,1.11206,0.648211] is transformed to three different tree-based feature vectors:
+            //   The original feature vector [0.764918,1.11206,0.648211] is
+            //   transformed to three different tree-based feature vectors:
             //     Trees' output values: [0.07604675,0.08244576,0.03080027].
             //     Leave IDs' 0-1 representation: [0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1].
             //     Paths IDs' 0-1 representation: [1,1,1,0,0,1,1,0,0,0,1,0,0,0,1].
-            //   The original feature vector [1.251254,1.269456,1.444864] is transformed to three different tree-based feature vectors:
+            //   The original feature vector [1.251254,1.269456,1.444864] is
+            //   transformed to three different tree-based feature vectors:
             //     Trees' output values: [0.1507567,0.1090626,0.0731837].
             //     Leave IDs' 0-1 representation: [0,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0].
             //     Paths IDs' 0-1 representation: [1,0,0,0,0,1,1,1,0,0,1,1,1,1,0].";
