@@ -30,11 +30,11 @@ namespace Samples.Dynamic.Trainers.Regression
                 LabelColumnName = nameof(DataPoint.Label),
                 FeatureColumnName = nameof(DataPoint.Features),
                 // Make the convergence tolerance tighter. It effectively leads to
-				// more training iterations.
+                // more training iterations.
                 ConvergenceTolerance = 0.02f,
                 // Increase the maximum number of passes over training data. Similar
-				// to ConvergenceTolerance, this value specifics the hard iteration
-				// limit on the training algorithm.
+                // to ConvergenceTolerance, this value specifics the hard iteration
+                // limit on the training algorithm.
                 MaximumNumberOfIterations = 30,
                 // Increase learning rate for bias.
                 BiasLearningRate = 0.1f
@@ -48,7 +48,7 @@ namespace Samples.Dynamic.Trainers.Regression
             var model = pipeline.Fit(trainingData);
 
             // Create testing data. Use different random seed to make it different
-			// from training data.
+            // from training data.
             var testData = mlContext.Data.LoadFromEnumerable(
                 GenerateRandomDataPoints(5, seed: 123));
 

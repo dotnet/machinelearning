@@ -32,7 +32,7 @@ namespace Samples.Dynamic.Trainers.Regression
                 // Larger values leads to smaller (closer to zero) model parameters.
                 L2Regularization = 0.1f,
                 // Whether to computate standard error and other statistics of model
-				// parameters.
+                // parameters.
                 CalculateStatistics = false
             };
 
@@ -44,7 +44,7 @@ namespace Samples.Dynamic.Trainers.Regression
             var model = pipeline.Fit(trainingData);
 
             // Create testing data. Use different random seed to make it different
-			// from training data.
+            // from training data.
             var testData = mlContext.Data.LoadFromEnumerable(
                 GenerateRandomDataPoints(5, seed: 123));
 

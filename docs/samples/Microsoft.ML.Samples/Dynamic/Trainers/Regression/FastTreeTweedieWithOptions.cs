@@ -44,13 +44,14 @@ namespace Samples.Dynamic.Trainers.Regression
             };
 
             // Define the trainer.
-            var pipeline = mlContext.Regression.Trainers.FastTreeTweedie(options);
+            var pipeline =
+                mlContext.Regression.Trainers.FastTreeTweedie(options);
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
 
             // Create testing data. Use different random seed to make it different
-			// from training data.
+            // from training data.
             var testData = mlContext.Data.LoadFromEnumerable(
                 GenerateRandomDataPoints(5, seed: 123));
 

@@ -14,7 +14,7 @@ string TrainerOptions = @"FastTreeRegressionTrainer.Options
                 LabelColumnName = nameof(DataPoint.Label),
                 FeatureColumnName = nameof(DataPoint.Features),
                 // Use L2-norm for early stopping. If the gradient's L2-norm is
-				// smaller than an auto-computed value, training process will stop.
+                // smaller than an auto-computed value, training process will stop.
                 EarlyStoppingMetric = 
 				    Microsoft.ML.Trainers.FastTree.EarlyStoppingMetric.L2Norm,
 

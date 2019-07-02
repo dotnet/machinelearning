@@ -32,7 +32,7 @@ namespace Samples.Dynamic.Trainers.Regression
             var model = pipeline.Fit(trainingData);
 
             // Create testing data. Use different random seed to make it different
-			// from training data.
+            // from training data.
             var testData = mlContext.Data.LoadFromEnumerable(
                 GenerateRandomDataPoints(5, seed: 123));
 

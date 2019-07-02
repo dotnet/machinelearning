@@ -34,7 +34,7 @@ namespace Samples.Dynamic.Trainers.Regression
                 LabelColumnName = nameof(DataPoint.Label),
                 FeatureColumnName = nameof(DataPoint.Features),
                 // Use L2-norm for early stopping. If the gradient's L2-norm is
-				// smaller than an auto-computed value, training process will stop.
+                // smaller than an auto-computed value, training process will stop.
                 EarlyStoppingMetric = 
 				    Microsoft.ML.Trainers.FastTree.EarlyStoppingMetric.L2Norm,
 
@@ -45,13 +45,14 @@ namespace Samples.Dynamic.Trainers.Regression
             };
 
             // Define the trainer.
-            var pipeline = mlContext.Regression.Trainers.FastTree(options);
+            var pipeline =
+                mlContext.Regression.Trainers.FastTree(options);
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
 
             // Create testing data. Use different random seed to make it different
-			// from training data.
+            // from training data.
             var testData = mlContext.Data.LoadFromEnumerable(
                 GenerateRandomDataPoints(5, seed: 123));
 
