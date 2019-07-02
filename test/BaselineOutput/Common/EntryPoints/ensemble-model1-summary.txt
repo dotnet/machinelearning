@@ -1,7 +1,36 @@
 #@ TextLoader{
 #@   header+
 #@   sep=tab
-#@   col=Gains:R4:0-16
+#@   col=Bias:R8:0
+#@   col=TreeWeights:R8:1
+#@   col=TreeID:I4:2
+#@   col=IsLeaf:TX:3
+#@   col=LeftChild:I4:4
+#@   col=RightChild:I4:5
+#@   col=NumericalSplitFeatureIndexes:I4:6
+#@   col=NumericalSplitThresholds:R4:7
+#@   col=CategoricalSplitFlags:BL:8
+#@   col=LeafValues:R8:9
+#@   col=SplitGains:R8:10
+#@   col=CategoricalSplitFeatures:I4:11-**
+#@   col={name=CategoricalCategoricalSplitFeatureRange type=I4 src={ min=-1 var=+}}
 #@ }
-Cat.1	Cat.4	Cat.2	Cat.5	Cat.10	Cat.3	Cat.7	Cat.8	Cat.6	Features.thickness	Features.uniform_size	Features.uniform_shape	Features.adhesion	Features.epit_size	Features.bare_nuclei	Features.bland_chromatin	Features.normal_nucleoli
-0.0607880056	0	0.0249023773	0	0	4.10026857E-09	0	0	0	0.190965369	1	0.7112387	0.14315024	0.222178861	0.413435966	0.254190356	0.2604484
+Bias	TreeWeights	TreeID	IsLeaf	LeftChild	RightChild	NumericalSplitFeatureIndexes	NumericalSplitThresholds	CategoricalSplitFlags	LeafValues	SplitGains
+0	1	0	Tree node	2	1	10	2.5	0	0	13.415869372871798
+0	1	0	Tree node	3	-3	14	1.5	0	0	0.92083542188806611
+0	1	0	Tree node	-1	-4	16	2.5	0	0	0.67201267815728727
+0	1	0	Tree node	-2	-5	13	3.5	0	0	0.5363809523809524
+0	1	0	Leaf node	7	5:-0.98625429553265687
+0	1	0	Leaf node	7	5:-0.99999999999999978
+0	1	0	Leaf node	7	5:0.87134502923976442
+0	1	0	Leaf node	7	5:0.27272727272727287
+0	1	0	Leaf node	7	5:0.59999999999999976
+0	1	1	Tree node	3	1	10	2.5	0	0	8.6352053527178452
+0	1	1	Tree node	2	-3	14	2.5	0	0	0.63992190088294487
+0	1	1	Tree node	-2	-4	10	3.5	0	0	0.71162415170614624
+0	1	1	Tree node	-1	-5	15	4.5	0	0	0.43452626844448261
+0	1	1	Leaf node	7	5:-0.82036054531830893
+0	1	1	Leaf node	7	5:-0.8186475459992979
+0	1	1	Leaf node	7	5:0.75043188004013617
+0	1	1	Leaf node	7	5:0.74116698906550615
+0	1	1	Leaf node	7	5:0.27575806003985165

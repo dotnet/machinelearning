@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework.Attributes;
@@ -22,7 +23,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
     public partial class TrainerEstimators : TestDataPipeBase
     {
         /// <summary>
-        /// FastTreeBinaryClassification TrainerEstimator test 
+        /// FastTreeBinaryClassification TrainerEstimator test
         /// </summary>
         [Fact]
         public void FastTreeBinaryEstimator()
@@ -88,7 +89,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// LightGBMBinaryTrainer CorrectSigmoid test 
+        /// LightGBMBinaryTrainer CorrectSigmoid test
         /// </summary>
         [LightGBMFact]
         public void LightGBMBinaryEstimatorCorrectSigmoid()
@@ -153,7 +154,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// FastTreeRankingTrainer TrainerEstimator test 
+        /// FastTreeRankingTrainer TrainerEstimator test
         /// </summary>
         [Fact]
         public void FastTreeRankerEstimator()
@@ -177,7 +178,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// LightGbmRankingTrainer TrainerEstimator test 
+        /// LightGbmRankingTrainer TrainerEstimator test
         /// </summary>
         [LightGBMFact]
         public void LightGBMRankerEstimator()
@@ -195,7 +196,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// FastTreeRegressor TrainerEstimator test 
+        /// FastTreeRegressor TrainerEstimator test
         /// </summary>
         [Fact]
         public void FastTreeRegressorEstimator()
@@ -210,7 +211,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// LightGbmRegressionTrainer TrainerEstimator test 
+        /// LightGbmRegressionTrainer TrainerEstimator test
         /// </summary>
         [LightGBMFact]
         public void LightGBMRegressorEstimator()
@@ -230,7 +231,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
 
         /// <summary>
-        /// RegressionGamTrainer TrainerEstimator test 
+        /// RegressionGamTrainer TrainerEstimator test
         /// </summary>
         [Fact]
         public void GAMRegressorEstimator()
@@ -248,7 +249,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// FastTreeTweedieTrainer TrainerEstimator test 
+        /// FastTreeTweedieTrainer TrainerEstimator test
         /// </summary>
         [Fact]
         public void TweedieRegressorEstimator()
@@ -267,7 +268,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// FastForestRegression TrainerEstimator test 
+        /// FastForestRegression TrainerEstimator test
         /// </summary>
         [Fact]
         public void FastForestRegressorEstimator()
@@ -286,7 +287,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// LightGbmMulticlass TrainerEstimator test 
+        /// LightGbmMulticlass TrainerEstimator test
         /// </summary>
         [LightGBMFact]
         public void LightGbmMulticlassEstimator()
@@ -319,7 +320,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// LightGbmMulticlass CorrectSigmoid test 
+        /// LightGbmMulticlass CorrectSigmoid test
         /// </summary>
         [LightGBMFact]
         public void LightGbmMulticlassEstimatorCorrectSigmoid()
@@ -425,7 +426,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var mlContext = new MLContext(seed: 0);
             var dataView = mlContext.Data.LoadFromEnumerable(dataList);
             int numberOfTrainingIterations = 3;
-            var gbmTrainer = new LightGbmMulticlassTrainer(mlContext, 
+            var gbmTrainer = new LightGbmMulticlassTrainer(mlContext,
                 new LightGbmMulticlassTrainer.Options
                 {
                     NumberOfIterations = numberOfTrainingIterations,
@@ -686,6 +687,248 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var metrics = ML.MulticlassClassification.Evaluate(model.Transform(dataView));
             Assert.True(metrics.MacroAccuracy > 0.8);
             Thread.CurrentThread.CurrentCulture = currentCulture;
+        }
+
+        private class SummaryDataRow
+        {
+            public double Bias { get; set; }
+            public double TreeWeights { get; set; }
+            public int TreeID { get; set; }
+            public string IsLeaf { get; set; }
+            public int LeftChild { get; set; }
+            public int RightChild { get; set; }
+            public int NumericalSplitFeatureIndexes { get; set; }
+            public float NumericalSplitThresholds { get; set; }
+            public bool CategoricalSplitFlags { get; set; }
+            public double LeafValues { get; set; }
+            public double SplitGains { get; set; }
+            [VectorType(0)]
+            public int[] CategoricalSplitFeatures { get; set; }
+            [VectorType(0)]
+            public int[] CategoricalCategoricalSplitFeatureRange { get; set; }
+        }
+
+        private class QuantileTestSummaryDataRow : SummaryDataRow
+        {
+            [VectorType(0)]
+            public double[] LeafSamples { get; set; }
+            [VectorType(0)]
+            public double[] LeafSampleWeights { get; set; }
+        }
+
+        private static void CheckSummaryRowTreeNode(SummaryDataRow row, int treeIndex, double bias, double treeWeight, RegressionTreeBase tree, int nodeId)
+        {
+            Assert.Equal(row.TreeID, treeIndex);
+            Assert.Equal(row.Bias, bias);
+            Assert.Equal(row.TreeWeights, treeWeight);
+            Assert.Equal("Tree node", row.IsLeaf);
+            Assert.Equal(row.LeftChild, tree.LeftChild[nodeId]);
+            Assert.Equal(row.RightChild, tree.RightChild[nodeId]);
+            Assert.Equal(row.NumericalSplitFeatureIndexes, tree.NumericalSplitFeatureIndexes[nodeId]);
+            Assert.Equal(row.NumericalSplitThresholds, tree.NumericalSplitThresholds[nodeId]);
+            Assert.Equal(row.CategoricalSplitFlags, tree.CategoricalSplitFlags[nodeId]);
+            Assert.Equal(0, row.LeafValues);
+            Assert.Equal(row.SplitGains, tree.SplitGains[nodeId]);
+            if(tree.GetCategoricalSplitFeaturesAt(nodeId).Count() > 0)
+                Assert.Equal(row.CategoricalSplitFeatures, tree.GetCategoricalSplitFeaturesAt(nodeId).ToArray());
+            else
+                Assert.Null(row.CategoricalSplitFeatures);
+            if (tree.GetCategoricalCategoricalSplitFeatureRangeAt(nodeId).Count() > 0)
+                Assert.Equal(row.CategoricalCategoricalSplitFeatureRange, tree.GetCategoricalCategoricalSplitFeatureRangeAt(nodeId).ToArray());
+            else
+                Assert.Null(row.CategoricalCategoricalSplitFeatureRange);
+        }
+
+        private static void CheckSummaryRowLeafNode(SummaryDataRow row, int treeIndex, double bias, double treeWeight, RegressionTreeBase tree, int nodeId)
+        {
+            Assert.Equal(row.TreeID, treeIndex);
+            Assert.Equal(row.Bias, bias);
+            Assert.Equal(row.TreeWeights, treeWeight);
+            Assert.Equal("Leaf node", row.IsLeaf);
+            Assert.Equal(0, row.LeftChild);
+            Assert.Equal(0, row.RightChild);
+            Assert.Equal(0, row.NumericalSplitFeatureIndexes);
+            Assert.Equal(0, row.NumericalSplitThresholds);
+            Assert.False(row.CategoricalSplitFlags);
+            Assert.Equal(tree.LeafValues[nodeId], row.LeafValues);
+            Assert.Equal(0d, row.SplitGains);
+            Assert.Null(row.CategoricalSplitFeatures);
+            Assert.Null(row.CategoricalCategoricalSplitFeatureRange);
+        }
+
+        private static void CheckSummaryRowLeafNodeQuantileTree(QuantileTestSummaryDataRow row, int treeIndex, double bias, double treeWeight, QuantileRegressionTree tree, int nodeId)
+        {
+            if (tree.GetLeafSamplesAt(nodeId).Count() > 0)
+                Assert.Equal(row.LeafSamples, tree.GetLeafSamplesAt(nodeId).ToArray());
+            else
+                Assert.Null(row.LeafSamples);
+            if (tree.GetLeafSampleWeightsAt(nodeId).Count() > 0)
+                Assert.Equal(row.LeafSampleWeights, tree.GetLeafSampleWeightsAt(nodeId).ToArray());
+            else
+                Assert.Null(row.LeafSampleWeights);
+        }
+
+        private void CheckSummary(ICanGetSummaryAsIDataView modelParameters, double bias, IReadOnlyList<double> treeWeights, IReadOnlyList<RegressionTreeBase> trees)
+        {
+            var quantileTrees = trees as IReadOnlyList<QuantileRegressionTree>;
+            var summaryDataView = modelParameters.GetSummaryDataView(null);
+            IEnumerable<SummaryDataRow> summaryDataEnumerable;
+
+            if (quantileTrees == null)
+                summaryDataEnumerable = ML.Data.CreateEnumerable<SummaryDataRow>(summaryDataView, false);
+            else
+                summaryDataEnumerable = ML.Data.CreateEnumerable<QuantileTestSummaryDataRow>(summaryDataView, false);
+
+            var summaryDataEnumerator = summaryDataEnumerable.GetEnumerator();
+
+            for (int i = 0; i < trees.Count(); i++)
+            {
+                for (int j = 0; j < trees[i].NumberOfNodes; j++)
+                {
+                    Assert.True(summaryDataEnumerator.MoveNext());
+                    var row = summaryDataEnumerator.Current;
+                    CheckSummaryRowTreeNode(row, i, bias, treeWeights[i], trees[i], j);
+                }
+
+                for (int j = 0; j < trees[i].NumberOfLeaves; j++)
+                {
+                    Assert.True(summaryDataEnumerator.MoveNext());
+                    var row = summaryDataEnumerator.Current;
+                    CheckSummaryRowLeafNode(row, i, bias, treeWeights[i], trees[i], j);
+                    if (quantileTrees != null)
+                    {
+                        var quantileRow = row as QuantileTestSummaryDataRow;
+                        Assert.NotNull(quantileRow);
+                        CheckSummaryRowLeafNodeQuantileTree(quantileRow, i, bias, treeWeights[i], quantileTrees[i], j);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void FastTreeRegressorTestSummary()
+        {
+            var dataView = GetRegressionPipeline();
+            var trainer = ML.Regression.Trainers.FastTree(
+                new FastTreeRegressionTrainer.Options { NumberOfTrees = 10, NumberOfThreads = 1, NumberOfLeaves = 5});
+
+            var transformer = trainer.Fit(dataView);
+
+            var trainedTreeEnsemble = transformer.Model.TrainedTreeEnsemble;
+
+            var modelParameters = transformer.Model as ICanGetSummaryAsIDataView;
+            Assert.NotNull(modelParameters);
+
+            CheckSummary(modelParameters, trainedTreeEnsemble.Bias, trainedTreeEnsemble.TreeWeights, trainedTreeEnsemble.Trees);
+            Done();
+        }
+
+        [Fact]
+        public void FastForestRegressorTestSummary()
+        {
+            var dataView = GetRegressionPipeline();
+            var trainer = ML.Regression.Trainers.FastForest(
+                new FastForestRegressionTrainer.Options { NumberOfTrees = 10, NumberOfThreads = 1, NumberOfLeaves = 5});
+
+            var transformer = trainer.Fit(dataView);
+
+            var trainedTreeEnsemble = transformer.Model.TrainedTreeEnsemble;
+
+            var modelParameters = transformer.Model as ICanGetSummaryAsIDataView;
+            Assert.NotNull(modelParameters);
+
+            CheckSummary(modelParameters, trainedTreeEnsemble.Bias, trainedTreeEnsemble.TreeWeights, trainedTreeEnsemble.Trees);
+            Done();
+        }
+
+        [Fact]
+        public void FastTreeTweedieRegressorTestSummary()
+        {
+            var dataView = GetRegressionPipeline();
+            var trainer = ML.Regression.Trainers.FastTreeTweedie(
+                new FastTreeTweedieTrainer.Options { NumberOfTrees = 10, NumberOfThreads = 1, NumberOfLeaves = 5});
+
+            var transformer = trainer.Fit(dataView);
+
+            var trainedTreeEnsemble = transformer.Model.TrainedTreeEnsemble;
+
+            var modelParameters = transformer.Model as ICanGetSummaryAsIDataView;
+            Assert.NotNull(modelParameters);
+
+            CheckSummary(modelParameters, trainedTreeEnsemble.Bias, trainedTreeEnsemble.TreeWeights, trainedTreeEnsemble.Trees);
+            Done();
+        }
+
+        [LightGBMFact]
+        public void LightGbmRegressorTestSummary()
+        {
+            var dataView = GetRegressionPipeline();
+            var trainer = ML.Regression.Trainers.LightGbm(
+                new LightGbmRegressionTrainer.Options { NumberOfIterations = 10, NumberOfThreads = 1, NumberOfLeaves = 5});
+
+            var transformer = trainer.Fit(dataView);
+
+            var trainedTreeEnsemble = transformer.Model.TrainedTreeEnsemble;
+
+            var modelParameters = transformer.Model as ICanGetSummaryAsIDataView;
+            Assert.NotNull(modelParameters);
+
+            CheckSummary(modelParameters, trainedTreeEnsemble.Bias, trainedTreeEnsemble.TreeWeights, trainedTreeEnsemble.Trees);
+            Done();
+        }
+
+        [Fact]
+        public void FastTreeBinaryClassificationTestSummary()
+        {
+            var (pipeline, dataView) = GetBinaryClassificationPipeline();
+            var estimator = pipeline.Append(ML.BinaryClassification.Trainers.FastTree(
+                new FastTreeBinaryTrainer.Options { NumberOfTrees = 2, NumberOfThreads = 1, NumberOfLeaves = 5}));
+
+            var transformer = estimator.Fit(dataView);
+
+            var trainedTreeEnsemble = transformer.LastTransformer.Model.SubModel.TrainedTreeEnsemble;
+
+            var modelParameters = transformer.LastTransformer.Model.SubModel as ICanGetSummaryAsIDataView;
+            Assert.NotNull(modelParameters);
+
+            CheckSummary(modelParameters, trainedTreeEnsemble.Bias, trainedTreeEnsemble.TreeWeights, trainedTreeEnsemble.Trees);
+            Done();
+        }
+
+        [Fact]
+        public void FastForestBinaryClassificationTestSummary()
+        {
+            var (pipeline, dataView) = GetOneHotBinaryClassificationPipeline();
+            var estimator = pipeline.Append(ML.BinaryClassification.Trainers.FastForest(
+                new FastForestBinaryTrainer.Options { NumberOfTrees = 2, NumberOfThreads = 1, NumberOfLeaves = 4, CategoricalSplit = true }));
+
+            var transformer = estimator.Fit(dataView);
+
+            var trainedTreeEnsemble = transformer.LastTransformer.Model.TrainedTreeEnsemble;
+
+            var modelParameters = transformer.LastTransformer.Model as ICanGetSummaryAsIDataView;
+            Assert.NotNull(modelParameters);
+
+            CheckSummary(modelParameters, trainedTreeEnsemble.Bias, trainedTreeEnsemble.TreeWeights, trainedTreeEnsemble.Trees);
+            Done();
+        }
+
+        [LightGBMFact]
+        public void LightGbmBinaryClassificationTestSummary()
+        {
+            var (pipeline, dataView) = GetOneHotBinaryClassificationPipeline();
+            var trainer = pipeline.Append(ML.BinaryClassification.Trainers.LightGbm(
+                new LightGbmBinaryTrainer.Options { NumberOfIterations = 10, NumberOfThreads = 1, NumberOfLeaves = 5, UseCategoricalSplit = true }));
+
+            var transformer = trainer.Fit(dataView);
+
+            var trainedTreeEnsemble = transformer.LastTransformer.Model.SubModel.TrainedTreeEnsemble;
+
+            var modelParameters = transformer.LastTransformer.Model.SubModel as ICanGetSummaryAsIDataView;
+            Assert.NotNull(modelParameters);
+
+            CheckSummary(modelParameters, trainedTreeEnsemble.Bias, trainedTreeEnsemble.TreeWeights, trainedTreeEnsemble.Trees);
+            Done();
         }
     }
 }
