@@ -48,8 +48,8 @@ namespace Samples.Dynamic
             // Instantiate the forecasting model.
             var model = ml.Forecasting.ForecastBySsa(outputColumnName, inputColumnName, 5, 11, data.Count, 5,
                 confidenceLevel: 0.95f,
-                lowerBoundConfidenceColumn: "ConfidenceLowerBound",
-                upperBoundConfidenceColumn: "ConfidenceUpperBound");
+                confidenceLowerBoundColumn: "ConfidenceLowerBound",
+                confidenceUpperBoundColumn: "ConfidenceUpperBound");
 
             // Train.
             var transformer = model.Fit(dataView);

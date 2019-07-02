@@ -28,11 +28,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         [Argument(ArgumentType.Required, HelpText = "The name of the confidence interval lower bound column.", ShortName = "cnfminname",
             SortOrder = 2)]
-        public string LowerBoundConfidenceColumn;
+        public string ConfidenceLowerBoundColumn;
 
         [Argument(ArgumentType.Required, HelpText = "The name of the confidence interval upper bound column.", ShortName = "cnfmaxnname",
             SortOrder = 2)]
-        public string UpperBoundConfidenceColumn;
+        public string ConfidenceUpperBoundColumn;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "The length of series from the begining used for training.", ShortName = "wnd",
             SortOrder = 3)]
@@ -57,18 +57,18 @@ namespace Microsoft.ML.Transforms.TimeSeries
         private readonly int _outputLength;
 
         private protected SequentialForecastingTransformBase(int windowSize, int initialWindowSize,
-            string inputColumnName, string outputColumnName, string forecastingConfidenceIntervalMinOutputColumnName,
-                string forecastingConfidenceIntervalMaxOutputColumnName, string name, int outputLength, IHostEnvironment env)
+            string inputColumnName, string outputColumnName, string confidenceLowerBoundColumn,
+                string confidenceUpperBoundColumn, string name, int outputLength, IHostEnvironment env)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), windowSize, initialWindowSize,
-                  outputColumnName, forecastingConfidenceIntervalMinOutputColumnName,
-                  forecastingConfidenceIntervalMaxOutputColumnName, inputColumnName, new VectorDataViewType(NumberDataViewType.Single, outputLength))
+                  outputColumnName, confidenceLowerBoundColumn,
+                  confidenceUpperBoundColumn, inputColumnName, new VectorDataViewType(NumberDataViewType.Single, outputLength))
         {
             _outputLength = outputLength;
         }
 
         private protected SequentialForecastingTransformBase(ForecastingArgumentsBase args, string name, int outputLength, IHostEnvironment env)
-            : this(args.TrainSize, args.SeriesLength, args.Source, args.LowerBoundConfidenceColumn,
-                  args.UpperBoundConfidenceColumn, args.Name, name, outputLength, env)
+            : this(args.TrainSize, args.SeriesLength, args.Source, args.ConfidenceLowerBoundColumn,
+                  args.ConfidenceUpperBoundColumn, args.Name, name, outputLength, env)
         {
         }
 
@@ -127,12 +127,12 @@ namespace Microsoft.ML.Transforms.TimeSeries
             {
                 DetachedColumn[] info;
 
-                if (!string.IsNullOrEmpty(_parent.ForecastingConfidenceIntervalMaxOutputColumnName))
+                if (!string.IsNullOrEmpty(_parent.ConfidenceUpperBoundColumn))
                 {
                     info = new DetachedColumn[3];
                     info[0] = new DetachedColumn(_parent.OutputColumnName, new VectorDataViewType(NumberDataViewType.Single, _parent._outputLength));
-                    info[1] = new DetachedColumn(_parent.ForecastingConfidenceIntervalMinOutputColumnName, new VectorDataViewType(NumberDataViewType.Single, _parent._outputLength));
-                    info[2] = new DetachedColumn(_parent.ForecastingConfidenceIntervalMaxOutputColumnName, new VectorDataViewType(NumberDataViewType.Single, _parent._outputLength));
+                    info[1] = new DetachedColumn(_parent.ConfidenceLowerBoundColumn, new VectorDataViewType(NumberDataViewType.Single, _parent._outputLength));
+                    info[2] = new DetachedColumn(_parent.ConfidenceUpperBoundColumn, new VectorDataViewType(NumberDataViewType.Single, _parent._outputLength));
                 }
                 else
                 {
@@ -156,7 +156,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             public Delegate[] CreateGetters(DataViewRow input, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
-                var getters = string.IsNullOrEmpty(_parent.ForecastingConfidenceIntervalMaxOutputColumnName) ? new Delegate[1] : new Delegate[3];
+                var getters = string.IsNullOrEmpty(_parent.ConfidenceUpperBoundColumn) ? new Delegate[1] : new Delegate[3];
 
                 if (activeOutput(0))
                 {
@@ -168,7 +168,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     getters[0] = valueGetter;
                 }
 
-                if (!string.IsNullOrEmpty(_parent.ForecastingConfidenceIntervalMaxOutputColumnName))
+                if (!string.IsNullOrEmpty(_parent.ConfidenceUpperBoundColumn))
                 {
                     if (activeOutput(1))
                     {

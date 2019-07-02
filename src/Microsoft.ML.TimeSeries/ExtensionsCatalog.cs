@@ -167,8 +167,8 @@ namespace Microsoft.ML
         /// <param name="shouldStabilize">The flag determining whether the model should be stabilized.</param>
         /// <param name="shouldMaintainInfo">The flag determining whether the meta information for the model needs to be maintained.</param>
         /// <param name="maxGrowth">The maximum growth on the exponential trend.</param>
-        /// <param name="lowerBoundConfidenceColumn">The name of the confidence interval lower bound column. If not specified then confidence intervals will not be calculated.</param>
-        /// <param name="upperBoundConfidenceColumn">The name of the confidence interval upper bound column. If not specified then confidence intervals will not be calculated.</param>
+        /// <param name="confidenceLowerBoundColumn">The name of the confidence interval lower bound column. If not specified then confidence intervals will not be calculated.</param>
+        /// <param name="confidenceUpperBoundColumn">The name of the confidence interval upper bound column. If not specified then confidence intervals will not be calculated.</param>
         /// <param name="confidenceLevel">The confidence level for forecasting.</param>
         /// <param name="variableHorizon">Set this to true if horizon will change after training(at prediction time).</param>
         /// <example>
@@ -182,10 +182,10 @@ namespace Microsoft.ML
         public static SsaForecastingEstimator ForecastBySsa(
             this ForecastingCatalog catalog, string outputColumnName, string inputColumnName, int windowSize, int seriesLength, int trainSize, int horizon,
             bool isAdaptive = false, float discountFactor = 1, RankSelectionMethod rankSelectionMethod = RankSelectionMethod.Exact, int? rank = null,
-            int? maxRank = null, bool shouldStabilize = true, bool shouldMaintainInfo = false, GrowthRatio? maxGrowth = null, string lowerBoundConfidenceColumn = null,
-            string upperBoundConfidenceColumn = null, float confidenceLevel = 0.95f, bool variableHorizon = false) =>
+            int? maxRank = null, bool shouldStabilize = true, bool shouldMaintainInfo = false, GrowthRatio? maxGrowth = null, string confidenceLowerBoundColumn = null,
+            string confidenceUpperBoundColumn = null, float confidenceLevel = 0.95f, bool variableHorizon = false) =>
             new SsaForecastingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, windowSize, seriesLength, trainSize,
-                horizon, isAdaptive, discountFactor, rankSelectionMethod, rank, maxRank, shouldStabilize, shouldMaintainInfo, maxGrowth, lowerBoundConfidenceColumn,
-                upperBoundConfidenceColumn, confidenceLevel, variableHorizon);
+                horizon, isAdaptive, discountFactor, rankSelectionMethod, rank, maxRank, shouldStabilize, shouldMaintainInfo, maxGrowth, confidenceLowerBoundColumn,
+                confidenceUpperBoundColumn, confidenceLevel, variableHorizon);
     }
 }

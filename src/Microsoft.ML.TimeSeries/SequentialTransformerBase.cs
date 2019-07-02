@@ -335,8 +335,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         internal readonly string InputColumnName;
         internal readonly string OutputColumnName;
-        internal readonly string ForecastingConfidenceIntervalMinOutputColumnName;
-        internal readonly string ForecastingConfidenceIntervalMaxOutputColumnName;
+        internal readonly string ConfidenceLowerBoundColumn;
+        internal readonly string ConfidenceUpperBoundColumn;
         private protected DataViewType OutputColumnType;
 
         bool ITransformer.IsRowToRowMapper => false;
@@ -372,12 +372,12 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
 
         private protected SequentialTransformerBase(IHost host, int windowSize, int initialWindowSize,
-            string outputColumnName, string forecastingConfidenceIntervalMinOutputColumnName,
-            string forecastingConfidenceIntervalMaxOutputColumnName, string inputColumnName, DataViewType outputColType) :
+            string outputColumnName, string confidenceLowerBoundColumn,
+            string confidenceUpperBoundColumn, string inputColumnName, DataViewType outputColType) :
             this(host, windowSize, initialWindowSize, outputColumnName, inputColumnName, outputColType)
         {
-            ForecastingConfidenceIntervalMinOutputColumnName = forecastingConfidenceIntervalMinOutputColumnName;
-            ForecastingConfidenceIntervalMaxOutputColumnName = forecastingConfidenceIntervalMaxOutputColumnName;
+            ConfidenceLowerBoundColumn = confidenceLowerBoundColumn;
+            ConfidenceUpperBoundColumn = confidenceUpperBoundColumn;
         }
 
         private protected SequentialTransformerBase(IHost host, ModelLoadContext ctx)
@@ -403,8 +403,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             InputColumnName = inputColumnName;
             OutputColumnName = outputColumnName;
-            ForecastingConfidenceIntervalMinOutputColumnName = ctx.Reader.ReadString();
-            ForecastingConfidenceIntervalMaxOutputColumnName = ctx.Reader.ReadString();
+            ConfidenceLowerBoundColumn = ctx.Reader.ReadString();
+            ConfidenceUpperBoundColumn = ctx.Reader.ReadString();
             InitialWindowSize = initialWindowSize;
             WindowSize = windowSize;
 
@@ -431,8 +431,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
             ctx.Writer.Write(InitialWindowSize);
             ctx.SaveNonEmptyString(InputColumnName);
             ctx.SaveNonEmptyString(OutputColumnName);
-            ctx.Writer.Write(ForecastingConfidenceIntervalMinOutputColumnName ?? string.Empty);
-            ctx.Writer.Write(ForecastingConfidenceIntervalMaxOutputColumnName ?? string.Empty);
+            ctx.Writer.Write(ConfidenceLowerBoundColumn ?? string.Empty);
+            ctx.Writer.Write(ConfidenceUpperBoundColumn ?? string.Empty);
             var bs = new BinarySaver(Host, new BinarySaver.Arguments());
             bs.TryWriteTypeDescription(ctx.Writer.BaseStream, OutputColumnType, out int byteWritten);
         }
@@ -480,8 +480,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 Metadata = new MetadataDispatcher(3);
                 _parent = parent;
                 _transform = CreateLambdaTransform(_parent.Host, input, _parent.InputColumnName,
-                    _parent.OutputColumnName, _parent.ForecastingConfidenceIntervalMinOutputColumnName,
-                    _parent.ForecastingConfidenceIntervalMaxOutputColumnName, InitFunction, _parent.WindowSize > 0, _parent.OutputColumnType);
+                    _parent.OutputColumnName, _parent.ConfidenceLowerBoundColumn,
+                    _parent.ConfidenceUpperBoundColumn, InitFunction, _parent.WindowSize > 0, _parent.OutputColumnType);
 
                 _mapper = mapper;
                 _bindings = new ColumnBindings(input.Schema, _mapper.GetOutputColumns());

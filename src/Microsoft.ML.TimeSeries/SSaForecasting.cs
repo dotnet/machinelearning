@@ -42,10 +42,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
             public string Name;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the confidence interval lower bound column.", ShortName = "cnfminname", SortOrder = 3)]
-            public string LowerBoundConfidenceColumn;
+            public string ConfidenceLowerBoundColumn;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the confidence interval upper bound column.", ShortName = "cnfmaxnname", SortOrder = 3)]
-            public string UpperBoundConfidenceColumn;
+            public string ConfidenceUpperBoundColumn;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The discount factor in [0,1] used for online updates.", ShortName = "disc", SortOrder = 5)]
             public float DiscountFactor = 1;
@@ -97,8 +97,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
             {
                 Source = options.Source;
                 Name = options.Name;
-                LowerBoundConfidenceColumn = options.LowerBoundConfidenceColumn;
-                UpperBoundConfidenceColumn = options.UpperBoundConfidenceColumn;
+                ConfidenceLowerBoundColumn = options.ConfidenceLowerBoundColumn;
+                ConfidenceUpperBoundColumn = options.ConfidenceUpperBoundColumn;
                 WindowSize = options.WindowSize;
                 DiscountFactor = options.DiscountFactor;
                 IsAdaptive = options.IsAdaptive;
@@ -258,8 +258,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="shouldStabilize">The flag determining whether the model should be stabilized.</param>
         /// <param name="shouldMaintainInfo">The flag determining whether the meta information for the model needs to be maintained.</param>
         /// <param name="maxGrowth">The maximum growth on the exponential trend.</param>
-        /// <param name="lowerBoundConfidenceColumn">The name of the confidence interval lower bound column. If not specified then confidence intervals will not be calculated.</param>
-        /// <param name="upperBoundConfidenceColumn">The name of the confidence interval upper bound column. If not specified then confidence intervals will not be calculated.</param>
+        /// <param name="confidenceLowerBoundColumn">The name of the confidence interval lower bound column. If not specified then confidence intervals will not be calculated.</param>
+        /// <param name="confidenceUpperBoundColumn">The name of the confidence interval upper bound column. If not specified then confidence intervals will not be calculated.</param>
         /// <param name="confidenceLevel">The confidence level for forecasting.</param>
         /// <param name="variableHorizon">Set this to true if horizon will change after training.</param>
         internal SsaForecastingEstimator(IHostEnvironment env,
@@ -277,8 +277,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
             bool shouldStabilize = true,
             bool shouldMaintainInfo = false,
             GrowthRatio? maxGrowth = null,
-            string lowerBoundConfidenceColumn = null,
-            string upperBoundConfidenceColumn = null,
+            string confidenceLowerBoundColumn = null,
+            string confidenceUpperBoundColumn = null,
             float confidenceLevel = 0.95f,
             bool variableHorizon = false)
             : this(env, new SsaForecastingTransformer.Options
@@ -295,8 +295,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 ShouldMaintainInfo = shouldMaintainInfo,
                 MaxGrowth = maxGrowth,
                 ConfidenceLevel = confidenceLevel,
-                LowerBoundConfidenceColumn = lowerBoundConfidenceColumn,
-                UpperBoundConfidenceColumn = upperBoundConfidenceColumn,
+                ConfidenceLowerBoundColumn = confidenceLowerBoundColumn,
+                ConfidenceUpperBoundColumn = confidenceUpperBoundColumn,
                 SeriesLength = seriesLength,
                 TrainSize = trainSize,
                 VariableHorizon = variableHorizon,
@@ -344,14 +344,14 @@ namespace Microsoft.ML.Transforms.TimeSeries
             resultDic[_options.Name] = new SchemaShape.Column(
                 _options.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
 
-            if (!string.IsNullOrEmpty(_options.UpperBoundConfidenceColumn))
+            if (!string.IsNullOrEmpty(_options.ConfidenceUpperBoundColumn))
             {
-                resultDic[_options.LowerBoundConfidenceColumn] = new SchemaShape.Column(
-                    _options.LowerBoundConfidenceColumn, SchemaShape.Column.VectorKind.Vector,
+                resultDic[_options.ConfidenceLowerBoundColumn] = new SchemaShape.Column(
+                    _options.ConfidenceLowerBoundColumn, SchemaShape.Column.VectorKind.Vector,
                     NumberDataViewType.Single, false);
 
-                resultDic[_options.UpperBoundConfidenceColumn] = new SchemaShape.Column(
-                    _options.UpperBoundConfidenceColumn, SchemaShape.Column.VectorKind.Vector,
+                resultDic[_options.ConfidenceUpperBoundColumn] = new SchemaShape.Column(
+                    _options.ConfidenceUpperBoundColumn, SchemaShape.Column.VectorKind.Vector,
                     NumberDataViewType.Single, false);
             }
 

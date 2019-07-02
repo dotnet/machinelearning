@@ -338,8 +338,8 @@ namespace Microsoft.ML.Tests
                 ConfidenceLevel = 0.95f,
                 Source = "Value",
                 Name = "Forecast",
-                LowerBoundConfidenceColumn = "MinCnf",
-                UpperBoundConfidenceColumn = "MaxCnf",
+                ConfidenceLowerBoundColumn = "MinCnf",
+                ConfidenceUpperBoundColumn = "MaxCnf",
                 WindowSize = 10,
                 SeriesLength = 11,
                 TrainSize = 22,
@@ -397,8 +397,8 @@ namespace Microsoft.ML.Tests
                 SeriesLength = 11,
                 TrainSize = 22,
                 Horizon = 4,
-                LowerBoundConfidenceColumn = "ConfidenceLowerBound",
-                UpperBoundConfidenceColumn = "ConfidenceUpperBound",
+                ConfidenceLowerBoundColumn = "ConfidenceLowerBound",
+                ConfidenceUpperBoundColumn = "ConfidenceUpperBound",
                 VariableHorizon = true
             };
 
@@ -413,8 +413,8 @@ namespace Microsoft.ML.Tests
             var model = ml.Transforms.Text.FeaturizeText("Text_Featurized", "Text")
                 .Append(ml.Transforms.Conversion.ConvertType("Value", "Value", DataKind.Single))
                 .Append(ml.Forecasting.ForecastBySsa("Forecast", "Value", 10, 11, 22, 4,
-                    lowerBoundConfidenceColumn: "ConfidenceLowerBound",
-                    upperBoundConfidenceColumn: "ConfidenceUpperBound", variableHorizon: true))
+                    confidenceLowerBoundColumn: "ConfidenceLowerBound",
+                    confidenceUpperBoundColumn: "ConfidenceUpperBound", variableHorizon: true))
                 .Append(ml.Transforms.Concatenate("Forecast", "Forecast", "ConfidenceLowerBound", "ConfidenceUpperBound"))
                 .Fit(dataView);
 
