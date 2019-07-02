@@ -9,15 +9,21 @@ namespace Samples.Dynamic
     {
         public static void Example()
         {
-            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
+            // Create a new ML context, for ML.NET operations. It can be used for
+            // exception tracking and logging, as well as the source of randomness.
             var ml = new MLContext();
 
             // Get a small dataset as an IEnumerable and convert to IDataView.
             var data = new List<SampleSentimentData>() {
-                new SampleSentimentData { Sentiment = true, SentimentText = "Best game I've ever played." },
-                new SampleSentimentData { Sentiment = false, SentimentText = "==RUDE== Dude, 2" },
-                new SampleSentimentData { Sentiment = true, SentimentText = "Until the next game, this is the best Xbox game!" } };
+                new SampleSentimentData { Sentiment = true,
+                    SentimentText = "Best game I've ever played." },
+
+                new SampleSentimentData { Sentiment = false,
+                    SentimentText = "==RUDE== Dude, 2" },
+
+                new SampleSentimentData { Sentiment = true,
+                    SentimentText = "Until the next game," +
+                    "this is the best Xbox game!" } };
 
             // Convert IEnumerable to IDataView.
             var trainData = ml.Data.LoadFromEnumerable(data);
@@ -29,23 +35,42 @@ namespace Samples.Dynamic
             // false        ==RUDE== Dude, 2.
             // true          Until the next game, this is the best Xbox game!
 
-            // A pipeline to tokenize text as characters and then combine them together into n-grams
-            // The pipeline uses the default settings to featurize.
+            // A pipeline to tokenize text as characters and then combine them
+            // together into n-grams. The pipeline uses the default settings to
+            // featurize.
 
-            var charsPipeline = ml.Transforms.Text.TokenizeIntoCharactersAsKeys("Chars", "SentimentText", useMarkerCharacters: false);
-            var ngramOnePipeline = ml.Transforms.Text.ProduceNgrams("CharsUnigrams", "Chars", ngramLength: 1);
-            var ngramTwpPipeline = ml.Transforms.Text.ProduceNgrams("CharsTwograms", "Chars");
-            var oneCharsPipeline = charsPipeline.Append(ngramOnePipeline);
-            var twoCharsPipeline = charsPipeline.Append(ngramTwpPipeline);
+            var charsPipeline = ml.Transforms.Text
+                .TokenizeIntoCharactersAsKeys("Chars", "SentimentText",
+                useMarkerCharacters: false);
+
+            var ngramOnePipeline = ml.Transforms.Text
+                .ProduceNgrams("CharsUnigrams", "Chars", ngramLength: 1);
+
+            var ngramTwpPipeline = ml.Transforms.Text
+                .ProduceNgrams("CharsTwograms", "Chars");
+
+            var oneCharsPipeline = charsPipeline
+                .Append(ngramOnePipeline);
+
+            var twoCharsPipeline = charsPipeline
+                .Append(ngramTwpPipeline);
 
             // The transformed data for pipelines.
-            var transformedData_onechars = oneCharsPipeline.Fit(trainData).Transform(trainData);
-            var transformedData_twochars = twoCharsPipeline.Fit(trainData).Transform(trainData);
+            var transformedData_onechars = oneCharsPipeline.Fit(trainData)
+                .Transform(trainData);
+
+            var transformedData_twochars = twoCharsPipeline.Fit(trainData)
+                .Transform(trainData);
 
             // Small helper to print the text inside the columns, in the console. 
-            Action<string, IEnumerable<VBuffer<float>>, VBuffer<ReadOnlyMemory<char>>> printHelper = (columnName, column, names) =>
+            Action<string, IEnumerable<VBuffer<float>>,
+                VBuffer<ReadOnlyMemory<char>>>
+                printHelper = (columnName, column, names) =>
+
             {
-                Console.WriteLine($"{columnName} column obtained post-transformation.");
+                Console.WriteLine(
+                    $"{columnName} column obtained post-transformation.");
+
                 var slots = names.GetValues();
                 foreach (var featureRow in column)
                 {
@@ -54,12 +79,19 @@ namespace Samples.Dynamic
                     Console.WriteLine("");
                 }
 
-                Console.WriteLine("===================================================");
+                Console.WriteLine(
+                    "===================================================");
             };
-            // Preview of the CharsUnigrams column obtained after processing the input.
+            // Preview of the CharsUnigrams column obtained after processing the
+            // input.
             VBuffer<ReadOnlyMemory<char>> slotNames = default;
-            transformedData_onechars.Schema["CharsUnigrams"].GetSlotNames(ref slotNames);
-            var charsOneGramColumn = transformedData_onechars.GetColumn<VBuffer<float>>(transformedData_onechars.Schema["CharsUnigrams"]);
+            transformedData_onechars.Schema["CharsUnigrams"]
+                .GetSlotNames(ref slotNames);
+
+            var charsOneGramColumn = transformedData_onechars
+                .GetColumn<VBuffer<float>>(transformedData_onechars
+                .Schema["CharsUnigrams"]);
+
             printHelper("CharsUnigrams", charsOneGramColumn, slotNames);
 
             // CharsUnigrams column obtained post-transformation.
@@ -67,8 +99,13 @@ namespace Samples.Dynamic
             // 'e' - 1 '<?>' - 2 'd' - 1 '=' - 4 'R' - 1 'U' - 1 'D' - 2 'E' - 1 'u' - 1 ',' - 1 '2' - 1
             // 'B' - 0 'e' - 6 's' - 3 't' - 6 '<?>' - 9 'g' - 2 'a' - 2 'm' - 2 'I' - 0 ''' - 0 'v' - 0 ...
             // Preview of the CharsTwoGrams column obtained after processing the input.
-            var charsTwoGramColumn = transformedData_twochars.GetColumn<VBuffer<float>>(transformedData_twochars.Schema["CharsTwograms"]);
-            transformedData_twochars.Schema["CharsTwograms"].GetSlotNames(ref slotNames);
+            var charsTwoGramColumn = transformedData_twochars
+                .GetColumn<VBuffer<float>>(transformedData_twochars
+                .Schema["CharsTwograms"]);
+
+            transformedData_twochars.Schema["CharsTwograms"]
+                .GetSlotNames(ref slotNames);
+
             printHelper("CharsTwograms", charsTwoGramColumn, slotNames);
 
             // CharsTwograms column obtained post-transformation.
@@ -78,7 +115,8 @@ namespace Samples.Dynamic
         }
 
         /// <summary>
-        /// A dataset that contains a tweet and the sentiment assigned to that tweet: 0 - negative and 1 - positive sentiment.
+        /// A dataset that contains a tweet and the sentiment assigned to that
+        /// tweet: 0 - negative and 1 - positive sentiment.
         /// </summary>
         public class SampleSentimentData
         {
