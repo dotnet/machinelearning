@@ -9,35 +9,36 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
     public static class FieldAwareFactorizationMachine
     {
         // This example first train a field-aware factorization to binary
-		// classification, measure the trained model's quality, and finally
+	// classification, measure the trained model's quality, and finally
         // use the trained model to make prediction.
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for
-			// exception tracking and logging, as a catalog of available operations
-			// and as the source of randomness. Setting the seed to a fixed number
-			// in this example to make outputs deterministic.
+	    // exception tracking and logging, as a catalog of available operations
+	    // and as the source of randomness. Setting the seed to a fixed number
+	    // in this example to make outputs deterministic.
             var mlContext = new MLContext(seed: 0);
 
             // Create a list of training data points.
             IEnumerable<DataPoint> data = GenerateRandomDataPoints(500);
 
             // Convert the list of data points to an IDataView object, which is
-			// consumable by ML.NET API.
+	    // consumable by ML.NET API.
             var trainingData = mlContext.Data.LoadFromEnumerable(data);
 
             // Define the trainer.
             // This trainer trains field-aware factorization (FFM)
-            //for binary classification.
-			// See https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf for the theory
-			// behind and 
-			// https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf for the
-			// training algorithm implemented in ML.NET.
+            // for binary classification.
+	    // See https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf for the theory
+	    // behind and 
+	    // https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf for the
+	    // training algorithm implemented in ML.NET.
             var pipeline = mlContext.BinaryClassification.Trainers
-			    .FieldAwareFactorizationMachine(
+	        .FieldAwareFactorizationMachine(
+		    
                 // Specify three feature columns!
                 new[] {nameof(DataPoint.Field0), nameof(DataPoint.Field1),
-				    nameof(DataPoint.Field2) },
+		    nameof(DataPoint.Field2) },
 
                 // Specify binary label's column name.
                 nameof(DataPoint.Label) );
@@ -51,7 +52,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
 
             // Measure the quality of the trained model.
             var metrics = mlContext.BinaryClassification
-			    .Evaluate(transformedTrainingData);
+	        .Evaluate(transformedTrainingData);
 
             // Show the quality metrics.
             PrintMetrics(metrics);
@@ -80,17 +81,17 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
 
             // Create prediction function from the trained model.
             var engine = mlContext.Model
-			    .CreatePredictionEngine<DataPoint, Result>(model);
+	        .CreatePredictionEngine<DataPoint, Result>(model);
 
             // Make some predictions.
             foreach(var dataPoint in data.Take(5))
             {
                 var result = engine.Predict(dataPoint);
                 Console.WriteLine($"Actual label: {dataPoint.Label}, "
-				    + $"predicted label: {result.PredictedLabel}, "
+		    + $"predicted label: {result.PredictedLabel}, "
                     + $"score of being positive class: {result.Score}, "
-					+ $"and probability of beling positive class: "
-					+ $"{result.Probability}.");
+		    + $"and probability of beling positive class: "
+		    + $"{result.Probability}.");
             }
 
             // Expected output:
@@ -111,7 +112,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             public bool Label { get; set; }
 
             // Features from the first field. Note that different fields can have
-			// different numbers of features.
+	    // different numbers of features.
             [VectorType(featureLength)]
             public float[] Field0 { get; set; }
 
@@ -125,7 +126,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
         }
 
         // This class defines objects produced by trained model. The trained model
-		// maps a DataPoint to a Result.
+	// maps a DataPoint to a Result.
         public class Result
         {
             // Label.
@@ -140,7 +141,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
 
         // Function used to create toy data sets.
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(
-		    int exampleCount, int seed = 0)
+	    int exampleCount, int seed = 0)
 
         {
             var rnd = new Random(seed);
@@ -148,7 +149,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             for (int i = 0; i < exampleCount; ++i)
             {
                 // Initialize an example with a random label and an empty feature
-				// vector.
+		// vector.
                 var sample = new DataPoint()
                 {
                     Label = rnd.Next() % 2 == 0,
@@ -159,9 +160,9 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
 
                 // Fill feature vectors according the assigned label.
                 // Notice that features from different fields have different biases
-				// and therefore different distributions. In practices such as game
-				// recommendation, one may use one field to store features from user
-				// profile and another field to store features from game profile.
+		// and therefore different distributions. In practices such as game
+		// recommendation, one may use one field to store features from user
+		// profile and another field to store features from game profile.
                 for (int j = 0; j < featureLength; ++j)
                 {
                     var value0 = (float)rnd.NextDouble();
@@ -197,11 +198,11 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve:F2}");
             Console.WriteLine($"F1 Score: {metrics.F1Score:F2}");
             Console.WriteLine($"Negative Precision: {metrics.NegativePrecision:F2}")
-			    ;
+	        ;
 
             Console.WriteLine($"Negative Recall: {metrics.NegativeRecall:F2}");
             Console.WriteLine($"Positive Precision: {metrics.PositivePrecision:F2}")
-			    ;
+	        ;
 
             Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}");
             Console.WriteLine($"Log Loss: {metrics.LogLoss:F2}");
