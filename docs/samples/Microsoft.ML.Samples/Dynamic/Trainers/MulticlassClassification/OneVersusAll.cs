@@ -33,7 +33,6 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
                 .OneVersusAll(
                 mlContext.BinaryClassification.Trainers.SdcaLogisticRegression()));
 
-
             // Train the model.
             var model = pipeline.Fit(trainingData);
 

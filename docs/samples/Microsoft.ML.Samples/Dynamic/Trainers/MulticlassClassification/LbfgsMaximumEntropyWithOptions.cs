@@ -39,7 +39,6 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
                 // Apply LbfgsMaximumEntropy multiclass trainer.
                 .Append(mlContext.MulticlassClassification.Trainers
                 .LbfgsMaximumEntropy(options));
-            
 
             // Train the model.
             var model = pipeline.Fit(trainingData);

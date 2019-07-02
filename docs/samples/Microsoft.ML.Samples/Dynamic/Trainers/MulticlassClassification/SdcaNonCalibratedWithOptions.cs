@@ -48,7 +48,6 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
                 // Apply SdcaNonCalibrated multiclass trainer.
                 .Append(mlContext.MulticlassClassification.Trainers
                 .SdcaNonCalibrated(options));
-            
 
             // Train the model.
             var model = pipeline.Fit(trainingData);

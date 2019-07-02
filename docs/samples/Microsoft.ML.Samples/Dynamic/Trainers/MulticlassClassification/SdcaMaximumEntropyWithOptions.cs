@@ -48,7 +48,6 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
                 // Apply SdcaMaximumEntropy multiclass trainer.
                 .Append(mlContext.MulticlassClassification.Trainers
                 .SdcaMaximumEntropy(options));
-            
 
             // Train the model.
             var model = pipeline.Fit(trainingData);

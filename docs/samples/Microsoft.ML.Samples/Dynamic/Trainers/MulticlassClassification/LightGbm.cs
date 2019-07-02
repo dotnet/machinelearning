@@ -35,7 +35,6 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
                 .Append(mlContext.MulticlassClassification.Trainers
                 .LightGbm());
 
-
             // Train the model.
             var model = pipeline.Fit(trainingData);
 
