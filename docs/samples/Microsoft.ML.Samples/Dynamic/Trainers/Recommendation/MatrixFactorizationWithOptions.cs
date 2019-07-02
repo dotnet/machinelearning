@@ -144,16 +144,12 @@ namespace Samples.Dynamic.Trainers.Recommendation
         // Print some evaluation metrics to regression problems.
         private static void PrintMetrics(RegressionMetrics metrics)
         {
-            Console.WriteLine("Mean Absolute Error: " + metrics.MeanAbsoluteError +
-                ":F2");
-
-            Console.WriteLine("Mean Squared Error: " + metrics.MeanSquaredError +
-                ":F2");
-
+            Console.WriteLine("Mean Absolute Error: " + metrics.MeanAbsoluteError);
+            Console.WriteLine("Mean Squared Error: " + metrics.MeanSquaredError);
             Console.WriteLine("Root Mean Squared Error: " +
-                metrics.RootMeanSquaredError + ":F2");
+                metrics.RootMeanSquaredError);
 
-            Console.WriteLine("RSquared: " + metrics.RSquared + ":F2");
+            Console.WriteLine("RSquared: " + metrics.RSquared);
         }
     }
 }
