@@ -9,9 +9,8 @@ namespace Samples.Dynamic.Trainers.Regression
 {
     public static class FastTreeWithOptionsRegression
     {
-        
-        // This example requires installation of additional NuGet package for
-        // Microsoft.ML.FastTree found at
+        // This example requires installation of additional NuGet
+        // package for Microsoft.ML.FastTree found at
         // https://www.nuget.org/packages/Microsoft.ML.FastTree/
         public static void Example()
         {
@@ -36,7 +35,7 @@ namespace Samples.Dynamic.Trainers.Regression
                 // Use L2-norm for early stopping. If the gradient's L2-norm is
                 // smaller than an auto-computed value, training process will stop.
                 EarlyStoppingMetric = 
-				    Microsoft.ML.Trainers.FastTree.EarlyStoppingMetric.L2Norm,
+                    Microsoft.ML.Trainers.FastTree.EarlyStoppingMetric.L2Norm,
 
                 // Create a simpler model by penalizing usage of new features.
                 FeatureFirstUsePenalty = 0.1,

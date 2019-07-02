@@ -8,9 +8,8 @@ namespace Samples.Dynamic.Trainers.Regression
 {
     public static class LightGbm
     {
-        
-        // This example requires installation of additional NuGet package
-        // for Microsoft.ML.LightGBM
+        // This example requires installation of additional NuGet
+        // package for Microsoft.ML.LightGBM
         // at https://www.nuget.org/packages/Microsoft.ML.LightGbm/
         public static void Example()
         {

@@ -9,9 +9,8 @@ namespace Samples.Dynamic.Trainers.Regression
 {
     public static class FastTreeTweedieWithOptionsRegression
     {
-        
-        // This example requires installation of additional NuGet package for
-        // Microsoft.ML.FastTree found at
+        // This example requires installation of additional NuGet
+        // package for Microsoft.ML.FastTree found at
         // https://www.nuget.org/packages/Microsoft.ML.FastTree/
         public static void Example()
         {
@@ -35,7 +34,7 @@ namespace Samples.Dynamic.Trainers.Regression
                 FeatureColumnName = nameof(DataPoint.Features),
                 // Use L2Norm for early stopping.
                 EarlyStoppingMetric =
-				    Microsoft.ML.Trainers.FastTree.EarlyStoppingMetric.L2Norm,
+                    Microsoft.ML.Trainers.FastTree.EarlyStoppingMetric.L2Norm,
 
                 // Create a simpler model by penalizing usage of new features.
                 FeatureFirstUsePenalty = 0.1,

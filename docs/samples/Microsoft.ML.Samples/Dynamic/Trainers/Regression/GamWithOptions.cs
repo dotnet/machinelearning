@@ -9,9 +9,8 @@ namespace Samples.Dynamic.Trainers.Regression
 {
     public static class GamWithOptions
     {
-        
-        // This example requires installation of additional NuGet package for
-        // Microsoft.ML.FastTree found at
+        // This example requires installation of additional NuGet
+        // package for Microsoft.ML.FastTree found at
         // https://www.nuget.org/packages/Microsoft.ML.FastTree/
         public static void Example()
         {

@@ -1,9 +1,8 @@
 ﻿<#@ include file="RegressionSamplesTemplate.ttinclude"#>
 
 <#+
-string ClassHeader = @"
-        // This example requires installation of additional NuGet package
-        // for Microsoft.ML.LightGBM
+string ClassHeader = @"// This example requires installation of additional NuGet
+        // package for Microsoft.ML.LightGBM
         // at https://www.nuget.org/packages/Microsoft.ML.LightGbm/";
 
 string ClassName="LightGbmWithOptions";
