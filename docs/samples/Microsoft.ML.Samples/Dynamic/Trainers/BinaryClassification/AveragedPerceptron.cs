@@ -11,43 +11,43 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for
-			// exception tracking and logging, as a catalog of available operations
-			// and as the source of randomness. Setting the seed to a fixed number
-			// in this example to make outputs deterministic.
+	    // exception tracking and logging, as a catalog of available operations
+	    // and as the source of randomness. Setting the seed to a fixed number
+	    // in this example to make outputs deterministic.
             var mlContext = new MLContext(seed: 0);
 
             // Create a list of training data points.
             var dataPoints = GenerateRandomDataPoints(1000);
 
             // Convert the list of data points to an IDataView object, which is
-			// consumable by ML.NET API.
+	    // consumable by ML.NET API.
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // Define the trainer.
             var pipeline = mlContext.BinaryClassification.Trainers
-			    .AveragedPerceptron();
+                .AveragedPerceptron();
 
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
 
             // Create testing data. Use different random seed to make it different
-			// from training data.
+	    // from training data.
             var testData = mlContext.Data
-			    .LoadFromEnumerable(GenerateRandomDataPoints(500, seed:123));
+	        .LoadFromEnumerable(GenerateRandomDataPoints(500, seed:123));
 
             // Run the model on test data set.
             var transformedTestData = model.Transform(testData);
 
             // Convert IDataView object to a list.
             var predictions = mlContext.Data
-			    .CreateEnumerable<Prediction>(transformedTestData,
-				reuseRowObject: false).ToList();
+	        .CreateEnumerable<Prediction>(transformedTestData,
+		reuseRowObject: false).ToList();
 
             // Print 5 predictions.
             foreach (var p in predictions.Take(5))
                 Console.WriteLine($"Label: {p.Label}, " 
-				    + $"Prediction: {p.PredictedLabel}");
+		    + $"Prediction: {p.PredictedLabel}");
 
             // Expected output:
             //   Label: True, Prediction: True
@@ -58,7 +58,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             
             // Evaluate the overall metrics.
             var metrics = mlContext.BinaryClassification
-			    .EvaluateNonCalibrated(transformedTestData);
+	        .EvaluateNonCalibrated(transformedTestData);
 
             PrintMetrics(metrics);
             
@@ -83,7 +83,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,
-		    int seed=0)
+	    int seed=0)
 
         {
             var random = new Random(seed);
@@ -96,10 +96,10 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
                     Label = label,
                     // Create random features that are correlated with the label.
                     // For data points with false label, the feature values are
-					// slightly increased by adding a constant.
+		    // slightly increased by adding a constant.
                     Features = Enumerable.Repeat(label, 50)
-					    .Select(x => x ? randomFloat() : randomFloat() +
-						0.1f).ToArray()
+		        .Select(x => x ? randomFloat() : randomFloat() +
+		        0.1f).ToArray()
                 };
             }
         }
