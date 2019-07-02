@@ -1341,7 +1341,9 @@ namespace Microsoft.ML.RunTests
                 {
                     var ftInput = new FastTreeBinaryTrainer.Options
                     {
-                        NumberOfThreads = 1
+                        NumberOfThreads = 1,
+                        NumberOfLeaves = 5,
+                        NumberOfTrees = 2
                     };
 
                     var trainer = new FastTreeBinaryTrainer(Env, ftInput);
