@@ -4095,7 +4095,7 @@
           "Default": false
         },
         {
-          "Name": "LowerBoundConfidenceColumn",
+          "Name": "ConfidenceLowerBoundColumn",
           "Type": "String",
           "Desc": "The name of the confidence interval lower bound column.",
           "Aliases": [
@@ -4107,7 +4107,7 @@
           "Default": null
         },
         {
-          "Name": "UpperBoundConfidenceColumn",
+          "Name": "ConfidenceUpperBoundColumn",
           "Type": "String",
           "Desc": "The name of the confidence interval upper bound column.",
           "Aliases": [
