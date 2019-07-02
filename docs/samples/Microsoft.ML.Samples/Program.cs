@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using Samples.Dynamic;
+using Samples.Dynamic.Trainers.BinaryClassification;
 
 namespace Microsoft.ML.Samples
 {
@@ -14,8 +15,10 @@ namespace Microsoft.ML.Samples
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
             {
                 var sample = type.GetMethod("Example", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+                String[] test = {"PairwiseCoupling", "PermutationFeatureImportance", "SdcaMaximumEntropy",
+                "SdcaMaximumEntropyWithOptions", "SdcaNonCalibrated", "SdcaNonCalibratedWithOptions"};
+                if (sample != null && Array.IndexOf(test, type.Name) > -1)//type.Name.Equals("ConvertType"))
 
-                if (sample != null)
                 {
                     Console.WriteLine(type.Name);
                     sample.Invoke(null, null);
