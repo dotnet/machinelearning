@@ -8,11 +8,13 @@ namespace Samples.Dynamic.Trainers.Regression
 {
     class LightGbmWithOptionsAdvanced
     {
-        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGbm/">Microsoft.ML.LightGBM</a>.
+        // This example requires installation of additional NuGet package
+        // for Microsoft.ML.LightGBM
+        // at https://www.nuget.org/packages/Microsoft.ML.LightGbm/
         public static void Example()
         {
-            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
+            // Create a new ML context, for ML.NET operations. It can be used for
+            // exception tracking and logging, as well as the source of randomness.
             var mlContext = new MLContext();
 
             // Download and load the housing dataset into an IDataView.
@@ -35,33 +37,40 @@ namespace Samples.Dynamic.Trainers.Regression
                 .Select(column => column.Name) // Get the column names
                 .Where(name => name != labelName) // Drop the Label
                 .ToArray();
-            var pipeline = mlContext.Transforms.Concatenate("Features", featureNames)
-                           .Append(mlContext.Regression.Trainers.LightGbm(new LightGbmRegressionTrainer.Options
-                           {
-                               LabelColumnName = labelName,
-                               NumberOfLeaves = 4,
-                               MinimumExampleCountPerLeaf = 6,
-                               LearningRate = 0.001,
-                               Booster = new GossBooster.Options()
-                               {
-                                   TopRate = 0.3,
-                                   OtherRate = 0.2
-                               }
-                           }));
+            var pipeline = mlContext.Transforms.Concatenate(
+                "Features", featureNames)
+                .Append(mlContext.Regression.Trainers.LightGbm(
+                new LightGbmRegressionTrainer.Options
+                    {
+                        LabelColumnName = labelName,
+                        NumberOfLeaves = 4,
+                        MinimumExampleCountPerLeaf = 6,
+                        LearningRate = 0.001,
+                        Booster = new GossBooster.Options()
+                        {
+                            TopRate = 0.3,
+                            OtherRate = 0.2
+                        }
+                    }));
 
             // Fit this pipeline to the training data.
             var model = pipeline.Fit(split.TrainSet);
 
-            // Get the feature importance based on the information gain used during training.
+            // Get the feature importance based on the information gain used during
+            // training.
             VBuffer<float> weights = default;
             model.LastTransformer.Model.GetFeatureWeights(ref weights);
             var weightsValues = weights.DenseValues().ToArray();
-            Console.WriteLine($"weight 0 - {weightsValues[0]}"); // CrimesPerCapita  (weight 0) = 0.1898361
-            Console.WriteLine($"weight 5 - {weightsValues[5]}"); // RoomsPerDwelling (weight 5) = 1
+            Console.WriteLine($"weight 0 - {weightsValues[0]}");
+            // CrimesPerCapita  (weight 0) = 0.1898361
+            Console.WriteLine($"weight 5 - {weightsValues[5]}");
+            // RoomsPerDwelling (weight 5) = 1
 
             // Evaluate how the model is doing on the test data.
             var dataWithPredictions = model.Transform(split.TestSet);
-            var metrics = mlContext.Regression.Evaluate(dataWithPredictions, labelColumnName: labelName);
+            var metrics = mlContext.Regression.Evaluate(
+                dataWithPredictions,
+                labelColumnName: labelName);
             PrintMetrics(metrics);
 
             // Expected output
@@ -74,10 +83,12 @@ namespace Samples.Dynamic.Trainers.Regression
 
         public static void PrintMetrics(RegressionMetrics metrics)
         {
-            Console.WriteLine($"Mean Absolute Error: {metrics.MeanAbsoluteError:F2}");
-            Console.WriteLine($"Mean Squared Error: {metrics.MeanSquaredError:F2}");
-            Console.WriteLine($"Root Mean Squared Error: {metrics.RootMeanSquaredError:F2}");
-            Console.WriteLine($"RSquared: {metrics.RSquared:F2}");
+            Console.WriteLine("Mean Absolute Error: " + metrics.MeanAbsoluteError);
+            Console.WriteLine("Mean Squared Error: " + metrics.MeanSquaredError);
+            Console.WriteLine(
+                "Root Mean Squared Error: " + metrics.RootMeanSquaredError);
+
+            Console.WriteLine("RSquared: " + metrics.RSquared);
         }
     }
 }

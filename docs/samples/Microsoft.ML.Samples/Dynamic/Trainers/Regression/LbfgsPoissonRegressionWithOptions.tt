@@ -9,9 +9,11 @@ string TrainerOptions = @"LbfgsPoissonRegressionTrainer.Options
             {
                 LabelColumnName = nameof(DataPoint.Label),
                 FeatureColumnName = nameof(DataPoint.Features),
-                // Reduce optimization tolerance to speed up training at the cost of accuracy.
+                // Reduce optimization tolerance to speed up training at the cost of
+                // accuracy.
                 OptimizationTolerance = 1e-4f,
-                // Decrease history size to speed up training at the cost of accuracy.
+                // Decrease history size to speed up training at the cost of
+                // accuracy.
                 HistorySize = 30,
                 // Specify scale for initial weights.
                 InitialWeightsDiameter = 0.2f
