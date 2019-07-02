@@ -10,39 +10,55 @@ namespace Samples.Dynamic
     {
         public static void Example()
         {
-            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
+            // Create a new ML context, for ML.NET operations. It can be used for
+            // exception tracking and logging, as well as the source of randomness.
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
             var samples = new List<DataPoint>()
             {
-                new DataPoint(){ Features1 = new float[3] {1, 1, 0}, Features2 = new float[2] {1, 1} },
-                new DataPoint(){ Features1 = new float[3] {0, float.NaN, 1}, Features2 = new float[2] {0, 1} },
-                new DataPoint(){ Features1 = new float[3] {-1, float.NaN, -3}, Features2 = new float[2] {-1, float.NaN} },
-                new DataPoint(){ Features1 = new float[3] {-1, 6, -3}, Features2 = new float[2] {0, float.PositiveInfinity} },
+                new DataPoint(){ Features1 = new float[3] {1, 1, 0}, Features2 =
+                    new float[2] {1, 1} },
+
+                new DataPoint(){ Features1 = new float[3] {0, float.NaN, 1},
+                    Features2 = new float[2] {0, 1} },
+
+                new DataPoint(){ Features1 = new float[3] {-1, float.NaN, -3},
+                    Features2 = new float[2] {-1, float.NaN} },
+
+                new DataPoint(){ Features1 = new float[3] {-1, 6, -3}, Features2 =
+                    new float[2] {0, float.PositiveInfinity} },
             };
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
-            // Here we use the default replacement mode, which replaces the value with the default value for its type.
+            // Here we use the default replacement mode, which replaces the value
+            // with the default value for its type.
             var defaultPipeline = mlContext.Transforms.ReplaceMissingValues(new[] {
                 new InputOutputColumnPair("MissingReplaced1", "Features1"),
                 new InputOutputColumnPair("MissingReplaced2", "Features2")
             },
             MissingValueReplacingEstimator.ReplacementMode.DefaultValue);
 
-            // Now we can transform the data and look at the output to confirm the behavior of the estimator.
-            // This operation doesn't actually evaluate data until we read the data below.
+            // Now we can transform the data and look at the output to confirm the
+            // behavior of the estimator. This operation doesn't actually evaluate
+            // data until we read the data below.
             var defaultTransformer = defaultPipeline.Fit(data);
             var defaultTransformedData = defaultTransformer.Transform(data);
 
-            // We can extract the newly created column as an IEnumerable of SampleDataTransformed, the class we define below.
-            var defaultRowEnumerable = mlContext.Data.CreateEnumerable<SampleDataTransformed>(defaultTransformedData, reuseRowObject: false);
+            // We can extract the newly created column as an IEnumerable of
+            // SampleDataTransformed, the class we define below.
+            var defaultRowEnumerable = mlContext.Data.CreateEnumerable<
+                SampleDataTransformed>(defaultTransformedData, reuseRowObject:
+                false);
 
-            // And finally, we can write out the rows of the dataset, looking at the columns of interest.
+            // And finally, we can write out the rows of the dataset, looking at the
+            // columns of interest.
             foreach (var row in defaultRowEnumerable)
-                Console.WriteLine($"Features1: [{string.Join(", ", row.Features1)}]\t MissingReplaced1: [{string.Join(", ", row.MissingReplaced1)}]\t " +
-                    $"Features2: [{ string.Join(", ", row.Features2)}]\t MissingReplaced2: [{string.Join(", ", row.MissingReplaced2)}]");
+                Console.WriteLine("Features1: [" + string.Join(", ", row
+                    .Features1) + "]\t MissingReplaced1: [" + string.Join(", ", row
+                    .MissingReplaced1) + "]\t Features2: [" + string.Join(", ", row
+                    .Features2) + "]\t MissingReplaced2: [" + string.Join(", ", row
+                    .MissingReplaced2) + "]");
 
             // Expected output:
             // Features1: [1, 1, 0]     MissingReplaced1: [1, 1, 0]     Features2: [1, 1]       MissingReplaced2: [1, 1]
@@ -50,25 +66,34 @@ namespace Samples.Dynamic
             // Features1: [-1, NaN, -3]         MissingReplaced1: [-1, 0, -3]   Features2: [-1, NaN]    MissingReplaced2: [-1, 0]
             // Features1: [-1, 6, -3]   MissingReplaced1: [-1, 6, -3]   Features2: [0, ∞]       MissingReplaced2: [0, ∞]
 
-            // Here we use the mean replacement mode, which replaces the value with the mean of the non values that were not missing.
+            // Here we use the mean replacement mode, which replaces the value with
+            // the mean of the non values that were not missing.
             var meanPipeline = mlContext.Transforms.ReplaceMissingValues(new[] {
                 new InputOutputColumnPair("MissingReplaced1", "Features1"),
                 new InputOutputColumnPair("MissingReplaced2", "Features2")
             },
             MissingValueReplacingEstimator.ReplacementMode.Mean);
 
-            // Now we can transform the data and look at the output to confirm the behavior of the estimator.
-            // This operation doesn't actually evaluate data until we read the data below.
+            // Now we can transform the data and look at the output to confirm the
+            // behavior of the estimator.
+            // This operation doesn't actually evaluate data until we read the data
+            // below.
             var meanTransformer = meanPipeline.Fit(data);
             var meanTransformedData = meanTransformer.Transform(data);
 
-            // We can extract the newly created column as an IEnumerable of SampleDataTransformed, the class we define below.
-            var meanRowEnumerable = mlContext.Data.CreateEnumerable<SampleDataTransformed>(meanTransformedData, reuseRowObject: false);
+            // We can extract the newly created column as an IEnumerable of
+            // SampleDataTransformed, the class we define below.
+            var meanRowEnumerable = mlContext.Data.CreateEnumerable<
+                SampleDataTransformed>(meanTransformedData, reuseRowObject: false);
 
-            // And finally, we can write out the rows of the dataset, looking at the columns of interest.
+            // And finally, we can write out the rows of the dataset, looking at the
+            // columns of interest.
             foreach (var row in meanRowEnumerable)
-                Console.WriteLine($"Features1: [{string.Join(", ", row.Features1)}]\t MissingReplaced1: [{string.Join(", ", row.MissingReplaced1)}]\t " +
-                    $"Features2: [{ string.Join(", ", row.Features2)}]\t MissingReplaced2: [{string.Join(", ", row.MissingReplaced2)}]");
+                Console.WriteLine("Features1: [" + string.Join(", ", row
+                    .Features1) + "]\t MissingReplaced1: [" + string.Join(", ", row
+                    .MissingReplaced1) + "]\t Features2: [" + string.Join(", ", row
+                    .Features2) + "]\t MissingReplaced2: [" + string.Join(", ", row
+                    .MissingReplaced2) + "]");
 
             // Expected output:
             // Features1: [1, 1, 0]     MissingReplaced1: [1, 1, 0]     Features2: [1, 1]       MissingReplaced2: [1, 1]

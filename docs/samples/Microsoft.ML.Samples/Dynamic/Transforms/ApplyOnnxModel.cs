@@ -19,14 +19,16 @@ namespace Samples.Dynamic
 
             // Generate sample test data.
             var samples = GetTensorData();
-            // Convert training data to IDataView, the general data type used in ML.NET.
+            // Convert training data to IDataView, the general data type used in
+            // ML.NET.
             var data = mlContext.Data.LoadFromEnumerable(samples);
             // Create the pipeline to score using provided onnx model.
             var pipeline = mlContext.Transforms.ApplyOnnxModel(modelPath);
             // Fit the pipeline and get the transformed values
             var transformedValues = pipeline.Fit(data).Transform(data);
             // Retrieve model scores into Prediction class
-            var predictions = mlContext.Data.CreateEnumerable<Prediction>(transformedValues, reuseRowObject: false);
+            var predictions = mlContext.Data.CreateEnumerable<Prediction>(
+                transformedValues, reuseRowObject: false);
 
             // Iterate rows
             foreach (var prediction in predictions)
@@ -34,7 +36,8 @@ namespace Samples.Dynamic
                 int numClasses = 0;
                 foreach (var classScore in prediction.softmaxout_1.Take(3))
                 {
-                    Console.WriteLine($"Class #{numClasses++} score = {classScore}");
+                    Console.WriteLine("Class #" + numClasses++ + " score = " +
+                        classScore);
                 }
                 Console.WriteLine(new string('-', 10));
             }
@@ -65,9 +68,14 @@ namespace Samples.Dynamic
         public static TensorData[] GetTensorData()
         {
             // This can be any numerical data. Assume image pixel values.
-            var image1 = Enumerable.Range(0, inputSize).Select(x => (float)x / inputSize).ToArray();
-            var image2 = Enumerable.Range(0, inputSize).Select(x => (float)(x + 10000) / inputSize).ToArray();
-            return new TensorData[] { new TensorData() { data_0 = image1 }, new TensorData() { data_0 = image2 } };
+            var image1 = Enumerable.Range(0, inputSize).Select(x => (float)x /
+                inputSize).ToArray();
+
+            var image2 = Enumerable.Range(0, inputSize).Select(x => (float)(x +
+                10000) / inputSize).ToArray();
+
+            return new TensorData[] { new TensorData() { data_0 = image1 }, new
+                TensorData() { data_0 = image2 } };
         }
 
         // Class to contain the output values from the transformation.
