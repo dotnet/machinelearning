@@ -25,13 +25,13 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(IsStableProject)' == 'true'">
     <MajorVersion>1</MajorVersion>
-    <MinorVersion>2</MinorVersion>
+    <MinorVersion>3</MinorVersion>
     <PatchVersion>0</PatchVersion>
     <PreReleaseLabel>preview</PreReleaseLabel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(IsStableProject)' != 'true'">
     <MajorVersion>0</MajorVersion>
-    <MinorVersion>14</MinorVersion>
+    <MinorVersion>15</MinorVersion>
     <PatchVersion>0</PatchVersion>
     <PreReleaseLabel>preview</PreReleaseLabel>
   </PropertyGroup>
