@@ -103,6 +103,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
                     Features = Enumerable.Repeat(label, 50)
 		        .Select(x => x ? randomFloat() : randomFloat() +
 			0.03f).ToArray()
+			    
                 };
             }
         }
