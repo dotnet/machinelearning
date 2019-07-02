@@ -92,6 +92,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
                     + $"score of being positive class: {result.Score}, "
 		    + $"and probability of beling positive class: "
 		    + $"{result.Probability}.");
+		    
             }
 
             // Expected output:
