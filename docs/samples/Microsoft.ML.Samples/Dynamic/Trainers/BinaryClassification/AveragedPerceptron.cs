@@ -105,7 +105,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
         }
 
         // Example with label and 50 feature values. A data set is a collection of
-		// such examples.
+	// such examples.
         private class DataPoint
         {
             public bool Label { get; set; }
