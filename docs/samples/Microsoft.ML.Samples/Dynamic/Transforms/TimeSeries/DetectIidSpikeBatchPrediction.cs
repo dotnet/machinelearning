@@ -79,8 +79,8 @@ namespace Samples.Dynamic
         private static void PrintPrediction(float value, IidSpikePrediction
             prediction) => 
             Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", value,
-                prediction.Prediction[0], prediction.Prediction[1],
-                prediction.Prediction[2]);
+            prediction.Prediction[0], prediction.Prediction[1],
+            prediction.Prediction[2]);
 
         class TimeSeriesData
         {
