@@ -8,12 +8,12 @@ namespace Samples.Dynamic
 {
     public static class Forecasting
     {
-        // This example creates a time series (list of Data with the i-th element corresponding to the i-th time slot) and then
-        // does forecasting.
+        // This example creates a time series (list of Data with the i-th element
+        // corresponding to the i-th time slot) and then does forecasting.
         public static void Example()
         {
-            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
+            // Create a new ML context, for ML.NET operations. It can be used for
+            // exception tracking and logging, as well as the source of randomness.
             var ml = new MLContext();
 
             // Generate sample series data with a recurring pattern.
@@ -46,13 +46,16 @@ namespace Samples.Dynamic
             var outputColumnName = nameof(ForecastResult.Forecast);
 
             // Instantiate the forecasting model.
-            var model = ml.Forecasting.ForecastBySsa(outputColumnName, inputColumnName, 5, 11, data.Count, 5);
+            var model = ml.Forecasting.ForecastBySsa(outputColumnName,
+                inputColumnName, 5, 11, data.Count, 5);
 
             // Train.
             var transformer = model.Fit(dataView);
 
             // Forecast next five values.
-            var forecastEngine = transformer.CreateTimeSeriesEngine<TimeSeriesData, ForecastResult>(ml);
+            var forecastEngine = transformer.CreateTimeSeriesEngine<TimeSeriesData,
+                ForecastResult>(ml);
+
             var forecast = forecastEngine.Predict();
 
             Console.WriteLine($"Forecasted values:");
@@ -76,7 +79,8 @@ namespace Samples.Dynamic
                 modelCopy = ml.Model.Load(file, out DataViewSchema schema);
 
             // We must create a new prediction engine from the persisted model.
-            var forecastEngineCopy = modelCopy.CreateTimeSeriesEngine<TimeSeriesData, ForecastResult>(ml);
+            var forecastEngineCopy = modelCopy.CreateTimeSeriesEngine<
+                TimeSeriesData, ForecastResult>(ml);
 
             // Forecast with the checkpointed model loaded from disk.
             forecast = forecastEngineCopy.Predict();
