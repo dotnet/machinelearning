@@ -220,9 +220,9 @@ namespace Microsoft.ML.RunTests
         [TestCategory("Multiclass")]
         public void MulticlassReductionTest()
         {
-            RunOneAllTests(TestLearners.Ova, TestDatasets.iris, digitsOfPrecision: 6);
-            RunOneAllTests(TestLearners.OvaWithFastForest, TestDatasets.iris, digitsOfPrecision: 6);
-            RunOneAllTests(TestLearners.Pkpd, TestDatasets.iris, digitsOfPrecision: 6);
+            RunOneAllTests(TestLearners.Ova, TestDatasets.iris, digitsOfPrecision: 5);
+            RunOneAllTests(TestLearners.OvaWithFastForest, TestDatasets.iris, digitsOfPrecision: 5);
+            RunOneAllTests(TestLearners.Pkpd, TestDatasets.iris, digitsOfPrecision: 5);
 
             Done();
         }
