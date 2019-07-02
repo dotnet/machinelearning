@@ -52,7 +52,6 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             var pipeline = mlContext.BinaryClassification.Trainers
                 .FieldAwareFactorizationMachine(options);
 
-
             // Train the model.
             var model = pipeline.Fit(trainingData);
 

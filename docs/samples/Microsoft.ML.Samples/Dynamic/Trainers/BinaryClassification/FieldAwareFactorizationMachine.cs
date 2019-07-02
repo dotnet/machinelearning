@@ -37,11 +37,9 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
                 .FieldAwareFactorizationMachine(
                 // Specify three feature columns!
                 new[] {nameof(DataPoint.Field0), nameof(DataPoint.Field1),
-            nameof(DataPoint.Field2) },
-
+                nameof(DataPoint.Field2) },
                 // Specify binary label's column name.
                 nameof(DataPoint.Label) );
-
 
             // Train the model.
             var model = pipeline.Fit(trainingData);

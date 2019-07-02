@@ -27,14 +27,13 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             var pipeline = mlContext.BinaryClassification.Trainers
                 .AveragedPerceptron();
 
-
             // Train the model.
             var model = pipeline.Fit(trainingData);
 
             // Create testing data. Use different random seed to make it different
             // from training data.
             var testData = mlContext.Data
-            .LoadFromEnumerable(GenerateRandomDataPoints(500, seed:123));
+                .LoadFromEnumerable(GenerateRandomDataPoints(500, seed:123));
 
             // Run the model on test data set.
             var transformedTestData = model.Transform(testData);
@@ -129,12 +128,12 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             Console.WriteLine($"Accuracy: {metrics.Accuracy:F2}");
             Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve:F2}");
             Console.WriteLine($"F1 Score: {metrics.F1Score:F2}");
-            Console.WriteLine($"Negative Precision: {metrics.NegativePrecision:F2}")
-                ;
+            Console.WriteLine($"Negative Precision: " + 
+                $"{metrics.NegativePrecision:F2}");
 
             Console.WriteLine($"Negative Recall: {metrics.NegativeRecall:F2}");
-            Console.WriteLine($"Positive Precision: {metrics.PositivePrecision:F2}")
-                ;
+            Console.WriteLine($"Positive Precision: " +
+                $"{metrics.PositivePrecision:F2}");
 
             Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}\n");
             Console.WriteLine(metrics.ConfusionMatrix.GetFormattedConfusionTable());

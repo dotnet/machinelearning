@@ -31,7 +31,6 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             <#=TrainerDescription#>
             var pipeline = mlContext.BinaryClassification.Trainers
                 .<#=Trainer#>;
-
 <# } else { #>
             // Define trainer options.
             var options = new <#=TrainerOptions#>;
@@ -40,7 +39,6 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             <#=TrainerDescription#>
             var pipeline = mlContext.BinaryClassification.Trainers
                 .<#=Trainer#>(options);
-
 <# } #>
 
             // Train the model.

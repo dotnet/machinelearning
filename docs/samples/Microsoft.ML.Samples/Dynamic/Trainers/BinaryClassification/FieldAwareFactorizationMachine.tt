@@ -4,8 +4,7 @@ string ClassName="FieldAwareFactorizationMachine";
 string Trainer = @"FieldAwareFactorizationMachine(
                 // Specify three feature columns!
                 new[] {nameof(DataPoint.Field0), nameof(DataPoint.Field1),
-            nameof(DataPoint.Field2) },
-
+                nameof(DataPoint.Field2) },
                 // Specify binary label's column name.
                 nameof(DataPoint.Label) )";
 
