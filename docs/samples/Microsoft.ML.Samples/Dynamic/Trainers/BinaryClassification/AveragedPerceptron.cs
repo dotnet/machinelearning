@@ -129,11 +129,11 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve:F2}");
             Console.WriteLine($"F1 Score: {metrics.F1Score:F2}");
             Console.WriteLine($"Negative Precision: {metrics.NegativePrecision:F2}")
-			    ;
+	        ;
 
             Console.WriteLine($"Negative Recall: {metrics.NegativeRecall:F2}");
             Console.WriteLine($"Positive Precision: {metrics.PositivePrecision:F2}")
-			    ;
+	        ;
 
             Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}\n");
             Console.WriteLine(metrics.ConfusionMatrix.GetFormattedConfusionTable());
