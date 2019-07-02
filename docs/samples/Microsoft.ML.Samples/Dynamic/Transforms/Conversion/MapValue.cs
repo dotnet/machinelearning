@@ -56,8 +56,10 @@ namespace Samples.Dynamic
             var pipeline = mlContext.Transforms.Conversion.MapValue(
                 "TimeframeCategory", timeframeMap, "Timeframe").Append(mlContext.
                 Transforms.Conversion.MapValue("ScoreCategory", scoreMap, "Score"))
-                // on the MapValue below, the treatValuesAsKeyType is set to true. The type of the Label column will be a KeyDataViewType type, 
-                // and it can be used as input for trainers performing multiclass classification.
+                // on the MapValue below, the treatValuesAsKeyType is set to true.
+                // The type of the Label column will be a KeyDataViewType type, 
+                // and it can be used as input for trainers performing multiclass
+                // classification.
                 .Append(mlContext.Transforms.Conversion.MapValue("Label",
                 timeframeKeyMap, "Timeframe", treatValuesAsKeyType: true));
 
@@ -71,6 +73,7 @@ namespace Samples.Dynamic
 
             Console.WriteLine(" Timeframe   TimeframeCategory   Label    Score   " +
                 "ScoreCategory");
+
             foreach (var featureRow in features)
                 Console.WriteLine($"{featureRow.Timeframe}\t\t" +
                     $"{featureRow.TimeframeCategory}\t\t\t{featureRow.Label}\t\t" +

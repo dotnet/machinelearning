@@ -41,8 +41,8 @@ namespace Samples.Dynamic
             // full map. If that parameter is left to the default 0 value, the
             // mapping is not preserved.
             var pipeline = mlContext.Transforms.Conversion.Hash("CategoryHashed",
-                "Category", numberOfBits: 16, maximumNumberOfInverts: -1).Append(
-                mlContext.Transforms.Conversion.Hash("AgeHashed", "Age",
+                "Category", numberOfBits: 16, maximumNumberOfInverts: -1)
+                .Append(mlContext.Transforms.Conversion.Hash("AgeHashed", "Age",
                 numberOfBits: 8));
 
             // Let's fit our pipeline, and then apply it to the same data.

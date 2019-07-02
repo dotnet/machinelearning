@@ -31,6 +31,7 @@ namespace Samples.Dynamic
             // SurvivedInt32' (Int32)
             var convertedData = mlContext.Data.CreateEnumerable<TransformedData>(
                 transformedData, true);
+
             foreach (var item in convertedData)
             {
                 Console.WriteLine("A:{0,-10}  Aconv:{1}", item.Survived,

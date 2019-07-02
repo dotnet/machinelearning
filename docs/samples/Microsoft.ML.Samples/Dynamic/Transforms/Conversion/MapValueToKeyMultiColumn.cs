@@ -44,6 +44,7 @@ namespace Samples.Dynamic
 
             Console.WriteLine($" StudyTime   StudyTimeCategory   Course    " +
                 $"CourseCategory");
+
             foreach (var featureRow in features)
                 Console.WriteLine($"{featureRow.StudyTime}\t\t" +
                 $"{featureRow.StudyTimeCategory}\t\t\t{featureRow.Course}\t\t" +
