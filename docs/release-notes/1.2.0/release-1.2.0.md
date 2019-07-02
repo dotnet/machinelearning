@@ -8,24 +8,24 @@
     - Forecasting models:
       - Singular spectrum analysis.
     - Prediction Engine for online learning
-      - Allows updating time series model with new observations at scoring so that the user does not have re-train the time series with old data each time.
+      - Enables updating time series model with new observations at scoring so that the user does not have to re-train the time series with old data each time.
 
      [Samples](https://github.com/dotnet/machinelearning/tree/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries)
 
 - **Microsoft.ML.OnnxTransformer**  
-   Allows scoring of ONNX models in the learning pipeline. Uses ONNX Runtime v0.4.
+   Enables scoring of ONNX models in the learning pipeline. Uses ONNX Runtime v0.4.
       
    [Sample](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ApplyOnnxModel.cs)
 
 - **Microsoft.ML.TensforFlow**  
-   Allows scoring of TensorFlow models in the learning pipeline. Uses TensforFlow v1.13. Very useful for image and text classification.
+   Enables scoring of TensorFlow models in the learning pipeline. Uses TensforFlow v1.13. Users can featurize images or text using DNN models and feed the result into a classical machine learning model like a decision tree or logistic regression trainer. 
 
    [Samples](https://github.com/dotnet/machinelearning/tree/master/docs/samples/Microsoft.ML.Samples/Dynamic/TensorFlow)
 
 ## **New Features**
 - **Tree-based featurization** ([#3812](https://github.com/dotnet/machinelearning/pull/3812))
 
-  Generating features using tree structure has been a popular technique in data mining. This PR exposes this internal-only feature to the public. 
+  Generating features using tree structure has been a popular technique in data mining.
 
   [Samples](https://github.com/dotnet/machinelearning/tree/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TreeFeaturization)
 
@@ -43,11 +43,11 @@
 ### Serious
 - **Time series Sequential Transform needs to have a binding mechanism:** This bug made it impossible to use time series in NimbusML. ([#3875](https://github.com/dotnet/machinelearning/pull/3875))
 
-- **build errors resulting from upgrading to VS2019 compilers:** The default CMAKE_C_FLAG for debug configuration sets /ZI to generate a PDB capable of edit and continue. In the new compilers, this is incompatible with /guard:cf which we set for security reasons. ([#3894](https://github.com/dotnet/machinelearning/pull/3894)) 
+- **Build errors resulting from upgrading to VS2019 compilers:** The default CMAKE_C_FLAG for debug configuration sets /ZI to generate a PDB capable of edit and continue. In the new compilers, this is incompatible with /guard:cf which we set for security reasons. ([#3894](https://github.com/dotnet/machinelearning/pull/3894)) 
 
 - **LightGBM Evaluation metric parameters:** In LightGbm EvaluateMetricType where if a user specified EvaluateMetricType.Default, the metric would not get added to the options Dictionary, and LightGbmWrappedTraining would throw because of that. ([#3815](https://github.com/dotnet/machinelearning/pull/3815))
 
-- **Change default EvaluationMetric for LightGbm:** In [ML.NET](dot.net/ml), the default EvaluationMetric for LightGbm is set to EvaluateMetricType.Error for multiclass, EvaluationMetricType.LogLoss for binary, and so on. This leads to inconsistent behavior from the user's perspective. ([#3859](https://github.com/dotnet/machinelearning/pull/3859))
+- **Change default EvaluationMetric for LightGbm:** In [ML.NET](dot.net/ml), the default EvaluationMetric for LightGbm is set to EvaluateMetricType.Error for multiclass, EvaluationMetricType.LogLoss for binary etc. This leads to inconsistent behavior from the user's perspective. ([#3859](https://github.com/dotnet/machinelearning/pull/3859))
 ### Other
 - CustomGains should allow multiple values in argument attribute. ([#3854](https://github.com/dotnet/machinelearning/pull/3854))
 
