@@ -43,7 +43,7 @@
           RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
           UseHardlinksIfPossible="$(CreateHardLinksForPublishFilesIfPossible)"
           UseSymboliclinksIfPossible="$(CreateSymbolicLinksForPublishFilesIfPossible)"
-          Condition="Exists('%(AssemblyPathWithMajorVersion)')">
+          Condition="'$(OS)' != 'Windows_NT' AND Exists('%(AssemblyPathWithMajorVersion)')">
       <Output TaskParameter="DestinationFiles" ItemName="FileWrites"/>
     </Copy>
       
