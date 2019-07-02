@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Onnx;
@@ -23,6 +24,7 @@ namespace Microsoft.ML
         /// <param name="modelFile">The path of the file containing the ONNX model.</param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on, <see langword="null" /> to run on CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
+        /// <param name="shapeDictionary">ONNX shape should be used to over those loaded from <paramref name="modelFile"/>.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -33,8 +35,10 @@ namespace Microsoft.ML
         public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog,
             string modelFile,
             int? gpuDeviceId = null,
-            bool fallbackToCpu = false)
-        => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), modelFile, gpuDeviceId, fallbackToCpu);
+            bool fallbackToCpu = false,
+            IDictionary<string, int[]> shapeDictionary = null)
+        => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), modelFile, gpuDeviceId, fallbackToCpu,
+            shapeDictionary: shapeDictionary);
 
         /// <summary>
         /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the <paramref name="inputColumnName"/> column.
@@ -45,6 +49,7 @@ namespace Microsoft.ML
         /// <param name="modelFile">The path of the file containing the ONNX model.</param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on, <see langword="null" /> to run on CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
+        /// <param name="shapeDictionary">ONNX shape should be used to over those loaded from <paramref name="modelFile"/>.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -57,8 +62,10 @@ namespace Microsoft.ML
             string inputColumnName,
             string modelFile,
             int? gpuDeviceId = null,
-            bool fallbackToCpu = false)
-        => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), new[] { outputColumnName }, new[] { inputColumnName }, modelFile, gpuDeviceId, fallbackToCpu);
+            bool fallbackToCpu = false,
+            IDictionary<string, int[]> shapeDictionary = null)
+        => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), new[] { outputColumnName }, new[] { inputColumnName },
+            modelFile, gpuDeviceId, fallbackToCpu, shapeDictionary: shapeDictionary);
 
         /// <summary>
         /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the <paramref name="inputColumnNames"/> columns.
@@ -69,13 +76,16 @@ namespace Microsoft.ML
         /// <param name="modelFile">The path of the file containing the ONNX model.</param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on, <see langword="null" /> to run on CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
+        /// <param name="shapeDictionary">ONNX shape should be used to over those loaded from <paramref name="modelFile"/>.</param>
         public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog,
             string[] outputColumnNames,
             string[] inputColumnNames,
             string modelFile,
             int? gpuDeviceId = null,
-            bool fallbackToCpu = false)
-        => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnNames, inputColumnNames, modelFile, gpuDeviceId, fallbackToCpu);
+            bool fallbackToCpu = false,
+            IDictionary<string, int[]> shapeDictionary = null)
+        => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnNames, inputColumnNames,
+            modelFile, gpuDeviceId, fallbackToCpu, shapeDictionary: shapeDictionary);
 
         /// <summary>
         /// Create <see cref="DnnImageFeaturizerEstimator"/>, which applies one of the pre-trained DNN models in
