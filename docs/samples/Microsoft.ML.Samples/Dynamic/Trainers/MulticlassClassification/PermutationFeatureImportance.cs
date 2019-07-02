@@ -26,11 +26,11 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
                 new string[] { nameof(Data.Feature1), nameof(Data.Feature2) };
 
             var pipeline = mlContext.Transforms
-                    .Concatenate("Features", featureColumns)
-                    .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
-                    .Append(mlContext.Transforms.NormalizeMinMax("Features"))
-                    .Append(mlContext.MulticlassClassification.Trainers
-                    .SdcaMaximumEntropy());
+                .Concatenate("Features", featureColumns)
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
+                .Append(mlContext.Transforms.NormalizeMinMax("Features"))
+                .Append(mlContext.MulticlassClassification.Trainers
+                .SdcaMaximumEntropy());
 
             // Fit the pipeline to the data.
             var model = pipeline.Fit(data);

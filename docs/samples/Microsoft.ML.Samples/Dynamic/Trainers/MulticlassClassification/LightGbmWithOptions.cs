@@ -39,9 +39,9 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 
             // Define the trainer.
             var pipeline = 
-            // Convert the string labels into key types.
+                // Convert the string labels into key types.
                 mlContext.Transforms.Conversion.MapValueToKey("Label")
-            // Apply LightGbm multiclass trainer.
+                // Apply LightGbm multiclass trainer.
                 .Append(mlContext.MulticlassClassification.Trainers
                 .LightGbm(options));
             

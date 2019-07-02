@@ -39,10 +39,10 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 <# if (MetaTrainer != null) { #>
             // Define the trainer.
             var pipeline =
-            // Convert the string labels into key types.
+                // Convert the string labels into key types.
                 mlContext.Transforms.Conversion.MapValueToKey("Label")
-            // Apply <#=MetaTrainer#> multiclass meta trainer on top of
-            // binary trainer.
+                // Apply <#=MetaTrainer#> multiclass meta trainer on top of
+                // binary trainer.
                 .Append(mlContext.MulticlassClassification.Trainers
                 .<#=MetaTrainer#>(
                 <#=Trainer#>()));
@@ -50,10 +50,10 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 <# } else if (TrainerOptions == null) { #>
             // Define the trainer.
             var pipeline =
-            // Convert the string labels into key types.
+                // Convert the string labels into key types.
                 mlContext.Transforms.Conversion
                 .MapValueToKey(nameof(DataPoint.Label))
-            // Apply <#=Trainer#> multiclass trainer.
+                // Apply <#=Trainer#> multiclass trainer.
                 .Append(mlContext.MulticlassClassification.Trainers
                 .<#=Trainer#>());
 
@@ -63,9 +63,9 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 
             // Define the trainer.
             var pipeline = 
-            // Convert the string labels into key types.
+                // Convert the string labels into key types.
                 mlContext.Transforms.Conversion.MapValueToKey("Label")
-            // Apply <#=Trainer#> multiclass trainer.
+                // Apply <#=Trainer#> multiclass trainer.
                 .Append(mlContext.MulticlassClassification.Trainers
                 .<#=Trainer#>(options));
             

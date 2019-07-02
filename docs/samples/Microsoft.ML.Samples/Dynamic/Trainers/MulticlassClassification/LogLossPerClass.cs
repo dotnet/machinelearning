@@ -25,13 +25,12 @@ namespace Samples.Dynamic
 
             // Define the trainer.
             var pipeline =
-                    // Convert the string labels into key types.
-                    mlContext.Transforms.Conversion
-                        .MapValueToKey(nameof(DataPoint.Label))
-
-                    // Apply a multiclass trainer.
-                        .Append(mlContext.MulticlassClassification.Trainers
-                        .LightGbm());
+                // Convert the string labels into key types.
+                mlContext.Transforms.Conversion
+                .MapValueToKey(nameof(DataPoint.Label))
+                // Apply a multiclass trainer.
+                .Append(mlContext.MulticlassClassification.Trainers
+                .LightGbm());
 
             // Train the model.
             var model = pipeline.Fit(trainingData);

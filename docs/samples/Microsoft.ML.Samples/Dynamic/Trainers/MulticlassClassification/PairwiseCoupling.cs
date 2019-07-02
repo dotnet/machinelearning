@@ -25,10 +25,10 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 
             // Define the trainer.
             var pipeline =
-            // Convert the string labels into key types.
+                // Convert the string labels into key types.
                 mlContext.Transforms.Conversion.MapValueToKey("Label")
-            // Apply PairwiseCoupling multiclass meta trainer on top of
-            // binary trainer.
+                // Apply PairwiseCoupling multiclass meta trainer on top of
+                // binary trainer.
                 .Append(mlContext.MulticlassClassification.Trainers
                 .PairwiseCoupling(
                 mlContext.BinaryClassification.Trainers.SdcaLogisticRegression()));
