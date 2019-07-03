@@ -1,4 +1,4 @@
-# [ML.NET](http://dot.net/ml) 1.2.0 
+# [ML.NET](http://dot.net/ml) 1.2.0
 ## **General Availability**
 - **Microsoft.ML.TimeSeries**  
     - Anomaly detection algorithms (Spike and Change Point):
@@ -17,15 +17,23 @@
       
    [Sample](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ApplyOnnxModel.cs)
 
-- **Microsoft.ML.TensforFlow**  
-   Enables scoring of TensorFlow models in the learning pipeline. Uses TensforFlow v1.13. Users can featurize images or text using DNN models and feed the result into a classical machine learning model like a decision tree or logistic regression trainer. 
+- **Microsoft.ML.TensorFlow**  
+   Enables scoring of TensorFlow models in the learning pipeline. Uses TensorFlow v1.13. Very useful for image and text classification. Users can featurize images or text using DNN models and feed the result into a classical machine learning model like a decision tree or logistic regression trainer. 
 
    [Samples](https://github.com/dotnet/machinelearning/tree/master/docs/samples/Microsoft.ML.Samples/Dynamic/TensorFlow)
 
 ## **New Features**
 - **Tree-based featurization** ([#3812](https://github.com/dotnet/machinelearning/pull/3812))
 
-  Generating features using tree structure has been a popular technique in data mining.
+    Generating features using tree structure has been a popular technique in data mining. Useful for capturing feature interactions when creating a stacked model, dimensionality reduction, or featurizing towards an alternative label. [ML.NET](dot.net/ml)'s tree featurization trains a tree-based model and then maps input feature vector to several non-linear feature vectors. Those generated feature vectors are:
+  - The leaves it falls into. It's a binary vector with ones happens at the indexes of reached leaves,
+  - The paths that the input vector passes before hitting the leaves, and
+  - The reached leaves values.
+  
+  Here are two references.
+  - [p. 9](https://www.csie.ntu.edu.tw/~r01922136/kaggle-2014-criteo.pdf) (a Kaggle solution adopted by FB below).
+  - [Section 3](http://www.quinonero.net/Publications/predicting-clicks-facebook.pdf). (Facebook)
+  - [Section of Entity-level personalization with GLMix](https://engineering.linkedin.com/blog/2019/04/ai-behind-linkedin-recruiter-search-and-recommendation-systems). (LinkedIn)
 
   [Samples](https://github.com/dotnet/machinelearning/tree/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TreeFeaturization)
 
@@ -55,16 +63,22 @@
 None
 
 ## **Enhancements**
-- Fixes the Hardcoded Sigmoid value from -.5 to the value specified during training. ([#3850](https://github.com/dotnet/machinelearning/pull/3850))
+- Fixes the Hardcoded Sigmoid value from -0.5 to the value specified during training. ([#3850](https://github.com/dotnet/machinelearning/pull/3850))
 - Fix TextLoader constructor and add exception message. ([#3788](https://github.com/dotnet/machinelearning/pull/3788))
 - Introduce the `FixZero` argument to the LogMeanVariance normalizer. ([#3916](https://github.com/dotnet/machinelearning/pull/3916))
-- Ensembles trainer now work with ITrainerEstimators instead of ITrainers, ([#3796](https://github.com/dotnet/machinelearning/pull/3796)) 
+- Ensembles trainer now work with ITrainerEstimators instead of ITrainers. ([#3796](https://github.com/dotnet/machinelearning/pull/3796)) 
 - LightGBM Unbalanced Data Argument. ([#3925](https://github.com/dotnet/machinelearning/pull/3925))
 - Tree based trainers implement ICanGetSummaryAsIDataView. ([#3892](https://github.com/dotnet/machinelearning/pull/3892))
+ 
+- **CLI and AutoML API**
+  - Internationalization fixes to generate proper [ML.NET](dot.net/ml) C# code. ([#3725](https://github.com/dotnet/machinelearning/pull/3725))
+  - Automatic Cross Validation for small datasets, and CV stability fixes. ([#3794](https://github.com/dotnet/machinelearning/pull/3794))
+  - Code cleanup to match .NET style. ([#3823](https://github.com/dotnet/machinelearning/pull/3823))
+
 
 ## **Documentation and Samples**
 - Samples for applying ONNX model to in-memory images. ([#3851](https://github.com/dotnet/machinelearning/pull/3851))
-- Reformatted Ranking samples to width 85 so the horizonal scroll bar does not appear on docs webpage.([#3930](https://github.com/dotnet/machinelearning/pull/3930))
+- Reformatted all ~200 samples to width 85 so the horizontal scrollbar does not appear on docs webpage. ([#3930](https://github.com/dotnet/machinelearning/pull/3930), [3941](https://github.com/dotnet/machinelearning/pull/3941), [3949](https://github.com/dotnet/machinelearning/pull/3949), [3950](https://github.com/dotnet/machinelearning/pull/3950), [3947](https://github.com/dotnet/machinelearning/pull/3947), [3943](https://github.com/dotnet/machinelearning/pull/3943), [3942](https://github.com/dotnet/machinelearning/pull/3942), [3946](https://github.com/dotnet/machinelearning/pull/3946), [3948](https://github.com/dotnet/machinelearning/pull/3948))
 
 ## **Remarks**
-- Github issue count decreased from ~550 to ~380.
+- Roughly 200 Github issues were closed, the count decreased from **~550 to 351**. Most of the issues got resolved due to the release of stable API and availability of samples.
