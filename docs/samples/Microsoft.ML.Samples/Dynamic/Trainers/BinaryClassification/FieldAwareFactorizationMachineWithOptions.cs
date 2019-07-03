@@ -32,7 +32,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             {
                 FeatureColumnName = nameof(DataPoint.Field0),
                 ExtraFeatureColumns = 
-            new[] { nameof(DataPoint.Field1), nameof(DataPoint.Field2) },
+                new[] { nameof(DataPoint.Field1), nameof(DataPoint.Field2) },
 
                 LabelColumnName = nameof(DataPoint.Label),
                 LambdaLatent = 0.01f,
@@ -206,12 +206,12 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             Console.WriteLine($"Accuracy: {metrics.Accuracy:F2}");
             Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve:F2}");
             Console.WriteLine($"F1 Score: {metrics.F1Score:F2}");
-            Console.WriteLine($"Negative Precision: {metrics.NegativePrecision:F2}")
-                ;
+            Console.WriteLine($"Negative Precision: " + 
+                $"{metrics.NegativePrecision:F2}");
 
             Console.WriteLine($"Negative Recall: {metrics.NegativeRecall:F2}");
-            Console.WriteLine($"Positive Precision: {metrics.PositivePrecision:F2}")
-                ;
+            Console.WriteLine($"Positive Precision: " + 
+                $"{metrics.PositivePrecision:F2}");
 
             Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}");
             Console.WriteLine($"Log Loss: {metrics.LogLoss:F2}");

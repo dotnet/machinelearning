@@ -21,7 +21,7 @@ string TrainerOptions = @"FieldAwareFactorizationMachineTrainer.Options
             {
                 FeatureColumnName = nameof(DataPoint.Field0),
                 ExtraFeatureColumns = 
-            new[] { nameof(DataPoint.Field1), nameof(DataPoint.Field2) },
+                new[] { nameof(DataPoint.Field1), nameof(DataPoint.Field2) },
 
                 LabelColumnName = nameof(DataPoint.Label),
                 LambdaLatent = 0.01f,

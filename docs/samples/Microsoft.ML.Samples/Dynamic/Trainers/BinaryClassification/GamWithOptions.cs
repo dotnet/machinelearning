@@ -158,8 +158,8 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
                     Features = new float[2] { centeredFloat(), centeredFloat() }
                 };
                 // Compute the label from the shape functions and add noise.
-                data.Label = Sigmoid(Parabola(data.Features[0])
-                    + SimplePiecewise(data.Features[1]) + centeredFloat()) > 0.5;
+                data.Label = Sigmoid(Parabola(data.Features[0]) +
+                    SimplePiecewise(data.Features[1]) + centeredFloat()) > 0.5;
 
                 yield return data;
             }
