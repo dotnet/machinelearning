@@ -8,12 +8,12 @@ namespace Samples.Dynamic
 {
     public static class ForecastingWithConfidenceInternal
     {
-        // This example creates a time series (list of Data with the i-th element corresponding to the i-th time slot) and then
-        // does forecasting.
+        // This example creates a time series (list of Data with the i-th element
+        // corresponding to the i-th time slot) and then does forecasting.
         public static void Example()
         {
-            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
+            // Create a new ML context, for ML.NET operations. It can be used for
+            // exception tracking and logging, as well as the source of randomness.
             var ml = new MLContext();
 
             // Generate sample series data with a recurring pattern.
@@ -46,7 +46,8 @@ namespace Samples.Dynamic
             var outputColumnName = nameof(ForecastResult.Forecast);
 
             // Instantiate the forecasting model.
-            var model = ml.Forecasting.ForecastBySsa(outputColumnName, inputColumnName, 5, 11, data.Count, 5,
+            var model = ml.Forecasting.ForecastBySsa(outputColumnName,
+                inputColumnName, 5, 11, data.Count, 5,
                 confidenceLevel: 0.95f,
                 confidenceLowerBoundColumn: "ConfidenceLowerBound",
                 confidenceUpperBoundColumn: "ConfidenceUpperBound");
@@ -55,10 +56,13 @@ namespace Samples.Dynamic
             var transformer = model.Fit(dataView);
 
             // Forecast next five values.
-            var forecastEngine = transformer.CreateTimeSeriesEngine<TimeSeriesData, ForecastResult>(ml);
+            var forecastEngine = transformer.CreateTimeSeriesEngine<TimeSeriesData,
+                ForecastResult>(ml);
+
             var forecast = forecastEngine.Predict();
 
-            PrintForecastValuesAndIntervals(forecast.Forecast, forecast.ConfidenceLowerBound, forecast.ConfidenceUpperBound);
+            PrintForecastValuesAndIntervals(forecast.Forecast, forecast
+                .ConfidenceLowerBound, forecast.ConfidenceUpperBound);
             // Forecasted values:
             // [1.977226, 1.020494, 1.760543, 3.437509, 4.266461]
             // Confidence intervals:
@@ -80,30 +84,37 @@ namespace Samples.Dynamic
                 modelCopy = ml.Model.Load(file, out DataViewSchema schema);
 
             // We must create a new prediction engine from the persisted model.
-            var forecastEngineCopy = modelCopy.CreateTimeSeriesEngine<TimeSeriesData, ForecastResult>(ml);
+            var forecastEngineCopy = modelCopy.CreateTimeSeriesEngine<
+                TimeSeriesData, ForecastResult>(ml);
 
             // Forecast with the checkpointed model loaded from disk.
             forecast = forecastEngineCopy.Predict();
-            PrintForecastValuesAndIntervals(forecast.Forecast, forecast.ConfidenceLowerBound, forecast.ConfidenceUpperBound);
+            PrintForecastValuesAndIntervals(forecast.Forecast, forecast
+                .ConfidenceLowerBound, forecast.ConfidenceUpperBound);
+
             // [1.791331, 1.255525, 0.3060154, -0.200446, 0.5657795]
             // Confidence intervals:
             // [0.1592142 - 3.423448] [-0.5617217 - 3.072772] [-1.512994 - 2.125025] [-2.022905 - 1.622013] [-1.351382 - 2.482941]
 
             // Forecast with the original model(that was checkpointed to disk).
             forecast = forecastEngine.Predict();
-            PrintForecastValuesAndIntervals(forecast.Forecast, forecast.ConfidenceLowerBound, forecast.ConfidenceUpperBound);
+            PrintForecastValuesAndIntervals(forecast.Forecast, 
+                forecast.ConfidenceLowerBound, forecast.ConfidenceUpperBound);
+
             // [1.791331, 1.255525, 0.3060154, -0.200446, 0.5657795]
             // Confidence intervals:
             // [0.1592142 - 3.423448] [-0.5617217 - 3.072772] [-1.512994 - 2.125025] [-2.022905 - 1.622013] [-1.351382 - 2.482941]
         }
 
-        static void PrintForecastValuesAndIntervals(float[] forecast, float[] confidenceIntervalLowerBounds, float[] confidenceIntervalUpperBounds)
+        static void PrintForecastValuesAndIntervals(float[] forecast, float[]
+            confidenceIntervalLowerBounds, float[] confidenceIntervalUpperBounds)
         {
             Console.WriteLine($"Forecasted values:");
             Console.WriteLine("[{0}]", string.Join(", ", forecast));
             Console.WriteLine($"Confidence intervals:");
             for (int index = 0; index < forecast.Length; index++)
-                Console.Write($"[{confidenceIntervalLowerBounds[index]} - {confidenceIntervalUpperBounds[index]}] ");
+                Console.Write($"[{confidenceIntervalLowerBounds[index]} -" +
+                    $" {confidenceIntervalUpperBounds[index]}] ");
             Console.WriteLine();
         }
 
