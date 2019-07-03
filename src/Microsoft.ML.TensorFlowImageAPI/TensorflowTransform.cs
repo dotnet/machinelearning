@@ -232,250 +232,250 @@ namespace Microsoft.ML.Transforms
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(options, nameof(options));
 
-            if (options.ReTrain)
-            {
-                env.CheckValue(input, nameof(input));
+            //if (options.ReTrain)
+            //{
+            //    env.CheckValue(input, nameof(input));
 
-                CheckTrainingParameters(options);
+            //    CheckTrainingParameters(options);
 
-                if (!TensorFlowNetUtils.IsSavedModel(env, options.ModelLocation))
-                    throw env.ExceptNotSupp("TensorFlowTransform: Re-Training of TensorFlow model is only supported for un-frozen model.");
-                TrainCore(options, input);
-            }
+            //    if (!TensorFlowNetUtils.IsSavedModel(env, options.ModelLocation))
+            //        throw env.ExceptNotSupp("TensorFlowTransform: Re-Training of TensorFlow model is only supported for un-frozen model.");
+            //    TrainCore(options, input);
+            //}
         }
 
         private void CheckTrainingParameters(TensorFlowEstimator.Options options)
         {
-            Host.CheckNonWhiteSpace(options.LabelColumn, nameof(options.LabelColumn));
-            Host.CheckNonWhiteSpace(options.OptimizationOperation, nameof(options.OptimizationOperation));
-            if (Session.Graph[options.OptimizationOperation] == null)
-                throw Host.ExceptParam(nameof(options.OptimizationOperation), $"Optimization operation '{options.OptimizationOperation}' does not exist in the model");
+            //Host.CheckNonWhiteSpace(options.LabelColumn, nameof(options.LabelColumn));
+            //Host.CheckNonWhiteSpace(options.OptimizationOperation, nameof(options.OptimizationOperation));
+            //if (Session.Graph[options.OptimizationOperation] == null)
+            //    throw Host.ExceptParam(nameof(options.OptimizationOperation), $"Optimization operation '{options.OptimizationOperation}' does not exist in the model");
 
-            Host.CheckNonWhiteSpace(options.TensorFlowLabel, nameof(options.TensorFlowLabel));
-            if (Session.Graph[options.TensorFlowLabel] == null)
-                throw Host.ExceptParam(nameof(options.TensorFlowLabel), $"'{options.TensorFlowLabel}' does not exist in the model");
+            //Host.CheckNonWhiteSpace(options.TensorFlowLabel, nameof(options.TensorFlowLabel));
+            //if (Session.Graph[options.TensorFlowLabel] == null)
+            //    throw Host.ExceptParam(nameof(options.TensorFlowLabel), $"'{options.TensorFlowLabel}' does not exist in the model");
 
-            Host.CheckNonWhiteSpace(options.SaveLocationOperation, nameof(options.SaveLocationOperation));
-            if (Session.Graph[options.SaveLocationOperation] == null)
-                throw Host.ExceptParam(nameof(options.SaveLocationOperation), $"'{options.SaveLocationOperation}' does not exist in the model");
+            //Host.CheckNonWhiteSpace(options.SaveLocationOperation, nameof(options.SaveLocationOperation));
+            //if (Session.Graph[options.SaveLocationOperation] == null)
+            //    throw Host.ExceptParam(nameof(options.SaveLocationOperation), $"'{options.SaveLocationOperation}' does not exist in the model");
 
-            Host.CheckNonWhiteSpace(options.SaveOperation, nameof(options.SaveOperation));
-            if (Session.Graph[options.SaveOperation] == null)
-                throw Host.ExceptParam(nameof(options.SaveOperation), $"'{options.SaveOperation}' does not exist in the model");
+            //Host.CheckNonWhiteSpace(options.SaveOperation, nameof(options.SaveOperation));
+            //if (Session.Graph[options.SaveOperation] == null)
+            //    throw Host.ExceptParam(nameof(options.SaveOperation), $"'{options.SaveOperation}' does not exist in the model");
 
-            if (options.LossOperation != null)
-            {
-                Host.CheckNonWhiteSpace(options.LossOperation, nameof(options.LossOperation));
-                if (Session.Graph[options.LossOperation] == null)
-                    throw Host.ExceptParam(nameof(options.LossOperation), $"'{options.LossOperation}' does not exist in the model");
-            }
+            //if (options.LossOperation != null)
+            //{
+            //    Host.CheckNonWhiteSpace(options.LossOperation, nameof(options.LossOperation));
+            //    if (Session.Graph[options.LossOperation] == null)
+            //        throw Host.ExceptParam(nameof(options.LossOperation), $"'{options.LossOperation}' does not exist in the model");
+            //}
 
-            if (options.MetricOperation != null)
-            {
-                Host.CheckNonWhiteSpace(options.MetricOperation, nameof(options.MetricOperation));
-                if (Session.Graph[options.MetricOperation] == null)
-                    throw Host.ExceptParam(nameof(options.MetricOperation), $"'{options.MetricOperation}' does not exist in the model");
-            }
+            //if (options.MetricOperation != null)
+            //{
+            //    Host.CheckNonWhiteSpace(options.MetricOperation, nameof(options.MetricOperation));
+            //    if (Session.Graph[options.MetricOperation] == null)
+            //        throw Host.ExceptParam(nameof(options.MetricOperation), $"'{options.MetricOperation}' does not exist in the model");
+            //}
 
-            if (options.LearningRateOperation != null)
-            {
-                Host.CheckNonWhiteSpace(options.LearningRateOperation, nameof(options.LearningRateOperation));
-                if (Session.Graph[options.LearningRateOperation] == null)
-                    throw Host.ExceptParam(nameof(options.LearningRateOperation), $"'{options.LearningRateOperation}' does not exist in the model");
-            }
+            //if (options.LearningRateOperation != null)
+            //{
+            //    Host.CheckNonWhiteSpace(options.LearningRateOperation, nameof(options.LearningRateOperation));
+            //    if (Session.Graph[options.LearningRateOperation] == null)
+            //        throw Host.ExceptParam(nameof(options.LearningRateOperation), $"'{options.LearningRateOperation}' does not exist in the model");
+            //}
         }
 
-        private (int, bool, TF_DataType, TensorShape) GetTrainingInputInfo(DataViewSchema inputSchema, string columnName, string tfNodeName, int batchSize)
-        {
-            if (!inputSchema.TryGetColumnIndex(columnName, out int inputColIndex))
-                throw Host.Except($"Column {columnName} doesn't exist");
+        //private (int, bool, TF_DataType, TensorShape) GetTrainingInputInfo(DataViewSchema inputSchema, string columnName, string tfNodeName, int batchSize)
+        //{
+        //    if (!inputSchema.TryGetColumnIndex(columnName, out int inputColIndex))
+        //        throw Host.Except($"Column {columnName} doesn't exist");
 
-            var type = inputSchema[inputColIndex].Type;
-            var isInputVector = type is VectorDataViewType;
+        //    var type = inputSchema[inputColIndex].Type;
+        //    var isInputVector = type is VectorDataViewType;
 
-            var tfInput = new TFOutput(Graph[tfNodeName]);
-            var tfInputType = tfInput.OutputType;
-            var tfInputShape = Graph.GetTensorShape(tfInput);
-            if (tfInputShape.NumDimensions != -1)
-            {
-                var newShape = new long[tfInputShape.NumDimensions];
-                newShape[0] = tfInputShape[0] == -1 ? batchSize : tfInputShape[0];
+        //    var tfInput = new TFOutput(Graph[tfNodeName]);
+        //    var tfInputType = tfInput.OutputType;
+        //    var tfInputShape = Graph.GetTensorShape(tfInput);
+        //    if (tfInputShape.NumDimensions != -1)
+        //    {
+        //        var newShape = new long[tfInputShape.NumDimensions];
+        //        newShape[0] = tfInputShape[0] == -1 ? batchSize : tfInputShape[0];
 
-                for (int j = 1; j < tfInputShape.NumDimensions; j++)
-                    newShape[j] = tfInputShape[j];
-                tfInputShape = new TensorShape(newShape);
-            }
+        //        for (int j = 1; j < tfInputShape.NumDimensions; j++)
+        //            newShape[j] = tfInputShape[j];
+        //        tfInputShape = new TensorShape(newShape);
+        //    }
 
-            var expectedType = TensorFlowUtils.Tf2MlNetType(tfInputType);
-            if (type.GetItemType() != expectedType)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", columnName, expectedType.ToString(), type.ToString());
+        //    var expectedType = TensorFlowUtils.Tf2MlNetType(tfInputType);
+        //    if (type.GetItemType() != expectedType)
+        //        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", columnName, expectedType.ToString(), type.ToString());
 
-            return (inputColIndex, isInputVector, tfInputType, tfInputShape);
-        }
+        //    return (inputColIndex, isInputVector, tfInputType, tfInputShape);
+        //}
 
-        private void TrainCore(TensorFlowEstimator.Options options, IDataView input)
-        {
-            var inputsForTraining = new string[Inputs.Length + 1];
-            var inputColIndices = new int[inputsForTraining.Length];
-            var isInputVector = new bool[inputsForTraining.Length];
-            var tfInputTypes = new TF_DataType[inputsForTraining.Length];
-            var tfInputShapes = new TensorShape[inputsForTraining.Length];
+        //private void TrainCore(TensorFlowEstimator.Options options, IDataView input)
+        //{
+        //    var inputsForTraining = new string[Inputs.Length + 1];
+        //    var inputColIndices = new int[inputsForTraining.Length];
+        //    var isInputVector = new bool[inputsForTraining.Length];
+        //    var tfInputTypes = new TF_DataType[inputsForTraining.Length];
+        //    var tfInputShapes = new TensorShape[inputsForTraining.Length];
 
-            for (int i = 0; i < Inputs.Length; i++)
-            {
-                inputsForTraining[i] = Inputs[i];
-            }
+        //    for (int i = 0; i < Inputs.Length; i++)
+        //    {
+        //        inputsForTraining[i] = Inputs[i];
+        //    }
 
-            var inputSchema = input.Schema;
-            for (int i = 0; i < inputsForTraining.Length - 1; i++)
-            {
-                (inputColIndices[i], isInputVector[i], tfInputTypes[i], tfInputShapes[i]) =
-                    GetTrainingInputInfo(inputSchema, inputsForTraining[i], inputsForTraining[i], options.BatchSize);
-            }
+        //    var inputSchema = input.Schema;
+        //    for (int i = 0; i < inputsForTraining.Length - 1; i++)
+        //    {
+        //        (inputColIndices[i], isInputVector[i], tfInputTypes[i], tfInputShapes[i]) =
+        //            GetTrainingInputInfo(inputSchema, inputsForTraining[i], inputsForTraining[i], options.BatchSize);
+        //    }
 
-            var index = inputsForTraining.Length - 1;
-            inputsForTraining[index] = options.TensorFlowLabel;
-            (inputColIndices[index], isInputVector[index], tfInputTypes[index], tfInputShapes[index]) =
-                    GetTrainingInputInfo(inputSchema, options.LabelColumn, inputsForTraining[index], options.BatchSize);
+        //    var index = inputsForTraining.Length - 1;
+        //    inputsForTraining[index] = options.TensorFlowLabel;
+        //    (inputColIndices[index], isInputVector[index], tfInputTypes[index], tfInputShapes[index]) =
+        //            GetTrainingInputInfo(inputSchema, options.LabelColumn, inputsForTraining[index], options.BatchSize);
 
-            var fetchList = new List<string>();
-            if (options.LossOperation != null)
-                fetchList.Add(options.LossOperation);
-            if (options.MetricOperation != null)
-                fetchList.Add(options.MetricOperation);
+        //    var fetchList = new List<string>();
+        //    if (options.LossOperation != null)
+        //        fetchList.Add(options.LossOperation);
+        //    if (options.MetricOperation != null)
+        //        fetchList.Add(options.MetricOperation);
 
-            var cols = input.Schema.Where(c => inputColIndices.Contains(c.Index));
-            for (int epoch = 0; epoch < options.Epoch; epoch++)
-            {
-                using (var cursor = input.GetRowCursor(cols))
-                {
-                    var srcTensorGetters = GetTensorValueGetters(cursor, inputColIndices, isInputVector, tfInputTypes, tfInputShapes);
+        //    var cols = input.Schema.Where(c => inputColIndices.Contains(c.Index));
+        //    for (int epoch = 0; epoch < options.Epoch; epoch++)
+        //    {
+        //        using (var cursor = input.GetRowCursor(cols))
+        //        {
+        //            var srcTensorGetters = GetTensorValueGetters(cursor, inputColIndices, isInputVector, tfInputTypes, tfInputShapes);
 
-                    float loss = 0;
-                    float metric = 0;
-                    bool isDataLeft = false;
-                    using (var ch = Host.Start("Training TensorFlow model..."))
-                    using (var pch = Host.StartProgressChannel("TensorFlow training progress..."))
-                    {
-                        pch.SetHeader(new ProgressHeader(new[] { "Loss", "Metric" }, new[] { "Epoch" }), (e) => e.SetProgress(0, epoch, options.Epoch));
+        //            float loss = 0;
+        //            float metric = 0;
+        //            bool isDataLeft = false;
+        //            using (var ch = Host.Start("Training TensorFlow model..."))
+        //            using (var pch = Host.StartProgressChannel("TensorFlow training progress..."))
+        //            {
+        //                pch.SetHeader(new ProgressHeader(new[] { "Loss", "Metric" }, new[] { "Epoch" }), (e) => e.SetProgress(0, epoch, options.Epoch));
 
-                        while (cursor.MoveNext())
-                        {
-                            for (int i = 0; i < inputColIndices.Length; i++)
-                            {
-                                isDataLeft = true;
-                                srcTensorGetters[i].BufferTrainingData();
-                            }
+        //                while (cursor.MoveNext())
+        //                {
+        //                    for (int i = 0; i < inputColIndices.Length; i++)
+        //                    {
+        //                        isDataLeft = true;
+        //                        srcTensorGetters[i].BufferTrainingData();
+        //                    }
 
-                            if (((cursor.Position + 1) % options.BatchSize) == 0)
-                            {
-                                isDataLeft = false;
-                                var (l, m) = TrainBatch(inputColIndices, inputsForTraining, srcTensorGetters, fetchList, options);
-                                loss += l;
-                                metric += m;
-                            }
-                        }
-                        if (isDataLeft)
-                        {
-                            isDataLeft = false;
-                            ch.Warning("Not training on the last batch. The batch size is less than {0}.", options.BatchSize);
-                        }
-                        pch.Checkpoint(new double?[] { loss, metric });
-                    }
-                }
-            }
-            UpdateModelOnDisk(options.ModelLocation, options);
-        }
+        //                    if (((cursor.Position + 1) % options.BatchSize) == 0)
+        //                    {
+        //                        isDataLeft = false;
+        //                        var (l, m) = TrainBatch(inputColIndices, inputsForTraining, srcTensorGetters, fetchList, options);
+        //                        loss += l;
+        //                        metric += m;
+        //                    }
+        //                }
+        //                if (isDataLeft)
+        //                {
+        //                    isDataLeft = false;
+        //                    ch.Warning("Not training on the last batch. The batch size is less than {0}.", options.BatchSize);
+        //                }
+        //                pch.Checkpoint(new double?[] { loss, metric });
+        //            }
+        //        }
+        //    }
+        //    UpdateModelOnDisk(options.ModelLocation, options);
+        //}
 
-        private (float loss, float metric) TrainBatch(int[] inputColIndices,
-            string[] inputsForTraining,
-            ITensorValueGetter[] srcTensorGetters,
-            List<string> fetchList,
-            TensorFlowEstimator.Options options)
-        {
-            float loss = 0;
-            float metric = 0;
-            var runner = Session.GetRunner();
-            for (int i = 0; i < inputColIndices.Length; i++)
-            {
-                var inputName = inputsForTraining[i];
-                runner.AddInput(inputName, srcTensorGetters[i].GetBufferedBatchTensor());
-            }
+        //private (float loss, float metric) TrainBatch(int[] inputColIndices,
+        //    string[] inputsForTraining,
+        //    ITensorValueGetter[] srcTensorGetters,
+        //    List<string> fetchList,
+        //    TensorFlowEstimator.Options options)
+        //{
+        //    float loss = 0;
+        //    float metric = 0;
+        //    var runner = Session.GetRunner();
+        //    for (int i = 0; i < inputColIndices.Length; i++)
+        //    {
+        //        var inputName = inputsForTraining[i];
+        //        runner.AddInput(inputName, srcTensorGetters[i].GetBufferedBatchTensor());
+        //    }
 
-            if (options.LearningRateOperation != null)
-                runner.AddInput(options.LearningRateOperation, new Tensor(options.LearningRate));
-            runner.AddTarget(options.OptimizationOperation);
+        //    if (options.LearningRateOperation != null)
+        //        runner.AddInput(options.LearningRateOperation, new Tensor(options.LearningRate));
+        //    runner.AddTarget(options.OptimizationOperation);
 
-            if (fetchList.Count > 0)
-                runner.Fetch(fetchList.ToArray());
+        //    if (fetchList.Count > 0)
+        //        runner.Fetch(fetchList.ToArray());
 
-            var tensor = runner.Run();
-            loss = tensor.Length > 0 ? (float)tensor[0].GetValue() : 0.0f;
-            metric = tensor.Length > 1 ? (float)tensor[1].GetValue() : 0.0f;
+        //    var tensor = runner.Run();
+        //    loss = tensor.Length > 0 ? (float)tensor[0].GetValue() : 0.0f;
+        //    metric = tensor.Length > 1 ? (float)tensor[1].GetValue() : 0.0f;
 
-            return (loss, metric);
-        }
+        //    return (loss, metric);
+        //}
 
         /// <summary>
         /// Updates the model on the disk.
         /// After retraining Session and Graphs are both up-to-date
         /// However model on disk is not which is used to serialzed to ML.Net stream
         /// </summary>
-        private void UpdateModelOnDisk(string modelDir, TensorFlowEstimator.Options options)
-        {
-            try
-            {
-                // Save the model on disk
-                var path = Path.Combine(modelDir, DefaultModelFileNames.TmpMlnetModel);
-                Session.GetRunner().AddInput(options.SaveLocationOperation, Tensor.CreateString(Encoding.UTF8.GetBytes(path)))
-                        .AddTarget(options.SaveOperation).Run();
+        //private void UpdateModelOnDisk(string modelDir, TensorFlowEstimator.Options options)
+        //{
+        //    try
+        //    {
+        //        // Save the model on disk
+        //        var path = Path.Combine(modelDir, DefaultModelFileNames.TmpMlnetModel);
+        //        Session.GetRunner().AddInput(options.SaveLocationOperation, Tensor.CreateString(Encoding.UTF8.GetBytes(path)))
+        //                .AddTarget(options.SaveOperation).Run();
 
-                // Preserve original files
-                var variablesPath = Path.Combine(modelDir, DefaultModelFileNames.VariablesFolder);
-                var archivePath = Path.Combine(variablesPath + "-" + Guid.NewGuid().ToString());
-                Directory.CreateDirectory(archivePath);
-                foreach (var f in Directory.GetFiles(variablesPath))
-                    File.Copy(f, Path.Combine(archivePath, Path.GetFileName(f)));
+        //        // Preserve original files
+        //        var variablesPath = Path.Combine(modelDir, DefaultModelFileNames.VariablesFolder);
+        //        var archivePath = Path.Combine(variablesPath + "-" + Guid.NewGuid().ToString());
+        //        Directory.CreateDirectory(archivePath);
+        //        foreach (var f in Directory.GetFiles(variablesPath))
+        //            File.Copy(f, Path.Combine(archivePath, Path.GetFileName(f)));
 
-                string[] modelFilePaths = null;
+        //        string[] modelFilePaths = null;
 
-                // There are two ways parameters are saved depending on
-                // either `saver_def = tf.train.Saver().as_saver_def()` was called in Python before `tf.saved_model.simple_save` or not.
-                // If `saver_def = tf.train.Saver().as_saver_def()` was called files are saved in top directory.
-                // If not then temporary directory is created in current directory which starts with `mlnet_model`
-                // and files are saved there.
-                var tmpParamDir = Directory.GetDirectories(modelDir, DefaultModelFileNames.TmpMlnetModel + "*");
-                if (tmpParamDir != null && tmpParamDir.Length > 0)
-                    modelFilePaths = Directory.GetFiles(tmpParamDir[0]);
-                else
-                    modelFilePaths = Directory.GetFiles(modelDir, DefaultModelFileNames.TmpMlnetModel + "*");
+        //        // There are two ways parameters are saved depending on
+        //        // either `saver_def = tf.train.Saver().as_saver_def()` was called in Python before `tf.saved_model.simple_save` or not.
+        //        // If `saver_def = tf.train.Saver().as_saver_def()` was called files are saved in top directory.
+        //        // If not then temporary directory is created in current directory which starts with `mlnet_model`
+        //        // and files are saved there.
+        //        var tmpParamDir = Directory.GetDirectories(modelDir, DefaultModelFileNames.TmpMlnetModel + "*");
+        //        if (tmpParamDir != null && tmpParamDir.Length > 0)
+        //            modelFilePaths = Directory.GetFiles(tmpParamDir[0]);
+        //        else
+        //            modelFilePaths = Directory.GetFiles(modelDir, DefaultModelFileNames.TmpMlnetModel + "*");
 
-                foreach (var file in modelFilePaths)
-                {
-                    if (file.EndsWith(".data-00000-of-00001"))
-                    {
-                        var destination = Path.Combine(variablesPath, DefaultModelFileNames.Data);
-                        if (File.Exists(destination))
-                            File.Delete(destination);
-                        Directory.Move(file, destination);
-                    }
-                    if (file.EndsWith(".index"))
-                    {
-                        var destination = Path.Combine(variablesPath, DefaultModelFileNames.Index);
-                        if (File.Exists(destination))
-                            File.Delete(destination);
-                        Directory.Move(file, destination);
-                    }
-                }
+        //        foreach (var file in modelFilePaths)
+        //        {
+        //            if (file.EndsWith(".data-00000-of-00001"))
+        //            {
+        //                var destination = Path.Combine(variablesPath, DefaultModelFileNames.Data);
+        //                if (File.Exists(destination))
+        //                    File.Delete(destination);
+        //                Directory.Move(file, destination);
+        //            }
+        //            if (file.EndsWith(".index"))
+        //            {
+        //                var destination = Path.Combine(variablesPath, DefaultModelFileNames.Index);
+        //                if (File.Exists(destination))
+        //                    File.Delete(destination);
+        //                Directory.Move(file, destination);
+        //            }
+        //        }
 
-                if (tmpParamDir != null && tmpParamDir.Length > 0)
-                    TensorFlowNetUtils.DeleteFolderWithRetries(Host, tmpParamDir[0]);
-            }
-            catch (Exception e)
-            {
-                throw Host.ExceptIO(e, "Error serializing TensorFlow retrained model to disk.");
-            }
-        }
+        //        if (tmpParamDir != null && tmpParamDir.Length > 0)
+        //            TensorFlowNetUtils.DeleteFolderWithRetries(Host, tmpParamDir[0]);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        throw Host.ExceptIO(e, "Error serializing TensorFlow retrained model to disk.");
+        //    }
+        //}
 
         private static ITensorValueGetter CreateTensorValueGetter<T>(DataViewRow input, bool isVector, int colIndex, TensorShape TensorShape)
         {
@@ -486,7 +486,7 @@ namespace Microsoft.ML.Transforms
 
         private static ITensorValueGetter CreateTensorValueGetter(DataViewRow input, TF_DataType tfType, bool isVector, int colIndex, TensorShape TensorShape)
         {
-            var type = Tensor.TypeFromTensorType(tfType);
+            var type = tfType.as_numpy_datatype();
             Contracts.AssertValue(type);
             return Utils.MarshalInvoke(CreateTensorValueGetter<int>, type, input, isVector, colIndex, TensorShape);
         }
@@ -627,70 +627,70 @@ namespace Microsoft.ML.Transforms
 
         private protected override void SaveModel(ModelSaveContext ctx)
         {
-            Host.AssertValue(ctx);
-            ctx.CheckAtModel();
-            ctx.SetVersionInfo(GetVersionInfo());
+            //Host.AssertValue(ctx);
+            //ctx.CheckAtModel();
+            //ctx.SetVersionInfo(GetVersionInfo());
 
-            // *** Binary format ***
-            // byte: indicator for frozen models
-            // byte: indicator for adding batch dimension in input
-            // stream: tensorFlow model.
-            // int: number of input columns
-            // for each input column
-            //   int: id of int column name
-            // int: number of output columns
-            // for each output column
-            //   int: id of output column name
-            var isFrozen = string.IsNullOrEmpty(_savedModelPath);
-            ctx.Writer.WriteBoolByte(isFrozen);
-            ctx.Writer.WriteBoolByte(_addBatchDimensionInput);
-            if (isFrozen)
-            {
-                var buffer = new TF_Buffer();
-                Session.Graph.ToGraphDef(buffer);
-                ctx.SaveBinaryStream("TFModel", w =>
-                {
-                    w.WriteByteArray(buffer.ToSpan());
-                });
-            }
-            else
-            {
-                ctx.SaveBinaryStream("TFSavedModel", w =>
-                {
-                    // only these files need to be saved.
-                    string[] modelFilePaths =
-                    {
-                        Path.Combine(_savedModelPath, DefaultModelFileNames.Graph),
-                        Path.Combine(_savedModelPath, DefaultModelFileNames.VariablesFolder, DefaultModelFileNames.Data),
-                        Path.Combine(_savedModelPath, DefaultModelFileNames.VariablesFolder, DefaultModelFileNames.Index),
-                    };
+            //// *** Binary format ***
+            //// byte: indicator for frozen models
+            //// byte: indicator for adding batch dimension in input
+            //// stream: tensorFlow model.
+            //// int: number of input columns
+            //// for each input column
+            ////   int: id of int column name
+            //// int: number of output columns
+            //// for each output column
+            ////   int: id of output column name
+            //var isFrozen = string.IsNullOrEmpty(_savedModelPath);
+            //ctx.Writer.WriteBoolByte(isFrozen);
+            //ctx.Writer.WriteBoolByte(_addBatchDimensionInput);
+            //if (isFrozen)
+            //{
+            //    var buffer = new TF_Buffer();
+            //    Session.Graph.ToGraphDef(buffer);
+            //    ctx.SaveBinaryStream("TFModel", w =>
+            //    {
+            //        w.WriteByteArray(buffer.ToSpan());
+            //    });
+            //}
+            //else
+            //{
+            //    ctx.SaveBinaryStream("TFSavedModel", w =>
+            //    {
+            //        // only these files need to be saved.
+            //        string[] modelFilePaths =
+            //        {
+            //            Path.Combine(_savedModelPath, DefaultModelFileNames.Graph),
+            //            Path.Combine(_savedModelPath, DefaultModelFileNames.VariablesFolder, DefaultModelFileNames.Data),
+            //            Path.Combine(_savedModelPath, DefaultModelFileNames.VariablesFolder, DefaultModelFileNames.Index),
+            //        };
 
-                    w.Write(modelFilePaths.Length);
+            //        w.Write(modelFilePaths.Length);
 
-                    foreach (var fullPath in modelFilePaths)
-                    {
-                        var relativePath = fullPath.Substring(_savedModelPath.Length + 1);
-                        w.Write(relativePath);
+            //        foreach (var fullPath in modelFilePaths)
+            //        {
+            //            var relativePath = fullPath.Substring(_savedModelPath.Length + 1);
+            //            w.Write(relativePath);
 
-                        using (var fs = new FileStream(fullPath, FileMode.Open))
-                        {
-                            long fileLength = fs.Length;
-                            w.Write(fileLength);
-                            long actualWritten = fs.CopyRange(w.BaseStream, fileLength);
-                            Host.Assert(actualWritten == fileLength);
-                        }
-                    }
-                });
-            }
-            Host.AssertNonEmpty(Inputs);
-            ctx.Writer.Write(Inputs.Length);
-            foreach (var colName in Inputs)
-                ctx.SaveNonEmptyString(colName);
+            //            using (var fs = new FileStream(fullPath, FileMode.Open))
+            //            {
+            //                long fileLength = fs.Length;
+            //                w.Write(fileLength);
+            //                long actualWritten = fs.CopyRange(w.BaseStream, fileLength);
+            //                Host.Assert(actualWritten == fileLength);
+            //            }
+            //        }
+            //    });
+            //}
+            //Host.AssertNonEmpty(Inputs);
+            //ctx.Writer.Write(Inputs.Length);
+            //foreach (var colName in Inputs)
+            //    ctx.SaveNonEmptyString(colName);
 
-            Host.AssertNonEmpty(Outputs);
-            ctx.Writer.Write(Outputs.Length);
-            foreach (var colName in Outputs)
-                ctx.SaveNonEmptyString(colName);
+            //Host.AssertNonEmpty(Outputs);
+            //ctx.Writer.Write(Outputs.Length);
+            //foreach (var colName in Outputs)
+            //    ctx.SaveNonEmptyString(colName);
         }
 
         ~TensorFlowTransformer()
@@ -706,10 +706,9 @@ namespace Microsoft.ML.Transforms
             // that the Session is closed before deleting our temporary directory.
             try
             {
-                if (Session?.Handle != IntPtr.Zero)
+                if (Session != null)
                 {
-                    Session.CloseSession();
-                    Session.Dispose();
+                    Session.close();
                 }
             }
             finally
@@ -749,13 +748,13 @@ namespace Microsoft.ML.Transforms
                     if (!_isInputVector[i])
                         throw Host.Except("Non-vector columns are not supported and should be loaded as vector columns of size 1");
                     vecType = (VectorDataViewType)type;
-                    var expectedType = TensorFlowUtils.Tf2MlNetType(_parent.TFInputTypes[i]);
+                    var expectedType = TensorFlowNetUtils.Tf2MlNetType(_parent.TFInputTypes[i]);
                     if (type.GetItemType() != expectedType)
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Inputs[i], expectedType.ToString(), type.ToString());
                     var originalShape = _parent.TFInputShapes[i];
-                    var shape = originalShape.ToIntArray();
+                    var shape = (int[]) originalShape.Dimensions.Clone();
 
-                    var colTypeDims = vecType.Dimensions.Select(dim => (long)dim).ToArray();
+                    var colTypeDims = vecType.Dimensions.Select(dim => (int)dim).ToArray();
                     if (shape == null)
                         _fullySpecifiedShapes[i] = new TensorShape(colTypeDims);
                     else
@@ -784,16 +783,16 @@ namespace Microsoft.ML.Transforms
                             throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {typeValueCount}.");
 
                         // Fill in the unknown dimensions.
-                        var l = new long[originalShape.NumDimensions];
-                        for (int ishape = 0; ishape < originalShape.NumDimensions; ishape++)
+                        var l = new int[originalShape.Dimensions.Length];
+                        for (int ishape = 0; ishape < originalShape.Dimensions.Length; ishape++)
                             l[ishape] = originalShape[ishape] == -1 ? (int)d : originalShape[ishape];
                         _fullySpecifiedShapes[i] = new TensorShape(l);
                     }
 
                     if (_parent._addBatchDimensionInput)
                     {
-                        var l = new long[_fullySpecifiedShapes[i].NumDimensions + 1];
-                        l[0] = 1L;
+                        var l = new int[_fullySpecifiedShapes[i].Dimensions.Length + 1];
+                        l[0] = 1;
                         for (int ishape = 1; ishape < l.Length; ishape++)
                             l[ishape] = _fullySpecifiedShapes[i][ishape-1];
                         _fullySpecifiedShapes[i] = new TensorShape(l);
@@ -822,7 +821,7 @@ namespace Microsoft.ML.Transforms
                 var outputCache = new OutputCache();
                 var activeOutputColNames = _parent.Outputs.Where((x, i) => activeOutput(i)).ToArray();
 
-                var type = Tensor.TypeFromTensorType(_parent.TFOutputTypes[iinfo]);
+                var type = _parent.TFOutputTypes[iinfo].as_numpy_datatype();
                 Host.Assert(type == _parent.OutputTypes[iinfo].GetItemType().RawType);
                 var srcTensorGetters = GetTensorValueGetters(input, _inputColIndices, _isInputVector, _parent.TFInputTypes, _fullySpecifiedShapes);
                 return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcTensorGetters, activeOutputColNames, outputCache);
@@ -831,17 +830,17 @@ namespace Microsoft.ML.Transforms
             private Delegate MakeGetter<T>(DataViewRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache)
             {
                 Host.AssertValue(input);
-                if (_parent.TFOutputTypes[iinfo] == TF_DataType.String)
+                if (_parent.TFOutputTypes[iinfo] == TF_DataType.TF_STRING)
                 {
                     ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
                     {
                         UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
 
                         var tensor = outputCache.Outputs[_parent.Outputs[iinfo]];
-                        var tensorSize = tensor.Shape.Where(x => x > 0).Aggregate((x, y) => x * y);
+                        var tensorSize = tensor.shape.Where(x => x > 0).Aggregate((x, y) => x * y);
 
                         var editor = VBufferEditor.Create(ref dst, (int)tensorSize);
-                        TensorFlowUtils.FetchStringData(tensor, editor.Values);
+                        TensorFlowNetUtils.FetchStringData(tensor, editor.Values);
                         dst = editor.Commit();
                     };
                     return valuegetter;
@@ -853,10 +852,10 @@ namespace Microsoft.ML.Transforms
                         UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
 
                         var tensor = outputCache.Outputs[_parent.Outputs[iinfo]];
-                        var tensorSize = tensor.Shape.Where(x => x > 0).Aggregate((x, y) => x * y);
+                        var tensorSize = tensor.shape.Where(x => x > 0).Aggregate((x, y) => x * y);
 
                         var editor = VBufferEditor.Create(ref dst, (int)tensorSize);
-                        TensorFlowUtils.FetchData<T>(tensor.Data, editor.Values);
+                        TensorFlowNetUtils.FetchData<T>(tensor.buffer, editor.Values);
                         dst = editor.Commit();
                     };
                     return valuegetter;
@@ -938,10 +937,10 @@ namespace Microsoft.ML.Transforms
                 _TensorShape = TensorShape;
                 long size = 0;
                 _position = 0;
-                if (TensorShape.dims.Length != 0)
+                if (TensorShape.Dimensions.Length != 0)
                 {
                     size = 1;
-                    foreach (var dim in TensorShape.dims)
+                    foreach (var dim in TensorShape.Dimensions)
                         size *= dim;
                 }
                 _bufferedData = new T[size];

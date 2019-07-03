@@ -73,5 +73,20 @@ namespace Tensorflow
         {
 
         }
+
+        /// <summary>
+        /// Gets a new runner, this provides a simpler API to prepare the inputs to run on a session
+        /// </summary>
+        /// <returns>The runner.</returns>
+        /// <remarks>
+        /// The runner has a simple API that allows developers to call the AddTarget, AddInput, AddOutput and Fetch
+        /// to construct the parameters that will be passed to the TFSession.Run method.
+        ///
+        /// The Run method will return an array of TFTensor values, one for each invocation to the Fetch method.
+        /// </remarks>
+        public Runner GetRunner()
+        {
+            return new Runner(this._session);
+        }
     }
 }

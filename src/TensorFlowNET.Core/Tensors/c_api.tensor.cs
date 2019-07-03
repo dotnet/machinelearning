@@ -57,6 +57,9 @@ namespace Tensorflow
         [DllImport(TensorFlowLibName)]
         public static extern IntPtr TF_NewTensor(TF_DataType dataType, long[] dims, int num_dims, IntPtr data, UIntPtr len, Deallocator deallocator, ref bool deallocator_arg);
 
+
+        [DllImport(TensorFlowLibName)]
+        private static extern IntPtr TF_NewTensor(TF_DataType dataType, IntPtr zeroDims, int num_dims, IntPtr data, UIntPtr len, Deallocator deallocator, ref bool deallocator_arg);
         /// <summary>
         /// Return the number of dimensions that the tensor has.
         /// </summary>

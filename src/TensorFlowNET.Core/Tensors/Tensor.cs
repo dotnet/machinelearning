@@ -189,6 +189,8 @@ namespace Tensorflow
             return data;
         }
 
+        
+
         public Tensor MaybeMove()
         {
             var tensor = c_api.TF_TensorMaybeMove(_handle);
@@ -342,6 +344,42 @@ namespace Tensorflow
 
                 throw new NotImplementedException("");
             });
+        }
+
+        public static unsafe byte[][] DecodeStringTensor(Tensor tensor)
+        {
+            //if (tensor == null)
+            //    throw Contracts.ExceptEmpty(nameof(tensor));
+            //
+            // TF_STRING tensors are encoded with a table of 8-byte offsets followed by TF_StringEncode-encoded bytes.
+            // [offset1, offset2,...,offsetn, s1size, s1bytes, s2size, s2bytes,...,snsize,snbytes]
+            //
+            long size = 1;
+            TensorShape currShape = tensor.GetShape();
+            foreach (var s in tensor.shape)
+                size *= s;
+            //var size = tensor.shape.Where(x => x > 0).Aggregate((x, y) => x * y);
+
+            var buffer = new byte[size][];
+            var src = c_api.TF_TensorData(tensor._handle);
+            var srcLen = (IntPtr)(src.ToInt64() + (long)c_api.TF_TensorByteSize(tensor._handle));
+            src += (int)(size * 8);
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                using (var status = new Status())
+                {
+                    IntPtr dst = IntPtr.Zero;
+                    ulong dstLen = (ulong)UIntPtr.Zero;
+                    var read = TF_StringDecode(src, (ulong)(srcLen.ToInt64() - src.ToInt64()), dst, ref dstLen, (IntPtr)status);
+                    var ok = status.Code == 0;
+                    if (!ok)
+                        return null;
+                    buffer[i] = new byte[(int)dstLen];
+                    Marshal.Copy(dst, buffer[i], 0, buffer[i].Length);
+                    src += (int)read;
+                }
+            }
+            return buffer;
         }
 
         public override string ToString()

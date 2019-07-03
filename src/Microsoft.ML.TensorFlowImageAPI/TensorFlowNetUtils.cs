@@ -211,5 +211,18 @@ namespace Microsoft.ML.TensorFlowImageAPI
                     return null;
             }
         }
+
+        internal static unsafe void FetchStringData<T>(Tensor tensor, Span<T> result)
+        {
+            var buffer = Tensor.DecodeStringTensor(tensor);
+            for (int i = 0; i < buffer.Length; i++)
+                result[i] = (T)(object)Encoding.UTF8.GetString(buffer[i]).AsMemory();
+        }
+
+        internal static unsafe void FetchData<T>(IntPtr data, Span<T> result)
+        {
+            var dataSpan = new Span<T>(data.ToPointer(), result.Length);
+            dataSpan.CopyTo(result);
+        }
     }
 }

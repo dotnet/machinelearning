@@ -322,7 +322,7 @@ namespace Tensorflow
                 Console.WriteLine("Status of TF_GetCode is not TF_OK");
                 throw new Exception("Status of TF_GetCode is not TF_OK");
             }
-            var dims = new int[n];
+            var dims = new long[n];
             c_api.TF_GraphGetTensorShape(_graph, tf_output, dims, dims.Length, cstatus);
             // Does Status check because I was unable to call the Status.IntPtr()
             if (c_api.TF_GetCode(cstatus) != TF_Code.TF_OK)
@@ -330,7 +330,7 @@ namespace Tensorflow
                 Console.WriteLine("Status of TF_GetCode is not TF_OK");
                 throw new Exception("Status of TF_GetCode is not TF_OK");
             }
-            return new TensorShape(dims);
+            return new TensorShape(dims.Select(item => (int)item).ToArray());
 
         }
     }

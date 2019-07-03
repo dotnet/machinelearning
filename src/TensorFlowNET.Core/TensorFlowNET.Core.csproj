@@ -24,6 +24,7 @@
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <WarningsAsErrors />
+    <OutputPath>C:\Users\t-prdug\source\repos\machinelearning\bin\x64.Debug\TensorFlowNET.Core\netstandard2.0\</OutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
