@@ -78,7 +78,7 @@ None
 
 ## **Documentation and Samples**
 - Samples for applying ONNX model to in-memory images. ([#3851](https://github.com/dotnet/machinelearning/pull/3851))
-- Reformatted all ~200 samples to width 85 so the horizontal scrollbar does not appear on docs webpage. ([#3930](https://github.com/dotnet/machinelearning/pull/3930), [3941](https://github.com/dotnet/machinelearning/pull/3941), [3949](https://github.com/dotnet/machinelearning/pull/3949), [3950](https://github.com/dotnet/machinelearning/pull/3950), [3947](https://github.com/dotnet/machinelearning/pull/3947), [3943](https://github.com/dotnet/machinelearning/pull/3943), [3942](https://github.com/dotnet/machinelearning/pull/3942), [3946](https://github.com/dotnet/machinelearning/pull/3946), [3948](https://github.com/dotnet/machinelearning/pull/3948))
+- Reformatted all ~200 samples to 85 character width so the horizontal scrollbar does not appear on docs webpage. ([#3930](https://github.com/dotnet/machinelearning/pull/3930), [3941](https://github.com/dotnet/machinelearning/pull/3941), [3949](https://github.com/dotnet/machinelearning/pull/3949), [3950](https://github.com/dotnet/machinelearning/pull/3950), [3947](https://github.com/dotnet/machinelearning/pull/3947), [3943](https://github.com/dotnet/machinelearning/pull/3943), [3942](https://github.com/dotnet/machinelearning/pull/3942), [3946](https://github.com/dotnet/machinelearning/pull/3946), [3948](https://github.com/dotnet/machinelearning/pull/3948))
 
 ## **Remarks**
 - Roughly 200 Github issues were closed, the count decreased from **~550 to 351**. Most of the issues got resolved due to the release of stable API and availability of samples.
