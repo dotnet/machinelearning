@@ -11,8 +11,8 @@ namespace Samples.Dynamic
     {
         public static void Example()
         {
-            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
+            // Create a new ML context, for ML.NET operations. It can be used for
+            // exception tracking and logging, as well as the source of randomness.
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable.
@@ -27,25 +27,40 @@ namespace Samples.Dynamic
 
             // A pipeline to convert the terms of the 'Review' column in 
             // making use of default settings.
-            var defaultPipeline = mlContext.Transforms.Text.TokenizeIntoWords("TokenizedText", nameof(DataPoint.Review))
-                .Append(mlContext.Transforms.Conversion.MapValueToKey(nameof(TransformedData.Keys), "TokenizedText"));
+            var defaultPipeline = mlContext.Transforms.Text.TokenizeIntoWords(
+                "TokenizedText", nameof(DataPoint.Review)).Append(mlContext
+                .Transforms.Conversion.MapValueToKey(nameof(TransformedData.Keys),
+                "TokenizedText"));
 
-            // Another pipeline, that customizes the advanced settings of the ValueToKeyMappingEstimator.
-            // We can change the maximumNumberOfKeys to limit how many keys will get generated out of the set of words, 
-            // and condition the order in which they get evaluated by changing keyOrdinality from the default ByOccurence (order in which they get encountered) 
-            // to value/alphabetically.
-            var customizedPipeline = mlContext.Transforms.Text.TokenizeIntoWords("TokenizedText", nameof(DataPoint.Review))
-                .Append(mlContext.Transforms.Conversion.MapValueToKey(nameof(TransformedData.Keys), "TokenizedText", maximumNumberOfKeys: 10,
-                keyOrdinality: ValueToKeyMappingEstimator.KeyOrdinality.ByValue));
+            // Another pipeline, that customizes the advanced settings of the
+            // ValueToKeyMappingEstimator. We can change the maximumNumberOfKeys to
+            // limit how many keys will get generated out of the set of words, and
+            // condition the order in which they get evaluated by changing
+            // keyOrdinality from the default ByOccurence (order in which they get
+            // encountered) to value/alphabetically.
+            var customizedPipeline = mlContext.Transforms.Text.TokenizeIntoWords(
+                "TokenizedText", nameof(DataPoint.Review)).Append(mlContext
+                .Transforms.Conversion.MapValueToKey(nameof(TransformedData.Keys),
+                "TokenizedText", maximumNumberOfKeys: 10, keyOrdinality:
+                ValueToKeyMappingEstimator.KeyOrdinality.ByValue));
 
             // The transformed data.
-            var transformedDataDefault = defaultPipeline.Fit(trainData).Transform(trainData);
-            var transformedDataCustomized = customizedPipeline.Fit(trainData).Transform(trainData);
+            var transformedDataDefault = defaultPipeline.Fit(trainData).Transform(
+                trainData);
+
+            var transformedDataCustomized = customizedPipeline.Fit(trainData)
+                .Transform(trainData);
 
             // Getting the resulting data as an IEnumerable.
             // This will contain the newly created columns.
-            IEnumerable<TransformedData> defaultData = mlContext.Data.CreateEnumerable<TransformedData>(transformedDataDefault, reuseRowObject: false);
-            IEnumerable<TransformedData> customizedData = mlContext.Data.CreateEnumerable<TransformedData>(transformedDataCustomized, reuseRowObject: false);
+            IEnumerable<TransformedData> defaultData = mlContext.Data.
+                CreateEnumerable<TransformedData>(transformedDataDefault,
+                reuseRowObject: false);
+
+            IEnumerable<TransformedData> customizedData = mlContext.Data.
+                CreateEnumerable<TransformedData>(transformedDataCustomized,
+                reuseRowObject: false);
+
             Console.WriteLine($"Keys");
             foreach (var dataRow in defaultData)
                 Console.WriteLine($"{string.Join(',', dataRow.Keys)}");
@@ -65,13 +80,17 @@ namespace Samples.Dynamic
             //  8,2,9,7,6,4
             //  3,10,0,0,0
             //  3,10,0,0,0,8
-            // Retrieve the original values, by appending the KeyToValue etimator to the existing pipelines
-            // to convert the keys back to the strings.
-            var pipeline = defaultPipeline.Append(mlContext.Transforms.Conversion.MapKeyToValue(nameof(TransformedData.Keys)));
+            // Retrieve the original values, by appending the KeyToValue etimator to
+            // the existing pipelines to convert the keys back to the strings.
+            var pipeline = defaultPipeline.Append(mlContext.Transforms.Conversion
+                .MapKeyToValue(nameof(TransformedData.Keys)));
+
             transformedDataDefault = pipeline.Fit(trainData).Transform(trainData);
 
             // Preview of the DefaultColumnName column obtained.
-            var originalColumnBack = transformedDataDefault.GetColumn<VBuffer<ReadOnlyMemory<char>>>(transformedDataDefault.Schema[nameof(TransformedData.Keys)]);
+            var originalColumnBack = transformedDataDefault.GetColumn<VBuffer<
+                ReadOnlyMemory<char>>>(transformedDataDefault.Schema[nameof(
+                TransformedData.Keys)]);
 
             foreach (var row in originalColumnBack)
             {

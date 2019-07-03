@@ -6,12 +6,13 @@ namespace Samples.Dynamic
 {
     public static class MapValueIdvLookup
     {
-        /// This example demonstrates the use of MapValue by mapping floats to strings, looking up the mapping in an IDataView. 
-        /// This is useful to map types to a grouping. 
+        /// This example demonstrates the use of MapValue by mapping floats to
+        /// strings, looking up the mapping in an IDataView. This is useful to map
+        /// types to a grouping. 
         public static void Example()
         {
-            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
+            // Create a new ML context, for ML.NET operations. It can be used for
+            // exception tracking and logging, as well as the source of randomness.
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable.
@@ -41,17 +42,22 @@ namespace Samples.Dynamic
             var lookupIdvMap = mlContext.Data.LoadFromEnumerable(lookupData);
 
             // Constructs the ValueMappingEstimator making the ML.NET pipeline
-            var pipeline = mlContext.Transforms.Conversion.MapValue("PriceCategory", lookupIdvMap, lookupIdvMap.Schema["Value"], lookupIdvMap.Schema["Category"], "Price");
+            var pipeline = mlContext.Transforms.Conversion.MapValue("PriceCategory",
+                lookupIdvMap, lookupIdvMap.Schema["Value"], lookupIdvMap.Schema[
+                    "Category"], "Price");
 
-            // Fits the ValueMappingEstimator and transforms the data converting the Price to PriceCategory.
+            // Fits the ValueMappingEstimator and transforms the data converting the
+            // Price to PriceCategory.
             IDataView transformedData = pipeline.Fit(data).Transform(data);
 
             // Getting the resulting data as an IEnumerable.
-            IEnumerable<TransformedData> features = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, reuseRowObject: false);
+            IEnumerable<TransformedData> features = mlContext.Data.CreateEnumerable<
+                TransformedData>(transformedData, reuseRowObject: false);
 
             Console.WriteLine($" Price   PriceCategory");
             foreach (var featureRow in features)
-                Console.WriteLine($"{featureRow.Price}\t\t{featureRow.PriceCategory}");
+                Console.WriteLine($"{featureRow.Price}\t\t" +
+                $"{featureRow.PriceCategory}");
 
             // TransformedData obtained post-transformation.
             //

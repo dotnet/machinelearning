@@ -9,8 +9,8 @@ namespace Samples.Dynamic
     {
         public static void Example()
         {
-            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
+            // Create a new ML context, for ML.NET operations. It can be used for
+            // exception tracking and logging, as well as the source of randomness.
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
@@ -19,7 +19,8 @@ namespace Samples.Dynamic
             // Printing the columns of the input data. 
             Console.WriteLine($"NumericVectorA            NumericVectorB");
             foreach (var item in rawData)
-                Console.WriteLine("{0,-25} {1,-25}", string.Join(",", item.NumericVectorA), string.Join(",", item.NumericVectorB));
+                Console.WriteLine("{0,-25} {1,-25}", string.Join(",", item
+                    .NumericVectorA), string.Join(",", item.NumericVectorB));
 
             // NumericVectorA              NumericVectorB
             // 4,0,6                       7,8,9
@@ -29,23 +30,28 @@ namespace Samples.Dynamic
 
             var data = mlContext.Data.LoadFromEnumerable(rawData);
 
-            // We define a MutualInformationFeatureSelectingEstimator that selects the top k slots in a feature 
-            // vector based on highest mutual information between that slot and a specified label. 
+            // We define a MutualInformationFeatureSelectingEstimator that selects
+            // the top k slots in a feature vector based on highest mutual
+            // information between that slot and a specified label. 
 
-            // Multi column example : This pipeline transform two columns using the provided parameters.
-            var pipeline = mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation(
-                new InputOutputColumnPair[] { new InputOutputColumnPair("NumericVectorA"), new InputOutputColumnPair("NumericVectorB") },
-                labelColumnName: "Label",
+            // Multi column example : This pipeline transform two columns using the
+            // provided parameters.
+            var pipeline = mlContext.Transforms.FeatureSelection
+                .SelectFeaturesBasedOnMutualInformation(new InputOutputColumnPair[] 
+                { new InputOutputColumnPair("NumericVectorA"), new
+                InputOutputColumnPair("NumericVectorB") }, labelColumnName: "Label",
                 slotsInOutput: 4);
 
             var transformedData = pipeline.Fit(data).Transform(data);
 
-            var convertedData = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, true);
+            var convertedData = mlContext.Data.CreateEnumerable<TransformedData>(
+                transformedData, true);
 
             // Printing the columns of the transformed data. 
             Console.WriteLine($"NumericVectorA            NumericVectorB");
             foreach (var item in convertedData)
-                Console.WriteLine("{0,-25} {1,-25}", string.Join(",", item.NumericVectorA), string.Join(",", item.NumericVectorB));
+                Console.WriteLine("{0,-25} {1,-25}", string.Join(",", item
+                    .NumericVectorA), string.Join(",", item.NumericVectorB));
 
             // NumericVectorA              NumericVectorB
             // 4,0,6                       9
