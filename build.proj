@@ -68,7 +68,7 @@
     <Message Importance="High" Text="Building packages ..." />
 
     <ItemGroup>
-      <PkgProject Include="pkg\Microsoft.ML.AutoML\Microsoft.ML.AutoML.symbols.nupkgproj" />
+      <PkgProject Include="pkg\Microsoft.ML.AutoML\*.nupkgproj" />
       <PkgProject Include="pkg\mlnet\*.nupkgproj" />
     </ItemGroup>
 
