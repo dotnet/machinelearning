@@ -224,6 +224,62 @@ namespace Tensorflow
             return result;
         }
 
+        public unsafe Tensor[] runTFSession(TF_Output[] inputs, Tensor[] inputValues, TF_Output[] outputs, Operation[] targetOpers = null, Buffer runMetadata = null, Buffer runOptions = null, Status status = null)
+        {
+            if (_session == IntPtr.Zero)
+                throw new ObjectDisposedException("The object was disposed");
+            if (inputs == null)
+                throw new ArgumentNullException(nameof(inputs));
+            if (inputValues == null)
+                throw new ArgumentNullException(nameof(inputValues));
+            if (outputs == null)
+                throw new ArgumentNullException(nameof(outputs));
+            int iLen = inputs.Length;
+            if (iLen != inputValues.Length)
+                throw new ArgumentException("inputs and inputValues have different lengths", "inputs");
+            int oLen = outputs.Length;
+
+            // runOptions and runMetadata might be null
+            if (status == null)
+            {
+                status = new Status();
+            }
+
+            // Create arrays for the unmanaged versions
+            var ivals = new IntPtr[iLen];
+            for (int i = 0; i < iLen; i++)
+                ivals[i] = (IntPtr)inputValues[i];
+
+            // I believe this might not be necessary, the output values in TF_SessionRun looks like a write-only result
+            var ovals = new IntPtr[outputs.Length];
+            IntPtr[] topers = null;
+            int tLen = 0;
+            if (targetOpers != null)
+            {
+                tLen = targetOpers.Length;
+                topers = new IntPtr[tLen];
+                for (int i = 0; i < tLen; i++)
+                    topers[i] = (IntPtr)targetOpers[i];
+            }
+
+            unsafe
+            {
+                c_api.TF_SessionRun(_session, runOptions == null ? null : (TF_Buffer*)(IntPtr)runOptions, inputs, ivals, iLen, outputs, ovals, oLen, topers, tLen, runMetadata == null ? IntPtr.Zero : (IntPtr)runMetadata, (IntPtr)status);
+            }
+            status.Check(true);
+
+            // Ensure that the input tensors remain rooted, so that the GC won't collect & run finalizers between
+            // when they are copied to ivals and TF_SessionRun is called.
+            GC.KeepAlive(inputValues);
+
+            var result = new Tensor[oLen];
+            for (int i = 0; i < oLen; i++)
+            {
+                result[i] = new Tensor(ovals[i]);
+            }
+            return result;
+        }
+
         private unsafe NDArray fetchValue(IntPtr output)
         {
             var tensor = new Tensor(output);

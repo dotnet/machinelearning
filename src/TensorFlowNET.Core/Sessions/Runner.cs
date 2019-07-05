@@ -171,7 +171,7 @@ namespace Tensorflow
         /// <param name="status">Status buffer, if specified a status code will be left here, if not specified, a <see cref="T:TensorFlow.TFException"/> exception is raised if there is an error.</param>
         public Tensor[] Run(Status status = null)
         {
-            return session.Run(inputs.ToArray(), inputValues.ToArray(), outputs.ToArray(), targets.ToArray(), RunMetadata, RunOptions, status);
+            return session.runTFSession(inputs.ToArray(), inputValues.ToArray(), outputs.ToArray(), targets.ToArray(), RunMetadata, RunOptions, status);
         }
 
         /// <summary>

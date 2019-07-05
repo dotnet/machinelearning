@@ -224,5 +224,10 @@ namespace Microsoft.ML.TensorFlowImageAPI
             var dataSpan = new Span<T>(data.ToPointer(), result.Length);
             dataSpan.CopyTo(result);
         }
+
+        private static Tensor CreateScalar<T>(T data)
+        {
+            TF_DataType type = dtypes.as_dtype(data);
+        }
     }
 }
