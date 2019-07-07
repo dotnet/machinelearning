@@ -27,7 +27,7 @@ namespace Microsoft.ML.CLI.Templates.Console
         /// </summary>
         public virtual string TransformText()
         {
-            Write(@"//*****************************************************************************************
+            this.Write(@"//*****************************************************************************************
 //*                                                                                       *
 //* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *
 //*                                                                                       *
@@ -38,22 +38,22 @@ using System.IO;
 using System.Linq;
 using Microsoft.ML;
 using ");
-            Write(ToStringHelper.ToStringWithCulture(Namespace));
-            Write(".Model.DataModels;\r\n\r\n\r\nnamespace ");
-            Write(ToStringHelper.ToStringWithCulture(Namespace));
-            Write(".ConsoleApp\r\n{\r\n    class Program\r\n    {\r\n        //Machine Learning model to loa" +
+            this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
+            this.Write(".Model.DataModels;\r\n\r\n\r\nnamespace ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
+            this.Write(".ConsoleApp\r\n{\r\n    class Program\r\n    {\r\n        //Machine Learning model to loa" +
                     "d and use for predictions\r\n        private const string MODEL_FILEPATH = @\"MLMod" +
                     "el.zip\";\r\n\r\n        //Dataset to use for predictions \r\n");
 if(string.IsNullOrEmpty(TestDataPath)){ 
-            Write("        private const string DATA_FILEPATH = @\"");
-            Write(ToStringHelper.ToStringWithCulture(TrainDataPath));
-            Write("\";\r\n");
+            this.Write("        private const string DATA_FILEPATH = @\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(TrainDataPath));
+            this.Write("\";\r\n");
  } else{ 
-            Write("        private const string DATA_FILEPATH = @\"");
-            Write(ToStringHelper.ToStringWithCulture(TestDataPath));
-            Write("\";\r\n");
+            this.Write("        private const string DATA_FILEPATH = @\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(TestDataPath));
+            this.Write("\";\r\n");
  } 
-            Write(@"
+            this.Write(@"
         static void Main(string[] args)
         {
             MLContext mlContext = new MLContext();
@@ -72,20 +72,20 @@ if(string.IsNullOrEmpty(TestDataPath)){
 
 ");
 if("BinaryClassification".Equals(TaskType)){ 
-            Write("            Console.WriteLine($\"Single Prediction --> Actual value: {sampleData.");
-            Write(ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
-            Write("} | Predicted value: {predictionResult.Prediction}\");\r\n");
+            this.Write("            Console.WriteLine($\"Single Prediction --> Actual value: {sampleData.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
+            this.Write("} | Predicted value: {predictionResult.Prediction}\");\r\n");
 }else if("Regression".Equals(TaskType)){
-            Write("            Console.WriteLine($\"Single Prediction --> Actual value: {sampleData.");
-            Write(ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
-            Write("} | Predicted value: {predictionResult.Score}\");\r\n");
+            this.Write("            Console.WriteLine($\"Single Prediction --> Actual value: {sampleData.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
+            this.Write("} | Predicted value: {predictionResult.Score}\");\r\n");
 } else if("MulticlassClassification".Equals(TaskType)){
-            Write("            Console.WriteLine($\"Single Prediction --> Actual value: {sampleData.");
-            Write(ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
-            Write("} | Predicted value: {predictionResult.Prediction} | Predicted scores: [{String.J" +
+            this.Write("            Console.WriteLine($\"Single Prediction --> Actual value: {sampleData.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
+            this.Write("} | Predicted value: {predictionResult.Prediction} | Predicted scores: [{String.J" +
                     "oin(\",\", predictionResult.Score)}]\");\r\n");
 }
-            Write(@"
+            this.Write(@"
             Console.WriteLine(""=============== End of process, hit any key to finish ==============="");
             Console.ReadKey();
         }
@@ -98,14 +98,14 @@ if("BinaryClassification".Equals(TaskType)){
             IDataView dataView = mlContext.Data.LoadFromTextFile<ModelInput>(
                                             path: dataFilePath,
                                             hasHeader : ");
-            Write(ToStringHelper.ToStringWithCulture(HasHeader.ToString().ToLowerInvariant()));
-            Write(",\r\n                                            separatorChar : \'");
-            Write(ToStringHelper.ToStringWithCulture(Regex.Escape(Separator.ToString())));
-            Write("\',\r\n                                            allowQuoting : ");
-            Write(ToStringHelper.ToStringWithCulture(AllowQuoting.ToString().ToLowerInvariant()));
-            Write(",\r\n                                            allowSparse: ");
-            Write(ToStringHelper.ToStringWithCulture(AllowSparse.ToString().ToLowerInvariant()));
-            Write(@");
+            this.Write(this.ToStringHelper.ToStringWithCulture(HasHeader.ToString().ToLowerInvariant()));
+            this.Write(",\r\n                                            separatorChar : \'");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Regex.Escape(Separator.ToString())));
+            this.Write("\',\r\n                                            allowQuoting : ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(AllowQuoting.ToString().ToLowerInvariant()));
+            this.Write(",\r\n                                            allowSparse: ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(AllowSparse.ToString().ToLowerInvariant()));
+            this.Write(@");
 
             // Here (ModelInput object) you could provide new test data, hardcoded or from the end-user application, instead of the row from the file.
             ModelInput sampleForPrediction = mlContext.Data.CreateEnumerable<ModelInput>(dataView, false)
@@ -125,7 +125,7 @@ if("BinaryClassification".Equals(TaskType)){
     }
 }
 ");
-            return GenerationEnvironment.ToString();
+            return this.GenerationEnvironment.ToString();
         }
 
 public string TaskType {get;set;}
@@ -162,15 +162,15 @@ public bool HasHeader {get;set;}
         {
             get
             {
-                if ((generationEnvironmentField == null))
+                if ((this.generationEnvironmentField == null))
                 {
-                    generationEnvironmentField = new global::System.Text.StringBuilder();
+                    this.generationEnvironmentField = new global::System.Text.StringBuilder();
                 }
-                return generationEnvironmentField;
+                return this.generationEnvironmentField;
             }
             set
             {
-                generationEnvironmentField = value;
+                this.generationEnvironmentField = value;
             }
         }
         /// <summary>
@@ -180,11 +180,11 @@ public bool HasHeader {get;set;}
         {
             get
             {
-                if ((errorsField == null))
+                if ((this.errorsField == null))
                 {
-                    errorsField = new global::System.CodeDom.Compiler.CompilerErrorCollection();
+                    this.errorsField = new global::System.CodeDom.Compiler.CompilerErrorCollection();
                 }
-                return errorsField;
+                return this.errorsField;
             }
         }
         /// <summary>
@@ -194,11 +194,11 @@ public bool HasHeader {get;set;}
         {
             get
             {
-                if ((indentLengthsField == null))
+                if ((this.indentLengthsField == null))
                 {
-                    indentLengthsField = new global::System.Collections.Generic.List<int>();
+                    this.indentLengthsField = new global::System.Collections.Generic.List<int>();
                 }
-                return indentLengthsField;
+                return this.indentLengthsField;
             }
         }
         /// <summary>
@@ -208,7 +208,7 @@ public bool HasHeader {get;set;}
         {
             get
             {
-                return currentIndentField;
+                return this.currentIndentField;
             }
         }
         /// <summary>
@@ -218,11 +218,11 @@ public bool HasHeader {get;set;}
         {
             get
             {
-                return sessionField;
+                return this.sessionField;
             }
             set
             {
-                sessionField = value;
+                this.sessionField = value;
             }
         }
         #endregion
@@ -238,35 +238,35 @@ public bool HasHeader {get;set;}
             }
             // If we're starting off, or if the previous text ended with a newline,
             // we have to append the current indent first.
-            if (((GenerationEnvironment.Length == 0) 
-                        || endsWithNewline))
+            if (((this.GenerationEnvironment.Length == 0) 
+                        || this.endsWithNewline))
             {
-                GenerationEnvironment.Append(currentIndentField);
-                endsWithNewline = false;
+                this.GenerationEnvironment.Append(this.currentIndentField);
+                this.endsWithNewline = false;
             }
             // Check if the current text ends with a newline
             if (textToAppend.EndsWith(global::System.Environment.NewLine, global::System.StringComparison.CurrentCulture))
             {
-                endsWithNewline = true;
+                this.endsWithNewline = true;
             }
             // This is an optimization. If the current indent is "", then we don't have to do any
             // of the more complex stuff further down.
-            if ((currentIndentField.Length == 0))
+            if ((this.currentIndentField.Length == 0))
             {
-                GenerationEnvironment.Append(textToAppend);
+                this.GenerationEnvironment.Append(textToAppend);
                 return;
             }
             // Everywhere there is a newline in the text, add an indent after it
-            textToAppend = textToAppend.Replace(global::System.Environment.NewLine, (global::System.Environment.NewLine + currentIndentField));
+            textToAppend = textToAppend.Replace(global::System.Environment.NewLine, (global::System.Environment.NewLine + this.currentIndentField));
             // If the text ends with a newline, then we should strip off the indent added at the very end
             // because the appropriate indent will be added when the next time Write() is called
-            if (endsWithNewline)
+            if (this.endsWithNewline)
             {
-                GenerationEnvironment.Append(textToAppend, 0, (textToAppend.Length - currentIndentField.Length));
+                this.GenerationEnvironment.Append(textToAppend, 0, (textToAppend.Length - this.currentIndentField.Length));
             }
             else
             {
-                GenerationEnvironment.Append(textToAppend);
+                this.GenerationEnvironment.Append(textToAppend);
             }
         }
         /// <summary>
@@ -274,23 +274,23 @@ public bool HasHeader {get;set;}
         /// </summary>
         public void WriteLine(string textToAppend)
         {
-            Write(textToAppend);
-            GenerationEnvironment.AppendLine();
-            endsWithNewline = true;
+            this.Write(textToAppend);
+            this.GenerationEnvironment.AppendLine();
+            this.endsWithNewline = true;
         }
         /// <summary>
         /// Write formatted text directly into the generated output
         /// </summary>
         public void Write(string format, params object[] args)
         {
-            Write(string.Format(global::System.Globalization.CultureInfo.CurrentCulture, format, args));
+            this.Write(string.Format(global::System.Globalization.CultureInfo.CurrentCulture, format, args));
         }
         /// <summary>
         /// Write formatted text directly into the generated output
         /// </summary>
         public void WriteLine(string format, params object[] args)
         {
-            WriteLine(string.Format(global::System.Globalization.CultureInfo.CurrentCulture, format, args));
+            this.WriteLine(string.Format(global::System.Globalization.CultureInfo.CurrentCulture, format, args));
         }
         /// <summary>
         /// Raise an error
@@ -299,7 +299,7 @@ public bool HasHeader {get;set;}
         {
             System.CodeDom.Compiler.CompilerError error = new global::System.CodeDom.Compiler.CompilerError();
             error.ErrorText = message;
-            Errors.Add(error);
+            this.Errors.Add(error);
         }
         /// <summary>
         /// Raise a warning
@@ -309,7 +309,7 @@ public bool HasHeader {get;set;}
             System.CodeDom.Compiler.CompilerError error = new global::System.CodeDom.Compiler.CompilerError();
             error.ErrorText = message;
             error.IsWarning = true;
-            Errors.Add(error);
+            this.Errors.Add(error);
         }
         /// <summary>
         /// Increase the indent
@@ -320,8 +320,8 @@ public bool HasHeader {get;set;}
             {
                 throw new global::System.ArgumentNullException("indent");
             }
-            currentIndentField = (currentIndentField + indent);
-            indentLengths.Add(indent.Length);
+            this.currentIndentField = (this.currentIndentField + indent);
+            this.indentLengths.Add(indent.Length);
         }
         /// <summary>
         /// Remove the last indent that was added with PushIndent
@@ -329,14 +329,14 @@ public bool HasHeader {get;set;}
         public string PopIndent()
         {
             string returnValue = "";
-            if ((indentLengths.Count > 0))
+            if ((this.indentLengths.Count > 0))
             {
-                int indentLength = indentLengths[(indentLengths.Count - 1)];
-                indentLengths.RemoveAt((indentLengths.Count - 1));
+                int indentLength = this.indentLengths[(this.indentLengths.Count - 1)];
+                this.indentLengths.RemoveAt((this.indentLengths.Count - 1));
                 if ((indentLength > 0))
                 {
-                    returnValue = currentIndentField.Substring((currentIndentField.Length - indentLength));
-                    currentIndentField = currentIndentField.Remove((currentIndentField.Length - indentLength));
+                    returnValue = this.currentIndentField.Substring((this.currentIndentField.Length - indentLength));
+                    this.currentIndentField = this.currentIndentField.Remove((this.currentIndentField.Length - indentLength));
                 }
             }
             return returnValue;
@@ -346,8 +346,8 @@ public bool HasHeader {get;set;}
         /// </summary>
         public void ClearIndent()
         {
-            indentLengths.Clear();
-            currentIndentField = "";
+            this.indentLengths.Clear();
+            this.currentIndentField = "";
         }
         #endregion
         #region ToString Helpers
@@ -364,13 +364,13 @@ public bool HasHeader {get;set;}
             {
                 get
                 {
-                    return formatProviderField ;
+                    return this.formatProviderField ;
                 }
                 set
                 {
                     if ((value != null))
                     {
-                        formatProviderField  = value;
+                        this.formatProviderField  = value;
                     }
                 }
             }
@@ -393,7 +393,7 @@ public bool HasHeader {get;set;}
                 else
                 {
                     return ((string)(method.Invoke(objectToConvert, new object[] {
-                                formatProviderField })));
+                                this.formatProviderField })));
                 }
             }
         }
@@ -405,7 +405,7 @@ public bool HasHeader {get;set;}
         {
             get
             {
-                return toStringHelperField;
+                return this.toStringHelperField;
             }
         }
         #endregion
