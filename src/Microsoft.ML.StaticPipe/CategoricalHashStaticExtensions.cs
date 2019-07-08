@@ -8,7 +8,8 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.StaticPipe
 {
-    public static class CategoricalHashStaticExtensions
+    [BestFriend]
+    internal static class CategoricalHashStaticExtensions
     {
         public enum OneHotHashVectorOutputKind : byte
         {
