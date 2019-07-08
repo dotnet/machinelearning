@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Transforms.TensorFlow;
 
+using Tensorflow;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
@@ -14,7 +14,7 @@ namespace Microsoft.ML.Transforms
     /// </summary>
     public sealed class TensorFlowModel
     {
-        internal TFSession Session { get; }
+        internal Session Session { get; }
         internal string ModelPath { get; }
 
         private readonly IHostEnvironment _env;
@@ -25,7 +25,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">An <see cref="IHostEnvironment"/> object.</param>
         /// <param name="session">TensorFlow session object.</param>
         /// <param name="modelLocation">Location of the model from where <paramref name="session"/> was loaded.</param>
-        internal TensorFlowModel(IHostEnvironment env, TFSession session, string modelLocation)
+        internal TensorFlowModel(IHostEnvironment env, Session session, string modelLocation)
         {
             Session = session;
             ModelPath = modelLocation;
@@ -37,7 +37,8 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         public DataViewSchema GetModelSchema()
         {
-            return TensorFlowUtils.GetModelSchema(_env, Session.Graph);
+            //return TensorFlowUtils.GetModelSchema(_env, Session.Graph);
+            return null;
         }
 
         /// <summary>
@@ -46,7 +47,8 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         public DataViewSchema GetInputSchema()
         {
-            return TensorFlowUtils.GetModelSchema(_env, Session.Graph, "Placeholder");
+            //return TensorFlowUtils.GetModelSchema(_env, Session.Graph, "Placeholder");
+            return null;
         }
 
         /// <summary>
@@ -63,8 +65,8 @@ namespace Microsoft.ML.Transforms
         /// ]]>
         /// </format>
         /// </example>
-        public TensorFlowEstimator ScoreTensorFlowModel(string outputColumnName, string inputColumnName, bool addBatchDimensionInput = false)
-            => new TensorFlowEstimator(_env, new[] { outputColumnName }, new[] { inputColumnName }, this, addBatchDimensionInput);
+        public TensorFlowEstimator ScoreTensorFlowModel(string outputColumnName, string inputColumnName, string modelLocation, bool addBatchDimensionInput = false)
+            => new TensorFlowEstimator(_env, new[] { outputColumnName }, new[] { inputColumnName }, modelLocation, addBatchDimensionInput);
 
         /// <summary>
         /// Scores a dataset using a pre-trained TensorFlow model.
@@ -80,8 +82,8 @@ namespace Microsoft.ML.Transforms
         /// ]]>
         /// </format>
         /// </example>
-        public TensorFlowEstimator ScoreTensorFlowModel(string[] outputColumnNames, string[] inputColumnNames, bool addBatchDimensionInput = false)
-            => new TensorFlowEstimator(_env, outputColumnNames, inputColumnNames, this, addBatchDimensionInput);
+        public TensorFlowEstimator ScoreTensorFlowModel(string[] outputColumnNames, string[] inputColumnNames, string modelLocation, bool addBatchDimensionInput = false)
+            => new TensorFlowEstimator(_env, outputColumnNames, inputColumnNames, modelLocation, addBatchDimensionInput);
 
         /// <summary>
         /// Retrain the TensorFlow model on new data.
@@ -136,7 +138,7 @@ namespace Microsoft.ML.Transforms
                 ReTrain = true,
                 AddBatchDimensionInputs = addBatchDimensionInput
             };
-            return new TensorFlowEstimator(_env, options, this);
+            return new TensorFlowEstimator(_env, options);
         }
     }
 }

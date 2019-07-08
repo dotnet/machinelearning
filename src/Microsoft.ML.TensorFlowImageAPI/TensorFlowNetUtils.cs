@@ -7,6 +7,7 @@ using System.Text;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Tensorflow;
+//using NumSharp;
 
 namespace Microsoft.ML.TensorFlowImageAPI
 {
@@ -225,9 +226,11 @@ namespace Microsoft.ML.TensorFlowImageAPI
             dataSpan.CopyTo(result);
         }
 
-        private static Tensor CreateScalar<T>(T data)
+        internal static Tensor Create<T>(T[] data)
         {
-            TF_DataType type = dtypes.as_dtype(data);
+            //NDArray nd = tensor_util.convert_to_numpy_ndarray(data);
+            return new Tensor(data);
         }
+      
     }
 }

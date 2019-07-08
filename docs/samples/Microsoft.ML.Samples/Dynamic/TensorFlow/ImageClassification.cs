@@ -14,7 +14,7 @@ namespace Samples.Dynamic
         /// <summary>
         /// Example use of the TensorFlow image model in a ML.NET pipeline.
         /// </summary>
-        public static void Example()
+        /*public static void Example()
         {
             // Download the ResNet 101 model from the location below.
             // https://storage.googleapis.com/download.tensorflow.org/models/tflite_11_05_08/resnet_v2_101.tgz
@@ -63,7 +63,7 @@ namespace Samples.Dynamic
             //Class #1 score = -0.2158062
             //Class #2 score = 0.1153686
             //----------
-        }
+        }*/
 
         private const int imageHeight = 224; 
         private const int imageWidth = 224;

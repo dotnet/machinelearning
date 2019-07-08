@@ -26,6 +26,17 @@ namespace Tensorflow
             _handle = Allocate(nd, tensorDType: tensorDType);
         }
 
+        public static Tensor CreateMLNETTensor<T>(T data)
+        {
+            if (typeof(T) == typeof(System.ReadOnlyMemory<char>))
+            {
+                return new Tensor(UTF8Encoding.UTF8.GetBytes((String)(object)data));
+            }
+            var handle = AllocateSingle(data);
+            return new Tensor(handle);
+        }
+
+
         public unsafe Tensor(byte[] buffer)
         {
             var size = c_api.TF_StringEncodedSize((UIntPtr)buffer.Length);
@@ -110,114 +121,109 @@ namespace Tensorflow
             return tfHandle;
         }
 
-        private unsafe IntPtr Allocate(TF_DataType tensorDType, object value)
+        private static unsafe IntPtr AllocateSingle<T>(T data)
         {
             Deallocator deallocator = (IntPtr values, IntPtr len, ref bool closure) =>
             {
                 Marshal.FreeHGlobal(values);
                 closure = true;
             };
-            if (tensorDType == TF_DataType.TF_BOOL)
+            if (typeof(T) == typeof(System.Boolean))
             {
                 var v = (bool*)Marshal.AllocHGlobal(sizeof(bool));
-                *v = (bool)value;
+                *v = (System.Boolean)(object)data;
                 var size = sizeof(bool);
-                return c_api.TF_NewTensor(tensorDType, zeroDims: IntPtr.Zero, num_dims: 0, data: (IntPtr)v, len: (UIntPtr)size, deallocator: deallocator, deallocator_arg: ref deallocator_called);
+                return c_api.TF_NewTensor(TF_DataType.TF_BOOL, zeroDims: IntPtr.Zero, num_dims: 0, data: (IntPtr)v, len: (UIntPtr)size, deallocator: deallocator, deallocator_arg: IntPtr.Zero);
             }
-            else if (tensorDType == TF_DataType.TF_UINT8)
+            else if (typeof(T) == typeof(System.Byte))
             {
                 var v = (int*)Marshal.AllocHGlobal(sizeof(byte));
-                *v = (int)value;
+                *v = (System.Byte)(object)data;
                 var size = sizeof(int);
-                return c_api.TF_NewTensor(tensorDType, zeroDims: IntPtr.Zero, num_dims: 0, data: (IntPtr)v, len: (UIntPtr)size, deallocator: deallocator, deallocator_arg: ref deallocator_called);
+                return c_api.TF_NewTensor(TF_DataType.TF_UINT8, zeroDims: IntPtr.Zero, num_dims: 0, data: (IntPtr)v, len: (UIntPtr)size, deallocator: deallocator, deallocator_arg: IntPtr.Zero);
             }
-            else if (tensorDType == TF_DataType.TF_INT16)
+            else if (typeof(T) == typeof(System.Char))
             {
                 var v = (ushort*)Marshal.AllocHGlobal(sizeof(ushort));
-                *v = (ushort)value;
+                *v = (System.Char)(object)data;
                 var size = sizeof(ushort);
-                return c_api.TF_NewTensor(tensorDType, zeroDims: IntPtr.Zero, num_dims: 0, data: (IntPtr)v, len: (UIntPtr)size, deallocator: deallocator, deallocator_arg: ref deallocator_called);
+                return c_api.TF_NewTensor(TF_DataType.TF_INT16, zeroDims: IntPtr.Zero, num_dims: 0, data: (IntPtr)v, len: (UIntPtr)size, deallocator: deallocator, deallocator_arg: IntPtr.Zero);
             }
-            else if (tensorDType == TF_DataType.TF_COMPLEX128)
+            else if (typeof(T) == typeof(System.Numerics.Complex))
             {
                 var v = (Complex*)Marshal.AllocHGlobal(sizeof(Complex));
-                *v = (Complex)value;
+                *v = (System.Numerics.Complex)(object)data;
                 var size = sizeof(Complex);
-                return c_api.TF_NewTensor(tensorDType, zeroDims: IntPtr.Zero, num_dims: 0, data: (IntPtr)v, len: (UIntPtr)size, deallocator: deallocator, deallocator_arg: ref deallocator_called);
+                return c_api.TF_NewTensor(TF_DataType.TF_COMPLEX128, zeroDims: IntPtr.Zero, num_dims: 0, data: (IntPtr)v, len: (UIntPtr)size, deallocator: deallocator, deallocator_arg: IntPtr.Zero);
             }
-            else if (tensorDType == TF_DataType.TF_DOUBLE)
+            else if (typeof(T) == typeof(System.Double))
             {
                 var v = (double*)Marshal.AllocHGlobal(sizeof(double));
-                *v = (double)value;
+                *v = (System.Double)(object)data;
                 var size = sizeof(double);
-                return c_api.TF_NewTensor(tensorDType, zeroDims: IntPtr.Zero, num_dims: 0, data: (IntPtr)v, len: (UIntPtr)size, deallocator: deallocator, deallocator_arg: ref deallocator_called);
+                return c_api.TF_NewTensor(TF_DataType.TF_DOUBLE, zeroDims: IntPtr.Zero, num_dims: 0, data: (IntPtr)v, len: (UIntPtr)size, deallocator: deallocator, deallocator_arg: IntPtr.Zero);
             }
-            else if (tensorDType == TF_DataType.TF_FLOAT)
+            else if (typeof(T) == typeof(System.Single))
             {
                 var v = (float*)Marshal.AllocHGlobal(sizeof(float));
-                *v = (float)value;
+                *v = (System.Single)(object)data;
                 var size = sizeof(float);
-                return c_api.TF_NewTensor(tensorDType, zeroDims: IntPtr.Zero, num_dims: 0, data: (IntPtr)v, len: (UIntPtr)size, deallocator: deallocator, deallocator_arg: ref deallocator_called);
+                return c_api.TF_NewTensor(TF_DataType.TF_FLOAT, zeroDims: IntPtr.Zero, num_dims: 0, data: (IntPtr)v, len: (UIntPtr)size, deallocator: deallocator, deallocator_arg: IntPtr.Zero);
             }
-            else if (tensorDType == TF_DataType.TF_INT32)
+            else if (typeof(T) == typeof(System.Int32))
             {
                 var v = (int*)Marshal.AllocHGlobal(sizeof(int));
-                *v = (int)value;
+                *v = (System.Int32)(object)data;
                 var size = sizeof(int);
-                return c_api.TF_NewTensor(tensorDType, zeroDims: IntPtr.Zero, num_dims: 0, data: (IntPtr)v, len: (UIntPtr)size, deallocator: deallocator, deallocator_arg: ref deallocator_called);
+                return c_api.TF_NewTensor(TF_DataType.TF_INT32, zeroDims: IntPtr.Zero, num_dims: 0, data: (IntPtr)v, len: (UIntPtr)size, deallocator: deallocator, deallocator_arg: IntPtr.Zero);
             }
-            else if (tensorDType == TF_DataType.TF_INT64)
+            else if (typeof(T) == typeof(System.Int64))
             {
                 var v = (long*)Marshal.AllocHGlobal(sizeof(long));
-                *v = (long)value;
+                *v = (System.Int64)(object)data;
                 var size = sizeof(long);
-                return c_api.TF_NewTensor(tensorDType, zeroDims: IntPtr.Zero, num_dims: 0, data: (IntPtr)v, len: (UIntPtr)size, deallocator: deallocator, deallocator_arg: ref deallocator_called);
+                return c_api.TF_NewTensor(TF_DataType.TF_INT64, zeroDims: IntPtr.Zero, num_dims: 0, data: (IntPtr)v, len: (UIntPtr)size, deallocator: deallocator, deallocator_arg: IntPtr.Zero);
             }
-            else if (tensorDType == TF_DataType.TF_INT8)
+            else if (typeof(T) == typeof(System.SByte))
             {
                 var v = (sbyte*)Marshal.AllocHGlobal(sizeof(sbyte));
-                *v = (sbyte)value;
+                *v = (System.SByte)(object)data;
                 var size = sizeof(sbyte);
-                return c_api.TF_NewTensor(tensorDType, zeroDims: IntPtr.Zero, num_dims: 0, data: (IntPtr)v, len: (UIntPtr)size, deallocator: deallocator, deallocator_arg: ref deallocator_called);
+                return c_api.TF_NewTensor(TF_DataType.TF_INT8, zeroDims: IntPtr.Zero, num_dims: 0, data: (IntPtr)v, len: (UIntPtr)size, deallocator: deallocator, deallocator_arg: IntPtr.Zero);
             }
-            else if (tensorDType == TF_DataType.TF_INT16)
+            else if (typeof(T) == typeof(System.Int16))
             {
                 var v = (short*)Marshal.AllocHGlobal(sizeof(short));
-                *v = (short)value;
+                *v = (System.Int16)(object)data;
                 var size = sizeof(short);
-                return c_api.TF_NewTensor(tensorDType, zeroDims: IntPtr.Zero, num_dims: 0, data: (IntPtr)v, len: (UIntPtr)size, deallocator: deallocator, deallocator_arg: ref deallocator_called);
+                return c_api.TF_NewTensor(TF_DataType.TF_INT16, zeroDims: IntPtr.Zero, num_dims: 0, data: (IntPtr)v, len: (UIntPtr)size, deallocator: deallocator, deallocator_arg: IntPtr.Zero);
             }
-            else if (tensorDType == TF_DataType.TF_UINT32)
+            else if (typeof(T) == typeof(System.UInt32))
             {
                 var v = (long*)Marshal.AllocHGlobal(sizeof(long));
-                *v = (long)value;
+                *v = (System.UInt32)(object)data;
                 var size = sizeof(long);
-                return c_api.TF_NewTensor(tensorDType, zeroDims: IntPtr.Zero, num_dims: 0, data: (IntPtr)v, len: (UIntPtr)size, deallocator: deallocator, deallocator_arg: ref deallocator_called);
+                return c_api.TF_NewTensor(TF_DataType.TF_UINT32, zeroDims: IntPtr.Zero, num_dims: 0, data: (IntPtr)v, len: (UIntPtr)size, deallocator: deallocator, deallocator_arg: IntPtr.Zero);
             }
-            else if (tensorDType == TF_DataType.TF_UINT64)
+            else if (typeof(T) == typeof(System.UInt64))
             {
                 var v = (float*)Marshal.AllocHGlobal(sizeof(float));
-                *v = (float)value;
+                *v = (System.UInt64)(object)data;
                 var size = sizeof(float);
-                return c_api.TF_NewTensor(tensorDType, zeroDims: IntPtr.Zero, num_dims: 0, data: (IntPtr)v, len: (UIntPtr)size, deallocator: deallocator, deallocator_arg: ref deallocator_called);
+                return c_api.TF_NewTensor(TF_DataType.TF_UINT64, zeroDims: IntPtr.Zero, num_dims: 0, data: (IntPtr)v, len: (UIntPtr)size, deallocator: deallocator, deallocator_arg: IntPtr.Zero);
             }
-            else if (tensorDType == TF_DataType.TF_UINT16)
+            else if (typeof(T) == typeof(System.UInt16))
             {
                 var v = (ushort*)Marshal.AllocHGlobal(sizeof(ushort));
-                *v = (ushort)value;
+                *v = (System.UInt16)(object)data;
                 var size = sizeof(ushort);
                 //   private static extern IntPtr TF_NewTensor(TF_DataType dataType, IntPtr zeroDims, int num_dims, IntPtr data, System.UIntPtr len, Deallocator deallocator, ref bool deallocator_arg);
-                return c_api.TF_NewTensor(tensorDType, zeroDims: IntPtr.Zero, num_dims: 0, data: (IntPtr)v, len: (UIntPtr)size, deallocator: deallocator, deallocator_arg: ref deallocator_called);
-            }
-            else if (tensorDType == TF_DataType.TF_STRING)
-            {
-                return new Tensor(UTF8Encoding.UTF8.GetBytes((String)value));
+                return c_api.TF_NewTensor(TF_DataType.TF_UINT16, zeroDims: IntPtr.Zero, num_dims: 0, data: (IntPtr)v, len: (UIntPtr)size, deallocator: deallocator, deallocator_arg: IntPtr.Zero);
             }
             else
             {
                 throw new Exception($"Unsupported type");
             }
-            return IntPtr.Zero;
         }
 
         public Tensor(Operation op, int value_index, TF_DataType dtype)

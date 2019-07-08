@@ -950,7 +950,7 @@ namespace Microsoft.ML.Transforms
             {
                 var scalar = default(T);
                 _srcgetter(ref scalar);
-                return Tensor.CreateScalar(scalar);
+                return Tensor.CreateMLNETTensor(scalar);
             }
 
             public void BufferTrainingData()
@@ -962,7 +962,7 @@ namespace Microsoft.ML.Transforms
 
             public Tensor GetBufferedBatchTensor()
             {
-                var tensor = Tensor.Create(_bufferedData, _bufferedData.Length, _TensorShape);
+                var tensor = TensorFlowNetUtils.Create(_bufferedData);
                 _position = 0;
                 return tensor;
             }
@@ -1005,7 +1005,7 @@ namespace Microsoft.ML.Transforms
                 Utils.EnsureSize(ref _denseData, _vBuffer.Length, keepOld: false);
                 _vBuffer.CopyTo(_denseData);
 
-                return Tensor.Create(_denseData, _vBuffer.Length, _TensorShape);
+                return TensorFlowNetUtils.Create(_denseData);
             }
 
             public void BufferTrainingData()
@@ -1017,7 +1017,7 @@ namespace Microsoft.ML.Transforms
 
             public Tensor GetBufferedBatchTensor()
             {
-                var tensor = Tensor.Create(_bufferedData, _bufferedData.Length, _TensorShape);
+                var tensor = TensorFlowNetUtils.Create(_bufferedData);
                 _position = 0;
                 return tensor;
             }

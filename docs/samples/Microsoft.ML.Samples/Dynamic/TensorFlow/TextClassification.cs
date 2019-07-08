@@ -11,7 +11,7 @@ namespace Samples.Dynamic
         /// <summary>
         /// Example use of the TensorFlow sentiment classification model.
         /// </summary>
-        public static void Example()
+       /* public static void Example()
         {
             string modelLocation = Microsoft.ML.SamplesUtils.DatasetUtils.DownloadTensorFlowSentimentModel();
 
@@ -93,7 +93,7 @@ namespace Samples.Dynamic
             // Number of classes: 2
             // Is sentiment/review positive ? Yes
             // Prediction Confidence: 0.65
-        }
+        }*/
 
 
         /// <summary>
