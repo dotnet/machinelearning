@@ -38,8 +38,12 @@
 
   <!-- TensorFlow is 64-bit only -->
   <ItemGroup Condition="'$(NativeTargetArchitecture)' == 'x64'">
-    <NativeAssemblyReference Include="tensorflow" />
-    <NativeAssemblyReference Condition="'$(OS)' != 'Windows_NT'" Include="tensorflow_framework" />
+    <NativeAssemblyReference Include="tensorflow">
+      <MajorVersion>$(TensorFlowMajorVersion)</MajorVersion>
+    </NativeAssemblyReference>
+    <NativeAssemblyReference Condition="'$(OS)' != 'Windows_NT'" Include="tensorflow_framework">
+      <MajorVersion>$(TensorFlowMajorVersion)</MajorVersion>
+    </NativeAssemblyReference>
   </ItemGroup>
 
 </Project>
