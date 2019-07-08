@@ -21,7 +21,8 @@
     <SystemDrawingCommonPackageVersion>4.5.0</SystemDrawingCommonPackageVersion>
     <SystemIOFileSystemAccessControl>4.5.0</SystemIOFileSystemAccessControl>
     <SystemSecurityPrincipalWindows>4.5.0</SystemSecurityPrincipalWindows>
-    <TensorFlowVersion>1.13.1</TensorFlowVersion>
+    <TensorFlowVersion>1.14.0</TensorFlowVersion>
+    <TensorFlowMajorVersion>1</TensorFlowMajorVersion>
   </PropertyGroup>
 
   <!-- Code Analyzer Dependencies -->
