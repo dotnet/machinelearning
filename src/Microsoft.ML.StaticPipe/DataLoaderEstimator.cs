@@ -7,7 +7,8 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.StaticPipe
 {
-    public sealed class DataLoaderEstimator<TIn, TShape, TDataLoader> : SchemaBearing<TShape>
+    [BestFriend]
+    internal sealed class DataLoaderEstimator<TIn, TShape, TDataLoader> : SchemaBearing<TShape>
         where TDataLoader : class, IDataLoader<TIn>
     {
         public IDataLoaderEstimator<TIn, TDataLoader> AsDynamic { get; }

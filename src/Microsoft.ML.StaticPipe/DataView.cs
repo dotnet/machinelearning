@@ -10,7 +10,8 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.StaticPipe
 {
-    public class DataView<TShape> : SchemaBearing<TShape>
+    [BestFriend]
+    internal class DataView<TShape> : SchemaBearing<TShape>
     {
         public IDataView AsDynamic { get; }
 
@@ -37,7 +38,8 @@ namespace Microsoft.ML.StaticPipe
         }
     }
 
-    public static class DataViewExtensions
+    [BestFriend]
+    internal static class DataViewExtensions
     {
         private static IEnumerable<TOut> GetColumnCore<TOut, TShape>(DataView<TShape> data, Func<TShape, PipelineColumn> column)
         {

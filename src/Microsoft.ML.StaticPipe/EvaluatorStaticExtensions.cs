@@ -13,7 +13,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extension methods for evaluation.
     /// </summary>
-    public static class EvaluatorStaticExtensions
+    [BestFriend]
+    internal static class EvaluatorStaticExtensions
     {
         /// <summary>
         /// Evaluates scored binary classification data.

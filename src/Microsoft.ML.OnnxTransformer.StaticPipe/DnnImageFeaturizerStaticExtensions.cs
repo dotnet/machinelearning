@@ -11,7 +11,8 @@ using Microsoft.ML.Transforms.Onnx;
 
 namespace Microsoft.ML.Transforms.StaticPipe
 {
-    public static class DnnImageFeaturizerStaticExtensions
+    [BestFriend]
+    internal static class DnnImageFeaturizerStaticExtensions
     {
         private sealed class OutColumn : Vector<float>
         {

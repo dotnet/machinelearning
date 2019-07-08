@@ -16,7 +16,8 @@ namespace Microsoft.ML.StaticPipe
     /// (for the <see cref="LoaderReconciler{TLoaderIn}"/>) or a <see cref="IEstimator{TTransformer}"/>
     /// (for the <see cref="EstimatorReconciler"/>).
     /// </summary>
-    public abstract class Reconciler
+    [BestFriend]
+    internal abstract class Reconciler
     {
         private protected Reconciler() { }
     }
@@ -27,7 +28,8 @@ namespace Microsoft.ML.StaticPipe
     /// </summary>
     /// <typeparam name="TIn">The input type of the <see cref="IDataLoaderEstimator{TSource, TLoader}"/>
     /// object.</typeparam>
-    public abstract class LoaderReconciler<TIn> : Reconciler
+    [BestFriend]
+    internal abstract class LoaderReconciler<TIn> : Reconciler
     {
         public LoaderReconciler() : base() { }
 
@@ -48,7 +50,8 @@ namespace Microsoft.ML.StaticPipe
     /// reconciler will work with <see cref="Estimator{TInShape, TOutShape, TTransformer}.Append{TNewOutShape}(Func{TOutShape, TNewOutShape})"/>
     /// or other methods that involve the creation of estimator chains.
     /// </summary>
-    public abstract class EstimatorReconciler : Reconciler
+    [BestFriend]
+    internal abstract class EstimatorReconciler : Reconciler
     {
         public EstimatorReconciler() : base() { }
 

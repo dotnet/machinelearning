@@ -17,7 +17,8 @@ namespace Microsoft.ML.StaticPipe
     /// purpose is not to keep them hidden per se, but rather in a place less conspicuous to users that are just trying
     /// to use the library without writing additional components of their own.
     /// </summary>
-    public static class StaticPipeUtils
+    [BestFriend]
+    internal static class StaticPipeUtils
     {
         /// <summary>
         /// This is a utility method intended to be used by authors of <see cref="IDataLoaderEstimator{TSource,

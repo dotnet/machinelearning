@@ -17,7 +17,8 @@ namespace Microsoft.ML.StaticPipe
     /// Authors of components that want to produce columns can subclass this directly, or use one of the
     /// common nested subclasses.
     /// </summary>
-    public abstract class TrainerEstimatorReconciler : EstimatorReconciler
+    [BestFriend]
+    internal abstract class TrainerEstimatorReconciler : EstimatorReconciler
     {
         protected readonly PipelineColumn[] Inputs;
         private readonly string[] _outputNames;

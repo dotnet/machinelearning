@@ -8,7 +8,8 @@ using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.StaticPipe
 {
-    public static class WordEmbeddingsStaticExtensions
+    [BestFriend]
+    internal static class WordEmbeddingsStaticExtensions
     {
         /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
         /// <param name="input">Vector of tokenized text.</param>

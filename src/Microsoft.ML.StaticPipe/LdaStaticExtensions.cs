@@ -12,7 +12,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Information on the result of fitting a LDA transform.
     /// </summary>
-    public sealed class LatentDirichletAllocationFitResult
+    [BestFriend]
+    internal sealed class LatentDirichletAllocationFitResult
     {
         /// <summary>
         /// For user defined delegates that accept instances of the containing type.
@@ -27,7 +28,8 @@ namespace Microsoft.ML.StaticPipe
         }
     }
 
-    public static class LatentDirichletAllocationStaticExtensions
+    [BestFriend]
+    internal static class LatentDirichletAllocationStaticExtensions
     {
         private struct Config
         {

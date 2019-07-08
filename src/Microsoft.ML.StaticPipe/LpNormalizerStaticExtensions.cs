@@ -11,7 +11,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extensions for statically typed <see cref="LpNormNormalizingEstimator"/>.
     /// </summary>
-    public static class LpNormNormalizerStaticExtensions
+    [BestFriend]
+    internal static class LpNormNormalizerStaticExtensions
     {
         private sealed class OutPipelineColumn : Vector<float>
         {

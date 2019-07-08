@@ -24,7 +24,8 @@ namespace Microsoft.ML.StaticPipe
     /// declaring the type as something like <c>default(Scalar&lt;TheCustomType&gt;</c>, without using the
     /// instance of this context.
     /// </remarks>
-    public sealed class SchemaAssertionContext
+    [BestFriend]
+    internal sealed class SchemaAssertionContext
     {
         // Hiding all these behind empty-structures is a bit of a cheap trick, but probably works
         // pretty well considering that the alternative is a bunch of tiny objects allocated on the

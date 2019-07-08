@@ -9,7 +9,8 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.StaticPipe
 {
-    public static class TextLoaderStatic
+    [BestFriend]
+    internal static class TextLoaderStatic
     {
         /// <summary>
         /// Configures a loader for text files.

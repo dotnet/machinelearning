@@ -9,7 +9,8 @@ using Microsoft.ML.Transforms.Onnx;
 
 namespace Microsoft.ML.Transforms.StaticPipe
 {
-    public static class OnnxStaticExtensions
+    [BestFriend]
+    internal static class OnnxStaticExtensions
     {
 
         private sealed class OutColumn : Vector<float>

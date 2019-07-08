@@ -11,7 +11,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Multiclass Classification trainer estimators.
     /// </summary>
-    public static partial class MulticlassClassificationStaticExtensions
+    [BestFriend]
+    internal static partial class MulticlassClassificationStaticExtensions
     {
         /// <summary>
         /// Predict a target using a linear multiclass classification model trained with the <see cref="MulticlassNaiveBayesTrainer"/> trainer.

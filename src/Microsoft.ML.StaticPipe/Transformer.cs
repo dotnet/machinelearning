@@ -7,7 +7,8 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.StaticPipe
 {
-    public sealed class Transformer<TInShape, TOutShape, TTransformer> : SchemaBearing<TOutShape>
+    [BestFriend]
+    internal sealed class Transformer<TInShape, TOutShape, TTransformer> : SchemaBearing<TOutShape>
         where TTransformer : class, ITransformer
     {
         public TTransformer AsDynamic { get; }

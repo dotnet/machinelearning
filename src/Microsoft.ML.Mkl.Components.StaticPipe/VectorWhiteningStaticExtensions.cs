@@ -12,7 +12,8 @@ namespace Microsoft.ML.Mkl.Components.StaticPipe
     /// <summary>
     /// Extensions for statically typed Whitening estimator.
     /// </summary>
-    public static class VectorWhiteningStaticExtensions
+    [BestFriend]
+    internal static class VectorWhiteningStaticExtensions
     {
         private sealed class OutPipelineColumn : Vector<float>
         {

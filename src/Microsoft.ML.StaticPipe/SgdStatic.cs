@@ -11,7 +11,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Binary Classification trainer estimators.
     /// </summary>
-    public static class SgdStaticExtensions
+    [BestFriend]
+    internal static class SgdStaticExtensions
     {
         /// <summary>
         ///  Predict a target using logistic regression trained with the <see cref="SgdCalibratedTrainer"/> trainer.

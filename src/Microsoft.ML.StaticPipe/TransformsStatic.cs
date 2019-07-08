@@ -17,7 +17,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extensions for statically typed <see cref="GlobalContrastNormalizingEstimator"/>.
     /// </summary>
-    public static class GlobalContrastNormalizerStaticExtensions
+    [BestFriend]
+    internal static class GlobalContrastNormalizerStaticExtensions
     {
         private sealed class OutPipelineColumn : Vector<float>
         {
@@ -73,7 +74,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extensions for statically typed <see cref="MutualInformationFeatureSelectorStaticExtensions"/>.
     /// </summary>
-    public static class MutualInformationFeatureSelectorStaticExtensions
+    [BestFriend]
+    internal static class MutualInformationFeatureSelectorStaticExtensions
     {
         private sealed class OutPipelineColumn<T> : Vector<T>
         {
@@ -234,7 +236,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extensions for statically typed <see cref="CountFeatureSelectorStaticExtensions"/>.
     /// </summary>
-    public static class CountFeatureSelectorStaticExtensions
+    [BestFriend]
+    internal static class CountFeatureSelectorStaticExtensions
     {
         private sealed class OutPipelineColumn<T> : Vector<T>
         {
@@ -315,7 +318,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
     /// </summary>
-    public static class KeyToBinaryVectorStaticExtensions
+    [BestFriend]
+    internal static class KeyToBinaryVectorStaticExtensions
     {
         private interface IColInput
         {
@@ -474,7 +478,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
     /// </summary>
-    public static class KeyToVectorStaticExtensions
+    [BestFriend]
+    internal static class KeyToVectorStaticExtensions
     {
         private interface IColInput
         {
@@ -726,7 +731,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
     /// </summary>
-    public static class NAReplacerStaticExtensions
+    [BestFriend]
+    internal static class NAReplacerStaticExtensions
     {
         private readonly struct Config
         {
@@ -880,7 +886,8 @@ namespace Microsoft.ML.StaticPipe
         }
     }
 
-    public static partial class ConvertStaticExtensions
+    [BestFriend]
+    internal static partial class ConvertStaticExtensions
     {
 
         private interface IConvertCol
@@ -940,7 +947,8 @@ namespace Microsoft.ML.StaticPipe
         }
     }
 
-    public static partial class TermStaticExtensions
+    [BestFriend]
+    internal static partial class TermStaticExtensions
     {
         // I am not certain I see a good way to cover the distinct types beyond complete enumeration.
         // Raw generics would allow illegal possible inputs, for example, Scalar<Bitmap>. So, this is a partial
@@ -1045,7 +1053,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
     /// </summary>
-    public static class KeyToValueStaticExtensions
+    [BestFriend]
+    internal static class KeyToValueStaticExtensions
     {
         private interface IColInput
         {
@@ -1158,7 +1167,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// The extension methods and implementation support for concatenating columns together.
     /// </summary>
-    public static class ConcatStaticExtensions
+    [BestFriend]
+    internal static class ConcatStaticExtensions
     {
         /// <summary>
         /// Given a scalar vector, produce a vector of length one.
@@ -1367,7 +1377,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
     /// </summary>
-    public static class NAIndicatorStaticExtensions
+    [BestFriend]
+    internal static class NAIndicatorStaticExtensions
     {
         private interface IColInput
         {
@@ -1499,7 +1510,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
     /// </summary>
-    public static class TextFeaturizerStaticExtensions
+    [BestFriend]
+    internal static class TextFeaturizerStaticExtensions
     {
         internal sealed class OutPipelineColumn : Vector<float>
         {
@@ -1550,7 +1562,8 @@ namespace Microsoft.ML.StaticPipe
         }
     }
 
-    public static class ApproximatedKernelMappingStaticExtenensions
+    [BestFriend]
+    internal static class ApproximatedKernelMappingStaticExtenensions
     {
         private readonly struct Config
         {
@@ -1621,7 +1634,8 @@ namespace Microsoft.ML.StaticPipe
         }
     }
 
-    public static class PcaStaticExtensions
+    [BestFriend]
+    internal static class PcaStaticExtensions
     {
         private sealed class OutPipelineColumn : Vector<float>
         {

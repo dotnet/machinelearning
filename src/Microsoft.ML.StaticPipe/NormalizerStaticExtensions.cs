@@ -15,7 +15,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extension methods for static pipelines for normalization of data.
     /// </summary>
-    public static class NormalizerStaticExtensions
+    [BestFriend]
+    internal static class NormalizerStaticExtensions
     {
         private const long MaxTrain = NormalizingEstimator.Defaults.MaximumExampleCount;
 

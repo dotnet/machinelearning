@@ -11,7 +11,8 @@ using Microsoft.ML.Transforms.Image;
 
 namespace Microsoft.ML.StaticPipe
 {
-    public static class ImageLoadingStaticExtensions
+    [BestFriend]
+    internal static class ImageLoadingStaticExtensions
     {
         internal sealed class OutPipelineColumn : Custom<UnknownSizeBitmap>
         {
@@ -71,7 +72,8 @@ namespace Microsoft.ML.StaticPipe
         }
     }
 
-    public static class ImageGreyScalingStaticExtensions
+    [BestFriend]
+    internal static class ImageGreyScalingStaticExtensions
     {
         private interface IColInput
         {
@@ -120,7 +122,8 @@ namespace Microsoft.ML.StaticPipe
         }
     }
 
-    public static class ImageResizingStaticExtensions
+    [BestFriend]
+    internal static class ImageResizingStaticExtensions
     {
         internal sealed class OutPipelineColumn : Custom<Bitmap>
         {
@@ -176,7 +179,8 @@ namespace Microsoft.ML.StaticPipe
         }
     }
 
-    public static class ImagePixelExtractingStaticExtensions
+    [BestFriend]
+    internal static class ImagePixelExtractingStaticExtensions
     {
         private interface IColInput
         {

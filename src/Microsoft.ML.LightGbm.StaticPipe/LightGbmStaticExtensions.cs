@@ -12,7 +12,8 @@ namespace Microsoft.ML.Trainers.LightGbm.StaticPipe
     /// <summary>
     /// Regression trainer estimators.
     /// </summary>
-    public static class LightGbmStaticExtensions
+    [BestFriend]
+    internal static class LightGbmStaticExtensions
     {
         /// <summary>
         /// Predict a target using a tree regression model trained with the <see cref="LightGbmRegressionTrainer"/>.

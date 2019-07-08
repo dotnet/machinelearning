@@ -14,7 +14,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Binary Classification trainer estimators.
     /// </summary>
-    public static class LbfgsBinaryStaticExtensions
+    [BestFriend]
+    internal static class LbfgsBinaryStaticExtensions
     {
         /// <summary>
         ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Trainers.LbfgsLogisticRegressionBinaryTrainer"/> trainer.
@@ -110,7 +111,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Regression trainer estimators.
     /// </summary>
-    public static class LbfgsRegressionStaticExtensions
+    [BestFriend]
+    internal static class LbfgsRegressionStaticExtensions
     {
         /// <summary>
         /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Trainers.LbfgsLogisticRegressionBinaryTrainer"/> trainer.
@@ -206,7 +208,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Multiclass Classification trainer estimators.
     /// </summary>
-    public static class LbfgsMulticlassStaticExtensions
+    [BestFriend]
+    internal static class LbfgsMulticlassStaticExtensions
     {
         /// <summary>
         /// Predict a target using a maximum entropy classification model trained with the L-BFGS method implemented in <see cref="LbfgsMaximumEntropyMulticlassTrainer"/>.

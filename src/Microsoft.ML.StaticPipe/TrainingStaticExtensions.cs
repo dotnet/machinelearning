@@ -13,7 +13,8 @@ namespace Microsoft.ML.StaticPipe
     /// Defines static extension methods that allow operations like train-test split, cross-validate,
     /// sampling etc. with the <see cref="TrainCatalogBase"/>.
     /// </summary>
-    public static class TrainingStaticExtensions
+    [BestFriend]
+    internal static class TrainingStaticExtensions
     {
         /// <summary>
         /// Split the dataset into the train set and test set according to the given fraction.

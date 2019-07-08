@@ -8,7 +8,8 @@ using static Microsoft.ML.StaticPipe.TextLoaderStatic;
 
 namespace Microsoft.ML.StaticPipe
 {
-    public static class DataLoadSaveOperationsExtensions
+    [BestFriend]
+    internal static class DataLoadSaveOperationsExtensions
     {
         /// <summary>
         /// Configures a loader for text files.

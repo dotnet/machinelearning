@@ -21,7 +21,8 @@ namespace Microsoft.ML.StaticPipe
     /// User code may use this attribute on their types if they have generic type parameters that interface with this library.
     /// </summary>
     [AttributeUsage(AttributeTargets.GenericParameter)]
-    public sealed class IsShapeAttribute : Attribute
+    [BestFriend]
+    internal sealed class IsShapeAttribute : Attribute
     {
     }
 }

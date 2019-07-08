@@ -12,7 +12,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Static API extension methods for <see cref="IidChangePointEstimator"/>.
     /// </summary>
-    public static class IidChangePointStaticExtensions
+    [BestFriend]
+    internal static class IidChangePointStaticExtensions
     {
         private sealed class OutColumn : Vector<double>
         {
@@ -81,7 +82,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Static API extension methods for <see cref="IidSpikeEstimator"/>.
     /// </summary>
-    public static class IidSpikeDetectorStaticExtensions
+    [BestFriend]
+    internal static class IidSpikeDetectorStaticExtensions
     {
         private sealed class OutColumn : Vector<double>
         {
@@ -144,7 +146,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Static API extension methods for <see cref="SsaChangePointEstimator"/>.
     /// </summary>
-    public static class SsaChangePointStaticExtensions
+    [BestFriend]
+    internal static class SsaChangePointStaticExtensions
     {
         private sealed class OutColumn : Vector<double>
         {
@@ -230,7 +233,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Static API extension methods for <see cref="SsaSpikeEstimator"/>.
     /// </summary>
-    public static class SsaSpikeDetectorStaticExtensions
+    [BestFriend]
+    internal static class SsaSpikeDetectorStaticExtensions
     {
         private sealed class OutColumn : Vector<double>
         {

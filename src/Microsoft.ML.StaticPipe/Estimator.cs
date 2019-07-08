@@ -8,7 +8,8 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.StaticPipe
 {
-    public sealed class Estimator<TInShape, TOutShape, TTransformer> : SchemaBearing<TOutShape>
+    [BestFriend]
+    internal sealed class Estimator<TInShape, TOutShape, TTransformer> : SchemaBearing<TOutShape>
         where TTransformer : class, ITransformer
     {
         public IEstimator<TTransformer> AsDynamic { get; }

@@ -10,7 +10,8 @@ using static Microsoft.ML.StaticPipe.TermStaticExtensions;
 
 namespace Microsoft.ML.StaticPipe
 {
-    public static class CategoricalStaticExtensions
+    [BestFriend]
+    internal static class CategoricalStaticExtensions
     {
         public enum OneHotVectorOutputKind : byte
         {

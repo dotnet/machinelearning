@@ -15,12 +15,14 @@ namespace Microsoft.ML.StaticPipe
     /// between a <see cref="ImageDataViewType"/> of fixed (with <see cref="Bitmap"/>) and unfixed (with this type),
     /// in the static pipelines.
     /// </summary>
-    public class UnknownSizeBitmap { private UnknownSizeBitmap() { } }
+    [BestFriend]
+    internal class UnknownSizeBitmap { private UnknownSizeBitmap() { } }
 
     /// <summary>
     /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
     /// </summary>
-    public static class ImageStaticPipe
+    [BestFriend]
+    internal static class ImageStaticPipe
     {
         /// <summary>
         /// Load an image from an input column that holds the paths to images.

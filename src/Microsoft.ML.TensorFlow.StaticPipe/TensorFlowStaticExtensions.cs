@@ -8,7 +8,8 @@ using Microsoft.ML.StaticPipe;
 
 namespace Microsoft.ML.Transforms.StaticPipe
 {
-    public static class TensorFlowStaticExtensions
+    [BestFriend]
+    internal static class TensorFlowStaticExtensions
     {
         private sealed class OutColumn : Vector<float>
         {

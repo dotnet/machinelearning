@@ -12,7 +12,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extensions for statically typed word tokenizer.
     /// </summary>
-    public static class WordTokenizerStaticExtensions
+    [BestFriend]
+    internal static class WordTokenizerStaticExtensions
     {
         private sealed class OutPipelineColumn : VarVector<string>
         {
@@ -61,7 +62,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extensions for statically typed character tokenizer.
     /// </summary>
-    public static class CharacterTokenizerStaticExtensions
+    [BestFriend]
+    internal static class CharacterTokenizerStaticExtensions
     {
         private sealed class OutPipelineColumn : VarVector<Key<ushort, string>>
         {
@@ -115,7 +117,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extensions for statically typed stop word remover.
     /// </summary>
-    public static class StopwordRemoverStaticExtensions
+    [BestFriend]
+    internal static class StopwordRemoverStaticExtensions
     {
         private sealed class OutPipelineColumn : VarVector<string>
         {
@@ -170,7 +173,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extensions for statically typed text normalizer.
     /// </summary>
-    public static class TextNormalizerStaticExtensions
+    [BestFriend]
+    internal static class TextNormalizerStaticExtensions
     {
         private sealed class OutPipelineColumn : Scalar<string>
         {
@@ -241,7 +245,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extensions for statically typed bag of word converter.
     /// </summary>
-    public static class WordBagEstimatorStaticExtensions
+    [BestFriend]
+    internal static class WordBagEstimatorStaticExtensions
     {
         private sealed class OutPipelineColumn : Vector<float>
         {
@@ -324,7 +329,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extensions for statically typed bag of wordhash converter.
     /// </summary>
-    public static class WordHashBagEstimatorStaticExtensions
+    [BestFriend]
+    internal static class WordHashBagEstimatorStaticExtensions
     {
         private sealed class OutPipelineColumn : Vector<float>
         {
@@ -420,7 +426,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extensions for statically typed n-gram estimator.
     /// </summary>
-    public static class NgramEstimatorStaticExtensions
+    [BestFriend]
+    internal static class NgramEstimatorStaticExtensions
     {
         private sealed class OutPipelineColumn : Vector<float>
         {
@@ -506,7 +513,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extensions for statically typed n-gram hash estimator.
     /// </summary>
-    public static class NgramHashEstimatorStaticExtensions
+    [BestFriend]
+    internal static class NgramHashEstimatorStaticExtensions
     {
         private sealed class OutPipelineColumn : Vector<float>
         {

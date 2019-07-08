@@ -6,7 +6,8 @@ using System;
 using Microsoft.ML.Runtime;
 namespace Microsoft.ML.StaticPipe
 {
-    public static class StaticPipeExtensions
+    [BestFriend]
+    internal static class StaticPipeExtensions
     {
         /// <summary>
         /// Asserts that a given data view has the indicated schema. If this method returns without

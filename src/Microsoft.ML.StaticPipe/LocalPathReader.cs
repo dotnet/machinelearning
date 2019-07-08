@@ -7,7 +7,8 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.StaticPipe
 {
-    public static class LocalPathReader
+    [BestFriend]
+    internal static class LocalPathReader
     {
 
         /// <summary>

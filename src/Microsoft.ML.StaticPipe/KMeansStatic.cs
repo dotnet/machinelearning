@@ -11,7 +11,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// The trainer context extensions for the <see cref="KMeansTrainer"/>.
     /// </summary>
-    public static class KMeansClusteringExtensions
+    [BestFriend]
+    internal static class KMeansClusteringExtensions
     {
         /// <summary>
         /// KMeans <see cref="ClusteringCatalog"/> extension method.

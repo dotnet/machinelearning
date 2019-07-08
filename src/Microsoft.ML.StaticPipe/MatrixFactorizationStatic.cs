@@ -11,7 +11,8 @@ using Microsoft.ML.Trainers.Recommender;
 
 namespace Microsoft.ML.StaticPipe
 {
-    public static class MatrixFactorizationExtensions
+    [BestFriend]
+    internal static class MatrixFactorizationExtensions
     {
         /// <summary>
         /// Predict matrix entry using matrix factorization

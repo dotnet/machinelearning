@@ -12,7 +12,8 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// FastTree <see cref="TrainCatalogBase"/> extension methods.
     /// </summary>
-    public static class TreeRegressionExtensions
+    [BestFriend]
+    internal static class TreeRegressionExtensions
     {
         /// <summary>
         /// FastTree <see cref="RegressionCatalog"/> extension method.

@@ -14,7 +14,8 @@ namespace Microsoft.ML.StaticPipe
     /// <see cref="Vector{T}"/>), which will contain information that the builder API can use to construct an actual
     /// sequence of <see cref="IEstimator{TTransformer}"/> objects.
     /// </summary>
-    public abstract class PipelineColumn
+    [BestFriend]
+    internal abstract class PipelineColumn
     {
         internal readonly Reconciler ReconcilerObj;
         internal readonly PipelineColumn[] Dependencies;
@@ -33,7 +34,8 @@ namespace Microsoft.ML.StaticPipe
     /// For representing a non-key, non-vector <see cref="DataViewType"/>.
     /// </summary>
     /// <typeparam name="T">The scalar item type.</typeparam>
-    public abstract class Scalar<T> : PipelineColumn
+    [BestFriend]
+    internal abstract class Scalar<T> : PipelineColumn
     {
         protected Scalar(Reconciler reconciler, params PipelineColumn[] dependencies)
             : base(reconciler, dependencies)
@@ -47,7 +49,8 @@ namespace Microsoft.ML.StaticPipe
     /// For representing a <see cref="VectorDataViewType"/> of known length.
     /// </summary>
     /// <typeparam name="T">The vector item type.</typeparam>
-    public abstract class Vector<T> : PipelineColumn
+    [BestFriend]
+    internal abstract class Vector<T> : PipelineColumn
     {
         protected Vector(Reconciler reconciler, params PipelineColumn[] dependencies)
             : base(reconciler, dependencies)
@@ -62,7 +65,8 @@ namespace Microsoft.ML.StaticPipe
     /// value is set with the value <c>true</c>.
     /// </summary>
     /// <typeparam name="T">The vector item type.</typeparam>
-    public abstract class NormVector<T> : Vector<T>
+    [BestFriend]
+    internal abstract class NormVector<T> : Vector<T>
     {
         protected NormVector(Reconciler reconciler, params PipelineColumn[] dependencies)
             : base(reconciler, dependencies)
@@ -76,7 +80,8 @@ namespace Microsoft.ML.StaticPipe
     /// For representing a <see cref="VectorDataViewType"/> of unknown length.
     /// </summary>
     /// <typeparam name="T">The vector item type.</typeparam>
-    public abstract class VarVector<T> : PipelineColumn
+    [BestFriend]
+    internal abstract class VarVector<T> : PipelineColumn
     {
         protected VarVector(Reconciler reconciler, params PipelineColumn[] dependencies)
             : base(reconciler, dependencies)
@@ -94,7 +99,8 @@ namespace Microsoft.ML.StaticPipe
     /// <remarks>Note that a vector of keys type we would represent as <see cref="Vector{T}"/> with a
     /// <see cref="Key{T}"/> type parameter. Note also, if the type of the key is known then that should be represented
     /// by <see cref="Key{T, TVal}"/>.</remarks>
-    public abstract class Key<T> : PipelineColumn
+    [BestFriend]
+    internal abstract class Key<T> : PipelineColumn
     {
         protected Key(Reconciler reconciler, params PipelineColumn[] dependencies)
             : base(reconciler, dependencies)
@@ -113,7 +119,8 @@ namespace Microsoft.ML.StaticPipe
     /// <see cref="ushort"/>, <see cref="uint"/>, or <see cref="ulong"/></typeparam>
     /// <typeparam name="TVal">The type of values the key-type is enumerating. Commonly this is <see cref="string"/> but
     /// this is not necessary</typeparam>
-    public abstract class Key<T, TVal> : Key<T>
+    [BestFriend]
+    internal abstract class Key<T, TVal> : Key<T>
     {
         protected Key(Reconciler reconciler, params PipelineColumn[] dependencies)
             : base(reconciler, dependencies)
@@ -131,7 +138,8 @@ namespace Microsoft.ML.StaticPipe
     /// <remarks>Note that unlike the <see cref="Key{T}"/> and <see cref="Key{T, TVal}"/> duality, there is no
     /// type corresponding to this type but with key-values, since key-values are necessarily a vector of known
     /// size so any enumeration into that set would itself be a key-value of unknown cardinality.</remarks>
-    public abstract class VarKey<T> : PipelineColumn
+    [BestFriend]
+    internal abstract class VarKey<T> : PipelineColumn
     {
         protected VarKey(Reconciler reconciler, params PipelineColumn[] dependencies)
             : base(reconciler, dependencies)
@@ -145,7 +153,8 @@ namespace Microsoft.ML.StaticPipe
     /// For representing a custom <see cref="DataViewType"/>.
     /// </summary>
     /// <typeparam name="T">The custom item type.</typeparam>
-    public abstract class Custom<T>: PipelineColumn
+    [BestFriend]
+    internal abstract class Custom<T>: PipelineColumn
     {
         protected Custom(Reconciler reconciler, params PipelineColumn[] dependencies)
             : base(reconciler, dependencies)

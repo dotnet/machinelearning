@@ -13,7 +13,8 @@ namespace Microsoft.ML.StaticPipe
     /// data whose schema has a certain shape.
     /// </summary>
     /// <typeparam name="TShape">The shape type parameter.</typeparam>
-    public abstract class SchemaBearing<TShape>
+    [BestFriend]
+    internal abstract class SchemaBearing<TShape>
     {
         internal readonly IHostEnvironment Env;
         internal readonly StaticSchemaShape Shape;
