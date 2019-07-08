@@ -3,7 +3,6 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.Extensions.ML</IncludeInPackage>
-    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>

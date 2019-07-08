@@ -7,7 +7,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);CPUMATH_INFRASTRUCTURE</DefineConstants>
     <LangVersion>7.3</LangVersion>
-    <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
