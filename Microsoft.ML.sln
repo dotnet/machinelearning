@@ -185,12 +185,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.OnnxTransforme
 		pkg\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.symbols.nupkgproj = pkg\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.symbols.nupkgproj
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.StaticPipe", "Microsoft.ML.StaticPipe", "{EC9844CE-070A-4313-B3A3-44701AC5F1E1}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.StaticPipe\Microsoft.ML.StaticPipe.nupkgproj = pkg\Microsoft.ML.StaticPipe\Microsoft.ML.StaticPipe.nupkgproj
-		pkg\Microsoft.ML.StaticPipe\Microsoft.ML.StaticPipe.symbols.nupkgproj = pkg\Microsoft.ML.StaticPipe\Microsoft.ML.StaticPipe.symbols.nupkgproj
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.Recommender", "Microsoft.ML.Recommender", "{320AF46A-4809-486E-8F9E-A00C8AE47751}"
 	ProjectSection(SolutionItems) = preProject
 		pkg\Microsoft.ML.Recommender\Microsoft.ML.Recommender.nupkgproj = pkg\Microsoft.ML.Recommender\Microsoft.ML.Recommender.nupkgproj
@@ -1086,7 +1080,6 @@ Global
 		{4CF8095E-B4A3-4326-A550-43098E447288} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{19AC192B-75FE-45D5-B219-898E401D5904} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{93FF16AA-635E-421D-96C1-008818C143A2} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
-		{EC9844CE-070A-4313-B3A3-44701AC5F1E1} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{320AF46A-4809-486E-8F9E-A00C8AE47751} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{11894B4A-78B4-4523-A6DD-4495722E244F} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{7F3D89CF-EAAD-4F21-AE83-F2EF9C97EC32} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
