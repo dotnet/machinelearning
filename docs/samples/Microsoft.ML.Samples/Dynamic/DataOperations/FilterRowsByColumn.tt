@@ -3,9 +3,11 @@
 string NameSpace = "Samples.Dynamic";
 string ClassName="FilterRowsByColumn";
 string AddExtraClass = null;
-string ExampleShortDoc = @"// // Sample class showing how to filter out some rows in IDataView.";
-string Example = @"// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-            // as a catalog of available operations and as the source of randomness.
+string ExampleShortDoc = @"// // Sample class showing how to filter out some rows in
+        // IDataView.";
+string Example = @"// Create a new context for ML.NET operations. It can be used for
+            // exception tracking and logging, as a catalog of available
+            // operations and as the source of randomness.
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable.
@@ -17,6 +19,7 @@ string Example = @"// Create a new context for ML.NET operations. It can be used
             foreach (var row in enumerableOfData)
             {
                 Console.WriteLine($""{row.Date.ToString(""d"")}\t{row.Temperature}"");
+
             }
             Console.WriteLine();
             // Expected output:
@@ -32,15 +35,24 @@ string Example = @"// Create a new context for ML.NET operations. It can be used
             //  1/10/2012       30
             //  1/11/2012       29
 
-            // Filter the data by the values of the temperature. The lower bound is inclusive, the upper exclusive.
-            var filteredData = mlContext.Data.FilterRowsByColumn(data, columnName: ""Temperature"", lowerBound: 34, upperBound: 37);
+            // Filter the data by the values of the temperature. The lower bound is
+	    // inclusive, the upper exclusive.
+            var filteredData = mlContext.Data
+			    .FilterRowsByColumn(data, columnName: ""Temperature"",
+				lowerBound: 34, upperBound: 37);
 
-            // Look at the filtered data and observe that values outside [34,37) have been dropped.
-            var enumerable = mlContext.Data.CreateEnumerable<SampleTemperatureData>(filteredData, reuseRowObject: true);
+            // Look at the filtered data and observe that values outside [34,37)
+	    // have been dropped.
+            var enumerable = mlContext.Data
+			    .CreateEnumerable<SampleTemperatureData>(filteredData,
+			    reuseRowObject: true);
+
             Console.WriteLine($""Date\tTemperature"");
             foreach (var row in enumerable)
             {
-                Console.WriteLine($""{row.Date.ToString(""d"")}\t{row.Temperature}"");
+                Console.WriteLine(
+		    $""{row.Date.ToString(""d"")}\t{row.Temperature}"");
+
             }
 
             // Expected output:

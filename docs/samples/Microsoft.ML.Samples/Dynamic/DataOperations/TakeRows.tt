@@ -3,20 +3,23 @@
 string NameSpace = "Samples.Dynamic";
 string ClassName="TakeRows";
 string AddExtraClass = null;
-string ExampleShortDoc = @"// Sample class showing how to take some rows from the beginning of IDataView.";
-string Example = @"// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+string ExampleShortDoc = @"// Sample class showing how to take some rows from the
+        // beginning of IDataView.";
+string Example = @"// Create a new context for ML.NET operations. It can be used for
+            //exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable.
-            var enumerableOfData = Microsoft.ML.SamplesUtils.DatasetUtils.GetSampleTemperatureData(10);
+            var enumerableOfData = GetSampleTemperatureData(10);
             var data = mlContext.Data.LoadFromEnumerable(enumerableOfData);
 
             // Before we apply a filter, examine all the records in the dataset.
             Console.WriteLine($""Date\tTemperature"");
             foreach (var row in enumerableOfData)
             {
-                Console.WriteLine($""{row.Date.ToString(""d"")}\t{row.Temperature}"");
+                Console.WriteLine($""{row.Date.ToString(""d"")}"" +
+				    $""\t{row.Temperature}"");
             }
             Console.WriteLine();
             // Expected output:
@@ -35,12 +38,17 @@ string Example = @"// Create a new context for ML.NET operations. It can be used
             // Take the first 5 rows in the dataset
             var filteredData = mlContext.Data.TakeRows(data, 5);
 
-            // Look at the filtered data and observe that only the first 5 rows are in the resulting dataset.
-            var enumerable = mlContext.Data.CreateEnumerable<Microsoft.ML.SamplesUtils.DatasetUtils.SampleTemperatureData>(filteredData, reuseRowObject: true);
+            // Look at the filtered data and observe that only the first 5 rows are
+	    // in the resulting dataset.
+            var enumerable = mlContext.Data
+			    .CreateEnumerable<SampleTemperatureData>(filteredData,
+			    reuseRowObject: true);
+
             Console.WriteLine($""Date\tTemperature"");
             foreach (var row in enumerable)
             {
-                Console.WriteLine($""{row.Date.ToString(""d"")}\t{row.Temperature}"");
+                Console.WriteLine($""{row.Date.ToString(""d"")}"" +
+				    $""\t{row.Temperature}"");
             }
             // Expected output:
             //  Date    Temperature

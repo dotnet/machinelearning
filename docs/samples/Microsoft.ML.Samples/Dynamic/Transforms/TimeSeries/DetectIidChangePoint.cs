@@ -13,12 +13,13 @@ namespace Samples.Dynamic
 {
     public static class DetectIidChangePoint
     {
-        // This example creates a time series (list of Data with the i-th element corresponding to the i-th time slot). 
-        // The estimator is applied then to identify points where data distribution changed.
+        // This example creates a time series (list of Data with the i-th element
+        // corresponding to the i-th time slot). The estimator is applied then to
+        // identify points where data distribution changed.
         public static void Example()
         {
-            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
+            // Create a new ML context, for ML.NET operations. It can be used for
+            // exception tracking and logging, as well as the source of randomness.
             var ml = new MLContext();
 
             // Generate sample series data with a change
@@ -53,12 +54,16 @@ namespace Samples.Dynamic
             string inputColumnName = nameof(TimeSeriesData.Value);
 
             // Time Series model.
-            ITransformer model = ml.Transforms.DetectIidChangePoint(outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView);
+            ITransformer model = ml.Transforms.DetectIidChangePoint(
+                outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView);
 
             // Create a time series prediction engine from the model.
-            var engine = model.CreateTimeSeriesPredictionFunction<TimeSeriesData, ChangePointPrediction>(ml);
+            var engine = model.CreateTimeSeriesEngine<TimeSeriesData,
+                ChangePointPrediction>(ml);
 
-            Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
+            Console.WriteLine($"{outputColumnName} column obtained " +
+                $"post-transformation.");
+
             Console.WriteLine("Data\tAlert\tScore\tP-Value\tMartingale value");
             
             // Data Alert      Score   P-Value Martingale value
@@ -88,7 +93,8 @@ namespace Samples.Dynamic
             var modelPath = "temp.zip";
             engine.CheckPoint(ml, modelPath);
 
-            // Reference to current time series engine because in the next step "engine" will point to the
+            // Reference to current time series engine because in the next step
+            // "engine" will point to the
             // checkpointed model being loaded from disk.
             var timeseries1 = engine;
 
@@ -97,7 +103,9 @@ namespace Samples.Dynamic
                 model = ml.Model.Load(file, out DataViewSchema schema);
 
             // Create a time series prediction engine from the checkpointed model.
-            engine = model.CreateTimeSeriesPredictionFunction<TimeSeriesData, ChangePointPrediction>(ml);
+            engine = model.CreateTimeSeriesEngine<TimeSeriesData,
+                ChangePointPrediction>(ml);
+
             for (int index = 0; index < 8; index++)
             {
                 // Anomaly change point detection.
@@ -112,8 +120,8 @@ namespace Samples.Dynamic
             // 7       0       7.00    0.50    0.00
             // 7       0       7.00    0.50    0.00
 
-            // Prediction from the original time series engine should match the prediction from 
-            // check pointed model.
+            // Prediction from the original time series engine should match the
+            // prediction from check pointed model.
             engine = timeseries1;
             for (int index = 0; index < 8; index++)
             {
@@ -130,9 +138,11 @@ namespace Samples.Dynamic
             // 7       0       7.00    0.50    0.00
         }
 
-        private static void PrintPrediction(float value, ChangePointPrediction prediction) =>
-            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}\t{4:0.00}", value, prediction.Prediction[0],
-                prediction.Prediction[1], prediction.Prediction[2], prediction.Prediction[3]);
+        private static void PrintPrediction(float value, ChangePointPrediction
+            prediction) =>
+            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}\t{4:0.00}", value,
+            prediction.Prediction[0], prediction.Prediction[1],
+            prediction.Prediction[2], prediction.Prediction[3]);
 
         class ChangePointPrediction
         {

@@ -177,6 +177,18 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             return (pipeline, data);
         }
 
+        /// <summary>
+        /// Same data as <see cref="GetBinaryClassificationPipeline"/>, but with additional
+        /// OneHotEncoding to obtain categorical splits in tree models.
+        /// </summary>
+        private (IEstimator<ITransformer>, IDataView) GetOneHotBinaryClassificationPipeline()
+        {
+            var (pipeline, data) = GetBinaryClassificationPipeline();
+            var oneHotPipeline = pipeline.Append(ML.Transforms.Categorical.OneHotEncoding("Features"));
+
+            return (oneHotPipeline, data);
+        }
+
 
         private (IEstimator<ITransformer>, IDataView) GetRankingPipeline()
         {

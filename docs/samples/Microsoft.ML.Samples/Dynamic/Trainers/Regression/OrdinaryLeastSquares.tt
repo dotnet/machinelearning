@@ -4,7 +4,9 @@
 string ClassHeader = null;
 string ClassName="Ols";
 string ExtraUsing = null;
-string Trainer = "Ols(labelColumnName: nameof(DataPoint.Label), featureColumnName: nameof(DataPoint.Features))";
+string Trainer = @"Ols(
+                labelColumnName: nameof(DataPoint.Label),
+                featureColumnName: nameof(DataPoint.Features))";
 string TrainerOptions = null;
 
 string ExpectedOutputPerInstance= @"// Expected output:

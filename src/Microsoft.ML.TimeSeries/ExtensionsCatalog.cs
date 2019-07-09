@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms.TimeSeries;
-using static Microsoft.ML.Transforms.TimeSeries.AdaptiveSingularSpectrumSequenceModeler;
 
 namespace Microsoft.ML
 {
@@ -149,23 +147,30 @@ namespace Microsoft.ML
             => new SrCnnAnomalyEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, windowSize, backAddWindowSize, lookaheadWindowSize, averageingWindowSize, judgementWindowSize, threshold, inputColumnName);
 
         /// <summary>
-        /// Singular Spectrum Analysis (SSA) model for modeling univariate time-series.
+        /// Singular Spectrum Analysis (SSA) model for univariate time-series forecasting.
         /// For the details of the model, refer to http://arxiv.org/pdf/1206.6910.pdf.
         /// </summary>
         /// <param name="catalog">Catalog.</param>
-        /// <param name="inputColumnName">The name of the column on which forecasting needs to be performed.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
+        /// The vector contains Alert, Raw Score, P-Value as first three values.</param>
+        /// <param name="windowSize">The length of the window on the series for building the trajectory matrix (parameter L).</param>
+        /// <param name="seriesLength">The length of series that is kept in buffer for modeling (parameter N).</param>
         /// <param name="trainSize">The length of series from the begining used for training.</param>
-        /// <param name="seriesLength">The length of series that is kept in buffer for modeling (parameter N from reference papar).</param>
-        /// <param name="windowSize">The length of the window on the series for building the trajectory matrix (parameter L from reference papar).</param>
-        /// <param name="discountFactor">The discount factor in [0,1] used for online updates (default = 1).</param>
-        /// <param name="rankSelectionMethod">The rank selection method (default = Exact).</param>
-        /// <param name="rank">The desired rank of the subspace used for SSA projection (parameter r from reference papar). This parameter should be in the range in [1, <paramref name="windowSize"/>].
-        /// If set to null, the rank is automatically determined based on prediction error minimization. (default = null)</param>
-        /// <param name="maxRank">The maximum rank considered during the rank selection process. If not provided (i.e. set to null), it is set to <paramref name="windowSize"/> - 1.</param>
-        /// <param name="shouldComputeForecastIntervals">The flag determining whether the confidence bounds for the point forecasts should be computed. (default = <see langword="true"/>)</param>
-        /// <param name="shouldstablize">The flag determining whether the model should be stabilized.</param>
+        /// <param name="horizon">The number of values to forecast.</param>
+        /// <param name="isAdaptive">The flag determing whether the model is adaptive.</param>
+        /// <param name="discountFactor">The discount factor in [0,1] used for online updates.</param>
+        /// <param name="rankSelectionMethod">The rank selection method.</param>
+        /// <param name="rank">The desired rank of the subspace used for SSA projection (parameter r). This parameter should be in the range in [1, windowSize].
+        /// If set to null, the rank is automatically determined based on prediction error minimization.</param>
+        /// <param name="maxRank">The maximum rank considered during the rank selection process. If not provided (i.e. set to null), it is set to windowSize - 1.</param>
+        /// <param name="shouldStabilize">The flag determining whether the model should be stabilized.</param>
         /// <param name="shouldMaintainInfo">The flag determining whether the meta information for the model needs to be maintained.</param>
-        /// <param name="maxGrowth">The maximum growth on the exponential trend</param>
+        /// <param name="maxGrowth">The maximum growth on the exponential trend.</param>
+        /// <param name="confidenceLowerBoundColumn">The name of the confidence interval lower bound column. If not specified then confidence intervals will not be calculated.</param>
+        /// <param name="confidenceUpperBoundColumn">The name of the confidence interval upper bound column. If not specified then confidence intervals will not be calculated.</param>
+        /// <param name="confidenceLevel">The confidence level for forecasting.</param>
+        /// <param name="variableHorizon">Set this to true if horizon will change after training(at prediction time).</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -174,10 +179,13 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static AdaptiveSingularSpectrumSequenceModeler AdaptiveSingularSpectrumSequenceModeler(this ForecastingCatalog catalog,
-            string inputColumnName, int trainSize, int seriesLength, int windowSize, Single discountFactor = 1, RankSelectionMethod rankSelectionMethod = RankSelectionMethod.Exact,
-            int? rank = null, int? maxRank = null, bool shouldComputeForecastIntervals = true, bool shouldstablize = true, bool shouldMaintainInfo = false, GrowthRatio? maxGrowth = null) =>
-            new AdaptiveSingularSpectrumSequenceModeler(CatalogUtils.GetEnvironment(catalog), inputColumnName, trainSize, seriesLength, windowSize, discountFactor,
-            rankSelectionMethod, rank, maxRank, shouldComputeForecastIntervals, shouldstablize, shouldMaintainInfo, maxGrowth);
+        public static SsaForecastingEstimator ForecastBySsa(
+            this ForecastingCatalog catalog, string outputColumnName, string inputColumnName, int windowSize, int seriesLength, int trainSize, int horizon,
+            bool isAdaptive = false, float discountFactor = 1, RankSelectionMethod rankSelectionMethod = RankSelectionMethod.Exact, int? rank = null,
+            int? maxRank = null, bool shouldStabilize = true, bool shouldMaintainInfo = false, GrowthRatio? maxGrowth = null, string confidenceLowerBoundColumn = null,
+            string confidenceUpperBoundColumn = null, float confidenceLevel = 0.95f, bool variableHorizon = false) =>
+            new SsaForecastingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, windowSize, seriesLength, trainSize,
+                horizon, isAdaptive, discountFactor, rankSelectionMethod, rank, maxRank, shouldStabilize, shouldMaintainInfo, maxGrowth, confidenceLowerBoundColumn,
+                confidenceUpperBoundColumn, confidenceLevel, variableHorizon);
     }
 }

@@ -9,7 +9,8 @@ namespace Samples.Dynamic
     {
         public static void Example()
         {
-            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
+            // Create a new ML context, for ML.NET operations. It can be used for
+            // exception tracking and logging, 
             // as well as the source of randomness.
             var ml = new MLContext();
 
@@ -33,12 +34,18 @@ namespace Samples.Dynamic
             string inputColumnName = nameof(TimeSeriesData.Value);
 
             // The transformed data.
-            var transformedData = ml.Transforms.DetectAnomalyBySrCnn(outputColumnName, inputColumnName, 16, 5, 5, 3, 8, 0.35).Fit(dataView).Transform(dataView);
+            var transformedData = ml.Transforms.DetectAnomalyBySrCnn(
+                outputColumnName, inputColumnName, 16, 5, 5, 3, 8, 0.35).Fit(
+                dataView).Transform(dataView);
 
-            // Getting the data of the newly created column as an IEnumerable of SrCnnAnomalyDetection.
-            var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetection>(transformedData, reuseRowObject: false);
+            // Getting the data of the newly created column as an IEnumerable of
+            // SrCnnAnomalyDetection.
+            var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetection>(
+                transformedData, reuseRowObject: false);
 
-            Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
+            Console.WriteLine($"{outputColumnName} column obtained post-" +
+                $"transformation.");
+
             Console.WriteLine("Data\tAlert\tScore\tMag");
 
             int k = 0;
@@ -75,9 +82,10 @@ namespace Samples.Dynamic
             //5       0       0.01    0.25
         }
 
-        private static void PrintPrediction(float value, SrCnnAnomalyDetection prediction) =>
-            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", value, prediction.Prediction[0],
-                prediction.Prediction[1], prediction.Prediction[2]);
+        private static void PrintPrediction(float value, SrCnnAnomalyDetection
+            prediction) =>
+            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", value, prediction
+            .Prediction[0], prediction.Prediction[1], prediction.Prediction[2]);
 
         private class TimeSeriesData
         {

@@ -14,11 +14,13 @@ string TrainerOptions = @"LightGbmMulticlassTrainer.Options
 
 string OptionsInclude = "using Microsoft.ML.Trainers.LightGbm;";
 string Comments = @"
-        // This example requires installation of additional NuGet package
-        // <a href=""https://www.nuget.org/packages/Microsoft.ML.FastTree/"">Microsoft.ML.FastTree</a>.";
+        // This example requires installation of additional NuGet package for 
+        // Microsoft.ML.FastTree at
+        // https://www.nuget.org/packages/Microsoft.ML.FastTree/";
 
 bool CacheData = false;
-string DataGenerationComments= "// Generates random uniform doubles in [-0.5, 0.5) range with labels 1, 2 or 3.";
+string DataGenerationComments= "// Generates random uniform doubles in [-0.5, 0.5)"
+    + "\n        // range with labels 1, 2 or 3.";
 
 string ExpectedOutputPerInstance = @"// Expected output:
             //   Label: 1, Prediction: 1

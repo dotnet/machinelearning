@@ -42,7 +42,7 @@ namespace Microsoft.ML.Transforms
     /// The resulting NormalizingEstimator will normalize the data in one of the following ways based upon how it was created:
     /// * Min Max - A linear rescale that is based upon the minimum and maximum values for each row.
     /// * Mean Variance - Rescale each row to unit variance and, optionally, zero mean.
-    /// * Log Mean Variance - Rescale each row to unit variance based on a log scale.
+    /// * Log Mean Variance - Rescale each row to unit variance, optionally, zero mean based on computations in log scale.
     /// * Binning - Bucketizes the data in each row and performs a linear rescale based on the calculated bins.
     /// * Supervised Binning - Bucketize the data in each row and performas a linear rescale based on the calculated bins. The bin calculation is based on correlation of the Label column.
     ///
@@ -53,6 +53,13 @@ namespace Microsoft.ML.Transforms
     /// When fixZero is set, the normalized interval is $[-1,1]$ with the distribution of the normalized values depending on the normalization mode, but the behavior is different.
     /// With Min Max, the distribution depends on how far away the number is from 0, resulting in the number with the largest distance being mapped to 1 if its a positive number
     /// or -1 if its a negative number. The distance from 0 will affect the distribution with a majority of numbers that are closer together normalizing towards 0.
+    ///
+    /// The equation for the output $y$ of applying both Mean Variance and Log Mean Variance on input $x$ without
+    /// using the CDF option is: $y = (x - \text{offset}) \text{scale}$. Where offset and scale are computed during training.
+    ///
+    /// Using the CDF option it is: $y = 0.5 * (1 + \text{ERF}((x - \text{mean}) / (\text{standard deviation} * sqrt(2)))$.
+    /// Where ERF is the [Error Function](https://en.wikipedia.org/wiki/Error_function) used to approximate the CDF of a random variable assumed to
+    /// normally distributed. The mean and standard deviation are computing during training.
     ///
     /// To create this estimator use one of the following:
     /// * [NormalizeMinMax](xref:Microsoft.ML.NormalizationCatalog.NormalizeMinMax(Microsoft.ML.TransformsCatalog, System.String, System.String, System.Int64, System.Boolean))
@@ -183,13 +190,13 @@ namespace Microsoft.ML.Transforms
         }
 
         [BestFriend]
-        internal sealed class LogMeanVarianceColumnOptions : ColumnOptionsBase
+        internal sealed class LogMeanVarianceColumnOptions : ControlZeroColumnOptionsBase
         {
             public readonly bool UseCdf;
 
             public LogMeanVarianceColumnOptions(string outputColumnName, string inputColumnName = null,
-                long maximumExampleCount = Defaults.MaximumExampleCount, bool useCdf = Defaults.LogMeanVarCdf)
-                : base(outputColumnName, inputColumnName ?? outputColumnName, maximumExampleCount)
+                long maximumExampleCount = Defaults.MaximumExampleCount, bool useCdf = Defaults.LogMeanVarCdf, bool fixZero = Defaults.EnsureZeroUntouched)
+                : base(outputColumnName, inputColumnName ?? outputColumnName, maximumExampleCount, fixZero)
             {
                 UseCdf = useCdf;
             }
