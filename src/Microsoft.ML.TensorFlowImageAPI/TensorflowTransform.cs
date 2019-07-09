@@ -573,6 +573,7 @@ namespace Microsoft.ML.Transforms
                 if (session.graph.OperationByName(input) == null)
                     throw host.ExceptParam(nameof(inputs), $"Input column '{input}' does not exist in the model");
                 Operation tfInput = session.graph.OperationByName(input);
+                var inputZ = tfInput.inputs[0];
                 if (!TensorFlowNetUtils.IsTypeSupported(tfInput.OutputType(0)))
                     throw host.ExceptParam(nameof(session), $"Input type '{tfInput.OutputType(0)}' of input column '{input}' is not supported in TensorFlow");
             }
@@ -751,9 +752,17 @@ namespace Microsoft.ML.Transforms
                     var expectedType = TensorFlowNetUtils.Tf2MlNetType(_parent.TFInputTypes[i]);
                     if (type.GetItemType() != expectedType)
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Inputs[i], expectedType.ToString(), type.ToString());
-                    var originalShape = _parent.TFInputShapes[i];
-                    var shape = (int[]) originalShape.Dimensions.Clone();
-
+                    int[] shape;
+                    TensorShape originalShape;
+                    try
+                    {
+                        originalShape = _parent.TFInputShapes[i];
+                        shape = (int[])originalShape.Dimensions.Clone();
+                    } catch (NullReferenceException ex)
+                    {
+                        originalShape = null;
+                        shape = null;
+                    }
                     var colTypeDims = vecType.Dimensions.Select(dim => (int)dim).ToArray();
                     if (shape == null)
                         _fullySpecifiedShapes[i] = new TensorShape(colTypeDims);
@@ -773,14 +782,14 @@ namespace Microsoft.ML.Transforms
                         // The column length should be divisible by this, so that the other dimensions can be integral.
                         int typeValueCount = type.GetValueCount();
                         if (typeValueCount % valCount != 0)
-                            throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {typeValueCount}.");
+                            throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape?.ToString()}, but input data is of length {typeValueCount}.");
 
                         // If the shape is multi-dimensional, we should be able to create the length of the vector by plugging
                         // in a single value for the unknown shapes. For example, if the shape is [?,?,3], then there should exist a value
                         // d such that d*d*3 is equal to the length of the input column.
                         var d = numOfUnkDim > 0 ? Math.Pow(typeValueCount / valCount, 1.0 / numOfUnkDim) : 0;
                         if (d - (int)d != 0)
-                            throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {typeValueCount}.");
+                            throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape?.ToString()}, but input data is of length {typeValueCount}.");
 
                         // Fill in the unknown dimensions.
                         var l = new int[originalShape.Dimensions.Length];
@@ -962,7 +971,7 @@ namespace Microsoft.ML.Transforms
 
             public Tensor GetBufferedBatchTensor()
             {
-                var tensor = TensorFlowNetUtils.Create(_bufferedData);
+                var tensor = TensorFlowNetUtils.Create(_bufferedData, _TensorShape);
                 _position = 0;
                 return tensor;
             }
@@ -1005,7 +1014,7 @@ namespace Microsoft.ML.Transforms
                 Utils.EnsureSize(ref _denseData, _vBuffer.Length, keepOld: false);
                 _vBuffer.CopyTo(_denseData);
 
-                return TensorFlowNetUtils.Create(_denseData);
+                return TensorFlowNetUtils.Create(_denseData, _TensorShape);
             }
 
             public void BufferTrainingData()
@@ -1017,7 +1026,7 @@ namespace Microsoft.ML.Transforms
 
             public Tensor GetBufferedBatchTensor()
             {
-                var tensor = TensorFlowNetUtils.Create(_bufferedData);
+                var tensor = TensorFlowNetUtils.Create(_bufferedData, _TensorShape);
                 _position = 0;
                 return tensor;
             }

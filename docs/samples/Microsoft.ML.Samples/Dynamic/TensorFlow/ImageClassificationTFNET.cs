@@ -37,22 +37,22 @@ namespace Samples.Dynamic
                 new[] { nameof(TensorData.input) }, modelLocation, addBatchDimensionInput: true);
 
             //// Run the pipeline and get the transformed values.
-            //var estimator = pipeline.Fit(idv);
-            //var transformedValues = estimator.Transform(idv);
+            var estimator = pipeline.Fit(idv);
+            var transformedValues = estimator.Transform(idv);
 
             //// Retrieve model scores.
-            //var outScores = mlContext.Data.CreateEnumerable<OutputScores>(transformedValues, reuseRowObject: false);
+            var outScores = mlContext.Data.CreateEnumerable<OutputScores>(transformedValues, reuseRowObject: false);
 
             //// Display scores. (for the sake of brevity we display scores of the first 3 classes)
-            //foreach (var prediction in outScores)
-            //{
-            //    int numClasses = 0;
-            //    foreach (var classScore in prediction.output.Take(3))
-            //    {
-            //        Console.WriteLine($"Class #{numClasses++} score = {classScore}");
-            //    }
-            //    Console.WriteLine(new string('-', 10));
-            //}
+            foreach (var prediction in outScores)
+            {
+                int numClasses = 0;
+                foreach (var classScore in prediction.output.Take(3))
+                {
+                    Console.WriteLine($"Class #{numClasses++} score = {classScore}");
+                }
+                Console.WriteLine(new string('-', 10));
+            }
 
             // Results look like below...
             //Class #0 score = -0.8092947

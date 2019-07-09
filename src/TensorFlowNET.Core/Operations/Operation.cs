@@ -322,6 +322,10 @@ namespace Tensorflow
                 Console.WriteLine("Status of TF_GetCode is not TF_OK");
                 throw new Exception("Status of TF_GetCode is not TF_OK");
             }
+            if (n == -1)
+            {
+                return null;
+            }
             var dims = new long[n];
             c_api.TF_GraphGetTensorShape(_graph, tf_output, dims, dims.Length, cstatus);
             // Does Status check because I was unable to call the Status.IntPtr()

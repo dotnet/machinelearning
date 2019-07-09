@@ -6,6 +6,7 @@ using System.Security.Principal;
 using System.Text;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
+using NumSharp;
 using Tensorflow;
 //using NumSharp;
 
@@ -27,10 +28,10 @@ namespace Microsoft.ML.TensorFlowImageAPI
 
         internal static Session LoadTFSession(IExceptionContext ectx, byte[] modelBytes = null, string modelFile = null)
         {
-            Graph graph;
+            var graph = new Graph().as_default();
             try
             {
-                graph = Graph.ImportFromPB(modelFile);
+                graph.Import(modelFile);
             }
             catch (Exception ex)
             {
@@ -226,9 +227,12 @@ namespace Microsoft.ML.TensorFlowImageAPI
             dataSpan.CopyTo(result);
         }
 
-        internal static Tensor Create<T>(T[] data)
+        internal static Tensor Create<T>(T[] data, TensorShape shape = null)
         {
             //NDArray nd = tensor_util.convert_to_numpy_ndarray(data);
+            if(shape != null)
+                return new Tensor(new NDArray(data, shape));
+
             return new Tensor(data);
         }
       
