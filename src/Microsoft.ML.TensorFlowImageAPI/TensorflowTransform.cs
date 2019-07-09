@@ -1150,7 +1150,7 @@ namespace Microsoft.ML.Transforms
 
         [BestFriend]
         internal TensorFlowEstimator(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, string modelLocation, bool addBatchDimensionInput)
-            : this(env, outputColumnNames, inputColumnNames, Session.LoadFromSavedModel(modelLocation), modelLocation, addBatchDimensionInput)
+            : this(env, outputColumnNames, inputColumnNames, TensorFlowNetUtils.LoadTFSession(env, null, modelLocation), modelLocation, addBatchDimensionInput)
         {
         }
 
@@ -1160,7 +1160,7 @@ namespace Microsoft.ML.Transforms
         }
 
         internal TensorFlowEstimator(IHostEnvironment env, Options options)
-            : this(env, options, Session.LoadFromSavedModel(options.ModelLocation))
+            : this(env, options, TensorFlowNetUtils.LoadTFSession(env, null, options.ModelLocation))
         {
         }
 

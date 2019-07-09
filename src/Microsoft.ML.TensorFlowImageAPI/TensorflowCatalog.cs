@@ -5,6 +5,7 @@
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 using Tensorflow;
+using Microsoft.ML.TensorFlowImageAPI;
 
 namespace Microsoft.ML
 {
@@ -24,7 +25,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static TensorFlowModel LoadTensorFlowModel(this ModelOperationsCatalog catalog, string modelLocation)
-            => new TensorFlowModel(CatalogUtils.GetEnvironment(catalog), Session.LoadFromSavedModel(modelLocation), modelLocation);
+        public static TensorFlowModel LoadTensorFlowModelNet(this ModelOperationsCatalog catalog, string modelLocation)
+            => new TensorFlowModel(CatalogUtils.GetEnvironment(catalog), TensorFlowNetUtils.LoadTFSession(CatalogUtils.GetEnvironment(catalog), null, modelLocation), modelLocation);
     }
 }

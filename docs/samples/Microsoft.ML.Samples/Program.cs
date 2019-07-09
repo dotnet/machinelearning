@@ -1,7 +1,7 @@
-﻿/*using System;
+﻿using System;
 using System.Reflection;
 using Samples.Dynamic;
-*/
+
 
 namespace Microsoft.ML.Samples
 {
@@ -25,7 +25,7 @@ namespace Microsoft.ML.Samples
             }
 
             Console.WriteLine("Number of samples that ran without any exception: " + samples);*/
-            //ImageClassifications.Example();
+            ImageClassificationsTFNET.Example();
         }
     }
 }

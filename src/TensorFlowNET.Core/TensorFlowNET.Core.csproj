@@ -51,7 +51,6 @@
 
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.8.0" />
-    <PackageReference Include="Microsoft.ML.TensorFlow.Redist" Version="0.13.0" />
     <PackageReference Include="NumSharp" Version="0.10.3" />
   </ItemGroup>
 

@@ -9,7 +9,7 @@ using Microsoft.ML.Data;
 
 namespace Samples.Dynamic
 {
-    public static class ImageClassifications
+    public static class ImageClassificationsTFNET
     {
         /// <summary>
         /// Example use of the TensorFlow image model in a ML.NET pipeline.
@@ -32,27 +32,27 @@ namespace Samples.Dynamic
             var idv = mlContext.Data.LoadFromEnumerable(data);
 
             // Create a ML pipeline.
-            var pipeline = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(
+            var pipeline = mlContext.Model.LoadTensorFlowModelNet(modelLocation).ScoreTensorFlowModel(
                 new[] { nameof(OutputScores.output) },
-                new[] { nameof(TensorData.input) }, addBatchDimensionInput: true);
+                new[] { nameof(TensorData.input) }, modelLocation, addBatchDimensionInput: true);
 
-            // Run the pipeline and get the transformed values.
-            var estimator = pipeline.Fit(idv);
-            var transformedValues = estimator.Transform(idv);
+            //// Run the pipeline and get the transformed values.
+            //var estimator = pipeline.Fit(idv);
+            //var transformedValues = estimator.Transform(idv);
 
-            // Retrieve model scores.
-            var outScores = mlContext.Data.CreateEnumerable<OutputScores>(transformedValues, reuseRowObject: false);
+            //// Retrieve model scores.
+            //var outScores = mlContext.Data.CreateEnumerable<OutputScores>(transformedValues, reuseRowObject: false);
 
-            // Display scores. (for the sake of brevity we display scores of the first 3 classes)
-            foreach (var prediction in outScores)
-            {
-                int numClasses = 0;
-                foreach (var classScore in prediction.output.Take(3))
-                {
-                    Console.WriteLine($"Class #{numClasses++} score = {classScore}");
-                }
-                Console.WriteLine(new string('-', 10));
-            }
+            //// Display scores. (for the sake of brevity we display scores of the first 3 classes)
+            //foreach (var prediction in outScores)
+            //{
+            //    int numClasses = 0;
+            //    foreach (var classScore in prediction.output.Take(3))
+            //    {
+            //        Console.WriteLine($"Class #{numClasses++} score = {classScore}");
+            //    }
+            //    Console.WriteLine(new string('-', 10));
+            //}
 
             // Results look like below...
             //Class #0 score = -0.8092947

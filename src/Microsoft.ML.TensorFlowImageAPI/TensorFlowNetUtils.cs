@@ -25,12 +25,12 @@ namespace Microsoft.ML.TensorFlowImageAPI
 
         // Load Saved Model
 
-        internal static Session LoadTFSession(IExceptionContext ectx, byte[] modelBytes, string modelFile = null)
+        internal static Session LoadTFSession(IExceptionContext ectx, byte[] modelBytes = null, string modelFile = null)
         {
-            Graph graph = tf.Graph().as_default();
+            Graph graph;
             try
             {
-                graph.Import(modelBytes);
+                graph = Graph.ImportFromPB(modelFile);
             }
             catch (Exception ex)
             {
