@@ -115,8 +115,13 @@ namespace Microsoft.ML.Transforms.Onnx
             public CustomShapeInfo[] CustomShapeInfos;
         }
 
+        /// <summary>
+        /// Options used to construct this class.
+        /// </summary>
         private readonly Options _options;
-        // This field is internal because the associated estimator may access it.
+        /// <summary>
+        /// This field is internal because the associated estimator may access it.
+        /// </summary>
         internal readonly OnnxModel Model;
 
         internal const string Summary = "Transforms the data using the Onnx model.";
@@ -191,7 +196,21 @@ namespace Microsoft.ML.Transforms.Onnx
             for (int j = 0; j < outputs.Length; j++)
                 outputs[j] = ctx.LoadNonEmptyString();
 
-            var options = new Options() { InputColumns = inputs, OutputColumns = outputs };
+            // Save custom-provided shapes. Those shapes overwrite shapes loaded from the ONNX model file.
+            int customShapeInfosLength = ctx.Reader.ReadInt32(); // 0 means no custom shape. Non-zero means count of custom shapes.
+            CustomShapeInfo[] loadedCustomShapeInfos = null;
+            if (customShapeInfosLength > 0)
+            {
+                loadedCustomShapeInfos = new CustomShapeInfo[customShapeInfosLength];
+                for (int i = 0; i < customShapeInfosLength; ++i)
+                {
+                    var name = ctx.LoadNonEmptyString();
+                    var shape = ctx.Reader.ReadIntArray();
+                    loadedCustomShapeInfos[i] = new CustomShapeInfo() { Name = name, Shape = shape };
+                }
+            }
+
+            var options = new Options() { InputColumns = inputs, OutputColumns = outputs, CustomShapeInfos = loadedCustomShapeInfos };
 
             return new OnnxTransformer(env, options, modelBytes);
         }
@@ -322,6 +341,16 @@ namespace Microsoft.ML.Transforms.Onnx
             ctx.Writer.Write(Outputs.Length);
             foreach (var colName in Outputs)
                 ctx.SaveNonEmptyString(colName);
+
+            // Save custom-provided shapes. Those shapes overwrite shapes loaded from the ONNX model file.
+            int customShapeInfosLength = _options.CustomShapeInfos != null ? _options.CustomShapeInfos.Length : 0;
+            ctx.Writer.Write(customShapeInfosLength);
+            for (int i = 0; i < customShapeInfosLength; ++i)
+            {
+                var info = _options.CustomShapeInfos[i];
+                ctx.SaveNonEmptyString(info.Name);
+                ctx.Writer.WriteIntArray(info.Shape);
+            }
         }
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema inputSchema) => new Mapper(this, inputSchema);
