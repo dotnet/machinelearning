@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -26,7 +27,8 @@ namespace Samples.Dynamic
                 Unzip(Path.Join(Directory.GetCurrentDirectory(), modelLocation), Directory.GetCurrentDirectory());
                 modelLocation = "resnet_v2_101_299_frozen.pb";
             }
-
+            Stopwatch stopWatch = new Stopwatch();
+            stopWatch.Start();
             var mlContext = new MLContext();
             var data = GetTensorData();
             var idv = mlContext.Data.LoadFromEnumerable(data);
@@ -53,6 +55,14 @@ namespace Samples.Dynamic
                 }
                 Console.WriteLine(new string('-', 10));
             }
+            stopWatch.Stop();
+            TimeSpan ts = stopWatch.Elapsed;
+
+            // Format and display the TimeSpan value.
+            string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                ts.Hours, ts.Minutes, ts.Seconds,
+                ts.Milliseconds / 10);
+            Console.WriteLine("TF.NET RunTime " + elapsedTime);
 
             // Results look like below...
             //Class #0 score = -0.8092947
