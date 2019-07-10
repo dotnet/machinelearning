@@ -6,25 +6,23 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <TensorFlowConfig Include="windows" FileExtension=".zip" FilesFromArchive="lib\tensorflow.dll;include\tensorflow\c\LICENSE" Runtime="win-x64"/>
-    <TensorFlowConfig Include="linux" FileExtension=".tar.gz"
+    <TensorFlowConfig Include="windows" 
+                      FileExtension=".zip" 
+                      FilesFromArchive="lib\tensorflow.dll;
+                                        include\tensorflow\c\LICENSE" 
+                      Runtime="win-x64"/>
+    <TensorFlowConfig Include="linux" 
+                      FileExtension=".tar.gz"
                       FilesFromArchive="lib\libtensorflow.so;
-                                        lib\libtensorflow.so.$(TensorFlowMajorVersion);
-                                        lib\libtensorflow.so.$(TensorFlowVersion);
-                                        lib\libtensorflow_framework.so;
                                         lib\libtensorflow_framework.so.$(TensorFlowMajorVersion);
-                                        lib\libtensorflow_framework.so.$(TensorFlowVersion);
                                         include\tensorflow\c\LICENSE"
-                    Runtime="linux-x64" />
-    <TensorFlowConfig Include="darwin" FileExtension=".tar.gz"
+                      Runtime="linux-x64" />
+    <TensorFlowConfig Include="darwin" 
+                      FileExtension=".tar.gz"
                       FilesFromArchive="lib\libtensorflow.dylib;
-                                        lib\libtensorflow.$(TensorFlowMajorVersion).dylib;
-                                        lib\libtensorflow.$(TensorFlowVersion).dylib;
-                                        lib\libtensorflow_framework.dylib;
                                         lib\libtensorflow_framework.$(TensorFlowMajorVersion).dylib;
-                                        lib\libtensorflow_framework.$(TensorFlowVersion).dylib;
                                         include\tensorflow\c\LICENSE"
-                        Runtime="osx-x64" />
+                      Runtime="osx-x64" />
 
 
       <AdditionalDownloadFile Include="https://raw.githubusercontent.com/tensorflow/tensorflow/master/LICENSE" DownloadFile="$(IntermediateOutputPath)LICENSE" />
