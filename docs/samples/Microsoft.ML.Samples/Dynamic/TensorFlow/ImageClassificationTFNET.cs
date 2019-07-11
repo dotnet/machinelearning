@@ -30,7 +30,7 @@ namespace Samples.Dynamic
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
             var mlContext = new MLContext();
-            var data = GetTensorData();
+            var data = GetTensorData(mlContext);
             var idv = mlContext.Data.LoadFromEnumerable(data);
 
             // Create a ML pipeline.
@@ -90,15 +90,84 @@ namespace Samples.Dynamic
             public float[] input { get; set; }
         }
 
+
         /// <summary>
         /// Method to generate sample test data. Returns 2 sample rows.
         /// </summary>
-        public static TensorData[] GetTensorData()
+        public static TensorData[] GetTensorData(MLContext mlContext)
         {
+            
+
+            var imagesDataFile = Microsoft.ML.SamplesUtils.DatasetUtils
+               .DownloadImages();
+
+            // Preview of the content of the images.tsv file
+            //
+            // imagePath    imageType
+            // tomato.bmp   tomato
+            // banana.jpg   banana
+            // hotdog.jpg   hotdog
+            // tomato.jpg   tomato
+
+            var data = mlContext.Data.CreateTextLoader(new TextLoader.Options()
+            {
+                Columns = new[]
+                {
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
+                }
+            }).Load(imagesDataFile);
+
+            var imagesFolder = Path.GetDirectoryName(imagesDataFile);
+            // Image loading pipeline. 
+            var pipeline = mlContext.Transforms.LoadImages("ImageObject",
+                imagesFolder, "ImagePath")
+                .Append(mlContext.Transforms.ResizeImages("ImageObjectResized",
+                    inputColumnName: "ImageObject", imageWidth: 224, imageHeight:
+                    224))
+                .Append(mlContext.Transforms.ExtractPixels("Pixels",
+                    "ImageObjectResized"));
+
+            var transformedData = pipeline.Fit(data).Transform(data);
             // This can be any numerical data. Assume image pixel values.
             var image1 = Enumerable.Range(0, inputSize).Select(x => (float)x / inputSize).ToArray();
             var image2 = Enumerable.Range(0, inputSize).Select(x => (float)(x + 10000) / inputSize).ToArray();
-            return new TensorData[] { new TensorData() { input = image1 }, new TensorData() { input = image2 } };
+            using (var cursor = transformedData.GetRowCursor(transformedData
+                .Schema))
+            {
+                // Note that it is best to get the getters and values *before*
+                // iteration, so as to faciliate buffer sharing (if applicable), and
+                // column -type validation once, rather than many times.
+
+
+                ReadOnlyMemory<char> name = default;
+                VBuffer<float> pixels = default;
+
+                var imagePathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor
+                    .Schema["ImagePath"]);
+
+                var nameGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor
+                    .Schema["Name"]);
+
+
+                var pixelsGetter = cursor.GetGetter<VBuffer<float>>(cursor.Schema[
+                    "Pixels"]);
+                TensorData[] inputSample = new TensorData[4];
+                int count = 0;
+                while (cursor.MoveNext())
+                {
+
+                    
+                    nameGetter(ref name);
+                    pixelsGetter(ref pixels);
+
+
+                    inputSample[count] = new TensorData() { input = pixels.DenseValues().ToArray()};
+                    count++;
+                }
+
+                return inputSample;
+            }
         }
 
         /// <summary>

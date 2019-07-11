@@ -16,10 +16,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.TensorFlowImageAPI;
 using Microsoft.ML.Transforms;
 using NumSharp;
-//using Microsoft.ML.Transforms.TensorFlow;
-//using Microsoft.ML.Transforms.TensorFlow;
 using Tensorflow;
-using static Microsoft.ML.StaticPipe.TextLoaderStatic;
 using static Tensorflow.Python;
 
 [assembly: LoadableClass(TensorFlowTransformer.Summary, typeof(IDataTransform), typeof(TensorFlowTransformer),
@@ -1164,7 +1161,7 @@ namespace Microsoft.ML.Transforms
         string final_tensor_name = "final_result";
         float testing_percentage = 0.1f;
         float validation_percentage = 0.1f;
-        float learning_rate = 0.01f;
+        float learning_rate = 0.05f;
         Tensor resized_image_tensor;
         Dictionary<string, Dictionary<string, string[]>> image_lists;
         int how_many_training_steps = 100;
@@ -1173,7 +1170,7 @@ namespace Microsoft.ML.Transforms
         int test_batch_size = -1;
         int validation_batch_size = 100;
         int intermediate_store_frequency = 0;
-        int class_count = 1001;
+        int class_count = 4;
         const int MAX_NUM_IMAGES_PER_CLASS = 134217727;
         Operation train_step;
         Tensor final_tensor;
@@ -1182,8 +1179,6 @@ namespace Microsoft.ML.Transforms
         Tensor ground_truth_input;
         const string data_dir = "retrain_images";
         string summaries_dir = Path.Combine(data_dir, "retrain_logs");
-        string image_dir = Path.Combine(data_dir, "flower_photos");
-        string bottleneck_dir = Path.Combine(data_dir, "bottleneck");
         string output_graph = Path.Combine(data_dir, "output_graph.pb");
         string output_labels = Path.Combine(data_dir, "output_labels.txt");
         // The location where variable checkpoints will be stored.
@@ -1256,10 +1251,6 @@ namespace Microsoft.ML.Transforms
             return new SchemaShape(resultDic.Values);
         }
 
-        class OutputScores
-        {
-            public float[] output { get; set; }
-        }
 
         /// <summary>
         /// Trains and returns a <see cref="TensorFlowTransformer"/>.
@@ -1330,57 +1321,63 @@ namespace Microsoft.ML.Transforms
                     {
 
                         VBuffer<float> outputValue = default;
-                        float[] predictions = null;
-                        long[] truth = { 0 };
+                        float[] predictions = new float[4004];
+                        long[] truth = { 3 ,2 ,1 ,3 };
                         var predictionValues = cursor.GetGetter<VBuffer<float>>(cursor.Schema["output"]);
+                        int count = 0;
                         while (cursor.MoveNext())
                         {
                             predictionValues(ref outputValue);
-                            predictions = outputValue.DenseValues().ToArray();
+                            Array.Copy(outputValue.DenseValues().ToArray(), 0, predictions, count * 1001, 1001);
+                            count++;
                             // Feed the bottlenecks and ground truth into the graph, and run a training
                             // step. Capture training summaries for TensorBoard with the `merged` op.
-                            NumSharp.NDArray results = sess.run(
+                            
+
+                        }
+                        NumSharp.NDArray results = sess.run(
                                   new ITensorOrOperation[] { merged, train_step },
-                                  new FeedItem(bottleneck_input, 
-                                  new NDArray(predictions, new Shape(new[] { 1, predictions.Length }))),
+                                  new FeedItem(bottleneck_input,
+                                  new NDArray(predictions, new Shape(new[] { 4, 1001}))),
                                   new FeedItem(ground_truth_input, truth));
-                            var train_summary = results[0];
-                            Console.WriteLine("Trained");
+                        var train_summary = results[0];
+                        Console.WriteLine("Trained");
 
-                            // TODO
-                            train_writer.add_summary(train_summary, i);
+                        results = sess.run(
+                                  new ITensorOrOperation[] { final_tensor },
+                                  new FeedItem(bottleneck_input,
+                                  new NDArray(predictions, new Shape(new[] { 4, 1001 }))));
 
-                            // Every so often, print out how well the graph is training.
-                            bool is_last_step = (i + 1 == how_many_training_steps);
-                            if ((i % eval_step_interval) == 0 || is_last_step)
-                            {
-                                results = sess.run(
-                                    new Tensor[] { evaluation_step, cross_entropy },
-                                    new FeedItem(bottleneck_input,
-                                  new NDArray(predictions, new Shape(new[] { 1, predictions.Length }))),
-                                    new FeedItem(ground_truth_input, truth));
-                                (float train_accuracy, float cross_entropy_value) = (results[0], results[1]);
-                                print($"{DateTime.Now}: Step {i + 1}: Train accuracy = {train_accuracy * 100}%,  Cross entropy = {cross_entropy_value.ToString("G4")}");
+                        // TODO
+                        print(results[0]);
+                        train_writer.add_summary(train_summary, i);
 
-                                //var (validation_bottlenecks, validation_ground_truth, _) = get_random_cached_bottlenecks(
-                                //    sess, image_lists, validation_batch_size, "validation",
-                                //    bottleneck_dir, image_dir, jpeg_data_tensor,
-                                //    decoded_image_tensor, resized_image_tensor, bottleneck_tensor,
-                                //    tfhub_module);
 
-                                // Run a validation step and capture training summaries for TensorBoard
-                                // with the `merged` op.
-                                results = sess.run(new Tensor[] { merged, evaluation_step },
-                                    new FeedItem(bottleneck_input, 
-                                  new NDArray(predictions, new Shape(new[] { 1, predictions.Length }))),
-                                    new FeedItem(ground_truth_input, truth));
+                        // Every so often, print out how well the graph is training.
+                        bool is_last_step = (i + 1 == how_many_training_steps);
+                        if ((i % eval_step_interval) == 0 || is_last_step)
+                        {
+                            results = sess.run(
+                                new Tensor[] { evaluation_step, cross_entropy },
+                                new FeedItem(bottleneck_input,
+                              new NDArray(predictions, new Shape(new[] { 4, 1001 }))),
+                                new FeedItem(ground_truth_input, truth));
+                            (float train_accuracy, float cross_entropy_value) = (results[0], results[1]);
+                            print($"{DateTime.Now}: Step {i + 1}: Train accuracy = {train_accuracy * 100}%,  Cross entropy = {cross_entropy_value.ToString("G4")}");
 
-                                (string validation_summary, float validation_accuracy) = (results[0], results[1]);
 
-                                validation_writer.add_summary(validation_summary, i);
-                                print($"{DateTime.Now}: Step {i + 1}: Validation accuracy = {validation_accuracy * 100}% (N={len(predictions)})");
 
-                            }
+                            // Run a validation step and capture training summaries for TensorBoard
+                            // with the `merged` op.
+                            results = sess.run(new Tensor[] { merged, evaluation_step },
+                                new FeedItem(bottleneck_input,
+                              new NDArray(predictions, new Shape(new[] { 4, 1001 }))),
+                                new FeedItem(ground_truth_input, truth));
+
+                            (string validation_summary, float validation_accuracy) = (results[0], results[1]);
+
+                            validation_writer.add_summary(validation_summary, i);
+                            print($"{DateTime.Now}: Step {i + 1}: Validation accuracy = {validation_accuracy * 100}% (N={len(predictions)})");
 
                             // Store intermediate results
                             int intermediate_frequency = intermediate_store_frequency;
