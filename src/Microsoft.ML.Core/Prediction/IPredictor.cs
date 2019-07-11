@@ -12,8 +12,7 @@ namespace Microsoft.ML
     /// <see cref="ITrainer"/> and <see cref="IPredictor"/> it is still useful, but for things based on
     /// the <see cref="IEstimator{TTransformer}"/> idiom, it is inappropriate.
     /// </summary>
-    [BestFriend]
-    internal enum PredictionKind
+    public enum PredictionKind
     {
         Unknown = 0,
         Custom = 1,
@@ -34,8 +33,7 @@ namespace Microsoft.ML
     /// <summary>
     /// Weakly typed version of IPredictor.
     /// </summary>
-    [BestFriend]
-    internal interface IPredictor
+    public interface IPredictor
     {
         /// <summary>
         /// Return the type of prediction task.
@@ -47,8 +45,7 @@ namespace Microsoft.ML
     /// A predictor the produces values of the indicated type.
     /// REVIEW: Determine whether this is just a temporary shim or long term solution.
     /// </summary>
-    [BestFriend]
-    internal interface IPredictorProducing<out TResult> : IPredictor
+    public interface IPredictorProducing<out TResult> : IPredictor
     {
     }
 

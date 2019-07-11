@@ -765,6 +765,80 @@ namespace Microsoft.ML
         }
 
         /// <summary>
+        /// Create a <see cref="OneVersusAllTrainer"/>, which predicts a multiclass target using one-versus-all strategy with
+        /// the binary classification estimator specified by <paramref name="binaryEstimator"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// In one-versus-all strategy, a binary classification algorithm is used to train one classifier for each class,
+        /// which distinguishes that class from all other classes. Prediction is then performed by running these binary classifiers,
+        /// and choosing the prediction with the highest confidence score.
+        /// </para>
+        /// </remarks>
+        /// <param name="catalog">The multiclass classification catalog trainer object.</param>
+        /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
+        /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
+        /// <typeparam name="TModel">The type of the model. This type parameter will usually be inferred automatically from <paramref name="binaryEstimator"/>.</typeparam>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[OneVersusAll](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/OneVersusAll.cs)]
+        /// ]]></format>
+        /// </example>
+        public static OneVersusAllTrainerTyped<TModel> OneVersusAllStronglyTyped<TModel>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            ITrainerEstimator<BinaryPredictionTransformer<TModel>, TModel> binaryEstimator,
+            string labelColumnName = DefaultColumnNames.Label,
+            bool imputeMissingLabelsAsNegative = false,
+            bool useProbabilities = true)
+            where TModel : class
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            if (!(binaryEstimator is ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>> est))
+                throw env.ExceptParam(nameof(binaryEstimator), "Trainer estimator does not appear to produce the right kind of model.");
+            return new OneVersusAllTrainerTyped<TModel>(env, est, labelColumnName, imputeMissingLabelsAsNegative, useProbabilities);
+        }
+
+        /// <summary>
+        /// Create a <see cref="OneVersusAllTrainer"/>, which predicts a multiclass target using one-versus-all strategy with
+        /// the binary classification estimator specified by <paramref name="binaryEstimator"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// In one-versus-all strategy, a binary classification algorithm is used to train one classifier for each class,
+        /// which distinguishes that class from all other classes. Prediction is then performed by running these binary classifiers,
+        /// and choosing the prediction with the highest confidence score.
+        /// </para>
+        /// </remarks>
+        /// <param name="catalog">The multiclass classification catalog trainer object.</param>
+        /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
+        /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
+        /// <typeparam name="TModel">The type of the model. This type parameter will usually be inferred automatically from <paramref name="binaryEstimator"/>.</typeparam>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[OneVersusAll](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/OneVersusAll.cs)]
+        /// ]]></format>
+        /// </example>
+        public static OneVersusAllTrainerTyped<TModel> OneVersusAllStronglyTypedNoChange<TModel>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            IPredictorProducing<float> binaryEstimator,
+            string labelColumnName = DefaultColumnNames.Label,
+            bool imputeMissingLabelsAsNegative = false,
+            bool useProbabilities = true)
+            where TModel : class
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            if (!(binaryEstimator is ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>> est))
+                throw env.ExceptParam(nameof(binaryEstimator), "Trainer estimator does not appear to produce the right kind of model.");
+            return new OneVersusAllTrainerTyped<TModel>(env, est, labelColumnName, imputeMissingLabelsAsNegative, useProbabilities);
+        }
+
+        /// <summary>
         /// Create a <see cref="PairwiseCouplingTrainer"/>, which predicts a multiclass target using pairwise coupling strategy with
         /// the binary classification estimator specified by <paramref name="binaryEstimator"/>.
         /// </summary>
