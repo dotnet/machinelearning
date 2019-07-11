@@ -116,6 +116,9 @@ namespace Tensorflow
                             case bool[] val:
                                 feed_dict_tensor[subfeed_t] = (NDArray)val;
                                 break;
+                            case float[] val:
+                                feed_dict_tensor[subfeed_t] = (NDArray)val;
+                                break;
                             default:
                                 Console.WriteLine($"can't handle data type of subfeed_val");
                                 throw new NotImplementedException("_run subfeed");

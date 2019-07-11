@@ -15,9 +15,12 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TensorFlowImageAPI;
 using Microsoft.ML.Transforms;
+using NumSharp;
 //using Microsoft.ML.Transforms.TensorFlow;
 //using Microsoft.ML.Transforms.TensorFlow;
 using Tensorflow;
+using static Microsoft.ML.StaticPipe.TextLoaderStatic;
+using static Tensorflow.Python;
 
 [assembly: LoadableClass(TensorFlowTransformer.Summary, typeof(IDataTransform), typeof(TensorFlowTransformer),
     typeof(TensorFlowEstimator.Options), typeof(SignatureDataTransform), TensorFlowTransformer.UserName, TensorFlowTransformer.ShortName)]
@@ -1156,6 +1159,35 @@ namespace Microsoft.ML.Transforms
         private readonly TF_DataType[] _tfInputTypes;
         private readonly DataViewType[] _outputTypes;
         private TensorFlowTransformer _transformer;
+        private bool _transferLearning = true;
+        // TF.NET Class Variables
+        string final_tensor_name = "final_result";
+        float testing_percentage = 0.1f;
+        float validation_percentage = 0.1f;
+        float learning_rate = 0.01f;
+        Tensor resized_image_tensor;
+        Dictionary<string, Dictionary<string, string[]>> image_lists;
+        int how_many_training_steps = 100;
+        int eval_step_interval = 10;
+        int train_batch_size = 1;
+        int test_batch_size = -1;
+        int validation_batch_size = 100;
+        int intermediate_store_frequency = 0;
+        int class_count = 1001;
+        const int MAX_NUM_IMAGES_PER_CLASS = 134217727;
+        Operation train_step;
+        Tensor final_tensor;
+        Tensor bottleneck_input;
+        Tensor cross_entropy;
+        Tensor ground_truth_input;
+        const string data_dir = "retrain_images";
+        string summaries_dir = Path.Combine(data_dir, "retrain_logs");
+        string image_dir = Path.Combine(data_dir, "flower_photos");
+        string bottleneck_dir = Path.Combine(data_dir, "bottleneck");
+        string output_graph = Path.Combine(data_dir, "output_graph.pb");
+        string output_labels = Path.Combine(data_dir, "output_labels.txt");
+        // The location where variable checkpoints will be stored.
+        string CHECKPOINT_NAME = Path.Combine(data_dir, "_retrain_checkpoint");
 
         [BestFriend]
         internal TensorFlowEstimator(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, string modelLocation, bool addBatchDimensionInput)
@@ -1224,6 +1256,11 @@ namespace Microsoft.ML.Transforms
             return new SchemaShape(resultDic.Values);
         }
 
+        class OutputScores
+        {
+            public float[] output { get; set; }
+        }
+
         /// <summary>
         /// Trains and returns a <see cref="TensorFlowTransformer"/>.
         /// </summary>
@@ -1238,7 +1275,233 @@ namespace Microsoft.ML.Transforms
             }
             // Validate input schema.
             _transformer.GetOutputSchema(input.Schema);
+            
+            if (_transferLearning)
+            {
+                Console.Write("Transfer Learning");
+                TransferLearning(input);
+
+            }
             return _transformer;
+        }
+
+        public void TransferLearning(IDataView input)
+        {
+            var bottleneck_tensor = _transformer.Graph.OperationByName("resnet_v2_101/SpatialSqueeze");
+
+            with(_transformer.Graph, delegate
+            {
+
+                (train_step, cross_entropy, bottleneck_input,
+                 ground_truth_input, final_tensor) = add_final_retrain_ops(
+                     class_count, final_tensor_name, bottleneck_tensor,
+                     is_training: true);
+            });
+
+            var input_data_tensor = _transformer.Graph.OperationByName("inputs");
+
+            var transformedValues = _transformer.Transform(input);
+
+            with(_transformer.Session, sess =>
+            {
+                // Initialize all weights: for the module to their pretrained values,
+                // and for the newly added retraining layer to random initial values.
+                var init = tf.global_variables_initializer();
+                sess.run(init);
+
+                // Create the operations we need to evaluate the accuracy of our new layer.
+                (Tensor evaluation_step, Tensor _) = add_evaluation_step(final_tensor, ground_truth_input);
+
+
+                // Merge all the summaries and write them out to the summaries_dir
+                var merged = tf.summary.merge_all();
+                var train_writer = tf.summary.FileWriter(summaries_dir + "/train", sess.graph);
+                var validation_writer = tf.summary.FileWriter(summaries_dir + "/validation", sess.graph);
+
+                // Create a train saver that is used to restore values into an eval graph
+                // when exporting models.
+                var train_saver = tf.train.Saver();
+                train_saver.save(sess, CHECKPOINT_NAME);
+
+                
+                for (int i = 0; i < how_many_training_steps; i++)
+                {
+                    using (var cursor = transformedValues.GetRowCursor(transformedValues.Schema))
+                    {
+
+                        VBuffer<float> outputValue = default;
+                        float[] predictions = null;
+                        long[] truth = { 0 };
+                        var predictionValues = cursor.GetGetter<VBuffer<float>>(cursor.Schema["output"]);
+                        while (cursor.MoveNext())
+                        {
+                            predictionValues(ref outputValue);
+                            predictions = outputValue.DenseValues().ToArray();
+                            // Feed the bottlenecks and ground truth into the graph, and run a training
+                            // step. Capture training summaries for TensorBoard with the `merged` op.
+                            NumSharp.NDArray results = sess.run(
+                                  new ITensorOrOperation[] { merged, train_step },
+                                  new FeedItem(bottleneck_input, 
+                                  new NDArray(predictions, new Shape(new[] { 1, predictions.Length }))),
+                                  new FeedItem(ground_truth_input, truth));
+                            var train_summary = results[0];
+                            Console.WriteLine("Trained");
+
+                            // TODO
+                            train_writer.add_summary(train_summary, i);
+
+                            // Every so often, print out how well the graph is training.
+                            bool is_last_step = (i + 1 == how_many_training_steps);
+                            if ((i % eval_step_interval) == 0 || is_last_step)
+                            {
+                                results = sess.run(
+                                    new Tensor[] { evaluation_step, cross_entropy },
+                                    new FeedItem(bottleneck_input,
+                                  new NDArray(predictions, new Shape(new[] { 1, predictions.Length }))),
+                                    new FeedItem(ground_truth_input, truth));
+                                (float train_accuracy, float cross_entropy_value) = (results[0], results[1]);
+                                print($"{DateTime.Now}: Step {i + 1}: Train accuracy = {train_accuracy * 100}%,  Cross entropy = {cross_entropy_value.ToString("G4")}");
+
+                                //var (validation_bottlenecks, validation_ground_truth, _) = get_random_cached_bottlenecks(
+                                //    sess, image_lists, validation_batch_size, "validation",
+                                //    bottleneck_dir, image_dir, jpeg_data_tensor,
+                                //    decoded_image_tensor, resized_image_tensor, bottleneck_tensor,
+                                //    tfhub_module);
+
+                                // Run a validation step and capture training summaries for TensorBoard
+                                // with the `merged` op.
+                                results = sess.run(new Tensor[] { merged, evaluation_step },
+                                    new FeedItem(bottleneck_input, 
+                                  new NDArray(predictions, new Shape(new[] { 1, predictions.Length }))),
+                                    new FeedItem(ground_truth_input, truth));
+
+                                (string validation_summary, float validation_accuracy) = (results[0], results[1]);
+
+                                validation_writer.add_summary(validation_summary, i);
+                                print($"{DateTime.Now}: Step {i + 1}: Validation accuracy = {validation_accuracy * 100}% (N={len(predictions)})");
+
+                            }
+
+                            // Store intermediate results
+                            int intermediate_frequency = intermediate_store_frequency;
+                            if (intermediate_frequency > 0 && i % intermediate_frequency == 0 && i > 0)
+                            {
+
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        private (Tensor, Tensor) add_evaluation_step(Tensor result_tensor, Tensor ground_truth_tensor)
+        {
+            Tensor evaluation_step = null, correct_prediction = null, prediction = null;
+
+            with(tf.name_scope("accuracy"), scope =>
+            {
+                with(tf.name_scope("correct_prediction"), delegate
+                {
+                    prediction = tf.argmax(result_tensor, 1);
+                    correct_prediction = tf.equal(prediction, ground_truth_tensor);
+                });
+
+                with(tf.name_scope("accuracy"), delegate
+                {
+                    evaluation_step = tf.reduce_mean(tf.cast(correct_prediction, tf.float32));
+                });
+            });
+
+            tf.summary.scalar("accuracy", evaluation_step);
+            return (evaluation_step, prediction);
+        }
+
+
+
+        private (Operation, Tensor, Tensor, Tensor, Tensor) add_final_retrain_ops(int class_count, string final_tensor_name,
+            Tensor bottleneck_tensor, bool is_training)
+        {
+            var (batch_size, bottleneck_tensor_size) = (bottleneck_tensor.GetShape().Dimensions[0], bottleneck_tensor.GetShape().Dimensions[1]);
+            with(tf.name_scope("input"), scope =>
+            {
+                bottleneck_input = tf.placeholder_with_default(
+                    bottleneck_tensor,
+                    shape: bottleneck_tensor.GetShape().Dimensions,
+                    name: "BottleneckInputPlaceholder");
+
+                ground_truth_input = tf.placeholder(tf.int64, new TensorShape(batch_size), name: "GroundTruthInput");
+            });
+
+            // Organizing the following ops so they are easier to see in TensorBoard.
+            string layer_name = "final_retrain_ops";
+            Tensor logits = null;
+            with(tf.name_scope(layer_name), scope =>
+            {
+                RefVariable layer_weights = null;
+                with(tf.name_scope("weights"), delegate
+                {
+                    var initial_value = tf.truncated_normal(new int[] { bottleneck_tensor_size, class_count }, stddev: 0.001f);
+                    layer_weights = tf.Variable(initial_value, name: "final_weights");
+                    variable_summaries(layer_weights);
+                });
+
+                RefVariable layer_biases = null;
+                with(tf.name_scope("biases"), delegate
+                {
+                    layer_biases = tf.Variable(tf.zeros((class_count)), name: "final_biases");
+                    variable_summaries(layer_biases);
+                });
+
+                with(tf.name_scope("Wx_plus_b"), delegate
+                {
+                    logits = tf.matmul(bottleneck_input, layer_weights) + layer_biases;
+                    tf.summary.histogram("pre_activations", logits);
+                });
+            });
+
+            final_tensor = tf.nn.softmax(logits, name: final_tensor_name);
+
+
+            tf.summary.histogram("activations", final_tensor);
+
+            // If this is an eval graph, we don't need to add loss ops or an optimizer.
+            if (!is_training)
+                return (null, null, bottleneck_input, ground_truth_input, final_tensor);
+
+            Tensor cross_entropy_mean = null;
+            with(tf.name_scope("cross_entropy"), delegate
+            {
+                cross_entropy_mean = tf.losses.sparse_softmax_cross_entropy(
+                    labels: ground_truth_input, logits: logits);
+            });
+
+            tf.summary.scalar("cross_entropy", cross_entropy_mean);
+
+            with(tf.name_scope("train"), delegate
+            {
+                var optimizer = tf.train.GradientDescentOptimizer(learning_rate);
+                train_step = optimizer.minimize(cross_entropy_mean);
+            });
+
+            return (train_step, cross_entropy_mean, bottleneck_input, ground_truth_input,
+                final_tensor);
+        }
+
+        private void variable_summaries(RefVariable var)
+        {
+            with(tf.name_scope("summaries"), delegate
+            {
+                var mean = tf.reduce_mean(var);
+                tf.summary.scalar("mean", mean);
+                Tensor stddev = null;
+                with(tf.name_scope("stddev"), delegate {
+                    stddev = tf.sqrt(tf.reduce_mean(tf.square(var - mean)));
+                });
+                tf.summary.scalar("stddev", stddev);
+                tf.summary.scalar("max", tf.reduce_max(var));
+                tf.summary.scalar("min", tf.reduce_min(var));
+                tf.summary.histogram("histogram", var);
+            });
         }
     }
 }
