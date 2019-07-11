@@ -1314,27 +1314,31 @@ namespace Microsoft.ML.Transforms
                 var train_saver = tf.train.Saver();
                 train_saver.save(sess, CHECKPOINT_NAME);
 
-                
+
+
+
+                float[] predictions = new float[4004];
+                VBuffer<float>[] outputValue = new VBuffer<float>[4];
+                long[] truth = { 3, 2, 1, 3 };
                 for (int i = 0; i < how_many_training_steps; i++)
                 {
                     using (var cursor = transformedValues.GetRowCursor(transformedValues.Schema))
                     {
 
-                        VBuffer<float> outputValue = default;
-                        float[] predictions = new float[4004];
-                        long[] truth = { 3 ,2 ,1 ,3 };
+                        
                         var predictionValues = cursor.GetGetter<VBuffer<float>>(cursor.Schema["output"]);
                         int count = 0;
                         while (cursor.MoveNext())
                         {
-                            predictionValues(ref outputValue);
-                            Array.Copy(outputValue.DenseValues().ToArray(), 0, predictions, count * 1001, 1001);
+                            predictionValues(ref outputValue[count]);
                             count++;
                             // Feed the bottlenecks and ground truth into the graph, and run a training
                             // step. Capture training summaries for TensorBoard with the `merged` op.
-                            
 
                         }
+                        for (int index = 0; index < 4; index++)
+                            Array.Copy(outputValue[index].GetBuffer(), 0, predictions, index * 1001, 1001);
+
                         NumSharp.NDArray results = sess.run(
                                   new ITensorOrOperation[] { merged, train_step },
                                   new FeedItem(bottleneck_input,
