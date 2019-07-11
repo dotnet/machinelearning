@@ -2275,9 +2275,10 @@
           "Name": "Model",
           "Type": "TransformModel",
           "Desc": "Model that needs to be converted to ONNX format.",
-          "Required": true,
+          "Required": false,
           "SortOrder": 10.0,
-          "IsNullable": false
+          "IsNullable": false,
+          "Default": null
         },
         {
           "Name": "OnnxVersion",

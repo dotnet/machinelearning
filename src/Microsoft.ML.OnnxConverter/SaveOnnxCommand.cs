@@ -61,7 +61,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             /// Entry point API can save either <see cref="TransformModel"/> or <see cref="PredictorModel"/>.
             /// <see cref="Model"/> is used when the saved model is typed to <see cref="TransformModel"/>.
             /// </summary>
-            [Argument(ArgumentType.Required, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Model that needs to be converted to ONNX format.", SortOrder = 10)]
+            [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Model that needs to be converted to ONNX format.", SortOrder = 10)]
             public TransformModel Model;
 
             /// <summary>

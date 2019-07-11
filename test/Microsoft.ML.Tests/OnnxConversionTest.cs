@@ -436,34 +436,20 @@ namespace Microsoft.ML.Tests
                                 'Column':
                                 [
                                     {{'Name':'Sepal_Width','Type':null,'Source':[{{'Min':2,'Max':2,'AutoEnd':false,'VariableEnd':false,'AllOther':false,'ForceVector':false}}],'KeyCount':null}},
-                                    {{'Name':'Petal_Length','Type':null,'Source':[{{'Min':3,'Max':3,'AutoEnd':false,'VariableEnd':false,'AllOther':false,'ForceVector':false}}],'KeyCount':null}},
-                                    {{'Name':'Petal_Width','Type':null,'Source':[{{'Min':4,'Max':4,'AutoEnd':false,'VariableEnd':false,'AllOther':false,'ForceVector':false}}],'KeyCount':null}},
+                                    {{'Name':'Petal_Length','Type':null,'Source':[{{'Min':3,'Max':4,'AutoEnd':false,'VariableEnd':false,'AllOther':false,'ForceVector':false}}],'KeyCount':null}},
                                 ]
                             }}
                         }},
                         'Outputs':
                         {{
-                            'Data': '$optional_data'
+                            'Data': '$training_data'
                         }}
                     }},
                     {{
                         'Inputs': {{
-                            'Data': '$optional_data',
-                            'Features': [
-                                'Petal_Length',
-                                'Petal_Width',
-                            ]
-                        }},
-                        'Name': 'Transforms.FeatureCombiner',
-                        'Outputs': {{
-                            'OutputData': '$output_data'
-                        }}
-                    }},
-                    {{
-                        'Inputs': {{
-                            'FeatureColumnName': 'Features',
+                            'FeatureColumnName': 'Petal_Length',
                             'LabelColumnName': 'Sepal_Width',
-                            'TrainingData': '$output_data',
+                            'TrainingData': '$training_data',
                         }},
                         'Name': 'Trainers.StochasticDualCoordinateAscentRegressor',
                         'Outputs': {{
@@ -496,7 +482,7 @@ namespace Microsoft.ML.Tests
                         'Inputs': {{
                             'Domain': 'com.microsoft.models',
                             'Json': '{1}',
-                            'Model': '$model',
+                            'PredictiveModel': '$model',
                             'Onnx': '{2}',
                             'OnnxVersion': 'Experimental'
                         }},
@@ -515,10 +501,21 @@ namespace Microsoft.ML.Tests
             // Onnx converter's assembly is not loaded by default, so we need to register it before calling it.
             Env.ComponentCatalog.RegisterAssembly(typeof(OnnxExportExtensions).Assembly);
 
-            // Execute the saved entry point graph to convert the saved model.
+            // Execute the saved entry point graph to convert the saved model to ONNX format.
             args = new ExecuteGraphCommand.Arguments() { GraphPath = jsonPath };
             cmd = new ExecuteGraphCommand(Env, args);
             cmd.Run();
+
+            // Load the resulted ONNX model from the file so that we can check if the conversion looks good.
+            var model = new OnnxCSharpToProtoWrapper.ModelProto();
+            using (var modelStream = File.OpenRead(onnxPath))
+                model = OnnxCSharpToProtoWrapper.ModelProto.Parser.ParseFrom(modelStream);
+
+            // Make sure a PredictorModel is loaded by seeing if a predictive model exists. In this the
+            // predictive model is "LinearRegressor" (converted from StochasticDualCoordinateAscentRegressor
+            // in the original training entry-point graph.
+            Assert.Equal("Scaler", model.Graph.Node[0].OpType);
+            Assert.Equal("LinearRegressor", model.Graph.Node[1].OpType);
 
             File.Delete(modelPath);
             File.Delete(onnxPath);
