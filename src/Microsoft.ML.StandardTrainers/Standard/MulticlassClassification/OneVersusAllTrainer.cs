@@ -751,6 +751,34 @@ namespace Microsoft.ML.Trainers
         //    + "which distinguishes that class from all other classes. Prediction is then performed by running these binary classifiers, "
         //    + "and choosing the prediction with the highest confidence score.";
 
+        /// <summary>
+        /// Constructs a <see cref="OneVersusAllTrainer"/> trainer supplying a <see cref="OneVersusAllTrainerBase{T}.Options"/>.
+        /// </summary>
+        /// <param name="env">The private <see cref="IHostEnvironment"/> for this estimator.</param>
+        /// <param name="options">The legacy <see cref="OneVersusAllTrainerBase{T}.Options"/></param>
+        internal OneVersusAllTrainer(IHostEnvironment env, Options options)
+            : base(env, options, LoadNameValue)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="OneVersusAllTrainerBase{T}"/>.
+        /// </summary>
+        /// <param name="env">The <see cref="IHostEnvironment"/> instance.</param>
+        /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
+        /// <param name="labelColumnName">The name of the label colum.</param>
+        /// <param name="imputeMissingLabelsAsNegative">If true will treat missing labels as negative labels.</param>
+        /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
+        internal OneVersusAllTrainerBase(IHostEnvironment env,
+            TScalarTrainer binaryEstimator,
+            string labelColumnName = DefaultColumnNames.Label,
+            bool imputeMissingLabelsAsNegative = false,
+            bool useProbabilities = true)
+         : base(env,
+               binaryEstimator, labelColumnName, imputeMissingLabelsAsNegative, useProbabilities)
+        {
+        }
+
         private protected override ISingleFeaturePredictionTransformer<TScalarPredictor> TrainOneHelper(IChannel ch,
             bool useProbabilities, IDataView view, string trainerLabel,
             ISingleFeaturePredictionTransformer<TScalarPredictor> transformer)
