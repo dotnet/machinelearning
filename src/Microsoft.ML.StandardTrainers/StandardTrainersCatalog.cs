@@ -787,18 +787,21 @@ namespace Microsoft.ML
         ///  [!code-csharp[OneVersusAll](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/OneVersusAll.cs)]
         /// ]]></format>
         /// </example>
-        public static OneVersusAllTrainerTyped<TModel> OneVersusAllStronglyTyped<TModel>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+        public static OneVersusAllTrainerTyped<TModel> OneVersusAll<TModel>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             ITrainerEstimator<BinaryPredictionTransformer<TModel>, TModel> binaryEstimator,
             string labelColumnName = DefaultColumnNames.Label,
             bool imputeMissingLabelsAsNegative = false,
+            IEstimator<ISingleFeaturePredictionTransformer<ICalibrator>> calibrator = null,
+            int maximumCalibrationExampleCount = 1000000000,
             bool useProbabilities = true)
             where TModel : class
         {
-            Contracts.CheckValue(catalog, nameof(catalog));
-            var env = CatalogUtils.GetEnvironment(catalog);
-            if (!(binaryEstimator is ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>> est))
-                throw env.ExceptParam(nameof(binaryEstimator), "Trainer estimator does not appear to produce the right kind of model.");
-            return new OneVersusAllTrainerTyped<TModel>(env, est, labelColumnName, imputeMissingLabelsAsNegative, useProbabilities);
+            return OneVersusAllStronglyTyped<TModel, TModel>(
+                catalog,
+            binaryEstimator,
+            DefaultColumnNames.Label,
+            false,
+            true);
         }
 
         /// <summary>
@@ -817,25 +820,27 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
         /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
-        /// <typeparam name="TModel">The type of the model. This type parameter will usually be inferred automatically from <paramref name="binaryEstimator"/>.</typeparam>
+        /// <typeparam name="TModelIn">The type of the model. This type parameter will usually be inferred automatically from <paramref name="binaryEstimator"/>.</typeparam>
+        /// <typeparam name="TModelOut">The type of the model. This type parameter will usually be inferred automatically from <paramref name="binaryEstimator"/>.</typeparam>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
         ///  [!code-csharp[OneVersusAll](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/OneVersusAll.cs)]
         /// ]]></format>
         /// </example>
-        public static OneVersusAllTrainerTyped<TModel> OneVersusAllStronglyTypedNoChange<TModel>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
-            IPredictorProducing<float> binaryEstimator,
+        public static OneVersusAllTrainerTyped<TModelOut> OneVersusAllStronglyTyped<TModelIn, TModelOut>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            ITrainerEstimator<BinaryPredictionTransformer<TModelIn>, TModelIn> binaryEstimator,
             string labelColumnName = DefaultColumnNames.Label,
             bool imputeMissingLabelsAsNegative = false,
             bool useProbabilities = true)
-            where TModel : class
+            where TModelIn : class
+            where TModelOut : class
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
             if (!(binaryEstimator is ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>> est))
                 throw env.ExceptParam(nameof(binaryEstimator), "Trainer estimator does not appear to produce the right kind of model.");
-            return new OneVersusAllTrainerTyped<TModel>(env, est, labelColumnName, imputeMissingLabelsAsNegative, useProbabilities);
+            return new OneVersusAllTrainerTyped<TModelOut>(env, est, labelColumnName, imputeMissingLabelsAsNegative, useProbabilities);
         }
 
         /// <summary>

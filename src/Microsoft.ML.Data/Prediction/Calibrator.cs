@@ -528,7 +528,7 @@ namespace Microsoft.ML.Calibrators
         where TSubModel : class
         where TCalibrator : class, ICalibrator
     {
-        private readonly IPredictorWithFeatureWeights<float> _featureWeights;
+        private readonly TSubModel _featureWeights;
 
         internal ParameterMixingCalibratedModelParameters(IHostEnvironment env, TSubModel predictor, TCalibrator calibrator)
             : base(env, RegistrationName, predictor, calibrator)
@@ -536,7 +536,7 @@ namespace Microsoft.ML.Calibrators
             Host.Check(predictor is IParameterMixer<float>, "Predictor does not implement " + nameof(IParameterMixer<float>));
             Host.Check(calibrator is IParameterMixer, "Calibrator does not implement " + nameof(IParameterMixer));
             Host.Assert(predictor is IPredictorWithFeatureWeights<float>);
-            _featureWeights = predictor as IPredictorWithFeatureWeights<float>;
+            _featureWeights = predictor;
         }
 
         internal const string LoaderSignature = "PMixCaliPredExec";
@@ -558,7 +558,7 @@ namespace Microsoft.ML.Calibrators
         {
             Host.Check(SubModel is IParameterMixer<float>, "Predictor does not implement " + nameof(IParameterMixer));
             Host.Check(SubModel is IPredictorWithFeatureWeights<float>, "Predictor does not implement " + nameof(IPredictorWithFeatureWeights<float>));
-            _featureWeights = SubModel as IPredictorWithFeatureWeights<float>;
+            _featureWeights = SubModel;
         }
 
         private static CalibratedModelParametersBase Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -579,7 +579,7 @@ namespace Microsoft.ML.Calibrators
 
         public void GetFeatureWeights(ref VBuffer<float> weights)
         {
-            _featureWeights.GetFeatureWeights(ref weights);
+           ((IPredictorWithFeatureWeights<float>)_featureWeights).GetFeatureWeights(ref weights);
         }
 
         IParameterMixer<float> IParameterMixer<float>.CombineParameters(IList<IParameterMixer<float>> models)
@@ -879,6 +879,14 @@ namespace Microsoft.ML.Calibrators
             return CreateCalibratedPredictor(env, (IPredictorProducing<float>)predictor, trainedCalibrator);
         }
 
+        public static CalibratedModelParametersBase<T, ICalibrator> GetCalibratedPredictor<T>(IHostEnvironment env, IChannel ch, ICalibratorTrainer caliTrainer,
+            T predictor, RoleMappedData data, int maxRows = _maxCalibrationExamples) where T: class
+        {
+            var trainedCalibrator = TrainCalibrator(env, ch, caliTrainer, (IPredictorProducing<float>)predictor, data, maxRows);
+            var cp = CreateCalibratedPredictor(env, predictor, trainedCalibrator);
+            return cp;
+        }
+
         public static ICalibrator TrainCalibrator(IHostEnvironment env, IChannel ch, ICalibratorTrainer caliTrainer, IDataView scored, string labelColumn, string scoreColumn, string weightColumn = null, int maxRows = _maxCalibrationExamples)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -962,13 +970,13 @@ namespace Microsoft.ML.Calibrators
             return TrainCalibrator(env, ch, caliTrainer, scored, data.Schema.Label.Value.Name, DefaultColumnNames.Score, data.Schema.Weight?.Name, maxRows);
         }
 
-        public static IPredictorProducing<float> CreateCalibratedPredictor<TSubPredictor, TCalibrator>(IHostEnvironment env, TSubPredictor predictor, TCalibrator cali)
-        where TSubPredictor : class, IPredictorProducing<float>
+        public static CalibratedModelParametersBase<TSubPredictor, TCalibrator> CreateCalibratedPredictor<TSubPredictor, TCalibrator>(IHostEnvironment env, TSubPredictor predictor, TCalibrator cali)
+        where TSubPredictor : class
         where TCalibrator : class, ICalibrator
         {
             Contracts.Assert(predictor != null);
-            if (cali == null)
-                return predictor;
+            //if (cali == null)
+            //    return predictor;
 
             for (; ; )
             {
@@ -980,7 +988,11 @@ namespace Microsoft.ML.Calibrators
 
             var predWithFeatureScores = predictor as IPredictorWithFeatureWeights<float>;
             if (predWithFeatureScores != null && predictor is IParameterMixer<float> && cali is IParameterMixer)
-                return new ParameterMixingCalibratedModelParameters<IPredictorWithFeatureWeights<float>, TCalibrator>(env, predWithFeatureScores, cali);
+            {
+                var s = typeof(TSubPredictor);
+                var pm = new ParameterMixingCalibratedModelParameters<TSubPredictor, TCalibrator>(env, predictor, cali);
+                return pm;
+            }
 
             if (predictor is IValueMapper)
                 return new ValueMapperCalibratedModelParameters<TSubPredictor, TCalibrator>(env, predictor, cali);

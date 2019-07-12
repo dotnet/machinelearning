@@ -769,7 +769,6 @@ namespace Microsoft.ML.Trainers
             + "and choosing the prediction with the highest confidence score.";
 
         private readonly Options _options;
-
         /// <summary>
         /// Options passed to <see cref="OneVersusAllTrainerTyped{T}"/>
         /// </summary>
@@ -831,9 +830,9 @@ namespace Microsoft.ML.Trainers
             return OneVersusAllModelParametersTyped<T>.Create(Host, _options.UseProbabilities, predictors);
         }
 
-        private ISingleFeaturePredictionTransformer<TScalarPredictor> TrainOne(IChannel ch, TScalarTrainer trainer, RoleMappedData data, int cls)
+        private ISingleFeaturePredictionTransformer<TScalarPredictor> TrainOne(IChannel ch, dynamic trainer, RoleMappedData data, int cls)
         {
-            var view = MapLabels(data, cls);
+            /*var view = MapLabels(data, cls);
 
             string trainerLabel = data.Schema.Label.Value.Name;
 
@@ -852,6 +851,33 @@ namespace Microsoft.ML.Trainers
                 // not having the weight column on the data passed to the TrainCalibrator should be addressed.
                 var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumnName);
 
+                return new BinaryPredictionTransformer<TScalarPredictor>(Host, calibratedModel, trainedData.Data.Schema, transformer.FeatureColumnName);
+            }
+
+            return new BinaryPredictionTransformer<TScalarPredictor>(Host, transformer.Model, view.Schema, transformer.FeatureColumnName);*/
+
+            var view = MapLabels(data, cls);
+
+            string trainerLabel = data.Schema.Label.Value.Name;
+
+            // REVIEW: In principle we could support validation sets and the like via the train context, but
+            // this is currently unsupported.
+            var transformer = trainer.Fit(view);
+
+            if (_options.UseProbabilities)
+            {
+                var calibratedModel = transformer.Model as TDistPredictor;
+
+                var s = transformer.Model.GetType();
+
+                // REVIEW: restoring the RoleMappedData, as much as we can.
+                // not having the weight column on the data passed to the TrainCalibrator should be addressed.
+                var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumnName);
+
+                if (calibratedModel == null)
+                    calibratedModel = CalibratorUtils.GetCalibratedPredictor(Host, ch, Calibrator, transformer.Model, trainedData, Args.MaxCalibrationExamples) as TDistPredictor;
+
+                Host.Check(calibratedModel != null, "Calibrated predictor does not implement the expected interface");
                 return new BinaryPredictionTransformer<TScalarPredictor>(Host, calibratedModel, trainedData.Data.Schema, transformer.FeatureColumnName);
             }
 
@@ -899,7 +925,9 @@ namespace Microsoft.ML.Trainers
                         var transformer = TrainOne(ch, Trainer, td, i);
                         featureColumn = transformer.FeatureColumnName;
                     }
-                    predictors[i] = (T)TrainOne(ch, Trainer, td, i).Model;
+                    var model = TrainOne(ch, Trainer, td, i).Model;
+                    var m = model as T;
+                    predictors[i] = model as T;
 
                 }
             }
