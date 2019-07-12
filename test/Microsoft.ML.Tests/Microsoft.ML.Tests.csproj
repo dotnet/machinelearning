@@ -54,5 +54,6 @@
     <PackageReference Include="Microsoft.ML.TensorFlow.TestModels" Version="$(MicrosoftMLTensorFlowTestModelsVersion)" />
     <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="$(MicrosoftMLOnnxTestModelsVersion)" />
     <PackageReference Include="Microsoft.ML.TestModels" Version="$(MicrosoftMLTestModelsPackageVersion)" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.6.1" />
   </ItemGroup>
 </Project>
