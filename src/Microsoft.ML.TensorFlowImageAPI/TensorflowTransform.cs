@@ -1280,14 +1280,23 @@ namespace Microsoft.ML.Transforms
         {
             var bottleneck_tensor = _transformer.Graph.OperationByName("resnet_v2_101/SpatialSqueeze");
 
-            with(_transformer.Graph, delegate
+            // Check if the last layer has already been added to the graph if not then add
+            if (_transformer.Graph.OperationByName(final_tensor_name) == null)
+            {
+                Console.WriteLine("Transfer Learning Layer already created");
+            }
+            else
             {
 
-                (train_step, cross_entropy, bottleneck_input,
-                 ground_truth_input, final_tensor) = add_final_retrain_ops(
-                     class_count, final_tensor_name, bottleneck_tensor,
-                     is_training: true);
-            });
+                with(_transformer.Graph, delegate
+                {
+
+                    (train_step, cross_entropy, bottleneck_input,
+                     ground_truth_input, final_tensor) = add_final_retrain_ops(
+                         class_count, final_tensor_name, bottleneck_tensor,
+                         is_training: true);
+                });
+            }
 
             var input_data_tensor = _transformer.Graph.OperationByName("inputs");
 

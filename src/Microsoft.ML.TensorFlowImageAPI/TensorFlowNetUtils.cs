@@ -8,6 +8,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using NumSharp;
 using Tensorflow;
+using static Tensorflow.Python;
 //using NumSharp;
 
 namespace Microsoft.ML.TensorFlowImageAPI
@@ -28,10 +29,17 @@ namespace Microsoft.ML.TensorFlowImageAPI
 
         internal static Session LoadTFSession(IExceptionContext ectx, byte[] modelBytes = null, string modelFile = null)
         {
-            var graph = new Graph().as_default();
+            var graph = tf.Graph().as_default();
             try
             {
-                graph.Import(modelFile);
+                if (IsMetaGraph(modelFile))
+                {
+                    tf.train.import_meta_graph(modelFile);
+                }
+                else
+                {
+                    graph.Import(modelFile);
+                }
             }
             catch (Exception ex)
             {
@@ -45,17 +53,13 @@ namespace Microsoft.ML.TensorFlowImageAPI
             return new Session(graph);
         }
 
-        //private static Session LoadTFSession(IHostEnvironment env, string exportDirSavedModel)
-        //{
-        //    Contracts.Check(env != null, nameof(env));
-        //    env.CheckValue(exportDirSavedModel, nameof(exportDirSavedModel));
-        //    var sessionOptions = new TFSessionOptions();
-        //    var tags = new string[] { "serve" };
-        //    var graph = new TFGraph();
-        //    var metaGraphDef = new TFBuffer();
+        internal static bool IsMetaGraph(string modelFile)
+        {
+            return modelFile.EndsWith(".meta");
+        }
 
-        //    return TFSession.FromSavedModel(sessionOptions, null, exportDirSavedModel, tags, graph, metaGraphDef);
-        //}
+
+
         internal static void CreateFolderWithAclIfNotExists(IHostEnvironment env, string folder)
         {
             Contracts.Check(env != null, nameof(env));

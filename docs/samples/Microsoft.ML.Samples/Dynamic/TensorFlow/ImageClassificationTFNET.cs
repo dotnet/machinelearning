@@ -32,7 +32,9 @@ namespace Samples.Dynamic
             var mlContext = new MLContext();
             var data = GetTensorData(mlContext);
             var idv = mlContext.Data.LoadFromEnumerable(data);
-
+            //modelLocation = @"C:\Users\t-prdug\source\repos\machinelearning\bin\AnyCPU.Debug\Microsoft.ML.Samples\netcoreapp2.1\retrain_images\_retrain_checkpoint.meta";
+            modelLocation = "_retrain_checkpoint.meta";
+            //modelLocation = @"C:\Users\t-prdug\source\repos\TensorFlow.NET\graph\WorkingInceptionV3.meta";
             // Create a ML pipeline.
             var pipeline = mlContext.Model.LoadTensorFlowModelNet(modelLocation).ScoreTensorFlowModel(
                 new[] { nameof(OutputScores.output) },

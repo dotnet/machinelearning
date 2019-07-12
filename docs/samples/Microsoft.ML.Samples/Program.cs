@@ -26,7 +26,7 @@ namespace Microsoft.ML.Samples
 
             Console.WriteLine("Number of samples that ran without any exception: " + samples);*/
             ImageClassificationsTFNET.Example();
-            ImageClassifications.Example();
+            //ImageClassifications.Example();
         }
     }
 }
