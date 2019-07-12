@@ -148,6 +148,9 @@ namespace Microsoft.ML.AutoML
             // For text columns, use TextTransform.
             yield return new Experts.Text(context);
 
+            // For image columns, use image transforms.
+            yield return new Experts.Image(context);
+
             // If numeric column has missing values, use Missing transform.
             yield return new Experts.NumericMissing(context);
         }
@@ -280,6 +283,32 @@ namespace Microsoft.ML.AutoML
 
                         featureCols.Add(columnDestRenamed);
                         yield return TextFeaturizingExtension.CreateSuggestedTransform(Context, columnNameSafe, columnDestRenamed);
+                    }
+                }
+            }
+
+            internal sealed class Image : TransformInferenceExpertBase
+            {
+                public Image(MLContext context) : base(context)
+                {
+                }
+
+                public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns, TaskKind task)
+                {
+                    var featureCols = new List<string>();
+
+                    foreach (var column in columns)
+                    {
+                        if (!column.Type.GetItemType().IsText() || column.Purpose != ColumnPurpose.ImagePath)
+                            continue;
+
+                        var columnDestSuffix = "_featurized";
+                        var columnNameSafe = column.ColumnName;
+
+                        string columnDestRenamed = $"{columnNameSafe}{columnDestSuffix}";
+
+                        featureCols.Add(columnDestRenamed);
+                        yield return ImageFeaturizingExtension.CreateSuggestedTransform(Context, columnNameSafe, columnDestRenamed);
                     }
                 }
             }

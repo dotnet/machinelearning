@@ -223,6 +223,31 @@ namespace Microsoft.ML.AutoML
         }
     }
 
+    internal class ImageFeaturizingExtension : IEstimatorExtension
+    {
+        public IEstimator<ITransformer> CreateInstance(MLContext context, PipelineNode pipelineNode)
+        {
+            return CreateInstance(context, pipelineNode.InColumns[0], pipelineNode.OutColumns[0]);
+        }
+
+        public static SuggestedTransform CreateSuggestedTransform(MLContext context, string inColumn, string outColumn)
+        {
+            var pipelineNode = new PipelineNode(EstimatorName.ImageFeaturizing.ToString(),
+                PipelineNodeType.Transform, inColumn, outColumn);
+            var estimator = CreateInstance(context, inColumn, outColumn);
+            return new SuggestedTransform(pipelineNode, estimator);
+        }
+
+        private static IEstimator<ITransformer> CreateInstance(MLContext context, string inColumn, string outColumn)
+        {
+            var estimator = context.Transforms.LoadImages(outputColumnName: outColumn, imageFolder: "\\User\\justinormont\\Documents\\Datasets\\crowdflower_dress_patterns\\images", inputColumnName: inColumn)
+                //.Append(context.Transforms.ResizeImages(outputColumnName: outColumn, imageWidth: 224, imageHeight: 224, inputColumnName: outColumn))
+                .Append(context.Transforms.ExtractPixels(outputColumnName: outColumn, interleavePixelColors: false, offsetImage: 0));
+                //.Append(context.Transforms.DnnFeaturizeImage(outColumn, m => m.ModelSelector.ResNet18(context, m.OutputColumn, m.InputColumn), outColumn));
+            return estimator;
+        }
+    }
+
     internal class TypeConvertingExtension : IEstimatorExtension
     {
         public IEstimator<ITransformer> CreateInstance(MLContext context, PipelineNode pipelineNode)
