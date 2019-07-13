@@ -1273,7 +1273,9 @@ namespace Microsoft.ML.Transforms
                 TransferLearning(input);
 
             }
-            return _transformer;
+            Session sess = TensorFlowNetUtils.LoadTFSession(_host, null, "_retrain_checkpoint.meta");
+            Options fullModel = CreateArguments(sess, "_retrain_checkpoint.meta", _options.OutputColumns, _options.InputColumns, _options.AddBatchDimensionInputs);
+            return _transformer = new TensorFlowTransformer(_host, _options,sess, input);
         }
 
         public void TransferLearning(IDataView input)

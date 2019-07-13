@@ -1123,7 +1123,7 @@ namespace Microsoft.ML.Transforms
             /// Needed for command line to specify if retraining is requested.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Retrain TensorFlow model.", SortOrder = 15)]
-            public bool ReTrain = false;
+            public bool ReTrain = true;
 
             /// <summary>
             /// Add a batch dimension to the input e.g. input = [224, 224, 3] => [-1, 224, 224, 3].
@@ -1176,7 +1176,7 @@ namespace Microsoft.ML.Transforms
             options.ModelLocation = tensorFlowModel.ModelPath;
             options.InputColumns = inputColumnName;
             options.OutputColumns = outputColumnNames;
-            options.ReTrain = false;
+            options.ReTrain = true;
             options.AddBatchDimensionInputs = addBatchDimensionInput;
             return options;
         }

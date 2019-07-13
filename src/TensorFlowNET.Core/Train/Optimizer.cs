@@ -183,8 +183,8 @@ namespace Tensorflow
 
                 if (!tf.context.executing_eagerly())
                 {
-                    var train_op = ops.get_collection_ref(ops.GraphKeys.TRAIN_OP) as List<object>;
-                    if (!train_op.Contains(apply_updates))
+                    var train_op = ops.get_collection_ref(ops.GraphKeys.TRAIN_OP) as List<ITensorOrOperation>;
+                    if (train_op != null && !train_op.Contains(apply_updates))
                         train_op.Add(apply_updates);
                 }
 
