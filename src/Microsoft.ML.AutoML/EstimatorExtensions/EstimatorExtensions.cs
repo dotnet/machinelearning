@@ -241,9 +241,9 @@ namespace Microsoft.ML.AutoML
         private static IEstimator<ITransformer> CreateInstance(MLContext context, string inColumn, string outColumn)
         {
             var estimator = context.Transforms.LoadImages(outputColumnName: outColumn, imageFolder: "\\User\\justinormont\\Documents\\Datasets\\crowdflower_dress_patterns\\images", inputColumnName: inColumn)
-                //.Append(context.Transforms.ResizeImages(outputColumnName: outColumn, imageWidth: 224, imageHeight: 224, inputColumnName: outColumn))
-                .Append(context.Transforms.ExtractPixels(outputColumnName: outColumn, interleavePixelColors: false, offsetImage: 0));
-                //.Append(context.Transforms.DnnFeaturizeImage(outColumn, m => m.ModelSelector.ResNet18(context, m.OutputColumn, m.InputColumn), outColumn));
+                .Append(context.Transforms.ResizeImages(outputColumnName: outColumn, imageWidth: 224, imageHeight: 224, inputColumnName: outColumn))
+                .Append(context.Transforms.ExtractPixels(outputColumnName: outColumn, interleavePixelColors: false, offsetImage: 0))
+                .Append(context.Transforms.DnnFeaturizeImage(outColumn, m => m.ModelSelector.ResNet18(context, m.OutputColumn, m.InputColumn), outColumn));
             return estimator;
         }
     }
