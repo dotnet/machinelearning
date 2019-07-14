@@ -114,7 +114,7 @@ namespace Microsoft.ML.AutoML
         {
             internal sealed class TextClassification : IPurposeInferenceExpert
             {
-                static readonly string[] commonImageExtensions = { ".bmp", ".dib", ".rle", ".jpg", ".jpeg", ".jpe", ".jfif", ".gif", ".tif", ".tiff", ".png" };
+                private static readonly string[] _commonImageExtensions = { ".bmp", ".dib", ".rle", ".jpg", ".jpeg", ".jpe", ".jfif", ".gif", ".tif", ".tiff", ".png" };
 
                 public void Apply(IntermediateColumn[] columns)
                 {
@@ -138,11 +138,11 @@ namespace Microsoft.ML.AutoML
                             string spanStr = span.ToString();
                             sumSpaces += spanStr.Count(x => x == ' ');
 
-                            foreach (var ext in commonImageExtensions)
+                            foreach (var ext in _commonImageExtensions)
                             {
                                 if (spanStr.EndsWith(ext, StringComparison.OrdinalIgnoreCase))
                                 {
-                                    
+                                    // Image checking is needed since the ImageLoader throws on invalid image, causing the pipeline to fail on fit.
                                     if (IsValidImage(imageFolder, spanStr))
                                         imagePathCount++;
 
