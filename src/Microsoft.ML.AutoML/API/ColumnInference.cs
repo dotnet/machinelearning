@@ -89,6 +89,12 @@ namespace Microsoft.ML.AutoML
         public ICollection<string> TextColumnNames { get; }
 
         /// <summary>
+        /// The dataset columns that are image paths.
+        /// </summary>
+        /// <value>The default value is a new, empty <see cref="Collection{String}"/>.</value>
+        public ICollection<string> ImagePathColumnNames { get; }
+
+        /// <summary>
         /// The dataset columns that AutoML should ignore.
         /// </summary>
         /// <value>The default value is a new, empty <see cref="Collection{String}"/>.</value>
@@ -100,6 +106,7 @@ namespace Microsoft.ML.AutoML
             CategoricalColumnNames = new Collection<string>();
             NumericColumnNames = new Collection<string>();
             TextColumnNames = new Collection<string>();
+            ImagePathColumnNames = new Collection<string>();
             IgnoredColumnNames = new Collection<string>();
         }
     }

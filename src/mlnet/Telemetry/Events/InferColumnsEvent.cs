@@ -25,10 +25,6 @@ namespace Microsoft.ML.CLI.Telemetry.Events
             foreach (var kvp in columnsByPurpose)
             {
                 totalColumnCount += kvp.Value;
-                if (kvp.Key == ColumnPurpose.Label)
-                {
-                    continue;
-                }
                 properties[kvp.Key + "ColumnCount"] = kvp.Value.ToString();
             }
 

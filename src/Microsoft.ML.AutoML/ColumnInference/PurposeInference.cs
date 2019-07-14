@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
 
@@ -112,9 +114,12 @@ namespace Microsoft.ML.AutoML
         {
             internal sealed class TextClassification : IPurposeInferenceExpert
             {
+                static readonly string[] commonImageExtensions = { ".bmp", ".dib", ".rle", ".jpg", ".jpeg", ".jpe", ".jfif", ".gif", ".tif", ".tiff", ".png" };
+
                 public void Apply(IntermediateColumn[] columns)
                 {
-                    string[] commonImageExtensions = { ".bmp", ".dib", ".rle", ".jpg", ".jpeg", ".jpe", ".jfif", ".gif", ".tif", ".tiff", ".png" };
+                    const string imageFolder = "/Users/justinormont/Documents/src/open-datasets/Datasets/DogBreedsVsFruits/Dataset"; // Todo: This will have to be passed in
+
                     foreach (var column in columns)
                     {
                         if (column.IsPurposeSuggested || !column.Type.IsText())
@@ -137,7 +142,10 @@ namespace Microsoft.ML.AutoML
                             {
                                 if (spanStr.EndsWith(ext, StringComparison.OrdinalIgnoreCase))
                                 {
-                                    imagePathCount++;
+                                    
+                                    if (IsValidImage(imageFolder, spanStr))
+                                        imagePathCount++;
+
                                     break;
                                 }
                             }
@@ -160,6 +168,40 @@ namespace Microsoft.ML.AutoML
                         else
                             column.SuggestedPurpose = ColumnPurpose.ImagePath;
                     }
+                }
+
+                private bool IsValidImage(string imageFolder, string path)
+                {
+                    bool isValid = false;
+
+                    if (!string.IsNullOrWhiteSpace(imageFolder))
+                        path = Path.Combine(imageFolder, path);
+
+                    Bitmap dst = null;
+                    try
+                    {
+                        dst = new Bitmap(path) { Tag = path };
+                    }
+                    catch (System.ArgumentException e)
+                    {
+                        if (!File.Exists(path))
+                            Console.WriteLine($"File does not exist {path}.");
+                        else
+                            Console.WriteLine($"Failed to load image {path}. " + e.ToString());
+                    }
+
+                    // Check for an incorrect pixel format which indicates the loading failed
+                    if (dst != null && dst.PixelFormat == System.Drawing.Imaging.PixelFormat.DontCare)
+                        Console.WriteLine($"Failed to load image {path}.");
+
+                    if (dst != null)
+                    {
+                        dst.Dispose();
+                        dst = null;
+                        isValid = true;
+                    }
+
+                    return isValid;
                 }
             }
 

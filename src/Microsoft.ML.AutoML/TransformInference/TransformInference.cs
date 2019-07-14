@@ -376,14 +376,14 @@ namespace Microsoft.ML.AutoML
         private static SuggestedTransform BuildFinalFeaturesConcatTransform(MLContext context, IEnumerable<SuggestedTransform> suggestedTransforms,
             IEnumerable<IntermediateColumn> intermediateCols)
         {
-            // get the output column names from all suggested transforms
+            // Get the output column names from all suggested transforms
             var concatColNames = new List<string>();
             foreach (var suggestedTransform in suggestedTransforms)
             {
                 concatColNames.AddRange(suggestedTransform.PipelineNode.OutColumns);
             }
 
-            // include all numeric columns of type R4
+            // Include all numeric columns of type R4
             foreach(var intermediateCol in intermediateCols)
             {
                 if (intermediateCol.Purpose == ColumnPurpose.NumericFeature &&
@@ -393,12 +393,13 @@ namespace Microsoft.ML.AutoML
                 }
             }
 
-            // remove column with 'Label' purpose
+            // Remove column with 'Label' purpose
             var labelColumnName = intermediateCols.FirstOrDefault(c => c.Purpose == ColumnPurpose.Label)?.ColumnName;
             concatColNames.Remove(labelColumnName);
 
             intermediateCols = intermediateCols.Where(c => c.Purpose == ColumnPurpose.NumericFeature ||
-                c.Purpose == ColumnPurpose.CategoricalFeature || c.Purpose == ColumnPurpose.TextFeature);
+                c.Purpose == ColumnPurpose.CategoricalFeature || c.Purpose == ColumnPurpose.TextFeature ||
+                c.Purpose == ColumnPurpose.ImagePath);
 
             if (!concatColNames.Any() || (concatColNames.Count == 1 &&
                 concatColNames[0] == DefaultColumnNames.Features &&
