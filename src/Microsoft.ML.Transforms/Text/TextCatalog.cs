@@ -62,7 +62,7 @@ namespace Microsoft.ML
             TextFeaturizingEstimator.Options options,
             params string[] inputColumnNames)
             => new TextFeaturizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                outputColumnName, inputColumnNames, options);
+                outputColumnName, inputColumnNames == null ? new[] { outputColumnName } : inputColumnNames, options);
 
         /// <summary>
         /// Create a <see cref="TokenizingByCharactersEstimator"/>, which tokenizes by splitting text into sequences of characters
