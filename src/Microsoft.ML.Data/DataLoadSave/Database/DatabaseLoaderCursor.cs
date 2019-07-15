@@ -18,7 +18,7 @@ namespace Microsoft.ML.Data
             private readonly bool[] _active; // Which columns are active.
             private readonly Delegate[] _getters;
 
-            // This holds the overall line from the line reader currently served up in the cursor.
+            // This holds the overall count of rows currently served up in the cursor.
             private long _total;
             private bool _disposed;
 
@@ -82,6 +82,7 @@ namespace Microsoft.ML.Data
             {
                 if (_input.Read())
                 {
+                    _total++;
                     return true;
                 }
 
@@ -139,14 +140,19 @@ namespace Microsoft.ML.Data
 
             private ValueGetter<int> CreateInt32GetterDelegate(ColInfo colInfo)
             {
-                int columnIndex = colInfo.SourceIndex;
+                int columnIndex = GetColumnIndex(colInfo);
                 return (ref int value) => value = _input.GetInt32(columnIndex);
             }
 
             private ValueGetter<float> CreateFloatGetterDelegate(ColInfo colInfo)
             {
-                int columnIndex = colInfo.SourceIndex;
+                int columnIndex = GetColumnIndex(colInfo);
                 return (ref float value) => value = _input.GetFloat(columnIndex);
+            }
+
+            private int GetColumnIndex(ColInfo colInfo)
+            {
+                return colInfo.SourceIndex ?? _input.GetOrdinal(colInfo.Name);
             }
         }
     }

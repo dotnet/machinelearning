@@ -28,19 +28,25 @@ namespace Microsoft.ML.Tests
             {
                 connection.Open();
 
-                using (SqlCommand command = new SqlCommand("SELECT SepalLength, SepalWidth, PetalLength, PetalWidth, Label FROM IrisData", connection))
+                using (SqlCommand command = new SqlCommand(
+                    "SELECT SepalLength, SepalWidth, PetalLength, PetalWidth, Label FROM IrisData",
+                    connection))
                 {
-                    var loader = new DatabaseLoader(mlContext, new DatabaseLoader.Options()
+                    DatabaseLoader loader = new DatabaseLoader(mlContext, new DatabaseLoader.Options()
                     {
                         Columns = new[]
                         {
-                            new DatabaseLoader.Column() { Name = "SepalLength", Source = 0},
-                            new DatabaseLoader.Column() { Name = "SepalWidth", Source = 1},
-                            new DatabaseLoader.Column() { Name = "PetalLength", Source = 2},
-                            new DatabaseLoader.Column() { Name = "PetalWidth", Source = 3},
-                            new DatabaseLoader.Column() { Name = "Label", Type = DbType.Int32, Source = 4},
+                            new DatabaseLoader.Column() { Name = "SepalLength", Type = DbType.Single },
+                            new DatabaseLoader.Column() { Name = "SepalWidth", Type = DbType.Single },
+                            new DatabaseLoader.Column() { Name = "PetalLength", Type = DbType.Single },
+                            new DatabaseLoader.Column() { Name = "PetalWidth", Type = DbType.Single },
+                            new DatabaseLoader.Column() { Name = "Label", Type = DbType.Int32 },
                         }
                     });
+
+                    IDataView trainingData = loader.Load(() => command.ExecuteReader());
+                    //trainingData = mlContext.Data.Cache(trainingData, "SepalLength", "SepalWidth", "PetalLength", "PetalWidth", "Label");
+
 
                     var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
                         .Append(mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
@@ -48,21 +54,24 @@ namespace Microsoft.ML.Tests
                         .Append(mlContext.MulticlassClassification.Trainers.LightGbm())
                         .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
-                    IDataView trainingData = loader.Load(() => command.ExecuteReader());
-                    //trainingData = mlContext.Data.Cache(trainingData, "SepalLength", "SepalWidth", "PetalLength", "PetalWidth", "Label");
                     var model = pipeline.Fit(trainingData);
 
                     var engine = mlContext.Model.CreatePredictionEngine<IrisData, IrisPrediction>(model);
 
-                    var prediction = engine.Predict(new IrisData()
+                    Assert.Equal(1, engine.Predict(new IrisData()
                     {
                         SepalLength = 4.5f,
                         SepalWidth = 5.6f,
                         PetalLength = 0.5f,
                         PetalWidth = 0.5f,
-                    });
-
-                    Assert.Equal(2, prediction.PredictedLabel);
+                    }).PredictedLabel);
+                    Assert.Equal(2, engine.Predict(new IrisData()
+                    {
+                        SepalLength = 4.9f,
+                        SepalWidth = 2.4f,
+                        PetalLength = 3.3f,
+                        PetalWidth = 1.0f,
+                    }).PredictedLabel);
                 }
             }
         }

@@ -119,7 +119,7 @@ namespace Microsoft.ML.Data
             /// Source index of the column.
             /// </summary>
             [Argument(ArgumentType.Multiple, HelpText = "Source index of the column", ShortName = "src")]
-            public int Source;
+            public int? Source;
 
             /// <summary>
             /// For a key column, this defines the range of values.
@@ -147,13 +147,13 @@ namespace Microsoft.ML.Data
         private sealed class ColInfo
         {
             public readonly string Name;
-            public readonly int SourceIndex;
+            public readonly int? SourceIndex;
             public readonly DataViewType ColType;
 
-            public ColInfo(string name, int sourceIndex, DataViewType colType)
+            public ColInfo(string name, int? sourceIndex, DataViewType colType)
             {
                 Contracts.AssertNonEmpty(name);
-                Contracts.Assert(sourceIndex >= 0);
+                Contracts.Assert(!sourceIndex.HasValue || sourceIndex >= 0);
                 Contracts.AssertValue(colType);
 
                 Name = name;
@@ -228,7 +228,9 @@ namespace Microsoft.ML.Data
                 //   byte: bool of whether this is a key type
                 //   for a key type:
                 //     ulong: count for key range
-                //   int: source index
+                //   byte: bool of whether the source index is valid
+                //   for a valid source index:
+                //     int: source index
                 int cinfo = ctx.Reader.ReadInt32();
                 Contracts.CheckDecode(cinfo > 0);
                 Infos = new ColInfo[cinfo];
@@ -254,7 +256,12 @@ namespace Microsoft.ML.Data
                     else
                         itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
 
-                    int sourceIndex = ctx.Reader.ReadInt32();
+                    int? sourceIndex = null;
+                    bool hasSourceIndex = ctx.Reader.ReadBoolByte();
+                    if (hasSourceIndex)
+                    {
+                        sourceIndex = ctx.Reader.ReadInt32();
+                    }
 
                     Infos[iinfo] = new ColInfo(name, sourceIndex, itemType);
                 }
@@ -274,7 +281,9 @@ namespace Microsoft.ML.Data
                 //   byte: bool of whether this is a key type
                 //   for a key type:
                 //     ulong: count for key range
-                //   int: source index
+                //   byte: bool of whether the source index is valid
+                //   for a valid source index:
+                //     int: source index
                 ctx.Writer.Write(Infos.Length);
                 for (int iinfo = 0; iinfo < Infos.Length; iinfo++)
                 {
@@ -287,7 +296,9 @@ namespace Microsoft.ML.Data
                     ctx.Writer.WriteBoolByte(type is KeyDataViewType);
                     if (type is KeyDataViewType key)
                         ctx.Writer.Write(key.Count);
-                    ctx.Writer.Write(info.SourceIndex);
+                    ctx.Writer.WriteBoolByte(info.SourceIndex.HasValue);
+                    if (info.SourceIndex.HasValue)
+                        ctx.Writer.Write(info.SourceIndex.GetValueOrDefault());
                 }
             }
 
