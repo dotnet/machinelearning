@@ -879,10 +879,12 @@ namespace Microsoft.ML.Calibrators
             return CreateCalibratedPredictor(env, (IPredictorProducing<float>)predictor, trainedCalibrator);
         }
 
-        public static CalibratedModelParametersBase<T, ICalibrator> GetCalibratedPredictor<T>(IHostEnvironment env, IChannel ch, ICalibratorTrainer caliTrainer,
-            T predictor, RoleMappedData data, int maxRows = _maxCalibrationExamples) where T: class
+        public static CalibratedModelParametersBase<TSubPredictor, TCalibrator> GetCalibratedPredictor<TSubPredictor, TCalibrator>(IHostEnvironment env, IChannel ch, ICalibratorTrainer caliTrainer,
+            TSubPredictor predictor, RoleMappedData data, int maxRows = _maxCalibrationExamples)
+            where TSubPredictor : class
+            where TCalibrator : class, ICalibrator
         {
-            var trainedCalibrator = TrainCalibrator(env, ch, caliTrainer, (IPredictorProducing<float>)predictor, data, maxRows);
+            var trainedCalibrator = TrainCalibrator(env, ch, caliTrainer, (IPredictorProducing<float>)predictor, data, maxRows) as TCalibrator;
             var cp = CreateCalibratedPredictor(env, predictor, trainedCalibrator);
             return cp;
         }
@@ -990,6 +992,7 @@ namespace Microsoft.ML.Calibrators
             if (predWithFeatureScores != null && predictor is IParameterMixer<float> && cali is IParameterMixer)
             {
                 var s = typeof(TSubPredictor);
+                var d = typeof(TCalibrator);
                 var pm = new ParameterMixingCalibratedModelParameters<TSubPredictor, TCalibrator>(env, predictor, cali);
                 return pm;
             }

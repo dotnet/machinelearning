@@ -760,6 +760,187 @@ namespace Microsoft.ML.Trainers
         }
     }
 
+    public sealed class OneVersusAllTrainerTypedT<TSubPredictor, TCalibrator> : MetaMulticlassTrainer<MulticlassPredictionTransformer<OneVersusAllModelParametersTyped<CalibratedModelParametersBase<TSubPredictor, TCalibrator>>>, OneVersusAllModelParametersTyped<CalibratedModelParametersBase<TSubPredictor, TCalibrator>>> where TSubPredictor : class where TCalibrator: class, ICalibrator
+    {
+        internal const string LoadNameValue = "OVA";
+        internal const string UserNameValue = "One-vs-All";
+        internal const string Summary = "In this strategy, a binary classification algorithm is used to train one classifier for each class, "
+            + "which distinguishes that class from all other classes. Prediction is then performed by running these binary classifiers, "
+            + "and choosing the prediction with the highest confidence score.";
+
+        private readonly Options _options;
+        /// <summary>
+        /// Options passed to <see cref="OneVersusAllTrainerTyped{T}"/>
+        /// </summary>
+        internal sealed class Options : OptionsBase
+        {
+            /// <summary>
+            /// Whether to use probabilities (vs. raw outputs) to identify top-score category.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Use probability or margins to determine max", ShortName = "useprob")]
+            [TGUI(Label = "Use Probability", Description = "Use probabilities (vs. raw outputs) to identify top-score category")]
+            public bool UseProbabilities = true;
+        }
+
+        /// <summary>
+        /// Constructs a <see cref="OneVersusAllTrainerTyped{T}"/> trainer supplying a <see cref="Options"/>.
+        /// </summary>
+        /// <param name="env">The private <see cref="IHostEnvironment"/> for this estimator.</param>
+        /// <param name="options">The legacy <see cref="Options"/></param>
+        internal OneVersusAllTrainerTypedT(IHostEnvironment env, Options options)
+            : base(env, options, LoadNameValue)
+        {
+            _options = options;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="OneVersusAllTrainerTyped{T}"/>.
+        /// </summary>
+        /// <param name="env">The <see cref="IHostEnvironment"/> instance.</param>
+        /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
+        /// <param name="calibrator">The calibrator. If a calibrator is not provided, it will default to <see cref="PlattCalibratorTrainer"/></param>
+        /// <param name="labelColumnName">The name of the label colum.</param>
+        /// <param name="imputeMissingLabelsAsNegative">If true will treat missing labels as negative labels.</param>
+        /// <param name="maximumCalibrationExampleCount">Number of instances to train the calibrator.</param>
+        /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
+        internal OneVersusAllTrainerTypedT(IHostEnvironment env,
+            TScalarTrainer binaryEstimator,
+            string labelColumnName = DefaultColumnNames.Label,
+            bool imputeMissingLabelsAsNegative = false,
+            ICalibratorTrainer calibrator = null,
+            int maximumCalibrationExampleCount = 1000000000,
+            bool useProbabilities = true)
+         : base(env,
+               new Options
+               {
+                   ImputeMissingLabelsAsNegative = imputeMissingLabelsAsNegative,
+                   MaxCalibrationExamples = maximumCalibrationExampleCount,
+               },
+               LoadNameValue, labelColumnName, binaryEstimator, calibrator)
+        {
+            Host.CheckValue(labelColumnName, nameof(labelColumnName), "Label column should not be null.");
+            _options = (Options)Args;
+            _options.UseProbabilities = useProbabilities;
+        }
+
+        private protected override OneVersusAllModelParametersTyped<CalibratedModelParametersBase<TSubPredictor, TCalibrator>> TrainCore(IChannel ch, RoleMappedData data, int count)
+        {
+            // Train one-vs-all models.
+            var predictors = new CalibratedModelParametersBase<TSubPredictor, TCalibrator>[count];
+            for (int i = 0; i < predictors.Length; i++)
+            {
+                ch.Info($"Training learner {i}");
+                predictors[i] = (CalibratedModelParametersBase<TSubPredictor, TCalibrator>)TrainOne(ch, Trainer, data, i).Model;
+            }
+            return OneVersusAllModelParametersTyped<CalibratedModelParametersBase<TSubPredictor, TCalibrator>>.Create(Host, _options.UseProbabilities, predictors);
+        }
+
+        private dynamic TrainOne(IChannel ch, dynamic trainer, RoleMappedData data, int cls)
+        {
+            /*var view = MapLabels(data, cls);
+
+            string trainerLabel = data.Schema.Label.Value.Name;
+
+            // REVIEW: In principle we could support validation sets and the like via the train context, but
+            // this is currently unsupported.
+            var transformer = trainer.Fit(view);
+
+            if (_options.UseProbabilities)
+            {
+                var calibratedModel = transformer.Model as TDistPredictor;
+
+                // If probabilities are requested and the Predictor is not calibrated or if it doesn't implement the right interface then throw.
+                Host.Check(calibratedModel != null, "Predictor is either not calibrated or does not implement the expected interface");
+
+                // REVIEW: restoring the RoleMappedData, as much as we can.
+                // not having the weight column on the data passed to the TrainCalibrator should be addressed.
+                var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumnName);
+
+                return new BinaryPredictionTransformer<TScalarPredictor>(Host, calibratedModel, trainedData.Data.Schema, transformer.FeatureColumnName);
+            }
+
+            return new BinaryPredictionTransformer<TScalarPredictor>(Host, transformer.Model, view.Schema, transformer.FeatureColumnName);*/
+
+            var view = MapLabels(data, cls);
+
+            string trainerLabel = data.Schema.Label.Value.Name;
+
+            // REVIEW: In principle we could support validation sets and the like via the train context, but
+            // this is currently unsupported.
+            var transformer = trainer.Fit(view);
+
+            if (_options.UseProbabilities)
+            {
+                var calibratedModel = transformer.Model as TDistPredictor;
+
+                var s = transformer.Model.GetType();
+
+                // REVIEW: restoring the RoleMappedData, as much as we can.
+                // not having the weight column on the data passed to the TrainCalibrator should be addressed.
+                var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumnName);
+
+                if (calibratedModel == null)
+                    calibratedModel = CalibratorUtils.GetCalibratedPredictor<TSubPredictor, TCalibrator>(Host, ch, Calibrator, transformer.Model, trainedData, Args.MaxCalibrationExamples) as TDistPredictor;
+
+                Host.Check(calibratedModel != null, "Calibrated predictor does not implement the expected interface");
+                return new BinaryPredictionTransformer<TScalarPredictor>(Host, calibratedModel, trainedData.Data.Schema, transformer.FeatureColumnName);
+            }
+
+            return new BinaryPredictionTransformer<TScalarPredictor>(Host, transformer.Model, view.Schema, transformer.FeatureColumnName);
+        }
+
+        private IDataView MapLabels(RoleMappedData data, int cls)
+        {
+            var label = data.Schema.Label.Value;
+            Host.Assert(!label.IsHidden);
+            Host.Assert(label.Type.GetKeyCount() > 0 || label.Type == NumberDataViewType.Single || label.Type == NumberDataViewType.Double);
+
+            if (label.Type.GetKeyCount() > 0)
+            {
+                // Key values are 1-based.
+                uint key = (uint)(cls + 1);
+                return MapLabelsCore(NumberDataViewType.UInt32, (in uint val) => key == val, data);
+            }
+
+            throw Host.ExceptNotSupp($"Label column type is not supported by OneVersusAllTrainerTyped: {label.Type.RawType}");
+        }
+
+        /// <summary> Trains a <see cref="MulticlassPredictionTransformer{OneVersusAllModelParametersTyped}"/> model.</summary>
+        /// <param name="input">The input data.</param>
+        /// <returns>A <see cref="MulticlassPredictionTransformer{OneVersusAllModelParametersTyped}"/> model./></returns>
+        public override MulticlassPredictionTransformer<OneVersusAllModelParametersTyped<CalibratedModelParametersBase<TSubPredictor, TCalibrator>>> Fit(IDataView input)
+        {
+            var roles = new KeyValuePair<CR, string>[1];
+            roles[0] = new KeyValuePair<CR, string>(new CR(DefaultColumnNames.Label), LabelColumn.Name);
+            var td = new RoleMappedData(input, roles);
+
+            td.CheckMulticlassLabel(out var numClasses);
+
+            var predictors = new CalibratedModelParametersBase<TSubPredictor, TCalibrator>[numClasses];
+            string featureColumn = null;
+
+            using (var ch = Host.Start("Fitting"))
+            {
+                for (int i = 0; i < predictors.Length; i++)
+                {
+                    ch.Info($"Training learner {i}");
+
+                    if (i == 0)
+                    {
+                        var transformer = TrainOne(ch, Trainer, td, i);
+                        featureColumn = transformer.FeatureColumnName;
+                    }
+                    var model = TrainOne(ch, Trainer, td, i).Model;
+                    var m = model as CalibratedModelParametersBase<TSubPredictor, TCalibrator>;
+                    predictors[i] = model as CalibratedModelParametersBase<TSubPredictor, TCalibrator>;
+
+                }
+            }
+
+            return new MulticlassPredictionTransformer<OneVersusAllModelParametersTyped<CalibratedModelParametersBase<TSubPredictor, TCalibrator>>>(Host, OneVersusAllModelParametersTyped<CalibratedModelParametersBase<TSubPredictor, TCalibrator>>.Create(Host, _options.UseProbabilities, predictors), input.Schema, featureColumn, LabelColumn.Name);
+        }
+    }
+
     public sealed class OneVersusAllTrainerTyped<T> : MetaMulticlassTrainer<MulticlassPredictionTransformer<OneVersusAllModelParametersTyped<T>>, OneVersusAllModelParametersTyped<T>> where T : class
     {
         internal const string LoadNameValue = "OVA";
@@ -835,7 +1016,7 @@ namespace Microsoft.ML.Trainers
             return OneVersusAllModelParametersTyped<T>.Create(Host, _options.UseProbabilities, predictors);
         }
 
-        private ISingleFeaturePredictionTransformer<TScalarPredictor> TrainOne(IChannel ch, dynamic trainer, RoleMappedData data, int cls)
+        private dynamic TrainOne(IChannel ch, dynamic trainer, RoleMappedData data, int cls)
         {
             /*var view = MapLabels(data, cls);
 
@@ -880,7 +1061,7 @@ namespace Microsoft.ML.Trainers
                 var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumnName);
 
                 if (calibratedModel == null)
-                    calibratedModel = CalibratorUtils.GetCalibratedPredictor(Host, ch, Calibrator, transformer.Model, trainedData, Args.MaxCalibrationExamples) as TDistPredictor;
+                    calibratedModel = CalibratorUtils.GetCalibratedPredictor<LinearBinaryModelParameters, PlattCalibrator>(Host, ch, Calibrator, transformer.Model, trainedData, Args.MaxCalibrationExamples) as TDistPredictor;
 
                 Host.Check(calibratedModel != null, "Calibrated predictor does not implement the expected interface");
                 return new BinaryPredictionTransformer<TScalarPredictor>(Host, calibratedModel, trainedData.Data.Schema, transformer.FeatureColumnName);
