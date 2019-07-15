@@ -798,20 +798,25 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         /// <param name="env">The <see cref="IHostEnvironment"/> instance.</param>
         /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
+        /// <param name="calibrator">The calibrator. If a calibrator is not provided, it will default to <see cref="PlattCalibratorTrainer"/></param>
         /// <param name="labelColumnName">The name of the label colum.</param>
         /// <param name="imputeMissingLabelsAsNegative">If true will treat missing labels as negative labels.</param>
+        /// <param name="maximumCalibrationExampleCount">Number of instances to train the calibrator.</param>
         /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
         internal OneVersusAllTrainerTyped(IHostEnvironment env,
             TScalarTrainer binaryEstimator,
             string labelColumnName = DefaultColumnNames.Label,
             bool imputeMissingLabelsAsNegative = false,
+            ICalibratorTrainer calibrator = null,
+            int maximumCalibrationExampleCount = 1000000000,
             bool useProbabilities = true)
          : base(env,
                new Options
                {
-                   ImputeMissingLabelsAsNegative = imputeMissingLabelsAsNegative
+                   ImputeMissingLabelsAsNegative = imputeMissingLabelsAsNegative,
+                   MaxCalibrationExamples = maximumCalibrationExampleCount,
                },
-               LoadNameValue, labelColumnName, binaryEstimator)
+               LoadNameValue, labelColumnName, binaryEstimator, calibrator)
         {
             Host.CheckValue(labelColumnName, nameof(labelColumnName), "Label column should not be null.");
             _options = (Options)Args;

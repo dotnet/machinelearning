@@ -765,7 +765,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create a <see cref="OneVersusAllTrainer"/>, which predicts a multiclass target using one-versus-all strategy with
+        /// Create a <see cref="OneVersusAllTrainerTyped{TModelOut}"/>, which predicts a multiclass target using one-versus-all strategy with
         /// the binary classification estimator specified by <paramref name="binaryEstimator"/>.
         /// </summary>
         /// <remarks>
@@ -787,25 +787,23 @@ namespace Microsoft.ML
         ///  [!code-csharp[OneVersusAll](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/OneVersusAll.cs)]
         /// ]]></format>
         /// </example>
-        public static OneVersusAllTrainerTyped<TModel> OneVersusAll<TModel>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+        public static OneVersusAllTrainerTyped<TModel> OneVersusAllTyped<TModel>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             ITrainerEstimator<BinaryPredictionTransformer<TModel>, TModel> binaryEstimator,
             string labelColumnName = DefaultColumnNames.Label,
             bool imputeMissingLabelsAsNegative = false,
-            IEstimator<ISingleFeaturePredictionTransformer<ICalibrator>> calibrator = null,
-            int maximumCalibrationExampleCount = 1000000000,
             bool useProbabilities = true)
             where TModel : class
         {
-            return OneVersusAllStronglyTyped<TModel, TModel>(
-                catalog,
-            binaryEstimator,
-            DefaultColumnNames.Label,
-            false,
-            true);
+            return OneVersusAllTyped<TModel, TModel>(
+                catalog: catalog,
+                binaryEstimator: binaryEstimator,
+                labelColumnName: labelColumnName,
+                imputeMissingLabelsAsNegative: imputeMissingLabelsAsNegative,
+                useProbabilities: useProbabilities);
         }
 
         /// <summary>
-        /// Create a <see cref="OneVersusAllTrainer"/>, which predicts a multiclass target using one-versus-all strategy with
+        /// Create a <see cref="OneVersusAllTrainerTyped{TModelOut}"/>, which predicts a multiclass target using one-versus-all strategy with
         /// the binary classification estimator specified by <paramref name="binaryEstimator"/>.
         /// </summary>
         /// <remarks>
@@ -817,8 +815,10 @@ namespace Microsoft.ML
         /// </remarks>
         /// <param name="catalog">The multiclass classification catalog trainer object.</param>
         /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
+        /// <param name="calibrator">The calibrator. If a calibrator is not explicitly provided, it will default to <see cref="PlattCalibratorTrainer"/></param>
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
+        /// <param name="maximumCalibrationExampleCount">Number of instances to train the calibrator.</param>
         /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
         /// <typeparam name="TModelIn">The type of the model. This type parameter will usually be inferred automatically from <paramref name="binaryEstimator"/>.</typeparam>
         /// <typeparam name="TModelOut">The type of the model. This type parameter will usually be inferred automatically from <paramref name="binaryEstimator"/>.</typeparam>
@@ -828,10 +828,12 @@ namespace Microsoft.ML
         ///  [!code-csharp[OneVersusAll](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/OneVersusAll.cs)]
         /// ]]></format>
         /// </example>
-        public static OneVersusAllTrainerTyped<TModelOut> OneVersusAllStronglyTyped<TModelIn, TModelOut>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+        public static OneVersusAllTrainerTyped<TModelOut> OneVersusAllTyped<TModelIn, TModelOut>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             ITrainerEstimator<BinaryPredictionTransformer<TModelIn>, TModelIn> binaryEstimator,
             string labelColumnName = DefaultColumnNames.Label,
             bool imputeMissingLabelsAsNegative = false,
+            IEstimator<ISingleFeaturePredictionTransformer<ICalibrator>> calibrator = null,
+            int maximumCalibrationExampleCount = 1000000000,
             bool useProbabilities = true)
             where TModelIn : class
             where TModelOut : class
@@ -840,7 +842,7 @@ namespace Microsoft.ML
             var env = CatalogUtils.GetEnvironment(catalog);
             if (!(binaryEstimator is ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>> est))
                 throw env.ExceptParam(nameof(binaryEstimator), "Trainer estimator does not appear to produce the right kind of model.");
-            return new OneVersusAllTrainerTyped<TModelOut>(env, est, labelColumnName, imputeMissingLabelsAsNegative, useProbabilities);
+            return new OneVersusAllTrainerTyped<TModelOut>(env, est, labelColumnName, imputeMissingLabelsAsNegative, GetCalibratorTrainerOrThrow(env, calibrator), maximumCalibrationExampleCount, useProbabilities);
         }
 
         /// <summary>
