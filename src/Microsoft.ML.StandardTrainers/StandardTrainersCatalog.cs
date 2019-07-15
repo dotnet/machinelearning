@@ -799,7 +799,7 @@ namespace Microsoft.ML
             var env = CatalogUtils.GetEnvironment(catalog);
             if (!(binaryEstimator is ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>> est))
                 throw env.ExceptParam(nameof(binaryEstimator), "Trainer estimator does not appear to produce the right kind of model.");
-            return new OneVersusAllTrainerTyped<TModel>(env, est, labelColumnName, imputeMissingLabelsAsNegative, null, 10000, useProbabilities);
+            return new OneVersusAllTrainerTyped<TModel>(env, est, labelColumnName, imputeMissingLabelsAsNegative, useProbabilities);
         }
 
         /// <summary>
