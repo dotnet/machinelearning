@@ -260,7 +260,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="min">Specifies the lower bound of the range of slots to be dropped. The lower bound is inclusive. </param>
         /// <param name="max">Specifies the upper bound of the range of slots to be dropped. The upper bound is exclusive.</param>
-        internal SlotsDroppingTransformer(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int min = default, int? max = null)
+        public SlotsDroppingTransformer(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int min = default, int? max = null)
             : this(env, new ColumnOptions(outputColumnName, inputColumnName, (min, max)))
         {
         }
@@ -270,7 +270,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">Specifies the ranges of slots to drop for each column pair.</param>
-        internal SlotsDroppingTransformer(IHostEnvironment env, params ColumnOptions[] columns)
+        public SlotsDroppingTransformer(IHostEnvironment env, params ColumnOptions[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             Host.AssertNonEmpty(ColumnPairs);
