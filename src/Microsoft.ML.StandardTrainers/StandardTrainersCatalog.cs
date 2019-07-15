@@ -795,12 +795,11 @@ namespace Microsoft.ML
             bool useProbabilities = true)
             where TModel : class
         {
-            return OneVersusAllTyped<TModel, TModel>(
-                catalog: catalog,
-                binaryEstimator: binaryEstimator,
-                labelColumnName: labelColumnName,
-                imputeMissingLabelsAsNegative: imputeMissingLabelsAsNegative,
-                useProbabilities: useProbabilities);
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            if (!(binaryEstimator is ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>> est))
+                throw env.ExceptParam(nameof(binaryEstimator), "Trainer estimator does not appear to produce the right kind of model.");
+            return new OneVersusAllTrainerTyped<TModel>(env, est, labelColumnName, imputeMissingLabelsAsNegative, null, 10000, useProbabilities);
         }
 
         /// <summary>
@@ -822,28 +821,28 @@ namespace Microsoft.ML
         /// <param name="maximumCalibrationExampleCount">Number of instances to train the calibrator.</param>
         /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
         /// <typeparam name="TModelIn">The type of the model. This type parameter will usually be inferred automatically from <paramref name="binaryEstimator"/>.</typeparam>
-        /// <typeparam name="TModelOut">The type of the model. This type parameter will usually be inferred automatically from <paramref name="binaryEstimator"/>.</typeparam>
+        /// <typeparam name="TCalibrator">The type of the model. This type parameter will usually be inferred automatically from <paramref name="binaryEstimator"/>.</typeparam>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
         ///  [!code-csharp[OneVersusAll](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/OneVersusAll.cs)]
         /// ]]></format>
         /// </example>
-        public static OneVersusAllTrainerTyped<TModelOut> OneVersusAllTyped<TModelIn, TModelOut>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+        public static OneVersusAllTrainerTyped<TModelIn, TCalibrator> OneVersusAllUnCalibratedToCalibratedTyped<TModelIn, TCalibrator>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             ITrainerEstimator<BinaryPredictionTransformer<TModelIn>, TModelIn> binaryEstimator,
             string labelColumnName = DefaultColumnNames.Label,
             bool imputeMissingLabelsAsNegative = false,
             IEstimator<ISingleFeaturePredictionTransformer<ICalibrator>> calibrator = null,
             int maximumCalibrationExampleCount = 1000000000,
             bool useProbabilities = true)
-            where TModelIn : class
-            where TModelOut : class
+            where TModelIn : class, IPredictorProducing<float>
+            where TCalibrator : class, ICalibrator
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
             if (!(binaryEstimator is ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>> est))
                 throw env.ExceptParam(nameof(binaryEstimator), "Trainer estimator does not appear to produce the right kind of model.");
-            return new OneVersusAllTrainerTyped<TModelOut>(env, est, labelColumnName, imputeMissingLabelsAsNegative, GetCalibratorTrainerOrThrow(env, calibrator), maximumCalibrationExampleCount, useProbabilities);
+            return new OneVersusAllTrainerTyped<TModelIn, TCalibrator>(env, est, labelColumnName, imputeMissingLabelsAsNegative, GetCalibratorTrainerOrThrow(env, calibrator), maximumCalibrationExampleCount, useProbabilities);
         }
 
         /// <summary>

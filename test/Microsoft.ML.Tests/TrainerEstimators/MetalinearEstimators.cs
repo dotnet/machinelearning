@@ -121,7 +121,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var pipeline = new ColumnConcatenatingEstimator(Env, "Vars", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 .Append(new ValueToKeyMappingEstimator(Env, "Label"), TransformerScope.TrainTest)
-                .Append(ML.MulticlassClassification.Trainers.OneVersusAllTyped<LinearBinaryModelParameters, CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>(sdcaTrainer))
+                .Append(ML.MulticlassClassification.Trainers.OneVersusAllUnCalibratedToCalibratedTyped<LinearBinaryModelParameters, PlattCalibrator>(sdcaTrainer))
                 
                 //.Append(ML.MulticlassClassification.Trainers.OneVersusAllTyped(sdca))
                 .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
