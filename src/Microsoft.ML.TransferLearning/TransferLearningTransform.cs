@@ -143,7 +143,6 @@ namespace Microsoft.ML.Transforms.TransferLearning
             bool transferLayerExists = false;
             if (Graph.OperationByName(_options.OutputTensorName) == null)
             {
-                Console.WriteLine("Transfer Learning Layer already created");
                 transferLayerExists = true;
             }
             else
@@ -174,12 +173,13 @@ namespace Microsoft.ML.Transforms.TransferLearning
                 else
                 {
                     (Tensor evaluation_step, Tensor _) = AddEvaluationStep(_finalTensor, _groundTruthInput);
+                    _evaluationStep = evaluation_step;
                 }
 
                 // Merge all the summaries and write them out to the summaries_dir
                 var merged = tf.summary.merge_all();
-                var trainWriter = tf.summary.FileWriter("/train", sess.graph);
-                var validationWriter = tf.summary.FileWriter("/validation", sess.graph);
+                var trainWriter = tf.summary.FileWriter("/" + _options.TrainWriterName, sess.graph);
+                var validationWriter = tf.summary.FileWriter("/" + _options.ValidationWriterName, sess.graph);
 
                 IDataView transformedValues = input; // Get output from model not really this is just to turnoff compile errors from unimplemented code
                 float[] predictions = new float[4004];
@@ -189,8 +189,8 @@ namespace Microsoft.ML.Transforms.TransferLearning
                 {
                     using (var cursor = transformedValues.GetRowCursor(transformedValues.Schema))
                     {
-
-                        var predictionValues = cursor.GetGetter<VBuffer<float>>(cursor.Schema["output"]);
+                        // This is where the output value is pulled from so use OutputColumnName create design for predicted label
+                        var predictionValues = cursor.GetGetter<VBuffer<float>>(cursor.Schema[_options.OutputColumns[0]]);
                         int count = 0;
                         while (cursor.MoveNext())
                         {
@@ -210,7 +210,6 @@ namespace Microsoft.ML.Transforms.TransferLearning
                                   new NDArray(predictions, new Shape(new[] { 4, 1001 }))),
                                   new FeedItem(_groundTruthInput, truth));
                         var trainSummary = results[0];
-                        Console.WriteLine("Trained");
 
                         results = sess.run(
                                   new ITensorOrOperation[] { _finalTensor },
@@ -279,7 +278,7 @@ namespace Microsoft.ML.Transforms.TransferLearning
             Tensor bottleneckTensor, bool isTraining)
         {
             var (batch_size, bottleneck_tensor_size) = (bottleneckTensor.TensorShape.Dimensions[0], bottleneckTensor.TensorShape.Dimensions[1]);
-            with(tf.name_scope("input"), scope =>
+            with(tf.name_scope(_options.FinalLayerInputNameScope), scope =>
             {
                 _bottleneckInput = tf.placeholder_with_default(
                     bottleneckTensor,
@@ -290,50 +289,50 @@ namespace Microsoft.ML.Transforms.TransferLearning
             });
 
             // Organizing the following ops so they are easier to see in TensorBoard.
-            string layerName = "final_retrain_ops";
+            string layerName = _options.RetrainLayerName;
             Tensor logits = null;
             with(tf.name_scope(layerName), scope =>
             {
                 RefVariable layerWeights = null;
-                with(tf.name_scope("weights"), delegate
+                with(tf.name_scope(_options.WeightsNameScope), delegate
                 {
-                    var initialValue = tf.truncated_normal(new int[] { bottleneck_tensor_size, classCount }, stddev: 0.001f);
-                    layerWeights = tf.Variable(initialValue, name: "final_weights");
+                    var initialValue = tf.truncated_normal(new int[] { bottleneck_tensor_size, classCount }, stddev: _options.WeightsStd);
+                    layerWeights = tf.Variable(initialValue, name: _options.WeightsName);
                     VariableSummaries(layerWeights);
                 });
 
                 RefVariable layerBiases = null;
-                with(tf.name_scope("biases"), delegate
+                with(tf.name_scope(_options.BiasesNameScope), delegate
                 {
-                    layerBiases = tf.Variable(tf.zeros((classCount)), name: "final_biases");
+                    layerBiases = tf.Variable(tf.zeros((classCount)), name: _options.BiasesName);
                     VariableSummaries(layerBiases);
                 });
 
-                with(tf.name_scope("Wx_plus_b"), delegate
+                with(tf.name_scope(_options.MatrixMultiplicationNameScope), delegate
                 {
                     logits = tf.matmul(_bottleneckInput, layerWeights) + layerBiases;
-                    tf.summary.histogram("pre_activations", logits);
+                    tf.summary.histogram(_options.MatrixMultiplicationHistogram, logits);
                 });
             });
 
             _finalTensor = tf.nn.softmax(logits, name: finalTensorName);
 
-            tf.summary.histogram("activations", _finalTensor);
+            tf.summary.histogram(_options.SoftMaxHistogram, _finalTensor);
 
             // If this is an eval graph, we don't need to add loss ops or an optimizer.
             if (!isTraining)
                 return (null, null, _bottleneckInput, _groundTruthInput, _finalTensor);
 
             Tensor crossEntropyMean = null;
-            with(tf.name_scope("cross_entropy"), delegate
+            with(tf.name_scope(_options.CrossEntropyName), delegate
             {
                 crossEntropyMean = tf.losses.sparse_softmax_cross_entropy(
                     labels: _groundTruthInput, logits: logits);
             });
 
-            tf.summary.scalar("cross_entropy", crossEntropyMean);
+            tf.summary.scalar(_options.CrossEntropyName, crossEntropyMean);
 
-            with(tf.name_scope("train"), delegate
+            with(tf.name_scope(_options.TrainNameScope), delegate
             {
                 var optimizer = tf.train.GradientDescentOptimizer(_options.LearningRate);
                 _trainStep = optimizer.minimize(crossEntropyMean);
@@ -345,19 +344,19 @@ namespace Microsoft.ML.Transforms.TransferLearning
 
         private void VariableSummaries(RefVariable var)
         {
-            with(tf.name_scope("summaries"), delegate
+            with(tf.name_scope(_options.SummariesNameScope), delegate
             {
                 var mean = tf.reduce_mean(var);
-                tf.summary.scalar("mean", mean);
+                tf.summary.scalar(_options.MeanName, mean);
                 Tensor stddev = null;
-                with(tf.name_scope("stddev"), delegate
+                with(tf.name_scope(_options.StdDevName), delegate
                 {
                     stddev = tf.sqrt(tf.reduce_mean(tf.square(var - mean)));
                 });
-                tf.summary.scalar("stddev", stddev);
-                tf.summary.scalar("max", tf.reduce_max(var));
-                tf.summary.scalar("min", tf.reduce_min(var));
-                tf.summary.histogram("histogram", var);
+                tf.summary.scalar(_options.StdDevName, stddev);
+                tf.summary.scalar(_options.MaxName, tf.reduce_max(var));
+                tf.summary.scalar(_options.MinName, tf.reduce_min(var));
+                tf.summary.histogram(_options.HistogramName, var);
             });
         }
 
@@ -391,12 +390,39 @@ namespace Microsoft.ML.Transforms.TransferLearning
             public string BottleneckInputTensorName;
             public string GroundTruthTensorName;
             public int EvaluationStepInterval;
+            public string FinalLayerInputNameScope;
+            public string RetrainLayerName;
+            public string WeightsNameScope;
+            public string WeightsName;
+            public float WeightsStd;
+            public string BiasesNameScope;
+            public string BiasesName;
+            public string MatrixMultiplicationNameScope;
+            public string MatrixMultiplicationHistogram;
+            public string SoftMaxHistogram;
+            public string CrossEntropyName;
+            public string TrainNameScope;
+            public string SummariesNameScope;
+            public string MeanName;
+            public string StdDevName;
+            public string MaxName;
+            public string MinName;
+            public string HistogramName;
+            public string TrainWriterName;
+            public string ValidationWriterName;
 
             internal Options(string[] inputColumns, string[] outputColumns, string labelColumn, ModelType modelType = ModelType.Resnet101,
                 int batchSize = 1, int epoch = 10, float learningRate = .01f, string savePath = "TransferLearningModel",
                 string outputTensorName = "FinalOutput", string evaluationNameScope = "accuracy",
                 string predictionComparisonNameScope = "correct_prediction", string bottleneckInputTensorName = "BottleneckInputPlaceholder",
-                string groundTruthTensorName = "GroundTruthInput", int evaluationStepInterval = 10)
+                string groundTruthTensorName = "GroundTruthInput", int evaluationStepInterval = 10, string finalLayerInputNameScope = "input",
+                string retrainLayerName = "final_retrain_ops", string weightsNameScope = "weights", string weightsName = "final_weights",
+                float weightsStd = 0.001f, string biasesNameScope = "biases", string biasesName = "final_biases",
+                string matrixMultiplicationNameScope = "Wx_plus_b", string matrixMultiplicationHistogram = "pre_activations",
+                string softMaxHistogram = "activations", string crossEntropyName = "cross_entropy", string trainNameScope = "train",
+                string summariesNameScope = "summaries", string meanName = "mean", string stdDevName = "stddev",
+                string maxName = "max", string minName = "min", string historgramName = "histogram", string trainWriterName = "train",
+                string validationWriterName = "validation")
             {
                 InputColumns = inputColumns;
                 OutputColumns = outputColumns;
@@ -412,6 +438,26 @@ namespace Microsoft.ML.Transforms.TransferLearning
                 BottleneckInputTensorName = bottleneckInputTensorName;
                 GroundTruthTensorName = groundTruthTensorName;
                 EvaluationStepInterval = evaluationStepInterval;
+                FinalLayerInputNameScope = finalLayerInputNameScope;
+                RetrainLayerName = retrainLayerName;
+                WeightsNameScope = weightsNameScope;
+                WeightsName = weightsName;
+                WeightsStd = weightsStd;
+                BiasesNameScope = biasesNameScope;
+                BiasesName = biasesName;
+                MatrixMultiplicationNameScope = matrixMultiplicationNameScope;
+                MatrixMultiplicationHistogram = matrixMultiplicationHistogram;
+                SoftMaxHistogram = softMaxHistogram;
+                CrossEntropyName = crossEntropyName;
+                TrainNameScope = trainNameScope;
+                SummariesNameScope = summariesNameScope;
+                MeanName = meanName;
+                StdDevName = stdDevName;
+                MaxName = maxName;
+                MinName = minName;
+                HistogramName = historgramName;
+                TrainWriterName = trainWriterName;
+                ValidationWriterName = validationWriterName;
             }
 
         }
