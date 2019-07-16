@@ -213,8 +213,8 @@ namespace Microsoft.ML.Transforms.TransferLearning
 
                         }
                         for (int index = 0; index < 4; index++)
-                            // Get Buffer was implemented locally and needs to be reimplemented
-                            Array.Copy(outputValue[index].GetBuffer(), 0, predictions, index * 1001, 1001);
+                            // Used GetValues method instead of GetBuffer which we implemeneted so may break
+                            Array.Copy(outputValue[index].GetValues(), 0, predictions, index * 1001, 1001);
 
                         NumSharp.NDArray results = sess.run(
                                   new ITensorOrOperation[] { merged, _trainStep },
