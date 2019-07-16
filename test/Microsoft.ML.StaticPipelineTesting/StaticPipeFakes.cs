@@ -73,7 +73,7 @@ namespace FakeStaticPipes
         public VarKey<T> VarKey<T>(params PipelineColumn[] dependencies) => new AVarKey<T>(this, dependencies);
     }
 
-    public static class ConcatTransformExtensions
+    internal static class ConcatTransformExtensions
     {
         private static FakeTransformReconciler _rec = new FakeTransformReconciler("Concat");
 
@@ -126,7 +126,7 @@ namespace FakeStaticPipes
             => _rec.VarVector<T>(Helper(me, i));
     }
 
-    public static class NormalizeTransformExtensions
+    internal static class NormalizeTransformExtensions
     {
         private static FakeTransformReconciler _rec = new FakeTransformReconciler("Normalize");
 
@@ -137,7 +137,7 @@ namespace FakeStaticPipes
             => _rec.Vector<double>(me);
     }
 
-    public static class WordTokenizeTransformExtensions
+    internal static class WordTokenizeTransformExtensions
     {
         private static FakeTransformReconciler _rec = new FakeTransformReconciler("WordTokenize");
 
@@ -149,7 +149,7 @@ namespace FakeStaticPipes
             => _rec.VarVector<string>(me);
     }
 
-    public static class TermTransformExtensions
+    internal static class TermTransformExtensions
     {
         private static FakeTransformReconciler _rec = new FakeTransformReconciler("Term");
 
@@ -162,7 +162,7 @@ namespace FakeStaticPipes
     }
 
 
-    public static class TextTransformExtensions
+    internal static class TextTransformExtensions
     {
         private static FakeTransformReconciler _rec = new FakeTransformReconciler("FeaturizeTextEstimator");
 
@@ -176,7 +176,7 @@ namespace FakeStaticPipes
             => _rec.Vector<float>(me);
     }
 
-    public static class TrainerTransformExtensions
+    internal static class TrainerTransformExtensions
     {
         private static FakeTransformReconciler _rec = new FakeTransformReconciler("LinearBinaryClassification");
 
@@ -190,7 +190,7 @@ namespace FakeStaticPipes
             => (_rec.Scalar<float>(label, features), _rec.Scalar<float>(label, features), _rec.Scalar<bool>(label, features));
     }
 
-    public static class HashTransformExtensions
+    internal static class HashTransformExtensions
     {
         private static FakeTransformReconciler _rec = new FakeTransformReconciler("Hash");
 

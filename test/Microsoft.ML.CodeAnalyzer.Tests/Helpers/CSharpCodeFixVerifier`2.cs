@@ -65,7 +65,6 @@ namespace Microsoft.ML.CodeAnalyzer.Tests.Helpers
                 TestState.AdditionalReferences.Add(AdditionalMetadataReferences.MSDataDataViewReference);
                 TestState.AdditionalReferences.Add(AdditionalMetadataReferences.MLNetCoreReference);
                 TestState.AdditionalReferences.Add(AdditionalMetadataReferences.MLNetDataReference);
-                TestState.AdditionalReferences.Add(AdditionalMetadataReferences.MLNetStaticPipeReference);
 
                 SolutionTransforms.Add((solution, projectId) =>
                 {
