@@ -36,14 +36,10 @@ namespace Microsoft.ML.Transforms.TransferLearning
     {
         private readonly string _savedModelPath;
         private readonly string _loadedModelOutputTensorName;
+        private readonly string _loadedModelInputTensorName;
         internal readonly Session Session;
-        internal readonly DataViewType[] OutputTypes;
         internal Graph Graph => Session.graph;
 
-        internal readonly string[] Inputs;
-        internal readonly string[] Outputs;
-
-        internal static int BatchSize = 1;
         internal const string Summary = "Transforms the data using the Transfer Learning model.";
         internal const string UserName = "TransferLearningTransform";
         internal const string ShortName = "TLTransform";
@@ -51,6 +47,7 @@ namespace Microsoft.ML.Transforms.TransferLearning
 
         private Operation _trainStep;
         private Tensor _loadedModelOutput;
+        private Tensor _loadedModelInput;
         private Tensor _finalTensor;
         private Tensor _bottleneckInput;
         private Tensor _crossEntropy;
@@ -84,15 +81,23 @@ namespace Microsoft.ML.Transforms.TransferLearning
                     throw new NotImplementedException();
                 case TransferLearningEstimator.Options.ModelType.Resnet101:
                     _savedModelPath = "resnet_v2_101_299_frozen.pb";
-                    _loadedModelOutputTensorName = "resnet_v2_101/SpatialSqueeze";
+                    //_loadedModelOutputTensorName = "resnet_v2_101/SpatialSqueeze";
+                    _loadedModelInputTensorName = "input";
+                    _loadedModelOutputTensorName = "output"; //If this doesn't work use the name above but should because output is an identity tensor
                     break;
             }
 
-            Session = LoadSession(env, null, _savedModelPath);
+            Session = LoadSession(env, _savedModelPath);
+            _loadedModelOutput = Graph.OperationByName(_loadedModelOutputTensorName);
+            _loadedModelInput = Graph.OperationByName(_loadedModelInputTensorName);
+            if (_loadedModelOutput == null || _loadedModelInput == null)
+            {
+                throw new Exception("Output tensor of pretrained model not found");
+            }
             TransferLearning(input);
         }
 
-        internal static Session LoadSession(IExceptionContext ectx, byte[] modelBytes = null, string modelFile = null)
+        internal static Session LoadSession(IExceptionContext ectx, string modelFile = null)
         {
             var graph = tf.Graph().as_default();
             try
@@ -131,11 +136,6 @@ namespace Microsoft.ML.Transforms.TransferLearning
 
         public void TransferLearning(IDataView input)
         {
-            _loadedModelOutput = Graph.OperationByName(_loadedModelOutputTensorName);
-            if (_loadedModelOutput == null)
-            {
-                throw new Exception("Output tensor of pretrained model not found");
-            }
             var labelCol = input.Schema.GetColumnOrNull(_options.LabelColumn);
             var classCount = (labelCol.Value.Type as KeyDataViewType).Count;
 
@@ -418,7 +418,6 @@ namespace Microsoft.ML.Transforms.TransferLearning
 
         private readonly IHost _host;
         private readonly Options _options;
-        private readonly DataViewType[] _outputTypes;
         private TransferLearningTransformer _transformer;
 
         internal TransferLearningEstimator(IHost env, Options options)
