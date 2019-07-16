@@ -23,6 +23,6 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static TransferLearningModel LoadTransferLearningModel(this ModelOperationsCatalog catalog)
-            => TransferLearning.LoadTransferLearningModel(CatalogUtils.GetEnvironment(catalog));
+            => new TransferLearningModel(CatalogUtils.GetEnvironment(catalog));
     }
 }

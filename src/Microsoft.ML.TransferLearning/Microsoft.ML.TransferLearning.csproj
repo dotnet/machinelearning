@@ -10,4 +10,9 @@
     <PackageReference Include="TensorFlow.NET" Version="0.9.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.DataView\Microsoft.ML.DataView.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
+  </ItemGroup>
+
 </Project>
