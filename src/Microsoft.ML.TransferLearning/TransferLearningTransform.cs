@@ -37,8 +37,6 @@ namespace Microsoft.ML.Transforms.TransferLearning
         private readonly string _savedModelPath;
         internal readonly Session Session;
         internal readonly DataViewType[] OutputTypes;
-        internal readonly TF_DataType[] TFOutputTypes;
-        internal readonly TF_DataType[] TFInputTypes;
         internal Graph Graph => Session.graph;
 
         internal readonly string[] Inputs;
@@ -56,9 +54,7 @@ namespace Microsoft.ML.Transforms.TransferLearning
         private Tensor _crossEntropy;
         private Tensor _groundTruthInput;
         private Tensor _evaluationStep;
-        private string _savePath;
-        private float _learningRate;
-        private string _outputTensorName;
+        private TransferLearningEstimator.Options _options;
 
         private static VersionInfo GetVersionInfo()
         {
@@ -73,37 +69,24 @@ namespace Microsoft.ML.Transforms.TransferLearning
                 loaderAssemblyName: typeof(TransferLearningTransformer).Assembly.FullName);
         }
 
-        //Swapped order of input and output columns in param listing can cause errors if forgotten
-        internal TransferLearningTransformer(IHostEnvironment env, string[] outputColumnNames, Session session = null, string[] inputColumnNames = null, string savedModelPath = null) :
+        internal TransferLearningTransformer(IHostEnvironment env, TransferLearningEstimator.Options options, IDataView input) :
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TransferLearningTransformer)))
 
         {
-            Host.CheckValue(session, nameof(session));
-            Host.CheckNonEmpty(inputColumnNames, nameof(inputColumnNames));
-            Host.CheckNonEmpty(outputColumnNames, nameof(outputColumnNames));
-            if (session == null) {
-                if (savedModelPath != null)
-                    _savedModelPath = savedModelPath;
-                Session = LoadSession(env, null, _savedModelPath);
-            } else
-            {
-                Session = session;
-            }
-            if (inputColumnNames == null)
-            {
-                Inputs = new string[] { null };
-            } else
-            {
-                Inputs = inputColumnNames;
-            }
-            Outputs = outputColumnNames;
-            _savedModelPath = "resnet_v2_101_299_frozen.pb";
-            _savePath = "TransferLearningModel";
-            _learningRate = 0.01f;
-            _outputTensorName = "FinalOutput";
+            Host.CheckNonEmpty(options.InputColumns, nameof(options.InputColumns));
+            Host.CheckNonEmpty(options.OutputColumns, nameof(options.OutputColumns));
+            _options = options;
 
-        (TFInputTypes, TFInputShapes) = GetInputInfo(Host, Session, Inputs);
-            (TFOutputTypes, OutputTypes) = GetOutputInfo(Host, Session, Outputs);
+            switch (_options.Model) {
+                case TransferLearningEstimator.Options.ModelType.InceptionV3:
+                    throw new NotImplementedException();
+                case TransferLearningEstimator.Options.ModelType.Resnet101:
+                    _savedModelPath = "resnet_v2_101_299_frozen.pb";
+                    break;
+            }
+
+            Session = LoadSession(env, null, _savedModelPath);
+            TransferLearning(input);
         }
 
         internal static Session LoadSession(IExceptionContext ectx, byte[] modelBytes = null, string modelFile = null)
@@ -140,20 +123,18 @@ namespace Microsoft.ML.Transforms.TransferLearning
         private protected override void SaveModel(ModelSaveContext ctx)
         {
             var trainSaver = tf.train.Saver();
-            trainSaver.save(Session, _savePath);
+            trainSaver.save(Session, _options.SavePath);
         }
 
-        public void TransferLearning(IDataView input, Operation bottleneckTensor, Operation inputTensor, int trainingIterations, int evalStepInterval)
+        public void TransferLearning(IDataView input, Operation bottleneckTensor, Operation inputTensor)
         {
             // Not fully sure how to get the label count might just brute force count
-            var labelCol = input.Schema.Label.Value;
-            var classCount = 4;
-            if (labelCol.Type is KeyDataViewType labelKeyType)
-                classCount = labelKeyType.GetCountAsInt32(Host);
+            var labelCol = input.Schema.GetColumnOrNull(_options.LabelColumn);
+            var classCount = (labelCol.Value.Type as KeyDataViewType).Count;
 
             // Check if the last layer has already been added to the graph if not then add
             bool transferLayerExists = false;
-            if (Graph.OperationByName(_outputTensorName) == null)
+            if (Graph.OperationByName(_options.OutputTensorName) == null)
             {
                 Console.WriteLine("Transfer Learning Layer already created");
                 transferLayerExists = true;
@@ -166,7 +147,7 @@ namespace Microsoft.ML.Transforms.TransferLearning
 
                     (_trainStep, _crossEntropy, _bottleneckInput,
                      _groundTruthInput, _finalTensor) = AddFinalLayer(
-                         classCount, _outputTensorName, bottleneckTensor,
+                         (int) classCount, _options.OutputTensorName, bottleneckTensor,
                          isTraining: true);
                 });
             }
@@ -181,7 +162,7 @@ namespace Microsoft.ML.Transforms.TransferLearning
                 // Create the operations we need to evaluate the accuracy of our new layer.
                 if (transferLayerExists)
                 {
-                    _evaluationStep = Graph.OperationByName("accuracy/accuracy/Mean");
+                    _evaluationStep = Graph.OperationByName(_options.EvaluationNameScope+"/"+_options.EvaluationNameScope+"/Mean");
                 }
                 else
                 {
@@ -197,7 +178,7 @@ namespace Microsoft.ML.Transforms.TransferLearning
                 float[] predictions = new float[4004];
                 VBuffer<float>[] outputValue = new VBuffer<float>[4];
                 long[] truth = { 3, 2, 1, 3 };
-                for (int i = 0; i < trainingIterations; i++)
+                for (int i = 0; i < _options.Epoch; i++)
                 {
                     using (var cursor = transformedValues.GetRowCursor(transformedValues.Schema))
                     {
@@ -234,8 +215,8 @@ namespace Microsoft.ML.Transforms.TransferLearning
                         trainWriter.add_summary(trainSummary, i);
 
                         // Every so often, print out how well the graph is training.
-                        bool isLastStep = (i + 1 == trainingIterations);
-                        if ((i % evalStepInterval) == 0 || isLastStep)
+                        bool isLastStep = (i + 1 == _options.Epoch);
+                        if ((i % _options.EvaluationStepInterval) == 0 || isLastStep)
                         {
                             results = sess.run(
                                 new Tensor[] { _evaluationStep, _crossEntropy },
@@ -269,21 +250,21 @@ namespace Microsoft.ML.Transforms.TransferLearning
             Tensor correctPrediction = null;
             Tensor prediction = null;
 
-            with(tf.name_scope("accuracy"), scope =>
+            with(tf.name_scope(_options.EvaluationNameScope), scope =>
             {
-                with(tf.name_scope("correct_prediction"), delegate
+                with(tf.name_scope(_options.PredictionComparisonNameScope), delegate
                 {
                     prediction = tf.argmax(resultTensor, 1);
                     correctPrediction = tf.equal(prediction, groundTruthTensor);
                 });
 
-                with(tf.name_scope("accuracy"), delegate
+                with(tf.name_scope(_options.EvaluationNameScope), delegate
                 {
                     evaluationStep = tf.reduce_mean(tf.cast(correctPrediction, tf.float32));
                 });
             });
 
-            tf.summary.scalar("accuracy", evaluationStep);
+            tf.summary.scalar(_options.EvaluationNameScope, evaluationStep);
             return (evaluationStep, prediction);
         }
 
@@ -296,9 +277,9 @@ namespace Microsoft.ML.Transforms.TransferLearning
                 _bottleneckInput = tf.placeholder_with_default(
                     bottleneckTensor,
                     shape: bottleneckTensor.TensorShape.Dimensions,
-                    name: "BottleneckInputPlaceholder");
+                    name: _options.BottlneckTensorName);
 
-                _groundTruthInput = tf.placeholder(tf.int64, new TensorShape(batch_size), name: "GroundTruthInput");
+                _groundTruthInput = tf.placeholder(tf.int64, new TensorShape(batch_size), name: _options.GroundTruthTensorName);
             });
 
             // Organizing the following ops so they are easier to see in TensorBoard.
@@ -347,7 +328,7 @@ namespace Microsoft.ML.Transforms.TransferLearning
 
             with(tf.name_scope("train"), delegate
             {
-                var optimizer = tf.train.GradientDescentOptimizer(_learningRate);
+                var optimizer = tf.train.GradientDescentOptimizer(_options.LearningRate);
                 _trainStep = optimizer.minimize(crossEntropyMean);
             });
 
@@ -362,7 +343,8 @@ namespace Microsoft.ML.Transforms.TransferLearning
                 var mean = tf.reduce_mean(var);
                 tf.summary.scalar("mean", mean);
                 Tensor stddev = null;
-                with(tf.name_scope("stddev"), delegate {
+                with(tf.name_scope("stddev"), delegate
+                {
                     stddev = tf.sqrt(tf.reduce_mean(tf.square(var - mean)));
                 });
                 tf.summary.scalar("stddev", stddev);
@@ -373,6 +355,84 @@ namespace Microsoft.ML.Transforms.TransferLearning
         }
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public sealed class TransferLearningEstimator : IEstimator<TransferLearningTransformer>
+    {
+
+        internal sealed class Options : TransformInputBase
+        {
+            public enum ModelType {
+                InceptionV3,
+                Resnet101
+            };
+
+            public ModelType Model;
+            public float LearningRate;
+            public int BatchSize;
+            public int Epoch;
+            public string[] InputColumns;
+            public string[] OutputColumns;
+            public string LabelColumn;
+            public string SavePath;
+            public string OutputTensorName;
+            public string EvaluationNameScope;
+            public string PredictionComparisonNameScope;
+            public string BottlneckTensorName;
+            public string GroundTruthTensorName;
+            public int EvaluationStepInterval;
+
+            internal Options(string[] inputColumns, string[] outputColumns, string labelColumn, ModelType modelType = ModelType.Resnet101,
+                int batchSize = 1, int epoch = 10, float learningRate = .01f, string savePath = "TransferLearningModel",
+                string outputTensorName = "FinalOutput", string evaluationNameScope = "accuracy",
+                string predictionComparisonNameScope = "correct_prediction", string bottleneckTensorName = "BottleneckInputPlaceholder",
+                string groundTruthTensorName = "GroundTruthInput", int evaluationStepInterval = 10)
+            {
+                InputColumns = inputColumns;
+                OutputColumns = outputColumns;
+                LabelColumn = labelColumn;
+                Model = modelType;
+                BatchSize = batchSize;
+                Epoch = epoch;
+                LearningRate = learningRate;
+                SavePath = savePath;
+                OutputTensorName = outputTensorName;
+                EvaluationNameScope = evaluationNameScope;
+                PredictionComparisonNameScope = predictionComparisonNameScope;
+                BottlneckTensorName = bottleneckTensorName;
+                GroundTruthTensorName = groundTruthTensorName;
+                EvaluationStepInterval = evaluationStepInterval;
+            }
+
+        }
+
+        private readonly IHost _host;
+        private readonly Options _options;
+        private readonly DataViewType[] _outputTypes;
+        private TransferLearningTransformer _transformer;
+
+        internal TransferLearningEstimator(IHost env, Options options)
+        {
+            _host = env;
+            _options = options;
+        }
+
+        public TransferLearningTransformer Fit(IDataView input)
+        {
+            _host.CheckValue(input, nameof(input));
+            if (_transformer == null)
+            {
+                _transformer = new TransferLearningTransformer(_host, _options, input);
+            }
+            // Validate input schema.
+            _transformer.GetOutputSchema(input.Schema);
+            return _transformer;
+        }
+
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             throw new NotImplementedException();
         }
