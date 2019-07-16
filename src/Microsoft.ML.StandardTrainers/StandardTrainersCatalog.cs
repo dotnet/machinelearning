@@ -758,7 +758,6 @@ namespace Microsoft.ML
             where TModel : class
         {
             Contracts.CheckValue(catalog, nameof(catalog));
-            var s = typeof(TModel);
             var env = CatalogUtils.GetEnvironment(catalog);
             if (!(binaryEstimator is ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>> est))
                 throw env.ExceptParam(nameof(binaryEstimator), "Trainer estimator does not appear to produce the right kind of model.");

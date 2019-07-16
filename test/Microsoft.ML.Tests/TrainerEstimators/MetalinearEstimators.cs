@@ -110,20 +110,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     NumberOfThreads = 1,
                 });
 
-            var sdca = ML.BinaryClassification.Trainers.SgdCalibrated(
-                new SgdCalibratedTrainer.Options
-                {
-                    LabelColumnName = "Label",
-                    FeatureColumnName = "Vars",
-                    Shuffle = true,
-                    NumberOfThreads = 1,
-                });
-
             var pipeline = new ColumnConcatenatingEstimator(Env, "Vars", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 .Append(new ValueToKeyMappingEstimator(Env, "Label"), TransformerScope.TrainTest)
-                .Append(ML.MulticlassClassification.Trainers.OneVersusAllUnCalibratedToCalibratedTyped<LinearBinaryModelParameters, PlattCalibrator>(sdcaTrainer))
-                
-                //.Append(ML.MulticlassClassification.Trainers.OneVersusAllTyped(sdca))
                 .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
 
             var model = pipeline.Fit(data);
