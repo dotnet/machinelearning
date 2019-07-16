@@ -63,6 +63,8 @@ namespace Microsoft.ML.Data
         /// </summary>
         public ReadOnlySpan<T> GetValues() => _values.AsSpan(0, _count);
 
+        public T[] GetBuffer() => _values;
+
         /// <summary>
         /// The indices. For a dense representation, this array is not used, and will return the default "empty" span.
         /// For a sparse representation it is parallel to that returned from <see cref="GetValues"/> and specifies the

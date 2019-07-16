@@ -35,6 +35,7 @@ namespace Microsoft.ML.Transforms.TransferLearning
     public sealed class TransferLearningTransformer : RowToRowTransformerBase
     {
         private readonly string _savedModelPath;
+        private readonly string _loadedModelOutputTensorName;
         internal readonly Session Session;
         internal readonly DataViewType[] OutputTypes;
         internal Graph Graph => Session.graph;
@@ -49,6 +50,7 @@ namespace Microsoft.ML.Transforms.TransferLearning
         internal const string LoaderSignature = "TransferLearningTransform";
 
         private Operation _trainStep;
+        private Tensor _loadedModelOutput;
         private Tensor _finalTensor;
         private Tensor _bottleneckInput;
         private Tensor _crossEntropy;
@@ -82,6 +84,7 @@ namespace Microsoft.ML.Transforms.TransferLearning
                     throw new NotImplementedException();
                 case TransferLearningEstimator.Options.ModelType.Resnet101:
                     _savedModelPath = "resnet_v2_101_299_frozen.pb";
+                    _loadedModelOutputTensorName = "resnet_v2_101/SpatialSqueeze";
                     break;
             }
 
@@ -126,9 +129,13 @@ namespace Microsoft.ML.Transforms.TransferLearning
             trainSaver.save(Session, _options.SavePath);
         }
 
-        public void TransferLearning(IDataView input, Operation bottleneckTensor, Operation inputTensor)
+        public void TransferLearning(IDataView input)
         {
-            // Not fully sure how to get the label count might just brute force count
+            _loadedModelOutput = Graph.OperationByName(_loadedModelOutputTensorName);
+            if (_loadedModelOutput == null)
+            {
+                throw new Exception("Output tensor of pretrained model not found");
+            }
             var labelCol = input.Schema.GetColumnOrNull(_options.LabelColumn);
             var classCount = (labelCol.Value.Type as KeyDataViewType).Count;
 
@@ -147,7 +154,7 @@ namespace Microsoft.ML.Transforms.TransferLearning
 
                     (_trainStep, _crossEntropy, _bottleneckInput,
                      _groundTruthInput, _finalTensor) = AddFinalLayer(
-                         (int) classCount, _options.OutputTensorName, bottleneckTensor,
+                         (int) classCount, _options.OutputTensorName, _loadedModelOutput,
                          isTraining: true);
                 });
             }
@@ -174,7 +181,7 @@ namespace Microsoft.ML.Transforms.TransferLearning
                 var trainWriter = tf.summary.FileWriter("/train", sess.graph);
                 var validationWriter = tf.summary.FileWriter("/validation", sess.graph);
 
-                IDataView transformedValues; // Get output from model
+                IDataView transformedValues = input; // Get output from model not really this is just to turnoff compile errors from unimplemented code
                 float[] predictions = new float[4004];
                 VBuffer<float>[] outputValue = new VBuffer<float>[4];
                 long[] truth = { 3, 2, 1, 3 };
@@ -195,7 +202,7 @@ namespace Microsoft.ML.Transforms.TransferLearning
                         }
                         for (int index = 0; index < 4; index++)
                             // Used GetValues method instead of GetBuffer which we implemeneted so may break
-                            Array.Copy(outputValue[index].GetValues(), 0, predictions, index * 1001, 1001);
+                            Array.Copy(outputValue[index].GetBuffer(), 0, predictions, index * 1001, 1001);
 
                         NumSharp.NDArray results = sess.run(
                                   new ITensorOrOperation[] { merged, _trainStep },
@@ -277,7 +284,7 @@ namespace Microsoft.ML.Transforms.TransferLearning
                 _bottleneckInput = tf.placeholder_with_default(
                     bottleneckTensor,
                     shape: bottleneckTensor.TensorShape.Dimensions,
-                    name: _options.BottlneckTensorName);
+                    name: _options.BottleneckInputTensorName);
 
                 _groundTruthInput = tf.placeholder(tf.int64, new TensorShape(batch_size), name: _options.GroundTruthTensorName);
             });
@@ -381,14 +388,14 @@ namespace Microsoft.ML.Transforms.TransferLearning
             public string OutputTensorName;
             public string EvaluationNameScope;
             public string PredictionComparisonNameScope;
-            public string BottlneckTensorName;
+            public string BottleneckInputTensorName;
             public string GroundTruthTensorName;
             public int EvaluationStepInterval;
 
             internal Options(string[] inputColumns, string[] outputColumns, string labelColumn, ModelType modelType = ModelType.Resnet101,
                 int batchSize = 1, int epoch = 10, float learningRate = .01f, string savePath = "TransferLearningModel",
                 string outputTensorName = "FinalOutput", string evaluationNameScope = "accuracy",
-                string predictionComparisonNameScope = "correct_prediction", string bottleneckTensorName = "BottleneckInputPlaceholder",
+                string predictionComparisonNameScope = "correct_prediction", string bottleneckInputTensorName = "BottleneckInputPlaceholder",
                 string groundTruthTensorName = "GroundTruthInput", int evaluationStepInterval = 10)
             {
                 InputColumns = inputColumns;
@@ -402,7 +409,7 @@ namespace Microsoft.ML.Transforms.TransferLearning
                 OutputTensorName = outputTensorName;
                 EvaluationNameScope = evaluationNameScope;
                 PredictionComparisonNameScope = predictionComparisonNameScope;
-                BottlneckTensorName = bottleneckTensorName;
+                BottleneckInputTensorName = bottleneckInputTensorName;
                 GroundTruthTensorName = groundTruthTensorName;
                 EvaluationStepInterval = evaluationStepInterval;
             }

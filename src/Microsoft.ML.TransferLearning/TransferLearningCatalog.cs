@@ -12,7 +12,7 @@ namespace Microsoft.ML
     {
         /// <summary>
         /// Load TransferLearning model into memory. This is the convenience method that allows the model to be loaded once and subsequently use it for querying schema and creation of
-        /// <see cref="TransferLearningEstimator"/> using <see cref="TransferLearningModel.ScoreTransferLearningModel(string, string, bool)"/>.
+        /// <see cref="TransferLearningEstimator"/> using
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <example>
