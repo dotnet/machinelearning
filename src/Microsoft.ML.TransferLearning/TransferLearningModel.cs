@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Transforms.TensorFlow;
+using Microsoft.ML.Transforms.TransferLearning;
 using Tensorflow;
 
 namespace Microsoft.ML.Transforms
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         public DataViewSchema GetModelSchema()
         {
-            return TransferLearning.GetModelSchema(_env, Session.Graph);
+            return TransferLearning.GetModelSchema(_env, Session.graph);
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         public DataViewSchema GetInputSchema()
         {
-            return TransferLearning.GetModelSchema(_env, Session.Graph, "Placeholder");
+            return TransferLearning.GetModelSchema(_env, Session.graph, "Placeholder");
         }
 
         /// <summary>
@@ -65,6 +65,11 @@ namespace Microsoft.ML.Transforms
         /// Scores a dataset using a pre-trained TensorFlow model.
         /// </summary>
         /// <param name="inputColumnNames"> The names of the model inputs.</param>
+        /// <param name="labelColumnName"></param>
+        /// <param name="tensorFlowLabel"></param>
+        /// <param name="epoch"></param>
+        /// <param name="batchSize"></param>
+        /// <param name="learningRate"></param>
         /// <param name="outputColumnNames">The names of the requested model outputs.</param>
         /// <param name="addBatchDimensionInput">Add a batch dimension to the input e.g. input = [224, 224, 3] => [-1, 224, 224, 3].
         /// This parameter is used to deal with models that have unknown shape but the internal operators in the model require data to have batch dimension as well.</param>
@@ -75,7 +80,7 @@ namespace Microsoft.ML.Transforms
         /// ]]>
         /// </format>
         /// </example>
-       
+
         internal TransferLearningEstimator TrainTransferLearningModel(
             string[] outputColumnNames,
             string[] inputColumnNames,

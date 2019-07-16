@@ -32,9 +32,9 @@ using static Tensorflow.Python;
 
 namespace Microsoft.ML.Transforms.TransferLearning
 {
-    class TransferLearningTransformer : RowToRowTransformerBase
+    public sealed class TransferLearningTransformer : RowToRowTransformerBase
     {
-        private readonly string _savedModelPath = "resnet_v2_101_299_frozen.pb";
+        private readonly string _savedModelPath;
         internal readonly Session Session;
         internal readonly DataViewType[] OutputTypes;
         internal readonly TF_DataType[] TFOutputTypes;
@@ -56,8 +56,9 @@ namespace Microsoft.ML.Transforms.TransferLearning
         private Tensor _crossEntropy;
         private Tensor _groundTruthInput;
         private Tensor _evaluationStep;
-        internal string SavePath = "TransferLearningModel";
-        internal float LearningRate = 0.01f;
+        private string _savePath;
+        private float _learningRate;
+        private string _outputTensorName;
 
         private static VersionInfo GetVersionInfo()
         {
@@ -72,7 +73,8 @@ namespace Microsoft.ML.Transforms.TransferLearning
                 loaderAssemblyName: typeof(TransferLearningTransformer).Assembly.FullName);
         }
 
-        internal TransferLearningTransformer(IHostEnvironment env, Session session = null, string[] outputColumnNames, string[] inputColumnNames = null, string savedModelPath = null) :
+        //Swapped order of input and output columns in param listing can cause errors if forgotten
+        internal TransferLearningTransformer(IHostEnvironment env, string[] outputColumnNames, Session session = null, string[] inputColumnNames = null, string savedModelPath = null) :
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TransferLearningTransformer)))
 
         {
@@ -95,8 +97,12 @@ namespace Microsoft.ML.Transforms.TransferLearning
                 Inputs = inputColumnNames;
             }
             Outputs = outputColumnNames;
+            _savedModelPath = "resnet_v2_101_299_frozen.pb";
+            _savePath = "TransferLearningModel";
+            _learningRate = 0.01f;
+            _outputTensorName = "FinalOutput";
 
-            (TFInputTypes, TFInputShapes) = GetInputInfo(Host, Session, Inputs);
+        (TFInputTypes, TFInputShapes) = GetInputInfo(Host, Session, Inputs);
             (TFOutputTypes, OutputTypes) = GetOutputInfo(Host, Session, Outputs);
         }
 
@@ -134,20 +140,20 @@ namespace Microsoft.ML.Transforms.TransferLearning
         private protected override void SaveModel(ModelSaveContext ctx)
         {
             var trainSaver = tf.train.Saver();
-            trainSaver.save(Session, SavePath);
+            trainSaver.save(Session, _savePath);
         }
 
         public void TransferLearning(IDataView input, Operation bottleneckTensor, Operation inputTensor, int trainingIterations, int evalStepInterval)
         {
+            // Not fully sure how to get the label count might just brute force count
             var labelCol = input.Schema.Label.Value;
             var classCount = 4;
             if (labelCol.Type is KeyDataViewType labelKeyType)
                 classCount = labelKeyType.GetCountAsInt32(Host);
 
-
             // Check if the last layer has already been added to the graph if not then add
             bool transferLayerExists = false;
-            if (Graph.OperationByName(outputTensorName) == null)
+            if (Graph.OperationByName(_outputTensorName) == null)
             {
                 Console.WriteLine("Transfer Learning Layer already created");
                 transferLayerExists = true;
@@ -159,12 +165,11 @@ namespace Microsoft.ML.Transforms.TransferLearning
                 {
 
                     (_trainStep, _crossEntropy, _bottleneckInput,
-                     _groundTruthInput, _finalTensor) = addFinalLayer(
-                         classCount, outputTensorName, bottleneckTensor,
-                         is_training: true);
+                     _groundTruthInput, _finalTensor) = AddFinalLayer(
+                         classCount, _outputTensorName, bottleneckTensor,
+                         isTraining: true);
                 });
             }
-
 
             with(Session, sess =>
             {
@@ -174,29 +179,21 @@ namespace Microsoft.ML.Transforms.TransferLearning
                 sess.run(init);
 
                 // Create the operations we need to evaluate the accuracy of our new layer.
-                //if (!transferLayerExists)
                 if (transferLayerExists)
                 {
                     _evaluationStep = Graph.OperationByName("accuracy/accuracy/Mean");
                 }
                 else
                 {
-                    (Tensor evaluation_step, Tensor _) = addEvaluationStep(_finalTensor, _groundTruthInput);
+                    (Tensor evaluation_step, Tensor _) = AddEvaluationStep(_finalTensor, _groundTruthInput);
                 }
-
-
-                //else Tensor evaluation_step = 
-
 
                 // Merge all the summaries and write them out to the summaries_dir
                 var merged = tf.summary.merge_all();
                 var trainWriter = tf.summary.FileWriter("/train", sess.graph);
                 var validationWriter = tf.summary.FileWriter("/validation", sess.graph);
 
-
-
-
-                IDataView transformedValues; // Getoutput o model
+                IDataView transformedValues; // Get output from model
                 float[] predictions = new float[4004];
                 VBuffer<float>[] outputValue = new VBuffer<float>[4];
                 long[] truth = { 3, 2, 1, 3 };
@@ -204,7 +201,6 @@ namespace Microsoft.ML.Transforms.TransferLearning
                 {
                     using (var cursor = transformedValues.GetRowCursor(transformedValues.Schema))
                     {
-
 
                         var predictionValues = cursor.GetGetter<VBuffer<float>>(cursor.Schema["output"]);
                         int count = 0;
@@ -217,6 +213,7 @@ namespace Microsoft.ML.Transforms.TransferLearning
 
                         }
                         for (int index = 0; index < 4; index++)
+                            // Get Buffer was implemented locally and needs to be reimplemented
                             Array.Copy(outputValue[index].GetBuffer(), 0, predictions, index * 1001, 1001);
 
                         NumSharp.NDArray results = sess.run(
@@ -236,7 +233,6 @@ namespace Microsoft.ML.Transforms.TransferLearning
                         print(results[0]);
                         trainWriter.add_summary(trainSummary, i);
 
-
                         // Every so often, print out how well the graph is training.
                         bool isLastStep = (i + 1 == trainingIterations);
                         if ((i % evalStepInterval) == 0 || isLastStep)
@@ -248,8 +244,6 @@ namespace Microsoft.ML.Transforms.TransferLearning
                                 new FeedItem(_groundTruthInput, truth));
                             (float train_accuracy, float cross_entropy_value) = (results[0], results[1]);
                             print($"{DateTime.Now}: Step {i + 1}: Train accuracy = {train_accuracy * 100}%,  Cross entropy = {cross_entropy_value.ToString("G4")}");
-
-
 
                             // Run a validation step and capture training summaries for TensorBoard
                             // with the `merged` op.
@@ -269,9 +263,11 @@ namespace Microsoft.ML.Transforms.TransferLearning
             });
         }
 
-        private (Tensor, Tensor) addEvaluationStep(Tensor resultTensor, Tensor groundTruthTensor)
+        private (Tensor, Tensor) AddEvaluationStep(Tensor resultTensor, Tensor groundTruthTensor)
         {
-            Tensor evaluationStep = null, correctPrediction = null, prediction = null;
+            Tensor evaluationStep = null;
+            Tensor correctPrediction = null;
+            Tensor prediction = null;
 
             with(tf.name_scope("accuracy"), scope =>
             {
@@ -291,17 +287,15 @@ namespace Microsoft.ML.Transforms.TransferLearning
             return (evaluationStep, prediction);
         }
 
-
-
-        private (Operation, Tensor, Tensor, Tensor, Tensor) addFinalLayer(int classCount, string finalTensorName,
+        private (Operation, Tensor, Tensor, Tensor, Tensor) AddFinalLayer(int classCount, string finalTensorName,
             Tensor bottleneckTensor, bool isTraining)
         {
-            var (batch_size, bottleneck_tensor_size) = (bottleneckTensor.GetShape().Dimensions[0], bottleneckTensor.GetShape().Dimensions[1]);
+            var (batch_size, bottleneck_tensor_size) = (bottleneckTensor.TensorShape.Dimensions[0], bottleneckTensor.TensorShape.Dimensions[1]);
             with(tf.name_scope("input"), scope =>
             {
                 _bottleneckInput = tf.placeholder_with_default(
                     bottleneckTensor,
-                    shape: bottleneckTensor.GetShape().Dimensions,
+                    shape: bottleneckTensor.TensorShape.Dimensions,
                     name: "BottleneckInputPlaceholder");
 
                 _groundTruthInput = tf.placeholder(tf.int64, new TensorShape(batch_size), name: "GroundTruthInput");
@@ -317,14 +311,14 @@ namespace Microsoft.ML.Transforms.TransferLearning
                 {
                     var initialValue = tf.truncated_normal(new int[] { bottleneck_tensor_size, classCount }, stddev: 0.001f);
                     layerWeights = tf.Variable(initialValue, name: "final_weights");
-                    variableSummaries(layerWeights);
+                    VariableSummaries(layerWeights);
                 });
 
                 RefVariable layerBiases = null;
                 with(tf.name_scope("biases"), delegate
                 {
                     layerBiases = tf.Variable(tf.zeros((classCount)), name: "final_biases");
-                    variableSummaries(layerBiases);
+                    VariableSummaries(layerBiases);
                 });
 
                 with(tf.name_scope("Wx_plus_b"), delegate
@@ -335,7 +329,6 @@ namespace Microsoft.ML.Transforms.TransferLearning
             });
 
             _finalTensor = tf.nn.softmax(logits, name: finalTensorName);
-
 
             tf.summary.histogram("activations", _finalTensor);
 
@@ -354,7 +347,7 @@ namespace Microsoft.ML.Transforms.TransferLearning
 
             with(tf.name_scope("train"), delegate
             {
-                var optimizer = tf.train.GradientDescentOptimizer(LearningRate);
+                var optimizer = tf.train.GradientDescentOptimizer(_learningRate);
                 _trainStep = optimizer.minimize(crossEntropyMean);
             });
 
@@ -362,7 +355,7 @@ namespace Microsoft.ML.Transforms.TransferLearning
                 _finalTensor);
         }
 
-        private void variableSummaries(RefVariable var)
+        private void VariableSummaries(RefVariable var)
         {
             with(tf.name_scope("summaries"), delegate
             {
@@ -377,6 +370,11 @@ namespace Microsoft.ML.Transforms.TransferLearning
                 tf.summary.scalar("min", tf.reduce_min(var));
                 tf.summary.histogram("histogram", var);
             });
+        }
+
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema)
+        {
+            throw new NotImplementedException();
         }
     }
 }

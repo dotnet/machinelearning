@@ -8,7 +8,6 @@ using Microsoft.ML.Transforms.TransferLearning;
 
 namespace Microsoft.ML
 {
-    /// <include file='doc.xml' path='doc/members/member[@name="TransferLearningTransformer"]/*' />
     public static class TransferLearningCatalog
     {
         /// <summary>
@@ -16,7 +15,6 @@ namespace Microsoft.ML
         /// <see cref="TransferLearningEstimator"/> using <see cref="TransferLearningModel.ScoreTransferLearningModel(string, string, bool)"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="modelLocation">Location of the TransferLearning model.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
