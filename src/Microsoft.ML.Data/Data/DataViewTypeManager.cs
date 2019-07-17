@@ -51,6 +51,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Returns the <see cref="DataViewType"/> registered for <paramref name="type"/> and its <paramref name="typeAttributes"/>.
         /// </summary>
+        [BestFriend]
         internal static DataViewType GetDataViewType(Type type, IEnumerable<Attribute> typeAttributes = null)
         {
             lock (_lock)

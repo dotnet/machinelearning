@@ -36,7 +36,7 @@ namespace Microsoft.ML.Transforms.TransferLearning
     {
         private readonly string _savedModelPath;
         private readonly string _loadedModelOutputTensorName;
-        private readonly string _loadedModelInputTensorName;
+        private readonly string[] _loadedModelInputTensorName;
         internal readonly Session Session;
         internal Graph Graph => Session.graph;
 
@@ -47,7 +47,8 @@ namespace Microsoft.ML.Transforms.TransferLearning
 
         private Operation _trainStep;
         private Tensor _loadedModelOutput;
-        private Tensor _loadedModelInput;
+        internal Tensor[] LoadedModelInput { get; }
+        internal Tensor[] FinalTensor { get; }
         private Tensor _finalTensor;
         private Tensor _bottleneckInput;
         private Tensor _crossEntropy;
@@ -82,19 +83,24 @@ namespace Microsoft.ML.Transforms.TransferLearning
                 case TransferLearningEstimator.Options.ModelType.Resnet101:
                     _savedModelPath = "resnet_v2_101_299_frozen.pb";
                     //_loadedModelOutputTensorName = "resnet_v2_101/SpatialSqueeze";
-                    _loadedModelInputTensorName = "input";
+                    _loadedModelInputTensorName = new string[] { "input" };
                     _loadedModelOutputTensorName = "output"; //If this doesn't work use the name above but should because output is an identity tensor
                     break;
             }
 
             Session = LoadSession(env, _savedModelPath);
             _loadedModelOutput = Graph.OperationByName(_loadedModelOutputTensorName);
-            _loadedModelInput = Graph.OperationByName(_loadedModelInputTensorName);
-            if (_loadedModelOutput == null || _loadedModelInput == null)
+            LoadedModelInput = new Tensor[_loadedModelInputTensorName.Length];
+            for(int i = 0; i < _loadedModelInputTensorName.Length; i++)
+            {
+                LoadedModelInput[i] = Graph.OperationByName(_loadedModelInputTensorName[i]);
+            }
+            if (_loadedModelOutput == null || LoadedModelInput == null)
             {
                 throw new Exception("Output tensor of pretrained model not found");
             }
             TransferLearning(input);
+            FinalTensor = new Tensor[] { _finalTensor };
         }
 
         internal static Session LoadSession(IExceptionContext ectx, string modelFile = null)
@@ -141,9 +147,18 @@ namespace Microsoft.ML.Transforms.TransferLearning
 
             // Check if the last layer has already been added to the graph if not then add
             bool transferLayerExists = false;
-            if (Graph.OperationByName(_options.OutputTensorName) == null)
+            if (Graph.OperationByName(_options.OutputTensorName) != null)
             {
                 transferLayerExists = true;
+                _trainStep = Graph.OperationByName(_options.TrainNameScope);
+                _crossEntropy = Graph.OperationByName(_options.CrossEntropyName);
+                _bottleneckInput = Graph.OperationByName(_options.BottleneckInputTensorName);
+                _groundTruthInput = Graph.OperationByName(_options.GroundTruthTensorName);
+                _finalTensor = Graph.OperationByName(_options.OutputTensorName);
+                if (_trainStep == null || _crossEntropy == null || _bottleneckInput == null || _groundTruthInput == null || _finalTensor == null)
+                {
+                    throw new Exception("Some Tensors in the final layer could not be found");
+                }
             }
             else
             {
@@ -153,7 +168,7 @@ namespace Microsoft.ML.Transforms.TransferLearning
 
                     (_trainStep, _crossEntropy, _bottleneckInput,
                      _groundTruthInput, _finalTensor) = AddFinalLayer(
-                         (int) classCount, _options.OutputTensorName, _loadedModelOutput,
+                         (int) classCount, _loadedModelOutput,
                          isTraining: true);
                 });
             }
@@ -184,6 +199,7 @@ namespace Microsoft.ML.Transforms.TransferLearning
                 IDataView transformedValues = input; // Get output from model not really this is just to turnoff compile errors from unimplemented code
                 float[] predictions = new float[4004];
                 VBuffer<float>[] outputValue = new VBuffer<float>[4];
+                // This truth needs to replaced
                 long[] truth = { 3, 2, 1, 3 };
                 for (int i = 0; i < _options.Epoch; i++)
                 {
@@ -274,7 +290,7 @@ namespace Microsoft.ML.Transforms.TransferLearning
             return (evaluationStep, prediction);
         }
 
-        private (Operation, Tensor, Tensor, Tensor, Tensor) AddFinalLayer(int classCount, string finalTensorName,
+        private (Operation, Tensor, Tensor, Tensor, Tensor) AddFinalLayer(int classCount,
             Tensor bottleneckTensor, bool isTraining)
         {
             var (batch_size, bottleneck_tensor_size) = (bottleneckTensor.TensorShape.Dimensions[0], bottleneckTensor.TensorShape.Dimensions[1]);
@@ -315,7 +331,7 @@ namespace Microsoft.ML.Transforms.TransferLearning
                 });
             });
 
-            _finalTensor = tf.nn.softmax(logits, name: finalTensorName);
+            _finalTensor = tf.nn.softmax(logits, name: _options.OutputTensorName);
 
             tf.summary.histogram(_options.SoftMaxHistogram, _finalTensor);
 
@@ -486,7 +502,30 @@ namespace Microsoft.ML.Transforms.TransferLearning
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
-            throw new NotImplementedException();
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            var result = inputSchema.ToDictionary(x => x.Name);
+            var resultDic = inputSchema.ToDictionary(x => x.Name);
+            for (var i = 0; i < _options.InputColumns.Length; i++)
+            {
+                var input = _options.InputColumns[i];
+                if (!inputSchema.TryFindColumn(input, out var col))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
+                if (!(col.Kind == SchemaShape.Column.VectorKind.Vector))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, "vector", col.GetTypeString());
+                var expectedType = _transformer.LoadedModelInput[i].dtype;
+                if (col.ItemType.RawType != dtypes.as_numpy_datatype(expectedType))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());
+            }
+            for (var i = 0; i < _options.OutputColumns.Length; i++)
+            {
+                var expectedType = dtypes.as_numpy_datatype(_transformer.FinalTensor[i].dtype);
+                var type = DataViewTypeManager.GetDataViewType(expectedType);
+                var outputType = new VectorDataViewType((PrimitiveDataViewType)type, _transformer.FinalTensor[i].shape.Length);
+                resultDic[_options.OutputColumns[i]] = new SchemaShape.Column(_options.OutputColumns[i],
+                    outputType.IsKnownSizeVector() ? SchemaShape.Column.VectorKind.Vector
+                    : SchemaShape.Column.VectorKind.VariableVector, outputType.GetItemType(), false);
+            }
+            return new SchemaShape(resultDic.Values);
         }
     }
 }
