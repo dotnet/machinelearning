@@ -804,9 +804,10 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create a <see cref="OneVersusAllTrainerTyped{TModelOut}"/>, which predicts a multiclass target using one-versus-all strategy with
+        /// Create a <see cref="OneVersusAllTrainerTyped{TModelIn, TCalibrator}"/>, which predicts a multiclass target using one-versus-all strategy with
         /// the binary classification estimator specified by <paramref name="binaryEstimator"/>.This method works with binary classifiers that
-        /// are not calibrated and need to be calibrated before use. If your classifier is already calibrated or it does not need to be, use the
+        /// are not calibrated and need to be calibrated before use. Due to the type of estimator changing (from uncalibrated to calibrated), you must manually
+        /// specify both the type of the model and the type of the calibrator. If your classifier is already calibrated or it does not need to be, use the
         /// <see cref="OneVersusAllTyped{TModel}"/> method instead.
         /// </summary>
         /// <remarks>
@@ -823,8 +824,8 @@ namespace Microsoft.ML
         /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
         /// <param name="maximumCalibrationExampleCount">Number of instances to train the calibrator.</param>
         /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
-        /// <typeparam name="TModelIn">The type of the model. This type parameter will usually be inferred automatically from <paramref name="binaryEstimator"/>.</typeparam>
-        /// <typeparam name="TCalibrator">The type of the model. This type parameter will usually be inferred automatically from <paramref name="binaryEstimator"/>.</typeparam>
+        /// <typeparam name="TModelIn">The type of the model. This type parameter cannot be inferred and must be specified manually. It is usually a <see cref="LinearBinaryModelParameters"/>.</typeparam>
+        /// <typeparam name="TCalibrator">The calibrator for the model. This type parameter cannot be inferred automatically and must be specified manually and must be of type <see cref="ICalibrator"/>.</typeparam>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[

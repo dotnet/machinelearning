@@ -989,9 +989,7 @@ namespace Microsoft.ML.Calibrators
 
             var predWithFeatureScores = predictor as IPredictorWithFeatureWeights<float>;
             if (predWithFeatureScores != null && predictor is IParameterMixer<float> && cali is IParameterMixer)
-            {
                 return new ParameterMixingCalibratedModelParameters<TSubPredictor, TCalibrator>(env, predictor, cali);
-            }
 
             if (predictor is IValueMapper)
                 return new ValueMapperCalibratedModelParameters<TSubPredictor, TCalibrator>(env, predictor, cali);
