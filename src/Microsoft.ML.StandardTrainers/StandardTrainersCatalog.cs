@@ -766,7 +766,9 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Create a <see cref="OneVersusAllTrainerTyped{TModelOut}"/>, which predicts a multiclass target using one-versus-all strategy with
-        /// the binary classification estimator specified by <paramref name="binaryEstimator"/>.
+        /// the binary classification estimator specified by <paramref name="binaryEstimator"/>. This method works with binary classifiers that
+        /// are either already calibrated, or non calibrated ones you don't want calibrated. If you need to have your classifier calibrated, use the
+        /// <see cref="OneVersusAllUnCalibratedToCalibrated{TModelIn, TCalibrator}"/> method instead.
         /// </summary>
         /// <remarks>
         /// <para>
@@ -803,7 +805,9 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Create a <see cref="OneVersusAllTrainerTyped{TModelOut}"/>, which predicts a multiclass target using one-versus-all strategy with
-        /// the binary classification estimator specified by <paramref name="binaryEstimator"/>.
+        /// the binary classification estimator specified by <paramref name="binaryEstimator"/>.This method works with binary classifiers that
+        /// are not calibrated and need to be calibrated before use. If your classifier is already calibrated or it does not need to be, use the
+        /// <see cref="OneVersusAllTyped{TModel}"/> method instead.
         /// </summary>
         /// <remarks>
         /// <para>

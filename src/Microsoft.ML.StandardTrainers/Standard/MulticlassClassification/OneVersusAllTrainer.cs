@@ -38,6 +38,51 @@ namespace Microsoft.ML.Trainers
     using TScalarPredictor = IPredictorProducing<float>;
     using TScalarTrainer = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
 
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a one-versus-all multi-class classifier that uses the specified binary classifier.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [OneVersusAll](xref:Microsoft.ML.StandardTrainersCatalog.OneVersusAll``1(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.ITrainerEstimator{Microsoft.ML.Data.BinaryPredictionTransformer{``0},``0},System.String,System.Boolean,Microsoft.ML.IEstimator{Microsoft.ML.ISingleFeaturePredictionTransformer{Microsoft.ML.Calibrators.ICalibrator}},System.Int32,System.Boolean)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-multiclass-classification.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Multiclass classification |
+    /// | Is normalization required? | Depends on the underlying binary classifier |
+    /// | Is caching required? | Yes |
+    /// | Required NuGet in addition to Microsoft.ML | None |
+    ///
+    /// ### Training Algorithm Details
+    /// In one-versus-all (OVA) strategy, a binary classification algorithm is used to train one classifier for each class,
+    /// which distinguishes that class from all other classes. Prediction is then performed by running
+    /// these binary classifiers and choosing the prediction with the highest confidence score.
+    /// This algorithm can be used with any of the binary classifiers in ML.NET. A few binary classifiers
+    /// already have implementation for multi-class problems, thus users can choose either one depending on the context.
+    /// The OVA version of a binary classifier, such as wrapping a <xref:Microsoft.ML.Trainers.LightGbm.LightGbmBinaryTrainer>,
+    /// can be different from <xref:Microsoft.ML.Trainers.LightGbm.LightGbmMulticlassTrainer>, which develops a multi-class classifier directly.
+    /// Note that even if the classifier indicates that it does not need caching, OneVersusAll will always
+    /// request caching, as it will be performing multiple passes over the data set.
+    /// This trainer will request normalization from the data pipeline if the classifier indicates it would benefit from it.
+    ///
+    /// This can allow you to exploit trainers that do not naturally have a
+    /// multiclass option, for example, using the <xref:Microsoft.ML.Trainers.FastTree.FastTreeBinaryTrainer>
+    /// to solve a multiclass problem.
+    /// Alternately, it can allow ML.NET to solve a "simpler" problem even in the cases
+    /// where the trainer has a multiclass option, but using it directly is not
+    /// practical due to, usually, memory constraints. For example, while a multiclass
+    /// logistic regression is a more principled way to solve a multiclass problem, it
+    /// requires that the trainer store a lot more intermediate state in the form of
+    /// L-BFGS history for all classes *simultaneously*, rather than just one-by-one
+    /// as would be needed for a one-versus-all classification model.
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="StandardTrainersCatalog.OneVersusAll{TModel}(MulticlassClassificationCatalog.MulticlassClassificationTrainers, ITrainerEstimator{BinaryPredictionTransformer{TModel}, TModel}, string, bool, IEstimator{ISingleFeaturePredictionTransformer{ICalibrator}}, int, bool)" />
     public abstract class OneVersusAllTrainerBase<T> : MetaMulticlassTrainer<MulticlassPredictionTransformer<T>, T> where T : class
     {
         internal const string LoadNameValue = "OVA";
@@ -102,6 +147,16 @@ namespace Microsoft.ML.Trainers
             TrainerOptions.UseProbabilities = useProbabilities;
         }
 
+        /// <summary>
+        /// Training helper method that is called by <see cref="TrainOne(IChannel, TScalarTrainer, RoleMappedData, int)"/>. This allows the
+        /// classes that inherit from this class to do any custom training changes needed, such as casting.
+        /// </summary>
+        /// <param name="ch">The <see cref="IChannel"/> instance.</param>
+        /// <param name="useProbabilities">Whether probabilities should be used or not. Is pulled from the trainer <see cref="Options"/>.</param>
+        /// <param name="view">The <see cref="IDataView"/> that has the data.</param>
+        /// <param name="trainerLabel">The label for the trainer.</param>
+        /// <param name="transformer">The <see cref="ISingleFeaturePredictionTransformer{TScalarPredictor}"/> used by the trainer</param>
+        /// <returns><see cref="ISingleFeaturePredictionTransformer{TScalarPredictor}"/></returns>
         private protected abstract ISingleFeaturePredictionTransformer<TScalarPredictor> TrainOneHelper(IChannel ch,
             bool useProbabilities, IDataView view, string trainerLabel,
             ISingleFeaturePredictionTransformer<TScalarPredictor> transformer);
@@ -135,6 +190,17 @@ namespace Microsoft.ML.Trainers
             throw Host.ExceptNotSupp($"Label column type is not supported by OneVersusAllTrainer: {label.Type.RawType}");
         }
 
+        /// <summary>
+        /// Fit helper method that is called by <see cref="Fit(IDataView)"/>. This allows the
+        /// classes that inherit from this class to do any custom fit changes needed, such as casting.
+        /// </summary>
+        /// <param name="host">The <see cref="IHost"/>.</param>
+        /// <param name="useProbabilities">Whether probabilities should be used or not. Is pulled from the trainer <see cref="Options"/>.</param>
+        /// <param name="predictors">The array of <see cref="TScalarPredictor"/> used.</param>
+        /// <param name="schema">The <see cref="DataViewSchema"/> of the transformer.</param>
+        /// <param name="featureColumn">The feature column.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <returns></returns>
         private protected abstract MulticlassPredictionTransformer<T> FitHelper(IHost host, bool useProbabilities, TScalarPredictor[] predictors, DataViewSchema schema, string featureColumn, string labelColumnName);
 
         /// <summary> Trains a <see cref="MulticlassPredictionTransformer{OneVersusAllModelParameters}"/> model.</summary>
@@ -171,50 +237,9 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// The <see cref="IEstimator{TTransformer}"/> for training a one-versus-all multi-class classifier that uses the specified binary classifier.
+    /// Implementation of the <see cref="OneVersusAllTrainerBase{T}"/> where T is a <see cref="OneVersusAllModelParameters"/>
+    /// to maintain api compatability.
     /// </summary>
-    /// <remarks>
-    /// <format type="text/markdown"><![CDATA[
-    /// To create this trainer, use [OneVersusAll](xref:Microsoft.ML.StandardTrainersCatalog.OneVersusAll``1(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.ITrainerEstimator{Microsoft.ML.Data.BinaryPredictionTransformer{``0},``0},System.String,System.Boolean,Microsoft.ML.IEstimator{Microsoft.ML.ISingleFeaturePredictionTransformer{Microsoft.ML.Calibrators.ICalibrator}},System.Int32,System.Boolean)).
-    ///
-    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-multiclass-classification.md)]
-    ///
-    /// ### Trainer Characteristics
-    /// |  |  |
-    /// | -- | -- |
-    /// | Machine learning task | Multiclass classification |
-    /// | Is normalization required? | Depends on the underlying binary classifier |
-    /// | Is caching required? | Yes |
-    /// | Required NuGet in addition to Microsoft.ML | None |
-    ///
-    /// ### Training Algorithm Details
-    /// In one-versus-all (OVA) strategy, a binary classification algorithm is used to train one classifier for each class,
-    /// which distinguishes that class from all other classes. Prediction is then performed by running
-    /// these binary classifiers and choosing the prediction with the highest confidence score.
-    /// This algorithm can be used with any of the binary classifiers in ML.NET. A few binary classifiers
-    /// already have implementation for multi-class problems, thus users can choose either one depending on the context.
-    /// The OVA version of a binary classifier, such as wrapping a <xref:Microsoft.ML.Trainers.LightGbm.LightGbmBinaryTrainer>,
-    /// can be different from <xref:Microsoft.ML.Trainers.LightGbm.LightGbmMulticlassTrainer>, which develops a multi-class classifier directly.
-    /// Note that even if the classifier indicates that it does not need caching, OneVersusAll will always
-    /// request caching, as it will be performing multiple passes over the data set.
-    /// This trainer will request normalization from the data pipeline if the classifier indicates it would benefit from it.
-    ///
-    /// This can allow you to exploit trainers that do not naturally have a
-    /// multiclass option, for example, using the <xref:Microsoft.ML.Trainers.FastTree.FastTreeBinaryTrainer>
-    /// to solve a multiclass problem.
-    /// Alternately, it can allow ML.NET to solve a "simpler" problem even in the cases
-    /// where the trainer has a multiclass option, but using it directly is not
-    /// practical due to, usually, memory constraints. For example, while a multiclass
-    /// logistic regression is a more principled way to solve a multiclass problem, it
-    /// requires that the trainer store a lot more intermediate state in the form of
-    /// L-BFGS history for all classes *simultaneously*, rather than just one-by-one
-    /// as would be needed for a one-versus-all classification model.
-    ///
-    /// Check the See Also section for links to usage examples.
-    /// ]]>
-    /// </format>
-    /// </remarks>
-    /// <seealso cref="StandardTrainersCatalog.OneVersusAll{TModel}(MulticlassClassificationCatalog.MulticlassClassificationTrainers, ITrainerEstimator{BinaryPredictionTransformer{TModel}, TModel}, string, bool, IEstimator{ISingleFeaturePredictionTransformer{ICalibrator}}, int, bool)" />
     public sealed class OneVersusAllTrainer : OneVersusAllTrainerBase<OneVersusAllModelParameters>
     {
         /// <summary>
@@ -288,6 +313,12 @@ namespace Microsoft.ML.Trainers
         }
     }
 
+    /// <summary>
+    /// Strongly typed implementation of the <see cref="OneVersusAllTrainerBase{T}"/> where T is a <see cref="OneVersusAllModelParameters{T}"/> of type <see cref="CalibratedModelParametersBase{TSubPredictor, TCalibrator}"/>
+    /// This is used to turn a non calibrated binary classification estimator into its calibrated version.
+    /// </summary>
+    /// <typeparam name="TSubPredictor"></typeparam>
+    /// <typeparam name="TCalibrator"></typeparam>
     public sealed class OneVersusAllTrainerTyped<TSubPredictor, TCalibrator> : OneVersusAllTrainerBase<OneVersusAllModelParametersBase<CalibratedModelParametersBase<TSubPredictor, TCalibrator>>>
         where TSubPredictor : class, IPredictorProducing<float>
         where TCalibrator : class, ICalibrator
@@ -362,6 +393,12 @@ namespace Microsoft.ML.Trainers
         }
     }
 
+    /// <summary>
+    /// Strongly typed implementation of the <see cref="OneVersusAllTrainerBase{T}"/> where T is a <see cref="OneVersusAllModelParameters{T}"/>.  T can either be
+    /// a calibrated binary estimator of type <see cref="CalibratedModelParametersBase{TSubPredictor, TCalibrator}"/>, or a non calibrated binary estimary.
+    /// This cannot be used to turn a non calibrated binary classification estimator into its calibrated version. If that is required, use <see cref="OneVersusAllTrainerTyped{TSubPredictor, TCalibrator}"/> instead.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public sealed class OneVersusAllTrainerTyped<T> : OneVersusAllTrainerBase<OneVersusAllModelParametersBase<T>> where T : class
     {
         /// <summary>
@@ -430,6 +467,9 @@ namespace Microsoft.ML.Trainers
         }
     }
 
+    /// <summary>
+    /// Class that holds the static create methods for the <see cref="OneVersusAllModelParameters"/> classes.
+    /// </summary>
     public class OneVersusAllModelParametersBuilder {
         [BestFriend]
         internal static OneVersusAllModelParameters<T> Create<T>(IHost host, OneVersusAllModelParametersBase<T>.OutputFormula outputFormula, T[] predictors) where T : class
@@ -438,7 +478,7 @@ namespace Microsoft.ML.Trainers
         }
 
         [BestFriend]
-        internal static OneVersusAllModelParametersBase<T> Create<T>(IHost host, bool useProbability, T[] predictors) where T : class
+        internal static OneVersusAllModelParameters<T> Create<T>(IHost host, bool useProbability, T[] predictors) where T : class
         {
             var outputFormula = useProbability ? OneVersusAllModelParametersBase<T>.OutputFormula.ProbabilityNormalization : OneVersusAllModelParametersBase<T>.OutputFormula.Raw;
 
@@ -446,14 +486,14 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Create a <see cref="OneVersusAllModelParametersBase{T}"/> from an array of predictors.
+        /// Create a <see cref="OneVersusAllModelParameters{T}"/> from an array of predictors.
         /// </summary>
         [BestFriend]
-        internal static OneVersusAllModelParametersBase<T> Create<T>(IHost host, T[] predictors) where T : class
+        internal static OneVersusAllModelParameters<T> Create<T>(IHost host, T[] predictors) where T : class
         {
             Contracts.CheckValue(host, nameof(host));
             host.CheckNonEmpty(predictors, nameof(predictors));
-            return Create(host, OneVersusAllModelParametersBase<T>.OutputFormula.ProbabilityNormalization, predictors);
+            return Create(host, OneVersusAllModelParameters<T>.OutputFormula.ProbabilityNormalization, predictors);
         }
 
         [BestFriend]
@@ -471,7 +511,7 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Create a <see cref="OneVersusAllModelParametersBase{T}"/> from an array of predictors.
+        /// Create a <see cref="OneVersusAllModelParameters"/> from an array of predictors. This is for backwards API compatability.
         /// </summary>
         [BestFriend]
         internal static OneVersusAllModelParameters Create(IHost host, TScalarPredictor[] predictors)
@@ -484,7 +524,7 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// Model parameters for <see cref="OneVersusAllTrainer"/>.
+    /// Base model parameters for <see cref="OneVersusAllTrainer"/>.
     /// </summary>
     public abstract class OneVersusAllModelParametersBase<T> :
         ModelParametersBase<VBuffer<float>>,
@@ -971,6 +1011,9 @@ namespace Microsoft.ML.Trainers
         }
     }
 
+    /// <summary>
+    /// Model parameters for typed versions of <see cref="OneVersusAllTrainer"/>.
+    /// </summary>
     public sealed class OneVersusAllModelParameters<T> :
         OneVersusAllModelParametersBase<T> where T : class
     {

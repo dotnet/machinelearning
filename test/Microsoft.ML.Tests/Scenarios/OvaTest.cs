@@ -215,6 +215,9 @@ namespace Microsoft.ML.Scenarios
                             new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) }),
                         }
             });
+
+            // REVIEW: readerTyped and dataTyped aren't used anywhere in this test, but if I take them out
+            // the test will fail. It seems to me that something is changing state somewhere, maybe in the cache?
             var readerTyped = new TextLoader(mlContextTyped, new TextLoader.Options()
             {
                 Columns = new[]
