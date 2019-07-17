@@ -53,23 +53,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// OVA strongly typed un-calibrated
-        /// </summary>
-        [Fact]
-        public void OVATypedUncalibrated()
-        {
-            var (pipeline, data) = GetMulticlassPipeline();
-            var sdcaTrainer = ML.BinaryClassification.Trainers.SdcaNonCalibrated(
-                new SdcaNonCalibratedBinaryTrainer.Options { MaximumNumberOfIterations = 100, Shuffle = true, NumberOfThreads = 1 });
-
-            pipeline = pipeline.Append(ML.MulticlassClassification.Trainers.OneVersusAllTyped(sdcaTrainer, useProbabilities: false))
-                    .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
-
-            TestEstimatorCore(pipeline, data);
-            Done();
-        }
-
-        /// <summary>
         /// Pairwise Coupling trainer
         /// </summary>
         [Fact]
@@ -112,6 +95,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var pipeline = new ColumnConcatenatingEstimator(Env, "Vars", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 .Append(new ValueToKeyMappingEstimator(Env, "Label"), TransformerScope.TrainTest)
+                .Append(ML.MulticlassClassification.Trainers.OneVersusAll(sdcaTrainer))
                 .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
 
             var model = pipeline.Fit(data);

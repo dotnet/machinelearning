@@ -198,9 +198,9 @@ namespace Microsoft.ML.Trainers.LightGbm
             }
             string obj = (string)GetGbmParameters()["objective"];
             if (obj == "multiclass")
-                return OneVersusAllModelParameters.Create(Host, OneVersusAllModelParameters.OutputFormula.Softmax, predictors);
+                return OneVersusAllModelParametersBuilder.Create(Host, OneVersusAllModelParameters.OutputFormula.Softmax, predictors);
             else
-                return OneVersusAllModelParameters.Create(Host, predictors);
+                return OneVersusAllModelParametersBuilder.Create(Host, predictors);
         }
 
         private protected override void CheckDataValid(IChannel ch, RoleMappedData data)

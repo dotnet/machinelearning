@@ -827,7 +827,7 @@ namespace Microsoft.ML
         ///  [!code-csharp[OneVersusAll](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/OneVersusAll.cs)]
         /// ]]></format>
         /// </example>
-        public static OneVersusAllTrainerTyped<TModelIn, TCalibrator> OneVersusAllUnCalibratedToCalibratedTyped<TModelIn, TCalibrator>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+        public static OneVersusAllTrainerTyped<TModelIn, TCalibrator> OneVersusAllUnCalibratedToCalibrated<TModelIn, TCalibrator>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             ITrainerEstimator<BinaryPredictionTransformer<TModelIn>, TModelIn> binaryEstimator,
             string labelColumnName = DefaultColumnNames.Label,
             bool imputeMissingLabelsAsNegative = false,

@@ -170,57 +170,6 @@ namespace Microsoft.ML.Trainers
         }
     }
 
-    public abstract class OneVersusAllTypedTrainerBase<T> : OneVersusAllTrainerBase<OneVersusAllModelParametersBase<T>> where T : class
-    {
-        /// <summary>
-        /// Constructs a <see cref="OneVersusAllTrainer"/> trainer supplying a <see cref="OneVersusAllTrainerBase{T}.Options"/>.
-        /// </summary>
-        /// <param name="env">The private <see cref="IHostEnvironment"/> for this estimator.</param>
-        /// <param name="options">The legacy <see cref="OneVersusAllTrainerBase{T}.Options"/></param>
-        internal OneVersusAllTypedTrainerBase(IHostEnvironment env, Options options)
-               : base(env, options)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="OneVersusAllTrainer"/>.
-        /// </summary>
-        /// <param name="env">The <see cref="IHostEnvironment"/> instance.</param>
-        /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
-        /// /// <param name="calibrator">The calibrator. If a calibrator is not provided, it will default to <see cref="PlattCalibratorTrainer"/></param>
-        /// <param name="labelColumnName">The name of the label colum.</param>
-        /// <param name="imputeMissingLabelsAsNegative">If true will treat missing labels as negative labels.</param>
-        /// /// <param name="maximumCalibrationExampleCount">Number of instances to train the calibrator.</param>
-        /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
-        internal OneVersusAllTypedTrainerBase(IHostEnvironment env,
-            TScalarTrainer binaryEstimator,
-            string labelColumnName = DefaultColumnNames.Label,
-            bool imputeMissingLabelsAsNegative = false,
-            ICalibratorTrainer calibrator = null,
-            int maximumCalibrationExampleCount = 1000000000,
-            bool useProbabilities = true)
-         : base(env, binaryEstimator, labelColumnName, imputeMissingLabelsAsNegative, calibrator, maximumCalibrationExampleCount, useProbabilities)
-        {
-        }
-
-        private protected override OneVersusAllModelParametersBase<T> TrainCore(IChannel ch, RoleMappedData data, int count)
-        {
-            // Train one-vs-all models.
-            var predictors = new T[count];
-            for (int i = 0; i < predictors.Length; i++)
-            {
-                ch.Info($"Training learner {i}");
-                predictors[i] = (T)TrainOne(ch, Trainer, data, i).Model;
-            }
-            return OneVersusAllModelParametersBase<T>.Create(Host, TrainerOptions.UseProbabilities, predictors);
-        }
-
-        private protected override MulticlassPredictionTransformer<OneVersusAllModelParametersBase<T>> FitHelper(IHost host, bool useProbabilities, TScalarPredictor[] predictors, DataViewSchema schema, string featureColumn, string labelColumnName)
-        {
-            return new MulticlassPredictionTransformer<OneVersusAllModelParametersBase<T>>(Host, OneVersusAllModelParametersBase<T>.Create(Host, useProbabilities, predictors.Cast<T>().ToArray()), schema, featureColumn, LabelColumn.Name);
-        }
-    }
-
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for training a one-versus-all multi-class classifier that uses the specified binary classifier.
     /// </summary>
@@ -308,12 +257,12 @@ namespace Microsoft.ML.Trainers
                 ch.Info($"Training learner {i}");
                 predictors[i] = TrainOne(ch, Trainer, data, i).Model;
             }
-            return OneVersusAllModelParameters.Create(Host, TrainerOptions.UseProbabilities, predictors) as OneVersusAllModelParameters;
+            return OneVersusAllModelParametersBuilder.Create(Host, TrainerOptions.UseProbabilities, predictors) as OneVersusAllModelParameters;
         }
 
         private protected override MulticlassPredictionTransformer<OneVersusAllModelParameters> FitHelper(IHost host, bool useProbabilities, TScalarPredictor[] predictors, DataViewSchema schema, string featureColumn, string labelColumnName)
         {
-            return new MulticlassPredictionTransformer<OneVersusAllModelParameters>(Host, OneVersusAllModelParameters.Create(Host, useProbabilities, predictors), schema, featureColumn, LabelColumn.Name);
+            return new MulticlassPredictionTransformer<OneVersusAllModelParameters>(Host, OneVersusAllModelParametersBuilder.Create(Host, useProbabilities, predictors), schema, featureColumn, LabelColumn.Name);
         }
 
         private protected override ISingleFeaturePredictionTransformer<TScalarPredictor> TrainOneHelper(IChannel ch,
@@ -339,7 +288,7 @@ namespace Microsoft.ML.Trainers
         }
     }
 
-    public sealed class OneVersusAllTrainerTyped<TSubPredictor, TCalibrator> : OneVersusAllTypedTrainerBase<OneVersusAllModelParametersBase<CalibratedModelParametersBase<TSubPredictor, TCalibrator>>>
+    public sealed class OneVersusAllTrainerTyped<TSubPredictor, TCalibrator> : OneVersusAllTrainerBase<OneVersusAllModelParametersBase<CalibratedModelParametersBase<TSubPredictor, TCalibrator>>>
         where TSubPredictor : class, IPredictorProducing<float>
         where TCalibrator : class, ICalibrator
     {
@@ -395,9 +344,25 @@ namespace Microsoft.ML.Trainers
 
             return new BinaryPredictionTransformer<TScalarPredictor>(Host, transformer.Model, view.Schema, transformer.FeatureColumnName);
         }
+        private protected override MulticlassPredictionTransformer<OneVersusAllModelParametersBase<CalibratedModelParametersBase<TSubPredictor, TCalibrator>>> FitHelper(IHost host, bool useProbabilities, TScalarPredictor[] predictors, DataViewSchema schema, string featureColumn, string labelColumnName)
+        {
+            return new MulticlassPredictionTransformer<OneVersusAllModelParametersBase<CalibratedModelParametersBase<TSubPredictor, TCalibrator>>>(Host, OneVersusAllModelParametersBuilder.Create(Host, useProbabilities, predictors.Cast<CalibratedModelParametersBase<TSubPredictor, TCalibrator>>().ToArray()), schema, featureColumn, LabelColumn.Name);
+        }
+
+        private protected override OneVersusAllModelParametersBase<CalibratedModelParametersBase<TSubPredictor, TCalibrator>> TrainCore(IChannel ch, RoleMappedData data, int count)
+        {
+            // Train one-vs-all models.
+            var predictors = new CalibratedModelParametersBase<TSubPredictor, TCalibrator>[count];
+            for (int i = 0; i < predictors.Length; i++)
+            {
+                ch.Info($"Training learner {i}");
+                predictors[i] = (CalibratedModelParametersBase<TSubPredictor, TCalibrator>)TrainOne(ch, Trainer, data, i).Model;
+            }
+            return OneVersusAllModelParametersBuilder.Create(Host, TrainerOptions.UseProbabilities, predictors);
+        }
     }
 
-    public sealed class OneVersusAllTrainerTyped<T> : OneVersusAllTypedTrainerBase<OneVersusAllModelParametersBase<T>> where T : class
+    public sealed class OneVersusAllTrainerTyped<T> : OneVersusAllTrainerBase<OneVersusAllModelParametersBase<T>> where T : class
     {
         /// <summary>
         /// Constructs a <see cref="OneVersusAllTrainerBase{T}"/> trainer supplying a <see cref="OneVersusAllTrainerBase{T}.Options"/>.
@@ -446,12 +411,82 @@ namespace Microsoft.ML.Trainers
 
             return new BinaryPredictionTransformer<TScalarPredictor>(Host, transformer.Model, view.Schema, transformer.FeatureColumnName);
         }
+
+        private protected override MulticlassPredictionTransformer<OneVersusAllModelParametersBase<T>> FitHelper(IHost host, bool useProbabilities, TScalarPredictor[] predictors, DataViewSchema schema, string featureColumn, string labelColumnName)
+        {
+            return new MulticlassPredictionTransformer<OneVersusAllModelParametersBase<T>>(Host, OneVersusAllModelParametersBuilder.Create<T>(Host, useProbabilities, predictors.Cast<T>().ToArray()), schema, featureColumn, LabelColumn.Name);
+        }
+
+        private protected override OneVersusAllModelParametersBase<T> TrainCore(IChannel ch, RoleMappedData data, int count)
+        {
+            // Train one-vs-all models.
+            var predictors = new T[count];
+            for (int i = 0; i < predictors.Length; i++)
+            {
+                ch.Info($"Training learner {i}");
+                predictors[i] = (T)TrainOne(ch, Trainer, data, i).Model;
+            }
+            return OneVersusAllModelParametersBuilder.Create<T>(Host, TrainerOptions.UseProbabilities, predictors);
+        }
+    }
+
+    public class OneVersusAllModelParametersBuilder {
+        [BestFriend]
+        internal static OneVersusAllModelParameters<T> Create<T>(IHost host, OneVersusAllModelParametersBase<T>.OutputFormula outputFormula, T[] predictors) where T : class
+        {
+            return new OneVersusAllModelParameters<T>(host, outputFormula, predictors);
+        }
+
+        [BestFriend]
+        internal static OneVersusAllModelParametersBase<T> Create<T>(IHost host, bool useProbability, T[] predictors) where T : class
+        {
+            var outputFormula = useProbability ? OneVersusAllModelParametersBase<T>.OutputFormula.ProbabilityNormalization : OneVersusAllModelParametersBase<T>.OutputFormula.Raw;
+
+            return Create(host, outputFormula, predictors);
+        }
+
+        /// <summary>
+        /// Create a <see cref="OneVersusAllModelParametersBase{T}"/> from an array of predictors.
+        /// </summary>
+        [BestFriend]
+        internal static OneVersusAllModelParametersBase<T> Create<T>(IHost host, T[] predictors) where T : class
+        {
+            Contracts.CheckValue(host, nameof(host));
+            host.CheckNonEmpty(predictors, nameof(predictors));
+            return Create(host, OneVersusAllModelParametersBase<T>.OutputFormula.ProbabilityNormalization, predictors);
+        }
+
+        [BestFriend]
+        internal static OneVersusAllModelParameters Create(IHost host, OneVersusAllModelParameters.OutputFormula outputFormula, TScalarPredictor[] predictors)
+        {
+            return new OneVersusAllModelParameters(host, outputFormula, predictors);
+        }
+
+        [BestFriend]
+        internal static OneVersusAllModelParameters Create(IHost host, bool useProbability, TScalarPredictor[] predictors)
+        {
+            var outputFormula = useProbability ? OneVersusAllModelParameters.OutputFormula.ProbabilityNormalization : OneVersusAllModelParameters.OutputFormula.Raw;
+
+            return Create(host, outputFormula, predictors);
+        }
+
+        /// <summary>
+        /// Create a <see cref="OneVersusAllModelParametersBase{T}"/> from an array of predictors.
+        /// </summary>
+        [BestFriend]
+        internal static OneVersusAllModelParameters Create(IHost host, TScalarPredictor[] predictors)
+        {
+            Contracts.CheckValue(host, nameof(host));
+            host.CheckNonEmpty(predictors, nameof(predictors));
+            return Create(host, OneVersusAllModelParameters.OutputFormula.ProbabilityNormalization, predictors);
+        }
+
     }
 
     /// <summary>
     /// Model parameters for <see cref="OneVersusAllTrainer"/>.
     /// </summary>
-    public class OneVersusAllModelParametersBase<T> :
+    public abstract class OneVersusAllModelParametersBase<T> :
         ModelParametersBase<VBuffer<float>>,
         IValueMapper,
         ICanSaveInSourceCode,
@@ -504,69 +539,43 @@ namespace Microsoft.ML.Trainers
 
         bool ICanSavePfa.CanSavePfa => _impl.CanSavePfa;
 
-        [BestFriend]
-        internal static OneVersusAllModelParametersBase<T> Create(IHost host, OutputFormula outputFormula, T[] predictors)
+        internal OneVersusAllModelParametersBase(IHostEnvironment env, OutputFormula outputFormula, T[] predictors)
+                : base(env, RegistrationName)
         {
-            ImplBase impl;
-
-            using (var ch = host.Start("Creating OVA predictor"))
+            using (var ch = env.Start("Creating OVA predictor"))
             {
                 if (outputFormula == OutputFormula.Softmax)
                 {
-                    impl = new ImplSoftmax(predictors);
-                    return new OneVersusAllModelParametersBase<T>(host, impl);
+                    _impl = new ImplSoftmax(predictors);
                 }
 
                 // Caller of this function asks for probability output. We check if input predictor can produce probability.
                 // If that predictor can't produce probability, ivmd will be null.
-                IValueMapperDist ivmd = null;
-                if (outputFormula == OutputFormula.ProbabilityNormalization &&
+                else
+                {
+                    IValueMapperDist ivmd = null;
+                    if (outputFormula == OutputFormula.ProbabilityNormalization &&
                     ((ivmd = predictors[0] as IValueMapperDist) == null ||
                         ivmd.OutputType != NumberDataViewType.Single ||
                         ivmd.DistType != NumberDataViewType.Single))
-                {
-                    ch.Warning($"{nameof(OneVersusAllTrainerBase<T>.Options.UseProbabilities)} specified with {nameof(OneVersusAllTrainerBase<T>.Options.PredictorType)} that can't produce probabilities.");
-                    ivmd = null;
-                }
+                    {
+                        ch.Warning($"{nameof(OneVersusAllTrainerBase<T>.Options.UseProbabilities)} specified with {nameof(OneVersusAllTrainerBase<T>.Options.PredictorType)} that can't produce probabilities.");
+                        ivmd = null;
+                    }
 
-                // If ivmd is null, either the user didn't ask for probability or the provided predictors can't produce probability.
-                if (ivmd != null)
-                {
-                    impl = new ImplDist(predictors);
+                    // If ivmd is null, either the user didn't ask for probability or the provided predictors can't produce probability.
+                    if (ivmd != null)
+                    {
+                        _impl = new ImplDist(predictors);
+                    }
+                    else
+                        _impl = new ImplRaw(predictors);
                 }
-                else
-                    impl = new ImplRaw(predictors);
             }
 
-            return new OneVersusAllModelParametersBase<T>(host, impl);
-        }
+            Host.AssertValue(_impl, nameof(_impl));
+            Host.Assert(Utils.Size(_impl.Predictors) > 0);
 
-        [BestFriend]
-        internal static OneVersusAllModelParametersBase<T> Create(IHost host, bool useProbability, T[] predictors)
-        {
-            var outputFormula = useProbability ? OutputFormula.ProbabilityNormalization : OutputFormula.Raw;
-
-            return Create(host, outputFormula, predictors);
-        }
-
-        /// <summary>
-        /// Create a <see cref="OneVersusAllModelParametersBase{T}"/> from an array of predictors.
-        /// </summary>
-        [BestFriend]
-        internal static OneVersusAllModelParametersBase<T> Create(IHost host, T[] predictors)
-        {
-            Contracts.CheckValue(host, nameof(host));
-            host.CheckNonEmpty(predictors, nameof(predictors));
-            return Create(host, OutputFormula.ProbabilityNormalization, predictors);
-        }
-
-        private protected OneVersusAllModelParametersBase(IHostEnvironment env, ImplBase impl)
-                : base(env, RegistrationName)
-        {
-            Host.AssertValue(impl, nameof(impl));
-            Host.Assert(Utils.Size(impl.Predictors) > 0);
-
-            _impl = impl;
             DistType = new VectorDataViewType(NumberDataViewType.Single, _impl.Predictors.Length);
         }
 
@@ -594,14 +603,6 @@ namespace Microsoft.ML.Trainers
             }
 
             DistType = new VectorDataViewType(NumberDataViewType.Single, _impl.Predictors.Length);
-        }
-
-        private static OneVersusAllModelParametersBase<T> Create(IHostEnvironment env, ModelLoadContext ctx)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel(GetVersionInfo());
-            return new OneVersusAllModelParametersBase<T>(env, ctx);
         }
 
         private static void LoadPredictors<TPredictor>(IHostEnvironment env, TPredictor[] predictors, ModelLoadContext ctx)
@@ -970,76 +971,34 @@ namespace Microsoft.ML.Trainers
         }
     }
 
+    public sealed class OneVersusAllModelParameters<T> :
+        OneVersusAllModelParametersBase<T> where T : class
+    {
+        internal OneVersusAllModelParameters(IHostEnvironment env, OutputFormula outputFormula, T[] predictors)
+                : base(env, outputFormula, predictors)
+        {
+        }
+
+        private OneVersusAllModelParameters(IHostEnvironment env, ModelLoadContext ctx)
+             : base(env, ctx)
+        {
+        }
+    }
+
     /// <summary>
     /// Model parameters for <see cref="OneVersusAllTrainer"/>.
     /// </summary>
     public sealed class OneVersusAllModelParameters :
             OneVersusAllModelParametersBase<TScalarPredictor>
     {
-        private OneVersusAllModelParameters(IHostEnvironment env, ImplBase impl)
-                : base(env, impl)
+        internal OneVersusAllModelParameters(IHostEnvironment env, OutputFormula outputFormula, TScalarPredictor[] predictors)
+                : base(env, outputFormula, predictors)
         {
         }
 
         private OneVersusAllModelParameters(IHostEnvironment env, ModelLoadContext ctx)
                 : base(env, ctx)
         {
-        }
-
-        /// <summary>
-        /// Create a <see cref="OneVersusAllModelParametersBase{T}"/> from an array of predictors.
-        /// </summary>
-        [BestFriend]
-        internal static new OneVersusAllModelParameters Create(IHost host, TScalarPredictor[] predictors)
-        {
-            Contracts.CheckValue(host, nameof(host));
-            host.CheckNonEmpty(predictors, nameof(predictors));
-            return Create(host, OutputFormula.ProbabilityNormalization, predictors);
-        }
-
-        [BestFriend]
-        internal static new OneVersusAllModelParameters Create(IHost host, OutputFormula outputFormula, TScalarPredictor[] predictors)
-        {
-            ImplBase impl;
-
-            using (var ch = host.Start("Creating OVA predictor"))
-            {
-                if (outputFormula == OutputFormula.Softmax)
-                {
-                    impl = new ImplSoftmax(predictors);
-                    return new OneVersusAllModelParameters(host, impl);
-                }
-
-                // Caller of this function asks for probability output. We check if input predictor can produce probability.
-                // If that predictor can't produce probability, ivmd will be null.
-                IValueMapperDist ivmd = null;
-                if (outputFormula == OutputFormula.ProbabilityNormalization &&
-                    ((ivmd = predictors[0] as IValueMapperDist) == null ||
-                        ivmd.OutputType != NumberDataViewType.Single ||
-                        ivmd.DistType != NumberDataViewType.Single))
-                {
-                    ch.Warning($"{nameof(OneVersusAllTrainer.Options.UseProbabilities)} specified with {nameof(OneVersusAllTrainer.Options.PredictorType)} that can't produce probabilities.");
-                    ivmd = null;
-                }
-
-                // If ivmd is null, either the user didn't ask for probability or the provided predictors can't produce probability.
-                if (ivmd != null)
-                {
-                    impl = new ImplDist(predictors);
-                }
-                else
-                    impl = new ImplRaw(predictors);
-            }
-
-            return new OneVersusAllModelParameters(host, impl);
-        }
-
-        private static OneVersusAllModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel(GetVersionInfo());
-            return new OneVersusAllModelParameters(env, ctx);
         }
     }
 }

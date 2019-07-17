@@ -132,7 +132,7 @@ namespace Microsoft.ML.Scenarios
                     new AveragedPerceptronTrainer.Options { Shuffle = true });
 
             var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(ap);
-            var pipelineTyped = mlContext.MulticlassClassification.Trainers.OneVersusAllUnCalibratedToCalibratedTyped<LinearBinaryModelParameters, PlattCalibrator>(apTyped);
+            var pipelineTyped = mlContext.MulticlassClassification.Trainers.OneVersusAllUnCalibratedToCalibrated<LinearBinaryModelParameters, PlattCalibrator>(apTyped);
 
             var model = pipeline.Fit(data);
             var predictions = model.Transform(data);
@@ -225,11 +225,10 @@ namespace Microsoft.ML.Scenarios
             });
             // Data
             var textData = reader.Load(GetDataPath(dataPath));
-            var textDataTyped = reader.Load(GetDataPath(dataPath));
             var data = mlContext.Data.Cache(mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Fit(textData).Transform(textData));
             var dataTyped = mlContextTyped.Data.Cache(mlContextTyped.Transforms.Conversion.MapValueToKey("Label")
-                .Fit(textDataTyped).Transform(textDataTyped));
+                .Fit(textData).Transform(textData));
 
             // Pipeline
             var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(
@@ -243,15 +242,15 @@ namespace Microsoft.ML.Scenarios
             var model = pipeline.Fit(data);
             var predictions = model.Transform(data);
 
-            var modelTyped = pipelineTyped.Fit(dataTyped);
-            var predictionsTyped = modelTyped.Transform(dataTyped);
+            var modelTyped = pipelineTyped.Fit(data);
+            var predictionsTyped = modelTyped.Transform(data);
 
             // Metrics
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
-            Assert.True(metrics.MicroAccuracy > 0.83);
+            Assert.True(metrics.MicroAccuracy > 0.95);
 
             var metricsTyped = mlContextTyped.MulticlassClassification.Evaluate(predictionsTyped);
-            Assert.True(metricsTyped.MicroAccuracy > 0.83);
+            Assert.True(metricsTyped.MicroAccuracy > 0.95);
 
             Assert.Equal(metrics.MicroAccuracy, metricsTyped.MicroAccuracy);
         }

@@ -155,7 +155,7 @@ namespace Microsoft.ML.EntryPoints
                 return new PredictorModelOutput
                 {
                     PredictorModel = new PredictorModelImpl(env, data, input.TrainingData,
-                    OneVersusAllModelParameters.Create(host, input.UseProbabilities,
+                    OneVersusAllModelParametersBuilder.Create(host, input.UseProbabilities,
                             input.ModelArray.Select(p => p.Predictor as IPredictorProducing<float>).ToArray()))
                 };
             }
