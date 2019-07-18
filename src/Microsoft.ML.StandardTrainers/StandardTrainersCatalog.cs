@@ -839,7 +839,7 @@ namespace Microsoft.ML
             IEstimator<ISingleFeaturePredictionTransformer<ICalibrator>> calibrator = null,
             int maximumCalibrationExampleCount = 1000000000,
             bool useProbabilities = true)
-            where TModelIn : class, IPredictorProducing<float>
+            where TModelIn : class
             where TCalibrator : class, ICalibrator
         {
             Contracts.CheckValue(catalog, nameof(catalog));

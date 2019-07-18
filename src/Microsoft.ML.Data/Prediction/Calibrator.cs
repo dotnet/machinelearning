@@ -881,10 +881,10 @@ namespace Microsoft.ML.Calibrators
 
         public static CalibratedModelParametersBase<TSubPredictor, TCalibrator> GetCalibratedPredictor<TSubPredictor, TCalibrator>(IHostEnvironment env, IChannel ch, ICalibratorTrainer caliTrainer,
             TSubPredictor predictor, RoleMappedData data, int maxRows = _maxCalibrationExamples)
-            where TSubPredictor : class, IPredictorProducing<float>
+            where TSubPredictor : class
             where TCalibrator : class, ICalibrator
         {
-            var trainedCalibrator = TrainCalibrator(env, ch, caliTrainer, predictor, data, maxRows) as TCalibrator;
+            var trainedCalibrator = TrainCalibrator(env, ch, caliTrainer, (IPredictor)predictor, data, maxRows) as TCalibrator;
             return (CalibratedModelParametersBase<TSubPredictor, TCalibrator>)CreateCalibratedPredictor(env, predictor, trainedCalibrator);
         }
 
@@ -972,12 +972,12 @@ namespace Microsoft.ML.Calibrators
         }
 
         public static IPredictorProducing<float> CreateCalibratedPredictor<TSubPredictor, TCalibrator>(IHostEnvironment env, TSubPredictor predictor, TCalibrator cali)
-        where TSubPredictor : class, IPredictorProducing<float>
+        where TSubPredictor : class
         where TCalibrator : class, ICalibrator
         {
             Contracts.Assert(predictor != null);
             if (cali == null)
-                return predictor;
+                return (IPredictorProducing<float>)predictor;
 
             for (; ; )
             {

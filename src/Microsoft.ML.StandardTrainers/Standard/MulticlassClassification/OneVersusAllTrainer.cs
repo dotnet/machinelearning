@@ -237,7 +237,7 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// Implementation of the <see cref="OneVersusAllTrainerBase{T}"/> where T is a <see cref="OneVersusAllModelParameters"/>
+    /// Implementation of the <see cref="OneVersusAllTrainer{T}"/> where T is a <see cref="OneVersusAllModelParameters"/>
     /// to maintain api compatability.
     /// </summary>
     public sealed class OneVersusAllTrainer : OneVersusAllTrainerBase<OneVersusAllModelParameters>
@@ -319,8 +319,8 @@ namespace Microsoft.ML.Trainers
     /// </summary>
     /// <typeparam name="TSubPredictor"></typeparam>
     /// <typeparam name="TCalibrator"></typeparam>
-    public sealed class OneVersusAllTrainer<TSubPredictor, TCalibrator> : OneVersusAllTrainerBase<OneVersusAllModelParametersBase<CalibratedModelParametersBase<TSubPredictor, TCalibrator>>>
-        where TSubPredictor : class, IPredictorProducing<float>
+    public sealed class OneVersusAllTrainer<TSubPredictor, TCalibrator> : OneVersusAllTrainerBase<OneVersusAllModelParameters<CalibratedModelParametersBase<TSubPredictor, TCalibrator>>>
+        where TSubPredictor : class
         where TCalibrator : class, ICalibrator
     {
         /// <summary>
@@ -375,12 +375,12 @@ namespace Microsoft.ML.Trainers
 
             return new BinaryPredictionTransformer<TScalarPredictor>(Host, transformer.Model, view.Schema, transformer.FeatureColumnName);
         }
-        private protected override MulticlassPredictionTransformer<OneVersusAllModelParametersBase<CalibratedModelParametersBase<TSubPredictor, TCalibrator>>> FitHelper(IHost host, bool useProbabilities, TScalarPredictor[] predictors, DataViewSchema schema, string featureColumn, string labelColumnName)
+        private protected override MulticlassPredictionTransformer<OneVersusAllModelParameters<CalibratedModelParametersBase<TSubPredictor, TCalibrator>>> FitHelper(IHost host, bool useProbabilities, TScalarPredictor[] predictors, DataViewSchema schema, string featureColumn, string labelColumnName)
         {
-            return new MulticlassPredictionTransformer<OneVersusAllModelParametersBase<CalibratedModelParametersBase<TSubPredictor, TCalibrator>>>(Host, OneVersusAllModelParametersBuilder.Create(Host, useProbabilities, predictors.Cast<CalibratedModelParametersBase<TSubPredictor, TCalibrator>>().ToArray()), schema, featureColumn, LabelColumn.Name);
+            return new MulticlassPredictionTransformer<OneVersusAllModelParameters<CalibratedModelParametersBase<TSubPredictor, TCalibrator>>>(Host, OneVersusAllModelParametersBuilder.Create(Host, useProbabilities, predictors.Cast<CalibratedModelParametersBase<TSubPredictor, TCalibrator>>().ToArray()), schema, featureColumn, LabelColumn.Name);
         }
 
-        private protected override OneVersusAllModelParametersBase<CalibratedModelParametersBase<TSubPredictor, TCalibrator>> TrainCore(IChannel ch, RoleMappedData data, int count)
+        private protected override OneVersusAllModelParameters<CalibratedModelParametersBase<TSubPredictor, TCalibrator>> TrainCore(IChannel ch, RoleMappedData data, int count)
         {
             // Train one-vs-all models.
             var predictors = new CalibratedModelParametersBase<TSubPredictor, TCalibrator>[count];
@@ -399,7 +399,7 @@ namespace Microsoft.ML.Trainers
     /// This cannot be used to turn a non calibrated binary classification estimator into its calibrated version. If that is required, use <see cref="OneVersusAllTrainer{TSubPredictor, TCalibrator}"/> instead.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public sealed class OneVersusAllTrainer<T> : OneVersusAllTrainerBase<OneVersusAllModelParametersBase<T>> where T : class
+    public sealed class OneVersusAllTrainer<T> : OneVersusAllTrainerBase<OneVersusAllModelParameters<T>> where T : class
     {
         /// <summary>
         /// Constructs a <see cref="OneVersusAllTrainerBase{T}"/> trainer supplying a <see cref="OneVersusAllTrainerBase{T}.Options"/>.
@@ -449,12 +449,12 @@ namespace Microsoft.ML.Trainers
             return new BinaryPredictionTransformer<TScalarPredictor>(Host, transformer.Model, view.Schema, transformer.FeatureColumnName);
         }
 
-        private protected override MulticlassPredictionTransformer<OneVersusAllModelParametersBase<T>> FitHelper(IHost host, bool useProbabilities, TScalarPredictor[] predictors, DataViewSchema schema, string featureColumn, string labelColumnName)
+        private protected override MulticlassPredictionTransformer<OneVersusAllModelParameters<T>> FitHelper(IHost host, bool useProbabilities, TScalarPredictor[] predictors, DataViewSchema schema, string featureColumn, string labelColumnName)
         {
-            return new MulticlassPredictionTransformer<OneVersusAllModelParametersBase<T>>(Host, OneVersusAllModelParametersBuilder.Create<T>(Host, useProbabilities, predictors.Cast<T>().ToArray()), schema, featureColumn, LabelColumn.Name);
+            return new MulticlassPredictionTransformer<OneVersusAllModelParameters<T>>(Host, OneVersusAllModelParametersBuilder.Create<T>(Host, useProbabilities, predictors.Cast<T>().ToArray()), schema, featureColumn, LabelColumn.Name);
         }
 
-        private protected override OneVersusAllModelParametersBase<T> TrainCore(IChannel ch, RoleMappedData data, int count)
+        private protected override OneVersusAllModelParameters<T> TrainCore(IChannel ch, RoleMappedData data, int count)
         {
             // Train one-vs-all models.
             var predictors = new T[count];
@@ -473,7 +473,7 @@ namespace Microsoft.ML.Trainers
     [BestFriend]
     internal static class OneVersusAllModelParametersBuilder {
         [BestFriend]
-        internal static OneVersusAllModelParameters<T> Create<T>(IHost host, OneVersusAllModelParametersBase<T>.OutputFormula outputFormula, T[] predictors) where T : class
+        internal static OneVersusAllModelParameters<T> Create<T>(IHost host, OneVersusAllModelParameters<T>.OutputFormula outputFormula, T[] predictors) where T : class
         {
             return new OneVersusAllModelParameters<T>(host, outputFormula, predictors);
         }
@@ -481,7 +481,7 @@ namespace Microsoft.ML.Trainers
         [BestFriend]
         internal static OneVersusAllModelParameters<T> Create<T>(IHost host, bool useProbability, T[] predictors) where T : class
         {
-            var outputFormula = useProbability ? OneVersusAllModelParametersBase<T>.OutputFormula.ProbabilityNormalization : OneVersusAllModelParametersBase<T>.OutputFormula.Raw;
+            var outputFormula = useProbability ? OneVersusAllModelParameters<T>.OutputFormula.ProbabilityNormalization : OneVersusAllModelParameters<T>.OutputFormula.Raw;
 
             return Create(host, outputFormula, predictors);
         }
@@ -527,18 +527,17 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// Base model parameters for <see cref="OneVersusAllTrainer"/>.
     /// </summary>
-    public abstract class OneVersusAllModelParametersBase<T> :
+    public abstract class OneVersusAllModelParametersBase :
         ModelParametersBase<VBuffer<float>>,
         IValueMapper,
         ICanSaveInSourceCode,
         ICanSaveInTextFormat,
         ISingleCanSavePfa
-        where T : class
     {
         internal const string LoaderSignature = "OVAExec";
         internal const string RegistrationName = "OVAPredictor";
 
-        private protected static VersionInfo GetVersionInfo()
+        private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
                 modelSignature: "TLC OVA ",
@@ -546,17 +545,12 @@ namespace Microsoft.ML.Trainers
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(OneVersusAllModelParametersBase<T>).Assembly.FullName);
+                loaderAssemblyName: typeof(OneVersusAllModelParameters).Assembly.FullName);
         }
 
         private const string SubPredictorFmt = "SubPredictor_{0:000}";
 
-        private readonly ImplBase _impl;
-
-        /// <summary>
-        /// Retrieves the model parameters.
-        /// </summary>
-        internal ImmutableArray<T> SubModelParameters => _impl.Predictors.Cast<T>().ToImmutableArray();
+        private protected readonly ImplBase Impl;
 
         /// <summary>
         /// The type of the prediction task.
@@ -578,16 +572,16 @@ namespace Microsoft.ML.Trainers
 
         private DataViewType DistType { get; }
 
-        bool ICanSavePfa.CanSavePfa => _impl.CanSavePfa;
+        bool ICanSavePfa.CanSavePfa => Impl.CanSavePfa;
 
-        internal OneVersusAllModelParametersBase(IHostEnvironment env, OutputFormula outputFormula, T[] predictors)
+        internal OneVersusAllModelParametersBase(IHostEnvironment env, OutputFormula outputFormula, TScalarPredictor[] predictors)
                 : base(env, RegistrationName)
         {
             using (var ch = env.Start("Creating OVA predictor"))
             {
                 if (outputFormula == OutputFormula.Softmax)
                 {
-                    _impl = new ImplSoftmax(predictors);
+                    Impl = new ImplSoftmax(predictors);
                 }
 
                 // Caller of this function asks for probability output. We check if input predictor can produce probability.
@@ -600,24 +594,27 @@ namespace Microsoft.ML.Trainers
                         ivmd.OutputType != NumberDataViewType.Single ||
                         ivmd.DistType != NumberDataViewType.Single))
                     {
-                        ch.Warning($"{nameof(OneVersusAllTrainerBase<T>.Options.UseProbabilities)} specified with {nameof(OneVersusAllTrainerBase<T>.Options.PredictorType)} that can't produce probabilities.");
+                        ch.Warning($"{nameof(OneVersusAllTrainer.Options.UseProbabilities)} specified with {nameof(OneVersusAllTrainer.Options.PredictorType)} that can't produce probabilities.");
                         ivmd = null;
                     }
 
                     // If ivmd is null, either the user didn't ask for probability or the provided predictors can't produce probability.
                     if (ivmd != null)
                     {
-                        _impl = new ImplDist(predictors);
+                        var dists = new IValueMapperDist[predictors.Length];
+                        for (int i = 0; i < predictors.Length; ++i)
+                            dists[i] = (IValueMapperDist)predictors[i];
+                        Impl = new ImplDist(dists);
                     }
                     else
-                        _impl = new ImplRaw(predictors);
+                        Impl = new ImplRaw(predictors);
                 }
             }
 
-            Host.AssertValue(_impl, nameof(_impl));
-            Host.Assert(Utils.Size(_impl.Predictors) > 0);
+            Host.AssertValue(Impl, nameof(Impl));
+            Host.Assert(Utils.Size(Impl.Predictors) > 0);
 
-            DistType = new VectorDataViewType(NumberDataViewType.Single, _impl.Predictors.Length);
+            DistType = new VectorDataViewType(NumberDataViewType.Single, Impl.Predictors.Length);
         }
 
         private protected OneVersusAllModelParametersBase(IHostEnvironment env, ModelLoadContext ctx)
@@ -632,18 +629,18 @@ namespace Microsoft.ML.Trainers
 
             if (useDist)
             {
-                var predictors = new T[len];
+                var predictors = new IValueMapperDist[len];
                 LoadPredictors(Host, predictors, ctx);
-                _impl = new ImplDist(predictors);
+                Impl = new ImplDist(predictors);
             }
             else
             {
-                var predictors = new T[len];
+                var predictors = new TScalarPredictor[len];
                 LoadPredictors(Host, predictors, ctx);
-                _impl = new ImplRaw(predictors);
+                Impl = new ImplRaw(predictors);
             }
 
-            DistType = new VectorDataViewType(NumberDataViewType.Single, _impl.Predictors.Length);
+            DistType = new VectorDataViewType(NumberDataViewType.Single, Impl.Predictors.Length);
         }
 
         private static void LoadPredictors<TPredictor>(IHostEnvironment env, TPredictor[] predictors, ModelLoadContext ctx)
@@ -658,12 +655,12 @@ namespace Microsoft.ML.Trainers
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
 
-            var preds = _impl.Predictors;
+            var preds = Impl.Predictors;
 
             // *** Binary format ***
             // bool: useDist
             // int: predictor count
-            ctx.Writer.WriteBoolByte(_impl is ImplDist);
+            ctx.Writer.WriteBoolByte(Impl is ImplDist);
             ctx.Writer.Write(preds.Length);
 
             // Save other streams.
@@ -675,12 +672,12 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckValue(input, nameof(input));
-            return _impl.SaveAsPfa(ctx, input);
+            return Impl.SaveAsPfa(ctx, input);
         }
 
         DataViewType IValueMapper.InputType
         {
-            get { return _impl.InputType; }
+            get { return Impl.InputType; }
         }
 
         DataViewType IValueMapper.OutputType
@@ -692,7 +689,7 @@ namespace Microsoft.ML.Trainers
             Host.Check(typeof(TIn) == typeof(VBuffer<float>));
             Host.Check(typeof(TOut) == typeof(VBuffer<float>));
 
-            return (ValueMapper<TIn, TOut>)(Delegate)_impl.GetMapper();
+            return (ValueMapper<TIn, TOut>)(Delegate)Impl.GetMapper();
         }
 
         void ICanSaveInSourceCode.SaveAsCode(TextWriter writer, RoleMappedSchema schema)
@@ -700,7 +697,7 @@ namespace Microsoft.ML.Trainers
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValue(schema, nameof(schema));
 
-            var preds = _impl.Predictors;
+            var preds = Impl.Predictors;
             writer.WriteLine("double[] outputs = new double[{0}];", preds.Length);
 
             for (int i = 0; i < preds.Length; i++)
@@ -720,7 +717,7 @@ namespace Microsoft.ML.Trainers
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValue(schema, nameof(schema));
 
-            var preds = _impl.Predictors;
+            var preds = Impl.Predictors;
 
             for (int i = 0; i < preds.Length; i++)
             {
@@ -767,13 +764,13 @@ namespace Microsoft.ML.Trainers
             }
         }
 
-        private protected sealed class ImplRaw : ImplBase
+        private sealed class ImplRaw : ImplBase
         {
             public override DataViewType InputType { get; }
             public override IValueMapper[] Predictors { get; }
             public override bool CanSavePfa { get; }
 
-            internal ImplRaw(T[] predictors)
+            internal ImplRaw(TScalarPredictor[] predictors)
             {
                 Contracts.CheckNonEmpty(predictors, nameof(predictors));
 
@@ -831,14 +828,14 @@ namespace Microsoft.ML.Trainers
             }
         }
 
-        private protected sealed class ImplDist : ImplBase
+        private sealed class ImplDist : ImplBase
         {
             private readonly IValueMapperDist[] _mappers;
             public override DataViewType InputType { get; }
             public override IValueMapper[] Predictors => _mappers;
             public override bool CanSavePfa { get; }
 
-            internal ImplDist(T[] predictors)
+            internal ImplDist(IValueMapperDist[] predictors)
             {
                 Contracts.Check(Utils.Size(predictors) > 0);
 
@@ -846,7 +843,7 @@ namespace Microsoft.ML.Trainers
                 VectorDataViewType inputType = null;
                 for (int i = 0; i < predictors.Length; i++)
                 {
-                    var vm = predictors[i] as IValueMapperDist;
+                    var vm = predictors[i];
                     Contracts.Check(IsValid(vm, ref inputType), "Predictor doesn't implement the expected interface");
                     _mappers[i] = vm;
                 }
@@ -943,13 +940,13 @@ namespace Microsoft.ML.Trainers
             }
         }
 
-        private protected sealed class ImplSoftmax : ImplBase
+        private sealed class ImplSoftmax : ImplBase
         {
             public override DataViewType InputType { get; }
             public override IValueMapper[] Predictors { get; }
             public override bool CanSavePfa { get; }
 
-            internal ImplSoftmax(T[] predictors)
+            internal ImplSoftmax(TScalarPredictor[] predictors)
             {
                 Contracts.CheckNonEmpty(predictors, nameof(predictors));
 
@@ -1016,10 +1013,10 @@ namespace Microsoft.ML.Trainers
     /// Model parameters for typed versions of <see cref="OneVersusAllTrainer"/>.
     /// </summary>
     public sealed class OneVersusAllModelParameters<T> :
-        OneVersusAllModelParametersBase<T> where T : class
+        OneVersusAllModelParametersBase where T : class
     {
         internal OneVersusAllModelParameters(IHostEnvironment env, OutputFormula outputFormula, T[] predictors)
-                : base(env, outputFormula, predictors)
+                : base(env, outputFormula, predictors.Cast<IPredictorProducing<float>>().ToArray())
         {
         }
 
@@ -1027,13 +1024,18 @@ namespace Microsoft.ML.Trainers
              : base(env, ctx)
         {
         }
+
+        /// <summary>
+        /// Retrieves the model parameters.
+        /// </summary>
+        internal ImmutableArray<T> SubModelParameters => Impl.Predictors.Cast<T>().ToImmutableArray();
     }
 
     /// <summary>
     /// Model parameters for <see cref="OneVersusAllTrainer"/>.
     /// </summary>
     public sealed class OneVersusAllModelParameters :
-            OneVersusAllModelParametersBase<TScalarPredictor>
+            OneVersusAllModelParametersBase
     {
         internal OneVersusAllModelParameters(IHostEnvironment env, OutputFormula outputFormula, TScalarPredictor[] predictors)
                 : base(env, outputFormula, predictors)
@@ -1044,5 +1046,10 @@ namespace Microsoft.ML.Trainers
                 : base(env, ctx)
         {
         }
+
+        /// <summary>
+        /// Retrieves the model parameters.
+        /// </summary>
+        internal ImmutableArray<object> SubModelParameters => Impl.Predictors.Cast<object>().ToImmutableArray();
     }
 }
