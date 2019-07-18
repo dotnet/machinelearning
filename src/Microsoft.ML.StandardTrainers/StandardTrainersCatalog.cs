@@ -765,7 +765,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create a <see cref="OneVersusAllTrainerTyped{TModelOut}"/>, which predicts a multiclass target using one-versus-all strategy with
+        /// Create a <see cref="OneVersusAllTrainer{TModelOut}"/>, which predicts a multiclass target using one-versus-all strategy with
         /// the binary classification estimator specified by <paramref name="binaryEstimator"/>. This method works with binary classifiers that
         /// are either already calibrated, or non calibrated ones you don't want calibrated. If you need to have your classifier calibrated, use the
         /// <see cref="OneVersusAllUnCalibratedToCalibrated{TModelIn, TCalibrator}"/> method instead.
@@ -789,7 +789,7 @@ namespace Microsoft.ML
         ///  [!code-csharp[OneVersusAll](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/OneVersusAll.cs)]
         /// ]]></format>
         /// </example>
-        public static OneVersusAllTrainerTyped<TModel> OneVersusAllTyped<TModel>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+        public static OneVersusAllTrainer<TModel> OneVersusAllTyped<TModel>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             ITrainerEstimator<BinaryPredictionTransformer<TModel>, TModel> binaryEstimator,
             string labelColumnName = DefaultColumnNames.Label,
             bool imputeMissingLabelsAsNegative = false,
@@ -800,11 +800,11 @@ namespace Microsoft.ML
             var env = CatalogUtils.GetEnvironment(catalog);
             if (!(binaryEstimator is ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>> est))
                 throw env.ExceptParam(nameof(binaryEstimator), "Trainer estimator does not appear to produce the right kind of model.");
-            return new OneVersusAllTrainerTyped<TModel>(env, est, labelColumnName, imputeMissingLabelsAsNegative, useProbabilities);
+            return new OneVersusAllTrainer<TModel>(env, est, labelColumnName, imputeMissingLabelsAsNegative, useProbabilities);
         }
 
         /// <summary>
-        /// Create a <see cref="OneVersusAllTrainerTyped{TModelIn, TCalibrator}"/>, which predicts a multiclass target using one-versus-all strategy with
+        /// Create a <see cref="OneVersusAllTrainer{TModelIn, TCalibrator}"/>, which predicts a multiclass target using one-versus-all strategy with
         /// the binary classification estimator specified by <paramref name="binaryEstimator"/>.This method works with binary classifiers that
         /// are not calibrated and need to be calibrated before use. Due to the type of estimator changing (from uncalibrated to calibrated), you must manually
         /// specify both the type of the model and the type of the calibrator. If your classifier is already calibrated or it does not need to be, use the
@@ -832,7 +832,7 @@ namespace Microsoft.ML
         ///  [!code-csharp[OneVersusAll](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/OneVersusAll.cs)]
         /// ]]></format>
         /// </example>
-        public static OneVersusAllTrainerTyped<TModelIn, TCalibrator> OneVersusAllUnCalibratedToCalibrated<TModelIn, TCalibrator>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+        public static OneVersusAllTrainer<TModelIn, TCalibrator> OneVersusAllUnCalibratedToCalibrated<TModelIn, TCalibrator>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             ITrainerEstimator<BinaryPredictionTransformer<TModelIn>, TModelIn> binaryEstimator,
             string labelColumnName = DefaultColumnNames.Label,
             bool imputeMissingLabelsAsNegative = false,
@@ -846,7 +846,7 @@ namespace Microsoft.ML
             var env = CatalogUtils.GetEnvironment(catalog);
             if (!(binaryEstimator is ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>> est))
                 throw env.ExceptParam(nameof(binaryEstimator), "Trainer estimator does not appear to produce the right kind of model.");
-            return new OneVersusAllTrainerTyped<TModelIn, TCalibrator>(env, est, labelColumnName, imputeMissingLabelsAsNegative, GetCalibratorTrainerOrThrow(env, calibrator), maximumCalibrationExampleCount, useProbabilities);
+            return new OneVersusAllTrainer<TModelIn, TCalibrator>(env, est, labelColumnName, imputeMissingLabelsAsNegative, GetCalibratorTrainerOrThrow(env, calibrator), maximumCalibrationExampleCount, useProbabilities);
         }
 
         /// <summary>

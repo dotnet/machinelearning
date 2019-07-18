@@ -319,22 +319,22 @@ namespace Microsoft.ML.Trainers
     /// </summary>
     /// <typeparam name="TSubPredictor"></typeparam>
     /// <typeparam name="TCalibrator"></typeparam>
-    public sealed class OneVersusAllTrainerTyped<TSubPredictor, TCalibrator> : OneVersusAllTrainerBase<OneVersusAllModelParametersBase<CalibratedModelParametersBase<TSubPredictor, TCalibrator>>>
+    public sealed class OneVersusAllTrainer<TSubPredictor, TCalibrator> : OneVersusAllTrainerBase<OneVersusAllModelParametersBase<CalibratedModelParametersBase<TSubPredictor, TCalibrator>>>
         where TSubPredictor : class, IPredictorProducing<float>
         where TCalibrator : class, ICalibrator
     {
         /// <summary>
-        /// Constructs a <see cref="OneVersusAllTrainerBase{T}"/> trainer supplying a <see cref="OneVersusAllTrainerBase{T}.Options"/>.
+        /// Constructs a <see cref="OneVersusAllTrainer{TSubPredictor, TCalibrator}"/> trainer supplying a <see cref="OneVersusAllTrainerBase{T}.Options"/>.
         /// </summary>
         /// <param name="env">The private <see cref="IHostEnvironment"/> for this estimator.</param>
         /// <param name="options">The legacy <see cref="OneVersusAllTrainerBase{T}.Options"/></param>
-        internal OneVersusAllTrainerTyped(IHostEnvironment env, Options options)
+        internal OneVersusAllTrainer(IHostEnvironment env, Options options)
             : base(env, options)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="OneVersusAllTrainerTyped{T}"/>.
+        /// Initializes a new instance of <see cref="OneVersusAllTrainer{TSubPredictor, TCalibrator}"/>.
         /// </summary>
         /// <param name="env">The <see cref="IHostEnvironment"/> instance.</param>
         /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
@@ -343,7 +343,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="imputeMissingLabelsAsNegative">If true will treat missing labels as negative labels.</param>
         /// <param name="maximumCalibrationExampleCount">Number of instances to train the calibrator.</param>
         /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
-        internal OneVersusAllTrainerTyped(IHostEnvironment env,
+        internal OneVersusAllTrainer(IHostEnvironment env,
             TScalarTrainer binaryEstimator,
             string labelColumnName = DefaultColumnNames.Label,
             bool imputeMissingLabelsAsNegative = false,
@@ -396,30 +396,30 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// Strongly typed implementation of the <see cref="OneVersusAllTrainerBase{T}"/> where T is a <see cref="OneVersusAllModelParameters{T}"/>.  T can either be
     /// a calibrated binary estimator of type <see cref="CalibratedModelParametersBase{TSubPredictor, TCalibrator}"/>, or a non calibrated binary estimary.
-    /// This cannot be used to turn a non calibrated binary classification estimator into its calibrated version. If that is required, use <see cref="OneVersusAllTrainerTyped{TSubPredictor, TCalibrator}"/> instead.
+    /// This cannot be used to turn a non calibrated binary classification estimator into its calibrated version. If that is required, use <see cref="OneVersusAllTrainer{TSubPredictor, TCalibrator}"/> instead.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public sealed class OneVersusAllTrainerTyped<T> : OneVersusAllTrainerBase<OneVersusAllModelParametersBase<T>> where T : class
+    public sealed class OneVersusAllTrainer<T> : OneVersusAllTrainerBase<OneVersusAllModelParametersBase<T>> where T : class
     {
         /// <summary>
         /// Constructs a <see cref="OneVersusAllTrainerBase{T}"/> trainer supplying a <see cref="OneVersusAllTrainerBase{T}.Options"/>.
         /// </summary>
         /// <param name="env">The private <see cref="IHostEnvironment"/> for this estimator.</param>
         /// <param name="options">The legacy <see cref="OneVersusAllTrainerBase{T}.Options"/></param>
-        internal OneVersusAllTrainerTyped(IHostEnvironment env, Options options)
+        internal OneVersusAllTrainer(IHostEnvironment env, Options options)
             : base(env, options)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="OneVersusAllTrainerTyped{T}"/>.
+        /// Initializes a new instance of <see cref="OneVersusAllTrainer{T}"/>.
         /// </summary>
         /// <param name="env">The <see cref="IHostEnvironment"/> instance.</param>
         /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
         /// <param name="labelColumnName">The name of the label colum.</param>
         /// <param name="imputeMissingLabelsAsNegative">If true will treat missing labels as negative labels.</param>
         /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
-        internal OneVersusAllTrainerTyped(IHostEnvironment env,
+        internal OneVersusAllTrainer(IHostEnvironment env,
             TScalarTrainer binaryEstimator,
             string labelColumnName = DefaultColumnNames.Label,
             bool imputeMissingLabelsAsNegative = false,
