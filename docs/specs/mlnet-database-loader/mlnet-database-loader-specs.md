@@ -123,8 +123,12 @@ We'll need to come up with a reasonably general pattern (probably something that
 
     2. RDBMS-server running database and .NET code using ML.NET code
 
-- **Implementation as a separate NuGet package**: Since the implementation of this feature uses the primitives in System.Data, therefore this feature should be available as a separate NuGet package so that ML.NET core packages don't depend on System.Data.
+- **NuGet packages and libraries design**: 
+The implementation of this feature should be packaged following the following approach, which is aligned and consistent to the current approach used by the .NET Framework and .NET Core in the System.Data.Common and System.Data.SqlClient:
 
+    - Implementation code with NO depedencies to specific database providers (such as SQL Server, Oracle, MySQL, etc.) will be packaged in the same NuGet package and library than the existing TextLoader-related classes which is in the Microsoft.ML.Data library. This code is basically the foundational API for the Database loader where the user has to provide any specific database connection (so dependencies are taken in user's code).
+    - Implementation code WITH dependencies to data proviers (such as SQL Server, Oracle, MySQL, etc.) that might be created when creating additional convenient APIs where the user only needs to provide a connection string and table-name or SQL statement, will be placed in a segregated class library and NuGet package, so that ML.NET core packages don't depend on specific database providers.
+    
 - **Support for sparse data**: The database loader should support sparse data, at least up to the maximum number of columns in SQL Server (1,024 columns per nonwide table, 30,000 columns per wide table or 4,096 columns per SELECT statement).
 
     ML.NET supports sparse data such as in the following example using a [sparse matrix](https://en.wikipedia.org/wiki/Sparse_matrix) of thousands or even millions of columns even when in this example only 200 columns have real data (sparse data): 
