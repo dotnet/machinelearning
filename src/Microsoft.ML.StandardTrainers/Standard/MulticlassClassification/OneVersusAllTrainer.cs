@@ -470,7 +470,8 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// Class that holds the static create methods for the <see cref="OneVersusAllModelParameters"/> classes.
     /// </summary>
-    public class OneVersusAllModelParametersBuilder {
+    [BestFriend]
+    internal static class OneVersusAllModelParametersBuilder {
         [BestFriend]
         internal static OneVersusAllModelParameters<T> Create<T>(IHost host, OneVersusAllModelParametersBase<T>.OutputFormula outputFormula, T[] predictors) where T : class
         {
