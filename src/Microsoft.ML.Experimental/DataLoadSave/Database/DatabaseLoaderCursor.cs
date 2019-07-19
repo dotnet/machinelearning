@@ -14,8 +14,8 @@ namespace Microsoft.ML.Data
         private sealed class Cursor : RootCursorBase
         {
             private readonly Bindings _bindings;
-            private readonly IDataReader _input;
             private readonly bool[] _active; // Which columns are active.
+            private readonly IDataReader _input;
             private readonly Delegate[] _getters;
 
             // This holds the overall count of rows currently served up in the cursor.
@@ -43,7 +43,7 @@ namespace Microsoft.ML.Data
                     _getters[i] = CreateGetterDelegate(i);
                     Ch.Assert(_getters[i] != null);
                 }
-            }
+        }
 
             public static DataViewRowCursor Create(DatabaseLoader parent, Func<IDataReader> input, bool[] active)
             {
@@ -123,19 +123,99 @@ namespace Microsoft.ML.Data
 
             private Delegate CreateGetterDelegate<TValue>(int col)
             {
+                Delegate getterDelegate;
+
                 var colInfo = _bindings.Infos[col];
                 Ch.Assert(colInfo.ColType.RawType == typeof(TValue));
 
-                if (typeof(TValue) == typeof(int))
+                if (typeof(TValue) == typeof(bool))
                 {
-                    return CreateInt32GetterDelegate(colInfo) as ValueGetter<TValue>;
+                    getterDelegate = CreateBooleanGetterDelegate(colInfo);
                 }
-                if (typeof(TValue) == typeof(float))
+                else if (typeof(TValue) == typeof(byte))
                 {
-                    return CreateFloatGetterDelegate(colInfo) as ValueGetter<TValue>;
+                    getterDelegate = CreateByteGetterDelegate(colInfo);
+                }
+                else if (typeof(TValue) == typeof(DateTime))
+                {
+                    getterDelegate = CreateDateTimeGetterDelegate(colInfo);
+                }
+                else if (typeof(TValue) == typeof(double))
+                {
+                    getterDelegate = CreateDoubleGetterDelegate(colInfo);
+                }
+                else if (typeof(TValue) == typeof(short))
+                {
+                    getterDelegate = CreateInt16GetterDelegate(colInfo);
+                }
+                else if (typeof(TValue) == typeof(int))
+                {
+                    getterDelegate = CreateInt32GetterDelegate(colInfo);
+                }
+                else if (typeof(TValue) == typeof(long))
+                {
+                    getterDelegate = CreateInt64GetterDelegate(colInfo);
+                }
+                else if (typeof(TValue) == typeof(sbyte))
+                {
+                    getterDelegate = CreateSByteGetterDelegate(colInfo);
+                }
+                else if (typeof(TValue) == typeof(float))
+                {
+                    getterDelegate = CreateSingleGetterDelegate(colInfo);
+                }
+                else if (typeof(TValue) == typeof(string))
+                {
+                    getterDelegate = CreateStringGetterDelegate(colInfo);
+                }
+                else if (typeof(TValue) == typeof(ushort))
+                {
+                    getterDelegate = CreateUInt16GetterDelegate(colInfo);
+                }
+                else if (typeof(TValue) == typeof(uint))
+                {
+                    getterDelegate = CreateUInt32GetterDelegate(colInfo);
+                }
+                else if (typeof(TValue) == typeof(ulong))
+                {
+                    getterDelegate = CreateUInt64GetterDelegate(colInfo);
+                }
+                else
+                {
+                    throw new NotSupportedException();
                 }
 
-                throw new NotSupportedException();
+                return getterDelegate as ValueGetter<TValue>;
+            }
+
+            private ValueGetter<bool> CreateBooleanGetterDelegate(ColInfo colInfo)
+            {
+                int columnIndex = GetColumnIndex(colInfo);
+                return (ref bool value) => value = _input.GetBoolean(columnIndex);
+            }
+
+            private ValueGetter<byte> CreateByteGetterDelegate(ColInfo colInfo)
+            {
+                int columnIndex = GetColumnIndex(colInfo);
+                return (ref byte value) => value = _input.GetByte(columnIndex);
+            }
+
+            private ValueGetter<DateTime> CreateDateTimeGetterDelegate(ColInfo colInfo)
+            {
+                int columnIndex = GetColumnIndex(colInfo);
+                return (ref DateTime value) => value = _input.GetDateTime(columnIndex);
+            }
+
+            private ValueGetter<double> CreateDoubleGetterDelegate(ColInfo colInfo)
+            {
+                int columnIndex = GetColumnIndex(colInfo);
+                return (ref double value) => value = _input.GetDouble(columnIndex);
+            }
+
+            private ValueGetter<short> CreateInt16GetterDelegate(ColInfo colInfo)
+            {
+                int columnIndex = GetColumnIndex(colInfo);
+                return (ref short value) => value = _input.GetInt16(columnIndex);
             }
 
             private ValueGetter<int> CreateInt32GetterDelegate(ColInfo colInfo)
@@ -144,10 +224,46 @@ namespace Microsoft.ML.Data
                 return (ref int value) => value = _input.GetInt32(columnIndex);
             }
 
-            private ValueGetter<float> CreateFloatGetterDelegate(ColInfo colInfo)
+            private ValueGetter<long> CreateInt64GetterDelegate(ColInfo colInfo)
+            {
+                int columnIndex = GetColumnIndex(colInfo);
+                return (ref long value) => value = _input.GetInt64(columnIndex);
+            }
+
+            private ValueGetter<sbyte> CreateSByteGetterDelegate(ColInfo colInfo)
+            {
+                int columnIndex = GetColumnIndex(colInfo);
+                return (ref sbyte value) => value = (sbyte)_input.GetByte(columnIndex);
+            }
+
+            private ValueGetter<float> CreateSingleGetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
                 return (ref float value) => value = _input.GetFloat(columnIndex);
+            }
+
+            private ValueGetter<string> CreateStringGetterDelegate(ColInfo colInfo)
+            {
+                int columnIndex = GetColumnIndex(colInfo);
+                return (ref string value) => value = _input.GetString(columnIndex);
+            }
+
+            private ValueGetter<ushort> CreateUInt16GetterDelegate(ColInfo colInfo)
+            {
+                int columnIndex = GetColumnIndex(colInfo);
+                return (ref ushort value) => value = (ushort)_input.GetInt16(columnIndex);
+            }
+
+            private ValueGetter<uint> CreateUInt32GetterDelegate(ColInfo colInfo)
+            {
+                int columnIndex = GetColumnIndex(colInfo);
+                return (ref uint value) => value = (uint)_input.GetInt32(columnIndex);
+            }
+
+            private ValueGetter<ulong> CreateUInt64GetterDelegate(ColInfo colInfo)
+            {
+                int columnIndex = GetColumnIndex(colInfo);
+                return (ref ulong value) => value = (ulong)_input.GetInt64(columnIndex);
             }
 
             private int GetColumnIndex(ColInfo colInfo)
