@@ -58,8 +58,7 @@ namespace Samples.Dynamic.Transforms.TreeFeaturization
             };
 
             // Define the tree-based featurizer's configuration.
-            var options = new FastForestBinaryFeaturizationEstimator
-    .Options
+            var options = new FastForestBinaryFeaturizationEstimator.Options
             {
                 InputColumnName = featureColumnName,
                 TreesColumnName = treesColumnName,

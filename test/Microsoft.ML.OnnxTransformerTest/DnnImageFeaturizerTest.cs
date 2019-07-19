@@ -103,6 +103,8 @@ namespace Microsoft.ML.Tests
                 .Append(ML.Transforms.ExtractPixels("data_0", interleavePixelColors: true))
                 .Append(ML.Transforms.DnnFeaturizeImage("output_1", m => m.ModelSelector.ResNet18(m.Environment, m.OutputColumn, m.InputColumn), "data_0"));
 
+            TestEstimatorCore(pipe, data);
+
             var result = pipe.Fit(data).Transform(data);
             using (var cursor = result.GetRowCursor(result.Schema["output_1"]))
             {
