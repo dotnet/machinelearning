@@ -4,6 +4,7 @@
 
 using System;
 using System.Data;
+using System.Data.Common;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 
@@ -15,7 +16,7 @@ namespace Microsoft.ML.Data
         {
             private readonly Bindings _bindings;
             private readonly bool[] _active; // Which columns are active.
-            private readonly IDataReader _input;
+            private readonly DbDataReader _input;
             private readonly Delegate[] _getters;
 
             // This holds the overall count of rows currently served up in the cursor.
@@ -24,7 +25,7 @@ namespace Microsoft.ML.Data
 
             public override long Batch => 0;
 
-            private Cursor(DatabaseLoader parent, IDataReader input, bool[] active)
+            private Cursor(DatabaseLoader parent, DbDataReader input, bool[] active)
                 : base(parent._host)
             {
                 Ch.Assert(active == null || active.Length == parent._bindings.OutputSchema.Count);
@@ -45,7 +46,7 @@ namespace Microsoft.ML.Data
                 }
         }
 
-            public static DataViewRowCursor Create(DatabaseLoader parent, Func<IDataReader> input, bool[] active)
+            public static DataViewRowCursor Create(DatabaseLoader parent, Func<DbDataReader> input, bool[] active)
             {
                 Contracts.AssertValue(parent);
                 Contracts.AssertValue(input);

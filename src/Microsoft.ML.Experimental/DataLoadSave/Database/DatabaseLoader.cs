@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
@@ -17,9 +18,9 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
-    public sealed partial class DatabaseLoader : IDataLoader<Func<IDataReader>>
+    public sealed partial class DatabaseLoader : IDataLoader<Func<DbDataReader>>
     {
-        internal const string Summary = "Loads data from an IDataReader.";
+        internal const string Summary = "Loads data from an DbDataReader.";
         internal const string LoaderSignature = "DatabaseLoader";
 
         private static VersionInfo GetVersionInfo()
@@ -95,8 +96,8 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Loads data from <paramref name="input"/> into an <see cref="IDataView"/>.
         /// </summary>
-        /// <param name="input">A function that returns an IDataReader from which to load data.</param>
-        public IDataView Load(Func<IDataReader> input) => new BoundLoader(this, input);
+        /// <param name="input">A function that returns an DbDataReader from which to load data.</param>
+        public IDataView Load(Func<DbDataReader> input) => new BoundLoader(this, input);
 
         /// <summary>
         /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
@@ -340,9 +341,9 @@ namespace Microsoft.ML.Data
         {
             private readonly DatabaseLoader _loader;
             private readonly IHost _host;
-            private readonly Func<IDataReader> _input;
+            private readonly Func<DbDataReader> _input;
 
-            public BoundLoader(DatabaseLoader loader, Func<IDataReader> input)
+            public BoundLoader(DatabaseLoader loader, Func<DbDataReader> input)
             {
                 _loader = loader;
                 _host = loader._host.Register(nameof(BoundLoader));
