@@ -15,11 +15,11 @@ ML .NET does not have a DNN training infrastructure so we plan to use Tensforflo
 
 The below example shows transfer learning on resnet 101 done using ML .NET tensorflow transform. The picture consists of three graphs. The first graph is the original frozen resnet v2 101 model, the second graph is the same model converted to its mete graph file with transfer learning layer added and connected to the output of its second last layer that contains features. The third graph contains the frozen resnet v2 101 graph with the last layer replaced with the transfer learnt layer model.
 
-![Transfer learning 1](tl_first.JPG)  
+![Transfer learning 1](https://github.com/dotnet/machinelearning/blob/99e628c518303cd73e48da3a9d66ecdba75adf13/docs/specs/DNN/tl_first.jpg)  
 
-![Transfer learning 2](tl_second.JPG)  
+![Transfer learning 2](https://github.com/dotnet/machinelearning/blob/99e628c518303cd73e48da3a9d66ecdba75adf13/docs/specs/DNN/tl_second.jpg)  
 
-![Transfer learning 3](tl_third.JPG)  
+![Transfer learning 3](https://github.com/dotnet/machinelearning/blob/99e628c518303cd73e48da3a9d66ecdba75adf13/docs/specs/DNN/tl_third.jpg)  
 
 ## Scenarios
 ### Image classification APIs (Preview release in v1.3)
