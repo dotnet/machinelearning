@@ -29,8 +29,8 @@ The below example shows transfer learning on resnet 101 done using ML .NET tenso
   ```C#
     public static TensorFlowModel CNNTrainer(
         this ModelOperationsCatalog catalog,
-        string outputColumnName, // Maps to name the last layer.
-        string featuresColumnName, // Input column that will be mapped to input tensor to the graph.
+        string outputColumnName, // Creates the name for the last layer.
+        string featuresColumnName, // Input column that will be mapped to input tensor of the graph.
         string labelColumnName, // Label column that will be used for ground truth.
         string outputGraphPath, // Path to the final frozen graph.
         Architecture arch = Architecture.Resnet_V2_101, // Pre-trained model.
