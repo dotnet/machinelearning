@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <DelaySign>true</DelaySign>
+    <DelaySign>false</DelaySign>
     <LangVersion>7.1</LangVersion>
   </PropertyGroup>
 
