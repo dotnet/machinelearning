@@ -12,7 +12,7 @@ using Microsoft.ML.AutoML;
 using Microsoft.ML.CLI.Templates.Console;
 using Microsoft.ML.CodeGen.Utilities;
 
-namespace Microsoft.ML.CLI.CodeGenerator.CSharp
+namespace Microsoft.ML.CodeGen.CSharp
 {
     public class CodeGenerator : IProjectGenerator
     {

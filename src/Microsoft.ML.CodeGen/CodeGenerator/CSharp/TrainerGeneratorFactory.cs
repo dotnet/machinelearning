@@ -4,9 +4,9 @@
 
 using System;
 using Microsoft.ML.AutoML;
-using static Microsoft.ML.CLI.CodeGenerator.CSharp.TrainerGenerators;
+using static Microsoft.ML.CodeGen.CSharp.TrainerGenerators;
 
-namespace Microsoft.ML.CLI.CodeGenerator.CSharp
+namespace Microsoft.ML.CodeGen.CSharp
 {
     internal interface ITrainerGenerator
     {
