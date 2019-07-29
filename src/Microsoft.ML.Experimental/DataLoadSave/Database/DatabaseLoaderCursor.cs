@@ -165,7 +165,7 @@ namespace Microsoft.ML.Data
                 {
                     getterDelegate = CreateSingleGetterDelegate(colInfo);
                 }
-                else if (typeof(TValue) == typeof(string))
+                else if (typeof(TValue) == typeof(ReadOnlyMemory<char>))
                 {
                     getterDelegate = CreateStringGetterDelegate(colInfo);
                 }
@@ -243,10 +243,10 @@ namespace Microsoft.ML.Data
                 return (ref float value) => value = _input.GetFloat(columnIndex);
             }
 
-            private ValueGetter<string> CreateStringGetterDelegate(ColInfo colInfo)
+            private ValueGetter<ReadOnlyMemory<char>> CreateStringGetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref string value) => value = _input.GetString(columnIndex);
+                return (ref ReadOnlyMemory<char> value) => value = _input.GetString(columnIndex).AsMemory();
             }
 
             private ValueGetter<ushort> CreateUInt16GetterDelegate(ColInfo colInfo)
