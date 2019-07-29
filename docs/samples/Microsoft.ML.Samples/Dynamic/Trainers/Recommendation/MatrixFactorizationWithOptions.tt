@@ -2,28 +2,36 @@
 
 <#+
 string ClassHeader = @"
-        // This example requires installation of additional nuget package <a href=""https://www.nuget.org/packages/Microsoft.ML.Recommender/"">Microsoft.ML.Recommender</a>.
-        // In this example we will create in-memory data and then use it to train 
-        // a matrix factorization model with non-default parameters. Afterward, quality metrics are reported.";
+        // This example requires installation of additional nuget package at
+        // for Microsoft.ML.Recommender at
+        // https://www.nuget.org/packages/Microsoft.ML.Recommender/
+        // In this example we will create in-memory data and then use it to train
+        // a matrix factorization model with default parameters. Afterward, quality
+        // metrics are reported.";
 string ClassName="MatrixFactorizationWithOptions";
 string ExtraUsing = "using Microsoft.ML.Trainers;";
 string Trainer = "MatrixFactorization";
 string TrainerOptions = @"MatrixFactorizationTrainer.Options
             {
-				// Specify IDataView colum which stores matrix column indexes. 
-				MatrixColumnIndexColumnName = nameof(MatrixElement.MatrixColumnIndex),
-				// Specify IDataView colum which stores matrix row indexes. 
+                // Specify IDataView colum which stores matrix column indexes. 
+                MatrixColumnIndexColumnName = nameof(MatrixElement.MatrixColumnIndex
+                    ),
+
+                // Specify IDataView colum which stores matrix row indexes. 
                 MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
-				// Specify IDataView colum which stores matrix elements' values. 
+                // Specify IDataView colum which stores matrix elements' values. 
                 LabelColumnName = nameof(MatrixElement.Value),
-				// Time of going through the entire data set once.
+                // Time of going through the entire data set once.
                 NumberOfIterations = 10,
-				// Number of threads used to run this trainers.
+                // Number of threads used to run this trainers.
                 NumberOfThreads = 1,
-				// The rank of factor matrices. Note that the product of the two factor matrices approximates the training matrix.
+                // The rank of factor matrices. Note that the product of the two
+                // factor matrices approximates the training matrix.
                 ApproximationRank = 32,
-				// Step length when moving toward stochastic gradient. Training algorithm may adjust it for faster convergence.
-				// Note that faster convergence means we can use less iterations to achieve similar test scores.
+                // Step length when moving toward stochastic gradient. Training
+                // algorithm may adjust it for faster convergence. Note that faster
+                // convergence means we can use less iterations to achieve similar
+                // test scores.
                 LearningRate = 0.3
             }";
 

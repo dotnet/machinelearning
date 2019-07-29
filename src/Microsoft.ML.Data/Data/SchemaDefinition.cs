@@ -28,7 +28,7 @@ namespace Microsoft.ML.Data
         /// </remarks>
         public KeyTypeAttribute()
         {
-
+            throw Contracts.ExceptNotSupp("Using KeyType without the Count parameter is not supported");
         }
 
         /// <summary>

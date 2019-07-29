@@ -1,0 +1,132 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+<# if (ExtraUsing != null) { #>
+<#=ExtraUsing#>
+<# } #>
+
+namespace Samples.Dynamic.Transforms.TreeFeaturization
+{
+    public static class <#=ClassName#>
+    {
+<# if (ClassHeader != null) { #>
+        <#=ClassHeader#>
+<# } #>
+        public static void Example()
+        {
+            // Create a new context for ML.NET operations. It can be used for
+            // exception tracking and logging, as a catalog of available operations
+            // and as the source of randomness. Setting the seed to a fixed number
+            // in this example to make outputs deterministic.
+            var mlContext = new MLContext(seed: 0);
+
+            // Create a list of training data points.
+            var dataPoints = GenerateRandomDataPoints(100).ToList();
+
+            // Convert the list of data points to an IDataView object, which is
+            // consumable by ML.NET API.
+            var dataView = mlContext.Data.LoadFromEnumerable(dataPoints);
+<# if (CacheData) { #>
+
+            // ML.NET doesn't cache data set by default. Therefore, if one reads a
+            // data set from a file and accesses it many times, it can be slow due
+            // to expensive featurization and disk operations. When the considered
+            // data can fit into memory, a solution is to cache the data in memory.
+            // Caching is especially helpful when working with iterative algorithms 
+            // which needs many data passes.
+            dataView = mlContext.Data.Cache(dataView);
+<# } #>
+
+            // Define input and output columns of tree-based featurizer.
+            string labelColumnName = nameof(DataPoint.Label);
+            string featureColumnName = nameof(DataPoint.Features);
+            string treesColumnName = nameof(TransformedDataPoint.Trees);
+            string leavesColumnName = nameof(TransformedDataPoint.Leaves);
+            string pathsColumnName = nameof(TransformedDataPoint.Paths);
+
+            // Define the configuration of the trainer used to train a tree-based
+            // model.
+            var trainerOptions = new <#=TrainerOptions#>;
+
+            // Define the tree-based featurizer's configuration.
+            var options = new <#=Options#>;
+
+            // Define the featurizer.
+            var pipeline = mlContext.Transforms.<#=Trainer#>(
+                options);
+
+            // Train the model.
+            var model = pipeline.Fit(dataView);
+
+            // Create testing data. Use different random seed to make it different
+            // from training data.
+            var transformed = model.Transform(dataView);
+
+            // Convert IDataView object to a list. Each element in the resulted list
+            // corresponds to a row in the IDataView.
+            var transformedDataPoints = mlContext.Data.CreateEnumerable<
+                TransformedDataPoint>(transformed, false).ToList();
+
+            // Print out the transformation of the first 3 data points.
+            for (int i = 0; i < 3; ++i)
+            {
+                var dataPoint = dataPoints[i];
+                var transformedDataPoint = transformedDataPoints[i];
+                Console.WriteLine("The original feature vector [" + String.Join(",",
+                    dataPoint.Features) + "] is transformed to three different " +
+                    "tree-based feature vectors:");
+
+                Console.WriteLine("  Trees' output values: [" + String.Join(",",
+                    transformedDataPoint.Trees) + "].");
+
+                Console.WriteLine("  Leave IDs' 0-1 representation: [" + String
+                    .Join(",", transformedDataPoint.Leaves) + "].");
+
+                Console.WriteLine("  Paths IDs' 0-1 representation: [" + String
+                    .Join(",", transformedDataPoint.Paths) + "].");
+            }
+
+            <#=ExpectedOutput#>
+        }
+
+        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,
+            int seed=0)
+        {
+            var random = new Random(seed);
+            for (int i = 0; i < count; i++)
+            {
+                float label = (float)random.NextDouble();
+                yield return new DataPoint
+                {
+                    Label = label,
+                    // Create random features that are correlated with the label.
+                    Features = Enumerable.Repeat(label, 3).Select(x => x + 
+                        (float)random.NextDouble()).ToArray()
+                };
+            }
+        }
+
+        // Example with label and 50 feature values. A data set is a collection of
+        // such examples.
+        private class DataPoint
+        {
+            public float Label { get; set; }
+            [VectorType(3)]
+            public float[] Features { get; set; }
+        }
+
+        // Class used to capture the output of tree-base featurization.
+        private class TransformedDataPoint : DataPoint
+        {
+            // The i-th value is the output value of the i-th decision tree.
+            public float[] Trees { get; set; }
+            // The 0-1 encoding of leaves the input feature vector falls into.
+            public float[] Leaves { get; set; }
+            // The 0-1 encoding of paths the input feature vector reaches the
+            // leaves.
+            public float[] Paths { get; set; }
+        }
+    }
+}

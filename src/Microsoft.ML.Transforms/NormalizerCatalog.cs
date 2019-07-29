@@ -141,7 +141,7 @@ namespace Microsoft.ML
             long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
             bool useCdf = NormalizingEstimator.Defaults.LogMeanVarCdf)
         {
-            var columnOptions = new NormalizingEstimator.LogMeanVarianceColumnOptions(outputColumnName, inputColumnName, maximumExampleCount, useCdf);
+            var columnOptions = new NormalizingEstimator.LogMeanVarianceColumnOptions(outputColumnName, inputColumnName, maximumExampleCount, useCdf, false);
             return new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions);
         }
 
@@ -159,7 +159,54 @@ namespace Microsoft.ML
             bool useCdf = NormalizingEstimator.Defaults.LogMeanVarCdf) =>
             new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog),
                 columns.Select(column =>
-                    new NormalizingEstimator.LogMeanVarianceColumnOptions(column.OutputColumnName, column.InputColumnName, maximumExampleCount, useCdf)).ToArray());
+                    new NormalizingEstimator.LogMeanVarianceColumnOptions(column.OutputColumnName, column.InputColumnName, maximumExampleCount, useCdf, false)).ToArray());
+
+        /// <summary>
+        /// Create a <see cref="NormalizingEstimator"/>, which normalizes based on the computed mean and variance of the logarithm of the data.
+        /// </summary>
+        /// <param name="catalog">The transform catalog</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        ///                                The data type on this column is the same as the input column.</param>
+        /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
+        ///                               The data type on this column should be <see cref="System.Single"/>, <see cref="System.Double"/> or a known-sized vector of those types.</param>
+        /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
+        /// <param name="useCdf">Whether to use CDF as the output.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[NormalizeLogMeanVariance](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/NormalizeLogMeanVarianceFixZero.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static NormalizingEstimator NormalizeLogMeanVariance(this TransformsCatalog catalog,
+            string outputColumnName,
+            bool fixZero,
+            string inputColumnName = null,
+            long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
+            bool useCdf = NormalizingEstimator.Defaults.LogMeanVarCdf)
+        {
+            var columnOptions = new NormalizingEstimator.LogMeanVarianceColumnOptions(outputColumnName, inputColumnName, maximumExampleCount, useCdf, fixZero);
+            return new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions);
+        }
+
+        /// <summary>
+        /// Create a <see cref="NormalizingEstimator"/>, which normalizes based on the computed mean and variance of the logarithm of the data.
+        /// </summary>
+        /// <param name="catalog">The transform catalog</param>
+        /// <param name="columns">The pairs of input and output columns.
+        ///             The input columns must be of data type <see cref="System.Single"/>, <see cref="System.Double"/> or a known-sized vector of those types.
+        ///             The data type for the output column will be the same as the associated input column.</param>
+        /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
+        /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
+        /// <param name="useCdf">Whether to use CDF as the output.</param>
+        public static NormalizingEstimator NormalizeLogMeanVariance(this TransformsCatalog catalog, InputOutputColumnPair[] columns,
+            bool fixZero,
+            long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
+            bool useCdf = NormalizingEstimator.Defaults.LogMeanVarCdf) =>
+            new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog),
+                columns.Select(column =>
+                    new NormalizingEstimator.LogMeanVarianceColumnOptions(column.OutputColumnName, column.InputColumnName, maximumExampleCount, useCdf, fixZero)).ToArray());
 
         /// <summary>
         /// Create a <see cref="NormalizingEstimator"/>, which normalizes by assigning the data into bins with equal density.

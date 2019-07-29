@@ -9,9 +9,9 @@ using Microsoft.ML.Trainers.FastTree;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Collection of extension methods used by <see cref="RegressionCatalog"/>,
-    ///  <see cref="BinaryClassificationCatalog"/>, <see cref="MulticlassClassificationCatalog"/>,
-    ///  and <see cref="RankingCatalog"/> to create instances of decision tree trainers.
+    /// Collection of extension methods used by <see cref="RegressionCatalog"/>, <see cref="BinaryClassificationCatalog"/>,
+    /// <see cref="MulticlassClassificationCatalog"/>, <see cref="RankingCatalog"/>, and <see cref="TransformsCatalog"/>
+    /// to create instances of decision tree trainers and featurizers.
     /// </summary>
     public static class TreeExtensions
     {
@@ -427,7 +427,6 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-
         public static FastForestBinaryTrainer FastForest(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             FastForestBinaryTrainer.Options options)
         {
@@ -436,6 +435,153 @@ namespace Microsoft.ML
 
             var env = CatalogUtils.GetEnvironment(catalog);
             return new FastForestBinaryTrainer(env, options);
+        }
+
+        /// <summary>
+        /// Create <see cref="PretrainedTreeFeaturizationEstimator"/>, which produces tree-based features given a <see cref="TreeEnsembleModelParameters"/>.
+        /// </summary>
+        /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="PretrainedTreeFeaturizationEstimator"/>.</param>
+        /// <param name="options">The options to configure <see cref="PretrainedTreeFeaturizationEstimator"/>. See <see cref="PretrainedTreeFeaturizationEstimator.Options"/> and
+        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.OptionsBase"/> for available settings.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FeaturizeByPretrainTreeEnsemble](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TreeFeaturization/PretrainedTreeEnsembleFeaturizationWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static PretrainedTreeFeaturizationEstimator FeaturizeByPretrainTreeEnsemble(this TransformsCatalog catalog,
+            PretrainedTreeFeaturizationEstimator.Options options)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new PretrainedTreeFeaturizationEstimator(env, options);
+        }
+
+        /// <summary>
+        /// Create <see cref="FastForestRegressionFeaturizationEstimator"/>, which uses <see cref="FastForestRegressionTrainer"/> to train <see cref="TreeEnsembleModelParameters"/> to create tree-based features.
+        /// </summary>
+        /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="PretrainedTreeFeaturizationEstimator"/>.</param>
+        /// <param name="options">The options to configure <see cref="FastForestRegressionFeaturizationEstimator"/>. See <see cref="FastForestRegressionFeaturizationEstimator.Options"/> and
+        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.OptionsBase"/> for available settings.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FeaturizeByFastTreeRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TreeFeaturization/FastForestRegressionFeaturizationWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static FastForestRegressionFeaturizationEstimator FeaturizeByFastForestRegression(this TransformsCatalog catalog,
+            FastForestRegressionFeaturizationEstimator.Options options)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new FastForestRegressionFeaturizationEstimator(env, options);
+        }
+
+        /// <summary>
+        /// Create <see cref="FastTreeRegressionFeaturizationEstimator"/>, which uses <see cref="FastTreeRegressionTrainer"/> to train <see cref="TreeEnsembleModelParameters"/> to create tree-based features.
+        /// </summary>
+        /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="FastTreeRegressionFeaturizationEstimator"/>.</param>
+        /// <param name="options">The options to configure <see cref="FastTreeRegressionFeaturizationEstimator"/>. See <see cref="FastTreeRegressionFeaturizationEstimator.Options"/> and
+        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.OptionsBase"/> for available settings.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FeaturizeByFastTreeRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TreeFeaturization/FastTreeRegressionFeaturizationWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static FastTreeRegressionFeaturizationEstimator FeaturizeByFastTreeRegression(this TransformsCatalog catalog,
+            FastTreeRegressionFeaturizationEstimator.Options options)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new FastTreeRegressionFeaturizationEstimator(env, options);
+        }
+
+        /// <summary>
+        /// Create <see cref="FastForestBinaryFeaturizationEstimator"/>, which uses <see cref="FastForestBinaryTrainer"/> to train <see cref="TreeEnsembleModelParameters"/> to create tree-based features.
+        /// </summary>
+        /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="FastForestBinaryFeaturizationEstimator"/>.</param>
+        /// <param name="options">The options to configure <see cref="FastForestBinaryFeaturizationEstimator"/>. See <see cref="FastForestBinaryFeaturizationEstimator.Options"/> and
+        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.OptionsBase"/> for available settings.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FeaturizeByFastForestBinary](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TreeFeaturization/FastForestBinaryFeaturizationWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static FastForestBinaryFeaturizationEstimator FeaturizeByFastForestBinary(this TransformsCatalog catalog,
+            FastForestBinaryFeaturizationEstimator.Options options)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new FastForestBinaryFeaturizationEstimator(env, options);
+        }
+
+        /// <summary>
+        /// Create <see cref="FastTreeBinaryFeaturizationEstimator"/>, which uses <see cref="FastTreeBinaryTrainer"/> to train <see cref="TreeEnsembleModelParameters"/> to create tree-based features.
+        /// </summary>
+        /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="FastTreeBinaryFeaturizationEstimator"/>.</param>
+        /// <param name="options">The options to configure <see cref="FastTreeBinaryFeaturizationEstimator"/>. See <see cref="FastTreeBinaryFeaturizationEstimator.Options"/> and
+        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.OptionsBase"/> for available settings.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FeaturizeByFastTreeBinary](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TreeFeaturization/FastTreeBinaryFeaturizationWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static FastTreeBinaryFeaturizationEstimator FeaturizeByFastTreeBinary(this TransformsCatalog catalog,
+            FastTreeBinaryFeaturizationEstimator.Options options)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new FastTreeBinaryFeaturizationEstimator(env, options);
+        }
+
+        /// <summary>
+        /// Create <see cref="FastTreeRankingFeaturizationEstimator"/>, which uses <see cref="FastTreeRankingTrainer"/> to train <see cref="TreeEnsembleModelParameters"/> to create tree-based features.
+        /// </summary>
+        /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="FastTreeRankingFeaturizationEstimator"/>.</param>
+        /// <param name="options">The options to configure <see cref="FastTreeRankingFeaturizationEstimator"/>. See <see cref="FastTreeRankingFeaturizationEstimator.Options"/> and
+        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.OptionsBase"/> for available settings.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FeaturizeByFastTreeRanking](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TreeFeaturization/FastTreeRankingFeaturizationWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static FastTreeRankingFeaturizationEstimator FeaturizeByFastTreeRanking(this TransformsCatalog catalog,
+            FastTreeRankingFeaturizationEstimator.Options options)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new FastTreeRankingFeaturizationEstimator(env, options);
+        }
+
+        /// <summary>
+        /// Create <see cref="FastTreeTweedieFeaturizationEstimator"/>, which uses <see cref="FastTreeTweedieTrainer"/> to train <see cref="TreeEnsembleModelParameters"/> to create tree-based features.
+        /// </summary>
+        /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="FastTreeTweedieFeaturizationEstimator"/>.</param>
+        /// <param name="options">The options to configure <see cref="FastTreeTweedieFeaturizationEstimator"/>. See <see cref="FastTreeTweedieFeaturizationEstimator.Options"/> and
+        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.OptionsBase"/> for available settings.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FeaturizeByFastTreeTweedie](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TreeFeaturization/FastTreeTweedieFeaturizationWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static FastTreeTweedieFeaturizationEstimator FeaturizeByFastTreeTweedie(this TransformsCatalog catalog,
+            FastTreeTweedieFeaturizationEstimator.Options options)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new FastTreeTweedieFeaturizationEstimator(env, options);
         }
     }
 }

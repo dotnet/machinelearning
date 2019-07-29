@@ -133,7 +133,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Evaluation metrics.",
                 ShortName = "em")]
-            public EvaluateMetricType EvaluationMetric = EvaluateMetricType.RootMeanSquaredError;
+            public EvaluateMetricType EvaluationMetric = EvaluateMetricType.Default;
 
             static Options()
             {

@@ -8,11 +8,12 @@ namespace Samples.Dynamic
 {
     public sealed class VectorWhitenWithOptions
     {
-        /// This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.Mkl.Components/">Microsoft.ML.Mkl.Components</a>.
+        /// This example requires installation of additional nuget package
+        /// <a href="https://www.nuget.org/packages/Microsoft.ML.Mkl.Components/">Microsoft.ML.Mkl.Components</a>.
         public static void Example()
         {
-            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
+            // Create a new ML context, for ML.NET operations. It can be used for
+            // exception tracking and logging, as well as the source of randomness.
             var ml = new MLContext();
 
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
@@ -31,20 +32,30 @@ namespace Samples.Dynamic
             // 6   7   8   9   0   1   2   3   4   5
 
             // A small printing utility.
-            Action<string, IEnumerable<VBuffer<float>>> printHelper = (colName, column) =>
+            Action<string, IEnumerable<VBuffer<float>>> printHelper = (colName,
+                column) =>
             {
-                Console.WriteLine($"{colName} column obtained post-transformation.");
+                Console.WriteLine($"{colName} column obtained" +
+                    $"post-transformation.");
+
                 foreach (var row in column)
-                    Console.WriteLine($"{string.Join(" ", row.DenseValues().Select(x => x.ToString("f3")))} ");
+                    Console.WriteLine(string.Join(" ", row.DenseValues().Select(x =>
+                        x.ToString("f3")))+" ");
             };
 
 
             // A pipeline to project Features column into white noise vector.
-            var whiteningPipeline = ml.Transforms.VectorWhiten(nameof(SampleVectorOfNumbersData.Features), kind: Microsoft.ML.Transforms.WhiteningKind.PrincipalComponentAnalysis, rank: 4);
+            var whiteningPipeline = ml.Transforms.VectorWhiten(nameof(
+                SampleVectorOfNumbersData.Features), kind: Microsoft.ML.Transforms
+                .WhiteningKind.PrincipalComponentAnalysis, rank: 4);
+
             // The transformed (projected) data.
-            var transformedData = whiteningPipeline.Fit(trainData).Transform(trainData);
+            var transformedData = whiteningPipeline.Fit(trainData).Transform(
+                trainData);
+
             // Getting the data of the newly created column, so we can preview it.
-            var whitening = transformedData.GetColumn<VBuffer<float>>(transformedData.Schema[nameof(SampleVectorOfNumbersData.Features)]);
+            var whitening = transformedData.GetColumn<VBuffer<float>>(
+                transformedData.Schema[nameof(SampleVectorOfNumbersData.Features)]);
 
             printHelper(nameof(SampleVectorOfNumbersData.Features), whitening);
 
@@ -66,11 +77,16 @@ namespace Samples.Dynamic
         /// <summary>
         /// Returns a few rows of the infertility dataset.
         /// </summary>
-        private static IEnumerable<SampleVectorOfNumbersData> GetVectorOfNumbersData()
+        private static IEnumerable<SampleVectorOfNumbersData> 
+            GetVectorOfNumbersData()
         {
             var data = new List<SampleVectorOfNumbersData>();
-            data.Add(new SampleVectorOfNumbersData { Features = new float[10] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 } });
-            data.Add(new SampleVectorOfNumbersData { Features = new float[10] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 } });
+            data.Add(new SampleVectorOfNumbersData { Features = new float[10] { 0,
+                1, 2, 3, 4, 5, 6, 7, 8, 9 } });
+
+            data.Add(new SampleVectorOfNumbersData { Features = new float[10] { 1,
+                2, 3, 4, 5, 6, 7, 8, 9, 0 } });
+
             data.Add(new SampleVectorOfNumbersData
             {
                 Features = new float[10] { 2, 3, 4, 5, 6, 7, 8, 9, 0, 1 }

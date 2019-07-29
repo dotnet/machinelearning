@@ -118,6 +118,7 @@ namespace Microsoft.ML
         /// <format type="text/markdown">
         /// <![CDATA[
         ///  [!code-csharp[ExtractPixels](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ImageAnalytics/ExtractPixels.cs)]
+        ///  [!code-csharp[ApplyOnnxModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ApplyONNXModelWithInMemoryImages.cs)]
         /// ]]></format>
         /// </example>
         public static ImagePixelExtractingEstimator ExtractPixels(this TransformsCatalog catalog,

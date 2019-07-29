@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
+    <PackageReference Include="Google.Protobuf" Version="$(GoogleProtobufPackageVersion)" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="$(MicrosoftMLOnnxRuntimePackageVersion)"/>
   </ItemGroup>
 

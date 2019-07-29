@@ -1,0 +1,50 @@
+﻿<#@ include file="RankingFeaturization.ttinclude"#>
+<#+
+string ClassName = "FastTreeRankingFeaturizationWithOptions";
+string Trainer = "FeaturizeByFastTreeRanking";
+bool CacheData = true;
+
+string TrainerOptions = @"FastTreeRankingTrainer.Options
+            {
+                // Reduce the number of trees to 3.
+                NumberOfTrees = 3,
+                // Number of leaves per tree.
+                NumberOfLeaves = 6,
+                // Feature column name.
+                FeatureColumnName = featureColumnName,
+                // Label column name.
+                LabelColumnName = labelColumnName
+            }";
+
+string Options = @"FastTreeRankingFeaturizationEstimator.Options
+            {
+                InputColumnName = featureColumnName,
+                TreesColumnName = treesColumnName,
+                LeavesColumnName = leavesColumnName,
+                PathsColumnName = pathsColumnName,
+                TrainerOptions = trainerOptions
+            }";
+
+string OptionsInclude = "using Microsoft.ML.Trainers.FastTree;";
+
+string Comments= @"
+        // This example requires installation of additional NuGet package
+        // <a href=""https://www.nuget.org/packages/Microsoft.ML.FastTree/"">Microsoft.ML.FastTree</a>.";
+
+string ExpectedOutput = @"// Expected output:
+            //   The original feature vector [1.117325,1.068023,0.8581612] is
+            //   transformed to three different tree-based feature vectors:
+            //     Trees' output values: [0.4095458,0.2061437,0.2364294].
+            //     Leave IDs' 0-1 representation: [0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1].
+            //     Paths IDs' 0-1 representation: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1].
+            //   The original feature vector [0.6588848,1.006027,0.5421779] is
+            //   transformed to three different tree-based feature vectors:
+            //     Trees' output values: [0.2543825,-0.06570309,-0.1456212].
+            //     Leave IDs' 0-1 representation: [0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,0].
+            //     Paths IDs' 0-1 representation: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,0].
+            //   The original feature vector [0.6737045,0.6919063,0.8673147] is
+            //   transformed to three different tree-based feature vectors:
+            //     Trees' output values: [0.2543825,-0.06570309,0.01300209].
+            //     Leave IDs' 0-1 representation: [0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0].
+            //     Paths IDs' 0-1 representation: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1].";
+#>

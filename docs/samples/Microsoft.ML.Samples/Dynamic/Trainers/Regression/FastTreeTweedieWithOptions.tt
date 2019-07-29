@@ -1,8 +1,9 @@
 ﻿<#@ include file="RegressionSamplesTemplate.ttinclude"#>
 
 <#+
-string ClassHeader = @"// This example requires installation of additional NuGet package
-        // <a href=""https://www.nuget.org/packages/Microsoft.ML.FastTree/"">Microsoft.ML.FastTree</a>. ";
+string ClassHeader = @"// This example requires installation of additional NuGet
+        // package for Microsoft.ML.FastTree found at
+        // https://www.nuget.org/packages/Microsoft.ML.FastTree/";
 
 string ClassName="FastTreeTweedieWithOptionsRegression";
 string ExtraUsing = "using Microsoft.ML.Trainers.FastTree;";
@@ -12,7 +13,9 @@ string TrainerOptions = @"FastTreeTweedieTrainer.Options
                 LabelColumnName = nameof(DataPoint.Label),
                 FeatureColumnName = nameof(DataPoint.Features),
                 // Use L2Norm for early stopping.
-                EarlyStoppingMetric = Microsoft.ML.Trainers.FastTree.EarlyStoppingMetric.L2Norm,
+                EarlyStoppingMetric =
+                    Microsoft.ML.Trainers.FastTree.EarlyStoppingMetric.L2Norm,
+
                 // Create a simpler model by penalizing usage of new features.
                 FeatureFirstUsePenalty = 0.1,
                 // Reduce the number of trees to 50.

@@ -9,7 +9,8 @@ namespace Samples.Dynamic
     {
         public static void Example()
         {
-            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // Create a new context for ML.NET operations. It can be used for
+            // exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext(seed: 1);
 
@@ -19,7 +20,8 @@ namespace Samples.Dynamic
             // Convert training data to IDataView.
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
-            // Create a pipeline to concatenate the features into a feature vector and normalize it.
+            // Create a pipeline to concatenate the features into a feature vector
+            // and normalize it.
             var transformPipeline = mlContext.Transforms.Concatenate("Features",
                     new string[] { nameof(Data.Feature1), nameof(Data.Feature2) })
                 .Append(mlContext.Transforms.NormalizeMeanVariance("Features"));
@@ -37,28 +39,45 @@ namespace Samples.Dynamic
             var linearModel = linearTrainer.Fit(transformedData);
             // Print the model parameters.
             Console.WriteLine($"Linear Model Parameters");
-            Console.WriteLine($"Bias: {linearModel.Model.Bias} Feature1: {linearModel.Model.Weights[0]} Feature2: {linearModel.Model.Weights[1]}");
+            Console.WriteLine("Bias: " + linearModel.Model.Bias+ " Feature1: " +
+                linearModel.Model.Weights[0] + " Feature2: " +linearModel.Model
+                .Weights[1]);
 
-            // Define a feature contribution calculator for all the features, and don't normalize the contributions.
-            // These are "trivial estimators" and they don't need to fit to the data, so we can feed a subset.
-            var simpleScoredDataset = linearModel.Transform(mlContext.Data.TakeRows(transformedData, 1));
-            var linearFeatureContributionCalculator = mlContext.Transforms.CalculateFeatureContribution(linearModel, normalize: false).Fit(simpleScoredDataset);
+            // Define a feature contribution calculator for all the features, and
+            // don't normalize the contributions.These are "trivial estimators" and
+            // they don't need to fit to the data, so we can feed a subset.
+            var simpleScoredDataset = linearModel.Transform(mlContext.Data
+                .TakeRows(transformedData, 1));
+
+            var linearFeatureContributionCalculator = mlContext.Transforms
+                .CalculateFeatureContribution(linearModel, normalize: false).Fit(
+                simpleScoredDataset);
 
             // Create a transformer chain to describe the entire pipeline.
-            var scoringPipeline = transformer.Append(linearModel).Append(linearFeatureContributionCalculator);
+            var scoringPipeline = transformer.Append(linearModel).Append(
+                linearFeatureContributionCalculator);
 
-            // Create the prediction engine to get the features extracted from the text.
-            var predictionEngine = mlContext.Model.CreatePredictionEngine<Data, ScoredData>(scoringPipeline);
+            // Create the prediction engine to get the features extracted from the
+            // text.
+            var predictionEngine = mlContext.Model.CreatePredictionEngine<Data,
+                ScoredData>(scoringPipeline);
 
             // Convert the text into numeric features.
             var prediction = predictionEngine.Predict(samples.First());
 
             // Write out the prediction, with contributions.
-            // Note that for the linear model, the feature contributions for a feature in an example is the feature-weight*feature-value.
+            // Note that for the linear model, the feature contributions for a
+            // feature in an example is the feature-weight*feature-value.
             // The total prediction is thus the bias plus the feature contributions.
-            Console.WriteLine($"Label: {prediction.Label} Prediction: {prediction.Score}");
-            Console.WriteLine($"Feature1: {prediction.Features[0]} Feature2: {prediction.Features[1]}");
-            Console.WriteLine($"Feature Contributions: {prediction.FeatureContributions[0]} {prediction.FeatureContributions[1]}");
+            Console.WriteLine("Label: " + prediction.Label + " Prediction: " +
+                prediction.Score);
+
+            Console.WriteLine("Feature1: " + prediction.Features[0] + 
+                " Feature2: " + prediction.Features[1]);
+
+            Console.WriteLine("Feature Contributions: " + prediction
+                .FeatureContributions[0] + " " + prediction
+                .FeatureContributions[1]);
 
             // Expected output:
             //  Linear Model Parameters
@@ -107,7 +126,9 @@ namespace Samples.Dynamic
                 };
 
                 // Create a noisy label.
-                data.Label = (float)(bias + weight1 * data.Feature1 + weight2 * data.Feature2 + rng.NextDouble() - 0.5);
+                data.Label = (float)(bias + weight1 * data.Feature1 + weight2 *
+                    data.Feature2 + rng.NextDouble() - 0.5);
+
                 yield return data;
             }
         }

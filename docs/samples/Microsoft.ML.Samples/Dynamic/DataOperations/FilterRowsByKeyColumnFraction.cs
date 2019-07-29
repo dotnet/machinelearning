@@ -11,7 +11,8 @@ namespace Samples.Dynamic
     {
         public static void Example()
         {
-            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // Create a new context for ML.NET operations. It can be used for
+            // exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
@@ -36,7 +37,9 @@ namespace Samples.Dynamic
             var transformedData = pipeline.Fit(data).Transform(data);
 
             // Before we apply a filter, examine all the records in the dataset.
-            var enumerable = mlContext.Data.CreateEnumerable<DataPoint>(transformedData, reuseRowObject: true);
+            var enumerable = mlContext.Data
+                .CreateEnumerable<DataPoint>(transformedData, reuseRowObject: true);
+
             Console.WriteLine($"Age");
             foreach (var row in enumerable)
             {
@@ -56,12 +59,20 @@ namespace Samples.Dynamic
 
             // Now filter down to half the keys, choosing the lower half of values. 
             // For the keys we have the sorted values: 1 1 2 2 2 3 4 4.
-            // Projected in the [0, 1[ interval as per: (key - 0.5)/(Count of Keys) the values of the keys for our data would be:
+            // Projected in the [0, 1[ interval as per: (key - 0.5)/(Count of Keys)
+            // the values of the keys for our data would be:
             // 0.125 0.125 0.375 0.375 0.375 0.625 0.875 0.875
-            // so the keys resulting from filtering in the [0, 0.5 [ interval are the ones with normalized values 0.125 and 0.375, respectively keys 
+            // so the keys resulting from filtering in the [0, 0.5 [ interval are
+            // the ones with normalized values 0.125 and 0.375, respectively keys 
             // with values 1 and 2.
-            var filteredHalfData = mlContext.Data.FilterRowsByKeyColumnFraction(transformedData, columnName: "Age", lowerBound: 0, upperBound: 0.5);
-            var filteredHalfEnumerable = mlContext.Data.CreateEnumerable<DataPoint>(filteredHalfData, reuseRowObject: true);
+            var filteredHalfData = mlContext.Data
+                .FilterRowsByKeyColumnFraction(transformedData, columnName: "Age",
+                lowerBound: 0, upperBound: 0.5);
+
+            var filteredHalfEnumerable = mlContext.Data
+                .CreateEnumerable<DataPoint>(filteredHalfData,
+                reuseRowObject: true);
+
             Console.WriteLine($"Age");
             foreach (var row in filteredHalfEnumerable)
             {
@@ -76,12 +87,21 @@ namespace Samples.Dynamic
             //  2
             //  1
 
-            // As mentioned above, the normalized keys are: 0.125 0.125 0.375 0.375 0.375 0.625 0.875 0.875
-            // so the keys resulting from filtering in the [0.3, 0.6 [ interval are the ones with normalized value 0.375, respectively key 
-            // with value = 2.
-            var filteredMiddleData = mlContext.Data.FilterRowsByKeyColumnFraction(transformedData, columnName: "Age", lowerBound: 0.3, upperBound: 0.6);
-            // Look at the data and observe that values above 2 have been filtered out
-            var filteredMiddleEnumerable = mlContext.Data.CreateEnumerable<DataPoint>(filteredMiddleData, reuseRowObject: true);
+            // As mentioned above, the normalized keys are:
+            // 0.125 0.125 0.375 0.375 0.375 0.625 0.875 0.875
+            // so the keys resulting from filtering in the [0.3, 0.6 [ interval are
+            // the ones with normalized value 0.375, respectively key with
+            // value = 2.
+            var filteredMiddleData = mlContext.Data
+                .FilterRowsByKeyColumnFraction(transformedData, columnName: "Age",
+                lowerBound: 0.3, upperBound: 0.6);
+
+            // Look at the data and observe that values above 2 have been filtered
+            // out
+            var filteredMiddleEnumerable = mlContext.Data
+                .CreateEnumerable<DataPoint>(filteredMiddleData, 
+                reuseRowObject: true);
+
             Console.WriteLine($"Age");
             foreach (var row in filteredMiddleEnumerable)
             {

@@ -17,8 +17,9 @@ string TrainerOptions = @"LightGbmRankingTrainer.Options
 
 string OptionsInclude = "using Microsoft.ML.Trainers.LightGbm;";
 string Comments= @"
-        // This example requires installation of additional NuGet package
-        // <a href=""https://www.nuget.org/packages/Microsoft.ML.LightGbm/"">Microsoft.ML.LightGbm</a>.";
+        // This example requires installation of additional NuGet package for 
+        // Microsoft.ML.FastTree at
+        // https://www.nuget.org/packages/Microsoft.ML.FastTree/";
 
 string ExpectedOutputPerInstance = @"// Expected output:
             //   Label: 5, Score: 0.05836755

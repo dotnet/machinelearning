@@ -2,23 +2,18 @@ parameters:
   name: ''
   architecture: x64
   buildScript: ''
-  queue: {}
+  pool: {}
   customMatrixes: ''
   codeCoverage: false
+  container: ''
 
-phases:
-  - phase: ${{ parameters.name }}
-    variables:
-      _buildScript: ${{ parameters.buildScript }}
-      _phaseName: ${{ parameters.name }}
-      _arch: ${{ parameters.architecture }}
-      _codeCoverage: ${{ parameters.codeCoverage }}
-    queue:
-      ${{ if eq(variables._codeCoverage, 'false') }}:
-        timeoutInMinutes: 30
-      ${{ if eq(variables._codeCoverage, 'true') }}:
-        timeoutInMinutes: 60
-      parallel: 99
+jobs:
+  - job: ${{ parameters.name }}
+    ${{ if eq(parameters.codeCoverage, 'false') }}:
+      timeoutInMinutes: 40
+    ${{ if eq(parameters.codeCoverage, 'true') }}:
+      timeoutInMinutes: 60
+    strategy:
       matrix:
         ${{ if eq(parameters.customMatrixes, '') }}:
           Debug_Build:
@@ -31,20 +26,24 @@ phases:
             _includeBenchmarkData: true
         ${{ if ne(parameters.customMatrixes, '') }}:
           ${{ insert }}: ${{ parameters.customMatrixes }}
-      ${{ insert }}: ${{ parameters.queue }}
+    
+    pool: ${{ parameters.pool }}
+    ${{ if ne(parameters.container, '') }}:
+      container: ${{ parameters.container }}
+
     steps:
-    - ${{ if eq(parameters.queue.name, 'Hosted macOS') }}:
+    - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
       - script: brew update && brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/f5b1ac99a7fba27c19cee0bc4f036775c889b359/Formula/libomp.rb && brew install mono-libgdiplus gettext && brew link gettext --force && brew link libomp --force
         displayName: Install build dependencies
-    - script: $(_buildScript) -$(_configuration) -buildArch=$(_arch)
+    - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }}
       displayName: Build
-    - script: $(_buildScript) -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=$(_includeBenchmarkData)
+    - script: ${{ parameters.buildScript }} -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=$(_includeBenchmarkData)
       displayName: Download Benchmark Data
-    - script: $(_buildScript) -$(_configuration) -runtests -coverage=$(_codeCoverage)
+    - script: ${{ parameters.buildScript }} -$(_configuration) -runtests -coverage=${{ parameters.codeCoverage }}
       displayName: Run Tests.
     - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet msbuild build/Codecoverage.proj /p:CodeCovToken=$(CODECOV_TOKEN)
       displayName: Upload coverage to codecov.io
-      condition: and(succeeded(), eq(variables._codeCoverage, 'true'))
+      condition: and(succeeded(), eq(${{ parameters.codeCoverage }}, True))
     - task: PublishTestResults@2
       displayName: Publish Test Results
       condition: succeededOrFailed()
@@ -52,7 +51,7 @@ phases:
         testRunner: 'vSTest'
         searchFolder: '$(System.DefaultWorkingDirectory)/bin'
         testResultsFiles: '**/*.trx'
-        testRunTitle: Machinelearning_Tests_$(_phaseName)_$(_configuration)_$(Build.BuildNumber)
+        testRunTitle: Machinelearning_Tests_${{ parameters.name }}_$(_configuration)_$(Build.BuildNumber)
         configuration: $(_configuration)
         mergeTestResults: true
     - task: CopyFiles@2
@@ -78,5 +77,5 @@ phases:
         pathToPublish: $(Build.ArtifactStagingDirectory)
         artifactName: ${{ parameters.name }} $(_config_short)
         artifactType: container
-    - script: $(_buildScript) -buildPackages
+    - script: ${{ parameters.buildScript }} -buildPackages
       displayName: Build Packages

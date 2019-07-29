@@ -21,6 +21,14 @@
       </NativeAssemblyReference>
     </ItemGroup>
 
+    <ItemGroup>
+      <NativeAssemblyReferenceWithMajorVersion>
+          <!-- Tensorflow has a different naming scheme for v1.14.0. Those binaries need to be copied along with the standard names -->
+          <AssemblyPathWithMajorVersion Condition="'$(OS)' != 'Windows_NT'">$(NativeOutputPath)$(LibPrefix)%(NativeAssemblyReferenceWithMajorVersion.Identity)$(LibExtension).%(NativeAssemblyReferenceWithMajorVersion.MajorVersion)</AssemblyPathWithMajorVersion>
+          <AssemblyPathWithMajorVersion Condition="$([MSBuild]::IsOSPlatform('osx'))">$(NativeOutputPath)$(LibPrefix)%(NativeAssemblyReferenceWithMajorVersion.Identity).%(NativeAssemblyReferenceWithMajorVersion.MajorVersion)$(LibExtension)</AssemblyPathWithMajorVersion>
+      </NativeAssemblyReferenceWithMajorVersion>
+    </ItemGroup>
+      
     <Copy SourceFiles = "@(NativeAssemblyReference->'%(FullAssemblyPath)')"
           DestinationFolder="$(OutputPath)"
           OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
@@ -30,7 +38,19 @@
           UseSymboliclinksIfPossible="$(CreateSymbolicLinksForPublishFilesIfPossible)">
       <Output TaskParameter="DestinationFiles" ItemName="FileWrites"/>
     </Copy>
-    
+
+    <!-- Optionally copy the native binaries that have a version number attended (Only tensorflow right now) -->
+    <Copy Condition="'$(OS)' != 'Windows_NT'"
+          SourceFiles = "@(NativeAssemblyReferenceWithMajorVersion->'%(AssemblyPathWithMajorVersion)')"
+          DestinationFolder="$(OutputPath)"
+          OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
+          Retries="$(CopyRetryCount)"
+          RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
+          UseHardlinksIfPossible="$(CreateHardLinksForPublishFilesIfPossible)"
+          UseSymboliclinksIfPossible="$(CreateSymbolicLinksForPublishFilesIfPossible)">
+      <Output TaskParameter="DestinationFiles" ItemName="FileWrites"/>
+    </Copy>
+      
   </Target>
   
   <Import Project="$(ToolsDir)/versioning.targets" Condition="Exists('$(ToolsDir)/versioning.targets')" />

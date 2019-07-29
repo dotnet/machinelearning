@@ -10,9 +10,10 @@ namespace Samples.Dynamic.Trainers.AnomalyDetection
     {
         public static void Example()
         {
-            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-            // as a catalog of available operations and as the source of randomness.
-            // Setting the seed to a fixed number in this example to make outputs deterministic.
+            // Create a new context for ML.NET operations. It can be used for
+            // exception tracking and logging, as a catalog of available operations
+            // and as the source of randomness. Setting the seed to a fixed number
+            // in this example to make outputs deterministic.
             var mlContext = new MLContext(seed: 0);
 
             // Training data.
@@ -26,7 +27,8 @@ namespace Samples.Dynamic.Trainers.AnomalyDetection
                 new DataPoint(){ Features = new float[3] {-100, 50, -100} }
             };
 
-            // Convert the List<DataPoint> to IDataView, a consumble format to ML.NET functions.
+            // Convert the List<DataPoint> to IDataView, a consumble format to
+            // ML.NET functions.
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
             var options = new Microsoft.ML.Trainers.RandomizedPcaTrainer.Options()
@@ -36,8 +38,10 @@ namespace Samples.Dynamic.Trainers.AnomalyDetection
                 Seed = 10,
             };
 
-            // Create an anomaly detector. Its underlying algorithm is randomized PCA.
-            var pipeline = mlContext.AnomalyDetection.Trainers.RandomizedPca(options);
+            // Create an anomaly detector. Its underlying algorithm is randomized
+            // PCA.
+            var pipeline = mlContext.AnomalyDetection.Trainers.RandomizedPca(
+                options);
 
             // Train the anomaly detector.
             var model = pipeline.Fit(data);
@@ -46,7 +50,8 @@ namespace Samples.Dynamic.Trainers.AnomalyDetection
             var transformed = model.Transform(data);
 
             // Read ML.NET predictions into IEnumerable<Result>.
-            var results = mlContext.Data.CreateEnumerable<Result>(transformed, reuseRowObject: false).ToList();
+            var results = mlContext.Data.CreateEnumerable<Result>(transformed,
+                reuseRowObject: false).ToList();
 
             // Let's go through all predictions.
             for (int i = 0; i < samples.Count; ++i)
@@ -59,11 +64,13 @@ namespace Samples.Dynamic.Trainers.AnomalyDetection
 
                 if (result.PredictedLabel)
                     // The i-th sample is predicted as an inlier.
-                    Console.WriteLine("The {0}-th example with features [{1}] is an inlier with a score of being inlier {2}",
-                        i, featuresInText, result.Score);
+                    Console.WriteLine("The {0}-th example with features [{1}] is" +
+                        "an inlier with a score of being inlier {2}", i, 
+                        featuresInText, result.Score);
                 else
                     // The i-th sample is predicted as an outlier.
-                    Console.WriteLine("The {0}-th example with features [{1}] is an outlier with a score of being inlier {2}",
+                    Console.WriteLine("The {0}-th example with features [{1}] is" +
+                        "an outlier with a score of being inlier {2}",
                         i, featuresInText, result.Score);
             }
             // Lines printed out should be
@@ -75,7 +82,8 @@ namespace Samples.Dynamic.Trainers.AnomalyDetection
             //   The 5 - th example with features[-100, 50, -100] is an outlier with a score of being inlier 0
         }
 
-        // Example with 3 feature values. A training data set is a collection of such examples.
+        // Example with 3 feature values. A training data set is a collection of
+        // such examples.
         private class DataPoint
         {
             [VectorType(3)]
