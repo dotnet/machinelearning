@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Data;
 using System.Data.Common;
+using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
@@ -39,7 +40,7 @@ namespace Microsoft.ML.Tests
             {
                 connection.Open();
 
-                using (var command = new MockCommand(connection, "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
+                using (var command = new MockCommand(connection, "Label", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
                 {
                     var loader = mlContext.Data.CreateDatabaseLoader(loaderColumns);
 
@@ -228,6 +229,8 @@ namespace Microsoft.ML.Tests
             }
         }
 
+        public string[] InputColumnNames => _inputColumnNames;
+
         public override CommandType CommandType
         {
             get
@@ -345,7 +348,10 @@ namespace Microsoft.ML.Tests
             var connection = (MockConnection)_command.Connection;
             _dataView = connection.DataView;
 
-            _rowCursor = _dataView.GetRowCursor(_dataView.Schema);
+            var inputColumns = _dataView.Schema.Where((column) => 
+                command.InputColumnNames.Any((columnName) => column.Name.Equals(column.Name))
+            );
+            _rowCursor = _dataView.GetRowCursor(inputColumns);
         }
 
         public override object this[int ordinal]
