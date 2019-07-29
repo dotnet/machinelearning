@@ -32,17 +32,13 @@ namespace Microsoft.ML.Tests
                     "SELECT SepalLength, SepalWidth, PetalLength, PetalWidth, Label FROM IrisData",
                     connection))
                 {
-                    DatabaseLoader loader = new DatabaseLoader(mlContext, new DatabaseLoader.Options()
-                    {
-                        Columns = new[]
-                        {
-                            new DatabaseLoader.Column() { Name = "SepalLength", Type = DbType.Single },
-                            new DatabaseLoader.Column() { Name = "SepalWidth", Type = DbType.Single },
-                            new DatabaseLoader.Column() { Name = "PetalLength", Type = DbType.Single },
-                            new DatabaseLoader.Column() { Name = "PetalWidth", Type = DbType.Single },
-                            new DatabaseLoader.Column() { Name = "Label", Type = DbType.Int32 },
-                        }
-                    });
+                    DatabaseLoader loader = mlContext.Data.CreateDatabaseLoader(
+                        new DatabaseLoader.Column() { Name = "SepalLength", Type = DbType.Single },
+                        new DatabaseLoader.Column() { Name = "SepalWidth", Type = DbType.Single },
+                        new DatabaseLoader.Column() { Name = "PetalLength", Type = DbType.Single },
+                        new DatabaseLoader.Column() { Name = "PetalWidth", Type = DbType.Single },
+                        new DatabaseLoader.Column() { Name = "Label", Type = DbType.Int32 }
+                    );
 
                     IDataView trainingData = loader.Load(() => command.ExecuteReader());
                     //trainingData = mlContext.Data.Cache(trainingData, "SepalLength", "SepalWidth", "PetalLength", "PetalWidth", "Label");
