@@ -20,7 +20,7 @@ namespace Microsoft.ML.Data
 {
     public sealed partial class DatabaseLoader : IDataLoader<Func<DbDataReader>>
     {
-        internal const string Summary = "Loads data from an DbDataReader.";
+        internal const string Summary = "Loads data from a DbDataReader.";
         internal const string LoaderSignature = "DatabaseLoader";
 
         private static VersionInfo GetVersionInfo()
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Loads data from <paramref name="input"/> into an <see cref="IDataView"/>.
         /// </summary>
-        /// <param name="input">A function that returns an DbDataReader from which to load data.</param>
+        /// <param name="input">A function that returns a DbDataReader from which to load data.</param>
         public IDataView Load(Func<DbDataReader> input) => new BoundLoader(this, input);
 
         /// <summary>
