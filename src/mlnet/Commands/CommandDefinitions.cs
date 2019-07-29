@@ -9,7 +9,6 @@ using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
 using System.IO;
 using System.Linq;
-
 namespace Microsoft.ML.CLI.Commands
 {
     internal static class CommandDefinitions

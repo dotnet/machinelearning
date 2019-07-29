@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.ML.AutoML;
-using Microsoft.ML.CLI.Templates.Console;
+using Microsoft.ML.CodeGen.Templates.Console;
 using Microsoft.ML.CodeGen.Utilities;
 
 namespace Microsoft.ML.CodeGen.CSharp

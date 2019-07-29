@@ -4,7 +4,7 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Text.RegularExpressions" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ import namespace="Microsoft.ML.CLI.Utilities" #>
+<#@ import namespace="Microsoft.ML.CodeGen.Utilities" #>
 //*****************************************************************************************
 //*                                                                                       *
 //* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *

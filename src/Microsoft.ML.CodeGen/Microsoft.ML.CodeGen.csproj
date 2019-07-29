@@ -2,8 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <DelaySign>false</DelaySign>
-    <LangVersion>7.1</LangVersion>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,48 +20,28 @@
   
   <ItemGroup>
     <None Update="Templates\Console\ModelBuilder.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>ModelBuilder.cs</LastGenOutput>
     </None>
     <None Update="Templates\Console\ModelInputClass.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>ModelInputClass.cs</LastGenOutput>
     </None>
     <None Update="Templates\Console\ModelOutputClass.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>ModelOutputClass.cs</LastGenOutput>
     </None>
     <None Update="Templates\Console\ModelProject.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>ModelProject.cs</LastGenOutput>
     </None>
     <None Update="Templates\Console\PredictProgram.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>PredictProgram.cs</LastGenOutput>
     </None>
     <None Update="Templates\Console\PredictProject.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>PredictProject.cs</LastGenOutput>
-    </None>
-    <None Update="Templates\Templates\Console\ModelBuilder.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="Templates\Templates\Console\ModelInputClass.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>ModelInputClass.cs</LastGenOutput>
-    </None>
-    <None Update="Templates\Templates\Console\ModelOutputClass.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>ModelOutputClass.cs</LastGenOutput>
-    </None>
-    <None Update="Templates\Templates\Console\ModelProject.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="Templates\Templates\Console\PredictProgram.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="Templates\Templates\Console\PredictProject.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
     </None>
   </ItemGroup>
 

@@ -13,7 +13,6 @@ using Microsoft.ML.CLI.Data;
 using Microsoft.ML.CLI.ShellProgressBar;
 using Microsoft.ML.CLI.Telemetry.Events;
 using Microsoft.ML.CLI.Utilities;
-using Microsoft.ML.CodeGen;
 using Microsoft.ML.Data;
 using NLog;
 

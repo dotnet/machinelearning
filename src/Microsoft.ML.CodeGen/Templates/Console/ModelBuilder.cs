@@ -7,7 +7,7 @@
 //     the code is regenerated.
 // </auto-generated>
 // ------------------------------------------------------------------------------
-namespace Microsoft.ML.CLI.Templates.Console
+namespace Microsoft.ML.CodeGen.Templates.Console
 {
     using System.Linq;
     using System.Text;
