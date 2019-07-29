@@ -55,7 +55,7 @@ namespace Microsoft.ML
         /// <param name="ensureZeroMean">If enabled, data is centered to be zero mean.</param>
         /// <param name="seed">The seed for random number generation.</param>
         /// <remarks>
-        /// By default the threshold used to determine the label of a data point based on the predicted score is 0.5. A data point with predicted
+        /// By default the threshold used to determine the label of a data point based on the predicted score is 0.5. Scores range from 0 to 1. A data point with predicted
         /// score higher than 0.5 is considered an outlier. Use <see cref="AnomalyDetectionCatalog.ChangeModelThreshold"/> to change this threshold.
         /// </remarks>
         /// <example>
@@ -83,7 +83,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The anomaly detection catalog trainer object.</param>
         /// <param name="options">Advanced options to the algorithm.</param>
         /// <remarks>
-        /// By default the threshold used to determine the label of a data point based on the predicted score is 0.5. A data point with predicted
+        /// By default the threshold used to determine the label of a data point based on the predicted score is 0.5. Scores range from 0 to 1. A data point with predicted
         /// score higher than 0.5 is considered an outlier. Use <see cref="AnomalyDetectionCatalog.ChangeModelThreshold"/> to change this threshold.
         /// </remarks>
         /// <example>
