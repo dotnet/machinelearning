@@ -8,7 +8,6 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -75,39 +74,31 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        public void CategoricalHashStatic()
+        public void CategoricalHash()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoaderStatic.CreateLoader(ML, ctx => (
-                ScalarString: ctx.LoadText(1),
-                VectorString: ctx.LoadText(1, 4),
-                SingleVectorString: ctx.LoadText(1, 1)));
-            var data = reader.Load(dataPath);
+            var data = ML.Data.LoadFromTextFile(dataPath, new[] {
+                new TextLoader.Column("ScalarString", DataKind.String, 1),
+                new TextLoader.Column("VectorString", DataKind.String, 1, 4),
+                new TextLoader.Column("SingleVectorString", DataKind.String, new[] { new TextLoader.Range(1, 1) })
+            });
             var wrongCollection = new[] { new TestClass() { A = "1", B = new[] { "2", "3" }, C = new[] { "2", "3", "4" } }, new TestClass() { A = "4", B = new[] { "4", "5" }, C = new[] { "3", "4", "5" } } };
 
             var invalidData = ML.Data.LoadFromEnumerable(wrongCollection);
-            var est = data.MakeNewEstimator().
-                  Append(row => (
-                      row.ScalarString,
-                      row.VectorString,
-                      row.SingleVectorString,
-                      // Create a VarVector column
-                      VarVectorString: row.ScalarString.TokenizeIntoWords())).
-                  Append(row => (
-                      A: row.ScalarString.OneHotHashEncoding(outputKind: CategoricalHashStaticExtensions.OneHotHashScalarOutputKind.Ind),
-                      B: row.VectorString.OneHotHashEncoding(outputKind: CategoricalHashStaticExtensions.OneHotHashVectorOutputKind.Ind),
-                      C: row.VectorString.OneHotHashEncoding(outputKind: CategoricalHashStaticExtensions.OneHotHashVectorOutputKind.Bag),
-                      D: row.ScalarString.OneHotHashEncoding(outputKind: CategoricalHashStaticExtensions.OneHotHashScalarOutputKind.Bin),
-                      E: row.VectorString.OneHotHashEncoding(outputKind: CategoricalHashStaticExtensions.OneHotHashVectorOutputKind.Bin),
-                      F: row.VarVectorString.OneHotHashEncoding(),
-                      // The following column and SingleVectorString are meant to test the special case of a vector that happens to be of length 1.
-                      G: row.SingleVectorString.OneHotHashEncoding(outputKind: CategoricalHashStaticExtensions.OneHotHashVectorOutputKind.Bag)
-                  ));
+            var est = ML.Transforms.Text.TokenizeIntoWords("VarVectorString", "ScalarString")
+                .Append(ML.Transforms.Categorical.OneHotHashEncoding("A", "ScalarString", outputKind: OneHotEncodingEstimator.OutputKind.Indicator))
+                .Append(ML.Transforms.Categorical.OneHotHashEncoding("B", "VectorString", outputKind: OneHotEncodingEstimator.OutputKind.Indicator))
+                .Append(ML.Transforms.Categorical.OneHotHashEncoding("C", "VectorString", outputKind: OneHotEncodingEstimator.OutputKind.Bag))
+                .Append(ML.Transforms.Categorical.OneHotHashEncoding("D", "ScalarString", outputKind: OneHotEncodingEstimator.OutputKind.Binary))
+                .Append(ML.Transforms.Categorical.OneHotHashEncoding("E", "VectorString", outputKind: OneHotEncodingEstimator.OutputKind.Binary))
+                .Append(ML.Transforms.Categorical.OneHotHashEncoding("F", "VarVectorString", outputKind: OneHotEncodingEstimator.OutputKind.Bag))
+                // The following column and SingleVectorString are meant to test the special case of a vector that happens to be of length 1.
+                .Append(ML.Transforms.Categorical.OneHotHashEncoding("G", "SingleVectorString", outputKind: OneHotEncodingEstimator.OutputKind.Bag));
 
-            TestEstimatorCore(est.AsDynamic, data.AsDynamic, invalidInput: invalidData);
+            TestEstimatorCore(est, data, invalidInput: invalidData);
 
             var outputPath = GetOutputPath("CategoricalHash", "featurized.tsv");
-            var savedData = ML.Data.TakeRows(est.Fit(data).Transform(data).AsDynamic, 4);
+            var savedData = ML.Data.TakeRows(est.Fit(data).Transform(data), 4);
             var view = ML.Transforms.SelectColumns("A", "B", "C", "D", "E", "F").Fit(savedData).Transform(savedData);
             using (var fs = File.Create(outputPath))
                 ML.Data.SaveAsText(view, fs, headerRow: true, keepHidden: true);

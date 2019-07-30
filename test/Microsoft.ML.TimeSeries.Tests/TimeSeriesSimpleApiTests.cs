@@ -5,34 +5,27 @@
 using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.StaticPipe;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests
 {
-    public sealed class TimeSeriesStaticTests : BaseTestBaseline
+    public sealed class TimeSeriesSimpleApiTests : BaseTestBaseline
     {
-        public TimeSeriesStaticTests(ITestOutputHelper output) : base(output)
+        public TimeSeriesSimpleApiTests(ITestOutputHelper output) : base(output)
         {
         }
-#pragma warning disable CS0649 // Ignore unintialized field warning
         private sealed class ChangePointPrediction
         {
-            // Note that this field must be named "Data"; we ultimately convert
-            // to a dynamic IDataView in order to extract AsEnumerable
-            // predictions and that process uses "Data" as the default column
-            // name for an output column from a static pipeline.
             [VectorType(4)]
-            public double[] Data;
+            public double[] Data { get; set; }
         }
 
         private sealed class SpikePrediction
         {
             [VectorType(3)]
-            public double[] Data;
+            public double[] Data { get; set; }
         }
-#pragma warning restore CS0649
 
         private sealed class Data
         {
@@ -54,18 +47,16 @@ namespace Microsoft.ML.Tests
             for (int i = 0; i < Size / 2; i++)
                 data.Add(new Data((float)(5 + i * 1.1)));
 
-            // Convert to statically-typed data view.
-            var staticData = dataView.AssertStatic(env, c => new { Value = c.R4.Scalar });
             // Build the pipeline
-            var staticLearningPipeline = staticData.MakeNewEstimator()
-                .Append(r => r.Value.DetectIidChangePoint(80, Size));
+            var learningPipeline = ML.Transforms.DetectIidChangePoint("Data", "Value", 80, Size);
+
             // Train
-            var detector = staticLearningPipeline.Fit(staticData);
+            var detector = learningPipeline.Fit(dataView);
             // Transform
-            var output = detector.Transform(staticData);
+            var output = detector.Transform(dataView);
 
             // Get predictions
-            var enumerator = env.Data.CreateEnumerable<ChangePointPrediction>(output.AsDynamic, true).GetEnumerator();
+            var enumerator = env.Data.CreateEnumerable<ChangePointPrediction>(output, true).GetEnumerator();
             ChangePointPrediction row = null;
             List<double> expectedValues = new List<double>() { 0, 5, 0.5, 5.1200000000000114E-08, 0, 5, 0.4999999995, 5.1200000046080209E-08, 0, 5, 0.4999999995, 5.1200000092160303E-08,
                 0, 5, 0.4999999995, 5.12000001382404E-08};
@@ -100,18 +91,15 @@ namespace Microsoft.ML.Tests
             for (int i = 0; i < ChangeHistorySize; i++)
                 data.Add(new Data(i * 100));
 
-            // Convert to statically-typed data view.
-            var staticData = dataView.AssertStatic(env, c => new { Value = c.R4.Scalar });
             // Build the pipeline
-            var staticLearningPipeline = staticData.MakeNewEstimator()
-                .Append(r => r.Value.DetectChangePointBySsa(95, ChangeHistorySize, MaxTrainingSize, SeasonalitySize));
+            var learningPipeline = ML.Transforms.DetectChangePointBySsa("Data", "Value", 95, ChangeHistorySize, MaxTrainingSize, SeasonalitySize);
             // Train
-            var detector = staticLearningPipeline.Fit(staticData);
+            var detector = learningPipeline.Fit(dataView);
             // Transform
-            var output = detector.Transform(staticData);
+            var output = detector.Transform(dataView);
 
             // Get predictions
-            var enumerator = env.Data.CreateEnumerable<ChangePointPrediction>(output.AsDynamic, true).GetEnumerator();
+            var enumerator = env.Data.CreateEnumerable<ChangePointPrediction>(output, true).GetEnumerator();
             ChangePointPrediction row = null;
             List<double> expectedValues = new List<double>() { 0, -3.31410598754883, 0.5, 5.12000000000001E-08, 0, 1.5700820684432983, 5.2001145245395008E-07,
                     0.012414560443710681, 0, 1.2854313254356384, 0.28810801662678009, 0.02038940454467935, 0, -1.0950627326965332, 0.36663890634019225, 0.026956459625565483};
@@ -144,18 +132,15 @@ namespace Microsoft.ML.Tests
             for (int i = 0; i < Size / 2 - 1; i++)
                 data.Add(new Data(5));
 
-            // Convert to statically-typed data view.
-            var staticData = dataView.AssertStatic(env, c => new { Value = c.R4.Scalar });
             // Build the pipeline
-            var staticLearningPipeline = staticData.MakeNewEstimator()
-                .Append(r => r.Value.DetectIidSpike(80, PvalHistoryLength));
+            var learningPipeline = ML.Transforms.DetectIidSpike("Data", "Value", 80, PvalHistoryLength);
             // Train
-            var detector = staticLearningPipeline.Fit(staticData);
+            var detector = learningPipeline.Fit(dataView);
             // Transform
-            var output = detector.Transform(staticData);
+            var output = detector.Transform(dataView);
 
             // Get predictions
-            var enumerator = env.Data.CreateEnumerable<SpikePrediction>(output.AsDynamic, true).GetEnumerator();
+            var enumerator = env.Data.CreateEnumerable<SpikePrediction>(output, true).GetEnumerator();
             var expectedValues = new List<double[]>() {
                 //            Alert   Score   P-Value
                 new double[] {0,      5,      0.5},
@@ -199,18 +184,15 @@ namespace Microsoft.ML.Tests
             for (int i = 0; i < Size / 2 - 1; i++)
                 data.Add(new Data(5));
 
-            // Convert to statically-typed data view.
-            var staticData = dataView.AssertStatic(env, c => new { Value = c.R4.Scalar });
             // Build the pipeline
-            var staticLearningPipeline = staticData.MakeNewEstimator()
-                .Append(r => r.Value.DetectSpikeBySsa(80, ChangeHistoryLength, TrainingWindowSize, SeasonalityWindowSize));
+            var learningPipeline = ML.Transforms.DetectSpikeBySsa("Data", "Value", 80, ChangeHistoryLength, TrainingWindowSize, SeasonalityWindowSize);
             // Train
-            var detector = staticLearningPipeline.Fit(staticData);
+            var detector = learningPipeline.Fit(dataView);
             // Transform
-            var output = detector.Transform(staticData);
+            var output = detector.Transform(dataView);
 
             // Get predictions
-            var enumerator = env.Data.CreateEnumerable<SpikePrediction>(output.AsDynamic, true).GetEnumerator();
+            var enumerator = env.Data.CreateEnumerable<SpikePrediction>(output, true).GetEnumerator();
             var expectedValues = new List<double[]>() {
                 //            Alert   Score   P-Value
                 new double[] {0,      0.0,    0.5},
