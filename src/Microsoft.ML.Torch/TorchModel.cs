@@ -47,11 +47,11 @@ namespace Microsoft.ML.Torch
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[ScoreTorchModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/TorchTransform.cs)]
+        /// [!code-csharp[ScoreTorchModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Torch/AlexNet.cs)]
         /// ]]>
         /// </format>
         /// </example>
-        public TorchScorerEstimator ScoreTorchModel(string outputColumnName, long[][] shapes, string[] inputColumnNames = null)
+        internal TorchScorerEstimator ScoreTorchModel(string outputColumnName, long[][] shapes, string[] inputColumnNames = null)
         {
             var options = new TorchScorerEstimator.Options {
                 OutputColumnName = outputColumnName,
@@ -65,10 +65,13 @@ namespace Microsoft.ML.Torch
         /// <summary>
         /// Scores a dataset using a pre-traiend <a href="https://www.pytorch.org/">Torch</a> model.
         /// </summary>
+        /// <param name="outputColumnName">The name of the requested model output. The data type is a vector of <see cref="System.Single"/></param>
+        /// <param name="shape">The shape of the input vector expected by the model.</param>
+        /// <param name="inputColumnName"> The name of the model input. The data type is a vector of <see cref="System.Single"/>.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[ScoreTorchModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/TorchTransform.cs)]
+        /// [!code-csharp[ScoreTorchModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Torch/AlexNet.cs)]
         /// ]]>
         /// </format>
         /// </example>

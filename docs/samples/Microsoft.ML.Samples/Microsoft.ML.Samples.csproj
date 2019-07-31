@@ -955,6 +955,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="$(MicrosoftMLOnnxTestModelsVersion)" />
+    <PackageReference Include="TorchSharp" Version="$(TorchSharpVersion)" />
+    <PackageReference Include="LibTorch.Redist" Version="$(LibTorchRedistVersion)" />
   </ItemGroup>
   
     <ItemGroup>

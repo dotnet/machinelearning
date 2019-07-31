@@ -2,8 +2,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net;
-using ICSharpCode.SharpZipLib.GZip;
-using ICSharpCode.SharpZipLib.Tar;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 
@@ -16,18 +14,24 @@ namespace Samples.Dynamic.Torch
         /// </summary>
         public static void Example()
         {
-            // Download the AlexNet model obtained by tracing the torchvision pretrained alexnet model for imagenet:
-            
+            // Download the TorchScript AlexNet model obtained by tracing the 
+            // torchvision pretrained alexnet model for imagenet.
+
+            // Here is the code that produced the model:
+
             //      import torch
             //      import torchvision
-            //      traced_net = torch.jit.trace(torchvision.models.alexnet(pretrained = True),
-            //                                   torch.rand(1, 3, 224, 224))
+            //      traced_net = torch.jit.trace(
+            //                      torchvision.models.alexnet(pretrained = True),
+            //                      torch.rand(1, 3, 224, 224))
             //      torch.jit.save(traced_net, 'alexnet.pt')
 
             string modelLocation = "alexnet.pt";
             if (!File.Exists(modelLocation))
             {
-                modelLocation = Download(@"https://aka.ms/mlnet-resources/torch/alexnet.pt", @"alexnet.pt");
+                modelLocation = Download(
+                    @"https://aka.ms/mlnet-resources/torch/alexnet.pt",
+                    @"alexnet.pt");
             }
 
             var mlContext = new MLContext();
@@ -62,14 +66,14 @@ namespace Samples.Dynamic.Torch
             }
 
             // Results look like below...
-            //Class #0 score = -0.8092947
-            //Class #1 score = -0.3310375
-            //Class #2 score = 0.1119193
-            //----------
-            //Class #0 score = -0.7807726
-            //Class #1 score = -0.2158062
-            //Class #2 score = 0.1153686
-            //----------
+            // Class #0 score = 0.8008841
+            // Class #1 score = 1.181702
+            // Class #2 score = -0.02895377
+            // ----------
+            // Class #0 score = 0.3972791
+            // Class #1 score = 1.154241
+            // Class #2 score = 0.202249
+            // ----------
         }
         private const int imageHeight = 224; 
         private const int imageWidth = 224;

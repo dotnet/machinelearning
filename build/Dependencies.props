@@ -23,8 +23,8 @@
     <SystemSecurityPrincipalWindows>4.5.0</SystemSecurityPrincipalWindows>
     <TensorFlowVersion>1.14.0</TensorFlowVersion>
     <TensorFlowMajorVersion>1</TensorFlowMajorVersion>
-    <TorchSharpVersion>0.2.0-preview-27915-4</TorchSharpVersion>
-    <LibTorchRedistVersion>0.2.0-preview-27915-4</LibTorchRedistVersion>
+    <TorchSharpVersion>0.2.0-preview-27930-2</TorchSharpVersion>
+    <LibTorchRedistVersion>0.2.0-preview-27930-2</LibTorchRedistVersion>
   </PropertyGroup>
 
   <!-- Code Analyzer Dependencies -->
