@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -22,8 +23,8 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [Fact]
-        public void TryItOut()
+        [LightGBMFact]
+        public void IrisLightGbm()
         {
             var mlContext = new MLContext(seed: 1);
 
