@@ -29,6 +29,7 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Predictor.Tests\Microsoft.ML.Predictor.Tests.csproj" />
     <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Torch\Microsoft.ML.Torch.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -50,9 +51,10 @@
       <MajorVersion>$(TensorFlowMajorVersion)</MajorVersion>
     </NativeAssemblyReferenceWithMajorVersion>
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup> 
     <PackageReference Include="Microsoft.ML.TensorFlow.TestModels" Version="$(MicrosoftMLTensorFlowTestModelsVersion)" />
     <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="$(MicrosoftMLOnnxTestModelsVersion)" />
     <PackageReference Include="Microsoft.ML.TestModels" Version="$(MicrosoftMLTestModelsPackageVersion)" />
+    <PackageReference Include="TorchSharp" Version="$(TorchSharpVersion)" />
   </ItemGroup>
 </Project>
