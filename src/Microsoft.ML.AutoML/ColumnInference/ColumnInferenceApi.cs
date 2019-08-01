@@ -10,6 +10,8 @@ namespace Microsoft.ML.AutoML
 {
     internal static class ColumnInferenceApi
     {
+        private const int _maxUngroupedColumns = 20000;
+
         public static ColumnInferenceResults InferColumns(MLContext context, string path, uint labelColumnIndex,
             bool hasHeader, char? separatorChar, bool? allowQuotedStrings, bool? supportSparse, bool trimWhitespace, bool groupColumns)
         {
@@ -71,7 +73,7 @@ namespace Microsoft.ML.AutoML
             IEnumerable<(string, ColumnPurpose)> purposeResults = null;
 
             // infer column grouping and generate column names
-            if (groupColumns)
+            if (groupColumns || purposeInferenceResult.Length > _maxUngroupedColumns)
             {
                 var groupingResult = ColumnGroupingInference.InferGroupingAndNames(context, hasHeader,
                     typeInference.Columns, purposeInferenceResult);

@@ -19,7 +19,7 @@ namespace Microsoft.ML.AutoML
         // Maximum number of columns to invoke type inference.
         // REVIEW: revisit this requirement. Either work for arbitrary number of columns,
         // or have a 'dumb' inference that would quickly figure everything out.
-        private const int SmartColumnsLim = 10000;
+        private const int SmartColumnsLim = 200000;
 
         internal sealed class Arguments
         {
@@ -340,15 +340,15 @@ namespace Microsoft.ML.AutoML
 
             // suggest names
             usedNames.Clear();
+            long j = 0;
             foreach (var col in cols)
             {
                 string name0;
                 string name;
                 name0 = name = SuggestName(col, args.HasHeader);
-                int i = 0;
                 while (!usedNames.Add(name))
                 {
-                    name = string.Format("{0}_{1:00}", name0, i++);
+                    name = string.Format("{0}_{1:00}", name0, j++);
                 }
                 col.Name = name;
             }
