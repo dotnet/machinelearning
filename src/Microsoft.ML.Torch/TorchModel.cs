@@ -22,11 +22,6 @@ namespace Microsoft.ML.Torch
 
         internal string ModelPath { get; }
 
-        // TODO: these should not be in the model
-        public string OutputColumnName;
-        public string[] InputColumnNames;
-        public long[][] InputShapes;
-
         /// <summary>
         /// Instantiates <see cref="TorchModel"/>.
         /// </summary>
@@ -80,7 +75,7 @@ namespace Microsoft.ML.Torch
             var options = new TorchScorerEstimator.Options
             {
                 OutputColumnName = outputColumnName,
-                InputColumnNames = new[] { inputColumnName } ?? new[] { outputColumnName },
+                InputColumnNames = inputColumnName != null ? new[] { inputColumnName } : new[] { outputColumnName },
                 InputShapes = new[] { shape },
                 ModelLocation = ModelPath
             };
@@ -98,7 +93,10 @@ namespace Microsoft.ML.Torch
         /// </format>
         /// </example>
         public TorchTrainerEstimator TrainTorchModel(
+            string outputColumnName,
+            string inputColumnName,
             string labelColumnName,
+            long[] shape,
             TorchSharp.NN.Optimizer optimizer,
             TorchSharp.NN.LossFunction.Loss loss,
             int epochs,
@@ -106,9 +104,9 @@ namespace Microsoft.ML.Torch
         {
             var options = new TorchTrainerEstimator.Options
             {
-                OutputColumnName = OutputColumnName,
-                InputColumnNames = InputColumnNames,
-                InputShapes = InputShapes,
+                OutputColumnName = outputColumnName,
+                InputColumnNames = new[] { inputColumnName },
+                InputShapes = new[] { shape },
                 InputLabelColumnName = labelColumnName,
                 Optimizer = optimizer,
                 Loss = loss,

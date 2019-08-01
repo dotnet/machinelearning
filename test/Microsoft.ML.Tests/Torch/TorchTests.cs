@@ -15,64 +15,62 @@ namespace Microsoft.ML.Tests.Torch
         {
         }
 
-        private class MNISTInputData
+        private class TestReLUModelData
         {
-            [VectorType(1, 3, 224, 224)]
+            [VectorType(5)]
             public float[] Features { get; set; }
         }
 
-        private class MINSTOutputData
-        {
-            [VectorType(1000)]
-            public float[] TorchOutput { get; set; }
-        }
-
         [TorchFact]
-        public void TorchMNISTScoringTest()
+        public void TorchScoringReLUTest()
         {
             var mlContext = new MLContext();
-            var ones = FloatTensor.Ones(new long[] { 1, 3, 224, 224 });
-            var data = new MNISTInputData
+            var tensor = new float[] { -1, -1, 0, 1, 1 }.ToTorchTensor(dimensions: new long[] { 5 });
+            var data = new TestReLUModelData
             {
-                Features = ones.Data<float>().ToArray()
+                Features = tensor.Data<float>().ToArray()
             };
-            var dataPoint = new List<MNISTInputData>() { data };
+            var dataPoint = new List<TestReLUModelData>() { data };
 
             var dataView = mlContext.Data.LoadFromEnumerable(dataPoint);
 
             var output = mlContext.Model
-                .LoadTorchModel(GetDataPath("Torch/MnistModel.pt"))
-                .ScoreTorchModel("TorchOutput", new long[] { 1, 3, 224, 224 }, "Features")
+                .LoadTorchModel(GetDataPath("Torch/relu.pt"))
+                .ScoreTorchModel("Features", new long[] { 5 })
                 .Fit(dataView)
                 .Transform(dataView);
 
-             var count = mlContext.Data.CreateEnumerable<MINSTOutputData>(output, false).ToArray()[0].TorchOutput.Length;
-            Assert.True(count == 1000);
+             var transformedData = mlContext.Data.CreateEnumerable<TestReLUModelData>(output, false).ToArray()[0].Features;
+            Assert.True(transformedData.Length == 5);
+            Assert.Equal(transformedData, new float[] { 0, 0, 0, 1, 1 });
+
         }
 
         [TorchFact]
-        public void TorchMNISTWorkoutTest()
+        public void TorchTransformerWorkoutTest()
         {
             var mlContext = new MLContext();
-            var ones = FloatTensor.Ones(new long[] { 1, 3, 224, 224 });
-            var datapoint = new MNISTInputData
+            var tensorData = FloatTensor.Random(new long[] { 5 });
+            var datapoint = new TestReLUModelData
             {
-                Features = ones.Data<float>().ToArray()
+                Features = tensorData.Data<float>().ToArray()
             };
-            var data = new List<MNISTInputData>() { datapoint, datapoint, datapoint, datapoint, datapoint };
+            var data = new List<TestReLUModelData>() { datapoint, datapoint, datapoint, datapoint, datapoint };
 
             var dataView = mlContext.Data.LoadFromEnumerable(data);
 
-            var estimator = mlContext.Model.LoadTorchModel(GetDataPath("Torch/MnistModel.pt"))
-                .ScoreTorchModel("TorchOutput", new long[] { 1, 3, 224, 224 }, "Features");
+            var estimator = mlContext.Model.LoadTorchModel(GetDataPath("Torch/relu.pt"))
+                .ScoreTorchModel("TorchOutput", new long[] { 5 }, "Features");
 
             TestEstimatorCore(estimator, dataView);
 
             var output = estimator.Fit(dataView)
                 .Transform(dataView);
 
-            var count = mlContext.Data.CreateEnumerable<MINSTOutputData>(output, false).ToArray()[0].TorchOutput.Length;
-            Assert.True(count == 1000);
+            var transformedData = mlContext.Data.CreateEnumerable<TestReLUModelData>(output, false).ToArray()[0].Features;
+            Assert.True(transformedData.Length == 5);
+            foreach (var elt in transformedData)
+                Assert.True(elt >= 0);
         }
     }
 }

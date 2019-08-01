@@ -10,7 +10,7 @@ namespace Samples.Dynamic.Torch
     public static class AlexNet
     {
         /// <summary>
-        /// Example use of the TensorFlow image model in a ML.NET pipeline.
+        /// Example use of the Torch model in a ML.NET pipeline.
         /// </summary>
         public static void Example()
         {
