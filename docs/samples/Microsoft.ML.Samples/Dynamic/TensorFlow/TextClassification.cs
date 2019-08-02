@@ -55,8 +55,9 @@ namespace Samples.Dynamic
             //      - Use it for quering the schema for input and output in the
             //            model
             //      - Use it for prediction in the pipeline.
-            var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
-            /*var schema = tensorFlowModel.GetModelSchema();
+            var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(
+                modelLocation);
+            var schema = tensorFlowModel.GetModelSchema();
             var featuresType = (VectorDataViewType)schema["Features"].Type;
             Console.WriteLine("Name: {0}, Type: {1}, Shape: (-1, {2})", "Features",
                 featuresType.ItemType.RawType, featuresType.Dimensions[0]);
@@ -65,7 +66,7 @@ namespace Samples.Dynamic
                 .Type;
             Console.WriteLine("Name: {0}, Type: {1}, Shape: (-1, {2})",
                 "Prediction/Softmax", predictionType.ItemType.RawType,
-                predictionType.Dimensions[0]);*/
+                predictionType.Dimensions[0]);
 
             // The model expects the input feature vector to be a fixed length
             // vector.
@@ -81,14 +82,14 @@ namespace Samples.Dynamic
             //      5. Retreives the 'Prediction' from TensorFlow and put it into
             //         ML.NET Pipeline 
 
-            Action<IMDBSentiment, IntermediateFeatures> ResizeFeaturesAction = 
+            Action<IMDBSentiment, IntermediateFeatures> ResizeFeaturesAction =
                 (i, j) =>
-            {
-                j.Sentiment_Text = i.Sentiment_Text;
-                var features = i.VariableLengthFeatures;
-                Array.Resize(ref features, MaxSentenceLength);
-                j.Features = features;
-            };
+                {
+                    j.Sentiment_Text = i.Sentiment_Text;
+                    var features = i.VariableLengthFeatures;
+                    Array.Resize(ref features, MaxSentenceLength);
+                    j.Features = features;
+                };
 
             var model =
                 mlContext.Transforms.Text.TokenizeIntoWords(
@@ -117,9 +118,9 @@ namespace Samples.Dynamic
             var prediction = engine.Predict(data[0]);
 
             Console.WriteLine("Number of classes: {0}", prediction.Prediction
-                .Length); 
+                .Length);
             Console.WriteLine("Is sentiment/review positive? {0}", prediction
-                .Prediction[1] > 0.5 ? "Yes." : "No."); 
+                .Prediction[1] > 0.5 ? "Yes." : "No.");
             Console.WriteLine("Prediction Confidence: {0}", prediction.Prediction[1]
                 .ToString("0.00"));
 
