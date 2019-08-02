@@ -45,11 +45,9 @@ namespace Microsoft.ML.Tests
             var databaseSource = new DatabaseSource(mockProviderFactory, connectionString, commandText);
 
             var trainingData = loader.Load(databaseSource);
-            //trainingData = mlContext.Data.Cache(trainingData, "Label", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth");
 
             var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
-                //.AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.MulticlassClassification.Trainers.LightGbm())
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
@@ -96,11 +94,9 @@ namespace Microsoft.ML.Tests
             var databaseSource = new DatabaseSource(mockProviderFactory, connectionString, commandText);
 
             var trainingData = loader.Load(databaseSource);
-            //trainingData = mlContext.Data.Cache(trainingData, "Label", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth");
 
             var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
-                //.AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy())
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
