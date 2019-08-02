@@ -53,6 +53,62 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
+        /// Tests passing in a non calibrated trainer
+        /// </summary>
+        [Fact]
+        public void OVATypedUncalibrated()
+        {
+            var (pipeline, data) = GetMulticlassPipeline();
+            var sdcaTrainer = ML.BinaryClassification.Trainers.SdcaNonCalibrated(
+                new SdcaNonCalibratedBinaryTrainer.Options { MaximumNumberOfIterations = 100, Shuffle = true, NumberOfThreads = 1 });
+
+            pipeline = pipeline.Append(ML.MulticlassClassification.Trainers.OneVersusAllTyped(sdcaTrainer, useProbabilities: false))
+                    .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
+
+            TestEstimatorCore(pipeline, data);
+            Done();
+        }
+
+        /// <summary>
+        /// Test passing in a trainer that is already calibrated
+        /// </summary>
+        [Fact]
+        public void OVATypedCalibrated()
+        {
+            var (pipeline, data) = GetMulticlassPipeline();
+            var sdcaTrainer = ML.BinaryClassification.Trainers.SgdCalibrated(
+                new SgdCalibratedTrainer.Options { Shuffle = true, NumberOfThreads = 1 });
+
+            pipeline = pipeline.Append(ML.MulticlassClassification.Trainers.OneVersusAllTyped(sdcaTrainer, useProbabilities: true))
+                    .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
+
+            TestEstimatorCore(pipeline, data);
+            Done();
+        }
+
+        /// <summary>
+        /// Tests passing an uncalibrated trainer with a calibrator and having it be auto calibrated
+        /// using the strongly typed API.
+        /// </summary>
+        [Fact]
+        public void OVATypedUncalibratedToCalibrated()
+        {
+            var (pipeline, data) = GetMulticlassPipeline();
+            var calibrator = new PlattCalibratorEstimator(Env);
+            var averagePerceptron = ML.BinaryClassification.Trainers.AveragedPerceptron(
+                new AveragedPerceptronTrainer.Options { Shuffle = true });
+
+            var ova = ML.MulticlassClassification.Trainers.OneVersusAllUnCalibratedToCalibrated<LinearBinaryModelParameters, PlattCalibrator>(averagePerceptron, imputeMissingLabelsAsNegative: true,
+                calibrator: calibrator, maximumCalibrationExampleCount: 10000, useProbabilities: true);
+
+            pipeline = pipeline.Append(ova)
+                    .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
+
+            TestEstimatorCore(pipeline, data);
+            Done();
+        }
+
+        /// <summary>
         /// Pairwise Coupling trainer
         /// </summary>
         [Fact]
