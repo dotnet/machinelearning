@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.AccessControl;
@@ -349,16 +350,30 @@ namespace Microsoft.ML.Transforms.Dnn
             private TF_Output[] _outputs;
             private IntPtr[] _inputValues;
             private IntPtr[] _operations;
+            private List<TF_Output> inputs;
+            private List<TF_Output> outputs;
+            private List<IntPtr> inputValues;
+            private List<IntPtr> operations;
             private Session _session;
-
+            List<Tensor> tensors;
             internal Runner(Session session, TF_Output[] inputs, TF_Output[] outputs, IntPtr[] operations)
             {
+                tensors = new List<Tensor>();
                 _session = session;
                 _inputs = inputs;
                 _outputs = outputs;
                 _operations = operations;
                 if (_inputs != null)
                     _inputValues = new IntPtr[_inputs.Length];
+            }
+
+            internal Runner(Session session)
+            {
+                inputs = new List<TF_Output>();
+                outputs = new List<TF_Output>();
+                inputValues = new List<IntPtr>();
+                operations = new List<IntPtr>();
+                tensors = new List<Tensor>();
             }
 
             /// <summary>
@@ -378,34 +393,38 @@ namespace Microsoft.ML.Transforms.Dnn
             }
 
             /// <summary>
-            /// Adds the specified operation names as the ones to be retrieved.
+            /// Adds an input to the session specified by name, with an optional index in the operation (separated by a colon).
             /// </summary>
             /// <returns>An instance to the runner, so you can easily chain the operations together.</returns>
-            public Runner AddTarget(params IntPtr[] operations)
+            /// <param name="input">Incoming port, with an optional index separated by a colon.</param>
+            /// <param name="value">Value to assing to the incoming port.</param>
+            public Runner AddInput(string input, Tensor value)
             {
-                _operations = operations;
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+                inputs.Add(ParseOutput(input));
+                inputValues.Add(value);
                 return this;
             }
 
-            /// <summary>
-            /// Makes the Run method return the output of all the tensor referenced by outputs.
-            /// </summary>
-            /// <returns>The instance of runner, to allow chaining operations.</returns>
-            /// <param name="outputs">The output sreferencing a specified tensor.</param>
-            public Runner Fetch(TF_Output[] outputs)
+            public Runner AddOutputs(string output)
             {
-                _outputs = outputs;
+                outputs.Add(ParseOutput(output));
                 return this;
             }
-
-            /// <summary>
-            ///  Execute the graph fragments necessary to compute all requested fetches.
-            /// </summary>
-            /// <returns>One TFTensor for each call to Fetch that you made, in the order that you made them.</returns>
-            /// <param name="status">Status buffer, if specified a status code will be left here, if not specified, a <see cref="T:TensorFlow.TFException"/> exception is raised if there is an error.</param>
-            public Tensor[] Run(Status status = null)
+            // Parses user strings that contain both the operation name and an index.
+            private TF_Output ParseOutput(string operation)
             {
-                return Run();
+                var p = operation.IndexOf(':');
+                if (p != -1 && p != operation.Length - 1)
+                {
+                    var op = operation.Substring(0, p);
+                    if (int.TryParse(operation.Substring(p + 1), out var idx))
+                    {
+                        return new TF_Output(_session.graph.OperationByName(op) , idx);
+                    }
+                }
+                return new TF_Output(_session.graph.OperationByName(operation), 0);
             }
 
             /// <summary>
@@ -422,22 +441,26 @@ namespace Microsoft.ML.Transforms.Dnn
                 int oLen = _outputs != null ? _outputs.Length : 0;
                 var cstatus = new Status();
                 var ovals = _outputs != null ? new IntPtr[_outputs.Length] : null;
-
+                
                 unsafe
                 {
                     c_api.TF_SessionRun(_session, null, _inputs, _inputValues, _inputs != null ? _inputs.Length : 0, _outputs, ovals, oLen, _operations,
-                        _operations == null ? 0 : _operations.Length, IntPtr.Zero, new Status());
+                        _operations == null ? 0 : _operations.Length, IntPtr.Zero, cstatus);
                 }
 
                 cstatus.Check(true);
+
+                GC.KeepAlive(_inputValues);
 
                 var result = new Tensor[oLen];
                 for (int i = 0; i < oLen; i++)
                 {
                     result[i] = new Tensor(ovals[i]);
+                    tensors.Add(result[i]);
                 }
                 return result;
             }
+
 
             public Runner CloneRunner()
             {

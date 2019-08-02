@@ -710,6 +710,7 @@ namespace Microsoft.ML.Transforms
             private readonly T[] _bufferedData;
             private readonly TensorShape _tfShape;
             private int _position;
+            private readonly List<Tensor> _tensors;
 
             public TensorValueGetter(DataViewRow input, int colIndex, TensorShape tfShape)
             {
@@ -724,6 +725,7 @@ namespace Microsoft.ML.Transforms
                         size *= dim;
                 }
                 _bufferedData = new T[size];
+                _tensors = new List<Tensor>();
             }
 
             public Tensor GetTensor()
@@ -732,6 +734,7 @@ namespace Microsoft.ML.Transforms
                 _srcgetter(ref scalar);
                  var tensor = new Tensor(new[] { scalar });
                 tensor.SetShape(_tfShape);
+                _tensors.Add(tensor);
                 return tensor;
             }
 
@@ -746,6 +749,7 @@ namespace Microsoft.ML.Transforms
             {
                 var tensor = new Tensor(new NDArray(_bufferedData, _tfShape));
                 _position = 0;
+                _tensors.Add(tensor);
                 return tensor;
             }
         }
@@ -759,6 +763,8 @@ namespace Microsoft.ML.Transforms
             private readonly T[] _bufferedData;
             private int _position;
             private long[] _dims;
+            private readonly List<Tensor> _tensors;
+
             public TensorValueGetterVec(DataViewRow input, int colIndex, TensorShape tfShape)
             {
                 _srcgetter = input.GetGetter<VBuffer<T>>(input.Schema[colIndex]);
@@ -777,6 +783,7 @@ namespace Microsoft.ML.Transforms
                 _bufferedData = new T[size];
                 if (_tfShape.Dimensions != null)
                     _dims = _tfShape.Dimensions.Select(x => (long)x).ToArray();
+                _tensors = new List<Tensor>();
             }
 
             public Tensor GetTensor()
@@ -788,7 +795,9 @@ namespace Microsoft.ML.Transforms
                 // This is done to reduce memory allocation every time tensor is created.
                 Utils.EnsureSize(ref _denseData, _vBuffer.Length, keepOld: false);
                 _vBuffer.CopyTo(_denseData);
-                return CastDataAndReturnAsTensor(_denseData);
+                var tensor =  CastDataAndReturnAsTensor(_denseData);
+                _tensors.Add(tensor);
+                return tensor;
             }
 
             private Tensor CastDataAndReturnAsTensor(T[] data)
@@ -813,7 +822,7 @@ namespace Microsoft.ML.Transforms
                     return new Tensor((bool[])(object)data, _dims, TF_DataType.TF_BOOL);
                 else if (typeof(T) == typeof(float))
                     return new Tensor((float[])(object)data, _dims, TF_DataType.TF_FLOAT);
-                else if (typeof(T) == typeof(float))
+                else if (typeof(T) == typeof(double))
                     return new Tensor((double[])(object)data, _dims, TF_DataType.TF_DOUBLE);
                 else if (typeof(T) == typeof(ReadOnlyMemory<char>))
                 {
@@ -839,7 +848,9 @@ namespace Microsoft.ML.Transforms
             public Tensor GetBufferedBatchTensor()
             {
                 _position = 0;
-                return CastDataAndReturnAsTensor(_bufferedData);
+                var tensor = CastDataAndReturnAsTensor(_bufferedData);
+                _tensors.Add(tensor);
+                return tensor;
             }
         }
     }

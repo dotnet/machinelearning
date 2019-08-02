@@ -567,8 +567,8 @@ namespace Microsoft.ML.Transforms
                 var path = Path.Combine(modelDir, DefaultModelFileNames.TmpMlnetModel);
                 var input = GetOperationFromName(options.SaveLocationOperation, Session);
                 var runner = new Runner(Session, new[] { new TF_Output(input.Item1, input.Item2) }, null, new[] { c_api.TF_GraphOperationByName(Graph, options.SaveOperation) });
-
-                Runner.AddInput(0, new Tensor(Encoding.UTF8.GetBytes(path))).Run();
+                var t = new Tensor(Encoding.UTF8.GetBytes(path));
+                Runner.AddInput(0, t).Run();
 
                 // Preserve original files
                 var variablesPath = Path.Combine(modelDir, DefaultModelFileNames.VariablesFolder);

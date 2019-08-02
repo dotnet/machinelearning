@@ -24,7 +24,7 @@ using Xunit.Abstractions;
 using static Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper;
 
 namespace Microsoft.ML.Tests
-{/*
+{
     public class OnnxConversionTest : BaseTestBaseline
     {
         private class AdultData
@@ -562,5 +562,5 @@ namespace Microsoft.ML.Tests
                 File.WriteAllText(textFormatPath, fileText);
             }
         }
-    }*/
+    }
 }

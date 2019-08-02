@@ -14,7 +14,7 @@ using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.Functional.Tests
-{/*
+{
     public class ONNX : BaseTestClass
     {
         public ONNX(ITestOutputHelper output) : base(output)
@@ -24,7 +24,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// ONNX: Models can be serialized to ONNX, deserialized back to ML.NET, and used a pipeline.
         /// </summary>
-        [OnnxFactAttribute(Skip = "Protobuf version conflict")]
+        [OnnxFactAttribute]
         public void SaveOnnxModelLoadAndScoreFastTree()
         {
             var mlContext = new MLContext(seed: 1);
@@ -79,7 +79,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// ONNX: Models can be serialized to ONNX, deserialized back to ML.NET, and used a pipeline.
         /// </summary>
-        [OnnxFactAttribute(Skip ="Protobuf version conflict")]
+        [OnnxFactAttribute]
         public void SaveOnnxModelLoadAndScoreKMeans()
         {
             var mlContext = new MLContext(seed: 1);
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// ONNX: Models can be serialized to ONNX, deserialized back to ML.NET, and used a pipeline.
         /// </summary>
-        [OnnxFactAttribute(Skip = "Protobuf version conflict")]
+        [OnnxFactAttribute]
         public void SaveOnnxModelLoadAndScoreSDCA()
         {
             var mlContext = new MLContext(seed: 1);
@@ -179,5 +179,5 @@ namespace Microsoft.ML.Functional.Tests
                 Assert.Equal(originalPrediction.Score, onnxPrediction.Score[0], precision: 4); // Note the low-precision equality!
             }
         }
-    }*/
+    }
 }
