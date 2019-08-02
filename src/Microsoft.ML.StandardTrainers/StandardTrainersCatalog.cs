@@ -725,7 +725,8 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Create a <see cref="OneVersusAllTrainer"/>, which predicts a multiclass target using one-versus-all strategy with
-        /// the binary classification estimator specified by <paramref name="binaryEstimator"/>.
+        /// the binary classification estimator specified by <paramref name="binaryEstimator"/>. If you want to retrieve strongly typed model parameters,
+        /// use either the <see cref="OneVersusAllUnCalibratedToCalibrated{TModelIn, TCalibrator}"/> or <see cref="OneVersusAllTyped{TModel}"/> methods instead.
         /// </summary>
         /// <remarks>
         /// <para>
@@ -768,7 +769,8 @@ namespace Microsoft.ML
         /// Create a <see cref="OneVersusAllTrainer{TModelOut}"/>, which predicts a multiclass target using one-versus-all strategy with
         /// the binary classification estimator specified by <paramref name="binaryEstimator"/>. This method works with binary classifiers that
         /// are either already calibrated, or non calibrated ones you don't want calibrated. If you need to have your classifier calibrated, use the
-        /// <see cref="OneVersusAllUnCalibratedToCalibrated{TModelIn, TCalibrator}"/> method instead.
+        /// <see cref="OneVersusAllUnCalibratedToCalibrated{TModelIn, TCalibrator}"/> method instead. If you want to retrieve strongly typed model parameters,
+        /// you must use either this method or <see cref="OneVersusAllUnCalibratedToCalibrated{TModelIn, TCalibrator}"/> method.
         /// </summary>
         /// <remarks>
         /// <para>
@@ -808,7 +810,8 @@ namespace Microsoft.ML
         /// the binary classification estimator specified by <paramref name="binaryEstimator"/>.This method works with binary classifiers that
         /// are not calibrated and need to be calibrated before use. Due to the type of estimator changing (from uncalibrated to calibrated), you must manually
         /// specify both the type of the model and the type of the calibrator. If your classifier is already calibrated or it does not need to be, use the
-        /// <see cref="OneVersusAllTyped{TModel}"/> method instead.
+        /// <see cref="OneVersusAllTyped{TModel}"/> method instead. If you want to retrieve strongly typed model parameters, you must either use this method or
+        /// <see cref="OneVersusAllTyped{TModel}"/> method.
         /// </summary>
         /// <remarks>
         /// <para>

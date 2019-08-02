@@ -53,7 +53,6 @@ namespace Microsoft.ML.Scenarios
 
             Assert.Equal(metrics.MicroAccuracy, metricsTyped.MicroAccuracy);
         }
-                //.Append(ML.MulticlassClassification.Trainers.OneVersusAllUnCalibratedToCalibratedTyped<LinearBinaryModelParameters, PlattCalibrator>(sdcaTrainer))
 
         [Fact]
         public void OvaAveragedPerceptron()
