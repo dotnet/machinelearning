@@ -10,6 +10,7 @@
   </PropertyGroup>
  
   <ItemGroup>
+	<ProjectReference Include="..\..\..\src\Microsoft.ML.Dnn\Microsoft.ML.Dnn.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.KMeansClustering\Microsoft.ML.KMeansClustering.csproj" />
@@ -963,5 +964,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  
+    <ItemGroup>
+    <Content Include="$(ObjDir)DnnImageModels\Resnet101V2Tensorflow\resnet_v2_101_299.meta">
+      <Link>DnnImageModels\Resnet101V2Tensorflow\resnet_v2_101_299.meta</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 </Project>

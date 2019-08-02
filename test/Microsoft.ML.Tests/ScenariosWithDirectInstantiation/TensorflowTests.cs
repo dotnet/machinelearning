@@ -551,12 +551,13 @@ namespace Microsoft.ML.Scenarios
 
                 var pipe = mlContext.Transforms.Categorical.OneHotEncoding("OneHotLabel", "Label")
                     .Append(mlContext.Transforms.Normalize(new NormalizingEstimator.MinMaxColumnOptions("Features", "Placeholder")))
-                    .Append(mlContext.Model.LoadTensorFlowModel(model_location).RetrainTensorFlowModel(
+                    .Append(mlContext.Model.RetrainDnnModel(
                         inputColumnNames: new[] { "Features" },
                         outputColumnNames: new[] { "Prediction", "b" },
                         labelColumnName: "OneHotLabel",
                         tensorFlowLabel: "Label",
                         optimizationOperation: "SGDOptimizer",
+                        modelPath: model_location,
                         lossOperation: "Loss",
                         epoch: 10,
                         learningRateOperation: "SGDOptimizer/learning_rate",
@@ -664,13 +665,14 @@ namespace Microsoft.ML.Scenarios
                 }
 
                 var pipe = mlContext.Transforms.CopyColumns("Features", "Placeholder")
-                    .Append(mlContext.Model.LoadTensorFlowModel(modelLocation).RetrainTensorFlowModel(
+                    .Append(mlContext.Model.RetrainDnnModel(
                         inputColumnNames: new[] { "Features" },
                         outputColumnNames: new[] { "Prediction" },
                         labelColumnName: "TfLabel",
                         tensorFlowLabel: "Label",
                         optimizationOperation: "MomentumOp",
                         lossOperation: "Loss",
+                        modelPath: modelLocation,
                         metricOperation: "Accuracy",
                         epoch: 10,
                         learningRateOperation: "learning_rate",

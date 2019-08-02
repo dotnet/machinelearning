@@ -1,0 +1,46 @@
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.props))\Directory.Build.props" />
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <UsingTask TaskName="DownloadFilesFromUrl" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+
+  <PropertyGroup>
+    <ModelPlacementDir>$(ObjDir)DnnImageModels</ModelPlacementDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ModelFiles Include="$(ModelPlacementDir)\Resnet101V2Tensorflow\resnet_v2_101_299.meta"
+    Url="https://aka.ms/mlnet-resources/image/ResNet101Tensorflow/resnet_v2_101_299.meta "
+    DestinationFile="$(ModelPlacementDir)\Resnet101V2Tensorflow\resnet_v2_101_299.meta"
+    DestinationDir="$(ModelPlacementDir)\Resnet101V2Tensorflow" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ModelFileCopy Include="$(ModelPlacementDir)\Resnet101V2Tensorflow\resnet_v2_101_299.meta"
+    TargetPath="$(PackageAssetsPath)\Microsoft.ML.Dnn.Model.Resnet101V2\tools\DnnImageModels\Resnet101V2Tensorflow\resnet_v2_101_299.meta" />
+  </ItemGroup>
+
+  <Target Name="DownloadDnnModelFiles" 
+          Inputs="@(ModelFiles)" Outputs="@(ModelFiles->'%(DestinationFile)')">
+    <Message Importance="High" Text="Downloading external model files... @(ModelFiles->'%(DestinationFile)')" />
+    <MakeDir Directories="$(ModelPlacementDir)" />
+    <MakeDir Directories="@(ModelFiles->'%(DestinationDir)')" />
+    <DownloadFilesFromUrl Items="@(ModelFiles)"/>
+  </Target>
+
+  <Target Name="CopyDnnModelFiles"
+          Condition="'$(SkipRIDAgnosticAssets)' != 'true'"
+          Inputs="@(ModelFileCopy)" Outputs="@(ModelFileCopy->'%(TargetPath)')"
+          DependsOnTargets="DownloadDnnModelFiles">
+    <Message Importance="High" Text="Copying external model files... @(ModelFileCopy->'%(TargetPath)')" />
+    <Copy SourceFiles="@(ModelFileCopy)"
+          DestinationFiles="@(ModelFileCopy->'%(TargetPath)')" />
+  </Target>
+
+  <Target Name="Build"
+          DependsOnTargets="CopyDnnModelFiles" />
+
+</Project>
