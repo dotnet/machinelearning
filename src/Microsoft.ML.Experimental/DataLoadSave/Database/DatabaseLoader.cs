@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
@@ -18,7 +17,7 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
-    public sealed partial class DatabaseLoader : IDataLoader<Func<DbDataReader>>
+    public sealed partial class DatabaseLoader : IDataLoader<DatabaseSource>
     {
         internal const string Summary = "Loads data from a DbDataReader.";
         internal const string LoaderSignature = "DatabaseLoader";
@@ -94,10 +93,10 @@ namespace Microsoft.ML.Data
         public DataViewSchema GetOutputSchema() => _bindings.OutputSchema;
 
         /// <summary>
-        /// Loads data from <paramref name="input"/> into an <see cref="IDataView"/>.
+        /// Loads data from <paramref name="source"/> into an <see cref="IDataView"/>.
         /// </summary>
-        /// <param name="input">A function that returns a DbDataReader from which to load data.</param>
-        public IDataView Load(Func<DbDataReader> input) => new BoundLoader(this, input);
+        /// <param name="source">The source from which to load data.</param>
+        public IDataView Load(DatabaseSource source) => new BoundLoader(this, source);
 
         /// <summary>
         /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
@@ -341,15 +340,15 @@ namespace Microsoft.ML.Data
         {
             private readonly DatabaseLoader _loader;
             private readonly IHost _host;
-            private readonly Func<DbDataReader> _input;
+            private readonly DatabaseSource _source;
 
-            public BoundLoader(DatabaseLoader loader, Func<DbDataReader> input)
+            public BoundLoader(DatabaseLoader loader, DatabaseSource source)
             {
                 _loader = loader;
                 _host = loader._host.Register(nameof(BoundLoader));
 
-                _host.CheckValue(input, nameof(input));
-                _input = input;
+                _host.CheckValue(source, nameof(source));
+                _source = source;
             }
 
             public long? GetRowCount() => null;
@@ -361,7 +360,7 @@ namespace Microsoft.ML.Data
             {
                 _host.CheckValueOrNull(rand);
                 var active = Utils.BuildArray(_loader._bindings.OutputSchema.Count, columnsNeeded);
-                return Cursor.Create(_loader, _input, active);
+                return Cursor.Create(_loader, _source, active);
             }
 
             public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
