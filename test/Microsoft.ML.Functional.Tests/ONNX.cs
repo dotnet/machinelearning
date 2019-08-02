@@ -14,7 +14,7 @@ using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.Functional.Tests
-{
+{/*
     public class ONNX : BaseTestClass
     {
         public ONNX(ITestOutputHelper output) : base(output)
@@ -179,5 +179,5 @@ namespace Microsoft.ML.Functional.Tests
                 Assert.Equal(originalPrediction.Score, onnxPrediction.Score[0], precision: 4); // Note the low-precision equality!
             }
         }
-    }
+    }*/
 }
