@@ -110,7 +110,7 @@ namespace Microsoft.ML
         public MLContext(int? seed = null)
         {
             _env = new LocalEnvironment(seed);
-            _env.AddListener<ChannelMessage>(ProcessMessage);
+            _env.AddListener(ProcessMessage);
 
             BinaryClassification = new BinaryClassificationCatalog(_env);
             MulticlassClassification = new MulticlassClassificationCatalog(_env);

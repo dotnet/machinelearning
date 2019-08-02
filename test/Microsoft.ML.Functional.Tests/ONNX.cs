@@ -24,7 +24,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// ONNX: Models can be serialized to ONNX, deserialized back to ML.NET, and used a pipeline.
         /// </summary>
-        [OnnxFactAttribute]
+        [OnnxFactAttribute(Skip = "Protobuf version conflict")]
         public void SaveOnnxModelLoadAndScoreFastTree()
         {
             var mlContext = new MLContext(seed: 1);
@@ -79,7 +79,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// ONNX: Models can be serialized to ONNX, deserialized back to ML.NET, and used a pipeline.
         /// </summary>
-        [OnnxFactAttribute]
+        [OnnxFactAttribute(Skip ="Protobuf version conflict")]
         public void SaveOnnxModelLoadAndScoreKMeans()
         {
             var mlContext = new MLContext(seed: 1);
@@ -127,11 +127,11 @@ namespace Microsoft.ML.Functional.Tests
                 Common.AssertEqual(originalPrediction.Score, onnxPrediction.Score, precision: 4); // Note the low precision!
             }
         }
-    
+
         /// <summary>
         /// ONNX: Models can be serialized to ONNX, deserialized back to ML.NET, and used a pipeline.
         /// </summary>
-        [OnnxFactAttribute]
+        [OnnxFactAttribute(Skip = "Protobuf version conflict")]
         public void SaveOnnxModelLoadAndScoreSDCA()
         {
             var mlContext = new MLContext(seed: 1);
