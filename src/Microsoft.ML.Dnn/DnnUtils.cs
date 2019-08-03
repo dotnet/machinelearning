@@ -92,7 +92,7 @@ namespace Microsoft.ML.Transforms.Dnn
 
         internal static Graph LoadMetaGraph(string path)
         {
-            return with(tf.Graph().as_default(), graph =>
+            return tf_with(tf.Graph().as_default(), graph =>
             {
                 tf.train.import_meta_graph(path);
                 return graph;

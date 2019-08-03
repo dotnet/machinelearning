@@ -653,7 +653,7 @@ namespace Microsoft.ML.Transforms
             Tensor prediction = null;
             Tensor bottleneckTensor = evalGraph.OperationByName(BottleneckOperationName);
 
-            with(evalGraph.as_default(), graph =>
+            tf_with(evalGraph.as_default(), graph =>
             {
                 var (_, _, groundTruthInput, finalTensor) = AddFinalRetrainOps(classCount, options, bottleneckTensor, false);
                 tf.train.Saver().restore(evalSess, Path.Combine(Directory.GetCurrentDirectory(), CheckpointPath));
@@ -668,15 +668,15 @@ namespace Microsoft.ML.Transforms
             Tensor evaluationStep = null;
             Tensor correctPrediction = null;
 
-            with(tf.name_scope("accuracy"), scope =>
+            tf_with(tf.name_scope("accuracy"), scope =>
             {
-                with(tf.name_scope("correct_prediction"), delegate
+                tf_with(tf.name_scope("correct_prediction"), delegate
                 {
                     Prediction = tf.argmax(resultTensor, 1);
                     correctPrediction = tf.equal(Prediction, groundTruthTensor);
                 });
 
-                with(tf.name_scope("accuracy"), delegate
+                tf_with(tf.name_scope("accuracy"), delegate
                 {
                     evaluationStep = tf.reduce_mean(tf.cast(correctPrediction, tf.float32));
                 });
@@ -697,12 +697,12 @@ namespace Microsoft.ML.Transforms
 
         private void VariableSummaries(RefVariable var)
         {
-            with(tf.name_scope("summaries"), delegate
+            tf_with(tf.name_scope("summaries"), delegate
             {
                 var mean = tf.reduce_mean(var);
                 tf.summary.scalar("mean", mean);
                 Tensor stddev = null;
-                with(tf.name_scope("stddev"), delegate
+                tf_with(tf.name_scope("stddev"), delegate
                 {
                     stddev = tf.sqrt(tf.reduce_mean(tf.square(var - mean)));
                 });
@@ -717,17 +717,17 @@ namespace Microsoft.ML.Transforms
             DnnEstimator.Options options, Tensor bottleneckTensor, bool isTraining)
         {
             var (batch_size, bottleneck_tensor_size) = (bottleneckTensor.TensorShape.Dimensions[0], bottleneckTensor.TensorShape.Dimensions[1]);
-            with(tf.name_scope("input"), scope =>
+            tf_with(tf.name_scope("input"), scope =>
             {
                 LabelTensor = tf.placeholder(tf.int64, new TensorShape(batch_size), name: options.LabelColumn);
             });
 
             string layerName = "final_retrain_ops";
             Tensor logits = null;
-            with(tf.name_scope(layerName), scope =>
+            tf_with(tf.name_scope(layerName), scope =>
             {
                 RefVariable layerWeights = null;
-                with(tf.name_scope("weights"), delegate
+                tf_with(tf.name_scope("weights"), delegate
                 {
                     var initialValue = tf.truncated_normal(new int[] { bottleneck_tensor_size, classCount }, stddev: 0.001f);
                     layerWeights = tf.Variable(initialValue, name: "final_weights");
@@ -735,13 +735,13 @@ namespace Microsoft.ML.Transforms
                 });
 
                 RefVariable layerBiases = null;
-                with(tf.name_scope("biases"), delegate
+                tf_with(tf.name_scope("biases"), delegate
                 {
                     layerBiases = tf.Variable(tf.zeros(classCount), name: "final_biases");
                     VariableSummaries(layerBiases);
                 });
 
-                with(tf.name_scope("Wx_plus_b"), delegate
+                tf_with(tf.name_scope("Wx_plus_b"), delegate
                 {
                     logits = tf.matmul(bottleneckTensor, layerWeights) + layerBiases;
                     tf.summary.histogram("pre_activations", logits);
@@ -755,7 +755,7 @@ namespace Microsoft.ML.Transforms
                 return (null, null, LabelTensor, SoftMaxTensor);
 
             Tensor crossEntropyMean = null;
-            with(tf.name_scope("cross_entropy"), delegate
+            tf_with(tf.name_scope("cross_entropy"), delegate
             {
                 crossEntropyMean = tf.losses.sparse_softmax_cross_entropy(
                     labels: LabelTensor, logits: logits);
@@ -763,7 +763,7 @@ namespace Microsoft.ML.Transforms
 
             tf.summary.scalar("cross_entropy", crossEntropyMean);
 
-            with(tf.name_scope("train"), delegate
+            tf_with(tf.name_scope("train"), delegate
             {
                 var optimizer = tf.train.GradientDescentOptimizer(options.LearningRate);
                 TrainStep = optimizer.minimize(crossEntropyMean);
@@ -775,7 +775,7 @@ namespace Microsoft.ML.Transforms
         private void AddTransferLearningLayer(DnnEstimator.Options options, int classCount)
         {
             BottleneckTensor = Graph.OperationByName(BottleneckOperationName);
-            with(Graph.as_default(), delegate
+            tf_with(Graph.as_default(), delegate
             {
                 (TrainStep, CrossEntropy, LabelTensor, SoftMaxTensor) =
                     AddFinalRetrainOps(classCount, options, BottleneckTensor, true);
