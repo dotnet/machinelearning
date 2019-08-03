@@ -529,7 +529,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(5, GetMaxIndexForOnePrediction(onePrediction));
         }
 
-        [TensorFlowFact(Skip="TF")]
+        [TensorFlowFact]
         public void TensorFlowTransformMNISTLRTrainingTest()
         {
             const double expectedMicroAccuracy = 0.72173913043478266;
@@ -611,7 +611,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [TensorFlowFact(Skip ="TF")]
+        [TensorFlowFact]
         public void TensorFlowTransformMNISTConvTrainingTest()
         {
             double expectedMicro = 0.73304347826086956;
