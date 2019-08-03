@@ -1110,7 +1110,6 @@ namespace Microsoft.ML.Transforms
                 if (Session != IntPtr.Zero)
                 {
                     Session.close();
-                    Session.Dispose();
                 }
             }
             finally
