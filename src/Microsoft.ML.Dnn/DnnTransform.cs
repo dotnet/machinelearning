@@ -594,7 +594,7 @@ namespace Microsoft.ML.Transforms
                 //var input = GetOperationFromName(options.SaveLocationOperation, Session);
                 var runner = new Runner(Session); //, new[] { new TF_Output(input.Item1, input.Item2) }, null, new[] { c_api.TF_GraphOperationByName(Graph, options.SaveOperation) });
 
-                runner.AddInput(options.SaveLocationOperation, new Tensor(Encoding.UTF8.GetBytes(path)))
+                runner.AddInput(options.SaveLocationOperation, new Tensor(path))
                     .AddOperation(options.SaveOperation)
                     .Run();
 
