@@ -1107,7 +1107,7 @@ namespace Microsoft.ML.Transforms
             // that the Session is closed before deleting our temporary directory.
             try
             {
-                if (Session != IntPtr.Zero)
+                if (Session != null && Session != IntPtr.Zero)
                 {
                     Session.close();
                 }

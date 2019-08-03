@@ -111,7 +111,8 @@ namespace Microsoft.ML.Transforms.Dnn
                     graph = LoadMetaGraph(modelFile);
                 else
                 {
-                    graph = Graph.ImportFromPB(modelFile, "");
+                    graph = new Graph();
+                    graph.Import(modelFile, "");
                 }
             }
             catch (Exception ex)
