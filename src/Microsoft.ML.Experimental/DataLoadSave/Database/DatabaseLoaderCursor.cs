@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Data;
 using System.Data.Common;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
@@ -16,8 +15,12 @@ namespace Microsoft.ML.Data
         {
             private readonly Bindings _bindings;
             private readonly bool[] _active; // Which columns are active.
-            private readonly DbDataReader _input;
+            private readonly DatabaseSource _source;
             private readonly Delegate[] _getters;
+
+            private DbConnection _connection;
+            private DbCommand _command;
+            private DbDataReader _dataReader;
 
             // This holds the overall count of rows currently served up in the cursor.
             private long _total;
@@ -25,16 +28,16 @@ namespace Microsoft.ML.Data
 
             public override long Batch => 0;
 
-            private Cursor(DatabaseLoader parent, DbDataReader input, bool[] active)
+            private Cursor(DatabaseLoader parent, DatabaseSource source, bool[] active)
                 : base(parent._host)
             {
                 Ch.Assert(active == null || active.Length == parent._bindings.OutputSchema.Count);
-                Ch.CheckValue(input, nameof(input));
+                Ch.CheckValue(source, nameof(source));
 
                 _total = -1;
                 _bindings = parent._bindings;
                 _active = active;
-                _input = input;
+                _source = source;
 
                 _getters = new Delegate[_bindings.Infos.Length];
                 for (int i = 0; i < _getters.Length; i++)
@@ -44,15 +47,54 @@ namespace Microsoft.ML.Data
                     _getters[i] = CreateGetterDelegate(i);
                     Ch.Assert(_getters[i] != null);
                 }
-        }
+            }
 
-            public static DataViewRowCursor Create(DatabaseLoader parent, Func<DbDataReader> input, bool[] active)
+            public DbConnection Connection
+            {
+                get
+                {
+                    if (_connection is null)
+                    {
+                        _connection = _source.ProviderFactory.CreateConnection();
+                        _connection.ConnectionString = _source.ConnectionString;
+                        _connection.Open();
+                    }
+                    return _connection;
+                }
+            }
+
+            public DbCommand Command
+            {
+                get
+                {
+                    if (_command is null)
+                    {
+                        _command = Connection.CreateCommand();
+                        _command.CommandText = _source.CommandText;
+                    }
+                    return _command;
+                }
+            }
+
+            public DbDataReader DataReader
+            {
+                get
+                {
+                    if (_dataReader is null)
+                    {
+                        _dataReader = Command.ExecuteReader();
+                    }
+                    return _dataReader;
+                }
+            }
+
+            public static DataViewRowCursor Create(DatabaseLoader parent, DatabaseSource source, bool[] active)
             {
                 Contracts.AssertValue(parent);
-                Contracts.AssertValue(input);
+                Contracts.AssertValue(source);
                 Contracts.Assert(active == null || active.Length == parent._bindings.OutputSchema.Count);
 
-                return new Cursor(parent, input(), active);
+                return new Cursor(parent, source, active);
             }
 
             public override ValueGetter<DataViewRowId> GetIdGetter()
@@ -73,7 +115,9 @@ namespace Microsoft.ML.Data
                     return;
                 if (disposing)
                 {
-                    _input.Dispose();
+                    _dataReader?.Dispose();
+                    _command?.Dispose();
+                    _connection?.Dispose();
                 }
                 _disposed = true;
                 base.Dispose(disposing);
@@ -81,7 +125,7 @@ namespace Microsoft.ML.Data
 
             protected override bool MoveNextCore()
             {
-                if (_input.Read())
+                if (DataReader.Read())
                 {
                     _total++;
                     return true;
@@ -192,84 +236,84 @@ namespace Microsoft.ML.Data
             private ValueGetter<bool> CreateBooleanGetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref bool value) => value = _input.GetBoolean(columnIndex);
+                return (ref bool value) => value = DataReader.GetBoolean(columnIndex);
             }
 
             private ValueGetter<byte> CreateByteGetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref byte value) => value = _input.GetByte(columnIndex);
+                return (ref byte value) => value = DataReader.GetByte(columnIndex);
             }
 
             private ValueGetter<DateTime> CreateDateTimeGetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref DateTime value) => value = _input.GetDateTime(columnIndex);
+                return (ref DateTime value) => value = DataReader.GetDateTime(columnIndex);
             }
 
             private ValueGetter<double> CreateDoubleGetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref double value) => value = _input.GetDouble(columnIndex);
+                return (ref double value) => value = DataReader.GetDouble(columnIndex);
             }
 
             private ValueGetter<short> CreateInt16GetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref short value) => value = _input.GetInt16(columnIndex);
+                return (ref short value) => value = DataReader.GetInt16(columnIndex);
             }
 
             private ValueGetter<int> CreateInt32GetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref int value) => value = _input.GetInt32(columnIndex);
+                return (ref int value) => value = DataReader.GetInt32(columnIndex);
             }
 
             private ValueGetter<long> CreateInt64GetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref long value) => value = _input.GetInt64(columnIndex);
+                return (ref long value) => value = DataReader.GetInt64(columnIndex);
             }
 
             private ValueGetter<sbyte> CreateSByteGetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref sbyte value) => value = (sbyte)_input.GetByte(columnIndex);
+                return (ref sbyte value) => value = (sbyte)DataReader.GetByte(columnIndex);
             }
 
             private ValueGetter<float> CreateSingleGetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref float value) => value = _input.GetFloat(columnIndex);
+                return (ref float value) => value = DataReader.GetFloat(columnIndex);
             }
 
             private ValueGetter<ReadOnlyMemory<char>> CreateStringGetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref ReadOnlyMemory<char> value) => value = _input.GetString(columnIndex).AsMemory();
+                return (ref ReadOnlyMemory<char> value) => value = DataReader.GetString(columnIndex).AsMemory();
             }
 
             private ValueGetter<ushort> CreateUInt16GetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref ushort value) => value = (ushort)_input.GetInt16(columnIndex);
+                return (ref ushort value) => value = (ushort)DataReader.GetInt16(columnIndex);
             }
 
             private ValueGetter<uint> CreateUInt32GetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref uint value) => value = (uint)_input.GetInt32(columnIndex);
+                return (ref uint value) => value = (uint)DataReader.GetInt32(columnIndex);
             }
 
             private ValueGetter<ulong> CreateUInt64GetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref ulong value) => value = (ulong)_input.GetInt64(columnIndex);
+                return (ref ulong value) => value = (ulong)DataReader.GetInt64(columnIndex);
             }
 
             private int GetColumnIndex(ColInfo colInfo)
             {
-                return colInfo.SourceIndex ?? _input.GetOrdinal(colInfo.Name);
+                return colInfo.SourceIndex ?? DataReader.GetOrdinal(colInfo.Name);
             }
         }
     }
