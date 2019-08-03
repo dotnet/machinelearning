@@ -443,7 +443,6 @@ namespace Microsoft.ML.Transforms.Dnn
                 return result;
             }
 
-
             public Runner CloneRunner()
             {
                 return new Runner(_session);
