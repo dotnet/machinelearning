@@ -529,10 +529,10 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(5, GetMaxIndexForOnePrediction(onePrediction));
         }
 
-        [TensorFlowFact]
+        [TensorFlowFact(Skip="TF")]
         public void TensorFlowTransformMNISTLRTrainingTest()
         {
-            const double expectedMicroAccuracy = 0.72173913043478266;
+            /*const double expectedMicroAccuracy = 0.72173913043478266;
             const double expectedMacroAccruacy = 0.67482993197278918;
             var model_location = "mnist_lr_model";
             try
@@ -596,7 +596,7 @@ namespace Microsoft.ML.Scenarios
                 // This test changes the state of the model.
                 // Cleanup folder so that other test can also use the same model.
                 CleanUp(model_location);
-            }
+            }*/
         }
 
         private void CleanUp(string model_location)
@@ -611,14 +611,14 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [TensorFlowFact]
+        [TensorFlowFact(Skip ="TF")]
         public void TensorFlowTransformMNISTConvTrainingTest()
         {
-            double expectedMicro = 0.73304347826086956;
+            /*double expectedMicro = 0.73304347826086956;
             double expectedMacro = 0.677551020408163;
 
             ExecuteTFTransformMNISTConvTrainingTest(false, null, expectedMicro, expectedMacro);
-            ExecuteTFTransformMNISTConvTrainingTest(true, 5, expectedMicro, expectedMacro);
+            ExecuteTFTransformMNISTConvTrainingTest(true, 5, expectedMicro, expectedMacro);*/
         }
 
         private void ExecuteTFTransformMNISTConvTrainingTest(bool shuffle, int? shuffleSeed, double expectedMicroAccuracy, double expectedMacroAccuracy)

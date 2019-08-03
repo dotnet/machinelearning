@@ -291,9 +291,6 @@ namespace Microsoft.ML.Transforms
 
             for (int index = 0; index < TFOutputOperations.Length; index += 1)
                 TFOutputNodes[index] = new TF_Output(TFOutputOperations[index].Item1, TFOutputOperations[index].Item2);
-
-            // This runner will be used during inferencing.
-            Runner = new Runner(session, TFInputNodes, TFOutputNodes, null);
         }
 
         private static (Operation, int) GetOperationFromName(string operation, Session session)
@@ -638,28 +635,25 @@ namespace Microsoft.ML.Transforms
             {
                 if (outputCache.Position != position)
                 {
-                    bool addToTheBag = false;
-                    if(!_runners.TryTake(out Runner runner))
-                    {
-                        runner = _parent.Runner.CloneRunner();
-                        addToTheBag = true;
-                    }
-                    for (int i = 0; i < _inputColIndices.Length; i++)
-                    {
-                        var inputName = _parent.Inputs[i];
-                        runner.AddInput(i, srcTensorGetters[i].GetTensor());
-                    }
+                    Runner runner = new Runner(_parent.Session);
 
+                    // Feed inputs to the graph.
+                    for (int i = 0; i < _parent.Inputs.Length; i++)
+                        runner.AddInput(_parent.Inputs[i], srcTensorGetters[i].GetTensor());
+
+                    // Add outputs.
+                    for (int i = 0; i < _parent.Outputs.Length; i++)
+                        runner.AddOutputs(_parent.Outputs[i]);
+
+                    // Execute the graph.
                     var tensors = runner.Run();
+
                     Contracts.Assert(tensors.Length > 0);
 
                     for (int j = 0; j < activeOutputColNames.Length; j++)
                         outputCache.Outputs[activeOutputColNames[j]] = tensors[j];
 
                     outputCache.Position = position;
-
-                    if (addToTheBag)
-                        _runners.Add(runner);
                 }
             }
 
@@ -760,10 +754,11 @@ namespace Microsoft.ML.Transforms
             private readonly TensorShape _tfShape;
             private VBuffer<T> _vBuffer;
             private T[] _denseData;
-            private readonly T[] _bufferedData;
+            private T[] _bufferedData;
             private int _position;
             private long[] _dims;
             private readonly List<Tensor> _tensors;
+            private readonly long _bufferedDataSize;
 
             public TensorValueGetterVec(DataViewRow input, int colIndex, TensorShape tfShape)
             {
@@ -784,6 +779,7 @@ namespace Microsoft.ML.Transforms
                 if (_tfShape.Dimensions != null)
                     _dims = _tfShape.Dimensions.Select(x => (long)x).ToArray();
                 _tensors = new List<Tensor>();
+                _bufferedDataSize = size;
             }
 
             public Tensor GetTensor()
@@ -793,7 +789,7 @@ namespace Microsoft.ML.Transforms
                 // _denseData.Length can be greater than _vBuffer.Length sometime after
                 // Utils.EnsureSize is executed. Use _vBuffer.Length to access the elements in _denseData.
                 // This is done to reduce memory allocation every time tensor is created.
-                Utils.EnsureSize(ref _denseData, _vBuffer.Length, keepOld: false);
+                _denseData = new T[_vBuffer.Length];
                 _vBuffer.CopyTo(_denseData);
                 var tensor =  CastDataAndReturnAsTensor(_denseData);
                 _tensors.Add(tensor);
@@ -850,6 +846,8 @@ namespace Microsoft.ML.Transforms
                 _position = 0;
                 var tensor = CastDataAndReturnAsTensor(_bufferedData);
                 _tensors.Add(tensor);
+
+                _bufferedData = new T[_bufferedDataSize];
                 return tensor;
             }
         }

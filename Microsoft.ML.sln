@@ -266,6 +266,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.StableApi", "t
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Dnn", "src\Microsoft.ML.Dnn\Microsoft.ML.Dnn.csproj", "{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TensorFlowNET.Core", "src\TensorFlowNET.Core\TensorFlowNET.Core.csproj", "{D928F11D-79CB-4D69-B944-D8E7396F8F88}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1554,6 +1556,30 @@ Global
 		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Release-netfx|Any CPU.Build.0 = Release-netfx|Any CPU
 		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Release-netfx|x64.ActiveCfg = Release-netfx|Any CPU
 		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Release-netfx|x64.Build.0 = Release-netfx|Any CPU
+		{D928F11D-79CB-4D69-B944-D8E7396F8F88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D928F11D-79CB-4D69-B944-D8E7396F8F88}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D928F11D-79CB-4D69-B944-D8E7396F8F88}.Debug|x64.ActiveCfg = Debug|x64
+		{D928F11D-79CB-4D69-B944-D8E7396F8F88}.Debug|x64.Build.0 = Debug|x64
+		{D928F11D-79CB-4D69-B944-D8E7396F8F88}.Debug-Intrinsics|Any CPU.ActiveCfg = Debug-Intrinsics|Any CPU
+		{D928F11D-79CB-4D69-B944-D8E7396F8F88}.Debug-Intrinsics|Any CPU.Build.0 = Debug-Intrinsics|Any CPU
+		{D928F11D-79CB-4D69-B944-D8E7396F8F88}.Debug-Intrinsics|x64.ActiveCfg = Debug-Intrinsics|x64
+		{D928F11D-79CB-4D69-B944-D8E7396F8F88}.Debug-Intrinsics|x64.Build.0 = Debug-Intrinsics|x64
+		{D928F11D-79CB-4D69-B944-D8E7396F8F88}.Debug-netfx|Any CPU.ActiveCfg = Debug-netfx|Any CPU
+		{D928F11D-79CB-4D69-B944-D8E7396F8F88}.Debug-netfx|Any CPU.Build.0 = Debug-netfx|Any CPU
+		{D928F11D-79CB-4D69-B944-D8E7396F8F88}.Debug-netfx|x64.ActiveCfg = Debug-netfx|x64
+		{D928F11D-79CB-4D69-B944-D8E7396F8F88}.Debug-netfx|x64.Build.0 = Debug-netfx|x64
+		{D928F11D-79CB-4D69-B944-D8E7396F8F88}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D928F11D-79CB-4D69-B944-D8E7396F8F88}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D928F11D-79CB-4D69-B944-D8E7396F8F88}.Release|x64.ActiveCfg = Release|x64
+		{D928F11D-79CB-4D69-B944-D8E7396F8F88}.Release|x64.Build.0 = Release|x64
+		{D928F11D-79CB-4D69-B944-D8E7396F8F88}.Release-Intrinsics|Any CPU.ActiveCfg = Release-Intrinsics|Any CPU
+		{D928F11D-79CB-4D69-B944-D8E7396F8F88}.Release-Intrinsics|Any CPU.Build.0 = Release-Intrinsics|Any CPU
+		{D928F11D-79CB-4D69-B944-D8E7396F8F88}.Release-Intrinsics|x64.ActiveCfg = Release-Intrinsics|x64
+		{D928F11D-79CB-4D69-B944-D8E7396F8F88}.Release-Intrinsics|x64.Build.0 = Release-Intrinsics|x64
+		{D928F11D-79CB-4D69-B944-D8E7396F8F88}.Release-netfx|Any CPU.ActiveCfg = Release-netfx|Any CPU
+		{D928F11D-79CB-4D69-B944-D8E7396F8F88}.Release-netfx|Any CPU.Build.0 = Release-netfx|Any CPU
+		{D928F11D-79CB-4D69-B944-D8E7396F8F88}.Release-netfx|x64.ActiveCfg = Release-netfx|x64
+		{D928F11D-79CB-4D69-B944-D8E7396F8F88}.Release-netfx|x64.Build.0 = Release-netfx|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1637,6 +1663,7 @@ Global
 		{AE4F7569-26F3-4160-8A8B-7A57D0DA3350} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{F308DC6B-7E59-40D7-A581-834E8CD99CFE} = {7F13E156-3EBA-4021-84A5-CD56BA72F99E}
 		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
+		{D928F11D-79CB-4D69-B944-D8E7396F8F88} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {41165AF1-35BB-4832-A189-73060F82B01D}

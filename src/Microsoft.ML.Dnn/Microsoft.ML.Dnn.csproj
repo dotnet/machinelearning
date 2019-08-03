@@ -15,12 +15,12 @@
   <ItemGroup>
     <PackageReference Include="System.IO.FileSystem.AccessControl" Version="$(SystemIOFileSystemAccessControl)" />
     <PackageReference Include="System.Security.Principal.Windows" Version="$(SystemSecurityPrincipalWindows)" />
-    <PackageReference Include="TensorFlow.NET" Version="0.10.7.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
+    <ProjectReference Include="..\TensorFlowNET.Core\TensorFlowNET.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

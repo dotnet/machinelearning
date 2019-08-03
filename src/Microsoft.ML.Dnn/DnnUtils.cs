@@ -279,7 +279,9 @@ namespace Microsoft.ML.Transforms.Dnn
 
         internal static unsafe void FetchData<T>(T[] data, Span<T> result)
         {
-            var dataSpan = new Span<T>(data, 0, result.Length);
+            var dataCopy = new T[data.Length];
+            Array.Copy(data, dataCopy, data.Length);
+            var dataSpan = new Span<T>(dataCopy, 0, result.Length);
             dataSpan.CopyTo(result);
         }
 
@@ -346,50 +348,19 @@ namespace Microsoft.ML.Transforms.Dnn
         /// </remarks>
         public class Runner
         {
-            private TF_Output[] _inputs;
-            private TF_Output[] _outputs;
-            private IntPtr[] _inputValues;
-            private IntPtr[] _operations;
-            private List<TF_Output> inputs;
-            private List<TF_Output> outputs;
-            private List<IntPtr> inputValues;
-            private List<IntPtr> operations;
+            private List<TF_Output> _inputs;
+            private List<TF_Output> _outputs;
+            private List<Tensor> _inputValues;
+            private List<Operation> _operations;
             private Session _session;
-            List<Tensor> tensors;
-            internal Runner(Session session, TF_Output[] inputs, TF_Output[] outputs, IntPtr[] operations)
-            {
-                tensors = new List<Tensor>();
-                _session = session;
-                _inputs = inputs;
-                _outputs = outputs;
-                _operations = operations;
-                if (_inputs != null)
-                    _inputValues = new IntPtr[_inputs.Length];
-            }
 
             internal Runner(Session session)
             {
-                inputs = new List<TF_Output>();
-                outputs = new List<TF_Output>();
-                inputValues = new List<IntPtr>();
-                operations = new List<IntPtr>();
-                tensors = new List<Tensor>();
-            }
-
-            /// <summary>
-            /// Adds an input to the session
-            /// </summary>
-            /// <returns>An instance to the runner, so you can easily chain the operations together.</returns>
-            /// <param name="index"></param>
-            /// <param name="value">Value to assing to the incoming port.</param>
-            public Runner AddInput(int index, IntPtr value)
-            {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
-
-                _inputValues[index] = value;
-
-                return this;
+                _session = session;
+                _inputs = new List<TF_Output>();
+                _outputs = new List<TF_Output>();
+                _inputValues = new List<Tensor>();
+                _operations = new List<Operation>();
             }
 
             /// <summary>
@@ -402,16 +373,31 @@ namespace Microsoft.ML.Transforms.Dnn
             {
                 if (value == null)
                     throw new ArgumentNullException(nameof(value));
-                inputs.Add(ParseOutput(input));
-                inputValues.Add(value);
+
+                _inputs.Add(ParseOutput(input));
+                _inputValues.Add(value);
+
                 return this;
             }
 
             public Runner AddOutputs(string output)
             {
-                outputs.Add(ParseOutput(output));
+                _outputs.Add(ParseOutput(output));
                 return this;
             }
+
+            public Runner AddOperation(string operationName)
+            {
+                _operations.Add(c_api.TF_GraphOperationByName(_session.graph, operationName));
+                return this;
+            }
+
+            public Runner AddOperation(Operation operation)
+            {
+                _operations.Add(operation);
+                return this;
+            }
+
             // Parses user strings that contain both the operation name and an index.
             private TF_Output ParseOutput(string operation)
             {
@@ -438,33 +424,29 @@ namespace Microsoft.ML.Transforms.Dnn
                 if (_session == IntPtr.Zero)
                     new ObjectDisposedException(nameof(_session));
 
-                int oLen = _outputs != null ? _outputs.Length : 0;
+                int oLen = _outputs != null ? _outputs.Count : 0;
                 var cstatus = new Status();
-                var ovals = _outputs != null ? new IntPtr[_outputs.Length] : null;
-                
+                var ovals = _outputs != null ? new IntPtr[_outputs.Count] : null;
                 unsafe
                 {
-                    c_api.TF_SessionRun(_session, null, _inputs, _inputValues, _inputs != null ? _inputs.Length : 0, _outputs, ovals, oLen, _operations,
-                        _operations == null ? 0 : _operations.Length, IntPtr.Zero, cstatus);
+                    c_api.TF_SessionRun(_session, null, _inputs.ToArray(), _inputValues.Select(x => (IntPtr)x).ToArray(),
+                        _inputs != null ? _inputs.Count : 0, _outputs.ToArray(), ovals, oLen, _operations.Select(x => (IntPtr)x).ToArray(),
+                        _operations == null ? 0 : _operations.Count, IntPtr.Zero, cstatus);
                 }
 
                 cstatus.Check(true);
 
-                GC.KeepAlive(_inputValues);
-
                 var result = new Tensor[oLen];
                 for (int i = 0; i < oLen; i++)
-                {
                     result[i] = new Tensor(ovals[i]);
-                    tensors.Add(result[i]);
-                }
+
                 return result;
             }
 
 
             public Runner CloneRunner()
             {
-                return new Runner(_session, _inputs, _outputs, _operations);
+                return new Runner(_session);
             }
         }
 

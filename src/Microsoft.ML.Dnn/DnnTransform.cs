@@ -319,12 +319,14 @@ namespace Microsoft.ML.Transforms
                 (labelOp, labelOpIdx) = GetOperationFromName(LabelTensor.name, Session);
 
             TF_Output[] tfInputs;
+
             if (options.ReTrain && !string.IsNullOrEmpty(options.LearningRateOperation))
                 tfInputs = new TF_Output[TFInputNodes.Length + 2]; //Inputs + Label + Learning Rate.
             else
                 tfInputs = new TF_Output[TFInputNodes.Length + 1]; //Inputs + Label.
 
             Array.Copy(TFInputNodes, tfInputs, TFInputNodes.Length);
+
             tfInputs[TFInputNodes.Length] = new TF_Output(labelOp, labelOpIdx);
 
             if (options.ReTrain)
@@ -334,7 +336,7 @@ namespace Microsoft.ML.Transforms
             }
 
             // Create graph outputs.
-            var fetchList = new List<string>();
+            /*var fetchList = new List<string>();
             if (options.ReTrain)
             {
                 if (options.LossOperation != null)
@@ -343,7 +345,7 @@ namespace Microsoft.ML.Transforms
                     fetchList.Add(options.MetricOperation);
             }
 
-            TF_Output[] tfOutputs = fetchList.Select(x => { var y = GetOperationFromName(x, Session); return new TF_Output(y.Item1, y.Item2); }).ToArray();
+            TF_Output[] tfOutputs = fetchList.Select(x => { var y = GetOperationFromName(x, Session); return new TF_Output(y.Item1, y.Item2); }).ToArray();*/
 
             // Create graph operations.
             IntPtr[] ops = null;
@@ -363,15 +365,11 @@ namespace Microsoft.ML.Transforms
                 trainWriter = tf.summary.FileWriter(Path.Combine(Directory.GetCurrentDirectory(), "train"), Session.graph);
                 trainSaver = tf.train.Saver();
                 trainSaver.save(Session, CheckpointPath);
-                testSetRunner = new Runner(Session, tfInputs, new[] { EvaluationStep._as_tf_output(), CrossEntropy._as_tf_output() }, null);
-                validationSetRunner = new Runner(Session, tfInputs, new[] { EvaluationStep._as_tf_output() }, null);
             }
 
             // Instantiate the graph.
-            var runner = new Runner(Session, tfInputs, tfOutputs, ops);
+            Runner runner;// = new Runner(Session, tfInputs, tfOutputs, ops);
             var cols = input.Schema.Where(c => inputColIndices.Contains(c.Index));
-            if (options.ReTrain && !string.IsNullOrEmpty(options.LearningRateOperation))
-                runner.AddInput(TFInputNodes.Length + 1, new Tensor(options.LearningRate));
 
             for (int epoch = 0; epoch < options.Epoch; epoch++)
             {
@@ -390,7 +388,7 @@ namespace Microsoft.ML.Transforms
 
                             while (cursor.MoveNext())
                             {
-                                for (int i = 0; i < inputColIndices.Length; i++)
+                                for (int i = 0; i < inputsForTraining.Length; i++)
                                 {
                                     isDataLeft = true;
                                     srcTensorGetters[i].BufferTrainingData();
@@ -399,7 +397,23 @@ namespace Microsoft.ML.Transforms
                                 if (((cursor.Position + 1) % options.BatchSize) == 0)
                                 {
                                     isDataLeft = false;
-                                    var (l, m) = ExecuteGraphAndRetrieveMetrics(inputColIndices, srcTensorGetters, runner);
+                                    runner = new Runner(Session);
+
+                                    // Add Learning Rate.
+                                    if (!string.IsNullOrEmpty(options.LearningRateOperation))
+                                        runner.AddInput(options.LearningRateOperation, new Tensor(options.LearningRate));
+
+                                    // Add operations.
+                                    if (!string.IsNullOrEmpty(options.OptimizationOperation))
+                                        runner.AddOperation(options.OptimizationOperation);
+
+                                    // Add outputs.
+                                    if (options.LossOperation != null)
+                                        runner.AddOutputs(options.LossOperation);
+                                    if (options.MetricOperation != null)
+                                        runner.AddOutputs(options.MetricOperation);
+
+                                    var (l, m) = ExecuteGraphAndRetrieveMetrics(inputsForTraining, srcTensorGetters, runner);
                                     loss += l;
                                     metric += m;
                                 }
@@ -417,7 +431,7 @@ namespace Microsoft.ML.Transforms
 
                             while (cursor.MoveNext())
                             {
-                                for (int i = 0; i < inputColIndices.Length; i++)
+                                for (int i = 0; i < inputsForTraining.Length; i++)
                                 {
                                     isDataLeft = true;
                                     srcTensorGetters[i].BufferTrainingData();
@@ -426,9 +440,16 @@ namespace Microsoft.ML.Transforms
                                 if (((cursor.Position + 1) % options.BatchSize) == 0)
                                 {
                                     isDataLeft = false;
-                                    for (int i = 0; i < inputColIndices.Length; i++)
-                                        runner.AddInput(i, srcTensorGetters[i].GetBufferedBatchTensor());
+                                    runner = new Runner(Session);
 
+                                    // Add operations.
+                                    runner.AddOperation(TrainStep);
+
+                                    // Feed inputs.
+                                    for (int i = 0; i < inputsForTraining.Length; i++)
+                                        runner.AddInput(inputsForTraining[i], srcTensorGetters[i].GetBufferedBatchTensor());
+
+                                    // Execute the graph.
                                     runner.Run();
                                 }
                             }
@@ -469,7 +490,10 @@ namespace Microsoft.ML.Transforms
                                 if (((cursor.Position + 1) % options.BatchSize) == 0)
                                 {
                                     isDataLeft = false;
-                                    var (acc, ce) = ExecuteGraphAndRetrieveMetrics(inputColIndices, srcTensorGetters, testSetRunner);
+                                    testSetRunner = new Runner(Session);//, tfInputs, new[] { EvaluationStep._as_tf_output(), CrossEntropy._as_tf_output() }, null);
+                                    testSetRunner.AddOutputs(EvaluationStep.name);
+                                    testSetRunner.AddOutputs(CrossEntropy.name);
+                                    var (acc, ce) = ExecuteGraphAndRetrieveMetrics(inputsForTraining, srcTensorGetters, testSetRunner);
                                     accuracy += acc;
                                     crossEntropy += ce;
                                     batch++;
@@ -511,7 +535,9 @@ namespace Microsoft.ML.Transforms
                                     if (((cursor.Position + 1) % options.BatchSize) == 0)
                                     {
                                         isDataLeft = false;
-                                        var (acc, _) = ExecuteGraphAndRetrieveMetrics(inputColIndices, srcTensorGetters, validationSetRunner);
+                                        validationSetRunner = new Runner(Session);//, tfInputs, new[] { EvaluationStep._as_tf_output() }, null);
+                                        validationSetRunner.AddOutputs(EvaluationStep.name);
+                                        var (acc, _) = ExecuteGraphAndRetrieveMetrics(inputsForTraining, srcTensorGetters, validationSetRunner);
                                         accuracy += acc;
                                         batch++;
                                     }
@@ -538,14 +564,14 @@ namespace Microsoft.ML.Transforms
         }
 
         private (float loss, float metric) ExecuteGraphAndRetrieveMetrics(
-            int[] inputColIndices,
+            string[] inputs,
             ITensorValueGetter[] srcTensorGetters,
             Runner runner)
         {
             float loss = 0;
             float metric = 0;
-            for (int i = 0; i < inputColIndices.Length; i++)
-                runner.AddInput(i, srcTensorGetters[i].GetBufferedBatchTensor());
+            for (int i = 0; i < inputs.Length; i++)
+                runner.AddInput(inputs[i], srcTensorGetters[i].GetBufferedBatchTensor());
 
             Tensor[] tensor = runner.Run();
             var buffer = tensor[0].Data();
@@ -565,10 +591,12 @@ namespace Microsoft.ML.Transforms
             {
                 // Save the model on disk
                 var path = Path.Combine(modelDir, DefaultModelFileNames.TmpMlnetModel);
-                var input = GetOperationFromName(options.SaveLocationOperation, Session);
-                var runner = new Runner(Session, new[] { new TF_Output(input.Item1, input.Item2) }, null, new[] { c_api.TF_GraphOperationByName(Graph, options.SaveOperation) });
-                var t = new Tensor(Encoding.UTF8.GetBytes(path));
-                Runner.AddInput(0, t).Run();
+                //var input = GetOperationFromName(options.SaveLocationOperation, Session);
+                var runner = new Runner(Session); //, new[] { new TF_Output(input.Item1, input.Item2) }, null, new[] { c_api.TF_GraphOperationByName(Graph, options.SaveOperation) });
+
+                runner.AddInput(options.SaveLocationOperation, new Tensor(Encoding.UTF8.GetBytes(path)))
+                    .AddOperation(options.SaveOperation)
+                    .Run();
 
                 // Preserve original files
                 var variablesPath = Path.Combine(modelDir, DefaultModelFileNames.VariablesFolder);
@@ -864,7 +892,7 @@ namespace Microsoft.ML.Transforms
                 AddTransferLearningLayer(options, ClassCount);
 
                 // Initialize the variables.
-                new Runner(Session, null, null, new[] { (IntPtr)tf.global_variables_initializer() }).Run();
+                new Runner(Session).AddOperation(tf.global_variables_initializer()).Run();
 
                 // Add evaluation layer.
                 (EvaluationStep, _) = AddEvaluationStep(SoftMaxTensor, LabelTensor);
@@ -886,9 +914,6 @@ namespace Microsoft.ML.Transforms
 
             for (int index = 0; index < TFOutputOperations.Length; index += 1)
                 TFOutputNodes[index] = new TF_Output(TFOutputOperations[index].Item1, TFOutputOperations[index].Item2);
-
-            // This runner will be used during inferencing.
-            Runner = new Runner(session, TFInputNodes, TFOutputNodes, null);
         }
 
         private static (Operation, int) GetOperationFromName(string operation, Session session)
@@ -1262,18 +1287,17 @@ namespace Microsoft.ML.Transforms
             {
                 if (outputCache.Position != position)
                 {
-                    bool addToTheBag = false;
-                    if (!_runners.TryTake(out Runner runner))
-                    {
-                        runner = _parent.Runner.CloneRunner();
-                        addToTheBag = true;
-                    }
-                    for (int i = 0; i < _inputColIndices.Length; i++)
-                    {
-                        var inputName = _parent.Inputs[i];
-                        runner.AddInput(i, srcTensorGetters[i].GetTensor());
-                    }
+                    Runner runner = new Runner(_parent.Session);
 
+                    // Feed the inputs.
+                    for (int i = 0; i < _parent.Inputs.Length; i++)
+                        runner.AddInput(_parent.Inputs[i], srcTensorGetters[i].GetTensor());
+
+                    // Add outputs.
+                    for (int i = 0; i < _parent.Outputs.Length; i++)
+                        runner.AddOutputs(_parent.Outputs[i]);
+
+                    // Execute the graph.
                     var tensors = runner.Run();
                     Contracts.Assert(tensors.Length > 0);
 
@@ -1281,9 +1305,6 @@ namespace Microsoft.ML.Transforms
                         outputCache.Outputs[activeOutputColNames[j]] = tensors[j];
 
                     outputCache.Position = position;
-
-                    if (addToTheBag)
-                        _runners.Add(runner);
                 }
             }
 
@@ -1395,9 +1416,11 @@ namespace Microsoft.ML.Transforms
             private readonly TensorShape _tfShape;
             private VBuffer<T> _vBuffer;
             private T[] _denseData;
-            private readonly T[] _bufferedData;
+            private T[] _bufferedData;
             private int _position;
             private long[] _dims;
+            private readonly long _bufferedDataSize;
+
             public TensorValueGetterVec(DataViewRow input, int colIndex, TensorShape tfShape)
             {
                 _srcgetter = input.GetGetter<VBuffer<T>>(input.Schema[colIndex]);
@@ -1414,6 +1437,7 @@ namespace Microsoft.ML.Transforms
                         size *= dim;
                 }
                 _bufferedData = new T[size];
+                _bufferedDataSize = size;
                 if (_tfShape.Dimensions != null)
                     _dims = _tfShape.Dimensions.Select(x => (long)x).ToArray();
             }
@@ -1425,7 +1449,7 @@ namespace Microsoft.ML.Transforms
                 // _denseData.Length can be greater than _vBuffer.Length sometime after
                 // Utils.EnsureSize is executed. Use _vBuffer.Length to access the elements in _denseData.
                 // This is done to reduce memory allocation every time tensor is created.
-                Utils.EnsureSize(ref _denseData, _vBuffer.Length, keepOld: false);
+                _denseData = new T[_vBuffer.Length];
                 _vBuffer.CopyTo(_denseData);
                 return CastDataAndReturnAsTensor(_denseData);
             }
@@ -1478,7 +1502,9 @@ namespace Microsoft.ML.Transforms
             public Tensor GetBufferedBatchTensor()
             {
                 _position = 0;
-                return CastDataAndReturnAsTensor(_bufferedData);
+                var tensor = CastDataAndReturnAsTensor(_bufferedData);
+                _bufferedData = new T[_bufferedDataSize];
+                return tensor;
             }
         }
     }
