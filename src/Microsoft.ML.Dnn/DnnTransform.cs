@@ -41,10 +41,11 @@ namespace Microsoft.ML.Transforms
     /// </summary>
     public sealed class DnnTransformer : RowToRowTransformerBase
     {
+        private readonly IHostEnvironment Env;
         private readonly string _savedModelPath;
         private readonly bool _isTemporarySavedModel;
         private readonly bool _addBatchDimensionInput;
-        internal readonly Session Session;
+        internal Session Session;
         internal readonly Runner Runner;
         internal readonly DataViewType[] OutputTypes;
         internal readonly TF_DataType[] TFOutputTypes;
@@ -68,7 +69,7 @@ namespace Microsoft.ML.Transforms
         internal DataViewSchema.Column LabelColumn;
         internal readonly string BottleneckOperationName;
         internal Graph Graph => Session.graph;
-
+        internal readonly Dictionary<string, string> IdvToTfMapping;
         internal readonly string[] Inputs;
         internal readonly string[] Outputs;
         internal readonly string[] NonTFOutputs;
@@ -294,7 +295,7 @@ namespace Microsoft.ML.Transforms
             var tfInputShapes = new TensorShape[inputsForTraining.Length];
 
             for (int i = 0; i < Inputs.Length; i++)
-                inputsForTraining[i] = Inputs[i];
+                inputsForTraining[i] = IdvToTfMapping[Inputs[i]];
 
             var inputSchema = input.Schema;
             for (int i = 0; i < inputsForTraining.Length - 1; i++)
@@ -691,8 +692,12 @@ namespace Microsoft.ML.Transforms
             var (sess, _, _, _) = BuildEvaluationSession(options, classCount);
             var graph = sess.graph;
             var outputGraphDef = tf.graph_util.convert_variables_to_constants(
-                sess, graph.as_graph_def(), new string[] { SoftMaxTensor.name.Split(':')[0] });
+                sess, graph.as_graph_def(), new string[] { SoftMaxTensor.name.Split(':')[0], Prediction.name.Split(':')[0] });
+
+            string frozenModelPath = CheckpointPath + ".pb";
             File.WriteAllBytes(CheckpointPath + ".pb", outputGraphDef.ToByteArray());
+            Session = LoadTFSessionByModelFilePath(Env, frozenModelPath, false);
+
         }
 
         private void VariableSummaries(RefVariable var)
@@ -861,12 +866,14 @@ namespace Microsoft.ML.Transforms
             Host.CheckNonEmpty(inputColumnNames, nameof(inputColumnNames));
             Host.CheckNonEmpty(outputColumnNames, nameof(outputColumnNames));
 
+            Env = env;
             Session = session;
             _savedModelPath = savedModelPath;
             _isTemporarySavedModel = isTemporarySavedModel;
             _addBatchDimensionInput = addBatchDimensionInput;
             Inputs = inputColumnNames;
             Outputs = outputColumnNames;
+            IdvToTfMapping = new Dictionary<string, string>();
 
             if (options.TransferLearning)
             {
@@ -886,6 +893,8 @@ namespace Microsoft.ML.Transforms
                 else
                     BottleneckOperationName = "inception_v3/SpatialSqueeze";
 
+                IdvToTfMapping[Inputs[0]] = "input";
+
                 Outputs = new[] { options.ScoreColumnName, options.PredictedLabelColumnName };
 
                 // Add transfer learning layer.
@@ -897,10 +906,19 @@ namespace Microsoft.ML.Transforms
                 // Add evaluation layer.
                 (EvaluationStep, _) = AddEvaluationStep(SoftMaxTensor, LabelTensor);
 
+                IdvToTfMapping[options.ScoreColumnName] = SoftMaxTensor.name;
+                IdvToTfMapping[options.PredictedLabelColumnName] = Prediction.name;
+
                 (TFOutputTypes, OutputTypes, TFOutputOperations) = GetOutputInfo(Host, Session, new[] { SoftMaxTensor.name, Prediction.name });
             }
             else
             {
+                foreach (var x in Inputs)
+                    IdvToTfMapping[x] = x;
+
+                foreach (var x in Outputs)
+                    IdvToTfMapping[x] = x;
+
                 (TFOutputTypes, OutputTypes, TFOutputOperations) = GetOutputInfo(Host, Session, Outputs);
 
             }
@@ -1290,11 +1308,11 @@ namespace Microsoft.ML.Transforms
 
                     // Feed the inputs.
                     for (int i = 0; i < _parent.Inputs.Length; i++)
-                        runner.AddInput(_parent.Inputs[i], srcTensorGetters[i].GetTensor());
+                        runner.AddInput(_parent.IdvToTfMapping[_parent.Inputs[i]], srcTensorGetters[i].GetTensor());
 
                     // Add outputs.
                     for (int i = 0; i < _parent.Outputs.Length; i++)
-                        runner.AddOutputs(_parent.Outputs[i]);
+                        runner.AddOutputs(_parent.IdvToTfMapping[_parent.Outputs[i]]);
 
                     // Execute the graph.
                     var tensors = runner.Run();

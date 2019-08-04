@@ -24,7 +24,7 @@ namespace Samples.Dynamic
             var idv = mlContext.Data.LoadFromEnumerable(data);
 
             // Create a ML pipeline.
-            var pipeline = 
+            var pipeline =
                 mlContext.Transforms.Conversion.MapValueToKey(
                     nameof(TensorData.Label))
                 .Append(mlContext.Model.ImageClassification(
