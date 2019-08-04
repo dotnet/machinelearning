@@ -716,8 +716,8 @@ namespace Microsoft.ML.Scenarios
         [Fact]
         public void TransferLearning()
         {
-            double expectedMicroAccuracy = 1;
-            double expectedMacroAccuracy = 1;
+            double expectedMicroAccuracy = 0.75;
+            double expectedMacroAccuracy = 0.66;
 
             var mlContext = new MLContext(seed: 1);
             var imagesDataFile = SamplesUtils.DatasetUtils.DownloadImages();
