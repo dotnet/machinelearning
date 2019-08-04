@@ -873,5 +873,32 @@ namespace Microsoft.ML
             Contracts.CheckValue(catalog, nameof(catalog));
             return new PriorTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, exampleWeightColumnName);
         }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="catalog"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public static LdSvmTrainer LdSvm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog, LdSvmTrainer.Options options)
+            => new LdSvmTrainer(catalog.GetEnvironment(), options);
+
+        public static LdSvmTrainer LdSvm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string exampleWeightColumnName = null,
+            int numberOfIterations = LdSvmTrainer.Options.Defaults.NumberOfIterations,
+            int treeDepth = LdSvmTrainer.Options.Defaults.TreeDepth,
+            bool noBias = LdSvmTrainer.Options.Defaults.NoBias)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var options = new LdSvmTrainer.Options()
+            {
+                NumberOfIterations = numberOfIterations,
+                TreeDepth = treeDepth,
+                NoBias = noBias
+            };
+            return new LdSvmTrainer(catalog.GetEnvironment(), options);
+        }
     }
 }

@@ -692,20 +692,6 @@ namespace Microsoft.ML.RunTests
             Tag = "LDSVM-nob"
         };
 
-        public static PredictorAndArgs LDSvmNoNorm = new PredictorAndArgs
-        {
-            Trainer = new SubComponent("LDSVM", "iter=1000"),
-            MamlArgs = new[] { "norm=no" },
-            Tag = "LDSVM-non"
-        };
-
-        public static PredictorAndArgs LDSvmNoCalib = new PredictorAndArgs
-        {
-            Trainer = new SubComponent("LDSVM", "iter=1000"),
-            MamlArgs = new[] { "cali={}" },
-            Tag = "LDSVM-noc"
-        };
-
         public static PredictorAndArgs KMeansDefault = new PredictorAndArgs
         {
             Trainer = new SubComponent("KM", "nt=1"),
