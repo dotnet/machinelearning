@@ -716,11 +716,11 @@ namespace Microsoft.ML.Scenarios
         [Fact]
         public void TransferLearning()
         {
-            double expectedMicroAccuracy = 0.75;
-            double expectedMacroAccuracy = 0.66;
+            double expectedMicroAccuracy = 0.7333;
+            double expectedMacroAccuracy = 0.6666;
 
             var mlContext = new MLContext(seed: 1);
-            var imagesDataFile = SamplesUtils.DatasetUtils.DownloadImages();
+            var imagesDataFile = SamplesUtils.DatasetUtils.DownloadImages("60");
             var data = mlContext.Data.CreateTextLoader(new TextLoader.Options()
             {
                 Columns = new[]
@@ -736,7 +736,7 @@ namespace Microsoft.ML.Scenarios
                 .Append(mlContext.Transforms.LoadImages("ImageObject", imagesFolder, "ImagePath"))
                 .Append(mlContext.Transforms.ResizeImages("Image", inputColumnName: "ImageObject", imageWidth: 299, imageHeight: 299))
                 .Append(mlContext.Transforms.ExtractPixels("Image", interleavePixelColors: true))
-                .Append(mlContext.Model.ImageClassification("Image", "Label", arch:DnnEstimator.Architecture.InceptionV3, epoch:10, batchSize:4, addBatchDimensionInput: false));
+                .Append(mlContext.Model.ImageClassification("Image", "Label", arch:DnnEstimator.Architecture.InceptionV3, epoch:3, addBatchDimensionInput: false));
 
             var trainedModel = pipeline.Fit(data);
             var predicted = trainedModel.Transform(data);
