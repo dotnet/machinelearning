@@ -463,7 +463,7 @@ namespace Microsoft.ML.Transforms
                     }
                 }
 
-                // Measusre accuracy of the model.
+                // Measure accuracy of the model.
                 if (options.TransferLearning)
                 {
                     // Test on the training set to get accuracy.
