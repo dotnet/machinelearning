@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.IO;
+using System.Net;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Dnn;
@@ -111,7 +114,7 @@ namespace Microsoft.ML
         {
             var options = new Options()
             {
-                ModelLocation = arch == Architecture.ResnetV2101 ? @"DnnImageModels\Resnet101V2Tensorflow\resnet_v2_101_299.meta" : "",
+                ModelLocation = arch == Architecture.ResnetV2101 ? @"DnnImageModels\Resnet101V2Tensorflow\resnet_v2_101_299.meta" : @"InceptionV3.meta",
                 InputColumns = new[] { featuresColumnName },
                 OutputColumns = new[] { scoreColumnName, predictedLabelColumnName },
                 LabelColumn = labelColumnName,
@@ -123,8 +126,18 @@ namespace Microsoft.ML
                 TransferLearning = true,
                 ScoreColumnName = scoreColumnName,
                 PredictedLabelColumnName = predictedLabelColumnName,
-                CheckpointName = checkpointName
+                CheckpointName = checkpointName,
+                Arch = arch
             };
+
+            if (!File.Exists(options.ModelLocation))
+            {
+                var baseGitPath = @"https://raw.githubusercontent.com/SciSharp/TensorFlow.NET/master/graph/InceptionV3.meta";
+                using (WebClient client = new WebClient())
+                {
+                    client.DownloadFile(new Uri($"{baseGitPath}"), @"InceptionV3.meta");
+                }
+            }
 
             var env = CatalogUtils.GetEnvironment(catalog);
             return new DnnEstimator(env, options, DnnUtils.LoadDnnModel(env, options.ModelLocation, true));

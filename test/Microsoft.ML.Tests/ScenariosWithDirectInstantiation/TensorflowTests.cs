@@ -734,9 +734,9 @@ namespace Microsoft.ML.Scenarios
             var imagesFolder = Path.GetDirectoryName(imagesDataFile);
             var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.Transforms.LoadImages("ImageObject", imagesFolder, "ImagePath"))
-                .Append(mlContext.Transforms.ResizeImages("Image", inputColumnName: "ImageObject", imageWidth: 224, imageHeight: 224))
+                .Append(mlContext.Transforms.ResizeImages("Image", inputColumnName: "ImageObject", imageWidth: 299, imageHeight: 299))
                 .Append(mlContext.Transforms.ExtractPixels("Image", interleavePixelColors: true))
-                .Append(mlContext.Model.ImageClassification("Image", "Label", addBatchDimensionInput: true));
+                .Append(mlContext.Model.ImageClassification("Image", "Label", arch:DnnEstimator.Architecture.InceptionV3, batchSize:1, addBatchDimensionInput: true));
 
             var trainedModel = pipeline.Fit(data);
             var predicted = trainedModel.Transform(data);
