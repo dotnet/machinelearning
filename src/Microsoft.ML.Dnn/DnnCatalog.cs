@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Net;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
@@ -136,6 +137,13 @@ namespace Microsoft.ML
                 using (WebClient client = new WebClient())
                 {
                     client.DownloadFile(new Uri($"{baseGitPath}"), @"InceptionV3.meta");
+                }
+
+                baseGitPath = @"https://github.com/SciSharp/TensorFlow.NET/raw/master/data/tfhub_modules.zip";
+                using (WebClient client = new WebClient())
+                {
+                    client.DownloadFile(new Uri($"{baseGitPath}"), @"tfhub_modules.zip");
+                    ZipFile.ExtractToDirectory(Path.Combine(Directory.GetCurrentDirectory(), @"tfhub_modules.zip"), @"tfhub_modules");
                 }
             }
 

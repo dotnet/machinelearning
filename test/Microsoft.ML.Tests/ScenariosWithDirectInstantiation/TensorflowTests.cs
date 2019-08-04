@@ -716,11 +716,11 @@ namespace Microsoft.ML.Scenarios
         [Fact]
         public void TransferLearning()
         {
-            //double expectedMicroAccuracy = 0.25;
-            //double expectedMacroAccuracy = 0.33;
+            double expectedMicroAccuracy = 1;
+            double expectedMacroAccuracy = 1;
 
             var mlContext = new MLContext(seed: 1);
-            var imagesDataFile = SamplesUtils.DatasetUtils.DownloadImages("60");
+            var imagesDataFile = SamplesUtils.DatasetUtils.DownloadImages();
             var data = mlContext.Data.CreateTextLoader(new TextLoader.Options()
             {
                 Columns = new[]
@@ -736,13 +736,13 @@ namespace Microsoft.ML.Scenarios
                 .Append(mlContext.Transforms.LoadImages("ImageObject", imagesFolder, "ImagePath"))
                 .Append(mlContext.Transforms.ResizeImages("Image", inputColumnName: "ImageObject", imageWidth: 299, imageHeight: 299))
                 .Append(mlContext.Transforms.ExtractPixels("Image", interleavePixelColors: true))
-                .Append(mlContext.Model.ImageClassification("Image", "Label", arch:DnnEstimator.Architecture.InceptionV3, batchSize:1, addBatchDimensionInput: true));
+                .Append(mlContext.Model.ImageClassification("Image", "Label", arch:DnnEstimator.Architecture.InceptionV3, epoch:10, batchSize:4, addBatchDimensionInput: false));
 
             var trainedModel = pipeline.Fit(data);
             var predicted = trainedModel.Transform(data);
             var metrics = mlContext.MulticlassClassification.Evaluate(predicted);
-            //Assert.InRange(metrics.MicroAccuracy, expectedMicroAccuracy - 0.1, expectedMicroAccuracy + 0.1);
-            //Assert.InRange(metrics.MacroAccuracy, expectedMacroAccuracy - 0.1, expectedMacroAccuracy + 0.1);
+            Assert.InRange(metrics.MicroAccuracy, expectedMicroAccuracy - 0.1, expectedMicroAccuracy + 0.1);
+            Assert.InRange(metrics.MacroAccuracy, expectedMacroAccuracy - 0.1, expectedMacroAccuracy + 0.1);
 
             // Create prediction function and test prediction
             var predictFunction = mlContext.Model.CreatePredictionEngine<ImageData, ImagePrediction>(trainedModel);

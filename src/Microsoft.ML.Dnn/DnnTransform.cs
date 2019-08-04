@@ -893,7 +893,10 @@ namespace Microsoft.ML.Transforms
                 else if(options.Arch == DnnEstimator.Architecture.InceptionV3)
                     BottleneckOperationName = "module_apply_default/hub_output/feature_vector/SpatialSqueeze";
 
-                IdvToTfMapping[Inputs[0]] = "input";
+                if (options.Arch == DnnEstimator.Architecture.ResnetV2101)
+                    IdvToTfMapping[Inputs[0]] = "input";
+                else if (options.Arch == DnnEstimator.Architecture.InceptionV3)
+                    IdvToTfMapping[Inputs[0]] = "Placeholder";
 
                 Outputs = new[] { options.ScoreColumnName, options.PredictedLabelColumnName };
 
