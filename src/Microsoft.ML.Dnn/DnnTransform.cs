@@ -696,7 +696,7 @@ namespace Microsoft.ML.Transforms
 
             string frozenModelPath = CheckpointPath + ".pb";
             File.WriteAllBytes(CheckpointPath + ".pb", outputGraphDef.ToByteArray());
-            Session = LoadTFSessionByModelFilePath(Env, frozenModelPath, false);
+            //Session = LoadTFSessionByModelFilePath(Env, frozenModelPath, false);
         }
 
         private void VariableSummaries(RefVariable var)

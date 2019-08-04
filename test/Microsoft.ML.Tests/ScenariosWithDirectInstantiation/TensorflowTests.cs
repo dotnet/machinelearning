@@ -757,8 +757,8 @@ namespace Microsoft.ML.Scenarios
             double expectedMacroAccuracy = 1;
 
             var mlContext = new MLContext(seed: 1);
-            var imagesDataFile = SamplesUtils.DatasetUtils.DownloadImages();
-            var data = mlContext.Data.LoadFromEnumerable(ImageNetData.LoadImagesFromDirectory(Path.GetDirectoryName(imagesDataFile), 20));
+            var imagesDataFile = @"C:\Users\mzs\Downloads\flowers";//Path.GetDirectoryName(SamplesUtils.DatasetUtils.DownloadImages());
+            var data = mlContext.Data.LoadFromEnumerable(ImageNetData.LoadImagesFromDirectory(imagesDataFile, 1, true));
             data = mlContext.Data.ShuffleRows(data, 5);
             var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.Transforms.LoadImages("ImageObject", null, "ImagePath"))
@@ -774,7 +774,7 @@ namespace Microsoft.ML.Scenarios
 
             // Create prediction function and test prediction
             var predictFunction = mlContext.Model.CreatePredictionEngine<ImageNetData, ImagePrediction>(trainedModel);
-            var testData = ImageNetData.LoadImagesFromDirectory(Path.GetDirectoryName(imagesDataFile)).ToList();
+            var testData = ImageNetData.LoadImagesFromDirectory(imagesDataFile, 1, true).ToList();
             var prediction = predictFunction.Predict(testData[0]);
             Assert.Equal(2, prediction.PredictedLabel);
             Assert.Equal(new float[] { 0, 0, 1 }, prediction.Score);
