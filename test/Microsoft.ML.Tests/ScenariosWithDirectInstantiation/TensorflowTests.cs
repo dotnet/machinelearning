@@ -764,7 +764,7 @@ namespace Microsoft.ML.Scenarios
                 .Append(mlContext.Transforms.LoadImages("ImageObject", null, "ImagePath"))
                 .Append(mlContext.Transforms.ResizeImages("Image", inputColumnName: "ImageObject", imageWidth: 299, imageHeight: 299))
                 .Append(mlContext.Transforms.ExtractPixels("Image", interleavePixelColors: true))
-                .Append(mlContext.Model.ImageClassification("Image", "Label", arch:DnnEstimator.Architecture.InceptionV3, epoch:3, batchSize:10,  addBatchDimensionInput: false));
+                .Append(mlContext.Model.ImageClassification("Image", "Label", arch: DnnEstimator.Architecture.InceptionV3, epoch: 3, batchSize: 10, addBatchDimensionInput: false));
 
             var trainedModel = pipeline.Fit(data);
             var predicted = trainedModel.Transform(data);
@@ -774,7 +774,7 @@ namespace Microsoft.ML.Scenarios
 
             // Create prediction function and test prediction
             var predictFunction = mlContext.Model.CreatePredictionEngine<ImageNetData, ImagePrediction>(trainedModel);
-            var testData = ImageNetData.LoadImagesFromDirectory(@"C:\Users\mzs\Downloads\60images").ToList();
+            var testData = ImageNetData.LoadImagesFromDirectory(Path.GetDirectoryName(imagesDataFile)).ToList();
             var prediction = predictFunction.Predict(testData[0]);
             Assert.Equal(2, prediction.PredictedLabel);
             Assert.Equal(new float[] { 0, 0, 1 }, prediction.Score);
