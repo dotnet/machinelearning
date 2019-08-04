@@ -747,8 +747,8 @@ namespace Microsoft.ML.Scenarios
             // Create prediction function and test prediction
             var predictFunction = mlContext.Model.CreatePredictionEngine<ImageData, ImagePrediction>(trainedModel);
             var prediction = predictFunction.Predict(new ImageData() { ImagePath = "tomato.jpg" });
-            //Assert.Equal(0, prediction.PredictedLabel);
-            //Assert.Equal(new float[] { 1, 0, 0 }, prediction.Score);
+            Assert.Equal(2, prediction.PredictedLabel);
+            Assert.Equal(new float[] { 0, 0, 1 }, prediction.Score);
         }
 
         [TensorFlowFact]
