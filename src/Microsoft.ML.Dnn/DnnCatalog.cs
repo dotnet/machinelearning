@@ -99,7 +99,7 @@ namespace Microsoft.ML
             string featuresColumnName,
             string labelColumnName,
             string outputGraphPath = null,
-            string scoreColumnName = "Scores",
+            string scoreColumnName = "Score",
             string predictedLabelColumnName = "PredictedLabel",
             string checkpointName = "_retrain_checkpoint",
             Architecture arch = Architecture.ResnetV2101,

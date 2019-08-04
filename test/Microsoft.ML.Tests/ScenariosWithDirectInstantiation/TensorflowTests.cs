@@ -713,6 +713,44 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
+        [Fact]
+        public void TransferLearning()
+        {
+            //double expectedMicroAccuracy = 0.25;
+            //double expectedMacroAccuracy = 0.33;
+
+            var mlContext = new MLContext(seed: 1);
+            var imagesDataFile = SamplesUtils.DatasetUtils.DownloadImages("60");
+            var data = mlContext.Data.CreateTextLoader(new TextLoader.Options()
+            {
+                Columns = new[]
+                {
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Label", DataKind.String, 1),
+                }
+            }).Load(imagesDataFile);
+
+            data = mlContext.Data.ShuffleRows(data, 5);
+            var imagesFolder = Path.GetDirectoryName(imagesDataFile);
+            var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
+                .Append(mlContext.Transforms.LoadImages("ImageObject", imagesFolder, "ImagePath"))
+                .Append(mlContext.Transforms.ResizeImages("Image", inputColumnName: "ImageObject", imageWidth: 224, imageHeight: 224))
+                .Append(mlContext.Transforms.ExtractPixels("Image", interleavePixelColors: true))
+                .Append(mlContext.Model.ImageClassification("Image", "Label", addBatchDimensionInput: true));
+
+            var trainedModel = pipeline.Fit(data);
+            var predicted = trainedModel.Transform(data);
+            var metrics = mlContext.MulticlassClassification.Evaluate(predicted);
+            //Assert.InRange(metrics.MicroAccuracy, expectedMicroAccuracy - 0.1, expectedMicroAccuracy + 0.1);
+            //Assert.InRange(metrics.MacroAccuracy, expectedMacroAccuracy - 0.1, expectedMacroAccuracy + 0.1);
+
+            // Create prediction function and test prediction
+            var predictFunction = mlContext.Model.CreatePredictionEngine<ImageData, ImagePrediction>(trainedModel);
+            var prediction = predictFunction.Predict(new ImageData() { ImagePath = "tomato.jpg" });
+            //Assert.Equal(0, prediction.PredictedLabel);
+            //Assert.Equal(new float[] { 1, 0, 0 }, prediction.Score);
+        }
+
         [TensorFlowFact]
         public void TensorFlowTransformMNISTConvSavedModelTest()
         {
@@ -836,6 +874,22 @@ namespace Microsoft.ML.Scenarios
             public float[] PredictedLabels;
         }
 
+        public class ImageData
+        {
+            public string ImagePath;
+
+            public string Label;
+        }
+
+        public class ImagePrediction
+        {
+            [ColumnName("Score")]
+            public float[] Score;
+
+            [ColumnName("PredictedLabel")]
+            public Int64 PredictedLabel;
+        }
+
         [TensorFlowFact]
         public void TensorFlowTransformCifar()
         {
@@ -846,7 +900,7 @@ namespace Microsoft.ML.Scenarios
             var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
             var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
-            var type = (VectorDataViewType) schema[column].Type;
+            var type = (VectorDataViewType)schema[column].Type;
             var imageHeight = type.Dimensions[0];
             var imageWidth = type.Dimensions[1];
 

@@ -128,7 +128,7 @@ namespace Microsoft.ML.SamplesUtils
         /// <summary>
         /// Downloads 4 images, and a tsv file with their names from the dotnet/machinelearning repo.
         /// </summary>
-        public static string DownloadImages()
+        public static string DownloadImages(string filePrefix = "")
         {
             string path = "images";
 
@@ -142,7 +142,7 @@ namespace Microsoft.ML.SamplesUtils
             Download("https://raw.githubusercontent.com/dotnet/machinelearning/284e02cadf5342aa0c36f31d62fc6fa15bc06885/test/data/images/tomato.bmp", $"{pathEscaped}tomato.bmp");
             Download("https://raw.githubusercontent.com/dotnet/machinelearning/284e02cadf5342aa0c36f31d62fc6fa15bc06885/test/data/images/tomato.jpg", $"{pathEscaped}tomato.jpg");
 
-            return $"{path}{Path.DirectorySeparatorChar}images.tsv";
+            return $"{path}{Path.DirectorySeparatorChar}{filePrefix}images.tsv";
         }
 
         /// <summary>
@@ -230,7 +230,8 @@ namespace Microsoft.ML.SamplesUtils
             for (int i = 0; i < exampleCount; ++i)
             {
                 // Initialize an example with a random label and an empty feature vector.
-                var sample = new BinaryLabelFloatFeatureVectorFloatWeightSample() {
+                var sample = new BinaryLabelFloatFeatureVectorFloatWeightSample()
+                {
                     Label = rnd.Next() % 2 == 0,
                     Features = new float[_simpleBinaryClassSampleFeatureLength],
                     Weight = (float)rnd.NextDouble()

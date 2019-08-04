@@ -300,7 +300,7 @@ namespace Microsoft.ML.Transforms
             var inputSchema = input.Schema;
             for (int i = 0; i < inputsForTraining.Length - 1; i++)
                 (inputColIndices[i], isInputVector[i], tfInputTypes[i], tfInputShapes[i]) =
-                    GetTrainingInputInfo(inputSchema, inputsForTraining[i], inputsForTraining[i], options.BatchSize);
+                    GetTrainingInputInfo(inputSchema, Inputs[i], inputsForTraining[i], options.BatchSize);
 
             var index = inputsForTraining.Length - 1;
             if (options.TransferLearning)
@@ -890,8 +890,8 @@ namespace Microsoft.ML.Transforms
                 // Configure bottleneck tensor based on the model.
                 if (options.Arch == DnnEstimator.Architecture.ResnetV2101)
                     BottleneckOperationName = "resnet_v2_101/SpatialSqueeze";
-                else
-                    BottleneckOperationName = "inception_v3/SpatialSqueeze";
+                else if(options.Arch == DnnEstimator.Architecture.InceptionV3)
+                    BottleneckOperationName = "module_apply_default/hub_output/feature_vector/SpatialSqueeze";
 
                 IdvToTfMapping[Inputs[0]] = "input";
 
@@ -922,7 +922,7 @@ namespace Microsoft.ML.Transforms
                 (TFOutputTypes, OutputTypes, TFOutputOperations) = GetOutputInfo(Host, Session, Outputs);
 
             }
-            (TFInputTypes, TFInputShapes, TFInputOperations) = GetInputInfo(Host, Session, Inputs, batchSize);
+            (TFInputTypes, TFInputShapes, TFInputOperations) = GetInputInfo(Host, Session, Inputs.Select(x => IdvToTfMapping[x]).ToArray(), batchSize);
 
             TFInputNodes = new TF_Output[Inputs.Length];
             TFOutputNodes = new TF_Output[Outputs.Length];
@@ -1693,8 +1693,14 @@ namespace Microsoft.ML.Transforms
             _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(DnnEstimator));
             _options = options;
             _tensorFlowModel = tensorFlowModel;
-            var inputTuple = DnnTransformer.GetInputInfo(_host, tensorFlowModel.Session, options.InputColumns);
-            _tfInputTypes = inputTuple.tfInputTypes;
+
+            if (options.TransferLearning)
+                _tfInputTypes = new[] { TF_DataType.TF_FLOAT };
+            else
+            {
+                var inputTuple = DnnTransformer.GetInputInfo(_host, tensorFlowModel.Session, options.InputColumns);
+                _tfInputTypes = inputTuple.tfInputTypes;
+            }
             if (options.TransferLearning)
                 _outputTypes = new[] { new VectorDataViewType(NumberDataViewType.Single), new VectorDataViewType(NumberDataViewType.Single, 1) };
             else
