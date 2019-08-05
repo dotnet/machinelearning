@@ -27,6 +27,8 @@ namespace Microsoft.ML.Tests
         public void IrisLightGbm()
         {
             var mlContext = new MLContext(seed: 1);
+            var connectionString = GetDataPath(TestDatasets.iris.trainFilename);
+            var commandText = "Label;SepalLength;SepalWidth;PetalLength;PetalWidth";
 
             var loaderColumns = new DatabaseLoader.Column[]
             {
@@ -37,43 +39,86 @@ namespace Microsoft.ML.Tests
                 new DatabaseLoader.Column() { Name = "PetalWidth", Type = DbType.Single }
             };
 
-            using (var connection = new MockConnection(mlContext, GetDataPath(TestDatasets.iris.trainFilename), loaderColumns))
+            var loader = mlContext.Data.CreateDatabaseLoader(loaderColumns);
+
+            var mockProviderFactory = new MockProviderFactory(mlContext, loaderColumns);
+            var databaseSource = new DatabaseSource(mockProviderFactory, connectionString, commandText);
+
+            var trainingData = loader.Load(databaseSource);
+
+            var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
+                .Append(mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
+                .Append(mlContext.MulticlassClassification.Trainers.LightGbm())
+                .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
+
+            var model = pipeline.Fit(trainingData);
+
+            var engine = mlContext.Model.CreatePredictionEngine<IrisData, IrisPrediction>(model);
+
+            Assert.Equal(0, engine.Predict(new IrisData()
             {
-                connection.Open();
+                SepalLength = 4.5f,
+                SepalWidth = 5.6f,
+                PetalLength = 0.5f,
+                PetalWidth = 0.5f,
+            }).PredictedLabel);
 
-                using (var command = new MockCommand(connection, "Label", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
-                {
-                    var loader = mlContext.Data.CreateDatabaseLoader(loaderColumns);
+            Assert.Equal(1, engine.Predict(new IrisData()
+            {
+                SepalLength = 4.9f,
+                SepalWidth = 2.4f,
+                PetalLength = 3.3f,
+                PetalWidth = 1.0f,
+            }).PredictedLabel);
+        }
 
-                    var trainingData = loader.Load(() => command.ExecuteReader());
-                    //trainingData = mlContext.Data.Cache(trainingData, "Label", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth");
+        [Fact]
+        public void IrisSdcaMaximumEntropy()
+        {
+            var mlContext = new MLContext(seed: 1);
+            var connectionString = GetDataPath(TestDatasets.iris.trainFilename);
+            var commandText = "Label;SepalLength;SepalWidth;PetalLength;PetalWidth";
 
-                    var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
-                        .Append(mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
-                        //.AppendCacheCheckpoint(mlContext)
-                        .Append(mlContext.MulticlassClassification.Trainers.LightGbm())
-                        .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
+            var loaderColumns = new DatabaseLoader.Column[]
+            {
+                new DatabaseLoader.Column() { Name = "Label", Type = DbType.Int32 },
+                new DatabaseLoader.Column() { Name = "SepalLength", Type = DbType.Single },
+                new DatabaseLoader.Column() { Name = "SepalWidth", Type = DbType.Single },
+                new DatabaseLoader.Column() { Name = "PetalLength", Type = DbType.Single },
+                new DatabaseLoader.Column() { Name = "PetalWidth", Type = DbType.Single }
+            };
 
-                    var model = pipeline.Fit(trainingData);
+            var loader = mlContext.Data.CreateDatabaseLoader(loaderColumns);
 
-                    var engine = mlContext.Model.CreatePredictionEngine<IrisData, IrisPrediction>(model);
+            var mockProviderFactory = new MockProviderFactory(mlContext, loaderColumns);
+            var databaseSource = new DatabaseSource(mockProviderFactory, connectionString, commandText);
 
-                    Assert.Equal(0, engine.Predict(new IrisData()
-                    {
-                        SepalLength = 4.5f,
-                        SepalWidth = 5.6f,
-                        PetalLength = 0.5f,
-                        PetalWidth = 0.5f,
-                    }).PredictedLabel);
-                    Assert.Equal(1, engine.Predict(new IrisData()
-                    {
-                        SepalLength = 4.9f,
-                        SepalWidth = 2.4f,
-                        PetalLength = 3.3f,
-                        PetalWidth = 1.0f,
-                    }).PredictedLabel);
-                }
-            }
+            var trainingData = loader.Load(databaseSource);
+
+            var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
+                .Append(mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
+                .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy())
+                .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
+
+            var model = pipeline.Fit(trainingData);
+
+            var engine = mlContext.Model.CreatePredictionEngine<IrisData, IrisPrediction>(model);
+
+            Assert.Equal(0, engine.Predict(new IrisData()
+            {
+                SepalLength = 4.5f,
+                SepalWidth = 5.6f,
+                PetalLength = 0.5f,
+                PetalWidth = 0.5f,
+            }).PredictedLabel);
+
+            Assert.Equal(1, engine.Predict(new IrisData()
+            {
+                SepalLength = 4.9f,
+                SepalWidth = 2.4f,
+                PetalLength = 3.3f,
+                PetalWidth = 1.0f,
+            }).PredictedLabel);
         }
 
         public class IrisData
@@ -92,17 +137,28 @@ namespace Microsoft.ML.Tests
         }
     }
 
+    internal sealed class MockProviderFactory : DbProviderFactory
+    {
+        private MLContext _context;
+        private DatabaseLoader.Column[] _columns;
+
+        public MockProviderFactory(MLContext context, DatabaseLoader.Column[] columns)
+        {
+            _context = context;
+            _columns = columns;
+        }
+
+        public override DbConnection CreateConnection() => new MockConnection(_context, _columns);
+    }
+
     internal sealed class MockConnection : DbConnection
     {
         private string _dataPath;
-        private DatabaseLoader.Column[] _columns;
         private TextLoader _reader;
-        private IDataView _dataView;
 
-        public MockConnection(MLContext mlContext, string dataPath, DatabaseLoader.Column[] columns)
+        public MockConnection(MLContext context, DatabaseLoader.Column[] columns)
         {
-            _dataPath = dataPath;
-            _columns = columns;
+            Columns = columns;
 
             var readerColumns = new TextLoader.Column[columns.Length];
 
@@ -115,10 +171,10 @@ namespace Microsoft.ML.Tests
                 readerColumns[i] = new TextLoader.Column(column.Name, internalDataKind.ToDataKind(), i);
             }
 
-            _reader = mlContext.Data.CreateTextLoader(readerColumns);
+            _reader = context.Data.CreateTextLoader(readerColumns);
         }
 
-        public DatabaseLoader.Column[] Columns => _columns;
+        public DatabaseLoader.Column[] Columns { get; }
 
         public override string ConnectionString
         {
@@ -129,108 +185,49 @@ namespace Microsoft.ML.Tests
 
             set
             {
-                throw new NotImplementedException();
+                _dataPath = value;
             }
         }
 
-        public override string Database
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        public override string Database => throw new NotImplementedException();
 
-        public override string DataSource
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        public override string DataSource => throw new NotImplementedException();
 
-        public IDataView DataView => _dataView;
+        public IDataView DataView { get; private set; }
 
-        public override string ServerVersion
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        public override string ServerVersion => throw new NotImplementedException();
 
-        public override ConnectionState State
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        public override ConnectionState State => throw new NotImplementedException();
 
-        public override void ChangeDatabase(string databaseName)
-        {
-            throw new NotImplementedException();
-        }
+        public override void ChangeDatabase(string databaseName) => throw new NotImplementedException();
 
-        public override void Close()
-        {
-            throw new NotImplementedException();
-        }
+        public override void Close() => throw new NotImplementedException();
 
         public override void Open()
         {
-            _dataView = _reader.Load(_dataPath);
+            DataView = _reader.Load(_dataPath);
         }
 
-        protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
-        {
-            throw new NotImplementedException();
-        }
+        protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) => throw new NotImplementedException();
 
-        protected override DbCommand CreateDbCommand()
-        {
-            throw new NotImplementedException();
-        }
+        protected override DbCommand CreateDbCommand() => new MockCommand(this);
     }
 
     internal sealed class MockCommand : DbCommand
     {
-        private MockConnection _connection;
-        private string[] _inputColumnNames;
-
-        public MockCommand(MockConnection connection, params string[] inputColumnNames)
+        public MockCommand(MockConnection connection)
         {
-            _connection = connection;
-            _inputColumnNames = inputColumnNames;
+            CommandText = string.Empty;
+            Connection = connection;
         }
 
-        public override string CommandText
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-
-            set
-            {
-                throw new NotImplementedException();
-            }
-        }
+        public override string CommandText { get; set; }
 
         public override int CommandTimeout
         {
-            get
-            {
-                throw new NotImplementedException();
-            }
-
-            set
-            {
-                throw new NotImplementedException();
-            }
+            get => throw new NotImplementedException();
+            set => throw new NotImplementedException();
         }
-
-        public string[] InputColumnNames => _inputColumnNames;
 
         public override CommandType CommandType
         {
@@ -247,93 +244,37 @@ namespace Microsoft.ML.Tests
 
         public override bool DesignTimeVisible
         {
-            get
-            {
-                throw new NotImplementedException();
-            }
-
-            set
-            {
-                throw new NotImplementedException();
-            }
+            get => throw new NotImplementedException();
+            set => throw new NotImplementedException();
         }
 
         public override UpdateRowSource UpdatedRowSource
         {
-            get
-            {
-                throw new NotImplementedException();
-            }
-
-            set
-            {
-                throw new NotImplementedException();
-            }
+            get => throw new NotImplementedException();
+            set => throw new NotImplementedException();
         }
 
-        protected override DbConnection DbConnection
-        {
-            get
-            {
-                return _connection;
-            }
+        protected override DbConnection DbConnection { get; set; }
 
-            set
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        protected override DbParameterCollection DbParameterCollection
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        protected override DbParameterCollection DbParameterCollection => throw new NotImplementedException();
 
         protected override DbTransaction DbTransaction
         {
-            get
-            {
-                throw new NotImplementedException();
-            }
-
-            set
-            {
-                throw new NotImplementedException();
-            }
+            get => throw new NotImplementedException();
+            set => throw new NotImplementedException();
         }
 
-        public override void Cancel()
-        {
-            throw new NotImplementedException();
-        }
+        public override void Cancel() => throw new NotImplementedException();
 
-        public override int ExecuteNonQuery()
-        {
-            throw new NotImplementedException();
-        }
+        public override int ExecuteNonQuery() => throw new NotImplementedException();
 
-        public override object ExecuteScalar()
-        {
-            throw new NotImplementedException();
-        }
+        public override object ExecuteScalar() => throw new NotImplementedException();
 
-        public override void Prepare()
-        {
-            throw new NotImplementedException();
-        }
+        public override void Prepare() => throw new NotImplementedException();
 
-        protected override DbParameter CreateDbParameter()
-        {
-            throw new NotImplementedException();
-        }
+        protected override DbParameter CreateDbParameter() => throw new NotImplementedException();
 
-        protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
-        {
-            return new MockDbDataReader(this);
-        }
+        protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior) => new MockDbDataReader(this);
     }
 
     internal sealed class MockDbDataReader : DbDataReader
@@ -349,122 +290,48 @@ namespace Microsoft.ML.Tests
             var connection = (MockConnection)_command.Connection;
             _dataView = connection.DataView;
 
-            var inputColumns = _dataView.Schema.Where((column) => 
-                command.InputColumnNames.Any((columnName) => column.Name.Equals(column.Name))
-            );
+            var inputColumns = _dataView.Schema.Where((column) => {
+                var inputColumnNames = command.CommandText.Split(';');
+                return inputColumnNames.Any((columnName) => column.Name.Equals(column.Name));
+            });
             _rowCursor = _dataView.GetRowCursor(inputColumns);
         }
 
-        public override object this[int ordinal]
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        public override object this[int ordinal] => throw new NotImplementedException();
 
-        public override object this[string name]
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        public override object this[string name] => throw new NotImplementedException();
 
-        public override int Depth
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        public override int Depth => throw new NotImplementedException();
 
-        public override int FieldCount
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        public override int FieldCount => throw new NotImplementedException();
 
-        public override bool HasRows
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        public override bool HasRows => throw new NotImplementedException();
 
-        public override bool IsClosed
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        public override bool IsClosed => throw new NotImplementedException();
 
-        public override int RecordsAffected
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        public override int RecordsAffected => throw new NotImplementedException();
 
-        public override bool GetBoolean(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
+        public override bool GetBoolean(int ordinal) => throw new NotImplementedException();
 
-        public override byte GetByte(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
+        public override byte GetByte(int ordinal) => throw new NotImplementedException();
 
-        public override long GetBytes(int ordinal, long dataOffset, byte[] buffer, int bufferOffset, int length)
-        {
-            throw new NotImplementedException();
-        }
+        public override long GetBytes(int ordinal, long dataOffset, byte[] buffer, int bufferOffset, int length) => throw new NotImplementedException();
 
-        public override char GetChar(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
+        public override char GetChar(int ordinal) => throw new NotImplementedException();
 
-        public override long GetChars(int ordinal, long dataOffset, char[] buffer, int bufferOffset, int length)
-        {
-            throw new NotImplementedException();
-        }
+        public override long GetChars(int ordinal, long dataOffset, char[] buffer, int bufferOffset, int length) => throw new NotImplementedException();
 
-        public override string GetDataTypeName(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
+        public override string GetDataTypeName(int ordinal) => throw new NotImplementedException();
 
-        public override DateTime GetDateTime(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
+        public override DateTime GetDateTime(int ordinal) => throw new NotImplementedException();
 
-        public override decimal GetDecimal(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
+        public override decimal GetDecimal(int ordinal) => throw new NotImplementedException();
 
-        public override double GetDouble(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
+        public override double GetDouble(int ordinal) => throw new NotImplementedException();
 
-        public override IEnumerator GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
+        public override IEnumerator GetEnumerator() => throw new NotImplementedException();
 
-        public override Type GetFieldType(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
+        public override Type GetFieldType(int ordinal) => throw new NotImplementedException();
 
         public override float GetFloat(int ordinal)
         {
@@ -473,15 +340,9 @@ namespace Microsoft.ML.Tests
             return result;
         }
 
-        public override Guid GetGuid(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
+        public override Guid GetGuid(int ordinal) => throw new NotImplementedException();
 
-        public override short GetInt16(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
+        public override short GetInt16(int ordinal) => throw new NotImplementedException();
 
         public override int GetInt32(int ordinal)
         {
@@ -490,15 +351,9 @@ namespace Microsoft.ML.Tests
             return result;
         }
 
-        public override long GetInt64(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
+        public override long GetInt64(int ordinal) => throw new NotImplementedException();
 
-        public override string GetName(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
+        public override string GetName(int ordinal) => throw new NotImplementedException();
 
         public override int GetOrdinal(string name)
         {
@@ -518,34 +373,16 @@ namespace Microsoft.ML.Tests
             return -1;
         }
 
-        public override string GetString(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
+        public override string GetString(int ordinal) => throw new NotImplementedException();
 
-        public override object GetValue(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
+        public override object GetValue(int ordinal) => throw new NotImplementedException();
 
-        public override int GetValues(object[] values)
-        {
-            throw new NotImplementedException();
-        }
+        public override int GetValues(object[] values) => throw new NotImplementedException();
 
-        public override bool IsDBNull(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
+        public override bool IsDBNull(int ordinal) => throw new NotImplementedException();
 
-        public override bool NextResult()
-        {
-            throw new NotImplementedException();
-        }
+        public override bool NextResult() => throw new NotImplementedException();
 
-        public override bool Read()
-        {
-            return _rowCursor.MoveNext();
-        }
+        public override bool Read() => _rowCursor.MoveNext();
     }
 }
