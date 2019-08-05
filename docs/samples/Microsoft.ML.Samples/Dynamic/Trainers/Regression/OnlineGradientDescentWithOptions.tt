@@ -19,6 +19,8 @@ string TrainerOptions = @" OnlineGradientDescentTrainer.Options
                 InitialWeightsDiameter = 0.2f
             }";
 
-string ExpectedOutputPerInstance= @"// This trainer is not numerically stable. Please see issue #2425.";
-string ExpectedOutput = @"// This trainer is not numerically stable. Please see issue #2425.";
+string ExpectedOutputPerInstance= @"// This trainer is not numerically stable.
+            // Please see issue #2425.";
+string ExpectedOutput = @"// This trainer is not numerically stable. Please see
+            // issue #2425.";
 #>

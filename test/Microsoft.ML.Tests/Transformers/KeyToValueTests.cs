@@ -6,7 +6,6 @@ using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
@@ -62,36 +61,27 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        public void KeyToValuePigsty()
+        public void KeyToValue()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoaderStatic.CreateLoader(Env, ctx => (
-                ScalarString: ctx.LoadText(1),
-                VectorString: ctx.LoadText(1, 4)
-            ));
+            var data = ML.Data.LoadFromTextFile(dataPath, new[] {
+                new TextLoader.Column("ScalarString", DataKind.String, 0),
+                new TextLoader.Column("VectorString", DataKind.String, 1, 4),
+            });
 
-            var data = reader.Load(dataPath);
-
-            // Non-pigsty Term.
-            var dynamicData = new ValueToKeyMappingEstimator(Env, new[] {
+            var transformedData = new ValueToKeyMappingEstimator(Env, new[] {
                 new ValueToKeyMappingEstimator.ColumnOptions("A", "ScalarString"),
                 new ValueToKeyMappingEstimator.ColumnOptions("B", "VectorString") })
-                .Fit(data.AsDynamic).Transform(data.AsDynamic);
+                .Fit(data).Transform(data);
 
-            var data2 = dynamicData.AssertStatic(Env, ctx => (
-                A: ctx.KeyU4.TextValues.Scalar,
-                B: ctx.KeyU4.TextValues.Vector));
+            var est = ML.Transforms.Conversion.MapKeyToValue("ScalarString", "A")
+                .Append(ML.Transforms.Conversion.MapKeyToValue("VectorString", "B"));
 
-            var est = data2.MakeNewEstimator()
-                .Append(row => (
-                ScalarString: row.A.ToValue(),
-                VectorString: row.B.ToValue()));
+            TestEstimatorCore(est, transformedData, invalidInput: data);
 
-            TestEstimatorCore(est.AsDynamic, data2.AsDynamic, invalidInput: data.AsDynamic);
-
-            var data2Transformed = est.Fit(data2).Transform(data2).AsDynamic;
+            var data2Transformed = est.Fit(transformedData).Transform(transformedData);
             // Check that term and ToValue are round-trippable.
-            var dataLeft = ML.Transforms.SelectColumns(new[] { "ScalarString", "VectorString" }).Fit(data.AsDynamic).Transform(data.AsDynamic);
+            var dataLeft = ML.Transforms.SelectColumns(new[] { "ScalarString", "VectorString" }).Fit(data).Transform(data);
             var dataRight = ML.Transforms.SelectColumns(new[] { "ScalarString", "VectorString" }).Fit(data2Transformed).Transform(data2Transformed);
 
             CheckSameSchemas(dataLeft.Schema, dataRight.Schema);

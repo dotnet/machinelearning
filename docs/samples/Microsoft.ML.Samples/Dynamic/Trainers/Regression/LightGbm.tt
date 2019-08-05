@@ -1,12 +1,16 @@
 ﻿<#@ include file="RegressionSamplesTemplate.ttinclude"#>
 
 <#+
-string ClassHeader = @"// This example requires installation of additional NuGet package
-        // <a href=""https://www.nuget.org/packages/Microsoft.ML.LightGbm/"">Microsoft.ML.LightGBM</a>. ";
+string ClassHeader = @"// This example requires installation of additional NuGet
+        // package for Microsoft.ML.LightGBM
+        // at https://www.nuget.org/packages/Microsoft.ML.LightGbm/";
 
 string ClassName="LightGbm";
 string ExtraUsing = null;
-string Trainer = @"LightGbm(labelColumnName: nameof(DataPoint.Label), featureColumnName: nameof(DataPoint.Features))";
+string Trainer = @"
+                LightGbm(
+                labelColumnName: nameof(DataPoint.Label),
+                featureColumnName: nameof(DataPoint.Features))";
 string TrainerOptions = null;
 
 string ExpectedOutputPerInstance= @"// Expected output:

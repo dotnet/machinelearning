@@ -52,7 +52,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public static void RandomizedPcaInMemory()
         {
-            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging,
             // as a catalog of available operations and as the source of randomness.
             // Setting the seed to a fixed number in this example to make outputs deterministic.
             var mlContext = new MLContext(seed: 0);
@@ -68,7 +68,38 @@ namespace Microsoft.ML.Tests
             {
                 FeatureColumnName = nameof(DataPoint.Features),
                 Rank = 1,
-                EnsureZeroMean = false
+                EnsureZeroMean = false,
+                Seed = 10
+            };
+
+            // Create anther anomaly detector. Its underlying algorithm is randomized PCA.
+            var trainer2 = mlContext.AnomalyDetection.Trainers.RandomizedPca(options);
+
+            // Test the second detector.
+            ExecutePipelineWithGivenRandomizedPcaTrainer(mlContext, trainer2);
+        }
+
+        [Fact]
+        public static void RandomizedPcaChangeThreshold()
+        {
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging,
+            // as a catalog of available operations and as the source of randomness.
+            // Setting the seed to a fixed number in this example to make outputs deterministic.
+            var mlContext = new MLContext(seed: 0);
+
+            // Create an anomaly detector. Its underlying algorithm is randomized PCA.
+            var trainer1 = mlContext.AnomalyDetection.Trainers.RandomizedPca(featureColumnName: nameof(DataPoint.Features), rank: 1, ensureZeroMean: false);
+
+            // Test the first detector.
+            ExecutePipelineWithGivenRandomizedPcaTrainer(mlContext, trainer1);
+
+            // Object required in the creation of another detector.
+            var options = new Trainers.RandomizedPcaTrainer.Options()
+            {
+                FeatureColumnName = nameof(DataPoint.Features),
+                Rank = 1,
+                EnsureZeroMean = false,
+                Seed = 10
             };
 
             // Create anther anomaly detector. Its underlying algorithm is randomized PCA.
@@ -105,12 +136,14 @@ namespace Microsoft.ML.Tests
         {
             var samples = new List<DataPoint>()
             {
-                new DataPoint(){ Features= new float[3] {1, 0, 0} },
-                new DataPoint(){ Features= new float[3] {0, 2, 1} },
-                new DataPoint(){ Features= new float[3] {1, 2, 3} },
-                new DataPoint(){ Features= new float[3] {0, 1, 0} },
-                new DataPoint(){ Features= new float[3] {0, 2, 1} },
-                new DataPoint(){ Features= new float[3] {-100, 50, -100} }
+                new DataPoint(){ Features = new float[3] {0, 2, 1} },
+                new DataPoint(){ Features = new float[3] {0, 2, 3} },
+                new DataPoint(){ Features = new float[3] {0, 2, 4} },
+                new DataPoint(){ Features = new float[3] {0, 2, 1} },
+                new DataPoint(){ Features = new float[3] {0, 2, 2} },
+                new DataPoint(){ Features = new float[3] {0, 2, 3} },
+                new DataPoint(){ Features = new float[3] {0, 2, 4} },
+                new DataPoint(){ Features = new float[3] {1, 0, 0} }
             };
 
             // Convert the List<DataPoint> to IDataView, a consumble format to ML.NET functions.
@@ -126,17 +159,78 @@ namespace Microsoft.ML.Tests
             var results = mlContext.Data.CreateEnumerable<Result>(transformed, reuseRowObject: false).ToList();
 
             // First 5 examples are inliers.
-            for (int i = 0; i < 5; ++i)
+            for (int i = 0; i < 7; ++i)
             {
-                // Inlier should be predicted as true.
-                Assert.True(results[i].PredictedLabel);
+                // Inlier should be predicted as false.
+                Assert.False(results[i].PredictedLabel);
                 // Higher score means closer to inlier.
-                Assert.InRange(results[i].Score, 0.3, 1);
+                Assert.InRange(results[i].Score, 0, 0.5);
             }
 
-            // Last example is outlier. Note that outlier should be predicted as false.
+            // Last example is outlier. Note that outlier should be predicted as true.
+            Assert.True(results[7].PredictedLabel);
+            Assert.InRange(results[7].Score, 0.5, 1);
+        }
+
+
+        /// <summary>
+        /// Help function used to execute trainers defined in <see cref="RandomizedPcaInMemory"/>.
+        /// </summary>
+        private static void ExecuteRandomizedPcaTrainerChangeThreshold(MLContext mlContext, Trainers.RandomizedPcaTrainer trainer)
+        {
+            var samples = new List<DataPoint>()
+            {
+                new DataPoint(){ Features = new float[3] {0, 2, 1} },
+                new DataPoint(){ Features = new float[3] {0, 2, 3} },
+                new DataPoint(){ Features = new float[3] {0, 2, 4} },
+                new DataPoint(){ Features = new float[3] {0, 2, 1} },
+                new DataPoint(){ Features = new float[3] {0, 2, 2} },
+                new DataPoint(){ Features = new float[3] {0, 2, 3} },
+                new DataPoint(){ Features = new float[3] {0, 2, 4} },
+                new DataPoint(){ Features = new float[3] {1, 0, 0} }
+            };
+
+            // Convert the List<DataPoint> to IDataView, a consumble format to ML.NET functions.
+            var data = mlContext.Data.LoadFromEnumerable(samples);
+
+            // Train the anomaly detector.
+            var model = trainer.Fit(data);
+
+            var transformer = mlContext.AnomalyDetection.ChangeModelThreshold(model, 0.3f);
+
+            // Apply the trained model on the training data.
+            var transformed = transformer.Transform(data);
+
+            // Read ML.NET predictions into IEnumerable<Result>.
+            var results = mlContext.Data.CreateEnumerable<Result>(transformed, reuseRowObject: false).ToList();
+
+            // Inlier should be predicted as false.
+            Assert.False(results[0].PredictedLabel);
+            Assert.InRange(results[0].Score, 0, 0.3);
+            // Inlier should be predicted as false.
+            Assert.False(results[1].PredictedLabel);
+            Assert.InRange(results[1].Score, 0, 0.3);
+            // Inlier should be predicted as false.
+            Assert.False(results[2].PredictedLabel);
+            Assert.InRange(results[2].Score, 0, 0.3);
+            // Inlier should be predicted as false.
+            Assert.False(results[3].PredictedLabel);
+            Assert.InRange(results[3].Score, 0, 0.3);
+
+            // Outlier should be predicted as true.
+            Assert.True(results[4].PredictedLabel);
+            Assert.InRange(results[4].Score, 0.3, 1);
+
+            // Inlier should be predicted as false.
             Assert.False(results[5].PredictedLabel);
             Assert.InRange(results[5].Score, 0, 0.3);
+            // Inlier should be predicted as false.
+            Assert.False(results[6].PredictedLabel);
+            Assert.InRange(results[6].Score, 0, 0.3);
+
+            // Outlier should be predicted as true.
+            Assert.True(results[7].PredictedLabel);
+            Assert.InRange(results[7].Score, 0.3, 1);
         }
 
         private IDataView DetectAnomalyInMnistOneClass(string trainPath, string testPath)

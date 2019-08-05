@@ -9,14 +9,16 @@ namespace Samples.Dynamic
 {
     public static class DetectChangePointBySsa
     {
-        // This example creates a time series (list of Data with the i-th element corresponding to the i-th time slot). 
-        // It demonstrates stateful prediction engine that updates the state of the model and allows for saving/reloading.
-        // The estimator is applied then to identify points where data distribution changed.
-        // This estimator can account for temporal seasonality in the data.
+        // This example creates a time series (list of Data with the i-th element
+        // corresponding to the i-th time slot). It demonstrates stateful prediction
+        // engine that updates the state of the model and allows for
+        // saving/reloading. The estimator is applied then to identify points where
+        // data distribution changed. This estimator can account for temporal
+        // seasonality in the data.
         public static void Example()
         {
-            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
+            // Create a new ML context, for ML.NET operations. It can be used for
+            // exception tracking and logging, as well as the source of randomness.
             var ml = new MLContext();
 
             // Generate sample series data with a recurring pattern
@@ -54,12 +56,16 @@ namespace Samples.Dynamic
             int changeHistoryLength = 8;
 
             // Train the change point detector.
-            ITransformer model = ml.Transforms.DetectChangePointBySsa(outputColumnName, inputColumnName, confidence, changeHistoryLength, TrainingSize, SeasonalitySize + 1).Fit(dataView);
+            ITransformer model = ml.Transforms.DetectChangePointBySsa(
+                outputColumnName, inputColumnName, confidence, changeHistoryLength,
+                TrainingSize, SeasonalitySize + 1).Fit(dataView);
 
             // Create a prediction engine from the model for feeding new data.
-            var engine = model.CreateTimeSeriesEngine<TimeSeriesData, ChangePointPrediction>(ml);
+            var engine = model.CreateTimeSeriesEngine<TimeSeriesData,
+                ChangePointPrediction>(ml);
 
-            // Start streaming new data points with no change point to the prediction engine.
+            // Start streaming new data points with no change point to the
+            // prediction engine.
             Console.WriteLine($"Output from ChangePoint predictions on new data:");
             Console.WriteLine("Data\tAlert\tScore\tP-Value\tMartingale value");
             
@@ -99,7 +105,8 @@ namespace Samples.Dynamic
                 model = ml.Model.Load(file, out DataViewSchema schema);
 
             // We must create a new prediction engine from the persisted model.
-            engine = model.CreateTimeSeriesEngine<TimeSeriesData, ChangePointPrediction>(ml);
+            engine = model.CreateTimeSeriesEngine<TimeSeriesData,
+                ChangePointPrediction>(ml);
 
             // Run predictions on the loaded model.
             for (int i = 0; i < 5; i++)
@@ -116,9 +123,11 @@ namespace Samples.Dynamic
 
         }
 
-        private static void PrintPrediction(float value, ChangePointPrediction prediction) =>
-            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}\t{4:0.00}", value, prediction.Prediction[0],
-                prediction.Prediction[1], prediction.Prediction[2], prediction.Prediction[3]);
+        private static void PrintPrediction(float value, ChangePointPrediction
+            prediction) =>
+            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}\t{4:0.00}", value,
+            prediction.Prediction[0], prediction.Prediction[1],
+            prediction.Prediction[2], prediction.Prediction[3]);
 
         class ChangePointPrediction
         {

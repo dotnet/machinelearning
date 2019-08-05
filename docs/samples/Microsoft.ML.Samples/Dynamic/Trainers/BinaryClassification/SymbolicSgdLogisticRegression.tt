@@ -10,8 +10,9 @@ string LabelThreshold = "0.5f";
 string DataSepValue = "0.1f";
 string OptionsInclude = "";
 string Comments = @"
-        // This example requires installation of additional NuGet package
-        // <a href=""https://www.nuget.org/packages/Microsoft.ML.Mkl.Components/"">Microsoft.ML.Mkl.Components</a>.";
+        // This example requires installation of additional NuGet package for 
+        // Microsoft.ML.FastTree at
+        // https://www.nuget.org/packages/Microsoft.ML.FastTree/";
 
 string ExpectedOutputPerInstance = @"// Expected output:
             //   Label: True, Prediction: False

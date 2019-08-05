@@ -267,7 +267,7 @@ namespace Microsoft.ML.Data
 
         [BestFriend]
         internal AnomalyPredictionTransformer(IHostEnvironment env, TModel model, DataViewSchema inputSchema, string featureColumn,
-            float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
+            float threshold = 0.5f, string thresholdColumn = DefaultColumnNames.Score)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(AnomalyPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {
             Host.CheckNonEmpty(thresholdColumn, nameof(thresholdColumn));

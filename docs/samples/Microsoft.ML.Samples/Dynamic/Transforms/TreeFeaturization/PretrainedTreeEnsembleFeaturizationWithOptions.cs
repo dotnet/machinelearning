@@ -13,15 +13,17 @@ namespace Samples.Dynamic.Transforms.TreeFeaturization
         {
             // Create data set
             int dataPointCount = 200;
-            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-            // as a catalog of available operations and as the source of randomness.
-            // Setting the seed to a fixed number in this example to make outputs deterministic.
+            // Create a new context for ML.NET operations. It can be used for
+            // exception tracking and logging, as a catalog of available operations
+            // and as the source of randomness. Setting the seed to a fixed number
+            // in this example to make outputs deterministic.
             var mlContext = new MLContext(seed: 0);
 
             // Create a list of training data points.
             var dataPoints = GenerateRandomDataPoints(dataPointCount).ToList();
 
-            // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
+            // Convert the list of data points to an IDataView object, which is
+            // consumable by ML.NET API.
             var dataView = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // Define input and output columns of tree-based featurizer.
@@ -31,7 +33,8 @@ namespace Samples.Dynamic.Transforms.TreeFeaturization
             string leavesColumnName = nameof(TransformedDataPoint.Leaves);
             string pathsColumnName = nameof(TransformedDataPoint.Paths);
 
-            // Define a tree model whose trees will be extracted to construct a tree featurizer.
+            // Define a tree model whose trees will be extracted to construct a tree
+            // featurizer.
             var trainer = mlContext.BinaryClassification.Trainers.FastTree(
                 new FastTreeBinaryTrainer.Options
                 {
@@ -57,36 +60,51 @@ namespace Samples.Dynamic.Transforms.TreeFeaturization
                 PathsColumnName = pathsColumnName
             };
 
-            // Fit the created featurizer. It doesn't perform actual training because a pretrained model is provided.
-            var treeFeaturizer = mlContext.Transforms.FeaturizeByPretrainTreeEnsemble(options).Fit(dataView);
+            // Fit the created featurizer. It doesn't perform actual training
+            // because a pretrained model is provided.
+            var treeFeaturizer = mlContext.Transforms
+                .FeaturizeByPretrainTreeEnsemble(options).Fit(dataView);
 
             // Apply TreeEnsembleFeaturizer to the input data.
             var transformed = treeFeaturizer.Transform(dataView);
 
-            // Convert IDataView object to a list. Each element in the resulted list corresponds to a row in the IDataView.
-            var transformedDataPoints = mlContext.Data.CreateEnumerable<TransformedDataPoint>(transformed, false).ToList();
+            // Convert IDataView object to a list. Each element in the resulted list
+            // corresponds to a row in the IDataView.
+            var transformedDataPoints = mlContext.Data.CreateEnumerable<
+                TransformedDataPoint>(transformed, false).ToList();
 
             // Print out the transformation of the first 3 data points.
             for (int i = 0; i < 3; ++i)
             {
                 var dataPoint = dataPoints[i];
                 var transformedDataPoint = transformedDataPoints[i];
-                Console.WriteLine($"The original feature vector [{String.Join(",", dataPoint.Features)}] is transformed to three different tree-based feature vectors:");
-                Console.WriteLine($"  Trees' output values: [{String.Join(",", transformedDataPoint.Trees)}].");
-                Console.WriteLine($"  Leave IDs' 0-1 representation: [{String.Join(",", transformedDataPoint.Leaves)}].");
-                Console.WriteLine($"  Paths IDs' 0-1 representation: [{String.Join(",", transformedDataPoint.Paths)}].");
+                Console.WriteLine("The original feature vector [" + String.Join(
+                    ",", dataPoint.Features) + "] is transformed to three " +
+                    "different tree-based feature vectors:");
+
+                Console.WriteLine("  Trees' output values: [" + String.Join(",",
+                    transformedDataPoint.Trees) + "].");
+
+                Console.WriteLine("  Leave IDs' 0-1 representation: [" + String
+                    .Join(",", transformedDataPoint.Leaves) + "].");
+
+                Console.WriteLine("  Paths IDs' 0-1 representation: [" + String
+                    .Join(",", transformedDataPoint.Paths) + "].");
             }
 
             // Expected output:
-            //  The original feature vector[0.8173254, 0.7680227, 0.5581612] is transformed to three different tree - based feature vectors:
+            //  The original feature vector[0.8173254, 0.7680227, 0.5581612] is
+            //  transformed to three different tree - based feature vectors:
             //    Trees' output values: [0.4172185].
             //    Leave IDs' 0-1 representation: [1,0,0,0].
             //    Paths IDs' 0-1 representation: [1,1,1].
-            //  The original feature vector[0.7588848, 1.106027, 0.6421779] is transformed to three different tree - based feature vectors:
+            //  The original feature vector[0.7588848, 1.106027, 0.6421779] is
+            //   transformed to three different tree - based feature vectors:
             //    Trees' output values: [-1].
             //    Leave IDs' 0-1 representation: [0,0,1,0].
             //    Paths IDs' 0-1 representation: [1,1,0].
-            //  The original feature vector[0.2737045, 0.2919063, 0.4673147] is transformed to three different tree - based feature vectors:
+            //  The original feature vector[0.2737045, 0.2919063, 0.4673147] is
+            //   transformed to three different tree - based feature vectors:
             //    Trees' output values: [0.4172185].
             //    Leave IDs' 0-1 representation: [1,0,0,0].
             //    Paths IDs' 0-1 representation: [1,1,1].
@@ -104,12 +122,14 @@ namespace Samples.Dynamic.Transforms.TreeFeaturization
             //     /    Leaf -4
             //   Leaf -1
             //
-            //   Thus, if a data point reaches Leaf indexed by -1, its 0-1 path representation may be [1,1,1] because that data point
+            //   Thus, if a data point reaches Leaf indexed by -1, its 0-1 path
+            //   representation may be [1,1,1] because that data point
             //   went through all Node 0, Node 1, and Node 2.
 
         }
 
-        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
+        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,
+            int seed=0)
         {
             var random = new Random(seed);
             float randomFloat() => (float)random.NextDouble();
@@ -120,13 +140,16 @@ namespace Samples.Dynamic.Transforms.TreeFeaturization
                 {
                     Label = label,
                     // Create random features that are correlated with the label.
-                    // For data points with false label, the feature values are slightly increased by adding a constant.
-                    Features = Enumerable.Repeat(label, 3).Select(x => x ? randomFloat() : randomFloat() + 0.2f).ToArray()
+                    // For data points with false label, the feature values are
+                    // slightly increased by adding a constant.
+                    Features = Enumerable.Repeat(label, 3).Select(x => x ?
+                    randomFloat() : randomFloat() + 0.2f).ToArray()
                 };
             }
         }
 
-        // Example with label and 3 feature values. A data set is a collection of such examples.
+        // Example with label and 3 feature values. A data set is a collection of
+        // such examples.
         private class DataPoint
         {
             public bool Label { get; set; }
@@ -137,11 +160,12 @@ namespace Samples.Dynamic.Transforms.TreeFeaturization
         // Class used to capture the output of tree-base featurization.
         private class TransformedDataPoint : DataPoint
         {
-		    // The i-th value is the output value of the i-th decision tree.
+            // The i-th value is the output value of the i-th decision tree.
             public float[] Trees { get; set; }
-		    // The 0-1 encoding of leaves the input feature vector falls into.
+            // The 0-1 encoding of leaves the input feature vector falls into.
             public float[] Leaves { get; set; }
-		    // The 0-1 encoding of paths the input feature vector reaches the leaves.
+            // The 0-1 encoding of paths the input feature vector reaches the
+            // leaves.
             public float[] Paths { get; set; }
         }
     }

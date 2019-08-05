@@ -9,8 +9,8 @@ namespace Samples.Dynamic
     {
         public static void Example()
         {
-            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
+            // Create a new ML context, for ML.NET operations. It can be used for
+            // exception tracking and logging, as well as the source of randomness.
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
@@ -19,7 +19,8 @@ namespace Samples.Dynamic
             // Printing the columns of the input data. 
             Console.WriteLine($"NumericVector             StringVector");
             foreach (var item in rawData)
-                Console.WriteLine("{0,-25} {1,-25}", string.Join(",", item.NumericVector), string.Join(",", item.StringVector));
+                Console.WriteLine("{0,-25} {1,-25}", string.Join(",", item.
+                    NumericVector), string.Join(",", item.StringVector));
 
             // NumericVector             StringVector
             // 4,NaN,6                   A,WA,Male
@@ -29,22 +30,27 @@ namespace Samples.Dynamic
 
             var data = mlContext.Data.LoadFromEnumerable(rawData);
 
-            // We will use the SelectFeaturesBasedOnCount transform estimator, to retain only those slots which have 
-            // at least 'count' non-default values per slot.
+            // We will use the SelectFeaturesBasedOnCount transform estimator, to
+            // retain only those slots which have at least 'count' non-default
+            // values per slot.
 
-            // Multi column example. This pipeline transform two columns using the provided parameters.
-            var pipeline = mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount(
-                new InputOutputColumnPair[] { new InputOutputColumnPair("NumericVector"), new InputOutputColumnPair("StringVector") },
-                count: 3);
+            // Multi column example. This pipeline transform two columns using the
+            // provided parameters.
+            var pipeline = mlContext.Transforms.FeatureSelection
+                .SelectFeaturesBasedOnCount(new InputOutputColumnPair[] { new
+                InputOutputColumnPair("NumericVector"), new InputOutputColumnPair(
+                "StringVector") }, count: 3);
 
             var transformedData = pipeline.Fit(data).Transform(data);
 
-            var convertedData = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, true);
+            var convertedData = mlContext.Data.CreateEnumerable<TransformedData>(
+                transformedData, true);
 
             // Printing the columns of the transformed data. 
             Console.WriteLine($"NumericVector             StringVector");
             foreach (var item in convertedData)
-                Console.WriteLine("{0,-25} {1,-25}", string.Join(",", item.NumericVector), string.Join(",", item.StringVector));
+                Console.WriteLine("{0,-25} {1,-25}", string.Join(",", item
+                    .NumericVector), string.Join(",", item.StringVector));
 
             // NumericVector             StringVector
             // 4,6                       A,Male

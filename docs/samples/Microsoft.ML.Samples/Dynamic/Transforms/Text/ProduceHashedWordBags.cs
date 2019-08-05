@@ -9,28 +9,43 @@ namespace Samples.Dynamic
     {
         public static void Example()
         {
-            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
+            // Create a new ML context, for ML.NET operations. It can be used for
+            // exception tracking and logging, as well as the source of randomness.
             var mlContext = new MLContext();
 
             // Create a small dataset as an IEnumerable.
             var samples = new List<TextData>()
             {
-                new TextData(){ Text = "This is an example to compute bag-of-word features using hashing." },
-                new TextData(){ Text = "ML.NET's ProduceHashedWordBags API produces count of n-grams and hashes it as an index into a vector of given bit length." },
-                new TextData(){ Text = "It does so by first tokenizing text/string into words/tokens then " },
-                new TextData(){ Text = "computing n-grams and hash them to the index given by hash value." },
-                new TextData(){ Text = "The hashing reduces the size of the output feature vector" },
-                new TextData(){ Text = "which is useful in case when number of n-grams is very large." },
+                new TextData(){ Text = "This is an example to compute " +
+                    "bag-of-word features using hashing." },
+
+                new TextData(){ Text = "ML.NET's ProduceHashedWordBags API " +
+                    "produces count of n-grams and hashes it as an index into " +
+                    "a vector of given bit length." },
+
+                new TextData(){ Text = "It does so by first tokenizing " +
+                    "text/string into words/tokens then " },
+
+                new TextData(){ Text = "computing n-grams and hash them to the " +
+                    "index given by hash value." },
+
+                new TextData(){ Text = "The hashing reduces the size of the " +
+                    "output feature vector" },
+
+                new TextData(){ Text = "which is useful in case when number of" +
+                    " n-grams is very large." },
             };
 
             // Convert training data to IDataView.
             var dataview = mlContext.Data.LoadFromEnumerable(samples);
 
-            // A pipeline for converting text into numeric bag-of-word features using hashing.
-            // The following call to 'ProduceHashedWordBags' implicitly tokenizes the text/string into words/tokens.
-            // Please note that the length of the output feature vector depends on the 'numberOfBits' settings.
-            var textPipeline = mlContext.Transforms.Text.ProduceHashedWordBags("BagOfWordFeatures", "Text",
+            // A pipeline for converting text into numeric bag-of-word features
+            // using hashing. The following call to 'ProduceHashedWordBags'
+            // implicitly tokenizes the text/string into words/tokens. Please note
+            // that the length of the output feature vector depends on the
+            // 'numberOfBits' settings.
+            var textPipeline = mlContext.Transforms.Text.ProduceHashedWordBags(
+                "BagOfWordFeatures", "Text",
                 numberOfBits: 5,
                 ngramLength: 3,
                 useAllLengths: false,
@@ -40,21 +55,29 @@ namespace Samples.Dynamic
             var textTransformer = textPipeline.Fit(dataview);
             var transformedDataView = textTransformer.Transform(dataview);
 
-            // Create the prediction engine to get the bag-of-word features extracted from the text.
-            var predictionEngine = mlContext.Model.CreatePredictionEngine<TextData, TransformedTextData>(textTransformer);
+            // Create the prediction engine to get the bag-of-word features
+            // extracted from the text.
+            var predictionEngine = mlContext.Model.CreatePredictionEngine<TextData,
+                TransformedTextData>(textTransformer);
 
             // Convert the text into numeric features.
             var prediction = predictionEngine.Predict(samples[0]);
 
             // Print the length of the feature vector.
-            Console.WriteLine($"Number of Features: {prediction.BagOfWordFeatures.Length}");
+            Console.WriteLine("Number of Features: " + prediction.BagOfWordFeatures
+                .Length);
 
             // Preview of the produced n-grams.
             // Get the slot names from the column's metadata.
-            // The slot names for a vector column corresponds to the names associated with each position in the vector.
+            // The slot names for a vector column corresponds to the names
+            // associated with each position in the vector.
             VBuffer<ReadOnlyMemory<char>> slotNames = default;
-            transformedDataView.Schema["BagOfWordFeatures"].GetSlotNames(ref slotNames);
-            var BagOfWordFeaturesColumn = transformedDataView.GetColumn<VBuffer<float>>(transformedDataView.Schema["BagOfWordFeatures"]);
+            transformedDataView.Schema["BagOfWordFeatures"].GetSlotNames(ref
+                slotNames);
+
+            var BagOfWordFeaturesColumn = transformedDataView.GetColumn<VBuffer<
+                float>>(transformedDataView.Schema["BagOfWordFeatures"]);
+
             var slots = slotNames.GetValues();
             Console.Write("N-grams: ");
             foreach (var featureRow in BagOfWordFeaturesColumn)
