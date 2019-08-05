@@ -713,73 +713,6 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        public class ImageNetData
-        {
-            [LoadColumn(0)]
-            public string ImagePath;
-
-            [LoadColumn(1)]
-            public string Label;
-
-            public static IEnumerable<ImageNetData> LoadImagesFromDirectory(string folder, int repeat = 1, bool useFolderNameasLabel = false)
-            {
-                var files = Directory.GetFiles(folder, "*", searchOption: SearchOption.AllDirectories);
-                foreach (var file in files)
-                {
-                    if (Path.GetExtension(file) != ".jpg")
-                        continue;
-
-                    var label = Path.GetFileName(file);
-                    if (useFolderNameasLabel)
-                        label = Directory.GetParent(file).Name;
-                    else
-                    {
-                        for (int index = 0; index < label.Length; index++)
-                        {
-                            if (!char.IsLetter(label[index]))
-                            {
-                                label = label.Substring(0, index);
-                                break;
-                            }
-                        }
-                    }
-
-                    for (int index = 0; index < repeat; index++)
-                        yield return new ImageNetData() { ImagePath = file, Label = label };
-                }
-            }
-        }
-
-        [Fact]
-        public void TransferLearning()
-        {
-            double expectedMicroAccuracy = 1;
-            double expectedMacroAccuracy = 1;
-
-            var mlContext = new MLContext(seed: 1);
-            var imagesDataFile = @"C:\Users\mzs\Downloads\flowers";//Path.GetDirectoryName(SamplesUtils.DatasetUtils.DownloadImages());
-            var data = mlContext.Data.LoadFromEnumerable(ImageNetData.LoadImagesFromDirectory(imagesDataFile, 1, true));
-            data = mlContext.Data.ShuffleRows(data, 5);
-            var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
-                .Append(mlContext.Transforms.LoadImages("ImageObject", null, "ImagePath"))
-                .Append(mlContext.Transforms.ResizeImages("Image", inputColumnName: "ImageObject", imageWidth: 299, imageHeight: 299))
-                .Append(mlContext.Transforms.ExtractPixels("Image", interleavePixelColors: true))
-                .Append(mlContext.Model.ImageClassification("Image", "Label", arch: DnnEstimator.Architecture.InceptionV3, epoch: 3, batchSize: 10, addBatchDimensionInput: false));
-
-            var trainedModel = pipeline.Fit(data);
-            var predicted = trainedModel.Transform(data);
-            var metrics = mlContext.MulticlassClassification.Evaluate(predicted);
-            Assert.InRange(metrics.MicroAccuracy, expectedMicroAccuracy - 0.1, expectedMicroAccuracy + 0.1);
-            Assert.InRange(metrics.MacroAccuracy, expectedMacroAccuracy - 0.1, expectedMacroAccuracy + 0.1);
-
-            // Create prediction function and test prediction
-            var predictFunction = mlContext.Model.CreatePredictionEngine<ImageNetData, ImagePrediction>(trainedModel);
-            var testData = ImageNetData.LoadImagesFromDirectory(imagesDataFile, 1, true).ToList();
-            var prediction = predictFunction.Predict(testData[0]);
-            Assert.Equal(2, prediction.PredictedLabel);
-            Assert.Equal(new float[] { 0, 0, 1 }, prediction.Score);
-        }
-
         [TensorFlowFact]
         public void TensorFlowTransformMNISTConvSavedModelTest()
         {
@@ -901,15 +834,6 @@ namespace Microsoft.ML.Scenarios
         {
             [ColumnName("Score")]
             public float[] PredictedLabels;
-        }
-
-        public class ImagePrediction
-        {
-            [ColumnName("Score")]
-            public float[] Score;
-
-            [ColumnName("PredictedLabel")]
-            public Int64 PredictedLabel;
         }
 
         [TensorFlowFact]

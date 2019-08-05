@@ -94,7 +94,7 @@ namespace Microsoft.ML
         /// <param name="epoch"></param>
         /// <param name="batchSize"></param>
         /// <param name="learningRate"></param>
-        /// <param name="addBatchDimensionInput"></param>
+        /// <param name="measureTrainAccuracy"></param>
         /// <remarks>
         /// The support for image classification is under preview.
         /// </remarks>
@@ -111,11 +111,11 @@ namespace Microsoft.ML
             int epoch = 10,
             int batchSize = 20,
             float learningRate = 0.01f,
-            bool addBatchDimensionInput = false)
+            bool measureTrainAccuracy = false)
         {
             var options = new Options()
             {
-                ModelLocation = arch == Architecture.ResnetV2101 ? @"DnnImageModels\Resnet101V2Tensorflow\resnet_v2_101_299.meta" : @"InceptionV3.meta",
+                ModelLocation = arch == Architecture.ResnetV2101 ? @"resnet_v2_101_299.meta" : @"InceptionV3.meta",
                 InputColumns = new[] { featuresColumnName },
                 OutputColumns = new[] { scoreColumnName, predictedLabelColumnName },
                 LabelColumn = labelColumnName,
@@ -123,27 +123,39 @@ namespace Microsoft.ML
                 Epoch = epoch,
                 LearningRate = learningRate,
                 BatchSize = batchSize,
-                AddBatchDimensionInputs = addBatchDimensionInput,
+                AddBatchDimensionInputs = arch == Architecture.InceptionV3 ? false : true,
                 TransferLearning = true,
                 ScoreColumnName = scoreColumnName,
                 PredictedLabelColumnName = predictedLabelColumnName,
                 CheckpointName = checkpointName,
-                Arch = arch
+                Arch = arch,
+                MeasureTrainAccuracy = measureTrainAccuracy
             };
 
             if (!File.Exists(options.ModelLocation))
             {
-                var baseGitPath = @"https://raw.githubusercontent.com/SciSharp/TensorFlow.NET/master/graph/InceptionV3.meta";
-                using (WebClient client = new WebClient())
+                if (options.Arch == Architecture.InceptionV3)
                 {
-                    client.DownloadFile(new Uri($"{baseGitPath}"), @"InceptionV3.meta");
-                }
+                    var baseGitPath = @"https://raw.githubusercontent.com/SciSharp/TensorFlow.NET/master/graph/InceptionV3.meta";
+                    using (WebClient client = new WebClient())
+                    {
+                        client.DownloadFile(new Uri($"{baseGitPath}"), @"InceptionV3.meta");
+                    }
 
-                baseGitPath = @"https://github.com/SciSharp/TensorFlow.NET/raw/master/data/tfhub_modules.zip";
-                using (WebClient client = new WebClient())
+                    baseGitPath = @"https://github.com/SciSharp/TensorFlow.NET/raw/master/data/tfhub_modules.zip";
+                    using (WebClient client = new WebClient())
+                    {
+                        client.DownloadFile(new Uri($"{baseGitPath}"), @"tfhub_modules.zip");
+                        ZipFile.ExtractToDirectory(Path.Combine(Directory.GetCurrentDirectory(), @"tfhub_modules.zip"), @"tfhub_modules");
+                    }
+                }
+                else if(options.Arch == Architecture.ResnetV2101)
                 {
-                    client.DownloadFile(new Uri($"{baseGitPath}"), @"tfhub_modules.zip");
-                    ZipFile.ExtractToDirectory(Path.Combine(Directory.GetCurrentDirectory(), @"tfhub_modules.zip"), @"tfhub_modules");
+                    var baseGitPath = @"https://aka.ms/mlnet-resources/image/ResNet101Tensorflow/resnet_v2_101_299.meta";
+                    using (WebClient client = new WebClient())
+                    {
+                        client.DownloadFile(new Uri($"{baseGitPath}"), @"resnet_v2_101_299.meta");
+                    }
                 }
             }
 

@@ -1,19 +1,15 @@
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Net;
-using ICSharpCode.SharpZipLib.GZip;
-using ICSharpCode.SharpZipLib.Tar;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 
 namespace Samples.Dynamic
 {
-    public static class TransferLearning
+    public static class ResnetV2101TransferLearning
     {
         /// <summary>
-        /// Example use of the TensorFlow image model in a ML.NET pipeline.
+        /// Example use of Image classification API in a ML.NET pipeline.
         /// </summary>
         public static void Example()
         {
@@ -29,8 +25,7 @@ namespace Samples.Dynamic
                     nameof(TensorData.Label))
                 .Append(mlContext.Model.ImageClassification(
                     nameof(TensorData.input),
-                    nameof(TensorData.Label), batchSize: 2,
-                        addBatchDimensionInput: true));
+                    nameof(TensorData.Label), batchSize: 2));
 
             // Run the pipeline and get the transformed values.
             var estimator = pipeline.Fit(idv);
@@ -108,33 +103,6 @@ namespace Samples.Dynamic
         {
             public float[] Scores { get; set; }
             public Int64 PredictedLabel { get; set; }
-        }
-
-        private static string Download(string baseGitPath, string dataFile)
-        {
-            using (WebClient client = new WebClient())
-            {
-                client.DownloadFile(new Uri($"{baseGitPath}"), dataFile);
-            }
-
-            return dataFile;
-        }
-
-        /// <summary>
-        /// Taken from 
-        /// https://github.com/icsharpcode/SharpZipLib/wiki/GZip-and-Tar-Samples.
-        /// </summary>
-        private static void Unzip(string path, string targetDir)
-        {
-            Stream inStream = File.OpenRead(path);
-            Stream gzipStream = new GZipInputStream(inStream);
-
-            TarArchive tarArchive = TarArchive.CreateInputTarArchive(gzipStream);
-            tarArchive.ExtractContents(targetDir);
-            tarArchive.Close();
-
-            gzipStream.Close();
-            inStream.Close();
         }
     }
 }
