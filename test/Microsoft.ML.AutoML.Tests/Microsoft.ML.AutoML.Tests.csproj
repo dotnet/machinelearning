@@ -1,19 +1,16 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <IsPackable>false</IsPackable>
-    <RootNamespace>Microsoft.ML.AutoML.Test</RootNamespace>
-    <ProjectGuid>{EEC3ACCD-C8BC-4261-820F-EF1340B546DE}</ProjectGuid>
+    <DefineConstants>CORECLR</DefineConstants>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
-    <PackageReference Include="MSTest.TestAdapter" Version="1.3.2" />
-    <PackageReference Include="MSTest.TestFramework" Version="1.3.2" />
   </ItemGroup>
+  
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj">
-      <Project>{219D2E17-FEFD-4B03-BBA7-E4D4CEBA4BBB}</Project>
-      <Name>Microsoft.ML.AutoML</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\src\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="TestData\DatasetWithDefaultColumnNames.txt">
@@ -32,4 +29,22 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+  <ItemGroup>
+    <NativeAssemblyReference Include="MklProxyNative" />
+    <NativeAssemblyReference Include="CpuMathNative" />
+    <NativeAssemblyReference Include="FastTreeNative" />
+    <NativeAssemblyReference Include="LdaNative" />
+    <NativeAssemblyReference Include="MklImports" />
+    <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
+  </ItemGroup>
+
+  <!-- TensorFlow is 64-bit only -->
+  <ItemGroup Condition="'$(NativeTargetArchitecture)' == 'x64'">
+    <NativeAssemblyReference Include="tensorflow" />
+    <NativeAssemblyReferenceWithMajorVersion Condition="'$(OS)' != 'Windows_NT'" Include="tensorflow_framework">
+      <MajorVersion>$(TensorFlowMajorVersion)</MajorVersion>
+    </NativeAssemblyReferenceWithMajorVersion>
+  </ItemGroup>
+
 </Project>

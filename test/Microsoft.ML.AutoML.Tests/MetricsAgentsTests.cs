@@ -4,123 +4,123 @@
 
 using System;
 using Microsoft.ML.Data;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    [TestClass]
     public class MetricsAgentsTests
     {
-        [TestMethod]
+        [Fact]
         public void BinaryMetricsGetScoreTest()
         {
             var metrics = MetricsUtil.CreateBinaryClassificationMetrics(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8);
-            Assert.AreEqual(0.1, GetScore(metrics, BinaryClassificationMetric.AreaUnderRocCurve));
-            Assert.AreEqual(0.2, GetScore(metrics, BinaryClassificationMetric.Accuracy));
-            Assert.AreEqual(0.3, GetScore(metrics, BinaryClassificationMetric.PositivePrecision));
-            Assert.AreEqual(0.4, GetScore(metrics, BinaryClassificationMetric.PositiveRecall));
-            Assert.AreEqual(0.5, GetScore(metrics, BinaryClassificationMetric.NegativePrecision));
-            Assert.AreEqual(0.6, GetScore(metrics, BinaryClassificationMetric.NegativeRecall));
-            Assert.AreEqual(0.7, GetScore(metrics, BinaryClassificationMetric.F1Score));
-            Assert.AreEqual(0.8, GetScore(metrics, BinaryClassificationMetric.AreaUnderPrecisionRecallCurve));
+            Assert.Equal(0.1, GetScore(metrics, BinaryClassificationMetric.AreaUnderRocCurve));
+            Assert.Equal(0.2, GetScore(metrics, BinaryClassificationMetric.Accuracy));
+            Assert.Equal(0.3, GetScore(metrics, BinaryClassificationMetric.PositivePrecision));
+            Assert.Equal(0.4, GetScore(metrics, BinaryClassificationMetric.PositiveRecall));
+            Assert.Equal(0.5, GetScore(metrics, BinaryClassificationMetric.NegativePrecision));
+            Assert.Equal(0.6, GetScore(metrics, BinaryClassificationMetric.NegativeRecall));
+            Assert.Equal(0.7, GetScore(metrics, BinaryClassificationMetric.F1Score));
+            Assert.Equal(0.8, GetScore(metrics, BinaryClassificationMetric.AreaUnderPrecisionRecallCurve));
         }
 
-        [TestMethod]
+        [Fact]
         public void BinaryMetricsNonPerfectTest()
         {
             var metrics = MetricsUtil.CreateBinaryClassificationMetrics(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8);
-            Assert.AreEqual(false, IsPerfectModel(metrics, BinaryClassificationMetric.Accuracy));
-            Assert.AreEqual(false, IsPerfectModel(metrics, BinaryClassificationMetric.AreaUnderRocCurve));
-            Assert.AreEqual(false, IsPerfectModel(metrics, BinaryClassificationMetric.AreaUnderPrecisionRecallCurve));
-            Assert.AreEqual(false, IsPerfectModel(metrics, BinaryClassificationMetric.F1Score));
-            Assert.AreEqual(false, IsPerfectModel(metrics, BinaryClassificationMetric.NegativePrecision));
-            Assert.AreEqual(false, IsPerfectModel(metrics, BinaryClassificationMetric.NegativeRecall));
-            Assert.AreEqual(false, IsPerfectModel(metrics, BinaryClassificationMetric.PositivePrecision));
-            Assert.AreEqual(false, IsPerfectModel(metrics, BinaryClassificationMetric.PositiveRecall));
+            Assert.False(IsPerfectModel(metrics, BinaryClassificationMetric.Accuracy));
+            Assert.False(IsPerfectModel(metrics, BinaryClassificationMetric.AreaUnderRocCurve));
+            Assert.False(IsPerfectModel(metrics, BinaryClassificationMetric.AreaUnderPrecisionRecallCurve));
+            Assert.False(IsPerfectModel(metrics, BinaryClassificationMetric.F1Score));
+            Assert.False(IsPerfectModel(metrics, BinaryClassificationMetric.NegativePrecision));
+            Assert.False(IsPerfectModel(metrics, BinaryClassificationMetric.NegativeRecall));
+            Assert.False(IsPerfectModel(metrics, BinaryClassificationMetric.PositivePrecision));
+            Assert.False(IsPerfectModel(metrics, BinaryClassificationMetric.PositiveRecall));
         }
 
-        [TestMethod]
+        [Fact]
         public void BinaryMetricsPerfectTest()
         {
             var metrics = MetricsUtil.CreateBinaryClassificationMetrics(1, 1, 1, 1, 1, 1, 1, 1);
-            Assert.AreEqual(true, IsPerfectModel(metrics, BinaryClassificationMetric.Accuracy));
-            Assert.AreEqual(true, IsPerfectModel(metrics, BinaryClassificationMetric.AreaUnderRocCurve));
-            Assert.AreEqual(true, IsPerfectModel(metrics, BinaryClassificationMetric.AreaUnderPrecisionRecallCurve));
-            Assert.AreEqual(true, IsPerfectModel(metrics, BinaryClassificationMetric.F1Score));
-            Assert.AreEqual(true, IsPerfectModel(metrics, BinaryClassificationMetric.NegativePrecision));
-            Assert.AreEqual(true, IsPerfectModel(metrics, BinaryClassificationMetric.NegativeRecall));
-            Assert.AreEqual(true, IsPerfectModel(metrics, BinaryClassificationMetric.PositivePrecision));
-            Assert.AreEqual(true, IsPerfectModel(metrics, BinaryClassificationMetric.PositiveRecall));
+            Assert.True(IsPerfectModel(metrics, BinaryClassificationMetric.Accuracy));
+            Assert.True(IsPerfectModel(metrics, BinaryClassificationMetric.AreaUnderRocCurve));
+            Assert.True(IsPerfectModel(metrics, BinaryClassificationMetric.AreaUnderPrecisionRecallCurve));
+            Assert.True(IsPerfectModel(metrics, BinaryClassificationMetric.F1Score));
+            Assert.True(IsPerfectModel(metrics, BinaryClassificationMetric.NegativePrecision));
+            Assert.True(IsPerfectModel(metrics, BinaryClassificationMetric.NegativeRecall));
+            Assert.True(IsPerfectModel(metrics, BinaryClassificationMetric.PositivePrecision));
+            Assert.True(IsPerfectModel(metrics, BinaryClassificationMetric.PositiveRecall));
         }
 
-        [TestMethod]
+        [Fact]
         public void MulticlassMetricsGetScoreTest()
         {
             var metrics = MetricsUtil.CreateMulticlassClassificationMetrics(0.1, 0.2, 0.3, 0.4, 0, 0.5, new double[] {});
-            Assert.AreEqual(0.1, GetScore(metrics, MulticlassClassificationMetric.MicroAccuracy));
-            Assert.AreEqual(0.2, GetScore(metrics, MulticlassClassificationMetric.MacroAccuracy));
-            Assert.AreEqual(0.3, GetScore(metrics, MulticlassClassificationMetric.LogLoss));
-            Assert.AreEqual(0.4, GetScore(metrics, MulticlassClassificationMetric.LogLossReduction));
-            Assert.AreEqual(0.5, GetScore(metrics, MulticlassClassificationMetric.TopKAccuracy));
+            Assert.Equal(0.1, GetScore(metrics, MulticlassClassificationMetric.MicroAccuracy));
+            Assert.Equal(0.2, GetScore(metrics, MulticlassClassificationMetric.MacroAccuracy));
+            Assert.Equal(0.3, GetScore(metrics, MulticlassClassificationMetric.LogLoss));
+            Assert.Equal(0.4, GetScore(metrics, MulticlassClassificationMetric.LogLossReduction));
+            Assert.Equal(0.5, GetScore(metrics, MulticlassClassificationMetric.TopKAccuracy));
         }
 
-        [TestMethod]
+        [Fact]
         public void MulticlassMetricsNonPerfectTest()
         {
             var metrics = MetricsUtil.CreateMulticlassClassificationMetrics(0.1, 0.2, 0.3, 0.4, 0, 0.5, new double[] { });
-            Assert.AreEqual(false, IsPerfectModel(metrics, MulticlassClassificationMetric.MacroAccuracy));
-            Assert.AreEqual(false, IsPerfectModel(metrics, MulticlassClassificationMetric.MicroAccuracy));
-            Assert.AreEqual(false, IsPerfectModel(metrics, MulticlassClassificationMetric.LogLoss));
-            Assert.AreEqual(false, IsPerfectModel(metrics, MulticlassClassificationMetric.LogLossReduction));
-            Assert.AreEqual(false, IsPerfectModel(metrics, MulticlassClassificationMetric.TopKAccuracy));
+            Assert.False(IsPerfectModel(metrics, MulticlassClassificationMetric.MacroAccuracy));
+            Assert.False(IsPerfectModel(metrics, MulticlassClassificationMetric.MicroAccuracy));
+            Assert.False(IsPerfectModel(metrics, MulticlassClassificationMetric.LogLoss));
+            Assert.False(IsPerfectModel(metrics, MulticlassClassificationMetric.LogLossReduction));
+            Assert.False(IsPerfectModel(metrics, MulticlassClassificationMetric.TopKAccuracy));
         }
 
-        [TestMethod]
+        [Fact]
         public void MulticlassMetricsPerfectTest()
         {
             var metrics = MetricsUtil.CreateMulticlassClassificationMetrics(1, 1, 0, 1, 0, 1, new double[] { });
-            Assert.AreEqual(true, IsPerfectModel(metrics, MulticlassClassificationMetric.MicroAccuracy));
-            Assert.AreEqual(true, IsPerfectModel(metrics, MulticlassClassificationMetric.MacroAccuracy));
-            Assert.AreEqual(true, IsPerfectModel(metrics, MulticlassClassificationMetric.LogLoss));
-            Assert.AreEqual(true, IsPerfectModel(metrics, MulticlassClassificationMetric.LogLossReduction));
-            Assert.AreEqual(true, IsPerfectModel(metrics, MulticlassClassificationMetric.TopKAccuracy));
+            Assert.True(IsPerfectModel(metrics, MulticlassClassificationMetric.MicroAccuracy));
+            Assert.True(IsPerfectModel(metrics, MulticlassClassificationMetric.MacroAccuracy));
+            Assert.True(IsPerfectModel(metrics, MulticlassClassificationMetric.LogLoss));
+            Assert.True(IsPerfectModel(metrics, MulticlassClassificationMetric.LogLossReduction));
+            Assert.True(IsPerfectModel(metrics, MulticlassClassificationMetric.TopKAccuracy));
         }
 
-        [TestMethod]
+        [Fact]
         public void RegressionMetricsGetScoreTest()
         {
             var metrics = MetricsUtil.CreateRegressionMetrics(0.2, 0.3, 0.4, 0.5, 0.6);
-            Assert.AreEqual(0.2, GetScore(metrics, RegressionMetric.MeanAbsoluteError));
-            Assert.AreEqual(0.3, GetScore(metrics, RegressionMetric.MeanSquaredError));
-            Assert.AreEqual(0.4, GetScore(metrics, RegressionMetric.RootMeanSquaredError));
-            Assert.AreEqual(0.6, GetScore(metrics, RegressionMetric.RSquared));
+            Assert.Equal(0.2, GetScore(metrics, RegressionMetric.MeanAbsoluteError));
+            Assert.Equal(0.3, GetScore(metrics, RegressionMetric.MeanSquaredError));
+            Assert.Equal(0.4, GetScore(metrics, RegressionMetric.RootMeanSquaredError));
+            Assert.Equal(0.6, GetScore(metrics, RegressionMetric.RSquared));
         }
 
-        [TestMethod]
+        [Fact]
         public void RegressionMetricsNonPerfectTest()
         {
             var metrics = MetricsUtil.CreateRegressionMetrics(0.2, 0.3, 0.4, 0.5, 0.6);
-            Assert.AreEqual(false, IsPerfectModel(metrics, RegressionMetric.MeanAbsoluteError));
-            Assert.AreEqual(false, IsPerfectModel(metrics, RegressionMetric.MeanSquaredError));
-            Assert.AreEqual(false, IsPerfectModel(metrics, RegressionMetric.RootMeanSquaredError));
-            Assert.AreEqual(false, IsPerfectModel(metrics, RegressionMetric.RSquared));
+            Assert.False(IsPerfectModel(metrics, RegressionMetric.MeanAbsoluteError));
+            Assert.False(IsPerfectModel(metrics, RegressionMetric.MeanSquaredError));
+            Assert.False(IsPerfectModel(metrics, RegressionMetric.RootMeanSquaredError));
+            Assert.False(IsPerfectModel(metrics, RegressionMetric.RSquared));
         }
 
-        [TestMethod]
+        [Fact]
         public void RegressionMetricsPerfectTest()
         {
             var metrics = MetricsUtil.CreateRegressionMetrics(0, 0, 0, 0, 1);
-            Assert.AreEqual(true, IsPerfectModel(metrics, RegressionMetric.MeanAbsoluteError));
-            Assert.AreEqual(true, IsPerfectModel(metrics, RegressionMetric.MeanSquaredError));
-            Assert.AreEqual(true, IsPerfectModel(metrics, RegressionMetric.RootMeanSquaredError));
-            Assert.AreEqual(true, IsPerfectModel(metrics, RegressionMetric.RSquared));
+            Assert.True(IsPerfectModel(metrics, RegressionMetric.MeanAbsoluteError));
+            Assert.True(IsPerfectModel(metrics, RegressionMetric.MeanSquaredError));
+            Assert.True(IsPerfectModel(metrics, RegressionMetric.RootMeanSquaredError));
+            Assert.True(IsPerfectModel(metrics, RegressionMetric.RSquared));
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(NotSupportedException))]
+        [Fact]
         public void ThrowNotSupportedMetricException()
         {
-            throw MetricsAgentUtil.BuildMetricNotSupportedException(BinaryClassificationMetric.Accuracy);
+            var ex = MetricsAgentUtil.BuildMetricNotSupportedException(BinaryClassificationMetric.Accuracy);
+            Assert.Equal(typeof(NotSupportedException), ex.GetType());
         }        
 
         private static double GetScore(BinaryClassificationMetrics metrics, BinaryClassificationMetric metric)

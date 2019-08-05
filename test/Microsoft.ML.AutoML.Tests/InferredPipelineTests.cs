@@ -4,14 +4,14 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    [TestClass]
+    
     public class InferredPipelineTests
     {
-        [TestMethod]
+        [Fact]
         public void InferredPipelinesHashTest()
         {
             var context = new MLContext();
@@ -24,7 +24,7 @@ namespace Microsoft.ML.AutoML.Test
             var transforms2 = new List<SuggestedTransform>();
             var inferredPipeline1 = new SuggestedPipeline(transforms1, new List<SuggestedTransform>(), trainer1, context, false);
             var inferredPipeline2 = new SuggestedPipeline(transforms2, new List<SuggestedTransform>(), trainer2, context, false);
-            Assert.AreEqual(inferredPipeline1.GetHashCode(), inferredPipeline2.GetHashCode());
+            Assert.Equal(inferredPipeline1.GetHashCode(), inferredPipeline2.GetHashCode());
 
             // test same learners with hyperparams set vs empty hyperparams have different hash codes
             var hyperparams1 = new ParameterSet(new List<IParameterValue>() { new LongParameterValue("NumberOfLeaves", 2) });
@@ -32,7 +32,7 @@ namespace Microsoft.ML.AutoML.Test
             trainer2 = new SuggestedTrainer(context, new LightGbmBinaryExtension(), columnInfo);
             inferredPipeline1 = new SuggestedPipeline(transforms1, new List<SuggestedTransform>(), trainer1, context, false);
             inferredPipeline2 = new SuggestedPipeline(transforms2, new List<SuggestedTransform>(), trainer2, context, false);
-            Assert.AreNotEqual(inferredPipeline1.GetHashCode(), inferredPipeline2.GetHashCode());
+            Assert.NotEqual(inferredPipeline1.GetHashCode(), inferredPipeline2.GetHashCode());
 
             // same learners with different hyperparams
             hyperparams1 = new ParameterSet(new List<IParameterValue>() { new LongParameterValue("NumberOfLeaves", 2) });
@@ -41,7 +41,7 @@ namespace Microsoft.ML.AutoML.Test
             trainer2 = new SuggestedTrainer(context, new LightGbmBinaryExtension(), columnInfo, hyperparams2);
             inferredPipeline1 = new SuggestedPipeline(transforms1, new List<SuggestedTransform>(), trainer1, context, false);
             inferredPipeline2 = new SuggestedPipeline(transforms2, new List<SuggestedTransform>(), trainer2, context, false);
-            Assert.AreNotEqual(inferredPipeline1.GetHashCode(), inferredPipeline2.GetHashCode());
+            Assert.NotEqual(inferredPipeline1.GetHashCode(), inferredPipeline2.GetHashCode());
 
             // same learners with same transforms
             trainer1 = new SuggestedTrainer(context, new LightGbmBinaryExtension(), columnInfo);
@@ -50,7 +50,7 @@ namespace Microsoft.ML.AutoML.Test
             transforms2 = new List<SuggestedTransform>() { ColumnConcatenatingExtension.CreateSuggestedTransform(context, new[] { "In" }, "Out") };
             inferredPipeline1 = new SuggestedPipeline(transforms1, new List<SuggestedTransform>(), trainer1, context, false);
             inferredPipeline2 = new SuggestedPipeline(transforms2, new List<SuggestedTransform>(), trainer2, context, false);
-            Assert.AreEqual(inferredPipeline1.GetHashCode(), inferredPipeline2.GetHashCode());
+            Assert.Equal(inferredPipeline1.GetHashCode(), inferredPipeline2.GetHashCode());
 
             // same transforms with different learners
             trainer1 = new SuggestedTrainer(context, new SdcaLogisticRegressionBinaryExtension(), columnInfo);
@@ -59,7 +59,7 @@ namespace Microsoft.ML.AutoML.Test
             transforms2 = new List<SuggestedTransform>() { ColumnConcatenatingExtension.CreateSuggestedTransform(context, new[] { "In" }, "Out") };
             inferredPipeline1 = new SuggestedPipeline(transforms1, new List<SuggestedTransform>(), trainer1, context, false);
             inferredPipeline2 = new SuggestedPipeline(transforms2, new List<SuggestedTransform>(), trainer2, context, false);
-            Assert.AreNotEqual(inferredPipeline1.GetHashCode(), inferredPipeline2.GetHashCode());
+            Assert.NotEqual(inferredPipeline1.GetHashCode(), inferredPipeline2.GetHashCode());
         }
     }
 }

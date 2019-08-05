@@ -3,15 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 using System.Linq;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    [TestClass]
+    
     public class AutoFitTests
     {
-        [TestMethod]
+        [Fact]
         public void AutoFitBinaryTest()
         {
             var context = new MLContext();
@@ -22,13 +22,13 @@ namespace Microsoft.ML.AutoML.Test
             var result = context.Auto()
                 .CreateBinaryClassificationExperiment(0)
                 .Execute(trainData, new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel });
-            Assert.IsTrue(result.BestRun.ValidationMetrics.Accuracy > 0.70);
-            Assert.IsNotNull(result.BestRun.Estimator);
-            Assert.IsNotNull(result.BestRun.Model);
-            Assert.IsNotNull(result.BestRun.TrainerName);
+            Assert.True(result.BestRun.ValidationMetrics.Accuracy > 0.70);
+            Assert.NotNull(result.BestRun.Estimator);
+            Assert.NotNull(result.BestRun.Model);
+            Assert.NotNull(result.BestRun.TrainerName);
         }
 
-        [TestMethod]
+        [Fact]
         public void AutoFitMultiTest()
         {
             var context = new MLContext();
@@ -38,12 +38,12 @@ namespace Microsoft.ML.AutoML.Test
             var result = context.Auto()
                 .CreateMulticlassClassificationExperiment(0)
                 .Execute(trainData, 5, DatasetUtil.TrivialMulticlassDatasetLabel);
-            Assert.IsTrue(result.BestRun.Results.First().ValidationMetrics.MicroAccuracy >= 0.7);
+            Assert.True(result.BestRun.Results.First().ValidationMetrics.MicroAccuracy >= 0.7);
             var scoredData = result.BestRun.Results.First().Model.Transform(trainData);
-            Assert.AreEqual(NumberDataViewType.Single, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
+            Assert.Equal(NumberDataViewType.Single, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
         }
 
-        [TestMethod]
+        [Fact]
         public void AutoFitRegressionTest()
         {
             var context = new MLContext();
@@ -58,7 +58,7 @@ namespace Microsoft.ML.AutoML.Test
                 .Execute(trainData, validationData,
                     new ColumnInformation() { LabelColumnName = DatasetUtil.MlNetGeneratedRegressionLabel });
 
-            Assert.IsTrue(result.RunDetails.Max(i => i.ValidationMetrics.RSquared > 0.9));
+            Assert.True(result.RunDetails.Max(i => i.ValidationMetrics.RSquared > 0.9));
         }
     }
 }

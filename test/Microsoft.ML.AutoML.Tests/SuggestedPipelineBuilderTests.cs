@@ -3,16 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    [TestClass]
+    
     public class SuggestedPipelineBuilderTests
     {
         private static MLContext _context = new MLContext();
 
-        [TestMethod]
+        [Fact]
         public void TrainerWantsCaching()
         {
             TestPipelineBuilderCaching(BuildAveragedPerceptronTrainer(),
@@ -20,7 +20,7 @@ namespace Microsoft.ML.AutoML.Test
                 new[] { true, false, true });
         }
 
-        [TestMethod]
+        [Fact]
         public void TrainerDoesntWantCaching()
         {
             TestPipelineBuilderCaching(BuildLightGbmTrainer(),
@@ -28,19 +28,19 @@ namespace Microsoft.ML.AutoML.Test
                 new[] { true, false, false });
         }
 
-        [TestMethod]
+        [Fact]
         public void TrainerNeedsNormalization()
         {
             var pipeline = BuildSuggestedPipeline(BuildAveragedPerceptronTrainer());
-            Assert.AreEqual(EstimatorName.Normalizing.ToString(),
+            Assert.Equal(EstimatorName.Normalizing.ToString(),
                 pipeline.Transforms[0].PipelineNode.Name);
         }
 
-        [TestMethod]
+        [Fact]
         public void TrainerNotNeedNormalization()
         {
             var pipeline = BuildSuggestedPipeline(BuildLightGbmTrainer());
-            Assert.AreEqual(0, pipeline.Transforms.Count);
+            Assert.Equal(0, pipeline.Transforms.Count);
         }
 
         private static void TestPipelineBuilderCaching(
@@ -52,7 +52,7 @@ namespace Microsoft.ML.AutoML.Test
             {
                 var suggestedPipeline = BuildSuggestedPipeline(trainer,
                     cacheBeforeTrainerSettings[i]);
-                Assert.AreEqual(resultShouldHaveCaching[i],
+                Assert.Equal(resultShouldHaveCaching[i],
                     suggestedPipeline.ToPipeline().CacheBeforeTrainer);
             }
         }

@@ -5,11 +5,11 @@
 using System;
 using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    [TestClass]
+    
     public class SplitUtilTests
     {
         /// <summary>
@@ -17,8 +17,7 @@ namespace Microsoft.ML.AutoML.Test
         /// attempted cross validation throws (all splits should have empty
         /// train or test set).
         /// </summary>
-        [TestMethod]
-        [ExpectedException(typeof(InvalidOperationException))]
+        [Fact]
         public void CrossValSplitThrowsWhenNotEnoughData()
         {
             var mlContext = new MLContext();
@@ -26,7 +25,7 @@ namespace Microsoft.ML.AutoML.Test
             dataViewBuilder.AddColumn("Number", NumberDataViewType.Single, 0f);
             dataViewBuilder.AddColumn("Label", NumberDataViewType.Single, 0f);
             var dataView = dataViewBuilder.GetDataView();
-            SplitUtil.CrossValSplit(mlContext, dataView, 10, null);
+            Assert.Throws<InvalidOperationException>(() => SplitUtil.CrossValSplit(mlContext, dataView, 10, null));
         }
 
         /// <summary>
@@ -34,7 +33,7 @@ namespace Microsoft.ML.AutoML.Test
         /// cross validation succeeds, but # of splits is less than 10
         /// (splits with empty train or test sets should not be returned from this API).
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void CrossValSplitSmallDataView()
         {
             var mlContext = new MLContext(seed: 0);
@@ -44,16 +43,16 @@ namespace Microsoft.ML.AutoML.Test
             var dataView = dataViewBuilder.GetDataView();
             const int requestedNumSplits = 10;
             var splits = SplitUtil.CrossValSplit(mlContext, dataView, requestedNumSplits, null);
-            Assert.IsTrue(splits.trainDatasets.Any());
-            Assert.IsTrue(splits.trainDatasets.Count() < requestedNumSplits);
-            Assert.AreEqual(splits.trainDatasets.Count(), splits.validationDatasets.Count());
+            Assert.True(splits.trainDatasets.Any());
+            Assert.True(splits.trainDatasets.Count() < requestedNumSplits);
+            Assert.Equal(splits.trainDatasets.Count(), splits.validationDatasets.Count());
         }
 
         /// <summary>
         /// Assert that with many rows of data, cross validation produces the requested
         /// # of splits.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void CrossValSplitLargeDataView()
         {
             var mlContext = new MLContext(seed: 0);
@@ -63,9 +62,9 @@ namespace Microsoft.ML.AutoML.Test
             var dataView = dataViewBuilder.GetDataView();
             const int requestedNumSplits = 10;
             var splits = SplitUtil.CrossValSplit(mlContext, dataView, requestedNumSplits, null);
-            Assert.IsTrue(splits.trainDatasets.Any());
-            Assert.AreEqual(requestedNumSplits, splits.trainDatasets.Count());
-            Assert.AreEqual(requestedNumSplits, splits.validationDatasets.Count());
+            Assert.True(splits.trainDatasets.Any());
+            Assert.Equal(requestedNumSplits, splits.trainDatasets.Count());
+            Assert.Equal(requestedNumSplits, splits.validationDatasets.Count());
         }
     }
 }

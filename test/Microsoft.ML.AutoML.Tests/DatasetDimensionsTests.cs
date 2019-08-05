@@ -3,16 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    [TestClass]
+    
     public class DatasetDimensionsTests
     {
         public object DatasetDimensionUtil { get; private set; }
 
-        [TestMethod]
+        [Fact]
         public void TextColumnDimensionsTest()
         {
             var context = new MLContext();
@@ -24,15 +24,15 @@ namespace Microsoft.ML.AutoML.Test
                 new PurposeInference.Column(0, ColumnPurpose.CategoricalFeature),
                 new PurposeInference.Column(0, ColumnPurpose.TextFeature),
             });
-            Assert.IsNotNull(dimensions);
-            Assert.AreEqual(2, dimensions.Length);
-            Assert.AreEqual(3, dimensions[0].Cardinality);
-            Assert.AreEqual(null, dimensions[1].Cardinality);
-            Assert.IsNull(dimensions[0].HasMissing);
-            Assert.IsNull(dimensions[1].HasMissing);
+            Assert.NotNull(dimensions);
+            Assert.Equal(2, dimensions.Length);
+            Assert.Equal(3, dimensions[0].Cardinality);
+            Assert.Null(dimensions[1].Cardinality);
+            Assert.Null(dimensions[0].HasMissing);
+            Assert.Null(dimensions[1].HasMissing);
         }
 
-        [TestMethod]
+        [Fact]
         public void FloatColumnDimensionsTest()
         {
             var context = new MLContext();
@@ -44,15 +44,15 @@ namespace Microsoft.ML.AutoML.Test
                 new PurposeInference.Column(0, ColumnPurpose.NumericFeature),
                 new PurposeInference.Column(1, ColumnPurpose.NumericFeature),
             });
-            Assert.IsNotNull(dimensions);
-            Assert.AreEqual(2, dimensions.Length);
-            Assert.AreEqual(null, dimensions[0].Cardinality);
-            Assert.AreEqual(null, dimensions[1].Cardinality);
-            Assert.AreEqual(false, dimensions[0].HasMissing);
-            Assert.AreEqual(true, dimensions[1].HasMissing);
+            Assert.NotNull(dimensions);
+            Assert.Equal(2, dimensions.Length);
+            Assert.Null(dimensions[0].Cardinality);
+            Assert.Null(dimensions[1].Cardinality);
+            Assert.False(dimensions[0].HasMissing);
+            Assert.True(dimensions[1].HasMissing);
         }
 
-        [TestMethod]
+        [Fact]
         public void FloatVectorColumnHasNanTest()
         {
             var context = new MLContext();
@@ -75,12 +75,12 @@ namespace Microsoft.ML.AutoML.Test
                 new PurposeInference.Column(0, ColumnPurpose.NumericFeature),
                 new PurposeInference.Column(1, ColumnPurpose.NumericFeature),
             });
-            Assert.IsNotNull(dimensions);
-            Assert.AreEqual(2, dimensions.Length);
-            Assert.AreEqual(null, dimensions[0].Cardinality);
-            Assert.AreEqual(null, dimensions[1].Cardinality);
-            Assert.AreEqual(false, dimensions[0].HasMissing);
-            Assert.AreEqual(true, dimensions[1].HasMissing);
+            Assert.NotNull(dimensions);
+            Assert.Equal(2, dimensions.Length);
+            Assert.Null(dimensions[0].Cardinality);
+            Assert.Null(dimensions[1].Cardinality);
+            Assert.False(dimensions[0].HasMissing);
+            Assert.True(dimensions[1].HasMissing);
         }
     }
 }

@@ -5,14 +5,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    [TestClass]
+    
     public class TransformPostTrainerInferenceTests
     {
-        [TestMethod]
+        [Fact]
         public void TransformPostTrainerMulticlassNonKeyLabel()
         {
             TransformPostTrainerInferenceTestCore(TaskKind.MulticlassClassification,
@@ -35,7 +35,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [TestMethod]
+        [Fact]
         public void TransformPostTrainerBinaryLabel()
         {
             TransformPostTrainerInferenceTestCore(TaskKind.BinaryClassification,
@@ -46,7 +46,7 @@ namespace Microsoft.ML.AutoML.Test
                 }, @"[]");
         }
 
-        [TestMethod]
+        [Fact]
         public void TransformPostTrainerMulticlassKeyLabel()
         {
             TransformPostTrainerInferenceTestCore(TaskKind.MulticlassClassification,

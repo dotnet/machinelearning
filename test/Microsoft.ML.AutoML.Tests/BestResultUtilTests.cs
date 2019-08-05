@@ -4,14 +4,14 @@
 
 using System.Collections.Generic;
 using Microsoft.ML.Data;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    [TestClass]
+    
     public class BestResultUtilTests
     {
-        [TestMethod]
+        [Fact]
         public void FindBestResultWithSomeNullMetrics()
         {
             var metrics1 = MetricsUtil.CreateRegressionMetrics(0.2, 0.2, 0.2, 0.2, 0.2);
@@ -28,10 +28,10 @@ namespace Microsoft.ML.AutoML.Test
 
             var metricsAgent = new RegressionMetricsAgent(null, RegressionMetric.RSquared);
             var bestResult = BestResultUtil.GetBestRun(runResults, metricsAgent, true);
-            Assert.AreEqual(0.3, bestResult.ValidationMetrics.RSquared);
+            Assert.Equal(0.3, bestResult.ValidationMetrics.RSquared);
         }
 
-        [TestMethod]
+        [Fact]
         public void FindBestResultWithAllNullMetrics()
         {
             var runResults = new List<RunDetail<RegressionMetrics>>()
@@ -41,23 +41,23 @@ namespace Microsoft.ML.AutoML.Test
 
             var metricsAgent = new RegressionMetricsAgent(null, RegressionMetric.RSquared);
             var bestResult = BestResultUtil.GetBestRun(runResults, metricsAgent, true);
-            Assert.AreEqual(null, bestResult);
+            Assert.Null(bestResult);
         }
 
-        [TestMethod]
+        [Fact]
         public void GetIndexOfBestScoreMaximizingUtil()
         {
             var scores = new double[] { 0, 2, 5, 100, -100, -70 };
             var indexOfMaxScore = BestResultUtil.GetIndexOfBestScore(scores, true);
-            Assert.AreEqual(3, indexOfMaxScore);
+            Assert.Equal(3, indexOfMaxScore);
         }
 
-        [TestMethod]
+        [Fact]
         public void GetIndexOfBestScoreMinimizingUtil()
         {
             var scores = new double[] { 0, 2, 5, 100, -100, -70 };
             var indexOfMaxScore = BestResultUtil.GetIndexOfBestScore(scores, false);
-            Assert.AreEqual(4, indexOfMaxScore);
+            Assert.Equal(4, indexOfMaxScore);
         }
     }
 }

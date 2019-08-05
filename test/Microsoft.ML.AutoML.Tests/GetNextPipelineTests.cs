@@ -5,15 +5,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 using Newtonsoft.Json;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    [TestClass]
+    
     public class GetNextPipelineTests
     {
-        [TestMethod]
+        [Fact]
         public void GetNextPipeline()
         {
             var context = new MLContext();
@@ -34,10 +34,10 @@ namespace Microsoft.ML.AutoML.Test
             var score = context.BinaryClassification.EvaluateNonCalibrated(scoredData).Accuracy;
             var result = new PipelineScore(deserialized, score, true);
 
-            Assert.IsNotNull(result);
+            Assert.NotNull(result);
         }
 
-        [TestMethod]
+        [Fact]
         public void GetNextPipelineMock()
         {
             var context = new MLContext();
@@ -61,7 +61,7 @@ namespace Microsoft.ML.AutoML.Test
                 history.Add(result);
             }
 
-            Assert.AreEqual(maxIterations, history.Count);
+            Assert.Equal(maxIterations, history.Count);
 
             // Get all 'Stage 1' and 'Stage 2' runs from Pipeline Suggester
             var allAvailableTrainers = RecipeInference.AllowedTrainers(context, task, new ColumnInformation(), null);
@@ -76,9 +76,9 @@ namespace Microsoft.ML.AutoML.Test
             var stage2TrainerNames = stage2Runs.Select(r => r.Pipeline.Nodes.Last().Name).Distinct();
 
             // Assert that are only 3 unique trainers used in stage 2
-            Assert.AreEqual(3, stage2TrainerNames.Count());
+            Assert.Equal(3, stage2TrainerNames.Count());
             // Assert that all trainers in stage 2 were the top trainers from stage 1
-            Assert.IsFalse(topStage1TrainerNames.Except(stage2TrainerNames).Any());
+            Assert.False(topStage1TrainerNames.Except(stage2TrainerNames).Any());
         }
     }
 }

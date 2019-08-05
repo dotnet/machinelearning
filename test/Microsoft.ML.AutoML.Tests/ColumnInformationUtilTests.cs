@@ -3,14 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    [TestClass]
+    
     public class ColumnInformationUtilTests
     {
-        [TestMethod]
+        [Fact]
         public void GetColumnPurpose()
         {
             var columnInfo = new ColumnInformation()
@@ -24,17 +24,17 @@ namespace Microsoft.ML.AutoML.Test
             columnInfo.TextColumnNames.Add("Text");
             columnInfo.IgnoredColumnNames.Add("Ignored");
 
-            Assert.AreEqual(ColumnPurpose.Label, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Label"));
-            Assert.AreEqual(ColumnPurpose.Weight, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Weight"));
-            Assert.AreEqual(ColumnPurpose.SamplingKey, ColumnInformationUtil.GetColumnPurpose(columnInfo, "SamplingKey"));
-            Assert.AreEqual(ColumnPurpose.CategoricalFeature, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Cat"));
-            Assert.AreEqual(ColumnPurpose.NumericFeature, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Num"));
-            Assert.AreEqual(ColumnPurpose.TextFeature, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Text"));
-            Assert.AreEqual(ColumnPurpose.Ignore, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Ignored"));
-            Assert.AreEqual(null, ColumnInformationUtil.GetColumnPurpose(columnInfo, "NonExistent"));
+            Assert.Equal(ColumnPurpose.Label, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Label"));
+            Assert.Equal(ColumnPurpose.Weight, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Weight"));
+            Assert.Equal(ColumnPurpose.SamplingKey, ColumnInformationUtil.GetColumnPurpose(columnInfo, "SamplingKey"));
+            Assert.Equal(ColumnPurpose.CategoricalFeature, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Cat"));
+            Assert.Equal(ColumnPurpose.NumericFeature, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Num"));
+            Assert.Equal(ColumnPurpose.TextFeature, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Text"));
+            Assert.Equal(ColumnPurpose.Ignore, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Ignored"));
+            Assert.Null(ColumnInformationUtil.GetColumnPurpose(columnInfo, "NonExistent"));
         }
 
-        [TestMethod]
+        [Fact]
         public void GetColumnNamesTest()
         {
             var columnInfo = new ColumnInformation()
@@ -46,12 +46,12 @@ namespace Microsoft.ML.AutoML.Test
             columnInfo.CategoricalColumnNames.Add("Cat2");
             columnInfo.NumericColumnNames.Add("Num");
             var columnNames = ColumnInformationUtil.GetColumnNames(columnInfo);
-            Assert.AreEqual(5, columnNames.Count());
-            Assert.IsTrue(columnNames.Contains("Label"));
-            Assert.IsTrue(columnNames.Contains("SamplingKey"));
-            Assert.IsTrue(columnNames.Contains("Cat1"));
-            Assert.IsTrue(columnNames.Contains("Cat2"));
-            Assert.IsTrue(columnNames.Contains("Num"));
+            Assert.Equal(5, columnNames.Count());
+            Assert.Contains("Label", columnNames);
+            Assert.Contains("SamplingKey", columnNames);
+            Assert.Contains("Cat1", columnNames);
+            Assert.Contains("Cat2", columnNames);
+            Assert.Contains("Num", columnNames);
         }
     }
 }

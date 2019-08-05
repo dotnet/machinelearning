@@ -4,14 +4,14 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    [TestClass]
+    
     public class SweeperTests
     {
-        [TestMethod]
+        [Fact]
         public void SmacQuickRunTest()
         {
             var numInitialPopulation = 10;
@@ -35,11 +35,11 @@ namespace Microsoft.ML.AutoML.Test
             });
 
             // sanity check grid
-            Assert.IsNotNull(floatValueGenerator[0].ValueText);
-            Assert.IsNotNull(floatLogValueGenerator[0].ValueText);
-            Assert.IsNotNull(longValueGenerator[0].ValueText);
-            Assert.IsNotNull(longLogValueGenerator[0].ValueText);
-            Assert.IsNotNull(discreteValueGeneator[0].ValueText);
+            Assert.NotNull(floatValueGenerator[0].ValueText);
+            Assert.NotNull(floatLogValueGenerator[0].ValueText);
+            Assert.NotNull(longValueGenerator[0].ValueText);
+            Assert.NotNull(longLogValueGenerator[0].ValueText);
+            Assert.NotNull(discreteValueGeneator[0].ValueText);
 
             List<RunResult> results = new List<RunResult>();
 
@@ -72,13 +72,11 @@ namespace Microsoft.ML.AutoML.Test
 
             Console.WriteLine($"Best: {bestResult.MetricValue}");
 
-            Assert.IsNotNull(bestResult);
-            Assert.IsTrue(bestResult.MetricValue > 0);
+            Assert.NotNull(bestResult);
+            Assert.True(bestResult.MetricValue > 0);
         }
 
-
-        [Ignore]
-        [TestMethod]
+        [Fact(Skip = "This test is too slow to run as part of automation.")]
         public void Smac4ParamsConvergenceTest()
         {
             var sweeper = new SmacSweeper(new MLContext(), new SmacSweeper.Arguments()
@@ -131,8 +129,7 @@ namespace Microsoft.ML.AutoML.Test
             Console.WriteLine($"Best: {bestResult.MetricValue}");
         }
 
-        [Ignore]
-        [TestMethod]
+        [Fact(Skip = "This test is too slow to run as part of automation.")]
         public void Smac2ParamsConvergenceTest()
         {
             var sweeper = new SmacSweeper(new MLContext(), new SmacSweeper.Arguments()

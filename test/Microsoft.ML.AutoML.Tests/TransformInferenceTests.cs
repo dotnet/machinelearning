@@ -5,14 +5,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    [TestClass]
+    
     public class TransformInferenceTests
     {
-        [TestMethod]
+        [Fact]
         public void TransformInferenceNumAndCatCols()
         {
             TransformInferenceTestCore(new[]
@@ -67,7 +67,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [TestMethod]
+        [Fact]
         public void TransformInferenceNumCatAndFeatCols()
         {
             TransformInferenceTestCore(new[]
@@ -124,7 +124,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [TestMethod]
+        [Fact]
         public void TransformInferenceCatAndFeatCols()
         {
             TransformInferenceTestCore(new[]
@@ -171,7 +171,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [TestMethod]
+        [Fact]
         public void TransformInferenceNumericCol()
         {
             TransformInferenceTestCore(new[]
@@ -193,7 +193,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [TestMethod]
+        [Fact]
         public void TransformInferenceNumericCols()
         {
             TransformInferenceTestCore(new[]
@@ -216,7 +216,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [TestMethod]
+        [Fact]
         public void TransformInferenceFeatColScalar()
         {
             TransformInferenceTestCore(new[]
@@ -237,7 +237,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [TestMethod]
+        [Fact]
         public void TransformInferenceFeatColVector()
         {
             TransformInferenceTestCore(new[]
@@ -246,7 +246,7 @@ namespace Microsoft.ML.AutoML.Test
                 }, @"[]");
         }
 
-        [TestMethod]
+        [Fact]
         public void NumericAndFeatCol()
         {
             TransformInferenceTestCore(new[]
@@ -269,7 +269,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [TestMethod]
+        [Fact]
         public void NumericScalarCol()
         {
             TransformInferenceTestCore(new[]
@@ -290,7 +290,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [TestMethod]
+        [Fact]
         public void NumericVectorCol()
         {
             TransformInferenceTestCore(new[]
@@ -311,7 +311,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [TestMethod]
+        [Fact]
         public void TransformInferenceTextCol()
         {
             TransformInferenceTestCore(new[]
@@ -343,7 +343,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [TestMethod]
+        [Fact]
         public void TransformInferenceTextAndFeatCol()
         {
             TransformInferenceTestCore(new[]
@@ -378,7 +378,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [TestMethod]
+        [Fact]
         public void TransformInferenceBoolCol()
         {
             TransformInferenceTestCore(new[]
@@ -410,7 +410,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [TestMethod]
+        [Fact]
         public void TransformInferenceBoolAndNumCols()
         {
             TransformInferenceTestCore(new[]
@@ -444,7 +444,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [TestMethod]
+        [Fact]
         public void TransformInferenceBoolAndFeatCol()
         {
             TransformInferenceTestCore(new[]
@@ -478,7 +478,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [TestMethod]
+        [Fact]
         public void TransformInferenceNumericMissingCol()
         {
             TransformInferenceTestCore(new[]
@@ -535,7 +535,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [TestMethod]
+        [Fact]
         public void TransformInferenceNumericMissingCols()
         {
             TransformInferenceTestCore(new[]
@@ -601,7 +601,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [TestMethod]
+        [Fact]
         public void TransformInferenceIgnoreCol()
         {
             TransformInferenceTestCore(new[]
@@ -623,7 +623,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [TestMethod]
+        [Fact]
         public void TransformInferenceDefaultLabelCol()
         {
             TransformInferenceTestCore(new[]
@@ -633,7 +633,7 @@ namespace Microsoft.ML.AutoML.Test
                 }, @"[]");
         }
 
-        [TestMethod]
+        [Fact]
         public void TransformInferenceCustomLabelCol()
         {
             TransformInferenceTestCore(new[]
@@ -643,7 +643,7 @@ namespace Microsoft.ML.AutoML.Test
                 }, @"[]");
         }
 
-        [TestMethod]
+        [Fact]
         public void TransformInferenceCustomTextLabelColMulticlass()
         {
             TransformInferenceTestCore(new[]
@@ -665,7 +665,7 @@ namespace Microsoft.ML.AutoML.Test
 ]", TaskKind.MulticlassClassification);
         }
 
-        [TestMethod]
+        [Fact]
         public void TransformInferenceMissingNameCollision()
         {
             TransformInferenceTestCore(new[]
@@ -749,9 +749,9 @@ namespace Microsoft.ML.AutoML.Test
 
             // assert Features column of type 'R4' exists
             var featuresCol = data.Schema.GetColumnOrNull(DefaultColumnNames.Features);
-            Assert.IsNotNull(featuresCol);
-            Assert.AreEqual(true, featuresCol.Value.Type.IsVector());
-            Assert.AreEqual(NumberDataViewType.Single, featuresCol.Value.Type.GetItemType());
+            Assert.NotNull(featuresCol);
+            Assert.True(featuresCol.Value.Type.IsVector());
+            Assert.Equal(NumberDataViewType.Single, featuresCol.Value.Type.GetItemType());
         }
 
         private static IDataView BuildDummyDataView(IEnumerable<DatasetColumnInfo> columns)

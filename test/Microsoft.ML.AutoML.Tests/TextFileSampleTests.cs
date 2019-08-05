@@ -4,14 +4,14 @@
 
 using System.IO;
 using System.Text;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    [TestClass]
+    
     public class TextFileSampleTests
     {
-        [TestMethod]
+        [Fact]
         public void CanParseLargeRandomStream()
         {
             using (var stream = new MemoryStream())
@@ -40,8 +40,8 @@ namespace Microsoft.ML.AutoML.Test
                 stream.Seek(0, SeekOrigin.Begin);
 
                 var sample = TextFileSample.CreateFromFullStream(stream);
-                Assert.IsNotNull(sample);
-                Assert.IsTrue(sample.FullFileSize > 0);
+                Assert.NotNull(sample);
+                Assert.True(sample.FullFileSize > 0);
             }
         }
     }

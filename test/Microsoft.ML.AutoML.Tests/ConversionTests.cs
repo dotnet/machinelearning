@@ -3,14 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    [TestClass]
+    
     public class ConversionTests
     {
-        [TestMethod]
+        [Fact]
         public void ConvertFloatMissingValues()
         {
             var missingValues = new string[]
@@ -25,12 +25,12 @@ namespace Microsoft.ML.AutoML.Test
             {
                 float value;
                 var success = Conversions.TryParse(missingValue.AsMemory(), out value);
-                Assert.IsTrue(success);
-                Assert.AreEqual(value, float.NaN);
+                Assert.True(success);
+                Assert.Equal(value, float.NaN);
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void ConvertFloatParseFailure()
         {
             var values = new string[]
@@ -41,11 +41,11 @@ namespace Microsoft.ML.AutoML.Test
             foreach (var value in values)
             {
                 var success = Conversions.TryParse(value.AsMemory(), out float _);
-                Assert.IsFalse(success);
+                Assert.False(success);
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void ConvertBoolMissingValues()
         {
             var missingValues = new string[]
@@ -60,11 +60,11 @@ namespace Microsoft.ML.AutoML.Test
             foreach (var missingValue in missingValues)
             {
                 var success = Conversions.TryParse(missingValue.AsMemory(), out bool _);
-                Assert.IsTrue(success);
+                Assert.True(success);
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void ConvertBoolParseFailure()
         {
             var values = new string[]
@@ -78,7 +78,7 @@ namespace Microsoft.ML.AutoML.Test
             foreach (var value in values)
             {
                 var success = Conversions.TryParse(value.AsMemory(), out bool _);
-                Assert.IsFalse(success);
+                Assert.False(success);
             }
         }
     }

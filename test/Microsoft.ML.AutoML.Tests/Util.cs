@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -18,7 +18,7 @@ namespace Microsoft.ML.AutoML.Test
         {
             var actualJson = JsonConvert.SerializeObject(obj, 
                 Formatting.Indented, new JsonConverter[] { new StringEnumConverter() });
-            Assert.AreEqual(expectedJson, actualJson);
+            Assert.Equal(expectedJson, actualJson);
         }
 
         public static ValueGetter<VBuffer<ReadOnlyMemory<char>>> GetKeyValueGetter(IEnumerable<string> colNames)

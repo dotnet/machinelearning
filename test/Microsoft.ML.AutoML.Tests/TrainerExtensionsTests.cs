@@ -5,14 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    [TestClass]
+    
     public class TrainerExtensionsTests
     {
-        [TestMethod]
+        [Fact]
         public void TrainerExtensionInstanceTests()
         {
             var context = new MLContext();
@@ -23,19 +23,19 @@ namespace Microsoft.ML.AutoML.Test
             {
                 var extension = TrainerExtensionCatalog.GetTrainerExtension(trainerName);
                 var sweepParams = extension.GetHyperparamSweepRanges();
-                Assert.IsNotNull(sweepParams);
+                Assert.NotNull(sweepParams);
                 foreach (var sweepParam in sweepParams)
                 {
                     sweepParam.RawValue = 1;
                 }
                 var instance = extension.CreateInstance(context, sweepParams, columnInfo);
-                Assert.IsNotNull(instance);
+                Assert.NotNull(instance);
                 var pipelineNode = extension.CreatePipelineNode(null, columnInfo);
-                Assert.IsNotNull(pipelineNode);
+                Assert.NotNull(pipelineNode);
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void BuildLightGbmPipelineNode()
         {
             var sweepParams = SweepableParams.BuildLightGbmParams();
@@ -79,7 +79,7 @@ namespace Microsoft.ML.AutoML.Test
             Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
         }
 
-        [TestMethod]
+        [Fact]
         public void BuildSdcaPipelineNode()
         {
             var sweepParams = SweepableParams.BuildSdcaParams();
@@ -111,7 +111,7 @@ namespace Microsoft.ML.AutoML.Test
             Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
         }
 
-        [TestMethod]
+        [Fact]
         public void BuildLightGbmPipelineNodeDefaultParams()
         {
             var pipelineNode = new LightGbmBinaryExtension().CreatePipelineNode(
@@ -133,7 +133,7 @@ namespace Microsoft.ML.AutoML.Test
             Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
         }
 
-        [TestMethod]
+        [Fact]
         public void BuildPipelineNodeWithCustomColumns()
         {
             var columnInfo = new ColumnInformation()
@@ -168,7 +168,7 @@ namespace Microsoft.ML.AutoML.Test
             Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
         }
 
-        [TestMethod]
+        [Fact]
         public void BuildDefaultAveragedPerceptronPipelineNode()
         {
             var pipelineNode = new AveragedPerceptronBinaryExtension().CreatePipelineNode(null, new ColumnInformation() { LabelColumnName = "L" });
@@ -189,7 +189,7 @@ namespace Microsoft.ML.AutoML.Test
             Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
         }
 
-        [TestMethod]
+        [Fact]
         public void BuildOvaPipelineNode()
         {
             var pipelineNode = new FastForestOvaExtension().CreatePipelineNode(null, new ColumnInformation());
@@ -218,7 +218,7 @@ namespace Microsoft.ML.AutoML.Test
             Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
         }
 
-        [TestMethod]
+        [Fact]
         public void BuildParameterSetLightGbm()
         {
             var props = new Dictionary<string, object>()
@@ -240,15 +240,15 @@ namespace Microsoft.ML.AutoML.Test
 
             foreach (var paramSet in new ParameterSet[] { binaryParams, multiParams, regressionParams })
             {
-                Assert.AreEqual(4, paramSet.Count);
-                Assert.AreEqual("1", paramSet["NumberOfIterations"].ValueText);
-                Assert.AreEqual("1", paramSet["LearningRate"].ValueText);
-                Assert.AreEqual("1", paramSet["L2Regularization"].ValueText);
-                Assert.AreEqual("1", paramSet["L1Regularization"].ValueText);
+                Assert.Equal(4, paramSet.Count);
+                Assert.Equal("1", paramSet["NumberOfIterations"].ValueText);
+                Assert.Equal("1", paramSet["LearningRate"].ValueText);
+                Assert.Equal("1", paramSet["L2Regularization"].ValueText);
+                Assert.Equal("1", paramSet["L1Regularization"].ValueText);
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void BuildParameterSetSdca()
         {
             var props = new Dictionary<string, object>()
@@ -258,54 +258,54 @@ namespace Microsoft.ML.AutoML.Test
 
             var sdcaParams = TrainerExtensionUtil.BuildParameterSet(TrainerName.SdcaLogisticRegressionBinary, props);
 
-            Assert.AreEqual(1, sdcaParams.Count);
-            Assert.AreEqual("1", sdcaParams["LearningRate"].ValueText);
+            Assert.Equal(1, sdcaParams.Count);
+            Assert.Equal("1", sdcaParams["LearningRate"].ValueText);
         }
 
-        [TestMethod]
+        [Fact]
         public void PublicToPrivateTrainerNamesBinaryTest()
         {
             var publicNames = Enum.GetValues(typeof(BinaryClassificationTrainer)).Cast<BinaryClassificationTrainer>();
             var internalNames = TrainerExtensionUtil.GetTrainerNames(publicNames);
-            Assert.AreEqual(publicNames.Distinct().Count(), internalNames.Distinct().Count());
+            Assert.Equal(publicNames.Distinct().Count(), internalNames.Distinct().Count());
         }
 
-        [TestMethod]
+        [Fact]
         public void PublicToPrivateTrainerNamesMultiTest()
         {
             var publicNames = Enum.GetValues(typeof(MulticlassClassificationTrainer)).Cast<MulticlassClassificationTrainer>();
             var internalNames = TrainerExtensionUtil.GetTrainerNames(publicNames);
-            Assert.AreEqual(publicNames.Distinct().Count(), internalNames.Distinct().Count());
+            Assert.Equal(publicNames.Distinct().Count(), internalNames.Distinct().Count());
         }
 
-        [TestMethod]
+        [Fact]
         public void PublicToPrivateTrainerNamesRegressionTest()
         {
             var publicNames = Enum.GetValues(typeof(RegressionTrainer)).Cast<RegressionTrainer>();
             var internalNames = TrainerExtensionUtil.GetTrainerNames(publicNames);
-            Assert.AreEqual(publicNames.Distinct().Count(), internalNames.Distinct().Count());
+            Assert.Equal(publicNames.Distinct().Count(), internalNames.Distinct().Count());
         }
 
-        [TestMethod]
+        [Fact]
         public void PublicToPrivateTrainerNamesNullTest()
         {
             var internalNames = TrainerExtensionUtil.GetTrainerNames(null as IEnumerable<BinaryClassificationTrainer>);
-            Assert.AreEqual(null, internalNames);
+            Assert.Null(internalNames);
         }
 
-        [TestMethod]
+        [Fact]
         public void AllowedTrainersWhitelistNullTest()
         {
             var trainers = RecipeInference.AllowedTrainers(new MLContext(), TaskKind.BinaryClassification, new ColumnInformation(), null);
-            Assert.IsTrue(trainers.Any());
+            Assert.True(trainers.Any());
         }
 
-        [TestMethod]
+        [Fact]
         public void AllowedTrainersWhitelistTest()
         {
             var whitelist = new[] { TrainerName.AveragedPerceptronBinary, TrainerName.FastForestBinary };
             var trainers = RecipeInference.AllowedTrainers(new MLContext(), TaskKind.BinaryClassification, new ColumnInformation(), whitelist);
-            Assert.AreEqual(whitelist.Count(), trainers.Count());
+            Assert.Equal(whitelist.Count(), trainers.Count());
         }
     }
 }

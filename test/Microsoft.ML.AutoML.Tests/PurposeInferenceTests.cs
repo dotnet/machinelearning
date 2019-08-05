@@ -1,13 +1,13 @@
 ﻿using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    [TestClass]
     public class PurposeInferenceTests
     {
-        [TestMethod]
+        [Fact]
         public void PurposeInferenceHiddenColumnsTest()
         {
             var context = new MLContext();
@@ -27,12 +27,12 @@ namespace Microsoft.ML.AutoML.Test
             // infer purposes
             var purposes = PurposeInference.InferPurposes(context, data, new ColumnInformation());
 
-            Assert.AreEqual(3, purposes.Count());
-            Assert.AreEqual(ColumnPurpose.Label, purposes[0].Purpose);
+            Assert.Equal(3, purposes.Count());
+            Assert.Equal(ColumnPurpose.Label, purposes[0].Purpose);
             // assert first 'Features' purpose (hidden column) is Ignore
-            Assert.AreEqual(ColumnPurpose.Ignore, purposes[1].Purpose);
+            Assert.Equal(ColumnPurpose.Ignore, purposes[1].Purpose);
             // assert second 'Features' purpose is NumericFeature
-            Assert.AreEqual(ColumnPurpose.NumericFeature, purposes[2].Purpose);
+            Assert.Equal(ColumnPurpose.NumericFeature, purposes[2].Purpose);
         }
     }
 }
