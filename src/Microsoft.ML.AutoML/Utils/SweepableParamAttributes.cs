@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -144,7 +145,7 @@ namespace Microsoft.ML.AutoML
 
         public override void SetUsingValueText(string valueText)
         {
-            RawValue = float.Parse(valueText);
+            RawValue = float.Parse(valueText, CultureInfo.InvariantCulture);
         }
 
         public override SweepableParam Clone() =>

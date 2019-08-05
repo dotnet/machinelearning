@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Globalization;
 
 namespace Microsoft.ML.AutoML
 {
@@ -25,7 +26,7 @@ namespace Microsoft.ML.AutoML
                 dst = R4.NaN;
                 return true;
             }
-            if (float.TryParse(str, out dst))
+            if (float.TryParse(str, NumberStyles.Float, CultureInfo.InvariantCulture, out dst))
             {
                 return true;
             }
