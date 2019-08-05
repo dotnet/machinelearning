@@ -11535,7 +11535,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": "Default"
+          "Default": "Logloss"
         },
         {
           "Name": "MaximumBinCountPerFeature",
@@ -12032,7 +12032,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": "Default"
+          "Default": "Error"
         },
         {
           "Name": "MaximumBinCountPerFeature",
@@ -12529,7 +12529,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": "Default"
+          "Default": "NormalizedDiscountedCumulativeGain"
         },
         {
           "Name": "MaximumBinCountPerFeature",
@@ -12987,7 +12987,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": "Default"
+          "Default": "RootMeanSquaredError"
         },
         {
           "Name": "MaximumBinCountPerFeature",
