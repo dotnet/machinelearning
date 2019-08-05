@@ -1028,7 +1028,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Retrieves the model parameters.
         /// </summary>
-        internal ImmutableArray<T> SubModelParameters => Impl.Predictors.Cast<T>().ToImmutableArray();
+        public ImmutableArray<T> SubModelParameters => Impl.Predictors.Cast<T>().ToImmutableArray();
     }
 
     /// <summary>
@@ -1050,6 +1050,6 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Retrieves the model parameters.
         /// </summary>
-        internal ImmutableArray<object> SubModelParameters => Impl.Predictors.Cast<object>().ToImmutableArray();
+        public ImmutableArray<object> SubModelParameters => Impl.Predictors.Cast<object>().ToImmutableArray();
     }
 }
