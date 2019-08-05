@@ -7,16 +7,13 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms.Image;
-using Microsoft.ML.Transforms.StaticPipe;
 using Xunit;
 using Xunit.Abstractions;
 using Microsoft.ML.Transforms.Onnx;
@@ -180,7 +177,7 @@ namespace Microsoft.ML.Tests
         }
 
         [OnnxFact]
-        public void OnnxStatic()
+        public void OnnxWorkout()
         {
             var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "squeezenet", "00000001", "model.onnx");
 
@@ -190,21 +187,19 @@ namespace Microsoft.ML.Tests
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 
-            var data = TextLoaderStatic.CreateLoader(env, ctx => (
-                imagePath: ctx.LoadText(0),
-                name: ctx.LoadText(1)))
-                .Load(dataFile);
-
+            var data = ML.Data.LoadFromTextFile(dataFile, new[] {
+                new TextLoader.Column("imagePath", DataKind.String, 0),
+                new TextLoader.Column("name", DataKind.String, 1)
+            });
             // Note that CamelCase column names are there to match the TF graph node names.
-            var pipe = data.MakeNewEstimator()
-                .Append(row => (
-                    row.name,
-                    data_0: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleave: true)))
-                .Append(row => (row.name, softmaxout_1: row.data_0.ApplyOnnxModel(modelFile)));
+            var pipe = ML.Transforms.LoadImages("data_0", imageFolder, "imagePath")
+                .Append(ML.Transforms.ResizeImages("data_0", imageHeight, imageWidth))
+                .Append(ML.Transforms.ExtractPixels("data_0", interleavePixelColors: true))
+                .Append(ML.Transforms.ApplyOnnxModel("softmaxout_1", "data_0", modelFile));
 
-            TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
+            TestEstimatorCore(pipe, data);
 
-            var result = pipe.Fit(data).Transform(data).AsDynamic;
+            var result = pipe.Fit(data).Transform(data);
             var softmaxOutCol = result.Schema["softmaxout_1"];
 
             using (var cursor = result.GetRowCursor(softmaxOutCol))
@@ -572,7 +567,7 @@ namespace Microsoft.ML.Tests
 
         /// <summary>
         /// Use <see cref="CustomMappingCatalog.CustomMapping{TSrc, TDst}(TransformsCatalog, Action{TSrc, TDst}, string, SchemaDefinition, SchemaDefinition)"/>
-        /// to test if ML.NET can manipulate <see cref="OnnxMapType"/> properly. ONNXRuntime's C# API doesn't support map yet. 
+        /// to test if ML.NET can manipulate <see cref="OnnxMapType"/> properly. ONNXRuntime's C# API doesn't support map yet.
         /// </summary>
         [OnnxFact]
         public void SmokeInMemoryOnnxMapTypeTest()

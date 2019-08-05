@@ -6,11 +6,26 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <TensorFlowConfig Include="windows" FileExtension=".zip" FilesFromArchive="lib\tensorflow.dll;include\tensorflow\c\LICENSE" Runtime="win-x64"/>
-    <TensorFlowConfig Include="linux" FileExtension=".tar.gz" FilesFromArchive="lib\libtensorflow.so;lib\libtensorflow_framework.so;include\tensorflow\c\LICENSE" Runtime="linux-x64" />
-    <TensorFlowConfig Include="darwin" FileExtension=".tar.gz" FilesFromArchive="lib\libtensorflow.so;lib\libtensorflow_framework.so;include\tensorflow\c\LICENSE" Runtime="osx-x64" />
+    <TensorFlowConfig Include="windows" 
+                      FileExtension=".zip" 
+                      FilesFromArchive="lib\tensorflow.dll;
+                                        include\tensorflow\c\LICENSE" 
+                      Runtime="win-x64"/>
+    <TensorFlowConfig Include="linux" 
+                      FileExtension=".tar.gz"
+                      FilesFromArchive="lib\libtensorflow.so;
+                                        lib\libtensorflow_framework.so.$(TensorFlowMajorVersion);
+                                        include\tensorflow\c\LICENSE"
+                      Runtime="linux-x64" />
+    <TensorFlowConfig Include="darwin" 
+                      FileExtension=".tar.gz"
+                      FilesFromArchive="lib\libtensorflow.dylib;
+                                        lib\libtensorflow_framework.$(TensorFlowMajorVersion).dylib;
+                                        include\tensorflow\c\LICENSE"
+                      Runtime="osx-x64" />
 
-    <AdditionalDownloadFile Include="https://raw.githubusercontent.com/tensorflow/tensorflow/master/LICENSE" DownloadFile="$(IntermediateOutputPath)LICENSE" />
+
+      <AdditionalDownloadFile Include="https://raw.githubusercontent.com/tensorflow/tensorflow/master/LICENSE" DownloadFile="$(IntermediateOutputPath)LICENSE" />
   </ItemGroup>
 
   <Target Name="PrepareArchives">
@@ -93,8 +108,6 @@
       <!-- batch rather than transform so that we can split FilesFromArchive metadata -->
       <_fileFromArchive Include="%(TensorFlowArchive.FilesFromArchive)" ExtractDirectory="%(TensorFlowArchive.ExtractDirectory)" Runtime="%(TensorFlowArchive.Runtime)" />
       <_fileFromArchive DestinationFile="%(FileName)%(Extension)"/>
-      <!-- rename the .so to .dylib since CORECLR's DLLImport convention requires dylib -->
-      <_fileFromArchive Condition="'%(Runtime)' == 'osx-x64' AND '%(Extension)' == '.so'" DestinationFile="%(FileName).dylib" />
       <_fileFromArchive PackagePath="runtimes\%(_fileFromArchive.Runtime)\native\%(_fileFromArchive.DestinationFile)" />
 
       <!-- LICENSE from the package is actually THIRD_PARTY_NOTICES-->
@@ -120,9 +133,6 @@
     <Copy SourceFiles="@(FilesFromArchive)"
           DestinationFiles="@(FilesFromArchive->'%(TargetPath)')" />
 
-    <!-- fix up the renamed libtensorflow, this can only run on mac -->
-    <Exec Condition="'%(FilesFromArchive.Runtime)' == 'osx-x64' AND '%(FilesFromArchive.FileName)' == 'libtensorflow'"
-          Command="install_name_tool -change @rpath/libtensorflow_framework.so @rpath/libtensorflow_framework.dylib &quot;%(FilesFromArchive.TargetPath)&quot;" />
   </Target>
 
   <!-- Define Build to do the work of downloading and copying assets -->

@@ -9,10 +9,12 @@ string TrainerOptions = @"SdcaRegressionTrainer.Options
             {
                 LabelColumnName = nameof(DataPoint.Label),
                 FeatureColumnName = nameof(DataPoint.Features),
-                // Make the convergence tolerance tighter. It effectively leads to more training iterations.
+                // Make the convergence tolerance tighter. It effectively leads to
+                // more training iterations.
                 ConvergenceTolerance = 0.02f,
-                // Increase the maximum number of passes over training data. Similar to ConvergenceTolerance,
-				// this value specifics the hard iteration limit on the training algorithm.
+                // Increase the maximum number of passes over training data. Similar
+                // to ConvergenceTolerance, this value specifics the hard iteration
+                // limit on the training algorithm.
                 MaximumNumberOfIterations = 30,
                 // Increase learning rate for bias.
                 BiasLearningRate = 0.1f

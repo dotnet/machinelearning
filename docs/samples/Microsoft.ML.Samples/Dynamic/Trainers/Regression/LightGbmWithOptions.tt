@@ -1,8 +1,9 @@
 ﻿<#@ include file="RegressionSamplesTemplate.ttinclude"#>
 
 <#+
-string ClassHeader = @"// This example requires installation of additional NuGet package
-        // <a href=""https://www.nuget.org/packages/Microsoft.ML.LightGbm/"">Microsoft.ML.LightGBM</a>. ";
+string ClassHeader = @"// This example requires installation of additional NuGet
+        // package for Microsoft.ML.LightGBM
+        // at https://www.nuget.org/packages/Microsoft.ML.LightGbm/";
 
 string ClassName="LightGbmWithOptions";
 string ExtraUsing = "using Microsoft.ML.Trainers.LightGbm;";
@@ -16,7 +17,8 @@ string TrainerOptions = @"LightGbmRegressionTrainer.Options
                 // Each leaf contains at least this number of training data points.
                 MinimumExampleCountPerLeaf = 6,
                 // The step size per update. Using a large value might reduce the
-                // training time but also increase the algorithm's numerical stability.
+                // training time but also increase the algorithm's numerical
+                // stability.
                 LearningRate = 0.001,
                 Booster = new Microsoft.ML.Trainers.LightGbm.GossBooster.Options()
                 {

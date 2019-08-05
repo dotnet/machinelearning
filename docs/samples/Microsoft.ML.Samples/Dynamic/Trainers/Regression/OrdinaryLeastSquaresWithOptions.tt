@@ -11,7 +11,8 @@ string TrainerOptions = @"OlsTrainer.Options
                 FeatureColumnName = nameof(DataPoint.Features),
                 // Larger values leads to smaller (closer to zero) model parameters.
                 L2Regularization = 0.1f,
-                // Whether to computate standard error and other statistics of model parameters.
+                // Whether to computate standard error and other statistics of model
+                // parameters.
                 CalculateStatistics = false
             }";
 
