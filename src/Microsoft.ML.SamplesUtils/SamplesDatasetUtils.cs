@@ -230,7 +230,8 @@ namespace Microsoft.ML.SamplesUtils
             for (int i = 0; i < exampleCount; ++i)
             {
                 // Initialize an example with a random label and an empty feature vector.
-                var sample = new BinaryLabelFloatFeatureVectorFloatWeightSample() {
+                var sample = new BinaryLabelFloatFeatureVectorFloatWeightSample()
+                {
                     Label = rnd.Next() % 2 == 0,
                     Features = new float[_simpleBinaryClassSampleFeatureLength],
                     Weight = (float)rnd.NextDouble()

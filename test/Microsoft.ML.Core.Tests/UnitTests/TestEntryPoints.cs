@@ -5610,18 +5610,7 @@ namespace Microsoft.ML.RunTests
                             'OutputColumns': [
                                 'Softmax'
                             ],
-                            'LabelColumn': null,
-                            'TensorFlowLabel': null,
-                            'OptimizationOperation': null,
-                            'LossOperation': null,
-                            'MetricOperation': null,
                             'BatchSize': 64,
-                            'Epoch': 5,
-                            'LearningRateOperation': null,
-                            'LearningRate': 0.01,
-                            'SaveLocationOperation': 'save/Const',
-                            'SaveOperation': 'save/control_dependency',
-                            'ReTrain': false,
                             'Data': '$Var_2802f3e485814063828c2303ec60327c'
                         },
                         'Outputs': {
