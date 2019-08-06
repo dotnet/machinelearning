@@ -2275,9 +2275,10 @@
           "Name": "Model",
           "Type": "TransformModel",
           "Desc": "Model that needs to be converted to ONNX format.",
-          "Required": true,
+          "Required": false,
           "SortOrder": 10.0,
-          "IsNullable": false
+          "IsNullable": false,
+          "Default": null
         },
         {
           "Name": "OnnxVersion",
@@ -2293,6 +2294,15 @@
           "SortOrder": 11.0,
           "IsNullable": false,
           "Default": "Stable"
+        },
+        {
+          "Name": "PredictiveModel",
+          "Type": "PredictorModel",
+          "Desc": "Predictor model that needs to be converted to ONNX format.",
+          "Required": false,
+          "SortOrder": 12.0,
+          "IsNullable": false,
+          "Default": null
         }
       ],
       "Outputs": []
