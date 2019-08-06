@@ -379,7 +379,7 @@ namespace Microsoft.ML.Tests
 
         public override int GetValues(object[] values) => throw new NotImplementedException();
 
-        public override bool IsDBNull(int ordinal) => throw new NotImplementedException();
+        public override bool IsDBNull(int ordinal) => false;
 
         public override bool NextResult() => throw new NotImplementedException();
 
