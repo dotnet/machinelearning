@@ -26,26 +26,26 @@ namespace Microsoft.ML.Tests.Torch
         [TorchFact]
         public void TorchScoringReLUTest()
         {
-            var mlContext = new MLContext();
-            var tensor = new float[] { -1, -1, 0, 1, 1 }.ToTorchTensor(dimensions: new long[] { 5 });
-            var data = new TestReLUModelData
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                Features = tensor.Data<float>().ToArray()
-            };
-            var dataPoint = new List<TestReLUModelData>() { data };
+                var mlContext = new MLContext();
+                var tensor = new float[] { -1, -1, 0, 1, 1 }.ToTorchTensor(dimensions: new long[] { 5 });
+                var data = new TestReLUModelData
+                {
+                    Features = tensor.Data<float>().ToArray()
+                };
+                var dataPoint = new List<TestReLUModelData>() { data };
 
-            var dataView = mlContext.Data.LoadFromEnumerable(dataPoint);
+                var dataView = mlContext.Data.LoadFromEnumerable(dataPoint);
 
-            var output = mlContext.Model
-                .LoadTorchModel(GetDataPath("Torch/relu.pt"))
-                .ScoreTorchModel("Features", new long[] { 5 })
-                .Fit(dataView)
-                .Transform(dataView);
+                var output = mlContext.Model
+                    .LoadTorchModel(GetDataPath("Torch/relu.pt"))
+                    .ScoreTorchModel("Features", new long[] { 5 })
+                    .Fit(dataView)
+                    .Transform(dataView);
 
-            var transformedData = mlContext.Data.CreateEnumerable<TestReLUModelData>(output, false).ToArray()[0].Features;
-             
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
-            {
+                var transformedData = mlContext.Data.CreateEnumerable<TestReLUModelData>(output, false).ToArray()[0].Features;
+
                 Assert.True(transformedData.Length == 5);
                 Assert.Equal(transformedData, new float[] { 0, 0, 0, 1, 1 });
             }
@@ -54,28 +54,28 @@ namespace Microsoft.ML.Tests.Torch
         [TorchFact]
         public void TorchTransformerWorkoutTest()
         {
-            var mlContext = new MLContext();
-            var tensorData = FloatTensor.Random(new long[] { 5 });
-            var datapoint = new TestReLUModelData
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                Features = tensorData.Data<float>().ToArray()
-            };
-            var data = new List<TestReLUModelData>() { datapoint, datapoint, datapoint, datapoint, datapoint };
+                var mlContext = new MLContext();
+                var tensorData = FloatTensor.Random(new long[] { 5 });
+                var datapoint = new TestReLUModelData
+                {
+                    Features = tensorData.Data<float>().ToArray()
+                };
+                var data = new List<TestReLUModelData>() { datapoint, datapoint, datapoint, datapoint, datapoint };
 
-            var dataView = mlContext.Data.LoadFromEnumerable(data);
+                var dataView = mlContext.Data.LoadFromEnumerable(data);
 
-            var estimator = mlContext.Model.LoadTorchModel(GetDataPath("Torch/relu.pt"))
-                .ScoreTorchModel("TorchOutput", new long[] { 5 }, "Features");
+                var estimator = mlContext.Model.LoadTorchModel(GetDataPath("Torch/relu.pt"))
+                    .ScoreTorchModel("TorchOutput", new long[] { 5 }, "Features");
 
-            TestEstimatorCore(estimator, dataView);
+                TestEstimatorCore(estimator, dataView);
 
-            var output = estimator.Fit(dataView)
-                .Transform(dataView);
+                var output = estimator.Fit(dataView)
+                    .Transform(dataView);
 
-            var transformedData = mlContext.Data.CreateEnumerable<TestReLUModelData>(output, false).ToArray()[0].Features;
+                var transformedData = mlContext.Data.CreateEnumerable<TestReLUModelData>(output, false).ToArray()[0].Features;
             
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
-            {
                 Assert.True(transformedData.Length == 5);
                 foreach (var elt in transformedData)
                     Assert.True(elt >= 0);
