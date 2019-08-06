@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -66,6 +67,33 @@ namespace Microsoft.ML.Transforms.Onnx
     /// </remarks>
     public sealed class OnnxTransformer : RowToRowTransformerBase
     {
+        /// <summary>
+        /// A class used for capturing shape information from command line.
+        /// <see cref="Name"/> is a tensor name while <see cref="Shape"/> is that tenor's desired shape.
+        /// <see cref="CustomShapeInfo"/> is useful because sometime we want to overwrite unknown
+        /// shapes loaded from ONNX model.
+        /// </summary>
+        internal sealed class CustomShapeInfo
+        {
+            // Examples of how a column is defined in command line API:
+            // 2-by-3 tensor:
+            //      Name=tensorName shape=2 shape=3
+
+            public CustomShapeInfo() { }
+
+            public CustomShapeInfo(string name, int[] shape)
+            {
+                Name = name;
+                Shape = shape;
+            }
+
+            [Argument(ArgumentType.Required, HelpText = "Name of the column")]
+            public string Name;
+
+            [Argument(ArgumentType.Multiple, HelpText = "Shape of the column")]
+            public int[] Shape;
+        }
+
         internal sealed class Options : TransformInputBase
         {
             [Argument(ArgumentType.Required, HelpText = "Path to the onnx model file.", ShortName = "model", SortOrder = 0)]
@@ -82,10 +110,18 @@ namespace Microsoft.ML.Transforms.Onnx
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "If true, resumes execution on CPU upon GPU error. If false, will raise the GPU execption.", SortOrder = 4)]
             public bool FallbackToCpu = false;
+
+            [Argument(ArgumentType.Multiple, HelpText = "Shapes used to overwrite shapes loaded from ONNX file.", SortOrder = 5)]
+            public CustomShapeInfo[] CustomShapeInfos;
         }
 
+        /// <summary>
+        /// Options used to construct this class.
+        /// </summary>
         private readonly Options _options;
-        // This field is internal because the associated estimator may access it.
+        /// <summary>
+        /// This field is internal because the associated estimator may access it.
+        /// </summary>
         internal readonly OnnxModel Model;
 
         internal const string Summary = "Transforms the data using the Onnx model.";
@@ -160,7 +196,21 @@ namespace Microsoft.ML.Transforms.Onnx
             for (int j = 0; j < outputs.Length; j++)
                 outputs[j] = ctx.LoadNonEmptyString();
 
-            var options = new Options() { InputColumns = inputs, OutputColumns = outputs };
+            // Save custom-provided shapes. Those shapes overwrite shapes loaded from the ONNX model file.
+            int customShapeInfosLength = ctx.Reader.ReadInt32(); // 0 means no custom shape. Non-zero means count of custom shapes.
+            CustomShapeInfo[] loadedCustomShapeInfos = null;
+            if (customShapeInfosLength > 0)
+            {
+                loadedCustomShapeInfos = new CustomShapeInfo[customShapeInfosLength];
+                for (int i = 0; i < customShapeInfosLength; ++i)
+                {
+                    var name = ctx.LoadNonEmptyString();
+                    var shape = ctx.Reader.ReadIntArray();
+                    loadedCustomShapeInfos[i] = new CustomShapeInfo() { Name = name, Shape = shape };
+                }
+            }
+
+            var options = new Options() { InputColumns = inputs, OutputColumns = outputs, CustomShapeInfos = loadedCustomShapeInfos };
 
             return new OnnxTransformer(env, options, modelBytes);
         }
@@ -179,6 +229,13 @@ namespace Microsoft.ML.Transforms.Onnx
             foreach (var col in options.OutputColumns)
                 Host.CheckNonWhiteSpace(col, nameof(options.OutputColumns));
 
+            // Cast options.CustomShapeInfos so that the user-specified shapes can be consumed by other
+            // internal functions. If nothing is provided, shapeDictionary is null.
+            var shapeDictionary = new Dictionary<string, int[]>();
+            if (options.CustomShapeInfos != null)
+                foreach(var customShape in options.CustomShapeInfos)
+                    shapeDictionary[customShape.Name] = customShape.Shape;
+
             // Use ONNXRuntime to figure out the right input and output configuration.
             // However, ONNXRuntime doesn't provide strongly-typed method to access the produced
             // variables, we will inspect the ONNX model file to get information regarding types.
@@ -190,13 +247,13 @@ namespace Microsoft.ML.Transforms.Onnx
                     Host.CheckNonWhiteSpace(options.ModelFile, nameof(options.ModelFile));
                     Host.CheckIO(File.Exists(options.ModelFile), "Model file {0} does not exists.", options.ModelFile);
                     // Because we cannot delete the user file, ownModelFile should be false.
-                    Model = new OnnxModel(options.ModelFile, options.GpuDeviceId, options.FallbackToCpu, ownModelFile: false);
+                    Model = new OnnxModel(options.ModelFile, options.GpuDeviceId, options.FallbackToCpu, ownModelFile: false, shapeDictionary: shapeDictionary);
                 }
                 else
                 {
                     // Entering this region means that the byte[] is passed as the model. To feed that byte[] to ONNXRuntime, we need
                     // to create a temporal file to store it and then call ONNXRuntime's API to load that file.
-                    Model = OnnxModel.CreateFromBytes(modelBytes, options.GpuDeviceId, options.FallbackToCpu);
+                    Model = OnnxModel.CreateFromBytes(modelBytes, options.GpuDeviceId, options.FallbackToCpu, shapeDictionary: shapeDictionary);
                 }
             }
             catch (OnnxRuntimeException e)
@@ -226,36 +283,17 @@ namespace Microsoft.ML.Transforms.Onnx
         /// <param name="modelFile">Model file path.</param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
-        internal OnnxTransformer(IHostEnvironment env, string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false)
+        /// <param name="shapeDictionary"></param>
+        internal OnnxTransformer(IHostEnvironment env, string modelFile, int? gpuDeviceId = null,
+            bool fallbackToCpu = false, IDictionary<string, int[]> shapeDictionary = null)
             : this(env, new Options()
             {
                 ModelFile = modelFile,
-                InputColumns = new string[] {},
-                OutputColumns = new string[] {},
+                InputColumns = new string[] { },
+                OutputColumns = new string[] { },
                 GpuDeviceId = gpuDeviceId,
-                FallbackToCpu = fallbackToCpu
-            })
-        {
-        }
-
-        /// <summary>
-        /// Transform for scoring ONNX models. Input data column name/type must exactly match
-        /// the model specification. Only 1 output column is generated.
-        /// </summary>
-        /// <param name="env">The environment to use.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="modelFile">Model file path.</param>
-        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
-        /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
-        internal OnnxTransformer(IHostEnvironment env, string outputColumnName, string modelFile, string inputColumnName = null, int? gpuDeviceId = null, bool fallbackToCpu = false)
-            : this(env, new Options()
-            {
-                ModelFile = modelFile,
-                InputColumns = new[] { inputColumnName ?? outputColumnName },
-                OutputColumns = new[] { outputColumnName },
-                GpuDeviceId = gpuDeviceId,
-                FallbackToCpu = fallbackToCpu
+                FallbackToCpu = fallbackToCpu,
+                CustomShapeInfos = shapeDictionary?.Select(pair => new CustomShapeInfo(pair.Key, pair.Value)).ToArray()
             })
         {
         }
@@ -270,14 +308,17 @@ namespace Microsoft.ML.Transforms.Onnx
         /// <param name="modelFile">Model file path.</param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
-        internal OnnxTransformer(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false)
+        /// <param name="shapeDictionary"></param>
+        internal OnnxTransformer(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false,
+             IDictionary<string, int[]> shapeDictionary = null)
             : this(env, new Options()
             {
                 ModelFile = modelFile,
                 InputColumns = inputColumnNames,
                 OutputColumns = outputColumnNames,
                 GpuDeviceId = gpuDeviceId,
-                FallbackToCpu = fallbackToCpu
+                FallbackToCpu = fallbackToCpu,
+                CustomShapeInfos = shapeDictionary?.Select(pair => new CustomShapeInfo(pair.Key, pair.Value)).ToArray()
             })
         {
         }
@@ -300,7 +341,18 @@ namespace Microsoft.ML.Transforms.Onnx
             ctx.Writer.Write(Outputs.Length);
             foreach (var colName in Outputs)
                 ctx.SaveNonEmptyString(colName);
+
+            // Save custom-provided shapes. Those shapes overwrite shapes loaded from the ONNX model file.
+            int customShapeInfosLength = _options.CustomShapeInfos != null ? _options.CustomShapeInfos.Length : 0;
+            ctx.Writer.Write(customShapeInfosLength);
+            for (int i = 0; i < customShapeInfosLength; ++i)
+            {
+                var info = _options.CustomShapeInfos[i];
+                ctx.SaveNonEmptyString(info.Name);
+                ctx.Writer.WriteIntArray(info.Shape);
+            }
         }
+
         private protected override IRowMapper MakeRowMapper(DataViewSchema inputSchema) => new Mapper(this, inputSchema);
 
         /// <summary>
@@ -668,9 +720,11 @@ namespace Microsoft.ML.Transforms.Onnx
         /// <param name="modelFile">Model file path.</param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
+        /// <param name="shapeDictionary"></param>
         [BestFriend]
-        internal OnnxScoringEstimator(IHostEnvironment env, string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false)
-            : this(env, new OnnxTransformer(env, new string[] { }, new string[] { }, modelFile, gpuDeviceId, fallbackToCpu))
+        internal OnnxScoringEstimator(IHostEnvironment env, string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false,
+            IDictionary<string, int[]> shapeDictionary = null)
+            : this(env, new OnnxTransformer(env, new string[] { }, new string[] { }, modelFile, gpuDeviceId, fallbackToCpu, shapeDictionary))
         {
         }
 
@@ -684,8 +738,10 @@ namespace Microsoft.ML.Transforms.Onnx
         /// <param name="modelFile">Model file path.</param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
-        internal OnnxScoringEstimator(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, string modelFile,  int? gpuDeviceId = null, bool fallbackToCpu = false)
-           : this(env, new OnnxTransformer(env, outputColumnNames, inputColumnNames, modelFile, gpuDeviceId, fallbackToCpu))
+        /// <param name="shapeDictionary"></param>
+        internal OnnxScoringEstimator(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, string modelFile,
+            int? gpuDeviceId = null, bool fallbackToCpu = false, IDictionary<string, int[]> shapeDictionary = null)
+           : this(env, new OnnxTransformer(env, outputColumnNames, inputColumnNames, modelFile, gpuDeviceId, fallbackToCpu, shapeDictionary))
         {
         }
 
