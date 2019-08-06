@@ -40,10 +40,13 @@ namespace Microsoft.ML.Tests.Torch
                 .Fit(dataView)
                 .Transform(dataView);
 
-             var transformedData = mlContext.Data.CreateEnumerable<TestReLUModelData>(output, false).ToArray()[0].Features;
-            Assert.True(transformedData.Length == 5);
-            Assert.Equal(transformedData, new float[] { 0, 0, 0, 1, 1 });
-
+            var transformedData = mlContext.Data.CreateEnumerable<TestReLUModelData>(output, false).ToArray()[0].Features;
+             
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
+            {
+                Assert.True(transformedData.Length == 5);
+                Assert.Equal(transformedData, new float[] { 0, 0, 0, 1, 1 });
+            }
         }
 
         [TorchFact]
@@ -68,9 +71,13 @@ namespace Microsoft.ML.Tests.Torch
                 .Transform(dataView);
 
             var transformedData = mlContext.Data.CreateEnumerable<TestReLUModelData>(output, false).ToArray()[0].Features;
-            Assert.True(transformedData.Length == 5);
-            foreach (var elt in transformedData)
-                Assert.True(elt >= 0);
+            
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
+            {
+                Assert.True(transformedData.Length == 5);
+                foreach (var elt in transformedData)
+                    Assert.True(elt >= 0);
+            }
         }
     }
 }
