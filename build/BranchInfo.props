@@ -28,8 +28,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(IsStableProject)' != 'true'">
     <MajorVersion>0</MajorVersion>
-    <MinorVersion>16</MinorVersion>
-    <PatchVersion>0</PatchVersion>
+    <MinorVersion>15</MinorVersion>
+    <PatchVersion>1</PatchVersion>
     <PreReleaseLabel>preview</PreReleaseLabel>
   </PropertyGroup>
 </Project>
