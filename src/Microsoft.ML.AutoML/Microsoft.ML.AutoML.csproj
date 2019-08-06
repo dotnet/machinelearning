@@ -1,11 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <DefineConstants>CORECLR</DefineConstants>
+    <IncludeInPackage>Microsoft.ML.AutoML</IncludeInPackage>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <MlDotNetPackageVersion>1.2.0</MlDotNetPackageVersion>
-  </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />

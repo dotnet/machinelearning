@@ -19,6 +19,8 @@ namespace Microsoft.ML.AutoML.Test
                 const int numRows = 100000;
                 const int rowSize = 100;
 
+                var eol = Encoding.UTF8.GetBytes("\r\n");
+
                 for (var i = 0; i < numRows; i++)
                 {
                     var row = new byte[rowSize];
@@ -33,8 +35,8 @@ namespace Microsoft.ML.AutoML.Test
                             row[k] = 1;
                         }
                     }
-                    stream.Write(row);
-                    stream.Write(Encoding.UTF8.GetBytes("\r\n"));
+                    stream.Write(row, 0, rowSize);
+                    stream.Write(eol, 0, eol.Length);
                 }
 
                 stream.Seek(0, SeekOrigin.Begin);
