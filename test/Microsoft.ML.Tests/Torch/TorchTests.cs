@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework.Attributes;
 using TorchSharp.Tensor;
 using Xunit;
