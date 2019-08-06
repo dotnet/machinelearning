@@ -8,6 +8,7 @@ using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.CpuMath;
+using Microsoft.ML.Internal.CpuMath.FactorizationMachine;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Runtime;

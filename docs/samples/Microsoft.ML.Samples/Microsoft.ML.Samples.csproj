@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  
+
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <OutputType>Exe</OutputType>
@@ -8,7 +8,7 @@
     <PublicSign>false</PublicSign>
     <RootNamespace>Samples</RootNamespace>
   </PropertyGroup>
- 
+
   <ItemGroup>
 	<ProjectReference Include="..\..\..\src\Microsoft.ML.Dnn\Microsoft.ML.Dnn.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.csproj" />
@@ -27,7 +27,6 @@
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="MatrixFactorizationNative" />
-    <NativeAssemblyReference Include="FactorizationMachineNative" />
     <NativeAssemblyReference Include="LdaNative" />
     <NativeAssemblyReference Include="SymSgdNative" />
     <NativeAssemblyReference Include="MklProxyNative" />
@@ -72,7 +71,7 @@
       <DependentUpon>LbfgsLogisticRegressionWithOptions.tt</DependentUpon>
     </None>
     <PackageReference Include="Microsoft.ML.TensorFlow.Redist" Version="0.10.0" />
-    
+
   </ItemGroup>
 
   <ItemGroup>
@@ -950,18 +949,19 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="$(MicrosoftMLOnnxTestModelsVersion)" />
   </ItemGroup>
-  
+
     <ItemGroup>
     <Content Include="$(ObjDir)DnnImageModels\ResNet18Onnx\ResNet18.onnx">
       <Link>DnnImageModels\ResNet18Onnx\ResNet18.onnx</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  
+
     <ItemGroup>
     <Content Include="$(ObjDir)DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx">
       <Link>DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+
 </Project>
