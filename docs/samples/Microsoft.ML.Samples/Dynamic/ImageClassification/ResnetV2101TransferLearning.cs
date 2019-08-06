@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
+using Microsoft.ML.Transforms;
 
 namespace Samples.Dynamic
 {
@@ -13,54 +16,50 @@ namespace Samples.Dynamic
         /// </summary>
         public static void Example()
         {
-            var sw = new Stopwatch();
+            var mlContext = new MLContext(seed: 1);
 
-            var mlContext = new MLContext();
-            var data = GetTensorData();
-            var idv = mlContext.Data.LoadFromEnumerable(data);
+            var imagesDataFile = Path.GetDirectoryName(
+                Microsoft.ML.SamplesUtils.DatasetUtils.DownloadImages());
 
-            // Create a ML pipeline.
-            var pipeline =
-                mlContext.Transforms.Conversion.MapValueToKey(
-                    nameof(TensorData.Label))
-                .Append(mlContext.Model.ImageClassification(
-                    nameof(TensorData.input),
-                    nameof(TensorData.Label), batchSize: 2));
+            var data = mlContext.Data.LoadFromEnumerable(
+                ImageNetData.LoadImagesFromDirectory(imagesDataFile, 4));
 
-            // Run the pipeline and get the transformed values.
-            var estimator = pipeline.Fit(idv);
-            var transformedValues = estimator.Transform(idv);
+            data = mlContext.Data.ShuffleRows(data, 5);
+            var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
+                .Append(mlContext.Transforms.LoadImages("ImageObject", null,
+                    "ImagePath"))
+                .Append(mlContext.Transforms.ResizeImages("Image",
+                    inputColumnName: "ImageObject", imageWidth: 299,
+                    imageHeight: 299))
+                .Append(mlContext.Transforms.ExtractPixels("Image",
+                    interleavePixelColors: true))
+                .Append(mlContext.Model.ImageClassification("Image",
+                    "Label", arch: DnnEstimator.Architecture.ResnetV2101, epoch: 4,
+                    batchSize: 4));
 
-            // Retrieve model scores.
-            var outScores = mlContext.Data.CreateEnumerable<OutputScores>(
-                transformedValues, reuseRowObject: false);
+            var trainedModel = pipeline.Fit(data);
+            var predicted = trainedModel.Transform(data);
+            var metrics = mlContext.MulticlassClassification.Evaluate(predicted);
 
-            // Display scores. (for the sake of brevity we display scores of the
-            // first 3 classes)
-            foreach (var prediction in outScores)
-            {
-                int numClasses = 0;
-                foreach (var classScore in prediction.Score.Take(2))
-                {
-                    Console.WriteLine(
-                        $"Class #{numClasses++} score = {classScore}");
-                }
-                Console.WriteLine(
-                    $"Predicted Label: {prediction.PredictedLabel}");
+            Console.WriteLine($"Micro-accuracy: {metrics.MicroAccuracy}," +
+                $"macro-accuracy = {metrics.MacroAccuracy}");
 
+           mlContext.Model.Save(trainedModel, data.Schema, "model.zip");
 
-                Console.WriteLine(new string('-', 10));
-            }
+            ITransformer loadedModel;
+            using (var file = File.OpenRead("model.zip"))
+                loadedModel = mlContext.Model.Load(file, out DataViewSchema schema);
 
-            Console.WriteLine(sw.Elapsed);
-            // Class #0 score = 0.03416626
-            // Class #1 score = 0.9658337
-            // Predicted Label: 1
-            // ----------
-            // Class #0 score = 0.02959618
-            // Class #1 score = 0.9704038
-            // Predicted Label: 1
-            // ----------
+            // Create prediction function and test prediction
+            var predictFunction = mlContext.Model
+                .CreatePredictionEngine<ImageNetData, ImagePrediction>(loadedModel);
+
+            var prediction = predictFunction
+                .Predict(ImageNetData.LoadImagesFromDirectory(imagesDataFile, 4)
+                .First());
+
+            Console.WriteLine($"Scores : [{string.Join(",", prediction.Score)}], " +
+                $"Predicted Label : {prediction.PredictedLabel}");
         }
 
         private const int imageHeight = 224; 
@@ -68,41 +67,57 @@ namespace Samples.Dynamic
         private const int numChannels = 3;
         private const int inputSize = imageHeight * imageWidth * numChannels;
 
-        /// <summary>
-        /// A class to hold sample tensor data. 
-        /// Member name should match the inputs that the model expects (in this
-        /// case, input).
-        /// </summary>
-        public class TensorData
+        public class ImageNetData
         {
-            [VectorType(imageHeight, imageWidth, numChannels)]
-            public float[] input { get; set; }
+            [LoadColumn(0)]
+            public string ImagePath;
 
-            public Int64 Label { get; set; }
+            [LoadColumn(1)]
+            public string Label;
+
+            public static IEnumerable<ImageNetData> LoadImagesFromDirectory(
+                string folder, int repeat = 1, bool useFolderNameasLabel = false)
+            {
+                var files = Directory.GetFiles(folder, "*",
+                    searchOption: SearchOption.AllDirectories);
+
+                foreach (var file in files)
+                {
+                    if (Path.GetExtension(file) != ".jpg")
+                        continue;
+
+                    var label = Path.GetFileName(file);
+                    if (useFolderNameasLabel)
+                        label = Directory.GetParent(file).Name;
+                    else
+                    {
+                        for (int index = 0; index < label.Length; index++)
+                        {
+                            if (!char.IsLetter(label[index]))
+                            {
+                                label = label.Substring(0, index);
+                                break;
+                            }
+                        }
+                    }
+
+                    for (int index = 0; index < repeat; index++)
+                        yield return new ImageNetData()
+                        {
+                            ImagePath = file,
+                            Label = label
+                        };
+                }
+            }
         }
 
-        /// <summary>
-        /// Method to generate sample test data. Returns 2 sample rows.
-        /// </summary>
-        public static TensorData[] GetTensorData()
+        public class ImagePrediction
         {
-            // This can be any numerical data. Assume image pixel values.
-            var image1 = Enumerable.Range(0, inputSize).Select(
-                x => (float)x / inputSize).ToArray();
-            
-            var image2 = Enumerable.Range(0, inputSize).Select(
-                x => (float)(x + 10000) / inputSize).ToArray();
-            return new TensorData[] { new TensorData() { input = image1, Label = 0 },
-                new TensorData() { input = image2, Label = 1 } };
-        }
+            [ColumnName("Score")]
+            public float[] Score;
 
-        /// <summary>
-        /// Class to contain the output values from the transformation.
-        /// </summary>
-        class OutputScores
-        {
-            public float[] Score { get; set; }
-            public Int64 PredictedLabel { get; set; }
+            [ColumnName("PredictedLabel")]
+            public Int64 PredictedLabel;
         }
     }
 }

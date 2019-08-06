@@ -76,6 +76,8 @@ namespace Microsoft.ML.Transforms
         private readonly string _scoreColumnName;
         private readonly string _predictedLabelColumnName;
         private readonly float _learningRate;
+        private readonly string _softmaxTensorName;
+        private readonly string _predictionTensorName;
 
         internal const string Summary = "Trains Dnn models.";
         internal const string UserName = "DnnTransform";
@@ -94,7 +96,7 @@ namespace Microsoft.ML.Transforms
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
-                modelSignature: "DNN",
+                modelSignature: "DNNTRANS",
                 //verWrittenCur: 0x00010001, // Initial
                 verWrittenCur: 0x00000001,
                 verReadableCur: 0x00000001,
@@ -123,7 +125,7 @@ namespace Microsoft.ML.Transforms
 
             GetModelInfo(env, ctx, out string[] inputs, out string[] outputs, out bool isFrozen, out bool addBatchDimensionInput,
                 out bool transferLearning, out string labelColumn, out string checkpointName, out Architecture arch, out string scoreColumnName,
-                out string predictedColumnName, out float learningRate, out int classCount);
+                out string predictedColumnName, out float learningRate, out int classCount, out string predictionTensorName, out string softMaxTensorName);
 
             if (isFrozen)
             {
@@ -133,7 +135,7 @@ namespace Microsoft.ML.Transforms
 
                 return new DnnTransformer(env, DnnUtils.LoadTFSession(env, modelBytes), outputs, inputs,
                     null, false, addBatchDimensionInput, 1, transferLearning, labelColumn, checkpointName, arch,
-                    scoreColumnName, predictedColumnName, learningRate, null, classCount);
+                    scoreColumnName, predictedColumnName, learningRate, null, classCount, true, predictionTensorName, softMaxTensorName);
             }
 
             var tempDirPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), nameof(DnnTransformer) + "_" + Guid.NewGuid()));
@@ -164,7 +166,7 @@ namespace Microsoft.ML.Transforms
 
                 return new DnnTransformer(env, DnnUtils.GetSession(env, tempDirPath), outputs, inputs, tempDirPath, true,
                     addBatchDimensionInput, 1, transferLearning, labelColumn, checkpointName, arch,
-                    scoreColumnName, predictedColumnName, learningRate, null, classCount);
+                    scoreColumnName, predictedColumnName, learningRate, null, classCount, true, predictionTensorName, softMaxTensorName);
             }
             catch (Exception)
             {
@@ -192,8 +194,7 @@ namespace Microsoft.ML.Transforms
 
         internal DnnTransformer(IHostEnvironment env, DnnEstimator.Options options, DnnModel tensorFlowModel, IDataView input, IDataView validationSet = null)
             : this(env, tensorFlowModel.Session, options.OutputColumns, options.InputColumns,
-                  DnnUtils.IsSavedModel(env, options.ModelLocation) ? options.ModelLocation : null,
-                  false, options.AddBatchDimensionInputs, options.BatchSize, options.TransferLearning,
+                  options.ModelLocation, false, options.AddBatchDimensionInputs, options.BatchSize, options.TransferLearning,
                   options.LabelColumn, options.CheckpointName, options.Arch, options.ScoreColumnName,
                   options.PredictedLabelColumnName, options.LearningRate, input.Schema)
         {
@@ -834,7 +835,7 @@ namespace Microsoft.ML.Transforms
         private static void GetModelInfo(IHostEnvironment env, ModelLoadContext ctx, out string[] inputs,
             out string[] outputs, out bool isFrozen, out bool addBatchDimensionInput, out bool transferLearning,
             out string labelColumn, out string checkpointName, out Architecture arch,
-            out string scoreColumnName, out string predictedColumnName, out float learningRate, out int classCount)
+            out string scoreColumnName, out string predictedColumnName, out float learningRate, out int classCount, out string predictionTensorName, out string softMaxTensorName)
         {
             isFrozen = ctx.Reader.ReadBoolByte();
             addBatchDimensionInput = ctx.Reader.ReadBoolByte();
@@ -859,12 +860,16 @@ namespace Microsoft.ML.Transforms
             predictedColumnName = ctx.Reader.ReadString();
             learningRate = ctx.Reader.ReadFloat();
             classCount = ctx.Reader.ReadInt32();
+            predictionTensorName = ctx.Reader.ReadString();
+            softMaxTensorName = ctx.Reader.ReadString();
+
         }
 
         internal DnnTransformer(IHostEnvironment env, Session session, string[] outputColumnNames,
             string[] inputColumnNames, string modelLocation, bool isTemporarySavedModel,
             bool addBatchDimensionInput, int batchSize, bool transferLearning, string labelColumnName, string checkpointName, Architecture arch,
-            string scoreColumnName, string predictedLabelColumnName, float learningRate, DataViewSchema inputSchema, int? classCount = null)
+            string scoreColumnName, string predictedLabelColumnName, float learningRate, DataViewSchema inputSchema, int? classCount = null, bool loadModel = false,
+            string predictionTensorName = null, string softMaxTensorName = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(DnnTransformer)))
 
         {
@@ -887,7 +892,8 @@ namespace Microsoft.ML.Transforms
             _scoreColumnName = scoreColumnName;
             _predictedLabelColumnName = predictedLabelColumnName;
             _learningRate = learningRate;
-
+            _softmaxTensorName = softMaxTensorName;
+            _predictionTensorName = predictionTensorName;
             if (transferLearning)
             {
                 if (classCount == null)
@@ -918,19 +924,24 @@ namespace Microsoft.ML.Transforms
 
                 _outputs = new[] { scoreColumnName, predictedLabelColumnName };
 
-                // Add transfer learning layer.
-                AddTransferLearningLayer(labelColumnName, scoreColumnName, learningRate, _classCount);
+                if (loadModel == false)
+                {
+                    // Add transfer learning layer.
+                    AddTransferLearningLayer(labelColumnName, scoreColumnName, learningRate, _classCount);
 
-                // Initialize the variables.
-                new Runner(_session).AddOperation(tf.global_variables_initializer()).Run();
+                    // Initialize the variables.
+                    new Runner(_session).AddOperation(tf.global_variables_initializer()).Run();
 
-                // Add evaluation layer.
-                (_evaluationStep, _) = AddEvaluationStep(_softMaxTensor, _labelTensor);
+                    // Add evaluation layer.
+                    (_evaluationStep, _) = AddEvaluationStep(_softMaxTensor, _labelTensor);
+                    _softmaxTensorName = _softMaxTensor.name;
+                    _predictionTensorName = _prediction.name;
+                }
 
-                _idvToTfMapping[scoreColumnName] = _softMaxTensor.name;
-                _idvToTfMapping[predictedLabelColumnName] = _prediction.name;
+                _idvToTfMapping[scoreColumnName] = _softmaxTensorName;
+                _idvToTfMapping[predictedLabelColumnName] = _predictionTensorName;
 
-                (_tfOutputTypes, _outputTypes, _tfOutputOperations) = GetOutputInfo(Host, _session, new[] { _softMaxTensor.name, _prediction.name });
+                (_tfOutputTypes, _outputTypes, _tfOutputOperations) = GetOutputInfo(Host, _session, new[] { _softmaxTensorName, _predictionTensorName });
                 _transferLearning = true;
             }
             else
@@ -1082,7 +1093,7 @@ namespace Microsoft.ML.Transforms
             // for each output column
             //   int: id of output column name
             // stream: tensorFlow model.
-            var isFrozen = DnnUtils.IsSavedModel(_env, _modelLocation);
+            var isFrozen = _transferLearning || DnnUtils.IsSavedModel(_env, _modelLocation);
             ctx.Writer.WriteBoolByte(isFrozen);
             ctx.Writer.WriteBoolByte(_addBatchDimensionInput);
 
@@ -1104,6 +1115,8 @@ namespace Microsoft.ML.Transforms
             ctx.Writer.Write(_predictedLabelColumnName);
             ctx.Writer.Write(_learningRate);
             ctx.Writer.Write(_classCount);
+            ctx.Writer.Write(_predictionTensorName);
+            ctx.Writer.Write(_softmaxTensorName);
 
             if (isFrozen || _transferLearning)
             {
