@@ -57,8 +57,19 @@ namespace Microsoft.ML.Model.OnnxConverter
             [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "Whether we should attempt to load the predictor and attach the scorer to the pipeline if one is present.", ShortName = "pred", SortOrder = 9)]
             public bool? LoadPredictor;
 
-            [Argument(ArgumentType.Required, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Model that needs to be converted to ONNX format.", SortOrder = 10)]
+            /// <summary>
+            /// Entry point API can save either <see cref="TransformModel"/> or <see cref="PredictorModel"/>.
+            /// <see cref="Model"/> is used when the saved model is typed to <see cref="TransformModel"/>.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Model that needs to be converted to ONNX format.", SortOrder = 10)]
             public TransformModel Model;
+
+            /// <summary>
+            /// Entry point API can save either <see cref="TransformModel"/> or <see cref="PredictorModel"/>.
+            /// <see cref="PredictiveModel"/> is used when the saved model is typed to <see cref="PredictorModel"/>.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Predictor model that needs to be converted to ONNX format.", SortOrder = 12)]
+            public PredictorModel PredictiveModel;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The targeted ONNX version. It can be either \"Stable\" or \"Experimental\". If \"Experimental\" is used, produced model can contain components that is not officially supported in ONNX standard.", SortOrder = 11)]
             public OnnxVersion OnnxVersion;
@@ -72,6 +83,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         private readonly HashSet<string> _inputsToDrop;
         private readonly HashSet<string> _outputsToDrop;
         private readonly TransformModel _model;
+        private readonly PredictorModel _predictiveModel;
         private const string ProducerName = "ML.NET";
         private const long ModelVersion = 0;
 
@@ -96,7 +108,13 @@ namespace Microsoft.ML.Model.OnnxConverter
             _inputsToDrop = CreateDropMap(args.InputsToDropArray ?? args.InputsToDrop?.Split(','));
             _outputsToDrop = CreateDropMap(args.OutputsToDropArray ?? args.OutputsToDrop?.Split(','));
             _domain = args.Domain;
+
+            if (args.Model != null && args.PredictiveModel != null)
+                throw env.Except(nameof(args.Model) + " and " + nameof(args.PredictiveModel) +
+                    " cannot be specified at the same time when calling ONNX converter. Please check the content of " + nameof(args) + ".");
+
             _model = args.Model;
+            _predictiveModel = args.PredictiveModel;
         }
 
         private static HashSet<string> CreateDropMap(string[] toDrop)
@@ -198,7 +216,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             IDataView view;
             RoleMappedSchema trainSchema = null;
 
-            if (_model == null)
+            if (_model == null && _predictiveModel == null)
             {
                 if (string.IsNullOrEmpty(ImplOptions.InputModelFile))
                 {
@@ -213,8 +231,16 @@ namespace Microsoft.ML.Model.OnnxConverter
 
                 view = loader;
             }
-            else
+            else if (_model != null)
+            {
                 view = _model.Apply(Host, new EmptyDataView(Host, _model.InputSchema));
+            }
+            else
+            {
+                view = _predictiveModel.TransformModel.Apply(Host, new EmptyDataView(Host, _predictiveModel.TransformModel.InputSchema));
+                rawPred = _predictiveModel.Predictor;
+                trainSchema = _predictiveModel.GetTrainingSchema(Host);
+            }
 
             // Create the ONNX context for storing global information
             var assembly = System.Reflection.Assembly.GetExecutingAssembly();
