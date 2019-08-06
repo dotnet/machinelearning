@@ -1063,6 +1063,7 @@ Global
 		{EEC3ACCD-C8BC-4261-820F-EF1340B546DE}.Release-Intrinsics|Any CPU.ActiveCfg = Release-Intrinsics|Any CPU
 		{EEC3ACCD-C8BC-4261-820F-EF1340B546DE}.Release-Intrinsics|Any CPU.Build.0 = Release-Intrinsics|Any CPU
 		{EEC3ACCD-C8BC-4261-820F-EF1340B546DE}.Release-netfx|Any CPU.ActiveCfg = Release-netfx|Any CPU
+		{EEC3ACCD-C8BC-4261-820F-EF1340B546DE}.Release-netfx|Any CPU.Build.0 = Release-netfx|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
