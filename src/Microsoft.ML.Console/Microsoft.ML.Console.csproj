@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <OutputType>Exe</OutputType>
-    <AssemblyName>MML</AssemblyName> 
+    <AssemblyName>MML</AssemblyName>
     <StartupObject>Microsoft.ML.Tools.Console.Console</StartupObject>
   </PropertyGroup>
 
@@ -30,12 +30,11 @@
 
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="CpuMathNative" />
-    <NativeAssemblyReference Include="FactorizationMachineNative" />
     <NativeAssemblyReference Include="MatrixFactorizationNative" />
     <NativeAssemblyReference Include="LdaNative" />
     <NativeAssemblyReference Include="SymSgdNative"/>
     <NativeAssemblyReference Include="MklImports"/>
     <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md"/>
   </ItemGroup>
-  
+
 </Project>
