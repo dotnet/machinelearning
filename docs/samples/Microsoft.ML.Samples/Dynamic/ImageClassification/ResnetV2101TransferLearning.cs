@@ -40,7 +40,7 @@ namespace Samples.Dynamic
             foreach (var prediction in outScores)
             {
                 int numClasses = 0;
-                foreach (var classScore in prediction.Scores.Take(2))
+                foreach (var classScore in prediction.Score.Take(2))
                 {
                     Console.WriteLine(
                         $"Class #{numClasses++} score = {classScore}");
