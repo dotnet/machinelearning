@@ -242,19 +242,19 @@ namespace Microsoft.ML.Data
             private ValueGetter<byte> CreateByteGetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref byte value) => value = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetByte(columnIndex);
+                return (ref byte value) => value = DataReader.GetByte(columnIndex);
             }
 
             private ValueGetter<DateTime> CreateDateTimeGetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref DateTime value) => value = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetDateTime(columnIndex);
+                return (ref DateTime value) => value = DataReader.GetDateTime(columnIndex);
             }
 
             private ValueGetter<double> CreateDoubleGetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref double value) => value = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetDouble(columnIndex);
+                return (ref double value) => value = DataReader.IsDBNull(columnIndex) ? double.NaN : DataReader.GetDouble(columnIndex);
             }
 
             private ValueGetter<short> CreateInt16GetterDelegate(ColInfo colInfo)
@@ -284,7 +284,7 @@ namespace Microsoft.ML.Data
             private ValueGetter<float> CreateSingleGetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref float value) => value = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetFloat(columnIndex);
+                return (ref float value) => value = DataReader.IsDBNull(columnIndex) ? float.NaN : DataReader.GetFloat(columnIndex);
             }
 
             private ValueGetter<ReadOnlyMemory<char>> CreateStringGetterDelegate(ColInfo colInfo)
