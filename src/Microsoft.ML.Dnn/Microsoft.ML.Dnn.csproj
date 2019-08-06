@@ -28,11 +28,4 @@
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
   
-  <ItemGroup>
-    <Content Include="$(ObjDir)DnnImageModels\Resnet101V2Tensorflow\resnet_v2_101_299.meta">
-      <Link>DnnImageModels\Resnet101V2Tensorflow\resnet_v2_101_299.meta</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  
 </Project>

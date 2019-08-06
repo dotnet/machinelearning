@@ -900,7 +900,9 @@ namespace Microsoft.ML.Transforms
 
                     _classCount = labelCount == 1 ? 2 : (int)labelCount;
                 }
-                _classCount = classCount.Value;
+                else
+                    _classCount = classCount.Value;
+
                 _checkpointPath = Path.Combine(Directory.GetCurrentDirectory(), modelLocation + checkpointName);
 
                 // Configure bottleneck tensor based on the model.
@@ -1600,12 +1602,18 @@ namespace Microsoft.ML.Transforms
     /// <include file='doc.xml' path='doc/members/member[@name="DnnTransformer"]/*' />
     public sealed class DnnEstimator : IEstimator<DnnTransformer>
     {
+        /// <summary>
+        /// Image classification model.
+        /// </summary>
         public enum Architecture
         {
             ResnetV2101,
             InceptionV3
         };
 
+        /// <summary>
+        /// Backend DNN training framework.
+        /// </summary>
         public enum DnnFramework
         {
             Tensorflow
@@ -1835,20 +1843,6 @@ namespace Microsoft.ML.Transforms
             _host.CheckValue(input, nameof(input));
             if (_transformer == null)
                 _transformer =  new DnnTransformer(_host, _options, _tensorFlowModel, input);
-
-            // Validate input schema.
-            _transformer.GetOutputSchema(input.Schema);
-            return _transformer;
-        }
-
-        /// <summary>
-        /// Trains and returns a <see cref="DnnTransformer"/>.
-        /// </summary>
-        public DnnTransformer Fit(IDataView input, IDataView validationSet)
-        {
-            _host.CheckValue(input, nameof(input));
-            if (_transformer == null)
-                _transformer = new DnnTransformer(_host, _options, _tensorFlowModel, input, validationSet);
 
             // Validate input schema.
             _transformer.GetOutputSchema(input.Schema);

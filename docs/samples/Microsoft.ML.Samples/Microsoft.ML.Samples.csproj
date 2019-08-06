@@ -964,10 +964,4 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-    <ItemGroup>
-    <Content Include="$(ObjDir)DnnImageModels\Resnet101V2Tensorflow\resnet_v2_101_299.meta">
-      <Link>DnnImageModels\Resnet101V2Tensorflow\resnet_v2_101_299.meta</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
 </Project>

@@ -101,7 +101,7 @@ namespace Samples.Dynamic
         /// </summary>
         class OutputScores
         {
-            public float[] Scores { get; set; }
+            public float[] Score { get; set; }
             public Int64 PredictedLabel { get; set; }
         }
     }

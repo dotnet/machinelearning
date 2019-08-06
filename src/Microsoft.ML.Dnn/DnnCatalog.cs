@@ -24,15 +24,15 @@ namespace Microsoft.ML
         /// <param name="inputColumnNames"> The names of the model inputs.</param>
         /// <param name="outputColumnNames">The names of the requested model outputs.</param>
         /// <param name="labelColumnName">Name of the label column.</param>
-        /// <param name="tensorFlowLabel">Name of the node in TensorFlow graph that is used as label during training in TensorFlow.
+        /// <param name="dnnLabel">Name of the node in DNN graph that is used as label during training in Dnn.
         /// The value of <paramref name="labelColumnName"/> from <see cref="IDataView"/> is fed to this node.</param>
-        /// <param name="optimizationOperation">The name of the optimization operation in the TensorFlow graph.</param>
+        /// <param name="optimizationOperation">The name of the optimization operation in the Dnn graph.</param>
         /// <param name="modelPath">Path to model file to retrain.</param>
         /// <param name="epoch">Number of training iterations.</param>
         /// <param name="batchSize">Number of samples to use for mini-batch training.</param>
-        /// <param name="lossOperation">The name of the operation in the TensorFlow graph to compute training loss (Optional).</param>
-        /// <param name="metricOperation">The name of the operation in the TensorFlow graph to compute performance metric during training (Optional).</param>
-        /// <param name="learningRateOperation">The name of the operation in the TensorFlow graph which sets optimizer learning rate (Optional).</param>
+        /// <param name="lossOperation">The name of the operation in the Dnn graph to compute training loss (Optional).</param>
+        /// <param name="metricOperation">The name of the operation in the Dnn graph to compute performance metric during training (Optional).</param>
+        /// <param name="learningRateOperation">The name of the operation in the Dnn graph which sets optimizer learning rate (Optional).</param>
         /// <param name="learningRate">Learning rate to use during optimization (Optional).</param>
         /// <param name="addBatchDimensionInput">Add a batch dimension to the input e.g. input = [224, 224, 3] => [-1, 224, 224, 3].
         /// This parameter is used to deal with models that have unknown shape but the internal operators in the model require data to have batch dimension as well.</param>
@@ -45,7 +45,7 @@ namespace Microsoft.ML
             string[] outputColumnNames,
             string[] inputColumnNames,
             string labelColumnName,
-            string tensorFlowLabel,
+            string dnnLabel,
             string optimizationOperation,
             string modelPath,
             int epoch = 10,
@@ -63,7 +63,7 @@ namespace Microsoft.ML
                 InputColumns = inputColumnNames,
                 OutputColumns = outputColumnNames,
                 LabelColumn = labelColumnName,
-                TensorFlowLabel = tensorFlowLabel,
+                TensorFlowLabel = dnnLabel,
                 OptimizationOperation = optimizationOperation,
                 LossOperation = lossOperation,
                 MetricOperation = metricOperation,
@@ -83,18 +83,17 @@ namespace Microsoft.ML
         /// Performs image classification using transfer learning.
         /// </summary>
         /// <param name="catalog"></param>
-        /// <param name="featuresColumnName"></param>
-        /// <param name="labelColumnName"></param>
-        /// <param name="outputGraphPath"></param>
-        /// <param name="scoreColumnName"></param>
-        /// <param name="predictedLabelColumnName"></param>
-        /// <param name="checkpointName"></param>
-        /// <param name="arch"></param>
-        /// <param name="dnnFramework"></param>
-        /// <param name="epoch"></param>
-        /// <param name="batchSize"></param>
-        /// <param name="learningRate"></param>
-        /// <param name="measureTrainAccuracy"></param>
+        /// <param name="featuresColumnName">The name of the input features column.</param>
+        /// <param name="labelColumnName">The name of the labels column.</param>
+        /// <param name="outputGraphPath">Optional name of the path where a copy new graph should be saved. The graph will be saved as part of model.</param>
+        /// <param name="scoreColumnName">The name of the output score column.</param>
+        /// <param name="predictedLabelColumnName">The name of the output predicted label columns.</param>
+        /// <param name="checkpointName">The name of the prefix for checkpoint files.</param>
+        /// <param name="arch">The architecture of the image recognition DNN model.</param>
+        /// <param name="dnnFramework">The backend DNN framework to use, currently only Tensorflow is supported.</param>
+        /// <param name="epoch">Number of training epochs.</param>
+        /// <param name="batchSize">The batch size for training.</param>
+        /// <param name="learningRate">The learning rate for training.</param>
         /// <remarks>
         /// The support for image classification is under preview.
         /// </remarks>
@@ -110,8 +109,7 @@ namespace Microsoft.ML
             DnnFramework dnnFramework = DnnFramework.Tensorflow,
             int epoch = 10,
             int batchSize = 20,
-            float learningRate = 0.01f,
-            bool measureTrainAccuracy = false)
+            float learningRate = 0.01f)
         {
             var options = new Options()
             {
@@ -129,7 +127,7 @@ namespace Microsoft.ML
                 PredictedLabelColumnName = predictedLabelColumnName,
                 CheckpointName = checkpointName,
                 Arch = arch,
-                MeasureTrainAccuracy = measureTrainAccuracy
+                MeasureTrainAccuracy = false
             };
 
             if (!File.Exists(options.ModelLocation))
