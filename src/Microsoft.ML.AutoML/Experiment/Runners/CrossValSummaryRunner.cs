@@ -89,7 +89,7 @@ namespace Microsoft.ML.AutoML
             for (var i = 0; i < values.Count(); i++)
             {
                 var distFromAvg = Math.Abs(values.ElementAt(i) - average);
-                if (distFromAvg < smallestDistFromAvg)
+                if (distFromAvg < smallestDistFromAvg || smallestDistFromAvg == double.PositiveInfinity)
                 {
                     smallestDistFromAvg = distFromAvg;
                     avgFoldIndex = i;
