@@ -10,7 +10,7 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
-    internal abstract partial class EvaluatorBase<TAgg>
+    public abstract partial class EvaluatorBase<TAgg>
     {
         internal abstract class AucAggregatorBase
         {

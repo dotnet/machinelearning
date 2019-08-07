@@ -26,8 +26,7 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
-    [BestFriend]
-    internal sealed class RankingEvaluator : EvaluatorBase<RankingEvaluator.Aggregator>
+    public sealed class RankingEvaluator : EvaluatorBase<RankingEvaluator.Aggregator>
     {
         public sealed class Arguments
         {
@@ -271,7 +270,7 @@ namespace Microsoft.ML.Data
         {
             public sealed class Counters
             {
-                public const int MaxTruncationLevel = 10;
+                public const int MaxTruncationLevel = 100;
 
                 public readonly int TruncationLevel;
                 private readonly List<Double[]> _groupNdcg;

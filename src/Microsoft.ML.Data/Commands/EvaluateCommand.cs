@@ -26,8 +26,7 @@ namespace Microsoft.ML.Data
     /// This class contains information about an overall metric, namely its name and whether it is a vector
     /// metric or not.
     /// </summary>
-    [BestFriend]
-    internal sealed class MetricColumn
+    public sealed class MetricColumn
     {
         /// <summary>
         /// An enum specifying whether the metric should be maximized or minimized while sweeping. 'Info' should be
