@@ -22,10 +22,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <NativeAssemblyReferenceWithMajorVersion Include="@(NativeAssemblyReference->HasMetadata('MajorVersion'))">
+      <NativeAssemblyReferenceWithMajorVersion>
           <!-- Tensorflow has a different naming scheme for v1.14.0. Those binaries need to be copied along with the standard names -->
-          <AssemblyPathWithMajorVersion Condition="'$(OS)' != 'Windows_NT'">$(NativeOutputPath)$(LibPrefix)%(NativeAssemblyReference.Identity)$(LibExtension).%(NativeAssemblyReference.MajorVersion)</AssemblyPathWithMajorVersion>
-          <AssemblyPathWithMajorVersion Condition="$([MSBuild]::IsOSPlatform('osx'))">$(NativeOutputPath)$(LibPrefix)%(NativeAssemblyReference.Identity).%(NativeAssemblyReference.MajorVersion)$(LibExtension)</AssemblyPathWithMajorVersion>
+          <AssemblyPathWithMajorVersion Condition="'$(OS)' != 'Windows_NT'">$(NativeOutputPath)$(LibPrefix)%(NativeAssemblyReferenceWithMajorVersion.Identity)$(LibExtension).%(NativeAssemblyReferenceWithMajorVersion.MajorVersion)</AssemblyPathWithMajorVersion>
+          <AssemblyPathWithMajorVersion Condition="$([MSBuild]::IsOSPlatform('osx'))">$(NativeOutputPath)$(LibPrefix)%(NativeAssemblyReferenceWithMajorVersion.Identity).%(NativeAssemblyReferenceWithMajorVersion.MajorVersion)$(LibExtension)</AssemblyPathWithMajorVersion>
       </NativeAssemblyReferenceWithMajorVersion>
     </ItemGroup>
       

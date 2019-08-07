@@ -34,7 +34,7 @@
       <ExcludeFilesToSign Include="$(OutDir)**/tensorflow.dll" />
 
       <FilesToSign Include="$(OutDir)**/*.dll" Exclude="@(ExcludeFilesToSign)">
-        <Authenticode>Microsoft</Authenticode>
+        <Authenticode>Microsoft400</Authenticode>
       </FilesToSign>
     </ItemGroup>
 

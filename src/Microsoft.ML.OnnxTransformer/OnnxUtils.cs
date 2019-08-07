@@ -125,7 +125,7 @@ namespace Microsoft.ML.Transforms.Onnx
         /// </summary>
         private readonly InferenceSession _session;
         /// <summary>
-        /// Indicates if <see cref="ModelFile"/> is a temporal file created by <see cref="CreateFromBytes(byte[], int?, bool)"/>
+        /// Indicates if <see cref="ModelFile"/> is a temporal file created by <see cref="CreateFromBytes(byte[], int?, bool, IDictionary{string, int[]})"/>
         /// or <see cref="CreateFromBytes(byte[])"/>. If <see langword="true"/>, <see cref="Dispose(bool)"/> should delete <see cref="ModelFile"/>.
         /// </summary>
         private bool _ownModelFile;
@@ -134,7 +134,9 @@ namespace Microsoft.ML.Transforms.Onnx
         /// </summary>
         internal string ModelFile { get; }
         /// <summary>
-        /// The ONNX model file that <see cref="OnnxModel"/> built upon.
+        /// The ONNX model's information from ONNXRuntime's perspective. ML.NET can change the input and output of that model in some ways.
+        /// For example, ML.NET can shuffle the inputs so that the i-th ONNX input becomes the j-th input column of <see cref="OnnxTransformer"/>.
+        /// ML.NET can also only exposes a subset of ONNX outputs in <see cref="OnnxTransformer"/>.
         /// </summary>
         internal OnnxModelInfo ModelInfo { get; }
 
@@ -146,7 +148,9 @@ namespace Microsoft.ML.Transforms.Onnx
         /// <param name="fallbackToCpu">If true, resumes CPU execution quitely upon GPU error.</param>
         /// <param name="ownModelFile">If true, the <paramref name="modelFile"/> will be deleted when <see cref="OnnxModel"/> is
         /// no longer needed.</param>
-        public OnnxModel(string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false, bool ownModelFile=false)
+        /// <param name="shapeDictionary"></param>
+        public OnnxModel(string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false,
+            bool ownModelFile=false, IDictionary<string, int[]> shapeDictionary = null)
         {
             ModelFile = modelFile;
             // If we don't own the model file, _disposed should be false to prevent deleting user's file.
@@ -179,7 +183,8 @@ namespace Microsoft.ML.Transforms.Onnx
             ModelFile = modelFile;
             var model = new OnnxCSharpToProtoWrapper.ModelProto();
             using (var modelStream = File.OpenRead(modelFile))
-                model = OnnxCSharpToProtoWrapper.ModelProto.Parser.ParseFrom(modelStream);
+            using (var codedStream = Google.Protobuf.CodedInputStream.CreateWithLimits(modelStream, Int32.MaxValue, 10))
+                model = OnnxCSharpToProtoWrapper.ModelProto.Parser.ParseFrom(codedStream);
 
             // Parse actual input and output types stored in the loaded ONNX model to get their DataViewType's.
             var inputTypePool = new Dictionary<string, DataViewType>();
@@ -196,36 +201,123 @@ namespace Microsoft.ML.Transforms.Onnx
             }
 
             var onnxRuntimeInputInfos = new List<OnnxVariableInfo>();
+            // Collect input information for this ONNX model from ONNXRuntime's perspective.
             foreach (var pair in _session.InputMetadata)
             {
                 var name = pair.Key;
                 var meta = pair.Value;
                 var dataViewType = inputTypePool[name];
-                var info = new OnnxVariableInfo(name, meta.Dimensions.ToList(), meta.ElementType, dataViewType, null);
+
+                OnnxVariableInfo info = null;
+                if (shapeDictionary != null && shapeDictionary.ContainsKey(name))
+                {
+                    // If user provides a shape of a specific tensor, the provided shape overwrites the corresponding one loaded from
+                    // ONNX model file and the deduced DataViewVectorType.
+
+                    if (!CheckOnnxShapeCompatibility(shapeDictionary[name].ToList(), meta.Dimensions.ToList()))
+                        throw Contracts.ExceptParamValue(shapeDictionary[name], nameof(shapeDictionary),
+                            "The specified shape " + string.Join(",", shapeDictionary[name]) +
+                            " is not compatible with the shape " + string.Join(",", meta.Dimensions) +
+                            " loaded from the ONNX model file. Only unknown dimension can replace or " +
+                            "be replaced by another dimension.");
+
+                    if (dataViewType is VectorDataViewType vectorType)
+                    {
+                        if (shapeDictionary[name].All(value => value > 0))
+                            dataViewType = new VectorDataViewType(vectorType.ItemType, shapeDictionary[name]);
+                        else
+                            dataViewType = new VectorDataViewType(vectorType.ItemType);
+                    }
+
+                    info = new OnnxVariableInfo(name, shapeDictionary[name].ToList(), meta.ElementType, dataViewType, null);
+                }
+                else
+                {
+                    // No user-specified shape is found, so the shape loaded from ONNX model file is used.
+                    info = new OnnxVariableInfo(name, meta.Dimensions.ToList(), meta.ElementType, dataViewType, null);
+                }
                 onnxRuntimeInputInfos.Add(info);
             }
 
             var onnxRuntimeOutputInfos = new List<OnnxVariableInfo>();
+            // Collect output information for this ONNX model from ONNXRuntime's perspective.
             foreach (var pair in _session.OutputMetadata)
             {
                 var name = pair.Key;
                 var meta = pair.Value;
                 var dataViewType = outputTypePool[name];
                 var caster = casterPool[name];
-                var info = new OnnxVariableInfo(name, meta.Dimensions.ToList(), meta.ElementType, dataViewType, caster);
+
+                OnnxVariableInfo info = null;
+                if (shapeDictionary != null && shapeDictionary.ContainsKey(name))
+                {
+                    // If user provide a shape of a specific tensor, the provided shape overwrites the corresponding one loaded from
+                    // ONNX model file.
+
+                    if (!CheckOnnxShapeCompatibility(shapeDictionary[name].ToList(), meta.Dimensions.ToList()))
+                        throw Contracts.ExceptParamValue(shapeDictionary[name], nameof(shapeDictionary),
+                            "The specified shape " + string.Join(",", shapeDictionary[name]) +
+                            " is not compatible with the shape " + string.Join(",", meta.Dimensions) +
+                            " loaded from the ONNX model file. Only unknown dimension can replace or " +
+                            "be replaced by another dimension.");
+
+                    if (dataViewType is VectorDataViewType vectorType)
+                    {
+                        if (shapeDictionary[name].All(value => value > 0))
+                            dataViewType = new VectorDataViewType(vectorType.ItemType, shapeDictionary[name]);
+                        else
+                            dataViewType = new VectorDataViewType(vectorType.ItemType);
+                    }
+
+                    info = new OnnxVariableInfo(name, shapeDictionary[name].ToList(), meta.ElementType, dataViewType, caster);
+                }
+                else
+                {
+                    // No user-specified shape is found, so the shape loaded from ONNX model file is used.
+                    info = new OnnxVariableInfo(name, meta.Dimensions.ToList(), meta.ElementType, dataViewType, caster);
+                }
+
                 onnxRuntimeOutputInfos.Add(info);
             }
 
+            // Create a view to the used ONNX model from ONNXRuntime's perspective.
             ModelInfo = new OnnxModelInfo(onnxRuntimeInputInfos, onnxRuntimeOutputInfos);
         }
 
         /// <summary>
+        /// This function returns <see langword="true"/> if <paramref name="left"/> and <paramref name="right"/> are
+        /// compatible. Otherwise, <see langword="false"/> is returned.
+        ///
+        /// Patterns leads to <see langword="true"/>.
+        /// Left:        Right:
+        ///   [-1, 3]      [2, 3]
+        ///   [2, 3]       [-1, 3]
+        ///   [-1, 3, -3]  [-2, 3, -1]
+        ///
+        /// </summary>
+        /// <param name="left">An ONNX shape.</param>
+        /// <param name="right">An ONNX shape.</param>
+        /// <returns><see langword="true"/> if <paramref name="left"/> and <paramref name="right"/> are compatible and
+        /// <see langword="false"/> otherwise.</returns>
+        private static bool CheckOnnxShapeCompatibility(IEnumerable<int> left, IEnumerable<int> right)
+        {
+            if (left.Count() != right.Count())
+                return false;
+            foreach(var (l, r) in left.Zip(right, (l, r) => (l, r)))
+            {
+                // Along a specific axis, if any of left or right have unknown dimension, the overwriting can happen.
+                if (l != r && l > 0 && r > 0)
+                    return false;
+            };
+            return true;
+        }
+
+        /// <summary>
         /// Create an OnnxModel from a byte[]. Usually, a ONNX model is consumed by <see cref="OnnxModel"/> as a file.
-        /// With <see cref="CreateFromBytes(byte[])"/> and <see cref="CreateFromBytes(byte[], int?, bool)"/>, it's possible
-        /// to use in-memory model (type: byte[]) to create <see cref="OnnxModel"/>.
+        /// With <see cref="CreateFromBytes(byte[])"/> and <see cref="CreateFromBytes(byte[], int?, bool, IDictionary{string, int[]})"/>,
+        /// it's possible to use in-memory model (type: byte[]) to create <see cref="OnnxModel"/>.
         /// </summary>
         /// <param name="modelBytes">Bytes of the serialized model</param>
-        /// <returns>OnnxModel</returns>
         public static OnnxModel CreateFromBytes(byte[] modelBytes)
         {
             return CreateFromBytes(modelBytes, null, false);
@@ -234,21 +326,27 @@ namespace Microsoft.ML.Transforms.Onnx
         /// <summary>
         /// Create an OnnxModel from a byte[]. Set execution to GPU if required.
         /// Usually, a ONNX model is consumed by <see cref="OnnxModel"/> as a file.
-        /// With <see cref="CreateFromBytes(byte[])"/> and <see cref="CreateFromBytes(byte[], int?, bool)"/>,
+        /// With <see cref="CreateFromBytes(byte[])"/> and
+        /// <see cref="CreateFromBytes(byte[], int?, bool, IDictionary{string, int[]})"/>,
         /// it's possible to use in-memory model (type: byte[]) to create <see cref="OnnxModel"/>.
         /// </summary>
         /// <param name="modelBytes">Bytes of the serialized model.</param>
         /// <param name="gpuDeviceId">GPU device ID to execute on. Null for CPU.</param>
-        /// <param name="fallbackToCpu">If true, resumes CPU execution quitely upon GPU error.</param>
-        /// <returns>OnnxModel</returns>
-        public static OnnxModel CreateFromBytes(byte[] modelBytes, int? gpuDeviceId = null, bool fallbackToCpu = false)
+        /// <param name="fallbackToCpu">If true, resumes CPU execution quietly upon GPU error.</param>
+        /// <param name="shapeDictionary">User-provided shapes. If the key "myTensorName" is associated
+        /// with the value [1, 3, 5], the shape of "myTensorName" will be set to [1, 3, 5].
+        /// The shape loaded from <paramref name="modelBytes"/> would be overwritten.</param>
+        /// <returns>An <see cref="OnnxModel"/></returns>
+        public static OnnxModel CreateFromBytes(byte[] modelBytes, int? gpuDeviceId = null, bool fallbackToCpu = false,
+            IDictionary<string, int[]> shapeDictionary = null)
         {
             var tempModelDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             Directory.CreateDirectory(tempModelDir);
 
             var tempModelFile = Path.Combine(tempModelDir, "model.onnx");
             File.WriteAllBytes(tempModelFile, modelBytes);
-            return new OnnxModel(tempModelFile, gpuDeviceId, fallbackToCpu, ownModelFile: true);
+            return new OnnxModel(tempModelFile, gpuDeviceId, fallbackToCpu,
+                ownModelFile: true, shapeDictionary: shapeDictionary);
         }
 
         /// <summary>

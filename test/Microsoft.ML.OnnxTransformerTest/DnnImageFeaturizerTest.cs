@@ -5,14 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework.Attributes;
-using Microsoft.ML.Transforms.Onnx;
-using Microsoft.ML.Transforms.StaticPipe;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -89,7 +85,7 @@ namespace Microsoft.ML.Tests
         }
 
         [OnnxFact]
-        public void OnnxStatic()
+        public void OnnxFeaturizerWorkout()
         {
             var env = new MLContext(null);
             var imageHeight = 224;
@@ -97,20 +93,19 @@ namespace Microsoft.ML.Tests
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 
-            var data = TextLoaderStatic.CreateLoader(env, ctx => (
-                imagePath: ctx.LoadText(0),
-                name: ctx.LoadText(1)))
-                .Load(dataFile);
+            var data = ML.Data.LoadFromTextFile(dataFile, new[] {
+                new TextLoader.Column("imagePath", DataKind.String, 0),
+                new TextLoader.Column("name", DataKind.String, 1)
+            });
 
-            var pipe = data.MakeNewEstimator()
-                .Append(row => (
-                    row.name,
-                    data_0: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleave: true)))
-                .Append(row => (row.name, output_1: row.data_0.DnnImageFeaturizer(m => m.ModelSelector.ResNet18(m.Environment, m.OutputColumn, m.InputColumn))));
+            var pipe = ML.Transforms.LoadImages("data_0", imageFolder, "imagePath")
+                .Append(ML.Transforms.ResizeImages("data_0", imageHeight, imageWidth))
+                .Append(ML.Transforms.ExtractPixels("data_0", interleavePixelColors: true))
+                .Append(ML.Transforms.DnnFeaturizeImage("output_1", m => m.ModelSelector.ResNet18(m.Environment, m.OutputColumn, m.InputColumn), "data_0"));
 
-            TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
+            TestEstimatorCore(pipe, data);
 
-            var result = pipe.Fit(data).Transform(data).AsDynamic;
+            var result = pipe.Fit(data).Transform(data);
             using (var cursor = result.GetRowCursor(result.Schema["output_1"]))
             {
                 var buffer = default(VBuffer<float>);

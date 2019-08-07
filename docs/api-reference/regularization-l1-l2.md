@@ -1,6 +1,6 @@
-This class uses [empricial risk minimization](https://en.wikipedia.org/wiki/Empirical_risk_minimization) (i.e., ERM)
+This class uses [empirical risk minimization](https://en.wikipedia.org/wiki/Empirical_risk_minimization) (i.e., ERM)
 to formulate the optimization problem built upon collected data.
-Note that empricial risk is usually measured by applying a loss function on the model's predictions on collected data points.
+Note that empirical risk is usually measured by applying a loss function on the model's predictions on collected data points.
 If the training data does not contain enough data points
 (for example, to train a linear model in $n$-dimensional space, we need at least $n$ data points),
 [overfitting](https://en.wikipedia.org/wiki/Overfitting) may happen so that

@@ -14,14 +14,13 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
     <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="CpuMathNative" />
-    <NativeAssemblyReference Include="FactorizationMachineNative" />
     <NativeAssemblyReference Include="SymSgdNative" />
     <NativeAssemblyReference Include="MklImports" />
     <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md"/>
   </ItemGroup>
-  
+
 </Project>

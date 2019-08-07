@@ -13,6 +13,7 @@ using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Image;
 using Microsoft.ML.Transforms.TensorFlow;
+using Tensorflow;
 using Xunit;
 
 namespace Microsoft.ML.Scenarios
@@ -551,12 +552,13 @@ namespace Microsoft.ML.Scenarios
 
                 var pipe = mlContext.Transforms.Categorical.OneHotEncoding("OneHotLabel", "Label")
                     .Append(mlContext.Transforms.Normalize(new NormalizingEstimator.MinMaxColumnOptions("Features", "Placeholder")))
-                    .Append(mlContext.Model.LoadTensorFlowModel(model_location).RetrainTensorFlowModel(
+                    .Append(mlContext.Model.RetrainDnnModel(
                         inputColumnNames: new[] { "Features" },
                         outputColumnNames: new[] { "Prediction", "b" },
                         labelColumnName: "OneHotLabel",
-                        tensorFlowLabel: "Label",
+                        dnnLabel: "Label",
                         optimizationOperation: "SGDOptimizer",
+                        modelPath: model_location,
                         lossOperation: "Loss",
                         epoch: 10,
                         learningRateOperation: "SGDOptimizer/learning_rate",
@@ -664,13 +666,14 @@ namespace Microsoft.ML.Scenarios
                 }
 
                 var pipe = mlContext.Transforms.CopyColumns("Features", "Placeholder")
-                    .Append(mlContext.Model.LoadTensorFlowModel(modelLocation).RetrainTensorFlowModel(
+                    .Append(mlContext.Model.RetrainDnnModel(
                         inputColumnNames: new[] { "Features" },
                         outputColumnNames: new[] { "Prediction" },
                         labelColumnName: "TfLabel",
-                        tensorFlowLabel: "Label",
+                        dnnLabel: "Label",
                         optimizationOperation: "MomentumOp",
                         lossOperation: "Loss",
+                        modelPath: modelLocation,
                         metricOperation: "Accuracy",
                         epoch: 10,
                         learningRateOperation: "learning_rate",
@@ -843,7 +846,7 @@ namespace Microsoft.ML.Scenarios
             var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
             var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
-            var type = (VectorDataViewType) schema[column].Type;
+            var type = (VectorDataViewType)schema[column].Type;
             var imageHeight = type.Dimensions[0];
             var imageWidth = type.Dimensions[1];
 
