@@ -236,7 +236,7 @@ namespace Microsoft.ML.Data
             private ValueGetter<bool> CreateBooleanGetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref bool value) => value = DataReader.GetBoolean(columnIndex);
+                return (ref bool value) => value = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetBoolean(columnIndex);
             }
 
             private ValueGetter<byte> CreateByteGetterDelegate(ColInfo colInfo)
@@ -254,61 +254,61 @@ namespace Microsoft.ML.Data
             private ValueGetter<double> CreateDoubleGetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref double value) => value = DataReader.GetDouble(columnIndex);
+                return (ref double value) => value = DataReader.IsDBNull(columnIndex) ? double.NaN : DataReader.GetDouble(columnIndex);
             }
 
             private ValueGetter<short> CreateInt16GetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref short value) => value = DataReader.GetInt16(columnIndex);
+                return (ref short value) => value = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetInt16(columnIndex);
             }
 
             private ValueGetter<int> CreateInt32GetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref int value) => value = DataReader.GetInt32(columnIndex);
+                return (ref int value) => value = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetInt32(columnIndex);
             }
 
             private ValueGetter<long> CreateInt64GetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref long value) => value = DataReader.GetInt64(columnIndex);
+                return (ref long value) => value = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetInt64(columnIndex);
             }
 
             private ValueGetter<sbyte> CreateSByteGetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref sbyte value) => value = (sbyte)DataReader.GetByte(columnIndex);
+                return (ref sbyte value) => value = DataReader.IsDBNull(columnIndex) ? default : (sbyte)DataReader.GetByte(columnIndex);
             }
 
             private ValueGetter<float> CreateSingleGetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref float value) => value = DataReader.GetFloat(columnIndex);
+                return (ref float value) => value = DataReader.IsDBNull(columnIndex) ? float.NaN : DataReader.GetFloat(columnIndex);
             }
 
             private ValueGetter<ReadOnlyMemory<char>> CreateStringGetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref ReadOnlyMemory<char> value) => value = DataReader.GetString(columnIndex).AsMemory();
+                return (ref ReadOnlyMemory<char> value) => value = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetString(columnIndex).AsMemory();
             }
 
             private ValueGetter<ushort> CreateUInt16GetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref ushort value) => value = (ushort)DataReader.GetInt16(columnIndex);
+                return (ref ushort value) => value = DataReader.IsDBNull(columnIndex) ? default : (ushort)DataReader.GetInt16(columnIndex);
             }
 
             private ValueGetter<uint> CreateUInt32GetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref uint value) => value = (uint)DataReader.GetInt32(columnIndex);
+                return (ref uint value) => value = DataReader.IsDBNull(columnIndex) ? default : (uint)DataReader.GetInt32(columnIndex);
             }
 
             private ValueGetter<ulong> CreateUInt64GetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref ulong value) => value = (ulong)DataReader.GetInt64(columnIndex);
+                return (ref ulong value) => value = DataReader.IsDBNull(columnIndex) ? default : (ulong)DataReader.GetInt64(columnIndex);
             }
 
             private int GetColumnIndex(ColInfo colInfo)
