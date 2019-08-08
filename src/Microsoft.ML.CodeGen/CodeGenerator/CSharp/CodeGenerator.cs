@@ -311,7 +311,6 @@ namespace Microsoft.ML.CodeGen.CSharp
         private string GeneratePredictProgramCSFileContent(string namespaceValue)
         {
             var features = _columnInferenceResult.TextLoaderOptions.Columns;
-            Console.WriteLine(features.ToString());
             PredictProgram predictProgram = new PredictProgram()
             {
                 TaskType = _settings.MlTask.ToString(),
