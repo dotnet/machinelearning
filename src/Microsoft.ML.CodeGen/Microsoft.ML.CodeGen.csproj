@@ -17,6 +17,10 @@
   </ItemGroup>
   
   <ItemGroup>
+    <None Update="Templates\Console\ConsumeModel.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>ConsumeModel.cs</LastGenOutput>
+    </None>
     <None Update="Templates\Console\ModelBuilder.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>ModelBuilder.cs</LastGenOutput>
@@ -48,6 +52,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Templates\Console\ConsumeModel.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ConsumeModel.tt</DependentUpon>
+    </Compile>
     <Compile Update="Templates\Console\ModelBuilder.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

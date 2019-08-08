@@ -55,6 +55,7 @@ namespace Microsoft.ML.CodeGen.CSharp
 
             Utils.WriteOutputToFiles(modelProjectContents.ModelInputCSFileContent, "ModelInput.cs", dataModelsDir);
             Utils.WriteOutputToFiles(modelProjectContents.ModelOutputCSFileContent, "ModelOutput.cs", dataModelsDir);
+            Utils.WriteOutputToFiles(modelProjectContents.ConsumeModelCSFileContent, "ConsumeModel.cs", dataModelsDir);
             Utils.WriteOutputToFiles(modelProjectContents.ModelProjectFileContent, modelProjectName, modelprojectDir);
 
             // Generate ConsoleApp Project
@@ -115,15 +116,32 @@ namespace Microsoft.ML.CodeGen.CSharp
             return (predictProgramCSFileContent, predictProjectFileContent, modelBuilderCSFileContent);
         }
 
-        internal (string ModelInputCSFileContent, string ModelOutputCSFileContent, string ModelProjectFileContent) GenerateModelProjectContents(string namespaceValue, Type labelTypeCsharp, bool includeLightGbmPackage, bool includeMklComponentsPackage, bool includeFastTreePackage)
+        internal (string ModelInputCSFileContent, string ModelOutputCSFileContent, string ConsumeModelCSFileContent, string ModelProjectFileContent) GenerateModelProjectContents(string namespaceValue, Type labelTypeCsharp, bool includeLightGbmPackage, bool includeMklComponentsPackage, bool includeFastTreePackage)
         {
             var classLabels = GenerateClassLabels();
+
+            // generate ModelInput.cs
             var modelInputCSFileContent = GenerateModelInputCSFileContent(namespaceValue, classLabels);
             modelInputCSFileContent = Utils.FormatCode(modelInputCSFileContent);
+
+            // generate ModelOutput.cs
             var modelOutputCSFileContent = GenerateModelOutputCSFileContent(labelTypeCsharp.Name, namespaceValue);
             modelOutputCSFileContent = Utils.FormatCode(modelOutputCSFileContent);
+
+            // generate ConsumeModel.cs
+            var consumeModelCSFileContent = GenerateConsumeModelCSFileContent(namespaceValue);
+            consumeModelCSFileContent = Utils.FormatCode(consumeModelCSFileContent);
             var modelProjectFileContent = GenerateModelProjectFileContent(includeLightGbmPackage, includeMklComponentsPackage, includeFastTreePackage);
-            return (modelInputCSFileContent, modelOutputCSFileContent, modelProjectFileContent);
+            return (modelInputCSFileContent, modelOutputCSFileContent, consumeModelCSFileContent, modelProjectFileContent);
+        }
+
+        private string GenerateConsumeModelCSFileContent(string namespaceValue)
+        {
+            ConsumeModel consumeModel = new ConsumeModel()
+            {
+                Namespace = namespaceValue,
+            };
+            return consumeModel.TransformText();
         }
 
         internal (string Usings, string TrainerMethod, List<string> PreTrainerTransforms, List<string> PostTrainerTransforms) GenerateTransformsAndTrainers()

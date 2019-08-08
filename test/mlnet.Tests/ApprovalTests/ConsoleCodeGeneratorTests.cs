@@ -119,6 +119,29 @@ namespace mlnet.Tests
         [TestMethod]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
+        public void ConsumeModelContentTest()
+        {
+            (Pipeline pipeline,
+                       ColumnInferenceResults columnInference) = GetMockedBinaryPipelineAndInference();
+
+            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorSettings()
+            {
+                MlTask = TaskKind.BinaryClassification,
+                OutputBaseDir = null,
+                OutputName = "MyNamespace",
+                TrainDataset = "x:\\dummypath\\dummy_train.csv",
+                TestDataset = "x:\\dummypath\\dummy_test.csv",
+                LabelName = "Label",
+                ModelPath = "x:\\models\\model.zip"
+            });
+            var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), true, true, false);
+
+            Approvals.Verify(result.ConsumeModelCSFileContent);
+        }
+
+        [TestMethod]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void ObservationCSFileContentTest()
         {
             (Pipeline pipeline,
