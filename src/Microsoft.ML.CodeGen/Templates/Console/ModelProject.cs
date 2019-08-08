@@ -25,9 +25,9 @@ namespace Microsoft.ML.CodeGen.Templates.Console
         /// </summary>
         public virtual string TransformText()
         {
-            this.Write("<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n  <PropertyGroup>\r\n    <TargetFramework>netc" +
-                    "oreapp2.1</TargetFramework>\r\n  </PropertyGroup>\r\n  <ItemGroup>\r\n    <PackageRefe" +
-                    "rence Include=\"Microsoft.ML\" Version=\"1.2.0\" />\r\n");
+            this.Write("<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n  <PropertyGroup>\r\n    <TargetFramework>nets" +
+                    "tandard2.0</TargetFramework>\r\n  </PropertyGroup>\r\n  <ItemGroup>\r\n    <PackageRef" +
+                    "erence Include=\"Microsoft.ML\" Version=\"1.2.0\" />\r\n");
  if (IncludeLightGBMPackage) { 
             this.Write("    <PackageReference Include=\"Microsoft.ML.LightGBM\" Version=\"1.2.0\" />\r\n");
 }
