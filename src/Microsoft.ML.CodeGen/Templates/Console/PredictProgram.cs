@@ -39,7 +39,9 @@ using System.Linq;
 using Microsoft.ML;
 using ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model.DataModels;\r\n\r\n\r\nnamespace ");
+            this.Write(".Model;\r\nusing ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
+            this.Write(".Model.DataModels;\r\n\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             this.Write(".ConsoleApp\r\n{\r\n    class Program\r\n    {\r\n        //Machine Learning model to loa" +
                     "d and use for predictions\r\n        private const string MODEL_FILEPATH = @\"MLMod" +
@@ -61,40 +63,55 @@ if(string.IsNullOrEmpty(TestDataPath)){
             // Training code used by ML.NET CLI and AutoML to generate the model
             //ModelBuilder.CreateModel();
 
-            ITransformer mlModel = mlContext.Model.Load(GetAbsolutePath(MODEL_FILEPATH), out DataViewSchema inputSchema);
-            var predEngine = mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(mlModel);
+			// Create single instance of sample data from first line of dataset for model input
+            ModelInput sampleData = CreateSingleDataSample(DATA_FILEPATH);
 
-            // Create sample data to do a single prediction with it 
-            ModelInput sampleData = CreateSingleDataSample(mlContext, DATA_FILEPATH);
+			// Make a single prediction on the sample data and print results
+			ModelOutput predictionResult = ConsumeModel.Predict(sampleData);
 
-            // Try a single prediction
-            ModelOutput predictionResult = predEngine.Predict(sampleData);
-
-");
+			Console.WriteLine(""Using model to make single prediction -- Comparing actual ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
+            this.Write(" with predicted ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
+            this.Write(" from sample data...\");\r\n");
 if("BinaryClassification".Equals(TaskType)){ 
-            this.Write("            Console.WriteLine($\"Single Prediction --> Actual value: {sampleData.");
+            this.Write("\t\t\tConsole.WriteLine($\"\\nComment: {sampleData.Comment}\\n\\nActual ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
-            this.Write("} | Predicted value: {predictionResult.Prediction}\");\r\n");
+            this.Write(": {sampleData.Sentiment} \\nPredicted ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
+            this.Write(": {predictionResult.Prediction}\");\r\n");
 }else if("Regression".Equals(TaskType)){
-            this.Write("            Console.WriteLine($\"Single Prediction --> Actual value: {sampleData.");
+            this.Write("\t\t\tConsole.WriteLine($\"\\nComment: {sampleData.Comment}\\n\\nActual ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
-            this.Write("} | Predicted value: {predictionResult.Score}\");\r\n");
+            this.Write(": {sampleData.Sentiment} \\nPredicted ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
+            this.Write(": {predictionResult.Score}\");\r\n");
 } else if("MulticlassClassification".Equals(TaskType)){
-            this.Write("            Console.WriteLine($\"Single Prediction --> Actual value: {sampleData.");
+            this.Write("\t\t\tConsole.WriteLine($\"\\nComment: {sampleData.Comment}\\n\\nActual ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
+            this.Write(": {sampleData.Sentiment} \\nPredicted ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
+            this.Write(" value {predictionResult.Prediction} \\nPredicted ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
+            this.Write(" scores: [{String.Join(\",\", predictionResult.Score)}]\");\r\n            Console.Wri" +
+                    "teLine($\"Single Prediction --> Actual value: {sampleData.");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write("} | Predicted value: {predictionResult.Prediction} | Predicted scores: [{String.J" +
                     "oin(\",\", predictionResult.Score)}]\");\r\n");
 }
-            this.Write(@"
-            Console.WriteLine(""=============== End of process, hit any key to finish ==============="");
+            this.Write(@"            Console.WriteLine(""=============== End of process, hit any key to finish ==============="");
             Console.ReadKey();
         }
 
-        // Method to load single row of data to try a single prediction
-        // You can change this code and create your own sample data here (Hardcoded or from any source)
-        private static ModelInput CreateSingleDataSample(MLContext mlContext, string dataFilePath)
+        // Change this code to create your own sample data
+		#region CreateSingleDataSample
+        // Method to load single row of dataset to try a single prediction
+        private static ModelInput CreateSingleDataSample(string dataFilePath)
         {
-            // Read dataset to get a single row for trying a prediction          
+            // Create MLContext
+			MLContext mlContext = new MLContext();
+
+			// Load dataset
             IDataView dataView = mlContext.Data.LoadFromTextFile<ModelInput>(
                                             path: dataFilePath,
                                             hasHeader : ");
@@ -107,21 +124,13 @@ if("BinaryClassification".Equals(TaskType)){
             this.Write(this.ToStringHelper.ToStringWithCulture(AllowSparse.ToString().ToLowerInvariant()));
             this.Write(@");
 
-            // Here (ModelInput object) you could provide new test data, hardcoded or from the end-user application, instead of the row from the file.
+            // Use first line of dataset as model input
+			// You can replace this with new test data (hardcoded or from end-user application)
             ModelInput sampleForPrediction = mlContext.Data.CreateEnumerable<ModelInput>(dataView, false)
                                                                         .First();
             return sampleForPrediction;
         }
-
-        public static string GetAbsolutePath(string relativePath)
-        {
-            FileInfo _dataRoot = new FileInfo(typeof(Program).Assembly.Location);
-            string assemblyFolderPath = _dataRoot.Directory.FullName;
-
-            string fullPath = Path.Combine(assemblyFolderPath, relativePath);
-
-            return fullPath;
-        }
+		#endregion
     }
 }
 ");

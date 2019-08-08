@@ -15,8 +15,8 @@ using System;
 using System.IO;
 using System.Linq;
 using Microsoft.ML;
+using <#= Namespace #>.Model;
 using <#= Namespace #>.Model.DataModels;
-
 
 namespace <#= Namespace #>.ConsoleApp
 {
@@ -39,32 +39,34 @@ namespace <#= Namespace #>.ConsoleApp
             // Training code used by ML.NET CLI and AutoML to generate the model
             //ModelBuilder.CreateModel();
 
-            ITransformer mlModel = mlContext.Model.Load(GetAbsolutePath(MODEL_FILEPATH), out DataViewSchema inputSchema);
-            var predEngine = mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(mlModel);
+			// Create single instance of sample data from first line of dataset for model input
+            ModelInput sampleData = CreateSingleDataSample(DATA_FILEPATH);
 
-            // Create sample data to do a single prediction with it 
-            ModelInput sampleData = CreateSingleDataSample(mlContext, DATA_FILEPATH);
+			// Make a single prediction on the sample data and print results
+			ModelOutput predictionResult = ConsumeModel.Predict(sampleData);
 
-            // Try a single prediction
-            ModelOutput predictionResult = predEngine.Predict(sampleData);
-
+			Console.WriteLine("Using model to make single prediction -- Comparing actual <#= Utils.Normalize(LabelName) #> with predicted <#= Utils.Normalize(LabelName) #> from sample data...");
 <#if("BinaryClassification".Equals(TaskType)){ #>
-            Console.WriteLine($"Single Prediction --> Actual value: {sampleData.<#= Utils.Normalize(LabelName) #>} | Predicted value: {predictionResult.Prediction}");
+			Console.WriteLine($"\nComment: {sampleData.Comment}\n\nActual <#= Utils.Normalize(LabelName) #>: {sampleData.Sentiment} \nPredicted <#= Utils.Normalize(LabelName) #>: {predictionResult.Prediction}");
 <#}else if("Regression".Equals(TaskType)){#>
-            Console.WriteLine($"Single Prediction --> Actual value: {sampleData.<#= Utils.Normalize(LabelName) #>} | Predicted value: {predictionResult.Score}");
+			Console.WriteLine($"\nComment: {sampleData.Comment}\n\nActual <#= Utils.Normalize(LabelName) #>: {sampleData.Sentiment} \nPredicted <#= Utils.Normalize(LabelName) #>: {predictionResult.Score}");
 <#} else if("MulticlassClassification".Equals(TaskType)){#>
+			Console.WriteLine($"\nComment: {sampleData.Comment}\n\nActual <#= Utils.Normalize(LabelName) #>: {sampleData.Sentiment} \nPredicted <#= Utils.Normalize(LabelName) #> value {predictionResult.Prediction} \nPredicted <#= Utils.Normalize(LabelName) #> scores: [{String.Join(",", predictionResult.Score)}]");
             Console.WriteLine($"Single Prediction --> Actual value: {sampleData.<#= Utils.Normalize(LabelName) #>} | Predicted value: {predictionResult.Prediction} | Predicted scores: [{String.Join(",", predictionResult.Score)}]");
 <#}#>
-
             Console.WriteLine("=============== End of process, hit any key to finish ===============");
             Console.ReadKey();
         }
 
-        // Method to load single row of data to try a single prediction
-        // You can change this code and create your own sample data here (Hardcoded or from any source)
-        private static ModelInput CreateSingleDataSample(MLContext mlContext, string dataFilePath)
+        // Change this code to create your own sample data
+		#region CreateSingleDataSample
+        // Method to load single row of dataset to try a single prediction
+        private static ModelInput CreateSingleDataSample(string dataFilePath)
         {
-            // Read dataset to get a single row for trying a prediction          
+            // Create MLContext
+			MLContext mlContext = new MLContext();
+
+			// Load dataset
             IDataView dataView = mlContext.Data.LoadFromTextFile<ModelInput>(
                                             path: dataFilePath,
                                             hasHeader : <#= HasHeader.ToString().ToLowerInvariant() #>,
@@ -72,21 +74,13 @@ namespace <#= Namespace #>.ConsoleApp
                                             allowQuoting : <#= AllowQuoting.ToString().ToLowerInvariant() #>,
                                             allowSparse: <#= AllowSparse.ToString().ToLowerInvariant() #>);
 
-            // Here (ModelInput object) you could provide new test data, hardcoded or from the end-user application, instead of the row from the file.
+            // Use first line of dataset as model input
+			// You can replace this with new test data (hardcoded or from end-user application)
             ModelInput sampleForPrediction = mlContext.Data.CreateEnumerable<ModelInput>(dataView, false)
                                                                         .First();
             return sampleForPrediction;
         }
-
-        public static string GetAbsolutePath(string relativePath)
-        {
-            FileInfo _dataRoot = new FileInfo(typeof(Program).Assembly.Location);
-            string assemblyFolderPath = _dataRoot.Directory.FullName;
-
-            string fullPath = Path.Combine(assemblyFolderPath, relativePath);
-
-            return fullPath;
-        }
+		#endregion
     }
 }
 <#+
