@@ -17,6 +17,15 @@
   </ItemGroup>
   
   <ItemGroup>
+    <None Update="Templates\Console\Annotation.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Annotation.txt</LastGenOutput>
+    </None>
+    <None Update="Templates\Console\Annotation.txt">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Annotation.tt</DependentUpon>
+    </None>
     <None Update="Templates\Console\ConsumeModel.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>ConsumeModel.cs</LastGenOutput>

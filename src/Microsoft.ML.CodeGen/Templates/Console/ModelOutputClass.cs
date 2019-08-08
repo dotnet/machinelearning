@@ -25,16 +25,12 @@ namespace Microsoft.ML.CodeGen.Templates.Console
         /// </summary>
         public virtual string TransformText()
         {
-            this.Write(@"//*****************************************************************************************
-//*                                                                                       *
-//* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *
-//*                                                                                       *
-//*****************************************************************************************
-
-using System;
-using Microsoft.ML.Data;
-
-namespace  ");
+if(Target == CSharp.CodeGeneratorSettings.GenerateTarget.Cli){ 
+CLI_Annotation();
+ } else if(Target == CSharp.CodeGeneratorSettings.GenerateTarget.ModelBuilder){ 
+MB_Annotation();
+ } 
+            this.Write("\r\nusing System;\r\nusing Microsoft.ML.Data;\r\n\r\nnamespace  ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             this.Write(".Model.DataModels\r\n{\r\n    public class ModelOutput\r\n    {\r\n");
 if("BinaryClassification".Equals(TaskType)){ 
@@ -60,6 +56,28 @@ if("MulticlassClassification".Equals(TaskType)){
 public string TaskType {get;set;}
 public string PredictionLabelType {get;set;}
 public string Namespace {get;set;}
+public CSharp.CodeGeneratorSettings.GenerateTarget Target {get;set;}
+
+
+void CLI_Annotation()
+{
+this.Write(@"//*****************************************************************************************
+//*                                                                                       *
+//* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *
+//*                                                                                       *
+//*****************************************************************************************
+");
+
+
+}
+
+
+void MB_Annotation()
+{
+this.Write("// This is an auto-generated file by ML.NET Model Builder. \r\n");
+
+
+}
 
     }
     #region Base class

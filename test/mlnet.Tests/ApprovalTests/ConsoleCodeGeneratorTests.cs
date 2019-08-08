@@ -132,7 +132,8 @@ namespace mlnet.Tests
                 TrainDataset = "x:\\dummypath\\dummy_train.csv",
                 TestDataset = "x:\\dummypath\\dummy_test.csv",
                 LabelName = "Label",
-                ModelPath = "x:\\models\\model.zip"
+                ModelPath = "x:\\models\\model.zip",
+                Target = CodeGeneratorSettings.GenerateTarget.Cli,
             });
             var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), true, true, false);
 

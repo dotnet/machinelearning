@@ -5,11 +5,11 @@
 <#@ import namespace="System.Text.RegularExpressions" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="Microsoft.ML.CodeGen.Utilities" #>
-//*****************************************************************************************
-//*                                                                                       *
-//* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *
-//*                                                                                       *
-//*****************************************************************************************
+<#@ include file="Annotation.tt" #><#if(Target == CSharp.CodeGeneratorSettings.GenerateTarget.Cli){ #>
+<#CLI_Annotation();#>
+<# } else if(Target == CSharp.CodeGeneratorSettings.GenerateTarget.ModelBuilder){ #>
+<#MB_Annotation();#>
+<# } #>
 
 using System;
 using System.Collections.Generic;
@@ -327,4 +327,5 @@ public string Namespace {get;set;}
 public string LabelName {get;set;}
 public bool CacheBeforeTrainer {get;set;}
 public IList<string> PostTrainerTransforms {get;set;}
+public CSharp.CodeGeneratorSettings.GenerateTarget Target {get;set;}
 #>

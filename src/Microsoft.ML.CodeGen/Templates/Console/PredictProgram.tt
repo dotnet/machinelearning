@@ -5,11 +5,11 @@
 <#@ import namespace="System.Text.RegularExpressions" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="Microsoft.ML.CodeGen.Utilities" #>
-//*****************************************************************************************
-//*                                                                                       *
-//* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *
-//*                                                                                       *
-//*****************************************************************************************
+<#@ include file="Annotation.tt" #><#if(Target == CSharp.CodeGeneratorSettings.GenerateTarget.Cli){ #>
+<#CLI_Annotation();#>
+<# } else if(Target == CSharp.CodeGeneratorSettings.GenerateTarget.ModelBuilder){ #>
+<#MB_Annotation();#>
+<# } #>
 
 using System;
 using System.IO;
@@ -45,14 +45,16 @@ namespace <#= Namespace #>.ConsoleApp
 			// Make a single prediction on the sample data and print results
 			ModelOutput predictionResult = ConsumeModel.Predict(sampleData);
 
-			Console.WriteLine("Using model to make single prediction -- Comparing actual <#= Utils.Normalize(LabelName) #> with predicted <#= Utils.Normalize(LabelName) #> from sample data...");
+			Console.WriteLine("Using model to make single prediction -- Comparing actual <#= Utils.Normalize(LabelName) #> with predicted <#= Utils.Normalize(LabelName) #> from sample data...\n\n");
+<#foreach(var label in Features){#>
+			Console.WriteLine($"<#= label #>: {sampleData.<#= Utils.Normalize(label) #>}");
+<#}#>
 <#if("BinaryClassification".Equals(TaskType)){ #>
-			Console.WriteLine($"\nComment: {sampleData.Comment}\n\nActual <#= Utils.Normalize(LabelName) #>: {sampleData.Sentiment} \nPredicted <#= Utils.Normalize(LabelName) #>: {predictionResult.Prediction}");
+			Console.WriteLine($"\nActual <#= Utils.Normalize(LabelName) #>: {sampleData.<#= Utils.Normalize(LabelName) #>} \nPredicted <#= Utils.Normalize(LabelName) #>: {predictionResult.Prediction}");
 <#}else if("Regression".Equals(TaskType)){#>
-			Console.WriteLine($"\nComment: {sampleData.Comment}\n\nActual <#= Utils.Normalize(LabelName) #>: {sampleData.Sentiment} \nPredicted <#= Utils.Normalize(LabelName) #>: {predictionResult.Score}");
+			Console.WriteLine($"\nActual <#= Utils.Normalize(LabelName) #>: {sampleData.<#= Utils.Normalize(LabelName) #>} \nPredicted <#= Utils.Normalize(LabelName) #>: {predictionResult.Score}");
 <#} else if("MulticlassClassification".Equals(TaskType)){#>
-			Console.WriteLine($"\nComment: {sampleData.Comment}\n\nActual <#= Utils.Normalize(LabelName) #>: {sampleData.Sentiment} \nPredicted <#= Utils.Normalize(LabelName) #> value {predictionResult.Prediction} \nPredicted <#= Utils.Normalize(LabelName) #> scores: [{String.Join(",", predictionResult.Score)}]");
-            Console.WriteLine($"Single Prediction --> Actual value: {sampleData.<#= Utils.Normalize(LabelName) #>} | Predicted value: {predictionResult.Prediction} | Predicted scores: [{String.Join(",", predictionResult.Score)}]");
+			Console.WriteLine($"\nActual <#= Utils.Normalize(LabelName) #>: {sampleData.<#= Utils.Normalize(LabelName) #>} \nPredicted <#= Utils.Normalize(LabelName) #> value {predictionResult.Prediction} \nPredicted <#= Utils.Normalize(LabelName) #> scores: [{String.Join(",", predictionResult.Score)}]");
 <#}#>
             Console.WriteLine("=============== End of process, hit any key to finish ===============");
             Console.ReadKey();
@@ -93,4 +95,6 @@ public char Separator {get;set;}
 public bool AllowQuoting {get;set;}
 public bool AllowSparse {get;set;}
 public bool HasHeader {get;set;}
+public IList<string> Features {get;set;}
+public CSharp.CodeGeneratorSettings.GenerateTarget Target {get;set;}
 #>

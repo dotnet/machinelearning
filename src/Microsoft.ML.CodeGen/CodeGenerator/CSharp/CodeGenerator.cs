@@ -140,6 +140,7 @@ namespace Microsoft.ML.CodeGen.CSharp
             ConsumeModel consumeModel = new ConsumeModel()
             {
                 Namespace = namespaceValue,
+                Target = _settings.Target,
             };
             return consumeModel.TransformText();
         }
@@ -280,13 +281,22 @@ namespace Microsoft.ML.CodeGen.CSharp
 
         private string GenerateModelOutputCSFileContent(string predictionLabelType, string namespaceValue)
         {
-            ModelOutputClass modelOutputClass = new ModelOutputClass() { TaskType = _settings.MlTask.ToString(), PredictionLabelType = predictionLabelType, Namespace = namespaceValue };
+            ModelOutputClass modelOutputClass = new ModelOutputClass() {
+                TaskType = _settings.MlTask.ToString(),
+                PredictionLabelType = predictionLabelType,
+                Namespace = namespaceValue,
+                Target = _settings.Target,
+            };
             return modelOutputClass.TransformText();
         }
 
         private string GenerateModelInputCSFileContent(string namespaceValue, IList<string> classLabels)
         {
-            ModelInputClass modelInputClass = new ModelInputClass() { Namespace = namespaceValue, ClassLabels = classLabels };
+            ModelInputClass modelInputClass = new ModelInputClass() {
+                Namespace = namespaceValue,
+                ClassLabels = classLabels,
+                Target = _settings.Target,
+            };
             return modelInputClass.TransformText();
         }
         #endregion
@@ -300,6 +310,8 @@ namespace Microsoft.ML.CodeGen.CSharp
 
         private string GeneratePredictProgramCSFileContent(string namespaceValue)
         {
+            var features = _columnInferenceResult.TextLoaderOptions.Columns;
+            Console.WriteLine(features.ToString());
             PredictProgram predictProgram = new PredictProgram()
             {
                 TaskType = _settings.MlTask.ToString(),
@@ -311,6 +323,8 @@ namespace Microsoft.ML.CodeGen.CSharp
                 Separator = _columnInferenceResult.TextLoaderOptions.Separators.FirstOrDefault(),
                 AllowQuoting = _columnInferenceResult.TextLoaderOptions.AllowQuoting,
                 AllowSparse = _columnInferenceResult.TextLoaderOptions.AllowSparse,
+                Features = features.Where((str) => str.Name != _settings.LabelName).Select((str)=>str.Name).ToList(),
+                Target = _settings.Target,
             };
             return predictProgram.TransformText();
         }
@@ -339,6 +353,7 @@ namespace Microsoft.ML.CodeGen.CSharp
                 Namespace = namespaceValue,
                 LabelName = _settings.LabelName,
                 CacheBeforeTrainer = cacheBeforeTrainer,
+                Target = _settings.Target,
             };
 
             return modelBuilder.TransformText();

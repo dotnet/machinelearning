@@ -27,17 +27,13 @@ namespace Microsoft.ML.CodeGen.Templates.Console
         /// </summary>
         public virtual string TransformText()
         {
-            this.Write(@"//*****************************************************************************************
-//*                                                                                       *
-//* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *
-//*                                                                                       *
-//*****************************************************************************************
-
-using System;
-using System.IO;
-using System.Linq;
-using Microsoft.ML;
-using ");
+if(Target == CSharp.CodeGeneratorSettings.GenerateTarget.Cli){ 
+CLI_Annotation();
+ } else if(Target == CSharp.CodeGeneratorSettings.GenerateTarget.ModelBuilder){ 
+MB_Annotation();
+ } 
+            this.Write("\r\nusing System;\r\nusing System.IO;\r\nusing System.Linq;\r\nusing Microsoft.ML;\r\nusing" +
+                    " ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             this.Write(".Model;\r\nusing ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
@@ -73,31 +69,40 @@ if(string.IsNullOrEmpty(TestDataPath)){
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(" with predicted ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
-            this.Write(" from sample data...\");\r\n");
+            this.Write(" from sample data...\\n\\n\");\r\n");
+foreach(var label in Features){
+            this.Write("\t\t\tConsole.WriteLine($\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(label));
+            this.Write(": {sampleData.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(label)));
+            this.Write("}\");\r\n");
+}
 if("BinaryClassification".Equals(TaskType)){ 
-            this.Write("\t\t\tConsole.WriteLine($\"\\nComment: {sampleData.Comment}\\n\\nActual ");
+            this.Write("\t\t\tConsole.WriteLine($\"\\nActual ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
-            this.Write(": {sampleData.Sentiment} \\nPredicted ");
+            this.Write(": {sampleData.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
+            this.Write("} \\nPredicted ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(": {predictionResult.Prediction}\");\r\n");
 }else if("Regression".Equals(TaskType)){
-            this.Write("\t\t\tConsole.WriteLine($\"\\nComment: {sampleData.Comment}\\n\\nActual ");
+            this.Write("\t\t\tConsole.WriteLine($\"\\nActual ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
-            this.Write(": {sampleData.Sentiment} \\nPredicted ");
+            this.Write(": {sampleData.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
+            this.Write("} \\nPredicted ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(": {predictionResult.Score}\");\r\n");
 } else if("MulticlassClassification".Equals(TaskType)){
-            this.Write("\t\t\tConsole.WriteLine($\"\\nComment: {sampleData.Comment}\\n\\nActual ");
+            this.Write("\t\t\tConsole.WriteLine($\"\\nActual ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
-            this.Write(": {sampleData.Sentiment} \\nPredicted ");
+            this.Write(": {sampleData.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
+            this.Write("} \\nPredicted ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(" value {predictionResult.Prediction} \\nPredicted ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
-            this.Write(" scores: [{String.Join(\",\", predictionResult.Score)}]\");\r\n            Console.Wri" +
-                    "teLine($\"Single Prediction --> Actual value: {sampleData.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
-            this.Write("} | Predicted value: {predictionResult.Prediction} | Predicted scores: [{String.J" +
-                    "oin(\",\", predictionResult.Score)}]\");\r\n");
+            this.Write(" scores: [{String.Join(\",\", predictionResult.Score)}]\");\r\n");
 }
             this.Write(@"            Console.WriteLine(""=============== End of process, hit any key to finish ==============="");
             Console.ReadKey();
@@ -146,6 +151,29 @@ public char Separator {get;set;}
 public bool AllowQuoting {get;set;}
 public bool AllowSparse {get;set;}
 public bool HasHeader {get;set;}
+public IList<string> Features {get;set;}
+public CSharp.CodeGeneratorSettings.GenerateTarget Target {get;set;}
+
+
+void CLI_Annotation()
+{
+this.Write(@"//*****************************************************************************************
+//*                                                                                       *
+//* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *
+//*                                                                                       *
+//*****************************************************************************************
+");
+
+
+}
+
+
+void MB_Annotation()
+{
+this.Write("// This is an auto-generated file by ML.NET Model Builder. \r\n");
+
+
+}
 
     }
     #region Base class
