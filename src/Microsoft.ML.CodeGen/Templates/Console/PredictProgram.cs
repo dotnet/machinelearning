@@ -78,23 +78,23 @@ foreach(var label in Features){
             this.Write("}\");\r\n");
 }
 if("BinaryClassification".Equals(TaskType)){ 
-            this.Write("\t\t\tConsole.WriteLine($\"\\nActual ");
+            this.Write("\t\t\tConsole.WriteLine($\"\\n\\nActual ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(": {sampleData.");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write("} \\nPredicted ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
-            this.Write(": {predictionResult.Prediction}\");\r\n");
+            this.Write(": {predictionResult.Prediction}\\n\\n\");\r\n");
 }else if("Regression".Equals(TaskType)){
-            this.Write("\t\t\tConsole.WriteLine($\"\\nActual ");
+            this.Write("\t\t\tConsole.WriteLine($\"\\n\\nActual ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(": {sampleData.");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write("} \\nPredicted ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
-            this.Write(": {predictionResult.Score}\");\r\n");
+            this.Write(": {predictionResult.Score}\\n\\n\");\r\n");
 } else if("MulticlassClassification".Equals(TaskType)){
-            this.Write("\t\t\tConsole.WriteLine($\"\\nActual ");
+            this.Write("\t\t\tConsole.WriteLine($\"\\n\\nActual ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(": {sampleData.");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
@@ -102,7 +102,7 @@ if("BinaryClassification".Equals(TaskType)){
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(" value {predictionResult.Prediction} \\nPredicted ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
-            this.Write(" scores: [{String.Join(\",\", predictionResult.Score)}]\");\r\n");
+            this.Write(" scores: [{String.Join(\",\", predictionResult.Score)}]\\n\\n\");\r\n");
 }
             this.Write(@"            Console.WriteLine(""=============== End of process, hit any key to finish ==============="");
             Console.ReadKey();

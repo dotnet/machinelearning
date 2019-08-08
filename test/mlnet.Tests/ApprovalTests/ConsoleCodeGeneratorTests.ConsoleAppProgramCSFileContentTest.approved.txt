@@ -40,7 +40,7 @@ namespace TestNamespace.ConsoleApp
             Console.WriteLine($"col3: {sampleData.Col3}");
             Console.WriteLine($"col4: {sampleData.Col4}");
             Console.WriteLine($"col5: {sampleData.Col5}");
-            Console.WriteLine($"\nActual Label: {sampleData.Label} \nPredicted Label: {predictionResult.Prediction}");
+            Console.WriteLine($"\n\nActual Label: {sampleData.Label} \nPredicted Label: {predictionResult.Prediction}\n\n");
             Console.WriteLine("=============== End of process, hit any key to finish ===============");
             Console.ReadKey();
         }
