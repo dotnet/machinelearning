@@ -105,19 +105,14 @@ namespace Microsoft.ML.Tests
 
         public class IrisData
         {
-            [LoadColumn(0)]
             public int Label;
 
-            [LoadColumn(1)]
             public float SepalLength;
 
-            [LoadColumn(2)]
             public float SepalWidth;
 
-            [LoadColumn(3)]
             public float PetalLength;
 
-            [LoadColumn(4)]
             public float PetalWidth;
         }
 
@@ -128,7 +123,7 @@ namespace Microsoft.ML.Tests
         }
     }
 
-    internal class MockProviderFactory : DbProviderFactory
+    internal sealed class MockProviderFactory : DbProviderFactory
     {
         private MLContext _context;
         private DatabaseLoader _databaseLoader;
@@ -278,7 +273,8 @@ namespace Microsoft.ML.Tests
             var connection = (MockConnection)_command.Connection;
             _dataView = connection.DataView;
 
-            var inputColumns = _dataView.Schema.Where((column) => {
+            var inputColumns = _dataView.Schema.Where((column) =>
+            {
                 var inputColumnNames = command.CommandText.Split(';');
                 return inputColumnNames.Any((columnName) => column.Name.Equals(column.Name));
             });

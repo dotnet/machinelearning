@@ -17,7 +17,8 @@ namespace Microsoft.ML
         public static DatabaseLoader CreateDatabaseLoader(this DataOperationsCatalog catalog,
             params DatabaseLoader.Column[] columns)
         {
-            var options = new DatabaseLoader.Options {
+            var options = new DatabaseLoader.Options
+            {
                 Columns = columns,
             };
             return catalog.CreateDatabaseLoader(options);

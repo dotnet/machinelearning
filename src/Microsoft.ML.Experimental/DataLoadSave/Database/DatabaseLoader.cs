@@ -123,18 +123,18 @@ namespace Microsoft.ML.Data
             for (int index = 0; index < memberInfos.Length; index++)
             {
                 var memberInfo = memberInfos[index];
-                var mappingAttr = memberInfo.GetCustomAttribute<LoadColumnAttribute>();
-
-                if (mappingAttr == null)
-                    throw host.Except($"{(memberInfo is FieldInfo ? "Field" : "Property")} '{memberInfo.Name}' is missing the {nameof(LoadColumnAttribute)} attribute");
-
                 var mappingAttrName = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
 
                 var column = new Column();
                 column.Name = mappingAttrName?.Name ?? memberInfo.Name;
 
-                var source = mappingAttr.Sources.Select((source) => Range.FromTextLoaderRange(source)).ToArray();
-                column.Source = source.Single().Min;
+                var mappingAttr = memberInfo.GetCustomAttribute<LoadColumnAttribute>();
+
+                if (mappingAttr is object)
+                {
+                    var source = mappingAttr.Sources.Select((source) => Range.FromTextLoaderRange(source)).ToArray();
+                    column.Source = source.Single().Min;
+                }
 
                 InternalDataKind dk;
                 switch (memberInfo)
@@ -160,7 +160,8 @@ namespace Microsoft.ML.Data
                 columns.Add(column);
             }
 
-            var options = new Options {
+            var options = new Options
+            {
                 Columns = columns.ToArray()
             };
             return new DatabaseLoader(host, options);
@@ -244,29 +245,19 @@ namespace Microsoft.ML.Data
             /// The maximum index of the column, inclusive. If <see langword="null"/>
             /// indicates that the <see cref="TextLoader"/> should auto-detect the legnth
             /// of the lines, and read untill the end.
-            /// If max is specified, the fields <see cref="AutoEnd"/> and <see cref="VariableEnd"/> are ignored.
+            /// If <see cref="Max"/> is specified, the field <see cref="AutoEnd"/> is ignored.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Last index in the range")]
             public int? Max;
 
             /// <summary>
             /// Whether this range extends to the end of the line, but should be a fixed number of items.
-            /// If <see cref="Max"/> is specified, the fields <see cref="AutoEnd"/> and <see cref="VariableEnd"/> are ignored.
+            /// If <see cref="Max"/> is specified, the field <see cref="AutoEnd"/> is ignored.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "This range extends to the end of the line, but should be a fixed number of items",
                 ShortName = "auto")]
             public bool AutoEnd;
-
-            /// <summary>
-            /// Whether this range extends to the end of the line, which can vary from line to line.
-            /// If <see cref="Max"/> is specified, the fields <see cref="AutoEnd"/> and <see cref="VariableEnd"/> are ignored.
-            /// If <see cref="AutoEnd"/> is <see langword="true"/>, then <see cref="VariableEnd"/> is ignored.
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce,
-                HelpText = "This range extends to the end of the line, which can vary from line to line",
-                ShortName = "var")]
-            public bool VariableEnd;
 
             /// <summary>
             /// Whether this range includes only other indices not specified.
