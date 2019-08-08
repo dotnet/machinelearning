@@ -14,8 +14,7 @@ __BUILD_TOOLS_PACKAGE_VERSION=$(cat "$__scriptpath/BuildToolsVersion.txt" | sed 
 DotNetCliFileName="DotnetCLIVersion.txt"
 
 for i do
-    if [[ "$i" == *"Intrinsics"* ]]; then
-        DotNetCliFileName="DotnetCLIVersion.netcoreapp.latest.txt"
+    if [[ "$i" == *"netcoreapp3_0"* ]]; then
         __TARGET_FRAMEWORK="netcoreapp3.0"
     fi
 done

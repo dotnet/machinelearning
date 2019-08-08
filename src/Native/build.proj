@@ -78,18 +78,11 @@
     <Copy Condition="'$(OS)' == 'Windows_NT'" SourceFiles="$(PackagesDir)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native\libiomp5md$(NativeLibExtension)"
           DestinationFolder="$(NativeAssetsBuiltPath)" />
 
-    <ItemGroup Condition="'$(UseIntrinsics)' != 'true'">
-      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)CpuMathNative$(NativeLibExtension)"
-                          RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\native" />
-    </ItemGroup>
-    <ItemGroup Condition="'$(UseIntrinsics)' == 'true'">
+    <ItemGroup>
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)CpuMathNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\nativeassets\netstandard2.0" />
       <NativePackageAsset Include="$(PlaceholderFile)"
                           RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\nativeassets\netcoreapp3.0" />
-    </ItemGroup>
-
-    <ItemGroup>
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)LdaNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)SymSgdNative$(NativeLibExtension)"
