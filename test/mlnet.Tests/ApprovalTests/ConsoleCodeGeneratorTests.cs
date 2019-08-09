@@ -213,6 +213,7 @@ namespace mlnet.Tests
         [TestMethod]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
+
         public void ConsoleAppProgramCSFileContentTest()
         {
             (Pipeline pipeline,

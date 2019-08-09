@@ -39,9 +39,8 @@ MB_Annotation();
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             this.Write(".Model.DataModels;\r\n\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".ConsoleApp\r\n{\r\n    class Program\r\n    {\r\n        //Machine Learning model to loa" +
-                    "d and use for predictions\r\n        private const string MODEL_FILEPATH = @\"MLMod" +
-                    "el.zip\";\r\n\r\n        //Dataset to use for predictions \r\n");
+            this.Write(".ConsoleApp\r\n{\r\n    class Program\r\n    {\r\n        //Dataset to use for prediction" +
+                    "s \r\n");
 if(string.IsNullOrEmpty(TestDataPath)){ 
             this.Write("        private const string DATA_FILEPATH = @\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(TrainDataPath));
@@ -54,11 +53,6 @@ if(string.IsNullOrEmpty(TestDataPath)){
             this.Write(@"
         static void Main(string[] args)
         {
-            MLContext mlContext = new MLContext();
-
-            // Training code used by ML.NET CLI and AutoML to generate the model
-            //ModelBuilder.CreateModel();
-
 			// Create single instance of sample data from first line of dataset for model input
             ModelInput sampleData = CreateSingleDataSample(DATA_FILEPATH);
 

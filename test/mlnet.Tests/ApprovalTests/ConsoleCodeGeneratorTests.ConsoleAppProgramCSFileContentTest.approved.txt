@@ -15,19 +15,11 @@ namespace TestNamespace.ConsoleApp
 {
     class Program
     {
-        //Machine Learning model to load and use for predictions
-        private const string MODEL_FILEPATH = @"MLModel.zip";
-
         //Dataset to use for predictions 
         private const string DATA_FILEPATH = @"x:\dummypath\dummy_test.csv";
 
         static void Main(string[] args)
         {
-            MLContext mlContext = new MLContext();
-
-            // Training code used by ML.NET CLI and AutoML to generate the model
-            //ModelBuilder.CreateModel();
-
             // Create single instance of sample data from first line of dataset for model input
             ModelInput sampleData = CreateSingleDataSample(DATA_FILEPATH);
 
