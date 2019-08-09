@@ -4,6 +4,12 @@
     <LangVersion>7.2</LangVersion>
     <GenerateProgramFile>false</GenerateProgramFile>
     <TargetFramework>netcoreapp3.0</TargetFramework>
+    <!--
+    work around https://github.com/dotnet/sdk/issues/3044
+    The netfx configuration will set the RuntimeIdentifier, but this causes restore issues on 3.0.
+    Blanking out RuntimeIdenifier (which isn't needed here) works around the issue.  
+    -->
+    <RuntimeIdentifier></RuntimeIdentifier>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   
