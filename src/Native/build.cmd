@@ -106,7 +106,7 @@ set "__IntermediatesDir=%__IntermediatesDir:\=/%"
 
 :: Strip the "-netcoreapp3_0" suffix from the build type
 if [%CMAKE_BUILD_TYPE:~-14%] == [-netcoreapp3_0] (
-	set CMAKE_BUILD_TYPE=%CMAKE_BUILD_TYPE:~0,-11%
+	set CMAKE_BUILD_TYPE=%CMAKE_BUILD_TYPE:~0,-14%
 )
 
 :: Strip the "-netfx" suffix from the build type
