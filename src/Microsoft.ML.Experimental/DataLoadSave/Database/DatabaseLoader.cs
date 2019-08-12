@@ -5,7 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -98,6 +102,71 @@ namespace Microsoft.ML.Data
         /// <param name="source">The source from which to load data.</param>
         public IDataView Load(DatabaseSource source) => new BoundLoader(this, source);
 
+        internal static DatabaseLoader CreateDatabaseLoader<TInput>(IHostEnvironment host)
+        {
+            var userType = typeof(TInput);
+
+            var fieldInfos = userType.GetFields(BindingFlags.Public | BindingFlags.Instance);
+
+            var propertyInfos =
+                userType
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(x => x.CanRead && x.GetGetMethod() != null && x.GetIndexParameters().Length == 0);
+
+            var memberInfos = (fieldInfos as IEnumerable<MemberInfo>).Concat(propertyInfos).ToArray();
+
+            if (memberInfos.Length == 0)
+                throw host.ExceptParam(nameof(TInput), $"Should define at least one public, readable field or property in {nameof(TInput)}.");
+
+            var columns = new List<Column>();
+
+            for (int index = 0; index < memberInfos.Length; index++)
+            {
+                var memberInfo = memberInfos[index];
+                var mappingAttrName = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
+
+                var column = new Column();
+                column.Name = mappingAttrName?.Name ?? memberInfo.Name;
+
+                var mappingAttr = memberInfo.GetCustomAttribute<LoadColumnAttribute>();
+
+                if (mappingAttr is object)
+                {
+                    var sources = mappingAttr.Sources.Select((source) => Range.FromTextLoaderRange(source)).ToArray();
+                    column.Source = sources.Single().Min;
+                }
+
+                InternalDataKind dk;
+                switch (memberInfo)
+                {
+                    case FieldInfo field:
+                        if (!InternalDataKindExtensions.TryGetDataKind(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, out dk))
+                            throw Contracts.Except($"Field {memberInfo.Name} is of unsupported type.");
+
+                        break;
+
+                    case PropertyInfo property:
+                        if (!InternalDataKindExtensions.TryGetDataKind(property.PropertyType.IsArray ? property.PropertyType.GetElementType() : property.PropertyType, out dk))
+                            throw Contracts.Except($"Property {memberInfo.Name} is of unsupported type.");
+                        break;
+
+                    default:
+                        Contracts.Assert(false);
+                        throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
+                }
+
+                column.Type = dk.ToDbType();
+
+                columns.Add(column);
+            }
+
+            var options = new Options
+            {
+                Columns = columns.ToArray()
+            };
+            return new DatabaseLoader(host, options);
+        }
+
         /// <summary>
         /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
         /// </summary>
@@ -126,6 +195,86 @@ namespace Microsoft.ML.Data
             /// </summary>
             [Argument(ArgumentType.Multiple, HelpText = "For a key column, this defines the range of values", ShortName = "key")]
             public KeyCount KeyCount;
+        }
+
+        /// <summary>
+        /// Specifies the range of indices of input columns that should be mapped to an output column.
+        /// </summary>
+        public sealed class Range
+        {
+            public Range() { }
+
+            /// <summary>
+            /// A range representing a single value. Will result in a scalar column.
+            /// </summary>
+            /// <param name="index">The index of the field of the text file to read.</param>
+            public Range(int index)
+            {
+                Contracts.CheckParam(index >= 0, nameof(index), "Must be non-negative");
+                Min = index;
+                Max = index;
+            }
+
+            /// <summary>
+            /// A range representing a set of values. Will result in a vector column.
+            /// </summary>
+            /// <param name="min">The minimum inclusive index of the column.</param>
+            /// <param name="max">The maximum-inclusive index of the column. If <c>null</c>
+            /// indicates that the <see cref="TextLoader"/> should auto-detect the legnth
+            /// of the lines, and read untill the end.</param>
+            public Range(int min, int? max)
+            {
+                Contracts.CheckParam(min >= 0, nameof(min), "Must be non-negative");
+                Contracts.CheckParam(!(max < min), nameof(max), "If specified, must be greater than or equal to " + nameof(min));
+
+                Min = min;
+                Max = max;
+                // Note that without the following being set, in the case where there is a single range
+                // where Min == Max, the result will not be a vector valued but a scalar column.
+                ForceVector = true;
+                AutoEnd = max == null;
+            }
+
+            /// <summary>
+            ///  The minimum index of the column, inclusive.
+            /// </summary>
+            [Argument(ArgumentType.Required, HelpText = "First index in the range")]
+            public int Min;
+
+            /// <summary>
+            /// The maximum index of the column, inclusive. If <see langword="null"/>
+            /// indicates that the <see cref="TextLoader"/> should auto-detect the legnth
+            /// of the lines, and read untill the end.
+            /// If <see cref="Max"/> is specified, the field <see cref="AutoEnd"/> is ignored.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Last index in the range")]
+            public int? Max;
+
+            /// <summary>
+            /// Whether this range extends to the end of the line, but should be a fixed number of items.
+            /// If <see cref="Max"/> is specified, the field <see cref="AutoEnd"/> is ignored.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce,
+                HelpText = "This range extends to the end of the line, but should be a fixed number of items",
+                ShortName = "auto")]
+            public bool AutoEnd;
+
+            /// <summary>
+            /// Whether this range includes only other indices not specified.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "This range includes only other indices not specified", ShortName = "other")]
+            public bool AllOther;
+
+            /// <summary>
+            /// Force scalar columns to be treated as vectors of length one.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Force scalar columns to be treated as vectors of length one", ShortName = "vector")]
+            public bool ForceVector;
+
+            internal static Range FromTextLoaderRange(TextLoader.Range range)
+            {
+                return new Range(range.Min, range.Max);
+            }
         }
 
         /// <summary>
