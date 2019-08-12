@@ -30,7 +30,16 @@ namespace Microsoft.ML.Tests
             var connectionString = GetDataPath(TestDatasets.iris.trainFilename);
             var commandText = "Label;SepalLength;SepalWidth;PetalLength;PetalWidth";
 
-            var loader = mlContext.Data.CreateDatabaseLoader<IrisData>();
+            var loaderColumns = new DatabaseLoader.Column[]
+            {
+                new DatabaseLoader.Column() { Name = "Label", Type = DbType.Int32 },
+                new DatabaseLoader.Column() { Name = "SepalLength", Type = DbType.Single },
+                new DatabaseLoader.Column() { Name = "SepalWidth", Type = DbType.Single },
+                new DatabaseLoader.Column() { Name = "PetalLength", Type = DbType.Single },
+                new DatabaseLoader.Column() { Name = "PetalWidth", Type = DbType.Single }
+            };
+
+            var loader = mlContext.Data.CreateDatabaseLoader(loaderColumns);
 
             var mockProviderFactory = new MockProviderFactory(mlContext, loader);
             var databaseSource = new DatabaseSource(mockProviderFactory, connectionString, commandText);
