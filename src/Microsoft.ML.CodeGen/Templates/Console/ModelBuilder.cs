@@ -7,13 +7,13 @@
 //     the code is regenerated.
 // </auto-generated>
 // ------------------------------------------------------------------------------
-namespace Microsoft.ML.CodeGen.Templates.Console
+namespace Microsoft.ML.CodeGenerator.Templates.Console
 {
     using System.Linq;
     using System.Text;
     using System.Text.RegularExpressions;
     using System.Collections.Generic;
-    using Microsoft.ML.CodeGen.Utilities;
+    using Microsoft.ML.CodeGenerator.Utilities;
     using System;
     
     /// <summary>

@@ -8,7 +8,7 @@ using ApprovalTests;
 using ApprovalTests.Reporters;
 using Microsoft.ML;
 using Microsoft.ML.AutoML;
-using Microsoft.ML.CodeGen.CSharp;
+using Microsoft.ML.CodeGenerator.CSharp;
 using Microsoft.ML.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

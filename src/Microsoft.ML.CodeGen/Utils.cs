@@ -12,7 +12,7 @@ using Microsoft.ML.AutoML;
 using Microsoft.ML.Data;
 using NLog;
 
-namespace Microsoft.ML.CodeGen.Utilities
+namespace Microsoft.ML.CodeGenerator.Utilities
 {
     internal class Utils
     {

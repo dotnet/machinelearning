@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj" />
-    <ProjectReference Include="..\Microsoft.ML.CodeGen\Microsoft.ML.CodeGen.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.CodeGen\Microsoft.ML.CodeGenerator.csproj" />
   </ItemGroup>
 
   <ItemGroup>

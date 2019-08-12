@@ -5,7 +5,7 @@
 using System;
 using Microsoft.ML.AutoML;
 
-namespace Microsoft.ML.CodeGen.CSharp
+namespace Microsoft.ML.CodeGenerator.CSharp
 {
     internal interface ITransformGenerator
     {

@@ -9,10 +9,10 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.ML.AutoML;
-using Microsoft.ML.CodeGen.Templates.Console;
-using Microsoft.ML.CodeGen.Utilities;
+using Microsoft.ML.CodeGenerator.Templates.Console;
+using Microsoft.ML.CodeGenerator.Utilities;
 
-namespace Microsoft.ML.CodeGen.CSharp
+namespace Microsoft.ML.CodeGenerator.CSharp
 {
     public class CodeGenerator : IProjectGenerator
     {

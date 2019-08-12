@@ -4,7 +4,7 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Text.RegularExpressions" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ import namespace="Microsoft.ML.CodeGen.Utilities" #>
+<#@ import namespace="Microsoft.ML.CodeGenerator.Utilities" #>
 <#@ include file="Annotation.tt" #><#if(Target == CSharp.CodeGeneratorSettings.GenerateTarget.Cli){ #>
 <#CLI_Annotation();#>
 <# } else if(Target == CSharp.CodeGeneratorSettings.GenerateTarget.ModelBuilder){ #>

@@ -16,7 +16,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.InternalCodeAn
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools-local", "tools-local", "{2DEB692B-D982-4301-A074-DAA095658230}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.ML.CodeGen", "src\Microsoft.ML.CodeGen\Microsoft.ML.CodeGen.csproj", "{3148A8CF-A686-4A9C-A5C6-C3E41CAAD64D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.CodeGenerator", "src\Microsoft.ML.CodeGen\Microsoft.ML.CodeGenerator.csproj", "{3148A8CF-A686-4A9C-A5C6-C3E41CAAD64D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

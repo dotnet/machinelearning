@@ -342,10 +342,10 @@ namespace Microsoft.ML.CLI.CodeGenerator
         internal void GenerateProject(ColumnInferenceResults columnInference, Pipeline pipeline, string labelName, FileInfo modelPath)
         {
             // Generate code
-            var codeGenerator = new CodeGen.CSharp.CodeGenerator(
+            var codeGenerator = new ML.CodeGenerator.CSharp.CodeGenerator(
                 pipeline,
                 columnInference,
-                new CodeGen.CSharp.CodeGeneratorSettings()
+                new ML.CodeGenerator.CSharp.CodeGeneratorSettings()
                 {
                     TrainDataset = _settings.Dataset.FullName,
                     MlTask = _taskKind,

@@ -3,6 +3,9 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>7.3</LangVersion>
+    <PackageId>Microsoft.ML.CodeGenerator</PackageId>
+    <RootNamespace>Microsoft.ML.CodeGenerator</RootNamespace>
+    <AssemblyName>Microsoft.ML.CodeGenerator</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
