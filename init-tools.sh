@@ -6,19 +6,12 @@ __PACKAGES_DIR="$__scriptpath/packages"
 __TOOLRUNTIME_DIR="$__scriptpath/Tools"
 __DOTNET_PATH="$__TOOLRUNTIME_DIR/dotnetcli"
 __DOTNET_CMD="$__DOTNET_PATH/dotnet"
-__TARGET_FRAMEWORK="netcoreapp2.1"
 if [ -z "${__BUILDTOOLS_SOURCE:-}" ]; then __BUILDTOOLS_SOURCE=https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json; fi
 export __BUILDTOOLS_USE_CSPROJ=true
 __BUILD_TOOLS_PACKAGE_VERSION=$(cat "$__scriptpath/BuildToolsVersion.txt" | sed 's/\r$//') # remove CR if mounted repo on Windows drive
 
 DotNetCliFileName="DotnetCLIVersion.txt"
 DotNetExtraRuntimeFileName="DotnetExtraRuntimeVersion.txt"
-
-for i do
-    if [[ "$i" == *"netcoreapp3_0"* ]]; then
-        __TARGET_FRAMEWORK="netcoreapp3.0"
-    fi
-done
 
 __DOTNET_TOOLS_VERSION=$(cat "$__scriptpath/$DotNetCliFileName" | sed 's/\r$//') # remove CR if mounted repo on Windows drive
 __DOTNET_EXTRA_RUNTIME_VERSION=$(cat "$__scriptpath/$DotNetExtraRuntimeFileName" | sed 's/\r$//') # remove CR if mounted repo on Windows drive
@@ -208,8 +201,6 @@ echo "Making all .sh files executable under Tools."
 # Executables restored with .NET Core 2.0 do not have executable permission flags. https://github.com/NuGet/Home/issues/4424
 ls "$__scriptpath/Tools/"*.sh | xargs chmod +x
 ls "$__scriptpath/Tools/scripts/docker/"*.sh | xargs chmod +x
-
-"$__scriptpath/Tools/crossgen.sh" "$__scriptpath/Tools" $__PKG_RID $__TARGET_FRAMEWORK
 
 mkdir -p "$(dirname "$__BUILD_TOOLS_SEMAPHORE")" && touch "$__BUILD_TOOLS_SEMAPHORE"
 
