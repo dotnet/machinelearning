@@ -41,7 +41,7 @@ jobs:
     name: MacOS_x64_NetCoreApp21
     buildScript: ./build.sh
     pool:
-      name: Hosted macOS
+      name: Hosted macOS High Sierra
 
 - template: /build/ci/job-template.yml
   parameters:
