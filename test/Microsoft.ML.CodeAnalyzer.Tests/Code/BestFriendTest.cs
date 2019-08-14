@@ -85,7 +85,6 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
             // compilation will not be able to locate a single definition for use in the analyzer.
             test.TestState.AdditionalReferences.Remove(AdditionalMetadataReferences.MLNetCoreReference);
             test.TestState.AdditionalReferences.Remove(AdditionalMetadataReferences.MLNetDataReference);
-            test.TestState.AdditionalReferences.Remove(AdditionalMetadataReferences.MLNetStaticPipeReference);
 
             test.Exclusions &= ~AnalysisExclusions.GeneratedCode;
             test.ExpectedDiagnostics.AddRange(expected);

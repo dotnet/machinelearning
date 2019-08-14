@@ -16,12 +16,12 @@
   <PropertyGroup>
     <PlaceholderFile>$(PkgDir)_._</PlaceholderFile>
   </PropertyGroup>
-  
+
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
     <GenerateVersionSourceFile>true</GenerateVersionSourceFile>
     <NativeVersionSourceFile>$(RootIntermediateOutputPath)version.c</NativeVersionSourceFile>
   </PropertyGroup>
- 
+
   <PropertyGroup  Condition="'$(OS)' == 'Windows_NT'">
     <GenerateNativeVersionInfo>true</GenerateNativeVersionInfo>
   </PropertyGroup>
@@ -43,8 +43,8 @@
     <PropertyGroup>
       <StripArgs Condition="'$(StripNativeSymbols)' == 'True'">--stripSymbols</StripArgs>
       <!-- mkllibrpath is used as rpath on macOS by binaries such as SymSDGNative and MklProxyNative to locate mkl library.
-           We are shipping 2 native assemblies in different nuget packages, and one has a reference on the other and MacOS needs to have 
-           the rpath in the assembly to where it should load the referenced assembly and since .NET Core can run assemblies out of a NuGet cache, 
+           We are shipping 2 native assemblies in different nuget packages, and one has a reference on the other and MacOS needs to have
+           the rpath in the assembly to where it should load the referenced assembly and since .NET Core can run assemblies out of a NuGet cache,
            we need to add the NuGet cache relative location. -->
       <BuildArgs>--configuration $(Configuration) --arch $(TargetArchitecture) $(StripArgs) --mkllibpath $(PackagesDir)mlnetmkldeps/$(MlNetMklDepsPackageVersion)/runtimes/$(PackageRid)/native --mkllibrpath ../../../../../microsoft.ml.mkl.redist/$(Version)/runtimes/$(PackageRid)/native</BuildArgs>
     </PropertyGroup>
@@ -57,7 +57,7 @@
   <Target Name="BuildNativeWindows"
           Condition="'$(OS)' == 'Windows_NT'"
           DependsOnTargets="GenerateVersionHeader">
-          
+
     <PropertyGroup>
       <BuildArgs>$(Configuration) $(TargetArchitecture) --mkllibpath $(PackagesDir)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native</BuildArgs>
     </PropertyGroup>
@@ -69,35 +69,26 @@
   </Target>
 
   <Target Name="PreparePackageAssets">
-    
+
     <!-- Copy MklImports into the native assets folder, so it can be treated like a regularly built native assembly - packaged into our NuGet packages, and used by tests. -->
-    
+
     <Copy SourceFiles="$(PackagesDir)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native\$(NativeLibPrefix)MklImports$(NativeLibExtension)"
-          DestinationFolder="$(NativeAssetsBuiltPath)" />   
+          DestinationFolder="$(NativeAssetsBuiltPath)" />
 
     <Copy Condition="'$(OS)' == 'Windows_NT'" SourceFiles="$(PackagesDir)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native\libiomp5md$(NativeLibExtension)"
-          DestinationFolder="$(NativeAssetsBuiltPath)" />   
+          DestinationFolder="$(NativeAssetsBuiltPath)" />
 
-    <ItemGroup Condition="'$(UseIntrinsics)' != 'true'">
-      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)CpuMathNative$(NativeLibExtension)"
-                          RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\native" />
-    </ItemGroup>
-    <ItemGroup Condition="'$(UseIntrinsics)' == 'true'">
+    <ItemGroup>
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)CpuMathNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\nativeassets\netstandard2.0" />
       <NativePackageAsset Include="$(PlaceholderFile)"
                           RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\nativeassets\netcoreapp3.0" />
-    </ItemGroup>
-
-    <ItemGroup>
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)LdaNative$(NativeLibExtension)"
-                          RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
-      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)FactorizationMachineNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)SymSgdNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.Mkl.Components\runtimes\$(PackageRid)\native" />
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)MklProxyNative$(NativeLibExtension)"
-                          RelativePath="Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native" />                         
+                          RelativePath="Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native" />
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)MatrixFactorizationNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.Recommender\runtimes\$(PackageRid)\native" />
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)FastTreeNative$(NativeLibExtension)"
@@ -109,15 +100,15 @@
                                      AND '%(NativePackageAsset.Identity)' != '$(PlaceholderFile)'"
                           Include="@(NativePackageAsset->'%(RootDir)%(Directory)%(Filename)$(NativeLibSymbolExtension)')" />
     </ItemGroup>
-    
+
     <ItemGroup>
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)MklImports$(NativeLibExtension)"
-                          RelativePath="Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native" /> 
+                          RelativePath="Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native" />
       <NativePackageAsset Condition="'$(OS)' == 'Windows_NT'" Include="$(NativeAssetsBuiltPath)\libiomp5md$(NativeLibExtension)"
-                          RelativePath="Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native" /> 
-                          
+                          RelativePath="Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native" />
+
     </ItemGroup>
-    
+
     <Copy SourceFiles="@(NativePackageAsset)"
           DestinationFolder="$(PackageAssetsPath)%(NativePackageAsset.RelativePath)" />
 
