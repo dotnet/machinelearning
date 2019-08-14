@@ -57,10 +57,10 @@ To get the total number of allocated managed memory please pass additional conso
 
 1. Navigate to the benchmarks directory (machinelearning\test\Microsoft.ML.Benchmarks)
 
-2. Run the benchmarks in `Release-Intrinsics` configuration, choose one of the benchmarks when prompted
+2. Run the benchmarks in `Release-netcoreapp3_0` configuration, choose one of the benchmarks when prompted
 
 ```log
-    ..\..\Tools\dotnetcli\dotnet.exe run -c Release-Intrinsics
+    ..\..\Tools\dotnetcli\dotnet.exe run -c Release-netcoreapp3_0
 ```
 ## Authoring new benchmarks
 
