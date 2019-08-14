@@ -617,10 +617,11 @@ namespace Microsoft.ML.RunTests
         {
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
             var modelPath = DeleteOutputPath("model.zip");
+            var outputDataPath = DeleteOutputPath("scored.idv");
 
             var mlContext = new MLContext();
 
-            var data = new TextLoader(Env,
+            var data = new TextLoader(mlContext,
                     new TextLoader.Options()
                     {
                         AllowQuoting = true,
@@ -688,9 +689,9 @@ namespace Microsoft.ML.RunTests
                     }}
                   ],
                   'Outputs': {{
-                    'output_data': '$output_data'
+                    'output_data': '{2}'
                   }}
-                }}", EscapePath(dataPath), EscapePath(modelPath));
+                }}", EscapePath(dataPath), EscapePath(modelPath), EscapePath(outputDataPath));
 
             var jsonPath = DeleteOutputPath("graph.json");
             File.WriteAllLines(jsonPath, new[] { inputGraph });
@@ -698,6 +699,11 @@ namespace Microsoft.ML.RunTests
             var args = new ExecuteGraphCommand.Arguments() { GraphPath = jsonPath };
             var cmd = new ExecuteGraphCommand(Env, args);
             cmd.Run();
+
+            var loadedData = mlContext.Data.LoadFromBinary(outputDataPath);
+
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("PredictedLabel"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("Score"));
         }
 
         //[Fact]

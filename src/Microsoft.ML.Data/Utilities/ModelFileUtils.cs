@@ -25,8 +25,8 @@ namespace Microsoft.ML.Model
     {
         public const string DirPredictor = "Predictor";
         public const string DirDataLoaderModel = "DataLoaderModel";
-        public const string DirTransformerChain = "TransformerChain";
-        public const string SchemaEntryName = "Schema";
+        public const string DirTransformerChain = TransformerChain.LoaderSignature;
+        public const string SchemaEntryName = ModelOperationsCatalog.SchemaEntryName;
         // ResultsProcessor needs access to this constant.
         public const string DirTrainingInfo = "TrainingInfo";
 
