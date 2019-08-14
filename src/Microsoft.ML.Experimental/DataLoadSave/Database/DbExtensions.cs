@@ -66,5 +66,82 @@ namespace Microsoft.ML.Data
                     return null;
             }
         }
+
+        /// <summary>Maps a <see cref="InternalDataKind"/> to the associated <see cref="DbType"/>.</summary>
+        public static DbType ToDbType(this InternalDataKind dataKind)
+        {
+            switch (dataKind)
+            {
+                case InternalDataKind.I1:
+                {
+                    return DbType.SByte;
+                }
+
+                case InternalDataKind.U1:
+                {
+                    return DbType.Byte;
+                }
+
+                case InternalDataKind.I2:
+                {
+                    return DbType.Int16;
+                }
+
+                case InternalDataKind.U2:
+                {
+                    return DbType.UInt16;
+                }
+
+                case InternalDataKind.I4:
+                {
+                    return DbType.Int32;
+                }
+
+                case InternalDataKind.U4:
+                {
+                    return DbType.UInt32;
+                }
+
+                case InternalDataKind.I8:
+                {
+                    return DbType.Int64;
+                }
+
+                case InternalDataKind.U8:
+                {
+                    return DbType.UInt64;
+                }
+
+                case InternalDataKind.R4:
+                {
+                    return DbType.Single;
+                }
+
+                case InternalDataKind.R8:
+                {
+                    return DbType.Double;
+                }
+
+                case InternalDataKind.TX:
+                {
+                    return DbType.String;
+                }
+
+                case InternalDataKind.BL:
+                {
+                    return DbType.Boolean;
+                }
+
+                case InternalDataKind.DT:
+                {
+                    return DbType.DateTime;
+                }
+
+                default:
+                {
+                    throw new NotSupportedException();
+                }
+            }
+        }
     }
 }
