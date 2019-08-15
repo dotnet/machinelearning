@@ -14,6 +14,54 @@ namespace Microsoft.ML.FastTree.Utils
     internal class RegressionTreeBaseUtils
     {
         /// <summary>
+        /// Utility method which returns the maximum size
+        /// of all the categorical split features vectors.
+        /// </summary>
+        private static int GetCategoricalSplitFeaturesMaxSize(IReadOnlyList<RegressionTreeBase> trees)
+        {
+            var maxSize = 0;
+
+            for (int i = 0; i < trees.Count; i++)
+            {
+                for (int j = 0; j < trees[i].NumberOfNodes; j++)
+                {
+                    var size = trees[i].GetCategoricalSplitFeaturesAt(j).Count;
+                    if (size > maxSize) maxSize = size;
+                }
+            }
+
+            return maxSize;
+        }
+
+        /// <summary>
+        /// Utility method which returns a fixed length <see cref="VBuffer{T}"/>
+        /// with the first values set to the values in <paramref name="values"/>
+        /// and any remaining values set to the value of <paramref name="missingValue"/>.
+        /// Note, the count of <paramref name="values"/> must be less than or equal to
+        /// <paramref name="length"/>.
+        /// </summary>
+        private static VBuffer<int> GetFilledBuffer(int length, IReadOnlyList<int> values = null, int missingValue = -1)
+        {
+            int i = 0;
+            var array = new int[length];
+
+            if (values != null)
+            {
+                for (; i < values.Count; i++)
+                {
+                    array[i] = values[i];
+                }
+            }
+
+            for (; i < length; i++)
+            {
+                array[i] = missingValue;
+            }
+
+            return new VBuffer<int>(length, array);
+        }
+
+        /// <summary>
         /// Utility method used to represent a tree ensemble as an <see cref="IDataView"/>.
         /// Every row in the <see cref="IDataView"/> corresponds to a node in the tree ensemble. The columns are the fields for each node.
         /// The column TreeID specifies which tree the node belongs to. The <see cref="QuantileRegressionTree"/> gets
@@ -35,8 +83,13 @@ namespace Microsoft.ML.FastTree.Utils
             var categoricalSplitFlags = new List<bool>();
             var leafValues = new List<double>();
             var splitGains = new List<double>();
+
             var categoricalSplitFeatures = new List<VBuffer<int>>();
+            var categoricalSplitFeaturesMaxSize = Math.Max(GetCategoricalSplitFeaturesMaxSize(trees), 1);
+            var categoricalSplitFeaturesEmptyBuffer = GetFilledBuffer(categoricalSplitFeaturesMaxSize);
+
             var categoricalCategoricalSplitFeatureRange = new List<VBuffer<int>>();
+            var categoricalCategoricalSplitFeatureRangeEmptyBuffer = GetFilledBuffer(2);
 
             for (int i = 0; i < trees.Count; i++)
             {
@@ -81,18 +134,20 @@ namespace Microsoft.ML.FastTree.Utils
                 for (int j = 0; j < trees[i].NumberOfNodes; j++)
                 {
                     // CategoricalSplitFeatures column.
-                    var categoricalSplitFeaturesArray = trees[i].GetCategoricalSplitFeaturesAt(j).ToArray();
-                    categoricalSplitFeatures.Add(new VBuffer<int>(categoricalSplitFeaturesArray.Length, categoricalSplitFeaturesArray));
-                    var len = trees[i].GetCategoricalSplitFeaturesAt(j).ToArray().Length;
+                    var buffer = GetFilledBuffer(categoricalSplitFeaturesMaxSize,
+                                                 trees[i].GetCategoricalSplitFeaturesAt(j));
+                    categoricalSplitFeatures.Add(buffer);
 
                     // CategoricalCategoricalSplitFeatureRange column.
-                    var categoricalCategoricalSplitFeatureRangeArray = trees[i].GetCategoricalCategoricalSplitFeatureRangeAt(j).ToArray();
-                    categoricalCategoricalSplitFeatureRange.Add(new VBuffer<int>(categoricalCategoricalSplitFeatureRangeArray.Length, categoricalCategoricalSplitFeatureRangeArray));
-                    len = trees[i].GetCategoricalCategoricalSplitFeatureRangeAt(j).ToArray().Length;
+                    buffer = GetFilledBuffer(2, trees[i].GetCategoricalCategoricalSplitFeatureRangeAt(j));
+                    categoricalCategoricalSplitFeatureRange.Add(buffer);
                 }
 
-                categoricalSplitFeatures.AddRange(Enumerable.Repeat(new VBuffer<int>(), trees[i].NumberOfLeaves));
-                categoricalCategoricalSplitFeatureRange.AddRange(Enumerable.Repeat(new VBuffer<int>(), trees[i].NumberOfLeaves));
+                var enumerable = Enumerable.Repeat(categoricalSplitFeaturesEmptyBuffer, trees[i].NumberOfLeaves);
+                categoricalSplitFeatures.AddRange(enumerable);
+
+                enumerable = Enumerable.Repeat(categoricalCategoricalSplitFeatureRangeEmptyBuffer, trees[i].NumberOfLeaves);
+                categoricalCategoricalSplitFeatureRange.AddRange(enumerable);
             }
 
             // Bias column. This will be a repeated value for all rows in the resulting IDataView.

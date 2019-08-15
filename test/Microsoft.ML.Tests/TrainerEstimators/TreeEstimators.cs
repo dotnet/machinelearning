@@ -716,6 +716,22 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             public double[] LeafSampleWeights { get; set; }
         }
 
+        private static void CheckSummaryRowArray(int[] rowArray, int[] nodeArray, int missingValue = -1)
+        {
+            Assert.True(rowArray.Length >= nodeArray.Length);
+
+            int i = 0;
+            for (; i < nodeArray.Length; i++)
+            {
+                Assert.Equal(nodeArray[i], rowArray[i]);
+            }
+
+            for (; i < rowArray.Length; i++)
+            {
+                Assert.Equal(missingValue, rowArray[i]);
+            }
+        }
+
         private static void CheckSummaryRowTreeNode(SummaryDataRow row, int treeIndex, double bias, double treeWeight, RegressionTreeBase tree, int nodeId)
         {
             Assert.Equal(row.TreeID, treeIndex);
@@ -729,14 +745,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.Equal(row.CategoricalSplitFlags, tree.CategoricalSplitFlags[nodeId]);
             Assert.Equal(0, row.LeafValues);
             Assert.Equal(row.SplitGains, tree.SplitGains[nodeId]);
-            if(tree.GetCategoricalSplitFeaturesAt(nodeId).Count() > 0)
-                Assert.Equal(row.CategoricalSplitFeatures, tree.GetCategoricalSplitFeaturesAt(nodeId).ToArray());
-            else
-                Assert.Null(row.CategoricalSplitFeatures);
-            if (tree.GetCategoricalCategoricalSplitFeatureRangeAt(nodeId).Count() > 0)
-                Assert.Equal(row.CategoricalCategoricalSplitFeatureRange, tree.GetCategoricalCategoricalSplitFeatureRangeAt(nodeId).ToArray());
-            else
-                Assert.Null(row.CategoricalCategoricalSplitFeatureRange);
+
+            CheckSummaryRowArray(row.CategoricalSplitFeatures,
+                                 tree.GetCategoricalSplitFeaturesAt(nodeId).ToArray());
+
+            CheckSummaryRowArray(row.CategoricalCategoricalSplitFeatureRange,
+                                 tree.GetCategoricalCategoricalSplitFeatureRangeAt(nodeId).ToArray());
         }
 
         private static void CheckSummaryRowLeafNode(SummaryDataRow row, int treeIndex, double bias, double treeWeight, RegressionTreeBase tree, int nodeId)
@@ -752,8 +766,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.False(row.CategoricalSplitFlags);
             Assert.Equal(tree.LeafValues[nodeId], row.LeafValues);
             Assert.Equal(0d, row.SplitGains);
-            Assert.Null(row.CategoricalSplitFeatures);
-            Assert.Null(row.CategoricalCategoricalSplitFeatureRange);
+            Assert.Single(row.CategoricalSplitFeatures);
+            Assert.Equal(-1, row.CategoricalSplitFeatures[0]);
+            Assert.Equal(2, row.CategoricalCategoricalSplitFeatureRange.Length);
+            Assert.Equal(new int[] { -1, -1 }, row.CategoricalCategoricalSplitFeatureRange);
         }
 
         private static void CheckSummaryRowLeafNodeQuantileTree(QuantileTestSummaryDataRow row, int treeIndex, double bias, double treeWeight, QuantileRegressionTree tree, int nodeId)
@@ -773,6 +789,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var quantileTrees = trees as IReadOnlyList<QuantileRegressionTree>;
             var summaryDataView = modelParameters.GetSummaryDataView(null);
             IEnumerable<SummaryDataRow> summaryDataEnumerable;
+
+            Assert.True(summaryDataView.Schema["CategoricalSplitFeatures"].Type.GetValueCount() > 0);
+            Assert.True(summaryDataView.Schema["CategoricalCategoricalSplitFeatureRange"].Type.GetValueCount() > 0);
 
             if (quantileTrees == null)
                 summaryDataEnumerable = ML.Data.CreateEnumerable<SummaryDataRow>(summaryDataView, false);
