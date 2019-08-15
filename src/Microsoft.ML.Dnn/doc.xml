@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<doc>
+  <members>
+
+    <member name="DnnTransformer">
+      <summary>
+        The <see cref="DnnTransformer"/> is used in following two scenarios.
+        <list type="number">
+        <item>
+          <description>
+            Scoring with pretrained <a href="https://www.tensorflow.org/">TensorFlow</a> model: In this mode, the transform extracts hidden layers&apos; values from a pre-trained Tensorflow model and uses outputs as features in ML.Net pipeline.
+          </description>
+        </item>
+        <item>
+          <description>
+            Retraining of <a href="https://www.tensorflow.org/">TensorFlow</a> model: In this mode, the transform retrains a TensorFlow model using the user data passed through ML.Net pipeline. Once the model is trained, it's outputs can be used as features for scoring.
+          </description>
+        </item>
+      </list>
+      </summary>
+      <remarks>
+        <para>
+          The DnnTransform extracts specified outputs using a pre-trained <a href="https://www.tensorflow.org">Tensorflow</a> model.
+          Optionally, it can further retrain TensorFlow model on user data to adjust model parameters on the user data ( also know as "Transfer Learning").
+        </para>
+        <para>
+          This transform requires the <a href="https://dotnet.myget.org/feed/dotnet-core/package/nuget/Microsoft.ML.Dnn">Microsoft.ML.Dnn</a> nuget to be installed.
+          The DnnTransform has the following assumptions regarding input, output, processing of data, and retraining.
+        </para>
+        <list type="number">
+          <item>
+            <description>
+              For the input model, currently the DnnTransform supports both the <a href="https://www.tensorflow.org/mobile/prepare_models">Frozen model</a> format and also the <a href="https://www.tensorflow.org/guide/saved_model#build_and_load_a_savedmodel">SavedModel</a> format.
+              However, retraining of the model is only possible for the <a href="https://www.tensorflow.org/guide/saved_model#build_and_load_a_savedmodel">SavedModel</a> format.
+              <a href="https://www.tensorflow.org/guide/checkpoints">Checkpoint</a> format is currently neither supported for scoring nor for retraining due lack of TensorFlow C-API support for loading it.
+            </description>
+          </item>
+          <item>
+            <description>The transform supports scoring only one example at a time. However, retraining can be performed in batches.</description>
+          </item>
+          <item>
+            <description>Advanced transfer learning/fine tuning scenarios (e.g. adding more layers into the network, changing the shape of inputs, freezing the layers which do not need to be updated during retraining process etc.) are currently not possible due to lack of support for network/graph manipulation inside the model using TensorFlow C-API.</description>
+          </item>
+          <item>
+            <description>The name of input column(s) should match the name of input(s) in TensorFlow model.</description>
+          </item>
+          <item>
+            <description>The name of each output column should match one of the operations in the TensorFlow graph.</description>
+          </item>
+          <item>
+            <description>Currently, double, float, long, int, short, sbyte, ulong, uint, ushort, byte and bool are the acceptable data types for input/output.</description>
+          </item>
+          <item>
+            <description>Upon success, the transform will introduce a new column in <see cref="IDataView"/> corresponding to each output column specified.</description>
+          </item>
+        </list>
+      </remarks>
+    </member>
+  </members>
+</doc>

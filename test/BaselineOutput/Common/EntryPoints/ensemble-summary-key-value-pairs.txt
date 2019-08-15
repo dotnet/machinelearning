@@ -27,16 +27,10 @@ Cat.1: System.Single[]
 Partition model 1 summary:
 Per-feature gain summary for the boosted tree ensemble:
 Features.uniform_size: 1
-Features.uniform_shape: 0.711238682354263
-Features.bare_nuclei: 0.413435971399054
-Features.normal_nucleoli: 0.260448393604327
-Features.bland_chromatin: 0.254190368593018
-Features.epit_size: 0.222178863469679
-Features.thickness: 0.190965373645692
-Features.adhesion: 0.143150245168852
-Cat.1: 0.0607880054395048
-Cat.2: 0.0249023775790133
-Cat.3: 4.10026871732935E-09
+Features.bare_nuclei: 0.261851950948993
+Features.normal_nucleoli: 0.171821243048215
+Features.epit_size: 0.153505802680442
+Features.bland_chromatin: 0.138164395549383
 Partition model 2 summary:
 Linear Binary Classification Predictor non-zero weights
 (Bias): -4.860323
@@ -66,13 +60,5 @@ Cat.1: System.Single[]
 Partition model 3 summary:
 Per-feature gain summary for the boosted tree ensemble:
 Features.uniform_size: 1
-Features.uniform_shape: 0.559068504082849
-Features.bare_nuclei: 0.488731457203164
-Features.bland_chromatin: 0.308761540884501
-Features.thickness: 0.308038677882308
-Features.normal_nucleoli: 0.132577017456797
-Features.adhesion: 0.125412316945858
-Features.epit_size: 0.118880587537871
-Cat.2: 0.0203766881332348
-Cat.1: 0.00976175711400017
-Cat.3: 0.000928932959407758
+Features.bare_nuclei: 0.412486071655037
+Features.normal_nucleoli: 0.128397028220685

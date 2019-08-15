@@ -377,28 +377,31 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return valueGetter;
             }
 
-            public Action<long> CreatePinger(DataViewRow input, Func<int, bool> activeOutput, out Action disposer)
+            public Action<PingerArgument> CreatePinger(DataViewRow input, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
-                Action<long> pinger = null;
+                Action<PingerArgument> pinger = null;
                 if (activeOutput(0))
                     pinger = MakePinger(input, State);
 
                 return pinger;
             }
 
-                private Action<long> MakePinger(DataViewRow input, AnomalyDetectionStateBase state)
+            private Action<PingerArgument> MakePinger(DataViewRow input, AnomalyDetectionStateBase state)
+            {
+                _host.AssertValue(input);
+                var srcGetter = input.GetGetter<TInput>(input.Schema[_inputColumnIndex]);
+                Action<PingerArgument> pinger = (PingerArgument args) =>
                 {
-                    _host.AssertValue(input);
-                    var srcGetter = input.GetGetter<TInput>(input.Schema[_inputColumnIndex]);
-                    Action<long> pinger = (long rowPosition) =>
-                    {
-                        TInput src = default;
-                        srcGetter(ref src);
-                        state.UpdateState(ref src, rowPosition, _parent.WindowSize > 0);
-                    };
-                    return pinger;
-                }
+                    if (args.DontConsumeSource)
+                        return;
+
+                    TInput src = default;
+                    srcGetter(ref src);
+                    state.UpdateState(ref src, args.RowPosition, _parent.WindowSize > 0);
+                };
+                return pinger;
+            }
 
             public void CloneState()
             {
@@ -516,7 +519,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 dst = editor.Commit();
             }
 
-            private protected sealed override void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration, ref VBuffer<Double> dst)
+            public sealed override void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration, ref VBuffer<Double> dst)
             {
                 var outputLength = Parent.OutputLength;
                 Host.Assert(outputLength >= 2);

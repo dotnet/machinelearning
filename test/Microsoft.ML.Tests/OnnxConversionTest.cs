@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Google.Protobuf;
 using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
@@ -186,7 +187,7 @@ namespace Microsoft.ML.Tests
             string modelPath = GetOutputPath("ModelWithLessIO.zip");
             var trainingPathArgs = $"data={dataPath} out={modelPath}";
             var trainingArgs = " loader=text{col=Label:BL:0 col=F1:R4:1-8 col=F2:TX:9} xf=Cat{col=F2} xf=Concat{col=Features:F1,F2} tr=ft{numberOfThreads=1 numberOfLeaves=8 numberOfTrees=3} seed=1";
-            Assert.Equal(0, Maml.Main(new[] { "train " + trainingPathArgs + trainingArgs}));
+            Assert.Equal(0, Maml.Main(new[] { "train " + trainingPathArgs + trainingArgs }));
 
             var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
             var onnxTextName = "ModelWithLessIO.txt";
@@ -404,6 +405,127 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
+        public void LoadingPredictorModelAndOnnxConversionTest()
+        {
+            string dataPath = GetDataPath("iris.txt");
+            string modelPath = Path.GetTempPath() + Guid.NewGuid().ToString() + ".model.bin";
+            string onnxPath = Path.GetTempPath() + Guid.NewGuid().ToString() + ".model.onnx";
+            string onnxJsonPath = Path.GetTempPath() + Guid.NewGuid().ToString() + ".model.onnx.json";
+
+            string inputGraph = string.Format(@"
+            {{
+                'Inputs': {{
+                    'inputFile': '{0}'
+                }},
+                'Nodes': [
+                    {{
+                        'Name': 'Data.TextLoader',
+                        'Inputs':
+                        {{
+                            'InputFile': '$inputFile',
+                            'Arguments':
+                            {{
+                                'UseThreads': true,
+                                'HeaderFile': null,
+                                'MaxRows': null,
+                                'AllowQuoting': true,
+                                'AllowSparse': true,
+                                'InputSize': null,
+                                'TrimWhitespace': false,
+                                'HasHeader': false,
+                                'Column':
+                                [
+                                    {{'Name':'Sepal_Width','Type':null,'Source':[{{'Min':2,'Max':2,'AutoEnd':false,'VariableEnd':false,'AllOther':false,'ForceVector':false}}],'KeyCount':null}},
+                                    {{'Name':'Petal_Length','Type':null,'Source':[{{'Min':3,'Max':4,'AutoEnd':false,'VariableEnd':false,'AllOther':false,'ForceVector':false}}],'KeyCount':null}},
+                                ]
+                            }}
+                        }},
+                        'Outputs':
+                        {{
+                            'Data': '$training_data'
+                        }}
+                    }},
+                    {{
+                        'Inputs': {{
+                            'FeatureColumnName': 'Petal_Length',
+                            'LabelColumnName': 'Sepal_Width',
+                            'TrainingData': '$training_data',
+                        }},
+                        'Name': 'Trainers.StochasticDualCoordinateAscentRegressor',
+                        'Outputs': {{
+                            'PredictorModel': '$output_model'
+                        }}
+                    }}
+                ],
+                'Outputs': {{
+                    'output_model': '{1}'
+                }}
+            }}", dataPath.Replace("\\", "\\\\"), modelPath.Replace("\\", "\\\\"));
+
+            // Write entry point graph into file so that it can be invoke by graph runner below.
+            var jsonPath = DeleteOutputPath("graph.json");
+            File.WriteAllLines(jsonPath, new[] { inputGraph });
+
+            // Execute the saved entry point graph to produce a predictive model.
+            var args = new ExecuteGraphCommand.Arguments() { GraphPath = jsonPath };
+            var cmd = new ExecuteGraphCommand(Env, args);
+            cmd.Run();
+
+            // Make entry point graph to conduct ONNX conversion.
+            inputGraph = string.Format(@"
+            {{
+                'Inputs': {{
+                    'model': '{0}'
+                }},
+                'Nodes': [
+                    {{
+                        'Inputs': {{
+                            'Domain': 'com.microsoft.models',
+                            'Json': '{1}',
+                            'PredictiveModel': '$model',
+                            'Onnx': '{2}',
+                            'OnnxVersion': 'Experimental'
+                        }},
+                        'Name': 'Models.OnnxConverter',
+                        'Outputs': {{}}
+                    }}
+                ],
+                'Outputs': {{}}
+            }}
+            ", modelPath.Replace("\\", "\\\\"), onnxJsonPath.Replace("\\", "\\\\"), onnxPath.Replace("\\", "\\\\"));
+
+            // Write entry point graph for ONNX conversion into file so that it can be invoke by graph runner below.
+            jsonPath = DeleteOutputPath("graph.json");
+            File.WriteAllLines(jsonPath, new[] { inputGraph });
+
+            // Onnx converter's assembly is not loaded by default, so we need to register it before calling it.
+            Env.ComponentCatalog.RegisterAssembly(typeof(OnnxExportExtensions).Assembly);
+
+            // Execute the saved entry point graph to convert the saved model to ONNX format.
+            args = new ExecuteGraphCommand.Arguments() { GraphPath = jsonPath };
+            cmd = new ExecuteGraphCommand(Env, args);
+            cmd.Run();
+
+            // Load the resulted ONNX model from the file so that we can check if the conversion looks good.
+            var model = new OnnxCSharpToProtoWrapper.ModelProto();
+            using (var modelStream = File.OpenRead(onnxPath))
+                model = OnnxCSharpToProtoWrapper.ModelProto.Parser.ParseFrom(modelStream);
+
+            // Make sure a PredictorModel is loaded by seeing if a predictive model exists. In this the
+            // predictive model is "LinearRegressor" (converted from StochasticDualCoordinateAscentRegressor
+            // in the original training entry-point graph.
+            Assert.Equal("Scaler", model.Graph.Node[0].OpType);
+            Assert.Equal("LinearRegressor", model.Graph.Node[1].OpType);
+
+            File.Delete(modelPath);
+            File.Delete(onnxPath);
+            File.Delete(onnxJsonPath);
+
+            Done();
+        }
+
+
+        [Fact]
         public void RemoveVariablesInPipelineTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -451,7 +573,7 @@ namespace Microsoft.ML.Tests
 
         private class SmallSentimentExample
         {
-            [LoadColumn(0,3), VectorType(4)]
+            [LoadColumn(0, 3), VectorType(4)]
             public string[] Tokens;
         }
 

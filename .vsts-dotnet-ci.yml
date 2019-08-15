@@ -18,11 +18,11 @@ jobs:
     container: CentosContainer
     customMatrixes:
       Debug_Build:
-        _configuration: Debug-Intrinsics
+        _configuration: Debug-netcoreapp3_0
         _config_short: DI
         _includeBenchmarkData: false
       Release_Build:
-        _configuration: Release-Intrinsics
+        _configuration: Release-netcoreapp3_0
         _config_short: RI
         _includeBenchmarkData: true
     pool:
@@ -41,7 +41,7 @@ jobs:
     name: MacOS_x64_NetCoreApp21
     buildScript: ./build.sh
     pool:
-      name: Hosted macOS
+      name: Hosted macOS High Sierra
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -49,11 +49,11 @@ jobs:
     buildScript: build.cmd
     customMatrixes:
       Debug_Build:
-        _configuration: Debug-Intrinsics
+        _configuration: Debug-netcoreapp3_0
         _config_short: DI
         _includeBenchmarkData: false
       Release_Build:
-        _configuration: Release-Intrinsics
+        _configuration: Release-netcoreapp3_0
         _config_short: RI
         _includeBenchmarkData: true
     pool:

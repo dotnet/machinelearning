@@ -13,21 +13,25 @@ namespace Samples.Dynamic.Transforms.TreeFeaturization
     {<#=Comments#>
         public static void Example()
         {
-            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-            // as a catalog of available operations and as the source of randomness.
-            // Setting the seed to a fixed number in this example to make outputs deterministic.
+            // Create a new context for ML.NET operations. It can be used for
+            // exception tracking and logging, as a catalog of available operations
+            // and as the source of randomness. Setting the seed to a fixed number
+            // in this example to make outputs deterministic.
             var mlContext = new MLContext(seed: 0);
 
             // Create a list of training data points.
             var dataPoints = GenerateRandomDataPoints(100).ToList();
 
-            // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
+            // Convert the list of data points to an IDataView object, which is
+            // consumable by ML.NET API.
             var dataView = mlContext.Data.LoadFromEnumerable(dataPoints);
 <# if (CacheData) { #>
 
-            // ML.NET doesn't cache data set by default. Therefore, if one reads a data set from a file and accesses it many times,
-            // it can be slow due to expensive featurization and disk operations. When the considered data can fit into memory,
-            // a solution is to cache the data in memory. Caching is especially helpful when working with iterative algorithms 
+            // ML.NET doesn't cache data set by default. Therefore, if one reads a
+            // data set from a file and accesses it many times, it can be slow due
+            // to expensive featurization and disk operations. When the considered
+            // data can fit into memory, a solution is to cache the data in memory.
+            // Caching is especially helpful when working with iterative algorithms
             // which needs many data passes.
             dataView = mlContext.Data.Cache(dataView);
 <# } #>
@@ -39,14 +43,16 @@ namespace Samples.Dynamic.Transforms.TreeFeaturization
             string leavesColumnName = nameof(TransformedDataPoint.Leaves);
             string pathsColumnName = nameof(TransformedDataPoint.Paths);
 
-            // Define the configuration of the trainer used to train a tree-based model.
+            // Define the configuration of the trainer used to train a tree-based
+            // model.
             var trainerOptions = new <#=TrainerOptions#>;
 
             // Define the tree-based featurizer's configuration.
             var options = new <#=Options#>;
 
             // Define the featurizer.
-            var pipeline = mlContext.Transforms.<#=Trainer#>(options);
+            var pipeline = mlContext.Transforms.<#=Trainer#>(
+                options);
 
             // Train the model.
             var model = pipeline.Fit(dataView);
@@ -54,24 +60,35 @@ namespace Samples.Dynamic.Transforms.TreeFeaturization
             // Apply the trained transformer to the considered data set.
             var transformed = model.Transform(dataView);
 
-            // Convert IDataView object to a list. Each element in the resulted list corresponds to a row in the IDataView.
-            var transformedDataPoints = mlContext.Data.CreateEnumerable<TransformedDataPoint>(transformed, false).ToList();
+            // Convert IDataView object to a list. Each element in the resulted list
+            // corresponds to a row in the IDataView.
+            var transformedDataPoints = mlContext.Data.CreateEnumerable<
+                TransformedDataPoint>(transformed, false).ToList();
 
             // Print out the transformation of the first 3 data points.
             for (int i = 0; i < 3; ++i)
             {
                 var dataPoint = dataPoints[i];
                 var transformedDataPoint = transformedDataPoints[i];
-                Console.WriteLine($"The original feature vector [{String.Join(",", dataPoint.Features)}] is transformed to three different tree-based feature vectors:");
-                Console.WriteLine($"  Trees' output values: [{String.Join(",", transformedDataPoint.Trees)}].");
-                Console.WriteLine($"  Leave IDs' 0-1 representation: [{String.Join(",", transformedDataPoint.Leaves)}].");
-                Console.WriteLine($"  Paths IDs' 0-1 representation: [{String.Join(",", transformedDataPoint.Paths)}].");
+                Console.WriteLine("The original feature vector [" + String.Join(",",
+                    dataPoint.Features) + "] is transformed to three different " +
+                    "tree-based feature vectors:");
+
+                Console.WriteLine("  Trees' output values: [" + String.Join(",",
+                    transformedDataPoint.Trees) + "].");
+
+                Console.WriteLine("  Leave IDs' 0-1 representation: [" + String
+                    .Join(",", transformedDataPoint.Leaves) + "].");
+
+                Console.WriteLine("  Paths IDs' 0-1 representation: [" + String
+                    .Join(",", transformedDataPoint.Paths) + "].");
             }
 
             <#=ExpectedOutput#>
         }
 
-        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed = 0, int groupSize = 10)
+        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,
+            int seed = 0, int groupSize = 10)
         {
             var random = new Random(seed);
             float randomFloat() => (float)random.NextDouble();
@@ -83,13 +100,16 @@ namespace Samples.Dynamic.Transforms.TreeFeaturization
                     Label = (uint)label,
                     GroupId = (uint)(i / groupSize),
                     // Create random features that are correlated with the label.
-                    // For data points with larger labels, the feature values are slightly increased by adding a constant.
-                    Features = Enumerable.Repeat(label, 3).Select(x => randomFloat() + x * 0.1f).ToArray()
+                    // For data points with larger labels, the feature values are
+                    // slightly increased by adding a constant.
+                    Features = Enumerable.Repeat(label, 3).Select(x => randomFloat()
+                        + x * 0.1f).ToArray()
                 };
             }
         }
 
-        // Example with label, groupId, and 3 feature values. A data set is a collection of such examples.
+        // Example with label, groupId, and 3 feature values. A data set is a
+        // collection of such examples.
         private class DataPoint
         {
             [KeyType(5)]
@@ -107,7 +127,8 @@ namespace Samples.Dynamic.Transforms.TreeFeaturization
             public float[] Trees { get; set; }
             // The 0-1 encoding of leaves the input feature vector falls into.
             public float[] Leaves { get; set; }
-            // The 0-1 encoding of paths the input feature vector reaches the leaves.
+            // The 0-1 encoding of paths the input feature vector reaches the
+            // leaves.
             public float[] Paths { get; set; }
         }
     }

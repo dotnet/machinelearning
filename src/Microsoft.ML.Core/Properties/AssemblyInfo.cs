@@ -11,7 +11,6 @@ using Microsoft.ML;
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Predictor.Tests" + PublicKey.TestValue)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Sweeper.Tests" + PublicKey.TestValue)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.InferenceTesting" + PublicKey.TestValue)]
-[assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.StaticPipelineTesting" + PublicKey.TestValue)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.OnnxTransformerTest" + PublicKey.TestValue)]
 
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.EntryPoints" + PublicKey.Value)]
@@ -22,6 +21,7 @@ using Microsoft.ML;
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Data" + PublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Api" + PublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Ensemble" + PublicKey.Value)]
+[assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Experimental" + PublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.FastTree" + PublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Mkl.Components" + PublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.KMeansClustering" + PublicKey.Value)]
@@ -37,15 +37,9 @@ using Microsoft.ML;
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.StandardTrainers" + PublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Sweeper" + PublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.TensorFlow" + PublicKey.Value)]
+[assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Dnn" + PublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.TimeSeries" + PublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Transforms" + PublicKey.Value)]
-
-[assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.StaticPipe" + PublicKey.Value)]
-[assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.TensorFlow.StaticPipe" + PublicKey.Value)]
-[assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Mkl.Components.StaticPipe" + PublicKey.Value)]
-[assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.OnnxTransformer.StaticPipe" + PublicKey.Value)]
-[assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.LightGbm.StaticPipe" + PublicKey.Value)]
-[assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.TimeSeries.StaticPipe" + PublicKey.Value)]
 
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.AutoML" + PublicKey.Value)]
 

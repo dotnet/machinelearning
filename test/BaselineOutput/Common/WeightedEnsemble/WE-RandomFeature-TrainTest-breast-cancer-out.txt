@@ -1,0 +1,94 @@
+maml.exe TrainTest test=%Data% tr=WeightedEnsemble{nm=20 st=AllInstanceSelector{fs=RandomFeatureSelector} tp=-} dout=%Output% loader=Text{col=Label:BL:0 col=Features:R4:1-9} data=%Data% out=%Output% seed=1
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Training 20 learners for the batch 1
+Beginning training model 1 of 20
+Warning: Skipped 16 instances with missing features during training (over 1 iterations; 16 inst/iter)
+Trainer 1 of 20 finished in %Time%
+Beginning training model 2 of 20
+Warning: Skipped 16 instances with missing features during training (over 1 iterations; 16 inst/iter)
+Trainer 2 of 20 finished in %Time%
+Beginning training model 3 of 20
+Warning: Skipped 16 instances with missing features during training (over 1 iterations; 16 inst/iter)
+Trainer 3 of 20 finished in %Time%
+Beginning training model 4 of 20
+Trainer 4 of 20 finished in %Time%
+Beginning training model 5 of 20
+Warning: Skipped 16 instances with missing features during training (over 1 iterations; 16 inst/iter)
+Trainer 5 of 20 finished in %Time%
+Beginning training model 6 of 20
+Warning: Skipped 16 instances with missing features during training (over 1 iterations; 16 inst/iter)
+Trainer 6 of 20 finished in %Time%
+Beginning training model 7 of 20
+Warning: Skipped 16 instances with missing features during training (over 1 iterations; 16 inst/iter)
+Trainer 7 of 20 finished in %Time%
+Beginning training model 8 of 20
+Warning: Skipped 16 instances with missing features during training (over 1 iterations; 16 inst/iter)
+Trainer 8 of 20 finished in %Time%
+Beginning training model 9 of 20
+Warning: Skipped 16 instances with missing features during training (over 1 iterations; 16 inst/iter)
+Trainer 9 of 20 finished in %Time%
+Beginning training model 10 of 20
+Warning: Skipped 16 instances with missing features during training (over 1 iterations; 16 inst/iter)
+Trainer 10 of 20 finished in %Time%
+Beginning training model 11 of 20
+Trainer 11 of 20 finished in %Time%
+Beginning training model 12 of 20
+Warning: Skipped 16 instances with missing features during training (over 1 iterations; 16 inst/iter)
+Trainer 12 of 20 finished in %Time%
+Beginning training model 13 of 20
+Warning: Skipped 16 instances with missing features during training (over 1 iterations; 16 inst/iter)
+Trainer 13 of 20 finished in %Time%
+Beginning training model 14 of 20
+Warning: Skipped 16 instances with missing features during training (over 1 iterations; 16 inst/iter)
+Trainer 14 of 20 finished in %Time%
+Beginning training model 15 of 20
+Warning: Skipped 16 instances with missing features during training (over 1 iterations; 16 inst/iter)
+Trainer 15 of 20 finished in %Time%
+Beginning training model 16 of 20
+Warning: Skipped 16 instances with missing features during training (over 1 iterations; 16 inst/iter)
+Trainer 16 of 20 finished in %Time%
+Beginning training model 17 of 20
+Trainer 17 of 20 finished in %Time%
+Beginning training model 18 of 20
+Warning: Skipped 16 instances with missing features during training (over 1 iterations; 16 inst/iter)
+Trainer 18 of 20 finished in %Time%
+Beginning training model 19 of 20
+Warning: Skipped 16 instances with missing features during training (over 1 iterations; 16 inst/iter)
+Trainer 19 of 20 finished in %Time%
+Beginning training model 20 of 20
+Warning: Skipped 16 instances with missing features during training (over 1 iterations; 16 inst/iter)
+Trainer 20 of 20 finished in %Time%
+Training calibrator.
+TEST POSITIVE RATIO:	0.3448 (241.0/(241.0+458.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      233 |        8 | 0.9668
+ negative ||       12 |      446 | 0.9738
+          ||======================
+Precision ||   0.9510 |   0.9824 |
+OVERALL 0/1 ACCURACY: 0.971388
+LOG LOSS/instance:  0.130701
+Test-set entropy (prior Log-Loss/instance): 0.929318
+LOG-LOSS REDUCTION (RIG): 0.859358
+AUC:                0.994927
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.994927 (0.0000)
+Accuracy:           0.971388 (0.0000)
+Positive precision: 0.951020 (0.0000)
+Positive recall:    0.966805 (0.0000)
+Negative precision: 0.982379 (0.0000)
+Negative recall:    0.973799 (0.0000)
+Log-loss:           0.130701 (0.0000)
+Log-loss reduction: 0.859358 (0.0000)
+F1 Score:           0.958848 (0.0000)
+AUPRC:              0.989450 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+

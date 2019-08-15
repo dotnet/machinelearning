@@ -7,14 +7,15 @@ namespace Samples.Dynamic
 {
     public class MapKeyToVectorMultiColumn
     {
-        /// This example demonstrates the use of MapKeyToVector by mapping keys to floats[] for multiple columns at once. 
-        /// Because the ML.NET KeyType maps the missing value to zero, counting starts at 1, so the uint values
+        /// This example demonstrates the use of MapKeyToVector by mapping keys to
+        /// floats[] for multiple columns at once. Because the ML.NET KeyType maps
+        /// the missing value to zero, counting starts at 1, so the uint values
         /// converted to KeyTypes will appear skewed by one. 
         /// See https://github.com/dotnet/machinelearning/blob/master/docs/code/IDataViewTypeSystem.md#key-types
         public static void Example()
         {
-            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
+            // Create a new ML context, for ML.NET operations. It can be used for
+            // exception tracking and logging, as well as the source of randomness.
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable.
@@ -40,11 +41,17 @@ namespace Samples.Dynamic
 
             // Getting the resulting data as an IEnumerable.
             // This will contain the newly created columns.
-            IEnumerable<TransformedData> features = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, reuseRowObject: false);
+            IEnumerable<TransformedData> features = mlContext.Data.CreateEnumerable<
+                TransformedData>(transformedData, reuseRowObject: false);
 
-            Console.WriteLine($" Timeframe           TimeframeVector         Category    CategoryVector");
+            Console.WriteLine($" Timeframe           TimeframeVector         " +
+                $"Category    CategoryVector");
+
             foreach (var featureRow in features)
-                Console.WriteLine($"{featureRow.Timeframe}     {string.Join(',', featureRow.TimeframeVector)}   {featureRow.Category}      {string.Join(',', featureRow.CategoryVector)}");
+                Console.WriteLine(featureRow.Timeframe + "     " +
+                    string.Join(',', featureRow.TimeframeVector) + "   " +
+                    featureRow.Category + "      " +
+                    string.Join(',', featureRow.CategoryVector));
 
             // TransformedData obtained post-transformation.
             //
@@ -59,8 +66,8 @@ namespace Samples.Dynamic
 
         private class DataPoint
         {
-            // The maximal value used is 9; but since 0 is reserved for missing value,
-            // we set the count to 10.
+            // The maximal value used is 9; but since 0 is reserved for missing
+            // value, we set the count to 10.
             [KeyType(10)]
             public uint Timeframe { get; set; }
 

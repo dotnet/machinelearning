@@ -6,21 +6,15 @@ __PACKAGES_DIR="$__scriptpath/packages"
 __TOOLRUNTIME_DIR="$__scriptpath/Tools"
 __DOTNET_PATH="$__TOOLRUNTIME_DIR/dotnetcli"
 __DOTNET_CMD="$__DOTNET_PATH/dotnet"
-__TARGET_FRAMEWORK="netcoreapp2.1"
 if [ -z "${__BUILDTOOLS_SOURCE:-}" ]; then __BUILDTOOLS_SOURCE=https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json; fi
 export __BUILDTOOLS_USE_CSPROJ=true
 __BUILD_TOOLS_PACKAGE_VERSION=$(cat "$__scriptpath/BuildToolsVersion.txt" | sed 's/\r$//') # remove CR if mounted repo on Windows drive
 
 DotNetCliFileName="DotnetCLIVersion.txt"
-
-for i do
-    if [[ "$i" == *"Intrinsics"* ]]; then
-        DotNetCliFileName="DotnetCLIVersion.netcoreapp.latest.txt"
-        __TARGET_FRAMEWORK="netcoreapp3.0"
-    fi
-done
+DotNetExtraRuntimeFileName="DotnetExtraRuntimeVersion.txt"
 
 __DOTNET_TOOLS_VERSION=$(cat "$__scriptpath/$DotNetCliFileName" | sed 's/\r$//') # remove CR if mounted repo on Windows drive
+__DOTNET_EXTRA_RUNTIME_VERSION=$(cat "$__scriptpath/$DotNetExtraRuntimeFileName" | sed 's/\r$//') # remove CR if mounted repo on Windows drive
 __BUILD_TOOLS_PATH="$__PACKAGES_DIR/microsoft.dotnet.buildtools/$__BUILD_TOOLS_PACKAGE_VERSION/lib"
 __INIT_TOOLS_RESTORE_PROJECT="$__scriptpath/init-tools.msbuild"
 __BUILD_TOOLS_SEMAPHORE="$__TOOLRUNTIME_DIR/$__BUILD_TOOLS_PACKAGE_VERSION/init-tools.complete"
@@ -129,10 +123,34 @@ if [ ! -e "$__DOTNET_PATH" ]; then
         esac
         __PKG_RID=$__PKG_RID-$__PKG_ARCH
         __DOTNET_PKG=dotnet-sdk-${__DOTNET_TOOLS_VERSION}-$__PKG_RID
+        __DOTNET_EXTRA_RUNTIME_PKG=dotnet-runtime-${__DOTNET_EXTRA_RUNTIME_VERSION}-$__PKG_RID
     fi
     mkdir -p "$__DOTNET_PATH"
 
-    echo "Installing dotnet cli..."
+	# install the extra runtime first, so the SDK install will overwrite the root dotnet executable
+    echo "Installing dotnet runtime ${__DOTNET_EXTRA_RUNTIME_VERSION}..."
+    __DOTNET_EXTRA_RUNTIME_LOCATION="https://dotnetcli.azureedge.net/dotnet/Runtime/${__DOTNET_EXTRA_RUNTIME_VERSION}/${__DOTNET_EXTRA_RUNTIME_PKG}.tar.gz"
+
+    install_dotnet_extra_runtime() {
+        if [[ -z "${DotNetExtraRuntimeTarPath-}" ]]; then
+            echo "Installing '${__DOTNET_EXTRA_RUNTIME_LOCATION}' to '$__DOTNET_PATH/dotnet.extra.runtime.tar'"
+            rm -rf -- "$__DOTNET_PATH/*"
+            # curl has HTTPS CA trust-issues less often than wget, so lets try that first.
+            if command -v curl > /dev/null; then
+                curl --retry 10 -sSL --create-dirs -o $__DOTNET_PATH/dotnet.extra.runtime.tar ${__DOTNET_EXTRA_RUNTIME_LOCATION}
+            else
+                wget -q -O $__DOTNET_PATH/dotnet.extra.runtime.tar ${__DOTNET_EXTRA_RUNTIME_LOCATION}
+            fi
+        else
+            echo "Copying '$DotNetExtraRuntimeTarPath' to '$__DOTNET_PATH/dotnet.extra.runtime.tar'"
+            cp $DotNetExtraRuntimeTarPath $__DOTNET_PATH/dotnet.extra.runtime.tar
+        fi
+        cd "$__DOTNET_PATH"
+        tar -xf "$__DOTNET_PATH/dotnet.extra.runtime.tar"
+    }
+    execute_with_retry install_dotnet_extra_runtime >> "$__init_tools_log" 2>&1
+
+    echo "Installing dotnet cli ${__DOTNET_TOOLS_VERSION}..."
     __DOTNET_LOCATION="https://dotnetcli.azureedge.net/dotnet/Sdk/${__DOTNET_TOOLS_VERSION}/${__DOTNET_PKG}.tar.gz"
 
     install_dotnet_cli() {
@@ -183,8 +201,6 @@ echo "Making all .sh files executable under Tools."
 # Executables restored with .NET Core 2.0 do not have executable permission flags. https://github.com/NuGet/Home/issues/4424
 ls "$__scriptpath/Tools/"*.sh | xargs chmod +x
 ls "$__scriptpath/Tools/scripts/docker/"*.sh | xargs chmod +x
-
-"$__scriptpath/Tools/crossgen.sh" "$__scriptpath/Tools" $__PKG_RID $__TARGET_FRAMEWORK
 
 mkdir -p "$(dirname "$__BUILD_TOOLS_SEMAPHORE")" && touch "$__BUILD_TOOLS_SEMAPHORE"
 

@@ -10,7 +10,7 @@
   <ItemGroup>
     <Compile Include="SmokeTests.fs" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <!-- More projects are referenced than are currently tested. Future updates to -->
     <!-- these tests will test more of the surface area from F#, so leaving these references -->
@@ -24,7 +24,6 @@
   <ItemGroup>
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="CpuMathNative" />
-    <NativeAssemblyReference Include="FactorizationMachineNative" />
   </ItemGroup>
 
 </Project>

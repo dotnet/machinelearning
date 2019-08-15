@@ -703,6 +703,22 @@ namespace Microsoft.ML
             var eval = new AnomalyDetectionEvaluator(Environment, args);
             return eval.Evaluate(data, labelColumnName, scoreColumnName, predictedLabelColumnName);
         }
+
+        /// <summary>
+        /// Creates a new <see cref="AnomalyPredictionTransformer{TModel}"/> with the specified <paramref name="threshold"/>.
+        /// If the provided <paramref name="threshold"/> is the same as the <paramref name="model"/> threshold it simply returns <paramref name="model"/>.
+        /// Note that by default the threshold is 0.5 and valid scores range from 0 to 1.
+        /// </summary>
+        /// <param name="model">A trained <see cref="AnomalyPredictionTransformer{TModel}"/>.</param>
+        /// <param name="threshold">The new threshold value that will be used to determine the label of a data point
+        /// based on the predicted score by the model.</param>
+        public AnomalyPredictionTransformer<TModel> ChangeModelThreshold<TModel>(AnomalyPredictionTransformer<TModel> model, float threshold)
+            where TModel : class
+        {
+            if (model.Threshold == threshold)
+                return model;
+            return new AnomalyPredictionTransformer<TModel>(Environment, model.Model, model.TrainSchema, model.FeatureColumnName, threshold, model.ThresholdColumn);
+        }
     }
 
     /// <summary>

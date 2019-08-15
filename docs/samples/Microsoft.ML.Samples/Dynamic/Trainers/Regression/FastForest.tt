@@ -1,12 +1,16 @@
 ﻿<#@ include file="RegressionSamplesTemplate.ttinclude"#>
 
 <#+
-string ClassHeader = @"// This example requires installation of additional NuGet package
-        // <a href=""https://www.nuget.org/packages/Microsoft.ML.FastTree/"">Microsoft.ML.FastTree</a>. ";
+string ClassHeader = @"// This example requires installation of additional NuGet
+        // package for Microsoft.ML.FastTree found at
+        // https://www.nuget.org/packages/Microsoft.ML.FastTree/";
 
 string ClassName="FastForestRegression";
 string ExtraUsing = null;
-string Trainer = @"FastForest(labelColumnName: nameof(DataPoint.Label), featureColumnName: nameof(DataPoint.Features))";
+string Trainer = @"FastForest(
+                labelColumnName: nameof(DataPoint.Label),
+                featureColumnName: nameof(DataPoint.Features))";
+
 string TrainerOptions = null;
 
 string ExpectedOutputPerInstance= @"// Expected output:
