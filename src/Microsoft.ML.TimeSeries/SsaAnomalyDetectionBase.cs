@@ -201,7 +201,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 ErrorFunc = ErrorFunctionUtils.GetErrorFunction(ErrorFunction);
                 IsAdaptive = options.IsAdaptive;
                 // Creating the master SSA model
-                Model = new AdaptiveSingularSpectrumSequenceModeler(Host, options.InitialWindowSize, SeasonalWindowSize + 1, SeasonalWindowSize,
+                Model = new AdaptiveSingularSpectrumSequenceModeler.AdaptiveSingularSpectrumSequenceModelerInternal(Host, options.InitialWindowSize, SeasonalWindowSize + 1, SeasonalWindowSize,
                     DiscountFactor, AdaptiveSingularSpectrumSequenceModeler.RankSelectionMethod.Exact, null, SeasonalWindowSize / 2, false, false);
 
                 StateRef = new State();

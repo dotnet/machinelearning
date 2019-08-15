@@ -76,20 +76,7 @@ namespace Microsoft.ML.Trainers
     /// Since L-BFGS approximation uses only a limited amount of historical states to compute the next step direction, it is especially suited for problems with a high-dimensional feature vector.
     /// The number of historical states is a user-specified parameter, using a larger number may lead to a better approximation of the Hessian matrix but also a higher computation cost per step.
     ///
-    /// Regularization is a method that can render an ill-posed problem more tractable by imposing constraints that provide information to supplement the data. It prevents overfitting by penalizing the model's magnitude, usually measured by some norm functions.
-    /// This can improve the generalization of the model learned by selecting the optimal complexity in the [bias-variance trade-off](https://en.wikipedia.org/wiki/Bias%E2%80%93variance_tradeoff).
-    /// Regularization works by adding a penalty that is associated with coefficient values to the error of the hypothesis.
-    /// An accurate model with extreme coefficient values would be penalized more, but a less accurate model with more conservative values would be penalized less.
-    ///
-    /// This learner supports [elastic net regularization](https://en.wikipedia.org/wiki/Elastic_net_regularization): a linear combination of L1-norm (LASSO), $|| \textbf{w} ||_1$, and L2-norm (ridge), $|| \textbf{w} ||_2^2$ regularizations.
-    /// L1-norm and L2-norm regularizations have different effects and uses that are complementary in certain respects.
-    /// Using L1-norm can increase sparsity of the trained $\textbf{w}$.
-    /// When working with high-dimensional data, it shrinks small weights of irrelevant features to 0 and therefore no resource will be spent on those bad features when making prediction.
-    /// If L1-norm regularization is used, the training algorithm used would be [OWL-QN](http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.68.5260).
-    /// L2-norm regularization is preferable for data that is not sparse and it largely penalizes the existence of large weights.
-    ///
-    /// An aggressive regularization (that is, assigning large coefficients to L1-norm or L2-norm regularization terms) can harm predictive capacity by excluding important variables from the model.
-    /// Therefore, choosing the right regularization coefficients is important when applying maximum entropy classifier.
+    /// [!include[io](~/../docs/samples/docs/api-reference/regularization-l1-l2.md)]
     ///
     /// Check the See Also section for links to usage examples.
     /// ]]>

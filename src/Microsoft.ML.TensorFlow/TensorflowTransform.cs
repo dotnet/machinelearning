@@ -740,8 +740,8 @@ namespace Microsoft.ML.Transforms
                         throw Host.Except("Variable length input columns not supported");
 
                     _isInputVector[i] = type is VectorDataViewType;
-                    if (!_isInputVector[i]) // Temporary pending fix of issue #1542. In its current state, the below code would fail anyway with a naked exception if this check was not here.
-                        throw Host.Except("Non-vector columns not supported");
+                    if (!_isInputVector[i])
+                        throw Host.Except("Non-vector columns are not supported and should be loaded as vector columns of size 1");
                     vecType = (VectorDataViewType)type;
                     var expectedType = TensorFlowUtils.Tf2MlNetType(_parent.TFInputTypes[i]);
                     if (type.GetItemType() != expectedType)

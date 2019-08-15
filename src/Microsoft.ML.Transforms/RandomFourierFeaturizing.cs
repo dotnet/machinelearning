@@ -622,7 +622,6 @@ namespace Microsoft.ML.Transforms
     /// Check the See Also section for links to usage examples.
     /// ]]></format>
     /// </remarks>
-    /// <seealso cref="KernelExpansionCatalog.ApproximatedKernelMap(TransformsCatalog, ColumnOptions[])"/>
     /// <seealso cref="KernelExpansionCatalog.ApproximatedKernelMap(TransformsCatalog, string, string, int, bool, KernelBase, int?)"/>
     public sealed class ApproximatedKernelMappingEstimator : IEstimator<ApproximatedKernelTransformer>
     {

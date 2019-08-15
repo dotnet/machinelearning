@@ -62,10 +62,14 @@ namespace Microsoft.ML
         /// <summary>
         /// Create a text loader <see cref="TextLoader"/> by inferencing the dataset schema from a data model type.
         /// </summary>
+        /// <typeparam name="TInput">Defines the schema of the data to be loaded. Use public fields or properties
+        /// decorated with <see cref="LoadColumnAttribute"/> (and possibly other attributes) to specify the column
+        /// names and their data types in the schema of the loaded data.</typeparam>
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="separatorChar">Column separator character. Default is '\t'</param>
         /// <param name="hasHeader">Does the file contains header?</param>
-        /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer column names and number of slots in each column.</param>
+        /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer information
+        /// about the columns, such as slot names.</param>
         /// <param name="allowQuoting">Whether the input may include quoted values,
         /// which can contain separator characters, colons,
         /// and distinguish empty values from missing values. When true, consecutive separators
@@ -164,6 +168,13 @@ namespace Microsoft.ML
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="path">Specifies a file from which to load.</param>
         /// <param name="options">Defines the settings of the load operation.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[LoadFromTextFile](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/SaveAndLoadFromText.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static IDataView LoadFromTextFile(this DataOperationsCatalog catalog, string path,
             TextLoader.Options options = null)
         {
@@ -186,6 +197,13 @@ namespace Microsoft.ML
         /// <param name="schema">Whether to write the header comment with the schema.</param>
         /// <param name="keepHidden">Whether to keep hidden columns in the dataset.</param>
         /// <param name="forceDense">Whether to save columns in dense format even if they are sparse vectors.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[SaveAsText](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/SaveAndLoadFromText.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static void SaveAsText(this DataOperationsCatalog catalog,
             IDataView data,
             Stream stream,

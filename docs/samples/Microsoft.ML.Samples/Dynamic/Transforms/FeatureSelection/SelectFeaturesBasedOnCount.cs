@@ -25,11 +25,11 @@ namespace Samples.Dynamic
             // 4,NaN,6                   A,WA,Male
             // 4,5,6                     A,,Female
             // 4,5,6                     A,NY,
-            // 4,NaN,NaN                 A,,Male
+            // 4,0,NaN                   A,,Male
 
             var data = mlContext.Data.LoadFromEnumerable(rawData);
 
-            // We will use the SelectFeaturesBasedOnCount to retain only those slots which have at least 'count' non-default values per slot.
+            // We will use the SelectFeaturesBasedOnCount to retain only those slots which have at least 'count' non-default and non-missing values per slot.
             var pipeline = 
                 mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount(outputColumnName: "NumericVector", count: 3) // Usage on numeric column.
                 .Append(mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount(outputColumnName: "StringVector", count: 3)); // Usage on text column.
@@ -81,7 +81,7 @@ namespace Samples.Dynamic
                 new InputData
                 {
                     NumericVector = new float[] { 4, 5, 6 },
-                    StringVector = new string[] { "A", "", "Female"}
+                    StringVector = new string[] { "A", string.Empty, "Female"}
                 },
                 new InputData
                 {
@@ -90,7 +90,7 @@ namespace Samples.Dynamic
                 },
                 new InputData
                 {
-                    NumericVector = new float[] { 4, float.NaN, float.NaN },
+                    NumericVector = new float[] { 4, 0, float.NaN },
                     StringVector = new string[] { "A", null, "Male"}
                 }
             };

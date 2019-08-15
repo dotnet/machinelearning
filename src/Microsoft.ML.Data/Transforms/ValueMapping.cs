@@ -160,8 +160,6 @@ namespace Microsoft.ML.Transforms
     /// </remarks>
     /// <typeparam name="TKey">Specifies the key type.</typeparam>
     /// <typeparam name="TValue">Specifies the value type.</typeparam>
-    /// <seealso cref="ConversionsExtensionsCatalog.MapValue{TInputType, TOutputType}(TransformsCatalog.ConversionTransforms, IEnumerable{KeyValuePair{TInputType, TOutputType}}, InputOutputColumnPair[])"/>
-    /// <seealso cref="ConversionsExtensionsCatalog.MapValue{TInputType, TOutputType}(TransformsCatalog.ConversionTransforms, IEnumerable{KeyValuePair{TInputType, TOutputType[]}}, InputOutputColumnPair[])"/>
     /// <seealso cref="ConversionsExtensionsCatalog.MapValue{TInputType, TOutputType}(TransformsCatalog.ConversionTransforms, string, IEnumerable{KeyValuePair{TInputType, TOutputType}}, string, bool)"/>
     public sealed class ValueMappingEstimator<TKey, TValue> : ValueMappingEstimator
     {
