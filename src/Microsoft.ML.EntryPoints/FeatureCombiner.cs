@@ -120,11 +120,11 @@ namespace Microsoft.ML.EntryPoints
             var col = schema.GetColumnOrNull(colName);
             if (!col.HasValue)
                 return null;
-            var type = col.Value.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorDataViewType;
+            var type = col.GetValueOrDefault().Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorDataViewType;
             if (type == null || !type.IsKnownSize || !(type.ItemType is TextDataViewType))
                 return null;
             var metadata = default(VBuffer<ReadOnlyMemory<char>>);
-            col.Value.GetKeyValues(ref metadata);
+            col.GetValueOrDefault().GetKeyValues(ref metadata);
             if (!metadata.IsDense)
                 return null;
             var sb = new StringBuilder();
@@ -236,7 +236,7 @@ namespace Microsoft.ML.EntryPoints
             if (!labelCol.HasValue)
                 throw host.ExceptSchemaMismatch(nameof(input), "predicted label", input.LabelColumn);
 
-            var labelType = labelCol.Value.Type;
+            var labelType = labelCol.GetValueOrDefault().Type;
             if (labelType is KeyDataViewType || labelType is BooleanDataViewType)
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);
@@ -271,7 +271,7 @@ namespace Microsoft.ML.EntryPoints
             var predictedLabelCol = input.Data.Schema.GetColumnOrNull(input.PredictedLabelColumn);
             if (!predictedLabelCol.HasValue)
                 throw host.ExceptSchemaMismatch(nameof(input), "label", input.PredictedLabelColumn);
-            var predictedLabelType = predictedLabelCol.Value.Type;
+            var predictedLabelType = predictedLabelCol.GetValueOrDefault().Type;
             if (predictedLabelType is NumberDataViewType || predictedLabelType is BooleanDataViewType)
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);
@@ -293,7 +293,7 @@ namespace Microsoft.ML.EntryPoints
             var labelCol = input.Data.Schema.GetColumnOrNull(input.LabelColumn);
             if (!labelCol.HasValue)
                 throw host.Except($"Column '{input.LabelColumn}' not found.");
-            var labelType = labelCol.Value.Type;
+            var labelType = labelCol.GetValueOrDefault().Type;
             if (labelType == NumberDataViewType.Single || !(labelType is NumberDataViewType))
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);

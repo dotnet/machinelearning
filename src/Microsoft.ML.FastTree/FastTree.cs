@@ -204,10 +204,10 @@ namespace Microsoft.ML.Trainers.FastTree
             Host.Assert(data.Schema.Feature.HasValue);
 
             if (useTranspose.HasValue)
-                return useTranspose.Value;
+                return useTranspose.GetValueOrDefault();
 
             var itdv = data.Data as ITransposeDataView;
-            return itdv?.GetSlotType(data.Schema.Feature.Value.Index) != null;
+            return itdv?.GetSlotType(data.Schema.Feature.GetValueOrDefault().Index) != null;
         }
 
         private protected void TrainCore(IChannel ch)
@@ -1300,7 +1300,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     return -1;
                 // It is entirely possible that a single column could have two roles,
                 // and so be added twice, but this case is handled by the transposer.
-                var idx = info.Value.Index;
+                var idx = info.GetValueOrDefault().Index;
                 toTranspose.Add(idx);
                 return idx;
             }

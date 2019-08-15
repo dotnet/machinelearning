@@ -439,7 +439,7 @@ namespace Microsoft.ML.Trainers
 
             ch.CheckParam(data.Schema.Label.HasValue, nameof(data), "Input data did not have a unique label");
             RecommenderUtils.CheckAndGetMatrixIndexColumns(data, out var matrixColumnIndexColInfo, out var matrixRowIndexColInfo, isDecode: false);
-            var labelCol = data.Schema.Label.Value;
+            var labelCol = data.Schema.Label.GetValueOrDefault();
             if (labelCol.Type != NumberDataViewType.Single && labelCol.Type != NumberDataViewType.Double)
                 throw ch.Except("Column '{0}' for label should be floating point, but is instead {1}", labelCol.Name, labelCol.Type);
             MatrixFactorizationModelParameters predictor;
@@ -448,7 +448,7 @@ namespace Microsoft.ML.Trainers
                 ch.CheckValue(validData, nameof(validData));
                 ch.CheckParam(validData.Schema.Label.HasValue, nameof(validData), "Input validation data did not have a unique label");
                 RecommenderUtils.CheckAndGetMatrixIndexColumns(validData, out var validMatrixColumnIndexColInfo, out var validMatrixRowIndexColInfo, isDecode: false);
-                var validLabelCol = validData.Schema.Label.Value;
+                var validLabelCol = validData.Schema.Label.GetValueOrDefault();
                 if (validLabelCol.Type != NumberDataViewType.Single && validLabelCol.Type != NumberDataViewType.Double)
                     throw ch.Except("Column '{0}' for validation label should be floating point, but is instead {1}", validLabelCol.Name, validLabelCol.Type);
 
@@ -470,10 +470,10 @@ namespace Microsoft.ML.Trainers
             ch.Assert(colCount > 0);
 
             // Checks for equality on the validation set ensure it is correct here.
-            using (var cursor = data.Data.GetRowCursor(matrixColumnIndexColInfo, matrixRowIndexColInfo, data.Schema.Label.Value))
+            using (var cursor = data.Data.GetRowCursor(matrixColumnIndexColInfo, matrixRowIndexColInfo, data.Schema.Label.GetValueOrDefault()))
             {
                 // LibMF works only over single precision floats, but we want to be able to consume either.
-                var labGetter = RowCursorUtils.GetGetterAs<float>(NumberDataViewType.Single, cursor, data.Schema.Label.Value.Index);
+                var labGetter = RowCursorUtils.GetGetterAs<float>(NumberDataViewType.Single, cursor, data.Schema.Label.GetValueOrDefault().Index);
                 var matrixColumnIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberDataViewType.UInt32, cursor, matrixColumnIndexColInfo.Index);
                 var matrixRowIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberDataViewType.UInt32, cursor, matrixRowIndexColInfo.Index);
 
@@ -489,9 +489,9 @@ namespace Microsoft.ML.Trainers
                 else
                 {
                     RecommenderUtils.CheckAndGetMatrixIndexColumns(validData, out var validMatrixColumnIndexColInfo, out var validMatrixRowIndexColInfo, isDecode: false);
-                    using (var validCursor = validData.Data.GetRowCursor(matrixColumnIndexColInfo, matrixRowIndexColInfo, data.Schema.Label.Value))
+                    using (var validCursor = validData.Data.GetRowCursor(matrixColumnIndexColInfo, matrixRowIndexColInfo, data.Schema.Label.GetValueOrDefault()))
                     {
-                        ValueGetter<float> validLabelGetter = RowCursorUtils.GetGetterAs<float>(NumberDataViewType.Single, validCursor, validData.Schema.Label.Value.Index);
+                        ValueGetter<float> validLabelGetter = RowCursorUtils.GetGetterAs<float>(NumberDataViewType.Single, validCursor, validData.Schema.Label.GetValueOrDefault().Index);
                         var validMatrixColumnIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberDataViewType.UInt32, validCursor, validMatrixColumnIndexColInfo.Index);
                         var validMatrixRowIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberDataViewType.UInt32, validCursor, validMatrixRowIndexColInfo.Index);
 

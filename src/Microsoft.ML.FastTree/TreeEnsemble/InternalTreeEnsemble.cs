@@ -438,7 +438,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             Contracts.AssertValue(schema);
             Contracts.Assert(schema.Feature.HasValue);
-            var feat = schema.Feature.Value;
+            var feat = schema.Feature.GetValueOrDefault();
             int featValueCount = feat.Type.GetValueCount();
             Contracts.Assert(featValueCount > 0);
 

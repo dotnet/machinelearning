@@ -278,7 +278,7 @@ namespace Microsoft.ML.Trainers
 
             // If we specified a number of threads that's fine, but it must be below maxThreads.
             if (argNumThreads.HasValue)
-                maxThreads = Math.Min(maxThreads, argNumThreads.Value);
+                maxThreads = Math.Min(maxThreads, argNumThreads.GetValueOrDefault());
 
             return Math.Max(1, maxThreads);
         }

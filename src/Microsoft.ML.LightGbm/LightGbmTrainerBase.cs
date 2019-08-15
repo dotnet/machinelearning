@@ -253,7 +253,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
                 res["verbose"] = Silent ? "-1" : "1";
                 if (NumberOfThreads.HasValue)
-                    res["nthread"] = NumberOfThreads.Value;
+                    res["nthread"] = NumberOfThreads.GetValueOrDefault();
 
                 res["seed"] = (Seed.HasValue) ? Seed : host.Rand.Next();
 

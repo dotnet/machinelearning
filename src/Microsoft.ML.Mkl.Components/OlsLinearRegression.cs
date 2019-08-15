@@ -148,12 +148,12 @@ namespace Microsoft.ML.Trainers
                 ch.CheckParam(examples.Schema.Label.HasValue, nameof(examples), "Need a labelColumn column");
 
                 // The labelColumn type must be either Float or a key type based on int (if allowKeyLabels is true).
-                var typeLab = examples.Schema.Label.Value.Type;
+                var typeLab = examples.Schema.Label.GetValueOrDefault().Type;
                 if (typeLab != NumberDataViewType.Single)
                     throw ch.Except("Incompatible labelColumn column type {0}, must be {1}", typeLab, NumberDataViewType.Single);
 
                 // The feature type must be a vector of Float.
-                var typeFeat = examples.Schema.Feature.Value.Type as VectorDataViewType;
+                var typeFeat = examples.Schema.Feature.GetValueOrDefault().Type as VectorDataViewType;
                 if (typeFeat == null || !typeFeat.IsKnownSize)
                     throw ch.Except("Incompatible feature column type {0}, must be known sized vector of {1}", typeFeat, NumberDataViewType.Single);
                 if (typeFeat.ItemType != NumberDataViewType.Single)

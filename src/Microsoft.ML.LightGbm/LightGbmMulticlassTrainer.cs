@@ -279,7 +279,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             bool useSoftmax = false;
 
             if (LightGbmTrainerOptions.UseSoftmax.HasValue)
-                useSoftmax = LightGbmTrainerOptions.UseSoftmax.Value;
+                useSoftmax = LightGbmTrainerOptions.UseSoftmax.GetValueOrDefault();
             else
             {
                 if (labels.Length >= _minDataToUseSoftmax)

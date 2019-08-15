@@ -120,7 +120,7 @@ namespace Microsoft.ML.Trainers
             if (examples.Schema.Weight.HasValue)
                 ch.Assert(examplesToFeedTrain.Schema.Weight.HasValue);
 
-            ch.Check(examplesToFeedTrain.Schema.Feature.Value.Type is VectorDataViewType vecType && vecType.Size > 0, "Training set has no features, aborting training.");
+            ch.Check(examplesToFeedTrain.Schema.Feature.GetValueOrDefault().Type is VectorDataViewType vecType && vecType.Size > 0, "Training set has no features, aborting training.");
             return examplesToFeedTrain;
         }
 
@@ -329,7 +329,7 @@ namespace Microsoft.ML.Trainers
             int numThreads;
             if (SdcaTrainerOptions.NumberOfThreads.HasValue)
             {
-                numThreads = SdcaTrainerOptions.NumberOfThreads.Value;
+                numThreads = SdcaTrainerOptions.NumberOfThreads.GetValueOrDefault();
                 Host.CheckUserArg(numThreads > 0, nameof(OptionsBase.NumberOfThreads), "The number of threads must be either null or a positive integer.");
             }
             else
@@ -343,7 +343,7 @@ namespace Microsoft.ML.Trainers
 
             int checkFrequency = 0;
             if (SdcaTrainerOptions.ConvergenceCheckFrequency.HasValue)
-                checkFrequency = SdcaTrainerOptions.ConvergenceCheckFrequency.Value;
+                checkFrequency = SdcaTrainerOptions.ConvergenceCheckFrequency.GetValueOrDefault();
             else
             {
                 checkFrequency = numThreads;
@@ -449,14 +449,14 @@ namespace Microsoft.ML.Trainers
 
             Contracts.Assert(SdcaTrainerOptions.MaximumNumberOfIterations.HasValue);
             if (SdcaTrainerOptions.L2Regularization == null)
-                SdcaTrainerOptions.L2Regularization = TuneDefaultL2(ch, SdcaTrainerOptions.MaximumNumberOfIterations.Value, count, numThreads);
+                SdcaTrainerOptions.L2Regularization = TuneDefaultL2(ch, SdcaTrainerOptions.MaximumNumberOfIterations.GetValueOrDefault(), count, numThreads);
 
             Contracts.Assert(SdcaTrainerOptions.L2Regularization.HasValue);
             if (SdcaTrainerOptions.L1Regularization == null)
                 SdcaTrainerOptions.L1Regularization = TuneDefaultL1(ch, numFeatures);
 
             ch.Assert(SdcaTrainerOptions.L1Regularization.HasValue);
-            var l1Threshold = SdcaTrainerOptions.L1Regularization.Value;
+            var l1Threshold = SdcaTrainerOptions.L1Regularization.GetValueOrDefault();
             var l1ThresholdZero = l1Threshold == 0;
             var weights = new VBuffer<float>[weightSetCount];
             var bestWeights = new VBuffer<float>[weightSetCount];
@@ -486,7 +486,7 @@ namespace Microsoft.ML.Trainers
             int bestIter = 0;
             var bestPrimalLoss = double.PositiveInfinity;
             ch.Assert(SdcaTrainerOptions.L2Regularization.HasValue);
-            var l2Const = SdcaTrainerOptions.L2Regularization.Value;
+            var l2Const = SdcaTrainerOptions.L2Regularization.GetValueOrDefault();
             float lambdaNInv = 1 / (l2Const * count);
 
             DualsTableBase duals = null;
@@ -550,7 +550,7 @@ namespace Microsoft.ML.Trainers
             ch.AssertValue(metrics);
             ch.Assert(metricNames.Length == metrics.Length);
             ch.Assert(SdcaTrainerOptions.MaximumNumberOfIterations.HasValue);
-            var maxIterations = SdcaTrainerOptions.MaximumNumberOfIterations.Value;
+            var maxIterations = SdcaTrainerOptions.MaximumNumberOfIterations.GetValueOrDefault();
 
             var rands = new Random[maxIterations];
             for (int i = 0; i < maxIterations; i++)
@@ -791,7 +791,7 @@ namespace Microsoft.ML.Trainers
             Contracts.AssertValueOrNull(invariants);
             Contracts.AssertValueOrNull(featureNormSquared);
             int maxUpdateTrials = 2 * numThreads;
-            var l1Threshold = SdcaTrainerOptions.L1Regularization.Value;
+            var l1Threshold = SdcaTrainerOptions.L1Regularization.GetValueOrDefault();
             bool l1ThresholdZero = l1Threshold == 0;
             var lr = SdcaTrainerOptions.BiasLearningRate * SdcaTrainerOptions.L2Regularization.Value;
             var pch = progress != null ? progress.StartProgressChannel("Dual update") : null;
@@ -985,8 +985,8 @@ namespace Microsoft.ML.Trainers
 
             Contracts.Assert(SdcaTrainerOptions.L2Regularization.HasValue);
             Contracts.Assert(SdcaTrainerOptions.L1Regularization.HasValue);
-            Double l2Const = SdcaTrainerOptions.L2Regularization.Value;
-            Double l1Threshold = SdcaTrainerOptions.L1Regularization.Value;
+            Double l2Const = SdcaTrainerOptions.L2Regularization.GetValueOrDefault();
+            Double l1Threshold = SdcaTrainerOptions.L1Regularization.GetValueOrDefault();
             Double l1Regularizer = l1Threshold * l2Const * (VectorUtils.L1Norm(in weights[0]) + Math.Abs(biasReg[0]));
             var l2Regularizer = l2Const * (VectorUtils.NormSquared(weights[0]) + biasReg[0] * biasReg[0]) * 0.5;
             var newLoss = lossSum.Sum / count + l2Regularizer + l1Regularizer;
@@ -2011,7 +2011,7 @@ namespace Microsoft.ML.Trainers
             Contracts.AssertValueOrNull(predictor);
             Contracts.Assert(data.Schema.Feature.HasValue);
 
-            int numFeatures = data.Schema.Feature.Value.Type.GetVectorSize();
+            int numFeatures = data.Schema.Feature.GetValueOrDefault().Type.GetVectorSize();
 
             CursOpt cursorOpt = CursOpt.Label | CursOpt.Features;
             if (data.Schema.Weight.HasValue)
@@ -2022,7 +2022,7 @@ namespace Microsoft.ML.Trainers
             int numThreads;
             if (_options.NumberOfThreads.HasValue)
             {
-                numThreads = _options.NumberOfThreads.Value;
+                numThreads = _options.NumberOfThreads.GetValueOrDefault();
                 ch.CheckUserArg(numThreads > 0, nameof(_options.NumberOfThreads), "The number of threads must be either null or a positive integer.");
             }
             else

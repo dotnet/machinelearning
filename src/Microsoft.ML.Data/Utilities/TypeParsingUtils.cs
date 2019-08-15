@@ -57,7 +57,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(keyCount, nameof(keyCount));
 
             KeyDataViewType keyType;
-            Type rawType = type.HasValue ? type.Value.ToType() : InternalDataKind.U8.ToType();
+            Type rawType = type.HasValue ? type.GetValueOrDefault().ToType() : InternalDataKind.U8.ToType();
             Contracts.CheckUserArg(KeyDataViewType.IsValidDataType(rawType), nameof(TextLoader.Column.Type), "Bad item type for Key");
 
             if (keyCount.Count == null)

@@ -96,7 +96,7 @@ namespace Microsoft.ML.Trainers
             Host.AssertValue(data);
             Host.Assert(data.Schema.Label.HasValue);
 
-            var label = data.Schema.Label.Value;
+            var label = data.Schema.Label.GetValueOrDefault();
             IDataView dataView = data.Data;
             if (!Args.ImputeMissingLabelsAsNegative)
                 dataView = new NAFilter(Host, data.Data, false, label.Name);

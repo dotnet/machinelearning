@@ -184,7 +184,7 @@ namespace Microsoft.ML.Trainers
             Contracts.Assert(Utils.Size(biasUnreg) == numClasses);
 
             int maxUpdateTrials = 2 * numThreads;
-            var l1Threshold = SdcaTrainerOptions.L1Regularization.Value;
+            var l1Threshold = SdcaTrainerOptions.L1Regularization.GetValueOrDefault();
             bool l1ThresholdZero = l1Threshold == 0;
             var lr = SdcaTrainerOptions.BiasLearningRate * SdcaTrainerOptions.L2Regularization.Value;
 
@@ -409,8 +409,8 @@ namespace Microsoft.ML.Trainers
 
             Contracts.Assert(SdcaTrainerOptions.L2Regularization.HasValue);
             Contracts.Assert(SdcaTrainerOptions.L1Regularization.HasValue);
-            Double l2Const = SdcaTrainerOptions.L2Regularization.Value;
-            Double l1Threshold = SdcaTrainerOptions.L1Regularization.Value;
+            Double l2Const = SdcaTrainerOptions.L2Regularization.GetValueOrDefault();
+            Double l1Threshold = SdcaTrainerOptions.L1Regularization.GetValueOrDefault();
 
             Double weightsL1Norm = 0;
             Double weightsL2NormSquared = 0;
@@ -422,7 +422,7 @@ namespace Microsoft.ML.Trainers
                 biasRegularizationAdjustment += biasReg[iClass] * biasUnreg[iClass];
             }
 
-            Double l1Regularizer = SdcaTrainerOptions.L1Regularization.Value * l2Const * weightsL1Norm;
+            Double l1Regularizer = SdcaTrainerOptions.L1Regularization.GetValueOrDefault() * l2Const * weightsL1Norm;
             var l2Regularizer = l2Const * weightsL2NormSquared * 0.5;
 
             var newLoss = lossSum.Sum / count + l2Regularizer + l1Regularizer;

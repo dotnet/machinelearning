@@ -132,7 +132,7 @@ namespace Microsoft.ML.Trainers
             Host.CheckValue(context, nameof(context));
             var data = context.TrainingSet;
             Host.Check(data.Schema.Label.HasValue, "Missing Label column");
-            var labelCol = data.Schema.Label.Value;
+            var labelCol = data.Schema.Label.GetValueOrDefault();
             Host.Check(labelCol.Type == NumberDataViewType.Single || labelCol.Type is KeyDataViewType,
                 "Invalid type for Label column, only floats and known-size keys are supported");
 

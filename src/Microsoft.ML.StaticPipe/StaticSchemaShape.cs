@@ -250,10 +250,10 @@ namespace Microsoft.ML.StaticPipe
                     var normalizedColumn = meta.Schema.GetColumnOrNull(AnnotationUtils.Kinds.IsNormalized);
                     if (normalizedColumn.HasValue)
                     {
-                        if (normalizedColumn.Value.Type == BooleanDataViewType.Instance)
+                        if (normalizedColumn.GetValueOrDefault().Type == BooleanDataViewType.Instance)
                         {
                             bool val = default;
-                            meta.GetGetter<bool>(normalizedColumn.Value)(ref val);
+                            meta.GetGetter<bool>(normalizedColumn.GetValueOrDefault())(ref val);
                             if (val)
                                 vecType = typeof(NormVector<>);
                         }

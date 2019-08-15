@@ -68,7 +68,7 @@ namespace Microsoft.ML.Trainers
             // If the above function is generalized, this needs to be as well.
             Contracts.AssertValue(data);
             Contracts.Assert(data.Schema.Feature.HasValue);
-            var col = data.Schema.Feature.Value;
+            var col = data.Schema.Feature.GetValueOrDefault();
             Contracts.Assert(!col.IsHidden);
             var colType = col.Type as VectorDataViewType;
             Contracts.Assert(colType != null && colType.IsKnownSize);
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Trainers
 
             if (!data.Schema.Label.HasValue)
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
-            var col = data.Schema.Label.Value;
+            var col = data.Schema.Label.GetValueOrDefault();
             Contracts.Assert(!col.IsHidden);
             if (col.Type != BooleanDataViewType.Instance && col.Type != NumberDataViewType.Single && col.Type != NumberDataViewType.Double && !(col.Type is KeyDataViewType keyType && keyType.Count == 2))
             {
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Trainers
 
             if (!data.Schema.Label.HasValue)
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
-            var col = data.Schema.Label.Value;
+            var col = data.Schema.Label.GetValueOrDefault();
             Contracts.Assert(!data.Schema.Schema[col.Index].IsHidden);
             if (col.Type != NumberDataViewType.Single && col.Type != NumberDataViewType.Double)
             {
@@ -140,7 +140,7 @@ namespace Microsoft.ML.Trainers
 
             if (!data.Schema.Label.HasValue)
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
-            var col = data.Schema.Label.Value;
+            var col = data.Schema.Label.GetValueOrDefault();
             Contracts.Assert(!col.IsHidden);
             if (col.Type is KeyDataViewType keyType && keyType.Count > 0)
             {
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Trainers
 
             if (!data.Schema.Label.HasValue)
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
-            var col = data.Schema.Label.Value;
+            var col = data.Schema.Label.GetValueOrDefault();
             Contracts.Assert(!col.IsHidden);
             if (!(col.Type is VectorDataViewType vectorType
                 && vectorType.IsKnownSize
@@ -202,7 +202,7 @@ namespace Microsoft.ML.Trainers
 
             if (!data.Schema.Weight.HasValue)
                 return;
-            var col = data.Schema.Weight.Value;
+            var col = data.Schema.Weight.GetValueOrDefault();
             Contracts.Assert(!col.IsHidden);
             if (col.Type != NumberDataViewType.Single && col.Type != NumberDataViewType.Double)
                 throw Contracts.ExceptParam(nameof(data), "Training weight column '{0}' must be of floating point numeric type, but has type: {1}.", col.Name, col.Type);
@@ -214,7 +214,7 @@ namespace Microsoft.ML.Trainers
 
             if (!data.Schema.Group.HasValue)
                 return;
-            var col = data.Schema.Group.Value;
+            var col = data.Schema.Group.GetValueOrDefault();
             Contracts.Assert(!col.IsHidden);
             if (col.Type is KeyDataViewType)
                 return;
@@ -231,13 +231,13 @@ namespace Microsoft.ML.Trainers
                 data.Data.Schema.Where(c => extraCols.Contains(c.Index)).ToList();
 
             if ((opt & CursOpt.Label) != 0 && data.Schema.Label.HasValue)
-                columns.Add(data.Schema.Label.Value);
+                columns.Add(data.Schema.Label.GetValueOrDefault());
             if ((opt & CursOpt.Features) != 0 && data.Schema.Feature.HasValue)
-                columns.Add(data.Schema.Feature.Value);
+                columns.Add(data.Schema.Feature.GetValueOrDefault());
             if ((opt & CursOpt.Weight) != 0 && data.Schema.Weight.HasValue)
-                columns.Add(data.Schema.Weight.Value);
+                columns.Add(data.Schema.Weight.GetValueOrDefault());
             if ((opt & CursOpt.Group) != 0 && data.Schema.Group.HasValue)
-                columns.Add(data.Schema.Group.Value);
+                columns.Add(data.Schema.Group.GetValueOrDefault());
             return columns;
         }
 
@@ -266,7 +266,7 @@ namespace Microsoft.ML.Trainers
             Contracts.CheckParam(schema.Schema == row.Schema, nameof(schema), "schemas don't match!");
             Contracts.CheckParam(schema.Feature.HasValue, nameof(schema), "Missing feature column");
 
-            return row.GetGetter<VBuffer<float>>(schema.Feature.Value);
+            return row.GetGetter<VBuffer<float>>(schema.Feature.GetValueOrDefault());
         }
 
         /// <summary>
@@ -289,7 +289,7 @@ namespace Microsoft.ML.Trainers
             Contracts.CheckParam(schema.Schema == row.Schema, nameof(schema), "schemas don't match!");
             Contracts.CheckParam(schema.Label.HasValue, nameof(schema), "Missing label column");
 
-            return RowCursorUtils.GetLabelGetter(row, schema.Label.Value.Index);
+            return RowCursorUtils.GetLabelGetter(row, schema.Label.GetValueOrDefault().Index);
         }
 
         /// <summary>
@@ -314,7 +314,7 @@ namespace Microsoft.ML.Trainers
             var col = schema.Weight;
             if (!col.HasValue)
                 return null;
-            return RowCursorUtils.GetGetterAs<float>(NumberDataViewType.Single, row, col.Value.Index);
+            return RowCursorUtils.GetGetterAs<float>(NumberDataViewType.Single, row, col.GetValueOrDefault().Index);
         }
 
         public static ValueGetter<float> GetOptWeightFloatGetter(this DataViewRow row, RoleMappedData data)
@@ -335,7 +335,7 @@ namespace Microsoft.ML.Trainers
             var col = schema.Group;
             if (!col.HasValue)
                 return null;
-            return RowCursorUtils.GetGetterAs<ulong>(NumberDataViewType.UInt64, row, col.Value.Index);
+            return RowCursorUtils.GetGetterAs<ulong>(NumberDataViewType.UInt64, row, col.GetValueOrDefault().Index);
         }
 
         public static ValueGetter<ulong> GetOptGroupGetter(this DataViewRow row, RoleMappedData data)

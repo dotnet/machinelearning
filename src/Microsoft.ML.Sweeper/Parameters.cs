@@ -235,7 +235,7 @@ namespace Microsoft.ML.Sweeper
                 // REVIEW: review the math below, it only works for positive Min and Max
                 var logBase = !_options.StepSize.HasValue
                     ? Math.Pow(1.0 * _options.Max / _options.Min, 1.0 / (_options.NumSteps - 1))
-                    : _options.StepSize.Value;
+                    : _options.StepSize.GetValueOrDefault();
                 var logMax = Math.Log(_options.Max, logBase);
                 var logMin = Math.Log(_options.Min, logBase);
                 val = (long)(_options.Min * Math.Pow(logBase, normalizedValue * (logMax - logMin)));
@@ -367,7 +367,7 @@ namespace Microsoft.ML.Sweeper
                 // REVIEW: review the math below, it only works for positive Min and Max
                 var logBase = !_options.StepSize.HasValue
                     ? Math.Pow(1.0 * _options.Max / _options.Min, 1.0 / (_options.NumSteps - 1))
-                    : _options.StepSize.Value;
+                    : _options.StepSize.GetValueOrDefault();
                 var logMax = Math.Log(_options.Max, logBase);
                 var logMin = Math.Log(_options.Min, logBase);
                 val = (float)(_options.Min * Math.Pow(logBase, normalizedValue * (logMax - logMin)));

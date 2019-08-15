@@ -336,7 +336,7 @@ namespace Microsoft.ML.Transforms.Onnx
                     if (!col.HasValue)
                         throw Host.ExceptSchemaMismatch( nameof(inputSchema),"input", _parent.Inputs[i]);
 
-                    _inputColIndices[i] = col.Value.Index;
+                    _inputColIndices[i] = col.GetValueOrDefault().Index;
 
                     var type = inputSchema[_inputColIndices[i]].Type;
                     var vectorType = type as VectorDataViewType;

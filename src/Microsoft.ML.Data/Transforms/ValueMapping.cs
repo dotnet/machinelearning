@@ -442,7 +442,7 @@ namespace Microsoft.ML.Transforms
             // Check if key column is valid to the used IDataView.
             column = dataView.Schema.GetColumnOrNull(keyColumn.Name);
             Host.Check(column.HasValue, "The selected column " + nameof(keyColumn) + " is not included in the targeted IDataView " + nameof(dataView));
-            var retrievedKeyColumn = column.Value;
+            var retrievedKeyColumn = column.GetValueOrDefault();
             Host.Check(retrievedKeyColumn.Index == keyColumn.Index, nameof(keyColumn) + "'s column index doesn't match that of the associated column in " + nameof(dataView));
             Host.Check(retrievedKeyColumn.Type == keyColumn.Type, nameof(keyColumn) + "'s column type doesn't match that of the associated column in " + nameof(dataView));
             Host.Check(retrievedKeyColumn.Annotations == keyColumn.Annotations, nameof(keyColumn) + "'s column annotations don't match those of the associated column in " + nameof(dataView));
@@ -450,7 +450,7 @@ namespace Microsoft.ML.Transforms
             // Check if value column is valid to the used IDataView.
             column = dataView.Schema.GetColumnOrNull(valueColumn.Name);
             Host.Check(column.HasValue, "The selected column " + nameof(valueColumn) + " is not included in the targeted IDataView " + nameof(dataView));
-            var retrievedValueColumn = column.Value;
+            var retrievedValueColumn = column.GetValueOrDefault();
             Host.Check(retrievedValueColumn.Index == valueColumn.Index, nameof(valueColumn) + "'s column index doesn't match that of the associated column in " + nameof(dataView));
             Host.Check(retrievedValueColumn.Type == valueColumn.Type, nameof(valueColumn) + "'s column type doesn't match that of the associated column in " + nameof(dataView));
             Host.Check(retrievedValueColumn.Annotations == valueColumn.Annotations, nameof(valueColumn) + "'s column annotations don't match those of the associated column in " + nameof(dataView));

@@ -286,8 +286,8 @@ namespace Microsoft.ML.Transforms
                 if (!col.HasValue)
                     throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].InputColumnName);
 
-                cols[i] = col.Value.Index;
-                srcTypes[i] = col.Value.Type;
+                cols[i] = col.GetValueOrDefault().Index;
+                srcTypes[i] = col.GetValueOrDefault().Type;
                 var reason = TestColumn(srcTypes[i]);
                 if (reason != null)
                     throw env.ExceptParam(nameof(inputData.Schema), reason);

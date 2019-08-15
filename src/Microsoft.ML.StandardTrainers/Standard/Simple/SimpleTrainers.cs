@@ -251,7 +251,7 @@ namespace Microsoft.ML.Trainers
             var data = context.TrainingSet;
             data.CheckBinaryLabel();
             _host.CheckParam(data.Schema.Label.HasValue, nameof(data), "Missing Label column");
-            var labelCol = data.Schema.Label.Value;
+            var labelCol = data.Schema.Label.GetValueOrDefault();
             _host.CheckParam(labelCol.Type == BooleanDataViewType.Instance, nameof(data), "Invalid type for Label column");
 
             double pos = 0;
@@ -265,7 +265,7 @@ namespace Microsoft.ML.Trainers
 
             using (var cursor = data.Data.GetRowCursor(cols))
             {
-                var getLab = cursor.GetGetter<bool>(data.Schema.Label.Value);
+                var getLab = cursor.GetGetter<bool>(data.Schema.Label.GetValueOrDefault());
                 var getWeight = colWeight >= 0 ? cursor.GetGetter<float>(data.Schema.Weight.Value) : null;
                 bool lab = default;
                 float weight = 1;

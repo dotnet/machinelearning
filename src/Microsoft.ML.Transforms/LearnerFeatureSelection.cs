@@ -132,13 +132,13 @@ namespace Microsoft.ML.Transforms
             float threshold;
             if (options.Threshold.HasValue)
             {
-                threshold = options.Threshold.Value;
+                threshold = options.Threshold.GetValueOrDefault();
                 tiedScoresToKeep = threshold > 0 ? int.MaxValue : 0;
             }
             else
             {
                 Contracts.Assert(options.NumSlotsToKeep.HasValue);
-                threshold = ComputeThreshold(scoresValues, options.NumSlotsToKeep.Value, out tiedScoresToKeep);
+                threshold = ComputeThreshold(scoresValues, options.NumSlotsToKeep.GetValueOrDefault(), out tiedScoresToKeep);
             }
 
             var slots = new List<(int min, int? max)>();

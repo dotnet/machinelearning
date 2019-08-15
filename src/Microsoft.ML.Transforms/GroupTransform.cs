@@ -354,11 +354,11 @@ namespace Microsoft.ML.Transforms
                     var errorMessage = string.Format("Could not find column '{0}'", names[i]);
                     _ectx.Check(retrievedColumn.HasValue, errorMessage);
 
-                    var colType = retrievedColumn.Value.Type;
+                    var colType = retrievedColumn.GetValueOrDefault().Type;
                     errorMessage = string.Format("Column '{0}' has type '{1}', but must have a primitive type", names[i], colType);
                     _ectx.Check(colType is PrimitiveDataViewType, errorMessage);
 
-                    ids[i] = retrievedColumn.Value.Index;
+                    ids[i] = retrievedColumn.GetValueOrDefault().Index;
                 }
 
                 return ids;

@@ -155,8 +155,8 @@ namespace Microsoft.ML.Transforms
             if (commonSize > 0)
             {
                 long? srcRowCount = Source.GetRowCount();
-                if (srcRowCount.HasValue && srcRowCount.Value <= (long.MaxValue / commonSize))
-                    return srcRowCount.Value * commonSize;
+                if (srcRowCount.HasValue && srcRowCount.GetValueOrDefault() <= (long.MaxValue / commonSize))
+                    return srcRowCount.GetValueOrDefault() * commonSize;
             }
             return null;
         }

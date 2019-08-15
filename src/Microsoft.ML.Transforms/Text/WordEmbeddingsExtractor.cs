@@ -241,7 +241,7 @@ namespace Microsoft.ML.Transforms.Text
             if (customLookup)
                 return new WordEmbeddingTransformer(env, options.CustomLookupTable, cols).MakeDataTransform(input);
             else
-                return new WordEmbeddingTransformer(env, options.ModelKind.Value, cols).MakeDataTransform(input);
+                return new WordEmbeddingTransformer(env, options.ModelKind.GetValueOrDefault(), cols).MakeDataTransform(input);
         }
 
         private WordEmbeddingTransformer(IHost host, ModelLoadContext ctx)

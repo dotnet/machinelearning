@@ -219,7 +219,7 @@ namespace Microsoft.ML.RunTests
                             var col = c.Schema.GetColumnOrNull(cols[i]);
                             if (!Check(col.HasValue, "{0} not found!", cols[i]))
                                 return;
-                            getters[i] = c.GetGetter<VBuffer<float>>(col.Value);
+                            getters[i] = c.GetGetter<VBuffer<float>>(col.GetValueOrDefault());
                         }
 
                         Func<float, float, bool> fn = (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y);
@@ -579,8 +579,8 @@ namespace Microsoft.ML.RunTests
                         if (!Check(col2.HasValue, "Column F23 not found!"))
                             return;
 
-                        var get1 = c.GetGetter<VBuffer<float>>(col1.Value);
-                        var get2 = c.GetGetter<VBuffer<float>>(col2.Value);
+                        var get1 = c.GetGetter<VBuffer<float>>(col1.GetValueOrDefault());
+                        var get2 = c.GetGetter<VBuffer<float>>(col2.GetValueOrDefault());
                         VBuffer<float> bag1 = default;
                         VBuffer<float> bag2 = default;
                         while (c.MoveNext())
@@ -621,8 +621,8 @@ namespace Microsoft.ML.RunTests
                         if (!Check(col2.HasValue, "Column F2 not found!"))
                             return;
 
-                        var get1 = c.GetGetter<VBuffer<float>>(col1.Value);
-                        var get2 = c.GetGetter<VBuffer<float>>(col2.Value);
+                        var get1 = c.GetGetter<VBuffer<float>>(col1.GetValueOrDefault());
+                        var get2 = c.GetGetter<VBuffer<float>>(col2.GetValueOrDefault());
                         VBuffer<float> bag1 = default;
                         VBuffer<float> bag2 = default;
                         while (c.MoveNext())
@@ -775,8 +775,8 @@ namespace Microsoft.ML.RunTests
                             Fail("Did not find expected columns");
                             return;
                         }
-                        var get1 = c.GetGetter<VBuffer<float>>(col1.Value);
-                        var get2 = c.GetGetter<VBuffer<float>>(col2.Value);
+                        var get1 = c.GetGetter<VBuffer<float>>(col1.GetValueOrDefault());
+                        var get2 = c.GetGetter<VBuffer<float>>(col2.GetValueOrDefault());
                         while (c.MoveNext())
                         {
                             get1(ref b1);
@@ -918,7 +918,7 @@ namespace Microsoft.ML.RunTests
                         var col = c.Schema.GetColumnOrNull("T");
                         if (!Check(col.HasValue, "Column T not found!"))
                             return;
-                        var getter = c.GetGetter<VBuffer<ReadOnlyMemory<char>>>(col.Value);
+                        var getter = c.GetGetter<VBuffer<ReadOnlyMemory<char>>>(col.GetValueOrDefault());
                         var buffer = default(VBuffer<ReadOnlyMemory<char>>);
                         int index = 0;
                         while (c.MoveNext())
@@ -1188,7 +1188,7 @@ namespace Microsoft.ML.RunTests
 
             // Check the number of rows.
             Assert.True(view.GetRowCount().HasValue);
-            Assert.Equal((long)rows, view.GetRowCount().Value);
+            Assert.Equal((long)rows, view.GetRowCount().GetValueOrDefault());
 
             using (DataViewRowCursor cursor = view.GetRowCursorForAllColumns())
             {

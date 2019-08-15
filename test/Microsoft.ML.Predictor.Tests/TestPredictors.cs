@@ -670,17 +670,17 @@ namespace Microsoft.ML.RunTests
             {
                 using (var curs = scored.GetRowCursor(cols))
                 {
-                    var scoreGetter = curs.GetGetter<float>(scoreColumn.Value);
-                    var probGetter = curs.GetGetter<float>(probabilityColumn.Value);
-                    var predGetter = curs.GetGetter<bool>(predictedLabelColumn.Value);
+                    var scoreGetter = curs.GetGetter<float>(scoreColumn.GetValueOrDefault());
+                    var probGetter = curs.GetGetter<float>(probabilityColumn.GetValueOrDefault());
+                    var predGetter = curs.GetGetter<bool>(predictedLabelColumn.GetValueOrDefault());
                     var scoreGetters = new ValueGetter<float>[predCount];
                     var probGetters = new ValueGetter<float>[predCount];
                     var predGetters = new ValueGetter<bool>[predCount];
                     for (int i = 0; i < predCount; i++)
                     {
-                        scoreGetters[i] = cursors[i].GetGetter<float>(scoreColArray[i].Value);
-                        probGetters[i] = cursors[i].GetGetter<float>(probColArray[i].Value);
-                        predGetters[i] = cursors[i].GetGetter<bool>(predColArray[i].Value);
+                        scoreGetters[i] = cursors[i].GetGetter<float>(scoreColArray[i].GetValueOrDefault());
+                        probGetters[i] = cursors[i].GetGetter<float>(probColArray[i].GetValueOrDefault());
+                        predGetters[i] = cursors[i].GetGetter<bool>(predColArray[i].GetValueOrDefault());
                     }
 
                     float score = 0;

@@ -270,8 +270,8 @@ namespace Microsoft.ML.Trainers.FastTree
             Host.Assert(data.Schema.Feature.HasValue);
 
             if (useTranspose.HasValue)
-                return useTranspose.Value;
-            return (data.Data as ITransposeDataView)?.GetSlotType(data.Schema.Feature.Value.Index) != null;
+                return useTranspose.GetValueOrDefault();
+            return (data.Data as ITransposeDataView)?.GetSlotType(data.Schema.Feature.GetValueOrDefault().Index) != null;
         }
 
         private void TrainCore(IChannel ch)

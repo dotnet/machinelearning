@@ -223,7 +223,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             }
             // Check group types.
             ch.CheckParam(data.Schema.Group.HasValue, nameof(data), "Need a group column.");
-            var groupCol = data.Schema.Group.Value;
+            var groupCol = data.Schema.Group.GetValueOrDefault();
             var groupType = groupCol.Type;
             if (!(groupType == NumberDataViewType.UInt32 || groupType is KeyDataViewType))
             {

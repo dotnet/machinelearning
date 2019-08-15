@@ -542,13 +542,13 @@ namespace Microsoft.ML.ResultProcessor
             {
                 return new ExperimentItemResult()
                 {
-                    InputFile = result.Value.InputFile,
-                    Results = result.Value.Results,
-                    PerFoldResults = result.Value.PerFoldResults,
-                    Time = result.Value.Time,
-                    VirtualMemory = result.Value.VirtualMemory,
-                    PhysicalMemory = result.Value.PhysicalMemory,
-                    ExecutionDate = result.Value.ExecutionDate,
+                    InputFile = result.GetValueOrDefault().InputFile,
+                    Results = result.GetValueOrDefault().Results,
+                    PerFoldResults = result.GetValueOrDefault().PerFoldResults,
+                    Time = result.GetValueOrDefault().Time,
+                    VirtualMemory = result.GetValueOrDefault().VirtualMemory,
+                    PhysicalMemory = result.GetValueOrDefault().PhysicalMemory,
+                    ExecutionDate = result.GetValueOrDefault().ExecutionDate,
                     Commandline = commandline,
                     Datafile = datafile,
                     TestDatafile = testDatafile,

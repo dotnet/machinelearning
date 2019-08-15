@@ -21,7 +21,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             Contracts.AssertValue(data);
             Contracts.Assert(data.Schema.Feature.HasValue);
             Contracts.AssertValue(features);
-            var featCol = data.Schema.Feature.Value;
+            var featCol = data.Schema.Feature.GetValueOrDefault();
 
             var type = featCol.Type;
             var typeVectorSize = type.GetVectorSize();

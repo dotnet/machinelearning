@@ -370,12 +370,12 @@ namespace Microsoft.ML.Trainers
             var columns = new List<DataViewSchema.Column>(featureColumns);
             columns.Add(data.Schema.Label.Value);
             if (data.Schema.Weight != null)
-                columns.Add(data.Schema.Weight.Value);
+                columns.Add(data.Schema.Weight.GetValueOrDefault());
 
             using (var cursor = data.Data.GetRowCursor(columns))
             {
-                var labelGetter = RowCursorUtils.GetLabelGetter(cursor, data.Schema.Label.Value.Index);
-                var weightGetter = data.Schema.Weight.HasValue ? cursor.GetGetter<float>(data.Schema.Weight.Value) : null;
+                var labelGetter = RowCursorUtils.GetLabelGetter(cursor, data.Schema.Label.GetValueOrDefault().Index);
+                var weightGetter = data.Schema.Weight.HasValue ? cursor.GetGetter<float>(data.Schema.Weight.GetValueOrDefault()) : null;
                 for (int f = 0; f < featureColumns.Count; f++)
                     getters[f] = cursor.GetGetter<VBuffer<float>>(featureColumns[f]);
                 while (cursor.MoveNext())

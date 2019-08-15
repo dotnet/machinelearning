@@ -647,11 +647,11 @@ namespace Microsoft.ML.Data
                     // be non-null.
                     var vm = predictor as IValueMapper;
                     ch.CheckUserArg(vm != null, nameof(args.TrainedModelFile), "Predictor in model file does not have compatible type");
-                    if (vm.InputType.GetVectorSize() != data.Schema.Feature.Value.Type.GetVectorSize())
+                    if (vm.InputType.GetVectorSize() != data.Schema.Feature.GetValueOrDefault().Type.GetVectorSize())
                     {
                         throw ch.ExceptUserArg(nameof(args.TrainedModelFile),
                             "Predictor in model file expects {0} features, but data has {1} features",
-                            vm.InputType.GetVectorSize(), data.Schema.Feature.Value.Type.GetVectorSize());
+                            vm.InputType.GetVectorSize(), data.Schema.Feature.GetValueOrDefault().Type.GetVectorSize());
                     }
 
                     ISchemaBindableMapper bindable = new TreeEnsembleFeaturizerBindableMapper(env, scorerArgs, predictor);
@@ -713,11 +713,11 @@ namespace Microsoft.ML.Data
                 // be non-null.
                 var vm = predictor as IValueMapper;
                 ch.CheckUserArg(vm != null, nameof(args.PredictorModel), "Predictor does not have compatible type");
-                if (data != null && vm.InputType.GetVectorSize() != data.Schema.Feature.Value.Type.GetVectorSize())
+                if (data != null && vm.InputType.GetVectorSize() != data.Schema.Feature.GetValueOrDefault().Type.GetVectorSize())
                 {
                     throw ch.ExceptUserArg(nameof(args.PredictorModel),
                         "Predictor expects {0} features, but data has {1} features",
-                        vm.InputType.GetVectorSize(), data.Schema.Feature.Value.Type.GetVectorSize());
+                        vm.InputType.GetVectorSize(), data.Schema.Feature.GetValueOrDefault().Type.GetVectorSize());
                 }
 
                 ISchemaBindableMapper bindable = new TreeEnsembleFeaturizerBindableMapper(env, scorerArgs, predictor);
@@ -783,7 +783,7 @@ namespace Microsoft.ML.Data
             if (!col.HasValue)
                 throw ch.ExceptSchemaMismatch(nameof(input), "label", labelName);
 
-            DataViewType labelType = col.Value.Type;
+            DataViewType labelType = col.GetValueOrDefault().Type;
             if (!(labelType is KeyDataViewType))
             {
                 if (labelPermutationSeed != 0)

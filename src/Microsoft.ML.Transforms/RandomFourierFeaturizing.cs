@@ -298,7 +298,7 @@ namespace Microsoft.ML.Transforms
             {
                 for (int i = 0; i < columns.Length; i++)
                 {
-                    var rng = columns[i].Seed.HasValue ? RandomUtils.Create(columns[i].Seed.Value) : Host.Rand;
+                    var rng = columns[i].Seed.HasValue ? RandomUtils.Create(columns[i].Seed.GetValueOrDefault()) : Host.Rand;
                     var srcType = input.Schema[srcCols[i]].Type;
                     if (srcType is VectorDataViewType)
                     {

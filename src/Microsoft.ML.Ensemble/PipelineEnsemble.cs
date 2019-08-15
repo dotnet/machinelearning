@@ -55,7 +55,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                     var col = InputRoleMappedSchema.Schema.GetColumnOrNull(name);
                     if (!col.HasValue)
                         throw Parent.Host.ExceptSchemaMismatch(nameof(InputRoleMappedSchema), "input", name);
-                    _inputColIndices.Add(col.Value.Index);
+                    _inputColIndices.Add(col.GetValueOrDefault().Index);
                 }
 
                 Mappers = new ISchemaBoundRowMapper[Parent.PredictorModels.Length];
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                     var scoreCol = Mappers[i].OutputSchema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                     if (!scoreCol.HasValue)
                         throw Parent.Host.Except("Predictor {0} does not contain a score column", i);
-                    ScoreCols[i] = scoreCol.Value.Index;
+                    ScoreCols[i] = scoreCol.GetValueOrDefault().Index;
 
                     // Get the pipeline.
                     var dv = new EmptyDataView(Parent.Host, schema.Schema);
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                 {
                     Parent.Host.Assert(0 <= i && i < Mappers.Length);
                     Parent.Host.Check(Mappers[i].InputRoleMappedSchema.Label.HasValue, "Mapper was not trained using a label column");
-                    var labelCol = Mappers[i].InputRoleMappedSchema.Label.Value;
+                    var labelCol = Mappers[i].InputRoleMappedSchema.Label.GetValueOrDefault();
 
                     // The label should be in the output row of the i'th pipeline
                     var pipelineRow = BoundPipelines[i].GetRow(input, labelCol);
@@ -181,7 +181,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                         disposer = null;
                         return weight;
                     }
-                    var weightCol = Mappers[i].InputRoleMappedSchema.Weight.Value;
+                    var weightCol = Mappers[i].InputRoleMappedSchema.Weight.GetValueOrDefault();
                     // The weight should be in the output row of the i'th pipeline if it exists.
                     var inputColumns = Mappers[i].GetDependenciesForNewColumns(Enumerable.Repeat(weightCol, 1));
 
@@ -596,7 +596,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             model.PrepareData(env, edv, out RoleMappedData rmd, out IPredictor pred);
             if (!rmd.Schema.Label.HasValue)
                 throw env.Except("Training schema for model 0 does not have a label column");
-            var labelCol = rmd.Schema.Label.Value;
+            var labelCol = rmd.Schema.Label.GetValueOrDefault();
 
             var labelType = labelCol.Type;
             if (!(labelType is KeyDataViewType labelKeyType))
@@ -660,7 +660,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                 var labelInfo = rmd.Schema.Label.HasValue;
                 if (!rmd.Schema.Label.HasValue)
                     throw env.Except("Training schema for model {0} does not have a label column", i);
-                var labelCol = rmd.Schema.Label.Value;
+                var labelCol = rmd.Schema.Label.GetValueOrDefault();
 
                 var curLabelType = labelCol.Type as KeyDataViewType;
                 if (!labelType.Equals(curLabelType))
