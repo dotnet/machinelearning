@@ -2370,6 +2370,52 @@ namespace Microsoft.ML.RunTests
             var cmd = new ExecuteGraphCommand(Env, args);
             cmd.Run();
         }
+        [Fact]
+        public void TestTimeSeriesOnlineLearning()
+        {
+            string inputGraph =
+                $@"
+                {{
+                  'Nodes': [
+                    {{
+                      'Name': 'Data.CustomTextLoader',
+                      'Inputs': {{
+                        'InputFile': '$file1',
+                        'CustomSchema': 'col=ts:R4:0 col=t2:R4:1 col=t3:R4:2 quote+ header=+ sep=,'
+                      }},
+                      'Outputs': {{
+                        'Data': '$data1'
+                      }}
+                    }},";
+
+            inputGraph =
+                $@"{inputGraph}
+                    {{
+                      'Name': 'TimeSeries.OnlineLearning',
+                      'Inputs': {{
+                         'Data': '$data1',
+                         'ModelPath': 'C:\\tmp\\ssamodel.bin'
+                      }},
+                      'Outputs': {{
+                        'OutputData': '$output'
+                      }}
+                    }}
+                  ],
+                  'Inputs' : {{
+                    'file1' : 'C:\\tmp\\timeseries.csv',
+                  }},
+                  'Outputs' : {{
+                    'output': 'C:\\tmp\\output.csv'
+                  }}
+                }}";
+
+            var jsonPath = DeleteOutputPath("graph.json");
+            File.WriteAllLines(jsonPath, new[] { inputGraph });
+
+            var args = new ExecuteGraphCommand.Arguments() { GraphPath = jsonPath };
+            var cmd = new ExecuteGraphCommand(Env, args);
+            cmd.Run();
+        }
 
         internal void TestEntryPointRoutine(string dataFile, string trainerName, string loader = null, string trainerArgs = null, string[] xfNames = null, string[] xfArgs = null)
         {

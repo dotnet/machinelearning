@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.TimeSeries;
@@ -52,6 +53,62 @@ namespace Microsoft.ML.Transforms.TimeSeries
             {
                 Model = new TransformModelImpl(h, view, options.Data),
                 OutputData = view
+            };
+        }
+
+        public sealed class TimeSeriesPredictionInput : TransformInputBase
+        {
+            [Argument(ArgumentType.Required, HelpText = "Model file path", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, SortOrder = 2)]
+            public string ModelPath;
+        }
+# pragma warning disable MSML_GeneralName
+        private class TimeSeriesData
+        {
+            public float t1;
+            public float t2;
+            public float t3;
+
+            public TimeSeriesData(float value)
+            {
+                t1 = 1;
+                t2 = value;
+                t3 = 1;
+            }
+        }
+
+        private class SsaSpikePrediction
+        {
+            public double[] t2_spikes { get; set; }
+        }
+
+        [TlcModule.EntryPoint(Name = "TimeSeries.OnlineLearning", Desc = "Runs predictions on new observations and updates the model file",
+            UserName = "TBD",
+            ShortName = "TBD")]
+        public static CommonOutputs.TransformOutput TimeSeriesPredictionEngine(IHostEnvironment env, TimeSeriesPredictionInput input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            var host = env.Register("TimeSeriesPrediction");
+            host.CheckValue(input, nameof(input));
+            EntryPointUtils.CheckInputArgs(host, input);
+
+            var ml = new MLContext();
+            var model = ml.Model.Load(input.ModelPath, out DataViewSchema inputSchema);
+            var model1 = new StatefulTimeseriesTransformer(env, model);
+            var predictions = model1.Transform(input.Data);
+            // model.Save()
+
+            // Create a time series prediction engine from the loaded model.
+            // var engine = model.CreateTimeSeriesEngine<TimeSeriesData, SsaSpikePrediction>(host);
+
+            //var predictions = engine.Predict(new TimeSeriesData(10));
+            // var predictions1 = engine.Transform(input.Data);
+            // TBD this will take effect ONLY if input.Data is replayed through model
+            //engine.CheckPoint(host, input.ModelPath);
+
+            return new CommonOutputs.TransformOutput()
+            {
+                OutputData = predictions,
+                Model = null
             };
         }
 
