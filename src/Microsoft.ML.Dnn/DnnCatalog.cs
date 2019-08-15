@@ -94,6 +94,9 @@ namespace Microsoft.ML
         /// <param name="epoch">Number of training epochs.</param>
         /// <param name="batchSize">The batch size for training.</param>
         /// <param name="learningRate">The learning rate for training.</param>
+        /// <param name="statisticsCallback">The callback function for getting training metrics.</param>
+        /// <param name="callbackFrequency">The frequency the callback function is executed with respect to epochs.</param>
+        /// <param name="validationSet">The validation set for when training, if passing a validation set make sure to pass statisticsCallback</param>
         /// <remarks>
         /// The support for image classification is under preview.
         /// </remarks>
@@ -109,7 +112,10 @@ namespace Microsoft.ML
             DnnFramework dnnFramework = DnnFramework.Tensorflow,
             int epoch = 10,
             int batchSize = 20,
-            float learningRate = 0.01f)
+            float learningRate = 0.01f,
+            TrainMetrics statisticsCallback = null,
+            int callbackFrequency = 1,
+            IDataView validationSet = null)
         {
             var options = new Options()
             {
@@ -127,7 +133,10 @@ namespace Microsoft.ML
                 PredictedLabelColumnName = predictedLabelColumnName,
                 CheckpointName = checkpointName,
                 Arch = arch,
-                MeasureTrainAccuracy = false
+                MeasureTrainAccuracy = false,
+                StatisticsCallback = statisticsCallback,
+                CallbackFrequency = callbackFrequency,
+                ValidationSet = validationSet
             };
 
             if (!File.Exists(options.ModelLocation))

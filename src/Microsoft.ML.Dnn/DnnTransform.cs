@@ -63,6 +63,7 @@ namespace Microsoft.ML.Transforms
         private Tensor _labelTensor;
         private Tensor _evaluationStep;
         private Tensor _prediction;
+        private Tensor _bottleneckinput;
         private readonly int _classCount;
         private readonly string _checkpointPath;
         private readonly string _bottleneckOperationName;
@@ -356,8 +357,6 @@ namespace Microsoft.ML.Transforms
             Saver trainSaver = null;
             FileWriter trainWriter = null;
             Tensor merged = null;
-            Runner testSetRunner = null;
-            Runner validationSetRunner = null;
             if (options.TransferLearning)
             {
                 merged = tf.summary.merge_all();
@@ -370,17 +369,133 @@ namespace Microsoft.ML.Transforms
             Runner runner;
             var cols = input.Schema.Where(c => inputColIndices.Contains(c.Index));
 
-            for (int epoch = 0; epoch < options.Epoch; epoch++)
+            // Add Featurizing step
+            List<Tensor> tensor = new List<Tensor>();
+            List<Tensor> labelTensor = new List<Tensor>();
+            List<Tensor> validationTensor = new List<Tensor>();
+            List<Tensor> validationLabelTensor = new List<Tensor>();
+            int trainCount = 0;
+            int validationCount = 0;
+            if (options.TransferLearning)
             {
+                // Calculate Leftover Tensor
+                int customBufferSize = 0;
                 using (var cursor = input.GetRowCursor(cols))
                 {
                     var srcTensorGetters = GetTensorValueGetters(cursor, inputColIndices, isInputVector, tfInputTypes, tfInputShapes);
-                    bool isDataLeft = false;
-                    using (var ch = Host.Start("Training TensorFlow model..."))
-                    using (var pch = Host.StartProgressChannel("TensorFlow training progress..."))
+                    while (cursor.MoveNext())
                     {
-                        if (options.ReTrain)
+                        // Buffer input data
+                        srcTensorGetters[0].BufferTrainingData();
+                        srcTensorGetters[1].BufferTrainingData();
+                        customBufferSize++;
+                        trainCount++;
+                        if (((cursor.Position + 1) % options.BatchSize) == 0)
                         {
+                            // Feed inputs.
+                            runner = new Runner(_session);
+                            runner.AddInput(inputsForTraining[0], srcTensorGetters[0].GetBufferedBatchTensor());
+
+                            // Gather featurized outputs
+                            runner.AddOutputs(_bottleneckOperationName);
+                            var tmp = runner.Run();
+
+                            // Store Output Tensor in local list
+                            tensor.Add(tmp[0]);
+                            labelTensor.Add(srcTensorGetters[1].GetBufferedBatchTensor());
+
+                            // Reset Buffer Size
+                            customBufferSize = 0;
+                        }
+                        Console.WriteLine(cursor.Position);
+                    }
+                    if (customBufferSize != 0)
+                    {
+                        // Feed inputs.
+                        runner = new Runner(_session);
+                        runner.AddInput(inputsForTraining[0], srcTensorGetters[0].GetBufferedBatchTensor(customBufferSize));
+
+                        // Gather featurized outputs
+                        runner.AddOutputs(_bottleneckOperationName);
+                        var tmp = runner.Run();
+
+                        // Store Output Tensor in local list
+                        tensor.Add(tmp[0]);
+                        labelTensor.Add(srcTensorGetters[1].GetBufferedBatchTensor(customBufferSize));
+
+                        // Reset Buffer Size
+                        customBufferSize = 0;
+                    }
+                }
+                if (options.ValidationSet != null)
+                {
+                    using (var cursor = options.ValidationSet.GetRowCursor(cols))
+                    {
+                        var srcTensorGetters = GetTensorValueGetters(cursor, inputColIndices, isInputVector, tfInputTypes, tfInputShapes);
+                        while (cursor.MoveNext())
+                        {
+                            // Buffer input data
+                            srcTensorGetters[0].BufferTrainingData();
+                            srcTensorGetters[1].BufferTrainingData();
+                            customBufferSize++;
+                            validationCount++;
+                            if (((cursor.Position + 1) % options.BatchSize) == 0)
+                            {
+                                // Feed inputs.
+                                runner = new Runner(_session);
+                                runner.AddInput(inputsForTraining[0], srcTensorGetters[0].GetBufferedBatchTensor());
+
+                                // Gather featurized outputs
+                                runner.AddOutputs(_bottleneckOperationName);
+                                var tmp = runner.Run();
+
+                                // Store Output Tensor in local list
+                                validationTensor.Add(tmp[0]);
+                                validationLabelTensor.Add(srcTensorGetters[1].GetBufferedBatchTensor());
+
+                                // Reset Buffer Size
+                                customBufferSize = 0;
+                            }
+                            Console.WriteLine(cursor.Position);
+                        }
+                        if (customBufferSize != 0)
+                        {
+                            // Feed inputs.
+                            runner = new Runner(_session);
+                            runner.AddInput(inputsForTraining[0], srcTensorGetters[0].GetBufferedBatchTensor(customBufferSize));
+
+                            // Gather featurized outputs
+                            runner.AddOutputs(_bottleneckOperationName);
+                            var tmp = runner.Run();
+
+                            // Store Output Tensor in local list
+                            validationTensor.Add(tmp[0]);
+                            validationLabelTensor.Add(srcTensorGetters[1].GetBufferedBatchTensor(customBufferSize));
+
+                            // Reset Buffer Size
+                            customBufferSize = 0;
+                        }
+                        //Console.WriteLine(labelCount);
+                    }
+                }
+            }
+
+            for (int epoch = 0; epoch < options.Epoch; epoch++)
+            {
+                float trainAccuracy = 0;
+                float trainCrossEntropy = 0;
+                float validationTrainAccuracy = 0;
+                float validationTrainCrossEntropy = 0;
+                if (options.ReTrain)
+                {
+                    using (var cursor = input.GetRowCursor(cols))
+                    {
+                        var srcTensorGetters = GetTensorValueGetters(cursor, inputColIndices, isInputVector, tfInputTypes, tfInputShapes);
+                        bool isDataLeft = false;
+                        using (var ch = Host.Start("Training TensorFlow model..."))
+                        using (var pch = Host.StartProgressChannel("TensorFlow training progress..."))
+                        {
+
                             float loss = 0;
                             float metric = 0;
                             pch.SetHeader(new ProgressHeader(new[] { "Loss", "Metric" }, new[] { "Epoch" }), (e) => e.SetProgress(0, epoch, options.Epoch));
@@ -424,133 +539,73 @@ namespace Microsoft.ML.Transforms
                             }
                             pch.Checkpoint(new double?[] { loss, metric });
                         }
-                        else
-                        {
-                            pch.SetHeader(new ProgressHeader(null, new[] { "Epoch" }), (e) => e.SetProgress(0, epoch, options.Epoch));
-
-                            while (cursor.MoveNext())
-                            {
-                                for (int i = 0; i < inputsForTraining.Length; i++)
-                                {
-                                    isDataLeft = true;
-                                    srcTensorGetters[i].BufferTrainingData();
-                                }
-
-                                if (((cursor.Position + 1) % options.BatchSize) == 0)
-                                {
-                                    isDataLeft = false;
-                                    runner = new Runner(_session);
-
-                                    // Add operations.
-                                    runner.AddOperation(_trainStep);
-
-                                    // Feed inputs.
-                                    for (int i = 0; i < inputsForTraining.Length; i++)
-                                        runner.AddInput(inputsForTraining[i], srcTensorGetters[i].GetBufferedBatchTensor());
-
-                                    // Execute the graph.
-                                    var t = runner.Run();
-                                }
-                            }
-
-                            if (isDataLeft)
-                            {
-                                isDataLeft = false;
-                                ch.Warning("Not training on the last batch. The batch size is less than {0}.", options.BatchSize);
-                            }
-                        }
                     }
                 }
-
-                // Measure accuracy of the model.
-                if (options.TransferLearning && options.MeasureTrainAccuracy)
+                // Take featurized inputs and feed them in to transfer learning layer for training
+                if (options.TransferLearning)
                 {
-                    // Test on the training set to get accuracy.
-                    using (var cursor = input.GetRowCursor(cols))
+                    for (int i = 0; i < tensor.Count; i++)
                     {
-                        var srcTensorGetters = GetTensorValueGetters(cursor, inputColIndices, isInputVector, tfInputTypes, tfInputShapes);
+                        runner = new Runner(_session);
 
-                        float accuracy = 0;
-                        float crossEntropy = 0;
-                        bool isDataLeft = false;
-                        int batch = 0;
-                        using (var ch = Host.Start("Test TensorFlow model..."))
-                        using (var pch = Host.StartProgressChannel("TensorFlow testing progress..."))
+                        // Add training operation.
+
+                        runner.AddOperation(_trainStep);
+
+                        // Feed inputs.
+                        runner.AddInput(_bottleneckinput.name, tensor[i]);
+                        runner.AddInput(inputsForTraining[1], labelTensor[i]);
+
+                        // Execute the graph.
+                        var t = runner.Run();
+
+                    }
+                    if (options.StatisticsCallback != null && epoch % options.CallbackFrequency == 0)
+                    {
+                        for (int i = 0; i < tensor.Count; i++)
                         {
-                            pch.SetHeader(new ProgressHeader(new[] { "Accuracy", "Cross Entropy" }, new[] { "Epoch" }), (e) => e.SetProgress(0, epoch, options.Epoch));
+                            // Execute Callback Function for Training Metrics
+                            runner = new Runner(_session);
 
-                            while (cursor.MoveNext())
-                            {
-                                for (int i = 0; i < inputColIndices.Length; i++)
-                                {
-                                    isDataLeft = true;
-                                    srcTensorGetters[i].BufferTrainingData();
-                                }
+                            // Feed inputs.
+                            runner.AddInput(_bottleneckinput.name, tensor[i]);
+                            runner.AddInput(inputsForTraining[1], labelTensor[i]);
 
-                                if (((cursor.Position + 1) % options.BatchSize) == 0)
-                                {
-                                    isDataLeft = false;
-                                    testSetRunner = new Runner(_session);
-                                    testSetRunner.AddOutputs(_evaluationStep.name);
-                                    testSetRunner.AddOutputs(_crossEntropy.name);
-                                    testSetRunner.AddOutputs(_bottleneckTensor.name);
-                                    var (acc, ce) = ExecuteGraphAndRetrieveMetrics(inputsForTraining, srcTensorGetters, testSetRunner);
-                                    accuracy += acc;
-                                    crossEntropy += ce;
-                                    batch++;
-                                }
-                            }
+                            // Gather outputs (metrics of training)
+                            runner.AddOutputs(_evaluationStep.name);
+                            runner.AddOutputs(_crossEntropy.name);
 
-                            if (isDataLeft)
-                            {
-                                isDataLeft = false;
-                                ch.Warning("Not training on the last batch. The batch size is less than {0}.", options.BatchSize);
-                            }
-                            pch.Checkpoint(new double?[] { accuracy / batch, crossEntropy / batch });
-                            ch.Info(MessageSensitivity.None, $"Accuracy: {accuracy / batch}, Cross-Entropy: {crossEntropy / batch}");
+                            // Execute the graph.
+                            var metrics = runner.Run();
+                            trainAccuracy += metrics[0].Data<float>()[0] * tensor[i].dims[0] / trainCount;
+                            trainCrossEntropy += metrics[1].Data<float>()[0] * tensor[i].dims[0] / trainCount;
+
                         }
                     }
-
-                    // Test on the validation set.
-                    if (validationSet != null)
+                    if (options.ValidationSet != null)
                     {
-                        using (var cursor = validationSet.GetRowCursor(cols))
+                        for (int i = 0; i < validationTensor.Count; i++)
                         {
-                            var srcTensorGetters = GetTensorValueGetters(cursor, inputColIndices, isInputVector, tfInputTypes, tfInputShapes);
+                            runner = new Runner(_session);
 
-                            float accuracy = 0;
-                            bool isDataLeft = false;
-                            int batch = 0;
-                            using (var ch = Host.Start("Test TensorFlow model with validation set..."))
-                            using (var pch = Host.StartProgressChannel("TensorFlow validation progress..."))
-                            {
-                                pch.SetHeader(new ProgressHeader(new[] { "Accuracy" }, new[] { "Epoch" }), (e) => e.SetProgress(0, epoch, options.Epoch));
+                            runner.AddInput(_bottleneckinput.name, validationTensor[i]);
+                            runner.AddInput(inputsForTraining[1], validationLabelTensor[i]);
 
-                                while (cursor.MoveNext())
-                                {
-                                    for (int i = 0; i < inputColIndices.Length; i++)
-                                    {
-                                        isDataLeft = true;
-                                        srcTensorGetters[i].BufferTrainingData();
-                                    }
+                            // Gather outputs (metrics of training)
+                            runner.AddOutputs(_evaluationStep.name);
+                            runner.AddOutputs(_crossEntropy.name);
 
-                                    if (((cursor.Position + 1) % options.BatchSize) == 0)
-                                    {
-                                        isDataLeft = false;
-                                        validationSetRunner = new Runner(_session);
-                                        validationSetRunner.AddOutputs(_evaluationStep.name);
-                                        var (acc, _) = ExecuteGraphAndRetrieveMetrics(inputsForTraining, srcTensorGetters, validationSetRunner);
-                                        accuracy += acc;
-                                        batch++;
-                                    }
-                                }
-                                if (isDataLeft)
-                                {
-                                    isDataLeft = false;
-                                    ch.Warning("Not training on the last batch. The batch size is less than {0}.", options.BatchSize);
-                                }
-                                pch.Checkpoint(new double?[] { accuracy / batch });
-                            }
+                            var validationMetrics = runner.Run();
+                            validationTrainAccuracy += validationMetrics[0].Data<float>()[0] * validationTensor[i].dims[0] / validationCount;
+                            validationTrainCrossEntropy += validationMetrics[1].Data<float>()[0] * validationTensor[i].dims[0] / validationCount;
+                        }
+                    }
+                    if (options.StatisticsCallback != null && epoch % options.CallbackFrequency == 0)
+                    {
+                        options.StatisticsCallback(epoch, trainAccuracy, trainCrossEntropy);
+                        if (options.ValidationSet != null)
+                        {
+                            options.StatisticsCallback(epoch, validationTrainAccuracy, validationTrainCrossEntropy);
                         }
                     }
                 }
@@ -727,6 +782,15 @@ namespace Microsoft.ML.Transforms
             var (batch_size, bottleneck_tensor_size) = (bottleneckTensor.TensorShape.Dimensions[0], bottleneckTensor.TensorShape.Dimensions[1]);
             tf_with(tf.name_scope("input"), scope =>
             {
+                if (isTraining)
+                {
+                    _bottleneckinput = tf.placeholder_with_default(
+                    bottleneckTensor,
+                    shape: bottleneckTensor.TensorShape.Dimensions,
+                    name: "BottleneckInputPlaceholder");
+                    bottleneckTensor = _bottleneckinput;
+
+                }
                 _labelTensor = tf.placeholder(tf.int64, new TensorShape(batch_size), name: labelColumn);
             });
 
@@ -1391,7 +1455,7 @@ namespace Microsoft.ML.Transforms
 
             void BufferTrainingData();
 
-            Tensor GetBufferedBatchTensor();
+            Tensor GetBufferedBatchTensor(int customBatchSize = -1);
         }
 
         private class TensorValueGetter<T> : ITensorValueGetter
@@ -1458,17 +1522,36 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public Tensor GetBufferedBatchTensor()
+            public Tensor GetBufferedBatchTensor(int customBatchSize = -1)
             {
+                Tensor tensor;
                 if (_keyType)
                 {
-                    var tensor = new Tensor(_bufferedDataLong, _dims, TF_DataType.TF_INT64);
+                    if (customBatchSize == -1)
+                    {
+                        tensor = new Tensor(_bufferedDataLong, _dims, TF_DataType.TF_INT64);
+                    }
+                    else
+                    {
+                        // Make new Tensor Dimensions to include Custom Batch Size
+                        long[] customDims = new long[_dims.Length];
+                        customDims[0] = customBatchSize;
+                        Array.Copy(_dims, 1, customDims, 1, _dims.Length - 1);
+
+                        // Figure out how much data to copy over from _bufferedDataLong to new buffer
+                        int customBufferSize = customDims.Aggregate(1, (a, b) => (int)(a * b));
+
+                        // Copy over buffer data
+                        long[] customBufferedDataLong = new long[customBufferSize];
+                        Array.Copy(_bufferedDataLong, customBufferedDataLong, customBufferSize);
+                        tensor = new Tensor(customBufferedDataLong, customDims, TF_DataType.TF_INT64);
+                    }
                     _position = 0;
                     return tensor;
                 }
                 else
                 {
-                    var tensor = CastDataAndReturnAsTensor(_bufferedData);
+                    tensor = CastDataAndReturnAsTensor(_bufferedData);
                     _position = 0;
                     return tensor;
                 }
@@ -1557,30 +1640,34 @@ namespace Microsoft.ML.Transforms
                 return CastDataAndReturnAsTensor(_denseData);
             }
 
-            private Tensor CastDataAndReturnAsTensor(T[] data)
+            private Tensor CastDataAndReturnAsTensor(T[] data, long[] dims = null)
             {
+                if (dims == null)
+                {
+                    dims = _dims;
+                }
                 if (typeof(T) == typeof(sbyte))
-                    return new Tensor((sbyte[])(object)data, _dims, TF_DataType.TF_INT8);
+                    return new Tensor((sbyte[])(object)data, dims, TF_DataType.TF_INT8);
                 else if (typeof(T) == typeof(long))
-                    return new Tensor((long[])(object)data, _dims, TF_DataType.TF_INT64);
+                    return new Tensor((long[])(object)data, dims, TF_DataType.TF_INT64);
                 else if (typeof(T) == typeof(Int32))
-                    return new Tensor((Int32[])(object)data, _dims, TF_DataType.TF_INT32);
+                    return new Tensor((Int32[])(object)data, dims, TF_DataType.TF_INT32);
                 else if (typeof(T) == typeof(Int16))
-                    return new Tensor((Int16[])(object)data, _dims, TF_DataType.TF_INT16);
+                    return new Tensor((Int16[])(object)data, dims, TF_DataType.TF_INT16);
                 else if (typeof(T) == typeof(byte))
-                    return new Tensor((byte[])(object)data, _dims, TF_DataType.TF_UINT8);
+                    return new Tensor((byte[])(object)data, dims, TF_DataType.TF_UINT8);
                 else if (typeof(T) == typeof(ulong))
-                    return new Tensor((ulong[])(object)data, _dims, TF_DataType.TF_UINT64);
+                    return new Tensor((ulong[])(object)data, dims, TF_DataType.TF_UINT64);
                 else if (typeof(T) == typeof(UInt32))
-                    return new Tensor((UInt32[])(object)data, _dims, TF_DataType.TF_UINT32);
+                    return new Tensor((UInt32[])(object)data, dims, TF_DataType.TF_UINT32);
                 else if (typeof(T) == typeof(UInt16))
-                    return new Tensor((UInt16[])(object)data, _dims, TF_DataType.TF_UINT16);
+                    return new Tensor((UInt16[])(object)data, dims, TF_DataType.TF_UINT16);
                 else if (typeof(T) == typeof(bool))
-                    return new Tensor((bool[])(object)data, _dims, TF_DataType.TF_BOOL);
+                    return new Tensor((bool[])(object)data, dims, TF_DataType.TF_BOOL);
                 else if (typeof(T) == typeof(float))
-                    return new Tensor((float[])(object)data, _dims, TF_DataType.TF_FLOAT);
+                    return new Tensor((float[])(object)data, dims, TF_DataType.TF_FLOAT);
                 else if (typeof(T) == typeof(double))
-                    return new Tensor((double[])(object)data, _dims, TF_DataType.TF_DOUBLE);
+                    return new Tensor((double[])(object)data, dims, TF_DataType.TF_DOUBLE);
                 else if (typeof(T) == typeof(ReadOnlyMemory<char>))
                 {
                     byte[][] bytes = new byte[_vBuffer.Length][];
@@ -1589,7 +1676,7 @@ namespace Microsoft.ML.Transforms
                         bytes[i] = Encoding.UTF8.GetBytes(((ReadOnlyMemory<char>)(object)data[i]).ToArray());
                     }
 
-                    return new Tensor(bytes, _tfShape.dims.Select(x => (long)x).ToArray());
+                    return new Tensor(bytes, dims);
                 }
 
                 return new Tensor(new NDArray(data, _tfShape));
@@ -1602,11 +1689,31 @@ namespace Microsoft.ML.Transforms
                 _position += _vBuffer.Length;
             }
 
-            public Tensor GetBufferedBatchTensor()
+            public Tensor GetBufferedBatchTensor(int customBatchSize = -1)
             {
                 _position = 0;
-                var tensor = CastDataAndReturnAsTensor(_bufferedData);
-                _bufferedData = new T[_bufferedDataSize];
+                Tensor tensor;
+                if (customBatchSize == -1)
+                {
+                    tensor = CastDataAndReturnAsTensor(_bufferedData);
+                    _bufferedData = new T[_bufferedDataSize];
+                }
+                else
+                {
+                    // Make new Tensor Dimensions to include Custom Batch Size
+                    long[] customDims = new long[_dims.Length];
+                    customDims[0] = customBatchSize;
+                    Array.Copy(_dims, 1, customDims, 1, _dims.Length - 1);
+
+                    // Figure out how much data to copy over from _bufferedDataLong to new buffer
+                    int customBufferSize = customDims.Aggregate(1, (a, b) => (int)(a * b));
+
+                    // Copy over buffer data
+                    T[] customBufferedData = new T[customBufferSize];
+                    Array.Copy(_bufferedData, customBufferedData, customBufferSize);
+                    tensor = CastDataAndReturnAsTensor(customBufferedData, customDims);
+                    _bufferedData = new T[_bufferedDataSize];
+                }
                 return tensor;
             }
         }
@@ -1631,6 +1738,14 @@ namespace Microsoft.ML.Transforms
         {
             Tensorflow
         };
+
+        /// <summary>
+        /// Define delegate method signature
+        /// </summary>
+        /// <param name="epoch">The epoch the metrics are for.</param>
+        /// <param name="accuracy">The accuracy for this epoch.</param>
+        /// <param name="crossEntropy">The the cross entropy for this epoch.</param>
+        public delegate void TrainMetrics(int epoch, float accuracy, float crossEntropy);
 
         /// <summary>
         /// The options for the <see cref="DnnTransformer"/>.
@@ -1780,6 +1895,19 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Use train set to measure model accuracy between each epoch.", SortOrder = 15)]
             public bool MeasureTrainAccuracy = false;
+
+            /// <summary>
+            /// Delegate of function callback to give train metrics summary
+            /// </summary>
+            public TrainMetrics StatisticsCallback;
+
+            /// <summary>
+            /// Use to set frequency (epochs per callback) of calling the StatisticsCallback Delegate.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Use to set frequency (epochs  per callback) of calling the StatisticsCallback Delegate.", SortOrder = 15)]
+            public int CallbackFrequency = 1;
+
+            public IDataView ValidationSet;
         }
 
         private readonly IHost _host;
