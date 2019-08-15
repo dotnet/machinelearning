@@ -18485,7 +18485,7 @@
           "IsNullable": false
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
