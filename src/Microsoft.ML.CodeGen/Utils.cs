@@ -50,7 +50,7 @@ namespace Microsoft.ML.CodeGenerator.Utilities
                 case "": throw new ArgumentException($"{nameof(input)} cannot be empty", nameof(input));
                 default:
                     var sanitizedInput = Sanitize(input);
-                    return sanitizedInput.First().ToString().ToUpper() + input.Substring(1);
+                    return sanitizedInput.First().ToString().ToUpper() + sanitizedInput.Substring(1);
             }
         }
 

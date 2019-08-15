@@ -133,5 +133,17 @@ namespace mlnet.Tests
             Assert.AreEqual(expectedTrainer, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2[0]);
         }
+
+        [TestMethod]
+        public void NormalizeTest()
+        {
+            var testStrArray = new string[] { "Abc Abc", "abc ABC" };
+            var expectedStrArray = new string[] { "Abc_Abc", "Abc_ABC" };
+            for(int i = 0; i!= expectedStrArray.Count(); ++i)
+            {
+                var actualStr = Microsoft.ML.CodeGenerator.Utilities.Utils.Normalize(testStrArray[i]);
+                Assert.AreEqual(expectedStrArray[i], actualStr);
+            }
+        }
     }
 }
