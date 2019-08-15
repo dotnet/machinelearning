@@ -80,7 +80,7 @@ namespace Microsoft.ML.Transforms
         [BestFriend]
         internal static class Defaults
         {
-            public const string LabelColumn = DefaultColumnNames.Label;
+            public const string LabelColumnName = DefaultColumnNames.Label;
             public const int SlotsInOutput = 1000;
             public const int NumBins = 256;
         }
@@ -92,7 +92,7 @@ namespace Microsoft.ML.Transforms
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for labels", ShortName = "lab",
                 SortOrder = 4, Purpose = SpecialPurpose.ColumnName)]
-            public string LabelColumn = Defaults.LabelColumn;
+            public string LabelColumnName = Defaults.LabelColumnName;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of slots to preserve in output", ShortName = "topk,numSlotsToKeep",
                 SortOrder = 1)]
@@ -105,13 +105,13 @@ namespace Microsoft.ML.Transforms
 
         private IHost _host;
         private readonly (string outputColumnName, string inputColumnName)[] _columns;
-        private readonly string _labelColumn;
+        private readonly string _labelColumnName;
         private readonly int _slotsInOutput;
         private readonly int _numBins;
 
         /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
         /// <param name="env">The environment to use.</param>
-        /// <param name="labelColumn">Name of the column to use for labels.</param>
+        /// <param name="labelColumnName">Name of the column to use for labels.</param>
         /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
         /// <param name="numberOfBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
         /// <param name="columns">Specifies the names of the input columns for the transformation, and their respective output column names.</param>
@@ -123,7 +123,7 @@ namespace Microsoft.ML.Transforms
         /// </format>
         /// </example>
         internal MutualInformationFeatureSelectingEstimator(IHostEnvironment env,
-            string labelColumn = Defaults.LabelColumn,
+            string labelColumnName = Defaults.LabelColumnName,
             int slotsInOutput = Defaults.SlotsInOutput,
             int numberOfBins = Defaults.NumBins,
             params (string outputColumnName, string inputColumnName)[] columns)
@@ -133,11 +133,11 @@ namespace Microsoft.ML.Transforms
 
             _host.CheckUserArg(Utils.Size(columns) > 0, nameof(columns));
             _host.CheckUserArg(slotsInOutput > 0, nameof(slotsInOutput));
-            _host.CheckNonWhiteSpace(labelColumn, nameof(labelColumn));
+            _host.CheckNonWhiteSpace(labelColumnName, nameof(labelColumnName));
             _host.Check(numberOfBins > 1, "numBins must be greater than 1.");
 
             _columns = columns;
-            _labelColumn = labelColumn;
+            _labelColumnName = labelColumnName;
             _slotsInOutput = slotsInOutput;
             _numBins = numberOfBins;
         }
@@ -146,7 +146,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">The environment to use.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="labelColumn">Name of the column to use for labels.</param>
+        /// <param name="labelColumnName">Name of the column to use for labels.</param>
         /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
         /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
         /// <example>
@@ -157,8 +157,8 @@ namespace Microsoft.ML.Transforms
         /// </format>
         /// </example>
         internal MutualInformationFeatureSelectingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
-            string labelColumn = Defaults.LabelColumn, int slotsInOutput = Defaults.SlotsInOutput, int numBins = Defaults.NumBins)
-            : this(env, labelColumn, slotsInOutput, numBins, (outputColumnName, inputColumnName ?? outputColumnName))
+            string labelColumnName = Defaults.LabelColumnName, int slotsInOutput = Defaults.SlotsInOutput, int numBins = Defaults.NumBins)
+            : this(env, labelColumnName, slotsInOutput, numBins, (outputColumnName, inputColumnName ?? outputColumnName))
         {
         }
 
@@ -181,7 +181,7 @@ namespace Microsoft.ML.Transforms
                 }
                 var colArr = colSet.ToArray();
                 var colSizes = new int[colArr.Length];
-                var scores = MutualInformationFeatureSelectionUtils.TrainCore(_host, input, _labelColumn, colArr, _numBins, colSizes);
+                var scores = MutualInformationFeatureSelectionUtils.TrainCore(_host, input, _labelColumnName, colArr, _numBins, colSizes);
                 sw.Stop();
                 ch.Info("Finished mutual information computation in {0}", sw.Elapsed);
 
@@ -249,11 +249,11 @@ namespace Microsoft.ML.Transforms
             host.CheckValue(input, nameof(input));
             host.CheckNonEmpty(options.Columns, nameof(options.Columns));
             host.CheckUserArg(options.SlotsInOutput > 0, nameof(options.SlotsInOutput));
-            host.CheckNonWhiteSpace(options.LabelColumn, nameof(options.LabelColumn));
+            host.CheckNonWhiteSpace(options.LabelColumnName, nameof(options.LabelColumnName));
             host.Check(options.NumBins > 1, "numBins must be greater than 1.");
 
             (string outputColumnName, string inputColumnName)[] cols = options.Columns.Select(col => (col, col)).ToArray();
-            return new MutualInformationFeatureSelectingEstimator(env, options.LabelColumn, options.SlotsInOutput, options.NumBins, cols).Fit(input).Transform(input) as IDataTransform;
+            return new MutualInformationFeatureSelectingEstimator(env, options.LabelColumnName, options.SlotsInOutput, options.NumBins, cols).Fit(input).Transform(input) as IDataTransform;
         }
 
         /// <summary>
@@ -424,14 +424,14 @@ namespace Microsoft.ML.Transforms
 
                 if (!schema.TryGetColumnIndex(labelColumnName, out int labelCol))
                 {
-                    throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Options.LabelColumn),
+                    throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Options.LabelColumnName),
                         "Label column '{0}' not found", labelColumnName);
                 }
 
                 var labelType = schema[labelCol].Type;
                 if (!IsValidColumnType(labelType))
                 {
-                    throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Options.LabelColumn),
+                    throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Options.LabelColumnName),
                         "Label column '{0}' does not have compatible type", labelColumnName);
                 }
 
