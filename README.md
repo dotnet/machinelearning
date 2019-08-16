@@ -33,7 +33,7 @@ In addition to the ML.NET samples provided by Microsoft, we're also highlighting
 
 ## ML.NET videos playlist at YouTube
 
-There a list of short videos each one focusing on particular single topic of ML.NET at the [ML.NET videos playlist](https://aka.ms/mlnetyoutube) at YouTube.
+There a list of short videos each one focusing on a particular single topic of ML.NET at the [ML.NET videos playlist](https://aka.ms/mlnetyoutube) in YouTube.
 
 
 ## Supported ML.NET operating systems and processor architectures
