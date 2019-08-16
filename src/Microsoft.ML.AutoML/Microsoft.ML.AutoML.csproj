@@ -13,9 +13,4 @@
     <ProjectReference Include="..\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
   </ItemGroup>
 
-
-  <ItemGroup>
-    <Folder Include="Utils\MLNetUtils\" />
-  </ItemGroup>
-
 </Project>
