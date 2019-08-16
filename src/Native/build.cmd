@@ -18,10 +18,10 @@ set MKL_LIB_PATH=""
 :Arg_Loop
 if [%1] == [] goto :ToolsVersion
 if /i [%1] == [Release]     ( set CMAKE_BUILD_TYPE=Release&&shift&goto Arg_Loop)
-if /i [%1] == [Release-Intrinsics]     ( set CMAKE_BUILD_TYPE=Release-Intrinsics&&shift&goto Arg_Loop)
+if /i [%1] == [Release-netcoreapp3_0]     ( set CMAKE_BUILD_TYPE=Release-netcoreapp3_0&&shift&goto Arg_Loop)
 if /i [%1] == [Release-netfx]     ( set CMAKE_BUILD_TYPE=Release-netfx&&shift&goto Arg_Loop)
 if /i [%1] == [Debug]       ( set CMAKE_BUILD_TYPE=Debug&&shift&goto Arg_Loop)
-if /i [%1] == [Debug-Intrinsics]       ( set CMAKE_BUILD_TYPE=Debug-Intrinsics&&shift&goto Arg_Loop)
+if /i [%1] == [Debug-netcoreapp3_0]       ( set CMAKE_BUILD_TYPE=Debug-netcoreapp3_0&&shift&goto Arg_Loop)
 if /i [%1] == [Debug-netfx]       ( set CMAKE_BUILD_TYPE=Debug-netfx&&shift&goto Arg_Loop)
 
 if /i [%1] == [x86]         ( set __BuildArch=x86&&set __VCBuildArch=x86&&shift&goto Arg_Loop)
@@ -104,9 +104,9 @@ if %__IntermediatesDir% == "" (
 set "__CMakeBinDir=%__CMakeBinDir:\=/%"
 set "__IntermediatesDir=%__IntermediatesDir:\=/%"
 
-:: Strip the "-Intrinsics" suffix from the build type
-if [%CMAKE_BUILD_TYPE:~-11%] == [-Intrinsics] (
-	set CMAKE_BUILD_TYPE=%CMAKE_BUILD_TYPE:~0,-11%
+:: Strip the "-netcoreapp3_0" suffix from the build type
+if [%CMAKE_BUILD_TYPE:~-14%] == [-netcoreapp3_0] (
+	set CMAKE_BUILD_TYPE=%CMAKE_BUILD_TYPE:~0,-14%
 )
 
 :: Strip the "-netfx" suffix from the build type

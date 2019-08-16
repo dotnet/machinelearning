@@ -1,8 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Pack">
 
   <PropertyGroup>
-    <TargetFramework Condition="'$(UseIntrinsics)' != 'true'">netstandard2.0</TargetFramework>
-    <TargetFrameworks Condition="'$(UseIntrinsics)' == 'true'">netstandard2.0;netcoreapp3.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netcoreapp3.0</TargetFrameworks>
     <PackageDescription>Microsoft.ML.CpuMath contains optimized math routines for ML.NET.</PackageDescription>
   </PropertyGroup>
 

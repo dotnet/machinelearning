@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests
 
             var loader = mlContext.Data.CreateDatabaseLoader(loaderColumns);
 
-            var mockProviderFactory = new MockProviderFactory(mlContext, loaderColumns);
+            var mockProviderFactory = new MockProviderFactory(mlContext, loader);
             var databaseSource = new DatabaseSource(mockProviderFactory, connectionString, commandText);
 
             var trainingData = loader.Load(databaseSource);
@@ -79,18 +79,9 @@ namespace Microsoft.ML.Tests
             var connectionString = GetDataPath(TestDatasets.iris.trainFilename);
             var commandText = "Label;SepalLength;SepalWidth;PetalLength;PetalWidth";
 
-            var loaderColumns = new DatabaseLoader.Column[]
-            {
-                new DatabaseLoader.Column() { Name = "Label", Type = DbType.Int32 },
-                new DatabaseLoader.Column() { Name = "SepalLength", Type = DbType.Single },
-                new DatabaseLoader.Column() { Name = "SepalWidth", Type = DbType.Single },
-                new DatabaseLoader.Column() { Name = "PetalLength", Type = DbType.Single },
-                new DatabaseLoader.Column() { Name = "PetalWidth", Type = DbType.Single }
-            };
+            var loader = mlContext.Data.CreateDatabaseLoader<IrisData>();
 
-            var loader = mlContext.Data.CreateDatabaseLoader(loaderColumns);
-
-            var mockProviderFactory = new MockProviderFactory(mlContext, loaderColumns);
+            var mockProviderFactory = new MockProviderFactory(mlContext, loader);
             var databaseSource = new DatabaseSource(mockProviderFactory, connectionString, commandText);
 
             var trainingData = loader.Load(databaseSource);
@@ -123,11 +114,15 @@ namespace Microsoft.ML.Tests
 
         public class IrisData
         {
-            public float SepalLength;
-            public float SepalWidth;
-            public float PetalLength;
-            public float PetalWidth;
             public int Label;
+
+            public float SepalLength;
+
+            public float SepalWidth;
+
+            public float PetalLength;
+
+            public float PetalWidth;
         }
 
         public class IrisPrediction
@@ -140,41 +135,38 @@ namespace Microsoft.ML.Tests
     internal sealed class MockProviderFactory : DbProviderFactory
     {
         private MLContext _context;
-        private DatabaseLoader.Column[] _columns;
+        private DatabaseLoader _databaseLoader;
 
-        public MockProviderFactory(MLContext context, DatabaseLoader.Column[] columns)
+        public MockProviderFactory(MLContext context, DatabaseLoader databaseLoader)
         {
             _context = context;
-            _columns = columns;
+            _databaseLoader = databaseLoader;
         }
 
-        public override DbConnection CreateConnection() => new MockConnection(_context, _columns);
+        public override DbConnection CreateConnection() => new MockConnection(_context, _databaseLoader);
     }
 
     internal sealed class MockConnection : DbConnection
     {
         private string _dataPath;
-        private TextLoader _reader;
+        private TextLoader _textLoader;
 
-        public MockConnection(MLContext context, DatabaseLoader.Column[] columns)
+        public MockConnection(MLContext context, DatabaseLoader databaseLoader)
         {
-            Columns = columns;
+            var outputSchema = databaseLoader.GetOutputSchema();
+            var readerColumns = new TextLoader.Column[outputSchema.Count];
 
-            var readerColumns = new TextLoader.Column[columns.Length];
-
-            for (int i = 0; i < columns.Length; i++)
+            for (int i = 0; i < outputSchema.Count; i++)
             {
-                var column = columns[i];
-                var columnType = column.Type.ToType();
+                var column = outputSchema[i];
+                var columnType = column.Type.RawType;
 
                 Assert.True(columnType.TryGetDataKind(out var internalDataKind));
                 readerColumns[i] = new TextLoader.Column(column.Name, internalDataKind.ToDataKind(), i);
             }
 
-            _reader = context.Data.CreateTextLoader(readerColumns);
+            _textLoader = context.Data.CreateTextLoader(readerColumns);
         }
-
-        public DatabaseLoader.Column[] Columns { get; }
 
         public override string ConnectionString
         {
@@ -205,7 +197,7 @@ namespace Microsoft.ML.Tests
 
         public override void Open()
         {
-            DataView = _reader.Load(_dataPath);
+            DataView = _textLoader.Load(_dataPath);
         }
 
         protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) => throw new NotImplementedException();
@@ -290,7 +282,8 @@ namespace Microsoft.ML.Tests
             var connection = (MockConnection)_command.Connection;
             _dataView = connection.DataView;
 
-            var inputColumns = _dataView.Schema.Where((column) => {
+            var inputColumns = _dataView.Schema.Where((column) =>
+            {
                 var inputColumnNames = command.CommandText.Split(';');
                 return inputColumnNames.Any((columnName) => column.Name.Equals(column.Name));
             });
@@ -358,19 +351,7 @@ namespace Microsoft.ML.Tests
         public override int GetOrdinal(string name)
         {
             var connection = (MockConnection)_command.Connection;
-            var columns = connection.Columns;
-
-            for (int i = 0; i < columns.Length; i++)
-            {
-                var column = columns[i];
-
-                if (column.Name.Equals(name))
-                {
-                    return i;
-                }
-            }
-
-            return -1;
+            return connection.DataView.Schema.TryGetColumnIndex(name, out int ordinal) ? ordinal : -1;
         }
 
         public override string GetString(int ordinal) => throw new NotImplementedException();
