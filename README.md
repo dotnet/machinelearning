@@ -36,7 +36,7 @@ In addition to the ML.NET samples provided by Microsoft, we're also highlighting
 There a list of short videos each one focusing on a particular single topic of ML.NET at the [ML.NET videos playlist](https://aka.ms/mlnetyoutube) in YouTube.
 
 
-## Supported ML.NET operating systems and processor architectures
+## Operating systems and processor architectures supported by ML.NET
 
 ML.NET runs on Windows, Linux, and macOS using [.NET Core](https://github.com/dotnet/core), or Windows using .NET Framework. 
 
