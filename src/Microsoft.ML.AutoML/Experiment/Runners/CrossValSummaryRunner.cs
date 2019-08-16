@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.AutoML
 {
@@ -20,7 +21,7 @@ namespace Microsoft.ML.AutoML
         private readonly ITransformer[] _preprocessorTransforms;
         private readonly string _labelColumn;
         private readonly OptimizingMetricInfo _optimizingMetricInfo;
-        private readonly AutoMLLogger _logger;
+        private readonly IChannel _logger;
         private readonly DataViewSchema _modelInputSchema;
 
         public CrossValSummaryRunner(MLContext context,
@@ -31,7 +32,7 @@ namespace Microsoft.ML.AutoML
             ITransformer[] preprocessorTransforms,
             string labelColumn,
             OptimizingMetricInfo optimizingMetricInfo,
-            AutoMLLogger logger)
+            IChannel logger)
         {
             _context = context;
             _trainDatasets = trainDatasets;

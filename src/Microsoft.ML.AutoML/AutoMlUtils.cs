@@ -10,14 +10,5 @@ namespace Microsoft.ML.AutoML
     internal static class AutoMlUtils
     {
         public static readonly ThreadLocal<Random> Random = new ThreadLocal<Random>(() => new Random());
-
-        public static void Assert(bool boolVal, string message = null)
-        {
-            if (!boolVal)
-            {
-                message = message ?? "Assertion failed";
-                throw new InvalidOperationException(message);
-            }
-        }
     }
 }

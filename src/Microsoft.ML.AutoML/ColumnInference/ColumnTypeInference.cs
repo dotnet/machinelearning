@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.ML.Data;
+using Microsoft.ML.Data.Conversion;
 
 namespace Microsoft.ML.AutoML
 {
@@ -78,9 +79,9 @@ namespace Microsoft.ML.AutoML
                     .All(x =>
                     {
                         bool value;
-                        // (note: Conversions.TryParse parses an empty string as a Boolean)
+                        // (note: Conversions.Instance.TryParse parses an empty string as a Boolean)
                         return !string.IsNullOrEmpty(x.ToString()) &&
-                            Conversions.TryParse(in x, out value);
+                            Conversions.Instance.TryParse(in x, out value);
                     }))
                 {
                     return true;
@@ -162,7 +163,7 @@ namespace Microsoft.ML.AutoML
                         col.SuggestedType = BooleanDataViewType.Instance;
                         bool first;
 
-                        col.HasHeader = !Conversions.TryParse(in col.RawData[0], out first);
+                        col.HasHeader = !Conversions.Instance.TryParse(in col.RawData[0], out first);
                     }
                 }
             }
@@ -177,7 +178,7 @@ namespace Microsoft.ML.AutoML
                             .All(x =>
                             {
                                 float value;
-                                return Conversions.TryParse(in x, out value);
+                                return Conversions.Instance.TryParse(in x, out value);
                             })
                             )
                         {
@@ -403,7 +404,7 @@ namespace Microsoft.ML.AutoML
             var loaderColumns = new List<TextLoader.Column>();
             foreach (var col in columns)
             {
-                var loaderColumn = new TextLoader.Column(col.SuggestedName, col.ItemType.GetRawKind(), col.ColumnIndex);
+                var loaderColumn = new TextLoader.Column(col.SuggestedName, col.ItemType.GetRawKind().ToDataKind(), col.ColumnIndex);
                 loaderColumns.Add(loaderColumn);
             }
             return loaderColumns.ToArray();

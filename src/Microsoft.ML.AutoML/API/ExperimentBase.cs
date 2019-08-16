@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.AutoML
 {
@@ -22,7 +24,7 @@ namespace Microsoft.ML.AutoML
         private protected readonly OptimizingMetricInfo OptimizingMetricInfo;
         private protected readonly TExperimentSettings Settings;
 
-        private readonly AutoMLLogger _logger;
+        private readonly IChannel _logger;
         private readonly TaskKind _task;
         private readonly IEnumerable<TrainerName> _trainerWhitelist;
 
@@ -37,7 +39,7 @@ namespace Microsoft.ML.AutoML
             MetricsAgent = metricsAgent;
             OptimizingMetricInfo = optimizingMetricInfo;
             Settings = settings;
-            _logger = new AutoMLLogger(context);
+            _logger = ((IChannelProvider)context).Start("AutoML");
             _task = task;
             _trainerWhitelist = trainerWhitelist;
         }

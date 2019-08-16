@@ -17,21 +17,26 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void ValidateExperimentExecuteNullTrainData()
         {
-            Assert.Throws<ArgumentNullException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(null, new ColumnInformation(), null, TaskKind.Regression));
+            var ex = Assert.Throws<ArgumentNullException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(null, new ColumnInformation(), null, TaskKind.Regression));
+            Assert.Equal("Training data cannot be null\r\nParameter name: trainData", ex.Message);
         }
 
         [Fact]
         public void ValidateExperimentExecuteNullLabel()
         {
-            Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, 
+            var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, 
                 new ColumnInformation() { LabelColumnName = null }, null, TaskKind.Regression));
+
+            Assert.Equal("Provided label column cannot be null", ex.Message);
         }
 
         [Fact]
         public void ValidateExperimentExecuteLabelNotInTrain()
         {
-            Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(Data,
+            var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(Data,
                 new ColumnInformation() { LabelColumnName = "L" }, null, TaskKind.Regression));
+
+            Assert.Equal("Provided label column 'L' not found in training data.", ex.Message);
         }
 
         [Fact]
@@ -40,7 +45,8 @@ namespace Microsoft.ML.AutoML.Test
             var columnInfo = new ColumnInformation();
             columnInfo.NumericColumnNames.Add("N");
 
-            Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, columnInfo, null, TaskKind.Regression));
+            var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, columnInfo, null, TaskKind.Regression));
+            Assert.Equal("Provided label column 'Label' was of type Boolean, but only type Single is allowed.", ex.Message);
         }
 
         [Fact]
@@ -48,7 +54,9 @@ namespace Microsoft.ML.AutoML.Test
         {
             var columnInfo = new ColumnInformation();
             columnInfo.NumericColumnNames.Add(null);
-            Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, columnInfo, null, TaskKind.Regression));
+
+            var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, columnInfo, null, TaskKind.Regression));
+            Assert.Equal("Null column string was specified as numeric in column information", ex.Message);
         }
 
         [Fact]
@@ -57,7 +65,7 @@ namespace Microsoft.ML.AutoML.Test
             var columnInfo = new ColumnInformation();
             columnInfo.NumericColumnNames.Add(DefaultColumnNames.Label);
 
-            Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, columnInfo, null, TaskKind.Regression));
+            var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, columnInfo, null, TaskKind.Regression));
         }
 
         [Fact]
@@ -66,16 +74,17 @@ namespace Microsoft.ML.AutoML.Test
             var context = new MLContext();
 
             var trainDataBuilder = new ArrayDataViewBuilder(context);
-            trainDataBuilder.AddColumn("0", new string[] { "0" });
+            trainDataBuilder.AddColumn("0", NumberDataViewType.Single, new float[] { 1 });
             trainDataBuilder.AddColumn("1", new string[] { "1" });
             var trainData = trainDataBuilder.GetDataView();
 
             var validDataBuilder = new ArrayDataViewBuilder(context);
-            validDataBuilder.AddColumn("0", new string[] { "0" });
+            validDataBuilder.AddColumn("0", NumberDataViewType.Single, new float[] { 1 });
             var validData = validDataBuilder.GetDataView();
 
-            Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData, 
+            var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData, 
                 new ColumnInformation() { LabelColumnName = "0" }, validData, TaskKind.Regression));
+            Assert.Equal("Training data and validation data schemas do not match. Train data has '2' columns,and validation data has '1' columns.\r\nParameter name: validationData", ex.Message);
         }
 
         [Fact]
@@ -84,17 +93,18 @@ namespace Microsoft.ML.AutoML.Test
             var context = new MLContext();
 
             var trainDataBuilder = new ArrayDataViewBuilder(context);
-            trainDataBuilder.AddColumn("0", new string[] { "0" });
+            trainDataBuilder.AddColumn("0", NumberDataViewType.Single, new float[] { 1 });
             trainDataBuilder.AddColumn("1", new string[] { "1" });
             var trainData = trainDataBuilder.GetDataView();
 
             var validDataBuilder = new ArrayDataViewBuilder(context);
-            validDataBuilder.AddColumn("0", new string[] { "0" });
+            validDataBuilder.AddColumn("0", NumberDataViewType.Single, new float[] { 1 });
             validDataBuilder.AddColumn("2", new string[] { "2" });
             var validData = validDataBuilder.GetDataView();
 
-            Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData,
+            var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData,
                 new ColumnInformation() { LabelColumnName = "0" }, validData, TaskKind.Regression));
+            Assert.Equal("Training data and validation data schemas do not match. Column '1' exsits in train data, but not in validation data.\r\nParameter name: validationData", ex.Message);
         }
 
         [Fact]
@@ -103,29 +113,32 @@ namespace Microsoft.ML.AutoML.Test
             var context = new MLContext();
 
             var trainDataBuilder = new ArrayDataViewBuilder(context);
-            trainDataBuilder.AddColumn("0", new string[] { "0" });
+            trainDataBuilder.AddColumn("0", NumberDataViewType.Single, new float[] { 1 });
             trainDataBuilder.AddColumn("1", new string[] { "1" });
             var trainData = trainDataBuilder.GetDataView();
 
             var validDataBuilder = new ArrayDataViewBuilder(context);
-            validDataBuilder.AddColumn("0", new string[] { "0" });
+            validDataBuilder.AddColumn("0", NumberDataViewType.Single, new float[] { 1 });
             validDataBuilder.AddColumn("1", NumberDataViewType.Single, new float[] { 1 });
             var validData = validDataBuilder.GetDataView();
 
-            Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData,
+            var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData,
                 new ColumnInformation() { LabelColumnName = "0" }, validData, TaskKind.Regression));
+            Assert.Equal("Training data and validation data schemas do not match. Column '1' is of type String in train data, and type Single in validation data.\r\nParameter name: validationData", ex.Message);
         }
 
         [Fact]
         public void ValidateInferColumnsArgsNullPath()
         {
-            Assert.Throws<ArgumentNullException>(() => UserInputValidationUtil.ValidateInferColumnsArgs(null, "Label"));
+            var ex = Assert.Throws<ArgumentNullException>(() => UserInputValidationUtil.ValidateInferColumnsArgs(null, "Label"));
+            Assert.Equal("Provided path cannot be null\r\nParameter name: path", ex.Message);
         }
 
         [Fact]
         public void ValidateInferColumnsArgsPathNotExist()
         {
-            Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateInferColumnsArgs("idontexist", "Label"));
+            var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateInferColumnsArgs("idontexist", "Label"));
+            Assert.Equal("File 'idontexist' does not exist\r\nParameter name: path", ex.Message);
         }
 
         [Fact]
@@ -133,7 +146,8 @@ namespace Microsoft.ML.AutoML.Test
         {
             const string emptyFilePath = "empty";
             File.Create(emptyFilePath).Dispose();
-            Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateInferColumnsArgs(emptyFilePath, "Label"));
+            var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateInferColumnsArgs(emptyFilePath, "Label"));
+            Assert.Equal("File at path 'empty' cannot be empty\r\nParameter name: path", ex.Message);
         }
 
         [Fact]
@@ -149,8 +163,10 @@ namespace Microsoft.ML.AutoML.Test
             schemaBuilder.AddColumn(DefaultColumnNames.Features, NumberDataViewType.Double);
             schemaBuilder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single);
             var schema = schemaBuilder.ToSchema();
-            var dataView = new EmptyDataView(new MLContext(), schema);
-            Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, new ColumnInformation(), null, TaskKind.Regression));
+            var dataView = DataViewTestFixture.BuildDummyDataView(schema);
+
+            var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, new ColumnInformation(), null, TaskKind.Regression));
+            Assert.Equal("Features column must be of data type Single\r\nParameter name: trainData", ex.Message);
         }
 
         [Fact]
@@ -160,14 +176,15 @@ namespace Microsoft.ML.AutoML.Test
             var schemaBuilder = new DataViewSchema.Builder();
             schemaBuilder.AddColumn(DefaultColumnNames.Features, NumberDataViewType.Single);
             schemaBuilder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single);
-            schemaBuilder.AddColumn(TextPurposeColName, NumberDataViewType.Double);
+            schemaBuilder.AddColumn(TextPurposeColName, NumberDataViewType.Single);
             var schema = schemaBuilder.ToSchema();
-            var dataView = new EmptyDataView(new MLContext(), schema);
+            var dataView = DataViewTestFixture.BuildDummyDataView(schema);
 
             var columnInfo = new ColumnInformation();
-            columnInfo.NumericColumnNames.Add(TextPurposeColName);
+            columnInfo.TextColumnNames.Add(TextPurposeColName);
 
-            Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, columnInfo, null, TaskKind.Regression));
+            var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, columnInfo, null, TaskKind.Regression));
+            Assert.Equal("Provided text column 'TextColumn' was of type Single, but only type String is allowed.", ex.Message);
         }
 
         [Fact]
@@ -215,9 +232,11 @@ namespace Microsoft.ML.AutoML.Test
             schemaBuilder.AddColumn("UInt64", NumberDataViewType.UInt64);
             schemaBuilder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single);
             var schema = schemaBuilder.ToSchema();
-            var dataView = new EmptyDataView(new MLContext(), schema);
-            Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, new ColumnInformation(),
+            var dataView = DataViewTestFixture.BuildDummyDataView(schema);
+
+            var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, new ColumnInformation(),
                 null, TaskKind.Regression));
+            Assert.Equal("Only supported feature column types are Boolean, Single, and String. Please change the feature column UInt64 of type UInt64 to one of the supported types.\r\nParameter name: trainData", ex.Message);
         }
 
         [Fact]
@@ -227,9 +246,10 @@ namespace Microsoft.ML.AutoML.Test
             schemaBuilder.AddColumn("Number", NumberDataViewType.Single);
             schemaBuilder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single);
             var schema = schemaBuilder.ToSchema();
-            var dataView = new EmptyDataView(new MLContext(), schema);
-            Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, new ColumnInformation(),
+            var dataView = DataViewTestFixture.BuildDummyDataView(schema, createDummyRow: false);
+            var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, new ColumnInformation(),
                 null, TaskKind.Regression));
+            Assert.Equal("Training data has 0 rows\r\nParameter name: trainData", ex.Message);
         }
 
         [Fact]
@@ -246,10 +266,11 @@ namespace Microsoft.ML.AutoML.Test
             schemaBuilder.AddColumn("Number", NumberDataViewType.Single);
             schemaBuilder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single);
             var schema = schemaBuilder.ToSchema();
-            var validationData = new EmptyDataView(new MLContext(), schema);
+            var validationData = DataViewTestFixture.BuildDummyDataView(schema, createDummyRow: false);
 
-            Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(trainingData, new ColumnInformation(),
+            var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(trainingData, new ColumnInformation(),
                 validationData, TaskKind.Regression));
+            Assert.Equal("Validation data has 0 rows\r\nParameter name: validationData", ex.Message);
         }
 
         private static void ValidateLabelTypeTestCore<LabelRawType>(TaskKind task, PrimitiveDataViewType labelType, bool labelTypeShouldBeValid)

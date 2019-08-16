@@ -122,7 +122,7 @@ namespace Microsoft.ML.AutoML
             dvBuilder.AddColumn(DefaultColumnNames.Features, NumberDataViewType.Single, features);
 
             IDataView data = dvBuilder.GetDataView();
-            AutoMlUtils.Assert(data.GetRowCount() == targets.Length, "This data view will have as many rows as there have been evaluations");
+            Runtime.Contracts.Assert(data.GetRowCount() == targets.Length, "This data view will have as many rows as there have been evaluations");
 
             // Set relevant random forest arguments.
             // Train random forest.
@@ -194,7 +194,7 @@ namespace Microsoft.ML.AutoML
             // Additional set of random configurations to choose from during local search.
             ParameterSet[] randomConfigs = _randomSweeper.ProposeSweeps(_args.NumRandomEISearchConfigurations, previousRuns);
             double[] randomEIs = EvaluateConfigurationsByEI(forest, bestVal, randomConfigs, bestRun.IsMetricMaximizing);
-            AutoMlUtils.Assert(randomConfigs.Length == randomEIs.Length);
+            Runtime.Contracts.Assert(randomConfigs.Length == randomEIs.Length);
 
             for (int i = 0; i < randomConfigs.Length; i++)
                 configurations.Add(new Tuple<double, ParameterSet>(randomEIs[i], randomConfigs[i]));
@@ -269,7 +269,7 @@ namespace Microsoft.ML.AutoML
                 // This holds the actual value for this parameter, chosen in this parameter set.
                 IParameterValue pset = parent[sweepParam.Name];
 
-                AutoMlUtils.Assert(pset != null);
+                Runtime.Contracts.Assert(pset != null);
 
                 DiscreteValueGenerator parameterDiscrete = sweepParam as DiscreteValueGenerator;
                 if (parameterDiscrete != null)
@@ -287,7 +287,7 @@ namespace Microsoft.ML.AutoML
                         }
                     }
 
-                    AutoMlUtils.Assert(hotIndex >= 0);
+                    Runtime.Contracts.Assert(hotIndex >= 0);
 
                     Random r = new Random();
                     int randomIndex = r.Next(0, parameterDiscrete.Count - 1);
@@ -298,7 +298,7 @@ namespace Microsoft.ML.AutoML
                 else
                 {
                     INumericValueGenerator parameterNumeric = sweepParam as INumericValueGenerator;
-                    AutoMlUtils.Assert(parameterNumeric != null, "SMAC sweeper can only sweep over discrete and numeric parameters");
+                    Runtime.Contracts.Assert(parameterNumeric != null, "SMAC sweeper can only sweep over discrete and numeric parameters");
 
                     // Create k neighbors (typically 4) for every numerical parameter.
                     for (int j = 0; j < _args.NumNeighborsForNumericalParams; j++)

@@ -10,8 +10,6 @@ namespace Microsoft.ML.AutoML.Test
     {
         public static bool[] BuildArray(int length, IEnumerable<DataViewSchema.Column> columnsNeeded)
         {
-            Contracts.CheckParam(length >= 0, nameof(length));
-
             var result = new bool[length];
             foreach (var col in columnsNeeded)
             {

@@ -48,9 +48,17 @@ namespace Microsoft.ML.AutoML.Test
             // if file doesn't already exist, download it
             if(!File.Exists(dataFile))
             {
+                var tempFile = Path.GetTempFileName();
+
                 using (var client = new WebClient())
                 {
-                    client.DownloadFile(new Uri($"{baseGitPath}"), dataFile);
+                    client.DownloadFile(new Uri($"{baseGitPath}"), tempFile);
+
+                    if(!File.Exists(dataFile))
+                    {
+                        File.Copy(tempFile, dataFile);
+                        File.Delete(tempFile);
+                    }
                 }
             }
 

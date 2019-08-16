@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.AutoML
 {
@@ -19,7 +20,7 @@ namespace Microsoft.ML.AutoML
             ITransformer preprocessorTransform,
             FileInfo modelFileInfo,
             DataViewSchema modelInputSchema,
-            AutoMLLogger logger) where TMetrics : class
+            IChannel logger) where TMetrics : class
         {
             try
             {

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.Internal.CpuMath;
 
 namespace Microsoft.ML.AutoML
 {
@@ -62,7 +63,7 @@ namespace Microsoft.ML.AutoML
 
         public static float[] ParameterSetAsFloatArray(IValueGenerator[] sweepParams, ParameterSet ps, bool expandCategoricals = true)
         {
-            AutoMlUtils.Assert(ps.Count == sweepParams.Length);
+            Runtime.Contracts.Assert(ps.Count == sweepParams.Length);
 
             var result = new List<float>();
 
@@ -73,7 +74,7 @@ namespace Microsoft.ML.AutoML
 
                 // This holds the actual value for this parameter, chosen in this parameter set.
                 var pset = ps[sweepParam.Name];
-                AutoMlUtils.Assert(pset != null);
+                Runtime.Contracts.Assert(pset != null);
 
                 var parameterDiscrete = sweepParam as DiscreteValueGenerator;
                 if (parameterDiscrete != null)
@@ -87,7 +88,7 @@ namespace Microsoft.ML.AutoML
                             break;
                         }
                     }
-                    AutoMlUtils.Assert(hotIndex >= 0);
+                    Runtime.Contracts.Assert(hotIndex >= 0);
 
                     if (expandCategoricals)
                         for (int j = 0; j < parameterDiscrete.Count; j++)
@@ -116,7 +117,7 @@ namespace Microsoft.ML.AutoML
 
         public static ParameterSet FloatArrayAsParameterSet(IValueGenerator[] sweepParams, float[] array, bool expandedCategoricals = true)
         {
-            AutoMlUtils.Assert(array.Length == sweepParams.Length);
+            Runtime.Contracts.Assert(array.Length == sweepParams.Length);
 
             List<IParameterValue> parameters = new List<IParameterValue>();
             int currentArrayIndex = 0;
@@ -136,7 +137,7 @@ namespace Microsoft.ML.AutoML
                                 break;
                             }
                         }
-                        AutoMlUtils.Assert(hotIndex >= i);
+                        Runtime.Contracts.Assert(hotIndex >= i);
                         parameters.Add(new StringParameterValue(sweepParams[i].Name, parameterDiscrete[hotIndex].ValueText));
                         currentArrayIndex += parameterDiscrete.Count;
                     }

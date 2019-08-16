@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.AutoML
 {
@@ -23,7 +24,7 @@ namespace Microsoft.ML.AutoML
         private readonly DatasetColumnInfo[] _datasetColumnInfo;
         private readonly IRunner<TRunDetail> _runner;
         private readonly IList<SuggestedPipelineRunDetail> _history;
-        private readonly AutoMLLogger _logger;
+        private readonly IChannel _logger;
 
         public Experiment(MLContext context,
             TaskKind task,
@@ -34,7 +35,7 @@ namespace Microsoft.ML.AutoML
             IEnumerable<TrainerName> trainerWhitelist,
             DatasetColumnInfo[] datasetColumnInfo,
             IRunner<TRunDetail> runner,
-            AutoMLLogger logger)
+            IChannel logger)
         {
             _context = context;
             _history = new List<SuggestedPipelineRunDetail>();

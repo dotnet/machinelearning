@@ -72,10 +72,10 @@ namespace Microsoft.ML.AutoML
             {
                 string name = (hasHeader && g.Count() == 1)
                     ? g.First().Item1.SuggestedName
-                    : GetName(g.Key.ItemType.GetRawKind(), g.Key.Purpose, result);
+                    : GetName(g.Key.ItemType.GetRawKind().ToDataKind(), g.Key.Purpose, result);
 
                 var ranges = GetRanges(g.Select(t => t.Item1.ColumnIndex).ToArray());
-                result.Add(new GroupingColumn(name, g.Key.ItemType.GetRawKind(), g.Key.Purpose, ranges));
+                result.Add(new GroupingColumn(name, g.Key.ItemType.GetRawKind().ToDataKind(), g.Key.Purpose, ranges));
             }
 
             return result.ToArray();

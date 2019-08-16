@@ -61,7 +61,7 @@ namespace Microsoft.ML.AutoML
                 } while (paramSet != null && retries < _args.Retries &&
                     (AlreadyGenerated(paramSet, prevParamSets) || AlreadyGenerated(paramSet, result)));
 
-                AutoMlUtils.Assert(paramSet != null);
+                Runtime.Contracts.Assert(paramSet != null);
                 result.Add(paramSet);
             }
 

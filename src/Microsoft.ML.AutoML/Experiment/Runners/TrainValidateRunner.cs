@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.AutoML
 {
@@ -16,7 +17,7 @@ namespace Microsoft.ML.AutoML
         private readonly IMetricsAgent<TMetrics> _metricsAgent;
         private readonly IEstimator<ITransformer> _preFeaturizer;
         private readonly ITransformer _preprocessorTransform;
-        private readonly AutoMLLogger _logger;
+        private readonly IChannel _logger;
         private readonly DataViewSchema _modelInputSchema;
 
         public TrainValidateRunner(MLContext context,
@@ -26,7 +27,7 @@ namespace Microsoft.ML.AutoML
             IMetricsAgent<TMetrics> metricsAgent,
             IEstimator<ITransformer> preFeaturizer,
             ITransformer preprocessorTransform,
-            AutoMLLogger logger)
+            IChannel logger)
         {
             _context = context;
             _trainData = trainData;

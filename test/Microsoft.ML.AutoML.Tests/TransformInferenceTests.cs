@@ -739,7 +739,7 @@ namespace Microsoft.ML.AutoML.Test
             IEnumerable<DatasetColumnInfo> columns)
         {
             // create a dummy data view from input columns
-            var data = BuildDummyDataView(columns);
+            var data = DataViewTestFixture.BuildDummyDataView(columns);
 
             // iterate thru suggested transforms and apply it to a real data view
             foreach (var transform in transforms.Select(t => t.Estimator))
@@ -752,37 +752,6 @@ namespace Microsoft.ML.AutoML.Test
             Assert.NotNull(featuresCol);
             Assert.True(featuresCol.Value.Type.IsVector());
             Assert.Equal(NumberDataViewType.Single, featuresCol.Value.Type.GetItemType());
-        }
-
-        private static IDataView BuildDummyDataView(IEnumerable<DatasetColumnInfo> columns)
-        {
-            return BuildDummyDataView(columns.Select(c => (c.Name, c.Type)));
-        }
-
-        private static IDataView BuildDummyDataView(IEnumerable<(string name, DataViewType type)> columns)
-        {
-            var dataBuilder = new ArrayDataViewBuilder(new MLContext());
-            foreach(var column in columns)
-            {
-                if (column.type == NumberDataViewType.Single)
-                {
-                    dataBuilder.AddColumn(column.name, NumberDataViewType.Single, new float[] { 0 });
-                }
-                else if (column.type == BooleanDataViewType.Instance)
-                {
-                    dataBuilder.AddColumn(column.name, BooleanDataViewType.Instance, new bool[] { false });
-                }
-                else if (column.type == TextDataViewType.Instance)
-                {
-                    dataBuilder.AddColumn(column.name, new string[] { "a" });
-                }
-                else if (column.type.IsVector() && column.type.GetItemType() == NumberDataViewType.Single)
-                {
-                    dataBuilder.AddColumn(column.name, Util.GetKeyValueGetter(new[] { "1", "2" }), 
-                        NumberDataViewType.Single, new float[] { 0, 0 });
-                }
-            }
-            return dataBuilder.GetDataView();
         }
     }
 }

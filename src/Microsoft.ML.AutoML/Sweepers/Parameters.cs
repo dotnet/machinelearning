@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.AutoML
 {
@@ -124,7 +125,7 @@ namespace Microsoft.ML.AutoML
 
         public FloatParameterValue(string name, float value)
         {
-            AutoMlUtils.Assert(!float.IsNaN(value));
+            Runtime.Contracts.Assert(!float.IsNaN(value));
             _name = name;
             _value = value;
             _valueText = _value.ToString("R");
@@ -208,11 +209,11 @@ namespace Microsoft.ML.AutoML
 
         public LongValueGenerator(LongParamArguments args)
         {
-            AutoMlUtils.Assert(args.Min < args.Max, "min must be less than max");
+            Runtime.Contracts.Assert(args.Min < args.Max, "min must be less than max");
             // REVIEW: this condition can be relaxed if we change the math below to deal with it
-            AutoMlUtils.Assert(!args.LogBase || args.Min > 0, "min must be positive if log scale is used");
-            AutoMlUtils.Assert(!args.LogBase || args.StepSize == null || args.StepSize > 1, "StepSize must be greater than 1 if log scale is used");
-            AutoMlUtils.Assert(args.LogBase || args.StepSize == null || args.StepSize > 0, "StepSize must be greater than 0 if linear scale is used");
+            Runtime.Contracts.Assert(!args.LogBase || args.Min > 0, "min must be positive if log scale is used");
+            Runtime.Contracts.Assert(!args.LogBase || args.StepSize == null || args.StepSize > 1, "StepSize must be greater than 1 if log scale is used");
+            Runtime.Contracts.Assert(args.LogBase || args.StepSize == null || args.StepSize > 0, "StepSize must be greater than 0 if linear scale is used");
             _args = args;
         }
 
@@ -303,8 +304,8 @@ namespace Microsoft.ML.AutoML
         public float NormalizeValue(IParameterValue value)
         {
             var valueTyped = value as LongParameterValue;
-            AutoMlUtils.Assert(valueTyped != null, "LongValueGenerator could not normalized parameter because it is not of the correct type");
-            AutoMlUtils.Assert(_args.Min <= valueTyped.Value && valueTyped.Value <= _args.Max, "Value not in correct range");
+            Runtime.Contracts.Assert(valueTyped != null, "LongValueGenerator could not normalized parameter because it is not of the correct type");
+            Runtime.Contracts.Assert(_args.Min <= valueTyped.Value && valueTyped.Value <= _args.Max, "Value not in correct range");
 
             if (_args.LogBase)
             {
@@ -334,11 +335,11 @@ namespace Microsoft.ML.AutoML
 
         public FloatValueGenerator(FloatParamArguments args)
         {
-            AutoMlUtils.Assert(args.Min < args.Max, "min must be less than max");
+            Runtime.Contracts.Assert(args.Min < args.Max, "min must be less than max");
             // REVIEW: this condition can be relaxed if we change the math below to deal with it
-            AutoMlUtils.Assert(!args.LogBase || args.Min > 0, "min must be positive if log scale is used");
-            AutoMlUtils.Assert(!args.LogBase || args.StepSize == null || args.StepSize > 1, "StepSize must be greater than 1 if log scale is used");
-            AutoMlUtils.Assert(args.LogBase || args.StepSize == null || args.StepSize > 0, "StepSize must be greater than 0 if linear scale is used");
+            Runtime.Contracts.Assert(!args.LogBase || args.Min > 0, "min must be positive if log scale is used");
+            Runtime.Contracts.Assert(!args.LogBase || args.StepSize == null || args.StepSize > 1, "StepSize must be greater than 1 if log scale is used");
+            Runtime.Contracts.Assert(args.LogBase || args.StepSize == null || args.StepSize > 0, "StepSize must be greater than 0 if linear scale is used");
             _args = args;
         }
 
@@ -421,8 +422,8 @@ namespace Microsoft.ML.AutoML
         public float NormalizeValue(IParameterValue value)
         {
             var valueTyped = value as FloatParameterValue;
-            AutoMlUtils.Assert(valueTyped != null, "FloatValueGenerator could not normalized parameter because it is not of the correct type");
-            AutoMlUtils.Assert(_args.Min <= valueTyped.Value && valueTyped.Value <= _args.Max, "Value not in correct range");
+            Runtime.Contracts.Assert(valueTyped != null, "FloatValueGenerator could not normalized parameter because it is not of the correct type");
+            Runtime.Contracts.Assert(_args.Min <= valueTyped.Value && valueTyped.Value <= _args.Max, "Value not in correct range");
 
             if (_args.LogBase)
             {
@@ -436,7 +437,7 @@ namespace Microsoft.ML.AutoML
         public bool InRange(IParameterValue value)
         {
             var valueTyped = value as FloatParameterValue;
-            AutoMlUtils.Assert(valueTyped != null, "Parameter should be of type FloatParameterValue");
+            Runtime.Contracts.Assert(valueTyped != null, "Parameter should be of type FloatParameterValue");
             return (_args.Min <= valueTyped.Value && valueTyped.Value <= _args.Max);
         }
     }
