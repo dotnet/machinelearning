@@ -716,7 +716,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             public double[] LeafSampleWeights { get; set; }
         }
 
-        private static void CheckSummaryRowArray(int[] rowArray, int[] nodeArray, int missingValue = -1)
+        private static void CheckSummaryRowArray<T>(T[] rowArray, T[] nodeArray, T missingValue)
         {
             Assert.True(rowArray.Length >= nodeArray.Length);
 
@@ -747,10 +747,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.Equal(row.SplitGains, tree.SplitGains[nodeId]);
 
             CheckSummaryRowArray(row.CategoricalSplitFeatures,
-                                 tree.GetCategoricalSplitFeaturesAt(nodeId).ToArray());
+                                 tree.GetCategoricalSplitFeaturesAt(nodeId).ToArray(), -1);
 
             CheckSummaryRowArray(row.CategoricalCategoricalSplitFeatureRange,
-                                 tree.GetCategoricalCategoricalSplitFeatureRangeAt(nodeId).ToArray());
+                                 tree.GetCategoricalCategoricalSplitFeatureRangeAt(nodeId).ToArray(), -1);
         }
 
         private static void CheckSummaryRowLeafNode(SummaryDataRow row, int treeIndex, double bias, double treeWeight, RegressionTreeBase tree, int nodeId)
@@ -774,14 +774,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         private static void CheckSummaryRowLeafNodeQuantileTree(QuantileTestSummaryDataRow row, int treeIndex, double bias, double treeWeight, QuantileRegressionTree tree, int nodeId)
         {
-            if (tree.GetLeafSamplesAt(nodeId).Count() > 0)
-                Assert.Equal(row.LeafSamples, tree.GetLeafSamplesAt(nodeId).ToArray());
-            else
-                Assert.Null(row.LeafSamples);
-            if (tree.GetLeafSampleWeightsAt(nodeId).Count() > 0)
-                Assert.Equal(row.LeafSampleWeights, tree.GetLeafSampleWeightsAt(nodeId).ToArray());
-            else
-                Assert.Null(row.LeafSampleWeights);
+            CheckSummaryRowArray(row.LeafSamples, tree.GetLeafSamplesAt(nodeId).ToArray(), 0.0d);
+            CheckSummaryRowArray(row.LeafSampleWeights, tree.GetLeafSampleWeightsAt(nodeId).ToArray(), 0.0d);
         }
 
         private void CheckSummary(ICanGetSummaryAsIDataView modelParameters, double bias, IReadOnlyList<double> treeWeights, IReadOnlyList<RegressionTreeBase> trees)
@@ -796,7 +790,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             if (quantileTrees == null)
                 summaryDataEnumerable = ML.Data.CreateEnumerable<SummaryDataRow>(summaryDataView, false);
             else
+            {
+                Assert.True(summaryDataView.Schema["LeafSamples"].Type.GetValueCount() > 0);
+                Assert.True(summaryDataView.Schema["LeafSampleWeights"].Type.GetValueCount() > 0);
+
                 summaryDataEnumerable = ML.Data.CreateEnumerable<QuantileTestSummaryDataRow>(summaryDataView, false);
+            }
 
             var summaryDataEnumerator = summaryDataEnumerable.GetEnumerator();
 

@@ -13,53 +13,8 @@ namespace Microsoft.ML.FastTree.Utils
 {
     internal class RegressionTreeBaseUtils
     {
-        /// <summary>
-        /// Utility method which returns the maximum size
-        /// of all the categorical split features vectors.
-        /// </summary>
-        private static int GetCategoricalSplitFeaturesMaxSize(IReadOnlyList<RegressionTreeBase> trees)
-        {
-            var maxSize = 0;
-
-            for (int i = 0; i < trees.Count; i++)
-            {
-                for (int j = 0; j < trees[i].NumberOfNodes; j++)
-                {
-                    var size = trees[i].GetCategoricalSplitFeaturesAt(j).Count;
-                    if (size > maxSize) maxSize = size;
-                }
-            }
-
-            return maxSize;
-        }
-
-        /// <summary>
-        /// Utility method which returns a fixed length <see cref="VBuffer{T}"/>
-        /// with the first values set to the values in <paramref name="values"/>
-        /// and any remaining values set to the value of <paramref name="missingValue"/>.
-        /// Note, the count of <paramref name="values"/> must be less than or equal to
-        /// <paramref name="length"/>.
-        /// </summary>
-        private static VBuffer<int> GetFilledBuffer(int length, IReadOnlyList<int> values = null, int missingValue = -1)
-        {
-            int i = 0;
-            var array = new int[length];
-
-            if (values != null)
-            {
-                for (; i < values.Count; i++)
-                {
-                    array[i] = values[i];
-                }
-            }
-
-            for (; i < length; i++)
-            {
-                array[i] = missingValue;
-            }
-
-            return new VBuffer<int>(length, array);
-        }
+        private const int CategoricalSplitFeaturesMissingValue = -1;
+        private const double LeafSamplesMissingValue = 0.0d;
 
         /// <summary>
         /// Utility method used to represent a tree ensemble as an <see cref="IDataView"/>.
@@ -83,13 +38,11 @@ namespace Microsoft.ML.FastTree.Utils
             var categoricalSplitFlags = new List<bool>();
             var leafValues = new List<double>();
             var splitGains = new List<double>();
-
             var categoricalSplitFeatures = new List<VBuffer<int>>();
-            var categoricalSplitFeaturesMaxSize = Math.Max(GetCategoricalSplitFeaturesMaxSize(trees), 1);
-            var categoricalSplitFeaturesEmptyBuffer = GetFilledBuffer(categoricalSplitFeaturesMaxSize);
-
             var categoricalCategoricalSplitFeatureRange = new List<VBuffer<int>>();
-            var categoricalCategoricalSplitFeatureRangeEmptyBuffer = GetFilledBuffer(2);
+
+            int categoricalSplitFeaturesMaxSize = 1;
+            int categoricalCategoricalSplitFeatureRangeMaxSize = 2;
 
             for (int i = 0; i < trees.Count; i++)
             {
@@ -134,20 +87,19 @@ namespace Microsoft.ML.FastTree.Utils
                 for (int j = 0; j < trees[i].NumberOfNodes; j++)
                 {
                     // CategoricalSplitFeatures column.
-                    var buffer = GetFilledBuffer(categoricalSplitFeaturesMaxSize,
-                                                 trees[i].GetCategoricalSplitFeaturesAt(j));
-                    categoricalSplitFeatures.Add(buffer);
+                    var categoricalSplitFeaturesArray = trees[i].GetCategoricalSplitFeaturesAt(j).ToArray();
+                    categoricalSplitFeatures.Add(new VBuffer<int>(categoricalSplitFeaturesArray.Length, categoricalSplitFeaturesArray));
+
+                    if (categoricalSplitFeaturesArray.Length > categoricalSplitFeaturesMaxSize)
+                        categoricalSplitFeaturesMaxSize = categoricalSplitFeaturesArray.Length;
 
                     // CategoricalCategoricalSplitFeatureRange column.
-                    buffer = GetFilledBuffer(2, trees[i].GetCategoricalCategoricalSplitFeatureRangeAt(j));
-                    categoricalCategoricalSplitFeatureRange.Add(buffer);
+                    var categoricalCategoricalSplitFeatureRangeArray = trees[i].GetCategoricalCategoricalSplitFeatureRangeAt(j).ToArray();
+                    categoricalCategoricalSplitFeatureRange.Add(new VBuffer<int>(categoricalCategoricalSplitFeatureRangeArray.Length, categoricalCategoricalSplitFeatureRangeArray));
                 }
 
-                var enumerable = Enumerable.Repeat(categoricalSplitFeaturesEmptyBuffer, trees[i].NumberOfLeaves);
-                categoricalSplitFeatures.AddRange(enumerable);
-
-                enumerable = Enumerable.Repeat(categoricalCategoricalSplitFeatureRangeEmptyBuffer, trees[i].NumberOfLeaves);
-                categoricalCategoricalSplitFeatureRange.AddRange(enumerable);
+                categoricalSplitFeatures.AddRange(Enumerable.Repeat(new VBuffer<int>(), trees[i].NumberOfLeaves));
+                categoricalCategoricalSplitFeatureRange.AddRange(Enumerable.Repeat(new VBuffer<int>(), trees[i].NumberOfLeaves));
             }
 
             // Bias column. This will be a repeated value for all rows in the resulting IDataView.
@@ -162,8 +114,18 @@ namespace Microsoft.ML.FastTree.Utils
             builder.AddColumn(nameof(RegressionTreeBase.CategoricalSplitFlags), BooleanDataViewType.Instance, categoricalSplitFlags.ToArray());
             builder.AddColumn(nameof(RegressionTreeBase.LeafValues), NumberDataViewType.Double, leafValues.ToArray());
             builder.AddColumn(nameof(RegressionTreeBase.SplitGains), NumberDataViewType.Double, splitGains.ToArray());
-            builder.AddColumn("CategoricalSplitFeatures", NumberDataViewType.Int32, categoricalSplitFeatures.ToArray());
-            builder.AddColumn("CategoricalCategoricalSplitFeatureRange", NumberDataViewType.Int32, categoricalCategoricalSplitFeatureRange.ToArray());
+
+            builder.AddColumn("CategoricalSplitFeatures",
+                              NumberDataViewType.Int32,
+                              categoricalSplitFeaturesMaxSize,
+                              CategoricalSplitFeaturesMissingValue,
+                              categoricalSplitFeatures.ToArray());
+
+            builder.AddColumn("CategoricalCategoricalSplitFeatureRange",
+                              NumberDataViewType.Int32,
+                              categoricalCategoricalSplitFeatureRangeMaxSize,
+                              CategoricalSplitFeaturesMissingValue,
+                              categoricalCategoricalSplitFeatureRange.ToArray());
 
             // If the input tree array is a quantile regression tree we need to add two more columns.
             var quantileTrees = trees as IReadOnlyList<QuantileRegressionTree>;
@@ -174,6 +136,10 @@ namespace Microsoft.ML.FastTree.Utils
 
                 // LeafSampleWeights column.
                 var leafSampleWeights = new List<VBuffer<double>>();
+
+                int leafSamplesMaxSize = 1;
+                int leafSampleWeightsMaxSize = 1;
+
                 for (int i = 0; i < quantileTrees.Count; i++)
                 {
                     leafSamples.AddRange(Enumerable.Repeat(new VBuffer<double>(), quantileTrees[i].NumberOfNodes));
@@ -182,16 +148,29 @@ namespace Microsoft.ML.FastTree.Utils
                     {
                         var leafSamplesArray = quantileTrees[i].GetLeafSamplesAt(j).ToArray();
                         leafSamples.Add(new VBuffer<double>(leafSamplesArray.Length, leafSamplesArray));
-                        var len = quantileTrees[i].GetLeafSamplesAt(j).ToArray().Length;
+
+                        if (leafSamplesArray.Length > leafSamplesMaxSize)
+                            leafSamplesMaxSize = leafSamplesArray.Length;
 
                         var leafSampleWeightsArray = quantileTrees[i].GetLeafSampleWeightsAt(j).ToArray();
                         leafSampleWeights.Add(new VBuffer<double>(leafSampleWeightsArray.Length, leafSampleWeightsArray));
-                        len = quantileTrees[i].GetLeafSampleWeightsAt(j).ToArray().Length;
+
+                        if (leafSampleWeightsArray.Length > leafSampleWeightsMaxSize)
+                            leafSampleWeightsMaxSize = leafSampleWeightsArray.Length;
                     }
                 }
 
-                builder.AddColumn("LeafSamples", NumberDataViewType.Double, leafSamples.ToArray());
-                builder.AddColumn("LeafSampleWeights", NumberDataViewType.Double, leafSampleWeights.ToArray());
+                builder.AddColumn("LeafSamples",
+                                  NumberDataViewType.Double,
+                                  leafSamplesMaxSize,
+                                  LeafSamplesMissingValue,
+                                  leafSamples.ToArray());
+
+                builder.AddColumn("LeafSampleWeights",
+                                  NumberDataViewType.Double,
+                                  leafSampleWeightsMaxSize,
+                                  LeafSamplesMissingValue,
+                                  leafSampleWeights.ToArray());
             }
 
             var data = builder.GetDataView();

@@ -1298,6 +1298,76 @@ namespace Microsoft.ML.RunTests
 
             Done();
         }
+
+        [Fact]
+        public void ArrayDataViewBuilderFixedSizeBufferColumn()
+        {
+            ArrayDataViewBuilder builder = new ArrayDataViewBuilder(Env);
+
+            var values = new List<VBuffer<int>>();
+            values.Add(new VBuffer<int>());
+            values.Add(new VBuffer<int>(1, new int[] {5}));
+            values.Add(new VBuffer<int>(3, new int[] {7, 8, 9}));
+
+            builder.AddColumn("c0", NumberDataViewType.Int32, 4, -1, values.ToArray());
+
+            var dataView = builder.GetDataView();
+            using (var rowCursor = dataView.GetRowCursorForAllColumns())
+            {
+                VBuffer<int> value = default;
+                var getter = rowCursor.GetGetter<VBuffer<int>>(dataView.Schema["c0"]);
+
+                Assert.True(rowCursor.MoveNext());
+                getter(ref value);
+                Assert.Equal(new int[] {-1, -1, -1, -1}, value.GetValues().ToArray());
+
+                Assert.True(rowCursor.MoveNext());
+                getter(ref value);
+                Assert.Equal(new int[] {5, -1, -1, -1}, value.GetValues().ToArray());
+
+                Assert.True(rowCursor.MoveNext());
+                getter(ref value);
+                Assert.Equal(new int[] {7, 8, 9, -1}, value.GetValues().ToArray());
+            }
+
+            Assert.Equal(3, dataView.GetRowCount());
+            Done();
+        }
+
+        [Fact]
+        public void ArrayDataViewBuilderFixedSizeBufferColumn_ZeroLength()
+        {
+            ArrayDataViewBuilder builder = new ArrayDataViewBuilder(Env);
+
+            var values = new List<VBuffer<int>>();
+            values.Add(new VBuffer<int>());
+            values.Add(new VBuffer<int>());
+            values.Add(new VBuffer<int>());
+
+            builder.AddColumn("c0", NumberDataViewType.Int32, 0, -1, values.ToArray());
+
+            var dataView = builder.GetDataView();
+            using (var rowCursor = dataView.GetRowCursorForAllColumns())
+            {
+                VBuffer<int> value = default;
+                var getter = rowCursor.GetGetter<VBuffer<int>>(dataView.Schema["c0"]);
+
+                Assert.True(rowCursor.MoveNext());
+                getter(ref value);
+                Assert.Equal(0, value.Length);
+
+                Assert.True(rowCursor.MoveNext());
+                getter(ref value);
+                Assert.Equal(0, value.Length);
+
+                Assert.True(rowCursor.MoveNext());
+                getter(ref value);
+                Assert.Equal(0, value.Length);
+            }
+
+            Assert.Equal(3, dataView.GetRowCount());
+            Done();
+        }
     }
     /// <summary>
     /// A class for non-baseline data pipe tests.

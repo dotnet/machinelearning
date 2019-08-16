@@ -153,6 +153,18 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
+        /// Adds a fixed size VBuffer{T} valued column.
+        /// </summary>
+        public void AddColumn<T>(string name, PrimitiveDataViewType itemType, int length, T missingValue, params VBuffer<T>[] values)
+        {
+            _host.CheckParam(itemType != null && itemType.RawType == typeof(T), nameof(itemType));
+            _host.CheckParam(length >= 0, nameof(length));
+            CheckLength(name, values);
+            _columns.Add(new FixedSizeVBufferColumn<T>(itemType, values, length, missingValue));
+            _names.Add(name);
+        }
+
+        /// <summary>
         /// Adds a VBuffer{T} valued column.
         /// </summary>
         public void AddColumn<T>(string name, ValueGetter<VBuffer<ReadOnlyMemory<char>>> getNames, PrimitiveDataViewType itemType, params VBuffer<T>[] values)
@@ -525,6 +537,44 @@ namespace Microsoft.ML.Data
                 for (int i = 0; i < length; i++)
                     _bldr.AddFeature(i, src[i]);
                 _bldr.GetResult(ref dst);
+            }
+        }
+
+        /// <summary>
+        /// A column of buffers whose output length is fixed even if
+        /// the input buffers are shorter then the output length.
+        /// </summary>
+        private sealed class FixedSizeVBufferColumn<T> : Column<VBuffer<T>, VBuffer<T>>
+        {
+            private readonly int _bufferLength;
+            private readonly T _missingValue;
+
+            public FixedSizeVBufferColumn(PrimitiveDataViewType itemType, VBuffer<T>[] values, int bufferLength, T missingValue = default)
+                : base(new VectorDataViewType(itemType, bufferLength), values)
+            {
+                Contracts.Assert(_bufferLength >= 0);
+
+                _bufferLength = bufferLength;
+                _missingValue = missingValue;
+            }
+
+            protected override void CopyOut(in VBuffer<T> src, ref VBuffer<T> dst)
+            {
+                Contracts.Assert(src.Length <= _bufferLength);
+
+                if (src.Length == _bufferLength)
+                {
+                    src.CopyTo(ref dst);
+                }
+                else
+                {
+                    T[] buffer = new T[_bufferLength];
+
+                    src.GetValues().CopyTo(buffer);
+                    buffer.AsSpan().Slice(src.Length).Fill(_missingValue);
+
+                    dst = new VBuffer<T>(_bufferLength, buffer);
+                }
             }
         }
 
