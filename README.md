@@ -20,9 +20,9 @@ If you are new to machine learning, start by learning the basics from this colle
 
 ## ML.NET Documentation, tutorials and reference
 
-Please check our documentation and tutorials [here](https://docs.microsoft.com/en-us/dotnet/machine-learning/). 
+Please check our [documentation and tutorials](https://docs.microsoft.com/en-us/dotnet/machine-learning/). 
 
-See the [ML.NET API Reference Documentation](https://docs.microsoft.com/en-us/dotnet/api/?view=ml-dotnet).
+See the [API Reference documentation](https://docs.microsoft.com/en-us/dotnet/api/?view=ml-dotnet).
 
 ## Sample apps
 
