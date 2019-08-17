@@ -4,7 +4,9 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Net;
+using System.Threading;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.AutoML.Test
@@ -45,24 +47,40 @@ namespace Microsoft.ML.AutoML.Test
 
         private static string DownloadIfNotExists(string baseGitPath, string dataFile)
         {
-            // if file doesn't already exist, download it
-            if(!File.Exists(dataFile))
+            foreach (var nextIteration in Enumerable.Range(0, 10))
             {
-                var tempFile = Path.GetTempFileName();
-
-                using (var client = new WebClient())
+                // if file doesn't already exist, download it
+                if (!File.Exists(dataFile))
                 {
-                    client.DownloadFile(new Uri($"{baseGitPath}"), tempFile);
+                    var tempFile = Path.GetTempFileName();
 
-                    if(!File.Exists(dataFile))
+                    try
                     {
-                        File.Copy(tempFile, dataFile);
-                        File.Delete(tempFile);
+                        using (var client = new WebClient())
+                        {
+                            client.DownloadFile(new Uri($"{baseGitPath}"), tempFile);
+
+                            if (!File.Exists(dataFile))
+                            {
+                                File.Copy(tempFile, dataFile);
+                                File.Delete(tempFile);
+                            }
+                        }
+                    }
+                    catch(Exception)
+                    {
                     }
                 }
+
+                if (File.Exists(dataFile) && (new FileInfo(dataFile).Length > 0))
+                {
+                    return dataFile;
+                }
+
+                Thread.Sleep(300);
             }
 
-            return dataFile;
+            throw new Exception($"Failed to download test file {dataFile}.");
         }
     }
 }

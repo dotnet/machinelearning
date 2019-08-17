@@ -18,7 +18,7 @@ namespace Microsoft.ML.AutoML.Test
         public void ValidateExperimentExecuteNullTrainData()
         {
             var ex = Assert.Throws<ArgumentNullException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(null, new ColumnInformation(), null, TaskKind.Regression));
-            Assert.Equal("Training data cannot be null\r\nParameter name: trainData", ex.Message);
+            Assert.Equal("Training data cannot be null" + Environment.NewLine + "Parameter name: trainData", ex.Message);
         }
 
         [Fact]
@@ -84,7 +84,7 @@ namespace Microsoft.ML.AutoML.Test
 
             var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData, 
                 new ColumnInformation() { LabelColumnName = "0" }, validData, TaskKind.Regression));
-            Assert.Equal("Training data and validation data schemas do not match. Train data has '2' columns,and validation data has '1' columns.\r\nParameter name: validationData", ex.Message);
+            Assert.Equal("Training data and validation data schemas do not match. Train data has '2' columns,and validation data has '1' columns." + Environment.NewLine + "Parameter name: validationData", ex.Message);
         }
 
         [Fact]
@@ -104,7 +104,7 @@ namespace Microsoft.ML.AutoML.Test
 
             var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData,
                 new ColumnInformation() { LabelColumnName = "0" }, validData, TaskKind.Regression));
-            Assert.Equal("Training data and validation data schemas do not match. Column '1' exsits in train data, but not in validation data.\r\nParameter name: validationData", ex.Message);
+            Assert.Equal("Training data and validation data schemas do not match. Column '1' exsits in train data, but not in validation data." + Environment.NewLine + "Parameter name: validationData", ex.Message);
         }
 
         [Fact]
@@ -124,21 +124,21 @@ namespace Microsoft.ML.AutoML.Test
 
             var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData,
                 new ColumnInformation() { LabelColumnName = "0" }, validData, TaskKind.Regression));
-            Assert.Equal("Training data and validation data schemas do not match. Column '1' is of type String in train data, and type Single in validation data.\r\nParameter name: validationData", ex.Message);
+            Assert.Equal("Training data and validation data schemas do not match. Column '1' is of type String in train data, and type Single in validation data." + Environment.NewLine + "Parameter name: validationData", ex.Message);
         }
 
         [Fact]
         public void ValidateInferColumnsArgsNullPath()
         {
             var ex = Assert.Throws<ArgumentNullException>(() => UserInputValidationUtil.ValidateInferColumnsArgs(null, "Label"));
-            Assert.Equal("Provided path cannot be null\r\nParameter name: path", ex.Message);
+            Assert.Equal("Provided path cannot be null" + Environment.NewLine + "Parameter name: path", ex.Message);
         }
 
         [Fact]
         public void ValidateInferColumnsArgsPathNotExist()
         {
             var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateInferColumnsArgs("idontexist", "Label"));
-            Assert.Equal("File 'idontexist' does not exist\r\nParameter name: path", ex.Message);
+            Assert.Equal("File 'idontexist' does not exist" + Environment.NewLine + "Parameter name: path", ex.Message);
         }
 
         [Fact]
@@ -147,7 +147,7 @@ namespace Microsoft.ML.AutoML.Test
             const string emptyFilePath = "empty";
             File.Create(emptyFilePath).Dispose();
             var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateInferColumnsArgs(emptyFilePath, "Label"));
-            Assert.Equal("File at path 'empty' cannot be empty\r\nParameter name: path", ex.Message);
+            Assert.Equal("File at path 'empty' cannot be empty" + Environment.NewLine + "Parameter name: path", ex.Message);
         }
 
         [Fact]
@@ -166,7 +166,7 @@ namespace Microsoft.ML.AutoML.Test
             var dataView = DataViewTestFixture.BuildDummyDataView(schema);
 
             var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, new ColumnInformation(), null, TaskKind.Regression));
-            Assert.Equal("Features column must be of data type Single\r\nParameter name: trainData", ex.Message);
+            Assert.Equal("Features column must be of data type Single" + Environment.NewLine + "Parameter name: trainData", ex.Message);
         }
 
         [Fact]
@@ -236,7 +236,7 @@ namespace Microsoft.ML.AutoML.Test
 
             var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, new ColumnInformation(),
                 null, TaskKind.Regression));
-            Assert.Equal("Only supported feature column types are Boolean, Single, and String. Please change the feature column UInt64 of type UInt64 to one of the supported types.\r\nParameter name: trainData", ex.Message);
+            Assert.Equal("Only supported feature column types are Boolean, Single, and String. Please change the feature column UInt64 of type UInt64 to one of the supported types." + Environment.NewLine + "Parameter name: trainData", ex.Message);
         }
 
         [Fact]
@@ -249,7 +249,7 @@ namespace Microsoft.ML.AutoML.Test
             var dataView = DataViewTestFixture.BuildDummyDataView(schema, createDummyRow: false);
             var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, new ColumnInformation(),
                 null, TaskKind.Regression));
-            Assert.Equal("Training data has 0 rows\r\nParameter name: trainData", ex.Message);
+            Assert.Equal("Training data has 0 rows" + Environment.NewLine + "Parameter name: trainData", ex.Message);
         }
 
         [Fact]
@@ -270,7 +270,7 @@ namespace Microsoft.ML.AutoML.Test
 
             var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(trainingData, new ColumnInformation(),
                 validationData, TaskKind.Regression));
-            Assert.Equal("Validation data has 0 rows\r\nParameter name: validationData", ex.Message);
+            Assert.Equal("Validation data has 0 rows" + Environment.NewLine + "Parameter name: validationData", ex.Message);
         }
 
         private static void ValidateLabelTypeTestCore<LabelRawType>(TaskKind task, PrimitiveDataViewType labelType, bool labelTypeShouldBeValid)
