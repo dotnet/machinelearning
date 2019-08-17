@@ -8,11 +8,9 @@ using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.StaticPipe;
 using Microsoft.ML.Transforms.TensorFlow;
 using Xunit;
 using Xunit.Abstractions;
@@ -139,7 +137,7 @@ namespace Microsoft.ML.Tests
         }
 
         [TensorFlowFact]
-        public void TestTensorFlowStatic()
+        public void TestTensorFlow()
         {
             var modelLocation = "cifar_model/frozen_model.pb";
 
@@ -149,21 +147,20 @@ namespace Microsoft.ML.Tests
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 
-            var data = TextLoaderStatic.CreateLoader(mlContext, ctx => (
-                imagePath: ctx.LoadText(0),
-                name: ctx.LoadText(1)))
-                .Load(dataFile);
+            var data = ML.Data.LoadFromTextFile(dataFile, new[] {
+                new TextLoader.Column("imagePath", DataKind.String, 0),
+                new TextLoader.Column("name", DataKind.String, 1)
+            });
 
             // Note that CamelCase column names are there to match the TF graph node names.
-            var pipe = data.MakeNewEstimator()
-                .Append(row => (
-                    row.name,
-                    Input: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleave: true)))
-                .Append(row => (row.name, Output: row.Input.ApplyTensorFlowGraph(modelLocation)));
+            var pipe = ML.Transforms.LoadImages("Input", imageFolder, "imagePath")
+                .Append(ML.Transforms.ResizeImages("Input", imageHeight, imageWidth))
+                .Append(ML.Transforms.ExtractPixels("Input", interleavePixelColors: true))
+                .Append(ML.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel("Output", "Input"));
 
-            TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
+            TestEstimatorCore(pipe, data);
 
-            var result = pipe.Fit(data).Transform(data).AsDynamic;
+            var result = pipe.Fit(data).Transform(data);
             result.Schema.TryGetColumnIndex("Output", out int output);
             using (var cursor = result.GetRowCursor(result.Schema["Output"]))
             {
@@ -181,7 +178,7 @@ namespace Microsoft.ML.Tests
         }
 
         [TensorFlowFact]
-        public void TestTensorFlowStaticWithSchema()
+        public void TestTensorFlowWithSchema()
         {
             const string modelLocation = "cifar_model/frozen_model.pb";
 
@@ -196,21 +193,20 @@ namespace Microsoft.ML.Tests
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 
-            var data = TextLoaderStatic.CreateLoader(mlContext, ctx => (
-                imagePath: ctx.LoadText(0),
-                name: ctx.LoadText(1)))
-                .Load(dataFile);
+            var data = ML.Data.LoadFromTextFile(dataFile, new[] {
+                new TextLoader.Column("imagePath", DataKind.String, 0),
+                new TextLoader.Column("name", DataKind.String, 1)
+            });
 
             // Note that CamelCase column names are there to match the TF graph node names.
-            var pipe = data.MakeNewEstimator()
-                .Append(row => (
-                    row.name,
-                    Input: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleave: true)))
-                .Append(row => (row.name, Output: row.Input.ApplyTensorFlowGraph(tensorFlowModel)));
+            var pipe = ML.Transforms.LoadImages("Input", imageFolder, "imagePath")
+                .Append(ML.Transforms.ResizeImages("Input", imageHeight, imageWidth))
+                .Append(ML.Transforms.ExtractPixels("Input", interleavePixelColors: true))
+                .Append(tensorFlowModel.ScoreTensorFlowModel("Output", "Input"));
 
-            TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
+            TestEstimatorCore(pipe, data);
 
-            var result = pipe.Fit(data).Transform(data).AsDynamic;
+            var result = pipe.Fit(data).Transform(data);
             result.Schema.TryGetColumnIndex("Output", out int output);
             using (var cursor = result.GetRowCursor(result.Schema["Output"]))
             {

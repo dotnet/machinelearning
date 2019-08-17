@@ -6,7 +6,7 @@
 
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)'==''">Debug</Configuration>
-    <Configurations>Debug;Release;Debug-Intrinsics;Release-Intrinsics;Debug-netfx;Release-netfx</Configurations>
+    <Configurations>Debug;Release;Debug-netcoreapp3_0;Release-netcoreapp3_0;Debug-netfx;Release-netfx</Configurations>
     <Platform Condition="'$(Platform)'==''">AnyCPU</Platform>
     <TargetArchitecture Condition="'$(TargetArchitecture)' == ''">x64</TargetArchitecture>
     <NativeTargetArchitecture Condition="'$(NativeTargetArchitecture)' == ''">$(TargetArchitecture)</NativeTargetArchitecture>
@@ -106,11 +106,7 @@
     <PublicSign Condition="'$(OS)' != 'Windows_NT'">true</PublicSign>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <UseIntrinsics Condition="'$(UseIntrinsics)' == ''">$(Configuration.EndsWith('-Intrinsics'))</UseIntrinsics>
-  </PropertyGroup>
-
-  <!-- Need to explicitly set these properties for the -Intrinsics or -Netfx configurations becuase they are typically based off 'Debug' or 'Release' configs -->
+  <!-- Need to explicitly set these properties for the -netcoreapp3_0 or -netfx configurations becuase they are typically based off 'Debug' or 'Release' configs -->
   <!-- Taken from https://github.com/dotnet/sdk/blob/073c98b92c81066c6c2e17c3674adbb6e833409a/src/Tasks/Microsoft.NET.Build.Tasks/targets/Microsoft.NET.Sdk.props#L41-L47 -->
   <PropertyGroup Condition="$(Configuration.StartsWith('Debug'))">
     <DebugSymbols>true</DebugSymbols>
@@ -121,7 +117,4 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <CustomAfterMicrosoftCommonTargets>$(RepoRoot)build\AfterCommonTargets.targets</CustomAfterMicrosoftCommonTargets>
-  </PropertyGroup>
 </Project>

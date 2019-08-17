@@ -7,16 +7,13 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms.Image;
-using Microsoft.ML.Transforms.StaticPipe;
 using Xunit;
 using Xunit.Abstractions;
 using Microsoft.ML.Transforms.Onnx;
@@ -39,6 +36,15 @@ namespace Microsoft.ML.Tests
             public float[] ina;
 
             [VectorType(5)]
+            public float[] inb;
+        }
+
+        private class TestDataMulti2By3
+        {
+            [VectorType(2, 3)]
+            public float[] ina;
+
+            [VectorType(2, 3)]
             public float[] inb;
         }
 
@@ -69,6 +75,18 @@ namespace Microsoft.ML.Tests
         class PredictionUnknownDimensions
         {
             [VectorType(1)]
+            public long[] argmax { get; set; }
+        }
+
+        private class InputWithCustomShape
+        {
+            [VectorType(3, 3)]
+            public float[] input;
+        }
+
+        class PredictionWithCustomShape
+        {
+            [VectorType(3)]
             public long[] argmax { get; set; }
         }
 
@@ -180,7 +198,7 @@ namespace Microsoft.ML.Tests
         }
 
         [OnnxFact]
-        public void OnnxStatic()
+        public void OnnxWorkout()
         {
             var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "squeezenet", "00000001", "model.onnx");
 
@@ -190,21 +208,19 @@ namespace Microsoft.ML.Tests
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 
-            var data = TextLoaderStatic.CreateLoader(env, ctx => (
-                imagePath: ctx.LoadText(0),
-                name: ctx.LoadText(1)))
-                .Load(dataFile);
-
+            var data = ML.Data.LoadFromTextFile(dataFile, new[] {
+                new TextLoader.Column("imagePath", DataKind.String, 0),
+                new TextLoader.Column("name", DataKind.String, 1)
+            });
             // Note that CamelCase column names are there to match the TF graph node names.
-            var pipe = data.MakeNewEstimator()
-                .Append(row => (
-                    row.name,
-                    data_0: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleave: true)))
-                .Append(row => (row.name, softmaxout_1: row.data_0.ApplyOnnxModel(modelFile)));
+            var pipe = ML.Transforms.LoadImages("data_0", imageFolder, "imagePath")
+                .Append(ML.Transforms.ResizeImages("data_0", imageHeight, imageWidth))
+                .Append(ML.Transforms.ExtractPixels("data_0", interleavePixelColors: true))
+                .Append(ML.Transforms.ApplyOnnxModel("softmaxout_1", "data_0", modelFile));
 
-            TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
+            TestEstimatorCore(pipe, data);
 
-            var result = pipe.Fit(data).Transform(data).AsDynamic;
+            var result = pipe.Fit(data).Transform(data);
             var softmaxOutCol = result.Schema["softmaxout_1"];
 
             using (var cursor = result.GetRowCursor(softmaxOutCol))
@@ -226,6 +242,13 @@ namespace Microsoft.ML.Tests
         void TestCommandLine()
         {
             var x = Maml.Main(new[] { @"showschema loader=Text{col=data_0:R4:0-150527} xf=Onnx{InputColumns={data_0} OutputColumns={softmaxout_1} model={squeezenet/00000001/model.onnx}}" });
+            Assert.Equal(0, x);
+        }
+
+        [OnnxFact]
+        void TestCommandLineWithCustomShape()
+        {
+            var x = Maml.Main(new[] { @"showschema loader=Text{col=data_0:R4:0-150527} xf=Onnx{customShapeInfos={Name=data_0 Shape=1 Shape=3 Shape=224 Shape=224} InputColumns={data_0} OutputColumns={softmaxout_1} model={squeezenet/00000001/model.onnx}}" });
             Assert.Equal(0, x);
         }
 
@@ -572,7 +595,7 @@ namespace Microsoft.ML.Tests
 
         /// <summary>
         /// Use <see cref="CustomMappingCatalog.CustomMapping{TSrc, TDst}(TransformsCatalog, Action{TSrc, TDst}, string, SchemaDefinition, SchemaDefinition)"/>
-        /// to test if ML.NET can manipulate <see cref="OnnxMapType"/> properly. ONNXRuntime's C# API doesn't support map yet. 
+        /// to test if ML.NET can manipulate <see cref="OnnxMapType"/> properly. ONNXRuntime's C# API doesn't support map yet.
         /// </summary>
         [OnnxFact]
         public void SmokeInMemoryOnnxMapTypeTest()
@@ -606,6 +629,236 @@ namespace Microsoft.ML.Tests
                 foreach(var pair in dataPoints[i].Input)
                     Assert.Equal(pair.Value, transformedDataPoints[i].Output[pair.Key + 1]);
             }
+        }
+
+        /// <summary>
+        /// A test to check if dynamic shape works.
+        /// The source of the test model is <see url="https://github.com/dotnet/machinelearning-testdata/tree/master/Microsoft.ML.Onnx.TestModels/unknowndimensions"/>.
+        /// </summary>
+        [OnnxFact]
+        public void TestOnnxTransformWithCustomShapes()
+        {
+            // The loaded model has input shape [-1, 3] and output shape [-1].
+            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "unknowndimensions", "test_unknowndimensions_float.onnx");
+
+            var dataPoints = new InputWithCustomShape[]
+                {
+                    // It's a flattened 3-by-3 tensor.
+                    // [1.1, 1.3, 1.2]
+                    // |1.9, 1.3, 1.2|
+                    // [1.1, 1.3, 1.8]
+                    new InputWithCustomShape(){input = new float[] { 1.1f, 1.3f, 1.2f, 1.9f, 1.3f, 1.2f, 1.1f, 1.3f, 1.8f } },
+                    // It's a flattened 3-by-3 tensor.
+                    // [0, 0, 1]
+                    // |1, 0, 0|
+                    // [1, 0, 0]
+                    new InputWithCustomShape(){input = new float[] { 0f, 0f, 1f, 1f, 0f, 0f, 1f, 0f, 0f } }
+                };
+
+            var shapeDictionary = new Dictionary<string, int[]>() { { nameof(InputWithCustomShape.input), new int[] { 3, 3 } } };
+
+            var dataView = ML.Data.LoadFromEnumerable(dataPoints);
+
+            var transformedDataViews = new IDataView[3];
+
+            // Test three public ONNX APIs with the custom shape.
+
+            // Test 1.
+            transformedDataViews[0] = ML.Transforms.ApplyOnnxModel(
+                new[] { nameof(PredictionWithCustomShape.argmax) }, new[] { nameof(InputWithCustomShape.input) },
+                modelFile, shapeDictionary).Fit(dataView).Transform(dataView);
+
+            // Test 2.
+            transformedDataViews[1] = ML.Transforms.ApplyOnnxModel(
+                nameof(PredictionWithCustomShape.argmax), nameof(InputWithCustomShape.input),
+                modelFile, shapeDictionary).Fit(dataView).Transform(dataView);
+
+            // Test 3.
+            transformedDataViews[2] = ML.Transforms.ApplyOnnxModel(
+                modelFile, shapeDictionary).Fit(dataView).Transform(dataView);
+
+            // Conduct the same check for all the 3 called public APIs.
+            foreach(var transformedDataView in transformedDataViews)
+            {
+                var transformedDataPoints = ML.Data.CreateEnumerable<PredictionWithCustomShape>(transformedDataView, false).ToList();
+
+                // One data point generates one transformed data point.
+                Assert.Equal(dataPoints.Count(), transformedDataPoints.Count);
+
+                // Check result numbers. They are results of applying ONNX argmax along the second axis; for example
+                // [1.1, 1.3, 1.2] ---> [1] because 1.3 (indexed by 1) is the largest element.
+                // |1.9, 1.3, 1.2| ---> |0|         1.9             0
+                // [1.1, 1.3, 1.8] ---> [2]         1.8             2
+                var expectedResults = new long[][]
+                {
+                    new long[] { 1, 0, 2 },
+                    new long[] {2, 0, 0 }
+                };
+
+                for (int i = 0; i < transformedDataPoints.Count; ++i)
+                    Assert.Equal(transformedDataPoints[i].argmax, expectedResults[i]);
+            }
+        }
+
+        /// <summary>
+        /// This function runs a ONNX model with user-specified shapes <paramref name="shapeDictionary"/>.
+        /// The source of the test model is <see url="https://github.com/dotnet/machinelearning-testdata/tree/master/Microsoft.ML.Onnx.TestModels/twoinput"/>.
+        /// </summary>
+        /// <param name="shapeDictionary">Dictionary of tensor shapes. Keys are tensor names
+        /// while values the associated shapes.</param>
+        private void TryModelWithCustomShapesHelper(IDictionary<string, int[]> shapeDictionary)
+        {
+            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "twoinput", "twoinput.onnx");
+
+            var dataView = ML.Data.LoadFromEnumerable(
+                new TestDataMulti2By3[] {
+                    new TestDataMulti2By3()
+                    {
+                        ina = new float[] {1, 2, 3, 4, 5, 6},
+                        inb = new float[] {1, 2, 3, 4, 5, 6}
+                    }
+                });
+
+            // Define a ONNX transform, trains it, and apply it to the input data. 
+            var pipeline = ML.Transforms.ApplyOnnxModel(new[] { "outa", "outb" }, new[] { "ina", "inb" },
+                modelFile, shapeDictionary);
+        }
+
+        /// <summary>
+        /// Check if we can throw when shapes are wrong.
+        /// </summary>
+        [OnnxFact]
+        public void SpecifyOnnxShapes()
+        {
+            // Case 1: This shape conflicts with input shape [1, 1, 1, 5] loaded from the model.
+            var shapeDictionary = new Dictionary<string, int[]>() {
+                { "ina", new int[] { 2, 3 } },
+            };
+            bool somethingWrong = false;
+            try
+            {
+                TryModelWithCustomShapesHelper(shapeDictionary);
+            }
+            catch
+            {
+                somethingWrong = true;
+            }
+            Assert.True(somethingWrong);
+
+            // Case 2: This shape works with shape [1, 1, 1, 5] loaded from the model.
+            shapeDictionary = new Dictionary<string, int[]>() {
+                { "ina", new int[] { 1, 1, -1, 5 } },
+            };
+            somethingWrong = false;
+            TryModelWithCustomShapesHelper(shapeDictionary);
+            try
+            {
+                TryModelWithCustomShapesHelper(shapeDictionary);
+            }
+            catch
+            {
+                somethingWrong = true;
+            }
+            Assert.False(somethingWrong);
+
+            // Case 3: this shape conflicts with output shape [1, 1, 1, 5] loaded from the model.
+            shapeDictionary= new Dictionary<string, int[]>() {
+                { "outb", new int[] { 5, 6 } },
+            };
+            somethingWrong= false;
+            try
+            {
+                TryModelWithCustomShapesHelper(shapeDictionary);
+            }
+            catch
+            {
+                somethingWrong= true;
+            }
+            Assert.True(somethingWrong);
+
+            // Case 4: this shape works with output shape [1, 1, 1, 5] loaded from the model.
+            shapeDictionary= new Dictionary<string, int[]>() {
+                { "outb", new int[] { -1, -1, -1, -1 } },
+            };
+            somethingWrong= false;
+            try
+            {
+                TryModelWithCustomShapesHelper(shapeDictionary);
+            }
+            catch
+            {
+                somethingWrong= true;
+            }
+            Assert.False(somethingWrong);
+        }
+
+        /// <summary>
+        /// A test to check if dynamic shape works.
+        /// The source of the test model is <see url="https://github.com/dotnet/machinelearning-testdata/tree/master/Microsoft.ML.Onnx.TestModels/unknowndimensions"/>.
+        /// </summary>
+        [OnnxFact]
+        public void TestOnnxTransformSaveAndLoadWithCustomShapes()
+        {
+            // The loaded model has input shape [-1, 3] and output shape [-1].
+            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "unknowndimensions", "test_unknowndimensions_float.onnx");
+
+            var dataPoints = new InputWithCustomShape[]
+                {
+                    // It's a flattened 3-by-3 tensor.
+                    // [1.1, 1.3, 1.2]
+                    // |1.9, 1.3, 1.2|
+                    // [1.1, 1.3, 1.8]
+                    new InputWithCustomShape(){input = new float[] { 1.1f, 1.3f, 1.2f, 1.9f, 1.3f, 1.2f, 1.1f, 1.3f, 1.8f } },
+                    // It's a flattened 3-by-3 tensor.
+                    // [0, 0, 1]
+                    // |1, 0, 0|
+                    // [1, 0, 0]
+                    new InputWithCustomShape(){input = new float[] { 0f, 0f, 1f, 1f, 0f, 0f, 1f, 0f, 0f } }
+                };
+
+            var shapeDictionary = new Dictionary<string, int[]>() { { nameof(InputWithCustomShape.input), new int[] { 3, 3 } } };
+
+            var dataView = ML.Data.LoadFromEnumerable(dataPoints);
+
+            var pipeline = ML.Transforms.ApplyOnnxModel(nameof(PredictionWithCustomShape.argmax),
+                nameof(InputWithCustomShape.input), modelFile, shapeDictionary);
+
+            var model = pipeline.Fit(dataView);
+
+            // Save the trained ONNX transformer into file and then load it back.
+            ITransformer loadedModel = null;
+            var tempPath = Path.GetTempFileName();
+            using (var file = new SimpleFileHandle(Env, tempPath, true, true))
+            {
+                // Save.
+                using (var fs = file.CreateWriteStream())
+                    ML.Model.Save(model, null, fs);
+
+                // Load.
+                using (var fs = file.OpenReadStream())
+                    loadedModel = ML.Model.Load(fs, out var schema);
+            }
+
+            var transformedDataView = loadedModel.Transform(dataView);
+
+            // Conduct the same check for all the 3 called public APIs.
+            var transformedDataPoints = ML.Data.CreateEnumerable<PredictionWithCustomShape>(transformedDataView, false).ToList();
+
+            // One data point generates one transformed data point.
+            Assert.Equal(dataPoints.Count(), transformedDataPoints.Count);
+
+            // Check result numbers. They are results of applying ONNX argmax along the second axis; for example
+            // [1.1, 1.3, 1.2] ---> [1] because 1.3 (indexed by 1) is the largest element.
+            // |1.9, 1.3, 1.2| ---> |0|         1.9             0
+            // [1.1, 1.3, 1.8] ---> [2]         1.8             2
+            var expectedResults = new long[][]
+            {
+                new long[] { 1, 0, 2 },
+                new long[] {2, 0, 0 }
+            };
+
+            for (int i = 0; i < transformedDataPoints.Count; ++i)
+                Assert.Equal(transformedDataPoints[i].argmax, expectedResults[i]);
         }
     }
 }

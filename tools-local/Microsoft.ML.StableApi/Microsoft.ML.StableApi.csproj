@@ -2,8 +2,7 @@
 
   <PropertyGroup>
     <!-- needs to contain all frameworks which src projects wish to restore -->
-    <TargetFramework Condition="'$(UseIntrinsics)' != 'true'">netstandard2.0</TargetFramework>
-    <TargetFrameworks Condition="'$(UseIntrinsics)' == 'true'">netstandard2.0;netcoreapp3.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netcoreapp3.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

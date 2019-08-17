@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework Condition="'$(UseIntrinsics)' != 'true'">netstandard2.0</TargetFramework>
-    <TargetFrameworks Condition="'$(UseIntrinsics)' == 'true'">netstandard2.0;netcoreapp3.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netcoreapp3.0</TargetFrameworks>
     <IncludeInPackage>Microsoft.ML.CpuMath</IncludeInPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);CPUMATH_INFRASTRUCTURE</DefineConstants>
@@ -20,12 +19,15 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
     <Compile Remove="CpuMathUtils.netstandard.cs" />
+    <Compile Remove="FactorizationMachine/FactorizationMachineInterface.netstandard.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <Compile Remove="CpuMathUtils.netcoreapp.cs" />
     <Compile Remove="SseIntrinsics.cs" />
     <Compile Remove="AvxIntrinsics.cs" />
+    <Compile Remove="FactorizationMachine/FactorizationMachineInterface.netcoreapp.cs" />
+    <Compile Remove="FactorizationMachine/AvxIntrinsics.cs" />
 
     <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
   </ItemGroup>

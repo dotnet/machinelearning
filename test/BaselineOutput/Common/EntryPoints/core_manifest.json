@@ -2275,9 +2275,10 @@
           "Name": "Model",
           "Type": "TransformModel",
           "Desc": "Model that needs to be converted to ONNX format.",
-          "Required": true,
+          "Required": false,
           "SortOrder": 10.0,
-          "IsNullable": false
+          "IsNullable": false,
+          "Default": null
         },
         {
           "Name": "OnnxVersion",
@@ -2293,6 +2294,15 @@
           "SortOrder": 11.0,
           "IsNullable": false,
           "Default": "Stable"
+        },
+        {
+          "Name": "PredictiveModel",
+          "Type": "PredictorModel",
+          "Desc": "Predictor model that needs to be converted to ONNX format.",
+          "Required": false,
+          "SortOrder": 12.0,
+          "IsNullable": false,
+          "Default": null
         }
       ],
       "Outputs": []
@@ -11535,7 +11545,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": "Default"
+          "Default": "Logloss"
         },
         {
           "Name": "MaximumBinCountPerFeature",
@@ -12032,7 +12042,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": "Default"
+          "Default": "Error"
         },
         {
           "Name": "MaximumBinCountPerFeature",
@@ -12529,7 +12539,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": "Default"
+          "Default": "NormalizedDiscountedCumulativeGain"
         },
         {
           "Name": "MaximumBinCountPerFeature",
@@ -12987,7 +12997,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": "Default"
+          "Default": "RootMeanSquaredError"
         },
         {
           "Name": "MaximumBinCountPerFeature",
@@ -22338,66 +22348,6 @@
           "IsNullable": false
         },
         {
-          "Name": "LabelColumn",
-          "Type": "String",
-          "Desc": "Training labels.",
-          "Aliases": [
-            "label"
-          ],
-          "Required": false,
-          "SortOrder": 4.0,
-          "IsNullable": false,
-          "Default": null
-        },
-        {
-          "Name": "TensorFlowLabel",
-          "Type": "String",
-          "Desc": "TensorFlow label node.",
-          "Aliases": [
-            "TFLabel"
-          ],
-          "Required": false,
-          "SortOrder": 5.0,
-          "IsNullable": false,
-          "Default": null
-        },
-        {
-          "Name": "OptimizationOperation",
-          "Type": "String",
-          "Desc": "The name of the optimization operation in the TensorFlow graph.",
-          "Aliases": [
-            "OptimizationOp"
-          ],
-          "Required": false,
-          "SortOrder": 6.0,
-          "IsNullable": false,
-          "Default": null
-        },
-        {
-          "Name": "LossOperation",
-          "Type": "String",
-          "Desc": "The name of the operation in the TensorFlow graph to compute training loss (Optional)",
-          "Aliases": [
-            "LossOp"
-          ],
-          "Required": false,
-          "SortOrder": 7.0,
-          "IsNullable": false,
-          "Default": null
-        },
-        {
-          "Name": "MetricOperation",
-          "Type": "String",
-          "Desc": "The name of the operation in the TensorFlow graph to compute performance metric during training (Optional)",
-          "Aliases": [
-            "MetricOp"
-          ],
-          "Required": false,
-          "SortOrder": 8.0,
-          "IsNullable": false,
-          "Default": null
-        },
-        {
           "Name": "BatchSize",
           "Type": "Int",
           "Desc": "Number of samples to use for mini-batch training.",
@@ -22405,60 +22355,6 @@
           "SortOrder": 9.0,
           "IsNullable": false,
           "Default": 64
-        },
-        {
-          "Name": "Epoch",
-          "Type": "Int",
-          "Desc": "Number of training iterations.",
-          "Required": false,
-          "SortOrder": 10.0,
-          "IsNullable": false,
-          "Default": 5
-        },
-        {
-          "Name": "LearningRateOperation",
-          "Type": "String",
-          "Desc": "The name of the operation in the TensorFlow graph which sets optimizer learning rate (Optional).",
-          "Required": false,
-          "SortOrder": 11.0,
-          "IsNullable": false,
-          "Default": null
-        },
-        {
-          "Name": "LearningRate",
-          "Type": "Float",
-          "Desc": "Learning rate to use during optimization.",
-          "Required": false,
-          "SortOrder": 12.0,
-          "IsNullable": false,
-          "Default": 0.01
-        },
-        {
-          "Name": "SaveLocationOperation",
-          "Type": "String",
-          "Desc": "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.",
-          "Required": false,
-          "SortOrder": 13.0,
-          "IsNullable": false,
-          "Default": "save/Const"
-        },
-        {
-          "Name": "SaveOperation",
-          "Type": "String",
-          "Desc": "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.",
-          "Required": false,
-          "SortOrder": 14.0,
-          "IsNullable": false,
-          "Default": "save/control_dependency"
-        },
-        {
-          "Name": "ReTrain",
-          "Type": "Bool",
-          "Desc": "Retrain TensorFlow model.",
-          "Required": false,
-          "SortOrder": 15.0,
-          "IsNullable": false,
-          "Default": false
         },
         {
           "Name": "AddBatchDimensionInputs",
