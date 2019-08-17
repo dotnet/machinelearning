@@ -1554,7 +1554,7 @@ Global
 		{C2652287-CD6D-40FB-B042-95FB56D09DB8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C2652287-CD6D-40FB-B042-95FB56D09DB8}.Release|x64.ActiveCfg = Release|Any CPU
 		{C2652287-CD6D-40FB-B042-95FB56D09DB8}.Release|x64.Build.0 = Release|Any CPU
-		{C2652287-CD6D-40FB-B042-95FB56D09DB8}.Release-netcoreapp3_0|Any CPU.ActiveCfg = RelRelease-netcoreapp3_0ease|Any CPU
+		{C2652287-CD6D-40FB-B042-95FB56D09DB8}.Release-netcoreapp3_0|Any CPU.ActiveCfg = Release-netcoreapp3_0|Any CPU
 		{C2652287-CD6D-40FB-B042-95FB56D09DB8}.Release-netcoreapp3_0|Any CPU.Build.0 = Release-netcoreapp3_0|Any CPU
 		{C2652287-CD6D-40FB-B042-95FB56D09DB8}.Release-netcoreapp3_0|x64.ActiveCfg = Release-netcoreapp3_0|Any CPU
 		{C2652287-CD6D-40FB-B042-95FB56D09DB8}.Release-netcoreapp3_0|x64.Build.0 = Release-netcoreapp3_0|Any CPU
