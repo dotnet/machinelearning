@@ -234,6 +234,3 @@ namespace Samples.Dynamic
         }
     }
 }
-
-
-
