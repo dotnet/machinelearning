@@ -93,15 +93,14 @@ namespace Samples.Dynamic
         // and loads it into IDataView using a TextLoader
         private static IDataView DataDownload(string fileName, MLContext mlContext)
         {
-            string dataRoot = Path.Combine(mlDir, "test", "data");
-            string dataLoc = Path.Combine(dataRoot, fileName);
+            string dataPath = Path.Combine(mlDir, "test", "data", fileName);
             if (!File.Exists(fileName))
             {
-                System.IO.File.Copy(dataLoc, Path.Combine(sourceDir, fileName));
+                System.IO.File.Copy(dataPath, Path.Combine(sourceDir, fileName));
             }
 
             return mlContext.Data.CreateTextLoader(
-                 new[]
+                new[]
                  {
                      new TextLoader.Column("Label", DataKind.UInt32,
                          new[] { new TextLoader.Range(0) }, new KeyCount(10)),
@@ -144,13 +143,14 @@ namespace Samples.Dynamic
                     "variables"));
 
                 // Get the files in the original variables folder
-                var vNames = oldVariables.GetFiles();
-                foreach (var name in vNames)
+                var variableNames = oldVariables.GetFiles();
+
+                foreach (var vName in variableNames)
                 {
                     // Copy each file from the original variables folder into the
                     // new variables folder
-                    System.IO.File.Copy(name.FullName, Path.Combine(
-                        newVariables.FullName, name.Name));
+                    System.IO.File.Copy(vName.FullName, Path.Combine(
+                        newVariables.FullName, vName.Name));
                 }
 
             }
