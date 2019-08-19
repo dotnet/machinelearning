@@ -132,7 +132,7 @@ A cookbook that shows how to use these APIs for a variety of existing and new sc
 
 ## License
 
-ML.NET is licensed under the [MIT license](LICENSE).
+ML.NET is licensed under the [MIT license](LICENSE) and it is free to use commercially.
 
 ## .NET Foundation
 
