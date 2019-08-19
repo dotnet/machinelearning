@@ -27,9 +27,9 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
         /// </summary>
         public virtual string TransformText()
         {
-if(Target == CSharp.CodeGeneratorSettings.GenerateTarget.Cli){ 
+if(Target == CSharp.GenerateTarget.Cli){ 
 CLI_Annotation();
- } else if(Target == CSharp.CodeGeneratorSettings.GenerateTarget.ModelBuilder){ 
+ } else if(Target == CSharp.GenerateTarget.ModelBuilder){ 
 MB_Annotation();
  } 
             this.Write("\r\nusing System;\r\nusing System.IO;\r\nusing System.Linq;\r\nusing Microsoft.ML;\r\nusing" +
@@ -146,7 +146,7 @@ public bool AllowQuoting {get;set;}
 public bool AllowSparse {get;set;}
 public bool HasHeader {get;set;}
 public IList<string> Features {get;set;}
-public CSharp.CodeGeneratorSettings.GenerateTarget Target {get;set;}
+public CSharp.GenerateTarget Target {get;set;}
 
 
 void CLI_Annotation()

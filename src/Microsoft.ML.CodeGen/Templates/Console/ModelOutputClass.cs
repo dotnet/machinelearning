@@ -25,9 +25,9 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
         /// </summary>
         public virtual string TransformText()
         {
-if(Target == CSharp.CodeGeneratorSettings.GenerateTarget.Cli){ 
+if(Target == CSharp.GenerateTarget.Cli){ 
 CLI_Annotation();
- } else if(Target == CSharp.CodeGeneratorSettings.GenerateTarget.ModelBuilder){ 
+ } else if(Target == CSharp.GenerateTarget.ModelBuilder){ 
 MB_Annotation();
  } 
             this.Write("\r\nusing System;\r\nusing Microsoft.ML.Data;\r\n\r\nnamespace  ");
@@ -56,7 +56,7 @@ if("MulticlassClassification".Equals(TaskType)){
 public string TaskType {get;set;}
 public string PredictionLabelType {get;set;}
 public string Namespace {get;set;}
-public CSharp.CodeGeneratorSettings.GenerateTarget Target {get;set;}
+public CSharp.GenerateTarget Target {get;set;}
 
 
 void CLI_Annotation()

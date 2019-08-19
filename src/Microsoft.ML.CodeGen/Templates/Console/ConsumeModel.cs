@@ -30,7 +30,7 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
         {
             
             #line 6 "C:\Users\xiaoyuz\source\repos\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\ConsumeModel.tt"
-if(Target == CSharp.CodeGeneratorSettings.GenerateTarget.Cli){ 
+if(Target == CSharp.GenerateTarget.Cli){ 
             
             #line default
             #line hidden
@@ -42,7 +42,7 @@ CLI_Annotation();
             #line hidden
             
             #line 8 "C:\Users\xiaoyuz\source\repos\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\ConsumeModel.tt"
- } else if(Target == CSharp.CodeGeneratorSettings.GenerateTarget.ModelBuilder){ 
+ } else if(Target == CSharp.GenerateTarget.ModelBuilder){ 
             
             #line default
             #line hidden
@@ -110,7 +110,7 @@ MB_Annotation();
         #line 43 "C:\Users\xiaoyuz\source\repos\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\ConsumeModel.tt"
 
 public string Namespace {get;set;}
-public CSharp.CodeGeneratorSettings.GenerateTarget Target {get;set;}
+public CSharp.GenerateTarget Target {get;set;}
 
         
         #line default
