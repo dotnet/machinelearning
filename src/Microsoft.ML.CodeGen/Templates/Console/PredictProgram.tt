@@ -5,9 +5,9 @@
 <#@ import namespace="System.Text.RegularExpressions" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="Microsoft.ML.CodeGenerator.Utilities" #>
-<#@ include file="Annotation.tt" #><#if(Target == CSharp.CodeGeneratorSettings.GenerateTarget.Cli){ #>
+<#@ include file="Annotation.tt" #><#if(Target == CSharp.GenerateTarget.Cli){ #>
 <#CLI_Annotation();#>
-<# } else if(Target == CSharp.CodeGeneratorSettings.GenerateTarget.ModelBuilder){ #>
+<# } else if(Target == CSharp.GenerateTarget.ModelBuilder){ #>
 <#MB_Annotation();#>
 <# } #>
 
@@ -88,5 +88,5 @@ public bool AllowQuoting {get;set;}
 public bool AllowSparse {get;set;}
 public bool HasHeader {get;set;}
 public IList<string> Features {get;set;}
-public CSharp.CodeGeneratorSettings.GenerateTarget Target {get;set;}
+public CSharp.GenerateTarget Target {get;set;}
 #>

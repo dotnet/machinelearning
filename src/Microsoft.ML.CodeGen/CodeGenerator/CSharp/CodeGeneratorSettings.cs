@@ -25,15 +25,15 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         public string TestDataset { get; set; }
 
-        public enum GenerateTarget
-        {
-            ModelBuilder = 0,
-            Cli = 1,
-        };
-
         public GenerateTarget Target { get; set; }
 
         internal TaskKind MlTask { get; set; }
 
     }
+
+    public enum GenerateTarget
+    {
+        ModelBuilder = 0,
+        Cli = 1,
+    };
 }
