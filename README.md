@@ -2,11 +2,11 @@
 
 # Machine Learning for .NET
 
-[ML.NET](https://www.microsoft.com/net/learn/apps/machine-learning-and-ai/ml-dotnet) is a cross-platform open-source machine learning framework which makes machine learning accessible to .NET developers.
+[ML.NET](https://www.microsoft.com/net/learn/apps/machine-learning-and-ai/ml-dotnet) is a cross-platform open-source machine learning framework which makes machine learning accessible to .NET developers while offering a high production quality. 
 
-ML.NET allows .NET developers to develop their own models and infuse custom machine learning into their applications, using .NET, even without prior expertise in developing or tuning machine learning models.
+ML.NET allows .NET developers to develop/train their own models and infuse custom machine learning into their applications, using .NET, even without prior expertise in developing or tuning machine learning models.
 
-ML.NET was originally developed in Microsoft Research, and evolved into a significant framework over the last decade and is used across many product groups in Microsoft like Windows, Bing, PowerPoint, Excel and more.
+ML.NET was originally developed in Microsoft Research and evolved into an Microsoft internal framework over the last decade being used across many product groups in Microsoft like Windows, Bing, PowerPoint, Excel and more.
 
 ML.NET enables machine learning tasks like classification (for example: support text classification, sentiment analysis), regression (for example, price-prediction) and many other ML tasks such as anomaly detection, time-series-forecast, clustering, ranking, etc.
 
