@@ -12,19 +12,21 @@ namespace Samples.Dynamic
         /// Example full model retrain using the MNIST model in a ML.NET pipeline.
         /// </summary>
 
+        private static string sourceDir = Directory.GetCurrentDirectory();
+
+        // Represents the machinelearning directory
+        private static string mlDir = sourceDir.Substring(0,
+            sourceDir.IndexOf(@"\bin"));
+
         public static void Example()
         {
             var mlContext = new MLContext(seed: 1);
 
             // Download training data into current directory and load into IDataView
-            var trainData = DataDownload("Train-Tiny-28x28.txt",
-                @"C:\Users\t-silee\source\repos\machinelearning\test\data" + 
-                @"\Train-Tiny-28x28.txt", mlContext);
+            var trainData = DataDownload("Train-Tiny-28x28.txt", mlContext);
 
             // Download testing data into current directory and load into IDataView
-            var testData = DataDownload("MNIST.Test.tiny.txt",
-                @"C:\Users\t-silee\source\repos\machinelearning\test\data" +
-                @"\MNIST.Test.tiny.txt", mlContext);
+            var testData = DataDownload("MNIST.Test.tiny.txt", mlContext);
 
             // Download the MNIST model and its variables into current directory
             ModelDownload();
@@ -89,13 +91,13 @@ namespace Samples.Dynamic
 
         // Copies data from another location into current directory
         // and loads it into IDataView using a TextLoader
-        private static IDataView DataDownload(string fileName, string dataPath,
-            MLContext mlContext)
+        private static IDataView DataDownload(string fileName, MLContext mlContext)
         {
-            string sourceDir = Directory.GetCurrentDirectory();
+            string dataRoot = Path.Combine(mlDir, "test", "data");
+            string dataLoc = Path.Combine(dataRoot, fileName);
             if (!File.Exists(fileName))
             {
-                System.IO.File.Copy(dataPath, Path.Combine(sourceDir, fileName));
+                System.IO.File.Copy(dataLoc, Path.Combine(sourceDir, fileName));
             }
 
             return mlContext.Data.CreateTextLoader(
@@ -114,13 +116,12 @@ namespace Samples.Dynamic
         // Copies MNIST model folder from another location into current directory
         private static void ModelDownload()
         {
-            string sourceDir = Directory.GetCurrentDirectory();
             if (!Directory.Exists(Path.Combine(sourceDir, "mnist_conv_model")))
             {
                 // The original path to the MNIST model
-                var oldModel = @"C:\Users\t-silee\source\repos\machinelearning" + 
-                    @"\packages\microsoft.ml.tensorflow.testmodels\0.0.11-test" + 
-                    @"\contentFiles\any\any\mnist_conv_model";
+                var oldModel = Path.Combine(new[] { mlDir, "packages",
+                    "microsoft.ml.tensorflow.testmodels", "0.0.11-test",
+                    "contentfiles", "any", "any", "mnist_conv_model" });
 
                 // Create a new folder in the current directory for the MNIST model
                 string newModel = Directory.CreateDirectory(Path.Combine(sourceDir,
@@ -168,7 +169,7 @@ namespace Samples.Dynamic
             public float[] PredictedLabels;
         }
 
-        // Return one sample
+        // Returns one sample
         private static MNISTData GetOneMNISTExample()
         {
             return new MNISTData()
