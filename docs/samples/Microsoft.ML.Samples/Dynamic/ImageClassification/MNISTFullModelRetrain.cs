@@ -14,7 +14,7 @@ namespace Samples.Dynamic
 
         private static string sourceDir = Directory.GetCurrentDirectory();
 
-        // Represents the machinelearning directory
+        // Represents the path to the machinelearning directory
         private static string mlDir = sourceDir.Substring(0,
             sourceDir.IndexOf(@"\bin"));
 
