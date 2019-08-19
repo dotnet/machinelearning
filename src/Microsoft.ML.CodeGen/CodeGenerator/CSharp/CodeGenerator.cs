@@ -310,7 +310,8 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         private string GeneratePredictProgramCSFileContent(string namespaceValue)
         {
-            var features = _columnInferenceResult.TextLoaderOptions.Columns;
+            var columns = _columnInferenceResult.TextLoaderOptions.Columns;
+            var featuresList = columns.Where((str) => str.Name != _settings.LabelName).Select((str) => str.Name).ToList();
             PredictProgram predictProgram = new PredictProgram()
             {
                 TaskType = _settings.MlTask.ToString(),
@@ -322,7 +323,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 Separator = _columnInferenceResult.TextLoaderOptions.Separators.FirstOrDefault(),
                 AllowQuoting = _columnInferenceResult.TextLoaderOptions.AllowQuoting,
                 AllowSparse = _columnInferenceResult.TextLoaderOptions.AllowSparse,
-                Features = features.Where((str) => str.Name != _settings.LabelName).Select((str)=>str.Name).ToList(),
+                Features = featuresList,
                 Target = _settings.Target,
             };
             return predictProgram.TransformText();
