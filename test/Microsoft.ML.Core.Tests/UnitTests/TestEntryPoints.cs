@@ -612,6 +612,100 @@ namespace Microsoft.ML.RunTests
             cmd.Run();
         }
 
+        [Fact]
+        public void ScoreTransformerChainModel()
+        {
+            var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var modelPath = DeleteOutputPath("model.zip");
+            var outputDataPath = DeleteOutputPath("scored.idv");
+
+            var mlContext = new MLContext();
+
+            var data = new TextLoader(mlContext,
+                    new TextLoader.Options()
+                    {
+                        AllowQuoting = true,
+                        Separator = "\t",
+                        HasHeader = true,
+                        Columns = new[]
+                        {
+                            new TextLoader.Column("Label", DataKind.Boolean, 0),
+                            new TextLoader.Column("SentimentText", DataKind.String, 1)
+                        }
+                    }).Load(dataPath);
+
+            var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
+                .Append(mlContext.BinaryClassification.Trainers.AveragedPerceptron());
+
+            var model = pipeline.Fit(data);
+
+            mlContext.Model.Save(model, data.Schema, modelPath);
+
+            string inputGraph = string.Format(@"
+                {{
+                  'Inputs': {{
+                    'file': '{0}',
+                    'transform_model': '{1}'
+                  }},
+                  'Nodes': [
+                    {{
+                      'Name': 'Data.CustomTextLoader',
+                      'Inputs': {{
+                        'CustomSchema': 'col=Sentiment:I8:0 col=SentimentText:TX:1 quote+ header=+ sep=tab',
+                        'InputFile': '$file'
+                      }},
+                      'Outputs': {{
+                        'Data': '$data'
+                      }}
+                    }},
+                    {{
+                      'Name': 'Transforms.DatasetTransformScorer',
+                      'Inputs': {{
+                        'Data': '$data',
+                        'TransformModel': '$transform_model'
+                      }},
+                      'Outputs': {{
+                        'ScoredData': '$scoredVectorData'
+                      }}
+                    }},
+                    {{
+                      'Inputs': {{
+                        'Data': '$scoredVectorData'
+                      }},
+                      'Name': 'Transforms.ScoreColumnSelector',
+                      'Outputs': {{
+                        'OutputData': '$scoreColumnsOnlyData'
+                      }}
+                    }},
+                    {{
+                      'Inputs': {{
+                        'Data': '$scoreColumnsOnlyData',
+                        'PredictedLabelColumn': 'PredictedLabel'
+                      }},
+                      'Name': 'Transforms.PredictedLabelColumnOriginalValueConverter',
+                      'Outputs': {{
+                        'OutputData': '$output_data'
+                      }}
+                    }}
+                  ],
+                  'Outputs': {{
+                    'output_data': '{2}'
+                  }}
+                }}", EscapePath(dataPath), EscapePath(modelPath), EscapePath(outputDataPath));
+
+            var jsonPath = DeleteOutputPath("graph.json");
+            File.WriteAllLines(jsonPath, new[] { inputGraph });
+
+            var args = new ExecuteGraphCommand.Arguments() { GraphPath = jsonPath };
+            var cmd = new ExecuteGraphCommand(Env, args);
+            cmd.Run();
+
+            var loadedData = mlContext.Data.LoadFromBinary(outputDataPath);
+
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("PredictedLabel"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("Score"));
+        }
+
         //[Fact]
         //public void EntryPointArrayOfVariables()
         //{
