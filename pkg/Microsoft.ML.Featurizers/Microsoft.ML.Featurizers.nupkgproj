@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Pack">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageDescription>ML.NET additional featurizers for AutoML</PackageDescription>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
+
+    <PackageReference Include="MicrosoftMLFeaturizers" Version="0.1.0" />
+  </ItemGroup>
+  
+</Project>

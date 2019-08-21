@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Microsoft.ML.Featurizers;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Core.Tests.UnitTests;
 using Microsoft.ML.Data;
@@ -328,6 +329,7 @@ namespace Microsoft.ML.RunTests
             Env.ComponentCatalog.RegisterAssembly(typeof(SymbolicSgdLogisticRegressionBinaryTrainer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SaveOnnxCommand).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TimeSeriesProcessingEntryPoints).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(TimeSeriesImputerEstimator).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(ParquetLoader).Assembly);
 
             var catalog = Env.ComponentCatalog;
