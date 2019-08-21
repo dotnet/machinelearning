@@ -15,7 +15,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 
-[assembly: LoadableClass(typeof(RankingEvaluator), typeof(RankingEvaluator), typeof(RankingEvaluator.Arguments), typeof(SignatureEvaluator),
+[assembly: LoadableClass(typeof(RankingEvaluator), typeof(RankingEvaluator), typeof(RankingEvaluatorOptions), typeof(SignatureEvaluator),
     "Ranking Evaluator", RankingEvaluator.LoadName, "Ranking", "rank")]
 
 [assembly: LoadableClass(typeof(RankingMamlEvaluator), typeof(RankingMamlEvaluator), typeof(RankingMamlEvaluator.Arguments), typeof(SignatureMamlEvaluator),
@@ -26,20 +26,24 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
-    public sealed class RankingEvaluator : EvaluatorBase<RankingEvaluator.Aggregator>
+    /// <summary>
+    ///  Options to control the output of the RankingEvaluator
+    /// </summary>
+    public sealed class RankingEvaluatorOptions
     {
-        public sealed class Arguments
-        {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum truncation level for computing (N)DCG", ShortName = "t")]
-            public int DcgTruncationLevel = 3;
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum truncation level for computing (N)DCG", ShortName = "t")]
+        public int DcgTruncationLevel = 3;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Label relevance gains", ShortName = "gains")]
-            public string LabelGains = "0,3,7,15,31";
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Label relevance gains", ShortName = "gains")]
+        public string LabelGains = "0,3,7,15,31";
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Generate per-group (N)DCG", ShortName = "ogs")]
-            public bool OutputGroupSummary;
-        }
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Generate per-group (N)DCG", ShortName = "ogs")]
+        public bool OutputGroupSummary;
+    }
 
+    [BestFriend]
+    internal sealed class RankingEvaluator : EvaluatorBase<RankingEvaluator.Aggregator>
+    {
         internal const string LoadName = "RankingEvaluator";
 
         public const string Ndcg = "NDCG";
@@ -59,24 +63,24 @@ namespace Microsoft.ML.Data
         private readonly bool _groupSummary;
         private readonly Double[] _labelGains;
 
-        public RankingEvaluator(IHostEnvironment env, Arguments args)
+        public RankingEvaluator(IHostEnvironment env, RankingEvaluatorOptions options)
             : base(env, LoadName)
         {
             // REVIEW: What kind of checking should be applied to labelGains?
-            if (args.DcgTruncationLevel <= 0 || args.DcgTruncationLevel > Aggregator.Counters.MaxTruncationLevel)
-                throw Host.ExceptUserArg(nameof(args.DcgTruncationLevel), "DCG Truncation Level must be between 1 and {0}", Aggregator.Counters.MaxTruncationLevel);
-            Host.CheckUserArg(args.LabelGains != null, nameof(args.LabelGains), "Label gains cannot be null");
+            if (options.DcgTruncationLevel <= 0 || options.DcgTruncationLevel > Aggregator.Counters.MaxTruncationLevel)
+                throw Host.ExceptUserArg(nameof(options.DcgTruncationLevel), "DCG Truncation Level must be between 1 and {0}", Aggregator.Counters.MaxTruncationLevel);
+            Host.CheckUserArg(options.LabelGains != null, nameof(options.LabelGains), "Label gains cannot be null");
 
-            _truncationLevel = args.DcgTruncationLevel;
-            _groupSummary = args.OutputGroupSummary;
+            _truncationLevel = options.DcgTruncationLevel;
+            _groupSummary = options.OutputGroupSummary;
 
             var labelGains = new List<Double>();
-            string[] gains = args.LabelGains.Split(',');
+            string[] gains = options.LabelGains.Split(',');
             for (int i = 0; i < gains.Length; i++)
             {
                 Double gain;
                 if (!Double.TryParse(gains[i], out gain))
-                    throw Host.ExceptUserArg(nameof(args.LabelGains), "Label Gains must be of floating or integral type", Aggregator.Counters.MaxTruncationLevel);
+                    throw Host.ExceptUserArg(nameof(options.LabelGains), "Label Gains must be of floating or integral type");
                 labelGains.Add(gain);
             }
             _labelGains = labelGains.ToArray();
@@ -866,12 +870,12 @@ namespace Microsoft.ML.Data
             Host.CheckValue(args, nameof(args));
             Utils.CheckOptionalUserDirectory(args.GroupSummaryFilename, nameof(args.GroupSummaryFilename));
 
-            var evalArgs = new RankingEvaluator.Arguments();
-            evalArgs.DcgTruncationLevel = args.DcgTruncationLevel;
-            evalArgs.LabelGains = args.LabelGains;
-            evalArgs.OutputGroupSummary = !string.IsNullOrEmpty(args.GroupSummaryFilename);
+            var evalOpts = new RankingEvaluatorOptions();
+            evalOpts.DcgTruncationLevel = args.DcgTruncationLevel;
+            evalOpts.LabelGains = args.LabelGains;
+            evalOpts.OutputGroupSummary = !string.IsNullOrEmpty(args.GroupSummaryFilename);
 
-            _evaluator = new RankingEvaluator(Host, evalArgs);
+            _evaluator = new RankingEvaluator(Host, evalOpts);
             _groupSummaryFilename = args.GroupSummaryFilename;
             _groupIdCol = args.GroupIdColumn;
         }
