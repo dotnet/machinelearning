@@ -367,7 +367,7 @@ namespace Microsoft.ML.Data
                 : base(provider, input)
             {
                 var pred = parent.GetActiveOutputColumns(active);
-                _getters = parent._mapper.CreateGetters(input, pred, out _disposer);
+                _getters = parent._mapperFactory == null ? parent._mapper.CreateGetters(input, pred, out _disposer) : parent._mapperFactory.Invoke(input.Schema).CreateGetters(input, pred, out _disposer);
                 _active = active;
                 _bindings = parent._bindings;
             }

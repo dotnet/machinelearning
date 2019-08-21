@@ -6,6 +6,9 @@ using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms;
+using System;
+using System.Collections.Generic;
 using Xunit;
 
 namespace Microsoft.ML.Scenarios

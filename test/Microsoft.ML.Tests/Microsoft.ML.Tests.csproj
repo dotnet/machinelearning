@@ -11,6 +11,7 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.Ensemble\Microsoft.ML.Ensemble.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.EntryPoints\Microsoft.ML.EntryPoints.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Experimental\Microsoft.ML.Experimental.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Featurizers\Microsoft.ML.Featurizers.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.csproj" />
