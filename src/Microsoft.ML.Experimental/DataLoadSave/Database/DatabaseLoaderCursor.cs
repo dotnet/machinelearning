@@ -225,12 +225,64 @@ namespace Microsoft.ML.Data
                 {
                     getterDelegate = CreateUInt64GetterDelegate(colInfo);
                 }
+                else if (typeof(TValue) == typeof(VBuffer<bool>))
+                {
+                    getterDelegate = CreateVBufferBooleanGetterDelegate(colInfo);
+                }
+                else if (typeof(TValue) == typeof(VBuffer<byte>))
+                {
+                    getterDelegate = CreateVBufferByteGetterDelegate(colInfo);
+                }
+                else if (typeof(TValue) == typeof(VBuffer<DateTime>))
+                {
+                    getterDelegate = CreateVBufferDateTimeGetterDelegate(colInfo);
+                }
+                else if (typeof(TValue) == typeof(VBuffer<double>))
+                {
+                    getterDelegate = CreateVBufferDoubleGetterDelegate(colInfo);
+                }
+                else if (typeof(TValue) == typeof(VBuffer<short>))
+                {
+                    getterDelegate = CreateVBufferInt16GetterDelegate(colInfo);
+                }
+                else if (typeof(TValue) == typeof(VBuffer<int>))
+                {
+                    getterDelegate = CreateVBufferInt32GetterDelegate(colInfo);
+                }
+                else if (typeof(TValue) == typeof(VBuffer<long>))
+                {
+                    getterDelegate = CreateVBufferInt64GetterDelegate(colInfo);
+                }
+                else if (typeof(TValue) == typeof(VBuffer<sbyte>))
+                {
+                    getterDelegate = CreateVBufferSByteGetterDelegate(colInfo);
+                }
+                else if (typeof(TValue) == typeof(VBuffer<float>))
+                {
+                    getterDelegate = CreateVBufferSingleGetterDelegate(colInfo);
+                }
+                else if (typeof(TValue) == typeof(VBuffer<ReadOnlyMemory<char>>))
+                {
+                    getterDelegate = CreateVBufferStringGetterDelegate(colInfo);
+                }
+                else if (typeof(TValue) == typeof(VBuffer<ushort>))
+                {
+                    getterDelegate = CreateVBufferUInt16GetterDelegate(colInfo);
+                }
+                else if (typeof(TValue) == typeof(VBuffer<uint>))
+                {
+                    getterDelegate = CreateVBufferUInt32GetterDelegate(colInfo);
+                }
+                else if (typeof(TValue) == typeof(VBuffer<ulong>))
+                {
+                    getterDelegate = CreateVBufferUInt64GetterDelegate(colInfo);
+                }
                 else
                 {
                     throw new NotSupportedException();
                 }
 
-                return getterDelegate as ValueGetter<TValue>;
+                return getterDelegate;
             }
 
             private ValueGetter<bool> CreateBooleanGetterDelegate(ColInfo colInfo)
@@ -311,9 +363,307 @@ namespace Microsoft.ML.Data
                 return (ref ulong value) => value = DataReader.IsDBNull(columnIndex) ? default : (ulong)DataReader.GetInt64(columnIndex);
             }
 
+            private ValueGetter<VBuffer<bool>> CreateVBufferBooleanGetterDelegate(ColInfo colInfo)
+            {
+                return (ref VBuffer<bool> value) =>
+                {
+                    int length = colInfo.SizeBase;
+                    bool[] values = new bool[length];
+
+                    int i = 0;
+                    var segs = colInfo.Segments;
+
+                    foreach (var seg in segs)
+                    {
+                        for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                        {
+                            values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetBoolean(columnIndex);
+                        }
+                    }
+
+                    value = new VBuffer<bool>(length, values);
+                };
+            }
+
+            private ValueGetter<VBuffer<byte>> CreateVBufferByteGetterDelegate(ColInfo colInfo)
+            {
+                return (ref VBuffer<byte> value) =>
+                {
+                    int length = colInfo.SizeBase;
+                    byte[] values = new byte[length];
+
+                    int i = 0;
+                    var segs = colInfo.Segments;
+
+                    foreach (var seg in segs)
+                    {
+                        for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                        {
+                            values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetByte(columnIndex);
+                        }
+                    }
+
+                    value = new VBuffer<byte>(length, values);
+                };
+            }
+
+            private ValueGetter<VBuffer<DateTime>> CreateVBufferDateTimeGetterDelegate(ColInfo colInfo)
+            {
+                return (ref VBuffer<DateTime> value) =>
+                {
+                    int length = colInfo.SizeBase;
+                    DateTime[] values = new DateTime[length];
+
+                    int i = 0;
+                    var segs = colInfo.Segments;
+
+                    foreach (var seg in segs)
+                    {
+                        for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                        {
+                            values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetDateTime(columnIndex);
+                        }
+                    }
+
+                    value = new VBuffer<DateTime>(length, values);
+                };
+            }
+
+            private ValueGetter<VBuffer<double>> CreateVBufferDoubleGetterDelegate(ColInfo colInfo)
+            {
+                return (ref VBuffer<double> value) =>
+                {
+                    int length = colInfo.SizeBase;
+                    double[] values = new double[length];
+
+                    int i = 0;
+                    var segs = colInfo.Segments;
+
+                    foreach (var seg in segs)
+                    {
+                        for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                        {
+                            values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetDouble(columnIndex);
+                        }
+                    }
+
+                    value = new VBuffer<double>(length, values);
+                };
+            }
+
+            private ValueGetter<VBuffer<short>> CreateVBufferInt16GetterDelegate(ColInfo colInfo)
+            {
+                return (ref VBuffer<short> value) =>
+                {
+                    int length = colInfo.SizeBase;
+                    short[] values = new short[length];
+
+                    int i = 0;
+                    var segs = colInfo.Segments;
+
+                    foreach (var seg in segs)
+                    {
+                        for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                        {
+                            values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetInt16(columnIndex);
+                        }
+                    }
+
+                    value = new VBuffer<short>(length, values);
+                };
+            }
+
+            private ValueGetter<VBuffer<int>> CreateVBufferInt32GetterDelegate(ColInfo colInfo)
+            {
+                return (ref VBuffer<int> value) =>
+                {
+                    int length = colInfo.SizeBase;
+                    int[] values = new int[length];
+
+                    int i = 0;
+                    var segs = colInfo.Segments;
+
+                    foreach (var seg in segs)
+                    {
+                        for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                        {
+                            values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetInt32(columnIndex);
+                        }
+                    }
+
+                    value = new VBuffer<int>(length, values);
+                };
+            }
+
+            private ValueGetter<VBuffer<long>> CreateVBufferInt64GetterDelegate(ColInfo colInfo)
+            {
+                return (ref VBuffer<long> value) =>
+                {
+                    int length = colInfo.SizeBase;
+                    long[] values = new long[length];
+
+                    int i = 0;
+                    var segs = colInfo.Segments;
+
+                    foreach (var seg in segs)
+                    {
+                        for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                        {
+                            values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetInt64(columnIndex);
+                        }
+                    }
+
+                    value = new VBuffer<long>(length, values);
+                };
+            }
+
+            private ValueGetter<VBuffer<sbyte>> CreateVBufferSByteGetterDelegate(ColInfo colInfo)
+            {
+                return (ref VBuffer<sbyte> value) =>
+                {
+                    int length = colInfo.SizeBase;
+                    sbyte[] values = new sbyte[length];
+
+                    int i = 0;
+                    var segs = colInfo.Segments;
+
+                    foreach (var seg in segs)
+                    {
+                        for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                        {
+                            values[i] = DataReader.IsDBNull(columnIndex) ? default : (sbyte)DataReader.GetByte(columnIndex);
+                        }
+                    }
+
+                    value = new VBuffer<sbyte>(length, values);
+                };
+            }
+
+            private ValueGetter<VBuffer<float>> CreateVBufferSingleGetterDelegate(ColInfo colInfo)
+            {
+                return (ref VBuffer<float> value) =>
+                {
+                    int length = colInfo.SizeBase;
+                    float[] values = new float[length];
+
+                    int i = 0;
+                    var segs = colInfo.Segments;
+
+                    foreach (var seg in segs)
+                    {
+                        for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                        {
+                            values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetFloat(columnIndex);
+                        }
+                    }
+
+                    value = new VBuffer<float>(length, values);
+                };
+            }
+
+            private ValueGetter<VBuffer<ReadOnlyMemory<char>>> CreateVBufferStringGetterDelegate(ColInfo colInfo)
+            {
+                return (ref VBuffer<ReadOnlyMemory<char>> value) =>
+                {
+                    int length = colInfo.SizeBase;
+                    ReadOnlyMemory<char>[] values = new ReadOnlyMemory<char>[length];
+
+                    int i = 0;
+                    var segs = colInfo.Segments;
+
+                    foreach (var seg in segs)
+                    {
+                        for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                        {
+                            values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetString(columnIndex).AsMemory();
+                        }
+                    }
+
+                    value = new VBuffer<ReadOnlyMemory<char>>(length, values);
+                };
+            }
+
+            private ValueGetter<VBuffer<ushort>> CreateVBufferUInt16GetterDelegate(ColInfo colInfo)
+            {
+                return (ref VBuffer<ushort> value) =>
+                {
+                    int length = colInfo.SizeBase;
+                    ushort[] values = new ushort[length];
+
+                    int i = 0;
+                    var segs = colInfo.Segments;
+
+                    foreach (var seg in segs)
+                    {
+                        for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                        {
+                            values[i] = DataReader.IsDBNull(columnIndex) ? default : (ushort)DataReader.GetInt16(columnIndex);
+                        }
+                    }
+
+                    value = new VBuffer<ushort>(length, values);
+                };
+            }
+
+            private ValueGetter<VBuffer<uint>> CreateVBufferUInt32GetterDelegate(ColInfo colInfo)
+            {
+                return (ref VBuffer<uint> value) =>
+                {
+                    int length = colInfo.SizeBase;
+                    uint[] values = new uint[length];
+
+                    int i = 0;
+                    var segs = colInfo.Segments;
+
+                    foreach (var seg in segs)
+                    {
+                        for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                        {
+                            values[i] = DataReader.IsDBNull(columnIndex) ? default : (uint)DataReader.GetInt32(columnIndex);
+                        }
+                    }
+
+                    value = new VBuffer<uint>(length, values);
+                };
+            }
+
+            private ValueGetter<VBuffer<ulong>> CreateVBufferUInt64GetterDelegate(ColInfo colInfo)
+            {
+                return (ref VBuffer<ulong> value) =>
+                {
+                    int length = colInfo.SizeBase;
+                    ulong[] values = new ulong[length];
+
+                    int i = 0;
+                    var segs = colInfo.Segments;
+
+                    foreach (var seg in segs)
+                    {
+                        for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                        {
+                            values[i] = DataReader.IsDBNull(columnIndex) ? default : (ulong)DataReader.GetInt64(columnIndex);
+                        }
+                    }
+
+                    value = new VBuffer<ulong>(length, values);
+                };
+            }
+
             private int GetColumnIndex(ColInfo colInfo)
             {
-                return colInfo.SourceIndex ?? DataReader.GetOrdinal(colInfo.Name);
+                var segs = colInfo.Segments;
+
+                if (segs is null)
+                {
+                    return DataReader.GetOrdinal(colInfo.Name);
+                }
+
+                Contracts.Check(segs.Length == 1);
+
+                var seg = segs[0];
+                Contracts.Check(seg.Min == seg.Lim);
+
+                return seg.Min;
             }
         }
     }
