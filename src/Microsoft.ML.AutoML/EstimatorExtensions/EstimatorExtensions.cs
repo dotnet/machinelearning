@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Dynamic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 
@@ -223,7 +224,7 @@ namespace Microsoft.ML.AutoML
         }
     }
 
-    internal class ImageFeaturizingExtension : IEstimatorExtension
+    internal class ImageLoadingExtension : IEstimatorExtension
     {
         public IEstimator<ITransformer> CreateInstance(MLContext context, PipelineNode pipelineNode)
         {
@@ -232,19 +233,73 @@ namespace Microsoft.ML.AutoML
 
         public static SuggestedTransform CreateSuggestedTransform(MLContext context, string inColumn, string outColumn)
         {
-            var pipelineNode = new PipelineNode(EstimatorName.ImageFeaturizing.ToString(),
-                PipelineNodeType.Transform, inColumn, outColumn);
+            var pipelineNode = new PipelineNode(EstimatorName.ImageLoading.ToString(), PipelineNodeType.Transform, inColumn, outColumn);
             var estimator = CreateInstance(context, inColumn, outColumn);
             return new SuggestedTransform(pipelineNode, estimator);
         }
 
         private static IEstimator<ITransformer> CreateInstance(MLContext context, string inColumn, string outColumn)
         {
-            var estimator = context.Transforms.LoadImages(outputColumnName: outColumn, imageFolder: "/Users/justinormont/Documents/src/open-datasets/Datasets/DogBreedsVsFruits/Dataset", inputColumnName: inColumn)
-                .Append(context.Transforms.ResizeImages(outputColumnName: outColumn, imageWidth: 224, imageHeight: 224, inputColumnName: outColumn))
-                .Append(context.Transforms.ExtractPixels(outputColumnName: outColumn, interleavePixelColors: false, offsetImage: 0))
-                .Append(context.Transforms.DnnFeaturizeImage(outColumn, m => m.ModelSelector.ResNet18(context, m.OutputColumn, m.InputColumn), outColumn));
-            return estimator;
+            return context.Transforms.LoadImages(outColumn, @"C:\Users\xiaoyuz\source\repos\image\machinelearning\test\data\images", inColumn);
+        }
+    }
+
+    internal class ImageResizingExtension : IEstimatorExtension
+    {
+        public IEstimator<ITransformer> CreateInstance(MLContext context, PipelineNode pipelineNode)
+        {
+            return CreateInstance(context, pipelineNode.InColumns[0], pipelineNode.OutColumns[0]);
+        }
+
+        public static SuggestedTransform CreateSuggestedTransform(MLContext context, string inColumn, string outColumn)
+        {
+            var pipelineNode = new PipelineNode(EstimatorName.ImageResizing.ToString(), PipelineNodeType.Transform, inColumn, outColumn);
+            var estimator = CreateInstance(context, outColumn, outColumn);
+            return new SuggestedTransform(pipelineNode, estimator);
+        }
+
+        public static IEstimator<ITransformer> CreateInstance(MLContext context, string inColumn, string outColumn)
+        {
+            return context.Transforms.ResizeImages(outColumn, 224, 224, inColumn);
+        }
+    }
+
+    internal class PixelExtractingExtension : IEstimatorExtension
+    {
+        public IEstimator<ITransformer> CreateInstance(MLContext context, PipelineNode pipelineNode)
+        {
+            return CreateInstance(context, pipelineNode.InColumns[0], pipelineNode.OutColumns[0]);
+        }
+
+        public static SuggestedTransform CreateSuggestedTransform(MLContext context, string inColumn, string outColumn)
+        {
+            var pipelineNode = new PipelineNode(EstimatorName.PixelExtracting.ToString(), PipelineNodeType.Transform, inColumn, outColumn);
+            var estimator = CreateInstance(context, inColumn, outColumn);
+            return new SuggestedTransform(pipelineNode, estimator);
+        }
+
+        public static IEstimator<ITransformer> CreateInstance(MLContext context, string inColumn, string outColumn)
+        {
+            return context.Transforms.ExtractPixels(outColumn, interleavePixelColors: false, offsetImage: 0);
+        }
+    }
+
+    internal class ResNet18FeaturizingExtension : IEstimatorExtension
+    {
+        public IEstimator<ITransformer> CreateInstance(MLContext context, PipelineNode pipelineNode)
+        {
+            return CreateInstance(context, pipelineNode.InColumns[0], pipelineNode.OutColumns[0]);
+        }
+        public static SuggestedTransform CreateSuggestedTransform(MLContext context, string inColumn, string outColumn)
+        {
+            var pipelineNode = new PipelineNode(EstimatorName.ResNet18Featurizing.ToString(), PipelineNodeType.Transform, inColumn, outColumn);
+            var estimator = CreateInstance(context, inColumn, outColumn);
+            return new SuggestedTransform(pipelineNode, estimator);
+        }
+
+        public static IEstimator<ITransformer> CreateInstance(MLContext context, string inColumn, string outColumn)
+        {
+            return context.Transforms.DnnFeaturizeImage(outColumn, m => m.ModelSelector.ResNet18(context, m.OutputColumn, m.InputColumn), outColumn);
         }
     }
 
