@@ -18,7 +18,6 @@ namespace Microsoft.ML.AutoML
         OneHotEncoding,
         OneHotHashEncoding,
         TextFeaturizing,
-        ImageFeaturizing,
         ImageLoading,
         ImageResizing,
         PixelExtracting,

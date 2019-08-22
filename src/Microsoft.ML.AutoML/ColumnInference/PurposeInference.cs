@@ -143,9 +143,7 @@ namespace Microsoft.ML.AutoML
                                 {
                                     // Image checking is needed since the ImageLoader throws on invalid image, causing the pipeline to fail on fit.
                                     if (IsValidImage(ImageFolder, spanStr))
-                                    {
                                         imagePathCount++;
-                                    }
 
                                     break;
                                 }

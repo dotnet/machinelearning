@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
-using static Microsoft.ML.AutoML.TransformInference;
 
 namespace Microsoft.ML.AutoML
 {
