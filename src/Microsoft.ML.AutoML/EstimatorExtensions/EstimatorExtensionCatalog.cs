@@ -41,7 +41,6 @@ namespace Microsoft.ML.AutoML
             { EstimatorName.OneHotEncoding, typeof(OneHotEncodingExtension) },
             { EstimatorName.OneHotHashEncoding, typeof(OneHotHashEncodingExtension) },
             { EstimatorName.TextFeaturizing, typeof(TextFeaturizingExtension) },
-            { EstimatorName.ImageFeaturizing, typeof(ImageFeaturizingExtension) },
             { EstimatorName.ImageLoading, typeof(ImageLoadingExtension) },
             { EstimatorName.ImageResizing, typeof(ImageResizingExtension) },
             { EstimatorName.PixelExtracting, typeof(PixelExtractingExtension) },

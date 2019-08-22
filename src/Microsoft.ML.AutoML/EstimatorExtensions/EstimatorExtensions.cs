@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Dynamic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
@@ -226,6 +227,7 @@ namespace Microsoft.ML.AutoML
 
     internal class ImageLoadingExtension : IEstimatorExtension
     {
+        public static string ImageFolder { private get; set; }
         public IEstimator<ITransformer> CreateInstance(MLContext context, PipelineNode pipelineNode)
         {
             return CreateInstance(context, pipelineNode.InColumns[0], pipelineNode.OutColumns[0]);
@@ -240,7 +242,7 @@ namespace Microsoft.ML.AutoML
 
         private static IEstimator<ITransformer> CreateInstance(MLContext context, string inColumn, string outColumn)
         {
-            return context.Transforms.LoadImages(outColumn, @"C:\Users\xiaoyuz\source\repos\image\machinelearning\test\data\images", inColumn);
+            return context.Transforms.LoadImages(outColumn, ImageFolder, inColumn);
         }
     }
 

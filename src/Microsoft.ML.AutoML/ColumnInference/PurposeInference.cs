@@ -115,11 +115,10 @@ namespace Microsoft.ML.AutoML
             internal sealed class TextClassification : IPurposeInferenceExpert
             {
                 private static readonly string[] _commonImageExtensions = { ".bmp", ".dib", ".rle", ".jpg", ".jpeg", ".jpe", ".jfif", ".gif", ".tif", ".tiff", ".png" };
+                public static string ImageFolder { private get; set; }
 
                 public void Apply(IntermediateColumn[] columns)
                 {
-                    const string imageFolder = "/Users/justinormont/Documents/src/open-datasets/Datasets/DogBreedsVsFruits/Dataset"; // Todo: This will have to be passed in
-
                     foreach (var column in columns)
                     {
                         if (column.IsPurposeSuggested || !column.Type.IsText())
@@ -143,8 +142,10 @@ namespace Microsoft.ML.AutoML
                                 if (spanStr.EndsWith(ext, StringComparison.OrdinalIgnoreCase))
                                 {
                                     // Image checking is needed since the ImageLoader throws on invalid image, causing the pipeline to fail on fit.
-                                    if (IsValidImage(imageFolder, spanStr))
+                                    if (IsValidImage(ImageFolder, spanStr))
+                                    {
                                         imagePathCount++;
+                                    }
 
                                     break;
                                 }
@@ -281,9 +282,16 @@ namespace Microsoft.ML.AutoML
         /// Auto-detect purpose for the data view columns.
         /// </summary>
         public static PurposeInference.Column[] InferPurposes(MLContext context, IDataView data,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, string imageFolder = null)
         {
             data = context.Data.TakeRows(data, MaxRowsToRead);
+
+            // sorry
+            if (imageFolder != null)
+            {
+                Experts.TextClassification.ImageFolder = imageFolder;
+                ImageLoadingExtension.ImageFolder = imageFolder;
+            }
 
             var allColumns = new List<IntermediateColumn>();
             var columnsToInfer = new List<IntermediateColumn>();
@@ -313,7 +321,6 @@ namespace Microsoft.ML.AutoML
 
                 allColumns.Add(intermediateCol);
             }
-
             foreach (var expert in GetExperts())
             {
                 expert.Apply(columnsToInfer.ToArray());

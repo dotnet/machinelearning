@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
+using static Microsoft.ML.AutoML.TransformInference;
 
 namespace Microsoft.ML.AutoML
 {
@@ -65,8 +66,7 @@ namespace Microsoft.ML.AutoML
 
             // Validate all columns specified in column info exist in inferred data view
             ColumnInferenceValidationUtil.ValidateSpecifiedColumnsExist(columnInfo, dataView);
-
-            var purposeInferenceResult = PurposeInference.InferPurposes(context, dataView, columnInfo);
+            var purposeInferenceResult = PurposeInference.InferPurposes(context, dataView, columnInfo, new DirectoryInfo(path).Parent.FullName);
 
             // start building result objects
             IEnumerable<TextLoader.Column> columnResults = null;
