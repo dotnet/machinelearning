@@ -25,6 +25,8 @@ namespace Microsoft.ML.Model
     {
         public const string DirPredictor = "Predictor";
         public const string DirDataLoaderModel = "DataLoaderModel";
+        public const string DirTransformerChain = TransformerChain.LoaderSignature;
+        public const string SchemaEntryName = ModelOperationsCatalog.SchemaEntryName;
         // ResultsProcessor needs access to this constant.
         public const string DirTrainingInfo = "TrainingInfo";
 
@@ -64,6 +66,15 @@ namespace Microsoft.ML.Model
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(rep, nameof(rep));
             env.CheckValue(files, nameof(files));
+
+            var entry = rep.OpenEntryOrNull(SchemaEntryName);
+            if (entry != null)
+            {
+                var loader = new BinaryLoader(env, new BinaryLoader.Arguments(), entry.Stream);
+                ModelLoadContext.LoadModel<ITransformer, SignatureLoadModel>(env, out var transformerChain, rep, DirTransformerChain);
+                return transformerChain.Transform(loader);
+            }
+
             using (var ent = rep.OpenEntry(DirDataLoaderModel, ModelLoadContext.ModelStreamName))
             {
                 ILegacyDataLoader loader;
