@@ -1,0 +1,7 @@
+# This file contains the default reviewers for ML .NET code
+# For more information on CODEOWNERS file see : https://help.github.com/en/articles/about-code-owners
+
+# For the entire repository 
+* @dotnet/mlnet-core
+ 
+
