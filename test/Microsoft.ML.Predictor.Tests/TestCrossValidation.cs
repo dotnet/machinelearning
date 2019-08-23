@@ -25,19 +25,19 @@ namespace Microsoft.ML.RunTests
             int[] folds = foldCreator.CreateFoldIndicesStratified(li, cmd, new Random(1));
             int[] expectedIndices = { 1, 0, 3, 4, 2 };
             for (int i = 0; i < folds.Length; i++)
-                Assert.AreEqual<int>(folds[i], expectedIndices[i]);
+                Assert.Equal<int>(folds[i], expectedIndices[i]);
 
             li = CreateInstancesWithNKeys(7);
             folds = foldCreator.CreateFoldIndicesStratified(li, cmd, new Random(1));
             expectedIndices = new int[] { 1, 0, 4, 1, 0, 2, 3 };
             for (int i = 0; i < folds.Length; i++)
-                Assert.AreEqual<int>(folds[i], expectedIndices[i]);
+                Assert.Equal<int>(folds[i], expectedIndices[i]);
 
             li = CreateInstancesWithNKeys(10);
             folds = foldCreator.CreateFoldIndicesStratified(li, cmd, new Random(1));
             expectedIndices = new int[] { 2, 1, 0, 3, 2, 4, 0, 4, 3, 1 };
             for (int i = 0; i < folds.Length; i++)
-                Assert.AreEqual<int>(folds[i], expectedIndices[i]);
+                Assert.Equal<int>(folds[i], expectedIndices[i]);
 
             Done();
         }
