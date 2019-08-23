@@ -2,6 +2,12 @@
 # For more information on CODEOWNERS file see : https://help.github.com/en/articles/about-code-owners
 
 # For the entire repository 
-* @dotnet/mlnet-core
- 
+*	@dotnet/mlnet-core
 
+# Revierwers for files owned by AutoML team
+src\Microsoft.ML.AutoML	@dotnet/mlnet-automl
+src\mlnet	@dotnet/mlnet-automl
+test\Microsoft.ML.AutoML.Tests	@dotnet/mlnet-automl
+test\mlnet.Tests	@dotnet/mlnet-automl
+pkg\Microsoft.ML.AutoML	@dotnet/mlnet-automl
+docs\samples\Microsoft.ML.AutoML.Samples	@dotnet/mlnet-automl
