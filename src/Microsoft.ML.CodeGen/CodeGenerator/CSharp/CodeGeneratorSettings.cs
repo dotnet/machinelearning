@@ -9,7 +9,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
     {
         public CodeGeneratorSettings()
         {
-            // set default value
+            // Set default value
             Target = GenerateTarget.Cli;
         }
 
