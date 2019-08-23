@@ -2,5 +2,6 @@
 # For more information on CODEOWNERS file see : https://help.github.com/en/articles/about-code-owners
 
 # For the entire repository 
-* @codemzs @yaeldekel @eerhardt @ganik @harishsk @harshithapv 
+* @dotnet/mlnet-core
+ 
 
