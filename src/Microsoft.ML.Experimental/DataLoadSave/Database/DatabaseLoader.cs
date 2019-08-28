@@ -526,9 +526,6 @@ namespace Microsoft.ML.Data
                 Contracts.CheckDecode(cinfo > 0);
                 Infos = new ColInfo[cinfo];
 
-                // This dictionary is used only for detecting duplicated column names specified by user.
-                var nameToInfoIndex = new Dictionary<string, int>(Infos.Length);
-
                 for (int iinfo = 0; iinfo < cinfo; iinfo++)
                 {
                     string name = ctx.LoadNonEmptyString();
@@ -566,7 +563,6 @@ namespace Microsoft.ML.Data
                     // of multiple variable segments (since those segments will overlap and overlapping
                     // segments are illegal).
                     Infos[iinfo] = ColInfo.Create(name, itemType, segs, false);
-                    nameToInfoIndex[name] = iinfo;
                 }
 
                 OutputSchema = ComputeOutputSchema();

@@ -282,7 +282,7 @@ namespace Microsoft.ML.Data
                     throw new NotSupportedException();
                 }
 
-                return getterDelegate;
+                return getterDelegate as ValueGetter<TValue>;
             }
 
             private ValueGetter<bool> CreateBooleanGetterDelegate(ColInfo colInfo)
@@ -443,7 +443,7 @@ namespace Microsoft.ML.Data
                     {
                         for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
                         {
-                            values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetDouble(columnIndex);
+                            values[i] = DataReader.IsDBNull(columnIndex) ? double.NaN : DataReader.GetDouble(columnIndex);
                         }
                     }
 
@@ -553,7 +553,7 @@ namespace Microsoft.ML.Data
                     {
                         for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
                         {
-                            values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetFloat(columnIndex);
+                            values[i] = DataReader.IsDBNull(columnIndex) ? float.NaN : DataReader.GetFloat(columnIndex);
                         }
                     }
 
