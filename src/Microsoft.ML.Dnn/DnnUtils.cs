@@ -92,11 +92,14 @@ namespace Microsoft.ML.Transforms.Dnn
 
         internal static Graph LoadMetaGraph(string path)
         {
-            return tf_with(tf.Graph().as_default(), graph =>
+            var graph = tf.Graph().as_default();
+            tf.train.import_meta_graph(path);
+            /*return tf_with(tf.Graph().as_default(), graph =>
             {
                 tf.train.import_meta_graph(path);
                 return graph;
-            });
+            });*/
+            return graph;
         }
 
         internal static Session LoadTFSessionByModelFilePath(IExceptionContext ectx, string modelFile, bool metaGraph = false)
@@ -364,6 +367,11 @@ namespace Microsoft.ML.Transforms.Dnn
                 _operations = new List<Operation>();
             }
 
+            public Runner ClearInput()
+            {
+                return this;
+            }
+
             /// <summary>
             /// Adds an input to the session specified by name, with an optional index in the operation (separated by a colon).
             /// </summary>
@@ -377,6 +385,25 @@ namespace Microsoft.ML.Transforms.Dnn
 
                 _inputs.Add(ParseOutput(input));
                 _inputValues.Add(value);
+
+                return this;
+            }
+
+            public Runner AddInput(string input)
+            {
+                _inputs.Add(ParseOutput(input));
+                return this;
+            }
+
+            public Runner AddInput(Tensor value, int index)
+            {
+                if (_inputValues.Count <= index)
+                    _inputValues.Add(value);
+                else
+                {
+                    _inputValues[index].Dispose();
+                    _inputValues[index] = value;
+                }
 
                 return this;
             }
@@ -444,10 +471,6 @@ namespace Microsoft.ML.Transforms.Dnn
                 return result;
             }
 
-            public Runner CloneRunner()
-            {
-                return new Runner(_session);
-            }
         }
 
     }

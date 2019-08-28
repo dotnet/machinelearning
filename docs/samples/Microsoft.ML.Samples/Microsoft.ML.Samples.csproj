@@ -71,6 +71,7 @@
       <DependentUpon>LbfgsLogisticRegressionWithOptions.tt</DependentUpon>
     </None>
     <PackageReference Include="Microsoft.ML.TensorFlow.Redist" Version="0.10.0" />
+    <PackageReference Include="SharpZipLib" Version="1.2.0" />
 
   </ItemGroup>
 

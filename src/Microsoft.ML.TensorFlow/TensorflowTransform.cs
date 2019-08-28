@@ -638,8 +638,13 @@ namespace Microsoft.ML.Transforms
                     Runner runner = new Runner(_parent.Session);
 
                     // Feed inputs to the graph.
+                    List<Tensor> inputTensors = new List<Tensor>();
                     for (int i = 0; i < _parent.Inputs.Length; i++)
-                        runner.AddInput(_parent.Inputs[i], srcTensorGetters[i].GetTensor());
+                    {
+                        var tensor = srcTensorGetters[i].GetTensor();
+                        inputTensors.Add(tensor);
+                        runner.AddInput(_parent.Inputs[i], tensor);
+                    }
 
                     // Add outputs.
                     for (int i = 0; i < _parent.Outputs.Length; i++)
@@ -649,10 +654,16 @@ namespace Microsoft.ML.Transforms
                     var tensors = runner.Run();
 
                     Contracts.Assert(tensors.Length > 0);
+                    foreach (var tensor in inputTensors)
+                        tensor.Dispose();
 
                     for (int j = 0; j < activeOutputColNames.Length; j++)
-                        outputCache.Outputs[activeOutputColNames[j]] = tensors[j];
+                    {
+                        if (outputCache.Outputs.ContainsKey(activeOutputColNames[j]))
+                            outputCache.Outputs[activeOutputColNames[j]].Dispose();
 
+                        outputCache.Outputs[activeOutputColNames[j]] = tensors[j];
+                    }
                     outputCache.Position = position;
                 }
             }
@@ -704,7 +715,6 @@ namespace Microsoft.ML.Transforms
             private readonly T[] _bufferedData;
             private readonly TensorShape _tfShape;
             private int _position;
-            private readonly List<Tensor> _tensors;
 
             public TensorValueGetter(DataViewRow input, int colIndex, TensorShape tfShape)
             {
@@ -719,7 +729,6 @@ namespace Microsoft.ML.Transforms
                         size *= dim;
                 }
                 _bufferedData = new T[size];
-                _tensors = new List<Tensor>();
             }
 
             public Tensor GetTensor()
@@ -728,7 +737,6 @@ namespace Microsoft.ML.Transforms
                 _srcgetter(ref scalar);
                  var tensor = new Tensor(new[] { scalar });
                 tensor.SetShape(_tfShape);
-                _tensors.Add(tensor);
                 return tensor;
             }
 
@@ -743,7 +751,6 @@ namespace Microsoft.ML.Transforms
             {
                 var tensor = new Tensor(new NDArray(_bufferedData, _tfShape));
                 _position = 0;
-                _tensors.Add(tensor);
                 return tensor;
             }
         }
@@ -757,7 +764,6 @@ namespace Microsoft.ML.Transforms
             private T[] _bufferedData;
             private int _position;
             private long[] _dims;
-            private readonly List<Tensor> _tensors;
             private readonly long _bufferedDataSize;
 
             public TensorValueGetterVec(DataViewRow input, int colIndex, TensorShape tfShape)
@@ -778,7 +784,6 @@ namespace Microsoft.ML.Transforms
                 _bufferedData = new T[size];
                 if (_tfShape.Dimensions != null)
                     _dims = _tfShape.Dimensions.Select(x => (long)x).ToArray();
-                _tensors = new List<Tensor>();
                 _bufferedDataSize = size;
             }
 
@@ -792,7 +797,6 @@ namespace Microsoft.ML.Transforms
                 _denseData = new T[_vBuffer.Length];
                 _vBuffer.CopyTo(_denseData);
                 var tensor =  CastDataAndReturnAsTensor(_denseData);
-                _tensors.Add(tensor);
                 return tensor;
             }
 
@@ -845,7 +849,6 @@ namespace Microsoft.ML.Transforms
             {
                 _position = 0;
                 var tensor = CastDataAndReturnAsTensor(_bufferedData);
-                _tensors.Add(tensor);
 
                 _bufferedData = new T[_bufferedDataSize];
                 return tensor;
