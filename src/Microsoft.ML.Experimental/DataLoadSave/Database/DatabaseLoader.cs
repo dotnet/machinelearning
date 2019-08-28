@@ -129,8 +129,8 @@ namespace Microsoft.ML.Data
 
                 if (mappingAttr is object)
                 {
-                    var source = mappingAttr.Sources.Select((source) => Range.FromTextLoaderRange(source)).ToArray();
-                    column.Source = source;
+                    var sources = mappingAttr.Sources.Select((source) => Range.FromTextLoaderRange(source)).ToArray();
+                    column.Source = sources;
                 }
 
                 InternalDataKind dk;
