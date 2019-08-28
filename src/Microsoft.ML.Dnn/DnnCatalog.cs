@@ -93,7 +93,7 @@ namespace Microsoft.ML
         /// <param name="statisticFrequency">Indicates the frequency of epochs at which to report model statistics during training phase.</param>
         /// <param name="framework">Indicates the choice of DNN training framework. Currently only tensorflow is supported.</param>
         /// <param name="modelSavePath">Optional name of the path where a copy new graph should be saved. The graph will be saved as part of model.</param>
-        /// <param name="checkpointName">The name of the prefix for checkpoint files.</param>
+        /// <param name="finalModelPrefix">The name of the prefix for the final mode and checkpoint files.</param>
         /// <param name="validationSet">Validation set.</param>
         /// <param name="testOnTrainSet">Indicates to evaluate the model on train set after every epoch.</param>
         /// <param name="reuseTrainSetBottleneckCachedValues">Indicates to not re-compute cached trainset bottleneck values if already available in the bin folder.</param>
@@ -110,14 +110,14 @@ namespace Microsoft.ML
             string scoreColumnName = "Score",
             string predictedLabelColumnName = "PredictedLabel",
             Architecture arch = Architecture.InceptionV3,
-            int epoch = 10,
-            int batchSize = 20,
+            int epoch = 100,
+            int batchSize = 10,
             float learningRate = 0.01f,
             ImageClassificationMetricsCallback metricsCallback = null,
             int statisticFrequency = 1,
             DnnFramework framework = DnnFramework.Tensorflow,
             string modelSavePath = null,
-            string checkpointName = "_retrain_checkpoint",
+            string finalModelPrefix = "custom_retrained_model_based_on_",
             IDataView validationSet = null,
             bool testOnTrainSet = true,
             bool reuseTrainSetBottleneckCachedValues = false,
@@ -138,7 +138,7 @@ namespace Microsoft.ML
                 BatchSize = batchSize,
                 ScoreColumnName = scoreColumnName,
                 PredictedLabelColumnName = predictedLabelColumnName,
-                CheckpointName = checkpointName,
+                FinalModelPrefix = finalModelPrefix,
                 Arch = arch,
                 MetricsCallback = metricsCallback,
                 StatisticsFrequency = statisticFrequency,

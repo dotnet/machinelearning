@@ -65,7 +65,7 @@ namespace Microsoft.ML.Transforms
         private readonly string[] _inputs;
         private readonly string[] _outputs;
         private readonly string _labelColumnName;
-        private readonly string _checkpointName;
+        private readonly string _finalModelPrefix;
         private readonly Architecture _arch;
         private readonly string _scoreColumnName;
         private readonly string _predictedLabelColumnName;
@@ -143,7 +143,7 @@ namespace Microsoft.ML.Transforms
         internal ImageClassificationTransformer(IHostEnvironment env, ImageClassificationEstimator.Options options, DnnModel tensorFlowModel, IDataView input)
             : this(env, tensorFlowModel.Session, options.OutputColumns, options.InputColumns,
                   options.ModelLocation, null, options.BatchSize,
-                  options.LabelColumn, options.CheckpointName, options.Arch, options.ScoreColumnName,
+                  options.LabelColumn, options.FinalModelPrefix, options.Arch, options.ScoreColumnName,
                   options.PredictedLabelColumnName, options.LearningRate, input.Schema)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -704,7 +704,7 @@ namespace Microsoft.ML.Transforms
 
         internal ImageClassificationTransformer(IHostEnvironment env, Session session, string[] outputColumnNames,
             string[] inputColumnNames, string modelLocation,
-            bool? addBatchDimensionInput, int batchSize, string labelColumnName, string checkpointName, Architecture arch,
+            bool? addBatchDimensionInput, int batchSize, string labelColumnName, string finalModelPrefix, Architecture arch,
             string scoreColumnName, string predictedLabelColumnName, float learningRate, DataViewSchema inputSchema, int? classCount = null, bool loadModel = false,
             string predictionTensorName = null, string softMaxTensorName = null, string jpegDataTensorName = null, string resizeTensorName = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageClassificationTransformer)))
@@ -720,7 +720,7 @@ namespace Microsoft.ML.Transforms
             _inputs = inputColumnNames;
             _outputs = outputColumnNames;
             _labelColumnName = labelColumnName;
-            _checkpointName = checkpointName;
+            _finalModelPrefix = finalModelPrefix;
             _arch = arch;
             _scoreColumnName = scoreColumnName;
             _predictedLabelColumnName = predictedLabelColumnName;
@@ -743,7 +743,7 @@ namespace Microsoft.ML.Transforms
             else
                 _classCount = classCount.Value;
 
-            _checkpointPath = Path.Combine(Directory.GetCurrentDirectory(), modelLocation + checkpointName);
+            _checkpointPath = Path.Combine(Directory.GetCurrentDirectory(), finalModelPrefix + modelLocation);
 
             // Configure bottleneck tensor based on the model.
             if (arch == ImageClassificationEstimator.Architecture.ResnetV2101)
@@ -809,7 +809,7 @@ namespace Microsoft.ML.Transforms
                 ctx.SaveNonEmptyString(colName);
 
             ctx.Writer.Write(_labelColumnName);
-            ctx.Writer.Write(_checkpointName);
+            ctx.Writer.Write(_finalModelPrefix);
             ctx.Writer.Write((int)_arch);
             ctx.Writer.Write(_scoreColumnName);
             ctx.Writer.Write(_predictedLabelColumnName);
@@ -1089,10 +1089,10 @@ namespace Microsoft.ML.Transforms
             public string PredictedLabelColumnName = "PredictedLabel";
 
             /// <summary>
-            /// Checkpoint folder to store graph files in the event of transfer learning.
+            /// Final model and checkpoint files/folder prefix for storing graph files.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Checkpoint folder to store graph files in the event of transfer learning.", SortOrder = 15)]
-            public string CheckpointName = "_retrain_checkpoint";
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Final model and checkpoint files/folder prefix for storing graph files.", SortOrder = 15)]
+            public string FinalModelPrefix = "custom_retrained_model_based_on_";
 
             /// <summary>
             /// Callback to report statistics on accuracy/cross entropy during training phase.

@@ -654,8 +654,6 @@ namespace Microsoft.ML.Transforms
                     var tensors = runner.Run();
 
                     Contracts.Assert(tensors.Length > 0);
-                    foreach (var tensor in inputTensors)
-                        tensor.Dispose();
 
                     for (int j = 0; j < activeOutputColNames.Length; j++)
                     {
