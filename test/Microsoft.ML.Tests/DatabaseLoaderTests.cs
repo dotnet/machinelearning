@@ -124,7 +124,7 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 1);
 
             var databaseName = TestDatasets.irisDb.name;
-            var databaseFile = GetOutputPath($@"..\{databaseName}.mdf");
+            var databaseFile = Path.GetFullPath(Path.Combine("TestModels", $"{databaseName}.mdf"));
 
             var connectionString = $@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename={databaseFile};Database={databaseName};Integrated Security=True";
             var commandText = $@"SELECT * FROM ""{TestDatasets.irisDb.trainFilename}""";
