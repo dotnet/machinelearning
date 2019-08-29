@@ -519,15 +519,25 @@ namespace Microsoft.ML.Data
                         itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
 
                     int cseg = ctx.Reader.ReadInt32();
-                    Contracts.CheckDecode(cseg > 0);
-                    var segs = new Segment[cseg];
-                    for (int iseg = 0; iseg < cseg; iseg++)
+
+                    Segment[] segs;
+
+                    if (cseg == 0)
                     {
-                        int min = ctx.Reader.ReadInt32();
-                        int lim = ctx.Reader.ReadInt32();
-                        Contracts.CheckDecode(0 <= min && min < lim);
-                        bool forceVector = ctx.Reader.ReadBoolByte();
-                        segs[iseg] = new Segment(min, lim, forceVector);
+                        segs = null;
+                    }
+                    else
+                    {
+                        Contracts.CheckDecode(cseg > 0);
+                        segs = new Segment[cseg];
+                        for (int iseg = 0; iseg < cseg; iseg++)
+                        {
+                            int min = ctx.Reader.ReadInt32();
+                            int lim = ctx.Reader.ReadInt32();
+                            Contracts.CheckDecode(0 <= min && min < lim);
+                            bool forceVector = ctx.Reader.ReadBoolByte();
+                            segs[iseg] = new Segment(min, lim, forceVector);
+                        }
                     }
 
                     // Note that this will throw if the segments are ill-structured, including the case
