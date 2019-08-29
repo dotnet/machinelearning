@@ -193,72 +193,17 @@ namespace Microsoft.ML.Transforms
         {
             public IntPtr Handle { get; set; }
             private GCHandle _gcHandle;
-            private byte[] _imageBuffer;
             private Runner _imagePreprocessingRunner;
-            private long[] _shape;
 
             public ImageProcessor(ImageClassificationTransformer transformer)
             {
                 _imagePreprocessingRunner = new Runner(transformer._session);
                 _imagePreprocessingRunner.AddInput(transformer._jpegDataTensorName);
                 _imagePreprocessingRunner.AddOutputs(transformer._resizedImageTensorName);
-                _shape = new long[1];
-            }
-
-            private int ReadAllBytes(string path)
-            {
-                int length = -1;
-                // bufferSize == 1 used to avoid unnecessary buffer in FileStream
-                using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 1))
-                {
-                    long fileLength = fs.Length;
-                    if (fileLength > int.MaxValue)
-                        throw new IOException($"File {path} too big to open.");
-                    else if (fileLength == 0)
-                    {
-                        if (_gcHandle.IsAllocated)
-                            _gcHandle.Free();
-
-                        // Some file systems (e.g. procfs on Linux) return 0 for length even when there's content.
-                        // Thus we need to assume 0 doesn't mean empty.
-                        _imageBuffer = File.ReadAllBytes(path);
-                        _gcHandle = GCHandle.Alloc(_imageBuffer, GCHandleType.Pinned);
-                        Handle = _gcHandle.AddrOfPinnedObject();
-                        length = _imageBuffer.Length;
-                    }
-
-                    int index = 0;
-                    int count = (int)fileLength;
-                    if (_imageBuffer == null || _imageBuffer.Length < count)
-                    {
-                        if (_gcHandle.IsAllocated)
-                            _gcHandle.Free();
-
-                        _imageBuffer = new byte[count];
-                        _gcHandle = GCHandle.Alloc(_imageBuffer, GCHandleType.Pinned);
-                        Handle = _gcHandle.AddrOfPinnedObject();
-                    }
-
-                    while (count > 0)
-                    {
-                        int n = fs.Read(_imageBuffer, index, count);
-                        if (n == 0)
-                            throw new IOException($"End of {path} even though there is content to be read.");
-
-                        index += n;
-                        count -= n;
-                    }
-
-                    length = index;
-                    return length;
-                }
             }
 
             public Tensor ProcessImage(string path)
             {
-                //int count = ReadAllBytes(path);
-                //_shape[0] = count;
-                //_imagePreprocessingRunner.ClearInput
                 var imageTensor = new Tensor(File.ReadAllBytes(path), TF_DataType.TF_STRING);
                 var processedTensor = _imagePreprocessingRunner.AddInput(imageTensor, 0).Run()[0];
                 imageTensor.Dispose();
@@ -975,14 +920,42 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         public delegate void ImageClassificationMetricsCallback(ImageClassificationMetrics metrics);
 
+        /// <summary>
+        /// DNN training metrics.
+        /// </summary>
         public sealed class TrainMetrics
         {
+            /// <summary>
+            /// Indicates the dataset on which metrics are being reported.
+            /// <see cref="ImageClassificationMetrics.Dataset"/>
+            /// </summary>
             public ImageClassificationMetrics.Dataset DatasetUsed { get; set; }
+
+            /// <summary>
+            /// The number of batches processed in an epoch.
+            /// </summary>
             public int BatchProcessedCount { get; set; }
+
+            /// <summary>
+            /// The training epoch index for which this metric is reported.
+            /// </summary>
             public int Epoch { get; set; }
+
+            /// <summary>
+            /// Accuracy of the batch on this <see cref="Epoch"/>. Higher the better.
+            /// </summary>
             public float Accuracy { get; set; }
+
+            /// <summary>
+            /// Cross-Entropy (loss) of the batch on this <see cref="Epoch"/>. Lower 
+            /// the better.
+            /// </summary>
             public float CrossEntropy { get; set; }
 
+            /// <summary>
+            /// String representation of the metrics.
+            /// </summary>
+            /// <returns></returns>
             public override string ToString()
             {
                 if (DatasetUsed == ImageClassificationMetrics.Dataset.Train)

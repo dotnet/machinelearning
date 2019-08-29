@@ -657,8 +657,8 @@ namespace Microsoft.ML.Transforms
 
                     for (int j = 0; j < activeOutputColNames.Length; j++)
                     {
-                        if (outputCache.Outputs.ContainsKey(activeOutputColNames[j]))
-                            outputCache.Outputs[activeOutputColNames[j]].Dispose();
+                        if (outputCache.Outputs.TryGetValue(activeOutputColNames[j], out Tensor outTensor))
+                            outTensor.Dispose();
 
                         outputCache.Outputs[activeOutputColNames[j]] = tensors[j];
                     }

@@ -1,3 +1,7 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -5,15 +9,13 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Transforms;
 using Xunit;
 using static Microsoft.ML.DataOperationsCatalog;
 
-namespace Microsoft.ML.Dnn.Tests
+namespace Microsoft.ML.Scenarios
 {
     [Collection("NoParallelization")]
     public partial class TensorFlowScenarioTests
@@ -46,7 +48,7 @@ namespace Microsoft.ML.Dnn.Tests
 
             //Load all the original images info
             IEnumerable<ImageData> images = LoadImagesFromDirectory(
-                folder: fullImagesetFolderPath, useFolderNameasLabel: true);
+                folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
 
             IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
                 mlContext.Data.LoadFromEnumerable(images), seed: 1);
@@ -56,7 +58,7 @@ namespace Microsoft.ML.Dnn.Tests
                 .Fit(shuffledFullImagesDataset)
                 .Transform(shuffledFullImagesDataset);
 
-            // Split the data 90:10 into train and test sets, train and evaluate.
+            // Split the data 80:10 into train and test sets, train and evaluate.
             TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
                 shuffledFullImagesDataset, testFraction: 0.2, seed: 1);
 
@@ -89,7 +91,7 @@ namespace Microsoft.ML.Dnn.Tests
         }
 
         public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,
-            bool useFolderNameasLabel = true)
+            bool useFolderNameAsLabel = true)
         {
             var files = Directory.GetFiles(folder, "*",
                 searchOption: SearchOption.AllDirectories);
@@ -100,7 +102,7 @@ namespace Microsoft.ML.Dnn.Tests
                     continue;
 
                 var label = Path.GetFileName(file);
-                if (useFolderNameasLabel)
+                if (useFolderNameAsLabel)
                     label = Directory.GetParent(file).Name;
                 else
                 {
@@ -147,22 +149,9 @@ namespace Microsoft.ML.Dnn.Tests
             string relativeFilePath = Path.Combine(destDir, destFileName);
 
             if (File.Exists(relativeFilePath))
-            {
-                Console.WriteLine($"{relativeFilePath} already exists.");
                 return false;
-            }
 
-            var wc = new WebClient();
-            Console.WriteLine($"Downloading {relativeFilePath}");
-            var download = Task.Run(() => wc.DownloadFile(url, relativeFilePath));
-            while (!download.IsCompleted)
-            {
-                Thread.Sleep(1000);
-                Console.Write(".");
-            }
-            Console.WriteLine("");
-            Console.WriteLine($"Downloaded {relativeFilePath}");
-
+            new WebClient().DownloadFile(url, relativeFilePath);
             return true;
         }
 
@@ -173,36 +162,17 @@ namespace Microsoft.ML.Dnn.Tests
                 .Split('.')
                 .First() + ".bin";
 
-            if (File.Exists(Path.Combine(destFolder, flag))) return;
+            if (File.Exists(Path.Combine(destFolder, flag)))
+                return;
 
-            Console.WriteLine($"Extracting.");
-            var task = Task.Run(() =>
-            {
-                ZipFile.ExtractToDirectory(gzArchiveName, destFolder);
-            });
-
-            while (!task.IsCompleted)
-            {
-                Thread.Sleep(200);
-                Console.Write(".");
-            }
-
+            ZipFile.ExtractToDirectory(gzArchiveName, destFolder);
             File.Create(Path.Combine(destFolder, flag));
-            Console.WriteLine("");
-            Console.WriteLine("Extracting is completed.");
         }
 
-        public static string GetAbsolutePath(string relativePath)
-        {
-            FileInfo _dataRoot = new FileInfo(typeof(
-                TensorFlowScenarioTests).Assembly.Location);
+        public static string GetAbsolutePath(string relativePath) => 
+            Path.Combine(new FileInfo(typeof(
+                TensorFlowScenarioTests).Assembly.Location).Directory.FullName, relativePath);
 
-            string assemblyFolderPath = _dataRoot.Directory.FullName;
-
-            string fullPath = Path.Combine(assemblyFolderPath, relativePath);
-
-            return fullPath;
-        }
 
         public class ImageData
         {
