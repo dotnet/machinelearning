@@ -1157,7 +1157,7 @@ namespace Microsoft.ML.Scenarios
             var pipeline = mlContext.Model.ImageClassification(
                 "ImagePath", "Label",
                 arch: ImageClassificationEstimator.Architecture.ResnetV2101,
-                epoch: 5,
+                epoch: 10,
                 batchSize: 5,
                 learningRate: 0.01f,
                 testOnTrainSet: false);
