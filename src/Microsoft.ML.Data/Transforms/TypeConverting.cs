@@ -497,15 +497,10 @@ namespace Microsoft.ML.Transforms
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
             {
-                var opType = "CSharp";
+                var opType = "Cast";
                 var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
-                node.AddAttribute("type", LoaderSignature);
-                node.AddAttribute("to", (byte)_parent._columns[iinfo].OutputKind);
-                if (_parent._columns[iinfo].OutputKeyCount != null)
-                {
-                    var key = (KeyDataViewType)_types[iinfo].GetItemType();
-                    node.AddAttribute("max", key.Count);
-                }
+                var t = _parent._columns[iinfo].OutputKind.ToInternalDataKind().ToType();
+                node.AddAttribute("to", t);
                 return true;
             }
         }
