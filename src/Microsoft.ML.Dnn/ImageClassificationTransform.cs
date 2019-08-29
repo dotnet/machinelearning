@@ -504,6 +504,8 @@ namespace Microsoft.ML.Transforms
 
             string frozenModelPath = _checkpointPath + ".pb";
             File.WriteAllBytes(_checkpointPath + ".pb", outputGraphDef.ToByteArray());
+            _session.graph.Dispose();
+            _session.Dispose();
             _session = LoadTFSessionByModelFilePath(_env, frozenModelPath, false);
         }
 
