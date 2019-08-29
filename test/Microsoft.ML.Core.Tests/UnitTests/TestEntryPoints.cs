@@ -3760,21 +3760,6 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [TensorFlowFact]
-        public void EntryPointTensorFlowTransform()
-        {
-            Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransformer).Assembly);
-
-            TestEntryPointPipelineRoutine(GetDataPath("Train-Tiny-28x28.txt"), "col=Label:R4:0 col=Placeholder:R4:1-784",
-                new[] { "Transforms.TensorFlowScorer" },
-                new[]
-                {
-                    @"'InputColumns': [ 'Placeholder' ],
-                      'ModelLocation': 'mnist_model/frozen_saved_model.pb',
-                      'OutputColumns': [ 'Softmax' ]"
-                });
-        }
-
         [Fact(Skip = "Needs real time series dataset. https://github.com/dotnet/machinelearning/issues/1120")]
         public void EntryPointSsaChangePoint()
         {
@@ -5635,6 +5620,21 @@ namespace Microsoft.ML.RunTests
                 b = cursor.MoveNext();
                 Assert.False(b);
             }
+        }
+
+        [TensorFlowFact]
+        public void EntryPointTensorFlowTransform()
+        {
+            Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransformer).Assembly);
+
+            TestEntryPointPipelineRoutine(GetDataPath("Train-Tiny-28x28.txt"), "col=Label:R4:0 col=Placeholder:R4:1-784",
+                new[] { "Transforms.TensorFlowScorer" },
+                new[]
+                {
+                    @"'InputColumns': [ 'Placeholder' ],
+                      'ModelLocation': 'mnist_model/frozen_saved_model.pb',
+                      'OutputColumns': [ 'Softmax' ]"
+                });
         }
 
         [TensorFlowFact]

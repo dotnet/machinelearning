@@ -9,16 +9,22 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Image;
 using Microsoft.ML.Transforms.TensorFlow;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.Scenarios
 {
-    public partial class ScenariosTests
+    public partial class TensorFlowScenariosTests : BaseTestClass
     {
+        public TensorFlowScenariosTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         private class TestData
         {
             [VectorType(4)]

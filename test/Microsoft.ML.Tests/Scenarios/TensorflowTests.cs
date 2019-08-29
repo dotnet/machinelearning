@@ -11,7 +11,8 @@ using Xunit;
 
 namespace Microsoft.ML.Scenarios
 {
-    public partial class ScenariosTests
+    [Collection("NoParallelization")]
+    public partial class TensorFlowScenariosTests
     {
         [TensorFlowFact]
         public void TensorFlowTransforCifarEndToEndTest()

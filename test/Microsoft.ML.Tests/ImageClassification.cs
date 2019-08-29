@@ -15,7 +15,8 @@ using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Microsoft.ML.Dnn.Tests
 {
-    public class ImageClassification
+    [Collection("NoParallelization")]
+    public partial class TensorFlowScenarioTests
     {
         [TensorFlowFact]
         public void TensorFlowImageClassification()
@@ -194,7 +195,7 @@ namespace Microsoft.ML.Dnn.Tests
         public static string GetAbsolutePath(string relativePath)
         {
             FileInfo _dataRoot = new FileInfo(typeof(
-                ImageClassification).Assembly.Location);
+                TensorFlowScenarioTests).Assembly.Location);
 
             string assemblyFolderPath = _dataRoot.Directory.FullName;
 
