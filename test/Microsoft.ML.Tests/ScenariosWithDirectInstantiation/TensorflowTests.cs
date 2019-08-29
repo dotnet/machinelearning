@@ -1175,8 +1175,8 @@ namespace Microsoft.ML.Scenarios
             IDataView predictions = trainedModel.Transform(testDataset);
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
 
-            Assert.InRange(metrics.MicroAccuracy, 0.5, 0.7);
-            Assert.InRange(metrics.MacroAccuracy, 0.5, 0.7);
+            Assert.InRange(metrics.MicroAccuracy, 0.8, 1);
+            Assert.InRange(metrics.MacroAccuracy, 0.8, 1);
         }
 
         public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,
@@ -1216,11 +1216,11 @@ namespace Microsoft.ML.Scenarios
 
         public static string DownloadImageSet(string imagesDownloadFolder)
         {
-            string fileName = "flower_photos_tiny_set_for_unit_tests_5.zip";
-            string url = $"https://mlnetfilestorage.file.core.windows.net/imagesets/" +
-                $"flower_images/flower_photos_tiny_set_for_unit_tests_5.zip?st=2019" +
-                $"-08-29T00%3A27%3A27Z&se=2030-08-30T00%3A27%3A00Z&sp=rl&sv=2018-03" +
-                $"-28&sr=f&sig=6wMJlAe0Z8OhgfzS3ukRJgs1SYe3dSZJA708iC71fEk%3D";
+            string fileName = "flower_photos_tiny_set_for_unit_tests.zip";
+            string url = $"https://mlnetfilestorage.file.core.windows.net/imagesets" +
+                $"/flower_images/flower_photos_tiny_set_for_unit_tests.zip?st=2019" +
+                $"-08-29T00%3A07%3A21Z&se=2030-08-30T00%3A07%3A00Z&sp=rl&sv=2018" +
+                $"-03-28&sr=f&sig=N8HbLziTcT61kstprNLmn%2BDC0JoMrNwo6yRWb3hLLag%3D";
 
             Download(url, imagesDownloadFolder, fileName);
             UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);
