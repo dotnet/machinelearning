@@ -3,8 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Data;
-using System.Data.Common;
+using System.Data.SqlClient;
 using System.IO;
+using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
@@ -19,13 +20,17 @@ namespace Microsoft.ML.Tests
         public DatabaseLoaderTests(ITestOutputHelper output)
             : base(output)
         {
-            DbProviderFactories.RegisterFactory("System.Data.SqlClient", typeof(System.Data.SqlClient.SqlClientFactory));
         }
 
         [LightGBMFact]
-        [PlatformSpecific(TestPlatforms.Windows)]
         public void IrisLightGbm()
         {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // https://github.com/dotnet/machinelearning/issues/4156
+                return;
+            }
+
             var mlContext = new MLContext(seed: 1);
 
             var connectionString = GetConnectionString(TestDatasets.irisDb.name);
@@ -42,8 +47,7 @@ namespace Microsoft.ML.Tests
 
             var loader = mlContext.Data.CreateDatabaseLoader(loaderColumns);
 
-            var providerFactory = DbProviderFactories.GetFactory("System.Data.SqlClient");
-            var databaseSource = new DatabaseSource(providerFactory, connectionString, commandText);
+            var databaseSource = new DatabaseSource(SqlClientFactory.Instance, connectionString, commandText);
 
             var trainingData = loader.Load(databaseSource);
 
@@ -74,9 +78,14 @@ namespace Microsoft.ML.Tests
         }
 
         [LightGBMFact]
-        [PlatformSpecific(TestPlatforms.Windows)]
         public void IrisVectorLightGbm()
         {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // https://github.com/dotnet/machinelearning/issues/4156
+                return;
+            }
+
             var mlContext = new MLContext(seed: 1);
 
             var connectionString = GetConnectionString(TestDatasets.irisDb.name);
@@ -84,8 +93,7 @@ namespace Microsoft.ML.Tests
 
             var loader = mlContext.Data.CreateDatabaseLoader<IrisVectorData>();
 
-            var providerFactory = DbProviderFactories.GetFactory("System.Data.SqlClient");
-            var databaseSource = new DatabaseSource(providerFactory, connectionString, commandText);
+            var databaseSource = new DatabaseSource(SqlClientFactory.Instance, connectionString, commandText);
 
             var trainingData = loader.Load(databaseSource);
 
@@ -112,9 +120,14 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        [PlatformSpecific(TestPlatforms.Windows)]
         public void IrisSdcaMaximumEntropy()
         {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // https://github.com/dotnet/machinelearning/issues/4156
+                return;
+            }
+
             var mlContext = new MLContext(seed: 1);
 
             var connectionString = GetConnectionString(TestDatasets.irisDb.name);
@@ -122,8 +135,7 @@ namespace Microsoft.ML.Tests
 
             var loader = mlContext.Data.CreateDatabaseLoader<IrisData>();
 
-            var providerFactory = DbProviderFactories.GetFactory("System.Data.SqlClient");
-            var databaseSource = new DatabaseSource(providerFactory, connectionString, commandText);
+            var databaseSource = new DatabaseSource(SqlClientFactory.Instance, connectionString, commandText);
 
             var trainingData = loader.Load(databaseSource);
 
