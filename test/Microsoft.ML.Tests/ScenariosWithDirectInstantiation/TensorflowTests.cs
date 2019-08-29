@@ -1175,8 +1175,8 @@ namespace Microsoft.ML.Scenarios
             IDataView predictions = trainedModel.Transform(testDataset);
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
 
-            Assert.InRange(metrics.MicroAccuracy, 0.8, 1);
-            Assert.InRange(metrics.MacroAccuracy, 0.8, 1);
+            Assert.InRange(metrics.MicroAccuracy, 0.75, 1);
+            Assert.InRange(metrics.MacroAccuracy, 0.75, 1);
         }
 
         public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,
