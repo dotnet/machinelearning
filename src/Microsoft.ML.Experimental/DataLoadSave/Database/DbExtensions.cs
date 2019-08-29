@@ -67,12 +67,6 @@ namespace Microsoft.ML.Data
             }
         }
 
-        /// <summary>Maps a <see cref="DataKind"/> to the associated <see cref="DbType"/>.</summary>
-        public static DbType ToDbType(this DataKind dataKind)
-        {
-            return dataKind.ToInternalDataKind().ToDbType();
-        }
-
         /// <summary>Maps a <see cref="InternalDataKind"/> to the associated <see cref="DbType"/>.</summary>
         public static DbType ToDbType(this InternalDataKind dataKind)
         {
@@ -141,89 +135,6 @@ namespace Microsoft.ML.Data
                 case InternalDataKind.DT:
                 {
                     return DbType.DateTime;
-                }
-
-                default:
-                {
-                    throw new NotSupportedException();
-                }
-            }
-        }
-
-        /// <summary>Maps a <see cref="DbType"/> to the associated <see cref="DataKind"/>.</summary>
-        public static DataKind ToDataKind(this DbType dbType)
-        {
-            return dbType.ToInternalDataKind().ToDataKind();
-        }
-
-        /// <summary>Maps a <see cref="DbType"/> to the associated <see cref="InternalDataKind"/>.</summary>
-        public static InternalDataKind ToInternalDataKind(this DbType dbType)
-        {
-            switch (dbType)
-            {
-                case DbType.SByte:
-                {
-                    return InternalDataKind.I1;
-                }
-
-                case DbType.Byte:
-                {
-                    return InternalDataKind.U1;
-                }
-
-                case DbType.Int16:
-                {
-                    return InternalDataKind.I2;
-                }
-
-                case DbType.UInt16:
-                {
-                    return InternalDataKind.U2;
-                }
-
-                case DbType.Int32:
-                {
-                    return InternalDataKind.I4;
-                }
-
-                case DbType.UInt32:
-                {
-                    return InternalDataKind.U4;
-                }
-
-                case DbType.Int64:
-                {
-                    return InternalDataKind.I8;
-                }
-
-                case DbType.UInt64:
-                {
-                    return InternalDataKind.U8;
-                }
-
-                case DbType.Single:
-                {
-                    return InternalDataKind.R4;
-                }
-
-                case DbType.Double:
-                {
-                    return InternalDataKind.R8;
-                }
-
-                case DbType.String:
-                {
-                    return InternalDataKind.TX;
-                }
-
-                case DbType.Boolean:
-                {
-                    return InternalDataKind.BL;
-                }
-
-                case DbType.DateTime:
-                {
-                    return InternalDataKind.DT;
                 }
 
                 default:

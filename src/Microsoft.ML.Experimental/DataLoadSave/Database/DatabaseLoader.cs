@@ -225,7 +225,7 @@ namespace Microsoft.ML.Data
             /// <see cref="DbType"/> of the items in the column.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Type of the items in the column")]
-            public DbType Type;
+            public DbType Type = DbType.Single;
 
             /// <summary>
             /// Source index range(s) of the column.
@@ -295,12 +295,8 @@ namespace Microsoft.ML.Data
 
             internal static Range FromTextLoaderRange(TextLoader.Range range)
             {
-                return new Range(range.Min, range.Max.GetValueOrDefault());
-            }
-
-            internal static TextLoader.Range ToTextLoaderRange(Range range)
-            {
-                return new TextLoader.Range(range.Min, range.Max);
+                Contracts.Assert(range.Max.HasValue);
+                return new Range(range.Min, range.Max.Value);
             }
         }
 
@@ -320,11 +316,11 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Used as an input column range.
         /// </summary>
-        internal struct Segment
+        internal readonly struct Segment
         {
-            public int Min;
-            public int Lim;
-            public bool ForceVector;
+            public readonly int Min;
+            public readonly int Lim;
+            public readonly bool ForceVector;
 
             public Segment(int min, int lim, bool forceVector)
             {
@@ -341,8 +337,6 @@ namespace Microsoft.ML.Data
         private sealed class ColInfo
         {
             public readonly string Name;
-            // REVIEW: Fix this for keys.
-            public readonly InternalDataKind Kind;
             public readonly DataViewType ColType;
             public readonly Segment[] Segments;
 
@@ -356,8 +350,7 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(sizeBase > 0);
 
                 Name = name;
-                Kind = colType.GetItemType().GetRawKind();
-                Contracts.Assert(Kind != 0);
+                Contracts.Assert(colType.GetItemType().GetRawKind() != 0);
                 ColType = colType;
                 Segments = segs;
                 SizeBase = sizeBase;
@@ -378,7 +371,6 @@ namespace Microsoft.ML.Data
                     Array.Sort(order, (x, y) => segs[x].Min.CompareTo(segs[y].Min));
 
                     // Check that the segments are disjoint.
-                    // REVIEW: Should we insist that they are disjoint? Is there any reason to allow overlapping?
                     for (int i = 1; i < order.Length; i++)
                     {
                         int a = order[i - 1];
@@ -443,16 +435,14 @@ namespace Microsoft.ML.Data
                             ch.Info("Duplicate name(s) specified - later columns will hide earlier ones");
 
                         PrimitiveDataViewType itemType;
-                        DbType dbType;
                         if (col.KeyCount != null)
                         {
                             itemType = ConstructKeyType(col.Type, col.KeyCount);
                         }
                         else
                         {
-                            dbType = col.Type == default ? DbType.Single : col.Type;
-                            ch.CheckUserArg(Enum.IsDefined(typeof(DbType), dbType), nameof(Column.Type), "Bad item type");
-                            itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(col.Type.ToInternalDataKind());
+                            ch.CheckUserArg(Enum.IsDefined(typeof(DbType), col.Type), nameof(Column.Type), "Bad item type");
+                            itemType = ColumnTypeExtensions.PrimitiveTypeFromType(col.Type.ToType());
                         }
 
                         Segment[] segs = null;
@@ -578,7 +568,7 @@ namespace Microsoft.ML.Data
                     ctx.Writer.WriteBoolByte(type is KeyDataViewType);
                     if (type is KeyDataViewType key)
                         ctx.Writer.Write(key.Count);
-                    ctx.Writer.Write(info.Segments.Length);
+                    ctx.Writer.Write((info.Segments?.Length).GetValueOrDefault());
                     foreach (var seg in info.Segments)
                     {
                         ctx.Writer.Write(seg.Min);
