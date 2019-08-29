@@ -9,12 +9,12 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.ML.AutoML;
-using Microsoft.ML.CLI.Templates.Console;
-using Microsoft.ML.CLI.Utilities;
+using Microsoft.ML.CodeGenerator.Templates.Console;
+using Microsoft.ML.CodeGenerator.Utilities;
 
-namespace Microsoft.ML.CLI.CodeGenerator.CSharp
+namespace Microsoft.ML.CodeGenerator.CSharp
 {
-    internal class CodeGenerator : IProjectGenerator
+    public class CodeGenerator : IProjectGenerator
     {
         private readonly Pipeline _pipeline;
         private readonly CodeGeneratorSettings _settings;
@@ -55,6 +55,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
             Utils.WriteOutputToFiles(modelProjectContents.ModelInputCSFileContent, "ModelInput.cs", dataModelsDir);
             Utils.WriteOutputToFiles(modelProjectContents.ModelOutputCSFileContent, "ModelOutput.cs", dataModelsDir);
+            Utils.WriteOutputToFiles(modelProjectContents.ConsumeModelCSFileContent, "ConsumeModel.cs", dataModelsDir);
             Utils.WriteOutputToFiles(modelProjectContents.ModelProjectFileContent, modelProjectName, modelprojectDir);
 
             // Generate ConsoleApp Project
@@ -106,7 +107,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             var predictProgramCSFileContent = GeneratePredictProgramCSFileContent(namespaceValue);
             predictProgramCSFileContent = Utils.FormatCode(predictProgramCSFileContent);
 
-            var predictProjectFileContent = GeneratPredictProjectFileContent(namespaceValue, includeLightGbmPackage, includeMklComponentsPackage, includeFastTreePackage);
+            var predictProjectFileContent = GeneratPredictProjectFileContent(_settings.OutputName, includeLightGbmPackage, includeMklComponentsPackage, includeFastTreePackage);
 
             var transformsAndTrainers = GenerateTransformsAndTrainers();
             var modelBuilderCSFileContent = GenerateModelBuilderCSFileContent(transformsAndTrainers.Usings, transformsAndTrainers.TrainerMethod, transformsAndTrainers.PreTrainerTransforms, transformsAndTrainers.PostTrainerTransforms, namespaceValue, _pipeline.CacheBeforeTrainer, labelTypeCsharp.Name);
@@ -115,15 +116,33 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             return (predictProgramCSFileContent, predictProjectFileContent, modelBuilderCSFileContent);
         }
 
-        internal (string ModelInputCSFileContent, string ModelOutputCSFileContent, string ModelProjectFileContent) GenerateModelProjectContents(string namespaceValue, Type labelTypeCsharp, bool includeLightGbmPackage, bool includeMklComponentsPackage, bool includeFastTreePackage)
+        internal (string ModelInputCSFileContent, string ModelOutputCSFileContent, string ConsumeModelCSFileContent, string ModelProjectFileContent) GenerateModelProjectContents(string namespaceValue, Type labelTypeCsharp, bool includeLightGbmPackage, bool includeMklComponentsPackage, bool includeFastTreePackage)
         {
             var classLabels = GenerateClassLabels();
+
+            // generate ModelInput.cs
             var modelInputCSFileContent = GenerateModelInputCSFileContent(namespaceValue, classLabels);
             modelInputCSFileContent = Utils.FormatCode(modelInputCSFileContent);
+
+            // generate ModelOutput.cs
             var modelOutputCSFileContent = GenerateModelOutputCSFileContent(labelTypeCsharp.Name, namespaceValue);
             modelOutputCSFileContent = Utils.FormatCode(modelOutputCSFileContent);
+
+            // generate ConsumeModel.cs
+            var consumeModelCSFileContent = GenerateConsumeModelCSFileContent(namespaceValue);
+            consumeModelCSFileContent = Utils.FormatCode(consumeModelCSFileContent);
             var modelProjectFileContent = GenerateModelProjectFileContent(includeLightGbmPackage, includeMklComponentsPackage, includeFastTreePackage);
-            return (modelInputCSFileContent, modelOutputCSFileContent, modelProjectFileContent);
+            return (modelInputCSFileContent, modelOutputCSFileContent, consumeModelCSFileContent, modelProjectFileContent);
+        }
+
+        private string GenerateConsumeModelCSFileContent(string namespaceValue)
+        {
+            ConsumeModel consumeModel = new ConsumeModel()
+            {
+                Namespace = namespaceValue,
+                Target = _settings.Target,
+            };
+            return consumeModel.TransformText();
         }
 
         internal (string Usings, string TrainerMethod, List<string> PreTrainerTransforms, List<string> PostTrainerTransforms) GenerateTransformsAndTrainers()
@@ -262,13 +281,22 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         private string GenerateModelOutputCSFileContent(string predictionLabelType, string namespaceValue)
         {
-            ModelOutputClass modelOutputClass = new ModelOutputClass() { TaskType = _settings.MlTask.ToString(), PredictionLabelType = predictionLabelType, Namespace = namespaceValue };
+            ModelOutputClass modelOutputClass = new ModelOutputClass() {
+                TaskType = _settings.MlTask.ToString(),
+                PredictionLabelType = predictionLabelType,
+                Namespace = namespaceValue,
+                Target = _settings.Target,
+            };
             return modelOutputClass.TransformText();
         }
 
         private string GenerateModelInputCSFileContent(string namespaceValue, IList<string> classLabels)
         {
-            ModelInputClass modelInputClass = new ModelInputClass() { Namespace = namespaceValue, ClassLabels = classLabels };
+            ModelInputClass modelInputClass = new ModelInputClass() {
+                Namespace = namespaceValue,
+                ClassLabels = classLabels,
+                Target = _settings.Target,
+            };
             return modelInputClass.TransformText();
         }
         #endregion
@@ -282,6 +310,8 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         private string GeneratePredictProgramCSFileContent(string namespaceValue)
         {
+            var columns = _columnInferenceResult.TextLoaderOptions.Columns;
+            var featuresList = columns.Where((str) => str.Name != _settings.LabelName).Select((str) => str.Name).ToList();
             PredictProgram predictProgram = new PredictProgram()
             {
                 TaskType = _settings.MlTask.ToString(),
@@ -293,6 +323,8 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 Separator = _columnInferenceResult.TextLoaderOptions.Separators.FirstOrDefault(),
                 AllowQuoting = _columnInferenceResult.TextLoaderOptions.AllowQuoting,
                 AllowSparse = _columnInferenceResult.TextLoaderOptions.AllowSparse,
+                Features = featuresList,
+                Target = _settings.Target,
             };
             return predictProgram.TransformText();
         }
@@ -321,6 +353,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 Namespace = namespaceValue,
                 LabelName = _settings.LabelName,
                 CacheBeforeTrainer = cacheBeforeTrainer,
+                Target = _settings.Target,
             };
 
             return modelBuilder.TransformText();

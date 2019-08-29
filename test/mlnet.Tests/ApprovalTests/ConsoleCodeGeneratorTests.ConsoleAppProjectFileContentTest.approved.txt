@@ -5,11 +5,11 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.ML" Version="1.2.0" />
-    <PackageReference Include="Microsoft.ML.LightGBM" Version="1.2.0" />
-    <PackageReference Include="Microsoft.ML.Mkl.Components" Version="1.2.0" />
+    <PackageReference Include="Microsoft.ML" Version="1.3.1" />
+    <PackageReference Include="Microsoft.ML.LightGBM" Version="1.3.1" />
+    <PackageReference Include="Microsoft.ML.Mkl.Components" Version="1.3.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\TestNamespace.Model\TestNamespace.Model.csproj" />
+    <ProjectReference Include="..\MyNamespace.Model\MyNamespace.Model.csproj" />
   </ItemGroup>
 </Project>

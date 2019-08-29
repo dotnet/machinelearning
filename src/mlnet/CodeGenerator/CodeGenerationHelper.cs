@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.ML.AutoML;
-using Microsoft.ML.CLI.CodeGenerator.CSharp;
 using Microsoft.ML.CLI.Data;
 using Microsoft.ML.CLI.ShellProgressBar;
 using Microsoft.ML.CLI.Telemetry.Events;
@@ -343,10 +342,10 @@ namespace Microsoft.ML.CLI.CodeGenerator
         internal void GenerateProject(ColumnInferenceResults columnInference, Pipeline pipeline, string labelName, FileInfo modelPath)
         {
             // Generate code
-            var codeGenerator = new CodeGenerator.CSharp.CodeGenerator(
+            var codeGenerator = new ML.CodeGenerator.CSharp.CodeGenerator(
                 pipeline,
                 columnInference,
-                new CodeGeneratorSettings()
+                new ML.CodeGenerator.CSharp.CodeGeneratorSettings()
                 {
                     TrainDataset = _settings.Dataset.FullName,
                     MlTask = _taskKind,

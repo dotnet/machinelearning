@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Threading;
 using Microsoft.ML;
 using Microsoft.ML.AutoML;
-using Microsoft.ML.CLI.CodeGenerator.CSharp;
+using Microsoft.ML.CodeGenerator.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace mlnet.Tests

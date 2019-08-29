@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.ML.AutoML;
 
-namespace Microsoft.ML.CLI.CodeGenerator.CSharp
+namespace Microsoft.ML.CodeGenerator.CSharp
 {
     /// <summary>
     /// Supports generation of code for trainers (Binary,Multi,Regression)

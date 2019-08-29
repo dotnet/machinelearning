@@ -18,10 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+    <ProjectReference Include="..\Microsoft.ML.CodeGen\Microsoft.ML.CodeGenerator.csproj" />
   </ItemGroup>
 
   <ItemGroup>

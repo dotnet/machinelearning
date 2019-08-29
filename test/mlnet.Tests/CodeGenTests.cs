@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.AutoML;
-using Microsoft.ML.CLI.CodeGenerator.CSharp;
+using Microsoft.ML.CodeGenerator.CSharp;
 using Microsoft.ML.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -132,6 +132,18 @@ namespace mlnet.Tests
             var expectedUsings = "using Microsoft.ML.Trainers.LightGbm;\r\n";
             Assert.AreEqual(expectedTrainer, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2[0]);
+        }
+
+        [TestMethod]
+        public void NormalizeTest()
+        {
+            var testStrArray = new string[] { "Abc Abc", "abc ABC" };
+            var expectedStrArray = new string[] { "Abc_Abc", "Abc_ABC" };
+            for(int i = 0; i!= expectedStrArray.Count(); ++i)
+            {
+                var actualStr = Microsoft.ML.CodeGenerator.Utilities.Utils.Normalize(testStrArray[i]);
+                Assert.AreEqual(expectedStrArray[i], actualStr);
+            }
         }
     }
 }

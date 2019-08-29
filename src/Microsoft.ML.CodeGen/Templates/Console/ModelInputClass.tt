@@ -3,11 +3,11 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-//*****************************************************************************************
-//*                                                                                       *
-//* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *
-//*                                                                                       *
-//*****************************************************************************************
+<#@ include file="Annotation.tt" #><#if(Target == CSharp.GenerateTarget.Cli){ #>
+<#CLI_Annotation();#>
+<# } else if(Target == CSharp.GenerateTarget.ModelBuilder){ #>
+<#MB_Annotation();#>
+<# } #>
 
 using Microsoft.ML.Data;
 
@@ -23,4 +23,5 @@ namespace  <#= Namespace #>.Model.DataModels
 <#+
 public IList<string> ClassLabels {get;set;}
 public string Namespace {get;set;}
+public CSharp.GenerateTarget Target {get;set;}
 #>
