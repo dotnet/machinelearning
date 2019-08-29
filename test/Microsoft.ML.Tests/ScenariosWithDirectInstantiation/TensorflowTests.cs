@@ -1121,7 +1121,7 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowImageClassification()
         {
-            string assetsRelativePath = @"../../../assets";
+            string assetsRelativePath = @"assets";
             string assetsPath = GetAbsolutePath(assetsRelativePath);
             string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
                 "images");
@@ -1149,7 +1149,7 @@ namespace Microsoft.ML.Scenarios
 
             // Split the data 90:10 into train and test sets, train and evaluate.
             TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
-                shuffledFullImagesDataset, testFraction: 0.1, seed: 1);
+                shuffledFullImagesDataset, testFraction: 0.2, seed: 1);
 
             IDataView trainDataset = trainTestData.TrainSet;
             IDataView testDataset = trainTestData.TestSet;
@@ -1175,8 +1175,8 @@ namespace Microsoft.ML.Scenarios
             IDataView predictions = trainedModel.Transform(testDataset);
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
 
-            Assert.Equal(1, metrics.MicroAccuracy);
-            Assert.Equal(1, metrics.MacroAccuracy);
+            Assert.InRange(metrics.MicroAccuracy, 0.5, 0.7);
+            Assert.InRange(metrics.MacroAccuracy, 0.5, 0.7);
         }
 
         public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,
@@ -1216,7 +1216,7 @@ namespace Microsoft.ML.Scenarios
 
         public static string DownloadImageSet(string imagesDownloadFolder)
         {
-            string fileName = "flower_photos_tiny_set_for_unit_tests.zip";
+            string fileName = "flower_photos_tiny_set_for_unit_tests_5.zip";
             string url = $"https://mlnetfilestorage.file.core.windows.net/imagesets/" +
                 $"flower_images/flower_photos_tiny_set_for_unit_tests_5.zip?st=2019" +
                 $"-08-29T00%3A27%3A27Z&se=2030-08-30T00%3A27%3A00Z&sp=rl&sv=2018-03" +
@@ -1269,7 +1269,7 @@ namespace Microsoft.ML.Scenarios
             Console.WriteLine($"Extracting.");
             var task = Task.Run(() =>
             {
-                ZipFile.ExtractToDirectory(gzArchiveName, destFolder);
+                ZipFile.ExtractToDirectory(gzArchiveName, destFolder, true);
             });
 
             while (!task.IsCompleted)
