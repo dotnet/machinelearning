@@ -1269,7 +1269,7 @@ namespace Microsoft.ML.Scenarios
             Console.WriteLine($"Extracting.");
             var task = Task.Run(() =>
             {
-                ZipFile.ExtractToDirectory(gzArchiveName, destFolder, true);
+                ZipFile.ExtractToDirectory(gzArchiveName, destFolder);
             });
 
             while (!task.IsCompleted)
