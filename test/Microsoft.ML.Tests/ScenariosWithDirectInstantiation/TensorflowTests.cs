@@ -1117,5 +1117,6 @@ namespace Microsoft.ML.Scenarios
                 Assert.Equal(input.A[i], textOutput.AOut[i]);
             Assert.Equal(string.Join(" ", input.B).Replace("/", " "), textOutput.BOut[0]);
         }
+
     }
 }

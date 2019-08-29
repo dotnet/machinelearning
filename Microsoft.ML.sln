@@ -276,8 +276,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.AutoML", "Micr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.AutoML.Samples", "docs\samples\Microsoft.ML.AutoML.Samples\Microsoft.ML.AutoML.Samples.csproj", "{A6924919-9E37-4023-8B7F-E85C8E3CC9B3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.ML.Dnn.Tests", "test\Microsoft.ML.Dnn.Tests\Microsoft.ML.Dnn.Tests.csproj", "{ACA7D610-30DD-43C7-980D-C1113FFCFDEF}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1613,30 +1611,6 @@ Global
 		{A6924919-9E37-4023-8B7F-E85C8E3CC9B3}.Release-netfx|Any CPU.ActiveCfg = Release-netfx|Any CPU
 		{A6924919-9E37-4023-8B7F-E85C8E3CC9B3}.Release-netfx|Any CPU.Build.0 = Release-netfx|Any CPU
 		{A6924919-9E37-4023-8B7F-E85C8E3CC9B3}.Release-netfx|x64.ActiveCfg = Release-netfx|Any CPU
-		{ACA7D610-30DD-43C7-980D-C1113FFCFDEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ACA7D610-30DD-43C7-980D-C1113FFCFDEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ACA7D610-30DD-43C7-980D-C1113FFCFDEF}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{ACA7D610-30DD-43C7-980D-C1113FFCFDEF}.Debug|x64.Build.0 = Debug|Any CPU
-		{ACA7D610-30DD-43C7-980D-C1113FFCFDEF}.Debug-netcoreapp3_0|Any CPU.ActiveCfg = Debug-netcoreapp3_0|Any CPU
-		{ACA7D610-30DD-43C7-980D-C1113FFCFDEF}.Debug-netcoreapp3_0|Any CPU.Build.0 = Debug-netcoreapp3_0|Any CPU
-		{ACA7D610-30DD-43C7-980D-C1113FFCFDEF}.Debug-netcoreapp3_0|x64.ActiveCfg = Debug-netcoreapp3_0|Any CPU
-		{ACA7D610-30DD-43C7-980D-C1113FFCFDEF}.Debug-netcoreapp3_0|x64.Build.0 = Debug-netcoreapp3_0|Any CPU
-		{ACA7D610-30DD-43C7-980D-C1113FFCFDEF}.Debug-netfx|Any CPU.ActiveCfg = Debug-netfx|Any CPU
-		{ACA7D610-30DD-43C7-980D-C1113FFCFDEF}.Debug-netfx|Any CPU.Build.0 = Debug-netfx|Any CPU
-		{ACA7D610-30DD-43C7-980D-C1113FFCFDEF}.Debug-netfx|x64.ActiveCfg = Debug-netfx|Any CPU
-		{ACA7D610-30DD-43C7-980D-C1113FFCFDEF}.Debug-netfx|x64.Build.0 = Debug-netfx|Any CPU
-		{ACA7D610-30DD-43C7-980D-C1113FFCFDEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ACA7D610-30DD-43C7-980D-C1113FFCFDEF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ACA7D610-30DD-43C7-980D-C1113FFCFDEF}.Release|x64.ActiveCfg = Release|Any CPU
-		{ACA7D610-30DD-43C7-980D-C1113FFCFDEF}.Release|x64.Build.0 = Release|Any CPU
-		{ACA7D610-30DD-43C7-980D-C1113FFCFDEF}.Release-netcoreapp3_0|Any CPU.ActiveCfg = Release-netcoreapp3_0|Any CPU
-		{ACA7D610-30DD-43C7-980D-C1113FFCFDEF}.Release-netcoreapp3_0|Any CPU.Build.0 = Release-netcoreapp3_0|Any CPU
-		{ACA7D610-30DD-43C7-980D-C1113FFCFDEF}.Release-netcoreapp3_0|x64.ActiveCfg = Release-netcoreapp3_0|Any CPU
-		{ACA7D610-30DD-43C7-980D-C1113FFCFDEF}.Release-netcoreapp3_0|x64.Build.0 = Release-netcoreapp3_0|Any CPU
-		{ACA7D610-30DD-43C7-980D-C1113FFCFDEF}.Release-netfx|Any CPU.ActiveCfg = Release-netfx|Any CPU
-		{ACA7D610-30DD-43C7-980D-C1113FFCFDEF}.Release-netfx|Any CPU.Build.0 = Release-netfx|Any CPU
-		{ACA7D610-30DD-43C7-980D-C1113FFCFDEF}.Release-netfx|x64.ActiveCfg = Release-netfx|Any CPU
-		{ACA7D610-30DD-43C7-980D-C1113FFCFDEF}.Release-netfx|x64.Build.0 = Release-netfx|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1723,7 +1697,6 @@ Global
 		{E48285BF-F49A-4EA3-AED0-1BDDBF77EB80} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 		{F5D11F71-2D61-4AE9-99D7-0F0B54649B15} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{A6924919-9E37-4023-8B7F-E85C8E3CC9B3} = {DA452A53-2E94-4433-B08C-041EDEC729E6}
-		{ACA7D610-30DD-43C7-980D-C1113FFCFDEF} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {41165AF1-35BB-4832-A189-73060F82B01D}
