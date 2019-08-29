@@ -1118,7 +1118,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(string.Join(" ", input.B).Replace("/", " "), textOutput.BOut[0]);
         }
 
-        [Fact]
+        [TensorFlowFact]
         public void TransferLearningImageClassification()
         {
             string assetsRelativePath = @"../../../assets";
