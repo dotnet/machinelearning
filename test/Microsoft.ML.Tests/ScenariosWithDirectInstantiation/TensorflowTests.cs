@@ -1119,7 +1119,7 @@ namespace Microsoft.ML.Scenarios
         }
 
         [Fact]
-        public void ImageClassification()
+        public void TransferLearningImageClassification()
         {
             string assetsRelativePath = @"../../../assets";
             string assetsPath = GetAbsolutePath(assetsRelativePath);
@@ -1149,7 +1149,7 @@ namespace Microsoft.ML.Scenarios
 
             // Split the data 90:10 into train and test sets, train and evaluate.
             TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
-                shuffledFullImagesDataset, testFraction: 0.2, seed: 1);
+                shuffledFullImagesDataset, testFraction: 0.1, seed: 1);
 
             IDataView trainDataset = trainTestData.TrainSet;
             IDataView testDataset = trainTestData.TestSet;
@@ -1175,10 +1175,8 @@ namespace Microsoft.ML.Scenarios
             IDataView predictions = trainedModel.Transform(testDataset);
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
 
-            var expectedMicroAccuracy = 1.0f;
-            var expectedMacroAccuracy = 1.0f;
-            Assert.InRange(metrics.MicroAccuracy, expectedMicroAccuracy - 0.1, expectedMicroAccuracy + 0.1);
-            Assert.InRange(metrics.MacroAccuracy, expectedMacroAccuracy - 0.1, expectedMacroAccuracy + 0.1);
+            Assert.Equal(1, metrics.MicroAccuracy);
+            Assert.Equal(1, metrics.MacroAccuracy);
         }
 
         public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,
