@@ -30,7 +30,7 @@ namespace Microsoft.ML.Tests
             var connectionString = GetConnectionString(TestDatasets.irisDb.name);
             var commandText = $@"SELECT * FROM ""{TestDatasets.irisDb.trainFilename}""";
 
-            var loaderColumns1 = new DatabaseLoader.Column[]
+            var loaderColumns = new DatabaseLoader.Column[]
             {
                 new DatabaseLoader.Column() { Name = "Label", Type = DbType.Int32 },
                 new DatabaseLoader.Column() { Name = "SepalLength", Type = DbType.Single },
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Tests
                 new DatabaseLoader.Column() { Name = "PetalWidth", Type = DbType.Single }
             };
 
-            var loader = mlContext.Data.CreateDatabaseLoader(loaderColumns1);
+            var loader = mlContext.Data.CreateDatabaseLoader(loaderColumns);
 
             var providerFactory = DbProviderFactories.GetFactory("System.Data.SqlClient");
             var databaseSource = new DatabaseSource(providerFactory, connectionString, commandText);
