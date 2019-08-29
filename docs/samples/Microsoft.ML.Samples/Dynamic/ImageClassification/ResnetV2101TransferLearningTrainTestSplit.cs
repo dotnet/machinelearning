@@ -213,7 +213,7 @@ namespace Samples.Dynamic
                 $"28&sr=f&sig=SZ0UBX47pXD0F1rmrOM%2BfcwbPVob8hlgFtIlN89micM%3D";
 
             Download(url, imagesDownloadFolder, fileName);
-            UnZip(Path.Join(imagesDownloadFolder, fileName), imagesDownloadFolder);
+            UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);
 
             return Path.GetFileNameWithoutExtension(fileName);
         }

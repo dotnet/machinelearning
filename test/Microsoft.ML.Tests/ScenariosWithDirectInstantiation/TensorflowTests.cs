@@ -1223,7 +1223,7 @@ namespace Microsoft.ML.Scenarios
                 $"-28&sr=f&sig=6wMJlAe0Z8OhgfzS3ukRJgs1SYe3dSZJA708iC71fEk%3D";
 
             Download(url, imagesDownloadFolder, fileName);
-            UnZip(Path.Join(imagesDownloadFolder, fileName), imagesDownloadFolder);
+            UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);
 
             return Path.GetFileNameWithoutExtension(fileName);
         }
