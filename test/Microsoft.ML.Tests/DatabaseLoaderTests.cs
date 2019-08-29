@@ -88,11 +88,8 @@ namespace Microsoft.ML.Tests
             var trainingData = loader.Load(databaseSource);
 
             IEstimator<ITransformer> pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
-                .Append(mlContext.Transforms.Concatenate("Features", "SepalInfo", "PetalInfo"));
-
-            var preview = pipeline.Preview(trainingData);
-
-            pipeline = pipeline.Append(mlContext.MulticlassClassification.Trainers.LightGbm())
+                .Append(mlContext.Transforms.Concatenate("Features", "SepalInfo", "PetalInfo"))
+                .Append(mlContext.MulticlassClassification.Trainers.LightGbm())
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
             var model = pipeline.Fit(trainingData);
