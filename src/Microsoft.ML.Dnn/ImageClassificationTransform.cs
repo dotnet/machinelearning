@@ -191,8 +191,6 @@ namespace Microsoft.ML.Transforms
 
         private sealed class ImageProcessor
         {
-            public IntPtr Handle { get; set; }
-            private GCHandle _gcHandle;
             private Runner _imagePreprocessingRunner;
 
             public ImageProcessor(ImageClassificationTransformer transformer)
@@ -209,12 +207,6 @@ namespace Microsoft.ML.Transforms
                 imageTensor.Dispose();
                 return processedTensor;
             }
-
-            ~ImageProcessor()
-            {
-                if (_gcHandle.IsAllocated)
-                    _gcHandle.Free();
-            }
         }
 
         private void CacheFeaturizedImagesToDisk(IDataView input, string labelColumnName, string imagepathColumnName,
@@ -222,6 +214,12 @@ namespace Microsoft.ML.Transforms
             ImageClassificationMetrics.Dataset dataset, ImageClassificationMetricsCallback metricsCallback)
         {
             var labelColumn = input.Schema[labelColumnName];
+
+            if (labelColumn.Type.RawType != typeof(UInt32))
+                throw Host.ExceptSchemaMismatch(nameof(labelColumn), "Label",
+                    labelColumnName, typeof(uint).ToString(),
+                    labelColumn.Type.RawType.ToString());
+
             var imagePathColumn = input.Schema[imagepathColumnName];
             Runner runner = new Runner(_session);
             runner.AddOutputs(outputTensorName);
@@ -423,7 +421,7 @@ namespace Microsoft.ML.Transforms
 
                         labelBatch[batchIndex] = label;
                         batchIndex += 1;
-                        // Train.
+                        // Evaluate.
                         if (batchIndex == batchSize)
                         {
                             var outputTensors = validationEvalRunner
@@ -730,17 +728,6 @@ namespace Microsoft.ML.Transforms
             Host.AssertValue(ctx);
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
-
-            // *** Binary format ***
-            // byte: indicator for frozen models
-            // byte: indicator for adding batch dimension in input
-            // int: number of input columns
-            // for each input column
-            //   int: id of int column name
-            // int: number of output columns
-            // for each output column
-            //   int: id of output column name
-            // stream: tensorFlow model.
             ctx.Writer.WriteBoolByte(_addBatchDimensionInput);
 
             Host.AssertNonEmpty(_inputs);
@@ -955,7 +942,6 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// String representation of the metrics.
             /// </summary>
-            /// <returns></returns>
             public override string ToString()
             {
                 if (DatasetUsed == ImageClassificationMetrics.Dataset.Train)
@@ -967,26 +953,63 @@ namespace Microsoft.ML.Transforms
             }
         }
 
+        /// <summary>
+        /// Metrics for image featurization values. The input image is passed through
+        /// the network and features are extracted from second or last layer to
+        /// train a custom full connected layer that serves as classifier.
+        /// </summary>
         public sealed class BottleneckMetrics
         {
+            /// <summary>
+            /// Indicates the dataset on which metrics are being reported.
+            /// <see cref="ImageClassificationMetrics.Dataset"/>
+            /// </summary>
             public ImageClassificationMetrics.Dataset DatasetUsed { get; set; }
+
+            /// <summary>
+            /// Name of the input image.
+            /// </summary>
             public string Name { get; set; }
+
+            /// <summary>
+            /// Index of the input image.
+            /// </summary>
             public int Index { get; set; }
 
+            /// <summary>
+            /// String representation of the metrics.
+            /// </summary>
             public override string ToString() => $"Phase: Bottleneck Computation, Dataset used: {DatasetUsed.ToString(),10}, Image Index: {Index,3}, Image Name: {Name}";
         }
 
+        /// <summary>
+        /// Metrics for image classification training.
+        /// </summary>
         public sealed class ImageClassificationMetrics
         {
+            /// <summary>
+            /// Indicates the kind of the dataset of which metric is reported.
+            /// </summary>
             public enum Dataset
             {
                 Train,
                 Validation
             };
 
+            /// <summary>
+            /// Contains train time metrics.
+            /// </summary>
             public TrainMetrics Train { get; set; }
+
+            /// <summary>
+            /// Contains pre-train time metrics. These contains metrics on image 
+            /// featurization.
+            /// </summary>
             public BottleneckMetrics Bottleneck { get; set; }
 
+            /// <summary>
+            /// String representation of the metrics.
+            /// </summary>
             public override string ToString() => Train != null ? Train.ToString() : Bottleneck.ToString();
         }
 

@@ -638,11 +638,9 @@ namespace Microsoft.ML.Transforms
                     Runner runner = new Runner(_parent.Session);
 
                     // Feed inputs to the graph.
-                    List<Tensor> inputTensors = new List<Tensor>();
                     for (int i = 0; i < _parent.Inputs.Length; i++)
                     {
                         var tensor = srcTensorGetters[i].GetTensor();
-                        inputTensors.Add(tensor);
                         runner.AddInput(_parent.Inputs[i], tensor);
                     }
 
