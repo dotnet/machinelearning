@@ -1002,7 +1002,7 @@ namespace Microsoft.ML.Transforms
             public TrainMetrics Train { get; set; }
 
             /// <summary>
-            /// Contains pre-train time metrics. These contains metrics on image 
+            /// Contains pre-train time metrics. These contains metrics on image
             /// featurization.
             /// </summary>
             public BottleneckMetrics Bottleneck { get; set; }
