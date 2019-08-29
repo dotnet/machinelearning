@@ -27,10 +27,7 @@ namespace Microsoft.ML.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            var databaseName = TestDatasets.irisDb.name;
-            var databaseFile = Path.GetFullPath(Path.Combine("TestModels", $"{databaseName}.mdf"));
-
-            var connectionString = $@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename={databaseFile};Database={databaseName};Integrated Security=True";
+            var connectionString = GetConnectionString(TestDatasets.irisDb.name);
             var commandText = $@"SELECT * FROM ""{TestDatasets.irisDb.trainFilename}""";
 
             var loaderColumns1 = new DatabaseLoader.Column[]
@@ -80,10 +77,7 @@ namespace Microsoft.ML.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            var databaseName = TestDatasets.irisDb.name;
-            var databaseFile = Path.GetFullPath(Path.Combine("TestModels", $"{databaseName}.mdf"));
-
-            var connectionString = $@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename={databaseFile};Database={databaseName};Integrated Security=True";
+            var connectionString = GetConnectionString(TestDatasets.irisDb.name);
             var commandText = $@"SELECT * FROM ""{TestDatasets.irisDb.trainFilename}""";
 
             var loader = mlContext.Data.CreateDatabaseLoader<IrisVectorData>();
@@ -123,10 +117,7 @@ namespace Microsoft.ML.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            var databaseName = TestDatasets.irisDb.name;
-            var databaseFile = Path.GetFullPath(Path.Combine("TestModels", $"{databaseName}.mdf"));
-
-            var connectionString = $@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename={databaseFile};Database={databaseName};Integrated Security=True";
+            var connectionString = GetConnectionString(TestDatasets.irisDb.name);
             var commandText = $@"SELECT * FROM ""{TestDatasets.irisDb.trainFilename}""";
 
             var loader = mlContext.Data.CreateDatabaseLoader<IrisData>();
@@ -160,6 +151,17 @@ namespace Microsoft.ML.Tests
                 PetalLength = 3.3f,
                 PetalWidth = 1.0f,
             }).PredictedLabel);
+        }
+
+        private string GetTestDatabasePath(string databaseName)
+        {
+            return Path.GetFullPath(Path.Combine("TestDatabases", $"{databaseName}.mdf"));
+        }
+
+        private string GetConnectionString(string databaseName)
+        {
+            var databaseFile = GetTestDatabasePath(databaseName);
+            return $@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename={databaseFile};Database={databaseName};Integrated Security=True";
         }
 
         public class IrisData
