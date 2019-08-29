@@ -170,59 +170,47 @@ namespace Microsoft.ML.Data
         public sealed class Column
         {
             /// <summary>
-            /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
+            /// Initializes a new instance of the <see cref="Column"/> class.
             /// </summary>
             public Column() { }
 
             /// <summary>
-            /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
+            /// Initializes a new instance of the <see cref="Column"/> class.
             /// </summary>
             /// <param name="name">Name of the column.</param>
-            /// <param name="dataKind"><see cref="Data.DataKind"/> of the items in the column.</param>
+            /// <param name="dbType"><see cref="DbType"/> of the items in the column.</param>
             /// <param name="index">Index of the column.</param>
-            public Column(string name, DataKind dataKind, int index)
-                : this(name, dataKind.ToDbType(), new[] { new Range(index) })
+            public Column(string name, DbType dbType, int index)
+                : this(name, dbType, new[] { new Range(index) })
             {
             }
 
             /// <summary>
-            /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
+            /// Initializes a new instance of the <see cref="Column"/> class.
             /// </summary>
             /// <param name="name">Name of the column.</param>
-            /// <param name="dataKind"><see cref="Data.DataKind"/> of the items in the column.</param>
+            /// <param name="dbType"><see cref="DbType"/> of the items in the column.</param>
             /// <param name="minIndex">The minimum inclusive index of the column.</param>
             /// <param name="maxIndex">The maximum-inclusive index of the column.</param>
-            public Column(string name, DataKind dataKind, int minIndex, int maxIndex)
-                : this(name, dataKind.ToDbType(), new[] { new Range(minIndex, maxIndex) })
+            public Column(string name, DbType dbType, int minIndex, int maxIndex)
+                : this(name, dbType, new[] { new Range(minIndex, maxIndex) })
             {
             }
 
             /// <summary>
-            /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
+            /// Initializes a new instance of the <see cref="Column"/> class.
             /// </summary>
             /// <param name="name">Name of the column.</param>
-            /// <param name="dataKind"><see cref="Data.DataKind"/> of the items in the column.</param>
+            /// <param name="dbType"><see cref="DbType"/> of the items in the column.</param>
             /// <param name="source">Source index range(s) of the column.</param>
             /// <param name="keyCount">For a key column, this defines the range of values.</param>
-            public Column(string name, DataKind dataKind, Range[] source, KeyCount keyCount = null)
-                : this(name, dataKind.ToDbType(), source, keyCount)
-            {
-            }
-
-            /// <summary>
-            /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
-            /// </summary>
-            /// <param name="name">Name of the column.</param>
-            /// <param name="type"><see cref="InternalDataKind"/> of the items in the column.</param>
-            /// <param name="source">Source index range(s) of the column.</param>
-            /// <param name="keyCount">For a key column, this defines the range of values.</param>
-            private Column(string name, DbType type, Range[] source, KeyCount keyCount = null)
+            public Column(string name, DbType dbType, Range[] source, KeyCount keyCount = null)
             {
                 Contracts.CheckValue(name, nameof(name));
                 Contracts.CheckValue(source, nameof(source));
 
                 Name = name;
-                Type = type;
+                Type = dbType;
                 Source = source;
                 KeyCount = keyCount;
             }
@@ -233,18 +221,11 @@ namespace Microsoft.ML.Data
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the column")]
             public string Name;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Type of the items in the column")]
-            [BestFriend]
-            internal DbType Type = DbType.Single;
-
             /// <summary>
-            /// <see cref="Data.DataKind"/> of the items in the column.
+            /// <see cref="DbType"/> of the items in the column.
             /// </summary>
-            public DataKind DataKind
-            {
-                get { return Type.ToDataKind(); }
-                set { Type = value.ToDbType(); }
-            }
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Type of the items in the column")]
+            public DbType Type;
 
             /// <summary>
             /// Source index range(s) of the column.

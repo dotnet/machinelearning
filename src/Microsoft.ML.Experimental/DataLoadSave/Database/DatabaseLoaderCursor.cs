@@ -368,7 +368,7 @@ namespace Microsoft.ML.Data
                 return (ref VBuffer<bool> value) =>
                 {
                     int length = colInfo.SizeBase;
-                    bool[] values = new bool[length];
+                    var editor = VBufferEditor.Create(ref value, length);
 
                     int i = 0;
                     var segs = colInfo.Segments;
@@ -377,11 +377,11 @@ namespace Microsoft.ML.Data
                     {
                         for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
                         {
-                            values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetBoolean(columnIndex);
+                            editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetBoolean(columnIndex);
                         }
                     }
 
-                    value = new VBuffer<bool>(length, values);
+                    value = editor.Commit();
                 };
             }
 
@@ -390,7 +390,7 @@ namespace Microsoft.ML.Data
                 return (ref VBuffer<byte> value) =>
                 {
                     int length = colInfo.SizeBase;
-                    byte[] values = new byte[length];
+                    var editor = VBufferEditor.Create(ref value, length);
 
                     int i = 0;
                     var segs = colInfo.Segments;
@@ -399,11 +399,11 @@ namespace Microsoft.ML.Data
                     {
                         for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
                         {
-                            values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetByte(columnIndex);
+                            editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetByte(columnIndex);
                         }
                     }
 
-                    value = new VBuffer<byte>(length, values);
+                    value = editor.Commit();
                 };
             }
 
@@ -412,7 +412,7 @@ namespace Microsoft.ML.Data
                 return (ref VBuffer<DateTime> value) =>
                 {
                     int length = colInfo.SizeBase;
-                    DateTime[] values = new DateTime[length];
+                    var editor = VBufferEditor.Create(ref value, length);
 
                     int i = 0;
                     var segs = colInfo.Segments;
@@ -421,11 +421,11 @@ namespace Microsoft.ML.Data
                     {
                         for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
                         {
-                            values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetDateTime(columnIndex);
+                            editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetDateTime(columnIndex);
                         }
                     }
 
-                    value = new VBuffer<DateTime>(length, values);
+                    value = editor.Commit();
                 };
             }
 
@@ -434,7 +434,7 @@ namespace Microsoft.ML.Data
                 return (ref VBuffer<double> value) =>
                 {
                     int length = colInfo.SizeBase;
-                    double[] values = new double[length];
+                    var editor = VBufferEditor.Create(ref value, length);
 
                     int i = 0;
                     var segs = colInfo.Segments;
@@ -443,11 +443,11 @@ namespace Microsoft.ML.Data
                     {
                         for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
                         {
-                            values[i] = DataReader.IsDBNull(columnIndex) ? double.NaN : DataReader.GetDouble(columnIndex);
+                            editor.Values[i] = DataReader.IsDBNull(columnIndex) ? double.NaN : DataReader.GetDouble(columnIndex);
                         }
                     }
 
-                    value = new VBuffer<double>(length, values);
+                    value = editor.Commit();
                 };
             }
 
@@ -456,7 +456,7 @@ namespace Microsoft.ML.Data
                 return (ref VBuffer<short> value) =>
                 {
                     int length = colInfo.SizeBase;
-                    short[] values = new short[length];
+                    var editor = VBufferEditor.Create(ref value, length);
 
                     int i = 0;
                     var segs = colInfo.Segments;
@@ -465,11 +465,11 @@ namespace Microsoft.ML.Data
                     {
                         for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
                         {
-                            values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetInt16(columnIndex);
+                            editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetInt16(columnIndex);
                         }
                     }
 
-                    value = new VBuffer<short>(length, values);
+                    value = editor.Commit();
                 };
             }
 
@@ -478,7 +478,7 @@ namespace Microsoft.ML.Data
                 return (ref VBuffer<int> value) =>
                 {
                     int length = colInfo.SizeBase;
-                    int[] values = new int[length];
+                    var editor = VBufferEditor.Create(ref value, length);
 
                     int i = 0;
                     var segs = colInfo.Segments;
@@ -487,11 +487,11 @@ namespace Microsoft.ML.Data
                     {
                         for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
                         {
-                            values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetInt32(columnIndex);
+                            editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetInt32(columnIndex);
                         }
                     }
 
-                    value = new VBuffer<int>(length, values);
+                    value = editor.Commit();
                 };
             }
 
@@ -500,7 +500,7 @@ namespace Microsoft.ML.Data
                 return (ref VBuffer<long> value) =>
                 {
                     int length = colInfo.SizeBase;
-                    long[] values = new long[length];
+                    var editor = VBufferEditor.Create(ref value, length);
 
                     int i = 0;
                     var segs = colInfo.Segments;
@@ -509,11 +509,11 @@ namespace Microsoft.ML.Data
                     {
                         for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
                         {
-                            values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetInt64(columnIndex);
+                            editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetInt64(columnIndex);
                         }
                     }
 
-                    value = new VBuffer<long>(length, values);
+                    value = editor.Commit();
                 };
             }
 
@@ -522,7 +522,7 @@ namespace Microsoft.ML.Data
                 return (ref VBuffer<sbyte> value) =>
                 {
                     int length = colInfo.SizeBase;
-                    sbyte[] values = new sbyte[length];
+                    var editor = VBufferEditor.Create(ref value, length);
 
                     int i = 0;
                     var segs = colInfo.Segments;
@@ -531,11 +531,11 @@ namespace Microsoft.ML.Data
                     {
                         for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
                         {
-                            values[i] = DataReader.IsDBNull(columnIndex) ? default : (sbyte)DataReader.GetByte(columnIndex);
+                            editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : (sbyte)DataReader.GetByte(columnIndex);
                         }
                     }
 
-                    value = new VBuffer<sbyte>(length, values);
+                    value = editor.Commit();
                 };
             }
 
@@ -544,7 +544,7 @@ namespace Microsoft.ML.Data
                 return (ref VBuffer<float> value) =>
                 {
                     int length = colInfo.SizeBase;
-                    float[] values = new float[length];
+                    var editor = VBufferEditor.Create(ref value, length);
 
                     int i = 0;
                     var segs = colInfo.Segments;
@@ -553,11 +553,11 @@ namespace Microsoft.ML.Data
                     {
                         for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
                         {
-                            values[i] = DataReader.IsDBNull(columnIndex) ? float.NaN : DataReader.GetFloat(columnIndex);
+                            editor.Values[i] = DataReader.IsDBNull(columnIndex) ? float.NaN : DataReader.GetFloat(columnIndex);
                         }
                     }
 
-                    value = new VBuffer<float>(length, values);
+                    value = editor.Commit();
                 };
             }
 
@@ -566,7 +566,7 @@ namespace Microsoft.ML.Data
                 return (ref VBuffer<ReadOnlyMemory<char>> value) =>
                 {
                     int length = colInfo.SizeBase;
-                    ReadOnlyMemory<char>[] values = new ReadOnlyMemory<char>[length];
+                    var editor = VBufferEditor.Create(ref value, length);
 
                     int i = 0;
                     var segs = colInfo.Segments;
@@ -575,11 +575,11 @@ namespace Microsoft.ML.Data
                     {
                         for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
                         {
-                            values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetString(columnIndex).AsMemory();
+                            editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetString(columnIndex).AsMemory();
                         }
                     }
 
-                    value = new VBuffer<ReadOnlyMemory<char>>(length, values);
+                    value = editor.Commit();
                 };
             }
 
@@ -588,7 +588,7 @@ namespace Microsoft.ML.Data
                 return (ref VBuffer<ushort> value) =>
                 {
                     int length = colInfo.SizeBase;
-                    ushort[] values = new ushort[length];
+                    var editor = VBufferEditor.Create(ref value, length);
 
                     int i = 0;
                     var segs = colInfo.Segments;
@@ -597,11 +597,11 @@ namespace Microsoft.ML.Data
                     {
                         for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
                         {
-                            values[i] = DataReader.IsDBNull(columnIndex) ? default : (ushort)DataReader.GetInt16(columnIndex);
+                            editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : (ushort)DataReader.GetInt16(columnIndex);
                         }
                     }
 
-                    value = new VBuffer<ushort>(length, values);
+                    value = editor.Commit();
                 };
             }
 
@@ -610,7 +610,7 @@ namespace Microsoft.ML.Data
                 return (ref VBuffer<uint> value) =>
                 {
                     int length = colInfo.SizeBase;
-                    uint[] values = new uint[length];
+                    var editor = VBufferEditor.Create(ref value, length);
 
                     int i = 0;
                     var segs = colInfo.Segments;
@@ -619,11 +619,11 @@ namespace Microsoft.ML.Data
                     {
                         for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
                         {
-                            values[i] = DataReader.IsDBNull(columnIndex) ? default : (uint)DataReader.GetInt32(columnIndex);
+                            editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : (uint)DataReader.GetInt32(columnIndex);
                         }
                     }
 
-                    value = new VBuffer<uint>(length, values);
+                    value = editor.Commit();
                 };
             }
 
@@ -632,7 +632,7 @@ namespace Microsoft.ML.Data
                 return (ref VBuffer<ulong> value) =>
                 {
                     int length = colInfo.SizeBase;
-                    ulong[] values = new ulong[length];
+                    var editor = VBufferEditor.Create(ref value, length);
 
                     int i = 0;
                     var segs = colInfo.Segments;
@@ -641,11 +641,11 @@ namespace Microsoft.ML.Data
                     {
                         for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
                         {
-                            values[i] = DataReader.IsDBNull(columnIndex) ? default : (ulong)DataReader.GetInt64(columnIndex);
+                            editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : (ulong)DataReader.GetInt64(columnIndex);
                         }
                     }
 
-                    value = new VBuffer<ulong>(length, values);
+                    value = editor.Commit();
                 };
             }
 
