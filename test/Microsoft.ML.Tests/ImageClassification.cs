@@ -23,15 +23,6 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowImageClassification()
         {
-            // On Ubuntu the results seem to vary quite a bit but they can probably be 
-            // controlled by training more epochs, however that will slow the 
-            // build down.
-            if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
-                (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))))
-            {
-                return;
-            }
-
             string assetsRelativePath = @"assets";
             string assetsPath = GetAbsolutePath(assetsRelativePath);
             string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
@@ -86,8 +77,20 @@ namespace Microsoft.ML.Scenarios
             IDataView predictions = trainedModel.Transform(testDataset);
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
 
-            Assert.InRange(metrics.MicroAccuracy, 0.75, 1);
-            Assert.InRange(metrics.MacroAccuracy, 0.75, 1);
+            // On Ubuntu the results seem to vary quite a bit but they can probably be 
+            // controlled by training more epochs, however that will slow the 
+            // build down.
+            if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
+                (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))))
+            {
+                Assert.InRange(metrics.MicroAccuracy, 0.3, 1);
+                Assert.InRange(metrics.MacroAccuracy, 0.3, 1);
+            }
+            else
+            {
+                Assert.Equal(1, metrics.MicroAccuracy);
+                Assert.Equal(1, metrics.MacroAccuracy);
+            }
         }
 
         public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,
