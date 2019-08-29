@@ -1119,7 +1119,7 @@ namespace Microsoft.ML.Scenarios
         }
 
         [TensorFlowFact]
-        public void TransferLearningImageClassification()
+        public void TensorFlowImageClassification()
         {
             string assetsRelativePath = @"../../../assets";
             string assetsPath = GetAbsolutePath(assetsRelativePath);
