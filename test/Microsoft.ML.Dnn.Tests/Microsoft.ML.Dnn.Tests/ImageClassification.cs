@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Transforms;
 using Xunit;
 using static Microsoft.ML.DataOperationsCatalog;
@@ -16,7 +17,7 @@ namespace Microsoft.ML.Dnn.Tests
 {
     public class ImageClassification
     {
-        [Fact]
+        [TensorFlowFact]
         public void TensorFlowImageClassification()
         {
             // On Ubuntu the results seem to vary quite a bit but they can probably be 
