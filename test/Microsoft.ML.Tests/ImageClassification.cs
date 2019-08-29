@@ -79,7 +79,9 @@ namespace Microsoft.ML.Scenarios
 
             // On Ubuntu the results seem to vary quite a bit but they can probably be 
             // controlled by training more epochs, however that will slow the 
-            // build down.
+            // build down. Accuracy values seen were 0.33, 0.66, 0.70+. The model
+            // seems to be unstable, there could be many reasons, will need to 
+            // investigate this further.
             if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
                 (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))))
             {
