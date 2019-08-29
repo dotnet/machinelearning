@@ -568,12 +568,20 @@ namespace Microsoft.ML.Data
                     ctx.Writer.WriteBoolByte(type is KeyDataViewType);
                     if (type is KeyDataViewType key)
                         ctx.Writer.Write(key.Count);
-                    ctx.Writer.Write((info.Segments?.Length).GetValueOrDefault());
-                    foreach (var seg in info.Segments)
+
+                    if (info.Segments is null)
                     {
-                        ctx.Writer.Write(seg.Min);
-                        ctx.Writer.Write(seg.Lim);
-                        ctx.Writer.WriteBoolByte(seg.ForceVector);
+                        ctx.Writer.Write(0);
+                    }
+                    else
+                    {
+                        ctx.Writer.Write(info.Segments.Length);
+                        foreach (var seg in info.Segments)
+                        {
+                            ctx.Writer.Write(seg.Min);
+                            ctx.Writer.Write(seg.Lim);
+                            ctx.Writer.WriteBoolByte(seg.ForceVector);
+                        }
                     }
                 }
             }
