@@ -364,11 +364,6 @@ namespace Microsoft.ML.Transforms.Dnn
                 _operations = new List<Operation>();
             }
 
-            public Runner ClearInput()
-            {
-                return this;
-            }
-
             /// <summary>
             /// Adds an input to the session specified by name, with an optional index in the operation (separated by a colon).
             /// </summary>

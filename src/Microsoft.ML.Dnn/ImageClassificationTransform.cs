@@ -947,7 +947,7 @@ namespace Microsoft.ML.Transforms
             public float Accuracy { get; set; }
 
             /// <summary>
-            /// Cross-Entropy (loss) of the batch on this <see cref="Epoch"/>. Lower 
+            /// Cross-Entropy (loss) of the batch on this <see cref="Epoch"/>. Lower
             /// the better.
             /// </summary>
             public float CrossEntropy { get; set; }
