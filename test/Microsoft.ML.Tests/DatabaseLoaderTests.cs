@@ -23,6 +23,7 @@ namespace Microsoft.ML.Tests
         }
 
         [LightGBMFact]
+        [PlatformSpecific(TestPlatforms.Windows)]
         public void IrisLightGbm()
         {
             var mlContext = new MLContext(seed: 1);
@@ -73,6 +74,7 @@ namespace Microsoft.ML.Tests
         }
 
         [LightGBMFact]
+        [PlatformSpecific(TestPlatforms.Windows)]
         public void IrisVectorLightGbm()
         {
             var mlContext = new MLContext(seed: 1);
@@ -110,6 +112,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
+        [PlatformSpecific(TestPlatforms.Windows)]
         public void IrisSdcaMaximumEntropy()
         {
             var mlContext = new MLContext(seed: 1);
