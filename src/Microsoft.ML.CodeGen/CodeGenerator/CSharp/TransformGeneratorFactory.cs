@@ -56,6 +56,18 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                     case EstimatorName.ValueToKeyMapping:
                         result = new ValueToKeyMapping(node);
                         break;
+                    case EstimatorName.ImageLoading:
+                        result = new ImageLoading(node);
+                        break;
+                    case EstimatorName.ImageResizing:
+                        result = new ImageResizing(node);
+                        break;
+                    case EstimatorName.PixelExtracting:
+                        result = new PixelExtracting(node);
+                        break;
+                    case EstimatorName.ResNet18Featurizing:
+                        result = new ResNet18Featurizing(node);
+                        break;
                     default:
                         return null;
 

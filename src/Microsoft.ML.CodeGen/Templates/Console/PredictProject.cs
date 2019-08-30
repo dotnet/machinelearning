@@ -39,6 +39,12 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
  if (IncludeFastTreePackage){ 
             this.Write("    <PackageReference Include=\"Microsoft.ML.FastTree\" Version=\"1.3.1\" />\r\n");
 }
+ if (IncludeImageTransformerPackage){ 
+            this.Write("    <PackageReference Include=\"Microsoft.ML.DnnImageFeaturizer.ResNet18\" Version=" +
+                    "\"0.15.1\" />\r\n    <PackageReference Include=\"Microsoft.ML.ImageAnalytics\" Version" +
+                    "=\"1.3.1\" />\r\n    <PackageReference Include=\"Microsoft.ML.OnnxTransformer\" Versio" +
+                    "n=\"1.3.1\" />\r\n");
+}
             this.Write("  </ItemGroup>\r\n  <ItemGroup>\r\n    <ProjectReference Include=\"..\\");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             this.Write(".Model\\");
@@ -51,6 +57,7 @@ public string Namespace {get;set;}
 public bool IncludeLightGBMPackage {get;set;}
 public bool IncludeMklComponentsPackage {get;set;}
 public bool IncludeFastTreePackage {get;set;}
+public bool IncludeImageTransformerPackage {get; set;}
 
     }
     #region Base class

@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <MlDotNetPreviewPackageVersion>0.14.0</MlDotNetPreviewPackageVersion>
+    <MlDotNetPreviewPackageVersion>0.15.1</MlDotNetPreviewPackageVersion>
     <MlDotNetPackageVersion>1.3.1</MlDotNetPackageVersion>
   </PropertyGroup>
 
@@ -16,7 +16,7 @@
     <PackageReference Include="Microsoft.ML.LightGBM" Version="$(MlDotNetPackageVersion)" />
     <PackageReference Include="Microsoft.ML.Mkl.Components" Version="$(MlDotNetPackageVersion)" />
     <PackageReference Include="Microsoft.ML.ImageAnalytics" Version="$(MlDotNetPackageVersion)" />
-    <PackageReference Include="Microsoft.ML.DnnImageFeaturizer.ResNet18" Version="$(MlDotNetPreviewPackageVersion)" />
+    <PackageReference Include="Microsoft.ML.DnnImageFeaturizer.ResNet18" Version="MlDotNetPreviewPackageVersion" />
   </ItemGroup>
 
   <PropertyGroup>

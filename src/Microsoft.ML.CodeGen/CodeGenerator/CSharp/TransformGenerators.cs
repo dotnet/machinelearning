@@ -330,4 +330,75 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         }
     }
 
+    internal class ImageLoading : TransformGeneratorBase
+    {
+        public ImageLoading(PipelineNode node) : base(node)
+        {
+        }
+
+        internal override string MethodName => "LoadImages";
+
+        public override string GenerateTransformer()
+        {
+            string inputColumn = InputColumns.Count() == 1 ? InputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
+            string outputColumn = OutputColumns.Count() == 1 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
+            string inputFolder = Properties["imageFolder"] as string;
+            if (inputFolder == null)
+            {
+                throw new Exception($"miss imageFolder property");
+            }
+
+            // example: Transforms.LoadImages(output, inputfolder, input)
+            return $"{MethodName}({outputColumn}, @\"{inputFolder}\", {inputColumn})";
+        }
+    }
+
+    internal class ImageResizing : TransformGeneratorBase
+    {
+        public ImageResizing(PipelineNode node) : base(node) { }
+        internal override string MethodName => "ResizeImages";
+
+        public override string GenerateTransformer()
+        {
+            string inputColumn = InputColumns.Count() == 1 ? InputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
+            string outputColumn = OutputColumns.Count() == 1 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
+            int? imageWidth = Properties["imageWidth"] as int?;
+            int? imageHeight = Properties["imageHeight"] as int?;
+
+            // example: Transforms.ResizeImages(output, imageWidth, imageHeight, input)
+            return $"{MethodName}({outputColumn}, {imageWidth}, {imageHeight}, {inputColumn})";
+        }
+    }
+
+    internal class PixelExtracting : TransformGeneratorBase
+    {
+        public PixelExtracting(PipelineNode node) : base(node) { }
+
+        internal override string MethodName => "ExtractPixels";
+
+        public override string GenerateTransformer()
+        {
+            string inputColumn = InputColumns.Count() == 1 ? InputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
+            string outputColumn = OutputColumns.Count() == 1 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
+
+            // example: Transforms.PixelExtracting(output, input)
+            return $"{MethodName}({outputColumn}, {inputColumn})";
+        }
+    }
+
+    internal class ResNet18Featurizing : TransformGeneratorBase
+    {
+        public ResNet18Featurizing(PipelineNode node) : base(node) { }
+
+        internal override string MethodName => "DnnFeaturizeImage";
+
+        public override string GenerateTransformer()
+        {
+            string inputColumn = InputColumns.Count() == 1 ? InputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
+            string outputColumn = OutputColumns.Count() == 1 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
+
+            // example: Transforms.PixelExtracting(output, input)
+            return $"{MethodName}({outputColumn}, m => m.ModelSelector.ResNet18(mlContext, m.OutputColumn, m.InputColumn), {inputColumn})";
+        }
+    }
 }
