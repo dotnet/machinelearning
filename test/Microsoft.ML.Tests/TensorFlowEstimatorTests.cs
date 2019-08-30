@@ -17,6 +17,10 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests
 {
+    [CollectionDefinition("NoParallelization", DisableParallelization = true)]
+    public class NoParallelizationCollection { }
+
+    [Collection("NoParallelization")]
     public class TensorFlowEstimatorTests : TestDataPipeBase
     {
         private class TestData

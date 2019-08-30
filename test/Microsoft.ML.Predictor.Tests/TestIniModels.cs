@@ -315,7 +315,7 @@ namespace Microsoft.ML.RunTests
                         );
                 }
             }
-            Assert.IsTrue(failureTestInformation.Count <= 0);
+            Assert.True(failureTestInformation.Count <= 0);
         }
 
         /// <summary>
@@ -351,7 +351,7 @@ namespace Microsoft.ML.RunTests
             string modelFilePath = GetOutputPath(runParameters.BaselineDir, runParameters.ModelFilename);
             string trainDatasetPath = GetDataPath(trainDataset);
             string evaluationOutputDir = GetOutputDir(evaluationOutputDirPrefix + @"\Dirs\" + outName);
-            Assert.IsNull(EnsureEmptyDirectory(evaluationOutputDir));
+            Assert.Null(EnsureEmptyDirectory(evaluationOutputDir));
 
             string cmd = string.Format(EvaluationCommandLineFormat, modelFilePath, evaluationOutputDir, trainDatasetPath);
             string dir = Path.GetFullPath(EvaluationExecutorDir);

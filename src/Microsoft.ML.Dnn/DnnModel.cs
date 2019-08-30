@@ -4,14 +4,14 @@
 
 using Microsoft.ML.Runtime;
 using Tensorflow;
-using static Microsoft.ML.Transforms.DnnEstimator;
+using static Microsoft.ML.Transforms.DnnRetrainEstimator;
 
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// This class holds the information related to TensorFlow model and session.
     /// It provides some convenient methods to query model schema as well as
-    /// creation of <see cref="DnnEstimator"/> object.
+    /// creation of <see cref="DnnRetrainEstimator"/> object.
     /// </summary>
     public sealed class DnnModel
     {

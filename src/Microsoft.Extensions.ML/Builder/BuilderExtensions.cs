@@ -162,6 +162,25 @@ namespace Microsoft.Extensions.ML
         /// Adds the model at the specified file to the builder.
         /// </summary>
         /// <param name="builder">The builder to which to add the model.</param>
+        /// <param name="filePath">The location of the model.</param>
+        /// <param name="watchForChanges">
+        /// Whether to watch for changes to the file path and update the model when the file is changed or not.
+        /// </param>
+        /// <returns>
+        /// The updated <see cref="PredictionEnginePoolBuilder{TData, TPrediction}"/>.
+        /// </returns>
+        public static PredictionEnginePoolBuilder<TData, TPrediction> FromFile<TData, TPrediction>(
+            this PredictionEnginePoolBuilder<TData, TPrediction> builder, string filePath, bool watchForChanges)
+            where TData : class
+            where TPrediction : class, new()
+        {
+            return builder.FromFile(string.Empty, filePath, watchForChanges);
+        }
+
+        /// <summary>
+        /// Adds the model at the specified file to the builder.
+        /// </summary>
+        /// <param name="builder">The builder to which to add the model.</param>
         /// <param name="modelName">
         /// The name of the model which allows for uniquely identifying the model when
         /// multiple models have the same <typeparamref name="TData"/> and
