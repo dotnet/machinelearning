@@ -168,5 +168,65 @@ namespace mlnet.Tests
             Assert.IsNull(actual[0].Item2);
         }
 
+        [TestMethod]
+        public void ImageLoadingTest()
+        {
+            var context = new MLContext();
+            var elementProperties = new Dictionary<string, object>()
+            {
+                {"imageFolder", @"C:\\Test" },
+            };
+            PipelineNode node = new PipelineNode("ImageLoading", PipelineNodeType.Transform, new string[] { "Label" }, new string[] { "Label" }, elementProperties);
+            Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
+            var actual = codeGenerator.GenerateTransformsAndUsings(new PipelineNode[] { node });
+            string expectedTransform = "LoadImages(\"Label\", @\"C:\\\\Test\", \"Label\")";
+            Assert.AreEqual(expectedTransform, actual[0].Item1);
+            Assert.IsNull(actual[0].Item2);
+        }
+
+        [TestMethod]
+        public void ImageResizingTest()
+        {
+            var context = new MLContext();
+            var elementProperties = new Dictionary<string, object>()
+            {
+                { "imageWidth", 224 },
+                { "imageHeight", 224 },
+            };
+            PipelineNode node = new PipelineNode("ImageResizing", PipelineNodeType.Transform, new string[] { "Label" }, new string[] { "Label" }, elementProperties);
+            Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
+            var actual = codeGenerator.GenerateTransformsAndUsings(new PipelineNode[] { node });
+            string expectedTransform = "ResizeImages(\"Label\", 224, 224, \"Label\")";
+            Assert.AreEqual(expectedTransform, actual[0].Item1);
+            Assert.IsNull(actual[0].Item2);
+        }
+
+        [TestMethod]
+        public void PixelExtractingTest()
+        {
+            var context = new MLContext();
+            PipelineNode node = new PipelineNode("PixelExtracting", PipelineNodeType.Transform, new string[] { "Label" }, new string[] { "Label" });
+            Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
+            var actual = codeGenerator.GenerateTransformsAndUsings(new PipelineNode[] { node });
+            string expectedTransform = "ExtractPixels(\"Label\", \"Label\")";
+            Assert.AreEqual(expectedTransform, actual[0].Item1);
+            Assert.IsNull(actual[0].Item2);
+        }
+
+        [TestMethod]
+        public void ResNet18Featurizing()
+        {
+            var context = new MLContext();
+            PipelineNode node = new PipelineNode("ResNet18Featurizing", PipelineNodeType.Transform, new string[] { "Label" }, new string[] { "Label" });
+            Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
+            var actual = codeGenerator.GenerateTransformsAndUsings(new PipelineNode[] { node });
+            string expectedTransform = "DnnFeaturizeImage(\"Label\", m => m.ModelSelector.ResNet18(mlContext, m.OutputColumn, m.InputColumn), \"Label\")";
+            Assert.AreEqual(expectedTransform, actual[0].Item1);
+            Assert.IsNull(actual[0].Item2);
+        }
     }
 }

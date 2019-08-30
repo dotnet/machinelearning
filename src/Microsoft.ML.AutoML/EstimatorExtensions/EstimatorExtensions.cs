@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections;
+using System.Collections.Generic;
 using System.Dynamic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
@@ -234,7 +236,11 @@ namespace Microsoft.ML.AutoML
 
         public static SuggestedTransform CreateSuggestedTransform(MLContext context, string inColumn, string outColumn)
         {
-            var pipelineNode = new PipelineNode(EstimatorName.ImageLoading.ToString(), PipelineNodeType.Transform, inColumn, outColumn);
+            var pipelineNodeProperty = new Dictionary<string, object>()
+            {
+                { "imageFolder", ImageFolder },
+            };
+            var pipelineNode = new PipelineNode(EstimatorName.ImageLoading.ToString(), PipelineNodeType.Transform, inColumn, outColumn, pipelineNodeProperty);
             var estimator = CreateInstance(context, inColumn, outColumn);
             return new SuggestedTransform(pipelineNode, estimator);
         }
@@ -254,8 +260,13 @@ namespace Microsoft.ML.AutoML
 
         public static SuggestedTransform CreateSuggestedTransform(MLContext context, string inColumn, string outColumn)
         {
-            var pipelineNode = new PipelineNode(EstimatorName.ImageResizing.ToString(), PipelineNodeType.Transform, inColumn, outColumn);
-            var estimator = CreateInstance(context, outColumn, outColumn);
+            var pipelineNodeProperty = new Dictionary<string, object>()
+            {
+                { "imageWidth", 224 },
+                { "imageHeight", 224 },
+            };
+            var pipelineNode = new PipelineNode(EstimatorName.ImageResizing.ToString(), PipelineNodeType.Transform, inColumn, outColumn, pipelineNodeProperty);
+            var estimator = CreateInstance(context, inColumn, outColumn);
             return new SuggestedTransform(pipelineNode, estimator);
         }
 
@@ -269,7 +280,7 @@ namespace Microsoft.ML.AutoML
     {
         public IEstimator<ITransformer> CreateInstance(MLContext context, PipelineNode pipelineNode)
         {
-            return CreateInstance(context, pipelineNode.InColumns[0], pipelineNode.OutColumns[0]);
+            return CreateInstance(context, pipelineNode.OutColumns[0], pipelineNode.OutColumns[0]);
         }
 
         public static SuggestedTransform CreateSuggestedTransform(MLContext context, string inColumn, string outColumn)
@@ -281,7 +292,7 @@ namespace Microsoft.ML.AutoML
 
         public static IEstimator<ITransformer> CreateInstance(MLContext context, string inColumn, string outColumn)
         {
-            return context.Transforms.ExtractPixels(outColumn, interleavePixelColors: false, offsetImage: 0);
+            return context.Transforms.ExtractPixels(outColumn, inColumn);
         }
     }
 
@@ -300,7 +311,7 @@ namespace Microsoft.ML.AutoML
 
         public static IEstimator<ITransformer> CreateInstance(MLContext context, string inColumn, string outColumn)
         {
-            return context.Transforms.DnnFeaturizeImage(outColumn, m => m.ModelSelector.ResNet18(context, m.OutputColumn, m.InputColumn), outColumn);
+            return context.Transforms.DnnFeaturizeImage(outColumn, m => m.ModelSelector.ResNet18(context, m.OutputColumn, m.InputColumn), inColumn);
         }
     }
 

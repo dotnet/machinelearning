@@ -22,6 +22,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         private static readonly HashSet<string> _lightGbmTrainers = new HashSet<string>() { TrainerName.LightGbmBinary.ToString(), TrainerName.LightGbmMulti.ToString(), TrainerName.LightGbmRegression.ToString() };
         private static readonly HashSet<string> _mklComponentsTrainers = new HashSet<string>() { TrainerName.OlsRegression.ToString(), TrainerName.SymbolicSgdLogisticRegressionBinary.ToString() };
         private static readonly HashSet<string> _fastTreeTrainers = new HashSet<string>() { TrainerName.FastForestBinary.ToString(), TrainerName.FastForestRegression.ToString(), TrainerName.FastTreeBinary.ToString(), TrainerName.FastTreeRegression.ToString(), TrainerName.FastTreeTweedieRegression.ToString() };
+        private static readonly HashSet<string> _imageTransformers = new HashSet<string>() { EstimatorName.ImageLoading.ToString() };
 
         internal CodeGenerator(Pipeline pipeline, ColumnInferenceResults columnInferenceResult, CodeGeneratorSettings settings)
         {
@@ -32,13 +33,13 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         public void GenerateOutput()
         {
-            // Get the extra nuget packages to be included in the generated project.
-            var trainerNodes = _pipeline.Nodes.Where(t => t.NodeType == PipelineNodeType.Trainer);
-
             bool includeLightGbmPackage = false;
             bool includeMklComponentsPackage = false;
             bool includeFastTreeePackage = false;
-            SetRequiredNugetPackages(trainerNodes, ref includeLightGbmPackage, ref includeMklComponentsPackage, ref includeFastTreeePackage);
+            bool includeImageTransformerPackage = false;
+
+            // Get the extra nuget packages to be included in the generated project.
+            SetRequiredNugetPackages(_pipeline.Nodes, ref includeLightGbmPackage, ref includeMklComponentsPackage, ref includeFastTreeePackage, ref includeImageTransformerPackage);
 
             // Get Namespace
             var namespaceValue = Utils.Normalize(_settings.OutputName);
@@ -59,7 +60,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             Utils.WriteOutputToFiles(modelProjectContents.ModelProjectFileContent, modelProjectName, modelprojectDir);
 
             // Generate ConsoleApp Project
-            var consoleAppProjectContents = GenerateConsoleAppProjectContents(namespaceValue, labelTypeCsharp, includeLightGbmPackage, includeMklComponentsPackage, includeFastTreeePackage);
+            var consoleAppProjectContents = GenerateConsoleAppProjectContents(namespaceValue, labelTypeCsharp, includeLightGbmPackage, includeMklComponentsPackage, includeFastTreeePackage, includeImageTransformerPackage);
 
             // Write files to disk.
             var consoleAppProjectDir = Path.Combine(_settings.OutputBaseDir, $"{_settings.OutputName}.ConsoleApp");
@@ -77,7 +78,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             Utils.AddProjectsToSolution(modelprojectDir, modelProjectName, consoleAppProjectDir, consoleAppProjectName, solutionPath);
         }
 
-        private void SetRequiredNugetPackages(IEnumerable<PipelineNode> trainerNodes, ref bool includeLightGbmPackage, ref bool includeMklComponentsPackage, ref bool includeFastTreePackage)
+        private void SetRequiredNugetPackages(IEnumerable<PipelineNode> trainerNodes, ref bool includeLightGbmPackage, ref bool includeMklComponentsPackage, ref bool includeFastTreePackage, ref bool includeImageTransformerPackage)
         {
             foreach (var node in trainerNodes)
             {
@@ -99,15 +100,19 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 {
                     includeFastTreePackage = true;
                 }
+                else if (_imageTransformers.Contains(currentNode.Name))
+                {
+                    includeImageTransformerPackage = true;
+                }
             }
         }
 
-        internal (string ConsoleAppProgramCSFileContent, string ConsoleAppProjectFileContent, string modelBuilderCSFileContent) GenerateConsoleAppProjectContents(string namespaceValue, Type labelTypeCsharp, bool includeLightGbmPackage, bool includeMklComponentsPackage, bool includeFastTreePackage)
+        internal (string ConsoleAppProgramCSFileContent, string ConsoleAppProjectFileContent, string modelBuilderCSFileContent) GenerateConsoleAppProjectContents(string namespaceValue, Type labelTypeCsharp, bool includeLightGbmPackage, bool includeMklComponentsPackage, bool includeFastTreePackage, bool includeImageTransformerPackage = true)
         {
             var predictProgramCSFileContent = GeneratePredictProgramCSFileContent(namespaceValue);
             predictProgramCSFileContent = Utils.FormatCode(predictProgramCSFileContent);
 
-            var predictProjectFileContent = GeneratPredictProjectFileContent(_settings.OutputName, includeLightGbmPackage, includeMklComponentsPackage, includeFastTreePackage);
+            var predictProjectFileContent = GeneratPredictProjectFileContent(_settings.OutputName, includeLightGbmPackage, includeMklComponentsPackage, includeFastTreePackage, includeImageTransformerPackage);
 
             var transformsAndTrainers = GenerateTransformsAndTrainers();
             var modelBuilderCSFileContent = GenerateModelBuilderCSFileContent(transformsAndTrainers.Usings, transformsAndTrainers.TrainerMethod, transformsAndTrainers.PreTrainerTransforms, transformsAndTrainers.PostTrainerTransforms, namespaceValue, _pipeline.CacheBeforeTrainer, labelTypeCsharp.Name);
@@ -302,9 +307,16 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         #endregion
 
         #region Predict Project
-        private static string GeneratPredictProjectFileContent(string namespaceValue, bool includeLightGbmPackage, bool includeMklComponentsPackage, bool includeFastTreePackage)
+        private static string GeneratPredictProjectFileContent(string namespaceValue, bool includeLightGbmPackage, bool includeMklComponentsPackage, bool includeFastTreePackage, bool includeImageTransformerPackage)
         {
-            var predictProjectFileContent = new PredictProject() { Namespace = namespaceValue, IncludeMklComponentsPackage = includeMklComponentsPackage, IncludeLightGBMPackage = includeLightGbmPackage, IncludeFastTreePackage = includeFastTreePackage };
+            var predictProjectFileContent = new PredictProject()
+            {
+                Namespace = namespaceValue,
+                IncludeMklComponentsPackage = includeMklComponentsPackage,
+                IncludeLightGBMPackage = includeLightGbmPackage,
+                IncludeFastTreePackage = includeFastTreePackage,
+                IncludeImageTransformerPackage = includeImageTransformerPackage,
+            };
             return predictProjectFileContent.TransformText();
         }
 

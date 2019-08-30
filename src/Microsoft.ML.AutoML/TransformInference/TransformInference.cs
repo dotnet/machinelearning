@@ -309,9 +309,9 @@ namespace Microsoft.ML.AutoML
 
                         featureCols.Add(columnDestRenamed);
                         yield return ImageLoadingExtension.CreateSuggestedTransform(Context, columnNameSafe, columnDestRenamed);
-                        yield return ImageResizingExtension.CreateSuggestedTransform(Context, columnNameSafe, columnDestRenamed);
-                        yield return PixelExtractingExtension.CreateSuggestedTransform(Context, columnNameSafe, columnDestRenamed);
-                        yield return ResNet18FeaturizingExtension.CreateSuggestedTransform(Context, columnNameSafe, columnDestRenamed);
+                        yield return ImageResizingExtension.CreateSuggestedTransform(Context, columnDestRenamed, columnDestRenamed);
+                        yield return PixelExtractingExtension.CreateSuggestedTransform(Context, columnDestRenamed, columnDestRenamed);
+                        yield return ResNet18FeaturizingExtension.CreateSuggestedTransform(Context, columnDestRenamed, columnDestRenamed);
                     }
                 }
             }
