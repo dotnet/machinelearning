@@ -381,13 +381,13 @@ namespace Microsoft.ML.Transforms
             return true;
         }
 
-        private sealed class Mapper : OneToOneMapperBase, ICanSaveOnnx
+        private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
         {
             private readonly TypeConvertingTransformer _parent;
             private readonly DataViewType[] _types;
             private readonly int[] _srcCols;
 
-            public bool CanSaveOnnx(OnnxContext ctx) => ctx.GetOnnxVersion() == OnnxVersion.Experimental;
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
 
             public Mapper(TypeConvertingTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
@@ -498,7 +498,7 @@ namespace Microsoft.ML.Transforms
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
             {
                 var opType = "Cast";
-                var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
+                var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType), "");
                 var t = _parent._columns[iinfo].OutputKind.ToInternalDataKind().ToType();
                 node.AddAttribute("to", t);
                 return true;
