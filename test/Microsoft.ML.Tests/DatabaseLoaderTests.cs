@@ -173,7 +173,7 @@ namespace Microsoft.ML.Tests
         private string GetConnectionString(string databaseName)
         {
             var databaseFile = GetTestDatabasePath(databaseName);
-            return $@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename={databaseFile};Database={databaseName};Integrated Security=True";
+            return $@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename={databaseFile};Database={databaseName};Integrated Security=True;Connect Timeout=120";
         }
 
         public class IrisData
