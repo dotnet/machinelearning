@@ -241,7 +241,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             else if (rawType == typeof(int))
                 dataType = TensorProto.Types.DataType.Int32;
             else if (rawType == typeof(uint))
-                dataType = TensorProto.Types.DataType.Int64;
+                dataType = TensorProto.Types.DataType.Uint32;
             else if (rawType == typeof(long))
                 dataType = TensorProto.Types.DataType.Int64;
             else if (rawType == typeof(ulong))

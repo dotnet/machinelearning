@@ -507,7 +507,7 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// Estimator for <see cref="KeyToVectorMappingTransformer"/>. Converts the underlying input column type to a new type.
+    /// Estimator for <see cref="TypeConvertingTransformer"/>. Converts the underlying input column type to a new type.
     /// The input and output column types need to be compatible.
     /// <see cref="PrimitiveDataViewType"/>
     /// </summary>
