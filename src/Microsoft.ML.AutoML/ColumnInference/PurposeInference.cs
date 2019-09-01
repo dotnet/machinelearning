@@ -181,7 +181,7 @@ namespace Microsoft.ML.AutoML
                     {
                         dst = new Bitmap(path) { Tag = path };
                     }
-                    catch (System.ArgumentException e)
+                    catch (Exception e)
                     {
                         if (!File.Exists(path))
                             Console.WriteLine($"File does not exist {path}.");
