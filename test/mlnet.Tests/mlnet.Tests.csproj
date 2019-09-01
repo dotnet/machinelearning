@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <IsPackable>false</IsPackable>
+    <AssemblyOriginatorKeyFile>C:\Users\xiaoyuz\source\repos\image\machinelearning\Tools/Test.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>

@@ -2,7 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ML.AutoML;
+using Microsoft.ML.CodeGenerator.CodeGenerator.Parameter;
 
 namespace Microsoft.ML.CodeGenerator.CSharp
 {
@@ -47,7 +51,18 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         }
 
-        public abstract string GenerateTransformer();
+        public virtual string GenerateTransformer()
+        {
+            var parameters = GetType().GetProperties(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                    .Where(prop => prop.GetCustomAttributes(typeof(ParameterAttribute), true).Length > 0)
+                    .OrderBy((prop) =>
+                    {
+                        ParameterAttribute attr = Attribute.GetCustomAttribute(prop, typeof(ParameterAttribute)) as ParameterAttribute;
+                        return attr.Position;
+                    })
+                    .Select(x => (IParameter)x.GetValue(this));
+            return $"{MethodName}({string.Join(",", parameters.Select(param => param.ToParameter()))})";
+        }
 
         public string[] GenerateUsings()
         {

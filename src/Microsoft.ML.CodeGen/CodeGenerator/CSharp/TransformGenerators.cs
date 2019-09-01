@@ -6,328 +6,240 @@ using System;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.AutoML;
+using Microsoft.ML.CodeGenerator.CodeGenerator.Parameter;
 
 namespace Microsoft.ML.CodeGenerator.CSharp
 {
     internal class Normalizer : TransformGeneratorBase
     {
+        [Parameter(1)]
+        private NameParameter Input { get; set; }
+
+        [Parameter(0)]
+        private NameParameter Output { get; set; }
+
         public Normalizer(PipelineNode node) : base(node)
         {
+            Input = new NameParameter()
+            {
+                ParameterName = "inputColumn",
+                ParameterValue = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"",
+            };
+
+            Output = new NameParameter()
+            {
+                ParameterName = "outputColumn",
+                ParameterValue = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null"),
+            };
         }
 
         internal override string MethodName => "NormalizeMinMax";
-
-        public override string GenerateTransformer()
-        {
-            StringBuilder sb = new StringBuilder();
-            string inputColumn = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"";
-            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
-            sb.Append(MethodName);
-            sb.Append("(");
-            sb.Append(outputColumn);
-            sb.Append(",");
-            sb.Append(inputColumn);
-            sb.Append(")");
-            return sb.ToString();
-        }
     }
 
     internal class OneHotEncoding : TransformGeneratorBase
     {
+        [Parameter(0)]
+        private InputOutputColumnPairParameter InputOutputColumnPair { get; set; }
+
         public OneHotEncoding(PipelineNode node) : base(node)
         {
+            InputOutputColumnPair = new InputOutputColumnPairParameter()
+            {
+                OutputColumns = OutputColumns,
+                InputColumns = InputColumns,
+            };
         }
 
         internal override string MethodName => "Categorical.OneHotEncoding";
-
-        private const string ArgumentsName = "InputOutputColumnPair";
-
-        public override string GenerateTransformer()
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.Append(MethodName);
-            sb.Append("(");
-            sb.Append("new []{");
-            for (int i = 0; i < InputColumns.Length; i++)
-            {
-                sb.Append("new ");
-                sb.Append(ArgumentsName);
-                sb.Append("(");
-                sb.Append(OutputColumns[i]);
-                sb.Append(",");
-                sb.Append(InputColumns[i]);
-                sb.Append(")");
-                sb.Append(",");
-            }
-            sb.Remove(sb.Length - 1, 1); // remove extra ,
-
-            sb.Append("}");
-            sb.Append(")");
-            return sb.ToString();
-        }
     }
 
     internal class ColumnConcat : TransformGeneratorBase
     {
+        [Parameter(0)]
+        private NameParameter OutputColumnName { get; set; }
+
+        [Parameter(1)]
+        private NameArrayParameter InputColumnNames { get; set; }
+
         public ColumnConcat(PipelineNode node) : base(node)
         {
+            OutputColumnName = new NameParameter()
+            {
+                ParameterName = "OutputColumnName",
+                ParameterValue = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null"),
+            };
+
+            InputColumnNames = new NameArrayParameter()
+            {
+                ParameterName = "InputColumnNames",
+                ArrayParameterValue = InputColumns,
+            };
         }
 
         internal override string MethodName => "Concatenate";
-
-        public override string GenerateTransformer()
-        {
-            StringBuilder sb = new StringBuilder();
-            string inputColumn = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"";
-            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
-            sb.Append(MethodName);
-            sb.Append("(");
-            sb.Append(outputColumn);
-            sb.Append(",");
-            sb.Append("new []{");
-            foreach (var col in InputColumns)
-            {
-                sb.Append(col);
-                sb.Append(",");
-            }
-            sb.Remove(sb.Length - 1, 1);
-            sb.Append("}");
-            sb.Append(")");
-            return sb.ToString();
-        }
     }
 
     internal class ColumnCopying : TransformGeneratorBase
     {
+        [Parameter(0)]
+        private NameParameter OutputColumnName { get; set; }
+
+        [Parameter(1)]
+        private NameParameter InputColumnName { get; set; }
+
         public ColumnCopying(PipelineNode node) : base(node)
         {
+            OutputColumnName = new NameParameter()
+            {
+                ParameterValue = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null"),
+            };
+
+            InputColumnName = new NameParameter()
+            {
+                ParameterValue = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"",
+            };
         }
 
         internal override string MethodName => "CopyColumns";
-
-        public override string GenerateTransformer()
-        {
-            StringBuilder sb = new StringBuilder();
-            string inputColumn = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"";
-            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
-            sb.Append(MethodName);
-            sb.Append("(");
-            sb.Append(outputColumn);
-            sb.Append(",");
-            sb.Append(inputColumn);
-            sb.Append(")");
-            return sb.ToString();
-        }
     }
 
     internal class KeyToValueMapping : TransformGeneratorBase
     {
+        [Parameter(0)]
+        private NameParameter OutputColumnName { get; set; }
+
+        [Parameter(1)]
+        private NameParameter InputColumnName { get; set; }
+
         public KeyToValueMapping(PipelineNode node) : base(node)
         {
+            OutputColumnName = new NameParameter()
+            {
+                ParameterValue = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null"),
+            };
+
+            InputColumnName = new NameParameter()
+            {
+                ParameterValue = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"",
+            };
         }
 
         internal override string MethodName => "Conversion.MapKeyToValue";
-
-        public override string GenerateTransformer()
-        {
-            StringBuilder sb = new StringBuilder();
-            string inputColumn = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"";
-            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
-            sb.Append(MethodName);
-            sb.Append("(");
-            sb.Append(outputColumn);
-            sb.Append(",");
-            sb.Append(inputColumn);
-            sb.Append(")");
-            return sb.ToString();
-        }
     }
 
     internal class MissingValueIndicator : TransformGeneratorBase
     {
+        [Parameter(0)]
+        private InputOutputColumnPairParameter InputOutputColumnPair { get; set; }
+
         public MissingValueIndicator(PipelineNode node) : base(node)
         {
+            InputOutputColumnPair = new InputOutputColumnPairParameter()
+            {
+                InputColumns = InputColumns,
+                OutputColumns = OutputColumns,
+            };
         }
 
         internal override string MethodName => "IndicateMissingValues";
-
-        private const string ArgumentsName = "InputOutputColumnPair";
-
-        public override string GenerateTransformer()
-        {
-            StringBuilder sb = new StringBuilder();
-            string inputColumn = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"";
-            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
-            sb.Append(MethodName);
-            sb.Append("(");
-            sb.Append("new []{");
-            for (int i = 0; i < InputColumns.Length; i++)
-            {
-                sb.Append("new ");
-                sb.Append(ArgumentsName);
-                sb.Append("(");
-                sb.Append(OutputColumns[i]);
-                sb.Append(",");
-                sb.Append(InputColumns[i]);
-                sb.Append(")");
-                sb.Append(",");
-            }
-            sb.Remove(sb.Length - 1, 1); // remove extra ,
-            sb.Append("}");
-            sb.Append(")");
-            return sb.ToString();
-        }
     }
 
     internal class MissingValueReplacer : TransformGeneratorBase
     {
+        [Parameter(0)]
+        private InputOutputColumnPairParameter InputOutputColumnPair { get; set; }
+
         public MissingValueReplacer(PipelineNode node) : base(node)
         {
+            InputOutputColumnPair = new InputOutputColumnPairParameter()
+            {
+                InputColumns = InputColumns,
+                OutputColumns = OutputColumns,
+            };
         }
 
         internal override string MethodName => "ReplaceMissingValues";
-
-        private const string ArgumentsName = "InputOutputColumnPair";
-
-        public override string GenerateTransformer()
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.Append(MethodName);
-            sb.Append("(");
-            sb.Append("new []{");
-            for (int i = 0; i < InputColumns.Length; i++)
-            {
-                sb.Append("new ");
-                sb.Append(ArgumentsName);
-                sb.Append("(");
-                sb.Append(OutputColumns[i]);
-                sb.Append(",");
-                sb.Append(InputColumns[i]);
-                sb.Append(")");
-                sb.Append(",");
-            }
-            sb.Remove(sb.Length - 1, 1); // remove extra ,
-
-            sb.Append("}");
-            sb.Append(")");
-            return sb.ToString();
-        }
     }
 
     internal class OneHotHashEncoding : TransformGeneratorBase
     {
+        [Parameter(0)]
+        private InputOutputColumnPairParameter InputOutputColumnPair { get; set; }
+
         public OneHotHashEncoding(PipelineNode node) : base(node)
         {
+            InputOutputColumnPair = new InputOutputColumnPairParameter()
+            {
+                InputColumns = InputColumns,
+                OutputColumns = OutputColumns,
+            };
         }
 
         internal override string MethodName => "Categorical.OneHotHashEncoding";
-
-        private const string ArgumentsName = "InputOutputColumnPair";
-
-        public override string GenerateTransformer()
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.Append(MethodName);
-            sb.Append("(");
-            sb.Append("new []{");
-            for (int i = 0; i < InputColumns.Length; i++)
-            {
-                sb.Append("new ");
-                sb.Append(ArgumentsName);
-                sb.Append("(");
-                sb.Append(OutputColumns[i]);
-                sb.Append(",");
-                sb.Append(InputColumns[i]);
-                sb.Append(")");
-                sb.Append(",");
-            }
-            sb.Remove(sb.Length - 1, 1); // remove extra ,
-
-            sb.Append("}");
-            sb.Append(")");
-            return sb.ToString();
-        }
     }
 
     internal class TextFeaturizing : TransformGeneratorBase
     {
+        [Parameter(0)]
+        private NameParameter OutputColumnName { get; set; }
+
+        [Parameter(1)]
+        private NameParameter InputColumnName { get; set; }
+
         public TextFeaturizing(PipelineNode node) : base(node)
         {
+            OutputColumnName = new NameParameter()
+            {
+                ParameterValue = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null"),
+            };
+
+            InputColumnName = new NameParameter()
+            {
+                ParameterValue = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"",
+            };
         }
 
         internal override string MethodName => "Text.FeaturizeText";
-
-        public override string GenerateTransformer()
-        {
-            StringBuilder sb = new StringBuilder();
-            string inputColumn = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"";
-            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
-            sb.Append(MethodName);
-            sb.Append("(");
-            sb.Append(outputColumn);
-            sb.Append(",");
-            sb.Append(inputColumn);
-            sb.Append(")");
-            return sb.ToString();
-        }
     }
 
     internal class TypeConverting : TransformGeneratorBase
     {
+        [Parameter(0)]
+        private InputOutputColumnPairParameter InputOutputColumnPair { get; set; }
+
         public TypeConverting(PipelineNode node) : base(node)
         {
+            InputOutputColumnPair = new InputOutputColumnPairParameter()
+            {
+                InputColumns = InputColumns,
+                OutputColumns = OutputColumns,
+            };
         }
 
         internal override string MethodName => "Conversion.ConvertType";
-
-        private const string ArgumentsName = "InputOutputColumnPair";
-
-        public override string GenerateTransformer()
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.Append(MethodName);
-            sb.Append("(");
-            sb.Append("new []{");
-            for (int i = 0; i < InputColumns.Length; i++)
-            {
-                sb.Append("new ");
-                sb.Append(ArgumentsName);
-                sb.Append("(");
-                sb.Append(OutputColumns[i]);
-                sb.Append(",");
-                sb.Append(InputColumns[i]);
-                sb.Append(")");
-                sb.Append(",");
-            }
-            sb.Remove(sb.Length - 1, 1); // remove extra ,
-
-            sb.Append("}");
-            sb.Append(")");
-            return sb.ToString();
-        }
     }
 
     internal class ValueToKeyMapping : TransformGeneratorBase
     {
+        [Parameter(0)]
+        private NameParameter OutputColumnName { get; set; }
+
+        [Parameter(1)]
+        private NameParameter InputColumnName { get; set; }
+
         public ValueToKeyMapping(PipelineNode node) : base(node)
         {
+            OutputColumnName = new NameParameter()
+            {
+                ParameterValue = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null"),
+            };
+
+            InputColumnName = new NameParameter()
+            {
+                ParameterValue = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"",
+            };
         }
 
         internal override string MethodName => "Conversion.MapValueToKey";
-
-        public override string GenerateTransformer()
-        {
-            StringBuilder sb = new StringBuilder();
-            string inputColumn = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"";
-            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
-            sb.Append(MethodName);
-            sb.Append("(");
-            sb.Append(outputColumn);
-            sb.Append(",");
-            sb.Append(inputColumn);
-            sb.Append(")");
-            return sb.ToString();
-        }
     }
-
 }
