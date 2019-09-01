@@ -312,7 +312,7 @@
         "name": "Label1",
         "type": {
           "tensorType": {
-            "elemType": "INT64",
+            "elemType": "UINT32",
             "shape": {
               "dim": [
                 {
@@ -348,7 +348,7 @@
         "name": "PredictedLabel0",
         "type": {
           "tensorType": {
-            "elemType": "INT64",
+            "elemType": "UINT32",
             "shape": {
               "dim": [
                 {
@@ -404,7 +404,7 @@
         "name": "Label0",
         "type": {
           "tensorType": {
-            "elemType": "INT64",
+            "elemType": "UINT32",
             "shape": {
               "dim": [
                 {
