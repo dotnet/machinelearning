@@ -5,7 +5,7 @@
 
   Improves the in-preview `ImageClassification` API further:
   - Increases DNN training speed by ~10x.
-  - Caches image featurized values to disk from intermediate layers to train the final fully-connected layer.
+  - Prevents repeated computations by caching featurized image values to disk from intermediate layers to train the final fully-connected layer.
   - Reduced and constant memory footprint.
   - Simplifies the API by not requiring the user to pre-process the image.
   - Introduces callback to provide metrics during training such as accuracy, cross-entropy.
