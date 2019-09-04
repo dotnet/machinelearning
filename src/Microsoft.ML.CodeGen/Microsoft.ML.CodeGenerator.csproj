@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>Microsoft.ML.CodeGenerator</AssemblyName>
-    <Version>0.15.1-preview-28030-1</Version>
+    <Version>0.15.1-preview-28030-3</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <FileVersion>0.15.28030.0</FileVersion>
   </PropertyGroup>

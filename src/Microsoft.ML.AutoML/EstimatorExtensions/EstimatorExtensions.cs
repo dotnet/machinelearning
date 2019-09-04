@@ -5,6 +5,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 
@@ -311,7 +312,9 @@ namespace Microsoft.ML.AutoML
 
         public static IEstimator<ITransformer> CreateInstance(MLContext context, string inColumn, string outColumn)
         {
-            return context.Transforms.DnnFeaturizeImage(outColumn, m => m.ModelSelector.ResNet18(context, m.OutputColumn, m.InputColumn), inColumn);
+            string fullPath = new DirectoryInfo(System.Reflection.Assembly.GetAssembly(typeof(ResNet18FeaturizingExtension)).Location).Parent.FullName;
+            string modeDir = Path.Combine(fullPath, "DnnImageModels");
+            return context.Transforms.DnnFeaturizeImage(outColumn, m => m.ModelSelector.ResNet18(context, m.OutputColumn, m.InputColumn, modeDir), inColumn);
         }
     }
 
