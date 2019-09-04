@@ -673,7 +673,7 @@ namespace Microsoft.ML.Tests
                     var onnxTransformer = onnxEstimator.Fit(dataView);
                     var onnxResult = onnxTransformer.Transform(dataView);
 
-                    CompareResults("ValueConverted", "ValueConverted0", mlnetResult, onnxResult);
+                    CompareResults(model.ColumnPairs[0].outputColumnName, outputNames[1], mlnetResult, onnxResult);
                 }
             }
         }
