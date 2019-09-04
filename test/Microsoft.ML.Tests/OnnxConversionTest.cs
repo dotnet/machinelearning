@@ -214,7 +214,7 @@ namespace Microsoft.ML.Tests
             {
                 foreach (var norm in norms)
                 {
-                    var pipe = mlContext.Transforms.NormalizeLpNorm("Features", norm:norm, ensureZeroMean: ensureZeroMean);
+                    var pipe = mlContext.Transforms.NormalizeLpNorm(nameof(DataPoint.Features), norm:norm, ensureZeroMean: ensureZeroMean);
 
                     var model = pipe.Fit(dataView);
                     var transformedData = model.Transform(dataView);
@@ -234,7 +234,7 @@ namespace Microsoft.ML.Tests
                         var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                         var onnxTransformer = onnxEstimator.Fit(dataView);
                         var onnxResult = onnxTransformer.Transform(dataView);
-                        CompareSelectedR4VectorColumns("Features", "Features1", transformedData, onnxResult, 3);
+                        CompareSelectedR4VectorColumns(nameof(DataPoint.Features), outputNames[0], transformedData, onnxResult, 3);
                     }
                 }
             }

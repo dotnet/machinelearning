@@ -632,17 +632,11 @@ namespace Microsoft.ML.Transforms
                 {
                     string strNorm;
                     if (_norms[iinfo] == LpNormNormalizingEstimatorBase.NormFunction.L1)
-                    {
                         strNorm = "L1";
-                    }
                     else if (_norms[iinfo] == LpNormNormalizingEstimatorBase.NormFunction.L2)
-                    {
                         strNorm = "L2";
-                    }
                     else
-                    {
                         strNorm = "MAX";
-                    }
                     opType = "Normalizer";
                     var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
                     node.AddAttribute("norm", strNorm);
