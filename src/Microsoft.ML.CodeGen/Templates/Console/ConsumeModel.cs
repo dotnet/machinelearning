@@ -18,7 +18,7 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
     /// Class to produce the template output
     /// </summary>
     
-    #line 1 "C:\Users\xiaoyuz\source\repos\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\ConsumeModel.tt"
+    #line 1 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\ConsumeModel.tt"
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "16.0.0.0")]
     public partial class ConsumeModel : ConsumeModelBase
     {
@@ -29,31 +29,31 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
         public virtual string TransformText()
         {
             
-            #line 6 "C:\Users\xiaoyuz\source\repos\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\ConsumeModel.tt"
+            #line 6 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\ConsumeModel.tt"
 if(Target == CSharp.GenerateTarget.Cli){ 
             
             #line default
             #line hidden
             
-            #line 7 "C:\Users\xiaoyuz\source\repos\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\ConsumeModel.tt"
+            #line 7 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\ConsumeModel.tt"
 CLI_Annotation();
             
             #line default
             #line hidden
             
-            #line 8 "C:\Users\xiaoyuz\source\repos\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\ConsumeModel.tt"
+            #line 8 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\ConsumeModel.tt"
  } else if(Target == CSharp.GenerateTarget.ModelBuilder){ 
             
             #line default
             #line hidden
             
-            #line 9 "C:\Users\xiaoyuz\source\repos\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\ConsumeModel.tt"
+            #line 9 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\ConsumeModel.tt"
 MB_Annotation();
             
             #line default
             #line hidden
             
-            #line 10 "C:\Users\xiaoyuz\source\repos\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\ConsumeModel.tt"
+            #line 10 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\ConsumeModel.tt"
  } 
             
             #line default
@@ -61,21 +61,14 @@ MB_Annotation();
             this.Write("\r\nusing System;\r\nusing System.Collections.Generic;\r\nusing System.Linq;\r\nusing Sys" +
                     "tem.Text;\r\nusing Microsoft.ML;\r\nusing ");
             
-            #line 17 "C:\Users\xiaoyuz\source\repos\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\ConsumeModel.tt"
+            #line 17 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\ConsumeModel.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             
             #line default
             #line hidden
-            this.Write(".Model;\r\nusing ");
+            this.Write(".Model;\r\n\r\nnamespace ");
             
-            #line 18 "C:\Users\xiaoyuz\source\repos\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\ConsumeModel.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            
-            #line default
-            #line hidden
-            this.Write(".Model.DataModels;\r\n\r\nnamespace ");
-            
-            #line 20 "C:\Users\xiaoyuz\source\repos\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\ConsumeModel.tt"
+            #line 19 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\ConsumeModel.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             
             #line default
@@ -107,7 +100,7 @@ MB_Annotation();
             return this.GenerationEnvironment.ToString();
         }
         
-        #line 43 "C:\Users\xiaoyuz\source\repos\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\ConsumeModel.tt"
+        #line 42 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\ConsumeModel.tt"
 
 public string Namespace {get;set;}
 public CSharp.GenerateTarget Target {get;set;}
@@ -116,7 +109,7 @@ public CSharp.GenerateTarget Target {get;set;}
         #line default
         #line hidden
         
-        #line 2 "C:\Users\xiaoyuz\source\repos\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\Annotation.tt"
+        #line 2 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\Annotation.tt"
 
 void CLI_Annotation()
 {
@@ -124,10 +117,10 @@ void CLI_Annotation()
         #line default
         #line hidden
         
-        #line 4 "C:\Users\xiaoyuz\source\repos\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\Annotation.tt"
+        #line 4 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\Annotation.tt"
 this.Write(@"//*****************************************************************************************
 //*                                                                                       *
-//* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *
+//* This file was auto-generated by ML.NET CLI (Command-Line Interface) tool.			  *
 //*                                                                                       *
 //*****************************************************************************************
 ");
@@ -136,7 +129,7 @@ this.Write(@"//*****************************************************************
         #line default
         #line hidden
         
-        #line 10 "C:\Users\xiaoyuz\source\repos\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\Annotation.tt"
+        #line 10 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\Annotation.tt"
 
 }
 
@@ -144,7 +137,7 @@ this.Write(@"//*****************************************************************
         #line default
         #line hidden
         
-        #line 13 "C:\Users\xiaoyuz\source\repos\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\Annotation.tt"
+        #line 13 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\Annotation.tt"
 
 void MB_Annotation()
 {
@@ -152,14 +145,14 @@ void MB_Annotation()
         #line default
         #line hidden
         
-        #line 15 "C:\Users\xiaoyuz\source\repos\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\Annotation.tt"
-this.Write("// This is an auto-generated file by ML.NET Model Builder. \r\n");
+        #line 15 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\Annotation.tt"
+this.Write("// This file was auto-generated by ML.NET Model Builder. \r\n");
 
         
         #line default
         #line hidden
         
-        #line 17 "C:\Users\xiaoyuz\source\repos\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\Annotation.tt"
+        #line 17 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGen\Templates\Console\Annotation.tt"
 
 }
 

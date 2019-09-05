@@ -16,7 +16,6 @@ using System.IO;
 using System.Linq;
 using Microsoft.ML;
 using <#= Namespace #>.Model;
-using <#= Namespace #>.Model.DataModels;
 
 namespace <#= Namespace #>.ConsoleApp
 {
