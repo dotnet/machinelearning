@@ -70,6 +70,14 @@ namespace Microsoft.ML.Model.OnnxConverter
             return attribute;
         }
 
+        private static AttributeProto MakeAttribute(string key, TensorProto.Types.DataType value)
+        {
+            AttributeProto attribute = MakeAttribute(key);
+            attribute.Type = AttributeProto.Types.AttributeType.Int;
+            attribute.I = (int)value;
+            return attribute;
+        }
+
         private static AttributeProto MakeAttribute(string key, double value)
         {
             AttributeProto attribute = MakeAttribute(key);
@@ -211,6 +219,45 @@ namespace Microsoft.ML.Model.OnnxConverter
 
         public static void NodeAddAttributes(NodeProto node, string argName, bool value)
             => node.Attribute.Add(MakeAttribute(argName, value));
+        public static void NodeAddAttributes(NodeProto node, string argName, Type value)
+            => node.Attribute.Add(MakeAttribute(argName, ConvertToTensorProtoType(value)));
+
+        private static TensorProto.Types.DataType ConvertToTensorProtoType(Type rawType)
+        {
+            var dataType = TensorProto.Types.DataType.Undefined;
+
+            if (rawType == typeof(bool))
+                dataType = TensorProto.Types.DataType.Float;
+            else if (rawType == typeof(ReadOnlyMemory<char>))
+                dataType = TensorProto.Types.DataType.String;
+            else if (rawType == typeof(sbyte))
+                dataType = TensorProto.Types.DataType.Int8;
+            else if (rawType == typeof(byte))
+                dataType = TensorProto.Types.DataType.Uint8;
+            else if (rawType == typeof(short))
+                dataType = TensorProto.Types.DataType.Int16;
+            else if (rawType == typeof(ushort))
+                dataType = TensorProto.Types.DataType.Uint16;
+            else if (rawType == typeof(int))
+                dataType = TensorProto.Types.DataType.Int32;
+            else if (rawType == typeof(uint))
+                dataType = TensorProto.Types.DataType.Uint32;
+            else if (rawType == typeof(long))
+                dataType = TensorProto.Types.DataType.Int64;
+            else if (rawType == typeof(ulong))
+                dataType = TensorProto.Types.DataType.Uint64;
+            else if (rawType == typeof(float))
+                dataType = TensorProto.Types.DataType.Float;
+            else if (rawType == typeof(double))
+                dataType = TensorProto.Types.DataType.Double;
+            else
+            {
+                string msg = "Unsupported type: " + rawType.ToString();
+                Contracts.Check(false, msg);
+            }
+
+            return dataType;
+        }
 
         private static ByteString StringToByteString(ReadOnlyMemory<char> str) => ByteString.CopyFrom(Encoding.UTF8.GetBytes(str.ToString()));
         private static IEnumerable<ByteString> StringToByteString(IEnumerable<ReadOnlyMemory<char>> str)
@@ -295,42 +342,12 @@ namespace Microsoft.ML.Model.OnnxConverter
             Contracts.CheckValue(type, nameof(type));
             Contracts.CheckNonEmpty(colName, nameof(colName));
 
-            TensorProto.Types.DataType dataType = TensorProto.Types.DataType.Undefined;
             Type rawType;
             if (type is VectorDataViewType vectorType)
                 rawType = vectorType.ItemType.RawType;
             else
                 rawType = type.RawType;
-
-            if (rawType == typeof(bool))
-                dataType = TensorProto.Types.DataType.Float;
-            else if (rawType == typeof(ReadOnlyMemory<char>))
-                dataType = TensorProto.Types.DataType.String;
-            else if (rawType == typeof(sbyte))
-                dataType = TensorProto.Types.DataType.Int8;
-            else if (rawType == typeof(byte))
-                dataType = TensorProto.Types.DataType.Uint8;
-            else if (rawType == typeof(short))
-                dataType = TensorProto.Types.DataType.Int16;
-            else if (rawType == typeof(ushort))
-                dataType = TensorProto.Types.DataType.Uint16;
-            else if (rawType == typeof(int))
-                dataType = TensorProto.Types.DataType.Int32;
-            else if (rawType == typeof(uint))
-                dataType = TensorProto.Types.DataType.Int64;
-            else if (rawType == typeof(long))
-                dataType = TensorProto.Types.DataType.Int64;
-            else if (rawType == typeof(ulong))
-                dataType = TensorProto.Types.DataType.Uint64;
-            else if (rawType == typeof(float))
-                dataType = TensorProto.Types.DataType.Float;
-            else if (rawType == typeof(double))
-                dataType = TensorProto.Types.DataType.Double;
-            else
-            {
-                string msg = "Unsupported type: " + type.ToString();
-                Contracts.Check(false, msg);
-            }
+            var dataType = ConvertToTensorProtoType(rawType);
 
             string name = colName;
             List<long> dimsLocal = null;
