@@ -663,12 +663,167 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
+        [Fact]
+        public void OnnxTypeConversionTest()
+        {
+            var mlContext = new MLContext(seed: 1);
+            string filePath = GetDataPath("type-conversion.txt");
+
+            // These are the supported conversions
+            // ML.NET does not allow any conversions between signed and unsigned numeric types
+            // Onnx does not seem to support casting a string to any type
+            // Though the onnx docs claim support for byte and sbyte, 
+            // CreateNamedOnnxValue in OnnxUtils.cs throws a NotImplementedException for those two
+            DataKind[,] supportedConversions = new[,]
+            {
+                { DataKind.Int16, DataKind.Int16},
+                { DataKind.Int16, DataKind.Int32},
+                { DataKind.Int16, DataKind.Int64},
+                { DataKind.Int16, DataKind.Single},
+                { DataKind.Int16, DataKind.Double},
+                { DataKind.UInt16, DataKind.UInt16},
+                { DataKind.UInt16, DataKind.UInt32},
+                { DataKind.UInt16, DataKind.UInt64},
+                { DataKind.UInt16, DataKind.Single},
+                { DataKind.UInt16, DataKind.Double},
+                { DataKind.Int32, DataKind.Int16},
+                { DataKind.Int32, DataKind.Int32},
+                { DataKind.Int32, DataKind.Int64},
+                { DataKind.Int32, DataKind.Single},
+                { DataKind.Int32, DataKind.Double},
+                { DataKind.Int64, DataKind.Int16},
+                { DataKind.Int64, DataKind.Int32},
+                { DataKind.Int64, DataKind.Int64},
+                { DataKind.Int64, DataKind.Single},
+                { DataKind.Int64, DataKind.Double},
+                { DataKind.UInt64, DataKind.UInt16},
+                { DataKind.UInt64, DataKind.UInt32},
+                { DataKind.UInt64, DataKind.UInt64},
+                { DataKind.UInt64, DataKind.Single},
+                { DataKind.UInt64, DataKind.Double},
+                { DataKind.Single, DataKind.Single},
+                { DataKind.Single, DataKind.Double},
+                { DataKind.Double, DataKind.Single},
+                { DataKind.Double, DataKind.Double}
+            };
+
+            for (int i = 0; i < supportedConversions.GetLength(0); i++)
+            {
+                var fromKind = supportedConversions[i, 0];
+                var toKind = supportedConversions[i, 1];
+
+                TextLoader.Column[] columns = new []
+                {
+                    new TextLoader.Column("Value", fromKind, 0, 0)
+                };
+                var dataView = mlContext.Data.LoadFromTextFile(filePath, columns);
+
+                var pipeline = mlContext.Transforms.Conversion.ConvertType("ValueConverted", "Value", outputKind: toKind);
+                var model = pipeline.Fit(dataView);
+                var mlnetResult = model.Transform(dataView);
+
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+                var onnxFileName = "typeconversion.onnx";
+                var onnxModelPath = GetOutputPath(onnxFileName);
+                SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
+                {
+                    string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                    string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                    var onnxTransformer = onnxEstimator.Fit(dataView);
+                    var onnxResult = onnxTransformer.Transform(dataView);
+
+                    CompareResults(model.ColumnPairs[0].outputColumnName, outputNames[1], mlnetResult, onnxResult);
+                }
+            }
+        }
+
         private void CreateDummyExamplesToMakeComplierHappy()
         {
             var dummyExample = new BreastCancerFeatureVector() { Features = null };
             var dummyExample1 = new BreastCancerCatFeatureExample() { Label = false, F1 = 0, F2 = "Amy" };
             var dummyExample2 = new BreastCancerMulticlassExample() { Label = "Amy", Features = null };
             var dummyExample3 = new SmallSentimentExample() { Tokens = null };
+        }
+
+        private void CompareResults(string leftColumnName, string rightColumnName, IDataView left, IDataView right)
+        {
+            var leftColumn = left.Schema[leftColumnName];
+            var rightColumn = right.Schema[rightColumnName];
+            var leftType = leftColumn.Type.GetItemType();
+            var rightType = rightColumn.Type.GetItemType();
+            Assert.Equal(leftType, rightType);
+
+            if (leftType == NumberDataViewType.SByte)
+                CompareSelectedVectorColumns<sbyte>(leftColumnName, rightColumnName, left, right);
+            else if (leftType == NumberDataViewType.Byte)
+                CompareSelectedVectorColumns<byte>(leftColumnName, rightColumnName, left, right);
+            else if (leftType == NumberDataViewType.Int16)
+                CompareSelectedVectorColumns<short>(leftColumnName, rightColumnName, left, right);
+            else if (leftType == NumberDataViewType.UInt16)
+                CompareSelectedVectorColumns<ushort>(leftColumnName, rightColumnName, left, right);
+            else if (leftType == NumberDataViewType.Int32)
+                CompareSelectedVectorColumns<int>(leftColumnName, rightColumnName, left, right);
+            else if (leftType == NumberDataViewType.UInt32)
+                CompareSelectedVectorColumns<uint>(leftColumnName, rightColumnName, left, right);
+            else if (leftType == NumberDataViewType.Int64)
+                CompareSelectedVectorColumns<long>(leftColumnName, rightColumnName, left, right);
+            else if (leftType == NumberDataViewType.UInt64)
+                CompareSelectedVectorColumns<ulong>(leftColumnName, rightColumnName, left, right);
+            else if (leftType == NumberDataViewType.Single)
+                CompareSelectedR4VectorColumns(leftColumnName, rightColumnName, left, right);
+            else if (leftType == NumberDataViewType.Double)
+                CompareSelectedVectorColumns<double>(leftColumnName, rightColumnName, left, right);
+        }
+
+        private void CompareSelectedVectorColumns<T>(string leftColumnName, string rightColumnName, IDataView left, IDataView right)
+        {
+            var leftColumn = left.Schema[leftColumnName];
+            var rightColumn = right.Schema[rightColumnName];
+
+            using (var expectedCursor = left.GetRowCursor(leftColumn))
+            using (var actualCursor = right.GetRowCursor(rightColumn))
+            {
+                VBuffer<T> expected = default;
+                VBuffer<T> actual = default;
+                var expectedGetter = expectedCursor.GetGetter<VBuffer<T>>(leftColumn);
+                var actualGetter = actualCursor.GetGetter<VBuffer<T>>(rightColumn);
+                while (expectedCursor.MoveNext() && actualCursor.MoveNext())
+                {
+                    expectedGetter(ref expected);
+                    actualGetter(ref actual);
+
+                    Assert.Equal(expected.Length, actual.Length);
+                    for (int i = 0; i < expected.Length; ++i)
+                        Assert.Equal(expected.GetItemOrDefault(i), actual.GetItemOrDefault(i));
+                }
+            }
+        }
+
+        private void CompareSelectedR8VectorColumns(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
+        {
+            var leftColumn = left.Schema[leftColumnName];
+            var rightColumn = right.Schema[rightColumnName];
+
+            using (var expectedCursor = left.GetRowCursor(leftColumn))
+            using (var actualCursor = right.GetRowCursor(rightColumn))
+            {
+                VBuffer<double> expected = default;
+                VBuffer<double> actual = default;
+                var expectedGetter = expectedCursor.GetGetter<VBuffer<double>>(leftColumn);
+                var actualGetter = actualCursor.GetGetter<VBuffer<double>>(rightColumn);
+                while (expectedCursor.MoveNext() && actualCursor.MoveNext())
+                {
+                    expectedGetter(ref expected);
+                    actualGetter(ref actual);
+
+                    Assert.Equal(expected.Length, actual.Length);
+                    for (int i = 0; i < expected.Length; ++i)
+                        Assert.Equal(expected.GetItemOrDefault(i), actual.GetItemOrDefault(i), precision);
+                }
+            }
         }
 
         private void CompareSelectedR4VectorColumns(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)

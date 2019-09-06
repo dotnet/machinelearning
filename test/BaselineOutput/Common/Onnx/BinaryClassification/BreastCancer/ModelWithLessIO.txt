@@ -842,7 +842,7 @@
         "name": "F20",
         "type": {
           "tensorType": {
-            "elemType": "INT64",
+            "elemType": "UINT32",
             "shape": {
               "dim": [
                 {
