@@ -18,7 +18,7 @@ namespace Microsoft.ML.Data
     /// Can be applied only for member of following types: <see cref="byte"/>, <see cref="ushort"/>, <see cref="uint"/>, <see cref="ulong"/>
     /// </remarks>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public sealed class KeyTypeAttribute : Attribute
+    public sealed class KeyTypeAttribute : TypeAttribute
     {
         /// <summary>
         /// Marks member as <see cref="KeyDataViewType"/>.
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Data
     /// the dimensionality of the resulting array.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public sealed class VectorTypeAttribute : Attribute
+    public sealed class VectorTypeAttribute : TypeAttribute
     {
         /// <summary>
         /// The length of the vectors from this vector valued field.

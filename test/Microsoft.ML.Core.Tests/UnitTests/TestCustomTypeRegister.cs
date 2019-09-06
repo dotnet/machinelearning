@@ -271,11 +271,26 @@ namespace Microsoft.ML.RunTests
             DataViewTypeManager.Register(e, typeof(AlienBody), new[] { f });
             Assert.True(DataViewTypeManager.Knows(e));
             Assert.True(DataViewTypeManager.Knows(typeof(AlienBody), new[] { f }));
-            Assert.True(DataViewTypeManager.Knows(typeof(AlienBody), new[] { f }));
             // "e" is associated with typeof(AlienBody) with "f," so the call below should return true.
             Assert.Equal(e, DataViewTypeManager.GetDataViewType(typeof(AlienBody), new[] { f }));
             // "a" is associated with typeof(AlienBody) without any attribute, so the call below should return false.
             Assert.NotEqual(a, DataViewTypeManager.GetDataViewType(typeof(AlienBody), new[] { f }));
+        }
+
+        [Fact]
+        public void RegisterTypeWithAdditionalAttributes()
+        {
+            var a = new DataViewAlienBodyType(7788);
+            var b = new AlienTypeAttributeAttribute(8877);
+            var c = new ColumnNameAttribute("SomeName");
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => DataViewTypeManager.Register(a, typeof(AlienBody), new Attribute[] { b, c }));
+
+            DataViewTypeManager.Register(a, typeof(AlienBody), new Attribute[] { b });
+            Assert.True(DataViewTypeManager.Knows(a));
+            Assert.True(DataViewTypeManager.Knows(typeof(AlienBody), new Attribute[] { b, c }));
+            // "a" is associated with typeof(AlienBody) with "b," so the call below should return true.
+            Assert.Equal(a, DataViewTypeManager.GetDataViewType(typeof(AlienBody), new Attribute[] { b, c }));
         }
     }
 }

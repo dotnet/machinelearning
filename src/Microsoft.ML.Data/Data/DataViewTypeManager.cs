@@ -53,6 +53,8 @@ namespace Microsoft.ML.Data
         /// </summary>
         internal static DataViewType GetDataViewType(Type type, IEnumerable<Attribute> typeAttributes = null)
         {
+            //Filter attributes as we only care about TypeAttributes
+            typeAttributes = typeAttributes == null ? typeAttributes : typeAttributes.Where(attr => attr.GetType().IsSubclassOf(typeof(TypeAttribute)));
             lock (_lock)
             {
                 // Compute the ID of type with extra attributes.
@@ -73,6 +75,8 @@ namespace Microsoft.ML.Data
         /// </summary>
         internal static bool Knows(Type type, IEnumerable<Attribute> typeAttributes = null)
         {
+            //Filter attributes as we only care about TypeAttributes
+            typeAttributes = typeAttributes == null ? typeAttributes : typeAttributes.Where(attr => attr.GetType().IsSubclassOf(typeof(TypeAttribute)));
             lock (_lock)
             {
                 // Compute the ID of type with extra attributes.
@@ -113,6 +117,16 @@ namespace Microsoft.ML.Data
         /// <param name="typeAttributes">The <see cref="Attribute"/>s attached to <paramref name="type"/>.</param>
         public static void Register(DataViewType dataViewType, Type type, IEnumerable<Attribute> typeAttributes = null)
         {
+            if (typeAttributes != null)
+            {
+                foreach (var attr in typeAttributes)
+                {
+                    if (!attr.GetType().IsSubclassOf(typeof(TypeAttribute)))
+                    {
+                        throw Contracts.ExceptParam(nameof(type), $"Type {type} has an attribute that is not of TypeAttribute.");
+                    }
+                }
+            }
             lock (_lock)
             {
                 if (_bannedRawTypes.Contains(type))

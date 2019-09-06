@@ -473,7 +473,7 @@ namespace Microsoft.ML.Data
     /// in <see cref="IDataView"/> would be the associated <see cref="DataViewType"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public abstract class DataViewTypeAttribute : Attribute, IEquatable<DataViewTypeAttribute>
+    public abstract class DataViewTypeAttribute : TypeAttribute, IEquatable<DataViewTypeAttribute>
     {
         /// <summary>
         /// A function implicitly invoked by ML.NET when processing a custom type. It binds a DataViewType to a custom type plus its attributes.
