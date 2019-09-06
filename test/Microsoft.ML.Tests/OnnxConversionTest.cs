@@ -180,6 +180,68 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
+        private class DataPoint
+        {
+            [VectorType(3)]
+            public float[] Features { get; set; }
+        }
+
+        [Fact]
+        void LpNormOnnxConversionTest()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            var samples = new List<DataPoint>()
+            {
+                new DataPoint() { Features = new float[3] {0.01f, 0.02f, 0.03f} },
+                new DataPoint() { Features = new float[3] {0.04f, 0.05f, 0.06f} },
+                new DataPoint() { Features = new float[3] {0.07f, 0.08f, 0.09f} },
+                new DataPoint() { Features = new float[3] {0.10f, 0.11f, 0.12f} },
+                new DataPoint() { Features = new float[3] {0.13f, 0.14f, 0.15f} }
+            };
+            var dataView = mlContext.Data.LoadFromEnumerable(samples);
+
+            LpNormNormalizingEstimatorBase.NormFunction[] norms =
+            {
+                LpNormNormalizingEstimatorBase.NormFunction.L1,
+                LpNormNormalizingEstimatorBase.NormFunction.L2,
+                LpNormNormalizingEstimatorBase.NormFunction.Infinity,
+                LpNormNormalizingEstimatorBase.NormFunction.StandardDeviation
+            };
+
+            bool[] ensureZeroMeans = { true, false};
+            foreach (var ensureZeroMean in ensureZeroMeans)
+            {
+                foreach (var norm in norms)
+                {
+                    var pipe = mlContext.Transforms.NormalizeLpNorm(nameof(DataPoint.Features), norm:norm, ensureZeroMean: ensureZeroMean);
+
+                    var model = pipe.Fit(dataView);
+                    var transformedData = model.Transform(dataView);
+                    var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+                    var onnxFileName = $"LpNorm-{norm.ToString()}-{ensureZeroMean}.onnx";
+                    var onnxModelPath = GetOutputPath(onnxFileName);
+
+                    SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+                    // Compare results produced by ML.NET and ONNX's runtime.
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
+                    {
+                        // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                        string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                        string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                        var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                        var onnxTransformer = onnxEstimator.Fit(dataView);
+                        var onnxResult = onnxTransformer.Transform(dataView);
+                        CompareSelectedR4VectorColumns(nameof(DataPoint.Features), outputNames[0], transformedData, onnxResult, 3);
+                    }
+                }
+            }
+
+            Done();
+        }
+
         [Fact]
         void CommandLineOnnxConversionTest()
         {
