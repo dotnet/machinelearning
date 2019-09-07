@@ -20,7 +20,7 @@ using Tensorflow.Summaries;
 using static Microsoft.ML.Data.TextLoader;
 using static Microsoft.ML.Transforms.Dnn.DnnUtils;
 using static Microsoft.ML.Transforms.ImageClassificationEstimator;
-using static Tensorflow.Python;
+using static Tensorflow.Binding;
 using Architecture = Microsoft.ML.Transforms.ImageClassificationEstimator.Architecture;
 
 [assembly: LoadableClass(ImageClassificationTransformer.Summary, typeof(IDataTransform), typeof(ImageClassificationTransformer),
@@ -42,6 +42,7 @@ namespace Microsoft.ML.Transforms
     /// </summary>
     public sealed class ImageClassificationTransformer : RowToRowTransformerBase
     {
+        private tensorflow _tf;
         private readonly IHostEnvironment _env;
         private readonly bool _addBatchDimensionInput;
         private Session _session;
@@ -53,9 +54,9 @@ namespace Microsoft.ML.Transforms
         private Tensor _evaluationStep;
         private Tensor _prediction;
         private Tensor _bottleneckInput;
-        private Tensor _jpegData;
+        private Tensor _imageData;
         private Tensor _resizedImage;
-        private string _jpegDataTensorName;
+        private string _imageDataTensorName;
         private string _resizedImageTensorName;
         private string _inputTensorName;
         private readonly int _classCount;
@@ -110,7 +111,7 @@ namespace Microsoft.ML.Transforms
             GetModelInfo(env, ctx, out string[] inputs, out string[] outputs, out bool addBatchDimensionInput,
                 out string labelColumn, out string checkpointName, out Architecture arch, out string scoreColumnName,
                 out string predictedColumnName, out float learningRate, out int classCount, out string predictionTensorName, out string softMaxTensorName,
-                out string jpegDataTensorName, out string resizeTensorName);
+                out string imageDataTensorName, out string resizeTensorName);
 
             byte[] modelBytes = null;
             if (!ctx.TryLoadBinaryStream("TFModel", r => modelBytes = r.ReadByteArray()))
@@ -119,7 +120,7 @@ namespace Microsoft.ML.Transforms
             return new ImageClassificationTransformer(env, DnnUtils.LoadTFSession(env, modelBytes), outputs, inputs,
                 null, addBatchDimensionInput, 1, labelColumn, checkpointName, arch,
                 scoreColumnName, predictedColumnName, learningRate, null, classCount, true, predictionTensorName,
-                softMaxTensorName, jpegDataTensorName, resizeTensorName);
+                softMaxTensorName, imageDataTensorName, resizeTensorName);
 
         }
 
@@ -174,19 +175,19 @@ namespace Microsoft.ML.Transforms
                 throw Host.ExceptParam(nameof(options.TensorFlowLabel), $"'{options.TensorFlowLabel}' does not exist in the model");
         }
 
-        private (Tensor, Tensor) AddJpegDecoding(int height, int width, int depth)
+        private (Tensor, Tensor) AddImageDecoding(int height, int width, int depth)
         {
             // height, width, depth
             var inputDim = (height, width, depth);
-            var jpegData = tf.placeholder(tf.@string, name: "DecodeJPGInput");
-            var decodedImage = tf.image.decode_jpeg(jpegData, channels: inputDim.Item3);
+            var imageData = _tf.placeholder(_tf.@string, name: "DecodeImageInput");
+            var decodedImage = _tf.image.decode_image(imageData, channels: inputDim.Item3);
             // Convert from full range of uint8 to range [0,1] of float32.
-            var decodedImageAsFloat = tf.image.convert_image_dtype(decodedImage, tf.float32);
-            var decodedImage4d = tf.expand_dims(decodedImageAsFloat, 0);
-            var resizeShape = tf.stack(new int[] { inputDim.Item1, inputDim.Item2 });
-            var resizeShapeAsInt = tf.cast(resizeShape, dtype: tf.int32);
-            var resizedImage = tf.image.resize_bilinear(decodedImage4d, resizeShapeAsInt, false, "ResizeTensor");
-            return (jpegData, resizedImage);
+            var decodedImageAsFloat = _tf.image.convert_image_dtype(decodedImage, _tf.float32);
+            var decodedImage4d = _tf.expand_dims(decodedImageAsFloat, 0);
+            var resizeShape = _tf.stack(new int[] { inputDim.Item1, inputDim.Item2 });
+            var resizeShapeAsInt = _tf.cast(resizeShape, dtype: _tf.int32);
+            var resizedImage = _tf.image.resize_bilinear(decodedImage4d, resizeShapeAsInt, false, "ResizeTensor");
+            return (imageData, resizedImage);
         }
 
         private sealed class ImageProcessor
@@ -196,7 +197,7 @@ namespace Microsoft.ML.Transforms
             public ImageProcessor(ImageClassificationTransformer transformer)
             {
                 _imagePreprocessingRunner = new Runner(transformer._session);
-                _imagePreprocessingRunner.AddInput(transformer._jpegDataTensorName);
+                _imagePreprocessingRunner.AddInput(transformer._imageDataTensorName);
                 _imagePreprocessingRunner.AddOutputs(transformer._resizedImageTensorName);
             }
 
@@ -243,7 +244,7 @@ namespace Microsoft.ML.Transforms
                     var imageTensor = imageProcessor.ProcessImage(imagePathStr);
                     runner.AddInput(imageTensor, 0);
                     var featurizedImage = runner.Run()[0]; // Reuse memory?
-                    writer.WriteLine(label - 1 + "," + string.Join(",", featurizedImage.Data<float>()));
+                    writer.WriteLine(label - 1 + "," + string.Join(",", featurizedImage.ToArray<float>()));
                     featurizedImage.Dispose();
                     imageTensor.Dispose();
                     metrics.Bottleneck.Index++;
@@ -324,9 +325,9 @@ namespace Microsoft.ML.Transforms
 
             Saver trainSaver = null;
             FileWriter trainWriter = null;
-            Tensor merged = tf.summary.merge_all();
-            trainWriter = tf.summary.FileWriter(Path.Combine(Directory.GetCurrentDirectory(), "train"), _session.graph);
-            trainSaver = tf.train.Saver();
+            Tensor merged = _tf.summary.merge_all();
+            trainWriter = _tf.summary.FileWriter(Path.Combine(Directory.GetCurrentDirectory(), "train"), _session.graph);
+            trainSaver = _tf.train.Saver();
             trainSaver.save(_session, _checkpointPath);
 
             runner.AddInput(_bottleneckInput.name).AddInput(_labelTensor.name);
@@ -378,8 +379,8 @@ namespace Microsoft.ML.Transforms
                                     .AddInput(new Tensor(labelBatchPtr, labelTensorShape, TF_DataType.TF_INT64, labelBatchSizeInBytes), 1)
                                     .Run();
 
-                                metrics.Train.Accuracy += outputTensors[0].Data<float>()[0];
-                                metrics.Train.CrossEntropy += outputTensors[1].Data<float>()[0];
+                                metrics.Train.Accuracy += outputTensors[0].ToArray<float>()[0];
+                                metrics.Train.CrossEntropy += outputTensors[1].ToArray<float>()[0];
 
                                 outputTensors[0].Dispose();
                                 outputTensors[1].Dispose();
@@ -429,7 +430,7 @@ namespace Microsoft.ML.Transforms
                                 .AddInput(new Tensor(labelBatchPtr, labelTensorShape, TF_DataType.TF_INT64, labelBatchSizeInBytes), 1)
                                 .Run();
 
-                            metrics.Train.Accuracy += outputTensors[0].Data<float>()[0];
+                            metrics.Train.Accuracy += outputTensors[0].ToArray<float>()[0];
                             metrics.Train.BatchProcessedCount += 1;
                             batchIndex = 0;
 
@@ -454,20 +455,20 @@ namespace Microsoft.ML.Transforms
         private (Session, Tensor, Tensor, Tensor) BuildEvaluationSession(ImageClassificationEstimator.Options options, int classCount)
         {
             var evalGraph = DnnUtils.LoadMetaGraph(options.ModelLocation);
-            var evalSess = tf.Session(graph: evalGraph);
+            var evalSess = _tf.Session(graph: evalGraph);
             Tensor evaluationStep = null;
             Tensor prediction = null;
             Tensor bottleneckTensor = evalGraph.OperationByName(_bottleneckOperationName);
-
-            tf_with(evalGraph.as_default(), graph =>
+            //tf_with<Graph>(evalGraph.as_default(), graph =>
+            using(var graph = evalGraph.as_default())
             {
                 var (_, _, groundTruthInput, finalTensor) = AddFinalRetrainOps(classCount, options.LabelColumn,
                     options.ScoreColumnName, options.LearningRate, bottleneckTensor, false);
 
-                tf.train.Saver().restore(evalSess, _checkpointPath);
+                _tf.train.Saver().restore(evalSess, _checkpointPath);
                 (evaluationStep, prediction) = AddEvaluationStep(finalTensor, groundTruthInput);
-                (_jpegData, _resizedImage) = AddJpegDecoding(299, 299, 3);
-            });
+                (_imageData, _resizedImage) = AddImageDecoding(299, 299, 3);
+            }
 
             return (evalSess, _labelTensor, evaluationStep, prediction);
         }
@@ -477,21 +478,21 @@ namespace Microsoft.ML.Transforms
             Tensor evaluationStep = null;
             Tensor correctPrediction = null;
 
-            tf_with(tf.name_scope("accuracy"), scope =>
+            tf_with(_tf.name_scope("accuracy"), scope =>
             {
-                tf_with(tf.name_scope("correct_prediction"), delegate
+                tf_with(_tf.name_scope("correct_prediction"), delegate
                 {
-                    _prediction = tf.argmax(resultTensor, 1);
-                    correctPrediction = tf.equal(_prediction, groundTruthTensor);
+                    _prediction = _tf.argmax(resultTensor, 1);
+                    correctPrediction = _tf.equal(_prediction, groundTruthTensor);
                 });
 
-                tf_with(tf.name_scope("accuracy"), delegate
+                tf_with(_tf.name_scope("accuracy"), delegate
                 {
-                    evaluationStep = tf.reduce_mean(tf.cast(correctPrediction, tf.float32));
+                    evaluationStep = _tf.reduce_mean(_tf.cast(correctPrediction, _tf.float32));
                 });
             });
 
-            tf.summary.scalar("accuracy", evaluationStep);
+            _tf.summary.scalar("accuracy", evaluationStep);
             return (evaluationStep, _prediction);
         }
 
@@ -499,8 +500,8 @@ namespace Microsoft.ML.Transforms
         {
             var (sess, _, _, _) = BuildEvaluationSession(options, classCount);
             var graph = sess.graph;
-            var outputGraphDef = tf.graph_util.convert_variables_to_constants(
-                sess, graph.as_graph_def(), new string[] { _softMaxTensor.name.Split(':')[0], _prediction.name.Split(':')[0], _jpegData.name.Split(':')[0], _resizedImage.name.Split(':')[0] });
+            var outputGraphDef = _tf.graph_util.convert_variables_to_constants(
+                sess, graph.as_graph_def(), new string[] { _softMaxTensor.name.Split(':')[0], _prediction.name.Split(':')[0], _imageData.name.Split(':')[0], _resizedImage.name.Split(':')[0] });
 
             string frozenModelPath = _checkpointPath + ".pb";
             File.WriteAllBytes(_checkpointPath + ".pb", outputGraphDef.ToByteArray());
@@ -511,84 +512,84 @@ namespace Microsoft.ML.Transforms
 
         private void VariableSummaries(RefVariable var)
         {
-            tf_with(tf.name_scope("summaries"), delegate
+            tf_with(_tf.name_scope("summaries"), delegate
             {
-                var mean = tf.reduce_mean(var);
-                tf.summary.scalar("mean", mean);
+                var mean = _tf.reduce_mean(var);
+                _tf.summary.scalar("mean", mean);
                 Tensor stddev = null;
-                tf_with(tf.name_scope("stddev"), delegate
+                tf_with(_tf.name_scope("stddev"), delegate
                 {
-                    stddev = tf.sqrt(tf.reduce_mean(tf.square(var - mean)));
+                    stddev = _tf.sqrt(_tf.reduce_mean(_tf.square(var - mean)));
                 });
-                tf.summary.scalar("stddev", stddev);
-                tf.summary.scalar("max", tf.reduce_max(var));
-                tf.summary.scalar("min", tf.reduce_min(var));
-                tf.summary.histogram("histogram", var);
+                _tf.summary.scalar("stddev", stddev);
+                _tf.summary.scalar("max", _tf.reduce_max(var));
+                _tf.summary.scalar("min", _tf.reduce_min(var));
+                _tf.summary.histogram("histogram", var);
             });
         }
 
         private (Operation, Tensor, Tensor, Tensor) AddFinalRetrainOps(int classCount, string labelColumn,
             string scoreColumnName, float learningRate, Tensor bottleneckTensor, bool isTraining)
         {
-            var (batch_size, bottleneck_tensor_size) = (bottleneckTensor.TensorShape.Dimensions[0], bottleneckTensor.TensorShape.Dimensions[1]);
-            tf_with(tf.name_scope("input"), scope =>
+            var (batch_size, bottleneck_tensor_size) = (bottleneckTensor.TensorShape.dims[0], bottleneckTensor.TensorShape.dims[1]);
+            tf_with(_tf.name_scope("input"), scope =>
             {
                 if (isTraining)
                 {
-                    _bottleneckInput = tf.placeholder_with_default(
+                    _bottleneckInput = _tf.placeholder_with_default(
                         bottleneckTensor,
-                        shape: bottleneckTensor.TensorShape.Dimensions,
+                        shape: bottleneckTensor.TensorShape.dims,
                         name: "BottleneckInputPlaceholder");
                 }
 
-                _labelTensor = tf.placeholder(tf.int64, new TensorShape(batch_size), name: labelColumn);
+                _labelTensor = _tf.placeholder(_tf.int64, new TensorShape(batch_size), name: labelColumn);
             });
 
             string layerName = "final_retrain_ops";
             Tensor logits = null;
-            tf_with(tf.name_scope(layerName), scope =>
+            tf_with(_tf.name_scope(layerName), scope =>
             {
                 RefVariable layerWeights = null;
-                tf_with(tf.name_scope("weights"), delegate
+                tf_with(_tf.name_scope("weights"), delegate
                 {
-                    var initialValue = tf.truncated_normal(new int[] { bottleneck_tensor_size, classCount }, stddev: 0.001f);
-                    layerWeights = tf.Variable(initialValue, name: "final_weights");
+                    var initialValue = _tf.truncated_normal(new int[] { bottleneck_tensor_size, classCount }, stddev: 0.001f);
+                    layerWeights = _tf.Variable(initialValue, name: "final_weights");
                     VariableSummaries(layerWeights);
                 });
 
                 RefVariable layerBiases = null;
-                tf_with(tf.name_scope("biases"), delegate
+                tf_with(_tf.name_scope("biases"), delegate
                 {
-                    layerBiases = tf.Variable(tf.zeros(classCount), name: "final_biases");
+                    layerBiases = _tf.Variable(_tf.zeros(classCount), name: "final_biases");
                     VariableSummaries(layerBiases);
                 });
 
-                tf_with(tf.name_scope("Wx_plus_b"), delegate
+                tf_with(_tf.name_scope("Wx_plus_b"), delegate
                 {
-                    var matmul = tf.matmul(isTraining ? _bottleneckInput : bottleneckTensor, layerWeights);
+                    var matmul = _tf.matmul(isTraining ? _bottleneckInput : bottleneckTensor, layerWeights);
                     logits = matmul + layerBiases;
-                    tf.summary.histogram("pre_activations", logits);
+                    _tf.summary.histogram("pre_activations", logits);
                 });
             });
 
-            _softMaxTensor = tf.nn.softmax(logits, name: scoreColumnName);
+            _softMaxTensor = _tf.nn.softmax(logits, name: scoreColumnName);
 
-            tf.summary.histogram("activations", _softMaxTensor);
+            _tf.summary.histogram("activations", _softMaxTensor);
             if (!isTraining)
                 return (null, null, _labelTensor, _softMaxTensor);
 
             Tensor crossEntropyMean = null;
-            tf_with(tf.name_scope("cross_entropy"), delegate
+            tf_with(_tf.name_scope("cross_entropy"), delegate
             {
-                crossEntropyMean = tf.losses.sparse_softmax_cross_entropy(
+                crossEntropyMean = _tf.losses.sparse_softmax_cross_entropy(
                     labels: _labelTensor, logits: logits);
             });
 
-            tf.summary.scalar("cross_entropy", crossEntropyMean);
+            _tf.summary.scalar("cross_entropy", crossEntropyMean);
 
-            tf_with(tf.name_scope("train"), delegate
+            tf_with(_tf.name_scope("train"), delegate
             {
-                var optimizer = tf.train.GradientDescentOptimizer(learningRate);
+                var optimizer = _tf.train.GradientDescentOptimizer(learningRate);
                 _trainStep = optimizer.minimize(crossEntropyMean);
             });
 
@@ -599,11 +600,11 @@ namespace Microsoft.ML.Transforms
             string scoreColumnName, float learningRate, int classCount)
         {
             _bottleneckTensor = Graph.OperationByName(_bottleneckOperationName);
-            tf_with(Graph.as_default(), delegate
+            using (var graph = Graph.as_default())
             {
                 (_trainStep, _crossEntropy, _labelTensor, _softMaxTensor) =
                     AddFinalRetrainOps(classCount, labelColumn, scoreColumnName, learningRate, _bottleneckTensor, true);
-            });
+            }
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -618,7 +619,7 @@ namespace Microsoft.ML.Transforms
             out string[] outputs, out bool addBatchDimensionInput,
             out string labelColumn, out string checkpointName, out Architecture arch,
             out string scoreColumnName, out string predictedColumnName, out float learningRate, out int classCount, out string predictionTensorName, out string softMaxTensorName,
-            out string jpegDataTensorName, out string resizeTensorName)
+            out string imageDataTensorName, out string resizeTensorName)
         {
             addBatchDimensionInput = ctx.Reader.ReadBoolByte();
 
@@ -643,7 +644,7 @@ namespace Microsoft.ML.Transforms
             classCount = ctx.Reader.ReadInt32();
             predictionTensorName = ctx.Reader.ReadString();
             softMaxTensorName = ctx.Reader.ReadString();
-            jpegDataTensorName = ctx.Reader.ReadString();
+            imageDataTensorName = ctx.Reader.ReadString();
             resizeTensorName = ctx.Reader.ReadString();
         }
 
@@ -651,7 +652,7 @@ namespace Microsoft.ML.Transforms
             string[] inputColumnNames, string modelLocation,
             bool? addBatchDimensionInput, int batchSize, string labelColumnName, string finalModelPrefix, Architecture arch,
             string scoreColumnName, string predictedLabelColumnName, float learningRate, DataViewSchema inputSchema, int? classCount = null, bool loadModel = false,
-            string predictionTensorName = null, string softMaxTensorName = null, string jpegDataTensorName = null, string resizeTensorName = null)
+            string predictionTensorName = null, string softMaxTensorName = null, string imageDataTensorName = null, string resizeTensorName = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageClassificationTransformer)))
 
         {
@@ -672,7 +673,7 @@ namespace Microsoft.ML.Transforms
             _learningRate = learningRate;
             _softmaxTensorName = softMaxTensorName;
             _predictionTensorName = predictionTensorName;
-            _jpegDataTensorName = jpegDataTensorName;
+            _imageDataTensorName = imageDataTensorName;
             _resizedImageTensorName = resizeTensorName;
 
             if (classCount == null)
@@ -706,15 +707,15 @@ namespace Microsoft.ML.Transforms
 
             if (loadModel == false)
             {
-                (_jpegData, _resizedImage) = AddJpegDecoding(299, 299, 3);
-                _jpegDataTensorName = _jpegData.name;
+                (_imageData, _resizedImage) = AddImageDecoding(299, 299, 3);
+                _imageDataTensorName = _imageData.name;
                 _resizedImageTensorName = _resizedImage.name;
 
                 // Add transfer learning layer.
                 AddTransferLearningLayer(labelColumnName, scoreColumnName, learningRate, _classCount);
 
                 // Initialize the variables.
-                new Runner(_session).AddOperation(tf.global_variables_initializer()).Run();
+                new Runner(_session).AddOperation(_tf.global_variables_initializer()).Run();
 
                 // Add evaluation layer.
                 (_evaluationStep, _) = AddEvaluationStep(_softMaxTensor, _labelTensor);
@@ -751,13 +752,13 @@ namespace Microsoft.ML.Transforms
             ctx.Writer.Write(_classCount);
             ctx.Writer.Write(_predictionTensorName);
             ctx.Writer.Write(_softmaxTensorName);
-            ctx.Writer.Write(_jpegDataTensorName);
+            ctx.Writer.Write(_imageDataTensorName);
             ctx.Writer.Write(_resizedImageTensorName);
             Status status = new Status();
             var buffer = _session.graph.ToGraphDef(status);
             ctx.SaveBinaryStream("TFModel", w =>
             {
-                w.WriteByteArray(buffer.Data);
+                w.WriteByteArray(buffer.MemoryBlock.ToArray());
             });
             status.Check(true);
         }
@@ -830,8 +831,8 @@ namespace Microsoft.ML.Transforms
                             _imagePathGetter(ref _imagePath);
                             var processedTensor = _imageProcessor.ProcessImage(_imagePath.ToString());
                             var outputTensor = _runner.AddInput(processedTensor, 0).Run();
-                            ClassProbabilities = outputTensor[0].Data<float>();
-                            PredictedLabel = (UInt32)outputTensor[1].Data<long>()[0];
+                            ClassProbabilities = outputTensor[0].ToArray<float>();
+                            PredictedLabel = (UInt32)outputTensor[1].ToArray<long>()[0];
                             outputTensor[0].Dispose();
                             outputTensor[1].Dispose();
                             processedTensor.Dispose();
@@ -1023,7 +1024,7 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Location of the TensorFlow model.
             /// </summary>
-            [Argument(ArgumentType.Required, HelpText = "TensorFlow model used by the transform. Please see https://www.tensorflow.org/mobile/prepare_models for more details.", SortOrder = 0)]
+            [Argument(ArgumentType.Required, HelpText = "TensorFlow model used by the transform. Please see https://www.tf.org/mobile/prepare_models for more details.", SortOrder = 0)]
             public string ModelLocation;
 
             /// <summary>
