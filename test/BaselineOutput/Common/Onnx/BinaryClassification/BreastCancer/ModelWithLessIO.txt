@@ -786,7 +786,7 @@
         "name": "PredictedLabel0",
         "type": {
           "tensorType": {
-            "elemType": "FLOAT",
+            "elemType": "BOOL",
             "shape": {
               "dim": [
                 {
