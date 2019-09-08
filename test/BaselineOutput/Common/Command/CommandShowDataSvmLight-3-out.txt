@@ -8,6 +8,6 @@
 #@   col=Features:R4:4-6
 #@ }
 Label	Weight	GroupId	Comment	aurora	beachwood	chagrin
-1	1	1	""	3.14159	123	0
--1	1	5	""	0	345	-21
+-1	1	5	2:1	4:2
+1	1	5	4:5
 Wrote 2 rows of length 7

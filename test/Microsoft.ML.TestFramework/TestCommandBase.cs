@@ -2173,6 +2173,7 @@ namespace Microsoft.ML.RunTests
                 "# What a nice full line comment",
                 "1 cost:0.5\t2:3.14159",
             });
+            var pathA = path.Path;
             const string chooseXf = " xf=select{keepcol=Label keepcol=Weight keepcol=GroupId keepcol=Comment keepcol=Features}";
             TestReloadedCore("showdata", path.Path, "loader=svm{size=5}" + chooseXf, "", "");
 
@@ -2190,7 +2191,7 @@ namespace Microsoft.ML.RunTests
                 "1 qid:1 aurora:3.14159 beachwood:123",
                 "-1 qid:5 beachwood:345 chagrin:-21",
             });
-            TestReloadedCore("showdata", path.Path, "loader=svm{xf=term}" + chooseXf, "", "");
+            TestReloadedCore("showdata", path.Path, "loader=svm{indices=names}" + chooseXf, "", "");
 
             // We reload the model, but on a new set of data. The "euclid" key should be
             // ignored as it would not have been detected by the term transform.
@@ -2202,24 +2203,28 @@ namespace Microsoft.ML.RunTests
             });
             TestInCore("showdata", path.Path, modelPath, "");
 
-            // Test with a blank left field to see that it still works. In order to have the
-            // term transform not ignore this blank field, we concat it with a small string.
-            // This also incidentally tests the multi-transform functionality.
             _step++;
             path = CreateOutputPath("DataD.txt");
             File.WriteAllLines(path.Path, new string[] { "1 aurora:2 :3" });
-            TestReloadedCore("showdata", path.Path, "loader=svm{xf=term}" + chooseXf, "", "");
+            TestReloadedCore("showdata", path.Path, "loader=svm{indices=names}" + chooseXf, "", "");
 
             _step++;
-            path = CreateOutputPath("DataE.txt");
-            File.WriteAllLines(path.Path, new string[]
-            {
-                "1 1:2 2:3",
-                "-1:2 2:4 1:1",
-                "-1:3:silly 1:2 2:3"
-            });
-            TestCore("showdata", path.Path, "loader=svm{lw+}", "");
 
+            // If we specify the size parameter, and zero-based feature indices, both indices 5 and 6 should
+            // not appear.
+            TestReloadedCore("showdata", pathA, "loader=svm{size=5 indices=zerobased}" + chooseXf, "", "");
+
+            Done();
+        }
+
+        [Fact]
+        public void CommandSaveDataSvmLight()
+        {
+            string pathData = GetDataPath("breast-cancer-withheader.txt");
+            OutputPath dataPath = CreateOutputPath("data.txt");
+            TestReloadedCore("savedata", pathData, "loader=text{header+}", "saver=svmlight{b+}", null, dataPath.Arg("dout"));
+            dataPath = CreateOutputPath("data-0.txt");
+            TestReloadedCore("savedata", pathData, "loader=text{header+}", "saver=svmlight{zero+}", null, dataPath.Arg("dout"));
             Done();
         }
     }

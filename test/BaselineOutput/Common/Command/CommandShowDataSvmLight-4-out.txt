@@ -5,9 +5,8 @@
 #@   col=Weight:R4:1
 #@   col=GroupId:U8[18446744073709551614]:2
 #@   col=Comment:TX:3
-#@   col=Features:R4:4-6
+#@   col=Features:R4:4-4
 #@ }
-Label	Weight	GroupId	Comment	aurora	beachwood	chagrin
-1	1	1	""	3.14159	123	0
--1	1	5	""	0	345	-21
-Wrote 2 rows of length 7
+Label	Weight	GroupId	Comment	aurora
+1	1		""	2
+Wrote 1 rows of length 5
