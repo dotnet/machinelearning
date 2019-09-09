@@ -29,7 +29,7 @@
     <PkgDir>$(RepoRoot)pkg/</PkgDir>
 
     <!-- Output directories -->
-    <BinDir Condition="'$(BinDir)'==''">$(RepoRoot)bin/</BinDir>
+    <BinDir Condition="'$(BinDir)'==''">$(RepoRoot)bin\</BinDir>
     <BaseOutputPath Condition="'$(BaseOutputPath)'==''">$(BinDir)</BaseOutputPath>
     <ObjDir Condition="'$(ObjDir)'==''">$(BinDir)obj/</ObjDir>
     <RootIntermediateOutputPath Condition="'$(RootIntermediateOutputPath)'==''">$(ObjDir)</RootIntermediateOutputPath>
