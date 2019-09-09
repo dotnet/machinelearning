@@ -384,9 +384,9 @@ namespace Microsoft.ML.Transforms
 
             Tensor[] tensor = runner.Run();
             var buffer = tensor[0].Data();
-            loss = tensor.Length > 0 && tensor[0] != IntPtr.Zero ? (float)tensor[0].Data<float>()[0] : 0.0f;
-            metric = tensor.Length > 1 && tensor[1] != IntPtr.Zero ? (float)tensor[1].Data<float>()[0] : 0.0f;
-            var b = tensor.Length > 2 && tensor[2] != IntPtr.Zero ? (float[])tensor[2].Data<float>() : null;
+            loss = tensor.Length > 0 && tensor[0] != IntPtr.Zero ? (float)tensor[0].ToArray<float>()[0] : 0.0f;
+            metric = tensor.Length > 1 && tensor[1] != IntPtr.Zero ? (float)tensor[1].ToArray<float>()[0] : 0.0f;
+            var b = tensor.Length > 2 && tensor[2] != IntPtr.Zero ? (float[])tensor[2].ToArray<float>() : null;
             return (loss, metric);
         }
 
@@ -905,7 +905,7 @@ namespace Microsoft.ML.Transforms
 
                             var editor = VBufferEditor.Create(ref dst, (int)tensorSize);
 
-                            DnnUtils.FetchData<T>(tensor.Data<T>(), editor.Values);
+                            DnnUtils.FetchData<T>(tensor.ToArray<T>(), editor.Values);
                             dst = editor.Commit();
                         };
                         return valuegetter;
@@ -998,13 +998,13 @@ namespace Microsoft.ML.Transforms
                 if (_keyType)
                 {
                     var tensor = new Tensor(new[] { Convert.ToInt64(scalar) - 1 });
-                    tensor.SetShape(_tfShape);
+                    tensor.set_shape(_tfShape);
                     return tensor;
                 }
                 else
                 {
                     var tensor = new Tensor(new[] { scalar });
-                    tensor.SetShape(_tfShape);
+                    tensor.set_shape(_tfShape);
                     return tensor;
                 }
             }
