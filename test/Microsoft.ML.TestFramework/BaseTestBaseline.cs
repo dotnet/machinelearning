@@ -571,6 +571,9 @@ namespace Microsoft.ML.RunTests
 
         public bool CompareNumbersWithTolerance(double expected, double actual, int? iterationOnCollection = null, int digitsOfPrecision = DigitsOfPrecision)
         {
+            if (double.IsNaN(expected) && double.IsNaN(actual))
+                return true;
+
             // this follows the IEEE recommendations for how to compare floating point numbers
             double allowedVariance = Math.Pow(10, -digitsOfPrecision);
             double delta = Round(expected, digitsOfPrecision) - Round(actual, digitsOfPrecision);
