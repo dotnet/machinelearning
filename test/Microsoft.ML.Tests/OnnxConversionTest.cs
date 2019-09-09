@@ -41,6 +41,11 @@ namespace Microsoft.ML.Tests
         {
         }
 
+        private bool IsOnnxRuntimeSupported()
+        {
+            return Environment.Is64BitProcess && (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || AttributeHelpers.CheckLibcVersionGreaterThanMinimum(new System.Version(2, 23)));
+        }
+
         /// <summary>
         /// In this test, we convert a trained <see cref="TransformerChain"/> into ONNX <see cref="ModelProto"/> file and then
         /// call <see cref="OnnxScoringEstimator"/> to evaluate that file. The outputs of <see cref="OnnxScoringEstimator"/> are checked against the original
@@ -777,13 +782,16 @@ namespace Microsoft.ML.Tests
             var mlnetData = mlContext.Data.CreateEnumerable<TransformedDataPoint>(transformedData, false);
             var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
 
+            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "Transforms");
             var onnxFileName = "IndicateMissingValues.onnx";
+            var onnxTextName = "IndicateMissingValues.txt";
             var onnxModelPath = GetOutputPath(onnxFileName);
+            var onnxTextPath = GetOutputPath(subDir, onnxTextName);
 
-            SaveOnnxModel(onnxModel, onnxModelPath, null);
+            SaveOnnxModel(onnxModel, onnxModelPath, onnxTextPath);
 
             // Compare results produced by ML.NET and ONNX's runtime.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
+            if (IsOnnxRuntimeSupported())
             {
                 // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
                 string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
@@ -794,6 +802,7 @@ namespace Microsoft.ML.Tests
                 CompareSelectedVectorColumns<int>(model.LastTransformer.ColumnPairs[0].outputColumnName, outputNames[1], transformedData, onnxResult);
             }
 
+            CheckEquality(subDir, onnxTextName, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
