@@ -53,8 +53,8 @@ namespace Microsoft.ML.Data
         /// </summary>
         internal static DataViewType GetDataViewType(Type type, IEnumerable<Attribute> typeAttributes = null)
         {
-            //Filter attributes as we only care about TypeAttributes
-            typeAttributes = typeAttributes == null ? typeAttributes : typeAttributes.Where(attr => attr.GetType().IsSubclassOf(typeof(TypeAttribute)));
+            //Filter attributes as we only care about DataViewTypeAttributes
+            typeAttributes = typeAttributes == null ? typeAttributes : typeAttributes.Where(attr => attr.GetType().IsSubclassOf(typeof(DataViewTypeAttribute)));
             lock (_lock)
             {
                 // Compute the ID of type with extra attributes.
@@ -75,8 +75,8 @@ namespace Microsoft.ML.Data
         /// </summary>
         internal static bool Knows(Type type, IEnumerable<Attribute> typeAttributes = null)
         {
-            //Filter attributes as we only care about TypeAttributes
-            typeAttributes = typeAttributes == null ? typeAttributes : typeAttributes.Where(attr => attr.GetType().IsSubclassOf(typeof(TypeAttribute)));
+            //Filter attributes as we only care about DataViewTypeAttributes
+            typeAttributes = typeAttributes == null ? typeAttributes : typeAttributes.Where(attr => attr.GetType().IsSubclassOf(typeof(DataViewTypeAttribute)));
             lock (_lock)
             {
                 // Compute the ID of type with extra attributes.
@@ -121,9 +121,9 @@ namespace Microsoft.ML.Data
             {
                 foreach (var attr in typeAttributes)
                 {
-                    if (!attr.GetType().IsSubclassOf(typeof(TypeAttribute)))
+                    if (!attr.GetType().IsSubclassOf(typeof(DataViewTypeAttribute)))
                     {
-                        throw Contracts.ExceptParam(nameof(type), $"Type {type} has an attribute that is not of TypeAttribute.");
+                        throw Contracts.ExceptParam(nameof(type), $"Type {type} has an attribute that is not of DataViewTypeAttribute.");
                     }
                 }
             }
