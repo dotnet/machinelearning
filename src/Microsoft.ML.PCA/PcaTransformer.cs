@@ -616,15 +616,12 @@ namespace Microsoft.ML.Transforms
                         continue;
                     }
 
-                    if (!SaveAsOnnxCore(ctx, i, ctx.GetVariableName(inputColumnName),
-                        ctx.AddIntermediateVariable(transformInfo.OutputType, outputColumnName)))
-                    {
-                        ctx.RemoveColumn(outputColumnName, true);
-                    }
+                    var dstVariableName = ctx.AddIntermediateVariable(transformInfo.OutputType, outputColumnName);
+                    SaveAsOnnxCore(ctx, i, ctx.GetVariableName(inputColumnName), dstVariableName);
                 }
             }
 
-            private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
+            private void SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
             {
                 Host.CheckValue(ctx, nameof(ctx));
 
@@ -666,8 +663,6 @@ namespace Microsoft.ML.Transforms
                 gemmNode.AddAttribute("beta", -1.0);
                 gemmNode.AddAttribute("transA", 1);
                 gemmNode.AddAttribute("transB", 1);
-
-                return true;
             }
         }
 
