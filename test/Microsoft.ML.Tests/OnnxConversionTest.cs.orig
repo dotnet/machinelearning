@@ -663,6 +663,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
+<<<<<<< Updated upstream
         [Fact]
         public void OnnxTypeConversionTest()
         {
@@ -738,6 +739,65 @@ namespace Microsoft.ML.Tests
                     CompareResults(model.ColumnPairs[0].outputColumnName, outputNames[1], mlnetResult, onnxResult);
                 }
             }
+        }
+
+||||||| merged common ancestors
+=======
+        private class DataPoint
+        {
+            [VectorType(3)]
+            public float[] Features { get; set; }
+        }
+
+        private class TransformedDataPoint : DataPoint, IEquatable<TransformedDataPoint>
+        {
+            [VectorType(3)]
+            public int[] MissingIndicator { get; set; }
+
+            public bool Equals(TransformedDataPoint other)
+            {
+                return Enumerable.SequenceEqual(MissingIndicator, other.MissingIndicator);
+            }
+        }
+
+        [Fact]
+        void IndicateMissingValuesOnnxConversionTest()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            var samples = new List<DataPoint>()
+            {
+                new DataPoint() { Features = new float[3] {1, 1, 0}, },
+                new DataPoint() { Features = new float[3] {0, float.NaN, 1}, },
+                new DataPoint() { Features = new float[3] {-1, float.NaN, float.PositiveInfinity}, },
+            };
+            var dataView = mlContext.Data.LoadFromEnumerable(samples);
+
+            var pipeline = mlContext.Transforms.IndicateMissingValues(new[] { new InputOutputColumnPair("MissingIndicator", "Features"), })
+                            .Append(mlContext.Transforms.Conversion.ConvertType("MissingIndicator", outputKind: DataKind.Int32));
+
+            var model = pipeline.Fit(dataView);
+            var transformedData = model.Transform(dataView);
+            var mlnetData = mlContext.Data.CreateEnumerable<TransformedDataPoint>(transformedData, false);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+            var onnxFileName = "IndicateMissingValues.onnx";
+            var onnxModelPath = GetOutputPath(onnxFileName);
+
+            SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+            // Compare results produced by ML.NET and ONNX's runtime.
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
+            {
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(dataView);
+                var onnxResult = onnxTransformer.Transform(dataView);
+                CompareSelectedVectorColumns<int>("MissingIndicator", "MissingIndicator1", transformedData, onnxResult);
+            }
+
             Done();
         }
 
@@ -780,6 +840,8 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
+
+>>>>>>> Stashed changes
         private void CreateDummyExamplesToMakeComplierHappy()
         {
             var dummyExample = new BreastCancerFeatureVector() { Features = null };
@@ -788,6 +850,7 @@ namespace Microsoft.ML.Tests
             var dummyExample3 = new SmallSentimentExample() { Tokens = null };
         }
 
+<<<<<<< Updated upstream
         private void CompareResults(string leftColumnName, string rightColumnName, IDataView left, IDataView right)
         {
             var leftColumn = left.Schema[leftColumnName];
@@ -866,11 +929,39 @@ namespace Microsoft.ML.Tests
             }
         }
 
+||||||| merged common ancestors
+=======
+        private void CompareSelectedVectorColumns<T>(string leftColumnName, string rightColumnName, IDataView left, IDataView right)
+        {
+            var leftColumn = left.Schema[leftColumnName];
+            var rightColumn = right.Schema[rightColumnName];
+
+            using (var expectedCursor = left.GetRowCursor(leftColumn))
+            using (var actualCursor = right.GetRowCursor(rightColumn))
+            {
+                VBuffer<T> expected = default;
+                VBuffer<T> actual = default;
+                var expectedGetter = expectedCursor.GetGetter<VBuffer<T>>(leftColumn);
+                var actualGetter = actualCursor.GetGetter<VBuffer<T>>(rightColumn);
+                while (expectedCursor.MoveNext() && actualCursor.MoveNext())
+                {
+                    expectedGetter(ref expected);
+                    actualGetter(ref actual);
+
+                    Assert.Equal(expected.Length, actual.Length);
+                    for (int i = 0; i < expected.Length; ++i)
+                        Assert.Equal(expected.GetItemOrDefault(i), actual.GetItemOrDefault(i));
+                }
+            }
+        }
+
+>>>>>>> Stashed changes
         private void CompareSelectedR4VectorColumns(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
         {
             var leftColumn = left.Schema[leftColumnName];
             var rightColumn = right.Schema[rightColumnName];
 
+            float prec = (float)(1.0 * Math.Pow(10, -precision));
             using (var expectedCursor = left.GetRowCursor(leftColumn))
             using (var actualCursor = right.GetRowCursor(rightColumn))
             {
@@ -886,12 +977,12 @@ namespace Microsoft.ML.Tests
                     Assert.Equal(expected.Length, actual.Length);
                     for (int i = 0; i < expected.Length; ++i)
                     {
-                        // We are using float values. But the Assert.Equal function takes doubles.
-                        // And sometimes the converted doubles are different in their precision.
+                        // We are using float values. But the Assert.Equal function takes doubles. 
+                        // And sometimes the converted doubles are different in their precision. 
                         // So make sure we compare floats
                         float exp = expected.GetItemOrDefault(i);
                         float act = actual.GetItemOrDefault(i);
-                        CompareNumbersWithTolerance(exp, act, null, precision);
+                        Assert.True((Math.Abs(exp - act) < prec) || (float.IsNaN(exp) && float.IsNaN(act))); 
                     }
                 }
             }
