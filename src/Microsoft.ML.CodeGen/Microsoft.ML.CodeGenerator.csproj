@@ -107,5 +107,12 @@
       <DependentUpon>ModelOutputClass.tt</DependentUpon>
     </Compile>
   </ItemGroup>
+  
+  <Import Project="..\mlnet\mlnet.Build.props" />
 
+  <Target Name="PrepareMlNetCLIPackageAssets" BeforeTargets="PreparePackageAssets">
+    <ItemGroup>
+      <PackageAsset Include="$(TargetPath)" RelativePath="$(MlNetPackagePath)" />
+    </ItemGroup>
+  </Target>
 </Project>
