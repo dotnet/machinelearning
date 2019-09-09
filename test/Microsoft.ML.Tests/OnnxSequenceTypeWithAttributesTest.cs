@@ -1,7 +1,9 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System.Collections.Generic;
 using System.Drawing;
-using System.Text;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Transforms.Image;
@@ -15,57 +17,51 @@ namespace Microsoft.ML.Tests
 {
     public class OnnxSequenceTypeWithAttributesTest : BaseTestBaseline
     {
-        public class ImagePrediction
+        public class OutputObj
         {
-            [ColumnName("classLabel")]
-            [VectorType]
-            public string[] Prediction;
-
-            [ColumnName("loss")]
+            [ColumnName("output")]
             [OnnxSequenceType(typeof(IDictionary<string, float>))]
-            public IEnumerable<IDictionary<string, float>> Loss;
+            public IEnumerable<IDictionary<string, float>> Output;
         }
-        public class ImageInput
+        public class FloatInput
         {
-            [ImageType(224, 224)]
-            public Bitmap Image { get; set; }
+            [ColumnName("input")]
+            [VectorType(3)]
+            public float[] Input { get; set; }
         }
 
         public OnnxSequenceTypeWithAttributesTest(ITestOutputHelper output) : base(output)
         {
         }
-        public static PredictionEngine<ImageInput, ImagePrediction> LoadModel(string onnxModelFilePath)
+        public static PredictionEngine<FloatInput, OutputObj> LoadModel(string onnxModelFilePath)
         {
             var ctx = new MLContext();
-            var dataView = ctx.Data.LoadFromEnumerable(new List<ImageInput>());
+            var dataView = ctx.Data.LoadFromEnumerable(new List<FloatInput>());
 
-            var pipeline = ctx.Transforms.ResizeImages(
-                                resizing: ImageResizingEstimator.ResizingKind.Fill,
-                                outputColumnName: "data",
-                                imageWidth: 224,
-                                imageHeight: 224,
-                                inputColumnName: nameof(ImageInput.Image))
-                            .Append(ctx.Transforms.ExtractPixels(outputColumnName: "data"))
-                            .Append(ctx.Transforms.ApplyOnnxModel(
+            var pipeline = ctx.Transforms.ApplyOnnxModel(
                                 modelFile: onnxModelFilePath,
-                                outputColumnNames: new[] { "classLabel", "loss" }, inputColumnNames: new[] { "data" }));
+                                outputColumnNames: new[] { "output" }, inputColumnNames: new[] { "input" });
 
             var model = pipeline.Fit(dataView);
-            return ctx.Model.CreatePredictionEngine<ImageInput, ImagePrediction>(model);
+            return ctx.Model.CreatePredictionEngine<FloatInput, OutputObj>(model);
         }
 
         [Fact]
         public void OnnxSequenceTypeWithColumnNameAttributeTest()
         {
-            var modelFile = @"column_name_test/model.onnx";
+            var modelFile = @"zipmap/TestZipMapString.onnx";
             var predictor = LoadModel(modelFile);
-            string image_path = Path.Combine(DataDir, "images", "banana.jpg");
 
-            var output = predictor.Predict(new ImageInput { Image = (Bitmap)Image.FromFile(image_path) });
-            Assert.NotEmpty(output.Prediction);
-            var loss = output.Loss.FirstOrDefault();
-            Assert.NotEmpty(loss);
-            Assert.True(loss[output.Prediction[0]] > 0, "Invalid output");
+            FloatInput input = new FloatInput() { Input = new float[] { 1.0f, 2.0f, 3.0f } };
+            var output = predictor.Predict(input);
+            var onnx_out = output.Output.FirstOrDefault();
+            Assert.True(onnx_out.Count == 3, "Output missing data.");
+            var keys = new List<string>(onnx_out.Keys);
+            for(var i =0; i < onnx_out.Count; ++i)
+            {
+                Assert.Equal(onnx_out[keys[i]], input.Input[i]);
+            }
+
         }
     }
 }
