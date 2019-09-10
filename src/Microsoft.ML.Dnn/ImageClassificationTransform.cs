@@ -15,9 +15,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Dnn;
-using NumSharp;
 using Tensorflow;
-using Tensorflow.Framework;
 using Tensorflow.Summaries;
 using static Microsoft.ML.Data.TextLoader;
 using static Microsoft.ML.Transforms.Dnn.DnnUtils;
@@ -55,9 +53,9 @@ namespace Microsoft.ML.Transforms
         private Tensor _evaluationStep;
         private Tensor _prediction;
         private Tensor _bottleneckInput;
-        private Tensor _imageData;
+        private Tensor _jpegData;
         private Tensor _resizedImage;
-        private string _imageDataTensorName;
+        private string _jpegDataTensorName;
         private string _resizedImageTensorName;
         private string _inputTensorName;
         private readonly int _classCount;
@@ -112,7 +110,7 @@ namespace Microsoft.ML.Transforms
             GetModelInfo(env, ctx, out string[] inputs, out string[] outputs, out bool addBatchDimensionInput,
                 out string labelColumn, out string checkpointName, out Architecture arch, out string scoreColumnName,
                 out string predictedColumnName, out float learningRate, out int classCount, out string predictionTensorName, out string softMaxTensorName,
-                out string imageDataTensorName, out string resizeTensorName);
+                out string jpegDataTensorName, out string resizeTensorName);
 
             byte[] modelBytes = null;
             if (!ctx.TryLoadBinaryStream("TFModel", r => modelBytes = r.ReadByteArray()))
@@ -121,7 +119,7 @@ namespace Microsoft.ML.Transforms
             return new ImageClassificationTransformer(env, DnnUtils.LoadTFSession(env, modelBytes), outputs, inputs,
                 null, addBatchDimensionInput, 1, labelColumn, checkpointName, arch,
                 scoreColumnName, predictedColumnName, learningRate, null, classCount, true, predictionTensorName,
-                softMaxTensorName, imageDataTensorName, resizeTensorName);
+                softMaxTensorName, jpegDataTensorName, resizeTensorName);
 
         }
 
@@ -172,23 +170,23 @@ namespace Microsoft.ML.Transforms
             Host.CheckNonWhiteSpace(options.LabelColumn, nameof(options.LabelColumn));
             Host.CheckNonWhiteSpace(options.TensorFlowLabel, nameof(options.TensorFlowLabel));
 
-            if (_session.graph.OperationByName(options.TensorFlowLabel) == null)
+            if (_session.graph.OperationByName(_labelTensor.name.Split(':')[0]) == null)
                 throw Host.ExceptParam(nameof(options.TensorFlowLabel), $"'{options.TensorFlowLabel}' does not exist in the model");
         }
 
-        private (Tensor, Tensor) AddImageDecoding(int height, int width, int depth)
+        private (Tensor, Tensor) AddJpegDecoding(int height, int width, int depth)
         {
             // height, width, depth
             var inputDim = (height, width, depth);
-            var imageData = tf.placeholder(tf.@string, name: "DecodeImageInput");
-            var decodedImage = tf.image.decode_jpeg(imageData, channels: inputDim.Item3);
+            var jpegData = tf.placeholder(tf.@string, name: "DecodeJPGInput");
+            var decodedImage = tf.image.decode_jpeg(jpegData, channels: inputDim.Item3);
             // Convert from full range of uint8 to range [0,1] of float32.
             var decodedImageAsFloat = tf.image.convert_image_dtype(decodedImage, tf.float32);
             var decodedImage4d = tf.expand_dims(decodedImageAsFloat, 0);
             var resizeShape = tf.stack(new int[] { inputDim.Item1, inputDim.Item2 });
             var resizeShapeAsInt = tf.cast(resizeShape, dtype: tf.int32);
             var resizedImage = tf.image.resize_bilinear(decodedImage4d, resizeShapeAsInt, false, "ResizeTensor");
-            return (imageData, resizedImage);
+            return (jpegData, resizedImage);
         }
 
         private sealed class ImageProcessor
@@ -198,7 +196,7 @@ namespace Microsoft.ML.Transforms
             public ImageProcessor(ImageClassificationTransformer transformer)
             {
                 _imagePreprocessingRunner = new Runner(transformer._session);
-                _imagePreprocessingRunner.AddInput(transformer._imageDataTensorName);
+                _imagePreprocessingRunner.AddInput(transformer._jpegDataTensorName);
                 _imagePreprocessingRunner.AddOutputs(transformer._resizedImageTensorName);
             }
 
@@ -329,6 +327,7 @@ namespace Microsoft.ML.Transforms
             Tensor merged = tf.summary.merge_all();
             trainWriter = tf.summary.FileWriter(Path.Combine(Directory.GetCurrentDirectory(), "train"), _session.graph);
             trainSaver = tf.train.Saver();
+            //var limit = Google.Protobuf.CodedInputStream.S
             trainSaver.save(_session, _checkpointPath);
 
             runner.AddInput(_bottleneckInput.name).AddInput(_labelTensor.name);
@@ -461,16 +460,13 @@ namespace Microsoft.ML.Transforms
             Tensor prediction = null;
             Tensor bottleneckTensor = evalGraph.OperationByName(_bottleneckOperationName);
             //tf_with<Graph>(evalGraph.as_default(), graph =>
-            using(var graph = evalGraph.as_default())
-            {
-                var (_, _, groundTruthInput, finalTensor) = AddFinalRetrainOps(classCount, options.LabelColumn,
+            //var graph = evalGraph.as_default();
+            var (_, _, groundTruthInput, finalTensor) = AddFinalRetrainOps(classCount, options.LabelColumn,
                     options.ScoreColumnName, options.LearningRate, bottleneckTensor, false);
 
                 tf.train.Saver().restore(evalSess, _checkpointPath);
                 (evaluationStep, prediction) = AddEvaluationStep(finalTensor, groundTruthInput);
-                (_imageData, _resizedImage) = AddImageDecoding(299, 299, 3);
-            }
-
+                (_jpegData, _resizedImage) = AddJpegDecoding(299, 299, 3);
             return (evalSess, _labelTensor, evaluationStep, prediction);
         }
 
@@ -502,7 +498,7 @@ namespace Microsoft.ML.Transforms
             var (sess, _, _, _) = BuildEvaluationSession(options, classCount);
             var graph = sess.graph;
             var outputGraphDef = tf.graph_util.convert_variables_to_constants(
-                sess, graph.as_graph_def(), new string[] { _softMaxTensor.name.Split(':')[0], _prediction.name.Split(':')[0], _imageData.name.Split(':')[0], _resizedImage.name.Split(':')[0] });
+                sess, graph.as_graph_def(), new string[] { _softMaxTensor.name.Split(':')[0], _prediction.name.Split(':')[0], _jpegData.name.Split(':')[0], _resizedImage.name.Split(':')[0] });
 
             string frozenModelPath = _checkpointPath + ".pb";
             File.WriteAllBytes(_checkpointPath + ".pb", outputGraphDef.ToByteArray());
@@ -602,11 +598,10 @@ namespace Microsoft.ML.Transforms
             string scoreColumnName, float learningRate, int classCount)
         {
             _bottleneckTensor = Graph.OperationByName(_bottleneckOperationName);
-            using (var graph = Graph.as_default())
-            {
-                (_trainStep, _crossEntropy, _labelTensor, _softMaxTensor) =
+            //var graph = tf.get_default_graph();
+            (_trainStep, _crossEntropy, _labelTensor, _softMaxTensor) =
                     AddFinalRetrainOps(classCount, labelColumn, scoreColumnName, learningRate, _bottleneckTensor, true);
-            }
+
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -621,7 +616,7 @@ namespace Microsoft.ML.Transforms
             out string[] outputs, out bool addBatchDimensionInput,
             out string labelColumn, out string checkpointName, out Architecture arch,
             out string scoreColumnName, out string predictedColumnName, out float learningRate, out int classCount, out string predictionTensorName, out string softMaxTensorName,
-            out string imageDataTensorName, out string resizeTensorName)
+            out string jpegDataTensorName, out string resizeTensorName)
         {
             addBatchDimensionInput = ctx.Reader.ReadBoolByte();
 
@@ -646,7 +641,7 @@ namespace Microsoft.ML.Transforms
             classCount = ctx.Reader.ReadInt32();
             predictionTensorName = ctx.Reader.ReadString();
             softMaxTensorName = ctx.Reader.ReadString();
-            imageDataTensorName = ctx.Reader.ReadString();
+            jpegDataTensorName = ctx.Reader.ReadString();
             resizeTensorName = ctx.Reader.ReadString();
         }
 
@@ -654,7 +649,7 @@ namespace Microsoft.ML.Transforms
             string[] inputColumnNames, string modelLocation,
             bool? addBatchDimensionInput, int batchSize, string labelColumnName, string finalModelPrefix, Architecture arch,
             string scoreColumnName, string predictedLabelColumnName, float learningRate, DataViewSchema inputSchema, int? classCount = null, bool loadModel = false,
-            string predictionTensorName = null, string softMaxTensorName = null, string imageDataTensorName = null, string resizeTensorName = null)
+            string predictionTensorName = null, string softMaxTensorName = null, string jpegDataTensorName = null, string resizeTensorName = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageClassificationTransformer)))
 
         {
@@ -675,7 +670,7 @@ namespace Microsoft.ML.Transforms
             _learningRate = learningRate;
             _softmaxTensorName = softMaxTensorName;
             _predictionTensorName = predictionTensorName;
-            _imageDataTensorName = imageDataTensorName;
+            _jpegDataTensorName = jpegDataTensorName;
             _resizedImageTensorName = resizeTensorName;
 
             if (classCount == null)
@@ -709,8 +704,8 @@ namespace Microsoft.ML.Transforms
 
             if (loadModel == false)
             {
-                (_imageData, _resizedImage) = AddImageDecoding(299, 299, 3);
-                _imageDataTensorName = _imageData.name;
+                (_jpegData, _resizedImage) = AddJpegDecoding(299, 299, 3);
+                _jpegDataTensorName = _jpegData.name;
                 _resizedImageTensorName = _resizedImage.name;
 
                 // Add transfer learning layer.
@@ -754,7 +749,7 @@ namespace Microsoft.ML.Transforms
             ctx.Writer.Write(_classCount);
             ctx.Writer.Write(_predictionTensorName);
             ctx.Writer.Write(_softmaxTensorName);
-            ctx.Writer.Write(_imageDataTensorName);
+            ctx.Writer.Write(_jpegDataTensorName);
             ctx.Writer.Write(_resizedImageTensorName);
             Status status = new Status();
             var buffer = _session.graph.ToGraphDef(status);
@@ -1214,6 +1209,7 @@ namespace Microsoft.ML.Transforms
         public ImageClassificationTransformer Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
+            _options.ReuseTrainSetBottleneckCachedValues = true;
             if (_transformer == null)
                 _transformer = new ImageClassificationTransformer(_host, _options, _dnnModel, input);
 

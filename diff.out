@@ -1,0 +1,2584 @@
+diff --git a/docs/samples/Microsoft.ML.Samples/Program.cs b/docs/samples/Microsoft.ML.Samples/Program.cs
+index 4c463994..4cbc56e7 100644
+--- a/docs/samples/Microsoft.ML.Samples/Program.cs
++++ b/docs/samples/Microsoft.ML.Samples/Program.cs
+@@ -15,7 +15,7 @@ namespace Microsoft.ML.Samples
+             {
+                 var sample = type.GetMethod("Example", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+ 
+-                if (sample != null)
++                if (sample != null && type.Name == "ResnetV2101TransferLearningTrainTestSplit")
+                 {
+                     Console.WriteLine(type.Name);
+                     sample.Invoke(null, null);
+diff --git a/src/Microsoft.ML.Dnn/DnnRetrainTransform.cs b/src/Microsoft.ML.Dnn/DnnRetrainTransform.cs
+index 99cbd1af..254a6929 100644
+--- a/src/Microsoft.ML.Dnn/DnnRetrainTransform.cs
++++ b/src/Microsoft.ML.Dnn/DnnRetrainTransform.cs
+@@ -235,7 +235,7 @@ namespace Microsoft.ML.Transforms
+                 inputTensor.InputType(index);
+             var tfInputShape = ((Tensor)inputTensor).TensorShape;
+ 
+-            if (isInputVector && (tfInputShape == null || (tfInputShape.NDim == 0)))
++            if (isInputVector && (tfInputShape == null || (tfInputShape.ndim == 0)))
+             {
+                 var vecType = (VectorDataViewType)type;
+                 var colTypeDims = new int[vecType.Dimensions.Length + 1];
+@@ -245,13 +245,14 @@ namespace Microsoft.ML.Transforms
+ 
+                 tfInputShape = new TensorShape(colTypeDims);
+             }
+-            if (tfInputShape.NDim != -1)
++            if (tfInputShape.ndim != -1)
+             {
+-                var newShape = new int[tfInputShape.NDim];
+-                newShape[0] = tfInputShape[0] == 0 || tfInputShape[0] == -1 ? batchSize : tfInputShape[0];
+-
+-                for (int j = 1; j < tfInputShape.NDim; j++)
+-                    newShape[j] = tfInputShape[j];
++                var newShape = new int[tfInputShape.ndim];
++                var dims = tfInputShape.dims;
++                newShape[0] = dims[0] == 0 || dims[0] == -1 ? batchSize : dims[0];
++                //var v = tfInputShape[0].Equals(0);
++                for (int j = 1; j < tfInputShape.ndim; j++)
++                    newShape[j] = dims[j];
+                 tfInputShape = new TensorShape(newShape);
+             }
+ 
+@@ -383,9 +384,9 @@ namespace Microsoft.ML.Transforms
+ 
+             Tensor[] tensor = runner.Run();
+             var buffer = tensor[0].Data();
+-            loss = tensor.Length > 0 && tensor[0] != IntPtr.Zero ? (float)tensor[0].Data<float>()[0] : 0.0f;
+-            metric = tensor.Length > 1 && tensor[1] != IntPtr.Zero ? (float)tensor[1].Data<float>()[0] : 0.0f;
+-            var b = tensor.Length > 2 && tensor[2] != IntPtr.Zero ? (float[])tensor[2].Data<float>() : null;
++            loss = tensor.Length > 0 && tensor[0] != IntPtr.Zero ? (float)tensor[0].ToArray<float>()[0] : 0.0f;
++            metric = tensor.Length > 1 && tensor[1] != IntPtr.Zero ? (float)tensor[1].ToArray<float>()[0] : 0.0f;
++            var b = tensor.Length > 2 && tensor[2] != IntPtr.Zero ? (float[])tensor[2].ToArray<float>() : null;
+             return (loss, metric);
+         }
+ 
+@@ -639,7 +640,7 @@ namespace Microsoft.ML.Transforms
+                 // i.e. the first dimension (if unknown) is assumed to be batch dimension.
+                 // If there are other dimension that are unknown the transformer will return a variable length vector.
+                 // This is the work around in absence of reshape transformer.
+-                int[] dims = shape.NDim > 0 ? shape.Dimensions.Skip(shape[0] == -1 ? 1 : 0).ToArray() : new[] { 0 };
++                int[] dims = shape.ndim > 0 ? shape.dims.Skip(shape.dims[0] == -1 ? 1 : 0).ToArray() : new[] { 0 };
+                 for (int j = 0; j < dims.Length; j++)
+                     dims[j] = dims[j] == -1 ? 0 : dims[j];
+                 if (dims == null || dims.Length == 0)
+@@ -780,7 +781,7 @@ namespace Microsoft.ML.Transforms
+                     if (type.GetItemType() != expectedType)
+                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent._inputs[i], expectedType.ToString(), type.ToString());
+                     var originalShape = _parent._tfInputShapes[i];
+-                    var shape = originalShape.Dimensions;
++                    var shape = originalShape.dims;
+ 
+                     var colTypeDims = vecType.Dimensions.Select(dim => (int)dim).ToArray();
+                     if (shape == null || (shape.Length == 0))
+@@ -811,18 +812,22 @@ namespace Microsoft.ML.Transforms
+                             throw Contracts.Except($"Input shape mismatch: Input '{_parent._inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {typeValueCount}.");
+ 
+                         // Fill in the unknown dimensions.
+-                        var l = new int[originalShape.NDim];
+-                        for (int ishape = 0; ishape < originalShape.NDim; ishape++)
+-                            l[ishape] = originalShape[ishape] == -1 ? (int)d : originalShape[ishape];
++                        var l = new int[originalShape.ndim];
++                        for (int ishape = 0; ishape < originalShape.ndim; ishape++)
++                        {
++                            var dims = originalShape.dims;
++                            l[ishape] = dims[ishape] == -1 ? (int)d : dims[ishape];
++                        }
++
+                         _fullySpecifiedShapes[i] = new TensorShape(l);
+                     }
+ 
+                     if (_parent._addBatchDimensionInput)
+                     {
+-                        var l = new int[_fullySpecifiedShapes[i].NDim + 1];
++                        var l = new int[_fullySpecifiedShapes[i].ndim + 1];
+                         l[0] = 1;
+                         for (int ishape = 1; ishape < l.Length; ishape++)
+-                            l[ishape] = _fullySpecifiedShapes[i][ishape - 1];
++                            l[ishape] = _fullySpecifiedShapes[i].dims[ishape - 1];
+                         _fullySpecifiedShapes[i] = new TensorShape(l);
+                     }
+                 }
+@@ -857,7 +862,7 @@ namespace Microsoft.ML.Transforms
+                 return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcTensorGetters, activeOutputColNames, outputCache);
+             }
+ 
+-            private Delegate MakeGetter<T>(DataViewRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache)
++            private Delegate MakeGetter<T>(DataViewRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache) where T: unmanaged
+             {
+                 Host.AssertValue(input);
+ 
+@@ -868,7 +873,7 @@ namespace Microsoft.ML.Transforms
+                         UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
+ 
+                         var tensor = outputCache.Outputs[_parent._outputs[iinfo]];
+-                        dst = tensor.Data<T>()[0];
++                        dst = tensor.ToArray<T>()[0];
+                     };
+                     return valuegetter;
+                 }
+@@ -881,7 +886,7 @@ namespace Microsoft.ML.Transforms
+                             UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
+ 
+                             var tensor = outputCache.Outputs[_parent._outputs[iinfo]];
+-                            var tensorSize = tensor.TensorShape.Dimensions.Where(x => x > 0).Aggregate((x, y) => x * y);
++                            var tensorSize = tensor.TensorShape.dims.Where(x => x > 0).Aggregate((x, y) => x * y);
+ 
+                             var editor = VBufferEditor.Create(ref dst, (int)tensorSize);
+                             DnnUtils.FetchStringData(tensor, editor.Values);
+@@ -896,11 +901,11 @@ namespace Microsoft.ML.Transforms
+                             UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
+ 
+                             var tensor = outputCache.Outputs[_parent._outputs[iinfo]];
+-                            var tensorSize = tensor.TensorShape.Dimensions.Where(x => x > 0).Aggregate((x, y) => x * y);
++                            var tensorSize = tensor.TensorShape.dims.Where(x => x > 0).Aggregate((x, y) => x * y);
+ 
+                             var editor = VBufferEditor.Create(ref dst, (int)tensorSize);
+ 
+-                            DnnUtils.FetchData<T>(tensor.Data<T>(), editor.Values);
++                            DnnUtils.FetchData<T>(tensor.ToArray<T>(), editor.Values);
+                             dst = editor.Commit();
+                         };
+                         return valuegetter;
+@@ -972,12 +977,12 @@ namespace Microsoft.ML.Transforms
+                 _tfShape = tfShape;
+                 long size = 0;
+                 _position = 0;
+-                if (tfShape.Dimensions.Length != 0)
++                if (tfShape.dims.Length != 0)
+                 {
+                     size = 1;
+-                    foreach (var dim in tfShape.Dimensions)
++                    foreach (var dim in tfShape.dims)
+                         size *= dim;
+-                    _dims = _tfShape.Dimensions.Select(x => (long)x).ToArray();
++                    _dims = _tfShape.dims.Select(x => (long)x).ToArray();
+                 }
+                 if (keyType)
+                     _bufferedDataLong = new long[size];
+@@ -993,13 +998,13 @@ namespace Microsoft.ML.Transforms
+                 if (_keyType)
+                 {
+                     var tensor = new Tensor(new[] { Convert.ToInt64(scalar) - 1 });
+-                    tensor.SetShape(_tfShape);
++                    tensor.set_shape(_tfShape);
+                     return tensor;
+                 }
+                 else
+                 {
+                     var tensor = new Tensor(new[] { scalar });
+-                    tensor.SetShape(_tfShape);
++                    tensor.set_shape(_tfShape);
+                     return tensor;
+                 }
+             }
+@@ -1095,16 +1100,16 @@ namespace Microsoft.ML.Transforms
+ 
+                 long size = 0;
+                 _position = 0;
+-                if (tfShape.Dimensions.Length != 0)
++                if (tfShape.dims.Length != 0)
+                 {
+                     size = 1;
+-                    foreach (var dim in tfShape.Dimensions)
++                    foreach (var dim in tfShape.dims)
+                         size *= dim;
+                 }
+                 _bufferedData = new T[size];
+                 _bufferedDataSize = size;
+-                if (_tfShape.Dimensions != null)
+-                    _dims = _tfShape.Dimensions.Select(x => (long)x).ToArray();
++                if (_tfShape.dims != null)
++                    _dims = _tfShape.dims.Select(x => (long)x).ToArray();
+             }
+ 
+             public Tensor GetTensor()
+diff --git a/src/Microsoft.ML.Dnn/DnnUtils.cs b/src/Microsoft.ML.Dnn/DnnUtils.cs
+index 623e1039..b7dcc7fe 100644
+--- a/src/Microsoft.ML.Dnn/DnnUtils.cs
++++ b/src/Microsoft.ML.Dnn/DnnUtils.cs
+@@ -11,7 +11,7 @@ using System.Security.Principal;
+ using Microsoft.ML.Data;
+ using Microsoft.ML.Runtime;
+ using Tensorflow;
+-using static Tensorflow.Python;
++using static Tensorflow.Binding;
+ 
+ namespace Microsoft.ML.Transforms.Dnn
+ {
+@@ -92,11 +92,12 @@ namespace Microsoft.ML.Transforms.Dnn
+ 
+         internal static Graph LoadMetaGraph(string path)
+         {
+-            return tf_with(tf.Graph().as_default(), graph =>
++            using (var graph = tf.Graph().as_default())
+             {
+                 tf.train.import_meta_graph(path);
+                 return graph;
+-            });
++            }
++            //return graph;
+         }
+ 
+         internal static Session LoadTFSessionByModelFilePath(IExceptionContext ectx, string modelFile, bool metaGraph = false)
+diff --git a/src/Microsoft.ML.Dnn/ImageClassificationTransform.cs b/src/Microsoft.ML.Dnn/ImageClassificationTransform.cs
+index 47297319..73a8326a 100644
+--- a/src/Microsoft.ML.Dnn/ImageClassificationTransform.cs
++++ b/src/Microsoft.ML.Dnn/ImageClassificationTransform.cs
+@@ -15,12 +15,14 @@ using Microsoft.ML.Internal.Utilities;
+ using Microsoft.ML.Runtime;
+ using Microsoft.ML.Transforms;
+ using Microsoft.ML.Transforms.Dnn;
++using NumSharp;
+ using Tensorflow;
++using Tensorflow.Framework;
+ using Tensorflow.Summaries;
+ using static Microsoft.ML.Data.TextLoader;
+ using static Microsoft.ML.Transforms.Dnn.DnnUtils;
+ using static Microsoft.ML.Transforms.ImageClassificationEstimator;
+-using static Tensorflow.Python;
++using static Tensorflow.Binding;
+ using Architecture = Microsoft.ML.Transforms.ImageClassificationEstimator.Architecture;
+ 
+ [assembly: LoadableClass(ImageClassificationTransformer.Summary, typeof(IDataTransform), typeof(ImageClassificationTransformer),
+@@ -53,9 +55,9 @@ namespace Microsoft.ML.Transforms
+         private Tensor _evaluationStep;
+         private Tensor _prediction;
+         private Tensor _bottleneckInput;
+-        private Tensor _jpegData;
++        private Tensor _imageData;
+         private Tensor _resizedImage;
+-        private string _jpegDataTensorName;
++        private string _imageDataTensorName;
+         private string _resizedImageTensorName;
+         private string _inputTensorName;
+         private readonly int _classCount;
+@@ -110,7 +112,7 @@ namespace Microsoft.ML.Transforms
+             GetModelInfo(env, ctx, out string[] inputs, out string[] outputs, out bool addBatchDimensionInput,
+                 out string labelColumn, out string checkpointName, out Architecture arch, out string scoreColumnName,
+                 out string predictedColumnName, out float learningRate, out int classCount, out string predictionTensorName, out string softMaxTensorName,
+-                out string jpegDataTensorName, out string resizeTensorName);
++                out string imageDataTensorName, out string resizeTensorName);
+ 
+             byte[] modelBytes = null;
+             if (!ctx.TryLoadBinaryStream("TFModel", r => modelBytes = r.ReadByteArray()))
+@@ -119,7 +121,7 @@ namespace Microsoft.ML.Transforms
+             return new ImageClassificationTransformer(env, DnnUtils.LoadTFSession(env, modelBytes), outputs, inputs,
+                 null, addBatchDimensionInput, 1, labelColumn, checkpointName, arch,
+                 scoreColumnName, predictedColumnName, learningRate, null, classCount, true, predictionTensorName,
+-                softMaxTensorName, jpegDataTensorName, resizeTensorName);
++                softMaxTensorName, imageDataTensorName, resizeTensorName);
+ 
+         }
+ 
+@@ -174,19 +176,19 @@ namespace Microsoft.ML.Transforms
+                 throw Host.ExceptParam(nameof(options.TensorFlowLabel), $"'{options.TensorFlowLabel}' does not exist in the model");
+         }
+ 
+-        private (Tensor, Tensor) AddJpegDecoding(int height, int width, int depth)
++        private (Tensor, Tensor) AddImageDecoding(int height, int width, int depth)
+         {
+             // height, width, depth
+             var inputDim = (height, width, depth);
+-            var jpegData = tf.placeholder(tf.@string, name: "DecodeJPGInput");
+-            var decodedImage = tf.image.decode_jpeg(jpegData, channels: inputDim.Item3);
++            var imageData = tf.placeholder(tf.@string, name: "DecodeImageInput");
++            var decodedImage = tf.image.decode_jpeg(imageData, channels: inputDim.Item3);
+             // Convert from full range of uint8 to range [0,1] of float32.
+             var decodedImageAsFloat = tf.image.convert_image_dtype(decodedImage, tf.float32);
+             var decodedImage4d = tf.expand_dims(decodedImageAsFloat, 0);
+             var resizeShape = tf.stack(new int[] { inputDim.Item1, inputDim.Item2 });
+             var resizeShapeAsInt = tf.cast(resizeShape, dtype: tf.int32);
+             var resizedImage = tf.image.resize_bilinear(decodedImage4d, resizeShapeAsInt, false, "ResizeTensor");
+-            return (jpegData, resizedImage);
++            return (imageData, resizedImage);
+         }
+ 
+         private sealed class ImageProcessor
+@@ -196,7 +198,7 @@ namespace Microsoft.ML.Transforms
+             public ImageProcessor(ImageClassificationTransformer transformer)
+             {
+                 _imagePreprocessingRunner = new Runner(transformer._session);
+-                _imagePreprocessingRunner.AddInput(transformer._jpegDataTensorName);
++                _imagePreprocessingRunner.AddInput(transformer._imageDataTensorName);
+                 _imagePreprocessingRunner.AddOutputs(transformer._resizedImageTensorName);
+             }
+ 
+@@ -243,7 +245,7 @@ namespace Microsoft.ML.Transforms
+                     var imageTensor = imageProcessor.ProcessImage(imagePathStr);
+                     runner.AddInput(imageTensor, 0);
+                     var featurizedImage = runner.Run()[0]; // Reuse memory?
+-                    writer.WriteLine(label - 1 + "," + string.Join(",", featurizedImage.Data<float>()));
++                    writer.WriteLine(label - 1 + "," + string.Join(",", featurizedImage.ToArray<float>()));
+                     featurizedImage.Dispose();
+                     imageTensor.Dispose();
+                     metrics.Bottleneck.Index++;
+@@ -378,8 +380,8 @@ namespace Microsoft.ML.Transforms
+                                     .AddInput(new Tensor(labelBatchPtr, labelTensorShape, TF_DataType.TF_INT64, labelBatchSizeInBytes), 1)
+                                     .Run();
+ 
+-                                metrics.Train.Accuracy += outputTensors[0].Data<float>()[0];
+-                                metrics.Train.CrossEntropy += outputTensors[1].Data<float>()[0];
++                                metrics.Train.Accuracy += outputTensors[0].ToArray<float>()[0];
++                                metrics.Train.CrossEntropy += outputTensors[1].ToArray<float>()[0];
+ 
+                                 outputTensors[0].Dispose();
+                                 outputTensors[1].Dispose();
+@@ -429,7 +431,7 @@ namespace Microsoft.ML.Transforms
+                                 .AddInput(new Tensor(labelBatchPtr, labelTensorShape, TF_DataType.TF_INT64, labelBatchSizeInBytes), 1)
+                                 .Run();
+ 
+-                            metrics.Train.Accuracy += outputTensors[0].Data<float>()[0];
++                            metrics.Train.Accuracy += outputTensors[0].ToArray<float>()[0];
+                             metrics.Train.BatchProcessedCount += 1;
+                             batchIndex = 0;
+ 
+@@ -458,16 +460,16 @@ namespace Microsoft.ML.Transforms
+             Tensor evaluationStep = null;
+             Tensor prediction = null;
+             Tensor bottleneckTensor = evalGraph.OperationByName(_bottleneckOperationName);
+-
+-            tf_with(evalGraph.as_default(), graph =>
++            //tf_with<Graph>(evalGraph.as_default(), graph =>
++            using(var graph = evalGraph.as_default())
+             {
+                 var (_, _, groundTruthInput, finalTensor) = AddFinalRetrainOps(classCount, options.LabelColumn,
+                     options.ScoreColumnName, options.LearningRate, bottleneckTensor, false);
+ 
+                 tf.train.Saver().restore(evalSess, _checkpointPath);
+                 (evaluationStep, prediction) = AddEvaluationStep(finalTensor, groundTruthInput);
+-                (_jpegData, _resizedImage) = AddJpegDecoding(299, 299, 3);
+-            });
++                (_imageData, _resizedImage) = AddImageDecoding(299, 299, 3);
++            }
+ 
+             return (evalSess, _labelTensor, evaluationStep, prediction);
+         }
+@@ -500,7 +502,7 @@ namespace Microsoft.ML.Transforms
+             var (sess, _, _, _) = BuildEvaluationSession(options, classCount);
+             var graph = sess.graph;
+             var outputGraphDef = tf.graph_util.convert_variables_to_constants(
+-                sess, graph.as_graph_def(), new string[] { _softMaxTensor.name.Split(':')[0], _prediction.name.Split(':')[0], _jpegData.name.Split(':')[0], _resizedImage.name.Split(':')[0] });
++                sess, graph.as_graph_def(), new string[] { _softMaxTensor.name.Split(':')[0], _prediction.name.Split(':')[0], _imageData.name.Split(':')[0], _resizedImage.name.Split(':')[0] });
+ 
+             string frozenModelPath = _checkpointPath + ".pb";
+             File.WriteAllBytes(_checkpointPath + ".pb", outputGraphDef.ToByteArray());
+@@ -530,14 +532,14 @@ namespace Microsoft.ML.Transforms
+         private (Operation, Tensor, Tensor, Tensor) AddFinalRetrainOps(int classCount, string labelColumn,
+             string scoreColumnName, float learningRate, Tensor bottleneckTensor, bool isTraining)
+         {
+-            var (batch_size, bottleneck_tensor_size) = (bottleneckTensor.TensorShape.Dimensions[0], bottleneckTensor.TensorShape.Dimensions[1]);
++            var (batch_size, bottleneck_tensor_size) = (bottleneckTensor.TensorShape.dims[0], bottleneckTensor.TensorShape.dims[1]);
+             tf_with(tf.name_scope("input"), scope =>
+             {
+                 if (isTraining)
+                 {
+                     _bottleneckInput = tf.placeholder_with_default(
+                         bottleneckTensor,
+-                        shape: bottleneckTensor.TensorShape.Dimensions,
++                        shape: bottleneckTensor.TensorShape.dims,
+                         name: "BottleneckInputPlaceholder");
+                 }
+ 
+@@ -559,7 +561,8 @@ namespace Microsoft.ML.Transforms
+                 RefVariable layerBiases = null;
+                 tf_with(tf.name_scope("biases"), delegate
+                 {
+-                    layerBiases = tf.Variable(tf.zeros(classCount), name: "final_biases");
++                    TensorShape shape = new TensorShape(classCount);
++                    layerBiases = tf.Variable(tf.zeros(shape), name: "final_biases");
+                     VariableSummaries(layerBiases);
+                 });
+ 
+@@ -599,11 +602,11 @@ namespace Microsoft.ML.Transforms
+             string scoreColumnName, float learningRate, int classCount)
+         {
+             _bottleneckTensor = Graph.OperationByName(_bottleneckOperationName);
+-            tf_with(Graph.as_default(), delegate
++            using (var graph = Graph.as_default())
+             {
+                 (_trainStep, _crossEntropy, _labelTensor, _softMaxTensor) =
+                     AddFinalRetrainOps(classCount, labelColumn, scoreColumnName, learningRate, _bottleneckTensor, true);
+-            });
++            }
+         }
+ 
+         // Factory method for SignatureLoadDataTransform.
+@@ -618,7 +621,7 @@ namespace Microsoft.ML.Transforms
+             out string[] outputs, out bool addBatchDimensionInput,
+             out string labelColumn, out string checkpointName, out Architecture arch,
+             out string scoreColumnName, out string predictedColumnName, out float learningRate, out int classCount, out string predictionTensorName, out string softMaxTensorName,
+-            out string jpegDataTensorName, out string resizeTensorName)
++            out string imageDataTensorName, out string resizeTensorName)
+         {
+             addBatchDimensionInput = ctx.Reader.ReadBoolByte();
+ 
+@@ -643,7 +646,7 @@ namespace Microsoft.ML.Transforms
+             classCount = ctx.Reader.ReadInt32();
+             predictionTensorName = ctx.Reader.ReadString();
+             softMaxTensorName = ctx.Reader.ReadString();
+-            jpegDataTensorName = ctx.Reader.ReadString();
++            imageDataTensorName = ctx.Reader.ReadString();
+             resizeTensorName = ctx.Reader.ReadString();
+         }
+ 
+@@ -651,7 +654,7 @@ namespace Microsoft.ML.Transforms
+             string[] inputColumnNames, string modelLocation,
+             bool? addBatchDimensionInput, int batchSize, string labelColumnName, string finalModelPrefix, Architecture arch,
+             string scoreColumnName, string predictedLabelColumnName, float learningRate, DataViewSchema inputSchema, int? classCount = null, bool loadModel = false,
+-            string predictionTensorName = null, string softMaxTensorName = null, string jpegDataTensorName = null, string resizeTensorName = null)
++            string predictionTensorName = null, string softMaxTensorName = null, string imageDataTensorName = null, string resizeTensorName = null)
+             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageClassificationTransformer)))
+ 
+         {
+@@ -672,7 +675,7 @@ namespace Microsoft.ML.Transforms
+             _learningRate = learningRate;
+             _softmaxTensorName = softMaxTensorName;
+             _predictionTensorName = predictionTensorName;
+-            _jpegDataTensorName = jpegDataTensorName;
++            _imageDataTensorName = imageDataTensorName;
+             _resizedImageTensorName = resizeTensorName;
+ 
+             if (classCount == null)
+@@ -706,8 +709,8 @@ namespace Microsoft.ML.Transforms
+ 
+             if (loadModel == false)
+             {
+-                (_jpegData, _resizedImage) = AddJpegDecoding(299, 299, 3);
+-                _jpegDataTensorName = _jpegData.name;
++                (_imageData, _resizedImage) = AddImageDecoding(299, 299, 3);
++                _imageDataTensorName = _imageData.name;
+                 _resizedImageTensorName = _resizedImage.name;
+ 
+                 // Add transfer learning layer.
+@@ -751,13 +754,13 @@ namespace Microsoft.ML.Transforms
+             ctx.Writer.Write(_classCount);
+             ctx.Writer.Write(_predictionTensorName);
+             ctx.Writer.Write(_softmaxTensorName);
+-            ctx.Writer.Write(_jpegDataTensorName);
++            ctx.Writer.Write(_imageDataTensorName);
+             ctx.Writer.Write(_resizedImageTensorName);
+             Status status = new Status();
+             var buffer = _session.graph.ToGraphDef(status);
+             ctx.SaveBinaryStream("TFModel", w =>
+             {
+-                w.WriteByteArray(buffer.Data);
++                w.WriteByteArray(buffer.MemoryBlock.ToArray());
+             });
+             status.Check(true);
+         }
+@@ -830,8 +833,8 @@ namespace Microsoft.ML.Transforms
+                             _imagePathGetter(ref _imagePath);
+                             var processedTensor = _imageProcessor.ProcessImage(_imagePath.ToString());
+                             var outputTensor = _runner.AddInput(processedTensor, 0).Run();
+-                            ClassProbabilities = outputTensor[0].Data<float>();
+-                            PredictedLabel = (UInt32)outputTensor[1].Data<long>()[0];
++                            ClassProbabilities = outputTensor[0].ToArray<float>();
++                            PredictedLabel = (UInt32)outputTensor[1].ToArray<long>()[0];
+                             outputTensor[0].Dispose();
+                             outputTensor[1].Dispose();
+                             processedTensor.Dispose();
+@@ -1023,7 +1026,7 @@ namespace Microsoft.ML.Transforms
+             /// <summary>
+             /// Location of the TensorFlow model.
+             /// </summary>
+-            [Argument(ArgumentType.Required, HelpText = "TensorFlow model used by the transform. Please see https://www.tensorflow.org/mobile/prepare_models for more details.", SortOrder = 0)]
++            [Argument(ArgumentType.Required, HelpText = "TensorFlow model used by the transform. Please see https://www.tf.org/mobile/prepare_models for more details.", SortOrder = 0)]
+             public string ModelLocation;
+ 
+             /// <summary>
+diff --git a/src/Microsoft.ML.Dnn/Microsoft.ML.Dnn.csproj b/src/Microsoft.ML.Dnn/Microsoft.ML.Dnn.csproj
+index 30eb3c51..100ac6e4 100644
+--- a/src/Microsoft.ML.Dnn/Microsoft.ML.Dnn.csproj
++++ b/src/Microsoft.ML.Dnn/Microsoft.ML.Dnn.csproj
+@@ -16,7 +16,7 @@
+     <PackageReference Include="SciSharp.TensorFlow.Redist" Version="1.14.0" />
+     <PackageReference Include="System.IO.FileSystem.AccessControl" Version="$(SystemIOFileSystemAccessControl)" />
+     <PackageReference Include="System.Security.Principal.Windows" Version="$(SystemSecurityPrincipalWindows)" />
+-    <PackageReference Include="TensorFlow.NET" Version="0.10.10" />
++    <PackageReference Include="TensorFlow.NET" Version="0.11.2" />
+   </ItemGroup>
+ 
+   <ItemGroup>
+diff --git a/src/Microsoft.ML.TensorFlow/Microsoft.ML.TensorFlow.csproj b/src/Microsoft.ML.TensorFlow/Microsoft.ML.TensorFlow.csproj
+index 6b517219..d6503415 100644
+--- a/src/Microsoft.ML.TensorFlow/Microsoft.ML.TensorFlow.csproj
++++ b/src/Microsoft.ML.TensorFlow/Microsoft.ML.TensorFlow.csproj
+@@ -10,7 +10,7 @@
+   <ItemGroup>
+     <PackageReference Include="System.IO.FileSystem.AccessControl" Version="$(SystemIOFileSystemAccessControl)" />
+     <PackageReference Include="System.Security.Principal.Windows" Version="$(SystemSecurityPrincipalWindows)" />
+-    <PackageReference Include="TensorFlow.NET" Version="0.10.10" />
++    <PackageReference Include="TensorFlow.NET" Version="0.11.2" />
+   </ItemGroup>
+ 
+   <ItemGroup>
+diff --git a/src/Microsoft.ML.TensorFlow/TensorflowTransform.cs b/src/Microsoft.ML.TensorFlow/TensorflowTransform.cs
+index e1b8ef45..346521a1 100644
+--- a/src/Microsoft.ML.TensorFlow/TensorflowTransform.cs
++++ b/src/Microsoft.ML.TensorFlow/TensorflowTransform.cs
+@@ -380,7 +380,7 @@ namespace Microsoft.ML.Transforms
+                 // i.e. the first dimension (if unknown) is assumed to be batch dimension.
+                 // If there are other dimension that are unknown the transformer will return a variable length vector.
+                 // This is the work around in absence of reshape transformer.
+-                int[] dims = shape.NDim > 0 ? shape.Dimensions.Skip(shape[0] == -1 ? 1 : 0).ToArray() : new[] { 0 };
++                int[] dims = shape.ndim > 0 ? shape.dims.Skip(shape.dims[0] == -1 ? 1 : 0).ToArray() : new[] { 0 };
+                 for (int j = 0; j < dims.Length; j++)
+                     dims[j] = dims[j] == -1 ? 0 : dims[j];
+                 if (dims == null || dims.Length == 0)
+@@ -428,7 +428,7 @@ namespace Microsoft.ML.Transforms
+                 var buffer = Session.graph.ToGraphDef(status);
+                 ctx.SaveBinaryStream("TFModel", w =>
+                 {
+-                    w.WriteByteArray(buffer.Data);
++                    w.WriteByteArray(buffer.MemoryBlock.ToArray());
+                 });
+             }
+ 
+@@ -503,7 +503,7 @@ namespace Microsoft.ML.Transforms
+                     if (type.GetItemType() != expectedType)
+                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Inputs[i], expectedType.ToString(), type.ToString());
+                     var originalShape = _parent.TFInputShapes[i];
+-                    var shape = originalShape.Dimensions;
++                    var shape = originalShape.dims;
+ 
+                     var colTypeDims = vecType.Dimensions.Select(dim => (int)dim).ToArray();
+                     if (shape == null || (shape.Length == 0))
+@@ -534,18 +534,18 @@ namespace Microsoft.ML.Transforms
+                             throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {typeValueCount}.");
+ 
+                         // Fill in the unknown dimensions.
+-                        var l = new int[originalShape.NDim];
+-                        for (int ishape = 0; ishape < originalShape.NDim; ishape++)
+-                            l[ishape] = originalShape[ishape] == -1 ? (int)d : originalShape[ishape];
++                        var l = new int[originalShape.ndim];
++                        for (int ishape = 0; ishape < originalShape.ndim; ishape++)
++                            l[ishape] = originalShape.dims[ishape] == -1 ? (int)d : originalShape.dims[ishape];
+                         _fullySpecifiedShapes[i] = new TensorShape(l);
+                     }
+ 
+                     if (_parent._addBatchDimensionInput)
+                     {
+-                        var l = new int[_fullySpecifiedShapes[i].NDim + 1];
++                        var l = new int[_fullySpecifiedShapes[i].ndim + 1];
+                         l[0] = 1;
+                         for (int ishape = 1; ishape < l.Length; ishape++)
+-                            l[ishape] = _fullySpecifiedShapes[i][ishape - 1];
++                            l[ishape] = _fullySpecifiedShapes[i].dims[ishape - 1];
+                         _fullySpecifiedShapes[i] = new TensorShape(l);
+                     }
+                 }
+@@ -580,7 +580,7 @@ namespace Microsoft.ML.Transforms
+                 return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcTensorGetters, activeOutputColNames, outputCache);
+             }
+ 
+-            private Delegate MakeGetter<T>(DataViewRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache)
++            private Delegate MakeGetter<T>(DataViewRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache) where T:unmanaged
+             {
+                 Host.AssertValue(input);
+ 
+@@ -591,7 +591,7 @@ namespace Microsoft.ML.Transforms
+                         UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
+ 
+                         var tensor = outputCache.Outputs[_parent.Outputs[iinfo]];
+-                        dst = tensor.Data<T>()[0];
++                        dst = tensor.ToArray<T>()[0];
+                     };
+                     return valuegetter;
+                 }
+@@ -604,7 +604,7 @@ namespace Microsoft.ML.Transforms
+                             UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
+ 
+                             var tensor = outputCache.Outputs[_parent.Outputs[iinfo]];
+-                            var tensorSize = tensor.TensorShape.Dimensions.Where(x => x > 0).Aggregate((x, y) => x * y);
++                            var tensorSize = tensor.TensorShape.dims.Where(x => x > 0).Aggregate((x, y) => x * y);
+ 
+                             var editor = VBufferEditor.Create(ref dst, (int)tensorSize);
+                             DnnUtils.FetchStringData(tensor, editor.Values);
+@@ -619,11 +619,11 @@ namespace Microsoft.ML.Transforms
+                             UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
+ 
+                             var tensor = outputCache.Outputs[_parent.Outputs[iinfo]];
+-                            var tensorSize = tensor.TensorShape.Dimensions.Where(x => x > 0).Aggregate((x, y) => x * y);
++                            var tensorSize = tensor.TensorShape.dims.Where(x => x > 0).Aggregate((x, y) => x * y);
+ 
+                             var editor = VBufferEditor.Create(ref dst, (int)tensorSize);
+ 
+-                            DnnUtils.FetchData<T>(tensor.Data<T>(), editor.Values);
++                            DnnUtils.FetchData<T>(tensor.ToArray<T>(), editor.Values);
+                             dst = editor.Commit();
+                         };
+                         return valuegetter;
+@@ -718,10 +718,10 @@ namespace Microsoft.ML.Transforms
+                 _tfShape = tfShape;
+                 long size = 0;
+                 _position = 0;
+-                if (tfShape.Dimensions.Length != 0)
++                if (tfShape.dims.Length != 0)
+                 {
+                     size = 1;
+-                    foreach (var dim in tfShape.Dimensions)
++                    foreach (var dim in tfShape.dims)
+                         size *= dim;
+                 }
+                 _bufferedData = new T[size];
+@@ -732,7 +732,7 @@ namespace Microsoft.ML.Transforms
+                 var scalar = default(T);
+                 _srcgetter(ref scalar);
+                  var tensor = new Tensor(new[] { scalar });
+-                tensor.SetShape(_tfShape);
++                tensor.set_shape(_tfShape);
+                 return tensor;
+             }
+ 
+@@ -771,15 +771,15 @@ namespace Microsoft.ML.Transforms
+ 
+                 long size = 0;
+                 _position = 0;
+-                if (tfShape.Dimensions.Length != 0)
++                if (tfShape.dims.Length != 0)
+                 {
+                     size = 1;
+-                    foreach (var dim in tfShape.Dimensions)
++                    foreach (var dim in tfShape.dims)
+                         size *= dim;
+                 }
+                 _bufferedData = new T[size];
+-                if (_tfShape.Dimensions != null)
+-                    _dims = _tfShape.Dimensions.Select(x => (long)x).ToArray();
++                if (_tfShape.dims != null)
++                    _dims = _tfShape.dims.Select(x => (long)x).ToArray();
+                 _bufferedDataSize = size;
+             }
+ 
+diff --git a/src/Microsoft.ML.TensorFlow/TensorflowUtils.cs b/src/Microsoft.ML.TensorFlow/TensorflowUtils.cs
+index 906eb245..4679cf24 100644
+--- a/src/Microsoft.ML.TensorFlow/TensorflowUtils.cs
++++ b/src/Microsoft.ML.TensorFlow/TensorflowUtils.cs
+@@ -47,7 +47,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
+                     continue;
+ 
+                 // Construct the final ML.NET type of a Tensorflow variable.
+-                var tensorShape = op.output.TensorShape.Dimensions;
++                var tensorShape = op.output.TensorShape.dims;
+                 var columnType = new VectorDataViewType(mlType);
+                 if (!(Utils.Size(tensorShape) == 1 && tensorShape[0] <= 0) &&
+                     (Utils.Size(tensorShape) > 0 && tensorShape.Skip(1).All(x => x > 0)))
+diff --git a/src/Native/out/build/x64-Debug/.cmake/api/v1/query/client-MicrosoftVS/query.json b/src/Native/out/build/x64-Debug/.cmake/api/v1/query/client-MicrosoftVS/query.json
+new file mode 100644
+index 00000000..308f68dd
+--- /dev/null
++++ b/src/Native/out/build/x64-Debug/.cmake/api/v1/query/client-MicrosoftVS/query.json
+@@ -0,0 +1 @@
++{"requests":[{"kind":"cache","version":2},{"kind":"cmakeFiles","version":1},{"kind":"codemodel","version":2}]}
+\ No newline at end of file
+diff --git a/src/Native/out/build/x64-Debug/CMakeCache.txt b/src/Native/out/build/x64-Debug/CMakeCache.txt
+new file mode 100644
+index 00000000..fdee68bb
+--- /dev/null
++++ b/src/Native/out/build/x64-Debug/CMakeCache.txt
+@@ -0,0 +1,332 @@
++# This is the CMakeCache file.
++# For build in directory: c:/Users/aibhanda/source/repos/ashbhandare-machinelearning/src/Native/out/build/x64-Debug
++# It was generated by CMake: C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe
++# You can edit this file to change values found and used by cmake.
++# If you do not want to change any of the values, simply exit the editor.
++# If you do want to change a value, simply edit, save, and exit the editor.
++# The syntax for the file is as follows:
++# KEY:TYPE=VALUE
++# KEY is the name of a variable in the cache.
++# TYPE is a hint to GUIs for the type of VALUE, DO NOT EDIT TYPE!.
++# VALUE is the current value for the KEY.
++
++########################
++# EXTERNAL cache entries
++########################
++
++//Choose the type of build, options are: None Debug Release RelWithDebInfo
++// MinSizeRel ...
++CMAKE_BUILD_TYPE:STRING=Debug
++
++//No help, variable specified on the command line.
++CMAKE_CXX_COMPILER:FILEPATH=C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/VC/Tools/MSVC/14.23.28019/bin/HostX64/x64/cl.exe
++
++//Flags used by the CXX compiler during all build types.
++CMAKE_CXX_FLAGS:STRING=/DWIN32 /D_WINDOWS /W3 /GR /EHsc
++
++//Flags used by the CXX compiler during DEBUG builds.
++CMAKE_CXX_FLAGS_DEBUG:STRING=/MDd /Zi /Ob0 /Od /RTC1
++
++//Flags used by the CXX compiler during MINSIZEREL builds.
++CMAKE_CXX_FLAGS_MINSIZEREL:STRING=/MD /O1 /Ob1 /DNDEBUG
++
++//Flags used by the CXX compiler during RELEASE builds.
++CMAKE_CXX_FLAGS_RELEASE:STRING=/MD /O2 /Ob2 /DNDEBUG
++
++//Flags used by the CXX compiler during RELWITHDEBINFO builds.
++CMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=/MD /Zi /O2 /Ob1 /DNDEBUG
++
++//Libraries linked by default with all C++ applications.
++CMAKE_CXX_STANDARD_LIBRARIES:STRING=kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
++
++//No help, variable specified on the command line.
++CMAKE_C_COMPILER:FILEPATH=C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/VC/Tools/MSVC/14.23.28019/bin/HostX64/x64/cl.exe
++
++//Flags used by the C compiler during all build types.
++CMAKE_C_FLAGS:STRING=/DWIN32 /D_WINDOWS /W3
++
++//Flags used by the C compiler during DEBUG builds.
++CMAKE_C_FLAGS_DEBUG:STRING=/MDd /Zi /Ob0 /Od /RTC1
++
++//Flags used by the C compiler during MINSIZEREL builds.
++CMAKE_C_FLAGS_MINSIZEREL:STRING=/MD /O1 /Ob1 /DNDEBUG
++
++//Flags used by the C compiler during RELEASE builds.
++CMAKE_C_FLAGS_RELEASE:STRING=/MD /O2 /Ob2 /DNDEBUG
++
++//Flags used by the C compiler during RELWITHDEBINFO builds.
++CMAKE_C_FLAGS_RELWITHDEBINFO:STRING=/MD /Zi /O2 /Ob1 /DNDEBUG
++
++//Libraries linked by default with all C applications.
++CMAKE_C_STANDARD_LIBRARIES:STRING=kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
++
++//Flags used by the linker during all build types.
++CMAKE_EXE_LINKER_FLAGS:STRING=/machine:x64
++
++//Flags used by the linker during DEBUG builds.
++CMAKE_EXE_LINKER_FLAGS_DEBUG:STRING=/debug /INCREMENTAL
++
++//Flags used by the linker during MINSIZEREL builds.
++CMAKE_EXE_LINKER_FLAGS_MINSIZEREL:STRING=/INCREMENTAL:NO
++
++//Flags used by the linker during RELEASE builds.
++CMAKE_EXE_LINKER_FLAGS_RELEASE:STRING=/INCREMENTAL:NO
++
++//Flags used by the linker during RELWITHDEBINFO builds.
++CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO:STRING=/debug /INCREMENTAL
++
++//Enable/Disable output of compile commands during generation.
++CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=OFF
++
++//No help, variable specified on the command line.
++CMAKE_INSTALL_PREFIX:PATH=C:/Users/aibhanda/Source/Repos/ashbhandare-machinelearning/src/Native/out/install/x64-Debug
++
++//Path to a program.
++CMAKE_LINKER:FILEPATH=C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/VC/Tools/MSVC/14.23.28019/bin/Hostx64/x64/link.exe
++
++//make program
++CMAKE_MAKE_PROGRAM:FILEPATH=C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe
++
++//Flags used by the linker during the creation of modules during
++// all build types.
++CMAKE_MODULE_LINKER_FLAGS:STRING=/machine:x64
++
++//Flags used by the linker during the creation of modules during
++// DEBUG builds.
++CMAKE_MODULE_LINKER_FLAGS_DEBUG:STRING=/debug /INCREMENTAL
++
++//Flags used by the linker during the creation of modules during
++// MINSIZEREL builds.
++CMAKE_MODULE_LINKER_FLAGS_MINSIZEREL:STRING=/INCREMENTAL:NO
++
++//Flags used by the linker during the creation of modules during
++// RELEASE builds.
++CMAKE_MODULE_LINKER_FLAGS_RELEASE:STRING=/INCREMENTAL:NO
++
++//Flags used by the linker during the creation of modules during
++// RELWITHDEBINFO builds.
++CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO:STRING=/debug /INCREMENTAL
++
++//Path to a program.
++CMAKE_MT:FILEPATH=C:/Program Files (x86)/Windows Kits/10/bin/10.0.18362.0/x64/mt.exe
++
++//Value Computed by CMake
++CMAKE_PROJECT_DESCRIPTION:STATIC=
++
++//Value Computed by CMake
++CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
++
++//Value Computed by CMake
++CMAKE_PROJECT_NAME:STATIC=Project
++
++//RC compiler
++CMAKE_RC_COMPILER:FILEPATH=C:/Program Files (x86)/Windows Kits/10/bin/10.0.18362.0/x64/rc.exe
++
++//Flags for Windows Resource Compiler during all build types.
++CMAKE_RC_FLAGS:STRING=-DWIN32
++
++//Flags for Windows Resource Compiler during DEBUG builds.
++CMAKE_RC_FLAGS_DEBUG:STRING=-D_DEBUG
++
++//Flags for Windows Resource Compiler during MINSIZEREL builds.
++CMAKE_RC_FLAGS_MINSIZEREL:STRING=
++
++//Flags for Windows Resource Compiler during RELEASE builds.
++CMAKE_RC_FLAGS_RELEASE:STRING=
++
++//Flags for Windows Resource Compiler during RELWITHDEBINFO builds.
++CMAKE_RC_FLAGS_RELWITHDEBINFO:STRING=
++
++//Flags used by the linker during the creation of shared libraries
++// during all build types.
++CMAKE_SHARED_LINKER_FLAGS:STRING=/machine:x64
++
++//Flags used by the linker during the creation of shared libraries
++// during DEBUG builds.
++CMAKE_SHARED_LINKER_FLAGS_DEBUG:STRING=/debug /INCREMENTAL
++
++//Flags used by the linker during the creation of shared libraries
++// during MINSIZEREL builds.
++CMAKE_SHARED_LINKER_FLAGS_MINSIZEREL:STRING=/INCREMENTAL:NO
++
++//Flags used by the linker during the creation of shared libraries
++// during RELEASE builds.
++CMAKE_SHARED_LINKER_FLAGS_RELEASE:STRING=/INCREMENTAL:NO
++
++//Flags used by the linker during the creation of shared libraries
++// during RELWITHDEBINFO builds.
++CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO:STRING=/debug /INCREMENTAL
++
++//If set, runtime paths are not added when installing shared libraries,
++// but are added when building.
++CMAKE_SKIP_INSTALL_RPATH:BOOL=NO
++
++//If set, runtime paths are not added when using shared libraries.
++CMAKE_SKIP_RPATH:BOOL=NO
++
++//Flags used by the linker during the creation of static libraries
++// during all build types.
++CMAKE_STATIC_LINKER_FLAGS:STRING=/machine:x64
++
++//Flags used by the linker during the creation of static libraries
++// during DEBUG builds.
++CMAKE_STATIC_LINKER_FLAGS_DEBUG:STRING=
++
++//Flags used by the linker during the creation of static libraries
++// during MINSIZEREL builds.
++CMAKE_STATIC_LINKER_FLAGS_MINSIZEREL:STRING=
++
++//Flags used by the linker during the creation of static libraries
++// during RELEASE builds.
++CMAKE_STATIC_LINKER_FLAGS_RELEASE:STRING=
++
++//Flags used by the linker during the creation of static libraries
++// during RELWITHDEBINFO builds.
++CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO:STRING=
++
++//If this value is on, makefiles will be generated without the
++// .SILENT directive, and all commands will be echoed to the console
++// during the make.  This is useful for debugging only. With Visual
++// Studio IDE projects all commands are done without /nologo.
++CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
++
++//Value Computed by CMake
++Project_BINARY_DIR:STATIC=C:/Users/aibhanda/source/repos/ashbhandare-machinelearning/src/Native/out/build/x64-Debug
++
++//Value Computed by CMake
++Project_SOURCE_DIR:STATIC=C:/Users/aibhanda/source/repos/ashbhandare-machinelearning/src/Native
++
++
++########################
++# INTERNAL cache entries
++########################
++
++//This is the directory where this CMakeCache.txt was created
++CMAKE_CACHEFILE_DIR:INTERNAL=c:/Users/aibhanda/source/repos/ashbhandare-machinelearning/src/Native/out/build/x64-Debug
++//Major version of cmake used to create the current loaded cache
++CMAKE_CACHE_MAJOR_VERSION:INTERNAL=3
++//Minor version of cmake used to create the current loaded cache
++CMAKE_CACHE_MINOR_VERSION:INTERNAL=15
++//Patch version of cmake used to create the current loaded cache
++CMAKE_CACHE_PATCH_VERSION:INTERNAL=19080502
++//Path to CMake executable.
++CMAKE_COMMAND:INTERNAL=C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe
++//Path to cpack program executable.
++CMAKE_CPACK_COMMAND:INTERNAL=C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cpack.exe
++//Path to ctest program executable.
++CMAKE_CTEST_COMMAND:INTERNAL=C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/ctest.exe
++//ADVANCED property for variable: CMAKE_CXX_COMPILER
++CMAKE_CXX_COMPILER-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_CXX_FLAGS
++CMAKE_CXX_FLAGS-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_CXX_FLAGS_DEBUG
++CMAKE_CXX_FLAGS_DEBUG-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_CXX_FLAGS_MINSIZEREL
++CMAKE_CXX_FLAGS_MINSIZEREL-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_CXX_FLAGS_RELEASE
++CMAKE_CXX_FLAGS_RELEASE-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_CXX_FLAGS_RELWITHDEBINFO
++CMAKE_CXX_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_CXX_STANDARD_LIBRARIES
++CMAKE_CXX_STANDARD_LIBRARIES-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_C_COMPILER
++CMAKE_C_COMPILER-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_C_FLAGS
++CMAKE_C_FLAGS-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_C_FLAGS_DEBUG
++CMAKE_C_FLAGS_DEBUG-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_C_FLAGS_MINSIZEREL
++CMAKE_C_FLAGS_MINSIZEREL-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_C_FLAGS_RELEASE
++CMAKE_C_FLAGS_RELEASE-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_C_FLAGS_RELWITHDEBINFO
++CMAKE_C_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_C_STANDARD_LIBRARIES
++CMAKE_C_STANDARD_LIBRARIES-ADVANCED:INTERNAL=1
++//Executable file format
++CMAKE_EXECUTABLE_FORMAT:INTERNAL=Unknown
++//ADVANCED property for variable: CMAKE_EXE_LINKER_FLAGS
++CMAKE_EXE_LINKER_FLAGS-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_EXE_LINKER_FLAGS_DEBUG
++CMAKE_EXE_LINKER_FLAGS_DEBUG-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_EXE_LINKER_FLAGS_MINSIZEREL
++CMAKE_EXE_LINKER_FLAGS_MINSIZEREL-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_EXE_LINKER_FLAGS_RELEASE
++CMAKE_EXE_LINKER_FLAGS_RELEASE-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO
++CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_EXPORT_COMPILE_COMMANDS
++CMAKE_EXPORT_COMPILE_COMMANDS-ADVANCED:INTERNAL=1
++//Name of external makefile project generator.
++CMAKE_EXTRA_GENERATOR:INTERNAL=
++//Name of generator.
++CMAKE_GENERATOR:INTERNAL=Ninja
++//Generator instance identifier.
++CMAKE_GENERATOR_INSTANCE:INTERNAL=
++//Name of generator platform.
++CMAKE_GENERATOR_PLATFORM:INTERNAL=
++//Name of generator toolset.
++CMAKE_GENERATOR_TOOLSET:INTERNAL=
++//Source directory with the top level CMakeLists.txt file for this
++// project
++CMAKE_HOME_DIRECTORY:INTERNAL=C:/Users/aibhanda/source/repos/ashbhandare-machinelearning/src/Native
++//ADVANCED property for variable: CMAKE_LINKER
++CMAKE_LINKER-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_MODULE_LINKER_FLAGS
++CMAKE_MODULE_LINKER_FLAGS-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_MODULE_LINKER_FLAGS_DEBUG
++CMAKE_MODULE_LINKER_FLAGS_DEBUG-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_MODULE_LINKER_FLAGS_MINSIZEREL
++CMAKE_MODULE_LINKER_FLAGS_MINSIZEREL-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_MODULE_LINKER_FLAGS_RELEASE
++CMAKE_MODULE_LINKER_FLAGS_RELEASE-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO
++CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_MT
++CMAKE_MT-ADVANCED:INTERNAL=1
++//number of local generators
++CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=1
++//Platform information initialized
++CMAKE_PLATFORM_INFO_INITIALIZED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_RC_COMPILER
++CMAKE_RC_COMPILER-ADVANCED:INTERNAL=1
++CMAKE_RC_COMPILER_WORKS:INTERNAL=1
++//ADVANCED property for variable: CMAKE_RC_FLAGS
++CMAKE_RC_FLAGS-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_RC_FLAGS_DEBUG
++CMAKE_RC_FLAGS_DEBUG-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_RC_FLAGS_MINSIZEREL
++CMAKE_RC_FLAGS_MINSIZEREL-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_RC_FLAGS_RELEASE
++CMAKE_RC_FLAGS_RELEASE-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_RC_FLAGS_RELWITHDEBINFO
++CMAKE_RC_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
++//Path to CMake installation.
++CMAKE_ROOT:INTERNAL=C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.15
++//ADVANCED property for variable: CMAKE_SHARED_LINKER_FLAGS
++CMAKE_SHARED_LINKER_FLAGS-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_SHARED_LINKER_FLAGS_DEBUG
++CMAKE_SHARED_LINKER_FLAGS_DEBUG-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_SHARED_LINKER_FLAGS_MINSIZEREL
++CMAKE_SHARED_LINKER_FLAGS_MINSIZEREL-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_SHARED_LINKER_FLAGS_RELEASE
++CMAKE_SHARED_LINKER_FLAGS_RELEASE-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO
++CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_SKIP_INSTALL_RPATH
++CMAKE_SKIP_INSTALL_RPATH-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_SKIP_RPATH
++CMAKE_SKIP_RPATH-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_STATIC_LINKER_FLAGS
++CMAKE_STATIC_LINKER_FLAGS-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_STATIC_LINKER_FLAGS_DEBUG
++CMAKE_STATIC_LINKER_FLAGS_DEBUG-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_STATIC_LINKER_FLAGS_MINSIZEREL
++CMAKE_STATIC_LINKER_FLAGS_MINSIZEREL-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_STATIC_LINKER_FLAGS_RELEASE
++CMAKE_STATIC_LINKER_FLAGS_RELEASE-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO
++CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
++//ADVANCED property for variable: CMAKE_VERBOSE_MAKEFILE
++CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
++
+diff --git a/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CMakeCCompiler.cmake b/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CMakeCCompiler.cmake
+new file mode 100644
+index 00000000..30aef4db
+--- /dev/null
++++ b/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CMakeCCompiler.cmake
+@@ -0,0 +1,76 @@
++set(CMAKE_C_COMPILER "C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/VC/Tools/MSVC/14.23.28019/bin/HostX64/x64/cl.exe")
++set(CMAKE_C_COMPILER_ARG1 "")
++set(CMAKE_C_COMPILER_ID "MSVC")
++set(CMAKE_C_COMPILER_VERSION "19.23.28019.1")
++set(CMAKE_C_COMPILER_VERSION_INTERNAL "")
++set(CMAKE_C_COMPILER_WRAPPER "")
++set(CMAKE_C_STANDARD_COMPUTED_DEFAULT "90")
++set(CMAKE_C_COMPILE_FEATURES "c_std_90;c_std_99;c_std_11;c_function_prototypes;c_variadic_macros")
++set(CMAKE_C90_COMPILE_FEATURES "c_std_90;c_function_prototypes")
++set(CMAKE_C99_COMPILE_FEATURES "c_std_99;c_variadic_macros")
++set(CMAKE_C11_COMPILE_FEATURES "c_std_11")
++
++set(CMAKE_C_PLATFORM_ID "Windows")
++set(CMAKE_C_SIMULATE_ID "")
++set(CMAKE_C_COMPILER_FRONTEND_VARIANT "")
++set(CMAKE_C_SIMULATE_VERSION "")
++set(CMAKE_C_COMPILER_ARCHITECTURE_ID x64)
++set(MSVC_C_ARCHITECTURE_ID x64)
++
++set(CMAKE_AR "")
++set(CMAKE_C_COMPILER_AR "")
++set(CMAKE_RANLIB "")
++set(CMAKE_C_COMPILER_RANLIB "")
++set(CMAKE_LINKER "C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/VC/Tools/MSVC/14.23.28019/bin/Hostx64/x64/link.exe")
++set(CMAKE_MT "C:/Program Files (x86)/Windows Kits/10/bin/10.0.18362.0/x64/mt.exe")
++set(CMAKE_COMPILER_IS_GNUCC )
++set(CMAKE_C_COMPILER_LOADED 1)
++set(CMAKE_C_COMPILER_WORKS TRUE)
++set(CMAKE_C_ABI_COMPILED TRUE)
++set(CMAKE_COMPILER_IS_MINGW )
++set(CMAKE_COMPILER_IS_CYGWIN )
++if(CMAKE_COMPILER_IS_CYGWIN)
++  set(CYGWIN 1)
++  set(UNIX 1)
++endif()
++
++set(CMAKE_C_COMPILER_ENV_VAR "CC")
++
++if(CMAKE_COMPILER_IS_MINGW)
++  set(MINGW 1)
++endif()
++set(CMAKE_C_COMPILER_ID_RUN 1)
++set(CMAKE_C_SOURCE_FILE_EXTENSIONS c;m)
++set(CMAKE_C_IGNORE_EXTENSIONS h;H;o;O;obj;OBJ;def;DEF;rc;RC)
++set(CMAKE_C_LINKER_PREFERENCE 10)
++
++# Save compiler ABI information.
++set(CMAKE_C_SIZEOF_DATA_PTR "8")
++set(CMAKE_C_COMPILER_ABI "")
++set(CMAKE_C_LIBRARY_ARCHITECTURE "")
++
++if(CMAKE_C_SIZEOF_DATA_PTR)
++  set(CMAKE_SIZEOF_VOID_P "${CMAKE_C_SIZEOF_DATA_PTR}")
++endif()
++
++if(CMAKE_C_COMPILER_ABI)
++  set(CMAKE_INTERNAL_PLATFORM_ABI "${CMAKE_C_COMPILER_ABI}")
++endif()
++
++if(CMAKE_C_LIBRARY_ARCHITECTURE)
++  set(CMAKE_LIBRARY_ARCHITECTURE "")
++endif()
++
++set(CMAKE_C_CL_SHOWINCLUDES_PREFIX "Note: including file: ")
++if(CMAKE_C_CL_SHOWINCLUDES_PREFIX)
++  set(CMAKE_CL_SHOWINCLUDES_PREFIX "${CMAKE_C_CL_SHOWINCLUDES_PREFIX}")
++endif()
++
++
++
++
++
++set(CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES "")
++set(CMAKE_C_IMPLICIT_LINK_LIBRARIES "")
++set(CMAKE_C_IMPLICIT_LINK_DIRECTORIES "")
++set(CMAKE_C_IMPLICIT_LINK_FRAMEWORK_DIRECTORIES "")
+diff --git a/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CMakeCXXCompiler.cmake b/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CMakeCXXCompiler.cmake
+new file mode 100644
+index 00000000..71372ef4
+--- /dev/null
++++ b/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CMakeCXXCompiler.cmake
+@@ -0,0 +1,79 @@
++set(CMAKE_CXX_COMPILER "C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/VC/Tools/MSVC/14.23.28019/bin/HostX64/x64/cl.exe")
++set(CMAKE_CXX_COMPILER_ARG1 "")
++set(CMAKE_CXX_COMPILER_ID "MSVC")
++set(CMAKE_CXX_COMPILER_VERSION "19.23.28019.1")
++set(CMAKE_CXX_COMPILER_VERSION_INTERNAL "")
++set(CMAKE_CXX_COMPILER_WRAPPER "")
++set(CMAKE_CXX_STANDARD_COMPUTED_DEFAULT "14")
++set(CMAKE_CXX_COMPILE_FEATURES "cxx_std_98;cxx_template_template_parameters;cxx_std_11;cxx_alias_templates;cxx_alignas;cxx_alignof;cxx_attributes;cxx_auto_type;cxx_constexpr;cxx_decltype;cxx_decltype_incomplete_return_types;cxx_default_function_template_args;cxx_defaulted_functions;cxx_defaulted_move_initializers;cxx_delegating_constructors;cxx_deleted_functions;cxx_enum_forward_declarations;cxx_explicit_conversions;cxx_extended_friend_declarations;cxx_extern_templates;cxx_final;cxx_func_identifier;cxx_generalized_initializers;cxx_inheriting_constructors;cxx_inline_namespaces;cxx_lambdas;cxx_local_type_template_args;cxx_long_long_type;cxx_noexcept;cxx_nonstatic_member_init;cxx_nullptr;cxx_override;cxx_range_for;cxx_raw_string_literals;cxx_reference_qualified_functions;cxx_right_angle_brackets;cxx_rvalue_references;cxx_sizeof_member;cxx_static_assert;cxx_strong_enums;cxx_thread_local;cxx_trailing_return_types;cxx_unicode_literals;cxx_uniform_initialization;cxx_unrestricted_unions;cxx_user_literals;cxx_variadic_macros;cxx_variadic_templates;cxx_std_14;cxx_aggregate_default_initializers;cxx_attribute_deprecated;cxx_binary_literals;cxx_contextual_conversions;cxx_decltype_auto;cxx_digit_separators;cxx_generic_lambdas;cxx_lambda_init_captures;cxx_relaxed_constexpr;cxx_return_type_deduction;cxx_variable_templates;cxx_std_17;cxx_std_20")
++set(CMAKE_CXX98_COMPILE_FEATURES "cxx_std_98;cxx_template_template_parameters")
++set(CMAKE_CXX11_COMPILE_FEATURES "cxx_std_11;cxx_alias_templates;cxx_alignas;cxx_alignof;cxx_attributes;cxx_auto_type;cxx_constexpr;cxx_decltype;cxx_decltype_incomplete_return_types;cxx_default_function_template_args;cxx_defaulted_functions;cxx_defaulted_move_initializers;cxx_delegating_constructors;cxx_deleted_functions;cxx_enum_forward_declarations;cxx_explicit_conversions;cxx_extended_friend_declarations;cxx_extern_templates;cxx_final;cxx_func_identifier;cxx_generalized_initializers;cxx_inheriting_constructors;cxx_inline_namespaces;cxx_lambdas;cxx_local_type_template_args;cxx_long_long_type;cxx_noexcept;cxx_nonstatic_member_init;cxx_nullptr;cxx_override;cxx_range_for;cxx_raw_string_literals;cxx_reference_qualified_functions;cxx_right_angle_brackets;cxx_rvalue_references;cxx_sizeof_member;cxx_static_assert;cxx_strong_enums;cxx_thread_local;cxx_trailing_return_types;cxx_unicode_literals;cxx_uniform_initialization;cxx_unrestricted_unions;cxx_user_literals;cxx_variadic_macros;cxx_variadic_templates")
++set(CMAKE_CXX14_COMPILE_FEATURES "cxx_std_14;cxx_aggregate_default_initializers;cxx_attribute_deprecated;cxx_binary_literals;cxx_contextual_conversions;cxx_decltype_auto;cxx_digit_separators;cxx_generic_lambdas;cxx_lambda_init_captures;cxx_relaxed_constexpr;cxx_return_type_deduction;cxx_variable_templates")
++set(CMAKE_CXX17_COMPILE_FEATURES "cxx_std_17")
++set(CMAKE_CXX20_COMPILE_FEATURES "cxx_std_20")
++
++set(CMAKE_CXX_PLATFORM_ID "Windows")
++set(CMAKE_CXX_SIMULATE_ID "")
++set(CMAKE_CXX_COMPILER_FRONTEND_VARIANT "")
++set(CMAKE_CXX_SIMULATE_VERSION "")
++set(CMAKE_CXX_COMPILER_ARCHITECTURE_ID x64)
++set(MSVC_CXX_ARCHITECTURE_ID x64)
++
++set(CMAKE_AR "")
++set(CMAKE_CXX_COMPILER_AR "")
++set(CMAKE_RANLIB "")
++set(CMAKE_CXX_COMPILER_RANLIB "")
++set(CMAKE_LINKER "C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/VC/Tools/MSVC/14.23.28019/bin/Hostx64/x64/link.exe")
++set(CMAKE_MT "C:/Program Files (x86)/Windows Kits/10/bin/10.0.18362.0/x64/mt.exe")
++set(CMAKE_COMPILER_IS_GNUCXX )
++set(CMAKE_CXX_COMPILER_LOADED 1)
++set(CMAKE_CXX_COMPILER_WORKS TRUE)
++set(CMAKE_CXX_ABI_COMPILED TRUE)
++set(CMAKE_COMPILER_IS_MINGW )
++set(CMAKE_COMPILER_IS_CYGWIN )
++if(CMAKE_COMPILER_IS_CYGWIN)
++  set(CYGWIN 1)
++  set(UNIX 1)
++endif()
++
++set(CMAKE_CXX_COMPILER_ENV_VAR "CXX")
++
++if(CMAKE_COMPILER_IS_MINGW)
++  set(MINGW 1)
++endif()
++set(CMAKE_CXX_COMPILER_ID_RUN 1)
++set(CMAKE_CXX_IGNORE_EXTENSIONS inl;h;hpp;HPP;H;o;O;obj;OBJ;def;DEF;rc;RC)
++set(CMAKE_CXX_SOURCE_FILE_EXTENSIONS C;M;c++;cc;cpp;cxx;mm;CPP)
++set(CMAKE_CXX_LINKER_PREFERENCE 30)
++set(CMAKE_CXX_LINKER_PREFERENCE_PROPAGATES 1)
++
++# Save compiler ABI information.
++set(CMAKE_CXX_SIZEOF_DATA_PTR "8")
++set(CMAKE_CXX_COMPILER_ABI "")
++set(CMAKE_CXX_LIBRARY_ARCHITECTURE "")
++
++if(CMAKE_CXX_SIZEOF_DATA_PTR)
++  set(CMAKE_SIZEOF_VOID_P "${CMAKE_CXX_SIZEOF_DATA_PTR}")
++endif()
++
++if(CMAKE_CXX_COMPILER_ABI)
++  set(CMAKE_INTERNAL_PLATFORM_ABI "${CMAKE_CXX_COMPILER_ABI}")
++endif()
++
++if(CMAKE_CXX_LIBRARY_ARCHITECTURE)
++  set(CMAKE_LIBRARY_ARCHITECTURE "")
++endif()
++
++set(CMAKE_CXX_CL_SHOWINCLUDES_PREFIX "Note: including file: ")
++if(CMAKE_CXX_CL_SHOWINCLUDES_PREFIX)
++  set(CMAKE_CL_SHOWINCLUDES_PREFIX "${CMAKE_CXX_CL_SHOWINCLUDES_PREFIX}")
++endif()
++
++
++
++
++
++set(CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES "")
++set(CMAKE_CXX_IMPLICIT_LINK_LIBRARIES "")
++set(CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES "")
++set(CMAKE_CXX_IMPLICIT_LINK_FRAMEWORK_DIRECTORIES "")
+diff --git a/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CMakeDetermineCompilerABI_C.bin b/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CMakeDetermineCompilerABI_C.bin
+new file mode 100644
+index 00000000..7855c928
+Binary files /dev/null and b/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CMakeDetermineCompilerABI_C.bin differ
+diff --git a/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CMakeDetermineCompilerABI_CXX.bin b/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CMakeDetermineCompilerABI_CXX.bin
+new file mode 100644
+index 00000000..8bc150f1
+Binary files /dev/null and b/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CMakeDetermineCompilerABI_CXX.bin differ
+diff --git a/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CMakeRCCompiler.cmake b/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CMakeRCCompiler.cmake
+new file mode 100644
+index 00000000..97eaaf6d
+--- /dev/null
++++ b/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CMakeRCCompiler.cmake
+@@ -0,0 +1,6 @@
++set(CMAKE_RC_COMPILER "C:/Program Files (x86)/Windows Kits/10/bin/10.0.18362.0/x64/rc.exe")
++set(CMAKE_RC_COMPILER_ARG1 "")
++set(CMAKE_RC_COMPILER_LOADED 1)
++set(CMAKE_RC_SOURCE_FILE_EXTENSIONS rc;RC)
++set(CMAKE_RC_OUTPUT_EXTENSION .res)
++set(CMAKE_RC_COMPILER_ENV_VAR "RC")
+diff --git a/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CMakeSystem.cmake b/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CMakeSystem.cmake
+new file mode 100644
+index 00000000..8a1d2422
+--- /dev/null
++++ b/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CMakeSystem.cmake
+@@ -0,0 +1,15 @@
++set(CMAKE_HOST_SYSTEM "Windows-10.0.18362")
++set(CMAKE_HOST_SYSTEM_NAME "Windows")
++set(CMAKE_HOST_SYSTEM_VERSION "10.0.18362")
++set(CMAKE_HOST_SYSTEM_PROCESSOR "AMD64")
++
++
++
++set(CMAKE_SYSTEM "Windows-10.0.18362")
++set(CMAKE_SYSTEM_NAME "Windows")
++set(CMAKE_SYSTEM_VERSION "10.0.18362")
++set(CMAKE_SYSTEM_PROCESSOR "AMD64")
++
++set(CMAKE_CROSSCOMPILING "FALSE")
++
++set(CMAKE_SYSTEM_LOADED 1)
+diff --git a/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CompilerIdC/CMakeCCompilerId.c b/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CompilerIdC/CMakeCCompilerId.c
+new file mode 100644
+index 00000000..917e8b98
+--- /dev/null
++++ b/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CompilerIdC/CMakeCCompilerId.c
+@@ -0,0 +1,665 @@
++#ifdef __cplusplus
++# error "A C++ compiler has been selected for C."
++#endif
++
++#if defined(__18CXX)
++# define ID_VOID_MAIN
++#endif
++#if defined(__CLASSIC_C__)
++/* cv-qualifiers did not exist in K&R C */
++# define const
++# define volatile
++#endif
++
++
++/* Version number components: V=Version, R=Revision, P=Patch
++   Version date components:   YYYY=Year, MM=Month,   DD=Day  */
++
++#if defined(__INTEL_COMPILER) || defined(__ICC)
++# define COMPILER_ID "Intel"
++# if defined(_MSC_VER)
++#  define SIMULATE_ID "MSVC"
++# endif
++# if defined(__GNUC__)
++#  define SIMULATE_ID "GNU"
++# endif
++  /* __INTEL_COMPILER = VRP */
++# define COMPILER_VERSION_MAJOR DEC(__INTEL_COMPILER/100)
++# define COMPILER_VERSION_MINOR DEC(__INTEL_COMPILER/10 % 10)
++# if defined(__INTEL_COMPILER_UPDATE)
++#  define COMPILER_VERSION_PATCH DEC(__INTEL_COMPILER_UPDATE)
++# else
++#  define COMPILER_VERSION_PATCH DEC(__INTEL_COMPILER   % 10)
++# endif
++# if defined(__INTEL_COMPILER_BUILD_DATE)
++  /* __INTEL_COMPILER_BUILD_DATE = YYYYMMDD */
++#  define COMPILER_VERSION_TWEAK DEC(__INTEL_COMPILER_BUILD_DATE)
++# endif
++# if defined(_MSC_VER)
++   /* _MSC_VER = VVRR */
++#  define SIMULATE_VERSION_MAJOR DEC(_MSC_VER / 100)
++#  define SIMULATE_VERSION_MINOR DEC(_MSC_VER % 100)
++# endif
++# if defined(__GNUC__)
++#  define SIMULATE_VERSION_MAJOR DEC(__GNUC__)
++# elif defined(__GNUG__)
++#  define SIMULATE_VERSION_MAJOR DEC(__GNUG__)
++# endif
++# if defined(__GNUC_MINOR__)
++#  define SIMULATE_VERSION_MINOR DEC(__GNUC_MINOR__)
++# endif
++# if defined(__GNUC_PATCHLEVEL__)
++#  define SIMULATE_VERSION_PATCH DEC(__GNUC_PATCHLEVEL__)
++# endif
++
++#elif defined(__PATHCC__)
++# define COMPILER_ID "PathScale"
++# define COMPILER_VERSION_MAJOR DEC(__PATHCC__)
++# define COMPILER_VERSION_MINOR DEC(__PATHCC_MINOR__)
++# if defined(__PATHCC_PATCHLEVEL__)
++#  define COMPILER_VERSION_PATCH DEC(__PATHCC_PATCHLEVEL__)
++# endif
++
++#elif defined(__BORLANDC__) && defined(__CODEGEARC_VERSION__)
++# define COMPILER_ID "Embarcadero"
++# define COMPILER_VERSION_MAJOR HEX(__CODEGEARC_VERSION__>>24 & 0x00FF)
++# define COMPILER_VERSION_MINOR HEX(__CODEGEARC_VERSION__>>16 & 0x00FF)
++# define COMPILER_VERSION_PATCH DEC(__CODEGEARC_VERSION__     & 0xFFFF)
++
++#elif defined(__BORLANDC__)
++# define COMPILER_ID "Borland"
++  /* __BORLANDC__ = 0xVRR */
++# define COMPILER_VERSION_MAJOR HEX(__BORLANDC__>>8)
++# define COMPILER_VERSION_MINOR HEX(__BORLANDC__ & 0xFF)
++
++#elif defined(__WATCOMC__) && __WATCOMC__ < 1200
++# define COMPILER_ID "Watcom"
++   /* __WATCOMC__ = VVRR */
++# define COMPILER_VERSION_MAJOR DEC(__WATCOMC__ / 100)
++# define COMPILER_VERSION_MINOR DEC((__WATCOMC__ / 10) % 10)
++# if (__WATCOMC__ % 10) > 0
++#  define COMPILER_VERSION_PATCH DEC(__WATCOMC__ % 10)
++# endif
++
++#elif defined(__WATCOMC__)
++# define COMPILER_ID "OpenWatcom"
++   /* __WATCOMC__ = VVRP + 1100 */
++# define COMPILER_VERSION_MAJOR DEC((__WATCOMC__ - 1100) / 100)
++# define COMPILER_VERSION_MINOR DEC((__WATCOMC__ / 10) % 10)
++# if (__WATCOMC__ % 10) > 0
++#  define COMPILER_VERSION_PATCH DEC(__WATCOMC__ % 10)
++# endif
++
++#elif defined(__SUNPRO_C)
++# define COMPILER_ID "SunPro"
++# if __SUNPRO_C >= 0x5100
++   /* __SUNPRO_C = 0xVRRP */
++#  define COMPILER_VERSION_MAJOR HEX(__SUNPRO_C>>12)
++#  define COMPILER_VERSION_MINOR HEX(__SUNPRO_C>>4 & 0xFF)
++#  define COMPILER_VERSION_PATCH HEX(__SUNPRO_C    & 0xF)
++# else
++   /* __SUNPRO_CC = 0xVRP */
++#  define COMPILER_VERSION_MAJOR HEX(__SUNPRO_C>>8)
++#  define COMPILER_VERSION_MINOR HEX(__SUNPRO_C>>4 & 0xF)
++#  define COMPILER_VERSION_PATCH HEX(__SUNPRO_C    & 0xF)
++# endif
++
++#elif defined(__HP_cc)
++# define COMPILER_ID "HP"
++  /* __HP_cc = VVRRPP */
++# define COMPILER_VERSION_MAJOR DEC(__HP_cc/10000)
++# define COMPILER_VERSION_MINOR DEC(__HP_cc/100 % 100)
++# define COMPILER_VERSION_PATCH DEC(__HP_cc     % 100)
++
++#elif defined(__DECC)
++# define COMPILER_ID "Compaq"
++  /* __DECC_VER = VVRRTPPPP */
++# define COMPILER_VERSION_MAJOR DEC(__DECC_VER/10000000)
++# define COMPILER_VERSION_MINOR DEC(__DECC_VER/100000  % 100)
++# define COMPILER_VERSION_PATCH DEC(__DECC_VER         % 10000)
++
++#elif defined(__IBMC__) && defined(__COMPILER_VER__)
++# define COMPILER_ID "zOS"
++  /* __IBMC__ = VRP */
++# define COMPILER_VERSION_MAJOR DEC(__IBMC__/100)
++# define COMPILER_VERSION_MINOR DEC(__IBMC__/10 % 10)
++# define COMPILER_VERSION_PATCH DEC(__IBMC__    % 10)
++
++#elif defined(__ibmxl__) && defined(__clang__)
++# define COMPILER_ID "XLClang"
++# define COMPILER_VERSION_MAJOR DEC(__ibmxl_version__)
++# define COMPILER_VERSION_MINOR DEC(__ibmxl_release__)
++# define COMPILER_VERSION_PATCH DEC(__ibmxl_modification__)
++# define COMPILER_VERSION_TWEAK DEC(__ibmxl_ptf_fix_level__)
++
++
++#elif defined(__IBMC__) && !defined(__COMPILER_VER__) && __IBMC__ >= 800
++# define COMPILER_ID "XL"
++  /* __IBMC__ = VRP */
++# define COMPILER_VERSION_MAJOR DEC(__IBMC__/100)
++# define COMPILER_VERSION_MINOR DEC(__IBMC__/10 % 10)
++# define COMPILER_VERSION_PATCH DEC(__IBMC__    % 10)
++
++#elif defined(__IBMC__) && !defined(__COMPILER_VER__) && __IBMC__ < 800
++# define COMPILER_ID "VisualAge"
++  /* __IBMC__ = VRP */
++# define COMPILER_VERSION_MAJOR DEC(__IBMC__/100)
++# define COMPILER_VERSION_MINOR DEC(__IBMC__/10 % 10)
++# define COMPILER_VERSION_PATCH DEC(__IBMC__    % 10)
++
++#elif defined(__PGI)
++# define COMPILER_ID "PGI"
++# define COMPILER_VERSION_MAJOR DEC(__PGIC__)
++# define COMPILER_VERSION_MINOR DEC(__PGIC_MINOR__)
++# if defined(__PGIC_PATCHLEVEL__)
++#  define COMPILER_VERSION_PATCH DEC(__PGIC_PATCHLEVEL__)
++# endif
++
++#elif defined(_CRAYC)
++# define COMPILER_ID "Cray"
++# define COMPILER_VERSION_MAJOR DEC(_RELEASE_MAJOR)
++# define COMPILER_VERSION_MINOR DEC(_RELEASE_MINOR)
++
++#elif defined(__TI_COMPILER_VERSION__)
++# define COMPILER_ID "TI"
++  /* __TI_COMPILER_VERSION__ = VVVRRRPPP */
++# define COMPILER_VERSION_MAJOR DEC(__TI_COMPILER_VERSION__/1000000)
++# define COMPILER_VERSION_MINOR DEC(__TI_COMPILER_VERSION__/1000   % 1000)
++# define COMPILER_VERSION_PATCH DEC(__TI_COMPILER_VERSION__        % 1000)
++
++#elif defined(__FUJITSU) || defined(__FCC_VERSION) || defined(__fcc_version)
++# define COMPILER_ID "Fujitsu"
++
++#elif defined(__ghs__)
++# define COMPILER_ID "GHS"
++/* __GHS_VERSION_NUMBER = VVVVRP */
++# ifdef __GHS_VERSION_NUMBER
++# define COMPILER_VERSION_MAJOR DEC(__GHS_VERSION_NUMBER / 100)
++# define COMPILER_VERSION_MINOR DEC(__GHS_VERSION_NUMBER / 10 % 10)
++# define COMPILER_VERSION_PATCH DEC(__GHS_VERSION_NUMBER      % 10)
++# endif
++
++#elif defined(__TINYC__)
++# define COMPILER_ID "TinyCC"
++
++#elif defined(__BCC__)
++# define COMPILER_ID "Bruce"
++
++#elif defined(__SCO_VERSION__)
++# define COMPILER_ID "SCO"
++
++#elif defined(__ARMCC_VERSION) && !defined(__clang__)
++# define COMPILER_ID "ARMCC"
++#if __ARMCC_VERSION >= 1000000
++  /* __ARMCC_VERSION = VRRPPPP */
++  # define COMPILER_VERSION_MAJOR DEC(__ARMCC_VERSION/1000000)
++  # define COMPILER_VERSION_MINOR DEC(__ARMCC_VERSION/10000 % 100)
++  # define COMPILER_VERSION_PATCH DEC(__ARMCC_VERSION     % 10000)
++#else
++  /* __ARMCC_VERSION = VRPPPP */
++  # define COMPILER_VERSION_MAJOR DEC(__ARMCC_VERSION/100000)
++  # define COMPILER_VERSION_MINOR DEC(__ARMCC_VERSION/10000 % 10)
++  # define COMPILER_VERSION_PATCH DEC(__ARMCC_VERSION    % 10000)
++#endif
++
++
++#elif defined(__clang__) && defined(__apple_build_version__)
++# define COMPILER_ID "AppleClang"
++# if defined(_MSC_VER)
++#  define SIMULATE_ID "MSVC"
++# endif
++# define COMPILER_VERSION_MAJOR DEC(__clang_major__)
++# define COMPILER_VERSION_MINOR DEC(__clang_minor__)
++# define COMPILER_VERSION_PATCH DEC(__clang_patchlevel__)
++# if defined(_MSC_VER)
++   /* _MSC_VER = VVRR */
++#  define SIMULATE_VERSION_MAJOR DEC(_MSC_VER / 100)
++#  define SIMULATE_VERSION_MINOR DEC(_MSC_VER % 100)
++# endif
++# define COMPILER_VERSION_TWEAK DEC(__apple_build_version__)
++
++#elif defined(__clang__) && defined(__ARMCOMPILER_VERSION)
++# define COMPILER_ID "ARMClang"
++  # define COMPILER_VERSION_MAJOR DEC(__ARMCOMPILER_VERSION/1000000)
++  # define COMPILER_VERSION_MINOR DEC(__ARMCOMPILER_VERSION/10000 % 100)
++  # define COMPILER_VERSION_PATCH DEC(__ARMCOMPILER_VERSION     % 10000)
++# define COMPILER_VERSION_INTERNAL DEC(__ARMCOMPILER_VERSION)
++
++#elif defined(__clang__)
++# define COMPILER_ID "Clang"
++# if defined(_MSC_VER)
++#  define SIMULATE_ID "MSVC"
++# endif
++# define COMPILER_VERSION_MAJOR DEC(__clang_major__)
++# define COMPILER_VERSION_MINOR DEC(__clang_minor__)
++# define COMPILER_VERSION_PATCH DEC(__clang_patchlevel__)
++# if defined(_MSC_VER)
++   /* _MSC_VER = VVRR */
++#  define SIMULATE_VERSION_MAJOR DEC(_MSC_VER / 100)
++#  define SIMULATE_VERSION_MINOR DEC(_MSC_VER % 100)
++# endif
++
++#elif defined(__GNUC__)
++# define COMPILER_ID "GNU"
++# define COMPILER_VERSION_MAJOR DEC(__GNUC__)
++# if defined(__GNUC_MINOR__)
++#  define COMPILER_VERSION_MINOR DEC(__GNUC_MINOR__)
++# endif
++# if defined(__GNUC_PATCHLEVEL__)
++#  define COMPILER_VERSION_PATCH DEC(__GNUC_PATCHLEVEL__)
++# endif
++
++#elif defined(_MSC_VER)
++# define COMPILER_ID "MSVC"
++  /* _MSC_VER = VVRR */
++# define COMPILER_VERSION_MAJOR DEC(_MSC_VER / 100)
++# define COMPILER_VERSION_MINOR DEC(_MSC_VER % 100)
++# if defined(_MSC_FULL_VER)
++#  if _MSC_VER >= 1400
++    /* _MSC_FULL_VER = VVRRPPPPP */
++#   define COMPILER_VERSION_PATCH DEC(_MSC_FULL_VER % 100000)
++#  else
++    /* _MSC_FULL_VER = VVRRPPPP */
++#   define COMPILER_VERSION_PATCH DEC(_MSC_FULL_VER % 10000)
++#  endif
++# endif
++# if defined(_MSC_BUILD)
++#  define COMPILER_VERSION_TWEAK DEC(_MSC_BUILD)
++# endif
++
++#elif defined(__VISUALDSPVERSION__) || defined(__ADSPBLACKFIN__) || defined(__ADSPTS__) || defined(__ADSP21000__)
++# define COMPILER_ID "ADSP"
++#if defined(__VISUALDSPVERSION__)
++  /* __VISUALDSPVERSION__ = 0xVVRRPP00 */
++# define COMPILER_VERSION_MAJOR HEX(__VISUALDSPVERSION__>>24)
++# define COMPILER_VERSION_MINOR HEX(__VISUALDSPVERSION__>>16 & 0xFF)
++# define COMPILER_VERSION_PATCH HEX(__VISUALDSPVERSION__>>8  & 0xFF)
++#endif
++
++#elif defined(__IAR_SYSTEMS_ICC__) || defined(__IAR_SYSTEMS_ICC)
++# define COMPILER_ID "IAR"
++# if defined(__VER__) && defined(__ICCARM__)
++#  define COMPILER_VERSION_MAJOR DEC((__VER__) / 1000000)
++#  define COMPILER_VERSION_MINOR DEC(((__VER__) / 1000) % 1000)
++#  define COMPILER_VERSION_PATCH DEC((__VER__) % 1000)
++#  define COMPILER_VERSION_INTERNAL DEC(__IAR_SYSTEMS_ICC__)
++# elif defined(__VER__) && (defined(__ICCAVR__) || defined(__ICCRX__) || defined(__ICCRH850__) || defined(__ICCRL78__) || defined(__ICC430__) || defined(__ICCRISCV__))
++#  define COMPILER_VERSION_MAJOR DEC((__VER__) / 100)
++#  define COMPILER_VERSION_MINOR DEC((__VER__) - (((__VER__) / 100)*100))
++#  define COMPILER_VERSION_PATCH DEC(__SUBVERSION__)
++#  define COMPILER_VERSION_INTERNAL DEC(__IAR_SYSTEMS_ICC__)
++# endif
++
++#elif defined(__SDCC_VERSION_MAJOR) || defined(SDCC)
++# define COMPILER_ID "SDCC"
++# if defined(__SDCC_VERSION_MAJOR)
++#  define COMPILER_VERSION_MAJOR DEC(__SDCC_VERSION_MAJOR)
++#  define COMPILER_VERSION_MINOR DEC(__SDCC_VERSION_MINOR)
++#  define COMPILER_VERSION_PATCH DEC(__SDCC_VERSION_PATCH)
++# else
++  /* SDCC = VRP */
++#  define COMPILER_VERSION_MAJOR DEC(SDCC/100)
++#  define COMPILER_VERSION_MINOR DEC(SDCC/10 % 10)
++#  define COMPILER_VERSION_PATCH DEC(SDCC    % 10)
++# endif
++
++
++/* These compilers are either not known or too old to define an
++  identification macro.  Try to identify the platform and guess that
++  it is the native compiler.  */
++#elif defined(__hpux) || defined(__hpua)
++# define COMPILER_ID "HP"
++
++#else /* unknown compiler */
++# define COMPILER_ID ""
++#endif
++
++/* Construct the string literal in pieces to prevent the source from
++   getting matched.  Store it in a pointer rather than an array
++   because some compilers will just produce instructions to fill the
++   array rather than assigning a pointer to a static array.  */
++char const* info_compiler = "INFO" ":" "compiler[" COMPILER_ID "]";
++#ifdef SIMULATE_ID
++char const* info_simulate = "INFO" ":" "simulate[" SIMULATE_ID "]";
++#endif
++
++#ifdef __QNXNTO__
++char const* qnxnto = "INFO" ":" "qnxnto[]";
++#endif
++
++#if defined(__CRAYXE) || defined(__CRAYXC)
++char const *info_cray = "INFO" ":" "compiler_wrapper[CrayPrgEnv]";
++#endif
++
++#define STRINGIFY_HELPER(X) #X
++#define STRINGIFY(X) STRINGIFY_HELPER(X)
++
++/* Identify known platforms by name.  */
++#if defined(__linux) || defined(__linux__) || defined(linux)
++# define PLATFORM_ID "Linux"
++
++#elif defined(__CYGWIN__)
++# define PLATFORM_ID "Cygwin"
++
++#elif defined(__MINGW32__)
++# define PLATFORM_ID "MinGW"
++
++#elif defined(__APPLE__)
++# define PLATFORM_ID "Darwin"
++
++#elif defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
++# define PLATFORM_ID "Windows"
++
++#elif defined(__FreeBSD__) || defined(__FreeBSD)
++# define PLATFORM_ID "FreeBSD"
++
++#elif defined(__NetBSD__) || defined(__NetBSD)
++# define PLATFORM_ID "NetBSD"
++
++#elif defined(__OpenBSD__) || defined(__OPENBSD)
++# define PLATFORM_ID "OpenBSD"
++
++#elif defined(__sun) || defined(sun)
++# define PLATFORM_ID "SunOS"
++
++#elif defined(_AIX) || defined(__AIX) || defined(__AIX__) || defined(__aix) || defined(__aix__)
++# define PLATFORM_ID "AIX"
++
++#elif defined(__hpux) || defined(__hpux__)
++# define PLATFORM_ID "HP-UX"
++
++#elif defined(__HAIKU__)
++# define PLATFORM_ID "Haiku"
++
++#elif defined(__BeOS) || defined(__BEOS__) || defined(_BEOS)
++# define PLATFORM_ID "BeOS"
++
++#elif defined(__QNX__) || defined(__QNXNTO__)
++# define PLATFORM_ID "QNX"
++
++#elif defined(__tru64) || defined(_tru64) || defined(__TRU64__)
++# define PLATFORM_ID "Tru64"
++
++#elif defined(__riscos) || defined(__riscos__)
++# define PLATFORM_ID "RISCos"
++
++#elif defined(__sinix) || defined(__sinix__) || defined(__SINIX__)
++# define PLATFORM_ID "SINIX"
++
++#elif defined(__UNIX_SV__)
++# define PLATFORM_ID "UNIX_SV"
++
++#elif defined(__bsdos__)
++# define PLATFORM_ID "BSDOS"
++
++#elif defined(_MPRAS) || defined(MPRAS)
++# define PLATFORM_ID "MP-RAS"
++
++#elif defined(__osf) || defined(__osf__)
++# define PLATFORM_ID "OSF1"
++
++#elif defined(_SCO_SV) || defined(SCO_SV) || defined(sco_sv)
++# define PLATFORM_ID "SCO_SV"
++
++#elif defined(__ultrix) || defined(__ultrix__) || defined(_ULTRIX)
++# define PLATFORM_ID "ULTRIX"
++
++#elif defined(__XENIX__) || defined(_XENIX) || defined(XENIX)
++# define PLATFORM_ID "Xenix"
++
++#elif defined(__WATCOMC__)
++# if defined(__LINUX__)
++#  define PLATFORM_ID "Linux"
++
++# elif defined(__DOS__)
++#  define PLATFORM_ID "DOS"
++
++# elif defined(__OS2__)
++#  define PLATFORM_ID "OS2"
++
++# elif defined(__WINDOWS__)
++#  define PLATFORM_ID "Windows3x"
++
++# else /* unknown platform */
++#  define PLATFORM_ID
++# endif
++
++#elif defined(__INTEGRITY)
++# if defined(INT_178B)
++#  define PLATFORM_ID "Integrity178"
++
++# else /* regular Integrity */
++#  define PLATFORM_ID "Integrity"
++# endif
++
++#else /* unknown platform */
++# define PLATFORM_ID
++
++#endif
++
++/* For windows compilers MSVC and Intel we can determine
++   the architecture of the compiler being used.  This is because
++   the compilers do not have flags that can change the architecture,
++   but rather depend on which compiler is being used
++*/
++#if defined(_WIN32) && defined(_MSC_VER)
++# if defined(_M_IA64)
++#  define ARCHITECTURE_ID "IA64"
++
++# elif defined(_M_X64) || defined(_M_AMD64)
++#  define ARCHITECTURE_ID "x64"
++
++# elif defined(_M_IX86)
++#  define ARCHITECTURE_ID "X86"
++
++# elif defined(_M_ARM64)
++#  define ARCHITECTURE_ID "ARM64"
++
++# elif defined(_M_ARM)
++#  if _M_ARM == 4
++#   define ARCHITECTURE_ID "ARMV4I"
++#  elif _M_ARM == 5
++#   define ARCHITECTURE_ID "ARMV5I"
++#  else
++#   define ARCHITECTURE_ID "ARMV" STRINGIFY(_M_ARM)
++#  endif
++
++# elif defined(_M_MIPS)
++#  define ARCHITECTURE_ID "MIPS"
++
++# elif defined(_M_SH)
++#  define ARCHITECTURE_ID "SHx"
++
++# else /* unknown architecture */
++#  define ARCHITECTURE_ID ""
++# endif
++
++#elif defined(__WATCOMC__)
++# if defined(_M_I86)
++#  define ARCHITECTURE_ID "I86"
++
++# elif defined(_M_IX86)
++#  define ARCHITECTURE_ID "X86"
++
++# else /* unknown architecture */
++#  define ARCHITECTURE_ID ""
++# endif
++
++#elif defined(__IAR_SYSTEMS_ICC__) || defined(__IAR_SYSTEMS_ICC)
++# if defined(__ICCARM__)
++#  define ARCHITECTURE_ID "ARM"
++
++# elif defined(__ICCRX__)
++#  define ARCHITECTURE_ID "RX"
++
++# elif defined(__ICCRH850__)
++#  define ARCHITECTURE_ID "RH850"
++
++# elif defined(__ICCRL78__)
++#  define ARCHITECTURE_ID "RL78"
++
++# elif defined(__ICCRISCV__)
++#  define ARCHITECTURE_ID "RISCV"
++
++# elif defined(__ICCAVR__)
++#  define ARCHITECTURE_ID "AVR"
++
++# elif defined(__ICC430__)
++#  define ARCHITECTURE_ID "MSP430"
++
++# else /* unknown architecture */
++#  define ARCHITECTURE_ID ""
++# endif
++
++#elif defined(__ghs__)
++# if defined(__PPC64__)
++#  define ARCHITECTURE_ID "PPC64"
++
++# elif defined(__ppc__)
++#  define ARCHITECTURE_ID "PPC"
++
++# elif defined(__ARM__)
++#  define ARCHITECTURE_ID "ARM"
++
++# elif defined(__x86_64__)
++#  define ARCHITECTURE_ID "x64"
++
++# elif defined(__i386__)
++#  define ARCHITECTURE_ID "X86"
++
++# else /* unknown architecture */
++#  define ARCHITECTURE_ID ""
++# endif
++#else
++#  define ARCHITECTURE_ID
++#endif
++
++/* Convert integer to decimal digit literals.  */
++#define DEC(n)                   \
++  ('0' + (((n) / 10000000)%10)), \
++  ('0' + (((n) / 1000000)%10)),  \
++  ('0' + (((n) / 100000)%10)),   \
++  ('0' + (((n) / 10000)%10)),    \
++  ('0' + (((n) / 1000)%10)),     \
++  ('0' + (((n) / 100)%10)),      \
++  ('0' + (((n) / 10)%10)),       \
++  ('0' +  ((n) % 10))
++
++/* Convert integer to hex digit literals.  */
++#define HEX(n)             \
++  ('0' + ((n)>>28 & 0xF)), \
++  ('0' + ((n)>>24 & 0xF)), \
++  ('0' + ((n)>>20 & 0xF)), \
++  ('0' + ((n)>>16 & 0xF)), \
++  ('0' + ((n)>>12 & 0xF)), \
++  ('0' + ((n)>>8  & 0xF)), \
++  ('0' + ((n)>>4  & 0xF)), \
++  ('0' + ((n)     & 0xF))
++
++/* Construct a string literal encoding the version number components. */
++#ifdef COMPILER_VERSION_MAJOR
++char const info_version[] = {
++  'I', 'N', 'F', 'O', ':',
++  'c','o','m','p','i','l','e','r','_','v','e','r','s','i','o','n','[',
++  COMPILER_VERSION_MAJOR,
++# ifdef COMPILER_VERSION_MINOR
++  '.', COMPILER_VERSION_MINOR,
++#  ifdef COMPILER_VERSION_PATCH
++   '.', COMPILER_VERSION_PATCH,
++#   ifdef COMPILER_VERSION_TWEAK
++    '.', COMPILER_VERSION_TWEAK,
++#   endif
++#  endif
++# endif
++  ']','\0'};
++#endif
++
++/* Construct a string literal encoding the internal version number. */
++#ifdef COMPILER_VERSION_INTERNAL
++char const info_version_internal[] = {
++  'I', 'N', 'F', 'O', ':',
++  'c','o','m','p','i','l','e','r','_','v','e','r','s','i','o','n','_',
++  'i','n','t','e','r','n','a','l','[',
++  COMPILER_VERSION_INTERNAL,']','\0'};
++#endif
++
++/* Construct a string literal encoding the version number components. */
++#ifdef SIMULATE_VERSION_MAJOR
++char const info_simulate_version[] = {
++  'I', 'N', 'F', 'O', ':',
++  's','i','m','u','l','a','t','e','_','v','e','r','s','i','o','n','[',
++  SIMULATE_VERSION_MAJOR,
++# ifdef SIMULATE_VERSION_MINOR
++  '.', SIMULATE_VERSION_MINOR,
++#  ifdef SIMULATE_VERSION_PATCH
++   '.', SIMULATE_VERSION_PATCH,
++#   ifdef SIMULATE_VERSION_TWEAK
++    '.', SIMULATE_VERSION_TWEAK,
++#   endif
++#  endif
++# endif
++  ']','\0'};
++#endif
++
++/* Construct the string literal in pieces to prevent the source from
++   getting matched.  Store it in a pointer rather than an array
++   because some compilers will just produce instructions to fill the
++   array rather than assigning a pointer to a static array.  */
++char const* info_platform = "INFO" ":" "platform[" PLATFORM_ID "]";
++char const* info_arch = "INFO" ":" "arch[" ARCHITECTURE_ID "]";
++
++
++
++
++#if !defined(__STDC__)
++# if (defined(_MSC_VER) && !defined(__clang__)) \
++  || (defined(__ibmxl__) || defined(__IBMC__))
++#  define C_DIALECT "90"
++# else
++#  define C_DIALECT
++# endif
++#elif __STDC_VERSION__ >= 201000L
++# define C_DIALECT "11"
++#elif __STDC_VERSION__ >= 199901L
++# define C_DIALECT "99"
++#else
++# define C_DIALECT "90"
++#endif
++const char* info_language_dialect_default =
++  "INFO" ":" "dialect_default[" C_DIALECT "]";
++
++/*--------------------------------------------------------------------------*/
++
++#ifdef ID_VOID_MAIN
++void main() {}
++#else
++# if defined(__CLASSIC_C__)
++int main(argc, argv) int argc; char *argv[];
++# else
++int main(int argc, char* argv[])
++# endif
++{
++  int require = 0;
++  require += info_compiler[argc];
++  require += info_platform[argc];
++  require += info_arch[argc];
++#ifdef COMPILER_VERSION_MAJOR
++  require += info_version[argc];
++#endif
++#ifdef COMPILER_VERSION_INTERNAL
++  require += info_version_internal[argc];
++#endif
++#ifdef SIMULATE_ID
++  require += info_simulate[argc];
++#endif
++#ifdef SIMULATE_VERSION_MAJOR
++  require += info_simulate_version[argc];
++#endif
++#if defined(__CRAYXE) || defined(__CRAYXC)
++  require += info_cray[argc];
++#endif
++  require += info_language_dialect_default[argc];
++  (void)argv;
++  return require;
++}
++#endif
+diff --git a/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CompilerIdC/CMakeCCompilerId.exe b/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CompilerIdC/CMakeCCompilerId.exe
+new file mode 100644
+index 00000000..99fef3f7
+Binary files /dev/null and b/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CompilerIdC/CMakeCCompilerId.exe differ
+diff --git a/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CompilerIdCXX/CMakeCXXCompilerId.cpp b/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CompilerIdCXX/CMakeCXXCompilerId.cpp
+new file mode 100644
+index 00000000..4761ea2b
+--- /dev/null
++++ b/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CompilerIdCXX/CMakeCXXCompilerId.cpp
+@@ -0,0 +1,644 @@
++/* This source file must have a .cpp extension so that all C++ compilers
++   recognize the extension without flags.  Borland does not know .cxx for
++   example.  */
++#ifndef __cplusplus
++# error "A C compiler has been selected for C++."
++#endif
++
++
++/* Version number components: V=Version, R=Revision, P=Patch
++   Version date components:   YYYY=Year, MM=Month,   DD=Day  */
++
++#if defined(__COMO__)
++# define COMPILER_ID "Comeau"
++  /* __COMO_VERSION__ = VRR */
++# define COMPILER_VERSION_MAJOR DEC(__COMO_VERSION__ / 100)
++# define COMPILER_VERSION_MINOR DEC(__COMO_VERSION__ % 100)
++
++#elif defined(__INTEL_COMPILER) || defined(__ICC)
++# define COMPILER_ID "Intel"
++# if defined(_MSC_VER)
++#  define SIMULATE_ID "MSVC"
++# endif
++# if defined(__GNUC__)
++#  define SIMULATE_ID "GNU"
++# endif
++  /* __INTEL_COMPILER = VRP */
++# define COMPILER_VERSION_MAJOR DEC(__INTEL_COMPILER/100)
++# define COMPILER_VERSION_MINOR DEC(__INTEL_COMPILER/10 % 10)
++# if defined(__INTEL_COMPILER_UPDATE)
++#  define COMPILER_VERSION_PATCH DEC(__INTEL_COMPILER_UPDATE)
++# else
++#  define COMPILER_VERSION_PATCH DEC(__INTEL_COMPILER   % 10)
++# endif
++# if defined(__INTEL_COMPILER_BUILD_DATE)
++  /* __INTEL_COMPILER_BUILD_DATE = YYYYMMDD */
++#  define COMPILER_VERSION_TWEAK DEC(__INTEL_COMPILER_BUILD_DATE)
++# endif
++# if defined(_MSC_VER)
++   /* _MSC_VER = VVRR */
++#  define SIMULATE_VERSION_MAJOR DEC(_MSC_VER / 100)
++#  define SIMULATE_VERSION_MINOR DEC(_MSC_VER % 100)
++# endif
++# if defined(__GNUC__)
++#  define SIMULATE_VERSION_MAJOR DEC(__GNUC__)
++# elif defined(__GNUG__)
++#  define SIMULATE_VERSION_MAJOR DEC(__GNUG__)
++# endif
++# if defined(__GNUC_MINOR__)
++#  define SIMULATE_VERSION_MINOR DEC(__GNUC_MINOR__)
++# endif
++# if defined(__GNUC_PATCHLEVEL__)
++#  define SIMULATE_VERSION_PATCH DEC(__GNUC_PATCHLEVEL__)
++# endif
++
++#elif defined(__PATHCC__)
++# define COMPILER_ID "PathScale"
++# define COMPILER_VERSION_MAJOR DEC(__PATHCC__)
++# define COMPILER_VERSION_MINOR DEC(__PATHCC_MINOR__)
++# if defined(__PATHCC_PATCHLEVEL__)
++#  define COMPILER_VERSION_PATCH DEC(__PATHCC_PATCHLEVEL__)
++# endif
++
++#elif defined(__BORLANDC__) && defined(__CODEGEARC_VERSION__)
++# define COMPILER_ID "Embarcadero"
++# define COMPILER_VERSION_MAJOR HEX(__CODEGEARC_VERSION__>>24 & 0x00FF)
++# define COMPILER_VERSION_MINOR HEX(__CODEGEARC_VERSION__>>16 & 0x00FF)
++# define COMPILER_VERSION_PATCH DEC(__CODEGEARC_VERSION__     & 0xFFFF)
++
++#elif defined(__BORLANDC__)
++# define COMPILER_ID "Borland"
++  /* __BORLANDC__ = 0xVRR */
++# define COMPILER_VERSION_MAJOR HEX(__BORLANDC__>>8)
++# define COMPILER_VERSION_MINOR HEX(__BORLANDC__ & 0xFF)
++
++#elif defined(__WATCOMC__) && __WATCOMC__ < 1200
++# define COMPILER_ID "Watcom"
++   /* __WATCOMC__ = VVRR */
++# define COMPILER_VERSION_MAJOR DEC(__WATCOMC__ / 100)
++# define COMPILER_VERSION_MINOR DEC((__WATCOMC__ / 10) % 10)
++# if (__WATCOMC__ % 10) > 0
++#  define COMPILER_VERSION_PATCH DEC(__WATCOMC__ % 10)
++# endif
++
++#elif defined(__WATCOMC__)
++# define COMPILER_ID "OpenWatcom"
++   /* __WATCOMC__ = VVRP + 1100 */
++# define COMPILER_VERSION_MAJOR DEC((__WATCOMC__ - 1100) / 100)
++# define COMPILER_VERSION_MINOR DEC((__WATCOMC__ / 10) % 10)
++# if (__WATCOMC__ % 10) > 0
++#  define COMPILER_VERSION_PATCH DEC(__WATCOMC__ % 10)
++# endif
++
++#elif defined(__SUNPRO_CC)
++# define COMPILER_ID "SunPro"
++# if __SUNPRO_CC >= 0x5100
++   /* __SUNPRO_CC = 0xVRRP */
++#  define COMPILER_VERSION_MAJOR HEX(__SUNPRO_CC>>12)
++#  define COMPILER_VERSION_MINOR HEX(__SUNPRO_CC>>4 & 0xFF)
++#  define COMPILER_VERSION_PATCH HEX(__SUNPRO_CC    & 0xF)
++# else
++   /* __SUNPRO_CC = 0xVRP */
++#  define COMPILER_VERSION_MAJOR HEX(__SUNPRO_CC>>8)
++#  define COMPILER_VERSION_MINOR HEX(__SUNPRO_CC>>4 & 0xF)
++#  define COMPILER_VERSION_PATCH HEX(__SUNPRO_CC    & 0xF)
++# endif
++
++#elif defined(__HP_aCC)
++# define COMPILER_ID "HP"
++  /* __HP_aCC = VVRRPP */
++# define COMPILER_VERSION_MAJOR DEC(__HP_aCC/10000)
++# define COMPILER_VERSION_MINOR DEC(__HP_aCC/100 % 100)
++# define COMPILER_VERSION_PATCH DEC(__HP_aCC     % 100)
++
++#elif defined(__DECCXX)
++# define COMPILER_ID "Compaq"
++  /* __DECCXX_VER = VVRRTPPPP */
++# define COMPILER_VERSION_MAJOR DEC(__DECCXX_VER/10000000)
++# define COMPILER_VERSION_MINOR DEC(__DECCXX_VER/100000  % 100)
++# define COMPILER_VERSION_PATCH DEC(__DECCXX_VER         % 10000)
++
++#elif defined(__IBMCPP__) && defined(__COMPILER_VER__)
++# define COMPILER_ID "zOS"
++  /* __IBMCPP__ = VRP */
++# define COMPILER_VERSION_MAJOR DEC(__IBMCPP__/100)
++# define COMPILER_VERSION_MINOR DEC(__IBMCPP__/10 % 10)
++# define COMPILER_VERSION_PATCH DEC(__IBMCPP__    % 10)
++
++#elif defined(__ibmxl__) && defined(__clang__)
++# define COMPILER_ID "XLClang"
++# define COMPILER_VERSION_MAJOR DEC(__ibmxl_version__)
++# define COMPILER_VERSION_MINOR DEC(__ibmxl_release__)
++# define COMPILER_VERSION_PATCH DEC(__ibmxl_modification__)
++# define COMPILER_VERSION_TWEAK DEC(__ibmxl_ptf_fix_level__)
++
++
++#elif defined(__IBMCPP__) && !defined(__COMPILER_VER__) && __IBMCPP__ >= 800
++# define COMPILER_ID "XL"
++  /* __IBMCPP__ = VRP */
++# define COMPILER_VERSION_MAJOR DEC(__IBMCPP__/100)
++# define COMPILER_VERSION_MINOR DEC(__IBMCPP__/10 % 10)
++# define COMPILER_VERSION_PATCH DEC(__IBMCPP__    % 10)
++
++#elif defined(__IBMCPP__) && !defined(__COMPILER_VER__) && __IBMCPP__ < 800
++# define COMPILER_ID "VisualAge"
++  /* __IBMCPP__ = VRP */
++# define COMPILER_VERSION_MAJOR DEC(__IBMCPP__/100)
++# define COMPILER_VERSION_MINOR DEC(__IBMCPP__/10 % 10)
++# define COMPILER_VERSION_PATCH DEC(__IBMCPP__    % 10)
++
++#elif defined(__PGI)
++# define COMPILER_ID "PGI"
++# define COMPILER_VERSION_MAJOR DEC(__PGIC__)
++# define COMPILER_VERSION_MINOR DEC(__PGIC_MINOR__)
++# if defined(__PGIC_PATCHLEVEL__)
++#  define COMPILER_VERSION_PATCH DEC(__PGIC_PATCHLEVEL__)
++# endif
++
++#elif defined(_CRAYC)
++# define COMPILER_ID "Cray"
++# define COMPILER_VERSION_MAJOR DEC(_RELEASE_MAJOR)
++# define COMPILER_VERSION_MINOR DEC(_RELEASE_MINOR)
++
++#elif defined(__TI_COMPILER_VERSION__)
++# define COMPILER_ID "TI"
++  /* __TI_COMPILER_VERSION__ = VVVRRRPPP */
++# define COMPILER_VERSION_MAJOR DEC(__TI_COMPILER_VERSION__/1000000)
++# define COMPILER_VERSION_MINOR DEC(__TI_COMPILER_VERSION__/1000   % 1000)
++# define COMPILER_VERSION_PATCH DEC(__TI_COMPILER_VERSION__        % 1000)
++
++#elif defined(__FUJITSU) || defined(__FCC_VERSION) || defined(__fcc_version)
++# define COMPILER_ID "Fujitsu"
++
++#elif defined(__ghs__)
++# define COMPILER_ID "GHS"
++/* __GHS_VERSION_NUMBER = VVVVRP */
++# ifdef __GHS_VERSION_NUMBER
++# define COMPILER_VERSION_MAJOR DEC(__GHS_VERSION_NUMBER / 100)
++# define COMPILER_VERSION_MINOR DEC(__GHS_VERSION_NUMBER / 10 % 10)
++# define COMPILER_VERSION_PATCH DEC(__GHS_VERSION_NUMBER      % 10)
++# endif
++
++#elif defined(__SCO_VERSION__)
++# define COMPILER_ID "SCO"
++
++#elif defined(__ARMCC_VERSION) && !defined(__clang__)
++# define COMPILER_ID "ARMCC"
++#if __ARMCC_VERSION >= 1000000
++  /* __ARMCC_VERSION = VRRPPPP */
++  # define COMPILER_VERSION_MAJOR DEC(__ARMCC_VERSION/1000000)
++  # define COMPILER_VERSION_MINOR DEC(__ARMCC_VERSION/10000 % 100)
++  # define COMPILER_VERSION_PATCH DEC(__ARMCC_VERSION     % 10000)
++#else
++  /* __ARMCC_VERSION = VRPPPP */
++  # define COMPILER_VERSION_MAJOR DEC(__ARMCC_VERSION/100000)
++  # define COMPILER_VERSION_MINOR DEC(__ARMCC_VERSION/10000 % 10)
++  # define COMPILER_VERSION_PATCH DEC(__ARMCC_VERSION    % 10000)
++#endif
++
++
++#elif defined(__clang__) && defined(__apple_build_version__)
++# define COMPILER_ID "AppleClang"
++# if defined(_MSC_VER)
++#  define SIMULATE_ID "MSVC"
++# endif
++# define COMPILER_VERSION_MAJOR DEC(__clang_major__)
++# define COMPILER_VERSION_MINOR DEC(__clang_minor__)
++# define COMPILER_VERSION_PATCH DEC(__clang_patchlevel__)
++# if defined(_MSC_VER)
++   /* _MSC_VER = VVRR */
++#  define SIMULATE_VERSION_MAJOR DEC(_MSC_VER / 100)
++#  define SIMULATE_VERSION_MINOR DEC(_MSC_VER % 100)
++# endif
++# define COMPILER_VERSION_TWEAK DEC(__apple_build_version__)
++
++#elif defined(__clang__) && defined(__ARMCOMPILER_VERSION)
++# define COMPILER_ID "ARMClang"
++  # define COMPILER_VERSION_MAJOR DEC(__ARMCOMPILER_VERSION/1000000)
++  # define COMPILER_VERSION_MINOR DEC(__ARMCOMPILER_VERSION/10000 % 100)
++  # define COMPILER_VERSION_PATCH DEC(__ARMCOMPILER_VERSION     % 10000)
++# define COMPILER_VERSION_INTERNAL DEC(__ARMCOMPILER_VERSION)
++
++#elif defined(__clang__)
++# define COMPILER_ID "Clang"
++# if defined(_MSC_VER)
++#  define SIMULATE_ID "MSVC"
++# endif
++# define COMPILER_VERSION_MAJOR DEC(__clang_major__)
++# define COMPILER_VERSION_MINOR DEC(__clang_minor__)
++# define COMPILER_VERSION_PATCH DEC(__clang_patchlevel__)
++# if defined(_MSC_VER)
++   /* _MSC_VER = VVRR */
++#  define SIMULATE_VERSION_MAJOR DEC(_MSC_VER / 100)
++#  define SIMULATE_VERSION_MINOR DEC(_MSC_VER % 100)
++# endif
++
++#elif defined(__GNUC__) || defined(__GNUG__)
++# define COMPILER_ID "GNU"
++# if defined(__GNUC__)
++#  define COMPILER_VERSION_MAJOR DEC(__GNUC__)
++# else
++#  define COMPILER_VERSION_MAJOR DEC(__GNUG__)
++# endif
++# if defined(__GNUC_MINOR__)
++#  define COMPILER_VERSION_MINOR DEC(__GNUC_MINOR__)
++# endif
++# if defined(__GNUC_PATCHLEVEL__)
++#  define COMPILER_VERSION_PATCH DEC(__GNUC_PATCHLEVEL__)
++# endif
++
++#elif defined(_MSC_VER)
++# define COMPILER_ID "MSVC"
++  /* _MSC_VER = VVRR */
++# define COMPILER_VERSION_MAJOR DEC(_MSC_VER / 100)
++# define COMPILER_VERSION_MINOR DEC(_MSC_VER % 100)
++# if defined(_MSC_FULL_VER)
++#  if _MSC_VER >= 1400
++    /* _MSC_FULL_VER = VVRRPPPPP */
++#   define COMPILER_VERSION_PATCH DEC(_MSC_FULL_VER % 100000)
++#  else
++    /* _MSC_FULL_VER = VVRRPPPP */
++#   define COMPILER_VERSION_PATCH DEC(_MSC_FULL_VER % 10000)
++#  endif
++# endif
++# if defined(_MSC_BUILD)
++#  define COMPILER_VERSION_TWEAK DEC(_MSC_BUILD)
++# endif
++
++#elif defined(__VISUALDSPVERSION__) || defined(__ADSPBLACKFIN__) || defined(__ADSPTS__) || defined(__ADSP21000__)
++# define COMPILER_ID "ADSP"
++#if defined(__VISUALDSPVERSION__)
++  /* __VISUALDSPVERSION__ = 0xVVRRPP00 */
++# define COMPILER_VERSION_MAJOR HEX(__VISUALDSPVERSION__>>24)
++# define COMPILER_VERSION_MINOR HEX(__VISUALDSPVERSION__>>16 & 0xFF)
++# define COMPILER_VERSION_PATCH HEX(__VISUALDSPVERSION__>>8  & 0xFF)
++#endif
++
++#elif defined(__IAR_SYSTEMS_ICC__) || defined(__IAR_SYSTEMS_ICC)
++# define COMPILER_ID "IAR"
++# if defined(__VER__) && defined(__ICCARM__)
++#  define COMPILER_VERSION_MAJOR DEC((__VER__) / 1000000)
++#  define COMPILER_VERSION_MINOR DEC(((__VER__) / 1000) % 1000)
++#  define COMPILER_VERSION_PATCH DEC((__VER__) % 1000)
++#  define COMPILER_VERSION_INTERNAL DEC(__IAR_SYSTEMS_ICC__)
++# elif defined(__VER__) && (defined(__ICCAVR__) || defined(__ICCRX__) || defined(__ICCRH850__) || defined(__ICCRL78__) || defined(__ICC430__) || defined(__ICCRISCV__))
++#  define COMPILER_VERSION_MAJOR DEC((__VER__) / 100)
++#  define COMPILER_VERSION_MINOR DEC((__VER__) - (((__VER__) / 100)*100))
++#  define COMPILER_VERSION_PATCH DEC(__SUBVERSION__)
++#  define COMPILER_VERSION_INTERNAL DEC(__IAR_SYSTEMS_ICC__)
++# endif
++
++
++/* These compilers are either not known or too old to define an
++  identification macro.  Try to identify the platform and guess that
++  it is the native compiler.  */
++#elif defined(__hpux) || defined(__hpua)
++# define COMPILER_ID "HP"
++
++#else /* unknown compiler */
++# define COMPILER_ID ""
++#endif
++
++/* Construct the string literal in pieces to prevent the source from
++   getting matched.  Store it in a pointer rather than an array
++   because some compilers will just produce instructions to fill the
++   array rather than assigning a pointer to a static array.  */
++char const* info_compiler = "INFO" ":" "compiler[" COMPILER_ID "]";
++#ifdef SIMULATE_ID
++char const* info_simulate = "INFO" ":" "simulate[" SIMULATE_ID "]";
++#endif
++
++#ifdef __QNXNTO__
++char const* qnxnto = "INFO" ":" "qnxnto[]";
++#endif
++
++#if defined(__CRAYXE) || defined(__CRAYXC)
++char const *info_cray = "INFO" ":" "compiler_wrapper[CrayPrgEnv]";
++#endif
++
++#define STRINGIFY_HELPER(X) #X
++#define STRINGIFY(X) STRINGIFY_HELPER(X)
++
++/* Identify known platforms by name.  */
++#if defined(__linux) || defined(__linux__) || defined(linux)
++# define PLATFORM_ID "Linux"
++
++#elif defined(__CYGWIN__)
++# define PLATFORM_ID "Cygwin"
++
++#elif defined(__MINGW32__)
++# define PLATFORM_ID "MinGW"
++
++#elif defined(__APPLE__)
++# define PLATFORM_ID "Darwin"
++
++#elif defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
++# define PLATFORM_ID "Windows"
++
++#elif defined(__FreeBSD__) || defined(__FreeBSD)
++# define PLATFORM_ID "FreeBSD"
++
++#elif defined(__NetBSD__) || defined(__NetBSD)
++# define PLATFORM_ID "NetBSD"
++
++#elif defined(__OpenBSD__) || defined(__OPENBSD)
++# define PLATFORM_ID "OpenBSD"
++
++#elif defined(__sun) || defined(sun)
++# define PLATFORM_ID "SunOS"
++
++#elif defined(_AIX) || defined(__AIX) || defined(__AIX__) || defined(__aix) || defined(__aix__)
++# define PLATFORM_ID "AIX"
++
++#elif defined(__hpux) || defined(__hpux__)
++# define PLATFORM_ID "HP-UX"
++
++#elif defined(__HAIKU__)
++# define PLATFORM_ID "Haiku"
++
++#elif defined(__BeOS) || defined(__BEOS__) || defined(_BEOS)
++# define PLATFORM_ID "BeOS"
++
++#elif defined(__QNX__) || defined(__QNXNTO__)
++# define PLATFORM_ID "QNX"
++
++#elif defined(__tru64) || defined(_tru64) || defined(__TRU64__)
++# define PLATFORM_ID "Tru64"
++
++#elif defined(__riscos) || defined(__riscos__)
++# define PLATFORM_ID "RISCos"
++
++#elif defined(__sinix) || defined(__sinix__) || defined(__SINIX__)
++# define PLATFORM_ID "SINIX"
++
++#elif defined(__UNIX_SV__)
++# define PLATFORM_ID "UNIX_SV"
++
++#elif defined(__bsdos__)
++# define PLATFORM_ID "BSDOS"
++
++#elif defined(_MPRAS) || defined(MPRAS)
++# define PLATFORM_ID "MP-RAS"
++
++#elif defined(__osf) || defined(__osf__)
++# define PLATFORM_ID "OSF1"
++
++#elif defined(_SCO_SV) || defined(SCO_SV) || defined(sco_sv)
++# define PLATFORM_ID "SCO_SV"
++
++#elif defined(__ultrix) || defined(__ultrix__) || defined(_ULTRIX)
++# define PLATFORM_ID "ULTRIX"
++
++#elif defined(__XENIX__) || defined(_XENIX) || defined(XENIX)
++# define PLATFORM_ID "Xenix"
++
++#elif defined(__WATCOMC__)
++# if defined(__LINUX__)
++#  define PLATFORM_ID "Linux"
++
++# elif defined(__DOS__)
++#  define PLATFORM_ID "DOS"
++
++# elif defined(__OS2__)
++#  define PLATFORM_ID "OS2"
++
++# elif defined(__WINDOWS__)
++#  define PLATFORM_ID "Windows3x"
++
++# else /* unknown platform */
++#  define PLATFORM_ID
++# endif
++
++#elif defined(__INTEGRITY)
++# if defined(INT_178B)
++#  define PLATFORM_ID "Integrity178"
++
++# else /* regular Integrity */
++#  define PLATFORM_ID "Integrity"
++# endif
++
++#else /* unknown platform */
++# define PLATFORM_ID
++
++#endif
++
++/* For windows compilers MSVC and Intel we can determine
++   the architecture of the compiler being used.  This is because
++   the compilers do not have flags that can change the architecture,
++   but rather depend on which compiler is being used
++*/
++#if defined(_WIN32) && defined(_MSC_VER)
++# if defined(_M_IA64)
++#  define ARCHITECTURE_ID "IA64"
++
++# elif defined(_M_X64) || defined(_M_AMD64)
++#  define ARCHITECTURE_ID "x64"
++
++# elif defined(_M_IX86)
++#  define ARCHITECTURE_ID "X86"
++
++# elif defined(_M_ARM64)
++#  define ARCHITECTURE_ID "ARM64"
++
++# elif defined(_M_ARM)
++#  if _M_ARM == 4
++#   define ARCHITECTURE_ID "ARMV4I"
++#  elif _M_ARM == 5
++#   define ARCHITECTURE_ID "ARMV5I"
++#  else
++#   define ARCHITECTURE_ID "ARMV" STRINGIFY(_M_ARM)
++#  endif
++
++# elif defined(_M_MIPS)
++#  define ARCHITECTURE_ID "MIPS"
++
++# elif defined(_M_SH)
++#  define ARCHITECTURE_ID "SHx"
++
++# else /* unknown architecture */
++#  define ARCHITECTURE_ID ""
++# endif
++
++#elif defined(__WATCOMC__)
++# if defined(_M_I86)
++#  define ARCHITECTURE_ID "I86"
++
++# elif defined(_M_IX86)
++#  define ARCHITECTURE_ID "X86"
++
++# else /* unknown architecture */
++#  define ARCHITECTURE_ID ""
++# endif
++
++#elif defined(__IAR_SYSTEMS_ICC__) || defined(__IAR_SYSTEMS_ICC)
++# if defined(__ICCARM__)
++#  define ARCHITECTURE_ID "ARM"
++
++# elif defined(__ICCRX__)
++#  define ARCHITECTURE_ID "RX"
++
++# elif defined(__ICCRH850__)
++#  define ARCHITECTURE_ID "RH850"
++
++# elif defined(__ICCRL78__)
++#  define ARCHITECTURE_ID "RL78"
++
++# elif defined(__ICCRISCV__)
++#  define ARCHITECTURE_ID "RISCV"
++
++# elif defined(__ICCAVR__)
++#  define ARCHITECTURE_ID "AVR"
++
++# elif defined(__ICC430__)
++#  define ARCHITECTURE_ID "MSP430"
++
++# else /* unknown architecture */
++#  define ARCHITECTURE_ID ""
++# endif
++
++#elif defined(__ghs__)
++# if defined(__PPC64__)
++#  define ARCHITECTURE_ID "PPC64"
++
++# elif defined(__ppc__)
++#  define ARCHITECTURE_ID "PPC"
++
++# elif defined(__ARM__)
++#  define ARCHITECTURE_ID "ARM"
++
++# elif defined(__x86_64__)
++#  define ARCHITECTURE_ID "x64"
++
++# elif defined(__i386__)
++#  define ARCHITECTURE_ID "X86"
++
++# else /* unknown architecture */
++#  define ARCHITECTURE_ID ""
++# endif
++#else
++#  define ARCHITECTURE_ID
++#endif
++
++/* Convert integer to decimal digit literals.  */
++#define DEC(n)                   \
++  ('0' + (((n) / 10000000)%10)), \
++  ('0' + (((n) / 1000000)%10)),  \
++  ('0' + (((n) / 100000)%10)),   \
++  ('0' + (((n) / 10000)%10)),    \
++  ('0' + (((n) / 1000)%10)),     \
++  ('0' + (((n) / 100)%10)),      \
++  ('0' + (((n) / 10)%10)),       \
++  ('0' +  ((n) % 10))
++
++/* Convert integer to hex digit literals.  */
++#define HEX(n)             \
++  ('0' + ((n)>>28 & 0xF)), \
++  ('0' + ((n)>>24 & 0xF)), \
++  ('0' + ((n)>>20 & 0xF)), \
++  ('0' + ((n)>>16 & 0xF)), \
++  ('0' + ((n)>>12 & 0xF)), \
++  ('0' + ((n)>>8  & 0xF)), \
++  ('0' + ((n)>>4  & 0xF)), \
++  ('0' + ((n)     & 0xF))
++
++/* Construct a string literal encoding the version number components. */
++#ifdef COMPILER_VERSION_MAJOR
++char const info_version[] = {
++  'I', 'N', 'F', 'O', ':',
++  'c','o','m','p','i','l','e','r','_','v','e','r','s','i','o','n','[',
++  COMPILER_VERSION_MAJOR,
++# ifdef COMPILER_VERSION_MINOR
++  '.', COMPILER_VERSION_MINOR,
++#  ifdef COMPILER_VERSION_PATCH
++   '.', COMPILER_VERSION_PATCH,
++#   ifdef COMPILER_VERSION_TWEAK
++    '.', COMPILER_VERSION_TWEAK,
++#   endif
++#  endif
++# endif
++  ']','\0'};
++#endif
++
++/* Construct a string literal encoding the internal version number. */
++#ifdef COMPILER_VERSION_INTERNAL
++char const info_version_internal[] = {
++  'I', 'N', 'F', 'O', ':',
++  'c','o','m','p','i','l','e','r','_','v','e','r','s','i','o','n','_',
++  'i','n','t','e','r','n','a','l','[',
++  COMPILER_VERSION_INTERNAL,']','\0'};
++#endif
++
++/* Construct a string literal encoding the version number components. */
++#ifdef SIMULATE_VERSION_MAJOR
++char const info_simulate_version[] = {
++  'I', 'N', 'F', 'O', ':',
++  's','i','m','u','l','a','t','e','_','v','e','r','s','i','o','n','[',
++  SIMULATE_VERSION_MAJOR,
++# ifdef SIMULATE_VERSION_MINOR
++  '.', SIMULATE_VERSION_MINOR,
++#  ifdef SIMULATE_VERSION_PATCH
++   '.', SIMULATE_VERSION_PATCH,
++#   ifdef SIMULATE_VERSION_TWEAK
++    '.', SIMULATE_VERSION_TWEAK,
++#   endif
++#  endif
++# endif
++  ']','\0'};
++#endif
++
++/* Construct the string literal in pieces to prevent the source from
++   getting matched.  Store it in a pointer rather than an array
++   because some compilers will just produce instructions to fill the
++   array rather than assigning a pointer to a static array.  */
++char const* info_platform = "INFO" ":" "platform[" PLATFORM_ID "]";
++char const* info_arch = "INFO" ":" "arch[" ARCHITECTURE_ID "]";
++
++
++
++
++#if defined(_MSC_VER) && defined(_MSVC_LANG)
++#define CXX_STD _MSVC_LANG
++#else
++#define CXX_STD __cplusplus
++#endif
++
++const char* info_language_dialect_default = "INFO" ":" "dialect_default["
++#if CXX_STD > 201703L
++  "20"
++#elif CXX_STD >= 201703L
++  "17"
++#elif CXX_STD >= 201402L
++  "14"
++#elif CXX_STD >= 201103L
++  "11"
++#else
++  "98"
++#endif
++"]";
++
++/*--------------------------------------------------------------------------*/
++
++int main(int argc, char* argv[])
++{
++  int require = 0;
++  require += info_compiler[argc];
++  require += info_platform[argc];
++#ifdef COMPILER_VERSION_MAJOR
++  require += info_version[argc];
++#endif
++#ifdef COMPILER_VERSION_INTERNAL
++  require += info_version_internal[argc];
++#endif
++#ifdef SIMULATE_ID
++  require += info_simulate[argc];
++#endif
++#ifdef SIMULATE_VERSION_MAJOR
++  require += info_simulate_version[argc];
++#endif
++#if defined(__CRAYXE) || defined(__CRAYXC)
++  require += info_cray[argc];
++#endif
++  require += info_language_dialect_default[argc];
++  (void)argv;
++  return require;
++}
+diff --git a/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CompilerIdCXX/CMakeCXXCompilerId.exe b/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CompilerIdCXX/CMakeCXXCompilerId.exe
+new file mode 100644
+index 00000000..d74e3df7
+Binary files /dev/null and b/src/Native/out/build/x64-Debug/CMakeFiles/3.15.19080502-MSVC_2/CompilerIdCXX/CMakeCXXCompilerId.exe differ
+diff --git a/src/Native/out/build/x64-Debug/CMakeFiles/ShowIncludes/foo.h b/src/Native/out/build/x64-Debug/CMakeFiles/ShowIncludes/foo.h
+new file mode 100644
+index 00000000..8b137891
+--- /dev/null
++++ b/src/Native/out/build/x64-Debug/CMakeFiles/ShowIncludes/foo.h
+@@ -0,0 +1 @@
++
+diff --git a/src/Native/out/build/x64-Debug/CMakeFiles/ShowIncludes/main.c b/src/Native/out/build/x64-Debug/CMakeFiles/ShowIncludes/main.c
+new file mode 100644
+index 00000000..cd3cbc1f
+--- /dev/null
++++ b/src/Native/out/build/x64-Debug/CMakeFiles/ShowIncludes/main.c
+@@ -0,0 +1,2 @@
++#include "foo.h" 
++int main(){}
+diff --git a/src/Native/out/build/x64-Debug/CMakeFiles/cmake.check_cache b/src/Native/out/build/x64-Debug/CMakeFiles/cmake.check_cache
+new file mode 100644
+index 00000000..3dccd731
+--- /dev/null
++++ b/src/Native/out/build/x64-Debug/CMakeFiles/cmake.check_cache
+@@ -0,0 +1 @@
++# This file is generated by cmake for dependency checking of the CMakeCache.txt file
+diff --git a/src/Native/out/build/x64-Debug/VSInheritEnvironments.txt b/src/Native/out/build/x64-Debug/VSInheritEnvironments.txt
+new file mode 100644
+index 00000000..f8cc9d8a
+--- /dev/null
++++ b/src/Native/out/build/x64-Debug/VSInheritEnvironments.txt
+@@ -0,0 +1 @@
++msvc_x64_x64
+\ No newline at end of file
