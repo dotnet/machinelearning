@@ -12,6 +12,7 @@ using Xunit;
 using Xunit.Abstractions;
 using System.Linq;
 using System.IO;
+using Microsoft.ML.TestFramework.Attributes;
 
 namespace Microsoft.ML.Tests
 {
@@ -46,10 +47,10 @@ namespace Microsoft.ML.Tests
             return ctx.Model.CreatePredictionEngine<FloatInput, OutputObj>(model);
         }
 
-        [Fact]
+        [OnnxFact]
         public void OnnxSequenceTypeWithColumnNameAttributeTest()
         {
-            var modelFile = @"zipmap/TestZipMapString.onnx";
+            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "zipmap", "TestZipMapString.onnx");
             var predictor = LoadModel(modelFile);
 
             FloatInput input = new FloatInput() { Input = new float[] { 1.0f, 2.0f, 3.0f } };
