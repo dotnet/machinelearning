@@ -598,7 +598,6 @@ namespace Microsoft.ML.Transforms
             string scoreColumnName, float learningRate, int classCount)
         {
             _bottleneckTensor = Graph.OperationByName(_bottleneckOperationName);
-            //var graph = tf.get_default_graph();
             (_trainStep, _crossEntropy, _labelTensor, _softMaxTensor) =
                     AddFinalRetrainOps(classCount, labelColumn, scoreColumnName, learningRate, _bottleneckTensor, true);
 
@@ -1209,7 +1208,6 @@ namespace Microsoft.ML.Transforms
         public ImageClassificationTransformer Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
-            _options.ReuseTrainSetBottleneckCachedValues = true;
             if (_transformer == null)
                 _transformer = new ImageClassificationTransformer(_host, _options, _dnnModel, input);
 
