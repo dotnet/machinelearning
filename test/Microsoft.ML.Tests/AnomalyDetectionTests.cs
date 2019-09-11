@@ -91,7 +91,7 @@ namespace Microsoft.ML.Tests
             var trainer1 = mlContext.AnomalyDetection.Trainers.RandomizedPca(featureColumnName: nameof(DataPoint.Features), rank: 1, ensureZeroMean: false);
 
             // Test the first detector.
-            ExecutePipelineWithGivenRandomizedPcaTrainer(mlContext, trainer1);
+            ExecuteRandomizedPcaTrainerChangeThreshold(mlContext, trainer1);
 
             // Object required in the creation of another detector.
             var options = new Trainers.RandomizedPcaTrainer.Options()
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Tests
             var trainer2 = mlContext.AnomalyDetection.Trainers.RandomizedPca(options);
 
             // Test the second detector.
-            ExecutePipelineWithGivenRandomizedPcaTrainer(mlContext, trainer2);
+            ExecuteRandomizedPcaTrainerChangeThreshold(mlContext, trainer2);
         }
 
         /// <summary>
@@ -204,22 +204,22 @@ namespace Microsoft.ML.Tests
             // Read ML.NET predictions into IEnumerable<Result>.
             var results = mlContext.Data.CreateEnumerable<Result>(transformed, reuseRowObject: false).ToList();
 
-            // Inlier should be predicted as false.
-            Assert.False(results[0].PredictedLabel);
-            Assert.InRange(results[0].Score, 0, 0.3);
+            // Outlier should be predicted as true.
+            Assert.True(results[0].PredictedLabel);
+            Assert.InRange(results[0].Score, 0.3, 1);
             // Inlier should be predicted as false.
             Assert.False(results[1].PredictedLabel);
             Assert.InRange(results[1].Score, 0, 0.3);
             // Inlier should be predicted as false.
             Assert.False(results[2].PredictedLabel);
             Assert.InRange(results[2].Score, 0, 0.3);
-            // Inlier should be predicted as false.
-            Assert.False(results[3].PredictedLabel);
-            Assert.InRange(results[3].Score, 0, 0.3);
-
             // Outlier should be predicted as true.
-            Assert.True(results[4].PredictedLabel);
-            Assert.InRange(results[4].Score, 0.3, 1);
+            Assert.True(results[3].PredictedLabel);
+            Assert.InRange(results[3].Score, 0.3, 1);
+
+            // Inlier should be predicted as false.
+            Assert.False(results[4].PredictedLabel);
+            Assert.InRange(results[4].Score, 0, 0.3);
 
             // Inlier should be predicted as false.
             Assert.False(results[5].PredictedLabel);

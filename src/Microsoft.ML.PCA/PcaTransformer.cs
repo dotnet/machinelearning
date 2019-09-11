@@ -11,6 +11,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
@@ -511,7 +512,7 @@ namespace Microsoft.ML.Transforms
                 throw ectx.ExceptSchemaMismatch(nameof(inputSchema), "input", name, "known-size vector of Single of two or more items", type.ToString());
         }
 
-        private sealed class Mapper : OneToOneMapperBase
+        private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
         {
             public sealed class ColumnSchemaInfo
             {
@@ -595,6 +596,73 @@ namespace Microsoft.ML.Transforms
                 }
 
                 dst = editor.Commit();
+            }
+
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
+
+            public void SaveAsOnnx(OnnxContext ctx)
+            {
+                Host.CheckValue(ctx, nameof(ctx));
+
+                for (int i = 0; i < _numColumns; i++)
+                {
+                    var colPair = _parent.ColumnPairs[i];
+                    var transformInfo = _parent._transformInfos[i];
+                    string inputColumnName = colPair.inputColumnName;
+                    string outputColumnName = colPair.outputColumnName;
+                    if (!ctx.ContainsColumn(inputColumnName))
+                    {
+                        ctx.RemoveColumn(colPair.outputColumnName, false);
+                        continue;
+                    }
+
+                    var dstVariableName = ctx.AddIntermediateVariable(transformInfo.OutputType, outputColumnName);
+                    SaveAsOnnxCore(ctx, i, ctx.GetVariableName(inputColumnName), dstVariableName);
+                }
+            }
+
+            private void SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
+            {
+                Host.CheckValue(ctx, nameof(ctx));
+
+                TransformInfo transformInfo = _parent._transformInfos[iinfo];
+                ColumnSchemaInfo schemaInfo = _parent._schemaInfos[iinfo];
+
+                float[] principalComponents = new float[transformInfo.Rank * transformInfo.Dimension];
+                for (int i = 0; i < transformInfo.Rank; i++)
+                {
+                    Array.Copy(transformInfo.Eigenvectors[i], 0, principalComponents, i * transformInfo.Dimension, transformInfo.Dimension);
+                }
+                long[] pcaDims = { transformInfo.Rank, transformInfo.Dimension };
+                var pcaMatrix = ctx.AddInitializer(principalComponents, pcaDims, "principalComponents");
+
+                float[] zeroMean = new float[transformInfo.Rank];
+                if (transformInfo.MeanProjected != null)
+                {
+                    Array.Copy(transformInfo.MeanProjected, zeroMean, transformInfo.Rank);
+                }
+
+                long[] meanDims = { transformInfo.Rank };
+                var zeroMeanNode = ctx.AddInitializer(zeroMean, meanDims, "meanVector");
+
+                // NB: Hack
+                // Currently ML.NET persists ONNX graphs in proto-buf 3 format but the Onnx runtime uses the proto-buf 2 format
+                // There is an incompatibility between the two where proto-buf 3 does not include variables whose values are zero
+                // In the Gemm node below, we want the srcVariableName matrix to be sent in without a transpose, so transA has to be zero
+                // Due to the incompatibility, we get an exception from the Onnx runtime
+                // To workaround this, we transpose the input data first with the Transpose operator and then use the Gemm operator with transA=1
+                // This should be removed once incompatibility is fixed.
+                string opType;
+                opType = "Transpose";
+                var transposeOutput = ctx.AddIntermediateVariable(schemaInfo.InputType, "TransposeOutput", true);
+                var transposeNode = ctx.CreateNode(opType, srcVariableName, transposeOutput, ctx.GetNodeName(opType), "");
+
+                opType = "Gemm";
+                var gemmNode = ctx.CreateNode(opType, new[] { transposeOutput, pcaMatrix, zeroMeanNode }, new[] { dstVariableName }, ctx.GetNodeName(opType), "");
+                gemmNode.AddAttribute("alpha", 1.0);
+                gemmNode.AddAttribute("beta", -1.0);
+                gemmNode.AddAttribute("transA", 1);
+                gemmNode.AddAttribute("transB", 1);
             }
         }
 
