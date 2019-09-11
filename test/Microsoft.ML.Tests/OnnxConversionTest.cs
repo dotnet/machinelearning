@@ -738,6 +738,46 @@ namespace Microsoft.ML.Tests
                     CompareResults(model.ColumnPairs[0].outputColumnName, outputNames[1], mlnetResult, onnxResult);
                 }
             }
+            Done();
+        }
+
+        [Fact]
+        public void PcaOnnxConversionTest()
+        {
+            var dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
+
+            var mlContext = new MLContext(seed: 1);
+            var dataView = mlContext.Data.LoadFromTextFile(dataSource, new[] {
+                new TextLoader.Column("label", DataKind.Single, 11),
+                new TextLoader.Column("features", DataKind.Single, 0, 10)
+            }, hasHeader: true, separatorChar: ';');
+
+            bool[] zeroMeans = { true, false };
+            foreach (var zeroMean in zeroMeans)
+            {
+                var pipeline = ML.Transforms.ProjectToPrincipalComponents("pca", "features", rank: 5, seed: 1, ensureZeroMean: zeroMean);
+                var model = pipeline.Fit(dataView);
+                var transformedData = model.Transform(dataView);
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+                var onnxFileName = "pca.onnx";
+                var onnxModelPath = GetOutputPath(onnxFileName);
+
+                SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
+                {
+                    // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                    string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                    string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                    var onnxTransformer = onnxEstimator.Fit(dataView);
+                    var onnxResult = onnxTransformer.Transform(dataView);
+                    CompareSelectedR4VectorColumns(model.ColumnPairs[0].outputColumnName, outputNames[2], transformedData, onnxResult);
+                }
+            }
+
+            Done();
         }
 
         private void CreateDummyExamplesToMakeComplierHappy()
@@ -845,7 +885,14 @@ namespace Microsoft.ML.Tests
 
                     Assert.Equal(expected.Length, actual.Length);
                     for (int i = 0; i < expected.Length; ++i)
-                        Assert.Equal(expected.GetItemOrDefault(i), actual.GetItemOrDefault(i), precision);
+                    {
+                        // We are using float values. But the Assert.Equal function takes doubles.
+                        // And sometimes the converted doubles are different in their precision.
+                        // So make sure we compare floats
+                        float exp = expected.GetItemOrDefault(i);
+                        float act = actual.GetItemOrDefault(i);
+                        CompareNumbersWithTolerance(exp, act, null, precision);
+                    }
                 }
             }
         }
