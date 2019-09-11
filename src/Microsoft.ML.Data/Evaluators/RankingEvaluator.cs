@@ -38,7 +38,7 @@ namespace Microsoft.ML.Data
         public string LabelGains = "0,3,7,15,31";
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Generate per-group (N)DCG", ShortName = "ogs")]
-        public bool OutputGroupSummary;
+        internal bool OutputGroupSummary;
     }
 
     [BestFriend]
