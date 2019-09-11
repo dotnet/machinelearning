@@ -635,6 +635,7 @@ namespace Microsoft.ML.Transforms
             {
                 if (outputCache.Position != position)
                 {
+                    _parent.Session.graph.as_default();
                     Runner runner = new Runner(_parent.Session);
 
                     // Feed inputs to the graph.
