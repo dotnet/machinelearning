@@ -95,11 +95,9 @@ namespace Microsoft.ML.Transforms.Dnn
 
             var graph = new Graph();
             graph = graph.as_default();
-            //return tf_with(tf.Graph().as_default(), graph =>
-            //{
+
             tf.train.import_meta_graph(path);
-            //return graph;
-            //});
+
             return graph;
 
         }

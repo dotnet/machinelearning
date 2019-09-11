@@ -327,7 +327,6 @@ namespace Microsoft.ML.Transforms
             Tensor merged = tf.summary.merge_all();
             trainWriter = tf.summary.FileWriter(Path.Combine(Directory.GetCurrentDirectory(), "train"), _session.graph);
             trainSaver = tf.train.Saver();
-            //var limit = Google.Protobuf.CodedInputStream.S
             trainSaver.save(_session, _checkpointPath);
 
             runner.AddInput(_bottleneckInput.name).AddInput(_labelTensor.name);
@@ -459,8 +458,7 @@ namespace Microsoft.ML.Transforms
             Tensor evaluationStep = null;
             Tensor prediction = null;
             Tensor bottleneckTensor = evalGraph.OperationByName(_bottleneckOperationName);
-            //tf_with<Graph>(evalGraph.as_default(), graph =>
-            //var graph = evalGraph.as_default();
+            evalGraph.as_default();
             var (_, _, groundTruthInput, finalTensor) = AddFinalRetrainOps(classCount, options.LabelColumn,
                     options.ScoreColumnName, options.LearningRate, bottleneckTensor, false);
 
