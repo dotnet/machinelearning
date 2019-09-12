@@ -1,0 +1,163 @@
+{
+  "irVersion": "3",
+  "producerName": "ML.NET",
+  "producerVersion": "##VERSION##",
+  "domain": "machinelearning.dotnet",
+  "graph": {
+    "node": [
+      {
+        "input": [
+          "Features"
+        ],
+        "output": [
+          "MissingIndicator"
+        ],
+        "name": "IsNaN",
+        "opType": "IsNaN"
+      },
+      {
+        "input": [
+          "MissingIndicator"
+        ],
+        "output": [
+          "MissingIndicator0"
+        ],
+        "name": "Cast",
+        "opType": "Cast",
+        "attribute": [
+          {
+            "name": "to",
+            "i": "6",
+            "type": "INT"
+          }
+        ]
+      },
+      {
+        "input": [
+          "Features"
+        ],
+        "output": [
+          "Features0"
+        ],
+        "name": "Identity",
+        "opType": "Identity"
+      },
+      {
+        "input": [
+          "MissingIndicator0"
+        ],
+        "output": [
+          "MissingIndicator1"
+        ],
+        "name": "Identity0",
+        "opType": "Identity"
+      }
+    ],
+    "name": "model",
+    "input": [
+      {
+        "name": "Features",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "3"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "output": [
+      {
+        "name": "Features0",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "3"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "MissingIndicator1",
+        "type": {
+          "tensorType": {
+            "elemType": "INT32",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "3"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "valueInfo": [
+      {
+        "name": "MissingIndicator",
+        "type": {
+          "tensorType": {
+            "elemType": "BOOL",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "3"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "MissingIndicator0",
+        "type": {
+          "tensorType": {
+            "elemType": "INT32",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "3"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "opsetImport": [
+    {
+      "domain": "ai.onnx.ml",
+      "version": "1"
+    },
+    {
+      "version": "9"
+    }
+  ]
+}

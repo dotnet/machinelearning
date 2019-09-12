@@ -227,7 +227,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             var dataType = TensorProto.Types.DataType.Undefined;
 
             if (rawType == typeof(bool))
-                dataType = TensorProto.Types.DataType.Float;
+                dataType = TensorProto.Types.DataType.Bool;
             else if (rawType == typeof(ReadOnlyMemory<char>))
                 dataType = TensorProto.Types.DataType.String;
             else if (rawType == typeof(sbyte))
