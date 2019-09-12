@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -380,7 +381,8 @@ namespace Microsoft.ML.Transforms
                 // i.e. the first dimension (if unknown) is assumed to be batch dimension.
                 // If there are other dimension that are unknown the transformer will return a variable length vector.
                 // This is the work around in absence of reshape transformer.
-                int[] dims = shape.ndim > 0 ? shape.dims.Skip(shape.dims[0] == -1 ? 1 : 0).ToArray() : new[] { 0 };
+                var idims = shape.dims;
+                int[] dims = shape.ndim > 0 ? idims.Skip(idims[0] == -1 ? 1 : 0).ToArray() : new[] { 0 };
                 for (int j = 0; j < dims.Length; j++)
                     dims[j] = dims[j] == -1 ? 0 : dims[j];
                 if (dims == null || dims.Length == 0)
@@ -534,9 +536,11 @@ namespace Microsoft.ML.Transforms
                             throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {typeValueCount}.");
 
                         // Fill in the unknown dimensions.
-                        var l = new int[originalShape.ndim];
-                        for (int ishape = 0; ishape < originalShape.ndim; ishape++)
-                            l[ishape] = originalShape.dims[ishape] == -1 ? (int)d : originalShape.dims[ishape];
+                        var originalShapeNdim = originalShape.ndim;
+                        var originalShapeDims = originalShape.dims;
+                        var l = new int[originalShapeNdim];
+                        for (int ishape = 0; ishape < originalShapeNdim; ishape++)
+                            l[ishape] = originalShapeDims[ishape] == -1 ? (int)d : originalShapeDims[ishape];
                         _fullySpecifiedShapes[i] = new TensorShape(l);
                     }
 

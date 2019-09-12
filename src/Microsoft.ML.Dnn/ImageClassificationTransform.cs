@@ -526,14 +526,15 @@ namespace Microsoft.ML.Transforms
         private (Operation, Tensor, Tensor, Tensor) AddFinalRetrainOps(int classCount, string labelColumn,
             string scoreColumnName, float learningRate, Tensor bottleneckTensor, bool isTraining)
         {
-            var (batch_size, bottleneck_tensor_size) = (bottleneckTensor.TensorShape.dims[0], bottleneckTensor.TensorShape.dims[1]);
+            var bottleneckTensorDims = bottleneckTensor.TensorShape.dims;
+            var (batch_size, bottleneck_tensor_size) = (bottleneckTensorDims[0], bottleneckTensorDims[1]);
             tf_with(tf.name_scope("input"), scope =>
             {
                 if (isTraining)
                 {
                     _bottleneckInput = tf.placeholder_with_default(
                         bottleneckTensor,
-                        shape: bottleneckTensor.TensorShape.dims,
+                        shape: bottleneckTensorDims ,
                         name: "BottleneckInputPlaceholder");
                 }
 
@@ -838,6 +839,7 @@ namespace Microsoft.ML.Transforms
             protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
+                _parent._session.graph.as_default();
                 Host.AssertValue(input);
                 var cache = new OutputCache(input, _parent);
 
@@ -1018,7 +1020,7 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Location of the TensorFlow model.
             /// </summary>
-            [Argument(ArgumentType.Required, HelpText = "TensorFlow model used by the transform. Please see https://www.tf.org/mobile/prepare_models for more details.", SortOrder = 0)]
+            [Argument(ArgumentType.Required, HelpText = "TensorFlow model used by the transform. Please see https://www.tensorflow.org/mobile/prepare_models for more details.", SortOrder = 0)]
             public string ModelLocation;
 
             /// <summary>

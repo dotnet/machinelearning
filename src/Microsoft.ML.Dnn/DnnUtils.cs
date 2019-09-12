@@ -92,14 +92,10 @@ namespace Microsoft.ML.Transforms.Dnn
 
         internal static Graph LoadMetaGraph(string path)
         {
-
             var graph = new Graph();
             graph = graph.as_default();
-
             tf.train.import_meta_graph(path);
-
             return graph;
-
         }
 
         internal static Session LoadTFSessionByModelFilePath(IExceptionContext ectx, string modelFile, bool metaGraph = false)
