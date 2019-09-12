@@ -7,6 +7,7 @@ using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.Tools;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Xunit;
@@ -218,6 +219,22 @@ namespace Microsoft.ML.Functional.Tests
             var metrics = mlContext.Ranking.Evaluate(scoredData, options, labelColumnName: "Label", rowGroupColumnName: "GroupId");
 
             Common.AssertMetrics(metrics);
+        }
+
+        [Fact]
+        public void EvaluateRankingWithMaml()
+        {
+            string _mslrWeb10k_Train = GetDataPath(TestDatasets.MSLRWeb.trainFilename);
+
+            string cmd = @"CV tr=LightGBMRanking" +
+                " eval=RankingEvaluator{t=10}" +
+                " k=2" +
+                " loader=TextLoader{col=Label:R4:0 col=GroupId:TX:1 col=Features:R4:2-138 header=+}" +
+                " data=" + _mslrWeb10k_Train +
+                " xf = HashTransform{col=GroupId}" +
+                " xf = NAHandleTransform{col=Features}";
+
+            Assert.Equal(0, Maml.Main(new[] { cmd }));
         }
 
         /// <summary>
