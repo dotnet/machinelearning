@@ -64,7 +64,7 @@ namespace Microsoft.ML.Transforms.Image
 
         public override void Register()
         {
-            DataViewTypeManager.Register(new ImageDataViewType(Height, Width), typeof(Bitmap), new[] { this });
+            DataViewTypeManager.Register(new ImageDataViewType(Height, Width), typeof(Bitmap), this );
         }
     }
 
