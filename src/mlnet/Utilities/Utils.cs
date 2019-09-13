@@ -44,9 +44,9 @@ namespace Microsoft.ML.CLI.Utilities
                 mlContext.Model.Save(model, modelInputSchema, fs);
         }
 
-        internal static string Sanitize(string name)
+        internal static string Sanitize(string name, char replacement = '_')
         {
-            return string.Join("", name.Select(x => Char.IsLetterOrDigit(x) ? x : '_'));
+            return string.Join("", name.Select(x => Char.IsLetterOrDigit(x) ? x : replacement));
         }
 
         internal static TaskKind GetTaskKind(string mlTask)

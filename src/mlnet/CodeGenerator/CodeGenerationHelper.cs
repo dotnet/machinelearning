@@ -300,7 +300,8 @@ namespace Microsoft.ML.CLI.CodeGenerator
             #endregion
 
             // Save the model
-            var modelprojectDir = Path.Combine(_settings.OutputPath.FullName, $"{_settings.Name}.Model");
+            var sanitizedName = Utils.Sanitize(_settings.Name, '.');
+            var modelprojectDir = Path.Combine(_settings.OutputPath.FullName, $"{sanitizedName}.Model");
             var modelPath = new FileInfo(Path.Combine(modelprojectDir, "MLModel.zip"));
 
             try
@@ -350,7 +351,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
                     TrainDataset = _settings.Dataset.FullName,
                     MlTask = _taskKind,
                     TestDataset = _settings.TestDataset?.FullName,
-                    OutputName = _settings.Name,
+                    OutputName = Utils.Sanitize(_settings.Name, '.'),
                     OutputBaseDir = _settings.OutputPath.FullName,
                     LabelName = labelName,
                     ModelPath = modelPath.FullName

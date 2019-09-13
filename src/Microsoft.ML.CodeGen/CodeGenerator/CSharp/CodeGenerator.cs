@@ -41,7 +41,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             SetRequiredNugetPackages(trainerNodes, ref includeLightGbmPackage, ref includeMklComponentsPackage, ref includeFastTreeePackage);
 
             // Get Namespace
-            var namespaceValue = Utils.Normalize(_settings.OutputName);
+            var namespaceValue = _settings.OutputName;
             var labelType = _columnInferenceResult.TextLoaderOptions.Columns.Where(t => t.Name == _settings.LabelName).First().DataKind;
             Type labelTypeCsharp = Utils.GetCSharpType(labelType);
 
