@@ -9,11 +9,12 @@ using System.Net;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Dnn;
-using static Microsoft.ML.Transforms.DnnEstimator;
+using static Microsoft.ML.Transforms.ImageClassificationEstimator;
+using Options = Microsoft.ML.Transforms.DnnRetrainEstimator.Options;
 
 namespace Microsoft.ML
 {
-    /// <include file='doc.xml' path='doc/members/member[@name="DnnTransformer"]/*' />
+    /// <include file='doc.xml' path='doc/members/member[@name="DnnRetrainTransformer"]/*' />
     public static class DnnCatalog
     {
 
@@ -36,11 +37,10 @@ namespace Microsoft.ML
         /// <param name="learningRate">Learning rate to use during optimization (Optional).</param>
         /// <param name="addBatchDimensionInput">Add a batch dimension to the input e.g. input = [224, 224, 3] => [-1, 224, 224, 3].
         /// This parameter is used to deal with models that have unknown shape but the internal operators in the model require data to have batch dimension as well.</param>
-        /// <param name="dnnFramework"></param>
         /// <remarks>
         /// The support for retraining is under preview.
         /// </remarks>
-        public static DnnEstimator RetrainDnnModel(
+        public static DnnRetrainEstimator RetrainDnnModel(
             this ModelOperationsCatalog catalog,
             string[] outputColumnNames,
             string[] inputColumnNames,
@@ -54,8 +54,7 @@ namespace Microsoft.ML
             string metricOperation = null,
             string learningRateOperation = null,
             float learningRate = 0.01f,
-            bool addBatchDimensionInput = false,
-            DnnFramework dnnFramework = DnnFramework.Tensorflow)
+            bool addBatchDimensionInput = false)
         {
             var options = new Options()
             {
@@ -71,12 +70,11 @@ namespace Microsoft.ML
                 LearningRateOperation = learningRateOperation,
                 LearningRate = learningRate,
                 BatchSize = batchSize,
-                AddBatchDimensionInputs = addBatchDimensionInput,
-                ReTrain = true
+                AddBatchDimensionInputs = addBatchDimensionInput
             };
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new DnnEstimator(env, options, DnnUtils.LoadDnnModel(env, modelPath, true));
+            return new DnnRetrainEstimator(env, options, DnnUtils.LoadDnnModel(env, modelPath, true));
         }
 
         /// <summary>
@@ -85,33 +83,50 @@ namespace Microsoft.ML
         /// <param name="catalog"></param>
         /// <param name="featuresColumnName">The name of the input features column.</param>
         /// <param name="labelColumnName">The name of the labels column.</param>
-        /// <param name="outputGraphPath">Optional name of the path where a copy new graph should be saved. The graph will be saved as part of model.</param>
         /// <param name="scoreColumnName">The name of the output score column.</param>
         /// <param name="predictedLabelColumnName">The name of the output predicted label columns.</param>
-        /// <param name="checkpointName">The name of the prefix for checkpoint files.</param>
         /// <param name="arch">The architecture of the image recognition DNN model.</param>
-        /// <param name="dnnFramework">The backend DNN framework to use, currently only Tensorflow is supported.</param>
-        /// <param name="epoch">Number of training epochs.</param>
+        /// <param name="epoch">Number of training iterations. Each iteration/epoch refers to one pass over the dataset.</param>
         /// <param name="batchSize">The batch size for training.</param>
         /// <param name="learningRate">The learning rate for training.</param>
+        /// <param name="metricsCallback">Callback for reporting model statistics during training phase.</param>
+        /// <param name="statisticFrequency">Indicates the frequency of epochs at which to report model statistics during training phase.</param>
+        /// <param name="framework">Indicates the choice of DNN training framework. Currently only tensorflow is supported.</param>
+        /// <param name="modelSavePath">Optional name of the path where a copy new graph should be saved. The graph will be saved as part of model.</param>
+        /// <param name="finalModelPrefix">The name of the prefix for the final mode and checkpoint files.</param>
+        /// <param name="validationSet">Validation set.</param>
+        /// <param name="testOnTrainSet">Indicates to evaluate the model on train set after every epoch.</param>
+        /// <param name="reuseTrainSetBottleneckCachedValues">Indicates to not re-compute cached trainset bottleneck values if already available in the bin folder.</param>
+        /// <param name="reuseValidationSetBottleneckCachedValues">Indicates to not re-compute validataionset cached bottleneck validationset values if already available in the bin folder.</param>
+        /// <param name="trainSetBottleneckCachedValuesFilePath">Indicates the file path to store trainset bottleneck values for caching.</param>
+        /// <param name="validationSetBottleneckCachedValuesFilePath">Indicates the file path to store validationset bottleneck values for caching.</param>
         /// <remarks>
         /// The support for image classification is under preview.
         /// </remarks>
-        public static DnnEstimator ImageClassification(
+        public static ImageClassificationEstimator ImageClassification(
             this ModelOperationsCatalog catalog,
             string featuresColumnName,
             string labelColumnName,
-            string outputGraphPath = null,
             string scoreColumnName = "Score",
             string predictedLabelColumnName = "PredictedLabel",
-            string checkpointName = "_retrain_checkpoint",
-            Architecture arch = Architecture.ResnetV2101,
-            DnnFramework dnnFramework = DnnFramework.Tensorflow,
-            int epoch = 10,
-            int batchSize = 20,
-            float learningRate = 0.01f)
+            Architecture arch = Architecture.InceptionV3,
+            int epoch = 100,
+            int batchSize = 10,
+            float learningRate = 0.01f,
+            ImageClassificationMetricsCallback metricsCallback = null,
+            int statisticFrequency = 1,
+            DnnFramework framework = DnnFramework.Tensorflow,
+            string modelSavePath = null,
+            string finalModelPrefix = "custom_retrained_model_based_on_",
+            IDataView validationSet = null,
+            bool testOnTrainSet = true,
+            bool reuseTrainSetBottleneckCachedValues = false,
+            bool reuseValidationSetBottleneckCachedValues = false,
+            string trainSetBottleneckCachedValuesFilePath = "trainSetBottleneckFile.csv",
+            string validationSetBottleneckCachedValuesFilePath = "validationSetBottleneckFile.csv"
+            )
         {
-            var options = new Options()
+            var options = new ImageClassificationEstimator.Options()
             {
                 ModelLocation = arch == Architecture.ResnetV2101 ? @"resnet_v2_101_299.meta" : @"InceptionV3.meta",
                 InputColumns = new[] { featuresColumnName },
@@ -121,13 +136,20 @@ namespace Microsoft.ML
                 Epoch = epoch,
                 LearningRate = learningRate,
                 BatchSize = batchSize,
-                AddBatchDimensionInputs = arch == Architecture.InceptionV3 ? false : true,
-                TransferLearning = true,
                 ScoreColumnName = scoreColumnName,
                 PredictedLabelColumnName = predictedLabelColumnName,
-                CheckpointName = checkpointName,
+                FinalModelPrefix = finalModelPrefix,
                 Arch = arch,
-                MeasureTrainAccuracy = false
+                MetricsCallback = metricsCallback,
+                StatisticsFrequency = statisticFrequency,
+                Framework = framework,
+                ModelSavePath = modelSavePath,
+                ValidationSet = validationSet,
+                TestOnTrainSet = testOnTrainSet,
+                TrainSetBottleneckCachedValuesFilePath = trainSetBottleneckCachedValuesFilePath,
+                ValidationSetBottleneckCachedValuesFilePath = validationSetBottleneckCachedValuesFilePath,
+                ReuseTrainSetBottleneckCachedValues = reuseTrainSetBottleneckCachedValues,
+                ReuseValidationSetBottleneckCachedValues = reuseValidationSetBottleneckCachedValues
             };
 
             if (!File.Exists(options.ModelLocation))
@@ -158,7 +180,7 @@ namespace Microsoft.ML
             }
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new DnnEstimator(env, options, DnnUtils.LoadDnnModel(env, options.ModelLocation, true));
+            return new ImageClassificationEstimator(env, options, DnnUtils.LoadDnnModel(env, options.ModelLocation, true));
         }
     }
 }
