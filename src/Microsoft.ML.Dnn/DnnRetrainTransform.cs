@@ -18,6 +18,7 @@ using Microsoft.ML.Transforms.Dnn;
 using NumSharp;
 using Tensorflow;
 using static Microsoft.ML.Transforms.Dnn.DnnUtils;
+using static Tensorflow.Binding;
 
 [assembly: LoadableClass(DnnRetrainTransformer.Summary, typeof(IDataTransform), typeof(DnnRetrainTransformer),
     typeof(DnnRetrainEstimator.Options), typeof(SignatureDataTransform), DnnRetrainTransformer.UserName, DnnRetrainTransformer.ShortName)]
@@ -915,7 +916,8 @@ namespace Microsoft.ML.Transforms
             {
                 if (outputCache.Position != position)
                 {
-                    _parent._session.graph.as_default();
+                    if (_parent.Graph.graph_key != tf.get_default_graph().graph_key)
+                        _parent._session.graph.as_default();
                     Runner runner = new Runner(_parent._session);
 
                     // Feed the inputs.

@@ -21,6 +21,7 @@ using Microsoft.ML.Transforms.TensorFlow;
 using NumSharp;
 using Tensorflow;
 using static Microsoft.ML.Transforms.Dnn.DnnUtils;
+using static Tensorflow.Binding;
 
 [assembly: LoadableClass(TensorFlowTransformer.Summary, typeof(IDataTransform), typeof(TensorFlowTransformer),
     typeof(TensorFlowEstimator.Options), typeof(SignatureDataTransform), TensorFlowTransformer.UserName, TensorFlowTransformer.ShortName)]
@@ -639,7 +640,8 @@ namespace Microsoft.ML.Transforms
             {
                 if (outputCache.Position != position)
                 {
-                    _parent.Session.graph.as_default();
+                    if(_parent.Graph.graph_key != tf.get_default_graph().graph_key)
+                        _parent.Session.graph.as_default();
                     Runner runner = new Runner(_parent.Session);
 
                     // Feed inputs to the graph.
