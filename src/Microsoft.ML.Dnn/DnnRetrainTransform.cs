@@ -387,7 +387,6 @@ namespace Microsoft.ML.Transforms
             Tensor[] tensor = runner.Run();
             loss = tensor.Length > 0 && tensor[0] != IntPtr.Zero ? (float)tensor[0].ToArray<float>()[0] : 0.0f;
             metric = tensor.Length > 1 && tensor[1] != IntPtr.Zero ? (float)tensor[1].ToArray<float>()[0] : 0.0f;
-            var b = tensor.Length > 2 && tensor[2] != IntPtr.Zero ? (float[])tensor[2].ToArray<float>() : null;
             return (loss, metric);
         }
 

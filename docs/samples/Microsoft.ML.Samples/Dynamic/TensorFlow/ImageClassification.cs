@@ -38,7 +38,7 @@ namespace Samples.Dynamic
                 .ScoreTensorFlowModel(
                 new[] { nameof(OutputScores.output) },
                 new[] { nameof(TensorData.input) }, addBatchDimensionInput: true);
-            
+
             // Run the pipeline and get the transformed values.
             var estimator = pipeline.Fit(idv);
             var transformedValues = estimator.Transform(idv);
