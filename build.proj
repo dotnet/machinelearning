@@ -70,6 +70,7 @@
     <ItemGroup>
       <PkgProject Include="pkg\Microsoft.ML.AutoML\*.nupkgproj" />
       <PkgProject Include="pkg\mlnet\*.nupkgproj" />
+      <PkgProject Include="pkg\Microsoft.ML.CodeGenerator\*.nupkgproj" />
     </ItemGroup>
 
     <MSBuild Projects="@(PkgProject)"
