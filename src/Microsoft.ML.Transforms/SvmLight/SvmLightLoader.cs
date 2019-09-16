@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -97,6 +96,7 @@ namespace Microsoft.ML.Data
             OneBased,
             Names
         }
+
         public sealed class Options
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The size of the feature vectors.", ShortName = "size")]
