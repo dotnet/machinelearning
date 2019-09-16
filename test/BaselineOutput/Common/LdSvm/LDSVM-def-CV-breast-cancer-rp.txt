@@ -1,4 +1,4 @@
 LDSVM
 AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	/iter	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
-0.989506	0.967853	0.94844	0.960235	0.979716	0.970617	0.153731	0.833781	0.954064	0.986694	1000	LDSVM	%Data%		%Output%	99	0	0	maml.exe CV tr=LDSVM{iter=1000} threads=- dout=%Output% data=%Data% seed=1	/iter:1000	
+0.995964	0.97252	0.947867	0.976581	0.986207	0.970657	0.138772	0.851642	0.961996	0.992216	1000	LDSVM	%Data%		%Output%	99	0	0	maml.exe CV tr=LDSVM{iter=1000} threads=- dout=%Output% data=%Data% seed=1	/iter:1000	
 

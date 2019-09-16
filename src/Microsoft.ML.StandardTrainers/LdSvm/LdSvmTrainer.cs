@@ -54,7 +54,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "Regularizer for classifier parameter W", ShortName = "lw", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "0.1,0.01,0.001")]
             [TlcModule.SweepableDiscreteParam("LambdaW", new object[] { 0.1f, 0.01f, 0.001f })]
-            public float LambdaW  = Defaults.LambdaW;
+            public float LambdaW = Defaults.LambdaW;
 
             /// <summary>
             ///  Regularizer for kernel parameter Theta
@@ -127,11 +127,7 @@ namespace Microsoft.ML.Trainers
             _options = options;
         }
 
-        // REVIEW: This does not need caching, but only because it's very
-        // badly written and the first thing is it just grabs all instances. If this
-        // ever changes, do review this return value to make sure it is still
-        // appropriate.
-        private static TrainerInfo _info = new TrainerInfo(calibration: true, caching: false);
+        private static readonly TrainerInfo _info = new TrainerInfo(calibration: true, caching: true);
         public override TrainerInfo Info => _info;
 
         private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
@@ -185,18 +181,18 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Adaptively update gamma for indicator function approximation.
         /// </summary>
-        private void UpdateGamma(int iter, int numLeaf, ref float gamma, VBuffer<float>[] data, VBuffer<float>[] theta, float[] biasTheta)
+        private void UpdateGamma(int iter, int numLeaf, ref float gamma, Data data, VBuffer<float>[] theta, float[] biasTheta)
         {
             if (numLeaf == 1)
                 gamma = 1.0f;
             else
             {
                 float tempSum = 0;
-                for (int idx = 0; idx < 100; idx++)
+                var sample = data.SampleWithReplacement(Host.Rand, 100);
+                foreach (var s in sample)
                 {
                     int thetaIdx = Host.Rand.Next(numLeaf - 1);
-                    int instIdx = Host.Rand.Next(data.Length);
-                    tempSum += Math.Abs(VectorUtils.DotProduct(in data[instIdx], in theta[thetaIdx]) + biasTheta[thetaIdx]);
+                    tempSum += Math.Abs(VectorUtils.DotProduct(in s, in theta[thetaIdx]) + biasTheta[thetaIdx]);
                 }
                 tempSum /= 100.0f;
                 gamma = 0.1f / tempSum;
@@ -209,7 +205,6 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         private LdSvmModelParameters TrainCore(IChannel ch, RoleMappedData trainingData, int numLeaf, int numFeatures)
         {
-            int t = 1;
             int numNodes = 2 * numLeaf - 1;
 
             var w = new VBuffer<float>[numNodes];
@@ -230,36 +225,25 @@ namespace Microsoft.ML.Trainers
                 biasTheta, biasThetaPrime, tempThetaPrime, tempTheta, tempBiasW, tempBiasTheta, tempBiasThetaPrime);
 
             var gamma = 0.01f;
-            VBuffer<float>[] data = GetData(ch, trainingData, out var labels);
+            var data = new Data(ch, trainingData);
             var pathWt = new float[numNodes];
             var localWt = new float[numNodes];
             var gradTheta = new float[numLeaf - 1];
             var wDotX = new float[numNodes];
 
-            int[] indices = Utils.GetIdentityPermutation(data.Length);
             // Number of samples processed in each iteration
-            int sampleSize = Math.Max(1, (int)Math.Sqrt(indices.Length));
+            int sampleSize = Math.Max(1, (int)Math.Sqrt(data.Length));
             for (int iter = 1; iter <= _options.NumberOfIterations; iter++)
             {
                 // Update gamma adaptively
                 if (iter % 100 == 1)
                     UpdateGamma(iter, numLeaf, ref gamma, data, theta, biasTheta);
 
-                // Select random subset of data - the first sampleSize indices will be
-                // our subset.
-                // REVIEW: Shuffling and streaming needed here.
-                for (int k = 0; k < sampleSize; k++)
-                {
-                    int randIdx = k + Host.Rand.Next(indices.Length - k);
-                    Utils.Swap(ref indices[k], ref indices[randIdx]);
-                }
-                t++;
-
                 // Update learning rate
-                float etaTW = (float)1.0 / (_options.LambdaW * (float)Math.Sqrt(t));
-                float etaTTheta = (float)1.0 / (_options.LambdaTheta * (float)Math.Sqrt(t));
-                float etaTThetaPrime = (float)1.0 / (_options.LambdaThetaprime * (float)Math.Sqrt(t));
-                float coef = (t - 1) / (float)t;
+                float etaTW = (float)1.0 / (_options.LambdaW * (float)Math.Sqrt(iter + 1));
+                float etaTTheta = (float)1.0 / (_options.LambdaTheta * (float)Math.Sqrt(iter + 1));
+                float etaTThetaPrime = (float)1.0 / (_options.LambdaThetaprime * (float)Math.Sqrt(iter + 1));
+                float coef = iter / (float)(iter + 1);
 
                 // Update classifier parameters
                 for (int i = 0; i < tempW.Length; ++i)
@@ -277,10 +261,11 @@ namespace Microsoft.ML.Trainers
                 for (int i = 0; i < numLeaf - 1; i++)
                     tempBiasTheta[i] *= coef;
 
-                for (int workingId = 0; workingId < sampleSize; workingId++)
+                var sample = data.SampleWithoutReplacement(Host.Rand);
+                foreach (var s in sample)
                 {
-                    int index = indices[workingId];
-                    float trueLabel = labels[index];
+                    float trueLabel = s.Label;
+                    var features = s.Features;
 
                     // Compute path weight
                     for (int i = 0; i < numNodes; i++)
@@ -288,20 +273,20 @@ namespace Microsoft.ML.Trainers
                     float tanhDist;
                     for (int i = 0; i < numLeaf - 1; i++)
                     {
-                        tanhDist = (float)Math.Tanh(gamma * (VectorUtils.DotProduct(in data[index], in theta[i]) + biasTheta[i]));
+                        tanhDist = (float)Math.Tanh(gamma * (VectorUtils.DotProduct(in features, in theta[i]) + biasTheta[i]));
                         pathWt[2 * i + 1] = pathWt[i] * (1 + tanhDist) / (float)2.0;
                         pathWt[2 * i + 2] = pathWt[i] * (1 - tanhDist) / (float)2.0;
                     }
 
                     // Compute local weight
                     for (int l = 0; l < numNodes; l++)
-                        localWt[l] = (float)Math.Tanh(_options.Sigma * (VectorUtils.DotProduct(in data[index], in thetaPrime[l]) + biasThetaPrime[l]));
+                        localWt[l] = (float)Math.Tanh(_options.Sigma * (VectorUtils.DotProduct(in features, in thetaPrime[l]) + biasThetaPrime[l]));
 
                     // Make prediction
                     float yPredicted = 0;
                     for (int l = 0; l < numNodes; l++)
                     {
-                        wDotX[l] = VectorUtils.DotProduct(in data[index], in w[l]) + biasW[l];
+                        wDotX[l] = VectorUtils.DotProduct(in features, in w[l]) + biasW[l];
                         yPredicted += pathWt[l] * localWt[l] * wDotX[l];
                     }
                     float loss = 1 - trueLabel * yPredicted;
@@ -310,7 +295,7 @@ namespace Microsoft.ML.Trainers
                     if (loss > 0)
                     {
                         // Compute gradient w.r.t current instance
-                        ComputeGradTheta(in data[index], gradTheta, numLeaf, gamma, theta, biasTheta, pathWt, localWt, w, biasW);
+                        ComputeGradTheta(in features, gradTheta, numLeaf, gamma, theta, biasTheta, pathWt, localWt, w, biasW);
 
                         // Check if bias is used ot not
                         int biasUpdateMult = _options.NoBias ? 0 : 1;
@@ -319,7 +304,7 @@ namespace Microsoft.ML.Trainers
                         for (int l = 0; l < numNodes; l++)
                         {
                             float tempGradW = trueLabel * etaTW / sampleSize * pathWt[l] * localWt[l];
-                            VectorUtils.AddMult(in data[index], tempGradW, ref tempW[l]);
+                            VectorUtils.AddMult(in features, tempGradW, ref tempW[l]);
                             tempBiasW[l] += biasUpdateMult * tempGradW;
                         }
 
@@ -327,7 +312,7 @@ namespace Microsoft.ML.Trainers
                         for (int l = 0; l < numNodes; l++)
                         {
                             float tempGradThetaPrime = (1 - localWt[l] * localWt[l]) * trueLabel * etaTThetaPrime / sampleSize * pathWt[l] * wDotX[l];
-                            VectorUtils.AddMult(in data[index], tempGradThetaPrime, ref tempThetaPrime[l]);
+                            VectorUtils.AddMult(in features, tempGradThetaPrime, ref tempThetaPrime[l]);
                             tempBiasThetaPrime[l] += biasUpdateMult * tempGradThetaPrime;
                         }
 
@@ -335,7 +320,7 @@ namespace Microsoft.ML.Trainers
                         for (int m = 0; m < numLeaf - 1; m++)
                         {
                             float tempGradTheta = trueLabel * etaTTheta / sampleSize * gradTheta[m];
-                            VectorUtils.AddMult(in data[index], tempGradTheta, ref tempTheta[m]);
+                            VectorUtils.AddMult(in features, tempGradTheta, ref tempTheta[m]);
                             tempBiasTheta[m] += biasUpdateMult * tempGradTheta;
                         }
                     }
@@ -443,29 +428,66 @@ namespace Microsoft.ML.Trainers
             ectx.CheckUserArg(options.LambdaThetaprime > 0, nameof(options.LambdaThetaprime), "Regularizer for Thetaprime must be positive and non-zero.");
         }
 
-        private VBuffer<float>[] GetData(IChannel ch, RoleMappedData trainingData, out IList<float> labels)
+        internal struct LabelFeatures
         {
-            // Load the features and labels into our own arrays. Note we toss out rows that have bad
-            // label or feature values.
-            long numBad;
-            using (var cursor = new FloatLabelCursor(trainingData, CursOpt.Label | CursOpt.Features))
-            {
-                var data = new List<VBuffer<float>>();
-                labels = new List<float>();
-                while (cursor.MoveNext())
-                {
-                    var features = default(VBuffer<float>);
-                    cursor.Features.CopyTo(ref features);
-                    data.Add(features);
-                    labels.Add(cursor.Label > 0 ? 1 : -1);
-                }
-                ch.Assert(data.Count == cursor.KeptRowCount);
-                numBad = cursor.SkippedRowCount;
-                ch.Check(data.Count > 0, NoTrainingInstancesMessage);
+            public float Label;
+            public VBuffer<float> Features;
+        }
 
-                if (numBad > 0)
-                    ch.Warning("Skipped {0} rows with missing feature/label values", numBad);
-                return data.ToArray();
+        private sealed class Data
+        {
+            private readonly IChannel _ch;
+            private readonly RoleMappedData _data;
+
+            public int Length { get; }
+
+            public Data(IChannel ch, RoleMappedData data)
+            {
+                Contracts.AssertValue(ch);
+                _ch = ch;
+                _ch.AssertValue(data);
+
+                _data = data;
+                using (var cursor = new FloatLabelCursor(_data, CursOpt.Label | CursOpt.Features))
+                {
+                    while (cursor.MoveNext())
+                        Length++;
+                    _ch.Check(cursor.KeptRowCount > 0, NoTrainingInstancesMessage);
+                    if (cursor.SkippedRowCount > 0)
+                        _ch.Warning("Skipped {0} rows with missing feature/label values", cursor.SkippedRowCount);
+                }
+            }
+
+            public IEnumerable<VBuffer<float>> SampleWithReplacement(Random rand, int size)
+            {
+                using (var cursor = new FeatureFloatVectorCursor(_data))
+                {
+                    ValueGetter<VBuffer<float>> getter =
+                        (ref VBuffer<float> dst) => cursor.Features.CopyTo(ref dst);
+                    var reservoir = new ReservoirSamplerWithReplacement<VBuffer<float>>(rand, size, getter);
+                    while (cursor.MoveNext())
+                        reservoir.Sample();
+                    reservoir.Lock();
+                    return reservoir.GetSample();
+                }
+            }
+            public IEnumerable<LabelFeatures> SampleWithoutReplacement(Random rand)
+            {
+                var size = Math.Max(1, (int)Math.Sqrt(Length));
+                using (var cursor = new FloatLabelCursor(_data, CursOpt.Label | CursOpt.Features))
+                {
+                    ValueGetter<LabelFeatures> getter =
+                        (ref LabelFeatures dst) =>
+                        {
+                            cursor.Features.CopyTo(ref dst.Features);
+                            dst.Label = cursor.Label > 0 ? 1 : -1;
+                        };
+                    var reservoir = new ReservoirSamplerWithReplacement<LabelFeatures>(rand, size, getter);
+                    while (cursor.MoveNext())
+                        reservoir.Sample();
+                    reservoir.Lock();
+                    return reservoir.GetSample();
+                }
             }
         }
 

@@ -19,7 +19,7 @@ namespace Microsoft.ML.Trainers
         IValueMapper,
         ICanSaveModel
     {
-        public const string LoaderSignature = "LDSVMBinaryPredictor";
+        internal const string LoaderSignature = "LDSVMBinaryPredictor";
 
         /// <summary>
         /// Version information to be saved in binary format

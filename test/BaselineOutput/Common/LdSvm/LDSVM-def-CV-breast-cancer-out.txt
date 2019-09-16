@@ -11,43 +11,43 @@ Confusion table
           ||======================
 PREDICTED || positive | negative | Recall
 TRUTH     ||======================
- positive ||      131 |        3 | 0.9776
- negative ||        9 |      211 | 0.9591
+ positive ||      129 |        5 | 0.9627
+ negative ||        8 |      212 | 0.9636
           ||======================
-Precision ||   0.9357 |   0.9860 |
-OVERALL 0/1 ACCURACY: 0.966102
-LOG LOSS/instance:  0.127230
+Precision ||   0.9416 |   0.9770 |
+OVERALL 0/1 ACCURACY: 0.963277
+LOG LOSS/instance:  0.169342
 Test-set entropy (prior Log-Loss/instance): 0.956998
-LOG-LOSS REDUCTION (RIG): 0.867053
-AUC:                0.994573
+LOG-LOSS REDUCTION (RIG): 0.823049
+AUC:                0.994437
 Warning: The predictor produced non-finite prediction values on 8 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
 TEST POSITIVE RATIO:	0.3191 (105.0/(105.0+224.0))
 Confusion table
           ||======================
 PREDICTED || positive | negative | Recall
 TRUTH     ||======================
- positive ||       99 |        6 | 0.9429
- negative ||        4 |      220 | 0.9821
+ positive ||      104 |        1 | 0.9905
+ negative ||        5 |      219 | 0.9777
           ||======================
-Precision ||   0.9612 |   0.9735 |
-OVERALL 0/1 ACCURACY: 0.969605
-LOG LOSS/instance:  0.180232
+Precision ||   0.9541 |   0.9955 |
+OVERALL 0/1 ACCURACY: 0.981763
+LOG LOSS/instance:  0.108202
 Test-set entropy (prior Log-Loss/instance): 0.903454
-LOG-LOSS REDUCTION (RIG): 0.800508
-AUC:                0.984439
+LOG-LOSS REDUCTION (RIG): 0.880235
+AUC:                0.997491
 
 OVERALL RESULTS
 ---------------------------------------
-AUC:                0.989506 (0.0051)
-Accuracy:           0.967853 (0.0018)
-Positive precision: 0.948440 (0.0127)
-Positive recall:    0.960235 (0.0174)
-Negative precision: 0.979716 (0.0063)
-Negative recall:    0.970617 (0.0115)
-Log-loss:           0.153731 (0.0265)
-Log-loss reduction: 0.833781 (0.0333)
-F1 Score:           0.954064 (0.0021)
-AUPRC:              0.986694 (0.0033)
+AUC:                0.995964 (0.0015)
+Accuracy:           0.972520 (0.0092)
+Positive precision: 0.947867 (0.0063)
+Positive recall:    0.976581 (0.0139)
+Negative precision: 0.986207 (0.0092)
+Negative recall:    0.970657 (0.0070)
+Log-loss:           0.138772 (0.0306)
+Log-loss reduction: 0.851642 (0.0286)
+F1 Score:           0.961996 (0.0100)
+AUPRC:              0.992216 (0.0023)
 
 ---------------------------------------
 Physical memory usage(MB): %Number%

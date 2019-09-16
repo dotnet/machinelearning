@@ -875,14 +875,24 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        ///
+        /// Create <see cref="LdSvmTrainer"/> with advanced options, which predicts a target using a Local Deep SVM model model.
         /// </summary>
-        /// <param name="catalog"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
+        /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
+        /// <param name="options">Trainer options.</param>
         public static LdSvmTrainer LdSvm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog, LdSvmTrainer.Options options)
             => new LdSvmTrainer(catalog.GetEnvironment(), options);
 
+        /// <summary>
+        /// Create <see cref="LdSvmTrainer"/>, which predicts a target using a Local Deep SVM model model.
+        /// </summary>
+        /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column. The column data must be a known-sized vector of <see cref="System.Single"/>.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
+        /// <param name="numberOfIterations">The number of iterations.</param>
+        /// <param name="treeDepth">The depth of a Local Deep SVM tree.</param>
+        /// <param name="noBias">Indicates if the model should have a bias term.</param>
+        /// <returns></returns>
         public static LdSvmTrainer LdSvm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
@@ -894,6 +904,9 @@ namespace Microsoft.ML
             Contracts.CheckValue(catalog, nameof(catalog));
             var options = new LdSvmTrainer.Options()
             {
+                LabelColumnName = labelColumnName,
+                FeatureColumnName = featureColumnName,
+                ExampleWeightColumnName = exampleWeightColumnName,
                 NumberOfIterations = numberOfIterations,
                 TreeDepth = treeDepth,
                 NoBias = noBias
