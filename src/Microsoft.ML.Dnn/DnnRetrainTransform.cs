@@ -236,7 +236,7 @@ namespace Microsoft.ML.Transforms
                 inputTensor.InputType(index);
             var tfInputShape = ((Tensor)inputTensor).TensorShape;
 
-            var numInputDims = tfInputShape.ndim;
+            var numInputDims = tfInputShape != null ? tfInputShape.ndim : -1;
             if (isInputVector && (tfInputShape == null || (numInputDims == 0)))
             {
                 var vecType = (VectorDataViewType)type;
@@ -867,7 +867,7 @@ namespace Microsoft.ML.Transforms
             {
                 Host.AssertValue(input);
 
-                ValueGetter<VBuffer<TextDataViewType>> valuegetter = (ref VBuffer<TextDataViewType> dst) =>
+                ValueGetter<VBuffer<ReadOnlyMemory<char>>> valuegetter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
 

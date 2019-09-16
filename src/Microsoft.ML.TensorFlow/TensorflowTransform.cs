@@ -582,10 +582,32 @@ namespace Microsoft.ML.Transforms
                 var type = DnnUtils.Tf2MlNetType(_parent.TFOutputTypes[iinfo]).RawType;
                 Host.Assert(type == _parent.OutputTypes[iinfo].GetItemType().RawType);
                 var srcTensorGetters = GetTensorValueGetters(input, _inputColIndices, _isInputVector, _parent.TFInputTypes, _fullySpecifiedShapes);
-                return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcTensorGetters, activeOutputColNames, outputCache);
+                if (_parent.TFOutputTypes[iinfo] == TF_DataType.TF_STRING)
+                    return MakeGetterString(input, iinfo, srcTensorGetters, activeOutputColNames, outputCache);
+                else
+                    return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcTensorGetters, activeOutputColNames, outputCache);
             }
 
-            private Delegate MakeGetter<T>(DataViewRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache) where T:unmanaged
+            private Delegate MakeGetterString(DataViewRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache)
+            {
+                Host.AssertValue(input);
+
+                ValueGetter<VBuffer<ReadOnlyMemory<char>>> valuegetter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                {
+                    UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
+
+                    var tensor = outputCache.Outputs[_parent.Outputs[iinfo]];
+                    var tensorSize = tensor.TensorShape.dims.Where(x => x > 0).Aggregate((x, y) => x * y);
+
+                    var editor = VBufferEditor.Create(ref dst, (int)tensorSize);
+                    DnnUtils.FetchStringData(tensor, editor.Values);
+                    dst = editor.Commit();
+                };
+                return valuegetter;
+
+            }
+
+            private Delegate MakeGetter<T>(DataViewRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache) where T : unmanaged
             {
                 Host.AssertValue(input);
 
@@ -602,37 +624,19 @@ namespace Microsoft.ML.Transforms
                 }
                 else
                 {
-                    if (_parent.TFOutputTypes[iinfo] == TF_DataType.TF_STRING)
+                    ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
                     {
-                        ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
-                        {
-                            UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
+                        UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
 
-                            var tensor = outputCache.Outputs[_parent.Outputs[iinfo]];
-                            var tensorSize = tensor.TensorShape.dims.Where(x => x > 0).Aggregate((x, y) => x * y);
+                        var tensor = outputCache.Outputs[_parent.Outputs[iinfo]];
+                        var tensorSize = tensor.TensorShape.dims.Where(x => x > 0).Aggregate((x, y) => x * y);
 
-                            var editor = VBufferEditor.Create(ref dst, (int)tensorSize);
-                            DnnUtils.FetchStringData(tensor, editor.Values);
-                            dst = editor.Commit();
-                        };
-                        return valuegetter;
-                    }
-                    else
-                    {
-                        ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
-                        {
-                            UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
+                        var editor = VBufferEditor.Create(ref dst, (int)tensorSize);
 
-                            var tensor = outputCache.Outputs[_parent.Outputs[iinfo]];
-                            var tensorSize = tensor.TensorShape.dims.Where(x => x > 0).Aggregate((x, y) => x * y);
-
-                            var editor = VBufferEditor.Create(ref dst, (int)tensorSize);
-
-                            DnnUtils.FetchData<T>(tensor.ToArray<T>(), editor.Values);
-                            dst = editor.Commit();
-                        };
-                        return valuegetter;
-                    }
+                        DnnUtils.FetchData<T>(tensor.ToArray<T>(), editor.Values);
+                        dst = editor.Commit();
+                    };
+                    return valuegetter;
                 }
             }
 
@@ -640,7 +644,7 @@ namespace Microsoft.ML.Transforms
             {
                 if (outputCache.Position != position)
                 {
-                    if(_parent.Graph.graph_key != tf.get_default_graph().graph_key)
+                    if (_parent.Graph.graph_key != tf.get_default_graph().graph_key)
                         _parent.Session.graph.as_default();
                     Runner runner = new Runner(_parent.Session);
 
@@ -738,7 +742,7 @@ namespace Microsoft.ML.Transforms
             {
                 var scalar = default(T);
                 _srcgetter(ref scalar);
-                 var tensor = new Tensor(new[] { scalar });
+                var tensor = new Tensor(new[] { scalar });
                 tensor.set_shape(_tfShape);
                 return tensor;
             }
@@ -799,7 +803,7 @@ namespace Microsoft.ML.Transforms
                 // This is done to reduce memory allocation every time tensor is created.
                 _denseData = new T[_vBuffer.Length];
                 _vBuffer.CopyTo(_denseData);
-                var tensor =  CastDataAndReturnAsTensor(_denseData);
+                var tensor = CastDataAndReturnAsTensor(_denseData);
                 return tensor;
             }
 
