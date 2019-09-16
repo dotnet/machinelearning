@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 
@@ -256,24 +257,27 @@ namespace Microsoft.ML.AutoML
     {
         public IEstimator<ITransformer> CreateInstance(MLContext context, PipelineNode pipelineNode)
         {
-            return CreateInstance(context, pipelineNode.InColumns[0], pipelineNode.OutColumns[0]);
+            var pipelineNodeProperty = pipelineNode.Properties;
+            int imageWidth = pipelineNodeProperty.ContainsKey("imageWidth")? (int)pipelineNodeProperty["imageWidth"] : 224;
+            int imageHeight = pipelineNodeProperty.ContainsKey("imageHeight") ? (int)pipelineNodeProperty["imageHeight"] : 224;
+            return CreateInstance(context, pipelineNode.InColumns[0], pipelineNode.OutColumns[0], imageWidth, imageHeight);
         }
 
-        public static SuggestedTransform CreateSuggestedTransform(MLContext context, string inColumn, string outColumn)
+        public static SuggestedTransform CreateSuggestedTransform(MLContext context, string inColumn, string outColumn, int imageWidth, int imageHeight)
         {
             var pipelineNodeProperty = new Dictionary<string, object>()
             {
-                { "imageWidth", 224 },
-                { "imageHeight", 224 },
+                { "imageWidth", imageWidth },
+                { "imageHeight", imageHeight },
             };
             var pipelineNode = new PipelineNode(EstimatorName.ImageResizing.ToString(), PipelineNodeType.Transform, inColumn, outColumn, pipelineNodeProperty);
-            var estimator = CreateInstance(context, inColumn, outColumn);
+            var estimator = CreateInstance(context, inColumn, outColumn, imageWidth, imageHeight);
             return new SuggestedTransform(pipelineNode, estimator);
         }
 
-        public static IEstimator<ITransformer> CreateInstance(MLContext context, string inColumn, string outColumn)
+        public static IEstimator<ITransformer> CreateInstance(MLContext context, string inColumn, string outColumn, int imageWidth, int imageHeight)
         {
-            return context.Transforms.ResizeImages(outColumn, 224, 224, inColumn);
+            return context.Transforms.ResizeImages(outColumn, imageWidth, imageHeight, inColumn);
         }
     }
 

@@ -309,7 +309,8 @@ namespace Microsoft.ML.AutoML
 
                         featureCols.Add(columnDestRenamed);
                         yield return ImageLoadingExtension.CreateSuggestedTransform(Context, columnNameSafe, columnDestRenamed);
-                        yield return ImageResizingExtension.CreateSuggestedTransform(Context, columnDestRenamed, columnDestRenamed);
+                        // currently we only use ResNet18, so set the image size to 224*224
+                        yield return ImageResizingExtension.CreateSuggestedTransform(Context, columnDestRenamed, columnDestRenamed, 224, 224);
                         yield return PixelExtractingExtension.CreateSuggestedTransform(Context, columnDestRenamed, columnDestRenamed);
                         yield return ResNet18FeaturizingExtension.CreateSuggestedTransform(Context, columnDestRenamed, columnDestRenamed);
                     }
