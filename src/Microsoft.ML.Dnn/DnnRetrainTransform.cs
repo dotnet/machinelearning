@@ -857,7 +857,29 @@ namespace Microsoft.ML.Transforms
                 var type = DnnUtils.Tf2MlNetType(_parent._tfOutputTypes[iinfo]).RawType;
                 Host.Assert(type == _parent._outputTypes[iinfo].GetItemType().RawType);
                 var srcTensorGetters = GetTensorValueGetters(input, _inputColIndices, _isInputVector, _parent._tfInputTypes, _fullySpecifiedShapes);
-                return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcTensorGetters, activeOutputColNames, outputCache);
+                if (_parent._tfOutputTypes[iinfo] == TF_DataType.TF_STRING)
+                    return MakeGetterString(input, iinfo, srcTensorGetters, activeOutputColNames, outputCache);
+                else
+                    return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcTensorGetters, activeOutputColNames, outputCache);
+            }
+
+            private Delegate MakeGetterString(DataViewRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache)
+            {
+                Host.AssertValue(input);
+
+                ValueGetter<VBuffer<TextDataViewType>> valuegetter = (ref VBuffer<TextDataViewType> dst) =>
+                {
+                    UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
+
+                    var tensor = outputCache.Outputs[_parent._outputs[iinfo]];
+                    var tensorSize = tensor.TensorShape.dims.Where(x => x > 0).Aggregate((x, y) => x * y);
+
+                    var editor = VBufferEditor.Create(ref dst, (int)tensorSize);
+                    DnnUtils.FetchStringData(tensor, editor.Values);
+                    dst = editor.Commit();
+                };
+                return valuegetter;
+
             }
 
             private Delegate MakeGetter<T>(DataViewRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache) where T: unmanaged
@@ -877,37 +899,19 @@ namespace Microsoft.ML.Transforms
                 }
                 else
                 {
-                    if (_parent._tfOutputTypes[iinfo] == TF_DataType.TF_STRING)
+                    ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
                     {
-                        ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
-                        {
-                            UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
+                        UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
 
-                            var tensor = outputCache.Outputs[_parent._outputs[iinfo]];
-                            var tensorSize = tensor.TensorShape.dims.Where(x => x > 0).Aggregate((x, y) => x * y);
+                        var tensor = outputCache.Outputs[_parent._outputs[iinfo]];
+                        var tensorSize = tensor.TensorShape.dims.Where(x => x > 0).Aggregate((x, y) => x * y);
 
-                            var editor = VBufferEditor.Create(ref dst, (int)tensorSize);
-                            DnnUtils.FetchStringData(tensor, editor.Values);
-                            dst = editor.Commit();
-                        };
-                        return valuegetter;
-                    }
-                    else
-                    {
-                        ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
-                        {
-                            UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
+                        var editor = VBufferEditor.Create(ref dst, (int)tensorSize);
 
-                            var tensor = outputCache.Outputs[_parent._outputs[iinfo]];
-                            var tensorSize = tensor.TensorShape.dims.Where(x => x > 0).Aggregate((x, y) => x * y);
-
-                            var editor = VBufferEditor.Create(ref dst, (int)tensorSize);
-
-                            DnnUtils.FetchData<T>(tensor.ToArray<T>(), editor.Values);
-                            dst = editor.Commit();
-                        };
-                        return valuegetter;
-                    }
+                        DnnUtils.FetchData<T>(tensor.ToArray<T>(), editor.Values);
+                        dst = editor.Commit();
+                    };
+                    return valuegetter;
                 }
             }
 
