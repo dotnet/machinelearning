@@ -565,7 +565,7 @@ namespace Microsoft.ML.Data.IO
         }
 
         private void FetchWorker(BlockingCollection<Block> toCompress, IDataView data,
-            ColumnCodec[] activeColumns, int rowsPerBlock, Stopwatch sw, IChannel ch, IProgressChannel pch, ExceptionMarshaller exMarshaller)
+            ColumnCodec[] activeColumns, int rowsPerBlock, IChannel ch, IProgressChannel pch, ExceptionMarshaller exMarshaller)
         {
             Contracts.AssertValue(ch);
             Contracts.AssertValueOrNull(pch);
@@ -575,7 +575,6 @@ namespace Microsoft.ML.Data.IO
                 ch.AssertValue(toCompress);
                 ch.AssertValue(data);
                 ch.AssertValue(activeColumns);
-                ch.AssertValue(sw);
                 ch.Assert(rowsPerBlock > 0);
 
                 // The main thread handles fetching from the cursor, and storing it into blocks passed to toCompress.
@@ -684,7 +683,7 @@ namespace Microsoft.ML.Data.IO
                 // pattern of utilizing exMarshaller.
                 using (var pch = _silent ? null : _host.StartProgressChannel("BinarySaver"))
                 {
-                    FetchWorker(toCompress, data, activeColumns, rowsPerBlock, sw, ch, pch, exMarshaller);
+                    FetchWorker(toCompress, data, activeColumns, rowsPerBlock, ch, pch, exMarshaller);
                 }
 
                 _host.Assert(compressionTask != null || toCompress.IsCompleted);
