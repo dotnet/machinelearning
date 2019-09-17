@@ -463,6 +463,11 @@ namespace Microsoft.ML.Transforms
                 {
                     Session.close(); // invoked Dispose()
                 }
+
+                if (Session != null && Session.graph != IntPtr.Zero)
+                {
+                    Session.graph.Dispose();
+                }
             }
             finally
             {
