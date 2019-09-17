@@ -218,6 +218,10 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             IList<string> result = new List<string>();
             foreach (var column in _columnInferenceResult.TextLoaderOptions.Columns)
             {
+                if (this.columnInferenceResult.ColumnInformation.IgnoredColumnNames.Contains(column.Name))
+                {
+                    continue;
+                }
                 StringBuilder sb = new StringBuilder();
                 int range = (column.Source[0].Max - column.Source[0].Min).Value;
                 bool isArray = range > 0;

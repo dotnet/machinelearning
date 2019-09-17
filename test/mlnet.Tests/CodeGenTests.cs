@@ -116,6 +116,72 @@ namespace mlnet.Tests
         }
 
         [TestMethod]
+        public void ClassLabelGenerationIgnoredColumns()
+        {
+            var columns = new TextLoader.Column[]
+            {
+                new TextLoader.Column(){ Name = DefaultColumnNames.Item, Source = new TextLoader.Range[]{new TextLoader.Range(0) }, DataKind = DataKind.String },
+            };
+
+            var result = new ColumnInferenceResults()
+            {
+                TextLoaderOptions = new TextLoader.Options()
+                {
+                    Columns = columns,
+                    AllowQuoting = false,
+                    AllowSparse = false,
+                    Separators = new[] { ',' },
+                    HasHeader = true,
+                    TrimWhitespace = true
+                },
+                ColumnInformation = new ColumnInformation()
+            };
+            result.ColumnInformation.IgnoredColumnNames.Add(DefaultColumnNames.Item);
+
+            CodeGenerator codeGenerator = new CodeGenerator(null, result, null);
+            var actual = codeGenerator.GenerateClassLabels();
+
+            Assert.AreEqual(0, actual.Count);
+        }
+
+        [TestMethod]
+        public void ClassLabelGenerationIgnoredAndFeatureColumns()
+        {
+            var columns = new TextLoader.Column[]
+            {
+                new TextLoader.Column(){ Name = DefaultColumnNames.Item, Source = new TextLoader.Range[]{new TextLoader.Range(0) }, DataKind = DataKind.String },
+                new TextLoader.Column(){ Name = DefaultColumnNames.Label, Source = new TextLoader.Range[]{new TextLoader.Range(0) }, DataKind = DataKind.Boolean },
+            };
+
+            var result = new ColumnInferenceResults()
+            {
+                TextLoaderOptions = new TextLoader.Options()
+                {
+                    Columns = columns,
+                    AllowQuoting = false,
+                    AllowSparse = false,
+                    Separators = new[] { ',' },
+                    HasHeader = true,
+                    TrimWhitespace = true
+                },
+                ColumnInformation = new ColumnInformation()
+            };
+            result.ColumnInformation.IgnoredColumnNames.Add(DefaultColumnNames.Item);
+
+            CodeGenerator codeGenerator = new CodeGenerator(null, result, null);
+            var actual = codeGenerator.GenerateClassLabels();
+
+            var expected1 = "[ColumnName(\"Label\"), LoadColumn(0)]";
+            var expected2 = "public bool Label{get; set;}";
+            var expected3 = "\r\n";
+            Assert.AreEqual(3, actual.Count);
+            Assert.AreEqual(expected1, actual[0]);
+            Assert.AreEqual(expected2, actual[1]);
+            Assert.AreEqual(expected3, actual[2]);
+
+        }
+
+        [TestMethod]
         public void TrainerComplexParameterTest()
         {
             var context = new MLContext();
