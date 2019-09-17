@@ -218,7 +218,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             IList<string> result = new List<string>();
             foreach (var column in _columnInferenceResult.TextLoaderOptions.Columns)
             {
-                if (this.columnInferenceResult.ColumnInformation.IgnoredColumnNames.Contains(column.Name))
+                if (IsColumnIgnored(column.Name))
                 {
                     continue;
                 }
@@ -315,7 +315,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         private string GeneratePredictProgramCSFileContent(string namespaceValue)
         {
             var columns = _columnInferenceResult.TextLoaderOptions.Columns;
-            var featuresList = columns.Where((str) => str.Name != _settings.LabelName).Select((str) => str.Name).ToList();
+            var featuresList = columns.Where((str) => str.Name != _settings.LabelName && !IsColumnIgnored(str.Name)).Select((str) => str.Name).ToList();
             PredictProgram predictProgram = new PredictProgram()
             {
                 TaskType = _settings.MlTask.ToString(),
@@ -362,6 +362,9 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
             return modelBuilder.TransformText();
         }
+
+        private bool IsColumnIgnored(string columnName) => _columnInferenceResult.ColumnInformation.IgnoredColumnNames.Contains(columnName);
+
         #endregion
     }
 }
