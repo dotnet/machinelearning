@@ -587,7 +587,7 @@ var linearModel = model.LastTransformer.Model;
 var weights = linearModel.Weights;
 ```
 
-The below snipper shows how to get the weights for a fast tree model.
+The below snippet shows how to get the weights for a fast tree model.
 
 ```csharp
 var treeModel = model.LastTransformer.Model;

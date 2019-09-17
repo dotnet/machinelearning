@@ -5,11 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -133,7 +130,7 @@ namespace Microsoft.ML.Data
                 if (mappingAttr is object)
                 {
                     var sources = mappingAttr.Sources.Select((source) => Range.FromTextLoaderRange(source)).ToArray();
-                    column.Source = sources.Single().Min;
+                    column.Source = sources;
                 }
 
                 InternalDataKind dk;
@@ -173,6 +170,52 @@ namespace Microsoft.ML.Data
         public sealed class Column
         {
             /// <summary>
+            /// Initializes a new instance of the <see cref="Column"/> class.
+            /// </summary>
+            public Column() { }
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="Column"/> class.
+            /// </summary>
+            /// <param name="name">Name of the column.</param>
+            /// <param name="dbType"><see cref="DbType"/> of the items in the column.</param>
+            /// <param name="index">Index of the column.</param>
+            public Column(string name, DbType dbType, int index)
+                : this(name, dbType, new[] { new Range(index) })
+            {
+            }
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="Column"/> class.
+            /// </summary>
+            /// <param name="name">Name of the column.</param>
+            /// <param name="dbType"><see cref="DbType"/> of the items in the column.</param>
+            /// <param name="minIndex">The minimum inclusive index of the column.</param>
+            /// <param name="maxIndex">The maximum-inclusive index of the column.</param>
+            public Column(string name, DbType dbType, int minIndex, int maxIndex)
+                : this(name, dbType, new[] { new Range(minIndex, maxIndex) })
+            {
+            }
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="Column"/> class.
+            /// </summary>
+            /// <param name="name">Name of the column.</param>
+            /// <param name="dbType"><see cref="DbType"/> of the items in the column.</param>
+            /// <param name="source">Source index range(s) of the column.</param>
+            /// <param name="keyCount">For a key column, this defines the range of values.</param>
+            public Column(string name, DbType dbType, Range[] source, KeyCount keyCount = null)
+            {
+                Contracts.CheckValue(name, nameof(name));
+                Contracts.CheckValue(source, nameof(source));
+
+                Name = name;
+                Type = dbType;
+                Source = source;
+                KeyCount = keyCount;
+            }
+
+            /// <summary>
             /// Name of the column.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the column")]
@@ -185,10 +228,10 @@ namespace Microsoft.ML.Data
             public DbType Type = DbType.Single;
 
             /// <summary>
-            /// Source index of the column.
+            /// Source index range(s) of the column.
             /// </summary>
-            [Argument(ArgumentType.Multiple, HelpText = "Source index of the column", ShortName = "src")]
-            public int? Source;
+            [Argument(ArgumentType.Multiple, HelpText = "Source index range(s) of the column", ShortName = "src")]
+            public Range[] Source;
 
             /// <summary>
             /// For a key column, this defines the range of values.
@@ -207,7 +250,7 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// A range representing a single value. Will result in a scalar column.
             /// </summary>
-            /// <param name="index">The index of the field of the text file to read.</param>
+            /// <param name="index">The index of the field of the table to read.</param>
             public Range(int index)
             {
                 Contracts.CheckParam(index >= 0, nameof(index), "Must be non-negative");
@@ -219,20 +262,17 @@ namespace Microsoft.ML.Data
             /// A range representing a set of values. Will result in a vector column.
             /// </summary>
             /// <param name="min">The minimum inclusive index of the column.</param>
-            /// <param name="max">The maximum-inclusive index of the column. If <c>null</c>
-            /// indicates that the <see cref="TextLoader"/> should auto-detect the legnth
-            /// of the lines, and read untill the end.</param>
-            public Range(int min, int? max)
+            /// <param name="max">The maximum-inclusive index of the column.</param>
+            public Range(int min, int max)
             {
                 Contracts.CheckParam(min >= 0, nameof(min), "Must be non-negative");
-                Contracts.CheckParam(!(max < min), nameof(max), "If specified, must be greater than or equal to " + nameof(min));
+                Contracts.CheckParam(max >= min, nameof(max), "Must be greater than or equal to " + nameof(min));
 
                 Min = min;
                 Max = max;
                 // Note that without the following being set, in the case where there is a single range
                 // where Min == Max, the result will not be a vector valued but a scalar column.
                 ForceVector = true;
-                AutoEnd = max == null;
             }
 
             /// <summary>
@@ -242,28 +282,10 @@ namespace Microsoft.ML.Data
             public int Min;
 
             /// <summary>
-            /// The maximum index of the column, inclusive. If <see langword="null"/>
-            /// indicates that the <see cref="TextLoader"/> should auto-detect the legnth
-            /// of the lines, and read untill the end.
-            /// If <see cref="Max"/> is specified, the field <see cref="AutoEnd"/> is ignored.
+            /// The maximum index of the column, inclusive.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Last index in the range")]
-            public int? Max;
-
-            /// <summary>
-            /// Whether this range extends to the end of the line, but should be a fixed number of items.
-            /// If <see cref="Max"/> is specified, the field <see cref="AutoEnd"/> is ignored.
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce,
-                HelpText = "This range extends to the end of the line, but should be a fixed number of items",
-                ShortName = "auto")]
-            public bool AutoEnd;
-
-            /// <summary>
-            /// Whether this range includes only other indices not specified.
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "This range includes only other indices not specified", ShortName = "other")]
-            public bool AllOther;
+            public int Max;
 
             /// <summary>
             /// Force scalar columns to be treated as vectors of length one.
@@ -273,7 +295,8 @@ namespace Microsoft.ML.Data
 
             internal static Range FromTextLoaderRange(TextLoader.Range range)
             {
-                return new Range(range.Min, range.Max);
+                Contracts.Assert(range.Max.HasValue);
+                return new Range(range.Min, range.Max.Value);
             }
         }
 
@@ -291,30 +314,101 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
+        /// Used as an input column range.
+        /// </summary>
+        internal readonly struct Segment
+        {
+            public readonly int Min;
+            public readonly int Lim;
+            public readonly bool ForceVector;
+
+            public Segment(int min, int lim, bool forceVector)
+            {
+                Contracts.Assert(0 <= min & min < lim);
+                Min = min;
+                Lim = lim;
+                ForceVector = forceVector;
+            }
+        }
+
+        /// <summary>
         /// Information for an output column.
         /// </summary>
         private sealed class ColInfo
         {
             public readonly string Name;
-            public readonly int? SourceIndex;
             public readonly DataViewType ColType;
+            public readonly Segment[] Segments;
 
-            public ColInfo(string name, int? sourceIndex, DataViewType colType)
+            // BaseSize is the sum of the sizes of segments.
+            public readonly int SizeBase;
+
+            private ColInfo(string name, DataViewType colType, Segment[] segs, int sizeBase)
             {
                 Contracts.AssertNonEmpty(name);
-                Contracts.Assert(!sourceIndex.HasValue || sourceIndex >= 0);
-                Contracts.AssertValue(colType);
+                Contracts.AssertValueOrNull(segs);
+                Contracts.Assert(sizeBase > 0);
 
                 Name = name;
-                SourceIndex = sourceIndex;
+                Contracts.Assert(colType.GetItemType().GetRawKind() != 0);
                 ColType = colType;
+                Segments = segs;
+                SizeBase = sizeBase;
+            }
+
+            public static ColInfo Create(string name, PrimitiveDataViewType itemType, Segment[] segs, bool user)
+            {
+                Contracts.AssertNonEmpty(name);
+                Contracts.AssertValue(itemType);
+                Contracts.AssertValueOrNull(segs);
+
+                int size = 0;
+                DataViewType type = itemType;
+
+                if (segs != null)
+                {
+                    var order = Utils.GetIdentityPermutation(segs.Length);
+                    Array.Sort(order, (x, y) => segs[x].Min.CompareTo(segs[y].Min));
+
+                    // Check that the segments are disjoint.
+                    for (int i = 1; i < order.Length; i++)
+                    {
+                        int a = order[i - 1];
+                        int b = order[i];
+                        Contracts.Assert(segs[a].Min <= segs[b].Min);
+                        if (segs[a].Lim > segs[b].Min)
+                        {
+                            throw user ?
+                                Contracts.ExceptUserArg(nameof(Column.Source), "Intervals specified for column '{0}' overlap", name) :
+                                Contracts.ExceptDecode("Intervals specified for column '{0}' overlap", name);
+                        }
+                    }
+
+                    // Note: since we know that the segments don't overlap, we're guaranteed that
+                    // the sum of their sizes doesn't overflow.
+                    for (int i = 0; i < segs.Length; i++)
+                    {
+                        var seg = segs[i];
+                        size += seg.Lim - seg.Min;
+                    }
+                    Contracts.Assert(size >= segs.Length);
+
+                    if (size > 1 || segs[0].ForceVector)
+                        type = new VectorDataViewType(itemType, size);
+                }
+                else
+                {
+                    size++;
+                }
+
+                return new ColInfo(name, type, segs, size);
             }
         }
 
         private sealed class Bindings
         {
             /// <summary>
-            /// <see cref="Infos"/>[i] stores the i-th column's name and type. Columns are loaded from the input text file.
+            /// <see cref="Infos"/>[i] stores the i-th column's name and type. Columns are loaded from the input database.
             /// </summary>
             public readonly ColInfo[] Infos;
 
@@ -326,13 +420,6 @@ namespace Microsoft.ML.Data
 
                 using (var ch = parent._host.Start("Binding"))
                 {
-                    // Make sure all columns have at least one source range.
-                    foreach (var col in cols)
-                    {
-                        if (col.Source < 0)
-                            throw ch.ExceptUserArg(nameof(Column.Source), "Source column index must be non-negative");
-                    }
-
                     Infos = new ColInfo[cols.Length];
 
                     // This dictionary is used only for detecting duplicated column names specified by user.
@@ -354,10 +441,34 @@ namespace Microsoft.ML.Data
                         }
                         else
                         {
+                            ch.CheckUserArg(Enum.IsDefined(typeof(DbType), col.Type), nameof(Column.Type), "Bad item type");
                             itemType = ColumnTypeExtensions.PrimitiveTypeFromType(col.Type.ToType());
                         }
 
-                        Infos[iinfo] = new ColInfo(name, col.Source, itemType);
+                        Segment[] segs = null;
+
+                        if (col.Source != null)
+                        {
+                            segs = new Segment[col.Source.Length];
+
+                            for (int i = 0; i < segs.Length; i++)
+                            {
+                                var range = col.Source[i];
+
+                                int min = range.Min;
+                                ch.CheckUserArg(0 <= min, nameof(range.Min));
+
+                                Segment seg;
+
+                                int max = range.Max;
+                                ch.CheckUserArg(min <= max, nameof(range.Max));
+                                seg = new Segment(min, max + 1, range.ForceVector);
+
+                                segs[i] = seg;
+                            }
+                        }
+
+                        Infos[iinfo] = ColInfo.Create(name, itemType, segs, true);
 
                         nameToInfoIndex[name] = iinfo;
                     }
@@ -377,9 +488,11 @@ namespace Microsoft.ML.Data
                 //   byte: bool of whether this is a key type
                 //   for a key type:
                 //     ulong: count for key range
-                //   byte: bool of whether the source index is valid
-                //   for a valid source index:
-                //     int: source index
+                //   int: number of segments
+                //   foreach segment:
+                //     int: min
+                //     int: lim
+                //     byte: force vector (verWrittenCur: verIsVectorSupported)
                 int cinfo = ctx.Reader.ReadInt32();
                 Contracts.CheckDecode(cinfo > 0);
                 Infos = new ColInfo[cinfo];
@@ -405,14 +518,32 @@ namespace Microsoft.ML.Data
                     else
                         itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
 
-                    int? sourceIndex = null;
-                    bool hasSourceIndex = ctx.Reader.ReadBoolByte();
-                    if (hasSourceIndex)
+                    int cseg = ctx.Reader.ReadInt32();
+
+                    Segment[] segs;
+
+                    if (cseg == 0)
                     {
-                        sourceIndex = ctx.Reader.ReadInt32();
+                        segs = null;
+                    }
+                    else
+                    {
+                        Contracts.CheckDecode(cseg > 0);
+                        segs = new Segment[cseg];
+                        for (int iseg = 0; iseg < cseg; iseg++)
+                        {
+                            int min = ctx.Reader.ReadInt32();
+                            int lim = ctx.Reader.ReadInt32();
+                            Contracts.CheckDecode(0 <= min && min < lim);
+                            bool forceVector = ctx.Reader.ReadBoolByte();
+                            segs[iseg] = new Segment(min, lim, forceVector);
+                        }
                     }
 
-                    Infos[iinfo] = new ColInfo(name, sourceIndex, itemType);
+                    // Note that this will throw if the segments are ill-structured, including the case
+                    // of multiple variable segments (since those segments will overlap and overlapping
+                    // segments are illegal).
+                    Infos[iinfo] = ColInfo.Create(name, itemType, segs, false);
                 }
 
                 OutputSchema = ComputeOutputSchema();
@@ -430,9 +561,11 @@ namespace Microsoft.ML.Data
                 //   byte: bool of whether this is a key type
                 //   for a key type:
                 //     ulong: count for key range
-                //   byte: bool of whether the source index is valid
-                //   for a valid source index:
-                //     int: source index
+                //   int: number of segments
+                //   foreach segment:
+                //     int: min
+                //     int: lim
+                //     byte: force vector (verWrittenCur: verIsVectorSupported)
                 ctx.Writer.Write(Infos.Length);
                 for (int iinfo = 0; iinfo < Infos.Length; iinfo++)
                 {
@@ -445,9 +578,21 @@ namespace Microsoft.ML.Data
                     ctx.Writer.WriteBoolByte(type is KeyDataViewType);
                     if (type is KeyDataViewType key)
                         ctx.Writer.Write(key.Count);
-                    ctx.Writer.WriteBoolByte(info.SourceIndex.HasValue);
-                    if (info.SourceIndex.HasValue)
-                        ctx.Writer.Write(info.SourceIndex.GetValueOrDefault());
+
+                    if (info.Segments is null)
+                    {
+                        ctx.Writer.Write(0);
+                    }
+                    else
+                    {
+                        ctx.Writer.Write(info.Segments.Length);
+                        foreach (var seg in info.Segments)
+                        {
+                            ctx.Writer.Write(seg.Min);
+                            ctx.Writer.Write(seg.Lim);
+                            ctx.Writer.WriteBoolByte(seg.ForceVector);
+                        }
+                    }
                 }
             }
 

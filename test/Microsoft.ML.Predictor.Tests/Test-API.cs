@@ -81,13 +81,13 @@ namespace Microsoft.ML.Internal.Internallearn.Test
             // BulkPredict, so this wasn't using FastRank's BulkPredict.
             Float[][] bulkPredictions = ((IBulkPredictor<Instance, Instances, Float[], Float[][]>)pred).BulkPredict(instances);
 
-            Assert.AreEqual(predictions.Length, bulkPredictions.Length);
+            Assert.Equal(predictions.Length, bulkPredictions.Length);
             for (int i = 0; i < predictions.Length; i++)
             {
-                Assert.AreEqual(predictions[i].Length, bulkPredictions[i].Length);
+                Assert.Equal(predictions[i].Length, bulkPredictions[i].Length);
                 for (int j = 0; j < predictions[i].Length; j++)
                 {
-                    Assert.AreEqual(predictions[i][j], bulkPredictions[i][j]);
+                    Assert.Equal(predictions[i][j], bulkPredictions[i][j]);
                 }
             }
 
@@ -103,11 +103,11 @@ namespace Microsoft.ML.Internal.Internallearn.Test
 
                 // sanity check vs. original predictor
                 var results2 = new MulticlassTester(new MulticlassTesterArguments()).Test(predictor, instances);
-                Assert.AreEqual(results.Length, results2.Length);
+                Assert.Equal(results.Length, results2.Length);
                 for (int i = 0; i < results.Length; i++)
                 {
-                    Assert.AreEqual(results[i].Name, results2[i].Name);
-                    Assert.AreEqual(results[i].Value, results2[i].Value);
+                    Assert.Equal(results[i].Name, results2[i].Name);
+                    Assert.Equal(results[i].Value, results2[i].Value);
                 }
             }
             File.Delete(modelFilename);
@@ -185,12 +185,12 @@ namespace Microsoft.ML.Internal.Internallearn.Test
 
                 Float[] bulkPredictions = ((IBulkPredictor<Instance, Instances, Float, Float[]>)pred).BulkPredict(instances);
 
-                Assert.AreEqual(rawPredictions.Length, bulkPredictions.Length);
-                Assert.AreEqual(rawPredictions.Length, rawPredictions1.Length);
+                Assert.Equal(rawPredictions.Length, bulkPredictions.Length);
+                Assert.Equal(rawPredictions.Length, rawPredictions1.Length);
                 for (int i = 0; i < rawPredictions.Length; i++)
-                    Assert.AreEqual(rawPredictions[i], bulkPredictions[i]);
+                    Assert.Equal(rawPredictions[i], bulkPredictions[i]);
                 for (int i = 0; i < rawPredictions.Length; i++)
-                    Assert.AreEqual(rawPredictions[i], rawPredictions1[i]);
+                    Assert.Equal(rawPredictions[i], rawPredictions1[i]);
 
                 //test new testers
                 {
@@ -204,11 +204,11 @@ namespace Microsoft.ML.Internal.Internallearn.Test
 
                     // sanity check vs. original predictor
                     var results2 = new ClassifierTester(new ProbabilityPredictorTesterArguments()).Test(predictor, instances);
-                    Assert.AreEqual(results.Length, results2.Length);
+                    Assert.Equal(results.Length, results2.Length);
                     for (int i = 0; i < results.Length; i++)
                     {
-                        Assert.AreEqual(results[i].Name, results2[i].Name);
-                        Assert.AreEqual(results[i].Value, results2[i].Value);
+                        Assert.Equal(results[i].Name, results2[i].Name);
+                        Assert.Equal(results[i].Value, results2[i].Value);
                     }
                 }
                 File.Delete(modelFilename);
@@ -231,7 +231,7 @@ namespace Microsoft.ML.Internal.Internallearn.Test
             ///*********  Training a model *******//
             string modelFilename = Path.GetTempFileName();
             TLCArguments cmd = new TLCArguments();
-            Assert.IsTrue(CmdParser.ParseArguments(dataset.extraSettings, cmd));
+            Assert.True(CmdParser.ParseArguments(dataset.extraSettings, cmd));
             cmd.command = Command.Train;
             cmd.modelfile = modelFilename;
             cmd.datafile = dataFilename;
@@ -263,7 +263,7 @@ namespace Microsoft.ML.Internal.Internallearn.Test
                         continue;
 
                     string[] cols = text.Split(',');
-                    Assert.IsTrue(cols.Length == 15);
+                    Assert.True(cols.Length == 15);
 
                     if (headerSkip)
                     {
@@ -316,8 +316,8 @@ namespace Microsoft.ML.Internal.Internallearn.Test
                 originalProbabilities.Add(probability);
             }
 
-            CollectionAssert.AreEqual(outputs, originalOutputs);
-            CollectionAssert.AreEqual(probabilities, originalProbabilities);
+            CollectionAssert.Equal(outputs, originalOutputs);
+            CollectionAssert.Equal(probabilities, originalProbabilities);
 
             File.Delete(modelFilename);
 
@@ -401,10 +401,10 @@ namespace Microsoft.ML.Internal.Internallearn.Test
                 if (results[i] == null)
                     continue;
                 //The nonweighted result should have half of the metrics
-                Assert.AreEqual(results[i].Length, results[0].Length * 2);
+                Assert.Equal(results[i].Length, results[0].Length * 2);
                 for (int m = 0; m < results[0].Length; m++)
                 {
-                    Assert.AreEqual(results[0][m].Name, results[i][m].Name);
+                    Assert.Equal(results[0][m].Name, results[i][m].Name);
                     Double diff = Math.Abs(results[0][m].Value - results[i][m].Value);
                     if (diff > 1e-6)
                     {
@@ -416,8 +416,8 @@ namespace Microsoft.ML.Internal.Internallearn.Test
             //Compare all metrics between weight 1 (with and without explicit weight in the input)
             for (int m = 0; m < results[0].Length; m++)
             {
-                Assert.IsTrue(Math.Abs(results[0][m].Value - results[1][m].Value) < 1e-10);
-                Assert.IsTrue(Math.Abs(results[0][m].Value - results[1][m + results[0].Length].Value) < 1e-10);
+                Assert.True(Math.Abs(results[0][m].Value - results[1][m].Value) < 1e-10);
+                Assert.True(Math.Abs(results[0][m].Value - results[1][m + results[0].Length].Value) < 1e-10);
             }
         }
     }

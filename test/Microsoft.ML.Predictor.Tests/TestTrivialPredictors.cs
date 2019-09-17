@@ -16,14 +16,14 @@ namespace Microsoft.ML.RunTests
     {
         private static void CheckOutput(Float expected, Float actual)
         {
-            Assert.AreEqual(expected, actual, "difference between original/serialized models output");
+            Assert.Equal(expected, actual, "difference between original/serialized models output");
         }
 
         private static void CheckOutput(Float[] expected, Float[] actual)
         {
-            Assert.AreEqual(expected.Length, actual.Length, "difference between original/serialized models output length");
+            Assert.Equal(expected.Length, actual.Length, "difference between original/serialized models output length");
             for (int i = 0; i < expected.Length; ++i)
-                Assert.AreEqual(expected[i], actual[i], "difference between original/serialized models output index {0}", i);
+                Assert.Equal(expected[i], actual[i], "difference between original/serialized models output index {0}", i);
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace Microsoft.ML.RunTests
                 {
                     ModelLoadContext.LoadModel(out loadedPredictor, reader, "foo");
                 }
-                Assert.AreNotEqual(default(IPredictor<Instance, TOutput>), loadedPredictor, "did not load expected model");
+                Assert.NotEqual(default(IPredictor<Instance, TOutput>), loadedPredictor, "did not load expected model");
             }
 
             TOutput result = predictor.Predict(instances[0]);

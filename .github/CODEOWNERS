@@ -1,0 +1,11 @@
+# This file contains the default reviewers for ML .NET code
+# For more information on CODEOWNERS file see : https://help.github.com/en/articles/about-code-owners
+
+# For the entire repository 
+*	@dotnet/mlnet-core
+
+# Reviewers for files owned by AutoML team
+src/Microsoft.ML.AutoML	@dotnet/mlnet-automl
+test/Microsoft.ML.AutoML.Tests	@dotnet/mlnet-automl
+pkg/Microsoft.ML.AutoML	@dotnet/mlnet-automl
+docs/samples/Microsoft.ML.AutoML.Samples	@dotnet/mlnet-automl

@@ -381,6 +381,25 @@ namespace Microsoft.ML.Transforms.Dnn
                 return this;
             }
 
+            public Runner AddInput(string input)
+            {
+                _inputs.Add(ParseOutput(input));
+                return this;
+            }
+
+            public Runner AddInput(Tensor value, int index)
+            {
+                if (_inputValues.Count <= index)
+                    _inputValues.Add(value);
+                else
+                {
+                    _inputValues[index].Dispose();
+                    _inputValues[index] = value;
+                }
+
+                return this;
+            }
+
             public Runner AddOutputs(string output)
             {
                 _outputs.Add(ParseOutput(output));
@@ -444,10 +463,6 @@ namespace Microsoft.ML.Transforms.Dnn
                 return result;
             }
 
-            public Runner CloneRunner()
-            {
-                return new Runner(_session);
-            }
         }
 
     }

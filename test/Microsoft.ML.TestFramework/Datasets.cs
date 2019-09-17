@@ -462,6 +462,13 @@ namespace Microsoft.ML.RunTests
             mamlExtraSettings = new[] { "xf=Term{col=Label}" }
         };
 
+        public static TestDataset irisDb = new TestDataset()
+        {
+            name = "iris",
+            trainFilename = @"iris-train",
+            testFilename = @"iris-test",
+        };
+
         public static TestDataset irisMissing = new TestDataset()
         {
             name = "irisMissing",

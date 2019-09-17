@@ -13,6 +13,7 @@ using Microsoft.ML;
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Predictor.Tests" + PublicKey.TestValue)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.TimeSeries.Tests" + PublicKey.TestValue)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Benchmarks" + PublicKey.TestValue)]
+[assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.AutoML.Tests" + PublicKey.TestValue)]
 
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Benchmarks" + PublicKey.TestValue)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.EntryPoints" + PublicKey.Value)]
@@ -85,5 +86,6 @@ using Microsoft.ML;
 [assembly: InternalsVisibleTo(assemblyName: "DotNetBridge" + InternalPublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "NeuralNetworksTest" + InternalPublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "RunTestsAzurePublish" + InternalPublicKey.Value)]
+[assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.AutoML" + PublicKey.Value)]
 
 [assembly: WantsToBeBestFriends]
