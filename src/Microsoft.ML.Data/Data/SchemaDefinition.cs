@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
+using Microsoft.Research.SEAL;
 
 namespace Microsoft.ML.Data
 {
@@ -28,7 +29,7 @@ namespace Microsoft.ML.Data
         /// </remarks>
         public KeyTypeAttribute()
         {
-            throw Contracts.ExceptNotSupp("Using KeyType without the Count parameter is not supported");
+
         }
 
         /// <summary>
@@ -104,7 +105,6 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Column name.
         /// </summary>
-        [BestFriend]
         internal string Name { get; }
 
         /// <summary>
@@ -406,40 +406,45 @@ namespace Microsoft.ML.Data
 
                 // Get the column type.
                 DataViewType columnType;
-                if (!DataViewTypeManager.Knows(dataType, customAttributes))
-                {
-                    PrimitiveDataViewType itemType;
-                    var keyAttr = memberInfo.GetCustomAttribute<KeyTypeAttribute>();
-                    if (keyAttr != null)
-                    {
-                        if (!KeyDataViewType.IsValidDataType(dataType))
-                            throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with KeyType attribute, but does not appear to be a valid kind of data for a key type", memberInfo.Name);
-                        if (keyAttr.KeyCount == null)
-                            itemType = new KeyDataViewType(dataType, dataType.ToMaxInt());
-                        else
-                            itemType = new KeyDataViewType(dataType, keyAttr.KeyCount.Count.GetValueOrDefault());
-                    }
-                    else
-                        itemType = ColumnTypeExtensions.PrimitiveTypeFromType(dataType);
 
-                    var vectorAttr = memberInfo.GetCustomAttribute<VectorTypeAttribute>();
-                    if (vectorAttr != null && !isVector)
-                        throw Contracts.ExceptParam(nameof(userType), $"Member {memberInfo.Name} marked with {nameof(VectorTypeAttribute)}, but does not appear to be a vector type", memberInfo.Name);
-                    if (isVector)
+                if (dataType != typeof(Ciphertext[]))
+                {
+                    if (!DataViewTypeManager.Knows(dataType, customAttributes))
                     {
-                        int[] dims = vectorAttr?.Dims;
-                        if (dims != null && dims.Any(d => d < 0))
-                            throw Contracts.ExceptParam(nameof(userType), "Some of member {0}'s dimension lengths are negative");
-                        if (Utils.Size(dims) == 0)
-                            columnType = new VectorDataViewType(itemType, 0);
+                        PrimitiveDataViewType itemType;
+                        var keyAttr = memberInfo.GetCustomAttribute<KeyTypeAttribute>();
+                        if (keyAttr != null)
+                        {
+                            if (!KeyDataViewType.IsValidDataType(dataType))
+                                throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with KeyType attribute, but does not appear to be a valid kind of data for a key type", memberInfo.Name);
+                            if (keyAttr.KeyCount == null)
+                                itemType = new KeyDataViewType(dataType, dataType.ToMaxInt());
+                            else
+                                itemType = new KeyDataViewType(dataType, keyAttr.KeyCount.Count.GetValueOrDefault());
+                        }
                         else
-                            columnType = new VectorDataViewType(itemType, dims);
+                            itemType = ColumnTypeExtensions.PrimitiveTypeFromType(dataType);
+
+                        var vectorAttr = memberInfo.GetCustomAttribute<VectorTypeAttribute>();
+                        if (vectorAttr != null && !isVector)
+                            throw Contracts.ExceptParam(nameof(userType), $"Member {memberInfo.Name} marked with {nameof(VectorTypeAttribute)}, but does not appear to be a vector type", memberInfo.Name);
+                        if (isVector)
+                        {
+                            int[] dims = vectorAttr?.Dims;
+                            if (dims != null && dims.Any(d => d < 0))
+                                throw Contracts.ExceptParam(nameof(userType), "Some of member {0}'s dimension lengths are negative");
+                            if (Utils.Size(dims) == 0)
+                                columnType = new VectorDataViewType(itemType, 0);
+                            else
+                                columnType = new VectorDataViewType(itemType, dims);
+                        }
+                        else
+                            columnType = itemType;
                     }
                     else
-                        columnType = itemType;
+                        columnType = DataViewTypeManager.GetDataViewType(dataType, customAttributes);
                 }
-                else
-                    columnType = DataViewTypeManager.GetDataViewType(dataType, customAttributes);
+                else columnType = CiphertextDataViewType.Instance;
 
                 cols.Add(new Column(memberInfo.Name, columnType, name));
             }
