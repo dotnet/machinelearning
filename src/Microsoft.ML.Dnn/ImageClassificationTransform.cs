@@ -878,7 +878,7 @@ namespace Microsoft.ML.Transforms
             {
                 var info = new DataViewSchema.DetachedColumn[_parent._outputs.Length];
                 info[0] = new DataViewSchema.DetachedColumn(_parent._outputs[0], new VectorDataViewType(NumberDataViewType.Single, _parent._classCount), null);
-                info[1] = new DataViewSchema.DetachedColumn(_parent._outputs[1], NumberDataViewType.UInt32, null);
+                info[1] = new DataViewSchema.DetachedColumn(_parent._outputs[1], new KeyDataViewType(typeof(uint), _parent._classCount), ((DataViewSchema.Column)InputSchema.GetColumnOrNull("Label")).Annotations);
                 return info;
             }
         }
@@ -1166,7 +1166,7 @@ namespace Microsoft.ML.Transforms
             _options = options;
             _dnnModel = dnnModel;
             _tfInputTypes = new[] { TF_DataType.TF_STRING };
-            _outputTypes = new[] { new VectorDataViewType(NumberDataViewType.Single), NumberDataViewType.UInt32.GetItemType() };
+            _outputTypes = new DataViewType[] { new VectorDataViewType(NumberDataViewType.Single), new KeyDataViewType(typeof(uint), 5) };
         }
 
         private static Options CreateArguments(DnnModel tensorFlowModel, string[] outputColumnNames, string[] inputColumnName, bool addBatchDimensionInput)

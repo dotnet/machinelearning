@@ -46,9 +46,13 @@ namespace Samples.Dynamic
                 IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
                     mlContext.Data.LoadFromEnumerable(images));
 
-                shuffledFullImagesDataset = mlContext.Transforms.Conversion
-                    .MapValueToKey("Label")
-                    .Fit(shuffledFullImagesDataset)
+                var estimator = mlContext.Transforms.Conversion
+                    .MapValueToKey("Label");
+                var estimatorWithKeyType = estimator.Append(
+                    mlContext.Transforms.Conversion.MapKeyToValue(
+                        outputColumnName: "LabelAsKey", inputColumnName: "Label"));
+
+                shuffledFullImagesDataset = estimatorWithKeyType.Fit(shuffledFullImagesDataset)
                     .Transform(shuffledFullImagesDataset);
 
                 // Split the data 90:10 into train and test sets, train and evaluate.
@@ -93,6 +97,8 @@ namespace Samples.Dynamic
                 DataViewSchema schema;
                 using (var file = File.OpenRead("model.zip"))
                     loadedModel = mlContext.Model.Load(file, out schema);
+                // the schema in line 99 and the shuffledFullImagesDataset.Schema in line 93 don't have
+                // the same annotations.
 
                 EvaluateModel(mlContext, testDataset, loadedModel);
 
@@ -100,8 +106,7 @@ namespace Samples.Dynamic
                 loadedModel.GetOutputSchema(schema)["Label"].GetKeyValues(ref keys);
 
                 watch = System.Diagnostics.Stopwatch.StartNew();
-                TrySinglePrediction(fullImagesetFolderPath, mlContext, loadedModel, 
-                    keys.DenseValues().ToArray());
+                TrySinglePrediction(fullImagesetFolderPath, mlContext, loadedModel, keys.DenseValues().ToArray(), shuffledFullImagesDataset.Schema);
 
                 watch.Stop();
                 elapsedMs = watch.ElapsedMilliseconds;
@@ -119,8 +124,7 @@ namespace Samples.Dynamic
         }
 
         private static void TrySinglePrediction(string imagesForPredictions,
-            MLContext mlContext, ITransformer trainedModel,
-            ReadOnlyMemory<char>[] originalLabels)
+            MLContext mlContext, ITransformer trainedModel, ReadOnlyMemory<char>[] originalLabels, DataViewSchema schema)
         {
             // Create prediction function to try one prediction
             var predictionEngine = mlContext.Model
@@ -135,6 +139,7 @@ namespace Samples.Dynamic
             };
 
             var prediction = predictionEngine.Predict(imageToPredict);
+            var predictedLabelsKeyType = ((DataViewSchema.Column)schema.GetColumnOrNull("Label")).Annotations;
             var index = prediction.PredictedLabel;
 
             Console.WriteLine($"ImageFile : " +
