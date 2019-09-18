@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Text;
 
@@ -62,9 +63,7 @@ namespace Microsoft.ML
             TextFeaturizingEstimator.Options options,
             params string[] inputColumnNames)
             => new TextFeaturizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                outputColumnName,
-                inputColumnNames == null || inputColumnNames.Length == 0 || (inputColumnNames.Length == 1 && inputColumnNames[0] == "")  ?
-                    new[] { outputColumnName } : inputColumnNames,
+                outputColumnName, Utils.Size(inputColumnNames) == 0  ? new[] { outputColumnName } : inputColumnNames,
                 options);
 
         /// <summary>

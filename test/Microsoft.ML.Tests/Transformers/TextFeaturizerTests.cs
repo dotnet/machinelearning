@@ -87,7 +87,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        public void TextFeaturizerWithWordFeatureExtractorTestWithNullInputNames()
+        public void TextFeaturizerWithWordFeatureExtractorWithNullInputNamesTest()
         {
             var data = new[] { new TestClass2() { Features = "This is some text in english", OutputTokens=null},
                                new TestClass2() { Features = "This is another example", OutputTokens=null } };
@@ -127,49 +127,6 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(expected[0], transformed[0]);
             Assert.Equal(expected[1], transformed[1]);
         }
-
-        [Fact]
-        public void TextFeaturizerWithWordFeatureExtractorTestWithEmptyInputName()
-        {
-            var data = new[] { new TestClass2() { Features = "This is some text in english", OutputTokens=null},
-                               new TestClass2() { Features = "This is another example", OutputTokens=null } };
-            var dataView = ML.Data.LoadFromEnumerable(data);
-
-            var options = new TextFeaturizingEstimator.Options()
-            {
-                WordFeatureExtractor = new WordBagEstimator.Options() { NgramLength = 1 },
-                CharFeatureExtractor = null,
-                Norm = TextFeaturizingEstimator.NormFunction.None,
-                OutputTokensColumnName = "OutputTokens"
-            };
-
-            var pipeline = ML.Transforms.Text.FeaturizeText("Features", options, "");
-            dataView = pipeline.Fit(dataView).Transform(dataView);
-
-            VBuffer<float> features = default;
-            float[][] transformed = { null, null };
-
-            var expected = new float[][] {
-                new float[] { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f },
-                new float[] { 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f }
-            };
-
-            using (var cursor = dataView.GetRowCursor(dataView.Schema))
-            {
-                var i = 0;
-                while (cursor.MoveNext())
-                {
-                    var featureGetter = cursor.GetGetter<VBuffer<float>>(cursor.Schema["Features"]);
-                    featureGetter(ref features);
-                    transformed[i] = features.DenseValues().ToArray();
-                    i++;
-                }
-            }
-
-            Assert.Equal(expected[0], transformed[0]);
-            Assert.Equal(expected[1], transformed[1]);
-        }
-
 
         [Fact]
         public void TextFeaturizerWithWordFeatureExtractorTestWithNoInputNames()
