@@ -209,16 +209,17 @@ namespace Microsoft.ML.Functional.Tests
         public void TrainAndEvaluateRankingWithOptions()
         {
             var mlContext = new MLContext(seed: 1);
-
-            var options = new RankingEvaluatorOptions
+            int[] tlevels = { 50, 150, 100 };
+            var options = new RankingEvaluatorOptions();
+            foreach (int i in tlevels)
             {
-                DcgTruncationLevel = 50
-            };
+                options.DcgTruncationLevel = i;
+                var scoredData = GetScoredDataForRankingEvaluation(mlContext);
+                var metrics = mlContext.Ranking.Evaluate(scoredData, options, labelColumnName: "Label", rowGroupColumnName: "GroupId");
+                Common.AssertMetrics(metrics);
+            }
 
-            var scoredData = GetScoredDataForRankingEvaluation(mlContext);
-            var metrics = mlContext.Ranking.Evaluate(scoredData, options, labelColumnName: "Label", rowGroupColumnName: "GroupId");
 
-            Common.AssertMetrics(metrics);
         }
 
         [Fact]

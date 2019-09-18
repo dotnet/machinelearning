@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -67,12 +68,14 @@ namespace Microsoft.ML.Data
             : base(env, LoadName)
         {
             // REVIEW: What kind of checking should be applied to labelGains?
-            if (options.DcgTruncationLevel <= 0 || options.DcgTruncationLevel > Aggregator.Counters.MaxTruncationLevel)
-                throw Host.ExceptUserArg(nameof(options.DcgTruncationLevel), "DCG Truncation Level must be between 1 and {0}", Aggregator.Counters.MaxTruncationLevel);
+            // add the setter to utils here
+            if (options.DcgTruncationLevel <= 0)
+                throw Host.ExceptUserArg(nameof(options.DcgTruncationLevel), "DCG Truncation Level must be greater than 0");
             Host.CheckUserArg(options.LabelGains != null, nameof(options.LabelGains), "Label gains cannot be null");
 
             _truncationLevel = options.DcgTruncationLevel;
             _groupSummary = options.OutputGroupSummary;
+            RankingUtils.SetTruncationLevel(options.DcgTruncationLevel);
 
             var labelGains = new List<Double>();
             string[] gains = options.LabelGains.Split(',');
@@ -274,8 +277,6 @@ namespace Microsoft.ML.Data
         {
             public sealed class Counters
             {
-                public const int MaxTruncationLevel = 100;
-
                 public readonly int TruncationLevel;
                 private readonly List<Double[]> _groupNdcg;
                 private readonly List<Double[]> _groupDcg;
@@ -693,8 +694,8 @@ namespace Microsoft.ML.Data
                 int truncationLevel, Double[] labelGains)
                 : base(env, input, labelCol, scoreCol, groupCol, RegistrationName)
             {
-                Host.CheckParam(0 < truncationLevel && truncationLevel < 100, nameof(truncationLevel),
-                    "Truncation level must be between 1 and 99");
+                Host.CheckParam(0 < truncationLevel , nameof(truncationLevel),
+                    "Truncation level must be greater than 0");
                 Host.CheckValue(labelGains, nameof(labelGains));
 
                 _truncationLevel = truncationLevel;
@@ -712,7 +713,7 @@ namespace Microsoft.ML.Data
                 // double[]: _labelGains
 
                 _truncationLevel = ctx.Reader.ReadInt32();
-                Host.CheckDecode(0 < _truncationLevel && _truncationLevel < 100);
+                Host.CheckDecode(0 < _truncationLevel);
                 _labelGains = ctx.Reader.ReadDoubleArray();
                 _bindings = new Bindings(Host, input.Schema, false, LabelCol, ScoreCol, GroupCol, _truncationLevel);
             }
@@ -728,7 +729,7 @@ namespace Microsoft.ML.Data
                 // double[]: _labelGains
 
                 base.SaveModel(ctx);
-                Host.Assert(0 < _truncationLevel && _truncationLevel < 100);
+                Host.Assert(0 < _truncationLevel);
                 ctx.Writer.Write(_truncationLevel);
                 ctx.Writer.WriteDoubleArray(_labelGains);
             }
@@ -826,7 +827,7 @@ namespace Microsoft.ML.Data
 
                 public RowCursorState(int truncationLevel)
                 {
-                    Contracts.Assert(0 < truncationLevel && truncationLevel < 100);
+                    Contracts.Assert(0 < truncationLevel);
 
                     QueryLabels = new List<short>();
                     QueryOutputs = new List<Single>();
@@ -949,23 +950,34 @@ namespace Microsoft.ML.Data
 
     internal static class RankingUtils
     {
+        private static readonly object _lock = new object();
         private static volatile Double[] _discountMap;
+        private static volatile int _maxTruncationLevel = 0;
+
         public static Double[] DiscountMap
         {
             get
             {
-                double[] result = _discountMap;
-                if (result == null)
+                return _discountMap;
+            }
+        }
+        /// <summary>
+        /// Reallocates discountMap for the largest truncationLevel seen so far
+        /// </summary>
+        public static void SetTruncationLevel(int truncationLevel)
+        {
+            lock (_lock) {
+                if (truncationLevel > _maxTruncationLevel)
                 {
-                    var discountMap = new Double[100]; //Hard to believe anyone would set truncation Level higher than 100
+                    _maxTruncationLevel = truncationLevel;
+
+                    var discountMap = new Double[_maxTruncationLevel]; //Hard to believe anyone would set truncation Level higher than 100
                     for (int i = 0; i < discountMap.Length; i++)
                     {
                         discountMap[i] = 1 / Math.Log(2 + i);
                     }
-                    Interlocked.CompareExchange(ref _discountMap, discountMap, null);
-                    result = _discountMap;
+                    _discountMap = discountMap;
                 }
-                return result;
             }
         }
 
