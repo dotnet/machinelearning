@@ -969,7 +969,7 @@ namespace Microsoft.ML.Data
                 {
                     _maxTruncationLevel = truncationLevel;
 
-                    var discountMap = new Double[_maxTruncationLevel]; //Hard to believe anyone would set truncation Level higher than 100
+                    var discountMap = new Double[_maxTruncationLevel]; 
                     for (int i = 0; i < discountMap.Length; i++)
                     {
                         discountMap[i] = 1 / Math.Log(2 + i);
