@@ -21711,6 +21711,91 @@
       ]
     },
     {
+      "Name": "Transforms.PermutationFeatureImportance",
+      "Desc": "",
+      "FriendlyName": "BinaryPFI",
+      "ShortName": "BinaryPFI",
+      "Inputs": [
+        {
+          "Name": "ModelPath",
+          "Type": "FileHandle",
+          "Desc": "",
+          "Aliases": [
+            "path"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "LabelColumnName",
+          "Type": "String",
+          "Desc": "",
+          "Aliases": [
+            "label"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": "Label"
+        },
+        {
+          "Name": "UseFeatureWeightFilter",
+          "Type": "Bool",
+          "Desc": "",
+          "Aliases": [
+            "usefw"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "NumberOfExamplesToUse",
+          "Type": "Int",
+          "Desc": "",
+          "Aliases": [
+            "numexamples"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
+          "Name": "PermutationCount",
+          "Type": "Int",
+          "Desc": "",
+          "Aliases": [
+            "permutations"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": 1
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "Metrics",
+          "Type": "DataView",
+          "Desc": "The PFI metrics"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ]
+    },
+    {
       "Name": "Transforms.PredictedLabelColumnOriginalValueConverter",
       "Desc": "Transforms a predicted label column to its original values, unless it is of type bool.",
       "FriendlyName": "Convert Predicted Label",
