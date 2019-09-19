@@ -650,12 +650,10 @@ namespace Microsoft.ML.Transforms
                     Runner runner = new Runner(_parent.Session);
 
                     // Feed inputs to the graph.
-                    List<Tensor> inputTensors = new List<Tensor>();
-                    for (int i = 0; i < _parent.Inputs.Length; i++)
+                     for (int i = 0; i < _parent.Inputs.Length; i++)
                     {
                         var tensor = srcTensorGetters[i].GetTensor();
                         runner.AddInput(_parent.Inputs[i], tensor);
-                        inputTensors.Add(tensor);
                     }
 
                     // Add outputs.
@@ -665,6 +663,7 @@ namespace Microsoft.ML.Transforms
                     // Execute the graph.
                     var tensors = runner.Run();
 
+                    List<Tensor> inputTensors = runner.GetInputValues();
                     foreach (Tensor inputTensor in inputTensors)
                     {
                         inputTensor.Dispose();
