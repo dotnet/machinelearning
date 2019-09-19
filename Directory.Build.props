@@ -29,9 +29,9 @@
     <PkgDir>$(RepoRoot)pkg/</PkgDir>
 
     <!-- Output directories -->
-    <BinDir Condition="'$(BinDir)'==''">$(RepoRoot)bin/</BinDir>
+    <BinDir Condition="'$(BinDir)'==''">$([MSBuild]::NormalizeDirectory('$(RepoRoot)', 'bin'))</BinDir>
     <BaseOutputPath Condition="'$(BaseOutputPath)'==''">$(BinDir)</BaseOutputPath>
-    <ObjDir Condition="'$(ObjDir)'==''">$(BinDir)obj/</ObjDir>
+    <ObjDir Condition="'$(ObjDir)'==''">$([MSBuild]::NormalizeDirectory('$(BinDir)', 'obj'))</ObjDir>
     <RootIntermediateOutputPath Condition="'$(RootIntermediateOutputPath)'==''">$(ObjDir)</RootIntermediateOutputPath>
 
     <IntermediateOutputRootPath Condition="'$(IntermediateOutputRootPath)' == ''">$(RootIntermediateOutputPath)$(PlatformConfig)\</IntermediateOutputRootPath>

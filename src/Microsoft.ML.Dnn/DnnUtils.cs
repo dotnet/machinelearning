@@ -11,7 +11,7 @@ using System.Security.Principal;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Tensorflow;
-using static Tensorflow.Python;
+using static Tensorflow.Binding;
 
 namespace Microsoft.ML.Transforms.Dnn
 {
@@ -92,11 +92,10 @@ namespace Microsoft.ML.Transforms.Dnn
 
         internal static Graph LoadMetaGraph(string path)
         {
-            return tf_with(tf.Graph().as_default(), graph =>
-            {
-                tf.train.import_meta_graph(path);
-                return graph;
-            });
+            var graph = new Graph();
+            graph = graph.as_default();
+            tf.train.import_meta_graph(path);
+            return graph;
         }
 
         internal static Session LoadTFSessionByModelFilePath(IExceptionContext ectx, string modelFile, bool metaGraph = false)
@@ -381,6 +380,25 @@ namespace Microsoft.ML.Transforms.Dnn
                 return this;
             }
 
+            public Runner AddInput(string input)
+            {
+                _inputs.Add(ParseOutput(input));
+                return this;
+            }
+
+            public Runner AddInput(Tensor value, int index)
+            {
+                if (_inputValues.Count <= index)
+                    _inputValues.Add(value);
+                else
+                {
+                    _inputValues[index].Dispose();
+                    _inputValues[index] = value;
+                }
+
+                return this;
+            }
+
             public Runner AddOutputs(string output)
             {
                 _outputs.Add(ParseOutput(output));
@@ -444,10 +462,6 @@ namespace Microsoft.ML.Transforms.Dnn
                 return result;
             }
 
-            public Runner CloneRunner()
-            {
-                return new Runner(_session);
-            }
         }
 
     }

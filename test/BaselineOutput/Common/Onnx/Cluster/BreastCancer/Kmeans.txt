@@ -109,7 +109,7 @@
           "Score"
         ],
         "output": [
-          "PredictedLabel"
+          "ArgMinInt64"
         ],
         "name": "ArgMin",
         "opType": "ArgMin",
@@ -122,6 +122,23 @@
           {
             "name": "keepdims",
             "i": "1",
+            "type": "INT"
+          }
+        ]
+      },
+      {
+        "input": [
+          "ArgMinInt64"
+        ],
+        "output": [
+          "PredictedLabel"
+        ],
+        "name": "Cast",
+        "opType": "Cast",
+        "attribute": [
+          {
+            "name": "to",
+            "i": "12",
             "type": "INT"
           }
         ]
@@ -272,7 +289,7 @@
         "name": "PredictedLabel0",
         "type": {
           "tensorType": {
-            "elemType": "INT64",
+            "elemType": "UINT32",
             "shape": {
               "dim": [
                 {
@@ -332,7 +349,7 @@
       "version": "1"
     },
     {
-      "version": "7"
+      "version": "9"
     }
   ]
 }
