@@ -1,4 +1,4 @@
-maml.exe CV tr=LDSVM{iter=1000 noBias=+} threads=- dout=%Output% data=%Data% seed=1
+maml.exe CV tr=LDSVM{iter=1000 bias=-} threads=- dout=%Output% data=%Data% seed=1
 Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
 Warning: Skipped 8 rows with missing feature/label values
 Training calibrator.

@@ -688,7 +688,7 @@ namespace Microsoft.ML.RunTests
 
         public static PredictorAndArgs LDSVMNoBias = new PredictorAndArgs
         {
-            Trainer = new SubComponent("LDSVM", "iter=1000 noBias=+"),
+            Trainer = new SubComponent("LDSVM", "iter=1000 bias=-"),
             Tag = "LDSVM-nob"
         };
 

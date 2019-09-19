@@ -1,4 +1,4 @@
 LDSVM
-AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	/noBias	/iter	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
-0.974179	0.95022	0.963801	0.891213	0.943723	0.981982	0.241702	0.741219	0.926087	0.968491	+	1000	LDSVM	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=LDSVM{iter=1000 noBias=+} dout=%Output% data=%Data% out=%Output% seed=1	/noBias:+;/iter:1000	
+AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	/bias	/iter	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.974179	0.95022	0.963801	0.891213	0.943723	0.981982	0.241702	0.741219	0.926087	0.968491	-	1000	LDSVM	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=LDSVM{iter=1000 bias=-} dout=%Output% data=%Data% out=%Output% seed=1	/bias:-;/iter:1000	
 

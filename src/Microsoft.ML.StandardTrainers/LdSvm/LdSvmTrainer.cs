@@ -83,9 +83,9 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Indicates if we should use Bias or not in our model.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "No bias", ShortName = "noBias")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "No bias", ShortName = "bias")]
             [TlcModule.SweepableDiscreteParam("NoBias", null, isBool: true)]
-            public bool NoBias = Defaults.NoBias;
+            public bool UseBias = Defaults.UseBias;
 
             /// <summary>
             /// Number of iterations
@@ -105,7 +105,7 @@ namespace Microsoft.ML.Trainers
             internal class Defaults
             {
                 public const int NumberOfIterations = 15000;
-                public const bool NoBias = false;
+                public const bool UseBias = true;
                 public const float Sigma = 1.0f;
                 public const float LambdaThetaprime = 0.01f;
                 public const float LambdaTheta = 0.01f;
@@ -298,7 +298,7 @@ namespace Microsoft.ML.Trainers
                         ComputeGradTheta(in features, gradTheta, numLeaf, gamma, theta, biasTheta, pathWt, localWt, w, biasW);
 
                         // Check if bias is used ot not
-                        int biasUpdateMult = _options.NoBias ? 0 : 1;
+                        int biasUpdateMult = _options.UseBias ? 1 : 0;
 
                         // Update W
                         for (int l = 0; l < numNodes; l++)
@@ -389,7 +389,7 @@ namespace Microsoft.ML.Trainers
                 thetaPrime[i] = thetaPrimeInit.Commit();
                 thetaPrime[i].CopyTo(ref tempThetaPrime[i]);
 
-                if (!_options.NoBias)
+                if (_options.UseBias)
                 {
                     float bW = 2 * Host.Rand.NextSingle() - 1;
                     biasW[i] = bW;
@@ -405,7 +405,7 @@ namespace Microsoft.ML.Trainers
                 theta[i] = thetaInit.Commit();
                 theta[i].CopyTo(ref tempTheta[i]);
 
-                if (!_options.NoBias)
+                if (_options.UseBias)
                 {
                     float bT = 2 * Host.Rand.NextSingle() - 1;
                     biasTheta[i] = bT;
