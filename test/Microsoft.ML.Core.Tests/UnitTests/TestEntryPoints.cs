@@ -783,6 +783,14 @@ namespace Microsoft.ML.RunTests
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("NegativeRecall"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("F1Score"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("AreaUnderPrecisionRecallCurve"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("AreaUnderRocCurveStdErr"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("AccuracyStdErr"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("PositivePrecisionStdErr"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("PositiveRecallStdErr"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("NegativePrecisionStdErr"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("NegativeRecallStdErr"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("F1ScoreStdErr"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("AreaUnderPrecisionRecallCurveStdErr"));
         }
 
         [Fact]
@@ -954,6 +962,12 @@ namespace Microsoft.ML.RunTests
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("LogLossReduction"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("TopKAccuracy"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("PerClassLogLoss"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("MacroAccuracyStdErr"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("MicroAccuracyStdErr"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("LogLossStdErr"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("LogLossReductionStdErr"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("TopKAccuracyStdErr"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("PerClassLogLossStdErr"));
         }
 
         [Fact]
@@ -1123,6 +1137,11 @@ namespace Microsoft.ML.RunTests
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("RootMeanSquaredError"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("LossFunction"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("RSquared"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("MeanAbsoluteErrorStdErr"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("MeanSquaredErrorStdErr"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("RootMeanSquaredErrorStdErr"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("LossFunctionStdErr"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("RSquaredStdErr"));
         }
 
         [Fact]
@@ -1296,6 +1315,8 @@ namespace Microsoft.ML.RunTests
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("FeatureName"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("DiscountedCumulativeGains"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("NormalizedDiscountedCumulativeGains"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("DiscountedCumulativeGainsStdErr"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("NormalizedDiscountedCumulativeGainsStdErr"));
         }
 
         [Fact]

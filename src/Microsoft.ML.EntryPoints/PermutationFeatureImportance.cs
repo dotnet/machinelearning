@@ -138,13 +138,21 @@ namespace Microsoft.ML.Transforms
                 {
                     FeatureName = slotNames[i],
                     AreaUnderRocCurve = pMetric.AreaUnderRocCurve.Mean,
+                    AreaUnderRocCurveStdErr = pMetric.AreaUnderRocCurve.StandardError,
                     Accuracy = pMetric.Accuracy.Mean,
+                    AccuracyStdErr = pMetric.Accuracy.StandardError,
                     PositivePrecision = pMetric.PositivePrecision.Mean,
+                    PositivePrecisionStdErr = pMetric.PositivePrecision.StandardError,
                     PositiveRecall = pMetric.PositiveRecall.Mean,
+                    PositiveRecallStdErr = pMetric.PositiveRecall.StandardError,
                     NegativePrecision = pMetric.NegativePrecision.Mean,
+                    NegativePrecisionStdErr = pMetric.NegativePrecision.StandardError,
                     NegativeRecall = pMetric.NegativeRecall.Mean,
+                    NegativeRecallStdErr = pMetric.NegativeRecall.StandardError,
                     F1Score = pMetric.F1Score.Mean,
-                    AreaUnderPrecisionRecallCurve = pMetric.AreaUnderPrecisionRecallCurve.Mean
+                    F1ScoreStdErr = pMetric.F1Score.StandardError,
+                    AreaUnderPrecisionRecallCurve = pMetric.AreaUnderPrecisionRecallCurve.Mean,
+                    AreaUnderPrecisionRecallCurveStdErr = pMetric.AreaUnderPrecisionRecallCurve.StandardError
                 });
             }
 
@@ -179,11 +187,17 @@ namespace Microsoft.ML.Transforms
                 {
                     FeatureName = slotNames[i],
                     MacroAccuracy = pMetric.MacroAccuracy.Mean,
+                    MacroAccuracyStdErr = pMetric.MacroAccuracy.StandardError,
                     MicroAccuracy = pMetric.MicroAccuracy.Mean,
+                    MicroAccuracyStdErr = pMetric.MicroAccuracy.StandardError,
                     LogLoss = pMetric.LogLoss.Mean,
+                    LogLossStdErr = pMetric.LogLoss.StandardError,
                     LogLossReduction = pMetric.LogLossReduction.Mean,
+                    LogLossReductionStdErr = pMetric.LogLossReduction.StandardError,
                     TopKAccuracy = pMetric.TopKAccuracy.Mean,
-                    PerClassLogLoss = pMetric.PerClassLogLoss.Select(x => x.Mean).ToArray()
+                    TopKAccuracyStdErr = pMetric.TopKAccuracy.StandardError,
+                    PerClassLogLoss = pMetric.PerClassLogLoss.Select(x => x.Mean).ToArray(),
+                    PerClassLogLossStdErr = pMetric.PerClassLogLoss.Select(x => x.StandardError).ToArray()
                 }); ;
             }
 
@@ -225,10 +239,15 @@ namespace Microsoft.ML.Transforms
                 {
                     FeatureName = slotNames[i],
                     MeanAbsoluteError = pMetric.MeanAbsoluteError.Mean,
+                    MeanAbsoluteErrorStdErr = pMetric.MeanAbsoluteError.StandardError,
                     MeanSquaredError = pMetric.MeanSquaredError.Mean,
+                    MeanSquaredErrorStdErr = pMetric.MeanSquaredError.StandardError,
                     RootMeanSquaredError = pMetric.RootMeanSquaredError.Mean,
+                    RootMeanSquaredErrorStdErr = pMetric.RootMeanSquaredError.StandardError,
                     LossFunction = pMetric.LossFunction.Mean,
-                    RSquared = pMetric.RSquared.Mean
+                    LossFunctionStdErr = pMetric.LossFunction.StandardError,
+                    RSquared = pMetric.RSquared.Mean,
+                    RSquaredStdErr = pMetric.RSquared.StandardError
                 });
             }
 
@@ -264,7 +283,9 @@ namespace Microsoft.ML.Transforms
                 {
                     FeatureName = slotNames[i],
                     DiscountedCumulativeGains = pMetric.DiscountedCumulativeGains.Select(x => x.Mean).ToArray(),
-                    NormalizedDiscountedCumulativeGains = pMetric.NormalizedDiscountedCumulativeGains.Select(x => x.Mean).ToArray()
+                    DiscountedCumulativeGainsStdErr = pMetric.DiscountedCumulativeGains.Select(x => x.StandardError).ToArray(),
+                    NormalizedDiscountedCumulativeGains = pMetric.NormalizedDiscountedCumulativeGains.Select(x => x.Mean).ToArray(),
+                    NormalizedDiscountedCumulativeGainsStdErr = pMetric.NormalizedDiscountedCumulativeGains.Select(x => x.StandardError).ToArray()
                 });
             }
 
@@ -289,19 +310,36 @@ namespace Microsoft.ML.Transforms
 
         public double AreaUnderRocCurve { get; set; }
 
+        public double AreaUnderRocCurveStdErr { get; set; }
+
         public double Accuracy { get; set; }
+
+        public double AccuracyStdErr { get; set; }
 
         public double PositivePrecision { get; set; }
 
+        public double PositivePrecisionStdErr { get; set; }
+
         public double PositiveRecall { get; set; }
+
+        public double PositiveRecallStdErr { get; set; }
 
         public double NegativePrecision { get; set; }
 
+        public double NegativePrecisionStdErr { get; set; }
+
         public double NegativeRecall { get; set; }
+
+        public double NegativeRecallStdErr { get; set; }
 
         public double F1Score { get; set; }
 
+        public double F1ScoreStdErr { get; set; }
+
         public double AreaUnderPrecisionRecallCurve { get; set; }
+
+        public double AreaUnderPrecisionRecallCurveStdErr { get; set; }
+
     }
 
     internal class MulticlassMetrics
@@ -310,15 +348,27 @@ namespace Microsoft.ML.Transforms
 
         public double MacroAccuracy { get; set; }
 
+        public double MacroAccuracyStdErr { get; set; }
+
         public double MicroAccuracy { get; set; }
+
+        public double MicroAccuracyStdErr { get; set; }
 
         public double LogLoss { get; set; }
 
+        public double LogLossStdErr { get; set; }
+
         public double LogLossReduction { get; set; }
+
+        public double LogLossReductionStdErr { get; set; }
 
         public double TopKAccuracy { get; set; }
 
+        public double TopKAccuracyStdErr { get; set; }
+
         public double[] PerClassLogLoss { get; set; }
+
+        public double[] PerClassLogLossStdErr { get; set; }
     }
 
     internal class RegressionMetrics
@@ -327,13 +377,23 @@ namespace Microsoft.ML.Transforms
 
         public double MeanAbsoluteError { get; set; }
 
+        public double MeanAbsoluteErrorStdErr { get; set; }
+
         public double MeanSquaredError { get; set; }
+
+        public double MeanSquaredErrorStdErr { get; set; }
 
         public double RootMeanSquaredError { get; set; }
 
+        public double RootMeanSquaredErrorStdErr { get; set; }
+
         public double LossFunction { get; set; }
 
+        public double LossFunctionStdErr { get; set; }
+
         public double RSquared { get; set; }
+
+        public double RSquaredStdErr { get; set; }
     }
 
     internal class RankingMetrics
@@ -342,6 +402,10 @@ namespace Microsoft.ML.Transforms
 
         public double[] DiscountedCumulativeGains { get; set; }
 
+        public double[] DiscountedCumulativeGainsStdErr { get; set; }
+
         public double[] NormalizedDiscountedCumulativeGains { get; set; }
+
+        public double[] NormalizedDiscountedCumulativeGainsStdErr { get; set; }
     }
 }
