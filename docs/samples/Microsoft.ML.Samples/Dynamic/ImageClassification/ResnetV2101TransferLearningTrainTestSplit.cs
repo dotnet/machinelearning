@@ -46,13 +46,9 @@ namespace Samples.Dynamic
                 IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
                     mlContext.Data.LoadFromEnumerable(images));
 
-                var estimator = mlContext.Transforms.Conversion
-                    .MapValueToKey("Label");
-                var estimatorWithKeyType = estimator.Append(
-                    mlContext.Transforms.Conversion.MapKeyToValue(
-                        outputColumnName: "LabelAsKey", inputColumnName: "Label"));
-
-                shuffledFullImagesDataset = estimatorWithKeyType.Fit(shuffledFullImagesDataset)
+                shuffledFullImagesDataset = mlContext.Transforms.Conversion
+                    .MapValueToKey("Label")
+                    .Fit(shuffledFullImagesDataset)
                     .Transform(shuffledFullImagesDataset);
 
                 // Split the data 90:10 into train and test sets, train and evaluate.
@@ -72,8 +68,8 @@ namespace Samples.Dynamic
                     batchSize: 10,
                     learningRate: 0.01f,
                     metricsCallback: (metrics) => Console.WriteLine(metrics),
-                    validationSet: testDataset);
-
+                    validationSet: testDataset)
+                    .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
                 Console.WriteLine("*** Training the image classification model with " +
                     "DNN Transfer Learning on top of the selected pre-trained " +
@@ -97,16 +93,11 @@ namespace Samples.Dynamic
                 DataViewSchema schema;
                 using (var file = File.OpenRead("model.zip"))
                     loadedModel = mlContext.Model.Load(file, out schema);
-                // the schema in line 99 and the shuffledFullImagesDataset.Schema in line 93 don't have
-                // the same annotations.
 
                 EvaluateModel(mlContext, testDataset, loadedModel);
 
-                VBuffer<ReadOnlyMemory<char>> keys = default;
-                loadedModel.GetOutputSchema(schema)["Label"].GetKeyValues(ref keys);
-
                 watch = System.Diagnostics.Stopwatch.StartNew();
-                TrySinglePrediction(fullImagesetFolderPath, mlContext, loadedModel, keys.DenseValues().ToArray(), shuffledFullImagesDataset.Schema);
+                TrySinglePrediction(fullImagesetFolderPath, mlContext, loadedModel);
 
                 watch.Stop();
                 elapsedMs = watch.ElapsedMilliseconds;
@@ -124,11 +115,11 @@ namespace Samples.Dynamic
         }
 
         private static void TrySinglePrediction(string imagesForPredictions,
-            MLContext mlContext, ITransformer trainedModel, ReadOnlyMemory<char>[] originalLabels, DataViewSchema schema)
+            MLContext mlContext, ITransformer trainedModel)
         {
             // Create prediction function to try one prediction
             var predictionEngine = mlContext.Model
-                .CreatePredictionEngine<ImageData, ImagePrediction>(trainedModel);
+                .CreatePredictionEngine<ImageData, ImagePrediction>(trainedModel, true);
 
             IEnumerable<ImageData> testImages = LoadImagesFromDirectory(
                 imagesForPredictions, false);
@@ -139,13 +130,11 @@ namespace Samples.Dynamic
             };
 
             var prediction = predictionEngine.Predict(imageToPredict);
-            var predictedLabelsKeyType = ((DataViewSchema.Column)schema.GetColumnOrNull("Label")).Annotations;
-            var index = prediction.PredictedLabel;
 
             Console.WriteLine($"ImageFile : " +
                 $"[{Path.GetFileName(imageToPredict.ImagePath)}], " +
                 $"Scores : [{string.Join(",", prediction.Score)}], " +
-                $"Predicted Label : {originalLabels[index]}");
+                $"Predicted Label : {prediction.PredictedLabel}");
         }
 
 
@@ -305,7 +294,7 @@ namespace Samples.Dynamic
             public float[] Score;
 
             [ColumnName("PredictedLabel")]
-            public UInt32 PredictedLabel;
+            public string PredictedLabel;
         }
     }
 }

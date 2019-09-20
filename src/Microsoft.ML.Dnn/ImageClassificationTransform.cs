@@ -878,7 +878,7 @@ namespace Microsoft.ML.Transforms
             {
                 var info = new DataViewSchema.DetachedColumn[_parent._outputs.Length];
                 info[0] = new DataViewSchema.DetachedColumn(_parent._outputs[0], new VectorDataViewType(NumberDataViewType.Single, _parent._classCount), null);
-                info[1] = new DataViewSchema.DetachedColumn(_parent._outputs[1], new KeyDataViewType(typeof(uint), _parent._classCount), ((DataViewSchema.Column)InputSchema.GetColumnOrNull("Label")).Annotations);
+                info[1] = new DataViewSchema.DetachedColumn(_parent._outputs[1], new KeyDataViewType(typeof(uint), _parent._classCount), ((DataViewSchema.Column)InputSchema.GetColumnOrNull(_parent._labelColumnName)).Annotations);
                 return info;
             }
         }
@@ -1196,12 +1196,16 @@ namespace Microsoft.ML.Transforms
                 if (col.ItemType != expectedType)
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());
             }
-            for (var i = 0; i < _options.OutputColumns.Length; i++)
-            {
-                resultDic[_options.OutputColumns[i]] = new SchemaShape.Column(_options.OutputColumns[i],
-                    _outputTypes[i].IsKnownSizeVector() ? SchemaShape.Column.VectorKind.Vector
-                    : SchemaShape.Column.VectorKind.VariableVector, _outputTypes[i].GetItemType(), false);
-            }
+
+            resultDic[_options.OutputColumns[0]] = new SchemaShape.Column(_options.OutputColumns[0],
+                    SchemaShape.Column.VectorKind.Vector, _outputTypes[0].GetItemType(), false);
+
+            var metadata = new List<SchemaShape.Column>();
+            metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
+
+            resultDic[_options.OutputColumns[1]] = new SchemaShape.Column(_options.OutputColumns[1],
+                   SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true, new SchemaShape(metadata.ToArray()));
+
             return new SchemaShape(resultDic.Values);
         }
 
