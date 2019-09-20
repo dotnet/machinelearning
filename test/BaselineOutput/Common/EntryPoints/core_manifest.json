@@ -21712,21 +21712,10 @@
     },
     {
       "Name": "Transforms.PermutationFeatureImportance",
-      "Desc": "",
-      "FriendlyName": "BinaryPFI",
-      "ShortName": "BinaryPFI",
+      "Desc": "Permutation Feature Importance (PFI)",
+      "FriendlyName": "PFI",
+      "ShortName": "PFI",
       "Inputs": [
-        {
-          "Name": "ModelPath",
-          "Type": "FileHandle",
-          "Desc": "",
-          "Aliases": [
-            "path"
-          ],
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
         {
           "Name": "Data",
           "Type": "DataView",
@@ -21736,50 +21725,73 @@
           "IsNullable": false
         },
         {
+          "Name": "ModelPath",
+          "Type": "FileHandle",
+          "Desc": "The path to the model file",
+          "Aliases": [
+            "path"
+          ],
+          "Required": true,
+          "SortOrder": 150.0,
+          "IsNullable": false
+        },
+        {
           "Name": "LabelColumnName",
           "Type": "String",
-          "Desc": "",
+          "Desc": "Label column name",
           "Aliases": [
             "label"
           ],
           "Required": false,
-          "SortOrder": 2.0,
+          "SortOrder": 150.0,
           "IsNullable": false,
           "Default": "Label"
         },
         {
+          "Name": "RowGroupColumnName",
+          "Type": "String",
+          "Desc": "Group ID column",
+          "Aliases": [
+            "groupId"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "GroupId"
+        },
+        {
           "Name": "UseFeatureWeightFilter",
           "Type": "Bool",
-          "Desc": "",
+          "Desc": "Use feature weights to pre-filter features",
           "Aliases": [
             "usefw"
           ],
           "Required": false,
-          "SortOrder": 3.0,
+          "SortOrder": 150.0,
           "IsNullable": false,
           "Default": false
         },
         {
           "Name": "NumberOfExamplesToUse",
           "Type": "Int",
-          "Desc": "",
+          "Desc": "Limit the number of examples to evaluate on",
           "Aliases": [
             "numexamples"
           ],
           "Required": false,
-          "SortOrder": 4.0,
+          "SortOrder": 150.0,
           "IsNullable": true,
           "Default": null
         },
         {
           "Name": "PermutationCount",
           "Type": "Int",
-          "Desc": "",
+          "Desc": "The number of permutations to perform",
           "Aliases": [
             "permutations"
           ],
           "Required": false,
-          "SortOrder": 5.0,
+          "SortOrder": 150.0,
           "IsNullable": false,
           "Default": 1
         }
