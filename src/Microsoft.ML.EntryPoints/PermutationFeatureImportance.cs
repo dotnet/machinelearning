@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
@@ -27,6 +31,7 @@ namespace Microsoft.ML.Transforms
             var model = mlContext.Model.Load(input.ModelPath.OpenReadStream(), out DataViewSchema schema);
             var chain = model as TransformerChain<ITransformer>;
             var predictor = chain.LastTransformer as ISingleFeaturePredictionTransformer<object>;
+            Contracts.Assert(!(predictor is null), "Model does not have a predictor or the predictor is not supported.");
 
             var transformedData = model.Transform(input.Data);
 
