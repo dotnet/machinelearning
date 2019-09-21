@@ -31,7 +31,9 @@ namespace Microsoft.ML.Transforms
             var model = mlContext.Model.Load(input.ModelPath.OpenReadStream(), out DataViewSchema schema);
             var chain = model as TransformerChain<ITransformer>;
             var predictor = chain.LastTransformer as ISingleFeaturePredictionTransformer<object>;
-            Contracts.Assert(!(predictor is null), "Model does not have a predictor or the predictor is not supported.");
+            Contracts.Assert(!(predictor is null), "The last transformer in the model is not a predictor, or Permutation " +
+                "Feature Importance (PFI) is not supported for the predictor. The last transformer in the model must be a " +
+                "predictor, as PFI is calculated for a predictor model.");
 
             var transformedData = model.Transform(input.Data);
 
@@ -70,24 +72,6 @@ namespace Microsoft.ML.Transforms
 
     internal static class PermutationFeatureImportanceUtils
     {
-        private static string[] GetSlotNames(IDataView data)
-        {
-            VBuffer<ReadOnlyMemory<char>> slots = default;
-            data.Schema["Features"].GetSlotNames(ref slots);
-
-            var column = data.GetColumn<VBuffer<float>>(
-                data.Schema["Features"]);
-
-            List<string> slotNames = new List<string>();
-
-            foreach (var item in column.First<VBuffer<float>>().Items(all: true))
-            {
-                slotNames.Add(slots.GetValues()[item.Key].ToString());
-            };
-
-            return slotNames.ToArray();
-        }
-
         internal static IDataView GetMetrics(
             MLContext mlContext,
             ISingleFeaturePredictionTransformer<object> predictor,
@@ -105,7 +89,7 @@ namespace Microsoft.ML.Transforms
                 result = GetRankingMetrics(mlContext, predictor, data, input);
             else
                 throw Contracts.Except(
-                    "Unsupported predictor type. Predictor must be binary classifier," +
+                    "Unsupported predictor type. Predictor must be binary classifier, " +
                     "multiclass classifier, regressor, or ranker.");
 
             return result;
@@ -130,11 +114,11 @@ namespace Microsoft.ML.Transforms
             Contracts.Assert(slotNames.Length == permutationMetrics.Length,
                 "Mismatch between number of feature slots and number of features permuted.");
 
-            IEnumerable<BinaryMetrics> metrics = Enumerable.Empty<BinaryMetrics>();
+            List<BinaryMetrics> metrics = new List<BinaryMetrics>();
             for (int i = 0; i < permutationMetrics.Length; i++)
             {
                 var pMetric = permutationMetrics[i];
-                metrics = metrics.Append(new BinaryMetrics
+                metrics.Add(new BinaryMetrics
                 {
                     FeatureName = slotNames[i],
                     AreaUnderRocCurve = pMetric.AreaUnderRocCurve.Mean,
@@ -179,11 +163,11 @@ namespace Microsoft.ML.Transforms
             Contracts.Assert(slotNames.Length == permutationMetrics.Length,
                 "Mismatch between number of feature slots and number of features permuted.");
 
-            IEnumerable<MulticlassMetrics> metrics = Enumerable.Empty<MulticlassMetrics>();
+            List<MulticlassMetrics> metrics = new List<MulticlassMetrics>();
             for (int i = 0; i < permutationMetrics.Length; i++)
             {
                 var pMetric = permutationMetrics[i];
-                metrics = metrics.Append(new MulticlassMetrics
+                metrics.Add(new MulticlassMetrics
                 {
                     FeatureName = slotNames[i],
                     MacroAccuracy = pMetric.MacroAccuracy.Mean,
@@ -203,10 +187,9 @@ namespace Microsoft.ML.Transforms
 
             // Convert unknown size vectors to known size.
             var metric = metrics.First();
-            int perClassLogLossDimension = metric.PerClassLogLoss.Length;
             SchemaDefinition schema = SchemaDefinition.Create(typeof(MulticlassMetrics));
-            var perClassLogLossType = ((VectorDataViewType)schema[nameof(metric.PerClassLogLoss)].ColumnType).ItemType;
-            schema[nameof(metric.PerClassLogLoss)].ColumnType = new VectorDataViewType(perClassLogLossType, perClassLogLossDimension);
+            ConvertVectorToKnownSize(nameof(metric.PerClassLogLoss), metric.PerClassLogLoss.Length, ref schema);
+            ConvertVectorToKnownSize(nameof(metric.PerClassLogLossStdErr), metric.PerClassLogLossStdErr.Length, ref schema);
 
             var result = mlContext.Data.LoadFromEnumerable(metrics, schema);
             return result;
@@ -231,11 +214,11 @@ namespace Microsoft.ML.Transforms
             Contracts.Assert(slotNames.Length == permutationMetrics.Length,
                 "Mismatch between number of feature slots and number of features permuted.");
 
-            IEnumerable<RegressionMetrics> metrics = Enumerable.Empty<RegressionMetrics>();
+            List<RegressionMetrics> metrics = new List<RegressionMetrics>();
             for (int i = 0; i < permutationMetrics.Length; i++)
             {
                 var pMetric = permutationMetrics[i];
-                metrics = metrics.Append(new RegressionMetrics
+                metrics.Add(new RegressionMetrics
                 {
                     FeatureName = slotNames[i],
                     MeanAbsoluteError = pMetric.MeanAbsoluteError.Mean,
@@ -275,11 +258,11 @@ namespace Microsoft.ML.Transforms
             Contracts.Assert(slotNames.Length == permutationMetrics.Length,
                 "Mismatch between number of feature slots and number of features permuted.");
 
-            IEnumerable<RankingMetrics> metrics = Enumerable.Empty<RankingMetrics>();
+            List<RankingMetrics> metrics = new List<RankingMetrics>();
             for (int i = 0; i < permutationMetrics.Length; i++)
             {
                 var pMetric = permutationMetrics[i];
-                metrics = metrics.Append(new RankingMetrics
+                metrics.Add(new RankingMetrics
                 {
                     FeatureName = slotNames[i],
                     DiscountedCumulativeGains = pMetric.DiscountedCumulativeGains.Select(x => x.Mean).ToArray(),
@@ -291,121 +274,142 @@ namespace Microsoft.ML.Transforms
 
             // Convert unknown size vectors to known size.
             var metric = metrics.First();
-            int dcgDimension = metric.DiscountedCumulativeGains.Length;
-            int ndcgDimension = metric.NormalizedDiscountedCumulativeGains.Length;
             SchemaDefinition schema = SchemaDefinition.Create(typeof(RankingMetrics));
-            var dcgType = ((VectorDataViewType)schema[nameof(metric.DiscountedCumulativeGains)].ColumnType).ItemType;
-            var ndcgType = ((VectorDataViewType)schema[nameof(metric.NormalizedDiscountedCumulativeGains)].ColumnType).ItemType;
-            schema[nameof(metric.DiscountedCumulativeGains)].ColumnType = new VectorDataViewType(dcgType, dcgDimension);
-            schema[nameof(metric.NormalizedDiscountedCumulativeGains)].ColumnType = new VectorDataViewType(ndcgType, ndcgDimension);
+            ConvertVectorToKnownSize(nameof(metric.DiscountedCumulativeGains), metric.DiscountedCumulativeGains.Length, ref schema);
+            ConvertVectorToKnownSize(nameof(metric.NormalizedDiscountedCumulativeGains), metric.NormalizedDiscountedCumulativeGains.Length, ref schema);
+            ConvertVectorToKnownSize(nameof(metric.DiscountedCumulativeGainsStdErr), metric.DiscountedCumulativeGainsStdErr.Length, ref schema);
+            ConvertVectorToKnownSize(nameof(metric.NormalizedDiscountedCumulativeGainsStdErr), metric.NormalizedDiscountedCumulativeGainsStdErr.Length, ref schema);
 
             var result = mlContext.Data.LoadFromEnumerable(metrics, schema);
             return result;
         }
-    }
 
-    internal class BinaryMetrics
-    {
-        public string FeatureName { get; set; }
+        private static string[] GetSlotNames(IDataView data)
+        {
+            VBuffer<ReadOnlyMemory<char>> slots = default;
+            data.Schema["Features"].GetSlotNames(ref slots);
 
-        public double AreaUnderRocCurve { get; set; }
+            var column = data.GetColumn<VBuffer<float>>(
+                data.Schema["Features"]);
 
-        public double AreaUnderRocCurveStdErr { get; set; }
+            List<string> slotNames = new List<string>();
 
-        public double Accuracy { get; set; }
+            foreach (var item in column.First<VBuffer<float>>().Items(all: true))
+            {
+                slotNames.Add(slots.GetValues()[item.Key].ToString());
+            };
 
-        public double AccuracyStdErr { get; set; }
+            return slotNames.ToArray();
+        }
 
-        public double PositivePrecision { get; set; }
+        private static void ConvertVectorToKnownSize(string metricName, int size, ref SchemaDefinition schema)
+        {
+            var type = ((VectorDataViewType)schema[metricName].ColumnType).ItemType;
+            schema[metricName].ColumnType = new VectorDataViewType(type, size);
+        }
 
-        public double PositivePrecisionStdErr { get; set; }
+        private class BinaryMetrics
+        {
+            public string FeatureName { get; set; }
 
-        public double PositiveRecall { get; set; }
+            public double AreaUnderRocCurve { get; set; }
 
-        public double PositiveRecallStdErr { get; set; }
+            public double AreaUnderRocCurveStdErr { get; set; }
 
-        public double NegativePrecision { get; set; }
+            public double Accuracy { get; set; }
 
-        public double NegativePrecisionStdErr { get; set; }
+            public double AccuracyStdErr { get; set; }
 
-        public double NegativeRecall { get; set; }
+            public double PositivePrecision { get; set; }
 
-        public double NegativeRecallStdErr { get; set; }
+            public double PositivePrecisionStdErr { get; set; }
 
-        public double F1Score { get; set; }
+            public double PositiveRecall { get; set; }
 
-        public double F1ScoreStdErr { get; set; }
+            public double PositiveRecallStdErr { get; set; }
 
-        public double AreaUnderPrecisionRecallCurve { get; set; }
+            public double NegativePrecision { get; set; }
 
-        public double AreaUnderPrecisionRecallCurveStdErr { get; set; }
+            public double NegativePrecisionStdErr { get; set; }
 
-    }
+            public double NegativeRecall { get; set; }
 
-    internal class MulticlassMetrics
-    {
-        public string FeatureName { get; set; }
+            public double NegativeRecallStdErr { get; set; }
 
-        public double MacroAccuracy { get; set; }
+            public double F1Score { get; set; }
 
-        public double MacroAccuracyStdErr { get; set; }
+            public double F1ScoreStdErr { get; set; }
 
-        public double MicroAccuracy { get; set; }
+            public double AreaUnderPrecisionRecallCurve { get; set; }
 
-        public double MicroAccuracyStdErr { get; set; }
+            public double AreaUnderPrecisionRecallCurveStdErr { get; set; }
+        }
 
-        public double LogLoss { get; set; }
+        private class MulticlassMetrics
+        {
+            public string FeatureName { get; set; }
 
-        public double LogLossStdErr { get; set; }
+            public double MacroAccuracy { get; set; }
 
-        public double LogLossReduction { get; set; }
+            public double MacroAccuracyStdErr { get; set; }
 
-        public double LogLossReductionStdErr { get; set; }
+            public double MicroAccuracy { get; set; }
 
-        public double TopKAccuracy { get; set; }
+            public double MicroAccuracyStdErr { get; set; }
 
-        public double TopKAccuracyStdErr { get; set; }
+            public double LogLoss { get; set; }
 
-        public double[] PerClassLogLoss { get; set; }
+            public double LogLossStdErr { get; set; }
 
-        public double[] PerClassLogLossStdErr { get; set; }
-    }
+            public double LogLossReduction { get; set; }
 
-    internal class RegressionMetrics
-    {
-        public string FeatureName { get; set; }
+            public double LogLossReductionStdErr { get; set; }
 
-        public double MeanAbsoluteError { get; set; }
+            public double TopKAccuracy { get; set; }
 
-        public double MeanAbsoluteErrorStdErr { get; set; }
+            public double TopKAccuracyStdErr { get; set; }
 
-        public double MeanSquaredError { get; set; }
+            public double[] PerClassLogLoss { get; set; }
 
-        public double MeanSquaredErrorStdErr { get; set; }
+            public double[] PerClassLogLossStdErr { get; set; }
+        }
 
-        public double RootMeanSquaredError { get; set; }
+        private class RegressionMetrics
+        {
+            public string FeatureName { get; set; }
 
-        public double RootMeanSquaredErrorStdErr { get; set; }
+            public double MeanAbsoluteError { get; set; }
 
-        public double LossFunction { get; set; }
+            public double MeanAbsoluteErrorStdErr { get; set; }
 
-        public double LossFunctionStdErr { get; set; }
+            public double MeanSquaredError { get; set; }
 
-        public double RSquared { get; set; }
+            public double MeanSquaredErrorStdErr { get; set; }
 
-        public double RSquaredStdErr { get; set; }
-    }
+            public double RootMeanSquaredError { get; set; }
 
-    internal class RankingMetrics
-    {
-        public string FeatureName { get; set; }
+            public double RootMeanSquaredErrorStdErr { get; set; }
 
-        public double[] DiscountedCumulativeGains { get; set; }
+            public double LossFunction { get; set; }
 
-        public double[] DiscountedCumulativeGainsStdErr { get; set; }
+            public double LossFunctionStdErr { get; set; }
 
-        public double[] NormalizedDiscountedCumulativeGains { get; set; }
+            public double RSquared { get; set; }
 
-        public double[] NormalizedDiscountedCumulativeGainsStdErr { get; set; }
+            public double RSquaredStdErr { get; set; }
+        }
+
+        private class RankingMetrics
+        {
+            public string FeatureName { get; set; }
+
+            public double[] DiscountedCumulativeGains { get; set; }
+
+            public double[] DiscountedCumulativeGainsStdErr { get; set; }
+
+            public double[] NormalizedDiscountedCumulativeGains { get; set; }
+
+            public double[] NormalizedDiscountedCumulativeGainsStdErr { get; set; }
+        }
     }
 }
