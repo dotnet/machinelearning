@@ -40,5 +40,10 @@ namespace Microsoft.ML.AutoML
         {
             IsMaximizing = !_minimizingMulticlassMetrics.Contains(multiMetric);
         }
+
+        public OptimizingMetricInfo(AnomalyDetectionMetric anomMetric)
+        {
+            IsMaximizing = true;
+        }
     }
 }

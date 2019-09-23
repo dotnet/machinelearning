@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.ML.AutoML
 {
-    internal class Pipeline
+    public class Pipeline
     {
         public PipelineNode[] Nodes { get; set; }
         public bool CacheBeforeTrainer { get; set; }
@@ -29,7 +29,7 @@ namespace Microsoft.ML.AutoML
         }
     }
 
-    internal class PipelineNode
+    public class PipelineNode
     {
         public string Name { get; set; }
         public PipelineNodeType NodeType { get; set; }
@@ -66,13 +66,13 @@ namespace Microsoft.ML.AutoML
         }
     }
 
-    internal enum PipelineNodeType
+    public enum PipelineNodeType
     {
         Transform,
         Trainer
     }
 
-    internal class CustomProperty
+    public class CustomProperty
     {
         public string Name { get; set; }
         public IDictionary<string, object> Properties { get; set; }
@@ -88,7 +88,7 @@ namespace Microsoft.ML.AutoML
         }
     }
 
-    internal class PipelineScore
+    public class PipelineScore
     {
         public readonly double Score;
 

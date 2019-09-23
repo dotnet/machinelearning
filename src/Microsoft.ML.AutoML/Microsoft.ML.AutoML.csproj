@@ -18,6 +18,7 @@
 
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Version>0.15.1-preview-28109-3</Version>
   </PropertyGroup>
 
   <!-- here we place this assembly into CLI package dir so it gets included in CLI nuget -->

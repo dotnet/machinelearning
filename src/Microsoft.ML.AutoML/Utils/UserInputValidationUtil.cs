@@ -264,6 +264,8 @@ namespace Microsoft.ML.AutoML
                     return null;
                 case TaskKind.Regression:
                     return new DataViewType[] { NumberDataViewType.Single };
+                case TaskKind.Anomaly:
+                    return null;
                 default:
                     throw new NotSupportedException($"Unsupported task type: {task}");
             }

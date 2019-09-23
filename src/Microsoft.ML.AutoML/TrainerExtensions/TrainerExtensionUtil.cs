@@ -41,7 +41,8 @@ namespace Microsoft.ML.AutoML
         SgdCalibratedBinary,
         SgdCalibratedOva,
         SymbolicSgdLogisticRegressionBinary,
-        SymbolicSgdLogisticRegressionOva
+        SymbolicSgdLogisticRegressionOva,
+        RandomizedPca
     }
 
     internal static class TrainerExtensionUtil
@@ -363,6 +364,17 @@ namespace Microsoft.ML.AutoML
             throw new NotSupportedException($"{regressionTrainer} not supported");
         }
 
+        public static TrainerName GetTrainerName(AnomalyDetectionTrainer anomalyTrainer)
+        {
+            switch (anomalyTrainer)
+            {
+                case AnomalyDetectionTrainer.RandomizedPca:
+                    return TrainerName.RandomizedPca;
+            }
+
+            throw new NotSupportedException($"{anomalyTrainer} not supported");
+        }
+
         public static IEnumerable<TrainerName> GetTrainerNames(IEnumerable<BinaryClassificationTrainer> binaryTrainers)
         {
             return binaryTrainers?.Select(t => GetTrainerName(t));
@@ -376,6 +388,11 @@ namespace Microsoft.ML.AutoML
         public static IEnumerable<TrainerName> GetTrainerNames(IEnumerable<RegressionTrainer> regressionTrainers)
         {
             return regressionTrainers?.Select(t => GetTrainerName(t));
+        }
+
+        public static IEnumerable<TrainerName> GetTrainerNames(IEnumerable<AnomalyDetectionTrainer> anomalyTrainers)
+        {
+            return anomalyTrainers?.Select(t => GetTrainerName(t));
         }
     }
 }

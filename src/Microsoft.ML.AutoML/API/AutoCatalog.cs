@@ -123,6 +123,11 @@ namespace Microsoft.ML.AutoML
             return new MulticlassClassificationExperiment(_context, experimentSettings);
         }
 
+        public AnomalyDetectionExperiment CreateAnomalyDetectionExperiment()
+        {
+            return new AnomalyDetectionExperiment(_context, new AnomalyExperimentSettings());
+        }
+
         /// <summary>
         /// Infers information about the columns of a dataset in a file located at <paramref name="path"/>.
         /// </summary>
