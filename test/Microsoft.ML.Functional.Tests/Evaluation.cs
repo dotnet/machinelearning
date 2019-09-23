@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Trainers;
@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Functional.Tests
 {
-    public class Evaluation : BaseTestClass
+    public class Evaluation : BaseTestBaseline
     {
         public Evaluation(ITestOutputHelper output): base(output)
         {
@@ -219,23 +219,27 @@ namespace Microsoft.ML.Functional.Tests
                 Common.AssertMetrics(metrics);
             }
 
-
         }
 
         [Fact]
         public void EvaluateRankingWithMaml()
         {
             string _mslrWeb10k_Train = GetDataPath(TestDatasets.MSLRWeb.trainFilename);
-
+            string filename = "CommandTrainRanking-summary2.txt";
+            string filepath = GetOutputPath(filename);
+            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Command");
             string cmd = @"CV tr=LightGBMRanking" +
                 " eval=RankingEvaluator{t=10}" +
                 " k=2" +
                 " loader=TextLoader{col=Label:R4:0 col=GroupId:TX:1 col=Features:R4:2-138 header=+}" +
                 " data=" + _mslrWeb10k_Train +
                 " xf = HashTransform{col=GroupId}" +
-                " xf = NAHandleTransform{col=Features}";
+                " xf = NAHandleTransform{col=Features}" +
+                " summaryFilename=" + filepath;
 
             Assert.Equal(0, Maml.Main(new[] { cmd }));
+
+            CheckEquality(subDir,filename);
         }
 
         /// <summary>
