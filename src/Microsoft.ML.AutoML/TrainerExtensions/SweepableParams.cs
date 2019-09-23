@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.AutoML
 {
@@ -115,6 +117,16 @@ namespace Microsoft.ML.AutoML
             };
         }
 
+        public static IEnumerable<SweepableParam> BuildMatrixFactorizationParmas()
+        {
+            return new SweepableParam[]
+            {
+                new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.NumberOfIterations), new object[] { 10, 20, 50, 100, 150, 200 }),
+                new SweepableFloatParam(nameof(MatrixFactorizationTrainer.Options.LearningRate), 0.025f, 0.4f, isLogScale: true),
+                new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.ApproximationRank), new object[] { 10, 20, 50, 100, 150, 200 }),
+            };
+        }
+        
         public static IEnumerable<SweepableParam> BuildLinearSvmParams()
         {
             return new SweepableParam[] {

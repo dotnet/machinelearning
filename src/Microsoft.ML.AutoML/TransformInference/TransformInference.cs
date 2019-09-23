@@ -162,7 +162,7 @@ namespace Microsoft.ML.AutoML
 
                 public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns, TaskKind task)
                 {
-                    if (task != TaskKind.MulticlassClassification)
+                    if (task != TaskKind.MulticlassClassification || task != TaskKind.Recommendation)
                     {
                         yield break;
                     }
