@@ -338,7 +338,13 @@ namespace Microsoft.ML.Transforms
 
             ImageClassificationMetrics metrics = new ImageClassificationMetrics();
             metrics.Train = new TrainMetrics();
-            for (int epoch = 0; epoch < epochs; epoch += 1)
+            //Early stopping variables
+            bool earlyStop = false;
+            int wait = 0;
+            var history = new TrainMetrics();
+            history.Accuracy = 0;
+
+            for (int epoch = 0; epoch < epochs & !earlyStop; epoch += 1)
             {
                 metrics.Train.Accuracy = 0;
                 metrics.Train.CrossEntropy = 0;
@@ -443,6 +449,24 @@ namespace Microsoft.ML.Transforms
                         metrics.Train.Accuracy /= metrics.Train.BatchProcessedCount;
                         metrics.Train.DatasetUsed = ImageClassificationMetrics.Dataset.Validation;
                         statisticsCallback(metrics);
+                    }
+                }
+                // early stopping check
+                if (options.EnableEarlyStopping)
+                {
+                    if (metrics.Train.Accuracy - options.MinDelta > history.Accuracy)
+                    {
+                        history.Accuracy = metrics.Train.Accuracy;
+                        wait = 0;
+                    }
+                    else
+                    {
+                        wait += 1;
+                        if (wait >= options.Patience)
+                        {
+                            Console.WriteLine("*** Early Stopping at epoch " + epoch.ToString());
+                            earlyStop = true;
+                        }
                     }
                 }
             }
@@ -1064,6 +1088,24 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate to use during optimization.", SortOrder = 12)]
             public float LearningRate = 0.01f;
+
+            /// <summary>
+            /// Whether early stopping technique should be used when accuracy stops improving.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether early stopping technique should be used when accuracy stops improving.", SortOrder = 15)]
+            public bool EnableEarlyStopping = true;
+
+            /// <summary>
+            /// Minimum change in accuracy to qualify as improvement.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Minimum change in accuracy to qualify as improvement.", SortOrder = 15)]
+            public float MinDelta = 0.0f;
+
+            /// <summary>
+            /// Number of epochs to wait after no improvement is observed before early stopping.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of epochs to wait after no improvement is observed before early stopping.", SortOrder = 15)]
+            public int Patience = 20;
 
             /// <summary>
             /// Specifies the model architecture to be used in the case of image classification training using transfer learning.

@@ -89,6 +89,9 @@ namespace Microsoft.ML
         /// <param name="epoch">Number of training iterations. Each iteration/epoch refers to one pass over the dataset.</param>
         /// <param name="batchSize">The batch size for training.</param>
         /// <param name="learningRate">The learning rate for training.</param>
+        /// <param name="enableEarlyStopping">Whether early stopping technique should be used when accuracy stops improving.</param>
+        /// <param name="earlyStoppingminDelta">Minimum change in accuracy to qualify as improvement.</param>
+        /// <param name="earlyStoppingPatience">Number of epochs to wait after no improvement is observed before early stopping.</param>
         /// <param name="metricsCallback">Callback for reporting model statistics during training phase.</param>
         /// <param name="statisticFrequency">Indicates the frequency of epochs at which to report model statistics during training phase.</param>
         /// <param name="framework">Indicates the choice of DNN training framework. Currently only tensorflow is supported.</param>
@@ -113,6 +116,9 @@ namespace Microsoft.ML
             int epoch = 100,
             int batchSize = 10,
             float learningRate = 0.01f,
+            bool enableEarlyStopping = true,
+            float earlyStoppingminDelta = 0.01f,
+            int earlyStoppingPatience = 20,
             ImageClassificationMetricsCallback metricsCallback = null,
             int statisticFrequency = 1,
             DnnFramework framework = DnnFramework.Tensorflow,
@@ -136,6 +142,9 @@ namespace Microsoft.ML
                 Epoch = epoch,
                 LearningRate = learningRate,
                 BatchSize = batchSize,
+                EnableEarlyStopping = enableEarlyStopping,
+                MinDelta = earlyStoppingminDelta,
+                Patience = earlyStoppingPatience,
                 ScoreColumnName = scoreColumnName,
                 PredictedLabelColumnName = predictedLabelColumnName,
                 FinalModelPrefix = finalModelPrefix,

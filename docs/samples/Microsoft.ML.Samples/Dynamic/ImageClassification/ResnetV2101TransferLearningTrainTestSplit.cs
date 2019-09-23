@@ -67,6 +67,7 @@ namespace Samples.Dynamic
                     epoch: 50,
                     batchSize: 10,
                     learningRate: 0.01f,
+                    enableEarlyStopping: true,
                     metricsCallback: (metrics) => Console.WriteLine(metrics),
                     validationSet: testDataset);
 
