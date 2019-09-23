@@ -17,7 +17,7 @@ namespace Microsoft.ML.AutoML
         /// <summary>
         /// save some intermediate value
         /// </summary>
-        public static Dictionary<string, object> ValuePairs { get; set; };
+        public static Dictionary<string, object> ValuePairs { get; set; }
 
         internal AutoCatalog(MLContext context)
         {
@@ -127,6 +127,11 @@ namespace Microsoft.ML.AutoML
         public MulticlassClassificationExperiment CreateMulticlassClassificationExperiment(MulticlassExperimentSettings experimentSettings)
         {
             return new MulticlassClassificationExperiment(_context, experimentSettings);
+        }
+
+        public RecommendationExperiment CreateRecommendationExperiment(RecommendationExperimentSettings experimentSettings)
+        {
+            return new RecommendationExperiment(_context, experimentSettings);
         }
 
         /// <summary>

@@ -126,7 +126,6 @@ namespace Microsoft.ML.AutoML
                 new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.ApproximationRank), new object[] { 10, 20, 50, 100, 150, 200 }),
             };
         }
-        
         public static IEnumerable<SweepableParam> BuildLinearSvmParams()
         {
             return new SweepableParam[] {
