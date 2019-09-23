@@ -26,9 +26,8 @@ namespace Microsoft.ML.Transforms
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            var mlContext = new MLContext();
-
-            var model = mlContext.Model.Load(input.ModelPath.OpenReadStream(), out DataViewSchema schema);
+            var modelOps = new ModelOperationsCatalog(env);
+            var model = modelOps.Load(input.ModelPath.OpenReadStream(), out DataViewSchema schema);
             var chain = model as TransformerChain<ITransformer>;
             var predictor = chain.LastTransformer as ISingleFeaturePredictionTransformer<object>;
             Contracts.Assert(!(predictor is null), "The last transformer in the model is not a predictor, or Permutation " +
@@ -36,9 +35,7 @@ namespace Microsoft.ML.Transforms
                 "predictor, as PFI is calculated for a predictor model.");
 
             var transformedData = model.Transform(input.Data);
-
-            IDataView result = PermutationFeatureImportanceUtils.GetMetrics(mlContext, predictor, transformedData, input);
-
+            IDataView result = PermutationFeatureImportanceUtils.GetMetrics(env, predictor, transformedData, input);
             return new PermutationFeatureImportanceOutput { Metrics = result };
         }
     }
@@ -73,20 +70,20 @@ namespace Microsoft.ML.Transforms
     internal static class PermutationFeatureImportanceUtils
     {
         internal static IDataView GetMetrics(
-            MLContext mlContext,
+            IHostEnvironment env,
             ISingleFeaturePredictionTransformer<object> predictor,
             IDataView data,
             PermutationFeatureImportanceArguments input)
         {
             IDataView result;
             if (predictor is BinaryPredictionTransformer<IPredictorProducing<float>>)
-                result = GetBinaryMetrics(mlContext, predictor, data, input);
+                result = GetBinaryMetrics(env, predictor, data, input);
             else if (predictor is MulticlassPredictionTransformer<IPredictorProducing<VBuffer<float>>>)
-                result = GetMulticlassMetrics(mlContext, predictor, data, input);
+                result = GetMulticlassMetrics(env, predictor, data, input);
             else if (predictor is RegressionPredictionTransformer<IPredictorProducing<float>>)
-                result = GetRegressionMetrics(mlContext, predictor, data, input);
+                result = GetRegressionMetrics(env, predictor, data, input);
             else if (predictor is RankingPredictionTransformer<IPredictorProducing<float>>)
-                result = GetRankingMetrics(mlContext, predictor, data, input);
+                result = GetRankingMetrics(env, predictor, data, input);
             else
                 throw Contracts.Except(
                     "Unsupported predictor type. Predictor must be binary classifier, " +
@@ -96,14 +93,13 @@ namespace Microsoft.ML.Transforms
         }
 
         private static IDataView GetBinaryMetrics(
-            MLContext mlContext,
+            IHostEnvironment env,
             ISingleFeaturePredictionTransformer<object> predictor,
             IDataView data,
             PermutationFeatureImportanceArguments input)
         {
-            var slotNames = GetSlotNames(data);
-
-            var permutationMetrics = mlContext.BinaryClassification
+            var binaryCatalog = new BinaryClassificationCatalog(env);
+            var permutationMetrics = binaryCatalog
                 .PermutationFeatureImportance(predictor,
                                               data,
                                               labelColumnName: input.LabelColumnName,
@@ -111,6 +107,7 @@ namespace Microsoft.ML.Transforms
                                               numberOfExamplesToUse: input.NumberOfExamplesToUse,
                                               permutationCount: input.PermutationCount);
 
+            var slotNames = GetSlotNames(data);
             Contracts.Assert(slotNames.Length == permutationMetrics.Length,
                 "Mismatch between number of feature slots and number of features permuted.");
 
@@ -140,19 +137,19 @@ namespace Microsoft.ML.Transforms
                 });
             }
 
-            var result = mlContext.Data.LoadFromEnumerable(metrics);
+            var dataOps = new DataOperationsCatalog(env);
+            var result = dataOps.LoadFromEnumerable(metrics);
             return result;
         }
 
         private static IDataView GetMulticlassMetrics(
-            MLContext mlContext,
+            IHostEnvironment env,
             ISingleFeaturePredictionTransformer<object> predictor,
             IDataView data,
             PermutationFeatureImportanceArguments input)
         {
-            var slotNames = GetSlotNames(data);
-
-            var permutationMetrics = mlContext.MulticlassClassification
+            var multiclassCatalog = new MulticlassClassificationCatalog(env);
+            var permutationMetrics = multiclassCatalog
                 .PermutationFeatureImportance(predictor,
                                               data,
                                               labelColumnName: input.LabelColumnName,
@@ -160,6 +157,7 @@ namespace Microsoft.ML.Transforms
                                               numberOfExamplesToUse: input.NumberOfExamplesToUse,
                                               permutationCount: input.PermutationCount);
 
+            var slotNames = GetSlotNames(data);
             Contracts.Assert(slotNames.Length == permutationMetrics.Length,
                 "Mismatch between number of feature slots and number of features permuted.");
 
@@ -191,19 +189,19 @@ namespace Microsoft.ML.Transforms
             ConvertVectorToKnownSize(nameof(metric.PerClassLogLoss), metric.PerClassLogLoss.Length, ref schema);
             ConvertVectorToKnownSize(nameof(metric.PerClassLogLossStdErr), metric.PerClassLogLossStdErr.Length, ref schema);
 
-            var result = mlContext.Data.LoadFromEnumerable(metrics, schema);
+            var dataOps = new DataOperationsCatalog(env);
+            var result = dataOps.LoadFromEnumerable(metrics);
             return result;
         }
 
         private static IDataView GetRegressionMetrics(
-            MLContext mlContext,
+            IHostEnvironment env,
             ISingleFeaturePredictionTransformer<object> predictor,
             IDataView data,
             PermutationFeatureImportanceArguments input)
         {
-            var slotNames = GetSlotNames(data);
-
-            var permutationMetrics = mlContext.Regression
+            var regressionCatalog = new RegressionCatalog(env);
+            var permutationMetrics = regressionCatalog
                 .PermutationFeatureImportance(predictor,
                                               data,
                                               labelColumnName: input.LabelColumnName,
@@ -211,6 +209,7 @@ namespace Microsoft.ML.Transforms
                                               numberOfExamplesToUse: input.NumberOfExamplesToUse,
                                               permutationCount: input.PermutationCount);
 
+            var slotNames = GetSlotNames(data);
             Contracts.Assert(slotNames.Length == permutationMetrics.Length,
                 "Mismatch between number of feature slots and number of features permuted.");
 
@@ -234,19 +233,19 @@ namespace Microsoft.ML.Transforms
                 });
             }
 
-            var result = mlContext.Data.LoadFromEnumerable(metrics);
+            var dataOps = new DataOperationsCatalog(env);
+            var result = dataOps.LoadFromEnumerable(metrics);
             return result;
         }
 
         private static IDataView GetRankingMetrics(
-            MLContext mlContext,
+            IHostEnvironment env,
             ISingleFeaturePredictionTransformer<object> predictor,
             IDataView data,
             PermutationFeatureImportanceArguments input)
         {
-            var slotNames = GetSlotNames(data);
-
-            var permutationMetrics = mlContext.Ranking
+            var rankingCatalog = new RankingCatalog(env);
+            var permutationMetrics = rankingCatalog
                 .PermutationFeatureImportance(predictor,
                                               data,
                                               labelColumnName: input.LabelColumnName,
@@ -255,6 +254,7 @@ namespace Microsoft.ML.Transforms
                                               numberOfExamplesToUse: input.NumberOfExamplesToUse,
                                               permutationCount: input.PermutationCount);
 
+            var slotNames = GetSlotNames(data);
             Contracts.Assert(slotNames.Length == permutationMetrics.Length,
                 "Mismatch between number of feature slots and number of features permuted.");
 
@@ -280,7 +280,8 @@ namespace Microsoft.ML.Transforms
             ConvertVectorToKnownSize(nameof(metric.DiscountedCumulativeGainsStdErr), metric.DiscountedCumulativeGainsStdErr.Length, ref schema);
             ConvertVectorToKnownSize(nameof(metric.NormalizedDiscountedCumulativeGainsStdErr), metric.NormalizedDiscountedCumulativeGainsStdErr.Length, ref schema);
 
-            var result = mlContext.Data.LoadFromEnumerable(metrics, schema);
+            var dataOps = new DataOperationsCatalog(env);
+            var result = dataOps.LoadFromEnumerable(metrics);
             return result;
         }
 
