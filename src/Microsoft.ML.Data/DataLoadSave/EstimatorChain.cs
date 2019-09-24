@@ -57,8 +57,7 @@ namespace Microsoft.ML.Data
         public TransformerChain<TLastTransformer> Fit(IDataView input)
         {
             // Before fitting, run schema propagation.
-            SchemaShape schemaShape = SchemaShape.Create(input.Schema);
-            GetOutputSchema(schemaShape);
+            GetOutputSchema(SchemaShape.Create(input.Schema));
 
             IDataView current = input;
             var xfs = new ITransformer[_estimators.Length];

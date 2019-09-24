@@ -64,6 +64,7 @@ namespace Microsoft.ML.Transforms
         private Graph Graph => _session.graph;
         private readonly string[] _inputs;
         private readonly string[] _outputs;
+        private readonly string[] _keyValueAnnotations;
         private readonly string _labelColumnName;
         private readonly string _finalModelPrefix;
         private readonly Architecture _arch;
@@ -109,7 +110,7 @@ namespace Microsoft.ML.Transforms
 
             GetModelInfo(env, ctx, out string[] inputs, out string[] outputs, out bool addBatchDimensionInput,
                 out string labelColumn, out string checkpointName, out Architecture arch, out string scoreColumnName,
-                out string predictedColumnName, out float learningRate, out int classCount, out string predictionTensorName, out string softMaxTensorName,
+                out string predictedColumnName, out float learningRate, out int classCount, out string[] keyValueAnnotations, out string predictionTensorName, out string softMaxTensorName,
                 out string jpegDataTensorName, out string resizeTensorName);
 
             byte[] modelBytes = null;
@@ -118,7 +119,7 @@ namespace Microsoft.ML.Transforms
 
             return new ImageClassificationTransformer(env, DnnUtils.LoadTFSession(env, modelBytes), outputs, inputs,
                 null, addBatchDimensionInput, 1, labelColumn, checkpointName, arch,
-                scoreColumnName, predictedColumnName, learningRate, null, classCount, true, predictionTensorName,
+                scoreColumnName, predictedColumnName, learningRate, null, classCount, keyValueAnnotations, true, predictionTensorName,
                 softMaxTensorName, jpegDataTensorName, resizeTensorName);
 
         }
@@ -617,7 +618,7 @@ namespace Microsoft.ML.Transforms
         private static void GetModelInfo(IHostEnvironment env, ModelLoadContext ctx, out string[] inputs,
             out string[] outputs, out bool addBatchDimensionInput,
             out string labelColumn, out string checkpointName, out Architecture arch,
-            out string scoreColumnName, out string predictedColumnName, out float learningRate, out int classCount, out string predictionTensorName, out string softMaxTensorName,
+            out string scoreColumnName, out string predictedColumnName, out float learningRate, out int classCount, out string[] keyValueAnnotations, out string predictionTensorName, out string softMaxTensorName,
             out string jpegDataTensorName, out string resizeTensorName)
         {
             addBatchDimensionInput = ctx.Reader.ReadBoolByte();
@@ -641,6 +642,12 @@ namespace Microsoft.ML.Transforms
             predictedColumnName = ctx.Reader.ReadString();
             learningRate = ctx.Reader.ReadFloat();
             classCount = ctx.Reader.ReadInt32();
+
+            env.CheckDecode(classCount > 0);
+            keyValueAnnotations = new string[classCount];
+            for (int j = 0; j < keyValueAnnotations.Length; j++)
+                keyValueAnnotations[j] = ctx.LoadNonEmptyString();
+
             predictionTensorName = ctx.Reader.ReadString();
             softMaxTensorName = ctx.Reader.ReadString();
             jpegDataTensorName = ctx.Reader.ReadString();
@@ -650,7 +657,7 @@ namespace Microsoft.ML.Transforms
         internal ImageClassificationTransformer(IHostEnvironment env, Session session, string[] outputColumnNames,
             string[] inputColumnNames, string modelLocation,
             bool? addBatchDimensionInput, int batchSize, string labelColumnName, string finalModelPrefix, Architecture arch,
-            string scoreColumnName, string predictedLabelColumnName, float learningRate, DataViewSchema inputSchema, int? classCount = null, bool loadModel = false,
+            string scoreColumnName, string predictedLabelColumnName, float learningRate, DataViewSchema inputSchema, int? classCount = null, string[] keyValueAnnotations = null, bool loadModel = false,
             string predictionTensorName = null, string softMaxTensorName = null, string jpegDataTensorName = null, string resizeTensorName = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageClassificationTransformer)))
 
@@ -664,6 +671,7 @@ namespace Microsoft.ML.Transforms
             _addBatchDimensionInput = addBatchDimensionInput ?? arch == Architecture.ResnetV2101;
             _inputs = inputColumnNames;
             _outputs = outputColumnNames;
+            _keyValueAnnotations = keyValueAnnotations;
             _labelColumnName = labelColumnName;
             _finalModelPrefix = finalModelPrefix;
             _arch = arch;
@@ -684,6 +692,9 @@ namespace Microsoft.ML.Transforms
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "label", (string)labelColumn.Name, "Key", (string)labelType.ToString());
 
                 _classCount = labelCount == 1 ? 2 : (int)labelCount;
+
+                //Temporary string array for key values, will replace soon
+                _keyValueAnnotations = new string[] { "sunflowers", "roses", "dandelion", "daisy", "tulips"};
             }
             else
                 _classCount = classCount.Value;
@@ -749,6 +760,10 @@ namespace Microsoft.ML.Transforms
             ctx.Writer.Write(_predictedLabelColumnName);
             ctx.Writer.Write(_learningRate);
             ctx.Writer.Write(_classCount);
+
+            foreach (var keyValueAnnotation in _keyValueAnnotations)
+                ctx.SaveNonEmptyString(keyValueAnnotation);
+
             ctx.Writer.Write(_predictionTensorName);
             ctx.Writer.Write(_softmaxTensorName);
             ctx.Writer.Write(_jpegDataTensorName);
@@ -877,8 +892,8 @@ namespace Microsoft.ML.Transforms
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
                 var info = new DataViewSchema.DetachedColumn[_parent._outputs.Length];
-                info[0] = new DataViewSchema.DetachedColumn(_parent._outputs[0], new VectorDataViewType(NumberDataViewType.Single, _parent._classCount), null);
-                info[1] = new DataViewSchema.DetachedColumn(_parent._outputs[1], new KeyDataViewType(typeof(uint), _parent._classCount), ((DataViewSchema.Column)InputSchema.GetColumnOrNull(_parent._labelColumnName)).Annotations);
+                info[0] = new DataViewSchema.DetachedColumn(_parent._scoreColumnName, new VectorDataViewType(NumberDataViewType.Single, _parent._classCount), null);
+                info[1] = new DataViewSchema.DetachedColumn(_parent._predictedLabelColumnName, new KeyDataViewType(typeof(uint), _parent._classCount), ((DataViewSchema.Column)InputSchema.GetColumnOrNull(_parent._labelColumnName)).Annotations);
                 return info;
             }
         }
@@ -1037,6 +1052,12 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The name of the outputs", ShortName = "outputs", SortOrder = 2)]
             public string[] OutputColumns;
+
+            /// <summary>
+            /// The names of the requested key value annotations.
+            /// </summary>
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The name of the key value annotations", ShortName = "annotations", SortOrder = 3)]
+            public string[] KeyValueAnnotations;
 
             /// <summary>
             /// The name of the label column in <see cref="IDataView"/> that will be mapped to label node in TensorFlow model.
@@ -1201,7 +1222,7 @@ namespace Microsoft.ML.Transforms
                     SchemaShape.Column.VectorKind.Vector, _outputTypes[0].GetItemType(), false);
 
             var metadata = new List<SchemaShape.Column>();
-            metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
+            metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false, inputSchema[1].Annotations));
 
             resultDic[_options.OutputColumns[1]] = new SchemaShape.Column(_options.OutputColumns[1],
                    SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true, new SchemaShape(metadata.ToArray()));

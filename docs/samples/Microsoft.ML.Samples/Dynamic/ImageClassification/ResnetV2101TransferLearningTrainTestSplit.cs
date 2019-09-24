@@ -69,7 +69,7 @@ namespace Samples.Dynamic
                     learningRate: 0.01f,
                     metricsCallback: (metrics) => Console.WriteLine(metrics),
                     validationSet: testDataset)
-                    .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
+                    .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "Label"));
 
                 Console.WriteLine("*** Training the image classification model with " +
                     "DNN Transfer Learning on top of the selected pre-trained " +
