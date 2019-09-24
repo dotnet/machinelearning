@@ -28,12 +28,13 @@ namespace Microsoft.ML.Transforms
 
             var modelOps = new ModelOperationsCatalog(env);
             var model = modelOps.Load(input.ModelPath.OpenReadStream(), out DataViewSchema schema) as TransformerChain<ITransformer>;
-
             // If model.LastTransformer is not an IPredictionTransformer, get the part of the TransformerChain
             // up to the last ITransformer that is indeed an IPredictionTransformer. This piece of the TransformerChain
             // is used to extract the IPredictionTransformer and also to transform the input data.
             // Will throw if there is no IPredictionTransformer in the TransformerChain.
-            model = model.RewindToLastPredictionTransformer();
+            if (!(model.LastTransformer is IPredictionTransformer<IPredictorProducing<float>>
+                || model.LastTransformer is IPredictionTransformer<IPredictorProducing<VBuffer<float>>>))
+                model = model.RewindToLastPredictionTransformer();
             var predictor = model.LastTransformer as ISingleFeaturePredictionTransformer<object>;
             Contracts.Assert(predictor != null, "Permutation Feature Importance (PFI) is not supported for the predictor.");
 
