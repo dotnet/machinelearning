@@ -17,7 +17,7 @@ namespace Microsoft.ML.AutoML
         /// <summary>
         /// save some intermediate value
         /// </summary>
-        public static Dictionary<string, object> ValuePairs { get; set; }
+        public static Dictionary<string, object> ValuePairs { get; set; } = new Dictionary<string, object>();
 
         internal AutoCatalog(MLContext context)
         {

@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using Microsoft.ML.AutoML;
+using Microsoft.ML.AutoML.Samples.DataStructures;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.AutoML.Samples
@@ -19,8 +20,8 @@ namespace Microsoft.ML.AutoML.Samples
             MLContext mlContext = new MLContext();
 
             // STEP 1: Load data
-            IDataView trainDataView = mlContext.Data.LoadFromTextFile<TaxiTrip>(TrainDataPath, hasHeader: true, separatorChar: ',');
-            IDataView testDataView = mlContext.Data.LoadFromTextFile<TaxiTrip>(TestDataPath, hasHeader: true, separatorChar: ',');
+            IDataView trainDataView = mlContext.Data.LoadFromTextFile<Movie>(TrainDataPath, hasHeader: true, separatorChar: ',');
+            IDataView testDataView = mlContext.Data.LoadFromTextFile<Movie>(TestDataPath, hasHeader: true, separatorChar: ',');
 
             var settings = new RecommendationExperimentSettings(RecommendationExperimentScenario.MF, "userId", "movieId");
             // STEP 2: Run AutoML experiment
@@ -47,17 +48,13 @@ namespace Microsoft.ML.AutoML.Samples
                 mlContext.Model.Save(bestRun.Model, trainDataView.Schema, fs);
 
             // STEP 7: Create prediction engine from the best trained model
-            var predictionEngine = mlContext.Model.CreatePredictionEngine<TaxiTrip, TaxiTripFarePrediction>(bestRun.Model);
+            var predictionEngine = mlContext.Model.CreatePredictionEngine<Movie, TaxiTripFarePrediction>(bestRun.Model);
 
             // STEP 8: Initialize a new test taxi trip, and get the predicted fare
-            var testTaxiTrip = new TaxiTrip
+            var testTaxiTrip = new Movie
             {
-                VendorId = "VTS",
-                RateCode = 1,
-                PassengerCount = 1,
-                TripTimeInSeconds = 1140,
-                TripDistance = 3.75f,
-                PaymentType = "CRD"
+                userId="1",
+                movieId = "1097",
             };
             var prediction = predictionEngine.Predict(testTaxiTrip);
             Console.WriteLine($"Predicted fare for test taxi trip: {prediction.FareAmount}");

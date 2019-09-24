@@ -11,9 +11,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.ML" Version="$(MlDotNetPackageVersion)" />
     <PackageReference Include="Microsoft.ML.LightGBM" Version="$(MlDotNetPackageVersion)" />
     <PackageReference Include="Microsoft.ML.Mkl.Components" Version="$(MlDotNetPackageVersion)" />
+    <PackageReference Include="Microsoft.ML.Recommender" Version="0.16.0-preview2-28122-0" />
   </ItemGroup>
 
   <PropertyGroup>
