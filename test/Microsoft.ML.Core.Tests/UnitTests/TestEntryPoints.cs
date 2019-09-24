@@ -616,8 +616,8 @@ namespace Microsoft.ML.RunTests
         public void BinaryPermutationFeatureImportance()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            var modelPath = DeleteOutputPath("model.zip");
-            var outputDataPath = DeleteOutputPath("metrics.idv");
+            var modelPath = DeleteOutputPath("binary_pfi_model.zip");
+            var outputDataPath = DeleteOutputPath("binary_pfi_metrics.idv");
 
             string trainingGraph = string.Format(@"
                 {{
@@ -797,8 +797,8 @@ namespace Microsoft.ML.RunTests
         public void MulticlassPermutationFeatureImportance()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            var modelPath = DeleteOutputPath("model.zip");
-            var outputDataPath = DeleteOutputPath("metrics.idv");
+            var modelPath = DeleteOutputPath("mc_pfi_model.zip");
+            var outputDataPath = DeleteOutputPath("mc_pfi_metrics.idv");
 
             string trainingGraph = string.Format(@"
                 {{
@@ -974,8 +974,8 @@ namespace Microsoft.ML.RunTests
         public void MulticlassPermutationFeatureImportanceWithKeyToValue()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            var modelPath = DeleteOutputPath("model.zip");
-            var outputDataPath = DeleteOutputPath("metrics.idv");
+            var modelPath = DeleteOutputPath("mc_ktv_pfi_model.zip");
+            var outputDataPath = DeleteOutputPath("mc_ktv_pfi_metrics.idv");
 
             var mlContext = new MLContext();
 
@@ -1066,8 +1066,8 @@ namespace Microsoft.ML.RunTests
         public void RegressionPermutationFeatureImportance()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            var modelPath = DeleteOutputPath("model.zip");
-            var outputDataPath = DeleteOutputPath("metrics.idv");
+            var modelPath = DeleteOutputPath("reg_pfi_model.zip");
+            var outputDataPath = DeleteOutputPath("reg_pfi_metrics.idv");
 
             string trainingGraph = string.Format(@"
                 {{
@@ -1240,8 +1240,8 @@ namespace Microsoft.ML.RunTests
         public void RankingPermutationFeatureImportance()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            var modelPath = DeleteOutputPath("model.zip");
-            var outputDataPath = DeleteOutputPath("metrics.idv");
+            var modelPath = DeleteOutputPath("rank_pfi_model.zip");
+            var outputDataPath = DeleteOutputPath("rank_pfi_metrics.idv");
 
             string trainingGraph = string.Format(@"
                 {{
@@ -1415,7 +1415,7 @@ namespace Microsoft.ML.RunTests
         public void ScoreTransformerChainModel()
         {
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var modelPath = DeleteOutputPath("model.zip");
+            var modelPath = DeleteOutputPath("score_model.zip");
             var outputDataPath = DeleteOutputPath("scored.idv");
 
             var mlContext = new MLContext();
