@@ -971,6 +971,98 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
+        public void MulticlassPermutationFeatureImportanceWithKeyToValue()
+        {
+            var dataPath = GetDataPath("adult.tiny.with-schema.txt");
+            var modelPath = DeleteOutputPath("model.zip");
+            var outputDataPath = DeleteOutputPath("metrics.idv");
+
+            var mlContext = new MLContext();
+
+            var data = new TextLoader(mlContext,
+                    new TextLoader.Options()
+                    {
+                        AllowQuoting = true,
+                        Separator = "\t",
+                        HasHeader = true,
+                        Columns = new[]
+                        {
+                            new TextLoader.Column("Label", DataKind.String, 0),
+                            new TextLoader.Column("education", DataKind.String, 2),
+                            new TextLoader.Column("age", DataKind.Single, 9)
+                        }
+                    }).Load(dataPath);
+
+            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("education")
+                .Append(mlContext.Transforms.Concatenate("Features", new[] { "education", "age" }))
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
+                .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(maximumNumberOfIterations: 1))
+                .Append(mlContext.Transforms.Conversion.MapKeyToValue("Label"));
+
+            var model = pipeline.Fit(data);
+
+            using (FileStream stream = new FileStream(modelPath, FileMode.Create))
+                mlContext.Model.Save(model, data.Schema, stream);
+
+            string pfiGraph = string.Format(@"
+            {{
+                'Inputs': {{
+                'file1': '{0}',
+                'file2': '{1}'
+                }},
+                'Nodes': [
+                {{
+                    'Name': 'Data.CustomTextLoader',
+                    'Inputs': {{
+                    'CustomSchema': 'col=Label:TX:0 col=Workclass:TX:1 col=education:TX:2 col=marital-status:TX:3 col=occupation:TX:4 col=relationship:TX:5 col=ethnicity:TX:6 col=sex:TX:7 col=native-country-region:TX:8 col=age:R4:9 col=fnlwgt:I8:10 col=education-num:I8:11 col=capital-gain:I8:12 col=capital-loss:I8:13 col=hours-per-week:I8:14 quote+ header=+ sep=tab',
+                    'InputFile': '$file1'
+                    }},
+                    'Outputs': {{
+                    'Data': '$data'
+                    }}
+                }},
+                {{
+                    'Name': 'Transforms.PermutationFeatureImportance',
+                    'Inputs': {{
+                    'Data': '$data',
+                    'ModelPath': '$file2',
+                    'PermutationCount': 5
+                    }},
+                    'Outputs': {{
+                    'Metrics': '$output_data'
+                    }}
+                }}
+                ],
+                'Outputs': {{
+                'output_data': '{2}'
+                }}
+            }}", EscapePath(dataPath), EscapePath(modelPath), EscapePath(outputDataPath));
+
+            var pfiJsonPath = DeleteOutputPath("pfiGraph.json");
+            File.WriteAllLines(pfiJsonPath, new[] { pfiGraph });
+
+            var pfiArgs = new ExecuteGraphCommand.Arguments() { GraphPath = pfiJsonPath };
+            var pfiCmd = new ExecuteGraphCommand(Env, pfiArgs);
+            pfiCmd.Run();
+
+            var loadedData = mlContext.Data.LoadFromBinary(outputDataPath);
+
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("FeatureName"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("MacroAccuracy"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("MicroAccuracy"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("LogLoss"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("LogLossReduction"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("TopKAccuracy"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("PerClassLogLoss"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("MacroAccuracyStdErr"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("MicroAccuracyStdErr"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("LogLossStdErr"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("LogLossReductionStdErr"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("TopKAccuracyStdErr"));
+            Assert.NotNull(loadedData.Schema.GetColumnOrNull("PerClassLogLossStdErr"));
+        }
+
+        [Fact]
         public void RegressionPermutationFeatureImportance()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");

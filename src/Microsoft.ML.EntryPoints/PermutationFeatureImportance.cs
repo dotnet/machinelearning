@@ -27,12 +27,15 @@ namespace Microsoft.ML.Transforms
             EntryPointUtils.CheckInputArgs(host, input);
 
             var modelOps = new ModelOperationsCatalog(env);
-            var model = modelOps.Load(input.ModelPath.OpenReadStream(), out DataViewSchema schema);
-            var chain = model as TransformerChain<ITransformer>;
-            var predictor = chain.LastTransformer as ISingleFeaturePredictionTransformer<object>;
-            Contracts.Assert(!(predictor is null), "The last transformer in the model is not a predictor, or Permutation " +
-                "Feature Importance (PFI) is not supported for the predictor. The last transformer in the model must be a " +
-                "predictor, as PFI is calculated for a predictor model.");
+            var model = modelOps.Load(input.ModelPath.OpenReadStream(), out DataViewSchema schema) as TransformerChain<ITransformer>;
+
+            // If model.LastTransformer is not an IPredictionTransformer, get the part of the TransformerChain
+            // up to the last ITransformer that is indeed an IPredictionTransformer. This piece of the TransformerChain
+            // is used to extract the IPredictionTransformer and also to transform the input data.
+            // Will throw if there is no IPredictionTransformer in the TransformerChain.
+            model = model.RewindToLastPredictionTransformer();
+            var predictor = model.LastTransformer as ISingleFeaturePredictionTransformer<object>;
+            Contracts.Assert(predictor != null, "Permutation Feature Importance (PFI) is not supported for the predictor.");
 
             var transformedData = model.Transform(input.Data);
             IDataView result = PermutationFeatureImportanceUtils.GetMetrics(env, predictor, transformedData, input);
