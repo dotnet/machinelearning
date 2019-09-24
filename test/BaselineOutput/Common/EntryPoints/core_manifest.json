@@ -13720,16 +13720,16 @@
           }
         },
         {
-          "Name": "NoBias",
+          "Name": "UseBias",
           "Type": "Bool",
           "Desc": "No bias",
           "Aliases": [
-            "noBias"
+            "bias"
           ],
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": false,
+          "Default": true,
           "SweepRange": {
             "RangeType": "Discrete",
             "Values": [
