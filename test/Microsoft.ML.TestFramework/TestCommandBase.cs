@@ -846,6 +846,7 @@ namespace Microsoft.ML.RunTests
             _step++;
             OutputPath summaryModel = CreateOutputPath("summary.txt");
             TestInCore("savepredictor", null, trainModel, null, summaryModel.Arg("sum"));
+
             Done();
         }
 
