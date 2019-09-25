@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.AutoML
@@ -12,6 +13,11 @@ namespace Microsoft.ML.AutoML
     public sealed class AutoCatalog
     {
         private readonly MLContext _context;
+
+        /// <summary>
+        /// save some intermediate value
+        /// </summary>
+        public static Dictionary<string, object> ValuePairs { get; set; } = new Dictionary<string, object>();
 
         internal AutoCatalog(MLContext context)
         {
@@ -121,6 +127,11 @@ namespace Microsoft.ML.AutoML
         public MulticlassClassificationExperiment CreateMulticlassClassificationExperiment(MulticlassExperimentSettings experimentSettings)
         {
             return new MulticlassClassificationExperiment(_context, experimentSettings);
+        }
+
+        public RecommendationExperiment CreateRecommendationExperiment(RecommendationExperimentSettings experimentSettings)
+        {
+            return new RecommendationExperiment(_context, experimentSettings);
         }
 
         /// <summary>

@@ -262,7 +262,7 @@ namespace Microsoft.ML.AutoML
                 // (if input label is not already a key) before invoking the trainer.
                 case TaskKind.MulticlassClassification:
                     return null;
-                case TaskKind.Regression:
+                case TaskKind.Regression | TaskKind.Recommendation:
                     return new DataViewType[] { NumberDataViewType.Single };
                 default:
                     throw new NotSupportedException($"Unsupported task type: {task}");
