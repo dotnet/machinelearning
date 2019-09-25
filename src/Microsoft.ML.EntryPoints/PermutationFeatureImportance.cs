@@ -194,7 +194,7 @@ namespace Microsoft.ML.Transforms
             ConvertVectorToKnownSize(nameof(metric.PerClassLogLossStdErr), metric.PerClassLogLossStdErr.Length, ref schema);
 
             var dataOps = new DataOperationsCatalog(env);
-            var result = dataOps.LoadFromEnumerable(metrics);
+            var result = dataOps.LoadFromEnumerable(metrics, schema);
             return result;
         }
 
@@ -285,7 +285,7 @@ namespace Microsoft.ML.Transforms
             ConvertVectorToKnownSize(nameof(metric.NormalizedDiscountedCumulativeGainsStdErr), metric.NormalizedDiscountedCumulativeGainsStdErr.Length, ref schema);
 
             var dataOps = new DataOperationsCatalog(env);
-            var result = dataOps.LoadFromEnumerable(metrics);
+            var result = dataOps.LoadFromEnumerable(metrics, schema);
             return result;
         }
 
