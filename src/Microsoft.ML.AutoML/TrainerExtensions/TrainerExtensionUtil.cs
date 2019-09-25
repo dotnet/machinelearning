@@ -62,6 +62,16 @@ namespace Microsoft.ML.AutoML
             return options;
         }
 
+        public static T CreateOptions<T>(IEnumerable<SweepableParam> sweepParams) where T : class
+        {
+            var options = Activator.CreateInstance<T>();
+            if (sweepParams != null)
+            {
+                UpdateFields(options, sweepParams);
+            }
+            return options;
+        }
+
         private static string[] _lightGbmBoosterParamNames = new[] { "L2Regularization", "L1Regularization" };
         private const string LightGbmBoosterPropName = "Booster";
 

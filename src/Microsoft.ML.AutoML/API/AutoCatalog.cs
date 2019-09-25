@@ -129,6 +129,14 @@ namespace Microsoft.ML.AutoML
             return new MulticlassClassificationExperiment(_context, experimentSettings);
         }
 
+        /// <summary>
+        /// Creates a new AutoML experiment to run on a recommendation dataset.
+        /// </summary>
+        /// <param name="experimentSettings">Settings for the AutoML experiment.</param>
+        /// <returns>A new AutoML recommendation experiment.</returns>
+        /// <remarks>
+        /// See <see cref="RecommendationExperiment"/> for a more detailed code example of an AutoML recommendation experiment.
+        /// </remarks>
         public RecommendationExperiment CreateRecommendationExperiment(RecommendationExperimentSettings experimentSettings)
         {
             return new RecommendationExperiment(_context, experimentSettings);

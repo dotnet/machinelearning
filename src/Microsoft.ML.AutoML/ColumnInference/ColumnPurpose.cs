@@ -14,6 +14,6 @@ namespace Microsoft.ML.AutoML
         Weight = 5,
         ImagePath = 6,
         SamplingKey = 7,
-        LabelFeature,   // CategoricalFeature that requires ValueToKey converter, better naming?
+        LabelFeature = 8   // CategoricalFeature that requires ValueToKey converter, better naming?
     }
 }

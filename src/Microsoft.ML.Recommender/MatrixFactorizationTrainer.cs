@@ -137,7 +137,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Options for the <see cref="MatrixFactorizationTrainer"/> as used in [MatrixFactorization(Options)](xref:Microsoft.ML.RecommendationCatalog.RecommendationTrainers.MatrixFactorization(Microsoft.ML.Trainers.MatrixFactorizationTrainer.Options)).
         /// </summary>
-        public sealed class Options : TrainerInputBaseWithLabel
+        public sealed class Options
         {
             /// <summary>
             /// The name of variable (i.e., Column in a <see cref="IDataView"/> type system) used as matrix's column index.
@@ -150,6 +150,12 @@ namespace Microsoft.ML.Trainers
             /// The column data must be <see cref="Microsoft.ML.Data.KeyDataViewType"/>.
             /// </summary>
             public string MatrixRowIndexColumnName;
+
+            /// <summary>
+            /// The name variable (i.e., column in a <see cref="IDataView"/> type system) used as matrix's element value.
+            /// The column data must be <see cref="Microsoft.ML.Data.KeyDataViewType"/>.
+            /// </summary>
+            public string LabelColumnName;
 
             /// <summary>
             /// Loss function minimized for finding factor matrices.
@@ -296,6 +302,9 @@ namespace Microsoft.ML.Trainers
 
         PredictionKind ITrainer.PredictionKind => PredictionKind.Recommendation;
 
+        TrainerInfo ITrainerEstimator<MatrixFactorizationPredictionTransformer, MatrixFactorizationModelParameters>.Info => _info;
+        TrainerInfo ITrainer.Info => _info;
+
         internal const string LoadNameValue = "MatrixFactorization";
 
         /// <summary>
@@ -325,8 +334,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// The <see cref="TrainerInfo"/> contains general parameters for this trainer.
         /// </summary>
-
-        public TrainerInfo Info { get; set; }
+        private readonly TrainerInfo _info;
 
         /// <summary>
         /// Initializes a new instance of <see cref="MatrixFactorizationTrainer"/> through the <see cref="Options"/> class.
@@ -359,7 +367,7 @@ namespace Microsoft.ML.Trainers
             _quiet = options.Quiet;
             _doNmf = options.NonNegative;
 
-            Info = new TrainerInfo(normalization: false, caching: false);
+            _info = new TrainerInfo(normalization: false, caching: false);
 
             LabelName = options.LabelColumnName;
             MatrixColumnIndexName = options.MatrixColumnIndexColumnName;
@@ -401,7 +409,7 @@ namespace Microsoft.ML.Trainers
             _quiet = args.Quiet;
             _doNmf = args.NonNegative;
 
-            Info = new TrainerInfo(normalization: false, caching: false);
+            _info = new TrainerInfo(normalization: false, caching: false);
 
             LabelName = labelColumnName;
             MatrixColumnIndexName = matrixColumnIndexColumnName;
