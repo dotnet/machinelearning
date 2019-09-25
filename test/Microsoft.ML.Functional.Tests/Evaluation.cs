@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.IO;
-using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
-using Microsoft.ML.Tools;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Xunit;
@@ -15,7 +13,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Functional.Tests
 {
-    public class Evaluation : BaseTestBaseline
+    public class Evaluation : BaseTestClass
     {
         public Evaluation(ITestOutputHelper output): base(output)
         {
@@ -167,8 +165,14 @@ namespace Microsoft.ML.Functional.Tests
             Common.AssertMetrics(metrics);
         }
 
-        private IDataView GetScoredDataForRankingEvaluation(MLContext mlContext)
+        /// <summary>
+        /// Train and Evaluate: Ranking.
+        /// </summary>
+        [Fact]
+        public void TrainAndEvaluateRanking()
         {
+            var mlContext = new MLContext(seed: 1);
+
             var data = Iris.LoadAsRankingProblem(mlContext,
                 GetDataPath(TestDatasets.iris.trainFilename),
                 hasHeader: TestDatasets.iris.fileHasHeader,
@@ -183,63 +187,10 @@ namespace Microsoft.ML.Functional.Tests
 
             // Evaluate the model.
             var scoredData = model.Transform(data);
-
-            return scoredData;
-        }
-
-        /// <summary>
-        /// Train and Evaluate: Ranking.
-        /// </summary>
-        [Fact]
-        public void TrainAndEvaluateRanking()
-        {
-            var mlContext = new MLContext(seed: 1);
-
-            var scoredData = GetScoredDataForRankingEvaluation(mlContext);
             var metrics = mlContext.Ranking.Evaluate(scoredData, labelColumnName: "Label", rowGroupColumnName: "GroupId");
 
             // Check that the metrics returned are valid.
             Common.AssertMetrics(metrics);
-        }
-
-        /// <summary>
-        /// Train and Evaluate: Ranking with options.
-        /// </summary>
-        [Fact]
-        public void TrainAndEvaluateRankingWithOptions()
-        {
-            var mlContext = new MLContext(seed: 1);
-            int[] tlevels = { 50, 150, 100 };
-            var options = new RankingEvaluatorOptions();
-            foreach (int i in tlevels)
-            {
-                options.DcgTruncationLevel = i;
-                var scoredData = GetScoredDataForRankingEvaluation(mlContext);
-                var metrics = mlContext.Ranking.Evaluate(scoredData, options, labelColumnName: "Label", rowGroupColumnName: "GroupId");
-                Common.AssertMetrics(metrics);
-            }
-
-        }
-
-        [Fact]
-        public void EvaluateRankingWithMaml()
-        {
-            string _mslrWeb10k_Train = GetDataPath(TestDatasets.MSLRWeb.trainFilename);
-            string filename = "CommandTrainRanking-summary2.txt";
-            string filepath = GetOutputPath(filename);
-            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Command");
-            string cmd = @"CV tr=LightGBMRanking" +
-                " eval=RankingEvaluator{t=10}" +
-                " k=2" +
-                " loader=TextLoader{col=Label:R4:0 col=GroupId:TX:1 col=Features:R4:2-138 header=+}" +
-                " data=" + _mslrWeb10k_Train +
-                " xf = HashTransform{col=GroupId}" +
-                " xf = NAHandleTransform{col=Features}" +
-                " summaryFilename=" + filepath;
-
-            Assert.Equal(0, Maml.Main(new[] { cmd }));
-
-            CheckEquality(subDir,filename);
         }
 
         /// <summary>

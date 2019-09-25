@@ -676,6 +676,22 @@ namespace Microsoft.ML.RunTests
         // are explicit in favor of the more generic tests where appropriate.
 
         [TestCategory(Cat)]
+        [Fact]
+        public void EvaluateRankingWithMaml()
+        {
+            string _mslrWeb10k_Train = GetDataPath(TestDatasets.MSLRWeb.trainFilename);
+            string extraArgs = " tr=LightGBMRanking" +
+                " eval=RankingEvaluator{t=10}" +
+                " k=2";
+            string loaderArgs = " loader=TextLoader{col=Label:R4:0 col=GroupId:TX:1 col=Features:R4:2-138 header=+}" +
+                " xf = HashTransform{col=GroupId}" +
+                " xf = NAHandleTransform{col=Features}";
+            TestCore("cv", _mslrWeb10k_Train, loaderArgs, extraArgs);
+            Done();
+
+        }
+
+        [TestCategory(Cat)]
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         public void CommandShowSchema()
         {
@@ -830,7 +846,6 @@ namespace Microsoft.ML.RunTests
             _step++;
             OutputPath summaryModel = CreateOutputPath("summary.txt");
             TestInCore("savepredictor", null, trainModel, null, summaryModel.Arg("sum"));
-
             Done();
         }
 
