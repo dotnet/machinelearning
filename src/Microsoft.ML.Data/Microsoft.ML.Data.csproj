@@ -7,7 +7,12 @@
     <DefineConstants>CORECLR</DefineConstants>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <RestoreSources>$(RestoreSources);https://pkgs.dev.azure.com/foundry99/_packaging/SEAL/nuget/v3/index.json</RestoreSources>
+  </PropertyGroup>
+
   <ItemGroup>
+    <PackageReference Include="Microsoft.Research.SEALNet" Version="3.3.1" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonPackageVersion)" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowPackageVersion)" />
