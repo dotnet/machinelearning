@@ -682,13 +682,13 @@ namespace Microsoft.ML.RunTests
 
         public static PredictorAndArgs LDSVMDefault = new PredictorAndArgs
         {
-            Trainer = new SubComponent("LDSVM", "iter=1000"),
+            Trainer = new SubComponent("LdSvm", "iter=1000"),
             Tag = "LDSVM-def"
         };
 
         public static PredictorAndArgs LDSVMNoBias = new PredictorAndArgs
         {
-            Trainer = new SubComponent("LDSVM", "iter=1000 bias=-"),
+            Trainer = new SubComponent("LdSvm", "iter=1000 bias=-"),
             Tag = "LDSVM-nob"
         };
 
