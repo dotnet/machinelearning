@@ -121,9 +121,9 @@ namespace Microsoft.ML.AutoML
         {
             return new SweepableParam[]
             {
-                new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.NumberOfIterations), new object[] { 10, 20, 50, 100, 150, 200 }),
-                new SweepableFloatParam(nameof(MatrixFactorizationTrainer.Options.LearningRate), 0.025f, 0.4f, isLogScale: true),
-                new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.ApproximationRank), new object[] { 10, 20, 50, 100, 150, 200 }),
+                new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.NumberOfIterations), new object[] { 10, 20 }),
+                new SweepableFloatParam(nameof(MatrixFactorizationTrainer.Options.LearningRate), 0.025f, 0.04f, numSteps:2),
+                new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.ApproximationRank), new object[] { 10, 20 }),
             };
         }
         public static IEnumerable<SweepableParam> BuildLinearSvmParams()

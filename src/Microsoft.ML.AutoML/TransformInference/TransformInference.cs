@@ -150,6 +150,9 @@ namespace Microsoft.ML.AutoML
 
             // If numeric column has missing values, use Missing transform.
             yield return new Experts.NumericMissing(context);
+
+            // for label categorical columns, use LabelCategorical
+            yield return new Experts.LabelCategorical(context);
         }
 
         internal static class Experts
@@ -162,7 +165,7 @@ namespace Microsoft.ML.AutoML
 
                 public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns, TaskKind task)
                 {
-                    if (task != TaskKind.MulticlassClassification || task != TaskKind.Recommendation)
+                    if (task != TaskKind.MulticlassClassification)
                     {
                         yield break;
                     }
@@ -176,6 +179,29 @@ namespace Microsoft.ML.AutoML
                     if (!col.Type.IsKey())
                     {
                         yield return ValueToKeyMappingExtension.CreateSuggestedTransform(Context, col.ColumnName, col.ColumnName);
+                    }
+                }
+            }
+
+            internal sealed class LabelCategorical : TransformInferenceExpertBase
+            {
+                public LabelCategorical(MLContext context) : base(context)
+                {
+                }
+
+                public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns, TaskKind task)
+                {
+                    foreach (var column in columns)
+                    {
+                        if (column.Purpose != ColumnPurpose.LabelFeature)
+                        {
+                            continue;
+                        }
+
+                        if (!column.Type.IsKey())
+                        {
+                            yield return ValueToKeyMappingExtension.CreateSuggestedTransform(Context, column.ColumnName, column.ColumnName);
+                        }
                     }
                 }
             }
@@ -330,12 +356,14 @@ namespace Microsoft.ML.AutoML
                 suggestedTransforms.AddRange(suggestions);
             }
 
-            var finalFeaturesConcatTransform = BuildFinalFeaturesConcatTransform(context, suggestedTransforms, intermediateCols);
-            if (finalFeaturesConcatTransform != null)
+            if(task != TaskKind.Recommendation)
             {
-                suggestedTransforms.Add(finalFeaturesConcatTransform);
+                var finalFeaturesConcatTransform = BuildFinalFeaturesConcatTransform(context, suggestedTransforms, intermediateCols);
+                if (finalFeaturesConcatTransform != null)
+                {
+                    suggestedTransforms.Add(finalFeaturesConcatTransform);
+                }
             }
-
             return suggestedTransforms.ToArray();
         }
 

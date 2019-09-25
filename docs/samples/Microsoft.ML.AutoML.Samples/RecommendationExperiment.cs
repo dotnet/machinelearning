@@ -24,11 +24,16 @@ namespace Microsoft.ML.AutoML.Samples
             IDataView testDataView = mlContext.Data.LoadFromTextFile<Movie>(TestDataPath, hasHeader: true, separatorChar: ',');
 
             var settings = new RecommendationExperimentSettings(RecommendationExperimentScenario.MF, "userId", "movieId");
+            var inputColumnInformation = new ColumnInformation();
+            inputColumnInformation.LabelCategoricalColumnNames.Add("movieId");
+            inputColumnInformation.LabelCategoricalColumnNames.Add("userId");
+            inputColumnInformation.LabelColumnName = "rating";
+
             // STEP 2: Run AutoML experiment
             Console.WriteLine($"Running AutoML regression experiment for {ExperimentTime} seconds...");
             ExperimentResult<RegressionMetrics> experimentResult = mlContext.Auto()
                 .CreateRecommendationExperiment(settings)
-                .Execute(trainDataView, LabelColumnName);
+                .Execute(trainDataView, inputColumnInformation);
 
             // STEP 3: Print metric from best model
             RunDetail<RegressionMetrics> bestRun = experimentResult.BestRun;

@@ -47,6 +47,11 @@ namespace Microsoft.ML.AutoML
                 return ColumnPurpose.Ignore;
             }
 
+            if (columnInfo.LabelCategoricalColumnNames.Contains(columnName))
+            {
+                return ColumnPurpose.LabelFeature;
+            }
+
             return null;
         }
 
@@ -76,6 +81,9 @@ namespace Microsoft.ML.AutoML
                     case ColumnPurpose.NumericFeature:
                         columnInfo.NumericColumnNames.Add(column.name);
                         break;
+                    case ColumnPurpose.LabelFeature:
+                        columnInfo.LabelCategoricalColumnNames.Add(column.name);
+                        break;
                     case ColumnPurpose.TextFeature:
                         columnInfo.TextColumnNames.Add(column.name);
                         break;
@@ -104,6 +112,7 @@ namespace Microsoft.ML.AutoML
             AddStringsToListIfNotNull(columnNames, columnInformation.IgnoredColumnNames);
             AddStringsToListIfNotNull(columnNames, columnInformation.NumericColumnNames);
             AddStringsToListIfNotNull(columnNames, columnInformation.TextColumnNames);
+            AddStringsToListIfNotNull(columnNames, columnInformation.LabelCategoricalColumnNames);
             return columnNames;
         }
 

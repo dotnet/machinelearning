@@ -23,7 +23,10 @@ namespace Microsoft.ML.AutoML
 
         public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
         {
-            throw new NotImplementedException();
+            var property = new Dictionary<string, object>();
+            property.Add(nameof(MatrixFactorizationTrainer.Options.MatrixColumnIndexColumnName), AutoCatalog.ValuePairs[nameof(MatrixFactorizationTrainer.Options.MatrixColumnIndexColumnName)]);
+            property.Add(nameof(MatrixFactorizationTrainer.Options.MatrixRowIndexColumnName), AutoCatalog.ValuePairs[nameof(MatrixFactorizationTrainer.Options.MatrixRowIndexColumnName)]);
+            return TrainerExtensionUtil.BuildPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams, columnInfo.LabelColumnName, additionalProperties:property);
         }
 
         public IEnumerable<SweepableParam> GetHyperparamSweepRanges()
