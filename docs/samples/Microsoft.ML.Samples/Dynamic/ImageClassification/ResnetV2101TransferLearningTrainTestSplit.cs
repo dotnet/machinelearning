@@ -102,7 +102,7 @@ namespace Samples.Dynamic
                 EvaluateModel(mlContext, testDataset, loadedModel);
 
                 watch = System.Diagnostics.Stopwatch.StartNew();
-                TrySinglePrediction(fullImagesetFolderPath, mlContext, loadedModel, schema);
+                TrySinglePrediction(fullImagesetFolderPath, mlContext, loadedModel);
 
                 watch.Stop();
                 elapsedMs = watch.ElapsedMilliseconds;
@@ -120,7 +120,7 @@ namespace Samples.Dynamic
         }
 
         private static void TrySinglePrediction(string imagesForPredictions,
-            MLContext mlContext, ITransformer trainedModel, DataViewSchema schema)
+            MLContext mlContext, ITransformer trainedModel)
         {
             // Create prediction function to try one prediction
             var predictionEngine = mlContext.Model
