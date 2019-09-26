@@ -61,11 +61,11 @@ namespace Microsoft.ML.AutoML.Samples
             // STEP 8: Initialize a new test taxi trip, and get the predicted fare
             var testMovie = new Movie
             {
-                userId="1",
-                movieId = "1097",
+                UserId="1",
+                MovieId = "1097",
             };
             var prediction = predictionEngine.Predict(testMovie);
-            Console.WriteLine($"Predicted rating for: {prediction.rating}");
+            Console.WriteLine($"Predicted rating for: {prediction.Rating}");
 
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
