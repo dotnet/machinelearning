@@ -2,22 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.IO;
+using System.Reflection;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Runtime;
 
-[assembly: LoadableClass(typeof(BinaryPredictionTransformer<IPredictorProducing<float>>), typeof(BinaryPredictionTransformer), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(object), typeof(BinaryPredictionTransformer), null, typeof(SignatureLoadModel),
     "", BinaryPredictionTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(MulticlassPredictionTransformer<IPredictorProducing<VBuffer<float>>>), typeof(MulticlassPredictionTransformer), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(object), typeof(MulticlassPredictionTransformer), null, typeof(SignatureLoadModel),
     "", MulticlassPredictionTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(RegressionPredictionTransformer<IPredictorProducing<float>>), typeof(RegressionPredictionTransformer), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(object), typeof(RegressionPredictionTransformer), null, typeof(SignatureLoadModel),
     "", RegressionPredictionTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(RankingPredictionTransformer<IPredictorProducing<float>>), typeof(RankingPredictionTransformer), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(object), typeof(RankingPredictionTransformer), null, typeof(SignatureLoadModel),
     "", RankingPredictionTransformer.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(AnomalyPredictionTransformer<IPredictorProducing<float>>), typeof(AnomalyPredictionTransformer), null, typeof(SignatureLoadModel),
@@ -28,7 +30,6 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
-
     /// <summary>
     /// Base class for transformers with no feature column, or more than one feature columns.
     /// </summary>
@@ -95,6 +96,30 @@ namespace Microsoft.ML.Data
             // id of string: feature column.
 
             ctx.LoadModel<TModel, SignatureLoadModel>(host, out TModel model, DirModel);
+            Model = model;
+
+            // Clone the stream with the schema into memory.
+            var ms = new MemoryStream();
+            ctx.TryLoadBinaryStream(DirTransSchema, reader =>
+            {
+                reader.BaseStream.CopyTo(ms);
+            });
+
+            ms.Position = 0;
+            var loader = new BinaryLoader(host, new BinaryLoader.Arguments(), ms);
+            TrainSchema = loader.Schema;
+        }
+
+        [BestFriend]
+        private protected PredictionTransformerBase(IHost host, ModelLoadContext ctx, TModel model)
+        {
+            //MYMARSHALINVOKE
+            Host = host;
+
+            // *** Binary format ***
+            // model: prediction model.
+            // stream: empty data view that contains train schema.
+            // id of string: feature column.
             Model = model;
 
             // Clone the stream with the schema into memory.
@@ -203,6 +228,22 @@ namespace Microsoft.ML.Data
         private protected SingleFeaturePredictionTransformerBase(IHost host, ModelLoadContext ctx)
             : base(host, ctx)
         {
+            FeatureColumnName = ctx.LoadStringOrNull();
+
+            if (FeatureColumnName == null)
+                FeatureColumnType = null;
+            else if (!TrainSchema.TryGetColumnIndex(FeatureColumnName, out int col))
+                throw Host.ExceptSchemaMismatch(nameof(FeatureColumnName), "feature", FeatureColumnName);
+            else
+                FeatureColumnType = TrainSchema[col].Type;
+
+            BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, ModelAsPredictor);
+        }
+
+        private protected SingleFeaturePredictionTransformerBase(IHost host, ModelLoadContext ctx, TModel model)
+            : base(host, ctx, model)
+        {
+            //MYMARSHALINVOKE
             FeatureColumnName = ctx.LoadStringOrNull();
 
             if (FeatureColumnName == null)
@@ -359,6 +400,15 @@ namespace Microsoft.ML.Data
             SetScorer();
         }
 
+        internal BinaryPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx, IHost host, TModel model)
+            : base(host, ctx, model)
+        {
+            //MYMARSHALINVOKE
+            Threshold = ctx.Reader.ReadSingle();
+            ThresholdColumn = ctx.LoadString();
+            SetScorer();
+        }
+
         private void SetScorer()
         {
             var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumnName);
@@ -423,6 +473,14 @@ namespace Microsoft.ML.Data
             SetScorer();
         }
 
+        internal MulticlassPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx, IHost host, TModel model)
+            : base(host, ctx, model)
+        {
+            //MYMARSHALINVOKE
+            _trainLabelColumn = ctx.LoadStringOrNull();
+            SetScorer();
+        }
+
         private void SetScorer()
         {
             var schema = new RoleMappedSchema(TrainSchema, _trainLabelColumn, FeatureColumnName);
@@ -475,6 +533,13 @@ namespace Microsoft.ML.Data
             Scorer = GetGenericScorer();
         }
 
+        internal RegressionPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx, IHost host, TModel model)
+            : base(host, ctx, model)
+        {
+            //MYMARSHALINVOKE
+            Scorer = GetGenericScorer();
+        }
+
         private protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
@@ -514,6 +579,13 @@ namespace Microsoft.ML.Data
         internal RankingPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RankingPredictionTransformer<TModel>)), ctx)
         {
+            Scorer = GetGenericScorer();
+        }
+
+        internal RankingPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx, IHost host, TModel model)
+            : base(host, ctx, model)
+        {
+            //MYMARSHALINVOKE
             Scorer = GetGenericScorer();
         }
 
@@ -596,32 +668,112 @@ namespace Microsoft.ML.Data
     {
         public const string LoaderSignature = "BinaryPredXfer";
 
-        public static BinaryPredictionTransformer<IPredictorProducing<float>> Create(IHostEnvironment env, ModelLoadContext ctx)
-            => new BinaryPredictionTransformer<IPredictorProducing<float>>(env, ctx);
+        public static object Create(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            //MYMARSHALINVOKE
+            var host = Contracts.CheckRef(env, nameof(env)).Register(nameof(BinaryPredictionTransformer<IPredictorProducing<float>>));
+            ctx.LoadModel<IPredictorProducing<float>, SignatureLoadModel>(host, out IPredictorProducing<float> model, "Model"); // MYTODO: don't hardcode the DirModel
+
+            Type generic = typeof(BinaryPredictionTransformer<>);
+            Type[] genericTypeArgs = { model.GetType() };
+            Type constructed = generic.MakeGenericType(genericTypeArgs);
+
+            Type[] constructorArgs = {
+                typeof(IHostEnvironment),
+                typeof(ModelLoadContext),
+                typeof(IHost),
+                model.GetType()
+            };
+
+            var genericCtor = constructed.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, constructorArgs, null);
+            var genericInstance = genericCtor.Invoke(new object[] { env, ctx, host, model });
+
+            return genericInstance;
+        }
     }
 
     internal static class MulticlassPredictionTransformer
     {
         public const string LoaderSignature = "MulticlassPredXfer";
 
-        public static MulticlassPredictionTransformer<IPredictorProducing<VBuffer<float>>> Create(IHostEnvironment env, ModelLoadContext ctx)
-            => new MulticlassPredictionTransformer<IPredictorProducing<VBuffer<float>>>(env, ctx);
+        public static object Create(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            //MYMARSHALINVOKE
+            var host = Contracts.CheckRef(env, nameof(env)).Register(nameof(MulticlassPredictionTransformer<IPredictorProducing<VBuffer<float>>>));
+            ctx.LoadModel<IPredictorProducing<VBuffer<float>>, SignatureLoadModel>(host, out IPredictorProducing<VBuffer<float>> model, "Model"); // MYTODO: don't hardcode the DirModel
+
+            Type generic = typeof(MulticlassPredictionTransformer<>);
+            Type[] genericTypeArgs = { model.GetType() };
+            Type constructed = generic.MakeGenericType(genericTypeArgs);
+
+            Type[] constructorArgs = {
+                typeof(IHostEnvironment),
+                typeof(ModelLoadContext),
+                typeof(IHost),
+                model.GetType()
+            };
+
+            var genericCtor = constructed.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, constructorArgs, null);
+            var genericInstance = genericCtor.Invoke(new object[] { env, ctx, host, model });
+
+            return genericInstance;
+        }
     }
 
     internal static class RegressionPredictionTransformer
     {
         public const string LoaderSignature = "RegressionPredXfer";
 
-        public static RegressionPredictionTransformer<IPredictorProducing<float>> Create(IHostEnvironment env, ModelLoadContext ctx)
-            => new RegressionPredictionTransformer<IPredictorProducing<float>>(env, ctx);
+        public static object Create(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            //MYMARSHALINVOKE
+            var host = Contracts.CheckRef(env, nameof(env)).Register(nameof(RegressionPredictionTransformer<IPredictorProducing<float>>));
+            ctx.LoadModel<IPredictorProducing<float>, SignatureLoadModel>(host, out IPredictorProducing<float> model, "Model"); // MYTODO: don't hardcode the DirModel
+
+            Type generic = typeof(RegressionPredictionTransformer<>);
+            Type[] genericTypeArgs = { model.GetType() };
+            Type constructed = generic.MakeGenericType(genericTypeArgs);
+
+            Type[] constructorArgs = {
+                typeof(IHostEnvironment),
+                typeof(ModelLoadContext),
+                typeof(IHost),
+                model.GetType()
+            };
+
+            var genericCtor = constructed.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, constructorArgs, null);
+            var genericInstance = genericCtor.Invoke(new object[] { env, ctx, host, model });
+
+            return genericInstance;
+        }
     }
 
     internal static class RankingPredictionTransformer
     {
         public const string LoaderSignature = "RankingPredXfer";
 
-        public static RankingPredictionTransformer<IPredictorProducing<float>> Create(IHostEnvironment env, ModelLoadContext ctx)
-            => new RankingPredictionTransformer<IPredictorProducing<float>>(env, ctx);
+        public static object Create(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            //MYMARSHALINVOKE
+            var host = Contracts.CheckRef(env, nameof(env)).Register(nameof(RankingPredictionTransformer<IPredictorProducing<float>>));
+            ctx.LoadModel<IPredictorProducing<float>, SignatureLoadModel>(host, out IPredictorProducing<float> model, "Model"); // MYTODO: don't hardcode the DirModel
+
+            Type generic = typeof(RankingPredictionTransformer<>);
+            Type[] genericTypeArgs = { model.GetType() };
+            Type constructed = generic.MakeGenericType(genericTypeArgs);
+
+            Type[] constructorArgs = {
+                typeof(IHostEnvironment),
+                typeof(ModelLoadContext),
+                typeof(IHost),
+                model.GetType()
+            };
+
+            var genericCtor = constructed.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, constructorArgs, null);
+            var genericInstance = genericCtor.Invoke(new object[] { env, ctx, host, model });
+
+            return genericInstance;
+        }
     }
 
     internal static class AnomalyPredictionTransformer
