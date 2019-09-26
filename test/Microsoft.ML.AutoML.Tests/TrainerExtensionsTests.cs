@@ -21,7 +21,7 @@ namespace Microsoft.ML.AutoML.Test
                 .Except(new[] { TrainerName.Ova });
             foreach (var trainerName in trainerNames)
             {
-                if(trainerName == TrainerName.MatrixFactorization)
+                if (trainerName == TrainerName.MatrixFactorization)
                 {
                     // We don't test MatrixFactorization now
                     continue;

@@ -31,7 +31,7 @@ namespace Microsoft.ML.AutoML
         public RecommendationExperimentSettings(RecommendationExperimentScenario scenario, string columnIndexName, string rowIndexName)
             : this()
         {
-            if(scenario == RecommendationExperimentScenario.MatrixFactorization)
+            if (scenario == RecommendationExperimentScenario.MatrixFactorization)
             {
                 AutoCatalog.ValuePairs[nameof(MatrixFactorizationTrainer.Options.MatrixColumnIndexColumnName)] = columnIndexName;
                 AutoCatalog.ValuePairs[nameof(MatrixFactorizationTrainer.Options.MatrixRowIndexColumnName)] = rowIndexName;

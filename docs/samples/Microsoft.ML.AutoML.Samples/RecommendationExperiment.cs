@@ -61,7 +61,7 @@ namespace Microsoft.ML.AutoML.Samples
             // STEP 7: Create prediction engine from the best trained model
             var predictionEngine = mlContext.Model.CreatePredictionEngine<Movie, MovieRatingPrediction>(bestRun.Model);
 
-            // STEP 8: Initialize a new test taxi trip, and get the predicted fare
+            // STEP 8: Initialize a new test, and get the predicted fare
             var testMovie = new Movie
             {
                 UserId="1",
