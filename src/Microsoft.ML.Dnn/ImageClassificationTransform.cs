@@ -64,7 +64,7 @@ namespace Microsoft.ML.Transforms
         private Graph Graph => _session.graph;
         private readonly string[] _inputs;
         private readonly string[] _outputs;
-        private readonly string[] _keyValueAnnotations;
+        private ReadOnlyMemory<char>[] _keyValueAnnotations;
         private readonly string _labelColumnName;
         private readonly string _finalModelPrefix;
         private readonly Architecture _arch;
@@ -106,7 +106,20 @@ namespace Microsoft.ML.Transforms
             // int: number of output columns
             // for each output column
             //   int: id of output column name
-            // stream: tensorFlow model.
+            // string: value of label column name
+            // string: prefix pf final model and checkpoint files/folder for storing graph files
+            // int: value of the utilized model architecture for transfer learning
+            // string: value of score column name
+            // string: value of predicted label column name
+            // float: value of learning rate
+            // int: number of prediction classes
+            // for each key value annotation column
+            //   string: value of key value annotations
+            // string: name of prediction tensor
+            // string: name of softmax tensor
+            // string: name of JPEG data tensor
+            // string: name of resized image tensor
+            // stream (byte): tensorFlow model.
 
             GetModelInfo(env, ctx, out string[] inputs, out string[] outputs, out bool addBatchDimensionInput,
                 out string labelColumn, out string checkpointName, out Architecture arch, out string scoreColumnName,
@@ -119,8 +132,8 @@ namespace Microsoft.ML.Transforms
 
             return new ImageClassificationTransformer(env, DnnUtils.LoadTFSession(env, modelBytes), outputs, inputs,
                 null, addBatchDimensionInput, 1, labelColumn, checkpointName, arch,
-                scoreColumnName, predictedColumnName, learningRate, null, classCount, keyValueAnnotations, true, predictionTensorName,
-                softMaxTensorName, jpegDataTensorName, resizeTensorName);
+                scoreColumnName, predictedColumnName, learningRate, null, classCount, true, predictionTensorName,
+                softMaxTensorName, jpegDataTensorName, resizeTensorName, keyValueAnnotations);
 
         }
 
@@ -657,8 +670,8 @@ namespace Microsoft.ML.Transforms
         internal ImageClassificationTransformer(IHostEnvironment env, Session session, string[] outputColumnNames,
             string[] inputColumnNames, string modelLocation,
             bool? addBatchDimensionInput, int batchSize, string labelColumnName, string finalModelPrefix, Architecture arch,
-            string scoreColumnName, string predictedLabelColumnName, float learningRate, DataViewSchema inputSchema, int? classCount = null, string[] keyValueAnnotations = null, bool loadModel = false,
-            string predictionTensorName = null, string softMaxTensorName = null, string jpegDataTensorName = null, string resizeTensorName = null)
+            string scoreColumnName, string predictedLabelColumnName, float learningRate, DataViewSchema inputSchema, int? classCount = null, bool loadModel = false,
+            string predictionTensorName = null, string softMaxTensorName = null, string jpegDataTensorName = null, string resizeTensorName = null, string[] labelAnnotations = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageClassificationTransformer)))
 
         {
@@ -671,7 +684,6 @@ namespace Microsoft.ML.Transforms
             _addBatchDimensionInput = addBatchDimensionInput ?? arch == Architecture.ResnetV2101;
             _inputs = inputColumnNames;
             _outputs = outputColumnNames;
-            _keyValueAnnotations = keyValueAnnotations;
             _labelColumnName = labelColumnName;
             _finalModelPrefix = finalModelPrefix;
             _arch = arch;
@@ -692,9 +704,6 @@ namespace Microsoft.ML.Transforms
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "label", (string)labelColumn.Name, "Key", (string)labelType.ToString());
 
                 _classCount = labelCount == 1 ? 2 : (int)labelCount;
-
-                //Temporary string array for key values, will replace soon
-                _keyValueAnnotations = new string[] { "sunflowers", "roses", "dandelion", "daisy", "tulips"};
             }
             else
                 _classCount = classCount.Value;
@@ -731,6 +740,20 @@ namespace Microsoft.ML.Transforms
                 (_evaluationStep, _) = AddEvaluationStep(_softMaxTensor, _labelTensor);
                 _softmaxTensorName = _softMaxTensor.name;
                 _predictionTensorName = _prediction.name;
+
+                // Add annotations as key values, if they exist.
+                VBuffer<ReadOnlyMemory<char>> keysVBuffer = default;
+                if (inputSchema[labelColumnName].HasKeyValues())
+                {
+                    inputSchema[labelColumnName].GetKeyValues(ref keysVBuffer);
+                    _keyValueAnnotations = keysVBuffer.DenseValues().ToArray();
+                }
+            }
+            else
+            {
+                // Load annotations as key values, if they exist
+                if (!(labelAnnotations is null))
+                    _keyValueAnnotations = labelAnnotations.Select(v => v.AsMemory()).ToArray();
             }
         }
 
@@ -738,6 +761,30 @@ namespace Microsoft.ML.Transforms
 
         private protected override void SaveModel(ModelSaveContext ctx)
         {
+            // *** Binary format ***
+            // byte: indicator for frozen models
+            // byte: indicator for adding batch dimension in input
+            // int: number of input columns
+            // for each input column
+            //   int: id of int column name
+            // int: number of output columns
+            // for each output column
+            //   int: id of output column name
+            // string: value of label column name
+            // string: prefix pf final model and checkpoint files/folder for storing graph files
+            // int: value of the utilized model architecture for transfer learning
+            // string: value of score column name
+            // string: value of predicted label column name
+            // float: value of learning rate
+            // int: number of prediction classes
+            // for each key value annotation column
+            //   string: value of key value annotations
+            // string: name of prediction tensor
+            // string: name of softmax tensor
+            // string: name of JPEG data tensor
+            // string: name of resized image tensor
+            // stream (byte): tensorFlow model.
+
             Host.AssertValue(ctx);
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
@@ -761,8 +808,10 @@ namespace Microsoft.ML.Transforms
             ctx.Writer.Write(_learningRate);
             ctx.Writer.Write(_classCount);
 
-            foreach (var keyValueAnnotation in _keyValueAnnotations)
-                ctx.SaveNonEmptyString(keyValueAnnotation);
+            Host.AssertNonEmpty(_keyValueAnnotations);
+            Host.Assert(_keyValueAnnotations.Length == _classCount);
+            for (int j = 0; j < _classCount; j++)
+                ctx.SaveNonEmptyString(_keyValueAnnotations[j]);
 
             ctx.Writer.Write(_predictionTensorName);
             ctx.Writer.Write(_softmaxTensorName);
@@ -891,9 +940,18 @@ namespace Microsoft.ML.Transforms
 
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
+                var annotationBuilder = new DataViewSchema.Annotations.Builder();
+                annotationBuilder.AddKeyValues(_parent._classCount, TextDataViewType.Instance, (ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                {
+                    var editor = VBufferEditor.Create(ref dst, _parent._classCount);
+                    for (int i = 0; i < _parent._classCount; i++)
+                        editor.Values[i] = _parent._keyValueAnnotations[i];
+                    dst = editor.Commit();
+                });
+
                 var info = new DataViewSchema.DetachedColumn[_parent._outputs.Length];
                 info[0] = new DataViewSchema.DetachedColumn(_parent._scoreColumnName, new VectorDataViewType(NumberDataViewType.Single, _parent._classCount), null);
-                info[1] = new DataViewSchema.DetachedColumn(_parent._predictedLabelColumnName, new KeyDataViewType(typeof(uint), _parent._classCount), ((DataViewSchema.Column)InputSchema.GetColumnOrNull(_parent._labelColumnName)).Annotations);
+                info[1] = new DataViewSchema.DetachedColumn(_parent._predictedLabelColumnName, new KeyDataViewType(typeof(uint), _parent._classCount), annotationBuilder.ToAnnotations());
                 return info;
             }
         }
@@ -1052,12 +1110,6 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The name of the outputs", ShortName = "outputs", SortOrder = 2)]
             public string[] OutputColumns;
-
-            /// <summary>
-            /// The names of the requested key value annotations.
-            /// </summary>
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The name of the key value annotations", ShortName = "annotations", SortOrder = 3)]
-            public string[] KeyValueAnnotations;
 
             /// <summary>
             /// The name of the label column in <see cref="IDataView"/> that will be mapped to label node in TensorFlow model.
@@ -1236,8 +1288,7 @@ namespace Microsoft.ML.Transforms
         public ImageClassificationTransformer Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
-            if (_transformer == null)
-                _transformer = new ImageClassificationTransformer(_host, _options, _dnnModel, input);
+            _transformer = new ImageClassificationTransformer(_host, _options, _dnnModel, input);
 
             // Validate input schema.
             _transformer.GetOutputSchema(input.Schema);
