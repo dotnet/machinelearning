@@ -1,8 +1,10 @@
-﻿using System;
-using System.Collections;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
 
@@ -10,7 +12,7 @@ namespace Microsoft.ML.AutoML
 {
     public enum RecommendationExperimentScenario
     {
-        MF,
+        MatrixFactorization = 0,
     }
 
     public sealed class RecommendationExperimentSettings : ExperimentSettings
@@ -29,7 +31,7 @@ namespace Microsoft.ML.AutoML
         public RecommendationExperimentSettings(RecommendationExperimentScenario scenario, string columnIndexName, string rowIndexName)
             : this()
         {
-            if(scenario == RecommendationExperimentScenario.MF)
+            if(scenario == RecommendationExperimentScenario.MatrixFactorization)
             {
                 AutoCatalog.ValuePairs[nameof(MatrixFactorizationTrainer.Options.MatrixColumnIndexColumnName)] = columnIndexName;
                 AutoCatalog.ValuePairs[nameof(MatrixFactorizationTrainer.Options.MatrixRowIndexColumnName)] = rowIndexName;
