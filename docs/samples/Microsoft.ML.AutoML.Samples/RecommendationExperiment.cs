@@ -26,7 +26,7 @@ namespace Microsoft.ML.AutoML.Samples
             IDataView trainDataView = mlContext.Data.LoadFromTextFile<Movie>(TrainDataPath, hasHeader: true, separatorChar: ',');
             IDataView testDataView = mlContext.Data.LoadFromTextFile<Movie>(TestDataPath, hasHeader: true, separatorChar: ',');
 
-            var settings = new RecommendationExperimentSettings(RecommendationExperimentScenario.MF, "userId", "movieId")
+            var settings = new RecommendationExperimentSettings(RecommendationExperimentScenario.MatrixFactorization, "userId", "movieId")
             {
                 MaxExperimentTimeInSeconds = ExperimentTime
             };
