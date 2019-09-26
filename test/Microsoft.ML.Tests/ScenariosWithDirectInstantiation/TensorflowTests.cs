@@ -1244,11 +1244,21 @@ namespace Microsoft.ML.Scenarios
 
             var pipeline = mlContext.Model.ImageClassification(
                 "ImagePath", "Label",
+                // Just by changing/selecting InceptionV3 here instead of 
+                // ResnetV2101 you can try a different architecture/pre-trained 
+                // model. 
+                // Uncomment reuseTrainSetBottleneckCachedValues and
+                // reuseValidationSetBottleneckCachedValues to reuse trained model
+                // for faster debugging.
                 arch: ImageClassificationEstimator.Architecture.ResnetV2101,
-                epoch: 5,
-                batchSize: 5,
+                epoch: 50,
+                batchSize: 10,
                 learningRate: 0.01f,
-                testOnTrainSet: false);
+                metricsCallback: (metrics) => Console.WriteLine(metrics),
+                // reuseTrainSetBottleneckCachedValues: true,
+                // reuseValidationSetBottleneckCachedValues: true,
+                validationSet: testDataset)
+                .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel"));
 
             var trainedModel = pipeline.Fit(trainDataset);
 
@@ -1260,6 +1270,7 @@ namespace Microsoft.ML.Scenarios
             using (var file = File.OpenRead("model.zip"))
                 loadedModel = mlContext.Model.Load(file, out schema);
 
+            // Testing EvaluateModel: group testing on test dataset
             IDataView predictions = trainedModel.Transform(testDataset);
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
 
@@ -1279,6 +1290,39 @@ namespace Microsoft.ML.Scenarios
                 Assert.Equal(1, metrics.MicroAccuracy);
                 Assert.Equal(1, metrics.MacroAccuracy);
             }
+
+            // Testing TrySinglePrediction: Utilizing PredictionEngine for single
+            // predictions.
+            var predictionEngine = mlContext.Model
+                .CreatePredictionEngine<ImageData, ImagePrediction>(loadedModel);
+
+            IEnumerable<ImageData> testImages = LoadImagesFromDirectory(
+                fullImagesetFolderPath, false);
+
+            ImageData imageToPredictFirst = new ImageData
+            {
+                ImagePath = testImages.First().ImagePath
+            };
+
+            ImageData imageToPredictLast = new ImageData
+            {
+                ImagePath = testImages.Last().ImagePath
+            };
+
+            var predictionFirst = predictionEngine.Predict(imageToPredictFirst);
+            var predictionLast = predictionEngine.Predict(imageToPredictLast);
+
+            var labelColumnFirst = schema.GetColumnOrNull("Label").Value;
+            var labelTypeFirst = labelColumnFirst.Type;
+            var labelCountFirst = labelTypeFirst.GetKeyCount();
+            var labelColumnLast = schema.GetColumnOrNull("Label").Value;
+            var labelTypeLast = labelColumnLast.Type;
+            var labelCountLast = labelTypeLast.GetKeyCount();
+
+            Assert.Equal((int)labelCountFirst, predictionFirst.Score.Length);
+            Assert.Equal((int)labelCountLast, predictionLast.Score.Length);
+            Assert.Equal("dandelion", predictionFirst.PredictedLabel);
+            Assert.Equal("roses", predictionLast.PredictedLabel);
         }
 
         public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,
@@ -1380,7 +1424,7 @@ namespace Microsoft.ML.Scenarios
             public float[] Score;
 
             [ColumnName("PredictedLabel")]
-            public UInt32 PredictedLabel;
+            public string PredictedLabel;
         }
 
     }
