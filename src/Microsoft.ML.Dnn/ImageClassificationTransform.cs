@@ -806,8 +806,8 @@ namespace Microsoft.ML.Transforms
                 private ReadOnlyMemory<char> _imagePath;
                 private Runner _runner;
                 private ImageProcessor _imageProcessor;
-                private UInt32 _predictedLabel;
-                public UInt32 PredictedLabel => _predictedLabel;
+                private long _predictedLabel;
+                public UInt32 PredictedLabel => (uint)_predictedLabel;
                 private float[] _classProbability;
                 public float[] ClassProbabilities => _classProbability;
                 private DataViewRow _inputRow;
@@ -836,7 +836,7 @@ namespace Microsoft.ML.Transforms
                             var processedTensor = _imageProcessor.ProcessImage(_imagePath.ToString());
                             var outputTensor = _runner.AddInput(processedTensor, 0).Run();
                             outputTensor[0].ToArray<float>(ref _classProbability);
-                            outputTensor[1].ToScalar<UInt32>(ref _predictedLabel);
+                            outputTensor[1].ToScalar<long>(ref _predictedLabel);
                             outputTensor[0].Dispose();
                             outputTensor[1].Dispose();
                             processedTensor.Dispose();

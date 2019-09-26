@@ -78,8 +78,11 @@ namespace Microsoft.ML.Transforms
 
         public static void ToArray<T>(this Tensor tensor, ref T[] array) where T : unmanaged
         {
-            var arrayLen = (ulong)array.Length;
-            if (arrayLen == 0 || arrayLen < tensor.size)
+            ulong arrayLen = 0;
+            if (array != null)
+                arrayLen = (ulong)array.Length;
+
+            if (array == null || arrayLen == 0 || arrayLen < tensor.size)
             {
                 array = new T[tensor.size];
                 arrayLen = tensor.size;
