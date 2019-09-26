@@ -23,14 +23,17 @@ namespace Microsoft.ML.AutoML.Samples
             IDataView trainDataView = mlContext.Data.LoadFromTextFile<Movie>(TrainDataPath, hasHeader: true, separatorChar: ',');
             IDataView testDataView = mlContext.Data.LoadFromTextFile<Movie>(TestDataPath, hasHeader: true, separatorChar: ',');
 
-            var settings = new RecommendationExperimentSettings(RecommendationExperimentScenario.MF, "userId", "movieId");
+            var settings = new RecommendationExperimentSettings(RecommendationExperimentScenario.MF, "userId", "movieId")
+            {
+                MaxExperimentTimeInSeconds = ExperimentTime
+            };
             var inputColumnInformation = new ColumnInformation();
             inputColumnInformation.LabelCategoricalColumnNames.Add("movieId");
             inputColumnInformation.LabelCategoricalColumnNames.Add("userId");
             inputColumnInformation.LabelColumnName = "rating";
 
             // STEP 2: Run AutoML experiment
-            Console.WriteLine($"Running AutoML regression experiment for {ExperimentTime} seconds...");
+            Console.WriteLine($"Running AutoML recommendation experiment for {ExperimentTime} seconds...");
             ExperimentResult<RegressionMetrics> experimentResult = mlContext.Auto()
                 .CreateRecommendationExperiment(settings)
                 .Execute(trainDataView, inputColumnInformation);
@@ -53,16 +56,16 @@ namespace Microsoft.ML.AutoML.Samples
                 mlContext.Model.Save(bestRun.Model, trainDataView.Schema, fs);
 
             // STEP 7: Create prediction engine from the best trained model
-            var predictionEngine = mlContext.Model.CreatePredictionEngine<Movie, TaxiTripFarePrediction>(bestRun.Model);
+            var predictionEngine = mlContext.Model.CreatePredictionEngine<Movie, MovieRatingPrediction>(bestRun.Model);
 
             // STEP 8: Initialize a new test taxi trip, and get the predicted fare
-            var testTaxiTrip = new Movie
+            var testMovie = new Movie
             {
                 userId="1",
                 movieId = "1097",
             };
-            var prediction = predictionEngine.Predict(testTaxiTrip);
-            Console.WriteLine($"Predicted fare for test taxi trip: {prediction.FareAmount}");
+            var prediction = predictionEngine.Predict(testMovie);
+            Console.WriteLine($"Predicted rating for: {prediction.rating}");
 
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();

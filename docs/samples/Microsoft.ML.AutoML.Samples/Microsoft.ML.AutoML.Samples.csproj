@@ -8,6 +8,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj" />
     <NativeAssemblyReference Include="MatrixFactorizationNative" />
+    <NativeAssemblyReference Include="FastTreeNative" />
   </ItemGroup>
 
 </Project>
