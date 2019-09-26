@@ -344,7 +344,7 @@ namespace Microsoft.ML.Transforms
             var history = new TrainMetrics();
             history.Accuracy = 0;
 
-            for (int epoch = 0; epoch < epochs & !earlyStop; epoch += 1)
+            for (int epoch = 0; epoch < epochs && !earlyStop; epoch += 1)
             {
                 metrics.Train.Accuracy = 0;
                 metrics.Train.CrossEntropy = 0;
@@ -451,7 +451,8 @@ namespace Microsoft.ML.Transforms
                         statisticsCallback(metrics);
                     }
                 }
-                // early stopping check
+
+                //Early stopping check
                 if (options.EnableEarlyStopping)
                 {
                     if (metrics.Train.Accuracy - options.MinDelta > history.Accuracy)
@@ -1099,7 +1100,7 @@ namespace Microsoft.ML.Transforms
             /// Minimum change in accuracy to qualify as improvement.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Minimum change in accuracy to qualify as improvement.", SortOrder = 15)]
-            public float MinDelta = 0.0f;
+            public float MinDelta = 0.01f;
 
             /// <summary>
             /// Number of epochs to wait after no improvement is observed before early stopping.

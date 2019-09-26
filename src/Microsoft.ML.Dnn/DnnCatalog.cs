@@ -90,7 +90,7 @@ namespace Microsoft.ML
         /// <param name="batchSize">The batch size for training.</param>
         /// <param name="learningRate">The learning rate for training.</param>
         /// <param name="enableEarlyStopping">Whether early stopping technique should be used when accuracy stops improving.</param>
-        /// <param name="earlyStoppingminDelta">Minimum change in accuracy to qualify as improvement.</param>
+        /// <param name="earlyStoppingMinDelta">Minimum change in accuracy to qualify as improvement.</param>
         /// <param name="earlyStoppingPatience">Number of epochs to wait after no improvement is observed before early stopping.</param>
         /// <param name="metricsCallback">Callback for reporting model statistics during training phase.</param>
         /// <param name="statisticFrequency">Indicates the frequency of epochs at which to report model statistics during training phase.</param>
@@ -117,7 +117,7 @@ namespace Microsoft.ML
             int batchSize = 10,
             float learningRate = 0.01f,
             bool enableEarlyStopping = true,
-            float earlyStoppingminDelta = 0.01f,
+            float earlyStoppingMinDelta = 0.01f,
             int earlyStoppingPatience = 20,
             ImageClassificationMetricsCallback metricsCallback = null,
             int statisticFrequency = 1,
@@ -143,7 +143,7 @@ namespace Microsoft.ML
                 LearningRate = learningRate,
                 BatchSize = batchSize,
                 EnableEarlyStopping = enableEarlyStopping,
-                MinDelta = earlyStoppingminDelta,
+                MinDelta = earlyStoppingMinDelta,
                 Patience = earlyStoppingPatience,
                 ScoreColumnName = scoreColumnName,
                 PredictedLabelColumnName = predictedLabelColumnName,
