@@ -64,7 +64,7 @@ namespace Microsoft.ML.Transforms
         private Graph Graph => _session.graph;
         private readonly string[] _inputs;
         private readonly string[] _outputs;
-        private readonly string[] _keyValueAnnotations;
+        private ReadOnlyMemory<char>[] _keyValueAnnotations;
         private readonly string _labelColumnName;
         private readonly string _finalModelPrefix;
         private readonly Architecture _arch;
@@ -119,7 +119,7 @@ namespace Microsoft.ML.Transforms
 
             return new ImageClassificationTransformer(env, DnnUtils.LoadTFSession(env, modelBytes), outputs, inputs,
                 null, addBatchDimensionInput, 1, labelColumn, checkpointName, arch,
-                scoreColumnName, predictedColumnName, learningRate, null, classCount, keyValueAnnotations, true, predictionTensorName,
+                scoreColumnName, predictedColumnName, learningRate, null, classCount, true, predictionTensorName,
                 softMaxTensorName, jpegDataTensorName, resizeTensorName);
 
         }
@@ -657,7 +657,7 @@ namespace Microsoft.ML.Transforms
         internal ImageClassificationTransformer(IHostEnvironment env, Session session, string[] outputColumnNames,
             string[] inputColumnNames, string modelLocation,
             bool? addBatchDimensionInput, int batchSize, string labelColumnName, string finalModelPrefix, Architecture arch,
-            string scoreColumnName, string predictedLabelColumnName, float learningRate, DataViewSchema inputSchema, int? classCount = null, string[] keyValueAnnotations = null, bool loadModel = false,
+            string scoreColumnName, string predictedLabelColumnName, float learningRate, DataViewSchema inputSchema, int? classCount = null, bool loadModel = false,
             string predictionTensorName = null, string softMaxTensorName = null, string jpegDataTensorName = null, string resizeTensorName = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageClassificationTransformer)))
 
@@ -671,7 +671,6 @@ namespace Microsoft.ML.Transforms
             _addBatchDimensionInput = addBatchDimensionInput ?? arch == Architecture.ResnetV2101;
             _inputs = inputColumnNames;
             _outputs = outputColumnNames;
-            _keyValueAnnotations = keyValueAnnotations;
             _labelColumnName = labelColumnName;
             _finalModelPrefix = finalModelPrefix;
             _arch = arch;
@@ -692,9 +691,6 @@ namespace Microsoft.ML.Transforms
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "label", (string)labelColumn.Name, "Key", (string)labelType.ToString());
 
                 _classCount = labelCount == 1 ? 2 : (int)labelCount;
-
-                //Temporary string array for key values, will replace soon
-                _keyValueAnnotations = new string[] { "sunflowers", "roses", "dandelion", "daisy", "tulips"};
             }
             else
                 _classCount = classCount.Value;
@@ -731,6 +727,15 @@ namespace Microsoft.ML.Transforms
                 (_evaluationStep, _) = AddEvaluationStep(_softMaxTensor, _labelTensor);
                 _softmaxTensorName = _softMaxTensor.name;
                 _predictionTensorName = _prediction.name;
+
+                VBuffer<ReadOnlyMemory<char>> keysVBuffer = default;
+                inputSchema[labelColumnName].GetKeyValues(ref keysVBuffer);
+                _keyValueAnnotations = keysVBuffer.DenseValues().ToArray();
+            }
+            else
+            {
+                
+
             }
         }
 
@@ -761,8 +766,8 @@ namespace Microsoft.ML.Transforms
             ctx.Writer.Write(_learningRate);
             ctx.Writer.Write(_classCount);
 
-            foreach (var keyValueAnnotation in _keyValueAnnotations)
-                ctx.SaveNonEmptyString(keyValueAnnotation);
+            for (int j = 0; j < _classCount; j++)
+                ctx.SaveNonEmptyString(_keyValueAnnotations[j]);
 
             ctx.Writer.Write(_predictionTensorName);
             ctx.Writer.Write(_softmaxTensorName);
@@ -1054,12 +1059,6 @@ namespace Microsoft.ML.Transforms
             public string[] OutputColumns;
 
             /// <summary>
-            /// The names of the requested key value annotations.
-            /// </summary>
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The name of the key value annotations", ShortName = "annotations", SortOrder = 3)]
-            public string[] KeyValueAnnotations;
-
-            /// <summary>
             /// The name of the label column in <see cref="IDataView"/> that will be mapped to label node in TensorFlow model.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Training labels.", ShortName = "label", SortOrder = 4)]
@@ -1236,8 +1235,7 @@ namespace Microsoft.ML.Transforms
         public ImageClassificationTransformer Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
-            if (_transformer == null)
-                _transformer = new ImageClassificationTransformer(_host, _options, _dnnModel, input);
+            _transformer = new ImageClassificationTransformer(_host, _options, _dnnModel, input);
 
             // Validate input schema.
             _transformer.GetOutputSchema(input.Schema);
