@@ -63,13 +63,18 @@ namespace Samples.Dynamic
                     // Just by changing/selecting InceptionV3 here instead of 
                     // ResnetV2101 you can try a different architecture/pre-trained 
                     // model. 
-                    arch: ImageClassificationEstimator.Architecture.ResnetV2101, 
+                    // Uncomment reuseTrainSetBottleneckCachedValues and
+                    // reuseValidationSetBottleneckCachedValues to reuse trained model
+                    // for faster debugging.
+                    arch: ImageClassificationEstimator.Architecture.ResnetV2101,
                     epoch: 50,
                     batchSize: 10,
                     learningRate: 0.01f,
                     metricsCallback: (metrics) => Console.WriteLine(metrics),
+                    // reuseTrainSetBottleneckCachedValues: true,
+                    // reuseValidationSetBottleneckCachedValues: true,
                     validationSet: testDataset)
-                    .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "Label"));
+                    .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel"));
 
                 Console.WriteLine("*** Training the image classification model with " +
                     "DNN Transfer Learning on top of the selected pre-trained " +
@@ -83,7 +88,7 @@ namespace Samples.Dynamic
                 watch.Stop();
                 long elapsedMs = watch.ElapsedMilliseconds;
 
-                Console.WriteLine("Training with transfer learning took: " + 
+                Console.WriteLine("Training with transfer learning took: " +
                     (elapsedMs / 1000).ToString() + " seconds");
 
                 mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
@@ -119,7 +124,7 @@ namespace Samples.Dynamic
         {
             // Create prediction function to try one prediction
             var predictionEngine = mlContext.Model
-                .CreatePredictionEngine<ImageData, ImagePrediction>(trainedModel, true);
+                .CreatePredictionEngine<ImageData, ImagePrediction>(trainedModel);
 
             IEnumerable<ImageData> testImages = LoadImagesFromDirectory(
                 imagesForPredictions, false);
