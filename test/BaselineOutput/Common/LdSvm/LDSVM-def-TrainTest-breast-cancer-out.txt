@@ -1,4 +1,4 @@
-maml.exe TrainTest test=%Data% tr=LDSVM{iter=1000} dout=%Output% data=%Data% out=%Output% seed=1
+maml.exe TrainTest test=%Data% tr=LdSvm{iter=1000} dout=%Output% data=%Data% out=%Output% seed=1
 Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
 Warning: Skipped 16 rows with missing feature/label values
 Training calibrator.
