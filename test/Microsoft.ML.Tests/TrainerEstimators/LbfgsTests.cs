@@ -125,7 +125,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             using (var fs = File.OpenRead(modelAndSchemaPath))
                 transformerChain = ML.Model.Load(fs, out var schema);
 
-            var lastTransformer = ((TransformerChain<ITransformer>)transformerChain).LastTransformer as BinaryPredictionTransformer<IPredictorProducing<float>>;
+            var lastTransformer = ((TransformerChain<ITransformer>)transformerChain).LastTransformer as BinaryPredictionTransformer<ParameterMixingCalibratedModelParameters<IPredictorProducing<float>, ICalibrator>>;
             var model = lastTransformer.Model as ParameterMixingCalibratedModelParameters<IPredictorProducing<float>, ICalibrator>;
 
             linearModel = model.SubModel as LinearBinaryModelParameters;
@@ -215,8 +215,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             using (var fs = File.OpenRead(modelAndSchemaPath))
                 transformerChain = ML.Model.Load(fs, out var schema);
 
-            var lastTransformer = ((TransformerChain<ITransformer>)transformerChain).LastTransformer as MulticlassPredictionTransformer<IPredictorProducing<VBuffer<float>>>;
-            model = lastTransformer.Model as MaximumEntropyModelParameters;
+            var lastTransformer = ((TransformerChain<ITransformer>)transformerChain).LastTransformer as MulticlassPredictionTransformer<MaximumEntropyModelParameters>;
+            model = lastTransformer.Model;
 
             validateStats(model);
 
