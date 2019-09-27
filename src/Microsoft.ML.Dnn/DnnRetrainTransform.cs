@@ -907,7 +907,7 @@ namespace Microsoft.ML.Transforms
 
                             var editor = VBufferEditor.Create(ref dst, (int)tensorSize);
 
-                            tensor.ToSpan<T>(editor.Values);
+                            tensor.CopyTo<T>(editor.Values);
                             dst = editor.Commit();
                         };
                         return valuegetter;

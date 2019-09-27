@@ -25,7 +25,7 @@ namespace Microsoft.ML.Transforms
 
         }
 
-        public static void ToSpan<T>(this Tensor tensor, Span<T> values) where T: unmanaged
+        public static void CopyTo<T>(this Tensor tensor, Span<T> values) where T: unmanaged
         {
             if (typeof(T).as_dtype() != tensor.dtype)
                 throw new NotSupportedException();
