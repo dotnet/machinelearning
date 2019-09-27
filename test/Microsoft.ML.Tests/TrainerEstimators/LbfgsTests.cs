@@ -126,7 +126,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 transformerChain = ML.Model.Load(fs, out var schema);
 
             var lastTransformer = ((TransformerChain<ITransformer>)transformerChain).LastTransformer as BinaryPredictionTransformer<ParameterMixingCalibratedModelParameters<IPredictorProducing<float>, ICalibrator>>;
-            var model = lastTransformer.Model as ParameterMixingCalibratedModelParameters<IPredictorProducing<float>, ICalibrator>;
+            var model = lastTransformer.Model;
 
             linearModel = model.SubModel as LinearBinaryModelParameters;
 
