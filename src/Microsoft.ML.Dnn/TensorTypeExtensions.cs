@@ -11,28 +11,29 @@ namespace Microsoft.ML.Transforms
     {
         public static void ToScalar<T>(this Tensor tensor, ref T dst) where T : unmanaged
         {
-            if (typeof(T).as_dtype() == tensor.dtype)
+            if (typeof(T).as_dtype() != tensor.dtype)
+                throw new NotSupportedException();
+
+            unsafe
             {
-                unsafe
-                {
-                    dst = *(T*)tensor.buffer;
-                }
+                dst = *(T*)tensor.buffer;
             }
+
         }
 
         public static void ToSpan<T>(this Tensor tensor, Span<T> values) where T: unmanaged
         {
-            if (typeof(T).as_dtype() == tensor.dtype)
+            if (typeof(T).as_dtype() != tensor.dtype)
+                throw new NotSupportedException();
+
+            unsafe
             {
-                unsafe
+                var len = (long)tensor.size;
+                fixed (T* dst = values)
                 {
-                    var len = (long)tensor.size;
-                    fixed (T* dst = values)
-                    {
-                        var src = (T*)tensor.buffer;
-                        len *= ((long)tensor.itemsize);
-                        System.Buffer.MemoryCopy(src, dst, len, len);
-                    }
+                    var src = (T*)tensor.buffer;
+                    len *= ((long)tensor.itemsize);
+                    System.Buffer.MemoryCopy(src, dst, len, len);
                 }
             }
         }
@@ -46,7 +47,6 @@ namespace Microsoft.ML.Transforms
             if (array == null || arrayLen == 0 || arrayLen < tensor.size)
             {
                 array = new T[tensor.size];
-                arrayLen = tensor.size;
             }
 
             if (typeof(T).as_dtype() == tensor.dtype)
