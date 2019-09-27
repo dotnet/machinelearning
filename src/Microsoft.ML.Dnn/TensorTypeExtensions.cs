@@ -38,7 +38,8 @@ namespace Microsoft.ML.Transforms
                 {
                     var src = (T*)tensor.buffer;
                     len *= ((long)tensor.itemsize);
-                    System.Buffer.MemoryCopy(src, dst, len, len);
+                    var span = new Span<T>(src, (int)len);
+                    span.CopyTo(values);
                 }
             }
         }
