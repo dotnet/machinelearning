@@ -378,7 +378,7 @@ namespace Microsoft.ML.Transforms
                 var tfOutputType = ((Operation)outputTensor).OutputType(outputIndex);
                 var shape = GetTensorShape(new TF_Output((Operation)outputTensor, outputIndex), session.graph);
 
-                // The transformer can only retreive the output as fixed length vector with shape of kind [-1, d1, d2, d3, ...]
+                // The transformer can only retrieve the output as fixed length vector with shape of kind [-1, d1, d2, d3, ...]
                 // i.e. the first dimension (if unknown) is assumed to be batch dimension.
                 // If there are other dimension that are unknown the transformer will return a variable length vector.
                 // This is the work around in absence of reshape transformer.
