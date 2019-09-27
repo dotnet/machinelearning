@@ -224,7 +224,8 @@ namespace Microsoft.ML.RunTests
 #endif
         }
 
-        [Fact(Skip = "Execute this test if you want to regenerate the core_manifest and core_ep_list files")]
+        //[Fact(Skip = "Execute this test if you want to regenerate the core_manifest and core_ep_list files")]
+        [Fact]
         public void RegenerateEntryPointCatalog()
         {
             var (epListContents, jObj) = BuildManifests();
@@ -1319,8 +1320,7 @@ namespace Microsoft.ML.RunTests
                       'Inputs': {{
                         'Data': '$input_data',
                         'PredictorModel': '$output_model',
-                        'PermutationCount': 5,
-                        'RowGroupColumnName': 'Workclass'
+                        'PermutationCount': 5
                       }},
                       'Outputs': {{
                         'Metrics': '$output_data'

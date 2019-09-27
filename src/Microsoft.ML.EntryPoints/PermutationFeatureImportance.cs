@@ -45,12 +45,6 @@ namespace Microsoft.ML.Transforms
         [Argument(ArgumentType.Required, HelpText = "The path to the model file", ShortName = "path", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public PredictorModel PredictorModel;
 
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Label column name", ShortName = "label", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        public string LabelColumnName = "Label";
-
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Group ID column", ShortName = "groupId", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        public string RowGroupColumnName = "GroupId";
-
         [Argument(ArgumentType.AtMostOnce, HelpText = "Use feature weights to pre-filter features", ShortName = "usefw", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public bool UseFeatureWeightFilter = false;
 
@@ -94,14 +88,16 @@ namespace Microsoft.ML.Transforms
             IDataView data,
             PermutationFeatureImportanceArguments input)
         {
+            var roles = roleMappedSchema.GetColumnRoleNames();
+            var featureColumnName = roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value;
+            var labelColumnName = roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Label.Value).First().Value;
             var pred = new BinaryPredictionTransformer<IPredictorProducing<float>>(
-                env, predictor as IPredictorProducing<float>, data.Schema,
-                roleMappedSchema.GetColumnRoleNames().Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value);
+                env, predictor as IPredictorProducing<float>, data.Schema, featureColumnName);
             var binaryCatalog = new BinaryClassificationCatalog(env);
             var permutationMetrics = binaryCatalog
                 .PermutationFeatureImportance(pred,
                                               data,
-                                              labelColumnName: input.LabelColumnName,
+                                              labelColumnName: labelColumnName,
                                               useFeatureWeightFilter: input.UseFeatureWeightFilter,
                                               numberOfExamplesToUse: input.NumberOfExamplesToUse,
                                               permutationCount: input.PermutationCount);
@@ -150,15 +146,16 @@ namespace Microsoft.ML.Transforms
             IDataView data,
             PermutationFeatureImportanceArguments input)
         {
+            var roles = roleMappedSchema.GetColumnRoleNames();
+            var featureColumnName = roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value;
+            var labelColumnName = roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Label.Value).First().Value;
             var pred = new MulticlassPredictionTransformer<IPredictorProducing<VBuffer<float>>>(
-                env, predictor as IPredictorProducing<VBuffer<float>>, data.Schema,
-                roleMappedSchema.GetColumnRoleNames().Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value,
-                roleMappedSchema.GetColumnRoleNames().Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Label.Value).First().Value);
+                env, predictor as IPredictorProducing<VBuffer<float>>, data.Schema, featureColumnName, labelColumnName);
             var multiclassCatalog = new MulticlassClassificationCatalog(env);
             var permutationMetrics = multiclassCatalog
                 .PermutationFeatureImportance(pred,
                                               data,
-                                              labelColumnName: input.LabelColumnName,
+                                              labelColumnName: labelColumnName,
                                               useFeatureWeightFilter: input.UseFeatureWeightFilter,
                                               numberOfExamplesToUse: input.NumberOfExamplesToUse,
                                               permutationCount: input.PermutationCount);
@@ -209,14 +206,16 @@ namespace Microsoft.ML.Transforms
             IDataView data,
             PermutationFeatureImportanceArguments input)
         {
+            var roles = roleMappedSchema.GetColumnRoleNames();
+            var featureColumnName = roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value;
+            var labelColumnName = roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Label.Value).First().Value;
             var pred = new RegressionPredictionTransformer<IPredictorProducing<float>>(
-                env, predictor as IPredictorProducing<float>, data.Schema,
-                roleMappedSchema.GetColumnRoleNames().Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value);
+                env, predictor as IPredictorProducing<float>, data.Schema, featureColumnName);
             var regressionCatalog = new RegressionCatalog(env);
             var permutationMetrics = regressionCatalog
                 .PermutationFeatureImportance(pred,
                                               data,
-                                              labelColumnName: input.LabelColumnName,
+                                              labelColumnName: labelColumnName,
                                               useFeatureWeightFilter: input.UseFeatureWeightFilter,
                                               numberOfExamplesToUse: input.NumberOfExamplesToUse,
                                               permutationCount: input.PermutationCount);
@@ -259,15 +258,18 @@ namespace Microsoft.ML.Transforms
             IDataView data,
             PermutationFeatureImportanceArguments input)
         {
+            var roles = roleMappedSchema.GetColumnRoleNames();
+            var featureColumnName = roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value;
+            var labelColumnName = roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Label.Value).First().Value;
+            var groupIdColumnName = roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Group.Value).First().Value;
             var pred = new RankingPredictionTransformer<IPredictorProducing<float>>(
-                env, predictor as IPredictorProducing<float>, data.Schema,
-                roleMappedSchema.GetColumnRoleNames().Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value);
+                env, predictor as IPredictorProducing<float>, data.Schema, featureColumnName);
             var rankingCatalog = new RankingCatalog(env);
             var permutationMetrics = rankingCatalog
                 .PermutationFeatureImportance(pred,
                                               data,
-                                              labelColumnName: input.LabelColumnName,
-                                              rowGroupColumnName: input.RowGroupColumnName,
+                                              labelColumnName: labelColumnName,
+                                              rowGroupColumnName: groupIdColumnName,
                                               useFeatureWeightFilter: input.UseFeatureWeightFilter,
                                               numberOfExamplesToUse: input.NumberOfExamplesToUse,
                                               permutationCount: input.PermutationCount);

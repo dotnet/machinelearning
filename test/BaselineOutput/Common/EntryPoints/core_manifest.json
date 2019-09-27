@@ -21725,8 +21725,8 @@
           "IsNullable": false
         },
         {
-          "Name": "ModelPath",
-          "Type": "FileHandle",
+          "Name": "PredictorModel",
+          "Type": "PredictorModel",
           "Desc": "The path to the model file",
           "Aliases": [
             "path"
@@ -21734,30 +21734,6 @@
           "Required": true,
           "SortOrder": 150.0,
           "IsNullable": false
-        },
-        {
-          "Name": "LabelColumnName",
-          "Type": "String",
-          "Desc": "Label column name",
-          "Aliases": [
-            "label"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "Label"
-        },
-        {
-          "Name": "RowGroupColumnName",
-          "Type": "String",
-          "Desc": "Group ID column",
-          "Aliases": [
-            "groupId"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "GroupId"
         },
         {
           "Name": "UseFeatureWeightFilter",
