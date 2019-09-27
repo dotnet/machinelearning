@@ -806,7 +806,7 @@ namespace Microsoft.ML.Transforms
 
             Host.AssertNonEmpty(_keyValueAnnotations);
             Host.Assert(_keyValueAnnotations.Length == _classCount);
-            for (int j = 0; j < _classCount; j++)
+            for (int j = 0; j < _keyValueAnnotations.Length; j++)
                 ctx.SaveNonEmptyString(_keyValueAnnotations[j]);
 
             ctx.Writer.Write(_predictionTensorName);
