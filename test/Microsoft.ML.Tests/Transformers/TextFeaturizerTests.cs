@@ -33,6 +33,12 @@ namespace Microsoft.ML.Tests.Transformers
             public float[] Features = null;
         }
 
+        private class TestClass2
+        {
+            public string Features;
+            public string[] OutputTokens;
+        }
+
         [Fact]
         public void TextFeaturizerWithPredefinedStopWordRemoverTest()
         {
@@ -78,6 +84,90 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(data[1].A.ToLower(), string.Join(" ", prediction.OutputTokens));
             expected = new float[] { 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f };
             Assert.Equal(expected, prediction.Features);
+        }
+
+        [Fact]
+        public void TextFeaturizerWithWordFeatureExtractorWithNullInputNamesTest()
+        {
+            var data = new[] { new TestClass2() { Features = "This is some text in english", OutputTokens=null},
+                               new TestClass2() { Features = "This is another example", OutputTokens=null } };
+            var dataView = ML.Data.LoadFromEnumerable(data);
+
+            var options = new TextFeaturizingEstimator.Options()
+            {
+                WordFeatureExtractor = new WordBagEstimator.Options() { NgramLength = 1 },
+                CharFeatureExtractor = null,
+                Norm = TextFeaturizingEstimator.NormFunction.None,
+                OutputTokensColumnName = "OutputTokens"
+            };
+
+            var pipeline = ML.Transforms.Text.FeaturizeText("Features", options, null);
+            dataView = pipeline.Fit(dataView).Transform(dataView);
+
+            VBuffer<float> features = default;
+            float[][] transformed = { null, null };
+
+            var expected = new float[][] {
+                new float[] { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f },
+                new float[] { 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f }
+            };
+
+            using (var cursor = dataView.GetRowCursor(dataView.Schema))
+            {
+                var i = 0;
+                while (cursor.MoveNext())
+                {
+                    var featureGetter = cursor.GetGetter<VBuffer<float>>(cursor.Schema["Features"]);
+                    featureGetter(ref features);
+                    transformed[i] = features.DenseValues().ToArray();
+                    i++;
+                }
+            }
+
+            Assert.Equal(expected[0], transformed[0]);
+            Assert.Equal(expected[1], transformed[1]);
+        }
+
+        [Fact]
+        public void TextFeaturizerWithWordFeatureExtractorTestWithNoInputNames()
+        {
+            var data = new[] { new TestClass2() { Features = "This is some text in english", OutputTokens=null},
+                               new TestClass2() { Features = "This is another example", OutputTokens=null } };
+            var dataView = ML.Data.LoadFromEnumerable(data);
+
+            var options = new TextFeaturizingEstimator.Options()
+            {
+                WordFeatureExtractor = new WordBagEstimator.Options() { NgramLength = 1 },
+                CharFeatureExtractor = null,
+                Norm = TextFeaturizingEstimator.NormFunction.None,
+                OutputTokensColumnName = "OutputTokens"
+            };
+
+            var pipeline = ML.Transforms.Text.FeaturizeText("Features", options);
+            dataView = pipeline.Fit(dataView).Transform(dataView);
+
+            VBuffer<float> features = default;
+            float[][] transformed = { null, null };
+
+            var expected = new float[][] {
+                new float[] { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f },
+                new float[] { 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f }
+            };
+
+            using (var cursor = dataView.GetRowCursor(dataView.Schema))
+            {
+                var i = 0;
+                while (cursor.MoveNext())
+                {
+                    var featureGetter = cursor.GetGetter<VBuffer<float>>(cursor.Schema["Features"]);
+                    featureGetter(ref features);
+                    transformed[i] = features.DenseValues().ToArray();
+                    i++;
+                }
+            }
+
+            Assert.Equal(expected[0], transformed[0]);
+            Assert.Equal(expected[1], transformed[1]);
         }
 
         [Fact]
