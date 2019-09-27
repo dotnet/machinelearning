@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.Internal.Utilities;
 using NumSharp.Backends;
 using NumSharp.Backends.Unmanaged;
 using NumSharp.Utilities;
@@ -44,14 +45,7 @@ namespace Microsoft.ML.Transforms
 
         public static void ToArray<T>(this Tensor tensor, ref T[] array) where T : unmanaged
         {
-            ulong arrayLen = 0;
-            if (array != null)
-                arrayLen = (ulong)array.Length;
-
-            if (array == null || arrayLen == 0 || arrayLen < tensor.size)
-            {
-                array = new T[tensor.size];
-            }
+            Utils.EnsureSize(ref array, (int)tensor.size, (int)tensor.size, true);
 
             if (typeof(T).as_dtype() == tensor.dtype)
             {
