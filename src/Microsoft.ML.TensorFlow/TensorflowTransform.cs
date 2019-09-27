@@ -593,12 +593,7 @@ namespace Microsoft.ML.Transforms
                     ValueGetter<T> valuegetter = (ref T dst) =>
                     {
                         UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
-                        //ref T[] arrayRef = ref array;
                         var tensor = outputCache.Outputs[_parent.Outputs[iinfo]];
-                        //dst = tensor.Array<T>()[0];
-                        //tensor.Array<T>(ref array);
-                        //dst = array[0];
-                        //tensor.Array<T>(ref dst, 1);
                         tensor.ToScalar<T>(ref dst);
                     };
                     return valuegetter;
