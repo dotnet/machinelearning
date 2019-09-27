@@ -28,8 +28,7 @@ namespace Microsoft.ML.Transforms
 
             input.PredictorModel.PrepareData(env, input.Data, out RoleMappedData roleMappedData, out IPredictor predictor);
             Contracts.Assert(predictor != null, "No predictor found in model");
-            var transformedData = input.PredictorModel.TransformModel.Apply(env, input.Data);
-            IDataView result = PermutationFeatureImportanceUtils.GetMetrics(env, predictor, roleMappedData.Schema, transformedData, input);
+            IDataView result = PermutationFeatureImportanceUtils.GetMetrics(env, predictor, roleMappedData, input);
             return new PermutationFeatureImportanceOutput { Metrics = result };
         }
     }
@@ -60,19 +59,18 @@ namespace Microsoft.ML.Transforms
         internal static IDataView GetMetrics(
             IHostEnvironment env,
             IPredictor predictor,
-            RoleMappedSchema roleMappedSchema,
-            IDataView data,
+            RoleMappedData roleMappedData,
             PermutationFeatureImportanceArguments input)
         {
             IDataView result;
             if (predictor.PredictionKind == PredictionKind.BinaryClassification)
-                result = GetBinaryMetrics(env, predictor, roleMappedSchema, data, input);
+                result = GetBinaryMetrics(env, predictor, roleMappedData, input);
             else if (predictor.PredictionKind == PredictionKind.MulticlassClassification)
-                result = GetMulticlassMetrics(env, predictor, roleMappedSchema, data, input);
+                result = GetMulticlassMetrics(env, predictor, roleMappedData, input);
             else if (predictor.PredictionKind == PredictionKind.Regression)
-                result = GetRegressionMetrics(env, predictor, roleMappedSchema, data, input);
+                result = GetRegressionMetrics(env, predictor, roleMappedData, input);
             else if (predictor.PredictionKind == PredictionKind.Ranking)
-                result = GetRankingMetrics(env, predictor, roleMappedSchema, data, input);
+                result = GetRankingMetrics(env, predictor, roleMappedData, input);
             else
                 throw Contracts.Except(
                     "Unsupported predictor type. Predictor must be binary classifier, " +
@@ -84,25 +82,24 @@ namespace Microsoft.ML.Transforms
         private static IDataView GetBinaryMetrics(
             IHostEnvironment env,
             IPredictor predictor,
-            RoleMappedSchema roleMappedSchema,
-            IDataView data,
+            RoleMappedData roleMappedData,
             PermutationFeatureImportanceArguments input)
         {
-            var roles = roleMappedSchema.GetColumnRoleNames();
+            var roles = roleMappedData.Schema.GetColumnRoleNames();
             var featureColumnName = roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value;
             var labelColumnName = roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Label.Value).First().Value;
             var pred = new BinaryPredictionTransformer<IPredictorProducing<float>>(
-                env, predictor as IPredictorProducing<float>, data.Schema, featureColumnName);
+                env, predictor as IPredictorProducing<float>, roleMappedData.Data.Schema, featureColumnName);
             var binaryCatalog = new BinaryClassificationCatalog(env);
             var permutationMetrics = binaryCatalog
                 .PermutationFeatureImportance(pred,
-                                              data,
+                                              roleMappedData.Data,
                                               labelColumnName: labelColumnName,
                                               useFeatureWeightFilter: input.UseFeatureWeightFilter,
                                               numberOfExamplesToUse: input.NumberOfExamplesToUse,
                                               permutationCount: input.PermutationCount);
 
-            var slotNames = GetSlotNames(data);
+            var slotNames = GetSlotNames(roleMappedData.Schema);
             Contracts.Assert(slotNames.Length == permutationMetrics.Length,
                 "Mismatch between number of feature slots and number of features permuted.");
 
@@ -142,25 +139,24 @@ namespace Microsoft.ML.Transforms
         private static IDataView GetMulticlassMetrics(
             IHostEnvironment env,
             IPredictor predictor,
-            RoleMappedSchema roleMappedSchema,
-            IDataView data,
+            RoleMappedData roleMappedData,
             PermutationFeatureImportanceArguments input)
         {
-            var roles = roleMappedSchema.GetColumnRoleNames();
+            var roles = roleMappedData.Schema.GetColumnRoleNames();
             var featureColumnName = roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value;
             var labelColumnName = roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Label.Value).First().Value;
             var pred = new MulticlassPredictionTransformer<IPredictorProducing<VBuffer<float>>>(
-                env, predictor as IPredictorProducing<VBuffer<float>>, data.Schema, featureColumnName, labelColumnName);
+                env, predictor as IPredictorProducing<VBuffer<float>>, roleMappedData.Data.Schema, featureColumnName, labelColumnName);
             var multiclassCatalog = new MulticlassClassificationCatalog(env);
             var permutationMetrics = multiclassCatalog
                 .PermutationFeatureImportance(pred,
-                                              data,
+                                              roleMappedData.Data,
                                               labelColumnName: labelColumnName,
                                               useFeatureWeightFilter: input.UseFeatureWeightFilter,
                                               numberOfExamplesToUse: input.NumberOfExamplesToUse,
                                               permutationCount: input.PermutationCount);
 
-            var slotNames = GetSlotNames(data);
+            var slotNames = GetSlotNames(roleMappedData.Schema);
             Contracts.Assert(slotNames.Length == permutationMetrics.Length,
                 "Mismatch between number of feature slots and number of features permuted.");
 
@@ -202,25 +198,24 @@ namespace Microsoft.ML.Transforms
         private static IDataView GetRegressionMetrics(
             IHostEnvironment env,
             IPredictor predictor,
-            RoleMappedSchema roleMappedSchema,
-            IDataView data,
+            RoleMappedData roleMappedData,
             PermutationFeatureImportanceArguments input)
         {
-            var roles = roleMappedSchema.GetColumnRoleNames();
+            var roles = roleMappedData.Schema.GetColumnRoleNames();
             var featureColumnName = roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value;
             var labelColumnName = roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Label.Value).First().Value;
             var pred = new RegressionPredictionTransformer<IPredictorProducing<float>>(
-                env, predictor as IPredictorProducing<float>, data.Schema, featureColumnName);
+                env, predictor as IPredictorProducing<float>, roleMappedData.Data.Schema, featureColumnName);
             var regressionCatalog = new RegressionCatalog(env);
             var permutationMetrics = regressionCatalog
                 .PermutationFeatureImportance(pred,
-                                              data,
+                                              roleMappedData.Data,
                                               labelColumnName: labelColumnName,
                                               useFeatureWeightFilter: input.UseFeatureWeightFilter,
                                               numberOfExamplesToUse: input.NumberOfExamplesToUse,
                                               permutationCount: input.PermutationCount);
 
-            var slotNames = GetSlotNames(data);
+            var slotNames = GetSlotNames(roleMappedData.Schema);
             Contracts.Assert(slotNames.Length == permutationMetrics.Length,
                 "Mismatch between number of feature slots and number of features permuted.");
 
@@ -254,27 +249,26 @@ namespace Microsoft.ML.Transforms
         private static IDataView GetRankingMetrics(
             IHostEnvironment env,
             IPredictor predictor,
-            RoleMappedSchema roleMappedSchema,
-            IDataView data,
+            RoleMappedData roleMappedData,
             PermutationFeatureImportanceArguments input)
         {
-            var roles = roleMappedSchema.GetColumnRoleNames();
+            var roles = roleMappedData.Schema.GetColumnRoleNames();
             var featureColumnName = roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value;
             var labelColumnName = roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Label.Value).First().Value;
             var groupIdColumnName = roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Group.Value).First().Value;
             var pred = new RankingPredictionTransformer<IPredictorProducing<float>>(
-                env, predictor as IPredictorProducing<float>, data.Schema, featureColumnName);
+                env, predictor as IPredictorProducing<float>, roleMappedData.Data.Schema, featureColumnName);
             var rankingCatalog = new RankingCatalog(env);
             var permutationMetrics = rankingCatalog
                 .PermutationFeatureImportance(pred,
-                                              data,
+                                              roleMappedData.Data,
                                               labelColumnName: labelColumnName,
                                               rowGroupColumnName: groupIdColumnName,
                                               useFeatureWeightFilter: input.UseFeatureWeightFilter,
                                               numberOfExamplesToUse: input.NumberOfExamplesToUse,
                                               permutationCount: input.PermutationCount);
 
-            var slotNames = GetSlotNames(data);
+            var slotNames = GetSlotNames(roleMappedData.Schema);
             Contracts.Assert(slotNames.Length == permutationMetrics.Length,
                 "Mismatch between number of feature slots and number of features permuted.");
 
@@ -307,10 +301,10 @@ namespace Microsoft.ML.Transforms
             return result;
         }
 
-        private static string[] GetSlotNames(IDataView data)
+        private static string[] GetSlotNames(RoleMappedSchema schema)
         {
             VBuffer<ReadOnlyMemory<char>> slots = default;
-            data.Schema["Features"].GetSlotNames(ref slots);
+            schema.Feature.Value.GetSlotNames(ref slots);
             var slotValues = slots.DenseValues();
 
             List<string> slotNames = new List<string>();
