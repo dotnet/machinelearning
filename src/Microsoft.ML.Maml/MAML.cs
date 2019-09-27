@@ -117,8 +117,8 @@ namespace Microsoft.ML.Tools
             using (var ch = mainHost.Start("Main"))
             {
                 int result;
-                try
-                {
+               // try
+               // {
                     if (!CmdParser.TryGetFirstToken(args, out string kind, out string settings))
                     {
                         telemetryPipe.Send(TelemetryMessage.CreateCommand("ArgumentParsingFailure", args));
@@ -140,7 +140,7 @@ namespace Microsoft.ML.Tools
                     cmd.Run();
 
                     result = 0;
-                }
+                /*}
                 catch (Exception ex)
                 {
                     var dumpFileDir = Path.Combine(
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Tools
                 }
                 finally
                 {
-                }
+                }*/
                 return result;
             }
         }
