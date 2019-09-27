@@ -35,11 +35,12 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
                 .Append(mlContext.MulticlassClassification.Trainers
                 .SdcaMaximumEntropy());
 
+            // Fit the pipeline to the data and save the model
             var model0 = pipeline.Fit(data);
-
             var modelPath = "./model0.zip";
             mlContext.Model.Save(model0, data.Schema, modelPath);
 
+            // Load the model
             var model = mlContext.Model.Load(modelPath, out var schema);
 
             // Transform the dataset.
@@ -78,8 +79,9 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 
             // Expected output:
             //Feature     Change in MicroAccuracy  95% Confidence in the Mean Change in MicroAccuracy
-            //Feature2     -0.1395                 0.0006567
-            //Feature1     -0.05367                0.0006908
+            //Feature2        -0.1396                 0.0008036
+            //Feature1        -0.05421                0.0006154
+
         }
 
         private class Data

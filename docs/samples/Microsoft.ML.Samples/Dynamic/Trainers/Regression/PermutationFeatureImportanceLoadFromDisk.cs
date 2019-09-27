@@ -7,15 +7,23 @@ using Microsoft.ML.Trainers;
 
 namespace Samples.Dynamic.Trainers.Regression
 {
-    class PermutationFeatureImportance2
+    public static class PermutationFeatureImportance2
     {
         public static void Example()
         {
-            Console.WriteLine("ORIGINAL MODEL");
+            // Create a new context for ML.NET operations. It can be used for
+            // exception tracking and logging, as a catalog of available operations
+            // and as the source of randomness.
             var mlContext = new MLContext(seed: 1);
+
+            // Create sample data.
             var samples = GenerateData();
+
+            // Load the sample data as an IDataView.
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
+            // Define a training pipeline that concatenates features into a vector,
+            // normalizes them, and then trains a linear model.
             var featureColumns = new string[] { nameof(Data.Feature1),
                 nameof(Data.Feature2) };
 
@@ -25,23 +33,30 @@ namespace Samples.Dynamic.Trainers.Regression
                 .Append(mlContext.Transforms.NormalizeMinMax("Features"))
                 .Append(mlContext.Regression.Trainers.Ols());
 
-            var model = pipeline.Fit(data);
-            Console.WriteLine("LOADED MODEL FROM DISK");
+            // Train the model and save to disk
+            var model0 = pipeline.Fit(data);
+            var modelPath = "./model0.zip";
+            mlContext.Model.Save(model0, data.Schema, modelPath);
 
-            var modelPath = "./model.zip";
-            mlContext.Model.Save(model, data.Schema, modelPath);
+            // Load model
+            var model = mlContext.Model.Load(modelPath, out var schema);
 
-            var loadedModel = mlContext.Model.Load(modelPath, out var schema);
-            var transformedData = loadedModel.Transform(data);
-            var linearPredictor = (loadedModel as TransformerChain<ITransformer>).LastTransformer as RegressionPredictionTransformer<OlsModelParameters>;
+            // Transform Data
+            var transformedData = model.Transform(data);
 
+            // Extract the predictor.
+            var linearPredictor = (model as TransformerChain<ITransformer>).LastTransformer as RegressionPredictionTransformer<OlsModelParameters>;
+
+            // Compute the permutation metrics for the linear model using the
+            // normalized data.
             var permutationMetrics = mlContext.Regression
                 .PermutationFeatureImportance(
                 linearPredictor, transformedData, permutationCount: 30);
 
+            // Now let's look at which features are most important to the model
+            // overall. Get the feature indices sorted by their impact on RMSE.
             var sortedIndices = permutationMetrics
-                .Select((metrics, index) => new
-                {
+                .Select((metrics, index) => new {
                     index,
                     metrics.RootMeanSquaredError
                 })
@@ -51,7 +66,7 @@ namespace Samples.Dynamic.Trainers.Regression
 
                 .Select(feature => feature.index);
 
-            Console.WriteLine("Feature\tModel Weight\tChange in RMSE\t95% " +
+            Console.WriteLine("Feature\tModel Weight\tChange in RMSE\t95%" +
                 "Confidence in the Mean Change in RMSE");
 
             var rmse = permutationMetrics.Select(x => x.RootMeanSquaredError)
@@ -59,18 +74,17 @@ namespace Samples.Dynamic.Trainers.Regression
 
             foreach (int i in sortedIndices)
             {
-                Console.WriteLine("{0}\t{1:0.00}\t{2:G4}\t{3:G4}\t{4:G4}",
+                Console.WriteLine("{0}\t{1:0.00}\t{2:G4}\t{3:G4}",
                     featureColumns[i],
                     linearPredictor.Model.Weights[i],
                     rmse[i].Mean,
-                    1.96 * rmse[i].StandardError,
-                    rmse[i].StandardDeviation);
+                    1.96 * rmse[i].StandardError);
             }
 
-            // EXPECTED OUTPUT
-            //Feature         Model   Weight    Change in RMSE     95 % Confidence in the Mean Change in RMSE
-            //Feature2        9.00    4.01        0.006723            0.01879
-            //Feature1        4.48    1.901       0.003235            0.00904
+            // Expected output:
+            //  Feature    Model Weight Change in RMSE  95% Confidence in the Mean Change in RMSE
+            //  Feature2        9.00        4.01        0.006723
+            //  Feature1        4.48        1.901       0.003235
         }
 
         private class Data

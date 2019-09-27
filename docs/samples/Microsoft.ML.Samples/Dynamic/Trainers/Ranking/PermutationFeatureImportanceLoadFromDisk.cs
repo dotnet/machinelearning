@@ -34,15 +34,18 @@ namespace Samples.Dynamic.Trainers.Ranking
                     .Append(mlContext.Transforms.NormalizeMinMax("Features"))
                     .Append(mlContext.Ranking.Trainers.FastTree());
 
+            // Train the model and save to disk
             var model0 = pipeline.Fit(data);
-
             var modelPath = "./model0.zip";
             mlContext.Model.Save(model0, data.Schema, modelPath);
 
+            // Load model
             var model = mlContext.Model.Load(modelPath, out var schema);
 
+            // Transform Data
             var transformedData = model.Transform(data);
 
+            //  Extract the predictor
             var linearPredictor = (model as TransformerChain<ITransformer>).LastTransformer as RankingPredictionTransformer<FastTreeRankingModelParameters>;
 
             // Compute the permutation metrics for the linear model using the
@@ -75,8 +78,8 @@ namespace Samples.Dynamic.Trainers.Ranking
 
             // Expected output:
             //  Feature     Change in NDCG@1    95% Confidence in the Mean Change in NDCG@1
-            //  Feature2     -0.2421            0.001748
-            //  Feature1     -0.0513            0.001184
+            //  Feature2    -0.2432             0.001762
+            //  Feature1    -0.05235            0.001116
         }
 
         private class Data
