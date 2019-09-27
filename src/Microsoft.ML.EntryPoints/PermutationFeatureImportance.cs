@@ -26,20 +26,10 @@ namespace Microsoft.ML.Transforms
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            var modelOps = new ModelOperationsCatalog(env);
-            var model = modelOps.Load(input.ModelPath.OpenReadStream(), out DataViewSchema schema) as TransformerChain<ITransformer>;
-            // If model.LastTransformer is not an IPredictionTransformer, get the part of the TransformerChain
-            // up to the last ITransformer that is indeed an IPredictionTransformer. This piece of the TransformerChain
-            // is used to extract the IPredictionTransformer and also to transform the input data.
-            // Will throw if there is no IPredictionTransformer in the TransformerChain.
-            if (!(model.LastTransformer is IPredictionTransformer<IPredictorProducing<float>>
-                || model.LastTransformer is IPredictionTransformer<IPredictorProducing<VBuffer<float>>>))
-                model = model.RewindToLastPredictionTransformer();
-            var predictor = model.LastTransformer as ISingleFeaturePredictionTransformer<object>;
-            Contracts.Assert(predictor != null, "Permutation Feature Importance (PFI) is not supported for the predictor.");
-
-            var transformedData = model.Transform(input.Data);
-            IDataView result = PermutationFeatureImportanceUtils.GetMetrics(env, predictor, transformedData, input);
+            input.PredictorModel.PrepareData(env, input.Data, out RoleMappedData roleMappedData, out IPredictor predictor);
+            Contracts.Assert(predictor != null, "No predictor found in model");
+            var transformedData = input.PredictorModel.TransformModel.Apply(env, input.Data);
+            IDataView result = PermutationFeatureImportanceUtils.GetMetrics(env, predictor, roleMappedData.Schema, transformedData, input);
             return new PermutationFeatureImportanceOutput { Metrics = result };
         }
     }
@@ -53,7 +43,7 @@ namespace Microsoft.ML.Transforms
     internal sealed class PermutationFeatureImportanceArguments : TransformInputBase
     {
         [Argument(ArgumentType.Required, HelpText = "The path to the model file", ShortName = "path", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        public IFileHandle ModelPath;
+        public PredictorModel PredictorModel;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Label column name", ShortName = "label", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public string LabelColumnName = "Label";
@@ -75,19 +65,20 @@ namespace Microsoft.ML.Transforms
     {
         internal static IDataView GetMetrics(
             IHostEnvironment env,
-            ISingleFeaturePredictionTransformer<object> predictor,
+            IPredictor predictor,
+            RoleMappedSchema roleMappedSchema,
             IDataView data,
             PermutationFeatureImportanceArguments input)
         {
             IDataView result;
-            if (predictor is BinaryPredictionTransformer<IPredictorProducing<float>>)
-                result = GetBinaryMetrics(env, predictor, data, input);
-            else if (predictor is MulticlassPredictionTransformer<IPredictorProducing<VBuffer<float>>>)
-                result = GetMulticlassMetrics(env, predictor, data, input);
-            else if (predictor is RegressionPredictionTransformer<IPredictorProducing<float>>)
-                result = GetRegressionMetrics(env, predictor, data, input);
-            else if (predictor is RankingPredictionTransformer<IPredictorProducing<float>>)
-                result = GetRankingMetrics(env, predictor, data, input);
+            if (predictor.PredictionKind == PredictionKind.BinaryClassification)
+                result = GetBinaryMetrics(env, predictor, roleMappedSchema, data, input);
+            else if (predictor.PredictionKind == PredictionKind.MulticlassClassification)
+                result = GetMulticlassMetrics(env, predictor, roleMappedSchema, data, input);
+            else if (predictor.PredictionKind == PredictionKind.Regression)
+                result = GetRegressionMetrics(env, predictor, roleMappedSchema, data, input);
+            else if (predictor.PredictionKind == PredictionKind.Ranking)
+                result = GetRankingMetrics(env, predictor, roleMappedSchema, data, input);
             else
                 throw Contracts.Except(
                     "Unsupported predictor type. Predictor must be binary classifier, " +
@@ -98,13 +89,17 @@ namespace Microsoft.ML.Transforms
 
         private static IDataView GetBinaryMetrics(
             IHostEnvironment env,
-            ISingleFeaturePredictionTransformer<object> predictor,
+            IPredictor predictor,
+            RoleMappedSchema roleMappedSchema,
             IDataView data,
             PermutationFeatureImportanceArguments input)
         {
+            var pred = new BinaryPredictionTransformer<IPredictorProducing<float>>(
+                env, predictor as IPredictorProducing<float>, data.Schema,
+                roleMappedSchema.GetColumnRoleNames().Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value);
             var binaryCatalog = new BinaryClassificationCatalog(env);
             var permutationMetrics = binaryCatalog
-                .PermutationFeatureImportance(predictor,
+                .PermutationFeatureImportance(pred,
                                               data,
                                               labelColumnName: input.LabelColumnName,
                                               useFeatureWeightFilter: input.UseFeatureWeightFilter,
@@ -118,6 +113,8 @@ namespace Microsoft.ML.Transforms
             List<BinaryMetrics> metrics = new List<BinaryMetrics>();
             for (int i = 0; i < permutationMetrics.Length; i++)
             {
+                if (string.IsNullOrWhiteSpace(slotNames[i]))
+                    continue;
                 var pMetric = permutationMetrics[i];
                 metrics.Add(new BinaryMetrics
                 {
@@ -148,13 +145,18 @@ namespace Microsoft.ML.Transforms
 
         private static IDataView GetMulticlassMetrics(
             IHostEnvironment env,
-            ISingleFeaturePredictionTransformer<object> predictor,
+            IPredictor predictor,
+            RoleMappedSchema roleMappedSchema,
             IDataView data,
             PermutationFeatureImportanceArguments input)
         {
+            var pred = new MulticlassPredictionTransformer<IPredictorProducing<VBuffer<float>>>(
+                env, predictor as IPredictorProducing<VBuffer<float>>, data.Schema,
+                roleMappedSchema.GetColumnRoleNames().Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value,
+                roleMappedSchema.GetColumnRoleNames().Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Label.Value).First().Value);
             var multiclassCatalog = new MulticlassClassificationCatalog(env);
             var permutationMetrics = multiclassCatalog
-                .PermutationFeatureImportance(predictor,
+                .PermutationFeatureImportance(pred,
                                               data,
                                               labelColumnName: input.LabelColumnName,
                                               useFeatureWeightFilter: input.UseFeatureWeightFilter,
@@ -168,6 +170,8 @@ namespace Microsoft.ML.Transforms
             List<MulticlassMetrics> metrics = new List<MulticlassMetrics>();
             for (int i = 0; i < permutationMetrics.Length; i++)
             {
+                if (string.IsNullOrWhiteSpace(slotNames[i]))
+                    continue;
                 var pMetric = permutationMetrics[i];
                 metrics.Add(new MulticlassMetrics
                 {
@@ -200,13 +204,17 @@ namespace Microsoft.ML.Transforms
 
         private static IDataView GetRegressionMetrics(
             IHostEnvironment env,
-            ISingleFeaturePredictionTransformer<object> predictor,
+            IPredictor predictor,
+            RoleMappedSchema roleMappedSchema,
             IDataView data,
             PermutationFeatureImportanceArguments input)
         {
+            var pred = new RegressionPredictionTransformer<IPredictorProducing<float>>(
+                env, predictor as IPredictorProducing<float>, data.Schema,
+                roleMappedSchema.GetColumnRoleNames().Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value);
             var regressionCatalog = new RegressionCatalog(env);
             var permutationMetrics = regressionCatalog
-                .PermutationFeatureImportance(predictor,
+                .PermutationFeatureImportance(pred,
                                               data,
                                               labelColumnName: input.LabelColumnName,
                                               useFeatureWeightFilter: input.UseFeatureWeightFilter,
@@ -220,6 +228,8 @@ namespace Microsoft.ML.Transforms
             List<RegressionMetrics> metrics = new List<RegressionMetrics>();
             for (int i = 0; i < permutationMetrics.Length; i++)
             {
+                if (string.IsNullOrWhiteSpace(slotNames[i]))
+                    continue;
                 var pMetric = permutationMetrics[i];
                 metrics.Add(new RegressionMetrics
                 {
@@ -244,13 +254,17 @@ namespace Microsoft.ML.Transforms
 
         private static IDataView GetRankingMetrics(
             IHostEnvironment env,
-            ISingleFeaturePredictionTransformer<object> predictor,
+            IPredictor predictor,
+            RoleMappedSchema roleMappedSchema,
             IDataView data,
             PermutationFeatureImportanceArguments input)
         {
+            var pred = new RankingPredictionTransformer<IPredictorProducing<float>>(
+                env, predictor as IPredictorProducing<float>, data.Schema,
+                roleMappedSchema.GetColumnRoleNames().Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value);
             var rankingCatalog = new RankingCatalog(env);
             var permutationMetrics = rankingCatalog
-                .PermutationFeatureImportance(predictor,
+                .PermutationFeatureImportance(pred,
                                               data,
                                               labelColumnName: input.LabelColumnName,
                                               rowGroupColumnName: input.RowGroupColumnName,
@@ -265,6 +279,8 @@ namespace Microsoft.ML.Transforms
             List<RankingMetrics> metrics = new List<RankingMetrics>();
             for (int i = 0; i < permutationMetrics.Length; i++)
             {
+                if (string.IsNullOrWhiteSpace(slotNames[i]))
+                    continue;
                 var pMetric = permutationMetrics[i];
                 metrics.Add(new RankingMetrics
                 {
@@ -293,15 +309,12 @@ namespace Microsoft.ML.Transforms
         {
             VBuffer<ReadOnlyMemory<char>> slots = default;
             data.Schema["Features"].GetSlotNames(ref slots);
-
-            var column = data.GetColumn<VBuffer<float>>(
-                data.Schema["Features"]);
+            var slotValues = slots.DenseValues();
 
             List<string> slotNames = new List<string>();
-
-            foreach (var item in column.First<VBuffer<float>>().Items(all: true))
+            foreach (var value in slotValues)
             {
-                slotNames.Add(slots.GetValues()[item.Key].ToString());
+                slotNames.Add(value.ToString());
             };
 
             return slotNames.ToArray();

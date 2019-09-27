@@ -615,11 +615,10 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void BinaryPermutationFeatureImportance()
         {
-            var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            var modelPath = DeleteOutputPath("binary_pfi_model.zip");
+            var inputDataPath = GetDataPath("adult.tiny.with-schema.txt");
             var outputDataPath = DeleteOutputPath("binary_pfi_metrics.idv");
 
-            string trainingGraph = string.Format(@"
+            string inputGraph = string.Format(@"
                 {{
                   'Inputs': {{
                     'file': '{0}'
@@ -643,7 +642,7 @@ namespace Microsoft.ML.RunTests
                                     'Source': 'education'
                                 }}
                             ],
-                            'Data': '$data',
+                            'Data': '$data'
                         }},
                         'Name': 'Transforms.CategoricalOneHotVectorizer',
                         'Outputs': {{
@@ -715,42 +714,12 @@ namespace Microsoft.ML.RunTests
                         'Outputs': {{
                             'PredictorModel': '$output_model'
                         }}
-                    }}
-                  ],
-                  'Outputs': {{
-                    'output_model': '{1}'
-                  }}
-                }}", EscapePath(dataPath), EscapePath(modelPath));
-
-            var trainingJsonPath = DeleteOutputPath("trainingGraph.json");
-            File.WriteAllLines(trainingJsonPath, new[] { trainingGraph });
-
-            var trainingArgs = new ExecuteGraphCommand.Arguments() { GraphPath = trainingJsonPath };
-            var trainingCmd = new ExecuteGraphCommand(Env, trainingArgs);
-            trainingCmd.Run();
-
-            string pfiGraph = string.Format(@"
-                {{
-                  'Inputs': {{
-                    'file1': '{0}',
-                    'file2': '{1}'
-                  }},
-                  'Nodes': [
-                    {{
-                      'Name': 'Data.CustomTextLoader',
-                      'Inputs': {{
-                        'CustomSchema': 'col=Label:I8:0 col=Workclass:TX:1 col=education:TX:2 col=marital-status:TX:3 col=occupation:TX:4 col=relationship:TX:5 col=ethnicity:TX:6 col=sex:TX:7 col=native-country-region:TX:8 col=age:I8:9 col=fnlwgt:I8:10 col=education-num:I8:11 col=capital-gain:I8:12 col=capital-loss:I8:13 col=hours-per-week:I8:14 quote+ header=+ sep=tab',
-                        'InputFile': '$file1'
-                      }},
-                      'Outputs': {{
-                        'Data': '$data'
-                      }}
                     }},
                     {{
                       'Name': 'Transforms.PermutationFeatureImportance',
                       'Inputs': {{
                         'Data': '$data',
-                        'ModelPath': '$file2',
+                        'PredictorModel': '$output_model',
                         'PermutationCount': 5
                       }},
                       'Outputs': {{
@@ -759,21 +728,19 @@ namespace Microsoft.ML.RunTests
                     }}
                   ],
                   'Outputs': {{
-                    'output_data': '{2}'
+                    'output_data': '{1}'
                   }}
-                }}", EscapePath(dataPath), EscapePath(modelPath), EscapePath(outputDataPath));
+                }}", EscapePath(inputDataPath), EscapePath(outputDataPath));
 
-            var pfiJsonPath = DeleteOutputPath("pfiGraph.json");
-            File.WriteAllLines(pfiJsonPath, new[] { pfiGraph });
+            var jsonPath = DeleteOutputPath("graph.json");
+            File.WriteAllLines(jsonPath, new[] { inputGraph });
 
-            var pfiArgs = new ExecuteGraphCommand.Arguments() { GraphPath = pfiJsonPath };
-            var pfiCmd = new ExecuteGraphCommand(Env, pfiArgs);
-            pfiCmd.Run();
+            var args = new ExecuteGraphCommand.Arguments() { GraphPath = jsonPath };
+            var cmd = new ExecuteGraphCommand(Env, args);
+            cmd.Run();
 
             var mlContext = new MLContext();
-
             var loadedData = mlContext.Data.LoadFromBinary(outputDataPath);
-
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("FeatureName"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("AreaUnderRocCurve"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("Accuracy"));
@@ -796,11 +763,10 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void MulticlassPermutationFeatureImportance()
         {
-            var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            var modelPath = DeleteOutputPath("mc_pfi_model.zip");
+            var inputDataPath = GetDataPath("adult.tiny.with-schema.txt");
             var outputDataPath = DeleteOutputPath("mc_pfi_metrics.idv");
 
-            string trainingGraph = string.Format(@"
+            string inputGraph = string.Format(@"
                 {{
                   'Inputs': {{
                     'file': '{0}'
@@ -896,42 +862,12 @@ namespace Microsoft.ML.RunTests
                         'Outputs': {{
                             'PredictorModel': '$output_model'
                         }}
-                    }}
-                  ],
-                  'Outputs': {{
-                    'output_model': '{1}'
-                  }}
-                }}", EscapePath(dataPath), EscapePath(modelPath));
-
-            var trainingJsonPath = DeleteOutputPath("trainingGraph.json");
-            File.WriteAllLines(trainingJsonPath, new[] { trainingGraph });
-
-            var trainingArgs = new ExecuteGraphCommand.Arguments() { GraphPath = trainingJsonPath };
-            var trainingCmd = new ExecuteGraphCommand(Env, trainingArgs);
-            trainingCmd.Run();
-
-            string pfiGraph = string.Format(@"
-                {{
-                  'Inputs': {{
-                    'file1': '{0}',
-                    'file2': '{1}'
-                  }},
-                  'Nodes': [
-                    {{
-                      'Name': 'Data.CustomTextLoader',
-                      'Inputs': {{
-                        'CustomSchema': 'col=Label:I8:0 col=Workclass:TX:1 col=education:TX:2 col=marital-status:TX:3 col=occupation:TX:4 col=relationship:TX:5 col=ethnicity:TX:6 col=sex:TX:7 col=native-country-region:TX:8 col=age:I8:9 col=fnlwgt:I8:10 col=education-num:I8:11 col=capital-gain:I8:12 col=capital-loss:I8:13 col=hours-per-week:I8:14 quote+ header=+ sep=tab',
-                        'InputFile': '$file1'
-                      }},
-                      'Outputs': {{
-                        'Data': '$data'
-                      }}
                     }},
                     {{
                       'Name': 'Transforms.PermutationFeatureImportance',
                       'Inputs': {{
                         'Data': '$data',
-                        'ModelPath': '$file2',
+                        'PredictorModel': '$output_model',
                         'PermutationCount': 5
                       }},
                       'Outputs': {{
@@ -940,21 +876,19 @@ namespace Microsoft.ML.RunTests
                     }}
                   ],
                   'Outputs': {{
-                    'output_data': '{2}'
+                    'output_data': '{1}'
                   }}
-                }}", EscapePath(dataPath), EscapePath(modelPath), EscapePath(outputDataPath));
+                }}", EscapePath(inputDataPath), EscapePath(outputDataPath));
 
-            var pfiJsonPath = DeleteOutputPath("pfiGraph.json");
-            File.WriteAllLines(pfiJsonPath, new[] { pfiGraph });
+            var jsonPath = DeleteOutputPath("graph.json");
+            File.WriteAllLines(jsonPath, new[] { inputGraph });
 
-            var pfiArgs = new ExecuteGraphCommand.Arguments() { GraphPath = pfiJsonPath };
-            var pfiCmd = new ExecuteGraphCommand(Env, pfiArgs);
-            pfiCmd.Run();
+            var args = new ExecuteGraphCommand.Arguments() { GraphPath = jsonPath };
+            var cmd = new ExecuteGraphCommand(Env, args);
+            cmd.Run();
 
             var mlContext = new MLContext();
-
             var loadedData = mlContext.Data.LoadFromBinary(outputDataPath);
-
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("FeatureName"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("MacroAccuracy"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("MicroAccuracy"));
@@ -973,80 +907,149 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void MulticlassPermutationFeatureImportanceWithKeyToValue()
         {
-            var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            var modelPath = DeleteOutputPath("mc_ktv_pfi_model.zip");
+            var inputData = GetDataPath("adult.tiny.with-schema.txt");
             var outputDataPath = DeleteOutputPath("mc_ktv_pfi_metrics.idv");
 
+            string inputGraph = string.Format(@"
+                {{
+                  'Inputs': {{
+                    'file': '{0}'
+                  }},
+                  'Nodes': [
+                    {{
+                      'Name': 'Data.CustomTextLoader',
+                      'Inputs': {{
+                        'CustomSchema': 'col=Label:I8:0 col=Workclass:TX:1 col=education:TX:2 col=marital-status:TX:3 col=occupation:TX:4 col=relationship:TX:5 col=ethnicity:TX:6 col=sex:TX:7 col=native-country-region:TX:8 col=age:I8:9 col=fnlwgt:I8:10 col=education-num:I8:11 col=capital-gain:I8:12 col=capital-loss:I8:13 col=hours-per-week:I8:14 quote+ header=+ sep=tab',
+                        'InputFile': '$file'
+                      }},
+                      'Outputs': {{
+                        'Data': '$data'
+                      }}
+                    }},
+                    {{
+                        'Inputs': {{
+                            'Column': [
+                                {{
+                                    'Name': 'education',
+                                    'Source': 'education'
+                                }}
+                            ],
+                            'Data': '$data',
+                        }},
+                        'Name': 'Transforms.CategoricalOneHotVectorizer',
+                        'Outputs': {{
+                            'Model': '$output_model1',
+                            'OutputData': '$output_data1'
+                        }}
+                    }},
+                    {{
+                        'Inputs': {{
+                            'Column': [
+                                'Label'
+                            ],
+                            'Data': '$output_data1'
+                        }},
+                        'Name': 'Transforms.OptionalColumnCreator',
+                        'Outputs': {{
+                            'Model': '$output_model2',
+                            'OutputData': '$output_data2'
+                        }}
+                    }},
+                    {{
+                        'Inputs': {{
+                            'Data': '$output_data2',
+                            'LabelColumn': 'Label',
+                            'TextKeyValues': false
+                        }},
+                        'Name': 'Transforms.LabelColumnKeyBooleanConverter',
+                        'Outputs': {{
+                            'Model': '$output_model3',
+                            'OutputData': '$output_data3'
+                        }}
+                    }},
+                    {{
+                        'Inputs': {{
+                            'Data': '$output_data3',
+                            'Features': [
+                                'age',
+                                'education'
+                            ]
+                        }},
+                        'Name': 'Transforms.FeatureCombiner',
+                        'Outputs': {{
+                            'Model': '$output_model4',
+                            'OutputData': '$output_data4'
+                        }}
+                    }},
+                    {{
+                        'Inputs': {{
+                            'TrainingData': '$output_data4',
+                            'NumThreads': 1,
+                            'MaxIterations': 1
+                        }},
+                        'Name': 'Trainers.StochasticDualCoordinateAscentClassifier',
+                        'Outputs': {{
+                            'PredictorModel': '$predictor_model'
+                        }}
+                    }},
+                    {{
+                        'Inputs': {{
+                            'Data': '$output_data4',
+                            'Column': [
+                                {{
+                                    'Name': 'Label',
+                                    'Source': 'Label'
+                                }}
+                            ],
+                        }},
+                        'Name': 'Transforms.TextToKeyConverter',
+                        'Outputs': {{
+                            'Model': '$output_model5',
+                            'OutputData': '$output_data5'
+                        }}
+                    }},
+                    {{
+                        'Inputs': {{
+                            'PredictorModel': '$predictor_model',
+                            'TransformModels': [
+                                '$output_model1',
+                                '$output_model2',
+                                '$output_model3',
+                                '$output_model4',
+                                '$output_model5'
+                            ]
+                        }},
+                        'Name': 'Transforms.ManyHeterogeneousModelCombiner',
+                        'Outputs': {{
+                            'PredictorModel': '$output_model'
+                        }}
+                    }},
+                    {{
+                      'Name': 'Transforms.PermutationFeatureImportance',
+                      'Inputs': {{
+                        'Data': '$data',
+                        'PredictorModel': '$output_model',
+                        'PermutationCount': 5
+                      }},
+                      'Outputs': {{
+                        'Metrics': '$output_data'
+                      }}
+                    }}
+                  ],
+                  'Outputs': {{
+                    'output_data': '{1}'
+                  }}
+                }}", EscapePath(inputData), EscapePath(outputDataPath));
+
+            var jsonPath = DeleteOutputPath("graph.json");
+            File.WriteAllLines(jsonPath, new[] { inputGraph });
+
+            var args = new ExecuteGraphCommand.Arguments() { GraphPath = jsonPath };
+            var cmd = new ExecuteGraphCommand(Env, args);
+            cmd.Run();
+
             var mlContext = new MLContext();
-
-            var data = new TextLoader(mlContext,
-                    new TextLoader.Options()
-                    {
-                        AllowQuoting = true,
-                        Separator = "\t",
-                        HasHeader = true,
-                        Columns = new[]
-                        {
-                            new TextLoader.Column("Label", DataKind.String, 0),
-                            new TextLoader.Column("education", DataKind.String, 2),
-                            new TextLoader.Column("age", DataKind.Single, 9)
-                        }
-                    }).Load(dataPath);
-
-            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("education")
-                .Append(mlContext.Transforms.Concatenate("Features", new[] { "education", "age" }))
-                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
-                .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(maximumNumberOfIterations: 1))
-                .Append(mlContext.Transforms.Conversion.MapKeyToValue("Label"));
-
-            var model = pipeline.Fit(data);
-
-            using (FileStream stream = new FileStream(modelPath, FileMode.Create))
-                mlContext.Model.Save(model, data.Schema, stream);
-
-            string pfiGraph = string.Format(@"
-            {{
-                'Inputs': {{
-                'file1': '{0}',
-                'file2': '{1}'
-                }},
-                'Nodes': [
-                {{
-                    'Name': 'Data.CustomTextLoader',
-                    'Inputs': {{
-                    'CustomSchema': 'col=Label:TX:0 col=Workclass:TX:1 col=education:TX:2 col=marital-status:TX:3 col=occupation:TX:4 col=relationship:TX:5 col=ethnicity:TX:6 col=sex:TX:7 col=native-country-region:TX:8 col=age:R4:9 col=fnlwgt:I8:10 col=education-num:I8:11 col=capital-gain:I8:12 col=capital-loss:I8:13 col=hours-per-week:I8:14 quote+ header=+ sep=tab',
-                    'InputFile': '$file1'
-                    }},
-                    'Outputs': {{
-                    'Data': '$data'
-                    }}
-                }},
-                {{
-                    'Name': 'Transforms.PermutationFeatureImportance',
-                    'Inputs': {{
-                    'Data': '$data',
-                    'ModelPath': '$file2',
-                    'PermutationCount': 5
-                    }},
-                    'Outputs': {{
-                    'Metrics': '$output_data'
-                    }}
-                }}
-                ],
-                'Outputs': {{
-                'output_data': '{2}'
-                }}
-            }}", EscapePath(dataPath), EscapePath(modelPath), EscapePath(outputDataPath));
-
-            var pfiJsonPath = DeleteOutputPath("pfiGraph.json");
-            File.WriteAllLines(pfiJsonPath, new[] { pfiGraph });
-
-            var pfiArgs = new ExecuteGraphCommand.Arguments() { GraphPath = pfiJsonPath };
-            var pfiCmd = new ExecuteGraphCommand(Env, pfiArgs);
-            pfiCmd.Run();
-
             var loadedData = mlContext.Data.LoadFromBinary(outputDataPath);
-
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("FeatureName"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("MacroAccuracy"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("MicroAccuracy"));
@@ -1065,11 +1068,10 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void RegressionPermutationFeatureImportance()
         {
-            var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            var modelPath = DeleteOutputPath("reg_pfi_model.zip");
+            var inputDataPath = GetDataPath("adult.tiny.with-schema.txt");
             var outputDataPath = DeleteOutputPath("reg_pfi_metrics.idv");
 
-            string trainingGraph = string.Format(@"
+            string inputGraph = string.Format(@"
                 {{
                   'Inputs': {{
                     'file': '{0}'
@@ -1164,42 +1166,12 @@ namespace Microsoft.ML.RunTests
                         'Outputs': {{
                             'PredictorModel': '$output_model'
                         }}
-                    }}
-                  ],
-                  'Outputs': {{
-                    'output_model': '{1}'
-                  }}
-                }}", EscapePath(dataPath), EscapePath(modelPath));
-
-            var trainingJsonPath = DeleteOutputPath("trainingGraph.json");
-            File.WriteAllLines(trainingJsonPath, new[] { trainingGraph });
-
-            var trainingArgs = new ExecuteGraphCommand.Arguments() { GraphPath = trainingJsonPath };
-            var trainingCmd = new ExecuteGraphCommand(Env, trainingArgs);
-            trainingCmd.Run();
-
-            string pfiGraph = string.Format(@"
-                {{
-                  'Inputs': {{
-                    'file1': '{0}',
-                    'file2': '{1}'
-                  }},
-                  'Nodes': [
-                    {{
-                      'Name': 'Data.CustomTextLoader',
-                      'Inputs': {{
-                        'CustomSchema': 'col=Label:I8:0 col=Workclass:TX:1 col=education:TX:2 col=marital-status:TX:3 col=occupation:TX:4 col=relationship:TX:5 col=ethnicity:TX:6 col=sex:TX:7 col=native-country-region:TX:8 col=age:I8:9 col=fnlwgt:I8:10 col=education-num:I8:11 col=capital-gain:I8:12 col=capital-loss:I8:13 col=hours-per-week:I8:14 quote+ header=+ sep=tab',
-                        'InputFile': '$file1'
-                      }},
-                      'Outputs': {{
-                        'Data': '$data'
-                      }}
                     }},
                     {{
                       'Name': 'Transforms.PermutationFeatureImportance',
                       'Inputs': {{
                         'Data': '$data',
-                        'ModelPath': '$file2',
+                        'PredictorModel': '$output_model',
                         'PermutationCount': 5
                       }},
                       'Outputs': {{
@@ -1208,21 +1180,19 @@ namespace Microsoft.ML.RunTests
                     }}
                   ],
                   'Outputs': {{
-                    'output_data': '{2}'
+                    'output_data': '{1}'
                   }}
-                }}", EscapePath(dataPath), EscapePath(modelPath), EscapePath(outputDataPath));
+                }}", EscapePath(inputDataPath), EscapePath(outputDataPath));
 
-            var pfiJsonPath = DeleteOutputPath("pfiGraph.json");
-            File.WriteAllLines(pfiJsonPath, new[] { pfiGraph });
+            var jsonPath = DeleteOutputPath("graph.json");
+            File.WriteAllLines(jsonPath, new[] { inputGraph });
 
-            var pfiArgs = new ExecuteGraphCommand.Arguments() { GraphPath = pfiJsonPath };
-            var pfiCmd = new ExecuteGraphCommand(Env, pfiArgs);
-            pfiCmd.Run();
-
+            var args = new ExecuteGraphCommand.Arguments() { GraphPath = jsonPath };
+            var cmd = new ExecuteGraphCommand(Env, args);
+            cmd.Run();
+                        
             var mlContext = new MLContext();
-
             var loadedData = mlContext.Data.LoadFromBinary(outputDataPath);
-
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("FeatureName"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("MeanAbsoluteError"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("MeanSquaredError"));
@@ -1239,11 +1209,10 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void RankingPermutationFeatureImportance()
         {
-            var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            var modelPath = DeleteOutputPath("rank_pfi_model.zip");
+            var inputData = GetDataPath("adult.tiny.with-schema.txt");
             var outputDataPath = DeleteOutputPath("rank_pfi_metrics.idv");
 
-            string trainingGraph = string.Format(@"
+            string inputGraph = string.Format(@"
                 {{
                   'Inputs': {{
                     'file': '{0}'
@@ -1344,43 +1313,13 @@ namespace Microsoft.ML.RunTests
                         'Outputs': {{
                             'PredictorModel': '$output_model'
                         }}
-                    }}
-                  ],
-                  'Outputs': {{
-                    'output_model': '{1}'
-                  }}
-                }}", EscapePath(dataPath), EscapePath(modelPath));
-
-            var trainingJsonPath = DeleteOutputPath("trainingGraph.json");
-            File.WriteAllLines(trainingJsonPath, new[] { trainingGraph });
-
-            var trainingArgs = new ExecuteGraphCommand.Arguments() { GraphPath = trainingJsonPath };
-            var trainingCmd = new ExecuteGraphCommand(Env, trainingArgs);
-            trainingCmd.Run();
-
-            string pfiGraph = string.Format(@"
-                {{
-                  'Inputs': {{
-                    'file1': '{0}',
-                    'file2': '{1}'
-                  }},
-                  'Nodes': [
-                    {{
-                      'Name': 'Data.CustomTextLoader',
-                      'Inputs': {{
-                        'CustomSchema': 'col=Label:I8:0 col=Workclass:TX:1 col=education:TX:2 col=marital-status:TX:3 col=occupation:TX:4 col=relationship:TX:5 col=ethnicity:TX:6 col=sex:TX:7 col=native-country-region:TX:8 col=age:I8:9 col=fnlwgt:I8:10 col=education-num:I8:11 col=capital-gain:I8:12 col=capital-loss:I8:13 col=hours-per-week:I8:14 quote+ header=+ sep=tab',
-                        'InputFile': '$file1'
-                      }},
-                      'Outputs': {{
-                        'Data': '$data'
-                      }}
                     }},
                     {{
                       'Name': 'Transforms.PermutationFeatureImportance',
                       'Inputs': {{
-                        'Data': '$data',
-                        'ModelPath': '$file2',
-                        'PermutationCount': 20,
+                        'Data': '$input_data',
+                        'PredictorModel': '$output_model',
+                        'PermutationCount': 5,
                         'RowGroupColumnName': 'Workclass'
                       }},
                       'Outputs': {{
@@ -1389,21 +1328,19 @@ namespace Microsoft.ML.RunTests
                     }}
                   ],
                   'Outputs': {{
-                    'output_data': '{2}'
+                    'output_data': '{1}'
                   }}
-                }}", EscapePath(dataPath), EscapePath(modelPath), EscapePath(outputDataPath));
+                }}", EscapePath(inputData), EscapePath(outputDataPath));
 
-            var pfiJsonPath = DeleteOutputPath("pfiGraph.json");
-            File.WriteAllLines(pfiJsonPath, new[] { pfiGraph });
+            var jsonPath = DeleteOutputPath("trainingGraph.json");
+            File.WriteAllLines(jsonPath, new[] { inputGraph });
 
-            var pfiArgs = new ExecuteGraphCommand.Arguments() { GraphPath = pfiJsonPath };
-            var pfiCmd = new ExecuteGraphCommand(Env, pfiArgs);
-            pfiCmd.Run();
+            var args = new ExecuteGraphCommand.Arguments() { GraphPath = jsonPath };
+            var cmd = new ExecuteGraphCommand(Env, args);
+            cmd.Run();
 
             var mlContext = new MLContext();
-
             var loadedData = mlContext.Data.LoadFromBinary(outputDataPath);
-
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("FeatureName"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("DiscountedCumulativeGains"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("NormalizedDiscountedCumulativeGains"));

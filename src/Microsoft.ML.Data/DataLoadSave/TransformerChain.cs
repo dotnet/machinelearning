@@ -128,25 +128,6 @@ namespace Microsoft.ML.Data
             return s;
         }
 
-        [BestFriend]
-        internal TransformerChain<ITransformer> RewindToLastPredictionTransformer()
-        {
-            int numTransformersToTake = 0;
-            for (int i = _transformers.Length; i > 0; i--)
-            {
-                var current = _transformers[i - 1];
-                if (current is IPredictionTransformer<IPredictorProducing<float>>
-                    || current is IPredictionTransformer<IPredictorProducing<VBuffer<float>>>)
-                {
-                    numTransformersToTake = i;
-                    break;
-                }
-            }
-            Contracts.Check(numTransformersToTake != 0, "No predictor found in the model.");
-            var predictorChain = _transformers.Take(numTransformersToTake).ToArray();
-            return new TransformerChain<ITransformer>(predictorChain);
-        }
-
         public IDataView Transform(IDataView input)
         {
             Contracts.CheckValue(input, nameof(input));
