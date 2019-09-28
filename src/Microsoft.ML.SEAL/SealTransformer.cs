@@ -31,16 +31,22 @@ namespace Microsoft.ML.SEAL
     {
         internal sealed class Options : TransformInputBase
         {
-            [Argument(ArgumentType.Required, HelpText = "SEAL Encryption Parameters", SortOrder = 0)]
+            [Argument(ArgumentType.Required, HelpText = "Encrypt or Decrypt Mode", SortOrder = 0)]
+            public bool Encrypt;
+
+            [Argument(ArgumentType.Required, HelpText = "Scale for ", SortOrder = 1)]
+            public double Scale;
+
+            [Argument(ArgumentType.Required, HelpText = "SEAL Encryption Parameters", SortOrder = 2)]
             public EncryptionParameters SealEncryptionParameters;
 
-            [Argument(ArgumentType.Required, HelpText = "SEAL Public Key File Name", SortOrder = 1)]
-            public string SealPublicKeyFileName;
+            [Argument(ArgumentType.Required, HelpText = "SEAL Public Key File Name", SortOrder = 3)]
+            public string SealKeyFileName;
 
-            [Argument(ArgumentType.Required, HelpText = "Name of the input column.", SortOrder = 1)]
+            [Argument(ArgumentType.Required, HelpText = "Name of the input column.", SortOrder = 4)]
             public string InputColumn;
 
-            [Argument(ArgumentType.Required, HelpText = "Name of the output column.", SortOrder = 2)]
+            [Argument(ArgumentType.Required, HelpText = "Name of the output column.", SortOrder = 5)]
             public string OutputColumn;
         }
 
@@ -49,10 +55,13 @@ namespace Microsoft.ML.SEAL
         internal const string ShortName = "STransform";
         internal const string LoaderSignature = "SealTransform";
 
+        internal readonly bool Encrypt;
+        internal readonly double Scale;
         internal readonly EncryptionParameters SealEncryptionParameters;
-        internal readonly string SealPublicKeyFileName;
+        internal readonly string SealKeyFileName;
         internal readonly CKKSEncoder SealCkksEncoder;
         internal readonly Encryptor SealEncryptor;
+        internal readonly Decryptor SealDecryptor;
         internal readonly string InputColumnName;
         internal readonly string OutputColumnName;
 
@@ -80,14 +89,18 @@ namespace Microsoft.ML.SEAL
         private static SealTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             ctx.CheckVersionInfo(GetVersionInfo());
+            var encrypt = ctx.LoadString();
+            var scale = Convert.ToDouble(ctx.LoadString());
             var parameters = EncryptionParameters.Load(ctx.Reader.BaseStream);
-            var sealPublicKeyFilePath = ctx.LoadString();
+            var sealKeyFilePath = ctx.LoadString();
             var inputColumnName = ctx.LoadString();
             var outputColumnName = ctx.LoadString();
             return new SealTransformer(env, new Options()
             {
+                Encrypt = encrypt == "Encrypt",
+                Scale = scale,
                 SealEncryptionParameters = parameters,
-                SealPublicKeyFileName = sealPublicKeyFilePath,
+                SealKeyFileName = sealKeyFilePath,
                 InputColumn = inputColumnName,
                 OutputColumn = outputColumnName
             });
@@ -104,27 +117,40 @@ namespace Microsoft.ML.SEAL
             Host.CheckNonWhiteSpace(options.InputColumn, nameof(options.InputColumn));
             Host.CheckNonWhiteSpace(options.OutputColumn, nameof(options.OutputColumn));
 
+            Encrypt = options.Encrypt;
+            Scale = options.Scale;
             SealEncryptionParameters = options.SealEncryptionParameters;
             var context = new SEALContext(SealEncryptionParameters);
             SealCkksEncoder = new CKKSEncoder(context);
-            SealPublicKeyFileName = options.SealPublicKeyFileName;
+            SealKeyFileName = options.SealKeyFileName;
 
-            using (FileStream fs = File.OpenRead(SealPublicKeyFileName))
+            using (FileStream fs = File.OpenRead(SealKeyFileName))
             {
-                Microsoft.Research.SEAL.PublicKey pk = new Microsoft.Research.SEAL.PublicKey();
-                pk.Load(context, fs);
-                SealEncryptor = new Encryptor(context, pk);
+                if (Encrypt)
+                {
+                    Microsoft.Research.SEAL.PublicKey pk = new Microsoft.Research.SEAL.PublicKey();
+                    pk.Load(context, fs);
+                    SealEncryptor = new Encryptor(context, pk);
+                }
+                else
+                {
+                    Microsoft.Research.SEAL.SecretKey sk = new Microsoft.Research.SEAL.SecretKey();
+                    sk.Load(context, fs);
+                    SealDecryptor = new Decryptor(context, sk);
+                }
             }
 
             InputColumnName = options.InputColumn;
             OutputColumnName = options.OutputColumn;
         }
 
-        internal SealTransformer(IHostEnvironment env, EncryptionParameters sealEncryptionParameters, string sealPublicKeyFilePath, string outputColumnName, string inputColumnName = null)
+        internal SealTransformer(IHostEnvironment env, bool encrypted, double scale, EncryptionParameters sealEncryptionParameters, string sealKeyFilePath, string outputColumnName, string inputColumnName = null)
             : this(env, new Options()
             {
+                Encrypt = encrypted,
+                Scale = scale,
                 SealEncryptionParameters = sealEncryptionParameters,
-                SealPublicKeyFileName = sealPublicKeyFilePath,
+                SealKeyFileName = sealKeyFilePath,
                 InputColumn = inputColumnName ?? outputColumnName,
                 OutputColumn = outputColumnName
             })
@@ -136,8 +162,11 @@ namespace Microsoft.ML.SEAL
             Host.AssertValue(ctx);
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
+            if (Encrypt) ctx.SaveString("Encrypt");
+            else ctx.SaveString("Decrypt");
+            ctx.SaveString(Convert.ToString(Scale));
             EncryptionParameters.Save(SealEncryptionParameters, ctx.Writer.BaseStream);
-            ctx.SaveString(SealPublicKeyFileName);
+            ctx.SaveString(SealKeyFileName);
             ctx.SaveString(InputColumnName);
             ctx.SaveString(OutputColumnName);
         }
@@ -171,32 +200,54 @@ namespace Microsoft.ML.SEAL
                 disposer = null;
                 Host.AssertValue(input);
                 Host.Assert(input.IsColumnActive(input.Schema[_featureColIndex]));
-                var getFeature = input.GetGetter<VBuffer<float>>(input.Schema[_featureColIndex]);
-                ValueGetter<VBuffer<Ciphertext>> encrypt = (ref VBuffer<Ciphertext> dst) =>
+
+                if(_parent.Encrypt)
                 {
-                    VBuffer<float> features = default;
-                    getFeature(ref features);
-                    var denseFeatures = new VBuffer<float>();
-                    features.CopyToDense(ref denseFeatures);
-                    var ciphers = new List<Ciphertext>();
-
-                    for (ulong i = 0; i < (ulong)denseFeatures.Length; i += _parent.SealCkksEncoder.SlotCount)
+                    var getFeature = input.GetGetter<VBuffer<double>>(input.Schema[_featureColIndex]);
+                    ValueGetter<VBuffer<Ciphertext>> encrypt = (ref VBuffer<Ciphertext> dst) =>
                     {
-                        var listVals = new List<double>();
-                        for (ulong j = 0; (j < _parent.SealCkksEncoder.SlotCount) && ((i + j) < (ulong)denseFeatures.Length); ++j)
-                            listVals.Add(denseFeatures.GetItemOrDefault((int)(i + j)));
-                        var plain = new Plaintext();
-                        var scale = Math.Pow(2.0, 60);
-                        _parent.SealCkksEncoder.Encode(listVals, scale, plain);
-                        var encrypted = new Ciphertext();
-                        _parent.SealEncryptor.Encrypt(plain, encrypted);
-                        ciphers.Add(encrypted);
-                    }
+                        VBuffer<double> features = default;
+                        getFeature(ref features);
+                        var denseFeatures = new VBuffer<double>();
+                        features.CopyToDense(ref denseFeatures);
+                        var ciphers = new List<Ciphertext>();
 
-                    dst = new VBuffer<Ciphertext>(ciphers.Count, ciphers.ToArray());
-                };
+                        for (ulong i = 0; i < (ulong)denseFeatures.Length; i += _parent.SealCkksEncoder.SlotCount)
+                        {
+                            var listVals = new List<double>();
+                            for (ulong j = 0; (j < _parent.SealCkksEncoder.SlotCount) && ((i + j) < (ulong)denseFeatures.Length); ++j)
+                                listVals.Add(denseFeatures.GetItemOrDefault((int)(i + j)));
+                            var plain = new Plaintext();
+                            _parent.SealCkksEncoder.Encode(listVals, _parent.Scale, plain);
+                            var encrypted = new Ciphertext();
+                            _parent.SealEncryptor.Encrypt(plain, encrypted);
+                            ciphers.Add(encrypted);
+                        }
 
-                return encrypt;
+                        dst = new VBuffer<Ciphertext>(ciphers.Count, ciphers.ToArray());
+                    };
+                    return encrypt;
+                }
+                else
+                {
+                    var getFeature = input.GetGetter<VBuffer<Ciphertext>>(input.Schema[_featureColIndex]);
+                    ValueGetter<VBuffer<double>> decrypt = (ref VBuffer<double> dst) =>
+                    {
+                        VBuffer<Ciphertext> ciphers = default;
+                        getFeature(ref ciphers);
+                        var decrypted = new List<double>();
+
+                        foreach (var cipher in ciphers.DenseValues())
+                        {
+                            var plain = new Plaintext();
+                            _parent.SealDecryptor.Decrypt(cipher, plain);
+                            var listVals = new List<double>();
+                            _parent.SealCkksEncoder.Decode(plain, listVals);
+                            foreach (var f in listVals) decrypted.Add(f);
+                        }
+                    };
+                    return decrypt;
+                }
             }
 
             private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput) => col => col == _featureColIndex;
@@ -208,18 +259,22 @@ namespace Microsoft.ML.SEAL
     public sealed class SealEstimator : IEstimator<SealTransformer>
     {
         private readonly IHostEnvironment _env;
+        private readonly bool _encrypt;
+        private readonly double _scale;
         private readonly EncryptionParameters _sealEncryptionParameters;
-        private readonly string _sealPublicKeyFilePath;
+        private readonly string _sealKeyFilePath;
         private readonly string _inputColumnName;
         private readonly string _outputColumnName;
 
-        public SealEstimator(IHostEnvironment env, ulong polyModDegree, string sealPublicKeyFilePath, string outputColumnName, string inputColumnName = null)
+        public SealEstimator(IHostEnvironment env, bool encrypt, double scale, ulong polyModDegree, string sealKeyFilePath, IEnumerable<int> bitSizes, string outputColumnName, string inputColumnName = null)
         {
             _env = env;
+            _encrypt = encrypt;
+            _scale = scale;
             _sealEncryptionParameters = new EncryptionParameters(SchemeType.CKKS);
             _sealEncryptionParameters.PolyModulusDegree = polyModDegree;
-            _sealEncryptionParameters.CoeffModulus = CoeffModulus.Create(polyModDegree, new int[] { 60, 40, 40, 60 });
-            _sealPublicKeyFilePath = sealPublicKeyFilePath;
+            _sealEncryptionParameters.CoeffModulus = CoeffModulus.Create(polyModDegree, bitSizes);
+            _sealKeyFilePath = sealKeyFilePath;
             _inputColumnName = inputColumnName ?? outputColumnName;
             _outputColumnName = outputColumnName;
         }
@@ -229,15 +284,15 @@ namespace Microsoft.ML.SEAL
             var columns = inputSchema.GetEnumerator();
             var columnsList = new List<SchemaShape.Column>();
             while (columns.MoveNext()) columnsList.Add(columns.Current);
-            var encColumnSchema = new SchemaShape.Column(_inputColumnName, SchemaShape.Column.VectorKind.Scalar, CiphertextDataViewType.Instance, false);
-            columnsList.Add(encColumnSchema);
+            if (_encrypt) columnsList.Add(new SchemaShape.Column(_inputColumnName, SchemaShape.Column.VectorKind.Scalar, CiphertextDataViewType.Instance, false));
+            else columnsList.Add(new SchemaShape.Column(_inputColumnName, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Double, false));
             SchemaShape outputShape = new SchemaShape(columnsList);
             return outputShape;
         }
 
         public SealTransformer Fit(IDataView input)
         {
-            return new SealTransformer(_env, _sealEncryptionParameters, _sealPublicKeyFilePath, _outputColumnName, _inputColumnName);
+            return new SealTransformer(_env, _encrypt, _scale, _sealEncryptionParameters, _sealKeyFilePath, _outputColumnName, _inputColumnName);
         }
     }
 }
