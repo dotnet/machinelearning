@@ -35,7 +35,7 @@ namespace Microsoft.ML.Transforms
             {
                 var len = (long)tensor.size;
                 var src = (T*)tensor.buffer;
-                var span = new Span<T>(src, (int)len);
+                var span = new Span<T>(src, checked((int)len));
                 span.CopyTo(values);
             }
         }
