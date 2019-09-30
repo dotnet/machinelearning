@@ -42,7 +42,7 @@ namespace Microsoft.ML.Transforms
 
         public static void ToArray<T>(this Tensor tensor, ref T[] array) where T : unmanaged
         {
-            Utils.EnsureSize(ref array, (int)tensor.size, (int)tensor.size, true);
+            Utils.EnsureSize(ref array, (int)tensor.size, (int)tensor.size, false);
             var span = new Span<T>(array);
 
             CopyTo(tensor, span);
