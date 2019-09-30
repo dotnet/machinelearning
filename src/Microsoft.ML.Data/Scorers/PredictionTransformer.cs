@@ -739,7 +739,7 @@ namespace Microsoft.ML.Data
         {
             // Load internal model to be used as TModel of RegressionPredictionTransformer<TModel>
             var host = Contracts.CheckRef(env, nameof(env)).Register(nameof(RegressionPredictionTransformer<IPredictorProducing<float>>));
-            ctx.LoadModel<IPredictorProducing<float>, SignatureLoadModel>(host, out IPredictorProducing<float> model, DirModel); // MYTODO: don't hardcode the DirModel
+            ctx.LoadModel<IPredictorProducing<float>, SignatureLoadModel>(host, out IPredictorProducing<float> model, DirModel);
 
             // Create generic type of RegressionPredictionTransformer<TModel> using the correct TModel.
             // Return an instance of that type, passing the previously loaded model to the constructor
