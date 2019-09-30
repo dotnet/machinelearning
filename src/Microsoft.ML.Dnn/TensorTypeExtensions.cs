@@ -34,12 +34,9 @@ namespace Microsoft.ML.Transforms
             unsafe
             {
                 var len = (long)tensor.size;
-                fixed (T* dst = values)
-                {
-                    var src = (T*)tensor.buffer;
-                    var span = new Span<T>(src, (int)len);
-                    span.CopyTo(values);
-                }
+                var src = (T*)tensor.buffer;
+                var span = new Span<T>(src, (int)len);
+                span.CopyTo(values);
             }
         }
 
