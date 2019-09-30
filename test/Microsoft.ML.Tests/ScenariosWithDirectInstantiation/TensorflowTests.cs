@@ -1326,7 +1326,7 @@ namespace Microsoft.ML.Scenarios
                 batchSize: 5,
                 learningRate: 0.01f,
                 earlyStopping: new ImageClassificationEstimator.EarlyStopping(),
-                metricsCallback: (metrics) => { Console.WriteLine(metrics); lastEpoch = metrics.Train.Epoch; },
+                metricsCallback: (metrics) => { Console.WriteLine(metrics); lastEpoch = metrics.Train != null ? metrics.Train.Epoch : 0; },
                 testOnTrainSet: false,
                 validationSet: testDataset);
 
