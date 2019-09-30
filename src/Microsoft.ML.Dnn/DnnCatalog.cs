@@ -20,6 +20,12 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Retrain the dnn model on new data.
+        /// usage of this API requires additional NuGet dependencies on TensorFlow redist, see linked document for more information.
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!include[io](~/../docs/samples/docs/api-reference/tensorflow-usage.md)]
+        /// ]]>
+        /// </format>
         /// </summary>
         /// <param name="catalog"></param>
         /// <param name="inputColumnNames"> The names of the model inputs.</param>
@@ -79,6 +85,12 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Performs image classification using transfer learning.
+        /// usage of this API requires additional NuGet dependencies on TensorFlow redist, see linked document for more information.
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!include[io](~/../docs/samples/docs/api-reference/tensorflow-usage.md)]
+        /// ]]>
+        /// </format>
         /// </summary>
         /// <param name="catalog"></param>
         /// <param name="featuresColumnName">The name of the input features column.</param>

@@ -11,6 +11,8 @@ namespace Microsoft.ML.Samples
         internal static void RunAll()
         {
             int samples = 0;
+
+
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
             {
                 var sample = type.GetMethod("Example", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
