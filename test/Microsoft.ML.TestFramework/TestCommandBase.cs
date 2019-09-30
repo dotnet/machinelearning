@@ -675,21 +675,22 @@ namespace Microsoft.ML.RunTests
         // REVIEW: Migrate existing tests where the train/score/evaluate runs
         // are explicit in favor of the more generic tests where appropriate.
 
+
         [TestCategory(Cat)]
         [Fact]
         public void EvaluateRankingWithMaml()
         {
-            string _mslrWeb10k_Train = GetDataPath(TestDatasets.MSLRWeb.trainFilename);
-            string extraArgs = " tr=LightGBMRanking" +
-                " eval=RankingEvaluator{t=10}" +
-                " k=2";
-            string loaderArgs = " loader=TextLoader{col=Label:R4:0 col=GroupId:TX:1 col=Features:R4:2-138 header=+}" +
-                " xf = HashTransform{col=GroupId}" +
-                " xf = NAHandleTransform{col=Features}";
+            RunMTAThread(() =>
+            {
+                string trainData = GetDataPath("adult.tiny.with-schema.txt");
+                string extraArgs = $"tr=FastRankRanking{{t=1}} eval=RankingEvaluator{{t=10}} strat=Strat prexf=rangefilter{{col=Label min=20 max=25}} " +
+                $"prexf=term{{col=Strat:Label}} xf=term{{col=Label}} xf=hash{{col=GroupId}} threads- norm=Warn";
 
-            TestCore("cv", _mslrWeb10k_Train, loaderArgs, extraArgs);
+                string loaderArgs = "loader=text{col=Features:R4:10-14 col=Label:R4:9 col=GroupId:TX:1 header+}";
+
+                TestCore("cv", trainData, loaderArgs, extraArgs);
+            });
             Done();
-
         }
 
         [TestCategory(Cat)]
