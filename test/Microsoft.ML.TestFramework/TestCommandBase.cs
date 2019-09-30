@@ -675,7 +675,6 @@ namespace Microsoft.ML.RunTests
         // REVIEW: Migrate existing tests where the train/score/evaluate runs
         // are explicit in favor of the more generic tests where appropriate.
 
-
         [TestCategory(Cat)]
         [Fact]
         public void EvaluateRankingWithMaml()

@@ -7,7 +7,6 @@ using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
-using Microsoft.ML.Tools;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Xunit;
@@ -218,8 +217,6 @@ namespace Microsoft.ML.Functional.Tests
                 var metrics = mlContext.Ranking.Evaluate(scoredData, options, labelColumnName: "Label", rowGroupColumnName: "GroupId");
                 Common.AssertMetrics(metrics);
             }
-
-
         }
 
         /// <summary>

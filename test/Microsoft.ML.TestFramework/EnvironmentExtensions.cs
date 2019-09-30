@@ -9,6 +9,7 @@ using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Ensemble;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms;
+
 namespace Microsoft.ML.TestFramework
 {
     public static class EnvironmentExtensions
@@ -24,7 +25,6 @@ namespace Microsoft.ML.TestFramework
             env.ComponentCatalog.RegisterAssembly(typeof(KMeansModelParameters).Assembly); // ML.KMeansClustering
             env.ComponentCatalog.RegisterAssembly(typeof(PcaModelParameters).Assembly); // ML.PCA
             env.ComponentCatalog.RegisterAssembly(typeof(CVSplit).Assembly); // ML.EntryPoints
-            env.ComponentCatalog.RegisterAssembly(typeof(LightGbmExtensions).Assembly); // ML.LightGBM
             return env;
         }
     }
