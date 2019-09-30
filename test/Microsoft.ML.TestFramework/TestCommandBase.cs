@@ -686,8 +686,8 @@ namespace Microsoft.ML.RunTests
             string loaderArgs = " loader=TextLoader{col=Label:R4:0 col=GroupId:TX:1 col=Features:R4:2-138 header=+}" +
                 " xf = HashTransform{col=GroupId}" +
                 " xf = NAHandleTransform{col=Features}";
-            int digitsOfPrecision = 1;
-            TestCore("cv", _mslrWeb10k_Train, loaderArgs, extraArgs, digitsOfPrecision);
+
+            TestCore("cv", _mslrWeb10k_Train, loaderArgs, extraArgs);
             Done();
 
         }
