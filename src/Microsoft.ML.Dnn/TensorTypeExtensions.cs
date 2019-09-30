@@ -46,20 +46,9 @@ namespace Microsoft.ML.Transforms
         public static void ToArray<T>(this Tensor tensor, ref T[] array) where T : unmanaged
         {
             Utils.EnsureSize(ref array, (int)tensor.size, (int)tensor.size, true);
+            var span = new Span<T>(array);
 
-            if (typeof(T).as_dtype() == tensor.dtype)
-            {
-                unsafe
-                {
-                    var len = (long)tensor.size;
-                    fixed (T* dst = array)
-                    {
-                        var src = (T*)tensor.buffer;
-                        len *= ((long)tensor.itemsize);
-                        System.Buffer.MemoryCopy(src, dst, len, len);
-                    }
-                }
-            }
+            CopyTo(tensor, span);
         }
     }
 }
