@@ -684,7 +684,6 @@ namespace Microsoft.ML.Transforms
             _addBatchDimensionInput = addBatchDimensionInput ?? arch == Architecture.ResnetV2101;
             _inputs = inputColumnNames;
             _outputs = outputColumnNames;
-            _labelColumnName = labelColumnName;
             _finalModelPrefix = finalModelPrefix;
             _arch = arch;
             _scoreColumnName = scoreColumnName;
@@ -697,6 +696,7 @@ namespace Microsoft.ML.Transforms
 
             if (classCount == null)
             {
+                _labelColumnName = labelColumnName;
                 var labelColumn = inputSchema.GetColumnOrNull(labelColumnName).Value;
                 var labelType = labelColumn.Type;
                 var labelCount = labelType.GetKeyCount();
