@@ -92,11 +92,26 @@ namespace Microsoft.ML.Data
 
             // *** Binary format ***
             // model: prediction model.
-            // stream: empty data view that contains train schema.
-            // id of string: feature column.
 
             ctx.LoadModel<TModel, SignatureLoadModel>(host, out TModel model, DirModel);
             Model = model;
+
+            InitializeLogic(host, ctx);
+        }
+
+        [BestFriend]
+        private protected PredictionTransformerBase(IHost host, ModelLoadContext ctx, TModel model)
+        {
+            Host = host;
+            Model = model; // prediction model
+            InitializeLogic(host, ctx);
+        }
+
+        private protected void InitializeLogic(IHost host, ModelLoadContext ctx)
+        {
+            // *** Binary format ***
+            // stream: empty data view that contains train schema.
+            // id of string: feature column.
 
             // Clone the stream with the schema into memory.
             var ms = new MemoryStream();
@@ -110,28 +125,9 @@ namespace Microsoft.ML.Data
             TrainSchema = loader.Schema;
         }
 
-        [BestFriend]
-        private protected PredictionTransformerBase(IHost host, ModelLoadContext ctx, TModel model)
+        private protected void InitializeLogic(IHost host, ModelLoadContext ctx, TModel model)
         {
-            Host = host;
 
-            // *** Binary format ***
-            // model: prediction model.
-            // stream: empty data view that contains train schema.
-            // id of string: feature column.
-
-            Model = model;
-
-            // Clone the stream with the schema into memory.
-            var ms = new MemoryStream();
-            ctx.TryLoadBinaryStream(DirTransSchema, reader =>
-            {
-                reader.BaseStream.CopyTo(ms);
-            });
-
-            ms.Position = 0;
-            var loader = new BinaryLoader(host, new BinaryLoader.Arguments(), ms);
-            TrainSchema = loader.Schema;
         }
 
         /// <summary>
@@ -389,26 +385,24 @@ namespace Microsoft.ML.Data
         internal BinaryPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(BinaryPredictionTransformer<TModel>)), ctx)
         {
-            // *** Binary format ***
-            // <base info>
-            // float: scorer threshold
-            // id of string: scorer threshold column
-
-            Threshold = ctx.Reader.ReadSingle();
-            ThresholdColumn = ctx.LoadString();
-            SetScorer();
+            InitializationLogic(ctx, out Threshold, out ThresholdColumn);
         }
 
         internal BinaryPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx, IHost host, TModel model)
             : base(host, ctx, model)
+        {
+            InitializationLogic(ctx, out Threshold, out ThresholdColumn);
+        }
+
+        internal void InitializationLogic(ModelLoadContext ctx, out float threshold, out string thresholdcolumn)
         {
             // *** Binary format ***
             // <base info>
             // float: scorer threshold
             // id of string: scorer threshold column
 
-            Threshold = ctx.Reader.ReadSingle();
-            ThresholdColumn = ctx.LoadString();
+            threshold = ctx.Reader.ReadSingle();
+            thresholdcolumn = ctx.LoadString();
             SetScorer();
         }
 
@@ -468,22 +462,23 @@ namespace Microsoft.ML.Data
         internal MulticlassPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MulticlassPredictionTransformer<TModel>)), ctx)
         {
-            // *** Binary format ***
-            // <base info>
-            // id of string: train label column
-
-            _trainLabelColumn = ctx.LoadStringOrNull();
-            SetScorer();
+            InitializationLogic(ctx, out _trainLabelColumn);
         }
 
         internal MulticlassPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx, IHost host, TModel model)
             : base(host, ctx, model)
         {
+
+            InitializationLogic(ctx, out _trainLabelColumn);
+        }
+
+        internal void InitializationLogic(ModelLoadContext ctx, out string trainLabelColumn)
+        {
             // *** Binary format ***
             // <base info>
             // id of string: train label column
 
-            _trainLabelColumn = ctx.LoadStringOrNull();
+            trainLabelColumn = ctx.LoadStringOrNull();
             SetScorer();
         }
 
