@@ -37,7 +37,6 @@ namespace Microsoft.ML.Transforms
                 fixed (T* dst = values)
                 {
                     var src = (T*)tensor.buffer;
-                    len *= ((long)tensor.itemsize);
                     var span = new Span<T>(src, (int)len);
                     span.CopyTo(values);
                 }
