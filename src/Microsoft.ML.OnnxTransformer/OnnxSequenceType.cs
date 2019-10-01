@@ -94,6 +94,12 @@ namespace Microsoft.ML.Transforms.Onnx
         /// </summary>
         public override void Register()
         {
+            // this happens when use OnnxSequenceType attribute without specify sequence type
+            if (_elemType == null)
+            {
+                throw new Exception("Please specify sequence type when use OnnxSequenceType Attribute.");
+            }
+
             var enumerableType = typeof(IEnumerable<>);
             var type = enumerableType.MakeGenericType(_elemType);
             DataViewTypeManager.Register(new OnnxSequenceType(_elemType), type, this);

@@ -13,10 +13,11 @@ using Xunit.Abstractions;
 using System.Linq;
 using System.IO;
 using Microsoft.ML.TestFramework.Attributes;
+using System;
 
 namespace Microsoft.ML.Tests
 {
-    public class OnnxSequenceTypeWithAttributesTest : BaseTestBaseline
+    public class OnnxSequenceTypeTest : BaseTestBaseline
     {
         public class OutputObj
         {
@@ -24,6 +25,16 @@ namespace Microsoft.ML.Tests
             [OnnxSequenceType(typeof(IDictionary<string, float>))]
             public IEnumerable<IDictionary<string, float>> Output;
         }
+
+        public class ProblematicOutputObj
+        {
+
+            [ColumnName("output")]
+            // incorrect usage, should always specify sequence type when using OnnxSequenceType attribute
+            [OnnxSequenceType]
+            public IEnumerable<IDictionary<string, float>> Output;
+        }
+
         public class FloatInput
         {
             [ColumnName("input")]
@@ -31,12 +42,12 @@ namespace Microsoft.ML.Tests
             public float[] Input { get; set; }
         }
 
-        public OnnxSequenceTypeWithAttributesTest(ITestOutputHelper output) : base(output)
+        public OnnxSequenceTypeTest(ITestOutputHelper output) : base(output)
         {
         }
-        public static PredictionEngine<FloatInput, OutputObj> LoadModel(string onnxModelFilePath)
+
+        private static OnnxTransformer PrepareModel(string onnxModelFilePath, MLContext ctx)
         {
-            var ctx = new MLContext();
             var dataView = ctx.Data.LoadFromEnumerable(new List<FloatInput>());
 
             var pipeline = ctx.Transforms.ApplyOnnxModel(
@@ -44,6 +55,13 @@ namespace Microsoft.ML.Tests
                                 outputColumnNames: new[] { "output" }, inputColumnNames: new[] { "input" });
 
             var model = pipeline.Fit(dataView);
+            return model;
+        }
+
+        public static PredictionEngine<FloatInput, OutputObj> LoadModel(string onnxModelFilePath)
+        {
+            var ctx = new MLContext();
+            var model = PrepareModel(onnxModelFilePath, ctx);
             return ctx.Model.CreatePredictionEngine<FloatInput, OutputObj>(model);
         }
 
@@ -63,6 +81,22 @@ namespace Microsoft.ML.Tests
                 Assert.Equal(onnx_out[keys[i]], input.Input[i]);
             }
 
+        }
+
+        private static PredictionEngine<FloatInput, ProblematicOutputObj> CreatePredictor()
+        {
+            var onnxModelFilePath = Path.Combine(Directory.GetCurrentDirectory(), "zipmap", "TestZipMapString.onnx");
+
+            var ctx = new MLContext();
+            var model = PrepareModel(onnxModelFilePath, ctx);
+            return ctx.Model.CreatePredictionEngine<FloatInput, ProblematicOutputObj>(model);
+        }
+
+        [OnnxFact]
+        public void OnnxSequenceTypeWithouSpecifySequenceTypeTest()
+        {
+            Exception ex = Assert.Throws<Exception>(() => CreatePredictor());
+            Assert.Equal("Please specify sequence type when use OnnxSequenceType Attribute.", ex.Message);
         }
     }
 }
