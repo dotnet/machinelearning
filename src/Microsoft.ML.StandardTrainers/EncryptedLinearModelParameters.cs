@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
+using Microsoft.ML.DataView;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
@@ -114,7 +115,7 @@ namespace Microsoft.ML.Trainers
 
             Weight = weights;
             Bias = bias;
-            _inputType = new VectorDataViewType(NumberDataViewType.Single, Weight.Length);
+            _inputType = CipherGaloisKeyDataViewType.Instance;
 
             if (Weight.IsDense)
                 _weightsDense = Weight;
@@ -327,11 +328,11 @@ namespace Microsoft.ML.Trainers
 
         ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
-            Contracts.Check(typeof(TIn) == typeof(VBuffer<float>));
+            Contracts.Check(typeof(TIn) == typeof(Tuple<Ciphertext[], GaloisKeys>));
             Contracts.Check(typeof(TOut) == typeof(float));
 
-            ValueMapper<VBuffer<float>, float> del =
-                (in VBuffer<float> src, ref float dst) =>
+            ValueMapper<Tuple<Ciphertext[], GaloisKeys>, float> del =
+                (in Tuple<Ciphertext[], GaloisKeys> src, ref float dst) =>
                 {
                     if (src.Length != Weight.Length)
                         throw Contracts.Except("Input is of length {0}, but predictor expected length {1}", src.Length, Weight.Length);
