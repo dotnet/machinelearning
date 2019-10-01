@@ -30,7 +30,7 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
-    internal class PredictionTransformerBase
+    internal static class PredictionTransformerBase
     {
         internal const string DirModel = "Model";
     }
