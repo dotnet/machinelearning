@@ -1055,6 +1055,11 @@ namespace Microsoft.ML.Transforms
 
             /// <summary>
             /// To be called at the end of every epoch to check if training should stop.
+            /// For increasing metric(eg.: Accuracy), if metric stops increasing, stop training if
+            /// value of metric doesn't increase within 'patience' number of epochs.
+            /// For decreasing metric(eg.: Loss), stop training if value of metric doesn't decrease
+            /// within 'patience' number of epochs.
+            /// Any change  in the value of metric of less than 'minDelta' is not considered a change.
             /// </summary>
             public bool ShouldStop(TrainMetrics currentMetrics)
             {
