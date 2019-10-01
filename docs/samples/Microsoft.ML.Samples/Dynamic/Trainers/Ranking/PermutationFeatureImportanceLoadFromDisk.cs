@@ -7,7 +7,7 @@ using Microsoft.ML.Trainers.FastTree;
 
 namespace Samples.Dynamic.Trainers.Ranking
 {
-    public static class PermutationFeatureImportance2
+    public static class PermutationFeatureImportanceLoadFromDisk
     {
         public static void Example()
         {

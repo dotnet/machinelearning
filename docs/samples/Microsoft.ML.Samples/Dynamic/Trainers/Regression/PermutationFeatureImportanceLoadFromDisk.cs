@@ -7,7 +7,7 @@ using Microsoft.ML.Trainers;
 
 namespace Samples.Dynamic.Trainers.Regression
 {
-    public static class PermutationFeatureImportance2
+    public static class PermutationFeatureImportanceLoadFromDisk
     {
         public static void Example()
         {
