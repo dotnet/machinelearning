@@ -112,7 +112,7 @@ namespace Microsoft.ML.Data
             InitializeLogic(host, ctx);
         }
 
-        private protected void InitializeLogic(IHost host, ModelLoadContext ctx)
+        private void InitializeLogic(IHost host, ModelLoadContext ctx)
         {
             // *** Binary format ***
             // stream: empty data view that contains train schema.
@@ -394,7 +394,7 @@ namespace Microsoft.ML.Data
             InitializationLogic(ctx, out Threshold, out ThresholdColumn);
         }
 
-        internal void InitializationLogic(ModelLoadContext ctx, out float threshold, out string thresholdcolumn)
+        private void InitializationLogic(ModelLoadContext ctx, out float threshold, out string thresholdcolumn)
         {
             // *** Binary format ***
             // <base info>
@@ -472,7 +472,7 @@ namespace Microsoft.ML.Data
             InitializationLogic(ctx, out _trainLabelColumn);
         }
 
-        internal void InitializationLogic(ModelLoadContext ctx, out string trainLabelColumn)
+        private void InitializationLogic(ModelLoadContext ctx, out string trainLabelColumn)
         {
             // *** Binary format ***
             // <base info>
