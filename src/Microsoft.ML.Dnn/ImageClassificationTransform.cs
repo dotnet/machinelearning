@@ -245,6 +245,7 @@ namespace Microsoft.ML.Transforms
                     runner.AddInput(imageTensor, 0);
                     var featurizedImage = runner.Run()[0]; // Reuse memory
                     featurizedImage.ToArray<float>(ref imageArray);
+                    Host.Assert((int)featurizedImage.size == imageArray.Length);
                     writer.WriteLine(label - 1 + "," + string.Join(",", imageArray));
                     featurizedImage.Dispose();
                     imageTensor.Dispose();
