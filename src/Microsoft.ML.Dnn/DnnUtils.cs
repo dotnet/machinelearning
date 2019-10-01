@@ -399,6 +399,11 @@ namespace Microsoft.ML.Transforms.Dnn
                 return this;
             }
 
+            public List<Tensor> GetInputValues()
+            {
+                return _inputValues;
+            }
+
             public Runner AddOutputs(string output)
             {
                 _outputs.Add(ParseOutput(output));
