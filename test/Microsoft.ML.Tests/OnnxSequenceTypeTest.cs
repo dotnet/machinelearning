@@ -83,7 +83,7 @@ namespace Microsoft.ML.Tests
 
         }
 
-        private static PredictionEngine<FloatInput, ProblematicOutputObj> CreatePredictor()
+        private static PredictionEngine<FloatInput, ProblematicOutputObj> CreatePredictorWithPronlematicOutputObj()
         {
             var onnxModelFilePath = Path.Combine(Directory.GetCurrentDirectory(), "zipmap", "TestZipMapString.onnx");
 
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Tests
         [OnnxFact]
         public void OnnxSequenceTypeWithouSpecifySequenceTypeTest()
         {
-            Exception ex = Assert.Throws<Exception>(() => CreatePredictor());
+            Exception ex = Assert.Throws<Exception>(() => CreatePredictorWithPronlematicOutputObj());
             Assert.Equal("Please specify sequence type when use OnnxSequenceType Attribute.", ex.Message);
         }
     }
