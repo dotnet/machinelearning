@@ -378,7 +378,7 @@ namespace Microsoft.ML.Transforms
                 var tfOutputType = ((Operation)outputTensor).OutputType(outputIndex);
                 var shape = GetTensorShape(new TF_Output((Operation)outputTensor, outputIndex), session.graph);
 
-                // The transformer can only retreive the output as fixed length vector with shape of kind [-1, d1, d2, d3, ...]
+                // The transformer can only retrieve the output as fixed length vector with shape of kind [-1, d1, d2, d3, ...]
                 // i.e. the first dimension (if unknown) is assumed to be batch dimension.
                 // If there are other dimension that are unknown the transformer will return a variable length vector.
                 // This is the work around in absence of reshape transformer.
@@ -462,6 +462,11 @@ namespace Microsoft.ML.Transforms
                 if (Session != null && Session != IntPtr.Zero)
                 {
                     Session.close(); // invoked Dispose()
+                }
+
+                if (Session != null && Session.graph != IntPtr.Zero)
+                {
+                    Session.graph.Dispose();
                 }
             }
             finally
@@ -643,7 +648,7 @@ namespace Microsoft.ML.Transforms
                     Runner runner = new Runner(_parent.Session);
 
                     // Feed inputs to the graph.
-                    for (int i = 0; i < _parent.Inputs.Length; i++)
+                     for (int i = 0; i < _parent.Inputs.Length; i++)
                     {
                         var tensor = srcTensorGetters[i].GetTensor();
                         runner.AddInput(_parent.Inputs[i], tensor);
@@ -655,6 +660,12 @@ namespace Microsoft.ML.Transforms
 
                     // Execute the graph.
                     var tensors = runner.Run();
+
+                    List<Tensor> inputTensors = runner.GetInputValues();
+                    foreach (Tensor inputTensor in inputTensors)
+                    {
+                        inputTensor.Dispose();
+                    }
 
                     Contracts.Assert(tensors.Length > 0);
 
