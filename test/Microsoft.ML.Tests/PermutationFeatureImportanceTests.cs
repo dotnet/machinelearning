@@ -69,10 +69,7 @@ namespace Microsoft.ML.Tests
             var modelAndSchemaPath = GetOutputPath("TestPfiRegressionOnDenseFeatures.zip");
             ML.Model.Save(model, data.Schema, modelAndSchemaPath);
 
-            ITransformer loadedModel;
-            using (var fs = File.OpenRead(modelAndSchemaPath))
-                loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
-
+            var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
             var castedModel = loadedModel as RegressionPredictionTransformer<LinearRegressionModelParameters>;
             var pfi = ML.Regression.PermutationFeatureImportance(castedModel, data);
 
@@ -163,10 +160,7 @@ namespace Microsoft.ML.Tests
             var modelAndSchemaPath = GetOutputPath("TestPfiRegressionStandardDeviationAndErrorOnDenseFeatures.zip");
             ML.Model.Save(model, data.Schema, modelAndSchemaPath);
 
-            ITransformer loadedModel;
-            using (var fs = File.OpenRead(modelAndSchemaPath))
-                loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
-
+            var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
             var castedModel = loadedModel as RegressionPredictionTransformer<LinearRegressionModelParameters>;
             var pfi = ML.Regression.PermutationFeatureImportance(castedModel, data, permutationCount: 20);
 
@@ -259,10 +253,7 @@ namespace Microsoft.ML.Tests
             var modelAndSchemaPath = GetOutputPath("TestPfiRegressionOnSparseFeatures.zip");
             ML.Model.Save(model, data.Schema, modelAndSchemaPath);
 
-            ITransformer loadedModel;
-            using (var fs = File.OpenRead(modelAndSchemaPath))
-                loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
-
+            var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
             var castedModel = loadedModel as RegressionPredictionTransformer<LinearRegressionModelParameters>;
             var results = ML.Regression.PermutationFeatureImportance(castedModel, data);
 
@@ -422,10 +413,7 @@ namespace Microsoft.ML.Tests
             var modelAndSchemaPath = GetOutputPath("TestPfiMulticlassClassificationOnDenseFeatures.zip");
             ML.Model.Save(model, data.Schema, modelAndSchemaPath);
 
-            ITransformer loadedModel;
-            using (var fs = File.OpenRead(modelAndSchemaPath))
-                loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
-
+            var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
             var castedModel = loadedModel as MulticlassPredictionTransformer<MaximumEntropyModelParameters>;
             var pfi = ML.MulticlassClassification.PermutationFeatureImportance(castedModel, data);
 
@@ -510,10 +498,7 @@ namespace Microsoft.ML.Tests
             var modelAndSchemaPath = GetOutputPath("TestPfiMulticlassClassificationOnSparseFeatures.zip");
             ML.Model.Save(model, data.Schema, modelAndSchemaPath);
 
-            ITransformer loadedModel;
-            using (var fs = File.OpenRead(modelAndSchemaPath))
-                loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
-
+            var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
             var castedModel = loadedModel as MulticlassPredictionTransformer<MaximumEntropyModelParameters>;
             var pfi = ML.MulticlassClassification.PermutationFeatureImportance(castedModel, data);
 
@@ -591,10 +576,7 @@ namespace Microsoft.ML.Tests
             var modelAndSchemaPath = GetOutputPath("TestPfiRankingOnDenseFeatures.zip");
             ML.Model.Save(model, data.Schema, modelAndSchemaPath);
 
-            ITransformer loadedModel;
-            using (var fs = File.OpenRead(modelAndSchemaPath))
-                loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
-
+            var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
             var castedModel = loadedModel as RankingPredictionTransformer<FastTreeRankingModelParameters>;
             var pfi = ML.Ranking.PermutationFeatureImportance(castedModel, data);
 
@@ -664,10 +646,7 @@ namespace Microsoft.ML.Tests
             var modelAndSchemaPath = GetOutputPath("TestPfiRankingOnSparseFeatures.zip");
             ML.Model.Save(model, data.Schema, modelAndSchemaPath);
 
-            ITransformer loadedModel;
-            using (var fs = File.OpenRead(modelAndSchemaPath))
-                loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
-
+            var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
             var castedModel = loadedModel as RankingPredictionTransformer<FastTreeRankingModelParameters>;
             var pfi = ML.Ranking.PermutationFeatureImportance(castedModel, data);
 

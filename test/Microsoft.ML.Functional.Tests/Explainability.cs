@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.RunTests;
@@ -73,8 +72,7 @@ namespace Microsoft.ML.Functional.Tests
             mlContext.Model.Save(model, data.Schema, modelAndSchemaPath);
 
             ITransformer loadedModel;
-            using (var fs = File.OpenRead(modelAndSchemaPath))
-                loadedModel = mlContext.Model.Load(modelAndSchemaPath, out var schema);
+            loadedModel = mlContext.Model.Load(modelAndSchemaPath, out var schema);
 
             var transformedData = loadedModel.Transform(data);
             var linearPredictor = (loadedModel as TransformerChain<ITransformer>).LastTransformer as RegressionPredictionTransformer<LinearRegressionModelParameters>;
