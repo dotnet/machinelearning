@@ -1,17 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.SEAL
+namespace Microsoft.ML.Trainers
 {
-    public static class StandardTrainersCatalog
+    public static class EncryptedStandardTrainersCatalog
     {
         /// <summary>
         /// Create <see cref="EncryptedSdcaLogisticRegressionBinaryTrainer"/>, which predicts a target using a linear classification model.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
+        /// <param name="polyModulusDegree">The value of the PolyModulusDegree encryption parameter.</param>
+        /// <param name="bitSizes">The bit-lengths of the primes to be generated.</param>
+        /// <param name="scale">Scaling parameter defining encoding precision.</param>
         /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Single"/>.</param>
         /// <param name="featureColumnName">The name of the feature column. The column data must be a known-sized vector of <see cref="System.Single"/>.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
@@ -26,6 +27,9 @@ namespace Microsoft.ML.SEAL
         /// </example>
         public static EncryptedSdcaLogisticRegressionBinaryTrainer EncryptedSdcaLogisticRegression(
                 this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+                ulong polyModulusDegree,
+                IEnumerable<int> bitSizes,
+                double scale,
                 string labelColumnName = DefaultColumnNames.Label,
                 string featureColumnName = DefaultColumnNames.Features,
                 string exampleWeightColumnName = null,
@@ -35,7 +39,7 @@ namespace Microsoft.ML.SEAL
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new EncryptedSdcaLogisticRegressionBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, l2Regularization, l1Regularization, maximumNumberOfIterations);
+            return new EncryptedSdcaLogisticRegressionBinaryTrainer(env, polyModulusDegree, bitSizes, scale, labelColumnName, featureColumnName, exampleWeightColumnName, l2Regularization, l1Regularization, maximumNumberOfIterations);
         }
 
         /// <summary>

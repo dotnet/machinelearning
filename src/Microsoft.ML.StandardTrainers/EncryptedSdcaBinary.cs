@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -1295,6 +1296,9 @@ namespace Microsoft.ML.Trainers
         EncryptedSdcaTrainerBase<EncryptedSdcaBinaryTrainerBase<TModelParameters>.BinaryOptionsBase, BinaryPredictionTransformer<TModelParameters>, TModelParameters>
         where TModelParameters : class
     {
+        private readonly ulong _polyModulusDegree;
+        private readonly IEnumerable<int> _bitSizes;
+        private readonly double _scale;
         private readonly ISupportSdcaClassificationLoss _loss;
         private readonly float _positiveInstanceWeight;
 
@@ -1333,6 +1337,9 @@ namespace Microsoft.ML.Trainers
         /// Initializes a new instance of <see cref="SdcaBinaryTrainerBase{TModelParameters}"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
+        /// <param name="polyModulusDegree">The value of the PolyModulusDegree encryption parameter.</param>
+        /// <param name="bitSizes">The bit-lengths of the primes to be generated.</param>
+        /// <param name="scale">Scaling parameter defining encoding precision.</param>
         /// <param name="labelColumnName">The label, or dependent variable.</param>
         /// <param name="featureColumnName">The features, or independent variables.</param>
         /// <param name="loss">The custom loss.</param>
@@ -1341,6 +1348,9 @@ namespace Microsoft.ML.Trainers
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
         private protected EncryptedSdcaBinaryTrainerBase(IHostEnvironment env,
+            ulong polyModulusDegree,
+            IEnumerable<int> bitSizes,
+            double scale,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string weightColumnName = null,
@@ -1353,6 +1363,9 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckNonEmpty(featureColumnName, nameof(featureColumnName));
             Host.CheckNonEmpty(labelColumnName, nameof(labelColumnName));
+            _polyModulusDegree = polyModulusDegree;
+            _bitSizes = bitSizes;
+            _scale = scale;
             _loss = loss ?? new LogLossFactory().CreateComponent(env);
             Loss = _loss;
             Info = new TrainerInfo(calibration: false);
@@ -1372,7 +1385,7 @@ namespace Microsoft.ML.Trainers
 
         private protected abstract SchemaShape.Column[] ComputeSdcaBinaryClassifierSchemaShape();
 
-        private protected LinearBinaryModelParameters CreateLinearBinaryModelParameters(VBuffer<float>[] weights, float[] bias)
+        private protected EncryptedLinearBinaryModelParameters CreateLinearBinaryModelParameters(VBuffer<float>[] weights, float[] bias)
         {
             Host.CheckParam(Utils.Size(weights) == 1, nameof(weights));
             Host.CheckParam(Utils.Size(bias) == 1, nameof(bias));
@@ -1383,7 +1396,7 @@ namespace Microsoft.ML.Trainers
             VBufferUtils.CreateMaybeSparseCopy(weights[0], ref maybeSparseWeights,
                 Conversions.Instance.GetIsDefaultPredicate<float>(NumberDataViewType.Single));
 
-            return new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias[0]);
+            return new EncryptedLinearBinaryModelParameters(Host, in maybeSparseWeights, bias[0], _polyModulusDegree, _bitSizes, _scale);
         }
 
         private protected override float GetInstanceWeight(FloatLabelCursor cursor)
@@ -1433,7 +1446,7 @@ namespace Microsoft.ML.Trainers
     /// <seealso cref="StandardTrainersCatalog.SdcaLogisticRegression(BinaryClassificationCatalog.BinaryClassificationTrainers, SdcaLogisticRegressionBinaryTrainer.Options)"/>
     /// <seealso cref="Options"/>
     public sealed class EncryptedSdcaLogisticRegressionBinaryTrainer :
-        EncryptedSdcaBinaryTrainerBase<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
+        EncryptedSdcaBinaryTrainerBase<CalibratedModelParametersBase<EncryptedLinearBinaryModelParameters, PlattCalibrator>>
     {
         /// <summary>
         /// Options for the <see cref="SdcaLogisticRegressionBinaryTrainer"/> as used in
@@ -1444,13 +1457,16 @@ namespace Microsoft.ML.Trainers
         }
 
         internal EncryptedSdcaLogisticRegressionBinaryTrainer(IHostEnvironment env,
+            ulong polyModulusDegree,
+            IEnumerable<int> bitSizes,
+            double scale,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string weightColumnName = null,
             float? l2Const = null,
             float? l1Threshold = null,
             int? maxIterations = null)
-             : base(env, labelColumnName, featureColumnName, weightColumnName, new LogLoss(), l2Const, l1Threshold, maxIterations)
+             : base(env, polyModulusDegree, bitSizes, scale, labelColumnName, featureColumnName, weightColumnName, new LogLoss(), l2Const, l1Threshold, maxIterations)
         {
         }
 
@@ -1459,11 +1475,11 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        private protected override CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> CreatePredictor(VBuffer<float>[] weights, float[] bias)
+        private protected override CalibratedModelParametersBase<EncryptedLinearBinaryModelParameters, PlattCalibrator> CreatePredictor(VBuffer<float>[] weights, float[] bias)
         {
             var linearModel = CreateLinearBinaryModelParameters(weights, bias);
             var calibrator = new PlattCalibrator(Host, -1, 0);
-            return new ParameterMixingCalibratedModelParameters<LinearBinaryModelParameters, PlattCalibrator>(Host, linearModel, calibrator);
+            return new ParameterMixingCalibratedModelParameters<EncryptedLinearBinaryModelParameters, PlattCalibrator>(Host, linearModel, calibrator);
         }
 
         private protected override SchemaShape.Column[] ComputeSdcaBinaryClassifierSchemaShape()
