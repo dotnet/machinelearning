@@ -27,51 +27,28 @@ namespace Microsoft.ML.Tests
         /// <summary>
         /// Test PFI Regression for Dense Features
         /// </summary>
-        [Fact]
-        public void TestPfiRegressionOnDenseFeatures()
-        {
-            var data = GetDenseDataset();
-            var model = ML.Regression.Trainers.OnlineGradientDescent().Fit(data);
-            var pfi = ML.Regression.PermutationFeatureImportance(model, data);
-
-            // Pfi Indices:
-            // X1: 0
-            // X2Important: 1
-            // X3: 2
-            // X4Rand: 3
-
-            // For the following metrics lower is better, so maximum delta means more important feature, and vice versa
-            Assert.Equal(3, MinDeltaIndex(pfi, m => m.MeanAbsoluteError.Mean));
-            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.MeanAbsoluteError.Mean));
-
-            Assert.Equal(3, MinDeltaIndex(pfi, m => m.MeanSquaredError.Mean));
-            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.MeanSquaredError.Mean));
-
-            Assert.Equal(3, MinDeltaIndex(pfi, m => m.RootMeanSquaredError.Mean));
-            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.RootMeanSquaredError.Mean));
-
-            // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
-            Assert.Equal(1, MinDeltaIndex(pfi, m => m.RSquared.Mean));
-            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.RSquared.Mean));
-
-            Done();
-        }
-
-        /// <summary>
-        /// Test PFI Regression for Dense Features with a model loaded from disk
-        /// </summary>
-        [Fact]
-        public void TestPfiRegressionOnDenseFeaturesWithLoadedModel()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestPfiRegressionOnDenseFeatures(bool saveModel)
         {
             var data = GetDenseDataset();
             var model = ML.Regression.Trainers.OnlineGradientDescent().Fit(data);
 
-            var modelAndSchemaPath = GetOutputPath("TestPfiRegressionOnDenseFeatures.zip");
-            ML.Model.Save(model, data.Schema, modelAndSchemaPath);
+            ImmutableArray<RegressionMetricsStatistics> pfi;
+            if(saveModel)
+            {
+                var modelAndSchemaPath = GetOutputPath("TestPfiRegressionOnDenseFeatures.zip");
+                ML.Model.Save(model, data.Schema, modelAndSchemaPath);
 
-            var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
-            var castedModel = loadedModel as RegressionPredictionTransformer<LinearRegressionModelParameters>;
-            var pfi = ML.Regression.PermutationFeatureImportance(castedModel, data);
+                var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
+                var castedModel = loadedModel as RegressionPredictionTransformer<LinearRegressionModelParameters>;
+                pfi = ML.Regression.PermutationFeatureImportance(castedModel, data);
+            }
+            else
+            {
+                pfi = ML.Regression.PermutationFeatureImportance(model, data);
+            }
 
             // Pfi Indices:
             // X1: 0
@@ -99,70 +76,29 @@ namespace Microsoft.ML.Tests
         /// <summary>
         /// Test PFI Regression Standard Deviation and Standard Error for Dense Features
         /// </summary>
-        [Fact]
-        public void TestPfiRegressionStandardDeviationAndErrorOnDenseFeatures()
-        {
-            var data = GetDenseDataset();
-            var model = ML.Regression.Trainers.OnlineGradientDescent().Fit(data);
-            var pfi = ML.Regression.PermutationFeatureImportance(model, data, permutationCount: 20);
-            // Keep the permutation count high so fluctuations are kept to a minimum
-            //  but not high enough to slow down the tests
-            //  (fluctuations lead to random test failures)
-
-            // Pfi Indices:
-            // X1: 0
-            // X2Important: 1
-            // X3: 2
-            // X4Rand: 3
-
-            // For these metrics, the magnitude of the difference will be greatest for 1, least for 3
-            // Stardard Deviation will scale with the magnitude of the measure
-            Assert.Equal(3, MinDeltaIndex(pfi, m => m.MeanAbsoluteError.StandardDeviation));
-            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.MeanAbsoluteError.StandardDeviation));
-
-            Assert.Equal(3, MinDeltaIndex(pfi, m => m.MeanSquaredError.StandardDeviation));
-            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.MeanSquaredError.StandardDeviation));
-
-            Assert.Equal(3, MinDeltaIndex(pfi, m => m.RootMeanSquaredError.StandardDeviation));
-            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.RootMeanSquaredError.StandardDeviation));
-
-            Assert.Equal(3, MinDeltaIndex(pfi, m => m.RSquared.StandardDeviation));
-            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.RSquared.StandardDeviation));
-
-            // Stardard Error will scale with the magnitude of the measure (as it's SD/sqrt(N))
-            Assert.Equal(3, MinDeltaIndex(pfi, m => m.MeanAbsoluteError.StandardError));
-            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.MeanAbsoluteError.StandardError));
-
-            Assert.Equal(3, MinDeltaIndex(pfi, m => m.MeanSquaredError.StandardError));
-            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.MeanSquaredError.StandardError));
-
-            Assert.Equal(3, MinDeltaIndex(pfi, m => m.RootMeanSquaredError.StandardError));
-            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.RootMeanSquaredError.StandardError));
-
-            Assert.Equal(3, MinDeltaIndex(pfi, m => m.RSquared.StandardError));
-            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.RSquared.StandardError));
-
-            // And test that the Standard Deviation and Standard Error are related as we expect
-            Assert.Equal(pfi[0].RootMeanSquaredError.StandardError, pfi[0].RootMeanSquaredError.StandardDeviation / Math.Sqrt(pfi[0].RootMeanSquaredError.Count));
-
-            Done();
-        }
-
-        /// <summary>
-        /// Test PFI Regression Standard Deviation and Standard Error for Dense Features with a model loaded from disk
-        /// </summary>
-        [Fact]
-        public void TestPfiRegressionStandardDeviationAndErrorOnDenseFeaturesWithLoadedModel()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestPfiRegressionStandardDeviationAndErrorOnDenseFeatures(bool saveModel)
         {
             var data = GetDenseDataset();
             var model = ML.Regression.Trainers.OnlineGradientDescent().Fit(data);
 
-            var modelAndSchemaPath = GetOutputPath("TestPfiRegressionStandardDeviationAndErrorOnDenseFeatures.zip");
-            ML.Model.Save(model, data.Schema, modelAndSchemaPath);
+            ImmutableArray<RegressionMetricsStatistics> pfi;
 
-            var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
-            var castedModel = loadedModel as RegressionPredictionTransformer<LinearRegressionModelParameters>;
-            var pfi = ML.Regression.PermutationFeatureImportance(castedModel, data, permutationCount: 20);
+            if(saveModel)
+            {
+                var modelAndSchemaPath = GetOutputPath("TestPfiRegressionStandardDeviationAndErrorOnDenseFeatures.zip");
+                ML.Model.Save(model, data.Schema, modelAndSchemaPath);
+
+                var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
+                var castedModel = loadedModel as RegressionPredictionTransformer<LinearRegressionModelParameters>;
+                pfi = ML.Regression.PermutationFeatureImportance(castedModel, data, permutationCount: 20);
+            }
+            else
+            {
+                pfi = ML.Regression.PermutationFeatureImportance(model, data, permutationCount: 20);
+            }
 
             // Keep the permutation count high so fluctuations are kept to a minimum
             //  but not high enough to slow down the tests
@@ -210,52 +146,28 @@ namespace Microsoft.ML.Tests
         /// <summary>
         /// Test PFI Regression for Sparse Features
         /// </summary>
-        [Fact]
-        public void TestPfiRegressionOnSparseFeatures()
-        {
-            var data = GetSparseDataset();
-            var model = ML.Regression.Trainers.OnlineGradientDescent().Fit(data);
-            var results = ML.Regression.PermutationFeatureImportance(model, data);
-
-            // Pfi Indices:
-            // X1: 0
-            // X2VBuffer-Slot-0: 1
-            // X2VBuffer-Slot-1: 2
-            // X2VBuffer-Slot-2: 3
-            // X2VBuffer-Slot-3: 4
-            // X3Important: 5
-
-            // Permuted X2VBuffer-Slot-1 lot (f2) should have min impact on SGD metrics, X3Important -- max impact.
-            // For the following metrics lower is better, so maximum delta means more important feature, and vice versa
-            Assert.Equal(2, MinDeltaIndex(results, m => m.MeanAbsoluteError.Mean));
-            Assert.Equal(5, MaxDeltaIndex(results, m => m.MeanAbsoluteError.Mean));
-
-            Assert.Equal(2, MinDeltaIndex(results, m => m.MeanSquaredError.Mean));
-            Assert.Equal(5, MaxDeltaIndex(results, m => m.MeanSquaredError.Mean));
-
-            Assert.Equal(2, MinDeltaIndex(results, m => m.RootMeanSquaredError.Mean));
-            Assert.Equal(5, MaxDeltaIndex(results, m => m.RootMeanSquaredError.Mean));
-
-            // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
-            Assert.Equal(2, MaxDeltaIndex(results, m => m.RSquared.Mean));
-            Assert.Equal(5, MinDeltaIndex(results, m => m.RSquared.Mean));
-        }
-
-        /// <summary>
-        /// Test PFI Regression for Sparse Features with a model loaded from disk
-        /// </summary>
-        [Fact]
-        public void TestPfiRegressionOnSparseFeaturesWithLoadedModel()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestPfiRegressionOnSparseFeatures(bool saveModel)
         {
             var data = GetSparseDataset();
             var model = ML.Regression.Trainers.OnlineGradientDescent().Fit(data);
 
-            var modelAndSchemaPath = GetOutputPath("TestPfiRegressionOnSparseFeatures.zip");
-            ML.Model.Save(model, data.Schema, modelAndSchemaPath);
+            ImmutableArray<RegressionMetricsStatistics> results;
+            if(saveModel)
+            {
+                var modelAndSchemaPath = GetOutputPath("TestPfiRegressionOnSparseFeatures.zip");
+                ML.Model.Save(model, data.Schema, modelAndSchemaPath);
 
-            var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
-            var castedModel = loadedModel as RegressionPredictionTransformer<LinearRegressionModelParameters>;
-            var results = ML.Regression.PermutationFeatureImportance(castedModel, data);
+                var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
+                var castedModel = loadedModel as RegressionPredictionTransformer<LinearRegressionModelParameters>;
+                results = ML.Regression.PermutationFeatureImportance(castedModel, data);
+            }
+            else
+            {
+                results = ML.Regression.PermutationFeatureImportance(model, data);
+            }
 
             // Pfi Indices:
             // X1: 0
@@ -367,55 +279,28 @@ namespace Microsoft.ML.Tests
         /// <summary>
         /// Test PFI Multiclass Classification for Dense Features
         /// </summary>
-        [Fact]
-        public void TestPfiMulticlassClassificationOnDenseFeatures()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestPfiMulticlassClassificationOnDenseFeatures(bool saveModel)
         {
             var data = GetDenseDataset(TaskType.MulticlassClassification);
             var model = ML.MulticlassClassification.Trainers.LbfgsMaximumEntropy().Fit(data);
-            var pfi = ML.MulticlassClassification.PermutationFeatureImportance(model, data);
 
-            // Pfi Indices:
-            // X1: 0
-            // X2Important: 1
-            // X3: 2
-            // X4Rand: 3
-
-            // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
-            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.MicroAccuracy.Mean));
-            Assert.Equal(1, MinDeltaIndex(pfi, m => m.MicroAccuracy.Mean));
-            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.MacroAccuracy.Mean));
-            Assert.Equal(1, MinDeltaIndex(pfi, m => m.MacroAccuracy.Mean));
-            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.LogLossReduction.Mean));
-            Assert.Equal(1, MinDeltaIndex(pfi, m => m.LogLossReduction.Mean));
-
-            // For the following metrics-delta lower is better, so maximum delta means more important feature, and vice versa
-            //  Because they are _negative_, the difference will be positive for worse classifiers.
-            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.LogLoss.Mean));
-            Assert.Equal(3, MinDeltaIndex(pfi, m => m.LogLoss.Mean));
-            for (int i = 0; i < pfi[0].PerClassLogLoss.Count; i++)
+            ImmutableArray<MulticlassClassificationMetricsStatistics> pfi;
+            if(saveModel)
             {
-                Assert.True(MaxDeltaIndex(pfi, m => m.PerClassLogLoss[i].Mean) == 1);
-                Assert.True(MinDeltaIndex(pfi, m => m.PerClassLogLoss[i].Mean) == 3);
+                var modelAndSchemaPath = GetOutputPath("TestPfiMulticlassClassificationOnDenseFeatures.zip");
+                ML.Model.Save(model, data.Schema, modelAndSchemaPath);
+
+                var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
+                var castedModel = loadedModel as MulticlassPredictionTransformer<MaximumEntropyModelParameters>;
+                pfi = ML.MulticlassClassification.PermutationFeatureImportance(castedModel, data);
             }
-
-            Done();
-        }
-
-        /// <summary>
-        /// Test PFI Multiclass Classification for Dense Features using a model loaded from disk
-        /// </summary>
-        [Fact]
-        public void TestPfiMulticlassClassificationOnDenseFeaturesWithLoadedModel()
-        {
-            var data = GetDenseDataset(TaskType.MulticlassClassification);
-            var model = ML.MulticlassClassification.Trainers.LbfgsMaximumEntropy().Fit(data);
-
-            var modelAndSchemaPath = GetOutputPath("TestPfiMulticlassClassificationOnDenseFeatures.zip");
-            ML.Model.Save(model, data.Schema, modelAndSchemaPath);
-
-            var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
-            var castedModel = loadedModel as MulticlassPredictionTransformer<MaximumEntropyModelParameters>;
-            var pfi = ML.MulticlassClassification.PermutationFeatureImportance(castedModel, data);
+            else
+            {
+                pfi = ML.MulticlassClassification.PermutationFeatureImportance(model, data);
+            }
 
             // Pfi Indices:
             // X1: 0
@@ -447,60 +332,29 @@ namespace Microsoft.ML.Tests
         /// <summary>
         /// Test PFI Multiclass Classification for Sparse Features
         /// </summary>
-        [Fact]
-        public void TestPfiMulticlassClassificationOnSparseFeatures()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestPfiMulticlassClassificationOnSparseFeatures(bool saveModel)
         {
             var data = GetSparseDataset(TaskType.MulticlassClassification);
             var model = ML.MulticlassClassification.Trainers.LbfgsMaximumEntropy(
                 new LbfgsMaximumEntropyMulticlassTrainer.Options { MaximumNumberOfIterations = 1000 }).Fit(data);
 
-            var pfi = ML.MulticlassClassification.PermutationFeatureImportance(model, data);
-
-            // Pfi Indices:
-            // X1: 0
-            // X2VBuffer-Slot-0: 1
-            // X2VBuffer-Slot-1: 2 // Least important
-            // X2VBuffer-Slot-2: 3
-            // X2VBuffer-Slot-3: 4
-            // X3Important: 5 // Most important
-
-            // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
-            Assert.Equal(2, MaxDeltaIndex(pfi, m => m.MicroAccuracy.Mean));
-            Assert.Equal(5, MinDeltaIndex(pfi, m => m.MicroAccuracy.Mean));
-            Assert.Equal(2, MaxDeltaIndex(pfi, m => m.MacroAccuracy.Mean));
-            Assert.Equal(5, MinDeltaIndex(pfi, m => m.MacroAccuracy.Mean));
-            Assert.Equal(2, MaxDeltaIndex(pfi, m => m.LogLossReduction.Mean));
-            Assert.Equal(5, MinDeltaIndex(pfi, m => m.LogLossReduction.Mean));
-
-            // For the following metrics-delta lower is better, so maximum delta means more important feature, and vice versa
-            //  Because they are negative metrics, the _difference_ will be positive for worse classifiers.
-            Assert.Equal(5, MaxDeltaIndex(pfi, m => m.LogLoss.Mean));
-            Assert.Equal(2, MinDeltaIndex(pfi, m => m.LogLoss.Mean));
-            for (int i = 0; i < pfi[0].PerClassLogLoss.Count; i++)
+            ImmutableArray<MulticlassClassificationMetricsStatistics> pfi;
+            if(saveModel)
             {
-                Assert.Equal(5, MaxDeltaIndex(pfi, m => m.PerClassLogLoss[i].Mean));
-                Assert.Equal(2, MinDeltaIndex(pfi, m => m.PerClassLogLoss[i].Mean));
+                var modelAndSchemaPath = GetOutputPath("TestPfiMulticlassClassificationOnSparseFeatures.zip");
+                ML.Model.Save(model, data.Schema, modelAndSchemaPath);
+
+                var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
+                var castedModel = loadedModel as MulticlassPredictionTransformer<MaximumEntropyModelParameters>;
+                pfi = ML.MulticlassClassification.PermutationFeatureImportance(castedModel, data);
             }
-
-            Done();
-        }
-
-        /// <summary>
-        /// Test PFI Multiclass Classification for Sparse Features using a model loaded from disk
-        /// </summary>
-        [Fact]
-        public void TestPfiMulticlassClassificationOnSparseFeaturesWithLoadedModel()
-        {
-            var data = GetSparseDataset(TaskType.MulticlassClassification);
-            var model = ML.MulticlassClassification.Trainers.LbfgsMaximumEntropy(
-                new LbfgsMaximumEntropyMulticlassTrainer.Options { MaximumNumberOfIterations = 1000 }).Fit(data);
-
-            var modelAndSchemaPath = GetOutputPath("TestPfiMulticlassClassificationOnSparseFeatures.zip");
-            ML.Model.Save(model, data.Schema, modelAndSchemaPath);
-
-            var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
-            var castedModel = loadedModel as MulticlassPredictionTransformer<MaximumEntropyModelParameters>;
-            var pfi = ML.MulticlassClassification.PermutationFeatureImportance(castedModel, data);
+            else
+            {
+                pfi = ML.MulticlassClassification.PermutationFeatureImportance(model, data);
+            }
 
             // Pfi Indices:
             // X1: 0
@@ -536,12 +390,29 @@ namespace Microsoft.ML.Tests
         /// <summary>
         /// Test PFI Ranking Classification for Dense Features
         /// </summary>
-        [Fact]
-        public void TestPfiRankingOnDenseFeatures()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestPfiRankingOnDenseFeatures(bool saveModel)
         {
             var data = GetDenseDataset(TaskType.Ranking);
             var model = ML.Ranking.Trainers.FastTree().Fit(data);
-            var pfi = ML.Ranking.PermutationFeatureImportance(model, data);
+
+            ImmutableArray<RankingMetricsStatistics> pfi;
+            if(saveModel)
+            {
+                var modelAndSchemaPath = GetOutputPath("TestPfiRankingOnDenseFeatures.zip");
+                ML.Model.Save(model, data.Schema, modelAndSchemaPath);
+
+                var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
+                var castedModel = loadedModel as RankingPredictionTransformer<FastTreeRankingModelParameters>;
+                pfi = ML.Ranking.PermutationFeatureImportance(castedModel, data);
+            }
+            else
+            {
+                pfi = ML.Ranking.PermutationFeatureImportance(model, data);
+            }
+
 
             // Pfi Indices:
             // X1: 0 // For Ranking, this column won't result in misorderings
@@ -564,91 +435,32 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        /// <summary>
-        /// Test PFI Multiclass Classification for Dense Features using model loaded from disk
-        /// </summary>
-        [Fact]
-        public void TestPfiRankingOnDenseFeaturesWithLoadedModel()
-        {
-            var data = GetDenseDataset(TaskType.Ranking);
-            var model = ML.Ranking.Trainers.FastTree().Fit(data);
-
-            var modelAndSchemaPath = GetOutputPath("TestPfiRankingOnDenseFeatures.zip");
-            ML.Model.Save(model, data.Schema, modelAndSchemaPath);
-
-            var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
-            var castedModel = loadedModel as RankingPredictionTransformer<FastTreeRankingModelParameters>;
-            var pfi = ML.Ranking.PermutationFeatureImportance(castedModel, data);
-
-            // Pfi Indices:
-            // X1: 0 // For Ranking, this column won't result in misorderings
-            // X2Important: 1
-            // X3: 2
-            // X4Rand: 3
-
-            // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
-            for (int i = 0; i < pfi[0].DiscountedCumulativeGains.Count; i++)
-            {
-                Assert.Equal(0, MaxDeltaIndex(pfi, m => m.DiscountedCumulativeGains[i].Mean));
-                Assert.Equal(1, MinDeltaIndex(pfi, m => m.DiscountedCumulativeGains[i].Mean));
-            }
-            for (int i = 0; i < pfi[0].NormalizedDiscountedCumulativeGains.Count; i++)
-            {
-                Assert.Equal(0, MaxDeltaIndex(pfi, m => m.NormalizedDiscountedCumulativeGains[i].Mean));
-                Assert.Equal(1, MinDeltaIndex(pfi, m => m.NormalizedDiscountedCumulativeGains[i].Mean));
-            }
-
-            Done();
-        }
 
         /// <summary>
         /// Test PFI Multiclass Classification for Sparse Features
         /// </summary>
-        [Fact]
-        public void TestPfiRankingOnSparseFeatures()
-        {
-            var data = GetSparseDataset(TaskType.Ranking);
-            var model = ML.Ranking.Trainers.FastTree().Fit(data);
-            var pfi = ML.Ranking.PermutationFeatureImportance(model, data);
-
-            // Pfi Indices:
-            // X1: 0
-            // X2VBuffer-Slot-0: 1
-            // X2VBuffer-Slot-1: 2 // Least important
-            // X2VBuffer-Slot-2: 3
-            // X2VBuffer-Slot-3: 4
-            // X3Important: 5 // Most important
-
-            // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
-            for (int i = 0; i < pfi[0].DiscountedCumulativeGains.Count; i++)
-            {
-                Assert.Equal(2, MaxDeltaIndex(pfi, m => m.DiscountedCumulativeGains[i].Mean));
-                Assert.Equal(5, MinDeltaIndex(pfi, m => m.DiscountedCumulativeGains[i].Mean));
-            }
-            for (int i = 0; i < pfi[0].NormalizedDiscountedCumulativeGains.Count; i++)
-            {
-                Assert.Equal(2, MaxDeltaIndex(pfi, m => m.NormalizedDiscountedCumulativeGains[i].Mean));
-                Assert.Equal(5, MinDeltaIndex(pfi, m => m.NormalizedDiscountedCumulativeGains[i].Mean));
-            }
-
-            Done();
-        }
-
-        /// <summary>
-        /// Test PFI Multiclass Classification for Sparse Features with model loaded from disk
-        /// </summary>
-        [Fact]
-        public void TestPfiRankingOnSparseFeaturesWithLoadedModel()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestPfiRankingOnSparseFeatures(bool saveModel)
         {
             var data = GetSparseDataset(TaskType.Ranking);
             var model = ML.Ranking.Trainers.FastTree().Fit(data);
 
-            var modelAndSchemaPath = GetOutputPath("TestPfiRankingOnSparseFeatures.zip");
-            ML.Model.Save(model, data.Schema, modelAndSchemaPath);
+            ImmutableArray<RankingMetricsStatistics> pfi;
+            if(saveModel)
+            {
+                var modelAndSchemaPath = GetOutputPath("TestPfiRankingOnSparseFeatures.zip");
+                ML.Model.Save(model, data.Schema, modelAndSchemaPath);
 
-            var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
-            var castedModel = loadedModel as RankingPredictionTransformer<FastTreeRankingModelParameters>;
-            var pfi = ML.Ranking.PermutationFeatureImportance(castedModel, data);
+                var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
+                var castedModel = loadedModel as RankingPredictionTransformer<FastTreeRankingModelParameters>;
+                pfi = ML.Ranking.PermutationFeatureImportance(castedModel, data);
+            }
+            else
+            {
+                pfi = ML.Ranking.PermutationFeatureImportance(model, data);
+            }
 
             // Pfi Indices:
             // X1: 0

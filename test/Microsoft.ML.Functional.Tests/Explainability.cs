@@ -25,8 +25,10 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// GlobalFeatureImportance: PFI can be used to compute global feature importance.
         /// </summary>
-        [Fact]
-        public void GlobalFeatureImportanceWithPermutationFeatureImportance()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void GlobalFeatureImportanceWithPermutationFeatureImportance(bool saveModel)
         {
             var mlContext = new MLContext(seed: 1);
 
@@ -37,45 +39,35 @@ namespace Microsoft.ML.Functional.Tests
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
                 .Append(mlContext.Regression.Trainers.Sdca());
 
-            // Fit the pipeline and transform the data.
-            var model = pipeline.Fit(data);
-            var transformedData = model.Transform(data);
-
-            // Compute the permutation feature importance to look at global feature importance.
-            var permutationMetrics = mlContext.Regression.PermutationFeatureImportance(model.LastTransformer, transformedData);
-
-            // Make sure the correct number of features came back.
-            Assert.Equal(HousingRegression.Features.Length, permutationMetrics.Length);
-            foreach (var metricsStatistics in permutationMetrics)
-                Common.AssertMetricsStatistics(metricsStatistics);
-        }
-
-        /// <summary>
-        /// GlobalFeatureImportance: PFI can be used to compute global feature importance. Here it is used with a model loaded from disk.
-        /// </summary>
-        [Fact]
-        public void GlobalFeatureImportanceWithPermutationFeatureImportanceWithLoadedModel()
-        {
-            var mlContext = new MLContext(seed: 1);
-
-            // Get the dataset
-            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
-
-            // Create a pipeline to train on the housing data.
-            var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
-                .Append(mlContext.Regression.Trainers.Sdca());
-
-            // Fit the pipeline and transform the data.
+            // Fit the pipeline
             var model = pipeline.Fit(data);
 
-            var modelAndSchemaPath = GetOutputPath("TestFunctionalTestPFI.zip");
-            mlContext.Model.Save(model, data.Schema, modelAndSchemaPath);
+            IDataView transformedData;
+            RegressionPredictionTransformer<LinearRegressionModelParameters> linearPredictor;
 
-            ITransformer loadedModel;
-            loadedModel = mlContext.Model.Load(modelAndSchemaPath, out var schema);
+            if(saveModel)
+            {
+                ITransformer loadedModel;
 
-            var transformedData = loadedModel.Transform(data);
-            var linearPredictor = (loadedModel as TransformerChain<ITransformer>).LastTransformer as RegressionPredictionTransformer<LinearRegressionModelParameters>;
+                // Load and save the model
+                var modelAndSchemaPath = GetOutputPath("TestFunctionalTestPFI.zip");
+                mlContext.Model.Save(model, data.Schema, modelAndSchemaPath);
+                loadedModel = mlContext.Model.Load(modelAndSchemaPath, out var schema);
+
+                // Transform the data
+                transformedData = loadedModel.Transform(data);
+
+                // Extract linear predictor
+                linearPredictor = (loadedModel as TransformerChain<ITransformer>).LastTransformer as RegressionPredictionTransformer<LinearRegressionModelParameters>;
+            }
+            else
+            {
+                // Transform the data
+                transformedData = model.Transform(data);
+
+                // Extract linear predictor
+                linearPredictor = model.LastTransformer;
+            }
 
             // Compute the permutation feature importance to look at global feature importance.
             var permutationMetrics = mlContext.Regression.PermutationFeatureImportance(linearPredictor, transformedData);
