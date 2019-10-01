@@ -10,16 +10,16 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Runtime;
 
-[assembly: LoadableClass(typeof(object), typeof(BinaryPredictionTransformer), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(ISingleFeaturePredictionTransformer<object>), typeof(BinaryPredictionTransformer), null, typeof(SignatureLoadModel),
     "", BinaryPredictionTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(object), typeof(MulticlassPredictionTransformer), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(ISingleFeaturePredictionTransformer<object>), typeof(MulticlassPredictionTransformer), null, typeof(SignatureLoadModel),
     "", MulticlassPredictionTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(object), typeof(RegressionPredictionTransformer), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(ISingleFeaturePredictionTransformer<object>), typeof(RegressionPredictionTransformer), null, typeof(SignatureLoadModel),
     "", RegressionPredictionTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(object), typeof(RankingPredictionTransformer), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(ISingleFeaturePredictionTransformer<object>), typeof(RankingPredictionTransformer), null, typeof(SignatureLoadModel),
     "", RankingPredictionTransformer.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(AnomalyPredictionTransformer<IPredictorProducing<float>>), typeof(AnomalyPredictionTransformer), null, typeof(SignatureLoadModel),
@@ -668,14 +668,14 @@ namespace Microsoft.ML.Data
         public const string LoaderSignature = "BinaryPredXfer";
         private const string DirModel = PredictionTransformerBase.DirModel;
 
-        public static object Create(IHostEnvironment env, ModelLoadContext ctx)
+        public static ISingleFeaturePredictionTransformer<object> Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             // Load internal model to be used as TModel of BinaryPredictionTransformer<TModel>
             var host = Contracts.CheckRef(env, nameof(env)).Register(nameof(BinaryPredictionTransformer<IPredictorProducing<float>>));
             ctx.LoadModel<IPredictorProducing<float>, SignatureLoadModel>(host, out IPredictorProducing<float> model, DirModel);
 
             Type generic = typeof(BinaryPredictionTransformer<>);
-            return CreatePredictionTransformer.Create(env, ctx, host, model, generic);
+            return (ISingleFeaturePredictionTransformer<object>) CreatePredictionTransformer.Create(env, ctx, host, model, generic);
         }
     }
 
@@ -684,14 +684,14 @@ namespace Microsoft.ML.Data
         public const string LoaderSignature = "MulticlassPredXfer";
         private const string DirModel = PredictionTransformerBase.DirModel;
 
-        public static object Create(IHostEnvironment env, ModelLoadContext ctx)
+        public static ISingleFeaturePredictionTransformer<object> Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             // Load internal model to be used as TModel of MulticlassPredictionTransformer<TModel>
             var host = Contracts.CheckRef(env, nameof(env)).Register(nameof(MulticlassPredictionTransformer<IPredictorProducing<VBuffer<float>>>));
             ctx.LoadModel<IPredictorProducing<VBuffer<float>>, SignatureLoadModel>(host, out IPredictorProducing<VBuffer<float>> model, DirModel);
 
             Type generic = typeof(MulticlassPredictionTransformer<>);
-            return CreatePredictionTransformer.Create(env, ctx, host, model, generic);
+            return (ISingleFeaturePredictionTransformer<object>) CreatePredictionTransformer.Create(env, ctx, host, model, generic);
         }
     }
 
@@ -700,14 +700,14 @@ namespace Microsoft.ML.Data
         public const string LoaderSignature = "RegressionPredXfer";
         private const string DirModel = PredictionTransformerBase.DirModel;
 
-        public static object Create(IHostEnvironment env, ModelLoadContext ctx)
+        public static ISingleFeaturePredictionTransformer<object> Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             // Load internal model to be used as TModel of RegressionPredictionTransformer<TModel>
             var host = Contracts.CheckRef(env, nameof(env)).Register(nameof(RegressionPredictionTransformer<IPredictorProducing<float>>));
             ctx.LoadModel<IPredictorProducing<float>, SignatureLoadModel>(host, out IPredictorProducing<float> model, DirModel);
 
             Type generic = typeof(RegressionPredictionTransformer<>);
-            return CreatePredictionTransformer.Create(env, ctx, host, model, generic);
+            return (ISingleFeaturePredictionTransformer<object>) CreatePredictionTransformer.Create(env, ctx, host, model, generic);
 
         }
     }
@@ -717,14 +717,14 @@ namespace Microsoft.ML.Data
         public const string LoaderSignature = "RankingPredXfer";
         private const string DirModel = PredictionTransformerBase.DirModel;
 
-        public static object Create(IHostEnvironment env, ModelLoadContext ctx)
+        public static ISingleFeaturePredictionTransformer<object> Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             // Load internal model to be used as TModel of RankingPredictionTransformer<TModel>
             var host = Contracts.CheckRef(env, nameof(env)).Register(nameof(RankingPredictionTransformer<IPredictorProducing<float>>));
             ctx.LoadModel<IPredictorProducing<float>, SignatureLoadModel>(host, out IPredictorProducing<float> model, DirModel);
 
             Type generic = typeof(RankingPredictionTransformer<>);
-            return CreatePredictionTransformer.Create(env, ctx, host, model, generic);
+            return (ISingleFeaturePredictionTransformer<object>) CreatePredictionTransformer.Create(env, ctx, host, model, generic);
         }
     }
 
