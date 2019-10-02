@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -211,7 +212,6 @@ namespace Microsoft.ML.Data
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
-
                 disposer = null;
                 var getSrc = input.GetGetter<ReadOnlyMemory<char>>(input.Schema[ColMapNewToOld[iinfo]]);
                 ReadOnlyMemory<char> src = default;
@@ -312,7 +312,8 @@ namespace Microsoft.ML.Data
             {
 
                 int chunksize = 4096; // Most optimal size for buffer, friendly to CPU's L1 cache
-                byte[] readBuffer = new byte[chunksize];
+                var bufferPool = ArrayPool<byte>.Shared;
+                byte[] readBuffer = bufferPool.Rent(chunksize);
                 int totalBytesRead = 0;
                 int bytesRead;
                 unsafe
@@ -404,7 +405,7 @@ namespace Microsoft.ML.Data
             if (type)
                 _type = new ImageDataViewType();
             else
-                _type = new VectorDataViewType(NumberDataViewType.Byte);
+                _type = NumberDataViewType.Byte;
         }
 
         /// <summary>
@@ -425,7 +426,7 @@ namespace Microsoft.ML.Data
                 if (_type is ImageDataViewType)
                     result[outputColumnName] = new SchemaShape.Column(outputColumnName, SchemaShape.Column.VectorKind.Scalar, _type, false);
                 else
-                    result[outputColumnName] = new SchemaShape.Column(outputColumnName, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Byte, false);
+                    result[outputColumnName] = new SchemaShape.Column(outputColumnName, SchemaShape.Column.VectorKind.Vector, _type, false);
             }
 
             return new SchemaShape(result.Values);

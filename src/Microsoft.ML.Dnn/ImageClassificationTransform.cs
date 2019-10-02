@@ -221,7 +221,7 @@ namespace Microsoft.ML.Transforms
                 _imagePreprocessingRunner.AddOutputs(transformer._resizedImageTensorName);
             }
 
-            public Tensor ProcessImage(VBuffer<byte> imageBuffer)
+            public Tensor ProcessImage(in VBuffer<byte> imageBuffer)
             {
                 var imageTensor = EncodeByteAsString(imageBuffer);
                 var processedTensor = _imagePreprocessingRunner.AddInput(imageTensor, 0).Run()[0];

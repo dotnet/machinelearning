@@ -1341,13 +1341,13 @@ namespace Microsoft.ML.Scenarios
                     // ResnetV2101 you can try a different architecture/pre-trained 
                     // model. 
                     arch: ImageClassificationEstimator.Architecture.ResnetV2101,
-                    epoch: 50,
-                    batchSize: 10,
+                    epoch: 100,
+                    batchSize: 5,
                     learningRate: 0.01f,
-                    metricsCallback: (metrics) => Console.WriteLine(metrics),
+                    earlyStopping: new ImageClassificationEstimator.EarlyStopping(),
+                    metricsCallback: (metrics) => { Console.WriteLine(metrics); lastEpoch = metrics.Train != null ? metrics.Train.Epoch : 0; },
                     testOnTrainSet: false,
-                    validationSet: validationSet,
-                    disableEarlyStopping: true));
+                    validationSet: validationSet));
 
             var trainedModel = pipeline.Fit(trainDataset);
             mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
@@ -1430,13 +1430,13 @@ namespace Microsoft.ML.Scenarios
                     // ResnetV2101 you can try a different architecture/pre-trained 
                     // model. 
                     arch: ImageClassificationEstimator.Architecture.ResnetV2101,
-                    epoch: 50,
-                    batchSize: 10,
+                    epoch: 100,
+                    batchSize: 5,
                     learningRate: 0.01f,
-                    metricsCallback: (metrics) => Console.WriteLine(metrics),
+                    earlyStopping: new ImageClassificationEstimator.EarlyStopping(metric: ImageClassificationEstimator.EarlyStoppingMetric.Loss),
+                    metricsCallback: (metrics) => {Console.WriteLine(metrics); lastEpoch = metrics.Train != null ? metrics.Train.Epoch : 0;},
                     testOnTrainSet: false,
-                    validationSet: validationSet,
-                    disableEarlyStopping: true));
+                    validationSet: validationSet));
 
             var trainedModel = pipeline.Fit(trainDataset);
             mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
