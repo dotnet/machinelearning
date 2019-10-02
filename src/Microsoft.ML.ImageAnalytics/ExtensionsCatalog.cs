@@ -69,34 +69,8 @@ namespace Microsoft.ML
         /// ]]></format>
         /// </example>
         public static ImageLoadingEstimator LoadImages(this TransformsCatalog catalog, string outputColumnName, string imageFolder, string inputColumnName = null)
-           => new ImageLoadingEstimator(CatalogUtils.GetEnvironment(catalog), imageFolder, new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
+           => new ImageLoadingEstimator(CatalogUtils.GetEnvironment(catalog), imageFolder, true, new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
 
-        /// <summary>
-        /// Loads the images from the <see cref="ImageLoadingTransformer.ImageFolder" /> into memory.
-        /// </summary>
-        /// <remarks>
-        /// The image get loaded in memory as a <see cref="System.Drawing.Bitmap" /> type.
-        /// Loading is the first step of almost every pipeline that does image processing, and further analysis on images.
-        /// The images to load need to be in the formats supported by <see cref = "System.Drawing.Bitmap" />.
-        /// For end-to-end image processing pipelines, and scenarios in your applications, see the
-        /// <a href="https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started"> examples in the machinelearning-samples github repository.</a>
-        /// </remarks>
-        /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="imageFolder">Folder where to look for images.</param>
-        /// <param name="columns">Specifies the names of the input columns for the transformation, and their respective output column names.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[LoadImages](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ImageAnalytics/LoadImages.cs)]
-        /// ]]></format>
-        /// </example>
-        [BestFriend]
-        internal static ImageLoadingEstimator LoadImages(this TransformsCatalog catalog, string imageFolder, params InputOutputColumnPair[] columns)
-        {
-            var env = CatalogUtils.GetEnvironment(catalog);
-            env.CheckValue(columns, nameof(columns));
-            return new ImageLoadingEstimator(env, imageFolder, InputOutputColumnPair.ConvertToValueTuples(columns));
-        }
         /// <summary>
         /// Create a <see cref="ImageLoadingEstimator"/>, which loads the data from the column specified in <paramref name="inputColumnName"/>
         /// as an image to a new column: <paramref name="outputColumnName"/>.
@@ -116,34 +90,6 @@ namespace Microsoft.ML
         /// </example>
         public static ImageLoadingEstimator LoadImages(this TransformsCatalog catalog, string outputColumnName, string imageFolder, bool useImageType, string inputColumnName = null)
            => new ImageLoadingEstimator(CatalogUtils.GetEnvironment(catalog), imageFolder, useImageType, new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
-
-        /// <summary>
-        /// Loads the images from the <see cref="ImageLoadingTransformer.ImageFolder" /> into memory.
-        /// </summary>
-        /// <remarks>
-        /// The image get loaded in memory as a <see cref="VectorDataViewType" /> of bytes.
-        /// Loading is the first step of almost every pipeline that does image processing, and further analysis on images.
-        /// The images to load need to be in the formats supported by <see cref = "VectorDataViewType" /> of bytes.
-        /// For end-to-end image processing pipelines, and scenarios in your applications, see the
-        /// <a href="https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started"> examples in the machinelearning-samples github repository.</a>
-        /// </remarks>
-        /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="imageFolder">Folder where to look for images.</param>
-        /// <param name="useImageType ">Image type flag - If true loads image as a ImageDataViewType type else loads image as VectorDataViewType. Defaults to ImageDataViewType if not specified or is true.</param>
-        /// <param name="columns">Specifies the names of the input columns for the transformation, and their respective output column names.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[LoadImagesAsBytes](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ImageAnalytics/LoadImages.cs)]
-        /// ]]></format>
-        /// </example>
-        [BestFriend]
-        internal static ImageLoadingEstimator LoadImages(this TransformsCatalog catalog, string imageFolder, bool useImageType, params InputOutputColumnPair[] columns)
-        {
-            var env = CatalogUtils.GetEnvironment(catalog);
-            env.CheckValue(columns, nameof(columns));
-            return new ImageLoadingEstimator(env, imageFolder, useImageType, InputOutputColumnPair.ConvertToValueTuples(columns));
-        }
 
         /// <summary>
         /// Create a <see cref="ImagePixelExtractingEstimator"/>, which extracts pixels values from the data specified in column: <paramref name="inputColumnName"/>
