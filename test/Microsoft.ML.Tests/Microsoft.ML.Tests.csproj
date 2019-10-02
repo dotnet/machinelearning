@@ -52,6 +52,7 @@
     <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="$(MicrosoftMLOnnxTestModelsVersion)" />
     <PackageReference Include="Microsoft.ML.TestDatabases" Version="$(MicrosoftMLTestDatabasesPackageVersion)" />
     <PackageReference Include="Microsoft.ML.TestModels" Version="$(MicrosoftMLTestModelsPackageVersion)" />
+    <PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
     <PackageReference Include="System.Data.SqlClient" Version="$(SystemDataSqlClientVersion)" />
   </ItemGroup>
 </Project>
