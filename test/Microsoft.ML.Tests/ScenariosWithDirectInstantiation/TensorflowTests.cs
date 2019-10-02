@@ -1335,6 +1335,8 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal((int)labelCountFirst, predictionFirst.Score.Length);
             Assert.Equal((int)labelCountLast, predictionLast.Score.Length);
             Assert.Equal(predictionFirst.PredictedLabel, predictionLast.PredictedLabel);
+            Assert.Equal("dandelion", predictionFirst.PredictedLabel);
+            Assert.Equal("dandelion", predictionLast.PredictedLabel);
             for (int j = 0; j < predictionFirst.Score.Length; j++)
             {
                 Assert.Equal(predictionFirst.Score[j],predictionLast.Score[j]);
