@@ -510,7 +510,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 {
                     UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCacher);
                     var namedOnnxValue = outputCacher.Outputs[_parent.Outputs[iinfo]];
-                    var tensor = namedOnnxValue.AsTensor<T>() as System.Numerics.Tensors.DenseTensor<T>;
+                    var tensor = namedOnnxValue.AsTensor<T>() as Microsoft.ML.OnnxRuntime.Tensors.DenseTensor<T>;
                     if (tensor == null)
                         throw Host.Except($"Output column {namedOnnxValue.Name} doesn't contain a DenseTensor of expected type {typeof(T)}");
                     var editor = VBufferEditor.Create(ref dst, (int)tensor.Length);
@@ -528,7 +528,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 {
                     UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCacher);
                     var namedOnnxValue = outputCacher.Outputs[_parent.Outputs[iinfo]];
-                    var tensor = namedOnnxValue.AsTensor<string>() as System.Numerics.Tensors.DenseTensor<string>;
+                    var tensor = namedOnnxValue.AsTensor<string>() as Microsoft.ML.OnnxRuntime.Tensors.DenseTensor<string>;
                     if (tensor == null)
                         throw Host.Except($"Output column {namedOnnxValue.Name} doesn't contain a DenseTensor of expected type {typeof(string)}");
 
