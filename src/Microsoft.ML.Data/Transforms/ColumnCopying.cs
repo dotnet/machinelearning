@@ -239,10 +239,7 @@ namespace Microsoft.ML.Transforms
                 {
                     var inputColumnName = column.inputColumnName;
                     if (!ctx.ContainsColumn(inputColumnName))
-                    {
-                        ctx.RemoveColumn(inputColumnName, false);
                         continue;
-                    }
 
                     var srcVariableName = ctx.GetVariableName(inputColumnName);
                     _schema.TryGetColumnIndex(inputColumnName, out int colIndex);
