@@ -593,15 +593,13 @@ namespace Microsoft.ML.Transforms
             private Delegate MakeGetter<T>(DataViewRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache) where T : unmanaged
             {
                 Host.AssertValue(input);
-
                 if (_parent.OutputTypes[iinfo].IsStandardScalar())
                 {
                     ValueGetter<T> valuegetter = (ref T dst) =>
                     {
                         UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
-
                         var tensor = outputCache.Outputs[_parent.Outputs[iinfo]];
-                        dst = tensor.ToArray<T>()[0];
+                        tensor.ToScalar<T>(ref dst);
                     };
                     return valuegetter;
                 }
@@ -633,7 +631,7 @@ namespace Microsoft.ML.Transforms
 
                             var editor = VBufferEditor.Create(ref dst, (int)tensorSize);
 
-                            DnnUtils.FetchData<T>(tensor.ToArray<T>(), editor.Values);
+                            tensor.CopyTo<T>(editor.Values);
                             dst = editor.Commit();
                         };
                         return valuegetter;
