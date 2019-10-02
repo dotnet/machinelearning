@@ -759,11 +759,15 @@ namespace Microsoft.ML.Transforms
                     inputSchema[labelColumnName].GetKeyValues(ref keysVBuffer);
                     _keyValueAnnotations = keysVBuffer.DenseValues().ToArray();
                 }
+                else
+                {
+                    _keyValueAnnotations = Enumerable.Range(0, _classCount).ToArray().Select(x => x.ToString().AsMemory()).ToArray();
+                }
             }
             else
             {
                 // Load annotations as key values, if they exist
-                if (!(labelAnnotations is null))
+                if (labelAnnotations != null)
                     _keyValueAnnotations = labelAnnotations.Select(v => v.AsMemory()).ToArray();
             }
         }
