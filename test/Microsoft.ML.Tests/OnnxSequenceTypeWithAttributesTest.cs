@@ -58,7 +58,7 @@ namespace Microsoft.ML.Tests
             var onnx_out = output.Output.FirstOrDefault();
             Assert.True(onnx_out.Count == 3, "Output missing data.");
             var keys = new List<string>(onnx_out.Keys);
-            for (var i = 0; i < onnx_out.Count; ++i)
+            for(var i =0; i < onnx_out.Count; ++i)
             {
                 Assert.Equal(onnx_out[keys[i]], input.Input[i]);
             }
