@@ -261,9 +261,7 @@ namespace Microsoft.ML.Data
                             string path = src.ToString();
                             if (!string.IsNullOrWhiteSpace(_parent.ImageFolder))
                                 path = Path.Combine(_parent.ImageFolder, path);
-
-                            int imgSize = LoadDataIntoBuffer(path, ref dst);
-                            if (imgSize < 0)
+                            if (!TryLoadDataIntoBuffer(path, ref dst))
                                 throw Host.Except($"Failed to load image {src.ToString()}.");
                         }
                     };
@@ -271,7 +269,7 @@ namespace Microsoft.ML.Data
                 return del;
             }
 
-            public static int LoadDataIntoBuffer(string path, ref VBuffer<byte> imgData)
+            private static bool TryLoadDataIntoBuffer(string path, ref VBuffer<byte> imgData)
             {
                 int count = -1;
                 int bytesread = -1;
@@ -283,14 +281,13 @@ namespace Microsoft.ML.Data
                         throw new IOException($"File {path} too big to open.");
                     else if (fileLength == 0)
                     {
-                        Console.WriteLine("File length is zero even though the image is not empty");
                         byte[] imageBuffer;
                         // Some file systems (e.g. procfs on Linux) return 0 for length even when there's content.
                         // Thus we need to assume 0 doesn't mean empty.
                         imageBuffer = File.ReadAllBytes(path);
                         count = imageBuffer.Length;
                         imgData = new VBuffer<byte>(count, imageBuffer);
-                        return count;
+                        return (count> 0);
                     }
 
                     count = (int)fileLength;
@@ -301,18 +298,17 @@ namespace Microsoft.ML.Data
                     Contracts.Assert(count == bytesread);
 
 #else
-                    fs.Read(editor.Values);
-                    bytesread = editor.Values.Length;
+                    bytesread = fs.Read(editor.Values);
                     Contracts.Assert(count == bytesread);
 #endif
                     imgData = editor.Commit();
-                    return count;
+                    return (count > 0);
 
                 }
 
             }
-
-            public static int ReadToEnd(System.IO.Stream stream, Span<byte> bufferspan)
+#if NETSTANDARD2_0
+            private static int ReadToEnd(System.IO.Stream stream, Span<byte> bufferspan)
             {
 
                 int chunksize = 4096; // Most optimal size for buffer, friendly to CPU's L1 cache
@@ -334,8 +330,8 @@ namespace Microsoft.ML.Data
 
                 return totalBytesRead;
             }
-
-            public DataViewType GetDataViewType()
+#endif
+            private DataViewType GetDataViewType()
             {
                 if (_type)
                     return new ImageDataViewType();
