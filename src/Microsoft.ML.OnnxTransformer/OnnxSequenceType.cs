@@ -29,7 +29,7 @@ namespace Microsoft.ML.Transforms.Onnx
         /// <param name="elementType">The element type of a sequence.</param>
         public OnnxSequenceType(Type elementType) : base(MakeNativeType(elementType))
         {
-            DataViewTypeManager.Register(this, RawType, new[] { new OnnxSequenceTypeAttribute(elementType) });
+            DataViewTypeManager.Register(this, RawType, new OnnxSequenceTypeAttribute(elementType));
         }
 
         public override bool Equals(DataViewType other)
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Transforms.Onnx
         {
             var enumerableType = typeof(IEnumerable<>);
             var type = enumerableType.MakeGenericType(_elemType);
-            DataViewTypeManager.Register(new OnnxSequenceType(_elemType), type, new[] { this });
+            DataViewTypeManager.Register(new OnnxSequenceType(_elemType), type, this);
         }
     }
 }

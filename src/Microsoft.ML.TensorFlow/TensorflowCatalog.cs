@@ -14,6 +14,12 @@ namespace Microsoft.ML
         /// <summary>
         /// Load TensorFlow model into memory. This is the convenience method that allows the model to be loaded once and subsequently use it for querying schema and creation of
         /// <see cref="TensorFlowEstimator"/> using <see cref="TensorFlowModel.ScoreTensorFlowModel(string, string, bool)"/>.
+        /// usage of this API requires additional NuGet dependencies on TensorFlow redist, see linked document for more information.
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!include[io](~/../docs/samples/docs/api-reference/tensorflow-usage.md)]
+        /// ]]>
+        /// </format>
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="modelLocation">Location of the TensorFlow model.</param>

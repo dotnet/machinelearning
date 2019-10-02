@@ -70,7 +70,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>LbfgsLogisticRegressionWithOptions.tt</DependentUpon>
     </None>
-    <PackageReference Include="Microsoft.ML.TensorFlow.Redist" Version="0.10.0" />
 
   </ItemGroup>
 
@@ -948,6 +947,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="$(MicrosoftMLOnnxTestModelsVersion)" />
+    <PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
   </ItemGroup>
 
     <ItemGroup>

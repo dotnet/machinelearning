@@ -20,7 +20,7 @@ using Tensorflow.Summaries;
 using static Microsoft.ML.Data.TextLoader;
 using static Microsoft.ML.Transforms.Dnn.DnnUtils;
 using static Microsoft.ML.Transforms.ImageClassificationEstimator;
-using static Tensorflow.Python;
+using static Tensorflow.Binding;
 using Architecture = Microsoft.ML.Transforms.ImageClassificationEstimator.Architecture;
 
 [assembly: LoadableClass(ImageClassificationTransformer.Summary, typeof(IDataTransform), typeof(ImageClassificationTransformer),
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Transforms
             Host.CheckNonWhiteSpace(options.LabelColumn, nameof(options.LabelColumn));
             Host.CheckNonWhiteSpace(options.TensorFlowLabel, nameof(options.TensorFlowLabel));
 
-            if (_session.graph.OperationByName(options.TensorFlowLabel) == null)
+            if (_session.graph.OperationByName(_labelTensor.name.Split(':')[0]) == null)
                 throw Host.ExceptParam(nameof(options.TensorFlowLabel), $"'{options.TensorFlowLabel}' does not exist in the model");
         }
 
@@ -249,6 +249,7 @@ namespace Microsoft.ML.Transforms
                 ImageClassificationMetrics metrics = new ImageClassificationMetrics();
                 metrics.Bottleneck = new BottleneckMetrics();
                 metrics.Bottleneck.DatasetUsed = dataset;
+                float[] imageArray = null;
                 while (cursor.MoveNext())
                 {
                     labelGetter(ref label);
@@ -256,8 +257,10 @@ namespace Microsoft.ML.Transforms
                     var imagePathStr = imagePath.ToString();
                     var imageTensor = imageProcessor.ProcessImage(imagePathStr);
                     runner.AddInput(imageTensor, 0);
-                    var featurizedImage = runner.Run()[0]; // Reuse memory?
-                    writer.WriteLine(label - 1 + "," + string.Join(",", featurizedImage.Data<float>()));
+                    var featurizedImage = runner.Run()[0]; // Reuse memory
+                    featurizedImage.ToArray<float>(ref imageArray);
+                    Host.Assert((int)featurizedImage.size == imageArray.Length);
+                    writer.WriteLine(label - 1 + "," + string.Join(",", imageArray));
                     featurizedImage.Dispose();
                     imageTensor.Dispose();
                     metrics.Bottleneck.Index++;
@@ -352,6 +355,8 @@ namespace Microsoft.ML.Transforms
 
             ImageClassificationMetrics metrics = new ImageClassificationMetrics();
             metrics.Train = new TrainMetrics();
+            float accuracy = 0;
+            float crossentropy = 0;
             for (int epoch = 0; epoch < epochs; epoch += 1)
             {
                 metrics.Train.Accuracy = 0;
@@ -392,8 +397,10 @@ namespace Microsoft.ML.Transforms
                                     .AddInput(new Tensor(labelBatchPtr, labelTensorShape, TF_DataType.TF_INT64, labelBatchSizeInBytes), 1)
                                     .Run();
 
-                                metrics.Train.Accuracy += outputTensors[0].Data<float>()[0];
-                                metrics.Train.CrossEntropy += outputTensors[1].Data<float>()[0];
+                                outputTensors[0].ToScalar<float>(ref accuracy);
+                                outputTensors[1].ToScalar<float>(ref crossentropy);
+                                metrics.Train.Accuracy += accuracy;
+                                metrics.Train.CrossEntropy += crossentropy;
 
                                 outputTensors[0].Dispose();
                                 outputTensors[1].Dispose();
@@ -443,7 +450,8 @@ namespace Microsoft.ML.Transforms
                                 .AddInput(new Tensor(labelBatchPtr, labelTensorShape, TF_DataType.TF_INT64, labelBatchSizeInBytes), 1)
                                 .Run();
 
-                            metrics.Train.Accuracy += outputTensors[0].Data<float>()[0];
+                            outputTensors[0].ToScalar<float>(ref accuracy);
+                            metrics.Train.Accuracy += accuracy;
                             metrics.Train.BatchProcessedCount += 1;
                             batchIndex = 0;
 
@@ -472,17 +480,13 @@ namespace Microsoft.ML.Transforms
             Tensor evaluationStep = null;
             Tensor prediction = null;
             Tensor bottleneckTensor = evalGraph.OperationByName(_bottleneckOperationName);
-
-            tf_with(evalGraph.as_default(), graph =>
-            {
-                var (_, _, groundTruthInput, finalTensor) = AddFinalRetrainOps(classCount, options.LabelColumn,
+            evalGraph.as_default();
+            var (_, _, groundTruthInput, finalTensor) = AddFinalRetrainOps(classCount, options.LabelColumn,
                     options.ScoreColumnName, options.LearningRate, bottleneckTensor, false);
 
                 tf.train.Saver().restore(evalSess, _checkpointPath);
                 (evaluationStep, prediction) = AddEvaluationStep(finalTensor, groundTruthInput);
                 (_jpegData, _resizedImage) = AddJpegDecoding(299, 299, 3);
-            });
-
             return (evalSess, _labelTensor, evaluationStep, prediction);
         }
 
@@ -544,14 +548,15 @@ namespace Microsoft.ML.Transforms
         private (Operation, Tensor, Tensor, Tensor) AddFinalRetrainOps(int classCount, string labelColumn,
             string scoreColumnName, float learningRate, Tensor bottleneckTensor, bool isTraining)
         {
-            var (batch_size, bottleneck_tensor_size) = (bottleneckTensor.TensorShape.Dimensions[0], bottleneckTensor.TensorShape.Dimensions[1]);
+            var bottleneckTensorDims = bottleneckTensor.TensorShape.dims;
+            var (batch_size, bottleneck_tensor_size) = (bottleneckTensorDims[0], bottleneckTensorDims[1]);
             tf_with(tf.name_scope("input"), scope =>
             {
                 if (isTraining)
                 {
                     _bottleneckInput = tf.placeholder_with_default(
                         bottleneckTensor,
-                        shape: bottleneckTensor.TensorShape.Dimensions,
+                        shape: bottleneckTensorDims ,
                         name: "BottleneckInputPlaceholder");
                 }
 
@@ -573,7 +578,8 @@ namespace Microsoft.ML.Transforms
                 RefVariable layerBiases = null;
                 tf_with(tf.name_scope("biases"), delegate
                 {
-                    layerBiases = tf.Variable(tf.zeros(classCount), name: "final_biases");
+                    TensorShape shape = new TensorShape(classCount);
+                    layerBiases = tf.Variable(tf.zeros(shape), name: "final_biases");
                     VariableSummaries(layerBiases);
                 });
 
@@ -613,11 +619,9 @@ namespace Microsoft.ML.Transforms
             string scoreColumnName, float learningRate, int classCount)
         {
             _bottleneckTensor = Graph.OperationByName(_bottleneckOperationName);
-            tf_with(Graph.as_default(), delegate
-            {
-                (_trainStep, _crossEntropy, _labelTensor, _softMaxTensor) =
+            (_trainStep, _crossEntropy, _labelTensor, _softMaxTensor) =
                     AddFinalRetrainOps(classCount, labelColumn, scoreColumnName, learningRate, _bottleneckTensor, true);
-            });
+
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -821,7 +825,7 @@ namespace Microsoft.ML.Transforms
             var buffer = _session.graph.ToGraphDef(status);
             ctx.SaveBinaryStream("TFModel", w =>
             {
-                w.WriteByteArray(buffer.Data);
+                w.WriteByteArray(buffer.MemoryBlock.ToArray());
             });
             status.Check(true);
         }
@@ -867,8 +871,10 @@ namespace Microsoft.ML.Transforms
                 private ReadOnlyMemory<char> _imagePath;
                 private Runner _runner;
                 private ImageProcessor _imageProcessor;
-                public UInt32 PredictedLabel { get; set; }
-                public float[] ClassProbabilities { get; set; }
+                private long _predictedLabel;
+                public UInt32 PredictedLabel => (uint)_predictedLabel;
+                private float[] _classProbability;
+                public float[] ClassProbabilities => _classProbability;
                 private DataViewRow _inputRow;
 
                 public OutputCache(DataViewRow input, ImageClassificationTransformer transformer)
@@ -894,8 +900,8 @@ namespace Microsoft.ML.Transforms
                             _imagePathGetter(ref _imagePath);
                             var processedTensor = _imageProcessor.ProcessImage(_imagePath.ToString());
                             var outputTensor = _runner.AddInput(processedTensor, 0).Run();
-                            ClassProbabilities = outputTensor[0].Data<float>();
-                            PredictedLabel = (UInt32)outputTensor[1].Data<long>()[0];
+                            outputTensor[0].ToArray<float>(ref _classProbability);
+                            outputTensor[1].ToScalar<long>(ref _predictedLabel);
                             outputTensor[0].Dispose();
                             outputTensor[1].Dispose();
                             processedTensor.Dispose();
@@ -907,6 +913,7 @@ namespace Microsoft.ML.Transforms
             protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
+                _parent._session.graph.as_default();
                 Host.AssertValue(input);
                 var cache = new OutputCache(input, _parent);
 

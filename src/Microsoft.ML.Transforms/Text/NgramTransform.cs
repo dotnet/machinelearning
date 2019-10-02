@@ -544,17 +544,14 @@ namespace Microsoft.ML.Transforms.Text
                     Host.Assert(n >= 0);
 
                     // Get the unigrams composing the current n-gram.
-                    ComposeNgramString(ngram, n, sb, keyCount,
-                        unigramNames.GetItemOrDefault);
+                    ComposeNgramString(ngram, n, sb, keyCount, in unigramNames);
                     dstEditor.Values[slot] = sb.ToString().AsMemory();
                 }
 
                 dst = dstEditor.Commit();
             }
 
-            private delegate void TermGetter(int index, ref ReadOnlyMemory<char> term);
-
-            private void ComposeNgramString(uint[] ngram, int count, StringBuilder sb, int keyCount, TermGetter termGetter)
+            private void ComposeNgramString(uint[] ngram, int count, StringBuilder sb, int keyCount, in VBuffer<ReadOnlyMemory<char>> terms)
             {
                 Host.AssertValue(sb);
                 Host.AssertValue(ngram);
@@ -572,7 +569,7 @@ namespace Microsoft.ML.Transforms.Text
                         sb.Append("*");
                     else
                     {
-                        termGetter((int)unigram - 1, ref term);
+                        term = terms.GetItemOrDefault((int)unigram - 1);
                         sb.AppendMemory(term);
                     }
                 }

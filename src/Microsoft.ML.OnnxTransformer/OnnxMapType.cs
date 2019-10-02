@@ -24,7 +24,7 @@ namespace Microsoft.ML.Transforms.Onnx
         /// <param name="valueType">Value type of the associated ONNX map.</param>
         public OnnxMapType(Type keyType, Type valueType) : base(typeof(IDictionary<,>).MakeGenericType(keyType, valueType))
         {
-            DataViewTypeManager.Register(this, RawType, new[] { new OnnxMapTypeAttribute(keyType, valueType) });
+            DataViewTypeManager.Register(this, RawType, new OnnxMapTypeAttribute(keyType, valueType));
         }
 
         public override bool Equals(DataViewType other)
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Transforms.Onnx
         {
             var enumerableType = typeof(IDictionary<,>);
             var type = enumerableType.MakeGenericType(_keyType, _valueType);
-            DataViewTypeManager.Register(new OnnxMapType(_keyType, _valueType), type, new[] { this });
+            DataViewTypeManager.Register(new OnnxMapType(_keyType, _valueType), type, this);
         }
     }
 }

@@ -41,6 +41,11 @@ namespace Microsoft.ML.Tests
         {
         }
 
+        private bool IsOnnxRuntimeSupported()
+        {
+            return Environment.Is64BitProcess && (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || AttributeHelpers.CheckLibcVersionGreaterThanMinimum(new System.Version(2, 23)));
+        }
+
         /// <summary>
         /// In this test, we convert a trained <see cref="TransformerChain"/> into ONNX <see cref="ModelProto"/> file and then
         /// call <see cref="OnnxScoringEstimator"/> to evaluate that file. The outputs of <see cref="OnnxScoringEstimator"/> are checked against the original
@@ -777,6 +782,67 @@ namespace Microsoft.ML.Tests
                 }
             }
 
+            Done();
+        }
+
+        private class TransformedDataPoint : DataPoint, IEquatable<TransformedDataPoint>
+        {
+            [VectorType(3)]
+            public int[] MissingIndicator { get; set; }
+
+            public bool Equals(TransformedDataPoint other)
+            {
+                return Enumerable.SequenceEqual(MissingIndicator, other.MissingIndicator);
+            }
+        }
+
+        [Fact]
+        void IndicateMissingValuesOnnxConversionTest()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            var samples = new List<DataPoint>()
+            {
+                new DataPoint() { Features = new float[3] {1, 1, 0}, },
+                new DataPoint() { Features = new float[3] {0, float.NaN, 1}, },
+                new DataPoint() { Features = new float[3] {-1, float.NaN, float.PositiveInfinity}, },
+            };
+            var dataView = mlContext.Data.LoadFromEnumerable(samples);
+
+            // IsNaN outputs a binary tensor. Support for this has been added in the latest version
+            // of Onnxruntime, but that hasn't been released yet.
+            // So we need to convert its type to Int32 until then. 
+            // ConvertType part of the pipeline can be removed once we pick up a new release of the Onnx runtime
+
+            var pipeline = mlContext.Transforms.IndicateMissingValues(new[] { new InputOutputColumnPair("MissingIndicator", "Features"), })
+                            .Append(mlContext.Transforms.Conversion.ConvertType("MissingIndicator", outputKind: DataKind.Int32));
+
+            var model = pipeline.Fit(dataView);
+            var transformedData = model.Transform(dataView);
+            var mlnetData = mlContext.Data.CreateEnumerable<TransformedDataPoint>(transformedData, false);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "Transforms");
+            var onnxFileName = "IndicateMissingValues.onnx";
+            var onnxTextName = "IndicateMissingValues.txt";
+            var onnxModelPath = GetOutputPath(onnxFileName);
+            var onnxTextPath = GetOutputPath(subDir, onnxTextName);
+
+            SaveOnnxModel(onnxModel, onnxModelPath, onnxTextPath);
+
+            // Compare results produced by ML.NET and ONNX's runtime.
+            if (IsOnnxRuntimeSupported())
+            {
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(dataView);
+                var onnxResult = onnxTransformer.Transform(dataView);
+                CompareSelectedVectorColumns<int>(model.LastTransformer.ColumnPairs[0].outputColumnName, outputNames[1], transformedData, onnxResult);
+            }
+
+            CheckEquality(subDir, onnxTextName, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 

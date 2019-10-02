@@ -10,6 +10,7 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
@@ -140,7 +141,7 @@ namespace Microsoft.ML.Transforms
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
-        private sealed class Mapper : OneToOneMapperBase
+        private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
         {
             private readonly MissingValueIndicatorTransformer _parent;
             private readonly ColInfo[] _infos;
@@ -425,6 +426,46 @@ namespace Microsoft.ML.Transforms
 
                     dst = editor.Commit();
                 }
+            }
+
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
+
+            public void SaveAsOnnx(OnnxContext ctx)
+            {
+                Host.CheckValue(ctx, nameof(ctx));
+
+                for (int iinfo = 0; iinfo < _infos.Length; ++iinfo)
+                {
+                    ColInfo info = _infos[iinfo];
+                    string inputColumnName = info.InputColumnName;
+                    if (!ctx.ContainsColumn(inputColumnName))
+                    {
+                        ctx.RemoveColumn(info.Name, false);
+                        continue;
+                    }
+
+                    if (!SaveAsOnnxCore(ctx, iinfo, info, ctx.GetVariableName(inputColumnName),
+                        ctx.AddIntermediateVariable(_infos[iinfo].OutputType, info.Name)))
+                    {
+                        ctx.RemoveColumn(info.Name, true);
+                    }
+                }
+            }
+
+            private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
+            {
+                var inputType = _infos[iinfo].InputType;
+                Type rawType = (inputType is VectorDataViewType vectorType) ? vectorType.ItemType.RawType : inputType.RawType;
+
+                if (rawType != typeof(float))
+                    return false;
+
+                string opType;
+                opType = "IsNaN";
+                var isNaNOutput = ctx.AddIntermediateVariable(BooleanDataViewType.Instance, "IsNaNOutput", true);
+                var nanNode = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType), "");
+
+                return true;
             }
         }
     }

@@ -11,7 +11,7 @@ using System.Security.Principal;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Tensorflow;
-using static Tensorflow.Python;
+using static Tensorflow.Binding;
 
 namespace Microsoft.ML.Transforms.Dnn
 {
@@ -92,11 +92,10 @@ namespace Microsoft.ML.Transforms.Dnn
 
         internal static Graph LoadMetaGraph(string path)
         {
-            return tf_with(tf.Graph().as_default(), graph =>
-            {
-                tf.train.import_meta_graph(path);
-                return graph;
-            });
+            var graph = new Graph();
+            graph = graph.as_default();
+            tf.train.import_meta_graph(path);
+            return graph;
         }
 
         internal static Session LoadTFSessionByModelFilePath(IExceptionContext ectx, string modelFile, bool metaGraph = false)
@@ -278,14 +277,6 @@ namespace Microsoft.ML.Transforms.Dnn
             return LoadTFSessionByModelFilePath(env, modelPath, metaGraph);
         }
 
-        internal static unsafe void FetchData<T>(T[] data, Span<T> result)
-        {
-            var dataCopy = new T[data.Length];
-            Array.Copy(data, dataCopy, data.Length);
-            var dataSpan = new Span<T>(dataCopy, 0, result.Length);
-            dataSpan.CopyTo(result);
-        }
-
         internal static unsafe void FetchStringData<T>(Tensor tensor, Span<T> result)
         {
             if (tensor == null)
@@ -398,6 +389,11 @@ namespace Microsoft.ML.Transforms.Dnn
                 }
 
                 return this;
+            }
+
+            public List<Tensor> GetInputValues()
+            {
+                return _inputValues;
             }
 
             public Runner AddOutputs(string output)

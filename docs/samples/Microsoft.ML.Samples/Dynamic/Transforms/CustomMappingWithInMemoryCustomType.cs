@@ -84,7 +84,7 @@ namespace Samples.Dynamic
             public override void Register()
             {
                 DataViewTypeManager.Register(new DataViewAlienBodyType(RaceId),
-                    typeof(AlienBody), new[] { this });
+                    typeof(AlienBody), this);
             }
 
             public override bool Equals(DataViewTypeAttribute other)
