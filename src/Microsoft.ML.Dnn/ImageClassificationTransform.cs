@@ -338,9 +338,7 @@ namespace Microsoft.ML.Transforms
 
             ImageClassificationMetrics metrics = new ImageClassificationMetrics();
             metrics.Train = new TrainMetrics();
-            //Early stopping variable
-            bool earlyStop = false;
-            for (int epoch = 0; epoch < epochs && !earlyStop; epoch += 1)
+            for (int epoch = 0; epoch < epochs; epoch += 1)
             {
                 metrics.Train.Accuracy = 0;
                 metrics.Train.CrossEntropy = 0;
@@ -449,9 +447,10 @@ namespace Microsoft.ML.Transforms
                 }
 
                 //Early stopping check
-                if (options.EarlyStopper != null)
+                if (options.EarlyStoppingCriteria != null)
                 {
-                    earlyStop = options.EarlyStopper.ShouldStop(metrics.Train);
+                    if (options.EarlyStoppingCriteria.ShouldStop(metrics.Train))
+                        break;
                 }
             }
 
@@ -1010,8 +1009,7 @@ namespace Microsoft.ML.Transforms
             private float _bestMetricValue;
 
             /// <summary>
-            /// Current number of epochs where there has been no improvement.
-            /// Stop training when wait >=patience.
+            /// Current counter for number of epochs where there has been no improvement.
             /// </summary>
             private int _wait;
 
@@ -1037,6 +1035,10 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             public bool CheckIncreasing { get; set; }
 
+            /// <param name="minDelta"></param>
+            /// <param name="patience"></param>
+            /// <param name="metric"></param>
+            /// <param name="checkIncreasing"></param>
             public EarlyStopping(float minDelta = 0.01f, int patience = 20, EarlyStoppingMetric metric = EarlyStoppingMetric.Accuracy, bool checkIncreasing = true)
             {
                 _bestMetricValue = 0.0f;
@@ -1063,18 +1065,15 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             public bool ShouldStop(TrainMetrics currentMetrics)
             {
-                float currentMetricValue;
-                if (_metric == EarlyStoppingMetric.Accuracy)
-                    currentMetricValue = currentMetrics.Accuracy;
-                else
-                    currentMetricValue = currentMetrics.CrossEntropy;
+                float currentMetricValue = _metric == EarlyStoppingMetric.Accuracy ? currentMetrics.Accuracy : currentMetrics.CrossEntropy;
+
                 if(CheckIncreasing)
                 {
                     if((currentMetricValue- _bestMetricValue) < MinDelta)
                     {
                         _wait += 1;
                         if(_wait >= Patience)
-                            return (true);
+                            return true;
                     }
                     else
                     {
@@ -1088,7 +1087,7 @@ namespace Microsoft.ML.Transforms
                     {
                         _wait += 1;
                         if (_wait >= Patience)
-                            return (true);
+                            return true;
                     }
                     else
                     {
@@ -1096,7 +1095,7 @@ namespace Microsoft.ML.Transforms
                         _bestMetricValue = currentMetricValue;
                     }
                 }
-                return (false);
+                return false;
             }
         }
 
@@ -1188,7 +1187,7 @@ namespace Microsoft.ML.Transforms
             /// Early Stopping technique to stop training when accuracy stops improving.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Early Stopping technique to stop training when accuracy stops improving.", SortOrder = 15)]
-            public EarlyStopping EarlyStopper;
+            public EarlyStopping EarlyStoppingCriteria;
 
             /// <summary>
             /// Specifies the model architecture to be used in the case of image classification training using transfer learning.

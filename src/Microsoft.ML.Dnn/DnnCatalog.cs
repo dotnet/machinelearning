@@ -140,7 +140,7 @@ namespace Microsoft.ML
                 Epoch = epoch,
                 LearningRate = learningRate,
                 BatchSize = batchSize,
-                EarlyStopper = disableEarlyStopping ? null : earlyStopping == null ? new EarlyStopping() : earlyStopping,
+                EarlyStoppingCriteria = disableEarlyStopping ? null : earlyStopping == null ? new EarlyStopping() : earlyStopping,
                 ScoreColumnName = scoreColumnName,
                 PredictedLabelColumnName = predictedLabelColumnName,
                 FinalModelPrefix = finalModelPrefix,

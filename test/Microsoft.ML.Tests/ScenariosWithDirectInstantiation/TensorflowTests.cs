@@ -1249,7 +1249,8 @@ namespace Microsoft.ML.Scenarios
                 epoch: 5,
                 batchSize: 5,
                 learningRate: 0.01f,
-                testOnTrainSet: false);
+                testOnTrainSet: false,
+                disableEarlyStopping: true);
 
             var trainedModel = pipeline.Fit(trainDataset);
 
@@ -1322,7 +1323,7 @@ namespace Microsoft.ML.Scenarios
             var pipeline = mlContext.Model.ImageClassification(
                 "ImagePath", "Label",
                 arch: ImageClassificationEstimator.Architecture.ResnetV2101,
-                epoch: 50,
+                epoch: 100,
                 batchSize: 5,
                 learningRate: 0.01f,
                 earlyStopping: new ImageClassificationEstimator.EarlyStopping(),
@@ -1359,7 +1360,7 @@ namespace Microsoft.ML.Scenarios
                 Assert.Equal(1, metrics.MacroAccuracy);
             }
 
-            //Assert that the training ran and stopped within 20 epochs due to EarlyStopping
+            //Assert that the training ran and stopped within half epochs due to EarlyStopping
             Assert.InRange(lastEpoch, 1, 49);
         }
 
@@ -1403,7 +1404,7 @@ namespace Microsoft.ML.Scenarios
             var pipeline = mlContext.Model.ImageClassification(
                 "ImagePath", "Label",
                 arch: ImageClassificationEstimator.Architecture.ResnetV2101,
-                epoch: 50,
+                epoch: 100,
                 batchSize: 5,
                 learningRate: 0.01f,
                 earlyStopping: new ImageClassificationEstimator.EarlyStopping(metric: ImageClassificationEstimator.EarlyStoppingMetric.Loss),
@@ -1440,7 +1441,7 @@ namespace Microsoft.ML.Scenarios
                 Assert.Equal(1, metrics.MacroAccuracy);
             }
 
-            //Assert that the training ran and stopped within 20 epochs due to EarlyStopping
+            //Assert that the training ran and stopped within half epochs due to EarlyStopping
             Assert.InRange(lastEpoch, 1, 49);
         }
 
