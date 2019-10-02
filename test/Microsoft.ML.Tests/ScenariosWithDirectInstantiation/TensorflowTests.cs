@@ -1337,7 +1337,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(predictionFirst.PredictedLabel, predictionLast.PredictedLabel);
             for (int j = 0; j < predictionFirst.Score.Length; j++)
             {
-                predictionFirst.Score[j] = predictionLast.Score[j];
+                Assert.Equal(predictionFirst.Score[j],predictionLast.Score[j]);
             }
             Assert.True(Array.IndexOf(labels, predictionFirst.PredictedLabel) > -1);
             Assert.True(Array.IndexOf(labels, predictionLast.PredictedLabel) > -1);
