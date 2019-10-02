@@ -56,12 +56,11 @@ namespace Microsoft.ML.Transforms.Onnx
     {
         private Type _elemType;
 
-        /// <summary>
-        /// Create a sequence type.
-        /// </summary>
-        public OnnxSequenceTypeAttribute()
-        {
-        }
+        // Comment out default constructor
+        // Use default contructor will left the _elemType field empty and cause exception in methods using _elemType
+        //public OnnxSequenceTypeAttribute()
+        //{
+        //}
 
         /// <summary>
         /// Create a <paramref name="elemType"/>-sequence type.
@@ -94,10 +93,6 @@ namespace Microsoft.ML.Transforms.Onnx
         /// </summary>
         public override void Register()
         {
-            // this happens when use OnnxSequenceType attribute without specify sequence type
-            if (_elemType == null)
-                throw new InvalidOperationException("Please specify sequence type when use OnnxSequenceType Attribute.");
-
             var enumerableType = typeof(IEnumerable<>);
             var type = enumerableType.MakeGenericType(_elemType);
             DataViewTypeManager.Register(new OnnxSequenceType(_elemType), type, this);

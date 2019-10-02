@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Drawing;
 using Microsoft.ML.Data;
@@ -15,10 +14,9 @@ using System.Linq;
 using System.IO;
 using Microsoft.ML.TestFramework.Attributes;
 
-
 namespace Microsoft.ML.Tests
 {
-    public class OnnxSequenceTypeTest : BaseTestBaseline
+    public class OnnxSequenceTypeWithAttributesTest : BaseTestBaseline
     {
         public class OutputObj
         {
@@ -26,16 +24,6 @@ namespace Microsoft.ML.Tests
             [OnnxSequenceType(typeof(IDictionary<string, float>))]
             public IEnumerable<IDictionary<string, float>> Output;
         }
-
-        public class ProblematicOutputObj
-        {
-
-            [ColumnName("output")]
-            // incorrect usage, should always specify sequence type when using OnnxSequenceType attribute
-            [OnnxSequenceType]
-            public IEnumerable<IDictionary<string, float>> Output;
-        }
-
         public class FloatInput
         {
             [ColumnName("input")]
@@ -43,12 +31,12 @@ namespace Microsoft.ML.Tests
             public float[] Input { get; set; }
         }
 
-        public OnnxSequenceTypeTest(ITestOutputHelper output) : base(output)
+        public OnnxSequenceTypeWithAttributesTest(ITestOutputHelper output) : base(output)
         {
         }
-
-        private static OnnxTransformer PrepareModel(string onnxModelFilePath, MLContext ctx)
+        public static PredictionEngine<FloatInput, OutputObj> LoadModel(string onnxModelFilePath)
         {
+            var ctx = new MLContext();
             var dataView = ctx.Data.LoadFromEnumerable(new List<FloatInput>());
 
             var pipeline = ctx.Transforms.ApplyOnnxModel(
@@ -56,13 +44,6 @@ namespace Microsoft.ML.Tests
                                 outputColumnNames: new[] { "output" }, inputColumnNames: new[] { "input" });
 
             var model = pipeline.Fit(dataView);
-            return model;
-        }
-
-        public static PredictionEngine<FloatInput, OutputObj> LoadModel(string onnxModelFilePath)
-        {
-            var ctx = new MLContext();
-            var model = PrepareModel(onnxModelFilePath, ctx);
             return ctx.Model.CreatePredictionEngine<FloatInput, OutputObj>(model);
         }
 
@@ -77,27 +58,11 @@ namespace Microsoft.ML.Tests
             var onnx_out = output.Output.FirstOrDefault();
             Assert.True(onnx_out.Count == 3, "Output missing data.");
             var keys = new List<string>(onnx_out.Keys);
-            for(var i =0; i < onnx_out.Count; ++i)
+            for (var i = 0; i < onnx_out.Count; ++i)
             {
                 Assert.Equal(onnx_out[keys[i]], input.Input[i]);
             }
 
-        }
-
-        private static PredictionEngine<FloatInput, ProblematicOutputObj> CreatePredictorWithProblematicOutputObj()
-        {
-            var onnxModelFilePath = Path.Combine(Directory.GetCurrentDirectory(), "zipmap", "TestZipMapString.onnx");
-
-            var ctx = new MLContext();
-            var model = PrepareModel(onnxModelFilePath, ctx);
-            return ctx.Model.CreatePredictionEngine<FloatInput, ProblematicOutputObj>(model);
-        }
-
-        [OnnxFact]
-        public void OnnxSequenceTypeWithouSpecifySequenceTypeTest()
-        {
-            InvalidOperationException ex = Assert.Throws<InvalidOperationException>(() => CreatePredictorWithProblematicOutputObj());
-            Assert.Equal("Please specify sequence type when use OnnxSequenceType Attribute.", ex.Message);
         }
     }
 }
