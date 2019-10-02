@@ -41,7 +41,7 @@ namespace Samples.Dynamic
 
                 //Load all the original images info
                 IEnumerable<ImageData> images = LoadImagesFromDirectory(
-                    folder: fullImagesetFolderPath, useFolderNameasLabel: true);
+                    folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
 
                 IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
                     mlContext.Data.LoadFromEnumerable(images));
@@ -71,8 +71,8 @@ namespace Samples.Dynamic
                     batchSize: 10,
                     learningRate: 0.01f,
                     metricsCallback: (metrics) => Console.WriteLine(metrics),
-                    // reuseTrainSetBottleneckCachedValues: true,
-                    // reuseValidationSetBottleneckCachedValues: true,
+                     reuseTrainSetBottleneckCachedValues: true,
+                     reuseValidationSetBottleneckCachedValues: true,
                     validationSet: testDataset)
                     .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel"));
 
@@ -127,7 +127,7 @@ namespace Samples.Dynamic
                 .CreatePredictionEngine<ImageData, ImagePrediction>(trainedModel);
 
             IEnumerable<ImageData> testImages = LoadImagesFromDirectory(
-                imagesForPredictions, false);
+                imagesForPredictions, true);
 
             ImageData imageToPredict = new ImageData
             {
@@ -166,7 +166,7 @@ namespace Samples.Dynamic
         }
 
         public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,
-            bool useFolderNameasLabel = true)
+            bool useFolderNameAsLabel = true)
         {
             var files = Directory.GetFiles(folder, "*",
                 searchOption: SearchOption.AllDirectories);
@@ -177,7 +177,7 @@ namespace Samples.Dynamic
                     continue;
 
                 var label = Path.GetFileName(file);
-                if (useFolderNameasLabel)
+                if (useFolderNameAsLabel)
                     label = Directory.GetParent(file).Name;
                 else
                 {
