@@ -96,9 +96,7 @@ namespace Microsoft.ML.Transforms.Onnx
         {
             // this happens when use OnnxSequenceType attribute without specify sequence type
             if (_elemType == null)
-            {
-                throw new Exception("Please specify sequence type when use OnnxSequenceType Attribute.");
-            }
+                throw new InvalidOperationException("Please specify sequence type when use OnnxSequenceType Attribute.");
 
             var enumerableType = typeof(IEnumerable<>);
             var type = enumerableType.MakeGenericType(_elemType);

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using Microsoft.ML.Data;
@@ -13,7 +14,7 @@ using Xunit.Abstractions;
 using System.Linq;
 using System.IO;
 using Microsoft.ML.TestFramework.Attributes;
-using System;
+
 
 namespace Microsoft.ML.Tests
 {
@@ -83,7 +84,7 @@ namespace Microsoft.ML.Tests
 
         }
 
-        private static PredictionEngine<FloatInput, ProblematicOutputObj> CreatePredictorWithPronlematicOutputObj()
+        private static PredictionEngine<FloatInput, ProblematicOutputObj> CreatePredictorWithProblematicOutputObj()
         {
             var onnxModelFilePath = Path.Combine(Directory.GetCurrentDirectory(), "zipmap", "TestZipMapString.onnx");
 
@@ -95,7 +96,7 @@ namespace Microsoft.ML.Tests
         [OnnxFact]
         public void OnnxSequenceTypeWithouSpecifySequenceTypeTest()
         {
-            Exception ex = Assert.Throws<Exception>(() => CreatePredictorWithPronlematicOutputObj());
+            InvalidOperationException ex = Assert.Throws<InvalidOperationException>(() => CreatePredictorWithProblematicOutputObj());
             Assert.Equal("Please specify sequence type when use OnnxSequenceType Attribute.", ex.Message);
         }
     }
