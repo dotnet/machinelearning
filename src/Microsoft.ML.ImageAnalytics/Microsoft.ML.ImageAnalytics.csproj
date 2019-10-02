@@ -13,12 +13,5 @@
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="System.Buffers">
-      <HintPath>..\..\..\..\..\..\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\3.0.0-preview8-28405-07\ref\netcoreapp3.0\System.Buffers.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  
+  </ItemGroup>  
 </Project>

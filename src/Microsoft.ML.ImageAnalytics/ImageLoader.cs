@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -190,12 +189,14 @@ namespace Microsoft.ML.Data
         {
             private readonly ImageLoadingTransformer _parent;
             private readonly bool _type;
+            private byte[] _readBuffer;
 
             public Mapper(ImageLoadingTransformer parent, DataViewSchema inputSchema, bool type)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _type = type;
                 _parent = parent;
+                _readBuffer = new byte[4096];
             }
 
             protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
@@ -261,7 +262,7 @@ namespace Microsoft.ML.Data
                             string path = src.ToString();
                             if (!string.IsNullOrWhiteSpace(_parent.ImageFolder))
                                 path = Path.Combine(_parent.ImageFolder, path);
-                            if (!TryLoadDataIntoBuffer(path, ref dst))
+                            if (!TryLoadDataIntoBuffer(path, ref dst,_readBuffer))
                                 throw Host.Except($"Failed to load image {src.ToString()}.");
                         }
                     };
@@ -269,7 +270,7 @@ namespace Microsoft.ML.Data
                 return del;
             }
 
-            private static bool TryLoadDataIntoBuffer(string path, ref VBuffer<byte> imgData)
+            private static bool TryLoadDataIntoBuffer(string path, ref VBuffer<byte> imgData, byte[] readBuffer)
             {
                 int count = -1;
                 int bytesread = -1;
@@ -294,7 +295,7 @@ namespace Microsoft.ML.Data
                     var editor = VBufferEditor.Create(ref imgData, count);
 
 #if NETSTANDARD2_0
-                    bytesread = ReadToEnd(fs, editor.Values);
+                    bytesread = ReadToEnd(fs, editor.Values, readBuffer);
                     Contracts.Assert(count == bytesread);
 
 #else
@@ -308,12 +309,12 @@ namespace Microsoft.ML.Data
 
             }
 #if NETSTANDARD2_0
-            private static int ReadToEnd(System.IO.Stream stream, Span<byte> bufferspan)
+            private static int ReadToEnd(System.IO.Stream stream, Span<byte> bufferspan, byte[] readBuffer)
             {
 
-                int chunksize = 4096; // Most optimal size for buffer, friendly to CPU's L1 cache
-                var bufferPool = ArrayPool<byte>.Shared;
-                byte[] readBuffer = bufferPool.Rent(chunksize);
+                //int chunksize = 4096; // Most optimal size for buffer, friendly to CPU's L1 cache
+                //var bufferPool = ArrayPool<byte>.Shared;
+                //byte[] readBuffer = bufferPool.Rent(chunksize);
                 int totalBytesRead = 0;
                 int bytesRead;
                 unsafe
@@ -374,7 +375,7 @@ namespace Microsoft.ML.Data
 
     public sealed class ImageLoadingEstimator : TrivialEstimator<ImageLoadingTransformer>
     {
-        private readonly DataViewType _type;
+        private readonly bool _type;
 
         /// <summary>
         /// Load images in memory.
@@ -402,10 +403,7 @@ namespace Microsoft.ML.Data
         internal ImageLoadingEstimator(IHostEnvironment env, ImageLoadingTransformer transformer, bool type = true)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoadingEstimator)), transformer)
         {
-            if (type)
-                _type = new ImageDataViewType();
-            else
-                _type = NumberDataViewType.Byte;
+            _type = type;
         }
 
         /// <summary>
@@ -423,10 +421,10 @@ namespace Microsoft.ML.Data
                 if (!(col.ItemType is TextDataViewType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColumnName, TextDataViewType.Instance.ToString(), col.GetTypeString());
 
-                if (_type is ImageDataViewType)
-                    result[outputColumnName] = new SchemaShape.Column(outputColumnName, SchemaShape.Column.VectorKind.Scalar, _type, false);
+                if (_type)
+                    result[outputColumnName] = new SchemaShape.Column(outputColumnName, SchemaShape.Column.VectorKind.Scalar, new ImageDataViewType(), false);
                 else
-                    result[outputColumnName] = new SchemaShape.Column(outputColumnName, SchemaShape.Column.VectorKind.Vector, _type, false);
+                    result[outputColumnName] = new SchemaShape.Column(outputColumnName, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Byte, false);
             }
 
             return new SchemaShape(result.Values);
