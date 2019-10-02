@@ -1297,22 +1297,17 @@ namespace Microsoft.ML.Scenarios
                 .CreatePredictionEngine<ImageData, ImagePrediction>(loadedModel);
 
             IEnumerable<ImageData> testImages = LoadImagesFromDirectory(
-                fullImagesetFolderPath, true);
+                fullImagesetFolderPath, false);
 
             ImageData imageToPredictFirst = new ImageData
             {
-                ImagePath = testImages.First().ImagePath,
-                Label = testImages.First().Label
+                ImagePath = testImages.First().ImagePath
             };
 
             ImageData imageToPredictLast = new ImageData
             {
-                ImagePath = testImages.Last().ImagePath,
-                Label = testImages.Last().Label
+                ImagePath = testImages.Last().ImagePath
             };
-
-            Assert.True(imageToPredictFirst.Label.Length > 0);
-            Assert.True(imageToPredictLast.Label.Length > 0);
 
             var predictionFirst = predictionEngine.Predict(imageToPredictFirst);
             var predictionLast = predictionEngine.Predict(imageToPredictLast);
@@ -1326,8 +1321,8 @@ namespace Microsoft.ML.Scenarios
 
             Assert.Equal((int)labelCountFirst, predictionFirst.Score.Length);
             Assert.Equal((int)labelCountLast, predictionLast.Score.Length);
-            Assert.Equal(imageToPredictFirst.Label, predictionFirst.PredictedLabel);
-            Assert.Equal(imageToPredictLast.Label, predictionLast.PredictedLabel);
+            Assert.Equal("dandelion", predictionFirst.PredictedLabel);
+            Assert.Equal("roses", predictionLast.PredictedLabel);
         }
 
         public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,
@@ -1361,6 +1356,7 @@ namespace Microsoft.ML.Scenarios
                     ImagePath = file,
                     Label = label
                 };
+
             }
         }
 
