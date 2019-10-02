@@ -1246,7 +1246,6 @@ namespace Microsoft.ML.Transforms
             _options = options;
             _dnnModel = dnnModel;
             _tfInputTypes = new[] { TF_DataType.TF_STRING };
-            _outputTypes = new DataViewType[] { new VectorDataViewType(NumberDataViewType.Single), new KeyDataViewType(typeof(uint), 5) };
         }
 
         private static Options CreateArguments(DnnModel tensorFlowModel, string[] outputColumnNames, string[] inputColumnName, bool addBatchDimensionInput)
@@ -1278,10 +1277,10 @@ namespace Microsoft.ML.Transforms
             }
 
             resultDic[_options.OutputColumns[0]] = new SchemaShape.Column(_options.OutputColumns[0],
-                    SchemaShape.Column.VectorKind.Vector, _outputTypes[0].GetItemType(), false);
+                    SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
 
             var metadata = new List<SchemaShape.Column>();
-            metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false, inputSchema[1].Annotations));
+            metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
 
             resultDic[_options.OutputColumns[1]] = new SchemaShape.Column(_options.OutputColumns[1],
                    SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true, new SchemaShape(metadata.ToArray()));
