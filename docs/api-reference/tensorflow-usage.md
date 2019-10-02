@@ -15,6 +15,8 @@ SciSharp.TensorFlow.Redist v1.14.0
 ### GPU support
 GPU based TensorFlow is currently supported on:
 * Windows
+* Linux
+As of now TensorFlow does not support running on GPUs for MacOS, so we cannot support this currently.
 
 #### Prerequisites
 You must have at least one CUDA compatible GPU, for a list of compatible GPUs see
@@ -26,7 +28,8 @@ following [Nvidia's Install guide](https://docs.nvidia.com/cuda/cuda-quick-start
 #### Usage
 To use TensorFlow with GPU support take a NuGet dependency on the following package depending on your OS:
 
-Windows -> SciSharp.TensorFlow.Redist-Windows-GPU
+* Windows -> SciSharp.TensorFlow.Redist-Windows-GPU
+* Linux -> SciSharp.TensorFlow.Redist-Linux-GPU
 
 No code modification should be necessary to leverage the GPU for TensorFlow operations.
 
