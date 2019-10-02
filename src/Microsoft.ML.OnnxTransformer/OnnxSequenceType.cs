@@ -57,7 +57,8 @@ namespace Microsoft.ML.Transforms.Onnx
         private Type _elemType;
 
         // Comment out default constructor
-        // Use default contructor will left the _elemType field empty and cause exception in methods using _elemType
+        // Use default constructor will left the _elemType field empty and cause exception in methods using _elemType
+        // Comment out default constructor will give user compile error when user try to use [OnnxSequenceType] attribute directly without specify sequence type
         //public OnnxSequenceTypeAttribute()
         //{
         //}
