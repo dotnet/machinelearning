@@ -1318,8 +1318,8 @@ namespace Microsoft.ML.Scenarios
 
             ImageData imageToPredictLast = new ImageData
             {
-                ImagePath = testImages.Last().ImagePath,
-                Label = testImages.Last().Label
+                ImagePath = testImages.First().ImagePath,
+                Label = testImages.First().Label
             };
 
             var predictionFirst = predictionEngine.Predict(imageToPredictFirst);
@@ -1334,6 +1334,11 @@ namespace Microsoft.ML.Scenarios
 
             Assert.Equal((int)labelCountFirst, predictionFirst.Score.Length);
             Assert.Equal((int)labelCountLast, predictionLast.Score.Length);
+            Assert.Equal(predictionFirst.PredictedLabel, predictionLast.PredictedLabel);
+            for (int j = 0; j < predictionFirst.Score.Length; j++)
+            {
+                predictionFirst.Score[j] = predictionLast.Score[j];
+            }
             Assert.True(Array.IndexOf(labels, predictionFirst.PredictedLabel) > -1);
             Assert.True(Array.IndexOf(labels, predictionLast.PredictedLabel) > -1);
         }
