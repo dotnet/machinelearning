@@ -1361,7 +1361,6 @@ namespace Microsoft.ML.Transforms
         private readonly Options _options;
         private readonly DnnModel _dnnModel;
         private readonly TF_DataType[] _tfInputTypes;
-        private readonly DataViewType[] _outputTypes;
         private ImageClassificationTransformer _transformer;
 
         internal ImageClassificationEstimator(IHostEnvironment env, Options options, DnnModel dnnModel)
