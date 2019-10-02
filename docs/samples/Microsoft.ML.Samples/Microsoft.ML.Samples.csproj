@@ -947,7 +947,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="$(MicrosoftMLOnnxTestModelsVersion)" />
-    <PackageReference Include="SciSharp.TensorFlow.Redist" Version="1.14.0" />
+    <PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
   </ItemGroup>
 
     <ItemGroup>

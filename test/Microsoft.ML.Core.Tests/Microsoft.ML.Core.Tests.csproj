@@ -25,7 +25,7 @@
   
   <ItemGroup>
     <PackageReference Include="Microsoft.ML.TestModels" Version="$(MicrosoftMLTestModelsPackageVersion)" />
-    <PackageReference Include="SciSharp.TensorFlow.Redist" Version="1.14.0" />
+    <PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
   </ItemGroup>
 
   <ItemGroup>
