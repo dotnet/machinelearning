@@ -396,6 +396,32 @@ namespace Microsoft.ML.Transforms
                         }
                     }
 
+                    //Process last incomplete batch
+                    if (batchIndex > 0)
+                    {
+                        runner.AddInput(new Tensor(featureBatchPtr, featureTensorShape, TF_DataType.TF_FLOAT, featureBatchSizeInBytes), 0)
+                                .AddInput(new Tensor(labelBatchPtr, labelTensorShape, TF_DataType.TF_INT64, labelBatchSizeInBytes), 1)
+                                .Run();
+
+                        metrics.Train.BatchProcessedCount += 1;
+
+                        if (options.TestOnTrainSet && statisticsCallback != null)
+                        {
+                            var outputTensors = testEvalRunner
+                                .AddInput(new Tensor(featureBatchPtr, featureTensorShape, TF_DataType.TF_FLOAT, featureBatchSizeInBytes), 0)
+                                .AddInput(new Tensor(labelBatchPtr, labelTensorShape, TF_DataType.TF_INT64, labelBatchSizeInBytes), 1)
+                                .Run();
+
+                            outputTensors[0].ToScalar<float>(ref accuracy);
+                            outputTensors[1].ToScalar<float>(ref crossentropy);
+                            metrics.Train.Accuracy += accuracy;
+                            metrics.Train.CrossEntropy += crossentropy;
+
+                            outputTensors[0].Dispose();
+                            outputTensors[1].Dispose();
+                        }
+                    }
+
                     if (options.TestOnTrainSet && statisticsCallback != null)
                     {
                         metrics.Train.Epoch = epoch;
@@ -443,6 +469,21 @@ namespace Microsoft.ML.Transforms
 
                             outputTensors[0].Dispose();
                         }
+                    }
+
+                    //Process last incomplete batch
+                    if(batchIndex > 0)
+                    {
+                        var outputTensors = validationEvalRunner
+                                .AddInput(new Tensor(featureBatchPtr, featureTensorShape, TF_DataType.TF_FLOAT, featureBatchSizeInBytes), 0)
+                                .AddInput(new Tensor(labelBatchPtr, labelTensorShape, TF_DataType.TF_INT64, labelBatchSizeInBytes), 1)
+                                .Run();
+
+                        outputTensors[0].ToScalar<float>(ref accuracy);
+                        metrics.Train.Accuracy += accuracy;
+                        metrics.Train.BatchProcessedCount += 1;
+
+                        outputTensors[0].Dispose();
                     }
 
                     if (statisticsCallback != null)
