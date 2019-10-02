@@ -463,6 +463,11 @@ namespace Microsoft.ML.Transforms
                 {
                     Session.close(); // invoked Dispose()
                 }
+
+                if (Session != null && Session.graph != IntPtr.Zero)
+                {
+                    Session.graph.Dispose();
+                }
             }
             finally
             {
@@ -645,7 +650,7 @@ namespace Microsoft.ML.Transforms
                     Runner runner = new Runner(_parent.Session);
 
                     // Feed inputs to the graph.
-                    for (int i = 0; i < _parent.Inputs.Length; i++)
+                     for (int i = 0; i < _parent.Inputs.Length; i++)
                     {
                         var tensor = srcTensorGetters[i].GetTensor();
                         runner.AddInput(_parent.Inputs[i], tensor);
@@ -657,6 +662,12 @@ namespace Microsoft.ML.Transforms
 
                     // Execute the graph.
                     var tensors = runner.Run();
+
+                    List<Tensor> inputTensors = runner.GetInputValues();
+                    foreach (Tensor inputTensor in inputTensors)
+                    {
+                        inputTensor.Dispose();
+                    }
 
                     Contracts.Assert(tensors.Length > 0);
 
