@@ -761,7 +761,7 @@ namespace Microsoft.ML.Transforms
                 }
                 else
                 {
-                    _keyValueAnnotations = Enumerable.Range(0, _classCount).ToArray().Select(x => x.ToString().AsMemory()).ToArray();
+                    _keyValueAnnotations = Enumerable.Range(0, _classCount).Select(x => x.ToString().AsMemory()).ToArray();
                 }
             }
             else
