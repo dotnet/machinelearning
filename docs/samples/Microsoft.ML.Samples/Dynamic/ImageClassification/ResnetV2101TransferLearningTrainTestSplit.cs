@@ -73,8 +73,7 @@ namespace Samples.Dynamic
                     metricsCallback: (metrics) => Console.WriteLine(metrics),
                     // reuseTrainSetBottleneckCachedValues: true,
                     // reuseValidationSetBottleneckCachedValues: true,
-                    validationSet: testDataset,
-                    disableEarlyStopping: true)
+                    validationSet: testDataset)
                     .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel"));
 
                 Console.WriteLine("*** Training the image classification model with " +

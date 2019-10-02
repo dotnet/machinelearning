@@ -16,7 +16,6 @@ using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Image;
 using Microsoft.ML.Transforms.TensorFlow;
-using Tensorflow;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.DataOperationsCatalog;
@@ -1258,9 +1257,7 @@ namespace Microsoft.ML.Scenarios
                 metricsCallback: (metrics) => Console.WriteLine(metrics),
                 // reuseTrainSetBottleneckCachedValues: true,
                 // reuseValidationSetBottleneckCachedValues: true,
-                validationSet: testDataset,
-                testOnTrainSet: false,
-                disableEarlyStopping: true)
+                validationSet: testDataset)
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel"));
 
             var trainedModel = pipeline.Fit(trainDataset);
@@ -1336,168 +1333,6 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal((int)labelCountLast, predictionLast.Score.Length);
             Assert.True(Array.IndexOf(labels, predictionFirst.PredictedLabel) > -1);
             Assert.True(Array.IndexOf(labels, predictionLast.PredictedLabel) > -1);
-        }
-
-        [TensorFlowFact]
-        public void TensorFlowImageClassificationEarlyStoppingIncreasing()
-        {
-            string assetsRelativePath = @"assets";
-            string assetsPath = GetAbsolutePath(assetsRelativePath);
-            string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
-                "images");
-
-            //Download the image set and unzip
-            string finalImagesFolderName = DownloadImageSet(
-                imagesDownloadFolderPath);
-
-            string fullImagesetFolderPath = Path.Combine(
-                imagesDownloadFolderPath, finalImagesFolderName);
-
-            MLContext mlContext = new MLContext(seed: 1);
-
-            //Load all the original images info
-            IEnumerable<ImageData> images = LoadImagesFromDirectory(
-                folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
-
-            IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
-                mlContext.Data.LoadFromEnumerable(images), seed: 1);
-
-            shuffledFullImagesDataset = mlContext.Transforms.Conversion
-                .MapValueToKey("Label")
-                .Fit(shuffledFullImagesDataset)
-                .Transform(shuffledFullImagesDataset);
-
-            // Split the data 80:10 into train and test sets, train and evaluate.
-            TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
-                shuffledFullImagesDataset, testFraction: 0.2, seed: 1);
-
-            IDataView trainDataset = trainTestData.TrainSet;
-            IDataView testDataset = trainTestData.TestSet;
-
-            int lastEpoch = 0;
-            var pipeline = mlContext.Model.ImageClassification(
-                "ImagePath", "Label",
-                arch: ImageClassificationEstimator.Architecture.ResnetV2101,
-                epoch: 100,
-                batchSize: 5,
-                learningRate: 0.01f,
-                earlyStopping: new ImageClassificationEstimator.EarlyStopping(),
-                metricsCallback: (metrics) => { Console.WriteLine(metrics); lastEpoch = metrics.Train != null ? metrics.Train.Epoch : 0; },
-                testOnTrainSet: false,
-                validationSet: testDataset);
-
-            var trainedModel = pipeline.Fit(trainDataset);
-            mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
-                "model.zip");
-
-            ITransformer loadedModel;
-            DataViewSchema schema;
-            using (var file = File.OpenRead("model.zip"))
-                loadedModel = mlContext.Model.Load(file, out schema);
-
-            IDataView predictions = trainedModel.Transform(testDataset);
-            var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
-            
-            // On Ubuntu the results seem to vary quite a bit but they can probably be 
-            // controlled by training more epochs, however that will slow the 
-            // build down. Accuracy values seen were 0.33, 0.66, 0.70+. The model
-            // seems to be unstable, there could be many reasons, will need to 
-            // investigate this further.
-            if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
-                (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))))
-            {
-                Assert.InRange(metrics.MicroAccuracy, 0.3, 1);
-                Assert.InRange(metrics.MacroAccuracy, 0.3, 1);
-            }
-            else
-            {
-                Assert.Equal(1, metrics.MicroAccuracy);
-                Assert.Equal(1, metrics.MacroAccuracy);
-            }
-
-            //Assert that the training ran and stopped within half epochs due to EarlyStopping
-            Assert.InRange(lastEpoch, 1, 49);
-        }
-
-        [TensorFlowFact]
-        public void TensorFlowImageClassificationEarlyStoppingDecreasing()
-        {
-            string assetsRelativePath = @"assets";
-            string assetsPath = GetAbsolutePath(assetsRelativePath);
-            string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
-                "images");
-
-            //Download the image set and unzip
-            string finalImagesFolderName = DownloadImageSet(
-                imagesDownloadFolderPath);
-
-            string fullImagesetFolderPath = Path.Combine(
-                imagesDownloadFolderPath, finalImagesFolderName);
-
-            MLContext mlContext = new MLContext(seed: 1);
-
-            //Load all the original images info
-            IEnumerable<ImageData> images = LoadImagesFromDirectory(
-                folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
-
-            IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
-                mlContext.Data.LoadFromEnumerable(images), seed: 1);
-
-            shuffledFullImagesDataset = mlContext.Transforms.Conversion
-                .MapValueToKey("Label")
-                .Fit(shuffledFullImagesDataset)
-                .Transform(shuffledFullImagesDataset);
-
-            // Split the data 80:10 into train and test sets, train and evaluate.
-            TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
-                shuffledFullImagesDataset, testFraction: 0.2, seed: 1);
-
-            IDataView trainDataset = trainTestData.TrainSet;
-            IDataView testDataset = trainTestData.TestSet;
-
-            int lastEpoch = 0;
-            var pipeline = mlContext.Model.ImageClassification(
-                "ImagePath", "Label",
-                arch: ImageClassificationEstimator.Architecture.ResnetV2101,
-                epoch: 100,
-                batchSize: 5,
-                learningRate: 0.01f,
-                earlyStopping: new ImageClassificationEstimator.EarlyStopping(metric: ImageClassificationEstimator.EarlyStoppingMetric.Loss),
-                metricsCallback: (metrics) => { Console.WriteLine(metrics); lastEpoch = metrics.Train != null ? metrics.Train.Epoch : 0; },
-                testOnTrainSet: false,
-                validationSet: testDataset);
-
-            var trainedModel = pipeline.Fit(trainDataset);
-            mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
-                "model.zip");
-
-            ITransformer loadedModel;
-            DataViewSchema schema;
-            using (var file = File.OpenRead("model.zip"))
-                loadedModel = mlContext.Model.Load(file, out schema);
-
-            IDataView predictions = trainedModel.Transform(testDataset);
-            var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
-
-            // On Ubuntu the results seem to vary quite a bit but they can probably be 
-            // controlled by training more epochs, however that will slow the 
-            // build down. Accuracy values seen were 0.33, 0.66, 0.70+. The model
-            // seems to be unstable, there could be many reasons, will need to 
-            // investigate this further.
-            if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
-                (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))))
-            {
-                Assert.InRange(metrics.MicroAccuracy, 0.3, 1);
-                Assert.InRange(metrics.MacroAccuracy, 0.3, 1);
-            }
-            else
-            {
-                Assert.Equal(1, metrics.MicroAccuracy);
-                Assert.Equal(1, metrics.MacroAccuracy);
-            }
-
-            //Assert that the training ran and stopped within half epochs due to EarlyStopping
-            Assert.InRange(lastEpoch, 1, 49);
         }
 
         public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,
