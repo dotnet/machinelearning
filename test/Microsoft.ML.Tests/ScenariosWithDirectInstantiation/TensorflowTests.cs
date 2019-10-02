@@ -1243,14 +1243,24 @@ namespace Microsoft.ML.Scenarios
             IDataView trainDataset = trainTestData.TrainSet;
             IDataView testDataset = trainTestData.TestSet;
 
-            var pipeline = mlContext.Model.ImageClassification(
-                "ImagePath", "Label",
-                arch: ImageClassificationEstimator.Architecture.ResnetV2101,
-                epoch: 5,
-                batchSize: 5,
-                learningRate: 0.01f,
-                testOnTrainSet: false,
-                disableEarlyStopping: true);
+            var validationSet = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+                    .Fit(testDataset)
+                    .Transform(testDataset);
+
+            var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+                .Append(mlContext.Model.ImageClassification(
+                    "Image", "Label",
+                    // Just by changing/selecting InceptionV3 here instead of 
+                    // ResnetV2101 you can try a different architecture/pre-trained 
+                    // model. 
+                    arch: ImageClassificationEstimator.Architecture.ResnetV2101,
+                    epoch: 50,
+                    batchSize: 10,
+                    learningRate: 0.01f,
+                    metricsCallback: (metrics) => Console.WriteLine(metrics),
+                	testOnTrainSet: false,
+                    validationSet: validationSet,
+                	disableEarlyStopping: true));
 
             var trainedModel = pipeline.Fit(trainDataset);
 
@@ -1450,7 +1460,6 @@ namespace Microsoft.ML.Scenarios
         {
             var files = Directory.GetFiles(folder, "*",
                 searchOption: SearchOption.AllDirectories);
-
             foreach (var file in files)
             {
                 if (Path.GetExtension(file) != ".jpg")

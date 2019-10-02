@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
@@ -69,6 +70,11 @@ namespace Microsoft.ML.Data
         /// The folder to load the images from.
         /// </summary>
         public readonly string ImageFolder;
+        /// <summary>
+        /// The flag for DataViewType for the image. If Type true, it is a VectorDataView of bytes else it is an ImageDataView type.
+        /// If no options are specified, it defaults to false for ImageDataView type.
+        /// </summary>
+        public readonly bool UseImageType;
 
         /// <summary>
         /// The columns passed to this <see cref="ITransformer"/>.
@@ -85,6 +91,21 @@ namespace Microsoft.ML.Data
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoadingTransformer)), columns)
         {
             ImageFolder = imageFolder;
+            UseImageType = true;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="ImageLoadingTransformer"/>.
+        /// </summary>
+        /// <param name="env">The host environment.</param>
+        /// <param name="imageFolder">Folder where to look for images.</param>
+        /// <param name="type">Image type flag - true for ImageDataViewType or false for VectorDataViewType. Defaults to true i.e. ImageDataViewType if not specified.</param>
+        /// <param name="columns">Names of input and output columns.</param>
+        internal ImageLoadingTransformer(IHostEnvironment env, string imageFolder = null, bool type = true, params (string outputColumnName, string inputColumnName)[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoadingTransformer)), columns)
+        {
+            ImageFolder = imageFolder;
+            UseImageType = type;
         }
 
         // Factory method for SignatureDataTransform.
@@ -112,6 +133,12 @@ namespace Microsoft.ML.Data
             // int: id of image folder
 
             ImageFolder = ctx.LoadStringOrNull();
+
+            if (ctx.LoadStringOrNull().Equals("False"))
+                UseImageType = false; // It is a VBuffer<byte> type
+            else
+                UseImageType = true; // It is an ImageDataViewType
+
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -141,6 +168,7 @@ namespace Microsoft.ML.Data
 
             base.SaveColumns(ctx);
             ctx.SaveStringOrNull(ImageFolder);
+            ctx.SaveStringOrNull(UseImageType.ToString());
         }
 
         private static VersionInfo GetVersionInfo()
@@ -155,21 +183,31 @@ namespace Microsoft.ML.Data
                 loaderAssemblyName: typeof(ImageLoadingTransformer).Assembly.FullName);
         }
 
-        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema, UseImageType);
 
         private sealed class Mapper : OneToOneMapperBase
         {
             private readonly ImageLoadingTransformer _parent;
-            private readonly ImageDataViewType _imageType;
+            private readonly bool _type;
 
-            public Mapper(ImageLoadingTransformer parent, DataViewSchema inputSchema)
+            public Mapper(ImageLoadingTransformer parent, DataViewSchema inputSchema, bool type)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
-                _imageType = new ImageDataViewType();
+                _type = type;
                 _parent = parent;
             }
 
             protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            {
+                disposer = null;
+                // Check for the type of Image, if true load images as ImageDataViewType else load images as VBuffer<bytes>
+                if (_type)
+                    return MakeGetterImageDataViewType(input, iinfo, activeOutput, out disposer);
+                else
+                    return MakeGetterVectorDataViewByteType(input, iinfo, activeOutput, out disposer);
+            }
+
+            private Delegate MakeGetterImageDataViewType(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -201,11 +239,112 @@ namespace Microsoft.ML.Data
                                 throw Host.Except($"Failed to load image {src.ToString()}.");
                         }
                     };
+
                 return del;
             }
 
+            private Delegate MakeGetterVectorDataViewByteType(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            {
+                Contracts.AssertValue(input);
+                Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
+
+                disposer = null;
+                var getSrc = input.GetGetter<ReadOnlyMemory<char>>(input.Schema[ColMapNewToOld[iinfo]]);
+                ReadOnlyMemory<char> src = default;
+                ValueGetter<VBuffer<byte>> del =
+                    (ref VBuffer<byte> dst) =>
+                    {
+                        getSrc(ref src);
+
+                        if (src.Length > 0)
+                        {
+                            string path = src.ToString();
+                            if (!string.IsNullOrWhiteSpace(_parent.ImageFolder))
+                                path = Path.Combine(_parent.ImageFolder, path);
+
+                            int imgSize = LoadDataIntoBuffer(path, ref dst);
+                            if (imgSize < 0)
+                                throw Host.Except($"Failed to load image {src.ToString()}.");
+                        }
+                    };
+
+                return del;
+            }
+
+            public static int LoadDataIntoBuffer(string path, ref VBuffer<byte> imgData)
+            {
+                int count = -1;
+                int bytesread = -1;
+                // bufferSize == 1 used to avoid unnecessary buffer in FileStream
+                using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 1))
+                {
+                    long fileLength = fs.Length;
+                    if (fileLength > int.MaxValue)
+                        throw new IOException($"File {path} too big to open.");
+                    else if (fileLength == 0)
+                    {
+                        Console.WriteLine("File length is zero even though the image is not empty");
+                        byte[] imageBuffer;
+                        // Some file systems (e.g. procfs on Linux) return 0 for length even when there's content.
+                        // Thus we need to assume 0 doesn't mean empty.
+                        imageBuffer = File.ReadAllBytes(path);
+                        count = imageBuffer.Length;
+                        imgData = new VBuffer<byte>(count, imageBuffer);
+                        return count;
+                    }
+
+                    count = (int)fileLength;
+                    var editor = VBufferEditor.Create(ref imgData, count);
+
+#if NETSTANDARD2_0
+                    bytesread = ReadToEnd(fs, editor.Values);
+                    Contracts.Assert(count == bytesread);
+
+#else
+                    fs.Read(editor.Values);
+                    bytesread = editor.Values.Length;
+                    Contracts.Assert(count == bytesread);
+#endif
+                    imgData = editor.Commit();
+                    return count;
+
+                }
+
+            }
+
+            public static int ReadToEnd(System.IO.Stream stream, Span<byte> bufferspan)
+            {
+
+                int chunksize = 4096; // Most optimal size for buffer, friendly to CPU's L1 cache
+                byte[] readBuffer = new byte[chunksize];
+                int totalBytesRead = 0;
+                int bytesRead;
+                unsafe
+                {
+                    fixed (byte* readBufferPtr = readBuffer)
+                    fixed (byte* bufferSpanPtr = &MemoryMarshal.GetReference(bufferspan))
+                    {
+                        while ((bytesRead = stream.Read(readBuffer, 0, readBuffer.Length)) > 0)
+                        {
+                            Buffer.MemoryCopy(readBufferPtr, bufferSpanPtr + totalBytesRead, bufferspan.Length - totalBytesRead, bytesRead);
+                            totalBytesRead += bytesRead;
+                        }
+                    }
+                }
+
+                return totalBytesRead;
+            }
+
+            public DataViewType GetDataViewType()
+            {
+                if (_type)
+                    return new ImageDataViewType();
+                else
+                    return new VectorDataViewType(NumberDataViewType.Byte);
+            }
+
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
-                => _parent.ColumnPairs.Select(x => new DataViewSchema.DetachedColumn(x.outputColumnName, _imageType, null)).ToArray();
+                => _parent.ColumnPairs.Select(x => new DataViewSchema.DetachedColumn(x.outputColumnName, GetDataViewType(), null)).ToArray();
         }
     }
 
@@ -238,7 +377,7 @@ namespace Microsoft.ML.Data
 
     public sealed class ImageLoadingEstimator : TrivialEstimator<ImageLoadingTransformer>
     {
-        private readonly ImageDataViewType _imageType;
+        private readonly DataViewType _type;
 
         /// <summary>
         /// Load images in memory.
@@ -251,10 +390,25 @@ namespace Microsoft.ML.Data
         {
         }
 
-        internal ImageLoadingEstimator(IHostEnvironment env, ImageLoadingTransformer transformer)
+        /// <summary>
+        /// Load images in memory.
+        /// </summary>
+        /// <param name="env">The host environment.</param>
+        /// <param name="imageFolder">Folder where to look for images.</param>
+        /// <param name="type">Image type - VectorDataView type or ImageDataViewType. Defaults to ImageDataViewType if not specified or null.</param>
+        /// <param name="columns">Names of input and output columns.</param>
+        internal ImageLoadingEstimator(IHostEnvironment env, string imageFolder, bool type = true, params (string outputColumnName, string inputColumnName)[] columns)
+            : this(env, new ImageLoadingTransformer(env, imageFolder, type, columns), type)
+        {
+        }
+
+        internal ImageLoadingEstimator(IHostEnvironment env, ImageLoadingTransformer transformer, bool type = true)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoadingEstimator)), transformer)
         {
-            _imageType = new ImageDataViewType();
+            if (type)
+                _type = new ImageDataViewType();
+            else
+                _type = new VectorDataViewType(NumberDataViewType.Byte);
         }
 
         /// <summary>
@@ -272,7 +426,10 @@ namespace Microsoft.ML.Data
                 if (!(col.ItemType is TextDataViewType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColumnName, TextDataViewType.Instance.ToString(), col.GetTypeString());
 
-                result[outputColumnName] = new SchemaShape.Column(outputColumnName, SchemaShape.Column.VectorKind.Scalar, _imageType, false);
+                if (_type is ImageDataViewType)
+                    result[outputColumnName] = new SchemaShape.Column(outputColumnName, SchemaShape.Column.VectorKind.Scalar, _type, false);
+                else
+                    result[outputColumnName] = new SchemaShape.Column(outputColumnName, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Byte, false);
             }
 
             return new SchemaShape(result.Values);
