@@ -14,7 +14,7 @@ using System.Net;
 
 namespace Samples.Dynamic
 {
-    public class ResnetV2101TransferLearningTrainTestSplit
+    public class ResnetV2101TransferLearningEarlyStopping
     {
         public static void Example()
         {
@@ -64,12 +64,11 @@ namespace Samples.Dynamic
                     // ResnetV2101 you can try a different architecture/pre-trained 
                     // model. 
                     arch: ImageClassificationEstimator.Architecture.ResnetV2101, 
-                    epoch: 50,
                     batchSize: 10,
                     learningRate: 0.01f,
+                    earlyStopping: new ImageClassificationEstimator.EarlyStopping(minDelta: 0.001f, patience:20, metric:ImageClassificationEstimator.EarlyStoppingMetric.Loss),
                     metricsCallback: (metrics) => Console.WriteLine(metrics),
-                    validationSet: testDataset,
-                    disableEarlyStopping: true);
+                    validationSet: testDataset);
 
 
                 Console.WriteLine("*** Training the image classification model with " +

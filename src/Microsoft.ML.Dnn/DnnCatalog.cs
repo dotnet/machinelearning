@@ -101,6 +101,8 @@ namespace Microsoft.ML
         /// <param name="epoch">Number of training iterations. Each iteration/epoch refers to one pass over the dataset.</param>
         /// <param name="batchSize">The batch size for training.</param>
         /// <param name="learningRate">The learning rate for training.</param>
+        /// <param name="disableEarlyStopping">Whether to disable use of early stopping technique. Training will go on for the full epoch count.</param>
+        /// <param name="earlyStopping">Early stopping technique parameters to be used to terminate training when training metric stops improving.</param>
         /// <param name="metricsCallback">Callback for reporting model statistics during training phase.</param>
         /// <param name="statisticFrequency">Indicates the frequency of epochs at which to report model statistics during training phase.</param>
         /// <param name="framework">Indicates the choice of DNN training framework. Currently only tensorflow is supported.</param>
@@ -125,6 +127,8 @@ namespace Microsoft.ML
             int epoch = 100,
             int batchSize = 10,
             float learningRate = 0.01f,
+            bool disableEarlyStopping = false,
+            EarlyStopping earlyStopping = null,
             ImageClassificationMetricsCallback metricsCallback = null,
             int statisticFrequency = 1,
             DnnFramework framework = DnnFramework.Tensorflow,
@@ -148,6 +152,7 @@ namespace Microsoft.ML
                 Epoch = epoch,
                 LearningRate = learningRate,
                 BatchSize = batchSize,
+                EarlyStoppingCriteria = disableEarlyStopping ? null : earlyStopping == null ? new EarlyStopping() : earlyStopping,
                 ScoreColumnName = scoreColumnName,
                 PredictedLabelColumnName = predictedLabelColumnName,
                 FinalModelPrefix = finalModelPrefix,

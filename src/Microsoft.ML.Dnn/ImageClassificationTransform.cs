@@ -453,6 +453,13 @@ namespace Microsoft.ML.Transforms
                         statisticsCallback(metrics);
                     }
                 }
+
+                //Early stopping check
+                if (options.EarlyStoppingCriteria != null)
+                {
+                    if (options.EarlyStoppingCriteria.ShouldStop(metrics.Train))
+                        break;
+                }
             }
 
             trainSaver.save(_session, _checkpointPath);
@@ -912,6 +919,15 @@ namespace Microsoft.ML.Transforms
         };
 
         /// <summary>
+        /// Indicates the metric to be monitored to decide Early Stopping criteria.
+        /// </summary>
+        public enum EarlyStoppingMetric
+        {
+            Accuracy,
+            Loss
+        }
+
+        /// <summary>
         /// Callback that returns DNN statistics during training phase.
         /// </summary>
         public delegate void ImageClassificationMetricsCallback(ImageClassificationMetrics metrics);
@@ -989,6 +1005,108 @@ namespace Microsoft.ML.Transforms
             /// String representation of the metrics.
             /// </summary>
             public override string ToString() => $"Phase: Bottleneck Computation, Dataset used: {DatasetUsed.ToString(),10}, Image Index: {Index,3}, Image Name: {Name}";
+        }
+
+        /// <summary>
+        /// Early Stopping feature stops training when monitored quantity stops improving'.
+        /// Modeled after https://github.com/tensorflow/tensorflow/blob/00fad90125b18b80fe054de1055770cfb8fe4ba3/tensorflow/python/keras/callbacks.py#L1143
+        /// </summary>
+        public sealed class EarlyStopping
+        {
+            /// <summary>
+            /// Best value of metric seen so far.
+            /// </summary>
+            private float _bestMetricValue;
+
+            /// <summary>
+            /// Current counter for number of epochs where there has been no improvement.
+            /// </summary>
+            private int _wait;
+
+            /// <summary>
+            /// The metric to be monitored (eg Accuracy, Loss).
+            /// </summary>
+            private EarlyStoppingMetric _metric;
+
+            /// <summary>
+            /// Minimum change in the monitored quantity to be considered as an improvement.
+            /// </summary>
+            public float MinDelta { get; set; }
+
+            /// <summary>
+            /// Number of epochs to wait after no improvement is seen consecutively
+            /// before stopping the training.
+            /// </summary>
+            public int Patience { get; set; }
+
+            /// <summary>
+            /// Whether the monitored quantity is to be increasing (eg. Accuracy, CheckIncreasing = true)
+            /// or decreasing (eg. Loss, CheckIncreasing = false).
+            /// </summary>
+            public bool CheckIncreasing { get; set; }
+
+            /// <param name="minDelta"></param>
+            /// <param name="patience"></param>
+            /// <param name="metric"></param>
+            /// <param name="checkIncreasing"></param>
+            public EarlyStopping(float minDelta = 0.01f, int patience = 20, EarlyStoppingMetric metric = EarlyStoppingMetric.Accuracy, bool checkIncreasing = true)
+            {
+                _bestMetricValue = 0.0f;
+                _wait = 0;
+                _metric = metric;
+                MinDelta = Math.Abs(minDelta);
+                Patience = patience;
+                CheckIncreasing = checkIncreasing;
+
+                //Set the CheckIncreasing according to the metric being monitored
+                if (metric == EarlyStoppingMetric.Accuracy)
+                    CheckIncreasing = true;
+                else if (metric == EarlyStoppingMetric.Loss)
+                    CheckIncreasing = false;
+            }
+
+            /// <summary>
+            /// To be called at the end of every epoch to check if training should stop.
+            /// For increasing metric(eg.: Accuracy), if metric stops increasing, stop training if
+            /// value of metric doesn't increase within 'patience' number of epochs.
+            /// For decreasing metric(eg.: Loss), stop training if value of metric doesn't decrease
+            /// within 'patience' number of epochs.
+            /// Any change  in the value of metric of less than 'minDelta' is not considered a change.
+            /// </summary>
+            public bool ShouldStop(TrainMetrics currentMetrics)
+            {
+                float currentMetricValue = _metric == EarlyStoppingMetric.Accuracy ? currentMetrics.Accuracy : currentMetrics.CrossEntropy;
+
+                if(CheckIncreasing)
+                {
+                    if((currentMetricValue- _bestMetricValue) < MinDelta)
+                    {
+                        _wait += 1;
+                        if(_wait >= Patience)
+                            return true;
+                    }
+                    else
+                    {
+                        _wait = 0;
+                        _bestMetricValue = currentMetricValue;
+                    }
+                }
+                else
+                {
+                    if ((_bestMetricValue - currentMetricValue) < MinDelta)
+                    {
+                        _wait += 1;
+                        if (_wait >= Patience)
+                            return true;
+                    }
+                    else
+                    {
+                        _wait = 0;
+                        _bestMetricValue = currentMetricValue;
+                    }
+                }
+                return false;
+            }
         }
 
         /// <summary>
@@ -1074,6 +1192,12 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate to use during optimization.", SortOrder = 12)]
             public float LearningRate = 0.01f;
+
+            /// <summary>
+            /// Early Stopping technique to stop training when accuracy stops improving.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Early Stopping technique to stop training when accuracy stops improving.", SortOrder = 15)]
+            public EarlyStopping EarlyStoppingCriteria;
 
             /// <summary>
             /// Specifies the model architecture to be used in the case of image classification training using transfer learning.
