@@ -5,11 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics.Tensors;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.OnnxRuntime;
+using Microsoft.ML.OnnxRuntime.Tensors;
+
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms.Onnx
@@ -17,13 +18,14 @@ namespace Microsoft.ML.Transforms.Onnx
     internal static class OnnxTypeParser
     {
         /// <summary>
-        /// Derive the corresponding <see cref="Type"/> for ONNX tensor's element type specified by <paramref name="dataType"/>.
+        /// Derive the corresponding <see cref="Type"/> for ONNX tensor's element type specified by <paramref name="elementType"/>.
         /// The corresponding <see cref="Type"/> should match the type system in ONNXRuntime's C# APIs.
         /// This function is used when determining the corresponding <see cref="Type"/> of <see cref="OnnxCSharpToProtoWrapper.TypeProto"/>.
         /// </summary>
-        /// <param name="dataType">ONNX's tensor element type.</param>
-        public static Type GetNativeScalarType(OnnxCSharpToProtoWrapper.TensorProto.Types.DataType dataType)
+        /// <param name="elementType">ONNX's tensor element type.</param>
+        public static Type GetNativeScalarType(int elementType)
         {
+            var dataType = (OnnxCSharpToProtoWrapper.TensorProto.Types.DataType)elementType;
             Type scalarType = null;
             switch (dataType)
             {
@@ -106,11 +108,12 @@ namespace Microsoft.ML.Transforms.Onnx
         }
 
         /// <summary>
-        /// Derive the corresponding <see cref="DataViewType"/> for ONNX tensor's element type specified by <paramref name="dataType"/>.
+        /// Derive the corresponding <see cref="DataViewType"/> for ONNX tensor's element type specified by <paramref name="elementType"/>.
         /// </summary>
-        /// <param name="dataType">ONNX's tensor element type.</param>
-        public static DataViewType GetScalarDataViewType(OnnxCSharpToProtoWrapper.TensorProto.Types.DataType dataType)
+        /// <param name="elementType">ONNX's tensor element type.</param>
+        public static DataViewType GetScalarDataViewType(int elementType)
         {
+            var dataType = (OnnxCSharpToProtoWrapper.TensorProto.Types.DataType)elementType;
             DataViewType scalarType = null;
             switch (dataType)
             {

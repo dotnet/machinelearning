@@ -768,22 +768,68 @@ namespace Microsoft.ML.Transforms
 
             private Delegate MakeGetter<T>(DataViewRow row, int src) => _termMap[src].GetMappingGetter(row);
 
+            private IEnumerable<T> GetTermsAndIds<T>(int iinfo, out long[] termIds)
+            {
+                var terms = default(VBuffer<T>);
+                var map = (TermMap<T>)_termMap[iinfo].Map;
+                map.GetTerms(ref terms);
+
+                var termValues = terms.DenseValues();
+                var keyMapper = map.GetKeyMapper();
+
+                int i = 0;
+                termIds = new long[map.Count];
+                foreach (var term in termValues)
+                {
+                    uint id = 0;
+                    keyMapper(term, ref id);
+                    termIds[i++] = id;
+                }
+                return termValues;
+            }
+
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
-                if (!(info.TypeSrc.GetItemType() is TextDataViewType))
-                    return false;
+                var isStringTensor = info.TypeSrc.GetItemType().Equals(TextDataViewType.Instance);
+                var isInt64Tensor = info.TypeSrc.GetItemType().Equals(NumberDataViewType.Int64);
+                var isFloatTensor = info.TypeSrc.GetItemType().Equals(NumberDataViewType.Single);
 
-                var terms = default(VBuffer<ReadOnlyMemory<char>>);
-                TermMap<ReadOnlyMemory<char>> map = (TermMap<ReadOnlyMemory<char>>)_termMap[iinfo].Map;
-                map.GetTerms(ref terms);
+                OnnxNode node;
+                long[] termIds;
                 string opType = "LabelEncoder";
-                var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
-                node.AddAttribute("classes_strings", terms.DenseValues());
+                var labelEncoderOutput = ctx.AddIntermediateVariable(_types[iinfo], "LabelEncoderOutput", true);
+
+                if (isStringTensor)
+                {
+                    node = ctx.CreateNode(opType, srcVariableName, labelEncoderOutput, ctx.GetNodeName(opType));
+                    var terms = GetTermsAndIds<ReadOnlyMemory<char>>(iinfo, out termIds);
+                    node.AddAttribute("keys_strings", terms);
+                }
+                else if (isInt64Tensor)
+                {
+                    node = ctx.CreateNode(opType, srcVariableName, labelEncoderOutput, ctx.GetNodeName(opType));
+                    var terms = GetTermsAndIds<long>(iinfo, out termIds);
+                    node.AddAttribute("keys_int64s", terms);
+                }
+                else if (isFloatTensor)
+                {
+                    node = ctx.CreateNode(opType, srcVariableName, labelEncoderOutput, ctx.GetNodeName(opType));
+                    var terms = GetTermsAndIds<float>(iinfo, out termIds);
+                    node.AddAttribute("keys_int64s", terms);
+                }
+                else
+                {
+                    return false;
+                }
                 node.AddAttribute("default_int64", -1);
-                //default_string needs to be an empty string but there is a BUG in Lotus that
-                //throws a validation error when default_string is empty. As a work around, set
-                //default_string to a space.
-                node.AddAttribute("default_string", " ");
+                node.AddAttribute("values_int64s", termIds);
+
+                // Onnx outputs an Int64, but ML.NET outputs UInt32. So cast the Onnx output here
+                opType = "Cast";
+                var castNode = ctx.CreateNode(opType, labelEncoderOutput, dstVariableName, ctx.GetNodeName(opType), "");
+                var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.UInt32).ToType();
+                castNode.AddAttribute("to", t);
+
                 return true;
             }
 
@@ -802,7 +848,7 @@ namespace Microsoft.ML.Transforms
                     }
 
                     if (!SaveAsOnnxCore(ctx, iinfo, info, ctx.GetVariableName(inputColumnName),
-                        ctx.AddIntermediateVariable(_types[iinfo], info.Name)))
+                        ctx.AddIntermediateVariable(_types[iinfo], info.Name, true)))
                     {
                         ctx.RemoveColumn(info.Name, true);
                     }

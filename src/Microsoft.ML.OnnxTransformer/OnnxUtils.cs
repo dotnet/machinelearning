@@ -6,10 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Numerics.Tensors;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.OnnxRuntime;
+using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.ML.Runtime;
 using OnnxShape = System.Collections.Generic.List<int>;
 
@@ -161,8 +161,9 @@ namespace Microsoft.ML.Transforms.Onnx
             {
                 try
                 {
-                    _session = new InferenceSession(modelFile,
-                        SessionOptions.MakeSessionOptionWithCudaProvider(gpuDeviceId.Value));
+                    //_session = new InferenceSession(modelFile,
+                    //    SessionOptions.MakeSessionOptionWithCudaProvider(gpuDeviceId.Value));
+                    throw new NotImplementedException("No gpu support right now! Please check back later!");
                 }
                 catch (OnnxRuntimeException)
                 {
@@ -411,7 +412,8 @@ namespace Microsoft.ML.Transforms.Onnx
                      typeof(Int64),
                      typeof(UInt16),
                      typeof(UInt32),
-                     typeof(UInt64)
+                     typeof(UInt64),
+                     typeof(ReadOnlyMemory<Char>),
                 };
         private static Dictionary<Type, InternalDataKind> _typeToKindMap=
             new Dictionary<Type, InternalDataKind>
@@ -439,6 +441,14 @@ namespace Microsoft.ML.Transforms.Onnx
         {
             if (!_onnxTypeMap.Contains(typeof(T)))
                 throw new NotImplementedException($"Not implemented type {typeof(T)}");
+
+            if (data.GetType() == typeof(ReadOnlyMemory<char>))
+            {
+                var charMemory = (ReadOnlyMemory<Char>)Convert.ChangeType(data, typeof(ReadOnlyMemory<Char>));
+                var stringMemory = new Memory<string>(new string[] { charMemory.ToString() });
+                return NamedOnnxValue.CreateFromTensor<string>(name, new DenseTensor<string>(stringMemory, new int[] { 1, 1 }, false));
+
+            }
             return NamedOnnxValue.CreateFromTensor<T>(name, new DenseTensor<T>(new T[] { data }, new int[] { 1 }));
         }
 
