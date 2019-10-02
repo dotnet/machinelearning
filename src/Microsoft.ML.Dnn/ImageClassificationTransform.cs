@@ -235,6 +235,7 @@ namespace Microsoft.ML.Transforms
                 ImageClassificationMetrics metrics = new ImageClassificationMetrics();
                 metrics.Bottleneck = new BottleneckMetrics();
                 metrics.Bottleneck.DatasetUsed = dataset;
+                float[] imageArray = null;
                 while (cursor.MoveNext())
                 {
                     labelGetter(ref label);
@@ -242,8 +243,10 @@ namespace Microsoft.ML.Transforms
                     var imagePathStr = imagePath.ToString();
                     var imageTensor = imageProcessor.ProcessImage(imagePathStr);
                     runner.AddInput(imageTensor, 0);
-                    var featurizedImage = runner.Run()[0]; // Reuse memory?
-                    writer.WriteLine(label - 1 + "," + string.Join(",", featurizedImage.ToArray<float>()));
+                    var featurizedImage = runner.Run()[0]; // Reuse memory
+                    featurizedImage.ToArray<float>(ref imageArray);
+                    Host.Assert((int)featurizedImage.size == imageArray.Length);
+                    writer.WriteLine(label - 1 + "," + string.Join(",", imageArray));
                     featurizedImage.Dispose();
                     imageTensor.Dispose();
                     metrics.Bottleneck.Index++;
@@ -338,6 +341,8 @@ namespace Microsoft.ML.Transforms
 
             ImageClassificationMetrics metrics = new ImageClassificationMetrics();
             metrics.Train = new TrainMetrics();
+            float accuracy = 0;
+            float crossentropy = 0;
             for (int epoch = 0; epoch < epochs; epoch += 1)
             {
                 metrics.Train.Accuracy = 0;
@@ -378,8 +383,10 @@ namespace Microsoft.ML.Transforms
                                     .AddInput(new Tensor(labelBatchPtr, labelTensorShape, TF_DataType.TF_INT64, labelBatchSizeInBytes), 1)
                                     .Run();
 
-                                metrics.Train.Accuracy += outputTensors[0].ToArray<float>()[0];
-                                metrics.Train.CrossEntropy += outputTensors[1].ToArray<float>()[0];
+                                outputTensors[0].ToScalar<float>(ref accuracy);
+                                outputTensors[1].ToScalar<float>(ref crossentropy);
+                                metrics.Train.Accuracy += accuracy;
+                                metrics.Train.CrossEntropy += crossentropy;
 
                                 outputTensors[0].Dispose();
                                 outputTensors[1].Dispose();
@@ -429,7 +436,8 @@ namespace Microsoft.ML.Transforms
                                 .AddInput(new Tensor(labelBatchPtr, labelTensorShape, TF_DataType.TF_INT64, labelBatchSizeInBytes), 1)
                                 .Run();
 
-                            metrics.Train.Accuracy += outputTensors[0].ToArray<float>()[0];
+                            outputTensors[0].ToScalar<float>(ref accuracy);
+                            metrics.Train.Accuracy += accuracy;
                             metrics.Train.BatchProcessedCount += 1;
                             batchIndex = 0;
 
@@ -799,8 +807,10 @@ namespace Microsoft.ML.Transforms
                 private ReadOnlyMemory<char> _imagePath;
                 private Runner _runner;
                 private ImageProcessor _imageProcessor;
-                public UInt32 PredictedLabel { get; set; }
-                public float[] ClassProbabilities { get; set; }
+                private long _predictedLabel;
+                public UInt32 PredictedLabel => (uint)_predictedLabel;
+                private float[] _classProbability;
+                public float[] ClassProbabilities => _classProbability;
                 private DataViewRow _inputRow;
 
                 public OutputCache(DataViewRow input, ImageClassificationTransformer transformer)
@@ -826,8 +836,8 @@ namespace Microsoft.ML.Transforms
                             _imagePathGetter(ref _imagePath);
                             var processedTensor = _imageProcessor.ProcessImage(_imagePath.ToString());
                             var outputTensor = _runner.AddInput(processedTensor, 0).Run();
-                            ClassProbabilities = outputTensor[0].ToArray<float>();
-                            PredictedLabel = (UInt32)outputTensor[1].ToArray<long>()[0];
+                            outputTensor[0].ToArray<float>(ref _classProbability);
+                            outputTensor[1].ToScalar<long>(ref _predictedLabel);
                             outputTensor[0].Dispose();
                             outputTensor[1].Dispose();
                             processedTensor.Dispose();
