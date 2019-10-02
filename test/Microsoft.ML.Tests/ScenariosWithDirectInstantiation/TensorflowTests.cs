@@ -1297,16 +1297,26 @@ namespace Microsoft.ML.Scenarios
                 .CreatePredictionEngine<ImageData, ImagePrediction>(loadedModel);
 
             IEnumerable<ImageData> testImages = LoadImagesFromDirectory(
-                fullImagesetFolderPath, false);
+                fullImagesetFolderPath, true);
+
+            string[] directories = Directory.GetDirectories(fullImagesetFolderPath);
+            string[] labels = new string[directories.Length];
+            for(int j = 0; j < labels.Length; j++)
+            {
+                var dir = new DirectoryInfo(directories[j]);
+                labels[j] = dir.Name;
+            }
 
             ImageData imageToPredictFirst = new ImageData
             {
-                ImagePath = testImages.First().ImagePath
+                ImagePath = testImages.First().ImagePath,
+                Label = testImages.First().Label
             };
 
             ImageData imageToPredictLast = new ImageData
             {
-                ImagePath = testImages.Last().ImagePath
+                ImagePath = testImages.Last().ImagePath,
+                Label = testImages.Last().Label
             };
 
             var predictionFirst = predictionEngine.Predict(imageToPredictFirst);
@@ -1321,8 +1331,8 @@ namespace Microsoft.ML.Scenarios
 
             Assert.Equal((int)labelCountFirst, predictionFirst.Score.Length);
             Assert.Equal((int)labelCountLast, predictionLast.Score.Length);
-            Assert.Equal("dandelion", predictionFirst.PredictedLabel);
-            Assert.Equal("roses", predictionLast.PredictedLabel);
+            Assert.True(Array.IndexOf(labels, predictionFirst.PredictedLabel) > -1);
+            Assert.True(Array.IndexOf(labels, predictionLast.PredictedLabel) > -1);
         }
 
         public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,

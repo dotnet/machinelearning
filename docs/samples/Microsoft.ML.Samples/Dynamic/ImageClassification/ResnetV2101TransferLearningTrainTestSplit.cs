@@ -41,7 +41,7 @@ namespace Samples.Dynamic
 
                 //Load all the original images info
                 IEnumerable<ImageData> images = LoadImagesFromDirectory(
-                    folder: fullImagesetFolderPath, useFolderNameasLabel: true);
+                    folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
 
                 IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
                     mlContext.Data.LoadFromEnumerable(images));
@@ -166,7 +166,7 @@ namespace Samples.Dynamic
         }
 
         public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,
-            bool useFolderNameasLabel = true)
+            bool useFolderNameAsLabel = true)
         {
             var files = Directory.GetFiles(folder, "*",
                 searchOption: SearchOption.AllDirectories);
@@ -177,7 +177,7 @@ namespace Samples.Dynamic
                     continue;
 
                 var label = Path.GetFileName(file);
-                if (useFolderNameasLabel)
+                if (useFolderNameAsLabel)
                     label = Directory.GetParent(file).Name;
                 else
                 {
