@@ -47,7 +47,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
                     continue;
 
                 // Construct the final ML.NET type of a Tensorflow variable.
-                var tensorShape = op.output.TensorShape.Dimensions;
+                var tensorShape = op.output.TensorShape.dims;
                 var columnType = new VectorDataViewType(mlType);
                 if (!(Utils.Size(tensorShape) == 1 && tensorShape[0] <= 0) &&
                     (Utils.Size(tensorShape) > 0 && tensorShape.Skip(1).All(x => x > 0)))

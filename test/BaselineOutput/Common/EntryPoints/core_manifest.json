@@ -21711,6 +21711,79 @@
       ]
     },
     {
+      "Name": "Transforms.PermutationFeatureImportance",
+      "Desc": "Permutation Feature Importance (PFI)",
+      "FriendlyName": "PFI",
+      "ShortName": "PFI",
+      "Inputs": [
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "PredictorModel",
+          "Type": "PredictorModel",
+          "Desc": "The path to the model file",
+          "Aliases": [
+            "path"
+          ],
+          "Required": true,
+          "SortOrder": 150.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "UseFeatureWeightFilter",
+          "Type": "Bool",
+          "Desc": "Use feature weights to pre-filter features",
+          "Aliases": [
+            "usefw"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "NumberOfExamplesToUse",
+          "Type": "Int",
+          "Desc": "Limit the number of examples to evaluate on",
+          "Aliases": [
+            "numexamples"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
+          "Name": "PermutationCount",
+          "Type": "Int",
+          "Desc": "The number of permutations to perform",
+          "Aliases": [
+            "permutations"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 1
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "Metrics",
+          "Type": "DataView",
+          "Desc": "The PFI metrics"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ]
+    },
+    {
       "Name": "Transforms.PredictedLabelColumnOriginalValueConverter",
       "Desc": "Transforms a predicted label column to its original values, unless it is of type bool.",
       "FriendlyName": "Convert Predicted Label",

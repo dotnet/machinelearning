@@ -20,7 +20,7 @@ using Tensorflow.Summaries;
 using static Microsoft.ML.Data.TextLoader;
 using static Microsoft.ML.Transforms.Dnn.DnnUtils;
 using static Microsoft.ML.Transforms.ImageClassificationEstimator;
-using static Tensorflow.Python;
+using static Tensorflow.Binding;
 using Architecture = Microsoft.ML.Transforms.ImageClassificationEstimator.Architecture;
 
 [assembly: LoadableClass(ImageClassificationTransformer.Summary, typeof(IDataTransform), typeof(ImageClassificationTransformer),
@@ -170,7 +170,7 @@ namespace Microsoft.ML.Transforms
             Host.CheckNonWhiteSpace(options.LabelColumn, nameof(options.LabelColumn));
             Host.CheckNonWhiteSpace(options.TensorFlowLabel, nameof(options.TensorFlowLabel));
 
-            if (_session.graph.OperationByName(options.TensorFlowLabel) == null)
+            if (_session.graph.OperationByName(_labelTensor.name.Split(':')[0]) == null)
                 throw Host.ExceptParam(nameof(options.TensorFlowLabel), $"'{options.TensorFlowLabel}' does not exist in the model");
         }
 
@@ -235,6 +235,7 @@ namespace Microsoft.ML.Transforms
                 ImageClassificationMetrics metrics = new ImageClassificationMetrics();
                 metrics.Bottleneck = new BottleneckMetrics();
                 metrics.Bottleneck.DatasetUsed = dataset;
+                float[] imageArray = null;
                 while (cursor.MoveNext())
                 {
                     labelGetter(ref label);
@@ -242,8 +243,10 @@ namespace Microsoft.ML.Transforms
                     var imagePathStr = imagePath.ToString();
                     var imageTensor = imageProcessor.ProcessImage(imagePathStr);
                     runner.AddInput(imageTensor, 0);
-                    var featurizedImage = runner.Run()[0]; // Reuse memory?
-                    writer.WriteLine(label - 1 + "," + string.Join(",", featurizedImage.Data<float>()));
+                    var featurizedImage = runner.Run()[0]; // Reuse memory
+                    featurizedImage.ToArray<float>(ref imageArray);
+                    Host.Assert((int)featurizedImage.size == imageArray.Length);
+                    writer.WriteLine(label - 1 + "," + string.Join(",", imageArray));
                     featurizedImage.Dispose();
                     imageTensor.Dispose();
                     metrics.Bottleneck.Index++;
@@ -338,6 +341,8 @@ namespace Microsoft.ML.Transforms
 
             ImageClassificationMetrics metrics = new ImageClassificationMetrics();
             metrics.Train = new TrainMetrics();
+            float accuracy = 0;
+            float crossentropy = 0;
             for (int epoch = 0; epoch < epochs; epoch += 1)
             {
                 metrics.Train.Accuracy = 0;
@@ -378,8 +383,10 @@ namespace Microsoft.ML.Transforms
                                     .AddInput(new Tensor(labelBatchPtr, labelTensorShape, TF_DataType.TF_INT64, labelBatchSizeInBytes), 1)
                                     .Run();
 
-                                metrics.Train.Accuracy += outputTensors[0].Data<float>()[0];
-                                metrics.Train.CrossEntropy += outputTensors[1].Data<float>()[0];
+                                outputTensors[0].ToScalar<float>(ref accuracy);
+                                outputTensors[1].ToScalar<float>(ref crossentropy);
+                                metrics.Train.Accuracy += accuracy;
+                                metrics.Train.CrossEntropy += crossentropy;
 
                                 outputTensors[0].Dispose();
                                 outputTensors[1].Dispose();
@@ -429,7 +436,8 @@ namespace Microsoft.ML.Transforms
                                 .AddInput(new Tensor(labelBatchPtr, labelTensorShape, TF_DataType.TF_INT64, labelBatchSizeInBytes), 1)
                                 .Run();
 
-                            metrics.Train.Accuracy += outputTensors[0].Data<float>()[0];
+                            outputTensors[0].ToScalar<float>(ref accuracy);
+                            metrics.Train.Accuracy += accuracy;
                             metrics.Train.BatchProcessedCount += 1;
                             batchIndex = 0;
 
@@ -445,6 +453,13 @@ namespace Microsoft.ML.Transforms
                         statisticsCallback(metrics);
                     }
                 }
+
+                //Early stopping check
+                if (options.EarlyStoppingCriteria != null)
+                {
+                    if (options.EarlyStoppingCriteria.ShouldStop(metrics.Train))
+                        break;
+                }
             }
 
             trainSaver.save(_session, _checkpointPath);
@@ -458,17 +473,13 @@ namespace Microsoft.ML.Transforms
             Tensor evaluationStep = null;
             Tensor prediction = null;
             Tensor bottleneckTensor = evalGraph.OperationByName(_bottleneckOperationName);
-
-            tf_with(evalGraph.as_default(), graph =>
-            {
-                var (_, _, groundTruthInput, finalTensor) = AddFinalRetrainOps(classCount, options.LabelColumn,
+            evalGraph.as_default();
+            var (_, _, groundTruthInput, finalTensor) = AddFinalRetrainOps(classCount, options.LabelColumn,
                     options.ScoreColumnName, options.LearningRate, bottleneckTensor, false);
 
                 tf.train.Saver().restore(evalSess, _checkpointPath);
                 (evaluationStep, prediction) = AddEvaluationStep(finalTensor, groundTruthInput);
                 (_jpegData, _resizedImage) = AddJpegDecoding(299, 299, 3);
-            });
-
             return (evalSess, _labelTensor, evaluationStep, prediction);
         }
 
@@ -530,14 +541,15 @@ namespace Microsoft.ML.Transforms
         private (Operation, Tensor, Tensor, Tensor) AddFinalRetrainOps(int classCount, string labelColumn,
             string scoreColumnName, float learningRate, Tensor bottleneckTensor, bool isTraining)
         {
-            var (batch_size, bottleneck_tensor_size) = (bottleneckTensor.TensorShape.Dimensions[0], bottleneckTensor.TensorShape.Dimensions[1]);
+            var bottleneckTensorDims = bottleneckTensor.TensorShape.dims;
+            var (batch_size, bottleneck_tensor_size) = (bottleneckTensorDims[0], bottleneckTensorDims[1]);
             tf_with(tf.name_scope("input"), scope =>
             {
                 if (isTraining)
                 {
                     _bottleneckInput = tf.placeholder_with_default(
                         bottleneckTensor,
-                        shape: bottleneckTensor.TensorShape.Dimensions,
+                        shape: bottleneckTensorDims ,
                         name: "BottleneckInputPlaceholder");
                 }
 
@@ -559,7 +571,8 @@ namespace Microsoft.ML.Transforms
                 RefVariable layerBiases = null;
                 tf_with(tf.name_scope("biases"), delegate
                 {
-                    layerBiases = tf.Variable(tf.zeros(classCount), name: "final_biases");
+                    TensorShape shape = new TensorShape(classCount);
+                    layerBiases = tf.Variable(tf.zeros(shape), name: "final_biases");
                     VariableSummaries(layerBiases);
                 });
 
@@ -599,11 +612,9 @@ namespace Microsoft.ML.Transforms
             string scoreColumnName, float learningRate, int classCount)
         {
             _bottleneckTensor = Graph.OperationByName(_bottleneckOperationName);
-            tf_with(Graph.as_default(), delegate
-            {
-                (_trainStep, _crossEntropy, _labelTensor, _softMaxTensor) =
+            (_trainStep, _crossEntropy, _labelTensor, _softMaxTensor) =
                     AddFinalRetrainOps(classCount, labelColumn, scoreColumnName, learningRate, _bottleneckTensor, true);
-            });
+
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -757,7 +768,7 @@ namespace Microsoft.ML.Transforms
             var buffer = _session.graph.ToGraphDef(status);
             ctx.SaveBinaryStream("TFModel", w =>
             {
-                w.WriteByteArray(buffer.Data);
+                w.WriteByteArray(buffer.MemoryBlock.ToArray());
             });
             status.Check(true);
         }
@@ -803,8 +814,10 @@ namespace Microsoft.ML.Transforms
                 private ReadOnlyMemory<char> _imagePath;
                 private Runner _runner;
                 private ImageProcessor _imageProcessor;
-                public UInt32 PredictedLabel { get; set; }
-                public float[] ClassProbabilities { get; set; }
+                private long _predictedLabel;
+                public UInt32 PredictedLabel => (uint)_predictedLabel;
+                private float[] _classProbability;
+                public float[] ClassProbabilities => _classProbability;
                 private DataViewRow _inputRow;
 
                 public OutputCache(DataViewRow input, ImageClassificationTransformer transformer)
@@ -830,8 +843,8 @@ namespace Microsoft.ML.Transforms
                             _imagePathGetter(ref _imagePath);
                             var processedTensor = _imageProcessor.ProcessImage(_imagePath.ToString());
                             var outputTensor = _runner.AddInput(processedTensor, 0).Run();
-                            ClassProbabilities = outputTensor[0].Data<float>();
-                            PredictedLabel = (UInt32)outputTensor[1].Data<long>()[0];
+                            outputTensor[0].ToArray<float>(ref _classProbability);
+                            outputTensor[1].ToScalar<long>(ref _predictedLabel);
                             outputTensor[0].Dispose();
                             outputTensor[1].Dispose();
                             processedTensor.Dispose();
@@ -843,6 +856,7 @@ namespace Microsoft.ML.Transforms
             protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
+                _parent._session.graph.as_default();
                 Host.AssertValue(input);
                 var cache = new OutputCache(input, _parent);
 
@@ -903,6 +917,15 @@ namespace Microsoft.ML.Transforms
         {
             Tensorflow
         };
+
+        /// <summary>
+        /// Indicates the metric to be monitored to decide Early Stopping criteria.
+        /// </summary>
+        public enum EarlyStoppingMetric
+        {
+            Accuracy,
+            Loss
+        }
 
         /// <summary>
         /// Callback that returns DNN statistics during training phase.
@@ -982,6 +1005,108 @@ namespace Microsoft.ML.Transforms
             /// String representation of the metrics.
             /// </summary>
             public override string ToString() => $"Phase: Bottleneck Computation, Dataset used: {DatasetUsed.ToString(),10}, Image Index: {Index,3}, Image Name: {Name}";
+        }
+
+        /// <summary>
+        /// Early Stopping feature stops training when monitored quantity stops improving'.
+        /// Modeled after https://github.com/tensorflow/tensorflow/blob/00fad90125b18b80fe054de1055770cfb8fe4ba3/tensorflow/python/keras/callbacks.py#L1143
+        /// </summary>
+        public sealed class EarlyStopping
+        {
+            /// <summary>
+            /// Best value of metric seen so far.
+            /// </summary>
+            private float _bestMetricValue;
+
+            /// <summary>
+            /// Current counter for number of epochs where there has been no improvement.
+            /// </summary>
+            private int _wait;
+
+            /// <summary>
+            /// The metric to be monitored (eg Accuracy, Loss).
+            /// </summary>
+            private EarlyStoppingMetric _metric;
+
+            /// <summary>
+            /// Minimum change in the monitored quantity to be considered as an improvement.
+            /// </summary>
+            public float MinDelta { get; set; }
+
+            /// <summary>
+            /// Number of epochs to wait after no improvement is seen consecutively
+            /// before stopping the training.
+            /// </summary>
+            public int Patience { get; set; }
+
+            /// <summary>
+            /// Whether the monitored quantity is to be increasing (eg. Accuracy, CheckIncreasing = true)
+            /// or decreasing (eg. Loss, CheckIncreasing = false).
+            /// </summary>
+            public bool CheckIncreasing { get; set; }
+
+            /// <param name="minDelta"></param>
+            /// <param name="patience"></param>
+            /// <param name="metric"></param>
+            /// <param name="checkIncreasing"></param>
+            public EarlyStopping(float minDelta = 0.01f, int patience = 20, EarlyStoppingMetric metric = EarlyStoppingMetric.Accuracy, bool checkIncreasing = true)
+            {
+                _bestMetricValue = 0.0f;
+                _wait = 0;
+                _metric = metric;
+                MinDelta = Math.Abs(minDelta);
+                Patience = patience;
+                CheckIncreasing = checkIncreasing;
+
+                //Set the CheckIncreasing according to the metric being monitored
+                if (metric == EarlyStoppingMetric.Accuracy)
+                    CheckIncreasing = true;
+                else if (metric == EarlyStoppingMetric.Loss)
+                    CheckIncreasing = false;
+            }
+
+            /// <summary>
+            /// To be called at the end of every epoch to check if training should stop.
+            /// For increasing metric(eg.: Accuracy), if metric stops increasing, stop training if
+            /// value of metric doesn't increase within 'patience' number of epochs.
+            /// For decreasing metric(eg.: Loss), stop training if value of metric doesn't decrease
+            /// within 'patience' number of epochs.
+            /// Any change  in the value of metric of less than 'minDelta' is not considered a change.
+            /// </summary>
+            public bool ShouldStop(TrainMetrics currentMetrics)
+            {
+                float currentMetricValue = _metric == EarlyStoppingMetric.Accuracy ? currentMetrics.Accuracy : currentMetrics.CrossEntropy;
+
+                if(CheckIncreasing)
+                {
+                    if((currentMetricValue- _bestMetricValue) < MinDelta)
+                    {
+                        _wait += 1;
+                        if(_wait >= Patience)
+                            return true;
+                    }
+                    else
+                    {
+                        _wait = 0;
+                        _bestMetricValue = currentMetricValue;
+                    }
+                }
+                else
+                {
+                    if ((_bestMetricValue - currentMetricValue) < MinDelta)
+                    {
+                        _wait += 1;
+                        if (_wait >= Patience)
+                            return true;
+                    }
+                    else
+                    {
+                        _wait = 0;
+                        _bestMetricValue = currentMetricValue;
+                    }
+                }
+                return false;
+            }
         }
 
         /// <summary>
@@ -1067,6 +1192,12 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate to use during optimization.", SortOrder = 12)]
             public float LearningRate = 0.01f;
+
+            /// <summary>
+            /// Early Stopping technique to stop training when accuracy stops improving.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Early Stopping technique to stop training when accuracy stops improving.", SortOrder = 15)]
+            public EarlyStopping EarlyStoppingCriteria;
 
             /// <summary>
             /// Specifies the model architecture to be used in the case of image classification training using transfer learning.
