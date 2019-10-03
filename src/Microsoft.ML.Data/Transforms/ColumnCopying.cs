@@ -238,9 +238,6 @@ namespace Microsoft.ML.Transforms
                 foreach (var column in _columns)
                 {
                     var inputColumnName = column.inputColumnName;
-                    if (!ctx.ContainsColumn(inputColumnName))
-                        continue;
-
                     var srcVariableName = ctx.GetVariableName(inputColumnName);
                     _schema.TryGetColumnIndex(inputColumnName, out int colIndex);
                     var dstVariableName = ctx.AddIntermediateVariable(_schema[colIndex].Type, column.outputColumnName);
