@@ -1314,13 +1314,13 @@ namespace Microsoft.ML.Scenarios
             // Test daisy image
             ImageData firstImageToPredict = new ImageData
             {
-                ImagePath = Path.Join(fullImagesetFolderPath, "daisy", "5794835_d15905c7c8_n.jpg")
+                ImagePath = Path.Combine(fullImagesetFolderPath, "daisy", "5794835_d15905c7c8_n.jpg")
             };
 
             // Test rose image
             ImageData secondImageToPredict = new ImageData
             {
-                ImagePath = Path.Join(fullImagesetFolderPath, "roses", "12240303_80d87f77a3_n.jpg")
+                ImagePath = Path.Combine(fullImagesetFolderPath, "roses", "12240303_80d87f77a3_n.jpg")
             };
 
             var predictionFirst = predictionEngine.Predict(firstImageToPredict);
