@@ -1182,6 +1182,7 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowStringTest()
         {
+            Dictionary<string, string> dic = new Dictionary<string, string>();
             var mlContext = new MLContext(seed: 1);
             var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(@"model_string_test");
             var schema = tensorFlowModel.GetModelSchema();

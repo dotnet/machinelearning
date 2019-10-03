@@ -64,11 +64,13 @@ namespace Samples.Dynamic
                     // ResnetV2101 you can try a different architecture/pre-trained 
                     // model. 
                     arch: ImageClassificationEstimator.Architecture.ResnetV2101, 
-                    epoch: 50,
+                    epoch: 1000,
                     batchSize: 10,
                     learningRate: 0.01f,
                     metricsCallback: (metrics) => Console.WriteLine(metrics),
-                    validationSet: testDataset);
+                    validationSet: testDataset,
+                    reuseTrainSetBottleneckCachedValues:true,
+                    reuseValidationSetBottleneckCachedValues:true);
 
 
                 Console.WriteLine("*** Training the image classification model with " +
