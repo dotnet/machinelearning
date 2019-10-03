@@ -135,12 +135,10 @@ namespace Microsoft.ML.Data
             // int: id of image folder
 
             ImageFolder = ctx.LoadStringOrNull();
-
-            if (ctx.LoadStringOrNull().Equals("False"))
-                UseImageType = false; // It is a VBuffer<byte> type
+           if (ctx.Header.ModelVerReadable >= 0x00010003) // do a version check
+                UseImageType = ctx.Reader.ReadBoolean();
             else
                 UseImageType = true; // It is an ImageDataViewType
-
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -170,7 +168,7 @@ namespace Microsoft.ML.Data
 
             base.SaveColumns(ctx);
             ctx.SaveStringOrNull(ImageFolder);
-            ctx.SaveStringOrNull(UseImageType.ToString());
+            ctx.Writer.Write(UseImageType);
         }
 
         private static VersionInfo GetVersionInfo()
@@ -178,9 +176,9 @@ namespace Microsoft.ML.Data
             return new VersionInfo(
                 modelSignature: "IMGLOADR",
                 //verWrittenCur: 0x00010001, // Initial
-                verWrittenCur: 0x00010002, // Swith from OpenCV to Bitmap
-                verReadableCur: 0x00010002,
-                verWeCanReadBack: 0x00010002,
+                verWrittenCur: 0x00010003, // Added support for output type as byte array
+                verReadableCur: 0x00010003,
+                verWeCanReadBack: 0x00010003,
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(ImageLoadingTransformer).Assembly.FullName);
         }
@@ -258,11 +256,9 @@ namespace Microsoft.ML.Data
                     (ref VBuffer<byte> dst) =>
                     {
                         byte[] buffer = null;
-                        bool addBufferBack = false;
                         if (!_bufferPool.TryTake(out buffer))
                         {
                             buffer = new byte[4096];
-                            addBufferBack = true;
                         }
 
                         getSrc(ref src);
@@ -276,11 +272,8 @@ namespace Microsoft.ML.Data
                                 throw Host.Except($"Failed to load image {src.ToString()}.");
                         }
 
-                        if (addBufferBack)
-                        {
-                            Contract.Assert(buffer != null);
-                            _bufferPool.Add(buffer);
-                        }
+                        Contract.Assert(buffer != null);
+                        _bufferPool.Add(buffer);
                     };
 
                 return del;
