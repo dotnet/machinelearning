@@ -55,7 +55,7 @@ namespace Microsoft.ML.Benchmarks
         private static string GetBuildConfigurationName()
         {
 #if NETCOREAPP3_0
-            return "Release-Intrinsics";
+            return "Release-netcoreapp3_0";
 #elif NET461
             return "Release-netfx";
 #else

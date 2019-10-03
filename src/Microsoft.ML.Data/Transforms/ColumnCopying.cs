@@ -49,7 +49,6 @@ namespace Microsoft.ML.Transforms
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="TransformExtensionsCatalog.CopyColumns(TransformsCatalog, InputOutputColumnPair[])" />
     /// <seealso cref="TransformExtensionsCatalog.CopyColumns(TransformsCatalog, string, string)" />
     public sealed class ColumnCopyingEstimator : TrivialEstimator<ColumnCopyingTransformer>
     {

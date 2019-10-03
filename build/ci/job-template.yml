@@ -1,0 +1,81 @@
+parameters:
+  name: ''
+  architecture: x64
+  buildScript: ''
+  pool: {}
+  customMatrixes: ''
+  codeCoverage: false
+  container: ''
+
+jobs:
+  - job: ${{ parameters.name }}
+    ${{ if eq(parameters.codeCoverage, 'false') }}:
+      timeoutInMinutes: 40
+    ${{ if eq(parameters.codeCoverage, 'true') }}:
+      timeoutInMinutes: 60
+    strategy:
+      matrix:
+        ${{ if eq(parameters.customMatrixes, '') }}:
+          Debug_Build:
+            _configuration: Debug
+            _config_short: D
+            _includeBenchmarkData: false
+          Release_Build:
+            _configuration: Release
+            _config_short: R
+            _includeBenchmarkData: true
+        ${{ if ne(parameters.customMatrixes, '') }}:
+          ${{ insert }}: ${{ parameters.customMatrixes }}
+    
+    pool: ${{ parameters.pool }}
+    ${{ if ne(parameters.container, '') }}:
+      container: ${{ parameters.container }}
+
+    steps:
+    - ${{ if eq(parameters.pool.name, 'Hosted macOS High Sierra') }}:
+      - script: brew update && brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/f5b1ac99a7fba27c19cee0bc4f036775c889b359/Formula/libomp.rb && brew install mono-libgdiplus gettext && brew link gettext --force && brew link libomp --force
+        displayName: Install build dependencies
+    - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }}
+      displayName: Build
+    - script: ${{ parameters.buildScript }} -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=$(_includeBenchmarkData)
+      displayName: Download Benchmark Data
+    - script: ${{ parameters.buildScript }} -$(_configuration) -runtests -coverage=${{ parameters.codeCoverage }}
+      displayName: Run Tests.
+    - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet msbuild build/Codecoverage.proj /p:CodeCovToken=$(CODECOV_TOKEN)
+      displayName: Upload coverage to codecov.io
+      condition: and(succeeded(), eq(${{ parameters.codeCoverage }}, True))
+    - task: PublishTestResults@2
+      displayName: Publish Test Results
+      condition: succeededOrFailed()
+      inputs:
+        testRunner: 'vSTest'
+        searchFolder: '$(System.DefaultWorkingDirectory)/bin'
+        testResultsFiles: '**/*.trx'
+        testRunTitle: Machinelearning_Tests_${{ parameters.name }}_$(_configuration)_$(Build.BuildNumber)
+        configuration: $(_configuration)
+        mergeTestResults: true
+    - task: CopyFiles@2
+      displayName: Stage build logs
+      condition: not(succeeded())
+      inputs:
+        sourceFolder: $(Build.SourcesDirectory)
+        contents: '?(msbuild.*|binclash.log|init-tools.log)'
+        targetFolder: $(Build.ArtifactStagingDirectory)
+    - task: CopyFiles@2
+      displayName: Stage test output
+      condition: not(succeeded())
+      inputs:
+        sourceFolder: $(Build.SourcesDirectory)/bin
+        contents: |
+          **/TestOutput/**/*
+          **/*.trx
+        targetFolder: $(Build.ArtifactStagingDirectory)
+    - task: PublishBuildArtifacts@1
+      displayName: Publish build and test logs
+      condition: not(succeeded())
+      inputs:
+        pathToPublish: $(Build.ArtifactStagingDirectory)
+        artifactName: ${{ parameters.name }} $(_config_short)
+        artifactType: container
+    - script: ${{ parameters.buildScript }} -buildPackages
+      displayName: Build Packages

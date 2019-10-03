@@ -7,16 +7,18 @@ namespace Samples.Dynamic
 {
     public static class DetectSpikeBySsaBatchPrediction
     {
-        // This example creates a time series (list of Data with the i-th element corresponding to the i-th time slot). 
-        // The estimator is applied then to identify spiking points in the series.
-        // This estimator can account for temporal seasonality in the data.
+        // This example creates a time series (list of Data with the i-th element
+        // corresponding to the i-th time slot). The estimator is applied then to
+        // identify spiking points in the series. This estimator can account for
+        // temporal seasonality in the data.
         public static void Example()
         {
-            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
+            // Create a new ML context, for ML.NET operations. It can be used for
+            // exception tracking and logging, as well as the source of randomness.
             var ml = new MLContext();
 
-            // Generate sample series data with a recurring pattern and a spike within the pattern
+            // Generate sample series data with a recurring pattern and a spike
+            // within the pattern
             const int SeasonalitySize = 5;
             const int TrainingSeasons = 3;
             const int TrainingSize = SeasonalitySize * TrainingSeasons;
@@ -58,12 +60,18 @@ namespace Samples.Dynamic
             var outputColumnName = nameof(SsaSpikePrediction.Prediction);
 
             // The transformed data.
-            var transformedData = ml.Transforms.DetectSpikeBySsa(outputColumnName, inputColumnName, 95, 8, TrainingSize, SeasonalitySize + 1).Fit(dataView).Transform(dataView);
+            var transformedData = ml.Transforms.DetectSpikeBySsa(outputColumnName,
+                inputColumnName, 95, 8, TrainingSize, SeasonalitySize + 1).Fit(
+                dataView).Transform(dataView);
 
-            // Getting the data of the newly created column as an IEnumerable of SsaSpikePrediction.
-            var predictionColumn = ml.Data.CreateEnumerable<SsaSpikePrediction>(transformedData, reuseRowObject: false);
+            // Getting the data of the newly created column as an IEnumerable of
+            // SsaSpikePrediction.
+            var predictionColumn = ml.Data.CreateEnumerable<SsaSpikePrediction>(
+                transformedData, reuseRowObject: false);
 
-            Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
+            Console.WriteLine($"{outputColumnName} column obtained " +
+                $"post-transformation.");
+
             Console.WriteLine("Data\tAlert\tScore\tP-Value");
             int k = 0;
             foreach (var prediction in predictionColumn)
@@ -94,9 +102,11 @@ namespace Samples.Dynamic
             // 4       0     -29.82    0.21
         }
 
-        private static void PrintPrediction(float value, SsaSpikePrediction prediction) => 
-            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", value, prediction.Prediction[0], 
-                prediction.Prediction[1], prediction.Prediction[2]);
+        private static void PrintPrediction(float value, SsaSpikePrediction
+            prediction) => 
+            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", value,
+            prediction.Prediction[0], prediction.Prediction[1],
+            prediction.Prediction[2]);
 
         class TimeSeriesData
         {

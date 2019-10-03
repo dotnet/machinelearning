@@ -146,7 +146,6 @@ namespace Microsoft.ML.Runtime
                 case "cpumathnative.dll":
                 case "cqo.dll":
                 case "fasttreenative.dll":
-                case "factorizationmachinenative.dll":
                 case "libiomp5md.dll":
                 case "ldanative.dll":
                 case "libvw.dll":

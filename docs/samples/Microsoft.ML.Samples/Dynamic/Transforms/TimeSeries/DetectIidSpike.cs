@@ -9,12 +9,13 @@ namespace Samples.Dynamic
 {
     public static class DetectIidSpike
     {
-        // This example creates a time series (list of Data with the i-th element corresponding to the i-th time slot). 
-        // The estimator is applied then to identify spiking points in the series.
+        // This example creates a time series (list of Data with the i-th element
+        // corresponding to the i-th time slot). The estimator is applied then to
+        // identify spiking points in the series.
         public static void Example()
         {
-            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
+            // Create a new ML context, for ML.NET operations. It can be used for
+            // exception tracking and logging, as well as the source of randomness.
             var ml = new MLContext();
 
             // Generate sample series data with a spike
@@ -45,12 +46,16 @@ namespace Samples.Dynamic
             string inputColumnName = nameof(TimeSeriesData.Value);
 
             // The transformed model.
-            ITransformer model = ml.Transforms.DetectIidSpike(outputColumnName, inputColumnName, 95, Size).Fit(dataView);
+            ITransformer model = ml.Transforms.DetectIidSpike(outputColumnName,
+                inputColumnName, 95, Size).Fit(dataView);
 
             // Create a time series prediction engine from the model.
-            var engine = model.CreateTimeSeriesPredictionFunction<TimeSeriesData, IidSpikePrediction>(ml);
+            var engine = model.CreateTimeSeriesEngine<TimeSeriesData,
+                IidSpikePrediction>(ml);
 
-            Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
+            Console.WriteLine($"{outputColumnName} column obtained " +
+                $"post-transformation.");
+
             Console.WriteLine("Data\tAlert\tScore\tP-Value");
             
             // Prediction column obtained post-transformation.
@@ -96,9 +101,11 @@ namespace Samples.Dynamic
 
         }
 
-        private static void PrintPrediction(float value, IidSpikePrediction prediction) => 
-            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", value, prediction.Prediction[0], 
-                prediction.Prediction[1], prediction.Prediction[2]);
+        private static void PrintPrediction(float value, IidSpikePrediction
+            prediction) => 
+            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", value,
+            prediction.Prediction[0], prediction.Prediction[1],
+            prediction.Prediction[2]);
 
         class TimeSeriesData
         {

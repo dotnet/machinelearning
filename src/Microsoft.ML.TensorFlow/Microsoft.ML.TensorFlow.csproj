@@ -15,19 +15,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Dnn\Microsoft.ML.Dnn.csproj" />
     <ProjectReference Include="..\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="TensorFlow\TensorGeneric.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>TensorGeneric.tt</DependentUpon>
-    </Compile>
-    <None Update="TensorFlow\TensorGeneric.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>TensorGeneric.cs</LastGenOutput>
-    </None>
   </ItemGroup>
 
   <ItemGroup>

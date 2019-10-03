@@ -25,6 +25,7 @@
   
   <ItemGroup>
     <PackageReference Include="Microsoft.ML.TestModels" Version="$(MicrosoftMLTestModelsPackageVersion)" />
+    <PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,13 +34,15 @@
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="LdaNative" />
     <NativeAssemblyReference Include="MklImports" />
-    <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md"/>
+    <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
   </ItemGroup>
 
   <!-- TensorFlow is 64-bit only -->
   <ItemGroup Condition="'$(NativeTargetArchitecture)' == 'x64'">
     <NativeAssemblyReference Include="tensorflow" />
-    <NativeAssemblyReference Condition="'$(OS)' != 'Windows_NT'" Include="tensorflow_framework" />
+    <NativeAssemblyReferenceWithMajorVersion Condition="'$(OS)' != 'Windows_NT'" Include="tensorflow_framework">
+      <MajorVersion>$(TensorFlowMajorVersion)</MajorVersion>
+    </NativeAssemblyReferenceWithMajorVersion>
   </ItemGroup>
 
 </Project>

@@ -15,6 +15,9 @@
       Microsoft.ML.LightGbm;
       Microsoft.ML.Mkl.Components;
       Microsoft.ML.Mkl.Redist;
+      Microsoft.ML.TimeSeries;
+      Microsoft.ML.TensorFlow;
+      Microsoft.ML.OnnxTransformer;
     </StableProjects>
     <IsStableProject Condition="'$(MSBuildProjectName.Contains(.symbols))' == 'false'">$(StableProjects.Contains($(MSBuildProjectName)))</IsStableProject>
     <IsStableProject Condition="'$(MSBuildProjectName.Contains(.symbols))' == 'true'">$(StableProjects.Contains($(MSBuildProjectName.Substring(0, $(MSBuildProjectName.IndexOf(.symbols))))))</IsStableProject>
@@ -22,14 +25,14 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(IsStableProject)' == 'true'">
     <MajorVersion>1</MajorVersion>
-    <MinorVersion>2</MinorVersion>
+    <MinorVersion>4</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseLabel>preview</PreReleaseLabel>
+    <PreReleaseLabel>preview3</PreReleaseLabel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(IsStableProject)' != 'true'">
     <MajorVersion>0</MajorVersion>
-    <MinorVersion>14</MinorVersion>
+    <MinorVersion>16</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseLabel>preview</PreReleaseLabel>
+    <PreReleaseLabel>preview3</PreReleaseLabel>
   </PropertyGroup>
 </Project>

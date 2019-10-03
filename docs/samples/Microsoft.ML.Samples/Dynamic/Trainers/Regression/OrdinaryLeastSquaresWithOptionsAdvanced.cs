@@ -8,23 +8,28 @@ namespace Samples.Dynamic.Trainers.Regression
 {
     public static class OrdinaryLeastSquaresWithOptionsAdvanced
     {
-        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.Mkl.Components/">Microsoft.ML.Mkl.Components</a>.
-        // In this examples we will use the housing price dataset. The goal is to predict median home value.
-        // For more details about this dataset, please see https://archive.ics.uci.edu/ml/machine-learning-databases/housing/
+        // This example requires installation of additional nuget package
+        // for Microsoft.ML.Mkl.Components at
+        // "https://www.nuget.org/packages/Microsoft.ML.Mkl.Components/"
+        // In this examples we will use the housing price dataset. The goal is to
+        // predict median home value. For more details about this dataset, please
+        // see https://archive.ics.uci.edu/ml/machine-learning-databases/housing/
         public static void Example()
         {
-            // Downloading a regression dataset from github.com/dotnet/machinelearning
+            // Downloading a regression dataset from
+            // github.com/dotnet/machinelearning
             string dataFile = DatasetUtils.DownloadHousingRegressionDataset();
 
-            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
+            // Create a new ML context, for ML.NET operations. It can be used for
+            // exception tracking and logging, as well as the source of randomness.
             var mlContext = new MLContext(seed: 3);
 
             // Creating a data loader, based on the format of the data
             // The data is tab separated with all numeric columns.
             // The first column being the label and rest are numeric features
             // Here only seven numeric columns are used as features
-            var dataView = mlContext.Data.LoadFromTextFile(dataFile, new TextLoader.Options
+            var dataView = mlContext.Data.LoadFromTextFile(dataFile,
+                new TextLoader.Options
             {
                 Separators = new[] { '\t' },
                 HasHeader = true,
@@ -45,7 +50,8 @@ namespace Samples.Dynamic.Trainers.Regression
 
             // Create the estimator, here we only need OrdinaryLeastSquares trainer 
             // as data is already processed in a form consumable by the trainer
-            var pipeline = mlContext.Regression.Trainers.Ols(new OlsTrainer.Options()
+            var pipeline = mlContext.Regression.Trainers.Ols(
+                new OlsTrainer.Options()
             {
                 L2Regularization = 0.1f,
                 CalculateStatistics = false
@@ -54,8 +60,10 @@ namespace Samples.Dynamic.Trainers.Regression
 
             // Check the weights that the model learned
             var weightsValues = model.Model.Weights;
-            Console.WriteLine($"weight 0 - {weightsValues[0]}"); // CrimesPerCapita  (weight 0) = -0.1783206
-            Console.WriteLine($"weight 3 - {weightsValues[3]}"); // CharlesRiver (weight 1) = 3.118422
+            Console.WriteLine($"weight 0 - {weightsValues[0]}");
+            // CrimesPerCapita  (weight 0) = -0.1783206
+            Console.WriteLine($"weight 3 - {weightsValues[3]}");
+            // CharlesRiver (weight 1) = 3.118422
             var dataWithPredictions = model.Transform(split.TestSet);
             var metrics = mlContext.Regression.Evaluate(dataWithPredictions);
 
@@ -71,10 +79,12 @@ namespace Samples.Dynamic.Trainers.Regression
 
         public static void PrintMetrics(RegressionMetrics metrics)
         {
-            Console.WriteLine($"Mean Absolute Error: {metrics.MeanAbsoluteError:F2}");
-            Console.WriteLine($"Mean Squared Error: {metrics.MeanSquaredError:F2}");
-            Console.WriteLine($"Root Mean Squared Error: {metrics.RootMeanSquaredError:F2}");
-            Console.WriteLine($"RSquared: {metrics.RSquared:F2}");
+            Console.WriteLine("Mean Absolute Error: " + metrics.MeanAbsoluteError);
+            Console.WriteLine("Mean Squared Error: " + metrics.MeanSquaredError);
+            Console.WriteLine(
+                "Root Mean Squared Error: " + metrics.RootMeanSquaredError);
+
+            Console.WriteLine("RSquared: " + metrics.RSquared);
         }
     }
 }

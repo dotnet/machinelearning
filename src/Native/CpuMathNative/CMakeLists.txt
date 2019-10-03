@@ -3,6 +3,7 @@ project (CpuMathNative)
 set(SOURCES
     Sse.cpp
     MathLinux.S
+    FactorizationMachineCore.cpp
 )
 
 if(NOT WIN32)

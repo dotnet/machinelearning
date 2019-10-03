@@ -9,13 +9,16 @@ bool CacheData = false;
 string OptionsInclude = "";
 string Comments= @"
         // Naive Bayes classifier is based on Bayes' theorem. 
-        // It assumes independence among the presence of features in a class even though they may be dependent on each other.
-        // It is  a multi-class trainer that accepts binary feature values of type float, i.e., feature values are either true or false.
-        // Specifically a feature value greater than zero is treated as true, zero or less is treated as false.";
+        // It assumes independence among the presence of features in a class even
+        // though they may be dependent on each other. It is  a multi-class trainer
+        // that accepts binary feature values of type float, i.e., feature values
+        // are either true or false. Specifically a feature value greater than zero
+        // is treated as true, zero or less is treated as false.";
 
 string DataGenerationComments= @"
-        // Generates random uniform doubles in [-0.5, 0.5) range with labels 1, 2 or 3.
-        // For NaiveBayes values greater than zero are treated as true, zero or less are treated as false.";
+        // Generates random uniform doubles in [-0.5, 0.5) range with labels
+        // 1, 2 or 3. For NaiveBayes values greater than zero are treated as true,
+        // zero or less are treated as false.";
 
 string ExpectedOutputPerInstance= @"// Expected output:
             //   Label: 1, Prediction: 1

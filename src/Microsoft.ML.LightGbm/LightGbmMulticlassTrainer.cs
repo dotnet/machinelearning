@@ -76,6 +76,12 @@ namespace Microsoft.ML.Trainers.LightGbm
             }
 
             /// <summary>
+            /// Whether training data is unbalanced.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Use for multi-class classification when training data is not balanced", ShortName = "us")]
+            public bool UnbalancedSets = false;
+
+            /// <summary>
             /// Whether to use softmax loss.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Use softmax loss for the multi classification.")]
@@ -100,6 +106,8 @@ namespace Microsoft.ML.Trainers.LightGbm
             static Options()
             {
                 NameMapping.Add(nameof(EvaluateMetricType), "metric");
+                NameMapping.Add(nameof(EvaluateMetricType.None), "None");
+                NameMapping.Add(nameof(EvaluateMetricType.Default), "");
                 NameMapping.Add(nameof(EvaluateMetricType.Error), "multi_error");
                 NameMapping.Add(nameof(EvaluateMetricType.LogLoss), "multi_logloss");
             }
@@ -108,9 +116,9 @@ namespace Microsoft.ML.Trainers.LightGbm
             {
                 var res = base.ToDictionary(host);
 
+                res[GetOptionName(nameof(UnbalancedSets))] = UnbalancedSets;
                 res[GetOptionName(nameof(Sigmoid))] = Sigmoid;
-                if(EvaluationMetric != EvaluateMetricType.Default)
-                    res[GetOptionName(nameof(EvaluateMetricType))] = GetOptionName(EvaluationMetric.ToString());
+                res[GetOptionName(nameof(EvaluateMetricType))] = GetOptionName(EvaluationMetric.ToString());
 
                 return res;
             }
@@ -185,7 +193,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             for (int i = 0; i < _tlcNumClass; ++i)
             {
                 var pred = CreateBinaryPredictor(i, innerArgs);
-                var cali = new PlattCalibrator(Host, -0.5, 0);
+                var cali = new PlattCalibrator(Host, -LightGbmTrainerOptions.Sigmoid, 0);
                 predictors[i] = new FeatureWeightsCalibratedModelParameters<LightGbmBinaryModelParameters, PlattCalibrator>(Host, pred, cali);
             }
             string obj = (string)GetGbmParameters()["objective"];

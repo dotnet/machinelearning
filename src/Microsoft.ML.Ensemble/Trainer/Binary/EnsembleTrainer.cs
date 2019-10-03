@@ -23,10 +23,12 @@ namespace Microsoft.ML.Trainers.Ensemble
 {
     using TDistPredictor = IDistPredictorProducing<Single, Single>;
     using TScalarPredictor = IPredictorProducing<Single>;
+    using TScalarTrainer = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
+
     /// <summary>
     /// A generic ensemble trainer for binary classification.
     /// </summary>
-    internal sealed class EnsembleTrainer : EnsembleTrainerBase<Single, TScalarPredictor,
+    internal sealed class EnsembleTrainer : EnsembleTrainerBase<Single,
         IBinarySubModelSelector, IBinaryOutputCombiner>,
         IModelCombiner
     {
@@ -47,20 +49,15 @@ namespace Microsoft.ML.Trainers.Ensemble
 
             // REVIEW: If we make this public again it should be an *estimator* of this type of predictor, rather than the (deprecated) ITrainer.
             [Argument(ArgumentType.Multiple, HelpText = "Base predictor type", ShortName = "bp,basePredictorTypes", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureBinaryClassifierTrainer))]
-            public IComponentFactory<ITrainer<TScalarPredictor>>[] BasePredictors;
+            public IComponentFactory<TScalarTrainer>[] BasePredictors;
 
-            internal override IComponentFactory<ITrainer<TScalarPredictor>>[] GetPredictorFactories() => BasePredictors;
+            internal override IComponentFactory<TScalarTrainer>[] GetPredictorFactories() => BasePredictors;
 
             public Arguments()
             {
                 BasePredictors = new[]
                 {
-                    ComponentFactoryUtils.CreateFromFunction(
-                        env => {
-                            var trainerEstimator = new LinearSvmTrainer(env);
-                            return TrainerUtils.MapTrainerEstimatorToTrainer<LinearSvmTrainer,
-                                LinearBinaryModelParameters, LinearBinaryModelParameters>(env, trainerEstimator);
-                        })
+                    ComponentFactoryUtils.CreateFromFunction(env => new LinearSvmTrainer(env, LabelColumnName, FeatureColumnName))
                 };
             }
         }
@@ -83,7 +80,7 @@ namespace Microsoft.ML.Trainers.Ensemble
 
         private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        private protected override TScalarPredictor CreatePredictor(List<FeatureSubsetModel<float>> models)
+        private protected override IPredictor CreatePredictor(List<FeatureSubsetModel<float>> models)
         {
             if (models.All(m => m.Predictor is TDistPredictor))
                 return new EnsembleDistributionModelParameters(Host, PredictionKind, CreateModels<TDistPredictor>(models), Combiner);

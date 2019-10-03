@@ -8,7 +8,6 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -66,34 +65,24 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        public void KeyToVectorStatic()
+        public void KeyToVector()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoaderStatic.CreateLoader(Env, ctx => (
-                ScalarString: ctx.LoadText(1),
-                VectorString: ctx.LoadText(1, 4)
-            ));
+            var data = ML.Data.LoadFromTextFile(dataPath, new[] {
+                new TextLoader.Column("ScalarString", DataKind.String, 0),
+                new TextLoader.Column("VectorString", DataKind.String, 1, 4),
+            });
 
-            var data = reader.Load(dataPath);
-
-            // Non-pigsty Term.
-            var dynamicData = new ValueToKeyMappingEstimator(Env, new[] {
+            var transformedData = new ValueToKeyMappingEstimator(Env, new[] {
                 new ValueToKeyMappingEstimator.ColumnOptions("A", "ScalarString"),
                 new ValueToKeyMappingEstimator.ColumnOptions("B", "VectorString") })
-                .Fit(data.AsDynamic).Transform(data.AsDynamic);
+                .Fit(data).Transform(data);
 
-            var data2 = dynamicData.AssertStatic(Env, ctx => (
-                A: ctx.KeyU4.TextValues.Scalar,
-                B: ctx.KeyU4.TextValues.Vector));
+            var est = ML.Transforms.Conversion.MapKeyToVector("ScalarString", "A")
+                .Append(ML.Transforms.Conversion.MapKeyToVector("VectorString", "B"))
+                .Append(ML.Transforms.Conversion.MapKeyToVector("VectorBaggedString", "B", true));
 
-            var est = data2.MakeNewEstimator()
-                .Append(row => (
-                ScalarString: row.A.ToVector(),
-                VectorString: row.B.ToVector(),
-                VectorBaggedString: row.B.ToBaggedVector()
-                ));
-
-            TestEstimatorCore(est.AsDynamic, data2.AsDynamic, invalidInput: data.AsDynamic);
+            TestEstimatorCore(est, transformedData, invalidInput: data);
 
             Done();
         }

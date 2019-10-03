@@ -26,6 +26,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     internal abstract class SequentialTransformerBase<TInput, TOutput, TState> : IStatefulTransformer
         where TState : SequentialTransformerBase<TInput, TOutput, TState>.StateBase, new()
     {
+        public SequentialTransformerBase() { }
 
         /// <summary>
         /// The base class for encapsulating the State object for sequential processing. This class implements a windowed buffer.
@@ -165,8 +166,45 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 }
             }
 
+            public void Process(ref TInput input, ref TOutput output1, ref TOutput output2, ref TOutput output3)
+            {
+                //Using prediction engine will not evaluate the below condition to true.
+                if (PreviousPosition == -1)
+                    UpdateStateCore(ref input);
+
+                if (InitialWindowedBuffer.Count < InitialWindowSize)
+                {
+                    SetNaOutput(ref output1);
+
+                    if (InitialWindowedBuffer.Count == InitialWindowSize)
+                        LearnStateFromDataCore(InitialWindowedBuffer);
+                }
+                else
+                {
+                    TransformCore(ref input, WindowedBuffer, RowCounter - InitialWindowSize, ref output1, ref output2, ref output3);
+                }
+            }
+
+            public void ProcessWithoutBuffer(ref TInput input, ref TOutput output1, ref TOutput output2, ref TOutput output3)
+            {
+                //Using prediction engine will not evaluate the below condition to true.
+                if (PreviousPosition == -1)
+                    UpdateStateCore(ref input);
+
+                if (InitialWindowedBuffer.Count < InitialWindowSize)
+                {
+                    SetNaOutput(ref output1);
+
+                    if (InitialWindowedBuffer.Count == InitialWindowSize)
+                        LearnStateFromDataCore(InitialWindowedBuffer);
+                }
+                else
+                    TransformCore(ref input, WindowedBuffer, RowCounter - InitialWindowSize, ref output1, ref output2, ref output3);
+            }
+
             public void Process(ref TInput input, ref TOutput output)
             {
+                //Using prediction engine will not evaluate the below condition to true.
                 if (PreviousPosition == -1)
                     UpdateStateCore(ref input);
 
@@ -185,8 +223,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             public void ProcessWithoutBuffer(ref TInput input, ref TOutput output)
             {
+                //Using prediction engine will not evaluate the below condition to true.
                 if (PreviousPosition == -1)
-                    UpdateStateCore(ref input, false);
+                    UpdateStateCore(ref input);
 
                 if (InitialWindowedBuffer.Count < InitialWindowSize)
                 {
@@ -212,7 +251,37 @@ namespace Microsoft.ML.Transforms.TimeSeries
             /// <param name="dst">A reference to the dst object.</param>
             /// <param name="windowedBuffer">A reference to the windowed buffer.</param>
             /// <param name="iteration">A long number that indicates the number of times TransformCore has been called so far (starting value = 0).</param>
-            private protected virtual void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration, ref TOutput dst)
+            public virtual void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration, ref TOutput dst)
+            {
+
+            }
+
+            public virtual void Forecast(ref TOutput dst)
+            {
+
+            }
+
+            public virtual void ConfidenceIntervalLowerBound(ref TOutput dst)
+            {
+
+            }
+
+            public virtual void ConfidenceIntervalUpperBound(ref TOutput dst)
+            {
+
+            }
+
+            /// <summary>
+            /// The abstract method that realizes the main logic for the transform.
+            /// </summary>
+            /// <param name="input">A reference to the input object.</param>
+            /// <param name="dst1">A reference to the dst object.</param>
+            /// <param name="dst2"></param>
+            /// <param name="dst3"></param>
+            /// <param name="windowedBuffer">A reference to the windowed buffer.</param>
+            /// <param name="iteration">A long number that indicates the number of times TransformCore has been called so far (starting value = 0).</param>
+            private protected virtual void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration,
+                ref TOutput dst1, ref TOutput dst2, ref TOutput dst3)
             {
 
             }
@@ -266,6 +335,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         internal readonly string InputColumnName;
         internal readonly string OutputColumnName;
+        internal readonly string ConfidenceLowerBoundColumn;
+        internal readonly string ConfidenceUpperBoundColumn;
         private protected DataViewType OutputColumnType;
 
         bool ITransformer.IsRowToRowMapper => false;
@@ -273,7 +344,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
         internal TState StateRef { get; set; }
 
         public int StateRefCount;
-
         /// <summary>
         /// The main constructor for the sequential transform
         /// </summary>
@@ -283,7 +353,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="outputColumnName">The name of the dst column.</param>
         /// <param name="inputColumnName">The name of the input column.</param>
         /// <param name="outputColType"></param>
-        private protected SequentialTransformerBase(IHost host, int windowSize, int initialWindowSize, string outputColumnName, string inputColumnName, DataViewType outputColType)
+        private protected SequentialTransformerBase(IHost host, int windowSize, int initialWindowSize,
+            string outputColumnName, string inputColumnName, DataViewType outputColType)
         {
             Host = host;
             Host.CheckParam(initialWindowSize >= 0, nameof(initialWindowSize), "Must be non-negative.");
@@ -298,6 +369,15 @@ namespace Microsoft.ML.Transforms.TimeSeries
             OutputColumnType = outputColType;
             InitialWindowSize = initialWindowSize;
             WindowSize = windowSize;
+        }
+
+        private protected SequentialTransformerBase(IHost host, int windowSize, int initialWindowSize,
+            string outputColumnName, string confidenceLowerBoundColumn,
+            string confidenceUpperBoundColumn, string inputColumnName, DataViewType outputColType) :
+            this(host, windowSize, initialWindowSize, outputColumnName, inputColumnName, outputColType)
+        {
+            ConfidenceLowerBoundColumn = confidenceLowerBoundColumn;
+            ConfidenceUpperBoundColumn = confidenceUpperBoundColumn;
         }
 
         private protected SequentialTransformerBase(IHost host, ModelLoadContext ctx)
@@ -323,6 +403,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             InputColumnName = inputColumnName;
             OutputColumnName = outputColumnName;
+            ConfidenceLowerBoundColumn = ctx.Reader.ReadString();
+            ConfidenceUpperBoundColumn = ctx.Reader.ReadString();
             InitialWindowSize = initialWindowSize;
             WindowSize = windowSize;
 
@@ -349,7 +431,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
             ctx.Writer.Write(InitialWindowSize);
             ctx.SaveNonEmptyString(InputColumnName);
             ctx.SaveNonEmptyString(OutputColumnName);
-
+            ctx.Writer.Write(ConfidenceLowerBoundColumn ?? string.Empty);
+            ctx.Writer.Write(ConfidenceUpperBoundColumn ?? string.Empty);
             var bs = new BinarySaver(Host, new BinarySaver.Arguments());
             bs.TryWriteTypeDescription(ctx.Writer.BaseStream, OutputColumnType, out int byteWritten);
         }
@@ -394,10 +477,12 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 IDataView input, IStatefulRowMapper mapper)
                 : base(parent.Host, input)
             {
-                Metadata = new MetadataDispatcher(1);
+                Metadata = new MetadataDispatcher(3);
                 _parent = parent;
                 _transform = CreateLambdaTransform(_parent.Host, input, _parent.InputColumnName,
-                    _parent.OutputColumnName, InitFunction, _parent.WindowSize > 0, _parent.OutputColumnType);
+                    _parent.OutputColumnName, _parent.ConfidenceLowerBoundColumn,
+                    _parent.ConfidenceUpperBoundColumn, InitFunction, _parent.WindowSize > 0, _parent.OutputColumnType);
+
                 _mapper = mapper;
                 _bindings = new ColumnBindings(input.Schema, _mapper.GetOutputColumns());
             }
@@ -405,24 +490,49 @@ namespace Microsoft.ML.Transforms.TimeSeries
             public void CloneStateInMapper() => _mapper.CloneState();
 
             private static IDataTransform CreateLambdaTransform(IHost host, IDataView input, string inputColumnName,
-                string outputColumnName, Action<TState> initFunction, bool hasBuffer, DataViewType outputColTypeOverride)
+                string outputColumnName, string forecastingConfidenceIntervalMinOutputColumnName,
+                string forecastingConfidenceIntervalMaxOutputColumnName, Action<TState> initFunction, bool hasBuffer, DataViewType outputColTypeOverride)
             {
                 var inputSchema = SchemaDefinition.Create(typeof(DataBox<TInput>));
                 inputSchema[0].ColumnName = inputColumnName;
 
-                var outputSchema = SchemaDefinition.Create(typeof(DataBox<TOutput>));
-                outputSchema[0].ColumnName = outputColumnName;
+                SchemaDefinition outputSchema;
 
-                if (outputColTypeOverride != null)
-                    outputSchema[0].ColumnType = outputColTypeOverride;
+                if (!string.IsNullOrEmpty(forecastingConfidenceIntervalMinOutputColumnName))
+                {
+                    outputSchema = SchemaDefinition.Create(typeof(DataBoxForecastingWithConfidenceIntervals<TOutput>));
+                    outputSchema[0].ColumnName = outputColumnName;
 
-                Action<DataBox<TInput>, DataBox<TOutput>, TState> lambda;
-                if (hasBuffer)
-                    lambda = MapFunction;
+                    if (outputColTypeOverride != null)
+                        outputSchema[0].ColumnType = outputSchema[1].ColumnType = outputSchema[2].ColumnType = outputColTypeOverride;
+
+                    outputSchema[1].ColumnName = forecastingConfidenceIntervalMinOutputColumnName;
+                    outputSchema[2].ColumnName = forecastingConfidenceIntervalMaxOutputColumnName;
+
+                    Action<DataBox<TInput>, DataBoxForecastingWithConfidenceIntervals<TOutput>, TState> lambda;
+                    if (hasBuffer)
+                        lambda = MapFunction;
+                    else
+                        lambda = MapFunctionWithoutBuffer;
+
+                    return LambdaTransform.CreateMap(host, input, lambda, initFunction, inputSchema, outputSchema);
+                }
                 else
-                    lambda = MapFunctionWithoutBuffer;
+                {
+                    outputSchema = SchemaDefinition.Create(typeof(DataBox<TOutput>));
+                    outputSchema[0].ColumnName = outputColumnName;
 
-                return LambdaTransform.CreateMap(host, input, lambda, initFunction, inputSchema, outputSchema);
+                    if (outputColTypeOverride != null)
+                        outputSchema[0].ColumnType = outputColTypeOverride;
+
+                    Action<DataBox<TInput>, DataBox<TOutput>, TState> lambda;
+                    if (hasBuffer)
+                        lambda = MapFunction;
+                    else
+                        lambda = MapFunctionWithoutBuffer;
+
+                    return LambdaTransform.CreateMap(host, input, lambda, initFunction, inputSchema, outputSchema);
+                }
             }
 
             private static void MapFunction(DataBox<TInput> input, DataBox<TOutput> output, TState state)
@@ -430,9 +540,19 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 state.Process(ref input.Value, ref output.Value);
             }
 
+            private static void MapFunction(DataBox<TInput> input, DataBoxForecastingWithConfidenceIntervals<TOutput> output, TState state)
+            {
+                state.Process(ref input.Value, ref output.Forecast, ref output.ConfidenceIntervalLowerBound, ref output.ConfidenceIntervalUpperBound);
+            }
+
             private static void MapFunctionWithoutBuffer(DataBox<TInput> input, DataBox<TOutput> output, TState state)
             {
                 state.ProcessWithoutBuffer(ref input.Value, ref output.Value);
+            }
+
+            private static void MapFunctionWithoutBuffer(DataBox<TInput> input, DataBoxForecastingWithConfidenceIntervals<TOutput> output, TState state)
+            {
+                state.ProcessWithoutBuffer(ref input.Value, ref output.Forecast, ref output.ConfidenceIntervalLowerBound, ref output.ConfidenceIntervalUpperBound);
             }
 
             private void InitFunction(TState state)
@@ -492,7 +612,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 var active = RowCursorUtils.FromColumnsToPredicate(activeColumns, OutputSchema);
                 var getters = _mapper.CreateGetters(input, active, out Action disposer);
                 var pingers = _mapper.CreatePinger(input, active, out Action pingerDisposer);
-                return new RowImpl(_bindings.Schema, input, getters, pingers, disposer + pingerDisposer);
+                return new RowImpl(_bindings, input, getters, pingers, disposer + pingerDisposer);
             }
         }
 
@@ -501,9 +621,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
             private readonly DataViewSchema _schema;
             private readonly DataViewRow _input;
             private readonly Delegate[] _getters;
-            private readonly Action<long> _pinger;
+            private readonly Action<PingerArgument> _pinger;
             private readonly Action _disposer;
             private bool _disposed;
+            private readonly ColumnBindings _bindings;
 
             public override DataViewSchema Schema => _schema;
 
@@ -511,16 +632,16 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             public override long Batch => _input.Batch;
 
-            public RowImpl(DataViewSchema schema, DataViewRow input, Delegate[] getters, Action<long> pinger, Action disposer)
+            public RowImpl(ColumnBindings bindings, DataViewRow input, Delegate[] getters, Action<PingerArgument> pinger, Action disposer)
             {
-                Contracts.CheckValue(schema, nameof(schema));
+                Contracts.CheckValue(bindings, nameof(bindings));
                 Contracts.CheckValue(input, nameof(input));
-                Contracts.Check(Utils.Size(getters) == schema.Count);
-                _schema = schema;
+                _schema = bindings.Schema;
                 _input = input;
                 _getters = getters ?? new Delegate[0];
                 _pinger = pinger;
                 _disposer = disposer;
+                _bindings = bindings;
             }
 
             protected override void Dispose(bool disposing)
@@ -538,24 +659,29 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             public override ValueGetter<T> GetGetter<T>(DataViewSchema.Column column)
             {
-                Contracts.CheckParam(column.Index < _getters.Length, nameof(column), "Invalid col value in GetGetter");
+                bool isSrc;
+                int index = _bindings.MapColumnIndex(out isSrc, column.Index);
+                if (isSrc)
+                    return _input.GetGetter<T>(_input.Schema[index]);
+                Contracts.CheckParam(index < _getters.Length, nameof(column), "Invalid col value in GetGetter");
                 Contracts.Check(IsColumnActive(column));
-                var fn = _getters[column.Index] as ValueGetter<T>;
+                var fn = _getters[index] as ValueGetter<T>;
                 if (fn == null)
                     throw Contracts.Except("Unexpected TValue in GetGetter");
                 return fn;
             }
 
-            public override Action<long> GetPinger() =>
-                _pinger as Action<long> ?? throw Contracts.Except("Invalid TValue in GetPinger: '{0}'", typeof(long));
+            public override Action<PingerArgument> GetPinger() =>
+                _pinger as Action<PingerArgument> ?? throw Contracts.Except("Invalid TValue in GetPinger: '{0}'", typeof(PingerArgument));
 
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
             public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Contracts.Check(column.Index < _getters.Length);
-                return _getters[column.Index] != null;
+                int index = _bindings.MapColumnIndex(out bool isSrc, column.Index);
+                Contracts.Check(index < _getters.Length);
+                return _getters[index] != null;
             }
         }
 
@@ -819,7 +945,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         {
             private readonly DataViewRow _input;
             private readonly Delegate[] _getters;
-            private readonly Action<long> _pinger;
+            private readonly Action<PingerArgument> _pinger;
             private readonly Action _disposer;
 
             private readonly TimeSeriesRowToRowMapperTransform _parent;
@@ -831,7 +957,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             public override DataViewSchema Schema { get; }
 
             public StatefulRowImpl(DataViewRow input, TimeSeriesRowToRowMapperTransform parent,
-                DataViewSchema schema, Delegate[] getters, Action<long> pinger, Action disposer)
+                DataViewSchema schema, Delegate[] getters, Action<PingerArgument> pinger, Action disposer)
             {
                 _input = input;
                 _parent = parent;
@@ -868,8 +994,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return fn;
             }
 
-            public override Action<long> GetPinger() =>
-                _pinger as Action<long> ?? throw Contracts.Except("Invalid TValue in GetPinger: '{0}'", typeof(long));
+            public override Action<PingerArgument> GetPinger() =>
+                _pinger as Action<PingerArgument> ?? throw Contracts.Except("Invalid TValue in GetPinger: '{0}'", typeof(PingerArgument));
 
             public override ValueGetter<DataViewRowId> GetIdGetter() => _input.GetIdGetter();
 

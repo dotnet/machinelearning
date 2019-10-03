@@ -6,7 +6,6 @@ using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
@@ -49,11 +48,10 @@ namespace Microsoft.ML.Tests.Transformers
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataView);
 
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var reader = TextLoaderStatic.CreateLoader(ML, ctx => (
-                    label: ctx.LoadBool(0),
-                    text: ctx.LoadText(1)), hasHeader: true);
-            var dataSource = new MultiFileSource(dataPath);
-            dataView = reader.Load(dataSource).AsDynamic;
+            dataView = ML.Data.LoadFromTextFile(dataPath, new[] {
+                new TextLoader.Column("label", DataKind.Boolean, 0),
+                new TextLoader.Column("text", DataKind.String, 1)
+            }, hasHeader: true);
 
             var pipeVariations = new TextNormalizingEstimator(ML, columns: new[] { ("NormText", "text") }).Append(
                                 new TextNormalizingEstimator(ML, caseMode: TextNormalizingEstimator.CaseMode.Upper, columns: new[] { ("UpperText", "text") })).Append(

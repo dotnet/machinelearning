@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Google.Protobuf;
 using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
@@ -38,6 +39,11 @@ namespace Microsoft.ML.Tests
 
         public OnnxConversionTest(ITestOutputHelper output) : base(output)
         {
+        }
+
+        private bool IsOnnxRuntimeSupported()
+        {
+            return Environment.Is64BitProcess && (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || AttributeHelpers.CheckLibcVersionGreaterThanMinimum(new System.Version(2, 23)));
         }
 
         /// <summary>
@@ -179,6 +185,68 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
+        private class DataPoint
+        {
+            [VectorType(3)]
+            public float[] Features { get; set; }
+        }
+
+        [Fact]
+        void LpNormOnnxConversionTest()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            var samples = new List<DataPoint>()
+            {
+                new DataPoint() { Features = new float[3] {0.01f, 0.02f, 0.03f} },
+                new DataPoint() { Features = new float[3] {0.04f, 0.05f, 0.06f} },
+                new DataPoint() { Features = new float[3] {0.07f, 0.08f, 0.09f} },
+                new DataPoint() { Features = new float[3] {0.10f, 0.11f, 0.12f} },
+                new DataPoint() { Features = new float[3] {0.13f, 0.14f, 0.15f} }
+            };
+            var dataView = mlContext.Data.LoadFromEnumerable(samples);
+
+            LpNormNormalizingEstimatorBase.NormFunction[] norms =
+            {
+                LpNormNormalizingEstimatorBase.NormFunction.L1,
+                LpNormNormalizingEstimatorBase.NormFunction.L2,
+                LpNormNormalizingEstimatorBase.NormFunction.Infinity,
+                LpNormNormalizingEstimatorBase.NormFunction.StandardDeviation
+            };
+
+            bool[] ensureZeroMeans = { true, false};
+            foreach (var ensureZeroMean in ensureZeroMeans)
+            {
+                foreach (var norm in norms)
+                {
+                    var pipe = mlContext.Transforms.NormalizeLpNorm(nameof(DataPoint.Features), norm:norm, ensureZeroMean: ensureZeroMean);
+
+                    var model = pipe.Fit(dataView);
+                    var transformedData = model.Transform(dataView);
+                    var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+                    var onnxFileName = $"LpNorm-{norm.ToString()}-{ensureZeroMean}.onnx";
+                    var onnxModelPath = GetOutputPath(onnxFileName);
+
+                    SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+                    // Compare results produced by ML.NET and ONNX's runtime.
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
+                    {
+                        // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                        string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                        string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                        var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                        var onnxTransformer = onnxEstimator.Fit(dataView);
+                        var onnxResult = onnxTransformer.Transform(dataView);
+                        CompareSelectedR4VectorColumns(nameof(DataPoint.Features), outputNames[0], transformedData, onnxResult, 3);
+                    }
+                }
+            }
+
+            Done();
+        }
+
         [Fact]
         void CommandLineOnnxConversionTest()
         {
@@ -186,7 +254,7 @@ namespace Microsoft.ML.Tests
             string modelPath = GetOutputPath("ModelWithLessIO.zip");
             var trainingPathArgs = $"data={dataPath} out={modelPath}";
             var trainingArgs = " loader=text{col=Label:BL:0 col=F1:R4:1-8 col=F2:TX:9} xf=Cat{col=F2} xf=Concat{col=Features:F1,F2} tr=ft{numberOfThreads=1 numberOfLeaves=8 numberOfTrees=3} seed=1";
-            Assert.Equal(0, Maml.Main(new[] { "train " + trainingPathArgs + trainingArgs}));
+            Assert.Equal(0, Maml.Main(new[] { "train " + trainingPathArgs + trainingArgs }));
 
             var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
             var onnxTextName = "ModelWithLessIO.txt";
@@ -404,6 +472,127 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
+        public void LoadingPredictorModelAndOnnxConversionTest()
+        {
+            string dataPath = GetDataPath("iris.txt");
+            string modelPath = Path.GetTempPath() + Guid.NewGuid().ToString() + ".model.bin";
+            string onnxPath = Path.GetTempPath() + Guid.NewGuid().ToString() + ".model.onnx";
+            string onnxJsonPath = Path.GetTempPath() + Guid.NewGuid().ToString() + ".model.onnx.json";
+
+            string inputGraph = string.Format(@"
+            {{
+                'Inputs': {{
+                    'inputFile': '{0}'
+                }},
+                'Nodes': [
+                    {{
+                        'Name': 'Data.TextLoader',
+                        'Inputs':
+                        {{
+                            'InputFile': '$inputFile',
+                            'Arguments':
+                            {{
+                                'UseThreads': true,
+                                'HeaderFile': null,
+                                'MaxRows': null,
+                                'AllowQuoting': true,
+                                'AllowSparse': true,
+                                'InputSize': null,
+                                'TrimWhitespace': false,
+                                'HasHeader': false,
+                                'Column':
+                                [
+                                    {{'Name':'Sepal_Width','Type':null,'Source':[{{'Min':2,'Max':2,'AutoEnd':false,'VariableEnd':false,'AllOther':false,'ForceVector':false}}],'KeyCount':null}},
+                                    {{'Name':'Petal_Length','Type':null,'Source':[{{'Min':3,'Max':4,'AutoEnd':false,'VariableEnd':false,'AllOther':false,'ForceVector':false}}],'KeyCount':null}},
+                                ]
+                            }}
+                        }},
+                        'Outputs':
+                        {{
+                            'Data': '$training_data'
+                        }}
+                    }},
+                    {{
+                        'Inputs': {{
+                            'FeatureColumnName': 'Petal_Length',
+                            'LabelColumnName': 'Sepal_Width',
+                            'TrainingData': '$training_data',
+                        }},
+                        'Name': 'Trainers.StochasticDualCoordinateAscentRegressor',
+                        'Outputs': {{
+                            'PredictorModel': '$output_model'
+                        }}
+                    }}
+                ],
+                'Outputs': {{
+                    'output_model': '{1}'
+                }}
+            }}", dataPath.Replace("\\", "\\\\"), modelPath.Replace("\\", "\\\\"));
+
+            // Write entry point graph into file so that it can be invoke by graph runner below.
+            var jsonPath = DeleteOutputPath("graph.json");
+            File.WriteAllLines(jsonPath, new[] { inputGraph });
+
+            // Execute the saved entry point graph to produce a predictive model.
+            var args = new ExecuteGraphCommand.Arguments() { GraphPath = jsonPath };
+            var cmd = new ExecuteGraphCommand(Env, args);
+            cmd.Run();
+
+            // Make entry point graph to conduct ONNX conversion.
+            inputGraph = string.Format(@"
+            {{
+                'Inputs': {{
+                    'model': '{0}'
+                }},
+                'Nodes': [
+                    {{
+                        'Inputs': {{
+                            'Domain': 'com.microsoft.models',
+                            'Json': '{1}',
+                            'PredictiveModel': '$model',
+                            'Onnx': '{2}',
+                            'OnnxVersion': 'Experimental'
+                        }},
+                        'Name': 'Models.OnnxConverter',
+                        'Outputs': {{}}
+                    }}
+                ],
+                'Outputs': {{}}
+            }}
+            ", modelPath.Replace("\\", "\\\\"), onnxJsonPath.Replace("\\", "\\\\"), onnxPath.Replace("\\", "\\\\"));
+
+            // Write entry point graph for ONNX conversion into file so that it can be invoke by graph runner below.
+            jsonPath = DeleteOutputPath("graph.json");
+            File.WriteAllLines(jsonPath, new[] { inputGraph });
+
+            // Onnx converter's assembly is not loaded by default, so we need to register it before calling it.
+            Env.ComponentCatalog.RegisterAssembly(typeof(OnnxExportExtensions).Assembly);
+
+            // Execute the saved entry point graph to convert the saved model to ONNX format.
+            args = new ExecuteGraphCommand.Arguments() { GraphPath = jsonPath };
+            cmd = new ExecuteGraphCommand(Env, args);
+            cmd.Run();
+
+            // Load the resulted ONNX model from the file so that we can check if the conversion looks good.
+            var model = new OnnxCSharpToProtoWrapper.ModelProto();
+            using (var modelStream = File.OpenRead(onnxPath))
+                model = OnnxCSharpToProtoWrapper.ModelProto.Parser.ParseFrom(modelStream);
+
+            // Make sure a PredictorModel is loaded by seeing if a predictive model exists. In this the
+            // predictive model is "LinearRegressor" (converted from StochasticDualCoordinateAscentRegressor
+            // in the original training entry-point graph.
+            Assert.Equal("Scaler", model.Graph.Node[0].OpType);
+            Assert.Equal("LinearRegressor", model.Graph.Node[1].OpType);
+
+            File.Delete(modelPath);
+            File.Delete(onnxPath);
+            File.Delete(onnxJsonPath);
+
+            Done();
+        }
+
+
+        [Fact]
         public void RemoveVariablesInPipelineTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -451,7 +640,7 @@ namespace Microsoft.ML.Tests
 
         private class SmallSentimentExample
         {
-            [LoadColumn(0,3), VectorType(4)]
+            [LoadColumn(0, 3), VectorType(4)]
             public string[] Tokens;
         }
 
@@ -479,12 +668,268 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
+        [Fact]
+        public void OnnxTypeConversionTest()
+        {
+            var mlContext = new MLContext(seed: 1);
+            string filePath = GetDataPath("type-conversion.txt");
+
+            // These are the supported conversions
+            // ML.NET does not allow any conversions between signed and unsigned numeric types
+            // Onnx does not seem to support casting a string to any type
+            // Though the onnx docs claim support for byte and sbyte, 
+            // CreateNamedOnnxValue in OnnxUtils.cs throws a NotImplementedException for those two
+            DataKind[,] supportedConversions = new[,]
+            {
+                { DataKind.Int16, DataKind.Int16},
+                { DataKind.Int16, DataKind.Int32},
+                { DataKind.Int16, DataKind.Int64},
+                { DataKind.Int16, DataKind.Single},
+                { DataKind.Int16, DataKind.Double},
+                { DataKind.UInt16, DataKind.UInt16},
+                { DataKind.UInt16, DataKind.UInt32},
+                { DataKind.UInt16, DataKind.UInt64},
+                { DataKind.UInt16, DataKind.Single},
+                { DataKind.UInt16, DataKind.Double},
+                { DataKind.Int32, DataKind.Int16},
+                { DataKind.Int32, DataKind.Int32},
+                { DataKind.Int32, DataKind.Int64},
+                { DataKind.Int32, DataKind.Single},
+                { DataKind.Int32, DataKind.Double},
+                { DataKind.Int64, DataKind.Int16},
+                { DataKind.Int64, DataKind.Int32},
+                { DataKind.Int64, DataKind.Int64},
+                { DataKind.Int64, DataKind.Single},
+                { DataKind.Int64, DataKind.Double},
+                { DataKind.UInt64, DataKind.UInt16},
+                { DataKind.UInt64, DataKind.UInt32},
+                { DataKind.UInt64, DataKind.UInt64},
+                { DataKind.UInt64, DataKind.Single},
+                { DataKind.UInt64, DataKind.Double},
+                { DataKind.Single, DataKind.Single},
+                { DataKind.Single, DataKind.Double},
+                { DataKind.Double, DataKind.Single},
+                { DataKind.Double, DataKind.Double}
+            };
+
+            for (int i = 0; i < supportedConversions.GetLength(0); i++)
+            {
+                var fromKind = supportedConversions[i, 0];
+                var toKind = supportedConversions[i, 1];
+
+                TextLoader.Column[] columns = new []
+                {
+                    new TextLoader.Column("Value", fromKind, 0, 0)
+                };
+                var dataView = mlContext.Data.LoadFromTextFile(filePath, columns);
+
+                var pipeline = mlContext.Transforms.Conversion.ConvertType("ValueConverted", "Value", outputKind: toKind);
+                var model = pipeline.Fit(dataView);
+                var mlnetResult = model.Transform(dataView);
+
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+                var onnxFileName = "typeconversion.onnx";
+                var onnxModelPath = GetOutputPath(onnxFileName);
+                SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
+                {
+                    string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                    string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                    var onnxTransformer = onnxEstimator.Fit(dataView);
+                    var onnxResult = onnxTransformer.Transform(dataView);
+
+                    CompareResults(model.ColumnPairs[0].outputColumnName, outputNames[1], mlnetResult, onnxResult);
+                }
+            }
+            Done();
+        }
+
+        [Fact]
+        public void PcaOnnxConversionTest()
+        {
+            var dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
+
+            var mlContext = new MLContext(seed: 1);
+            var dataView = mlContext.Data.LoadFromTextFile(dataSource, new[] {
+                new TextLoader.Column("label", DataKind.Single, 11),
+                new TextLoader.Column("features", DataKind.Single, 0, 10)
+            }, hasHeader: true, separatorChar: ';');
+
+            bool[] zeroMeans = { true, false };
+            foreach (var zeroMean in zeroMeans)
+            {
+                var pipeline = ML.Transforms.ProjectToPrincipalComponents("pca", "features", rank: 5, seed: 1, ensureZeroMean: zeroMean);
+                var model = pipeline.Fit(dataView);
+                var transformedData = model.Transform(dataView);
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+                var onnxFileName = "pca.onnx";
+                var onnxModelPath = GetOutputPath(onnxFileName);
+
+                SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
+                {
+                    // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                    string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                    string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                    var onnxTransformer = onnxEstimator.Fit(dataView);
+                    var onnxResult = onnxTransformer.Transform(dataView);
+                    CompareSelectedR4VectorColumns(model.ColumnPairs[0].outputColumnName, outputNames[2], transformedData, onnxResult);
+                }
+            }
+
+            Done();
+        }
+
+        private class TransformedDataPoint : DataPoint, IEquatable<TransformedDataPoint>
+        {
+            [VectorType(3)]
+            public int[] MissingIndicator { get; set; }
+
+            public bool Equals(TransformedDataPoint other)
+            {
+                return Enumerable.SequenceEqual(MissingIndicator, other.MissingIndicator);
+            }
+        }
+
+        [Fact]
+        void IndicateMissingValuesOnnxConversionTest()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            var samples = new List<DataPoint>()
+            {
+                new DataPoint() { Features = new float[3] {1, 1, 0}, },
+                new DataPoint() { Features = new float[3] {0, float.NaN, 1}, },
+                new DataPoint() { Features = new float[3] {-1, float.NaN, float.PositiveInfinity}, },
+            };
+            var dataView = mlContext.Data.LoadFromEnumerable(samples);
+
+            // IsNaN outputs a binary tensor. Support for this has been added in the latest version
+            // of Onnxruntime, but that hasn't been released yet.
+            // So we need to convert its type to Int32 until then. 
+            // ConvertType part of the pipeline can be removed once we pick up a new release of the Onnx runtime
+
+            var pipeline = mlContext.Transforms.IndicateMissingValues(new[] { new InputOutputColumnPair("MissingIndicator", "Features"), })
+                            .Append(mlContext.Transforms.Conversion.ConvertType("MissingIndicator", outputKind: DataKind.Int32));
+
+            var model = pipeline.Fit(dataView);
+            var transformedData = model.Transform(dataView);
+            var mlnetData = mlContext.Data.CreateEnumerable<TransformedDataPoint>(transformedData, false);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "Transforms");
+            var onnxFileName = "IndicateMissingValues.onnx";
+            var onnxTextName = "IndicateMissingValues.txt";
+            var onnxModelPath = GetOutputPath(onnxFileName);
+            var onnxTextPath = GetOutputPath(subDir, onnxTextName);
+
+            SaveOnnxModel(onnxModel, onnxModelPath, onnxTextPath);
+
+            // Compare results produced by ML.NET and ONNX's runtime.
+            if (IsOnnxRuntimeSupported())
+            {
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(dataView);
+                var onnxResult = onnxTransformer.Transform(dataView);
+                CompareSelectedVectorColumns<int>(model.LastTransformer.ColumnPairs[0].outputColumnName, outputNames[1], transformedData, onnxResult);
+            }
+
+            CheckEquality(subDir, onnxTextName, parseOption: NumberParseOption.UseSingle);
+            Done();
+        }
+
         private void CreateDummyExamplesToMakeComplierHappy()
         {
             var dummyExample = new BreastCancerFeatureVector() { Features = null };
             var dummyExample1 = new BreastCancerCatFeatureExample() { Label = false, F1 = 0, F2 = "Amy" };
             var dummyExample2 = new BreastCancerMulticlassExample() { Label = "Amy", Features = null };
             var dummyExample3 = new SmallSentimentExample() { Tokens = null };
+        }
+
+        private void CompareResults(string leftColumnName, string rightColumnName, IDataView left, IDataView right)
+        {
+            var leftColumn = left.Schema[leftColumnName];
+            var rightColumn = right.Schema[rightColumnName];
+            var leftType = leftColumn.Type.GetItemType();
+            var rightType = rightColumn.Type.GetItemType();
+            Assert.Equal(leftType, rightType);
+
+            if (leftType == NumberDataViewType.SByte)
+                CompareSelectedVectorColumns<sbyte>(leftColumnName, rightColumnName, left, right);
+            else if (leftType == NumberDataViewType.Byte)
+                CompareSelectedVectorColumns<byte>(leftColumnName, rightColumnName, left, right);
+            else if (leftType == NumberDataViewType.Int16)
+                CompareSelectedVectorColumns<short>(leftColumnName, rightColumnName, left, right);
+            else if (leftType == NumberDataViewType.UInt16)
+                CompareSelectedVectorColumns<ushort>(leftColumnName, rightColumnName, left, right);
+            else if (leftType == NumberDataViewType.Int32)
+                CompareSelectedVectorColumns<int>(leftColumnName, rightColumnName, left, right);
+            else if (leftType == NumberDataViewType.UInt32)
+                CompareSelectedVectorColumns<uint>(leftColumnName, rightColumnName, left, right);
+            else if (leftType == NumberDataViewType.Int64)
+                CompareSelectedVectorColumns<long>(leftColumnName, rightColumnName, left, right);
+            else if (leftType == NumberDataViewType.UInt64)
+                CompareSelectedVectorColumns<ulong>(leftColumnName, rightColumnName, left, right);
+            else if (leftType == NumberDataViewType.Single)
+                CompareSelectedR4VectorColumns(leftColumnName, rightColumnName, left, right);
+            else if (leftType == NumberDataViewType.Double)
+                CompareSelectedVectorColumns<double>(leftColumnName, rightColumnName, left, right);
+        }
+
+        private void CompareSelectedVectorColumns<T>(string leftColumnName, string rightColumnName, IDataView left, IDataView right)
+        {
+            var leftColumn = left.Schema[leftColumnName];
+            var rightColumn = right.Schema[rightColumnName];
+
+            using (var expectedCursor = left.GetRowCursor(leftColumn))
+            using (var actualCursor = right.GetRowCursor(rightColumn))
+            {
+                VBuffer<T> expected = default;
+                VBuffer<T> actual = default;
+                var expectedGetter = expectedCursor.GetGetter<VBuffer<T>>(leftColumn);
+                var actualGetter = actualCursor.GetGetter<VBuffer<T>>(rightColumn);
+                while (expectedCursor.MoveNext() && actualCursor.MoveNext())
+                {
+                    expectedGetter(ref expected);
+                    actualGetter(ref actual);
+
+                    Assert.Equal(expected.Length, actual.Length);
+                    for (int i = 0; i < expected.Length; ++i)
+                        Assert.Equal(expected.GetItemOrDefault(i), actual.GetItemOrDefault(i));
+                }
+            }
+        }
+
+        private void CompareSelectedR8VectorColumns(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
+        {
+            var leftColumn = left.Schema[leftColumnName];
+            var rightColumn = right.Schema[rightColumnName];
+
+            using (var expectedCursor = left.GetRowCursor(leftColumn))
+            using (var actualCursor = right.GetRowCursor(rightColumn))
+            {
+                VBuffer<double> expected = default;
+                VBuffer<double> actual = default;
+                var expectedGetter = expectedCursor.GetGetter<VBuffer<double>>(leftColumn);
+                var actualGetter = actualCursor.GetGetter<VBuffer<double>>(rightColumn);
+                while (expectedCursor.MoveNext() && actualCursor.MoveNext())
+                {
+                    expectedGetter(ref expected);
+                    actualGetter(ref actual);
+
+                    Assert.Equal(expected.Length, actual.Length);
+                    for (int i = 0; i < expected.Length; ++i)
+                        Assert.Equal(expected.GetItemOrDefault(i), actual.GetItemOrDefault(i), precision);
+                }
+            }
         }
 
         private void CompareSelectedR4VectorColumns(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
@@ -506,7 +951,14 @@ namespace Microsoft.ML.Tests
 
                     Assert.Equal(expected.Length, actual.Length);
                     for (int i = 0; i < expected.Length; ++i)
-                        Assert.Equal(expected.GetItemOrDefault(i), actual.GetItemOrDefault(i), precision);
+                    {
+                        // We are using float values. But the Assert.Equal function takes doubles.
+                        // And sometimes the converted doubles are different in their precision.
+                        // So make sure we compare floats
+                        float exp = expected.GetItemOrDefault(i);
+                        float act = actual.GetItemOrDefault(i);
+                        CompareNumbersWithTolerance(exp, act, null, precision);
+                    }
                 }
             }
         }

@@ -53,10 +53,25 @@ namespace Microsoft.ML.Data
         /// </summary>
         internal static DataViewType GetDataViewType(Type type, IEnumerable<Attribute> typeAttributes = null)
         {
+            //Filter attributes as we only care about DataViewTypeAttribute
+            DataViewTypeAttribute typeAttr = null;
+            if(typeAttributes != null)
+            {
+                typeAttributes = typeAttributes.Where(attr => attr.GetType().IsSubclassOf(typeof(DataViewTypeAttribute)));
+                if (typeAttributes.Count() > 1)
+                {
+                    throw Contracts.ExceptParam(nameof(type), "Type {0} cannot be marked with multiple attributes, {1}, derived from {2}.",
+                        type.Name, typeAttributes, typeof(DataViewTypeAttribute));
+                }
+                else if (typeAttributes.Count() == 1)
+                {
+                    typeAttr = typeAttributes.First() as DataViewTypeAttribute;
+                }
+            }
             lock (_lock)
             {
                 // Compute the ID of type with extra attributes.
-                var rawType = new TypeWithAttributes(type, typeAttributes);
+                var rawType = new TypeWithAttributes(type, typeAttr);
 
                 // Get the DataViewType's ID which typeID is mapped into.
                 if (!_rawTypeToDataViewTypeMap.TryGetValue(rawType, out DataViewType dataViewType))
@@ -73,10 +88,25 @@ namespace Microsoft.ML.Data
         /// </summary>
         internal static bool Knows(Type type, IEnumerable<Attribute> typeAttributes = null)
         {
+            //Filter attributes as we only care about DataViewTypeAttribute
+            DataViewTypeAttribute typeAttr = null;
+            if(typeAttributes != null)
+            {
+                typeAttributes = typeAttributes.Where(attr => attr.GetType().IsSubclassOf(typeof(DataViewTypeAttribute)));
+                if (typeAttributes.Count() > 1)
+                {
+                    throw Contracts.ExceptParam(nameof(type), "Type {0} cannot be marked with multiple attributes, {1}, derived from {2}.",
+                        type.Name, typeAttributes, typeof(DataViewTypeAttribute));
+                }
+                else if (typeAttributes.Count() == 1)
+                {
+                    typeAttr = typeAttributes.First() as DataViewTypeAttribute;
+                }
+            }
             lock (_lock)
             {
                 // Compute the ID of type with extra attributes.
-                var rawType = new TypeWithAttributes(type, typeAttributes);
+                var rawType = new TypeWithAttributes(type, typeAttr);
 
                 // Check if this ID has been associated with a DataViewType.
                 // Note that the dictionary below contains (rawType, dataViewType) pairs (key type is TypeWithAttributes, and value type is DataViewType).
@@ -111,7 +141,39 @@ namespace Microsoft.ML.Data
         /// <param name="type">Native type in C#.</param>
         /// <param name="dataViewType">The corresponding type of <paramref name="type"/> in ML.NET's type system.</param>
         /// <param name="typeAttributes">The <see cref="Attribute"/>s attached to <paramref name="type"/>.</param>
-        public static void Register(DataViewType dataViewType, Type type, IEnumerable<Attribute> typeAttributes = null)
+        [Obsolete("This API is depricated, please use the new form of Register which takes in a single DataViewTypeAttribute instead.", false)]
+        public static void Register(DataViewType dataViewType, Type type, IEnumerable<Attribute> typeAttributes)
+        {
+            DataViewTypeAttribute typeAttr = null;
+            if (typeAttributes != null)
+            {
+                if (typeAttributes.Count() > 1)
+                {
+                        throw Contracts.ExceptParam(nameof(type), $"Type {type} has too many attributes.");
+                }
+                else if (typeAttributes.Count() == 1)
+                {
+                    var attr = typeAttributes.First();
+                    if (!attr.GetType().IsSubclassOf(typeof(DataViewTypeAttribute)))
+                    {
+                        throw Contracts.ExceptParam(nameof(type), $"Type {type} has an attribute that is not of DataViewTypeAttribute.");
+                    }
+                    else
+                    {
+                        typeAttr = attr as DataViewTypeAttribute;
+                    }
+                }
+            }
+            Register(dataViewType, type, typeAttr);
+        }
+            /// <summary>
+            /// This function tells that <paramref name="dataViewType"/> should be representation of data in <paramref name="type"/> in
+            /// ML.NET's type system. The registered <paramref name="type"/> must be a standard C# object's type.
+            /// </summary>
+            /// <param name="type">Native type in C#.</param>
+            /// <param name="dataViewType">The corresponding type of <paramref name="type"/> in ML.NET's type system.</param>
+            /// <param name="typeAttribute">The <see cref="DataViewTypeAttribute"/> attached to <paramref name="type"/>.</param>
+            public static void Register(DataViewType dataViewType, Type type, DataViewTypeAttribute typeAttribute = null)
         {
             lock (_lock)
             {
@@ -119,7 +181,7 @@ namespace Microsoft.ML.Data
                     throw Contracts.ExceptParam(nameof(type), $"Type {type} has been registered as ML.NET's default supported type, " +
                         $"so it can't not be registered again.");
 
-                var rawType = new TypeWithAttributes(type, typeAttributes);
+                var rawType = new TypeWithAttributes(type, typeAttribute);
 
                 if (_rawTypeToDataViewTypeMap.ContainsKey(rawType) && _rawTypeToDataViewTypeMap[rawType].Equals(dataViewType) &&
                     _dataViewTypeToRawTypeMap.ContainsKey(dataViewType) && _dataViewTypeToRawTypeMap[dataViewType].Equals(rawType))
@@ -152,7 +214,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// An instance of <see cref="TypeWithAttributes"/> represents an unique key of its <see cref="TargetType"/> and <see cref="_associatedAttributes"/>.
+        /// An instance of <see cref="TypeWithAttributes"/> represents an unique key of its <see cref="TargetType"/> and <see cref="_associatedAttribute"/>.
         /// </summary>
         private class TypeWithAttributes
         {
@@ -162,16 +224,16 @@ namespace Microsoft.ML.Data
             public Type TargetType { get; }
 
             /// <summary>
-            /// The underlying type's attributes. Together with <see cref="TargetType"/>, <see cref="_associatedAttributes"/> uniquely defines
+            /// The underlying type's attributes. Together with <see cref="TargetType"/>, <see cref="_associatedAttribute"/> uniquely defines
             /// a key when using <see cref="TypeWithAttributes"/> as the key type in <see cref="Dictionary{TKey, TValue}"/>. Note that the
             /// uniqueness is determined by <see cref="Equals(object)"/> and <see cref="GetHashCode"/> below.
             /// </summary>
-            private IEnumerable<Attribute> _associatedAttributes;
+            private DataViewTypeAttribute _associatedAttribute;
 
-            public TypeWithAttributes(Type type, IEnumerable<Attribute> attributes)
+            public TypeWithAttributes(Type type, DataViewTypeAttribute attribute)
             {
                 TargetType = type;
-                _associatedAttributes = attributes;
+                _associatedAttribute = attribute;
             }
 
             public override bool Equals(object obj)
@@ -183,22 +245,15 @@ namespace Microsoft.ML.Data
                     // Flag of having the attribute configurations.
                     var sameAttributeConfig = true;
 
-                    if (_associatedAttributes == null && other._associatedAttributes == null)
+                    if (_associatedAttribute == null && other._associatedAttribute == null)
                         sameAttributeConfig = true;
-                    else if (_associatedAttributes == null && other._associatedAttributes != null)
+                    else if (_associatedAttribute == null && other._associatedAttribute != null)
                         sameAttributeConfig = false;
-                    else if (_associatedAttributes != null && other._associatedAttributes == null)
-                        sameAttributeConfig = false;
-                    else if (_associatedAttributes.Count() != other._associatedAttributes.Count())
+                    else if (_associatedAttribute != null && other._associatedAttribute == null)
                         sameAttributeConfig = false;
                     else
                     {
-                        var zipped = _associatedAttributes.Zip(other._associatedAttributes, (attr, otherAttr) => (attr, otherAttr));
-                        foreach (var (attr, otherAttr) in zipped)
-                        {
-                            if (!attr.Equals(otherAttr))
-                                sameAttributeConfig = false;
-                        }
+                        sameAttributeConfig = _associatedAttribute.Equals(other._associatedAttribute);
                     }
 
                     return sameType && sameAttributeConfig;
@@ -213,12 +268,14 @@ namespace Microsoft.ML.Data
             /// </summary>
             public override int GetHashCode()
             {
-                if (_associatedAttributes == null)
+                if (_associatedAttribute == null)
                     return TargetType.GetHashCode();
 
                 var code = TargetType.GetHashCode();
-                foreach (var attr in _associatedAttributes)
-                    code = Hashing.CombineHash(code, attr.GetHashCode());
+                if (_associatedAttribute != null)
+                {
+                    code = Hashing.CombineHash(code, _associatedAttribute.GetHashCode());
+                }
                 return code;
             }
 

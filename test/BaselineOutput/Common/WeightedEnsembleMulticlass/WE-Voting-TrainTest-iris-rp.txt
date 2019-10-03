@@ -1,0 +1,4 @@
+WeightedEnsembleMulticlass
+Accuracy(micro-avg)	Accuracy(macro-avg)	Log-loss	Log-loss reduction	/oc	/bp	/nm	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.946667	0.946667	0.511576	0.534344	MultiVoting	mlr{t-}	5	WeightedEnsembleMulticlass	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=WeightedEnsembleMulticlass{bp=mlr{t-} nm=5 oc=MultiVoting tp=-} dout=%Output% data=%Data% out=%Output% seed=1 xf=Term{col=Label}	/oc:MultiVoting;/bp:mlr{t-};/nm:5	
+

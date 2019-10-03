@@ -126,7 +126,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             /// <summary>
             /// Comma-separated list of gains associated with each relevance label.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "An array of gains associated to each relevance label.", ShortName = "gains")]
+            [Argument(ArgumentType.Multiple, HelpText = "An array of gains associated to each relevance label.", ShortName = "gains")]
             [TGUI(Label = "Ranking Label Gain")]
             public int[] CustomGains = { 0, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047, 4095 };
 
@@ -149,7 +149,8 @@ namespace Microsoft.ML.Trainers.LightGbm
             {
                 NameMapping.Add(nameof(CustomGains), "label_gain");
                 NameMapping.Add(nameof(EvaluateMetricType), "metric");
-                NameMapping.Add(nameof(EvaluateMetricType.None), "");
+                NameMapping.Add(nameof(EvaluateMetricType.None), "None");
+                NameMapping.Add(nameof(EvaluateMetricType.Default), "");
                 NameMapping.Add(nameof(EvaluateMetricType.MeanAveragedPrecision), "map");
                 NameMapping.Add(nameof(EvaluateMetricType.NormalizedDiscountedCumulativeGain), "ndcg");
             }
@@ -159,8 +160,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                 var res = base.ToDictionary(host);
                 res[GetOptionName(nameof(Sigmoid))] = Sigmoid;
                 res[GetOptionName(nameof(CustomGains))] = string.Join(",", CustomGains);
-                if (EvaluationMetric != EvaluateMetricType.Default)
-                    res[GetOptionName(nameof(EvaluateMetricType))] = GetOptionName(EvaluationMetric.ToString());
+                res[GetOptionName(nameof(EvaluateMetricType))] = GetOptionName(EvaluationMetric.ToString());
 
                 return res;
             }
@@ -222,7 +222,8 @@ namespace Microsoft.ML.Trainers.LightGbm
                     $"Label column '{labelCol.Name}' is of type '{labelType.RawType}', but must be Key or Single.");
             }
             // Check group types.
-            ch.CheckParam(data.Schema.Group.HasValue, nameof(data), "Need a group column.");
+            if(!data.Schema.Group.HasValue)
+                throw ch.ExceptValue(nameof(data.Schema.Group), "Group column is missing.") ;
             var groupCol = data.Schema.Group.Value;
             var groupType = groupCol.Type;
             if (!(groupType == NumberDataViewType.UInt32 || groupType is KeyDataViewType))

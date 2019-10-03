@@ -8,6 +8,13 @@ set(RESOURCES)
 include_directories("${CMAKE_BINARY_DIR}/../../")
 
 if(WIN32)
+    # There seems to be a bug in the latest VS2019
+    # which is adding /ZI (which conflicts with /guard:cf) instead of /Zi.
+	message("CMAKE_C_FLAGS_DEBUG is ${CMAKE_C_FLAGS_DEBUG}")
+	message("In a future version, if the CMake that ships with VS2019 no longer contains the /ZI flag, delete this message block and the two lines below.")
+    string(REPLACE "/ZI" "/Zi" CMAKE_C_FLAGS_DEBUG  ${CMAKE_C_FLAGS_DEBUG})
+    string(REPLACE "/ZI" "/Zi" CMAKE_CXX_FLAGS_DEBUG  ${CMAKE_CXX_FLAGS_DEBUG})
+
     add_definitions(-DWIN32)
     add_definitions(-D_WIN32=1)
     add_definitions(-DUNICODE -D_UNICODE)
@@ -21,8 +28,8 @@ if(WIN32)
     add_compile_options($<$<CONFIG:Debug>:/MTd>) # /MT will static link the VC runtime library, so it doesn't need to be installed on the target machine
     add_compile_options($<$<CONFIG:Release>:/MT>)
     add_compile_options($<$<CONFIG:RelWithDebInfo>:/MT>)
-    add_compile_options(/guard:cf) 
-    add_compile_options(/d2Zi+) # make optimized builds debugging easier
+    add_compile_options(/guard:cf)
+    add_compile_options(/Zo) # make optimized builds debugging easier. /Zo is the newer documented flag.
     add_compile_options(/nologo) # Suppress Startup Banner
     add_compile_options(/W3) # set warning level to 3
     add_compile_options(/WX) # treat warnings as errors
@@ -190,6 +197,5 @@ add_subdirectory(CpuMathNative)
 add_subdirectory(FastTreeNative)
 add_subdirectory(LdaNative)
 add_subdirectory(MatrixFactorizationNative)
-add_subdirectory(FactorizationMachineNative)
 add_subdirectory(SymSgdNative)
 add_subdirectory(MklProxyNative)

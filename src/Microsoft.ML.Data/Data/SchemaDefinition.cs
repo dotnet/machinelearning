@@ -28,7 +28,7 @@ namespace Microsoft.ML.Data
         /// </remarks>
         public KeyTypeAttribute()
         {
-
+            throw Contracts.ExceptNotSupp("Using KeyType without the Count parameter is not supported");
         }
 
         /// <summary>
@@ -104,6 +104,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Column name.
         /// </summary>
+        [BestFriend]
         internal string Name { get; }
 
         /// <summary>

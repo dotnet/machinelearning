@@ -1557,7 +1557,7 @@ namespace Microsoft.ML.Transforms
                 {
                     var lim = column.MaximumExampleCount;
                     host.CheckUserArg(lim > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
-                    return new MeanVarOneColumnFunctionBuilder(host, lim, false, getter, true, column.UseCdf);
+                    return new MeanVarOneColumnFunctionBuilder(host, lim, column.EnsureZeroUntouched, getter, true, column.UseCdf);
                 }
 
                 protected override bool ProcessValue(in TFloat origVal)
@@ -1633,7 +1633,7 @@ namespace Microsoft.ML.Transforms
                     var lim = column.MaximumExampleCount;
                     host.CheckUserArg(lim > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
                     var cv = srcType.Size;
-                    return new MeanVarVecColumnFunctionBuilder(host, cv, lim, false, getter, true, column.UseCdf);
+                    return new MeanVarVecColumnFunctionBuilder(host, cv, lim, column.EnsureZeroUntouched, getter, true, column.UseCdf);
                 }
 
                 protected override bool ProcessValue(in VBuffer<TFloat> buffer)

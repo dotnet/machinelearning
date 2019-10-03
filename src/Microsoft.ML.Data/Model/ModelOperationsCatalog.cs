@@ -17,7 +17,7 @@ namespace Microsoft.ML
     /// </summary>
     public sealed class ModelOperationsCatalog : IInternalCatalog
     {
-        private const string SchemaEntryName = "Schema";
+        internal const string SchemaEntryName = "Schema";
 
         IHostEnvironment IInternalCatalog.Environment => _env;
         private readonly IHostEnvironment _env;
