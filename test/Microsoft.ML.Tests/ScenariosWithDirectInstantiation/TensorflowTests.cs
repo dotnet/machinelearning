@@ -1245,12 +1245,23 @@ namespace Microsoft.ML.Scenarios
 
             var pipeline = mlContext.Model.ImageClassification(
                 "ImagePath", "Label",
+                // Just by changing/selecting InceptionV3 here instead of 
+                // ResnetV2101 you can try a different architecture/pre-trained 
+                // model. 
+                // Uncomment reuseTrainSetBottleneckCachedValues and
+                // reuseValidationSetBottleneckCachedValues to reuse trained model
+                // for faster debugging.
                 arch: ImageClassificationEstimator.Architecture.ResnetV2101,
-                epoch: 5,
-                batchSize: 5,
+                epoch: 50,
+                batchSize: 10,
                 learningRate: 0.01f,
+                metricsCallback: (metrics) => Console.WriteLine(metrics),
+                // reuseTrainSetBottleneckCachedValues: true,
+                // reuseValidationSetBottleneckCachedValues: true,
+                validationSet: testDataset,
                 testOnTrainSet: false,
-                disableEarlyStopping: true);
+                disableEarlyStopping: true)
+                .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel"));
 
             var trainedModel = pipeline.Fit(trainDataset);
 
@@ -1262,6 +1273,7 @@ namespace Microsoft.ML.Scenarios
             using (var file = File.OpenRead("model.zip"))
                 loadedModel = mlContext.Model.Load(file, out schema);
 
+            // Testing EvaluateModel: group testing on test dataset
             IDataView predictions = trainedModel.Transform(testDataset);
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
 
@@ -1281,6 +1293,52 @@ namespace Microsoft.ML.Scenarios
                 Assert.Equal(1, metrics.MicroAccuracy);
                 Assert.Equal(1, metrics.MacroAccuracy);
             }
+
+            // Testing TrySinglePrediction: Utilizing PredictionEngine for single
+            // predictions. Here, two pre-selected images are utilized in testing
+            // the Prediction engine.
+            var predictionEngine = mlContext.Model
+                .CreatePredictionEngine<ImageData, ImagePrediction>(loadedModel);
+
+            IEnumerable<ImageData> testImages = LoadImagesFromDirectory(
+                fullImagesetFolderPath, true);
+
+            string[] directories = Directory.GetDirectories(fullImagesetFolderPath);
+            string[] labels = new string[directories.Length];
+            for(int j = 0; j < labels.Length; j++)
+            {
+                var dir = new DirectoryInfo(directories[j]);
+                labels[j] = dir.Name;
+            }
+
+            // Test daisy image
+            ImageData firstImageToPredict = new ImageData
+            {
+                ImagePath = Path.Combine(fullImagesetFolderPath, "daisy", "5794835_d15905c7c8_n.jpg")
+            };
+
+            // Test rose image
+            ImageData secondImageToPredict = new ImageData
+            {
+                ImagePath = Path.Combine(fullImagesetFolderPath, "roses", "12240303_80d87f77a3_n.jpg")
+            };
+
+            var predictionFirst = predictionEngine.Predict(firstImageToPredict);
+            var predictionSecond = predictionEngine.Predict(secondImageToPredict);
+
+            var labelColumnFirst = schema.GetColumnOrNull("Label").Value;
+            var labelTypeFirst = labelColumnFirst.Type;
+            var labelCountFirst = labelTypeFirst.GetKeyCount();
+            var labelColumnSecond = schema.GetColumnOrNull("Label").Value;
+            var labelTypeSecond = labelColumnSecond.Type;
+            var labelCountSecond = labelTypeSecond.GetKeyCount();
+
+            Assert.Equal((int)labelCountFirst, predictionFirst.Score.Length);
+            Assert.Equal((int)labelCountSecond, predictionSecond.Score.Length);
+            Assert.Equal("daisy", predictionFirst.PredictedLabel);
+            Assert.Equal("roses", predictionSecond.PredictedLabel);
+            Assert.True(Array.IndexOf(labels, predictionFirst.PredictedLabel) > -1);
+            Assert.True(Array.IndexOf(labels, predictionSecond.PredictedLabel) > -1);
         }
 
         [TensorFlowFact]
@@ -1544,7 +1602,7 @@ namespace Microsoft.ML.Scenarios
             public float[] Score;
 
             [ColumnName("PredictedLabel")]
-            public UInt32 PredictedLabel;
+            public string PredictedLabel;
         }
 
     }
