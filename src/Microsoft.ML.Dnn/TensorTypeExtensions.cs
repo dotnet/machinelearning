@@ -77,7 +77,9 @@ namespace Microsoft.ML.Transforms
                         dst = Converts.ChangeType<T>(*(float*) tensor.buffer, NPTypeCode.Single);
                         return;
 #endif
-
+                    case TF_DataType.TF_STRING:
+                        dst = Converts.ChangeType<T>(tensor.StringData()[0], NPTypeCode.String);
+                        return;
                     case TF_DataType.TF_COMPLEX64:
                     case TF_DataType.TF_COMPLEX128:
                     default:
