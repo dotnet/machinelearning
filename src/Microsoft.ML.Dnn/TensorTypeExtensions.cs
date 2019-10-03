@@ -95,8 +95,8 @@ namespace Microsoft.ML.Transforms
                 if (typeof(T).as_dtype() == tensor.dtype && tensor.dtype != TF_DataType.TF_STRING) //T can't be a string but tensor can.
                 {
                     var src = (T*) tensor.buffer;
-                    var srcspan = new Span<T>(src, len);
-                    srcspan.CopyTo(destination);
+                    var srcSpan = new Span<T>(src, len);
+                    srcSpan.CopyTo(destination);
 
                     return;
                 }
