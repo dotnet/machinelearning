@@ -14,7 +14,7 @@ using System.Net;
 
 namespace Samples.Dynamic
 {
-    public class ResnetV2101TransferLearningTrainTestSplit
+    public class ResnetV2101TransferLearningEarlyStopping
     {
         public static void Example()
         {
@@ -30,6 +30,7 @@ namespace Samples.Dynamic
             //Download the image set and unzip
             string finalImagesFolderName = DownloadImageSet(
                 imagesDownloadFolderPath);
+
             string fullImagesetFolderPath = Path.Combine(
                 imagesDownloadFolderPath, finalImagesFolderName);
 
@@ -40,7 +41,7 @@ namespace Samples.Dynamic
 
                 //Load all the original images info
                 IEnumerable<ImageData> images = LoadImagesFromDirectory(
-                    folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
+                    folder: fullImagesetFolderPath, useFolderNameasLabel: true);
 
                 IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
                     mlContext.Data.LoadFromEnumerable(images));
@@ -56,10 +57,10 @@ namespace Samples.Dynamic
 
                 IDataView trainDataset = trainTestData.TrainSet;
                 IDataView testDataset = trainTestData.TestSet;
-
+                
                 var validationSet = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
-                    .Fit(testDataset)
-                    .Transform(testDataset);
+                .Fit(testDataset)
+                .Transform(testDataset);
 
                 var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
                     .Append(mlContext.Model.ImageClassification(
@@ -68,13 +69,11 @@ namespace Samples.Dynamic
                         // ResnetV2101 you can try a different architecture/pre-trained 
                         // model. 
                         arch: ImageClassificationEstimator.Architecture.ResnetV2101,
-                        epoch: 50,
                         batchSize: 10,
                         learningRate: 0.01f,
+                        earlyStopping: new ImageClassificationEstimator.EarlyStopping(minDelta: 0.001f, patience: 20, metric: ImageClassificationEstimator.EarlyStoppingMetric.Loss),
                         metricsCallback: (metrics) => Console.WriteLine(metrics),
-                        validationSet: validationSet,
-                        disableEarlyStopping: true)
-                    .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel")));
+                        validationSet: validationSet));
 
 
                 Console.WriteLine("*** Training the image classification model with " +
@@ -89,7 +88,7 @@ namespace Samples.Dynamic
                 watch.Stop();
                 long elapsedMs = watch.ElapsedMilliseconds;
 
-                Console.WriteLine("Training with transfer learning took: " +
+                Console.WriteLine("Training with transfer learning took: " + 
                     (elapsedMs / 1000).ToString() + " seconds");
 
                 mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
@@ -102,9 +101,12 @@ namespace Samples.Dynamic
 
                 EvaluateModel(mlContext, testDataset, loadedModel);
 
-                watch = System.Diagnostics.Stopwatch.StartNew();
+                VBuffer<ReadOnlyMemory<char>> keys = default;
+                loadedModel.GetOutputSchema(schema)["Label"].GetKeyValues(ref keys);
 
-                TrySinglePrediction(fullImagesetFolderPath, mlContext, loadedModel);
+                watch = System.Diagnostics.Stopwatch.StartNew();
+                TrySinglePrediction(fullImagesetFolderPath, mlContext, loadedModel, 
+                    keys.DenseValues().ToArray());
 
                 watch.Stop();
                 elapsedMs = watch.ElapsedMilliseconds;
@@ -122,7 +124,8 @@ namespace Samples.Dynamic
         }
 
         private static void TrySinglePrediction(string imagesForPredictions,
-            MLContext mlContext, ITransformer trainedModel)
+            MLContext mlContext, ITransformer trainedModel,
+            ReadOnlyMemory<char>[] originalLabels)
         {
             // Create prediction function to try one prediction
             var predictionEngine = mlContext.Model
@@ -131,20 +134,18 @@ namespace Samples.Dynamic
             IEnumerable<ImageData> testImages = LoadImagesFromDirectory(
                 imagesForPredictions, false);
 
-            byte[] imgBytes = File.ReadAllBytes(testImages.First().ImagePath);
-            VBuffer<Byte> imgData = new VBuffer<byte>(imgBytes.Length, imgBytes);
-
             ImageData imageToPredict = new ImageData
             {
                 ImagePath = testImages.First().ImagePath
             };
 
             var prediction = predictionEngine.Predict(imageToPredict);
+            var index = prediction.PredictedLabel;
 
             Console.WriteLine($"ImageFile : " +
                 $"[{Path.GetFileName(imageToPredict.ImagePath)}], " +
                 $"Scores : [{string.Join(",", prediction.Score)}], " +
-                $"Predicted Label : {prediction.PredictedLabel}");
+                $"Predicted Label : {originalLabels[index]}");
         }
 
 
@@ -169,19 +170,20 @@ namespace Samples.Dynamic
             Console.WriteLine("Predicting and Evaluation took: " +
                 (elapsed2Ms / 1000).ToString() + " seconds");
         }
-        
+
         public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,
-            bool useFolderNameAsLabel = true)
+            bool useFolderNameasLabel = true)
         {
             var files = Directory.GetFiles(folder, "*",
                 searchOption: SearchOption.AllDirectories);
+
             foreach (var file in files)
             {
                 if (Path.GetExtension(file) != ".jpg")
                     continue;
 
                 var label = Path.GetFileName(file);
-                if (useFolderNameAsLabel)
+                if (useFolderNameasLabel)
                     label = Directory.GetParent(file).Name;
                 else
                 {
@@ -194,7 +196,7 @@ namespace Samples.Dynamic
                         }
                     }
                 }
-                
+
                 yield return new ImageData()
                 {
                     ImagePath = file,
@@ -303,7 +305,8 @@ namespace Samples.Dynamic
             public float[] Score;
 
             [ColumnName("PredictedLabel")]
-            public string PredictedLabel;
+            public UInt32 PredictedLabel;
         }
     }
 }
+

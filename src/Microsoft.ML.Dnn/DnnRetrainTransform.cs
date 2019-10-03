@@ -379,14 +379,18 @@ namespace Microsoft.ML.Transforms
             ITensorValueGetter[] srcTensorGetters,
             Runner runner)
         {
-            float loss = 0;
-            float metric = 0;
+            float loss = 0.0f;
+            float metric = 0.0f;
             for (int i = 0; i < inputs.Length; i++)
                 runner.AddInput(inputs[i], srcTensorGetters[i].GetBufferedBatchTensor());
 
             Tensor[] tensor = runner.Run();
-            loss = tensor.Length > 0 && tensor[0] != IntPtr.Zero ? (float)tensor[0].ToArray<float>()[0] : 0.0f;
-            metric = tensor.Length > 1 && tensor[1] != IntPtr.Zero ? (float)tensor[1].ToArray<float>()[0] : 0.0f;
+            if (tensor.Length > 0 && tensor[0] != IntPtr.Zero)
+                tensor[0].ToScalar<float>(ref loss);
+
+            if (tensor.Length > 1 && tensor[1] != IntPtr.Zero)
+                tensor[1].ToScalar<float>(ref metric);
+
             return (loss, metric);
         }
 
@@ -636,7 +640,7 @@ namespace Microsoft.ML.Transforms
                 var tfOutputType = ((Operation)outputTensor).OutputType(outputIndex);
                 var shape = GetTensorShape(new TF_Output((Operation)outputTensor, outputIndex), session.graph);
 
-                // The transformer can only retreive the output as fixed length vector with shape of kind [-1, d1, d2, d3, ...]
+                // The transformer can only retrieve the output as fixed length vector with shape of kind [-1, d1, d2, d3, ...]
                 // i.e. the first dimension (if unknown) is assumed to be batch dimension.
                 // If there are other dimension that are unknown the transformer will return a variable length vector.
                 // This is the work around in absence of reshape transformer.
@@ -679,7 +683,7 @@ namespace Microsoft.ML.Transforms
             // for each output column
             //   int: id of output column name
             // stream: tensorFlow model.
-            var isFrozen = DnnUtils.IsSavedModel(_env, _modelLocation);
+            var isFrozen = !DnnUtils.IsSavedModel(_env, _modelLocation);
             ctx.Writer.WriteBoolByte(isFrozen);
             ctx.Writer.WriteBoolByte(_addBatchDimensionInput);
 
@@ -871,7 +875,7 @@ namespace Microsoft.ML.Transforms
                         UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
 
                         var tensor = outputCache.Outputs[_parent._outputs[iinfo]];
-                        dst = tensor.ToArray<T>()[0];
+                        tensor.ToScalar<T>(ref dst);
                     };
                     return valuegetter;
                 }
@@ -903,7 +907,7 @@ namespace Microsoft.ML.Transforms
 
                             var editor = VBufferEditor.Create(ref dst, (int)tensorSize);
 
-                            DnnUtils.FetchData<T>(tensor.ToArray<T>(), editor.Values);
+                            tensor.CopyTo<T>(editor.Values);
                             dst = editor.Commit();
                         };
                         return valuegetter;

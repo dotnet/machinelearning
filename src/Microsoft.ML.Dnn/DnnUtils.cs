@@ -277,14 +277,6 @@ namespace Microsoft.ML.Transforms.Dnn
             return LoadTFSessionByModelFilePath(env, modelPath, metaGraph);
         }
 
-        internal static unsafe void FetchData<T>(T[] data, Span<T> result)
-        {
-            var dataCopy = new T[data.Length];
-            Array.Copy(data, dataCopy, data.Length);
-            var dataSpan = new Span<T>(dataCopy, 0, result.Length);
-            dataSpan.CopyTo(result);
-        }
-
         internal static unsafe void FetchStringData<T>(Tensor tensor, Span<T> result)
         {
             if (tensor == null)
@@ -397,6 +389,11 @@ namespace Microsoft.ML.Transforms.Dnn
                 }
 
                 return this;
+            }
+
+            public List<Tensor> GetInputValues()
+            {
+                return _inputValues;
             }
 
             public Runner AddOutputs(string output)

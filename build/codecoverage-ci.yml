@@ -2,7 +2,7 @@
 # ML.NET's Code Coverage validation build
 ################################################################################
 
-phases:
+jobs:
 - template: /build/ci/job-template.yml
   parameters:
     name: Windows_x64
@@ -13,5 +13,5 @@ phases:
         _config_short: D
         _includeBenchmarkData: false
     codeCoverage: true
-    queue:
+    pool:
       name: Hosted VS2017

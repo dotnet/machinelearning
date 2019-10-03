@@ -231,6 +231,7 @@ namespace Microsoft.ML.Data.Conversion
             AddStd<DT, I8>(Convert);
             AddStd<DT, R4>(Convert);
             AddStd<DT, R8>(Convert);
+            AddStd<DT, DT>(Convert);
             AddAux<DT, SB>(Convert);
 
             AddStd<DZ, I8>(Convert);
@@ -1673,5 +1674,9 @@ namespace Microsoft.ML.Data.Conversion
         public void Convert(in BL src, ref R8 dst) => dst = System.Convert.ToDouble(src);
         public void Convert(in BL src, ref BL dst) => dst = src;
         #endregion FromBL
+
+        #region ToDT
+        public void Convert(in DT src, ref DT dst) => dst = src;
+        #endregion ToDT
     }
 }
