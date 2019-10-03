@@ -190,14 +190,12 @@ namespace Microsoft.ML.Data
         {
             private readonly ImageLoadingTransformer _parent;
             private readonly bool _type;
-            //private readonly ConcurrentBag<byte[]> _bufferPool;
 
             public Mapper(ImageLoadingTransformer parent, DataViewSchema inputSchema, bool type)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _type = type;
                 _parent = parent;
-                //_bufferPool = new ConcurrentBag<byte[]>();
             }
 
             protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
@@ -256,25 +254,24 @@ namespace Microsoft.ML.Data
                 ValueGetter<VBuffer<byte>> del =
                     (ref VBuffer<byte> dst) =>
                     {
-                       // byte[] buffer = null;
-                       // if (!_bufferPool.TryTake(out buffer))
-                       // {
-                       //     buffer = new byte[4096];
-                       // }
-
                         getSrc(ref src);
-
                         if (src.Length > 0)
                         {
                             string path = src.ToString();
                             if (!string.IsNullOrWhiteSpace(_parent.ImageFolder))
                                 path = Path.Combine(_parent.ImageFolder, path);
                             if (!TryLoadDataIntoBuffer(path, ref dst))
-                                throw Host.Except($"Failed to load image {src.ToString()}.");
+                            {
+                                var editor = VBufferEditor.Create(ref dst, 0); //Empty Image
+                                dst = editor.Commit();
+                            }
+                        }
+                        else
+                        {
+                            var editor = VBufferEditor.Create(ref dst, 0 );
+                            dst = editor.Commit();
                         }
 
-                        //Contract.Assert(buffer != null);
-                       // _bufferPool.Add(buffer);
                     };
 
                 return del;
