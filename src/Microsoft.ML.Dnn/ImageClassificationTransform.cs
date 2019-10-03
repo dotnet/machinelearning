@@ -186,6 +186,8 @@ namespace Microsoft.ML.Transforms
 
             if (_session.graph.OperationByName(_labelTensor.name.Split(':')[0]) == null)
                 throw Host.ExceptParam(nameof(options.TensorFlowLabel), $"'{options.TensorFlowLabel}' does not exist in the model");
+            if (options.EarlyStoppingCriteria != null && options.ValidationSet == null && options.TestOnTrainSet == false)
+                throw Host.ExceptParam(nameof(options.EarlyStoppingCriteria), $"No Validation dataset provided and testing on Train disabled, Early Stopping not supported.");
         }
 
         private (Tensor, Tensor) AddJpegDecoding(int height, int width, int depth)
@@ -433,6 +435,10 @@ namespace Microsoft.ML.Transforms
                     //Process last incomplete batch
                     if (batchIndex > 0)
                     {
+                        featureTensorShape[0] = batchIndex;
+                        featureBatchSizeInBytes = sizeof(float) * featureBatch.Length * batchIndex / batchSize;
+                        labelTensorShape[0] = batchIndex;
+                        labelBatchSizeInBytes = sizeof(long) * batchIndex;
                         runner.AddInput(new Tensor(featureBatchPtr, featureTensorShape, TF_DataType.TF_FLOAT, featureBatchSizeInBytes), 0)
                                 .AddInput(new Tensor(labelBatchPtr, labelTensorShape, TF_DataType.TF_INT64, labelBatchSizeInBytes), 1)
                                 .Run();
@@ -456,6 +462,10 @@ namespace Microsoft.ML.Transforms
                         }
 
                         batchIndex = 0;
+                        featureTensorShape[0] = batchSize;
+                        featureBatchSizeInBytes = sizeof(float) * featureBatch.Length;
+                        labelTensorShape[0] = batchSize;
+                        labelBatchSizeInBytes = sizeof(long) * batchSize;
                     }
 
                     if (options.TestOnTrainSet && statisticsCallback != null)
@@ -518,6 +528,10 @@ namespace Microsoft.ML.Transforms
                     //Process last incomplete batch
                     if(batchIndex > 0)
                     {
+                        featureTensorShape[0] = batchIndex;
+                        featureBatchSizeInBytes = sizeof(float) * featureBatch.Length * batchIndex / batchSize;
+                        labelTensorShape[0] = batchIndex;
+                        labelBatchSizeInBytes = sizeof(long) * batchIndex;
                         var outputTensors = validationEvalRunner
                                 .AddInput(new Tensor(featureBatchPtr, featureTensorShape, TF_DataType.TF_FLOAT, featureBatchSizeInBytes), 0)
                                 .AddInput(new Tensor(labelBatchPtr, labelTensorShape, TF_DataType.TF_INT64, labelBatchSizeInBytes), 1)
@@ -527,6 +541,11 @@ namespace Microsoft.ML.Transforms
                         metrics.Train.Accuracy += accuracy;
                         metrics.Train.BatchProcessedCount += 1;
                         batchIndex = 0;
+
+                        featureTensorShape[0] = batchSize;
+                        featureBatchSizeInBytes = sizeof(float) * featureBatch.Length;
+                        labelTensorShape[0] = batchSize;
+                        labelBatchSizeInBytes = sizeof(long) * batchSize;
 
                         outputTensors[0].Dispose();
                     }
