@@ -30,7 +30,6 @@ namespace Samples.Dynamic
             //Download the image set and unzip
             string finalImagesFolderName = DownloadImageSet(
                 imagesDownloadFolderPath);
-
             string fullImagesetFolderPath = Path.Combine(
                 imagesDownloadFolderPath, finalImagesFolderName);
 
@@ -58,19 +57,25 @@ namespace Samples.Dynamic
                 IDataView trainDataset = trainTestData.TrainSet;
                 IDataView testDataset = trainTestData.TestSet;
 
-                var pipeline = mlContext.Model.ImageClassification(
-                    "ImagePath", "Label",
-                    // Just by changing/selecting InceptionV3 here instead of 
-                    // ResnetV2101 you can try a different architecture/pre-trained 
-                    // model. 
-                    arch: ImageClassificationEstimator.Architecture.ResnetV2101,
-                    epoch: 50,
-                    batchSize: 10,
-                    learningRate: 0.01f,
-                    metricsCallback: (metrics) => Console.WriteLine(metrics),
-                    validationSet: testDataset,
-                    disableEarlyStopping: true)
-                    .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel"));
+                var validationSet = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+                    .Fit(testDataset)
+                    .Transform(testDataset);
+
+                var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+                    .Append(mlContext.Model.ImageClassification(
+                        "Image", "Label",
+                        // Just by changing/selecting InceptionV3 here instead of 
+                        // ResnetV2101 you can try a different architecture/pre-trained 
+                        // model. 
+                        arch: ImageClassificationEstimator.Architecture.ResnetV2101,
+                        epoch: 50,
+                        batchSize: 10,
+                        learningRate: 0.01f,
+                        metricsCallback: (metrics) => Console.WriteLine(metrics),
+                        validationSet: validationSet,
+                        disableEarlyStopping: true)
+                    .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel")));
+
 
                 Console.WriteLine("*** Training the image classification model with " +
                     "DNN Transfer Learning on top of the selected pre-trained " +
@@ -98,6 +103,7 @@ namespace Samples.Dynamic
                 EvaluateModel(mlContext, testDataset, loadedModel);
 
                 watch = System.Diagnostics.Stopwatch.StartNew();
+
                 TrySinglePrediction(fullImagesetFolderPath, mlContext, loadedModel);
 
                 watch.Stop();
@@ -124,6 +130,9 @@ namespace Samples.Dynamic
 
             IEnumerable<ImageData> testImages = LoadImagesFromDirectory(
                 imagesForPredictions, false);
+
+            byte[] imgBytes = File.ReadAllBytes(testImages.First().ImagePath);
+            VBuffer<Byte> imgData = new VBuffer<byte>(imgBytes.Length, imgBytes);
 
             ImageData imageToPredict = new ImageData
             {
@@ -160,13 +169,12 @@ namespace Samples.Dynamic
             Console.WriteLine("Predicting and Evaluation took: " +
                 (elapsed2Ms / 1000).ToString() + " seconds");
         }
-
+        
         public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,
             bool useFolderNameAsLabel = true)
         {
             var files = Directory.GetFiles(folder, "*",
                 searchOption: SearchOption.AllDirectories);
-
             foreach (var file in files)
             {
                 if (Path.GetExtension(file) != ".jpg")
@@ -186,7 +194,7 @@ namespace Samples.Dynamic
                         }
                     }
                 }
-
+                
                 yield return new ImageData()
                 {
                     ImagePath = file,
@@ -299,4 +307,3 @@ namespace Samples.Dynamic
         }
     }
 }
-
