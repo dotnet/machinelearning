@@ -1327,7 +1327,7 @@ namespace Microsoft.ML.Scenarios
                 batchSize: 5,
                 learningRate: 0.01f,
                 earlyStopping: new ImageClassificationEstimator.EarlyStopping(),
-                metricsCallback: (metrics) => { Console.WriteLine(metrics); lastEpoch = metrics.Train != null ? metrics.Train.Epoch : 0; },
+                metricsCallback: metric => { Console.WriteLine(metric); lastEpoch = metric.Train != null ? metric.Train.Epoch : 0; },
                 testOnTrainSet: false,
                 validationSet: testDataset);
 
@@ -1408,7 +1408,7 @@ namespace Microsoft.ML.Scenarios
                 batchSize: 5,
                 learningRate: 0.01f,
                 earlyStopping: new ImageClassificationEstimator.EarlyStopping(metric: ImageClassificationEstimator.EarlyStoppingMetric.Loss),
-                metricsCallback: (metrics) => { Console.WriteLine(metrics); lastEpoch = metrics.Train != null ? metrics.Train.Epoch : 0; },
+                metricsCallback: (metric) => { Console.WriteLine(metric); lastEpoch = metric.Train != null ? metric.Train.Epoch : 0; },
                 testOnTrainSet: false,
                 validationSet: testDataset);
 
