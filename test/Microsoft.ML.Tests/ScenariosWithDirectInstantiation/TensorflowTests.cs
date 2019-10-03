@@ -1258,9 +1258,9 @@ namespace Microsoft.ML.Scenarios
                     batchSize: 10,
                     learningRate: 0.01f,
                     metricsCallback: (metrics) => Console.WriteLine(metrics),
-                	testOnTrainSet: false,
+                    testOnTrainSet: false,
                     validationSet: validationSet,
-                	disableEarlyStopping: true));
+                    disableEarlyStopping: true));
 
             var trainedModel = pipeline.Fit(trainDataset);
 
