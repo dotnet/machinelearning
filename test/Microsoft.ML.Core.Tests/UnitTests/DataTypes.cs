@@ -228,6 +228,26 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(default, dst);
         }
 
+        [Fact]
+        public void DTToDT()
+        {
+            bool identity;
+            var dtToDT = Conversions.Instance.GetStandardConversion<DateTime, DateTime>(
+                DateTimeDataViewType.Instance, DateTimeDataViewType.Instance, out identity);
+
+            Assert.NotNull(dtToDT);
+
+            DateTime dt = new DateTime(2017, 03, 05);
+            DateTime result = default;
+
+            dtToDT(in dt, ref result);
+
+            Assert.True(identity);
+            Assert.Equal(dt, result);
+            Assert.Equal(3, dt.Month);
+            Assert.Equal(dt.Kind, result.Kind);
+        }
+
         private static ValueMapper<TSrc, TDst> GetMapper<TSrc, TDst>(DataViewType dstType)
         {
             Assert.True(typeof(TDst) == dstType.RawType);

@@ -683,7 +683,7 @@ namespace Microsoft.ML.Transforms
             // for each output column
             //   int: id of output column name
             // stream: tensorFlow model.
-            var isFrozen = DnnUtils.IsSavedModel(_env, _modelLocation);
+            var isFrozen = !DnnUtils.IsSavedModel(_env, _modelLocation);
             ctx.Writer.WriteBoolByte(isFrozen);
             ctx.Writer.WriteBoolByte(_addBatchDimensionInput);
 
