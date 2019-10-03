@@ -320,6 +320,7 @@ namespace Microsoft.ML.Data
                     if (bytesRead != srcSpan.Length)
                         srcSpan = readBufferSpan.Slice(0, bytesRead);
                     var dstSpan = bufferSpan.Slice(totalBytesRead, bytesRead);
+                    Contract.Assert(srcSpan.Length == dstSpan.Length);
                     srcSpan.CopyTo(dstSpan);
                     totalBytesRead += bytesRead;
                 }

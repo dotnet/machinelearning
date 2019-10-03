@@ -72,8 +72,8 @@ namespace Samples.Dynamic
                         batchSize: 10,
                         learningRate: 0.01f,
                         metricsCallback: (metrics) => Console.WriteLine(metrics),
-                    	validationSet: validationSet,
-                    	disableEarlyStopping: true));
+                        validationSet: validationSet,
+                        disableEarlyStopping: true));
 
 
                 Console.WriteLine("*** Training the image classification model with " +
