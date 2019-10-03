@@ -345,6 +345,7 @@ namespace Microsoft.ML.Transforms
             float crossentropy = 0;
             for (int epoch = 0; epoch < epochs; epoch += 1)
             {
+                batchIndex = 0;
                 metrics.Train.Accuracy = 0;
                 metrics.Train.CrossEntropy = 0;
                 metrics.Train.BatchProcessedCount = 0;
@@ -420,6 +421,8 @@ namespace Microsoft.ML.Transforms
                             outputTensors[0].Dispose();
                             outputTensors[1].Dispose();
                         }
+
+                        batchIndex = 0;
                     }
 
                     if (options.TestOnTrainSet && statisticsCallback != null)
@@ -433,7 +436,15 @@ namespace Microsoft.ML.Transforms
                 }
 
                 if (validationSet == null)
+                {
+                    //Early stopping check
+                    if (options.EarlyStoppingCriteria != null)
+                    {
+                        if (options.EarlyStoppingCriteria.ShouldStop(metrics.Train))
+                            break;
+                    }
                     continue;
+                }
 
                 batchIndex = 0;
                 metrics.Train.BatchProcessedCount = 0;
@@ -482,6 +493,7 @@ namespace Microsoft.ML.Transforms
                         outputTensors[0].ToScalar<float>(ref accuracy);
                         metrics.Train.Accuracy += accuracy;
                         metrics.Train.BatchProcessedCount += 1;
+                        batchIndex = 0;
 
                         outputTensors[0].Dispose();
                     }
