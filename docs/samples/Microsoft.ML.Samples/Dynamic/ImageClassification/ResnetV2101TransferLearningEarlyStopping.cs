@@ -57,18 +57,23 @@ namespace Samples.Dynamic
 
                 IDataView trainDataset = trainTestData.TrainSet;
                 IDataView testDataset = trainTestData.TestSet;
+                
+                var validationSet = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+                .Fit(testDataset)
+                .Transform(testDataset);
 
-                var pipeline = mlContext.Model.ImageClassification(
-                    "ImagePath", "Label",
-                    // Just by changing/selecting InceptionV3 here instead of 
-                    // ResnetV2101 you can try a different architecture/pre-trained 
-                    // model. 
-                    arch: ImageClassificationEstimator.Architecture.ResnetV2101, 
-                    batchSize: 10,
-                    learningRate: 0.01f,
-                    earlyStopping: new ImageClassificationEstimator.EarlyStopping(minDelta: 0.001f, patience:20, metric:ImageClassificationEstimator.EarlyStoppingMetric.Loss),
-                    metricsCallback: (metrics) => Console.WriteLine(metrics),
-                    validationSet: testDataset);
+                var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+                    .Append(mlContext.Model.ImageClassification(
+                        "Image", "Label",
+                        // Just by changing/selecting InceptionV3 here instead of 
+                        // ResnetV2101 you can try a different architecture/pre-trained 
+                        // model. 
+                        arch: ImageClassificationEstimator.Architecture.ResnetV2101,
+                        batchSize: 10,
+                        learningRate: 0.01f,
+                        earlyStopping: new ImageClassificationEstimator.EarlyStopping(minDelta: 0.001f, patience: 20, metric: ImageClassificationEstimator.EarlyStoppingMetric.Loss),
+                        metricsCallback: (metrics) => Console.WriteLine(metrics),
+                        validationSet: validationSet));
 
 
                 Console.WriteLine("*** Training the image classification model with " +

@@ -8,6 +8,5 @@
   <ItemGroup>
     <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
     <PackageReference Include="System.Drawing.Common" Version="$(SystemDrawingCommonPackageVersion)" />
-  </ItemGroup>
-
+  </ItemGroup>  
 </Project>
