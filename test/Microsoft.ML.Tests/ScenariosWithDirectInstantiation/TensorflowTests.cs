@@ -1295,7 +1295,8 @@ namespace Microsoft.ML.Scenarios
             }
 
             // Testing TrySinglePrediction: Utilizing PredictionEngine for single
-            // predictions.
+            // predictions. Here, two pre-selected images are utilized in testing
+            // the Prediction engine.
             var predictionEngine = mlContext.Model
                 .CreatePredictionEngine<ImageData, ImagePrediction>(loadedModel);
 
@@ -1310,37 +1311,34 @@ namespace Microsoft.ML.Scenarios
                 labels[j] = dir.Name;
             }
 
-            ImageData imageToPredictFirst = new ImageData
+            // Test daisy image
+            ImageData firstImageToPredict = new ImageData
             {
-                ImagePath = testImages.First().ImagePath,
-                Label = testImages.First().Label
+                ImagePath = Path.Join(fullImagesetFolderPath, "daisy", "5794835_d15905c7c8_n.jpg")
             };
 
-            ImageData imageToPredictLast = new ImageData
+            // Test rose image
+            ImageData secondImageToPredict = new ImageData
             {
-                ImagePath = testImages.First().ImagePath,
-                Label = testImages.First().Label
+                ImagePath = Path.Join(fullImagesetFolderPath, "roses", "12240303_80d87f77a3_n.jpg")
             };
 
-            var predictionFirst = predictionEngine.Predict(imageToPredictFirst);
-            var predictionLast = predictionEngine.Predict(imageToPredictLast);
+            var predictionFirst = predictionEngine.Predict(firstImageToPredict);
+            var predictionSecond = predictionEngine.Predict(secondImageToPredict);
 
             var labelColumnFirst = schema.GetColumnOrNull("Label").Value;
             var labelTypeFirst = labelColumnFirst.Type;
             var labelCountFirst = labelTypeFirst.GetKeyCount();
-            var labelColumnLast = schema.GetColumnOrNull("Label").Value;
-            var labelTypeLast = labelColumnLast.Type;
-            var labelCountLast = labelTypeLast.GetKeyCount();
+            var labelColumnSecond = schema.GetColumnOrNull("Label").Value;
+            var labelTypeSecond = labelColumnSecond.Type;
+            var labelCountSecond = labelTypeSecond.GetKeyCount();
 
             Assert.Equal((int)labelCountFirst, predictionFirst.Score.Length);
-            Assert.Equal((int)labelCountLast, predictionLast.Score.Length);
-            Assert.Equal(predictionFirst.PredictedLabel, predictionLast.PredictedLabel);
-            for (int j = 0; j < predictionFirst.Score.Length; j++)
-            {
-                Assert.Equal(predictionFirst.Score[j],predictionLast.Score[j]);
-            }
+            Assert.Equal((int)labelCountSecond, predictionSecond.Score.Length);
+            Assert.Equal("daisy", predictionFirst.PredictedLabel);
+            Assert.Equal("roses", predictionSecond.PredictedLabel);
             Assert.True(Array.IndexOf(labels, predictionFirst.PredictedLabel) > -1);
-            Assert.True(Array.IndexOf(labels, predictionLast.PredictedLabel) > -1);
+            Assert.True(Array.IndexOf(labels, predictionSecond.PredictedLabel) > -1);
         }
 
         [TensorFlowFact]

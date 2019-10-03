@@ -913,6 +913,7 @@ namespace Microsoft.ML.Transforms
                             var outputTensor = _runner.AddInput(processedTensor, 0).Run();
                             outputTensor[0].ToArray<float>(ref _classProbability);
                             outputTensor[1].ToScalar<long>(ref _predictedLabel);
+                            _predictedLabel += 1;
                             outputTensor[0].Dispose();
                             outputTensor[1].Dispose();
                             processedTensor.Dispose();
