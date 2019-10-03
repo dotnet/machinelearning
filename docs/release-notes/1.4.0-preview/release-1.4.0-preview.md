@@ -4,7 +4,7 @@
 - **Deep Neural Networks Training (0.16.0-preview)** ([#4151](https://github.com/dotnet/machinelearning/pull/4151))  
 
   Improves the in-preview `ImageClassification` API further:
-  - Increases DNN training speed by ~10x.
+  - Increases DNN training speed by ~10x compared to the same API in 0.15.1 release.
   - Prevents repeated computations by caching featurized image values to disk from intermediate layers to train the final fully-connected layer.
   - Reduced and constant memory footprint.
   - Simplifies the API by not requiring the user to pre-process the image.
@@ -50,11 +50,19 @@
 
   [Design specification](https://github.com/dotnet/machinelearning/pull/3857) 
   
-  [Sample](https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.Tests/DatabaseLoaderTests.cs)  
+  [Sample](https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started/DatabaseLoader)  
 
   ```cs
-  public static DatabaseLoader CreateDatabaseLoader(this DataOperationsCatalog catalog,
-            params DatabaseLoader.Column[] columns)
+    string connectionString = "YOUR_RELATIONAL_DATABASE_CONNECTION_STRING";
+
+    string commandText = "SELECT * from URLClicks";
+
+    DatabaseLoader loader = mlContext.Data.CreateDatabaseLoader<UrlClick>();
+                
+    DatabaseSource dbSource = new DatabaseSource(SqlClientFactory.Instance, 
+                                                    connectionString, 
+                                                    commandText);         
+    IDataView dataView = loader.Load(dbSource);
   ```
 
 - **Enhanced .NET Core 3.0 Support**
