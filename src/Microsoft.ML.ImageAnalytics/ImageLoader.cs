@@ -135,7 +135,7 @@ namespace Microsoft.ML.Data
             // int: id of image folder
 
             ImageFolder = ctx.LoadStringOrNull();
-           if (ctx.Header.ModelVerReadable >= 0x00010003) // do a version check
+           if (ctx.Header.ModelVerWritten >= 0x00010003) // do a version check
                 UseImageType = ctx.Reader.ReadBoolean();
             else
                 UseImageType = true; // It is an ImageDataViewType
