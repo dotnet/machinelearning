@@ -39,7 +39,12 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="$(MicrosoftMLOnnxTestModelsVersion)" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(OS)' == 'Windows_NT'">
     <PackageReference Include="SciSharp.TensorFlow.Redist-Windows-GPU" Version="$(TensorFlowVersion)" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(OS)' == 'Unix'">
+    <PackageReference Include="SciSharp.TensorFlow.Redist-Linux-GPU" Version="$(TensorFlowVersion)" />
   </ItemGroup>
 
     <ItemGroup>
