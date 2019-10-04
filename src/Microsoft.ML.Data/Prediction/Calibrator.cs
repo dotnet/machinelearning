@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
@@ -561,12 +562,48 @@ namespace Microsoft.ML.Calibrators
             _featureWeights = SubModel as IPredictorWithFeatureWeights<float>;
         }
 
-        internal static CalibratedModelParametersBase Create(IHostEnvironment env, ModelLoadContext ctx)
+        private ParameterMixingCalibratedModelParameters(IHostEnvironment env, ModelLoadContext ctx, TSubModel predictor, TCalibrator calibrator)
+            : base(env, ParameterMixingCalibratedModelParameters.RegistrationName, predictor, calibrator)
+        {
+            Host.Check(SubModel is IParameterMixer<float>, "Predictor does not implement " + nameof(IParameterMixer));
+            Host.Check(SubModel is IPredictorWithFeatureWeights<float>, "Predictor does not implement " + nameof(IPredictorWithFeatureWeights<float>));
+            _featureWeights = SubModel as IPredictorWithFeatureWeights<float>;
+        }
+
+        //private static CalibratedModelParametersBase Create(IHostEnvironment env, ModelLoadContext ctx)
+        //{
+        //    Contracts.CheckValue(env, nameof(env));
+        //    env.CheckValue(ctx, nameof(ctx));
+        //    ctx.CheckAtModel(GetVersionInfo());
+        //    return new ParameterMixingCalibratedModelParameters<TSubModel, TCalibrator>(env, ctx);
+        //}
+
+        internal static object Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new ParameterMixingCalibratedModelParameters<TSubModel, TCalibrator>(env, ctx);
+            var predictor = GetPredictor(env, ctx);
+            var calibrator = GetCalibrator(env, ctx);
+
+            Type generic = typeof(ParameterMixingCalibratedModelParameters<,>);
+            Type[] genericTypeArgs = { predictor.GetType(), calibrator.GetType() };
+            Type constructed = generic.MakeGenericType(genericTypeArgs);
+
+            Type[] constructorArgs = {
+                typeof(IHostEnvironment),
+                typeof(ModelLoadContext),
+                predictor.GetType(),
+                calibrator.GetType()
+            };
+
+            var genericCtor = constructed.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, constructorArgs, null);
+            object genericInstance = genericCtor.Invoke(new object[] { env, ctx, predictor, calibrator });
+
+            // var createHelperMethod = constructed.GetMethod("CreateHelper", BindingFlags.NonPublic | BindingFlags.Static);
+            // object castedInstance = createHelperMethod.Invoke(null, new object[] { genericInstance });
+
+            return genericInstance;
         }
 
         void ICanSaveModel.Save(ModelSaveContext ctx)
@@ -611,7 +648,7 @@ namespace Microsoft.ML.Calibrators
 
         public static CalibratedModelParametersBase Create(IHostEnvironment env, ModelLoadContext ctx)
         {
-            return ParameterMixingCalibratedModelParameters<IPredictorProducing<float>, ICalibrator>.Create(env, ctx);
+            return (CalibratedModelParametersBase) ParameterMixingCalibratedModelParameters<IPredictorProducing<float>, ICalibrator>.Create(env, ctx);
         }
     }
 
