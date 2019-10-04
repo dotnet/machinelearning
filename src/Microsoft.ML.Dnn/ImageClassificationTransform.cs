@@ -277,6 +277,7 @@ namespace Microsoft.ML.Transforms
                     imageGetter(ref image);
                     if (image.Length <= 0)
                         continue; //Empty Image
+
                     var imageTensor = imageProcessor.ProcessImage(image);
                     runner.AddInput(imageTensor, 0);
                     var featurizedImage = runner.Run()[0]; // Reuse memory

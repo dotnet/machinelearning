@@ -332,8 +332,9 @@ namespace Microsoft.ML.Data
                 }
                 finally
                 {
-                    bufferPool.Return(readBuffer);
+
                     // don't use the reference to the buffer after returning it!
+                    bufferPool.Return(readBuffer);
                 }
 
                 return totalBytesRead;
