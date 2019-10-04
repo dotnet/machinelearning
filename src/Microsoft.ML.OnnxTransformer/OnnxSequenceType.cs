@@ -56,9 +56,10 @@ namespace Microsoft.ML.Transforms.Onnx
     {
         private Type _elemType;
 
-        /// <summary>
-        /// Create a sequence type.
-        /// </summary>
+        // Make default constructor obsolete.
+        // Use default constructor will left the _elemType field empty and cause exception in methods using _elemType.
+        // User will receive compile error when try to use [OnnxSequenceType] attribute directly without specify sequence type
+        [Obsolete("Please specify sequence type when use OnnxSequenceType Attribute", true)]
         public OnnxSequenceTypeAttribute()
         {
         }
