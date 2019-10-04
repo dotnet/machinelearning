@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Transforms.Onnx
@@ -58,8 +59,9 @@ namespace Microsoft.ML.Transforms.Onnx
 
         // Make default constructor obsolete.
         // Use default constructor will left the _elemType field empty and cause exception in methods using _elemType.
-        // User will receive compile error when try to use [OnnxSequenceType] attribute directly without specify sequence type
-        [Obsolete("Please specify sequence type when use OnnxSequenceType Attribute", true)]
+        // User will receive compile warning when try to use [OnnxSequenceType] attribute directly without specify sequence type
+        [Obsolete("Please specify sequence type when use OnnxSequenceType Attribute", false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public OnnxSequenceTypeAttribute()
         {
         }
