@@ -187,7 +187,8 @@ namespace Microsoft.ML.Transforms
             if (_session.graph.OperationByName(_labelTensor.name.Split(':')[0]) == null)
                 throw Host.ExceptParam(nameof(options.TensorFlowLabel), $"'{options.TensorFlowLabel}' does not exist in the model");
             if (options.EarlyStoppingCriteria != null && options.ValidationSet == null && options.TestOnTrainSet == false)
-                throw Host.ExceptParam(nameof(options.EarlyStoppingCriteria), $"No Validation dataset provided and testing on Train disabled, Early Stopping not supported.");
+                throw Host.ExceptParam(nameof(options.EarlyStoppingCriteria), $"Early stopping enabled but unable to find a validation" +
+                    $" set and/or train set testing disabled. Please disable early stopping or either provide a validation set or enable train set training.");
         }
 
         private (Tensor, Tensor) AddJpegDecoding(int height, int width, int depth)
@@ -439,7 +440,7 @@ namespace Microsoft.ML.Transforms
                     if (batchIndex > 0)
                     {
                         featureTensorShape[0] = batchIndex;
-                        featureBatchSizeInBytes = sizeof(float) * featureBatch.Length * batchIndex / batchSize;
+                        featureBatchSizeInBytes = sizeof(float) * featureLength * batchIndex;
                         labelTensorShape[0] = batchIndex;
                         labelBatchSizeInBytes = sizeof(long) * batchIndex;
                         runner.AddInput(new Tensor(featureBatchPtr, featureTensorShape, TF_DataType.TF_FLOAT, featureBatchSizeInBytes), 0)
@@ -532,7 +533,7 @@ namespace Microsoft.ML.Transforms
                     if(batchIndex > 0)
                     {
                         featureTensorShape[0] = batchIndex;
-                        featureBatchSizeInBytes = sizeof(float) * featureBatch.Length * batchIndex / batchSize;
+                        featureBatchSizeInBytes = sizeof(float) * featureLength * batchIndex;
                         labelTensorShape[0] = batchIndex;
                         labelBatchSizeInBytes = sizeof(long) * batchIndex;
                         var outputTensors = validationEvalRunner
