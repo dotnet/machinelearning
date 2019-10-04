@@ -66,9 +66,9 @@ using Newtonsoft.Json.Linq;
     "Feature Weights Calibrated Predictor Executor",
     FeatureWeightsCalibratedModelParameters<IPredictorWithFeatureWeights<float>, ICalibrator>.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(CalibratedModelParametersBase), typeof(ParameterMixingCalibratedModelParameters<IPredictorProducing<float>, ICalibrator>), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(CalibratedModelParametersBase), typeof(ParameterMixingCalibratedModelParameters), null, typeof(SignatureLoadModel),
     "Parameter Mixing Calibrated Predictor Executor",
-    ParameterMixingCalibratedModelParameters<IPredictorWithFeatureWeights<float>, ICalibrator>.LoaderSignature)]
+    ParameterMixingCalibratedModelParameters.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(CalibratedModelParametersBase), typeof(SchemaBindableCalibratedModelParameters<IPredictorProducing<float>, ICalibrator>), null, typeof(SignatureLoadModel),
     "Schema Bindable Calibrated Predictor", SchemaBindableCalibratedModelParameters<IPredictorProducing<float>, ICalibrator>.LoaderSignature)]
@@ -561,7 +561,7 @@ namespace Microsoft.ML.Calibrators
             _featureWeights = SubModel as IPredictorWithFeatureWeights<float>;
         }
 
-        private static CalibratedModelParametersBase Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static CalibratedModelParametersBase Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -601,6 +601,17 @@ namespace Microsoft.ML.Calibrators
             var combinedPredictor = predictors[0].CombineParameters(predictors);
             var combinedCalibrator = calibrators[0].CombineParameters(calibrators);
             return new ParameterMixingCalibratedModelParameters<TSubModel, TCalibrator>(Host, (TSubModel)combinedPredictor, (TCalibrator)combinedCalibrator);
+        }
+    }
+
+    internal static class ParameterMixingCalibratedModelParameters
+    {
+        internal const string LoaderSignature = "PMixCaliPredExec";
+        internal const string RegistrationName = "ParameterMixingCalibratedPredictor";
+
+        public static CalibratedModelParametersBase Create(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            return ParameterMixingCalibratedModelParameters<IPredictorProducing<float>, ICalibrator>.Create(env, ctx);
         }
     }
 
