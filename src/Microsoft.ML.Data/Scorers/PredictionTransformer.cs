@@ -773,7 +773,7 @@ namespace Microsoft.ML.Data
         internal static Type GetLoadType(Type modelType)
         {
             var y = modelType.GetField("LoadType", BindingFlags.NonPublic | BindingFlags.Static);
-            var x = (Type) y.GetValue(null);
+            var x = (Type) y?.GetValue(null);
             return x;
         }
     }
