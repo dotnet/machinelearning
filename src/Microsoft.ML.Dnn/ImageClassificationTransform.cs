@@ -1028,7 +1028,8 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Callback that returns DNN statistics during training phase.
+        /// Callback that returns DNN statistics during bottlenack phase and training phase.
+        /// Train metrics may be null when bottleneck phase is running, so have check!
         /// </summary>
         public delegate void ImageClassificationMetricsCallback(ImageClassificationMetrics metrics);
 
@@ -1210,7 +1211,8 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Metrics for image classification training.
+        /// Metrics for image classification bottlenect phase and training.
+        /// Train metrics may be null when bottleneck phase is running, so have check!
         /// </summary>
         public sealed class ImageClassificationMetrics
         {
