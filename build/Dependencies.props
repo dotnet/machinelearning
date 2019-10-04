@@ -3,6 +3,7 @@
   <!-- Core Product Dependencies -->
   <PropertyGroup>
     <NewtonsoftJsonPackageVersion>10.0.3</NewtonsoftJsonPackageVersion>
+    <SystemBuffersVersion>4.4.0</SystemBuffersVersion>
     <SystemCodeDomPackageVersion>4.4.0</SystemCodeDomPackageVersion>
     <SystemCollectionsImmutableVersion>1.5.0</SystemCollectionsImmutableVersion>
     <SystemMemoryVersion>4.5.1</SystemMemoryVersion>
