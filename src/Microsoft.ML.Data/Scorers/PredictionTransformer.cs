@@ -734,7 +734,7 @@ namespace Microsoft.ML.Data
         {
             // Create generic type of the prediction transformer using the correct TModel.
             // Return an instance of that type, passing the previously loaded model to the constructor
-            Type[] genericTypeArgs = { model.GetType() };
+            Type[] genericTypeArgs = { GetLoadType(model.GetType()) ?? model.GetType() };
             Type constructed = generic.MakeGenericType(genericTypeArgs);
 
             Type[] constructorArgs = {
@@ -768,6 +768,13 @@ namespace Microsoft.ML.Data
             var genericInstance = genericCtor.Invoke(new object[] { env, ctx, host, model });
 
             return genericInstance;
+        }
+
+        internal static Type GetLoadType(Type modelType)
+        {
+            var y = modelType.GetField("LoadType", BindingFlags.NonPublic | BindingFlags.Static);
+            var x = (Type) y.GetValue(null);
+            return x;
         }
     }
 

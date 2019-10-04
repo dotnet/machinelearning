@@ -542,6 +542,7 @@ namespace Microsoft.ML.Calibrators
 
         internal const string LoaderSignature = "PMixCaliPredExec";
         internal const string RegistrationName = "ParameterMixingCalibratedPredictor";
+        internal static readonly Type LoadType = typeof(CalibratedModelParametersBase<TSubModel, TCalibrator>);
 
         private static VersionInfo GetVersionInfo()
         {

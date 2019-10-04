@@ -32,6 +32,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
 
             // Create and save model
             var model0 = pipeline.Fit(data);
+            var lt = model0.LastTransformer;
             var modelPath = "./model.zip";
             mlContext.Model.Save(model0, data.Schema, modelPath);
 
@@ -43,10 +44,12 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
 
             // WORKAROUND
             // This is how to extract the linear predictor for PFI and the objects inside of it for any other use:
-            var linearPredictor = (model as TransformerChain<ITransformer>).LastTransformer as ISingleFeaturePredictionTransformer<object>;
-            var predictorModel = linearPredictor.Model as CalibratedModelParametersBase;
-            var predictorSubModel = predictorModel.SubModel as LinearBinaryModelParameters;
+            //var linearPredictor = (model as TransformerChain<ITransformer>).LastTransformer as ISingleFeaturePredictionTransformer<object>;
+            //var predictorModel = linearPredictor.Model as CalibratedModelParametersBase;
+            //var predictorSubModel = predictorModel.SubModel as LinearBinaryModelParameters;
 
+            var linearPredictor = (model as TransformerChain<ITransformer>).LastTransformer as BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>;
+            var predictorSubModel = linearPredictor.Model.SubModel;
 
             // Execute PFI with the linearPredictor
             var permutationMetrics = mlContext.BinaryClassification
