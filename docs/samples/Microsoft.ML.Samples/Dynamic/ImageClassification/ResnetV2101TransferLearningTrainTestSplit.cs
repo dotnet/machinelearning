@@ -2,15 +2,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ML;
+using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 using static Microsoft.ML.DataOperationsCatalog;
-using System.Linq;
-using Microsoft.ML.Data;
-using System.IO.Compression;
-using System.Threading;
-using System.Net;
 
 namespace Samples.Dynamic
 {
@@ -131,9 +131,6 @@ namespace Samples.Dynamic
             IEnumerable<ImageData> testImages = LoadImagesFromDirectory(
                 imagesForPredictions, false);
 
-            byte[] imgBytes = File.ReadAllBytes(testImages.First().ImagePath);
-            VBuffer<Byte> imgData = new VBuffer<byte>(imgBytes.Length, imgBytes);
-
             ImageData imageToPredict = new ImageData
             {
                 ImagePath = testImages.First().ImagePath
@@ -169,7 +166,7 @@ namespace Samples.Dynamic
             Console.WriteLine("Predicting and Evaluation took: " +
                 (elapsed2Ms / 1000).ToString() + " seconds");
         }
-        
+
         public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,
             bool useFolderNameAsLabel = true)
         {
@@ -194,7 +191,7 @@ namespace Samples.Dynamic
                         }
                     }
                 }
-                
+
                 yield return new ImageData()
                 {
                     ImagePath = file,
