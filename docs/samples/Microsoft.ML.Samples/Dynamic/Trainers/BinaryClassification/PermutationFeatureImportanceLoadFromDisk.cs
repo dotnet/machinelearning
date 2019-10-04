@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Based on the original sample of using PFI with Binary prediction:
+// https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/PermutationFeatureImportance.cs
+// Presenting in here a workaround to make it work with a model loaded from disk
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
@@ -12,19 +16,12 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
     {
         public static void Example()
         {
-            // Create a new context for ML.NET operations. It can be used for
-            // exception tracking and logging, as a catalog of available operations
-            // and as the source of randomness.
+
             var mlContext = new MLContext(seed: 1);
-
-            // Create sample data.
             var samples = GenerateData();
-
-            // Load the sample data as an IDataView.
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
-            // Define a training pipeline that concatenates features into a vector,
-            // normalizes them, and then trains a linear model.
+            // Create pipeline
             var featureColumns =
                 new string[] { nameof(Data.Feature1), nameof(Data.Feature2) };
             var pipeline = mlContext.Transforms
@@ -33,38 +30,30 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
                 .Append(mlContext.BinaryClassification.Trainers.SdcaLogisticRegression()
                 );
 
-            // Fit the pipeline to the data.
+            // Create and save model
             var model0 = pipeline.Fit(data);
-            var lp = model0.LastTransformer;
-
             var modelPath = "./model.zip";
             mlContext.Model.Save(model0, data.Schema, modelPath);
 
+            // Load model
             var model = mlContext.Model.Load(modelPath, out var schema);
 
             // Transform the dataset.
             var transformedData = model.Transform(data);
 
-            // What we got originally: BinaryPredictionTransformer<IPredictorProducing<float>>
-            // What we get after the fix to BPTransformer: BinaryPredictionTransformer<ParameterMixingCalibratedModelParameters<IPredictorProducing<float>, ICalibrator>
-            // What we get after the fix to ParameterMixingCalibrated... : BinaryPredictionTransformer<ParameterMixingCalibratedModelParameters<LinearBinaryModelParameters, PlattCalibrator>
-            // What we should be getting: BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
-
-            //var linearPredictor = (model as TransformerChain<ITransformer>).LastTransformer as BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>;
+            // WORKAROUND
+            // This is how to extract the linear predictor for PFI and the objects inside of it for any other use:
             var linearPredictor = (model as TransformerChain<ITransformer>).LastTransformer as ISingleFeaturePredictionTransformer<object>;
             var predictorModel = linearPredictor.Model as CalibratedModelParametersBase;
             var predictorSubModel = predictorModel.SubModel as LinearBinaryModelParameters;
 
-            // var linearPredictor = model.LastTransformer;
 
-            // Compute the permutation metrics for the linear model using the
-            // normalized data.
+            // Execute PFI with the linearPredictor
             var permutationMetrics = mlContext.BinaryClassification
                 .PermutationFeatureImportance(linearPredictor, transformedData,
                 permutationCount: 30);
 
-            // Now let's look at which features are most important to the model
-            // overall. Get the feature indices sorted by their impact on AUC.
+            // Sort indices according to PFI results
             var sortedIndices = permutationMetrics
                 .Select((metrics, index) => new { index, metrics.AreaUnderRocCurve })
                 .OrderByDescending(
@@ -78,7 +67,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             {
                 Console.WriteLine("{0}\t{1:0.00}\t{2:G4}\t{3:G4}",
                     featureColumns[i],
-                    predictorSubModel.Weights[i],
+                    predictorSubModel.Weights[i], // this way we can access the weights inside the submodel
                     auc[i].Mean,
                     1.96 * auc[i].StandardError);
             }
@@ -98,20 +87,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             public float Feature2 { get; set; }
         }
 
-        /// <summary>
-        /// Generate an enumerable of Data objects, creating the label as a simple
-        /// linear combination of the features.
-        /// </summary>
-        /// <param name="nExamples">The number of examples.</param>
-        /// <param name="bias">The bias, or offset, in the calculation of the label.
-        /// </param>
-        /// <param name="weight1">The weight to multiply the first feature with to
-        /// compute the label.</param>
-        /// <param name="weight2">The weight to multiply the second feature with to
-        /// compute the label.</param>
-        /// <param name="seed">The seed for generating feature values and label
-        /// noise.</param>
-        /// <returns>An enumerable of Data objects.</returns>
+        /// Generate Data
         private static IEnumerable<Data> GenerateData(int nExamples = 10000,
             double bias = 0, double weight1 = 1, double weight2 = 2, int seed = 1)
         {
