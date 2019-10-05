@@ -41,44 +41,62 @@ namespace Microsoft.ML.Transforms
 #if _REGEN
                     %foreach supported_numericals_TF_DataType,supported_numericals,supported_numericals_lowercase%
                     case TF_DataType.#1:
-                        dst = Converts.ChangeType<T>(*(#3*) tensor.buffer, NPTypeCode.#2);
+                        dst = Converts.ChangeType<T>(*(#3*) tensor.buffer, InfoOf<T>.NPTypeCode);
                         return;
                     %
 #else
 
                     case TF_DataType.TF_BOOL:
-                        dst = Converts.ChangeType<T>(*(bool*) tensor.buffer, NPTypeCode.Boolean);
+                        dst = Converts.ChangeType<T>(*(bool*) tensor.buffer, InfoOf<T>.NPTypeCode);
                         return;
                     case TF_DataType.TF_UINT8:
-                        dst = Converts.ChangeType<T>(*(byte*) tensor.buffer, NPTypeCode.Byte);
+                        dst = Converts.ChangeType<T>(*(byte*) tensor.buffer, InfoOf<T>.NPTypeCode);
                         return;
                     case TF_DataType.TF_INT16:
-                        dst = Converts.ChangeType<T>(*(short*) tensor.buffer, NPTypeCode.Int16);
+                        dst = Converts.ChangeType<T>(*(short*) tensor.buffer, InfoOf<T>.NPTypeCode);
                         return;
                     case TF_DataType.TF_UINT16:
-                        dst = Converts.ChangeType<T>(*(ushort*) tensor.buffer, NPTypeCode.UInt16);
+                        dst = Converts.ChangeType<T>(*(ushort*) tensor.buffer, InfoOf<T>.NPTypeCode);
                         return;
                     case TF_DataType.TF_INT32:
-                        dst = Converts.ChangeType<T>(*(int*) tensor.buffer, NPTypeCode.Int32);
+                        dst = Converts.ChangeType<T>(*(int*) tensor.buffer, InfoOf<T>.NPTypeCode);
                         return;
                     case TF_DataType.TF_UINT32:
-                        dst = Converts.ChangeType<T>(*(uint*) tensor.buffer, NPTypeCode.UInt32);
+                        dst = Converts.ChangeType<T>(*(uint*) tensor.buffer, InfoOf<T>.NPTypeCode);
                         return;
                     case TF_DataType.TF_INT64:
-                        dst = Converts.ChangeType<T>(*(long*) tensor.buffer, NPTypeCode.Int64);
+                        dst = Converts.ChangeType<T>(*(long*) tensor.buffer, InfoOf<T>.NPTypeCode);
                         return;
                     case TF_DataType.TF_UINT64:
-                        dst = Converts.ChangeType<T>(*(ulong*) tensor.buffer, NPTypeCode.UInt64);
+                        dst = Converts.ChangeType<T>(*(ulong*) tensor.buffer, InfoOf<T>.NPTypeCode);
                         return;
                     case TF_DataType.TF_DOUBLE:
-                        dst = Converts.ChangeType<T>(*(double*) tensor.buffer, NPTypeCode.Double);
+                        dst = Converts.ChangeType<T>(*(double*) tensor.buffer, InfoOf<T>.NPTypeCode);
                         return;
                     case TF_DataType.TF_FLOAT:
-                        dst = Converts.ChangeType<T>(*(float*) tensor.buffer, NPTypeCode.Single);
+                        dst = Converts.ChangeType<T>(*(float*) tensor.buffer, InfoOf<T>.NPTypeCode);
                         return;
 #endif
                     case TF_DataType.TF_STRING:
-                        dst = Converts.ChangeType<T>(tensor.StringData()[0], NPTypeCode.String);
+                        if (tensor.NDims != 0)
+                            throw new ArgumentException($"{nameof(tensor)} can only be scalar.");
+
+                        IntPtr stringStartAddress = IntPtr.Zero;
+                        UIntPtr dstLen = UIntPtr.Zero;
+
+                        using (var status = new Status())
+                        {
+                            c_api.TF_StringDecode((byte*) tensor.buffer + 8, (UIntPtr) (tensor.bytesize), (byte**) &stringStartAddress, &dstLen, status);
+                            status.Check(true);
+                        }
+
+                        var dstLenInt = checked((int) dstLen);
+                        var value = Encoding.UTF8.GetString((byte*) stringStartAddress, dstLenInt);
+                        if (typeof(T) == typeof(string))
+                            dst = (T) (object) value;
+                        else
+                            dst = Converts.ChangeType<T>(value, InfoOf<T>.NPTypeCode);
+
                         return;
                     case TF_DataType.TF_COMPLEX64:
                     case TF_DataType.TF_COMPLEX128:
@@ -107,9 +125,8 @@ namespace Microsoft.ML.Transforms
                     throw new ArgumentException("Destinion was too short to perform CopyTo.");
 
                 //Perform cast to type <T>.
-                fixed (T* dst_ = destination)
+                fixed (T* dst = destination)
                 {
-                    var dst = dst_;
                     switch (tensor.dtype)
                     {
 #if _REGEN
@@ -210,82 +227,94 @@ namespace Microsoft.ML.Transforms
                             var src = tensor.StringData();
                             var culture = CultureInfo.InvariantCulture;
 
-                            switch (typeof(T).as_dtype())
-                            {
+                            //pin to prevent GC from moving the span around.
+                            fixed (T* _ = destination)
+                                switch (typeof(T).as_dtype())
+                                {
 #if _REGEN
-                            %foreach supported_numericals_TF_DataType,supported_numericals,supported_numericals_lowercase%
-                            case TF_DataType.#1: {
-                                var sdst = (#3*)Unsafe.AsPointer(ref destination.GetPinnableReference());
-                                for (var i = 0; i < len; i++)
-                                    *(sdst + i) = ((IConvertible)src[i]).To#2(culture);
-                                return;
-                            }
-                            %
+                                    %foreach supported_numericals_TF_DataType,supported_numericals,supported_numericals_lowercase%
+                                    case TF_DataType.#1: {
+                                        var sdst = (#3*)Unsafe.AsPointer(ref destination.GetPinnableReference());
+                                        for (var i = 0; i < len; i++)
+                                            *(sdst + i) = ((IConvertible)src[i]).To#2(culture);
+                                        return;
+                                    }
+                                    %
 #else
-                            case TF_DataType.TF_BOOL: {
-                                var sdst = (bool*)Unsafe.AsPointer(ref destination.GetPinnableReference());
-                                for (var i = 0; i < len; i++)
-                                    *(sdst + i) = ((IConvertible)src[i]).ToBoolean(culture);
-                                return;
-                            }
-                            case TF_DataType.TF_UINT8: {
-                                var sdst = (byte*)Unsafe.AsPointer(ref destination.GetPinnableReference());
-                                for (var i = 0; i < len; i++)
-                                    *(sdst + i) = ((IConvertible)src[i]).ToByte(culture);
-                                return;
-                            }
-                            case TF_DataType.TF_INT16: {
-                                var sdst = (short*)Unsafe.AsPointer(ref destination.GetPinnableReference());
-                                for (var i = 0; i < len; i++)
-                                    *(sdst + i) = ((IConvertible)src[i]).ToInt16(culture);
-                                return;
-                            }
-                            case TF_DataType.TF_UINT16: {
-                                var sdst = (ushort*)Unsafe.AsPointer(ref destination.GetPinnableReference());
-                                for (var i = 0; i < len; i++)
-                                    *(sdst + i) = ((IConvertible)src[i]).ToUInt16(culture);
-                                return;
-                            }
-                            case TF_DataType.TF_INT32: {
-                                var sdst = (int*)Unsafe.AsPointer(ref destination.GetPinnableReference());
-                                for (var i = 0; i < len; i++)
-                                    *(sdst + i) = ((IConvertible)src[i]).ToInt32(culture);
-                                return;
-                            }
-                            case TF_DataType.TF_UINT32: {
-                                var sdst = (uint*)Unsafe.AsPointer(ref destination.GetPinnableReference());
-                                for (var i = 0; i < len; i++)
-                                    *(sdst + i) = ((IConvertible)src[i]).ToUInt32(culture);
-                                return;
-                            }
-                            case TF_DataType.TF_INT64: {
-                                var sdst = (long*)Unsafe.AsPointer(ref destination.GetPinnableReference());
-                                for (var i = 0; i < len; i++)
-                                    *(sdst + i) = ((IConvertible)src[i]).ToInt64(culture);
-                                return;
-                            }
-                            case TF_DataType.TF_UINT64: {
-                                var sdst = (ulong*)Unsafe.AsPointer(ref destination.GetPinnableReference());
-                                for (var i = 0; i < len; i++)
-                                    *(sdst + i) = ((IConvertible)src[i]).ToUInt64(culture);
-                                return;
-                            }
-                            case TF_DataType.TF_DOUBLE: {
-                                var sdst = (double*)Unsafe.AsPointer(ref destination.GetPinnableReference());
-                                for (var i = 0; i < len; i++)
-                                    *(sdst + i) = ((IConvertible)src[i]).ToDouble(culture);
-                                return;
-                            }
-                            case TF_DataType.TF_FLOAT: {
-                                var sdst = (float*)Unsafe.AsPointer(ref destination.GetPinnableReference());
-                                for (var i = 0; i < len; i++)
-                                    *(sdst + i) = ((IConvertible)src[i]).ToSingle(culture);
-                                return;
-                            }
+                                    case TF_DataType.TF_BOOL:
+                                    {
+                                        var sdst = (bool*) Unsafe.AsPointer(ref destination.GetPinnableReference());
+                                        for (var i = 0; i < len; i++)
+                                            *(sdst + i) = ((IConvertible) src[i]).ToBoolean(culture);
+                                        return;
+                                    }
+                                    case TF_DataType.TF_UINT8:
+                                    {
+                                        var sdst = (byte*) Unsafe.AsPointer(ref destination.GetPinnableReference());
+                                        for (var i = 0; i < len; i++)
+                                            *(sdst + i) = ((IConvertible) src[i]).ToByte(culture);
+                                        return;
+                                    }
+                                    case TF_DataType.TF_INT16:
+                                    {
+                                        var sdst = (short*) Unsafe.AsPointer(ref destination.GetPinnableReference());
+                                        for (var i = 0; i < len; i++)
+                                            *(sdst + i) = ((IConvertible) src[i]).ToInt16(culture);
+                                        return;
+                                    }
+                                    case TF_DataType.TF_UINT16:
+                                    {
+                                        var sdst = (ushort*) Unsafe.AsPointer(ref destination.GetPinnableReference());
+                                        for (var i = 0; i < len; i++)
+                                            *(sdst + i) = ((IConvertible) src[i]).ToUInt16(culture);
+                                        return;
+                                    }
+                                    case TF_DataType.TF_INT32:
+                                    {
+                                        var sdst = (int*) Unsafe.AsPointer(ref destination.GetPinnableReference());
+                                        for (var i = 0; i < len; i++)
+                                            *(sdst + i) = ((IConvertible) src[i]).ToInt32(culture);
+                                        return;
+                                    }
+                                    case TF_DataType.TF_UINT32:
+                                    {
+                                        var sdst = (uint*) Unsafe.AsPointer(ref destination.GetPinnableReference());
+                                        for (var i = 0; i < len; i++)
+                                            *(sdst + i) = ((IConvertible) src[i]).ToUInt32(culture);
+                                        return;
+                                    }
+                                    case TF_DataType.TF_INT64:
+                                    {
+                                        var sdst = (long*) Unsafe.AsPointer(ref destination.GetPinnableReference());
+                                        for (var i = 0; i < len; i++)
+                                            *(sdst + i) = ((IConvertible) src[i]).ToInt64(culture);
+                                        return;
+                                    }
+                                    case TF_DataType.TF_UINT64:
+                                    {
+                                        var sdst = (ulong*) Unsafe.AsPointer(ref destination.GetPinnableReference());
+                                        for (var i = 0; i < len; i++)
+                                            *(sdst + i) = ((IConvertible) src[i]).ToUInt64(culture);
+                                        return;
+                                    }
+                                    case TF_DataType.TF_DOUBLE:
+                                    {
+                                        var sdst = (double*) Unsafe.AsPointer(ref destination.GetPinnableReference());
+                                        for (var i = 0; i < len; i++)
+                                            *(sdst + i) = ((IConvertible) src[i]).ToDouble(culture);
+                                        return;
+                                    }
+                                    case TF_DataType.TF_FLOAT:
+                                    {
+                                        var sdst = (float*) Unsafe.AsPointer(ref destination.GetPinnableReference());
+                                        for (var i = 0; i < len; i++)
+                                            *(sdst + i) = ((IConvertible) src[i]).ToSingle(culture);
+                                        return;
+                                    }
 #endif
-                                default:
-                                    throw new NotSupportedException();
-                            }
+                                    default:
+                                        throw new NotSupportedException();
+                                }
                         }
                         case TF_DataType.TF_COMPLEX64:
                         case TF_DataType.TF_COMPLEX128:
