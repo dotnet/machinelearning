@@ -22,7 +22,7 @@ namespace Microsoft.ML.Trainers
     /// Base class for linear model parameters.
     /// </summary>
     public abstract class EncryptedLinearModelParameters : ModelParametersBase<float>,
-        //IValueMapper,
+        IValueMapperEncrypted,
         ICanSaveInIniFormat,
         ICanSaveInTextFormat,
         ICanSaveInSourceCode,
@@ -315,7 +315,6 @@ namespace Microsoft.ML.Trainers
             }
         }
 
-        /*
         DataViewType IValueMapper.InputType
         {
             get { return _inputType; }
@@ -323,24 +322,22 @@ namespace Microsoft.ML.Trainers
 
         DataViewType IValueMapper.OutputType
         {
-            get { return NumberDataViewType.Single; }
+            get { return CiphertextDataViewType.Instance; }
         }
 
-        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
+        ValueMapperEncrypted<TIn, TKey, TOut> IValueMapperEncrypted.GetMapper<TIn, TKey, TOut>()
         {
-            Contracts.Check(typeof(TIn) == typeof(Tuple<Ciphertext[], GaloisKeys>));
-            Contracts.Check(typeof(TOut) == typeof(float));
+            Contracts.Check(typeof(TIn) == typeof(VBuffer<Ciphertext>));
+            Contracts.Check(typeof(TKey) == typeof(GaloisKeys));
+            Contracts.Check(typeof(TOut) == typeof(Ciphertext));
 
-            ValueMapper<Tuple<Ciphertext[], GaloisKeys>, float> del =
-                (in Tuple<Ciphertext[], GaloisKeys> src, ref float dst) =>
+            ValueMapperEncrypted<VBuffer<Ciphertext>, GaloisKeys, Ciphertext> del =
+                (in VBuffer<Ciphertext> src, in GaloisKeys key, ref Ciphertext dst) =>
                 {
-                    if (src.Length != Weight.Length)
-                        throw Contracts.Except("Input is of length {0}, but predictor expected length {1}", src.Length, Weight.Length);
-                    dst = Score(in src);
+                    dst = Score(in src, in key);
                 };
-            return (ValueMapper<TIn, TOut>)(Delegate)del;
+            return (ValueMapperEncrypted<TIn, TKey, TOut>)(Delegate)del;
         }
-        */
 
         /// <summary>
         /// Combine a bunch of models into one by averaging parameters
@@ -431,6 +428,11 @@ namespace Microsoft.ML.Trainers
                     GetFeatureContributions(in src, ref dstContributions, top, bottom, normalize);
                 };
             return (ValueMapper<TSrc, VBuffer<float>>)(Delegate)del;
+        }
+
+        ValueMapper<TSrc, TDst> IValueMapper.GetMapper<TSrc, TDst>()
+        {
+            throw new NotImplementedException();
         }
     }
 
