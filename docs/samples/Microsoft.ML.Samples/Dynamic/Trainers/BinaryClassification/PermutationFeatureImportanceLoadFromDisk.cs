@@ -1,8 +1,4 @@
-﻿// Based on the original sample of using PFI with Binary prediction:
-// https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/PermutationFeatureImportance.cs
-// Presenting in here a workaround to make it work with a model loaded from disk
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
@@ -42,14 +38,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             // Transform the dataset.
             var transformedData = model.Transform(data);
 
-            // WORKAROUND
-            // This is how to extract the linear predictor for PFI and the objects inside of it for any other use:
-            //var linearPredictor = (model as TransformerChain<ITransformer>).LastTransformer as ISingleFeaturePredictionTransformer<object>;
-            //var predictorModel = linearPredictor.Model as CalibratedModelParametersBase;
-            //var predictorSubModel = predictorModel.SubModel as LinearBinaryModelParameters;
-
             var linearPredictor = (model as TransformerChain<ITransformer>).LastTransformer as BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>;
-            var predictorSubModel = linearPredictor.Model.SubModel;
 
             // Execute PFI with the linearPredictor
             var permutationMetrics = mlContext.BinaryClassification
@@ -70,7 +59,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             {
                 Console.WriteLine("{0}\t{1:0.00}\t{2:G4}\t{3:G4}",
                     featureColumns[i],
-                    predictorSubModel.Weights[i], // this way we can access the weights inside the submodel
+                    linearPredictor.Model.SubModel.Weights[i], // this way we can access the weights inside the submodel
                     auc[i].Mean,
                     1.96 * auc[i].StandardError);
             }
