@@ -682,7 +682,7 @@ namespace Microsoft.ML.RunTests
             RunMTAThread(() =>
             {
                 string trainData = GetDataPath("adult.tiny.with-schema.txt");
-                string extraArgs = $"tr=FastRankRanking{{t=1}} eval=RankingEvaluator{{t=10}} strat=Strat prexf=rangefilter{{col=Label min=20 max=25}} " +
+                string extraArgs = $"tr=FastRankRanking{{t=1}} eval=RankingEvaluator{{t=10}} prexf=rangefilter{{col=Label min=20 max=25}} " +
                 $"prexf=term{{col=Strat:Label}} xf=term{{col=Label}} xf=hash{{col=GroupId}} threads- norm=Warn";
 
                 string loaderArgs = "loader=text{col=Features:R4:10-14 col=Label:R4:9 col=GroupId:TX:1 header+}";
