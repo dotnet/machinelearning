@@ -17,7 +17,7 @@ namespace Microsoft.ML.AutoML
 
     public sealed class RecommendationExperimentSettings : ExperimentSettings
     {
-        public RecommendationExperimentScenario Scenerio { get; set; }
+        public RecommendationExperimentScenario Scenario { get; set; }
 
         public string MatrixColumnIndexColumnName { get; set; }
 

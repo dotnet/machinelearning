@@ -12,10 +12,10 @@ namespace Microsoft.ML.AutoML.Samples
 {
     public static class RecommendationExperiment
     {
-        private static string TrainDataPath = @"C:\Users\xiaoyuz\Desktop\machinelearning-samples\datasets\recommendation-ratings-train.csv";
-        private static string TestDataPath = @"C:\Users\xiaoyuz\Desktop\machinelearning-samples\datasets\recommendation-ratings-test.csv";
-        private static string ModelPath = @"C:\Users\xiaoyuz\source\test\recommendation.zip";
-        private static string LabelColumnName = "rating";
+        private static string TrainDataPath = "<Path to your train dataset goes here>";
+        private static string TestDataPath = "<Path to your test dataset goes here>";
+        private static string ModelPath = @"<Desired model output directory goes here>\Model.zip";
+        private static string LabelColumnName = "Rating";
         private static uint ExperimentTime = 60;
 
         public static void Run()
@@ -26,14 +26,14 @@ namespace Microsoft.ML.AutoML.Samples
             IDataView trainDataView = mlContext.Data.LoadFromTextFile<Movie>(TrainDataPath, hasHeader: true, separatorChar: ',');
             IDataView testDataView = mlContext.Data.LoadFromTextFile<Movie>(TestDataPath, hasHeader: true, separatorChar: ',');
 
-            var settings = new RecommendationExperimentSettings(RecommendationExperimentScenario.MatrixFactorization, "userId", "movieId")
+            var settings = new RecommendationExperimentSettings(RecommendationExperimentScenario.MatrixFactorization, "UserId", "MovieId")
             {
                 MaxExperimentTimeInSeconds = ExperimentTime
             };
             var inputColumnInformation = new ColumnInformation();
-            inputColumnInformation.LabelCategoricalColumnNames.Add("movieId");
-            inputColumnInformation.LabelCategoricalColumnNames.Add("userId");
-            inputColumnInformation.LabelColumnName = "rating";
+            inputColumnInformation.LabelCategoricalColumnNames.Add("MovieId");
+            inputColumnInformation.LabelCategoricalColumnNames.Add("UserId");
+            inputColumnInformation.LabelColumnName = "Rating";
 
             // STEP 2: Run AutoML experiment
             Console.WriteLine($"Running AutoML recommendation experiment for {ExperimentTime} seconds...");
