@@ -571,6 +571,7 @@ namespace Microsoft.ML.Calibrators
             _featureWeights = SubModel as IPredictorWithFeatureWeights<float>;
         }
 
+        // ORIGINAL CREATE METHOD
         //private static CalibratedModelParametersBase Create(IHostEnvironment env, ModelLoadContext ctx)
         //{
         //    Contracts.CheckValue(env, nameof(env));
@@ -584,9 +585,12 @@ namespace Microsoft.ML.Calibrators
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
+
+            // Load first the predictor and calibrator
             var predictor = GetPredictor(env, ctx);
             var calibrator = GetCalibrator(env, ctx);
 
+            // Create a generic type using the correct parameter types of predictor and calibrator
             Type generic = typeof(ParameterMixingCalibratedModelParameters<,>);
             Type[] genericTypeArgs = { predictor.GetType(), calibrator.GetType() };
             Type constructed = generic.MakeGenericType(genericTypeArgs);
@@ -598,11 +602,9 @@ namespace Microsoft.ML.Calibrators
                 calibrator.GetType()
             };
 
+            // Call the appropiate constructor of the created generic type passing on the predictor and calibrator
             var genericCtor = constructed.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, constructorArgs, null);
             object genericInstance = genericCtor.Invoke(new object[] { env, ctx, predictor, calibrator });
-
-            // var createHelperMethod = constructed.GetMethod("CreateHelper", BindingFlags.NonPublic | BindingFlags.Static);
-            // object castedInstance = createHelperMethod.Invoke(null, new object[] { genericInstance });
 
             return genericInstance;
         }
