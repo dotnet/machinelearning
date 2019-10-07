@@ -15,7 +15,7 @@ namespace Microsoft.ML.Data
     {
         /// <summary>
         /// Array of normalized discounted cumulative gains where i-th element represent NDCG@i.
-        /// <image src="https://github.com/dotnet/machinelearning/tree/master/docs/images/NDCG.png"></image>
+        /// <image src="https://github.com/dotnet/machinelearning/blob/3cdd3c8b32705e91dcf46c429ee34196163af6da/docs/images/NDCG.png?raw=true"></image>
         /// </summary>
         public IReadOnlyList<double> NormalizedDiscountedCumulativeGains { get; }
 
@@ -24,7 +24,7 @@ namespace Microsoft.ML.Data
         /// Discounted Cumulative gain is the sum of the gains, for all the instances i,
         /// normalized by the natural logarithm of the instance + 1.
         /// Note that unline the Wikipedia article, ML.Net uses the natural logarithm.
-        /// <image src="https://github.com/dotnet/machinelearning/tree/master/docs/images/DCG.png"></image>
+        /// <image src="https://github.com/dotnet/machinelearning/blob/3cdd3c8b32705e91dcf46c429ee34196163af6da/docs/images/DCG.png?raw=true"></image>
         /// </summary>
         /// <remarks><a href="https://en.wikipedia.org/wiki/Discounted_cumulative_gain">Discounted Cumulative gain.</a></remarks>
         public IReadOnlyList<double> DiscountedCumulativeGains { get; }
