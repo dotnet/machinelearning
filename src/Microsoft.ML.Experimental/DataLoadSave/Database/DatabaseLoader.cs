@@ -125,12 +125,21 @@ namespace Microsoft.ML.Data
                 var column = new Column();
                 column.Name = mappingAttrName?.Name ?? memberInfo.Name;
 
-                var mappingAttr = memberInfo.GetCustomAttribute<LoadColumnAttribute>();
+                var indexMappingAttr = memberInfo.GetCustomAttribute<LoadColumnAttribute>();
+                var nameMappingAttr = memberInfo.GetCustomAttribute<LoadColumnNameAttribute>();
 
-                if (mappingAttr is object)
+                if (indexMappingAttr is object)
                 {
-                    var sources = mappingAttr.Sources.Select((source) => Range.FromTextLoaderRange(source)).ToArray();
-                    column.Source = sources;
+                    if (nameMappingAttr is object)
+                    {
+                        throw Contracts.Except($"Cannot specify both {nameof(LoadColumnAttribute)} and {nameof(LoadColumnNameAttribute)}");
+                    }
+
+                    column.Source = indexMappingAttr.Sources.Select((source) => Range.FromTextLoaderRange(source)).ToArray();
+                }
+                else if (nameMappingAttr is object)
+                {
+                    column.Source = nameMappingAttr.Sources.Select((source) => new Range(source)).ToArray();
                 }
 
                 InternalDataKind dk;
@@ -259,6 +268,16 @@ namespace Microsoft.ML.Data
             }
 
             /// <summary>
+            /// A range representing a single value. Will result in a scalar column.
+            /// </summary>
+            /// <param name="name">The name of the field of the table to read.</param>
+            public Range(string name)
+            {
+                Contracts.CheckValue(name, nameof(name));
+                Name = name;
+            }
+
+            /// <summary>
             /// A range representing a set of values. Will result in a vector column.
             /// </summary>
             /// <param name="min">The minimum inclusive index of the column.</param>
@@ -286,6 +305,9 @@ namespace Microsoft.ML.Data
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Last index in the range")]
             public int Max;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the column")]
+            public string Name;
 
             /// <summary>
             /// Force scalar columns to be treated as vectors of length one.
@@ -318,6 +340,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         internal readonly struct Segment
         {
+            public readonly string Name;
             public readonly int Min;
             public readonly int Lim;
             public readonly bool ForceVector;
@@ -325,8 +348,18 @@ namespace Microsoft.ML.Data
             public Segment(int min, int lim, bool forceVector)
             {
                 Contracts.Assert(0 <= min & min < lim);
+                Name = null;
                 Min = min;
                 Lim = lim;
+                ForceVector = forceVector;
+            }
+
+            public Segment(string name, bool forceVector)
+            {
+                Contracts.Assert(name != null);
+                Name = name;
+                Min = 0;
+                Lim = 0;
                 ForceVector = forceVector;
             }
         }
@@ -368,19 +401,23 @@ namespace Microsoft.ML.Data
                 if (segs != null)
                 {
                     var order = Utils.GetIdentityPermutation(segs.Length);
-                    Array.Sort(order, (x, y) => segs[x].Min.CompareTo(segs[y].Min));
 
-                    // Check that the segments are disjoint.
-                    for (int i = 1; i < order.Length; i++)
+                    if (segs[0].Name is null)
                     {
-                        int a = order[i - 1];
-                        int b = order[i];
-                        Contracts.Assert(segs[a].Min <= segs[b].Min);
-                        if (segs[a].Lim > segs[b].Min)
+                        Array.Sort(order, (x, y) => segs[x].Min.CompareTo(segs[y].Min));
+
+                        // Check that the segments are disjoint.
+                        for (int i = 1; i < order.Length; i++)
                         {
-                            throw user ?
-                                Contracts.ExceptUserArg(nameof(Column.Source), "Intervals specified for column '{0}' overlap", name) :
-                                Contracts.ExceptDecode("Intervals specified for column '{0}' overlap", name);
+                            int a = order[i - 1];
+                            int b = order[i];
+                            Contracts.Assert(segs[a].Min <= segs[b].Min);
+                            if (segs[a].Lim > segs[b].Min)
+                            {
+                                throw user ?
+                                    Contracts.ExceptUserArg(nameof(Column.Source), "Intervals specified for column '{0}' overlap", name) :
+                                    Contracts.ExceptDecode("Intervals specified for column '{0}' overlap", name);
+                            }
                         }
                     }
 
@@ -389,7 +426,7 @@ namespace Microsoft.ML.Data
                     for (int i = 0; i < segs.Length; i++)
                     {
                         var seg = segs[i];
-                        size += seg.Lim - seg.Min;
+                        size += (seg.Name is null) ? seg.Lim - seg.Min : 1;
                     }
                     Contracts.Assert(size >= segs.Length);
 
@@ -454,15 +491,23 @@ namespace Microsoft.ML.Data
                             for (int i = 0; i < segs.Length; i++)
                             {
                                 var range = col.Source[i];
-
-                                int min = range.Min;
-                                ch.CheckUserArg(0 <= min, nameof(range.Min));
-
                                 Segment seg;
 
-                                int max = range.Max;
-                                ch.CheckUserArg(min <= max, nameof(range.Max));
-                                seg = new Segment(min, max + 1, range.ForceVector);
+                                if (range.Name is null)
+                                {
+                                    int min = range.Min;
+                                    ch.CheckUserArg(0 <= min, nameof(range.Min));
+
+                                    int max = range.Max;
+                                    ch.CheckUserArg(min <= max, nameof(range.Max));
+                                    seg = new Segment(min, max + 1, range.ForceVector);
+                                }
+                                else
+                                {
+                                    string columnName = range.Name;
+                                    ch.CheckUserArg(columnName != null, nameof(range.Name));
+                                    seg = new Segment(columnName, range.ForceVector);
+                                }
 
                                 segs[i] = seg;
                             }
@@ -490,6 +535,7 @@ namespace Microsoft.ML.Data
                 //     ulong: count for key range
                 //   int: number of segments
                 //   foreach segment:
+                //     int: name
                 //     int: min
                 //     int: lim
                 //     byte: force vector (verWrittenCur: verIsVectorSupported)
@@ -532,11 +578,12 @@ namespace Microsoft.ML.Data
                         segs = new Segment[cseg];
                         for (int iseg = 0; iseg < cseg; iseg++)
                         {
+                            string columnName = ctx.LoadStringOrNull();
                             int min = ctx.Reader.ReadInt32();
                             int lim = ctx.Reader.ReadInt32();
                             Contracts.CheckDecode(0 <= min && min < lim);
                             bool forceVector = ctx.Reader.ReadBoolByte();
-                            segs[iseg] = new Segment(min, lim, forceVector);
+                            segs[iseg] = (columnName is null) ? new Segment(min, lim, forceVector) : new Segment(columnName, forceVector);
                         }
                     }
 
@@ -563,6 +610,7 @@ namespace Microsoft.ML.Data
                 //     ulong: count for key range
                 //   int: number of segments
                 //   foreach segment:
+                //     int: name
                 //     int: min
                 //     int: lim
                 //     byte: force vector (verWrittenCur: verIsVectorSupported)
@@ -588,6 +636,7 @@ namespace Microsoft.ML.Data
                         ctx.Writer.Write(info.Segments.Length);
                         foreach (var seg in info.Segments)
                         {
+                            ctx.SaveStringOrNull(seg.Name);
                             ctx.Writer.Write(seg.Min);
                             ctx.Writer.Write(seg.Lim);
                             ctx.Writer.WriteBoolByte(seg.ForceVector);
