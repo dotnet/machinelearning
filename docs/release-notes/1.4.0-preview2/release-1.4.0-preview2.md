@@ -8,56 +8,43 @@
   - Enables inferencing on in-memory images ([#4242](https://github.com/dotnet/machinelearning/pull/4242))
   - `PredictedLabel` output column now contains actual class labels instead of `uint32` class index values ([#4228](https://github.com/dotnet/machinelearning/pull/4228))
   - GPU support on Windows and Linux ([#4270](https://github.com/dotnet/machinelearning/pull/4270), [#4277](https://github.com/dotnet/machinelearning/pull/4277))
+  - Upgraded [TensorFlow .NET](https://github.com/SciSharp/TensorFlow.NET) version to 0.11.3 ([#4205](https://github.com/dotnet/machinelearning/pull/4205))
 
   [In-memory image inferencing sample](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/ImageClassification/ResnetV2101TransferLearningTrainTestSplit.cs)  
   [Early stopping sample](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/ImageClassification/ResnetV2101TransferLearningEarlyStopping.cs)  
   [GPU samples](https://github.com/dotnet/machinelearning/tree/master/docs/samples/Microsoft.ML.Samples.GPU)  
 
-- **Database Loader (0.16.0-preview2)** ([#4070](https://github.com/dotnet/machinelearning/pull/4070),[#4091](https://github.com/dotnet/machinelearning/pull/4091),[#4138](https://github.com/dotnet/machinelearning/pull/4138))  
-
-  Additional DatabaseLoader support:
-  -  Support DBNull.
-  -  Add `CreateDatabaseLoader<TInput>` to map columns from a .NET Type.
-  -  Read multiple columns into a single vector
-
-  [Design specification](https://github.com/dotnet/machinelearning/pull/3857) 
-  
-  [Sample](https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started/DatabaseLoader)
-
-  ```cs
-    string connectionString = "YOUR_RELATIONAL_DATABASE_CONNECTION_STRING";
-
-    string commandText = "SELECT * from URLClicks";
-
-    DatabaseLoader loader = mlContext.Data.CreateDatabaseLoader<UrlClick>();
-                
-    DatabaseSource dbSource = new DatabaseSource(SqlClientFactory.Instance, 
-                                                    connectionString, 
-                                                    commandText);         
-    IDataView dataView = loader.Load(dbSource);
-  ```
-
-- **Enhanced .NET Core 3.0 Support**
-
-  -  Use C# hardware intrinsics detection to support AVX, SSE and software fallbacks
-  -  Allows for faster training on AVX-supported machines
-  -  Allows for scoring core ML .NET models on ARM processors. (Note: some components do not support ARM yet, ex. FastTree, LightGBM, OnnxTransformer)
+- **New ONNX Exporters (1.4.0-preview2)**
+  - LpNormNormalizing transformer ([#4161](https://github.com/dotnet/machinelearning/pull/4161))
+  - PCA transformer ([4188](https://github.com/dotnet/machinelearning/pull/4188))
+  - TypeConverting transformer ([#4155](https://github.com/dotnet/machinelearning/pull/4155))
+  - MissingValueIndicator transformer ([#4194](https://github.com/dotnet/machinelearning/pull/4194))
 
 ## **Bug Fixes**
-None.
+- OnnxSequenceType and ColumnName attributes together doesn't work ([#4187](https://github.com/dotnet/machinelearning/pull/4187))
+- Fix memory leak in TensorflowTransformer ([#4223](https://github.com/dotnet/machinelearning/pull/4223))
+- Enable permutation feature importance to be used with model loaded from disk ([#4262](https://github.com/dotnet/machinelearning/pull/4262))
+- `IsSavedModel` returns true when loaded TensorFlow model is a frozen model ([#4262](https://github.com/dotnet/machinelearning/pull/4197))
+- Exception when using `OnnxSequenceType` attribute directly without specify sequence type ([#4272](https://github.com/dotnet/machinelearning/pull/4272)
 
 ## **Samples**
-- DeepLearning Image Classification Training sample (DNN Transfer Learning) ([#633](https://github.com/dotnet/machinelearning-samples/pull/633))
-- DatabaseLoader sample loading an IDataView from SQL Server localdb ([#611](https://github.com/dotnet/machinelearning-samples/pull/617))
+- TensorFlow full model retrain sample ([#4127](https://github.com/dotnet/machinelearning/pull/4127))
 
 ## **Breaking Changes**
-None
+None.
 
 ## **Enhancements**
-None.
+- Improve exception message in LightGBM ([#4214](https://github.com/dotnet/machinelearning/pull/4214))
+- FeaturizeText should allow only outputColumnName to be defined ([#4211](https://github.com/dotnet/machinelearning/pull/4211))
+- Fix NgramExtractingTransformer GetSlotNames to not allocate a new delegate on every invoke ([#4247](https://github.com/dotnet/machinelearning/pull/4247)) 
+- Resurrect broken code coverage build and re-enable code coverage for pull request ([#4261](https://github.com/dotnet/machinelearning/pull/4261))
+- NimbusML entrypoint for permutation feature importance ([#4232](https://github.com/dotnet/machinelearning/pull/4232))
+- Reuse memory when copying outputs from TensorFlow graph ([#4260](https://github.com/dotnet/machinelearning/pull/4260))
+- DateTime to DateTime standard conversion ([#4273](https://github.com/dotnet/machinelearning/pull/4273))
+- CodeCov version upgraded to 1.7.2 ([#4291](https://github.com/dotnet/machinelearning/pull/4291))
  
 ## **CLI and AutoML API**
-  - AutoML codebase has moved from feature branch to master branch ([#3882](https://github.com/dotnet/machinelearning/pull/3882)).
+None.
 
 ## **Remarks**
 None.
