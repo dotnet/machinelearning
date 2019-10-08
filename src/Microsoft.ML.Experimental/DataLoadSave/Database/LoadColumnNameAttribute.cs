@@ -20,8 +20,9 @@ namespace Microsoft.ML.Data
         /// <param name="fieldName">The name of the field in the database.</param>
         public LoadColumnNameAttribute(string fieldName)
         {
-            Sources = new List<string>(1);
-            Sources.Add(fieldName);
+            var sources = new List<string>(1);
+            sources.Add(fieldName);
+            Sources = sources;
         }
 
         /// <summary>
@@ -34,6 +35,6 @@ namespace Microsoft.ML.Data
         }
 
         [BestFriend]
-        internal List<string> Sources;
+        internal IReadOnlyList<string> Sources;
     }
 }

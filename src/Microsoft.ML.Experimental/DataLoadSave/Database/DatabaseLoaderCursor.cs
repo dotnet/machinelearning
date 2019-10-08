@@ -469,13 +469,13 @@ namespace Microsoft.ML.Data
                         {
                             for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
                             {
-                                editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetDouble(columnIndex);
+                                editor.Values[i] = DataReader.IsDBNull(columnIndex) ? double.NaN : DataReader.GetDouble(columnIndex);
                             }
                         }
                         else
                         {
                             var columnIndex = DataReader.GetOrdinal(seg.Name);
-                            editor.Values[i++] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetDouble(columnIndex);
+                            editor.Values[i++] = DataReader.IsDBNull(columnIndex) ? double.NaN : DataReader.GetDouble(columnIndex);
                         }
                     }
 

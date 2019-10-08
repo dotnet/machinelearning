@@ -89,7 +89,7 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 1);
 
             var connectionString = GetConnectionString(TestDatasets.irisDb.name);
-            var commandText = $@"SELECT * FROM ""{TestDatasets.irisDb.trainFilename}""";
+            var commandText = $@"SELECT Label as [My Label], SepalLength, SepalWidth, PetalLength, PetalWidth FROM ""{TestDatasets.irisDb.trainFilename}""";
 
             var loader = mlContext.Data.CreateDatabaseLoader<IrisDataWithLoadColumnName>();
 
@@ -279,7 +279,7 @@ namespace Microsoft.ML.Tests
 
         public class IrisDataWithLoadColumnName
         {
-            [LoadColumnName("Label")]
+            [LoadColumnName("My Label")]
             [ColumnName("Label")]
             public int Kind;
 

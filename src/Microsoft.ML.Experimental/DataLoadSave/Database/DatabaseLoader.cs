@@ -237,7 +237,7 @@ namespace Microsoft.ML.Data
             public DbType Type = DbType.Single;
 
             /// <summary>
-            /// Source index range(s) of the column.
+            /// Source index or name range(s) of the column.
             /// </summary>
             [Argument(ArgumentType.Multiple, HelpText = "Source index range(s) of the column", ShortName = "src")]
             public Range[] Source;
@@ -250,7 +250,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Specifies the range of indices of input columns that should be mapped to an output column.
+        /// Specifies the range of indices or names of input columns that should be mapped to an output column.
         /// </summary>
         public sealed class Range
         {
@@ -265,6 +265,7 @@ namespace Microsoft.ML.Data
                 Contracts.CheckParam(index >= 0, nameof(index), "Must be non-negative");
                 Min = index;
                 Max = index;
+                Name = null;
             }
 
             /// <summary>
@@ -274,6 +275,8 @@ namespace Microsoft.ML.Data
             public Range(string name)
             {
                 Contracts.CheckValue(name, nameof(name));
+                Min = -1;
+                Max = -1;
                 Name = name;
             }
 
@@ -297,15 +300,27 @@ namespace Microsoft.ML.Data
             /// <summary>
             ///  The minimum index of the column, inclusive.
             /// </summary>
+            /// <remarks>
+            /// This is <c>-1</c> if the range represents a column name.
+            /// </remarks>
             [Argument(ArgumentType.Required, HelpText = "First index in the range")]
             public int Min;
 
             /// <summary>
             /// The maximum index of the column, inclusive.
             /// </summary>
+            /// <remarks>
+            /// This is <c>-1</c> if the range represents a column name.
+            /// </remarks>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Last index in the range")]
             public int Max;
 
+            /// <summary>
+            /// The name of the input column.
+            /// </summary>
+            /// <remarks>
+            /// This is <c>null</c> if the range represents an index.
+            /// </remarks>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the column")]
             public string Name;
 
@@ -358,8 +373,8 @@ namespace Microsoft.ML.Data
             {
                 Contracts.Assert(name != null);
                 Name = name;
-                Min = 0;
-                Lim = 0;
+                Min = -1;
+                Lim = -1;
                 ForceVector = forceVector;
             }
         }
@@ -535,7 +550,7 @@ namespace Microsoft.ML.Data
                 //     ulong: count for key range
                 //   int: number of segments
                 //   foreach segment:
-                //     int: name
+                //     string id: name
                 //     int: min
                 //     int: lim
                 //     byte: force vector (verWrittenCur: verIsVectorSupported)
@@ -610,7 +625,7 @@ namespace Microsoft.ML.Data
                 //     ulong: count for key range
                 //   int: number of segments
                 //   foreach segment:
-                //     int: name
+                //     string id: name
                 //     int: min
                 //     int: lim
                 //     byte: force vector (verWrittenCur: verIsVectorSupported)
