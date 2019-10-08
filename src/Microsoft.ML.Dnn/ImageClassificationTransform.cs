@@ -753,6 +753,10 @@ namespace Microsoft.ML.Transforms
             {
                 _bottleneckOperationName = "module_apply_default/hub_output/feature_vector/SpatialSqueeze";
                 _inputTensorName = "Placeholder";
+            }else if (arch == ImageClassificationEstimator.Architecture.ResnetV250)
+            {
+                _bottleneckOperationName = "resnet_v2_50/block4/unit_3/bottleneck_v2/conv3/weights";
+                _inputTensorName = "input";
             }
 
             _outputs = new[] { scoreColumnName, predictedLabelColumnName };
@@ -1007,7 +1011,8 @@ namespace Microsoft.ML.Transforms
         public enum Architecture
         {
             ResnetV2101,
-            InceptionV3
+            InceptionV3,
+            ResnetV250
         };
 
         /// <summary>

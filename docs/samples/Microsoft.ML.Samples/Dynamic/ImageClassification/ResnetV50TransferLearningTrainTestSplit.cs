@@ -14,7 +14,7 @@ using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Samples.Dynamic
 {
-    public class ResnetV2101TransferLearningTrainTestSplit
+    public class ResnetV50TransferLearningTrainTestSplit
     {
         public static void Example()
         {
@@ -27,52 +27,72 @@ namespace Samples.Dynamic
             string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
                 "images");
 
-            //Download the image set and unzip
-            string finalImagesFolderName = DownloadImageSet(
-                imagesDownloadFolderPath);
-            string fullImagesetFolderPath = Path.Combine(
-                imagesDownloadFolderPath, finalImagesFolderName);
+            //Testing on cifar dataset
+            //string finalImagesFolderName = DownloadImageSet(
+            //    imagesDownloadFolderPath);
+            string finalImagesFolderNameTrain = "cifar\\train";
+            string fullImagesetFolderPathTrain = Path.Combine(
+                imagesDownloadFolderPath, finalImagesFolderNameTrain);
 
+            string finalImagesFolderNameTest = "cifar\\test";
+            string fullImagesetFolderPathTest = Path.Combine(
+                imagesDownloadFolderPath, finalImagesFolderNameTest);
             try
             {
 
                 MLContext mlContext = new MLContext(seed: 1);
 
-                //Load all the original images info
-                IEnumerable<ImageData> images = LoadImagesFromDirectory(
-                    folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
+                //Load all the original train images info
+                IEnumerable<ImageData> train_images = LoadImagesFromDirectory(
+                    folder: fullImagesetFolderPathTrain, useFolderNameAsLabel: true);
 
-                IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
-                    mlContext.Data.LoadFromEnumerable(images));
+                IDataView trainDataset = mlContext.Data.LoadFromEnumerable(train_images);
 
-                shuffledFullImagesDataset = mlContext.Transforms.Conversion
-                    .MapValueToKey("Label")
-                    .Fit(shuffledFullImagesDataset)
-                    .Transform(shuffledFullImagesDataset);
+                trainDataset = mlContext.Transforms.Conversion
+                    .MapValueToKey(outputColumnName: "Label",
+                                   inputColumnName: "Label",
+                                   keyOrdinality: ValueToKeyMappingEstimator.KeyOrdinality.ByValue)
+                    .Fit(trainDataset)
+                    .Transform(trainDataset);
 
-                // Split the data 90:10 into train and test sets, train and evaluate.
-                TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
-                    shuffledFullImagesDataset, testFraction: 0.1, seed: 1);
+                //Load all the original test images info
+                IEnumerable<ImageData> test_images = LoadImagesFromDirectory(
+                    folder: fullImagesetFolderPathTest, useFolderNameAsLabel: true);
 
-                IDataView trainDataset = trainTestData.TrainSet;
-                IDataView testDataset = trainTestData.TestSet;
+                IDataView testDataset = mlContext.Data.LoadFromEnumerable(test_images);
 
-                var validationSet = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+                testDataset = mlContext.Transforms.Conversion
+                    .MapValueToKey(outputColumnName: "Label",
+                                   inputColumnName: "Label",
+                                   keyOrdinality: ValueToKeyMappingEstimator.KeyOrdinality.ByValue)
                     .Fit(testDataset)
                     .Transform(testDataset);
 
-                var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+                // Split the data 90:10 into train and test sets, train and evaluate.
+                //TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
+                //    shuffledFullImagesDataset, testFraction: 0.1, seed: 1);
+
+                //IDataView trainDataset = trainTestData.TrainSet;
+                //IDataView testDataset = trainTestData.TestSet;
+
+                var validationSet = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPathTest, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+                    .Fit(testDataset)
+                    .Transform(testDataset);
+
+                var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPathTrain, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
                     .Append(mlContext.Model.ImageClassification(
                         "Image", "Label",
                         // Just by changing/selecting InceptionV3 here instead of 
                         // ResnetV2101 you can try a different architecture/pre-trained 
                         // model. 
-                        arch: ImageClassificationEstimator.Architecture.ResnetV250,
+                        arch: ImageClassificationEstimator.Architecture.ResnetV2101,
                         epoch: 50,
                         batchSize: 10,
                         learningRate: 0.01f,
                         metricsCallback: (metrics) => Console.WriteLine(metrics),
                         validationSet: validationSet,
+                        reuseValidationSetBottleneckCachedValues: true,
+                        reuseTrainSetBottleneckCachedValues :true,
                         disableEarlyStopping: true)
                     .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel")));
 
@@ -92,7 +112,7 @@ namespace Samples.Dynamic
                 Console.WriteLine("Training with transfer learning took: " +
                     (elapsedMs / 1000).ToString() + " seconds");
 
-                mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
+                mlContext.Model.Save(trainedModel, testDataset.Schema,
                     "model.zip");
 
                 ITransformer loadedModel;
@@ -104,7 +124,7 @@ namespace Samples.Dynamic
 
                 watch = System.Diagnostics.Stopwatch.StartNew();
 
-                TrySinglePrediction(fullImagesetFolderPath, mlContext, loadedModel);
+                TrySinglePrediction(fullImagesetFolderPathTest, mlContext, loadedModel);
 
                 watch.Stop();
                 elapsedMs = watch.ElapsedMilliseconds;
@@ -174,7 +194,9 @@ namespace Samples.Dynamic
                 searchOption: SearchOption.AllDirectories);
             foreach (var file in files)
             {
-                if (Path.GetExtension(file) != ".jpg")
+                if (Path.GetExtension(file) != ".jpg" &&
+                    Path.GetExtension(file) != ".JPEG" &&
+                    Path.GetExtension(file) != ".png")
                     continue;
 
                 var label = Path.GetFileName(file);

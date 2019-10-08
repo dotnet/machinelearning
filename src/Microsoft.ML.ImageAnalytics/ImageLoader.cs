@@ -4,13 +4,10 @@
 
 using System;
 using System.Buffers;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
@@ -325,7 +322,7 @@ namespace Microsoft.ML.Data
                         if (bytesRead != srcSpan.Length)
                             srcSpan = readBufferSpan.Slice(0, bytesRead);
                         var dstSpan = bufferSpan.Slice(totalBytesRead, bytesRead);
-                        Contract.Assert(srcSpan.Length == dstSpan.Length);
+                        Contracts.Assert(srcSpan.Length == dstSpan.Length);
                         srcSpan.CopyTo(dstSpan);
                         totalBytesRead += bytesRead;
                     }
