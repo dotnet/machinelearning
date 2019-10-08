@@ -1166,11 +1166,6 @@ namespace Microsoft.ML.Transforms
             public ImageClassificationMetrics.Dataset DatasetUsed { get; set; }
 
             /// <summary>
-            /// Name of the input image.
-            /// </summary>
-            public string Name { get; set; }
-
-            /// <summary>
             /// Index of the input image.
             /// </summary>
             public int Index { get; set; }
@@ -1178,7 +1173,7 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// String representation of the metrics.
             /// </summary>
-            public override string ToString() => $"Phase: Bottleneck Computation, Dataset used: {DatasetUsed.ToString(),10}, Image Index: {Index,3}, Image Name: {Name}";
+            public override string ToString() => $"Phase: Bottleneck Computation, Dataset used: {DatasetUsed.ToString(),10}, Image Index: {Index,3}";
         }
 
         /// <summary>
