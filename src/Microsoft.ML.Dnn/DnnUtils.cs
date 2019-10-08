@@ -92,6 +92,24 @@ namespace Microsoft.ML.Dnn
             }
             return new Session(graph);
         }
+        internal static void MaybeDownloadFile(Uri address, string fileName)
+        {
+            using (WebClient client = new WebClient())
+            {
+                if (File.Exists(fileName))
+                {
+                    client.OpenRead(address);
+                    var totalSizeInBytes = Convert.ToInt64(client.ResponseHeaders["Content-Length"]);
+                    var currentSize = new FileInfo(fileName).Length;
+
+                    //If current file size is not equal to expected file size, re-download file
+                    if (currentSize != totalSizeInBytes)
+                        client.DownloadFile(new Uri($"{address}"), fileName);
+                }
+                else
+                    client.DownloadFile(new Uri($"{address}"), fileName);
+            }
+        }
 
         internal static Graph LoadMetaGraph(string path)
         {
