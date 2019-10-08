@@ -127,12 +127,12 @@ namespace Samples.Dynamic
         {
             // Create prediction function to try one prediction
             var predictionEngine = mlContext.Model
-                .CreatePredictionEngine<ImageDataInMemory, ImagePrediction>(trainedModel);
+                .CreatePredictionEngine<InMemoryImageData, ImagePrediction>(trainedModel);
 
-            IEnumerable<ImageDataInMemory> testImages = LoadInMemoryImagesFromDirectory(
+            IEnumerable<InMemoryImageData> testImages = LoadInMemoryImagesFromDirectory(
                 imagesForPredictions, false);
 
-            ImageDataInMemory imageToPredict = new ImageDataInMemory
+            InMemoryImageData imageToPredict = new InMemoryImageData
             {
                 Image = testImages.First().Image
             };
@@ -200,7 +200,7 @@ namespace Samples.Dynamic
             }
         }
 
-        public static IEnumerable<ImageDataInMemory> 
+        public static IEnumerable<InMemoryImageData> 
             LoadInMemoryImagesFromDirectory(string folder, 
                 bool useFolderNameAsLabel = true)
         {
@@ -226,7 +226,7 @@ namespace Samples.Dynamic
                     }
                 }
 
-                yield return new ImageDataInMemory()
+                yield return new InMemoryImageData()
                 {
                     Image = File.ReadAllBytes(file),
                     Label = label
@@ -319,7 +319,7 @@ namespace Samples.Dynamic
             return fullPath;
         }
 
-        public class ImageDataInMemory
+        public class InMemoryImageData
         {
             [LoadColumn(0)]
             public byte[] Image;
