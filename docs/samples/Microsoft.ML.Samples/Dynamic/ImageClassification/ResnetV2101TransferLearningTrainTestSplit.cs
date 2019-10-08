@@ -28,8 +28,9 @@ namespace Samples.Dynamic
                 "images");
 
             //Download the image set and unzip
-            string finalImagesFolderName = DownloadImageSet(
-                imagesDownloadFolderPath);
+            //string finalImagesFolderName = DownloadImageSet(
+            //    imagesDownloadFolderPath);
+            string finalImagesFolderName = "flower_photos";
             string fullImagesetFolderPath = Path.Combine(
                 imagesDownloadFolderPath, finalImagesFolderName);
 

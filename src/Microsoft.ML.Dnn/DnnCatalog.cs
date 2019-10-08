@@ -144,7 +144,7 @@ namespace Microsoft.ML
         {
             var options = new ImageClassificationEstimator.Options()
             {
-                ModelLocation = arch == Architecture.ResnetV2101 ?  @"resnet_v2_101_299.meta" : (arch == Architecture.ResnetV250 ? @"resnet_v2_50.meta" : @"InceptionV3.meta"),
+                ModelLocation = arch == Architecture.ResnetV2101 ?  @"resnet_v2_101_299.meta" : (arch == Architecture.ResnetV250 ? @"resnet_v2_50_299.meta" : @"InceptionV3.meta"),
                 InputColumns = new[] { featuresColumnName },
                 OutputColumns = new[] { scoreColumnName, predictedLabelColumnName },
                 LabelColumn = labelColumnName,

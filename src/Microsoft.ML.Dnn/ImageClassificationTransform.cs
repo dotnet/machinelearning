@@ -755,7 +755,7 @@ namespace Microsoft.ML.Transforms
                 _inputTensorName = "Placeholder";
             }else if (arch == ImageClassificationEstimator.Architecture.ResnetV250)
             {
-                _bottleneckOperationName = "resnet_v2_50/block4/unit_3/bottleneck_v2/conv3/weights";
+                _bottleneckOperationName = "resnet_v2_50/SpatialSqueeze";
                 _inputTensorName = "input";
             }
 
