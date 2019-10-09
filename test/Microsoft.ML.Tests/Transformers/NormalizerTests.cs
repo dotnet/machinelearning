@@ -14,9 +14,12 @@ using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
+using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Sdk;
 using static Microsoft.ML.Transforms.NormalizingTransformer;
+using System.Numerics.Tensors;
 
 namespace Microsoft.ML.Tests.Transformers
 {
@@ -885,6 +888,48 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(0f, transformedDataArray[2].Features[0]);
             Assert.Equal(0f, transformedDataArray[2].Features[1]);
             Assert.Equal(0f, transformedDataArray[2].Features[4]);
+        }
+
+        public class TensorData
+        {
+            private const int dim1 = 2;
+            private const int dim2 = 3;
+            private const int dim3 = 4;
+            private const int size = dim1 * dim2 * dim3;
+
+            [VectorType(dim1, dim2, dim3)]
+            public float[] input { get; set; }
+
+            public static TensorData[] GetTensorData()
+            {
+                var tensor1 = Enumerable.Range(0, size).Select(
+                x => (float)x).ToArray();
+
+                var tensor2 = Enumerable.Range(0, size).Select(
+                x => (float)(x + 10000)).ToArray();
+
+                return new TensorData[]
+                {
+                    new TensorData() { input = tensor1},
+                    new TensorData() { input = tensor2}
+                };
+            }
+        }
+
+        [Fact]
+        void TestSavingNormalizerWithMultidimensionalVector()
+        {
+            var samples = TensorData.GetTensorData();
+            var data = ML.Data.LoadFromEnumerable(samples);
+            var model = ML.Transforms.NormalizeMinMax("input").Fit(data);
+            var transformedData = model.Transform(data);
+
+            var modelAndSchemaPath = GetOutputPath("TestSavingNormalizerWithMultidimensionalVector.zip");
+            ML.Model.Save(model, data.Schema, modelAndSchemaPath);
+            var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
+            var transformedData2 = loadedModel.Transform(data);
+
+            Console.WriteLine("hi");
         }
     }
 }
