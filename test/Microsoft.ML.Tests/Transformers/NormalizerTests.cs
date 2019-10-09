@@ -917,24 +917,22 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestSavingNormalizerWithMultidimensionalVector()
+        void TestSavingNormalizerWithMultidimensionalVectorInput()
         {
             var samples = TensorData.GetTensorData();
             var data = ML.Data.LoadFromEnumerable(samples);
-            var model = ML.Transforms.NormalizeMinMax("input").Fit(data);
+            var model = ML.Transforms.NormalizeMinMax("output", "input").Fit(data);
             var transformedData = model.Transform(data);
 
-            var modelAndSchemaPath = GetOutputPath("TestSavingNormalizerWithMultidimensionalVector.zip");
+            var modelAndSchemaPath = GetOutputPath("TestSavingNormalizerWithMultidimensionalVectorInput.zip");
             ML.Model.Save(model, data.Schema, modelAndSchemaPath);
             var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
             var transformedData2 = loadedModel.Transform(data);
 
-            var dimlen1 = (transformedData.Schema[0].Type as VectorDataViewType).Dimensions.Length;
-            var dimlen2 = (transformedData2.Schema[0].Type as VectorDataViewType).Dimensions.Length;
+            var dimensions1 = (transformedData.Schema["output"].Type as VectorDataViewType).Dimensions;
+            var dimensions2 = (transformedData2.Schema["output"].Type as VectorDataViewType).Dimensions;
 
-            Assert.True(dimlen1 == dimlen2);
-
-            Console.WriteLine("hi");
+            Assert.True(dimensions1.SequenceEqual(dimensions2));
         }
     }
 }
