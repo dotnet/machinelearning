@@ -25,7 +25,7 @@
 - Fix memory leak in TensorflowTransformer ([#4223](https://github.com/dotnet/machinelearning/pull/4223))
 - Enable permutation feature importance to be used with model loaded from disk ([#4262](https://github.com/dotnet/machinelearning/pull/4262))
 - `IsSavedModel` returns true when loaded TensorFlow model is a frozen model ([#4262](https://github.com/dotnet/machinelearning/pull/4197))
-- Exception when using `OnnxSequenceType` attribute directly without specify sequence type ([#4272](https://github.com/dotnet/machinelearning/pull/4272)
+- Exception when using `OnnxSequenceType` attribute directly without specify sequence type ([#4272](https://github.com/dotnet/machinelearning/pull/4272), [#4297](https://github.com/dotnet/machinelearning/pull/4297))
 
 ## **Samples**
 - TensorFlow full model retrain sample ([#4127](https://github.com/dotnet/machinelearning/pull/4127))
@@ -34,7 +34,7 @@
 None.
 
 ## **Obsolete API**
-- `OnnxSequenceType` attribute that doesn't take a type ([#4272](https://github.com/dotnet/machinelearning/pull/4272))
+- `OnnxSequenceType` attribute that doesn't take a type ([#4272](https://github.com/dotnet/machinelearning/pull/4272), [#4297](https://github.com/dotnet/machinelearning/pull/4297))
 
 ## **Enhancements**
 - Improve exception message in LightGBM ([#4214](https://github.com/dotnet/machinelearning/pull/4214))
