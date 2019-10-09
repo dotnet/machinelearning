@@ -929,6 +929,11 @@ namespace Microsoft.ML.Tests.Transformers
             var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
             var transformedData2 = loadedModel.Transform(data);
 
+            var dimlen1 = (transformedData.Schema[0].Type as VectorDataViewType).Dimensions.Length;
+            var dimlen2 = (transformedData2.Schema[0].Type as VectorDataViewType).Dimensions.Length;
+
+            Assert.True(dimlen1 == dimlen2);
+
             Console.WriteLine("hi");
         }
     }
