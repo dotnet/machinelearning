@@ -33,6 +33,9 @@
 ## **Breaking Changes**
 None.
 
+## **Obsolete API**
+- `OnnxSequenceType` attribute that doesn't take a type ([#4272](https://github.com/dotnet/machinelearning/pull/4272))
+
 ## **Enhancements**
 - Improve exception message in LightGBM ([#4214](https://github.com/dotnet/machinelearning/pull/4214))
 - FeaturizeText should allow only outputColumnName to be defined ([#4211](https://github.com/dotnet/machinelearning/pull/4211))
