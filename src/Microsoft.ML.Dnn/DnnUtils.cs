@@ -8,8 +8,10 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Security.AccessControl;
 using System.Security.Principal;
+using System.Threading.Tasks;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Tensorflow;
@@ -92,22 +94,32 @@ namespace Microsoft.ML.Dnn
             }
             return new Session(graph);
         }
-        internal static void MaybeDownloadFile(Uri address, string fileName)
+        internal static async void DownloadIfNeededAsync(Uri address, string fileName)
         {
-            using (WebClient client = new WebClient())
+            using (HttpClient client = new HttpClient())
             {
                 if (File.Exists(fileName))
                 {
-                    client.OpenRead(address);
-                    var totalSizeInBytes = Convert.ToInt64(client.ResponseHeaders["Content-Length"]);
+                    var headerResponse = client.GetAsync(address,HttpCompletionOption.ResponseHeadersRead).Result;
+                    var totalSizeInBytes = headerResponse.Content.Headers.ContentLength;
                     var currentSize = new FileInfo(fileName).Length;
 
                     //If current file size is not equal to expected file size, re-download file
                     if (currentSize != totalSizeInBytes)
-                        client.DownloadFile(new Uri($"{address}"), fileName);
+                    {
+                        var response = client.GetAsync(address).Result;
+                        using FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None);
+                            using Stream contentStream = response.Content.ReadAsStreamAsync().Result;
+                                await contentStream.CopyToAsync(fileStream);
+                    }
                 }
                 else
-                    client.DownloadFile(new Uri($"{address}"), fileName);
+                {
+                    var response = client.GetAsync(address).Result;
+                    using FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None);
+                        using Stream contentStream = response.Content.ReadAsStreamAsync().Result;
+                            await contentStream.CopyToAsync(fileStream);
+                }
             }
         }
 
