@@ -966,7 +966,7 @@ namespace Microsoft.ML.Data
 
         private static Double[] GetDiscountMapCore(int truncationLevel)
         {
-            var discountMap = new Double[FixedDiscountMapSize];
+            var discountMap = new Double[truncationLevel];
 
             for (int i = 0; i < discountMap.Length; i++)
                 discountMap[i] = 1 / Math.Log(2 + i);
@@ -979,7 +979,7 @@ namespace Microsoft.ML.Data
             var discountMap = _discountMapFixed;
             if (discountMap == null)
             {
-                discountMap = GetDiscountMapCore(truncationLevel);
+                discountMap = GetDiscountMapCore(FixedDiscountMapSize);
                 Interlocked.CompareExchange(ref _discountMapFixed, discountMap, null);
                 discountMap = _discountMapFixed;
             }
