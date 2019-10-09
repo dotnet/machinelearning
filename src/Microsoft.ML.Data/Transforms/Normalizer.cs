@@ -383,23 +383,6 @@ namespace Microsoft.ML.Transforms
                 ModelParameters = columnFunction.GetNormalizerModelParams();
             }
 
-            //internal static DataViewType LoadType(ModelLoadContext ctx)
-            //{
-            //    Contracts.AssertValue(ctx);
-            //    // *** Binary format ***
-            //    //   - bool: is vector
-            //    //   - int: vector size
-            //    //   - byte: ItemKind of input column (only R4 and R8 are valid)
-            //    bool isVector = ctx.Reader.ReadBoolean();
-            //    int vectorSize = ctx.Reader.ReadInt32();
-            //    Contracts.CheckDecode(vectorSize >= 0);
-            //    Contracts.CheckDecode(vectorSize > 0 || !isVector);
-            //    InternalDataKind itemKind = (InternalDataKind)ctx.Reader.ReadByte();
-            //    Contracts.CheckDecode(itemKind == InternalDataKind.R4 || itemKind == InternalDataKind.R8);
-            //    var itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(itemKind);
-            //    return isVector ? (DataViewType)(new VectorDataViewType(itemType, vectorSize)) : itemType;
-            //}
-
             internal static DataViewType LoadType(ModelLoadContext ctx)
             {
                 Contracts.AssertValue(ctx);
@@ -445,23 +428,6 @@ namespace Microsoft.ML.Transforms
                 var itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(itemKind);
                 return isVector ? (DataViewType)(new VectorDataViewType(itemType, dimensions)) : itemType;
             }
-
-            //internal static void SaveType(ModelSaveContext ctx, DataViewType type)
-            //{
-            //    Contracts.AssertValue(ctx);
-            //    // *** Binary format ***
-            //    //   - bool: is vector
-            //    //   - int: vector size
-            //    //   - byte: ItemKind of input column (only R4 and R8 are valid)
-            //    VectorDataViewType vectorType = type as VectorDataViewType;
-            //    ctx.Writer.Write(vectorType != null);
-            //    Contracts.Assert(vectorType == null || vectorType.IsKnownSize);
-            //    ctx.Writer.Write(vectorType?.Size ?? 0);
-            //    DataViewType itemType = vectorType?.ItemType ?? type;
-            //    itemType.RawType.TryGetDataKind(out InternalDataKind itemKind);
-            //    Contracts.Assert(itemKind == InternalDataKind.R4 || itemKind == InternalDataKind.R8);
-            //    ctx.Writer.Write((byte)itemKind);
-            //}
 
             internal static void SaveType(ModelSaveContext ctx, DataViewType type)
             {

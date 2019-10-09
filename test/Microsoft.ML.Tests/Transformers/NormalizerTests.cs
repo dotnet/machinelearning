@@ -17,9 +17,7 @@ using Microsoft.ML.Transforms;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
-using Xunit.Sdk;
 using static Microsoft.ML.Transforms.NormalizingTransformer;
-using System.Numerics.Tensors;
 
 namespace Microsoft.ML.Tests.Transformers
 {
