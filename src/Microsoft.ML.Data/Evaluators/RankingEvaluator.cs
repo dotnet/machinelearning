@@ -31,9 +31,15 @@ namespace Microsoft.ML.Data
     /// </summary>
     public sealed class RankingEvaluatorOptions
     {
+        /// <value>
+        /// Maximum truncation level for computing (N)DCG
+        /// </value>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum truncation level for computing (N)DCG", ShortName = "t")]
         public int DcgTruncationLevel = 3;
 
+        /// <value>
+        /// Label relevance gains
+        /// </value>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Label relevance gains", ShortName = "gains")]
         public string LabelGains = "0,3,7,15,31";
 
