@@ -1839,6 +1839,7 @@ namespace Microsoft.ML.Scenarios
             // Accuracy should be returned, indicating training loop ran successfully. 
             Assert.InRange(metrics.MicroAccuracy, 0.1, 1);          
         }
+
         public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,
             bool useFolderNameAsLabel = true)
         {
