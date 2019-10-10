@@ -1,8 +1,6 @@
-﻿//------------------------------------------------------------------------------
-// <copyright company="Microsoft Corporation">
-//     Copyright (c) Microsoft Corporation. All rights reserved.
-// </copyright>
-//------------------------------------------------------------------------------
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -302,53 +300,43 @@ namespace Microsoft.ML.Data
         /// </summary>
         private sealed class Indices
         {
-            public VBuffer<int> FeatureKeys;
+            [KeyType(uint.MaxValue - 1)]
+            public VBuffer<uint> FeatureKeys;
+        }
 
-            public static void ParseIndicesToOneBased(IntermediateInput input, Indices output)
+        private sealed class IndexParser
+        {
+            private readonly uint _offset;
+            private readonly uint _na;
+
+            public IndexParser(bool zeroBased, ulong featureCount)
             {
-                var editor = VBufferEditor.Create(ref output.FeatureKeys, input.FeatureKeys.Length);
-                var inputValues = input.FeatureKeys.GetValues();
-                for (int i = 0; i < inputValues.Length; i++)
-                {
-                    if (Conversions.Instance.TryParse(in inputValues[i], out int index) && index > 0)
-                        editor.Values[i] = index - 1;
-                    else
-                        editor.Values[i] = -1;
-                }
-                output.FeatureKeys = editor.Commit();
+                _offset = zeroBased ? (uint)0 : 1;
+                _na = (uint)featureCount + 1;
             }
 
-            public static void ParseIndicesToZeroBased(IntermediateInput input, Indices output)
+            public void ParseIndices(IntermediateInput input, Indices output)
             {
                 var editor = VBufferEditor.Create(ref output.FeatureKeys, input.FeatureKeys.Length);
                 var inputValues = input.FeatureKeys.GetValues();
                 for (int i = 0; i < inputValues.Length; i++)
                 {
-                    if (Conversions.Instance.TryParse(in inputValues[i], out int index) && index >= 0)
-                        editor.Values[i] = index;
+                    if (Conversions.Instance.TryParse(in inputValues[i], out uint index) && index >= _offset)
+                        editor.Values[i] = index - _offset + 1;
                     else
-                        editor.Values[i] = -1;
+                        editor.Values[i] = _na;
                 }
                 output.FeatureKeys = editor.Commit();
             }
         }
 
         /// <summary>
-        /// This class and the <see cref="IntermediateOut"/> class are used by the <see cref="CustomMappingTransformer{TSrc, TDst}"/>
-        /// that maps a vector of indices and a vector of values into a single <see cref="VBuffer{T}"/> of values. When the indices
-        /// originate from the <see cref="ValueToKeyMappingTransformer"/> (in case features are specified by name), <see cref="IntermediateOutKeys"/>
-        /// is used, and when they originate from a <see cref="CustomMappingTransformer{TSrc, TDst}"/> that produces an <see cref="Indices"/>,
-        /// <see cref="IntermediateOut"/> is used.
+        /// This class is used by the <see cref="CustomMappingTransformer{TSrc, TDst}"/>
+        /// that maps a vector of indices and a vector of values into a single <see cref="VBuffer{T}"/> of values.
         /// </summary>
-        private sealed class IntermediateOutKeys
-        {
-            public VBuffer<uint> FeatureKeys;
-            public VBuffer<float> FeatureValues;
-        }
-
         private sealed class IntermediateOut
         {
-            public VBuffer<int> FeatureKeys;
+            public VBuffer<uint> FeatureKeys;
             public VBuffer<float> FeatureValues;
         }
 
@@ -359,12 +347,14 @@ namespace Microsoft.ML.Data
 #pragma warning restore 0649
 
         /// <summary>
-        /// This class contains the mapper that maps an <see cref="IntermediateOut"/> or an <see cref="IntermediateOutKeys"/>
+        /// This class contains the mapper that maps an an <see cref="IntermediateOut"/>
         /// to an <see cref="Output"/>.
         /// </summary>
         private sealed class OutputMapper
         {
             private readonly uint _keyMax;
+            private readonly BufferBuilder<float> _bldr;
+            private readonly bool[] _indexUsed;
 
             public OutputMapper(int keyCount)
             {
@@ -372,6 +362,8 @@ namespace Microsoft.ML.Data
                 // Leave as uint, so that comparisons against uint key values do not
                 // incur any sort of implicit value conversions.
                 _keyMax = (uint)keyCount;
+                _bldr = new BufferBuilder<float>(FloatAdder.Instance);
+                _indexUsed = new bool[_keyMax];
             }
 
             public void Map(IntermediateOut intermediate, Output output)
@@ -379,61 +371,30 @@ namespace Microsoft.ML.Data
                 MapCore(ref intermediate.FeatureKeys, ref intermediate.FeatureValues, output);
             }
 
-            public void Map(IntermediateOutKeys intermediate, Output output)
-            {
-                MapCore(ref intermediate.FeatureKeys, ref intermediate.FeatureValues, output);
-            }
-
-            private void MapCore(ref VBuffer<int> keys, ref VBuffer<float> values, Output output)
-            {
-                var editor = VBufferEditor.Create(ref output.Features, (int)_keyMax);
-                editor.Values.Clear();
-
-                // I fully expect that these inputs will be of equal size. But I don't want to
-                // throw in the event that they're not. Instead just have it be an empty vector.
-                // REVIEW: Add warning and reporting for bad inputs for these.
-                if (keys.Length == values.Length)
-                {
-                    // Both of these inputs should be dense, but still work even if they're not.
-                    VBufferUtils.Densify(ref keys);
-                    VBufferUtils.Densify(ref values);
-                    var keysValues = keys.GetValues();
-                    var valuesValues = values.GetValues();
-                    for (int i = 0; i < keysValues.Length; ++i)
-                    {
-                        var key = keysValues[i];
-                        if (key < 0 || key >= _keyMax)
-                            continue;
-                        editor.Values[key] = valuesValues[i];
-                    }
-                }
-                output.Features = editor.Commit();
-            }
-
             private void MapCore(ref VBuffer<uint> keys, ref VBuffer<float> values, Output output)
             {
-                var editor = VBufferEditor.Create(ref output.Features, (int)_keyMax);
-                editor.Values.Clear();
+                Contracts.Check(keys.Length == values.Length, "number of keys does not match number of values.");
 
-                // I fully expect that these inputs will be of equal size. But I don't want to
-                // throw in the event that they're not. Instead just have it be an empty vector.
-                // REVIEW: Add warning and reporting for bad inputs for these.
-                if (keys.Length == values.Length)
+                // Both of these inputs should be dense, but still work even if they're not.
+                VBufferUtils.Densify(ref keys);
+                VBufferUtils.Densify(ref values);
+                var keysValues = keys.GetValues();
+                var valuesValues = values.GetValues();
+
+                // The output vector could be sparse, so we use BufferBuilder here.
+                _bldr.Reset((int)_keyMax, false);
+                Array.Clear(_indexUsed, 0, _indexUsed.Length);
+                for (int i = 0; i < keys.Length; ++i)
                 {
-                    // Both of these inputs should be dense, but still work even if they're not.
-                    VBufferUtils.Densify(ref keys);
-                    VBufferUtils.Densify(ref values);
-                    var keysValues = keys.GetValues();
-                    var valuesValues = values.GetValues();
-                    for (int i = 0; i < keys.Length; ++i)
-                    {
-                        var key = keysValues[i];
-                        if (key == 0 || key > _keyMax)
-                            continue;
-                        editor.Values[(int)key - 1] = valuesValues[i];
-                    }
+                    var key = keysValues[i];
+                    if (key == 0 || key > _keyMax)
+                        continue;
+                    if (_indexUsed[(int)key - 1])
+                        continue;
+                    _bldr.AddFeature((int)key - 1, valuesValues[i]);
+                    _indexUsed[(int)key - 1] = true;
                 }
-                output.Features = editor.Commit();
+                _bldr.GetResult(ref output.Features);
             }
         }
 
@@ -684,10 +645,11 @@ namespace Microsoft.ML.Data
         private DataViewSchema CreateOutputSchema()
         {
             var data = GetData(_host, null, null);
+            var indexParser = new IndexParser(_indicesKind == FeatureIndices.ZeroBased, _featureCount);
+            var schemaDef = SchemaDefinition.Create(typeof(Indices));
+            schemaDef[nameof(Indices.FeatureKeys)].ColumnType = new KeyDataViewType(typeof(uint), _featureCount);
             var keyVectorsToIndexVectors = _keyVectorsToIndexVectors ??
-                (_indicesKind == FeatureIndices.OneBased ?
-                new CustomMappingTransformer<IntermediateInput, Indices>(_host, Indices.ParseIndicesToOneBased, null) :
-                new CustomMappingTransformer<IntermediateInput, Indices>(_host, Indices.ParseIndicesToZeroBased, null));
+                new CustomMappingTransformer<IntermediateInput, Indices>(_host, indexParser.ParseIndices, null);
             var schema = keyVectorsToIndexVectors.GetOutputSchema(data.Schema);
             return CreateOutputTransformer(_host, (int)_featureCount,
                 _indicesKind == FeatureIndices.Names, schema).GetOutputSchema(schema);
@@ -783,13 +745,15 @@ namespace Microsoft.ML.Data
                     col.Annotations.GetValue(AnnotationUtils.Kinds.KeyValues, ref keyValues);
                     schemaDef[0].AddAnnotation(AnnotationUtils.Kinds.SlotNames, keyValues, keyValuesCol.Value.Type);
                 }
-                outputTransformer = new CustomMappingTransformer<IntermediateOutKeys, Output>(env,
+                outputTransformer = new CustomMappingTransformer<IntermediateOut, Output>(env,
                     outputMapper.Map, null, outputSchemaDefinition: schemaDef);
             }
             else
             {
                 outputTransformer = new CustomMappingTransformer<IntermediateOut, Output>(env,
                     outputMapper.Map, null, outputSchemaDefinition: schemaDef);
+                //outputTransformer = new CustomMappingTransformer<IntermediateOut, Output>(env,
+                //    outputMapper.Map, null, outputSchemaDefinition: schemaDef);
             }
 
             string[] toKeep = { "Label", "Weight", "GroupId", "Comment", "Features" };
@@ -801,10 +765,9 @@ namespace Microsoft.ML.Data
         public IDataView Load(IMultiStreamSource input)
         {
             var data = GetData(_host, null, input);
+            var indexParser = new IndexParser(_indicesKind == FeatureIndices.ZeroBased, _featureCount);
             var keyVectorsToIndexVectors = _keyVectorsToIndexVectors ??
-                (_indicesKind == FeatureIndices.OneBased ?
-                new CustomMappingTransformer<IntermediateInput, Indices>(_host, Indices.ParseIndicesToOneBased, null) :
-                new CustomMappingTransformer<IntermediateInput, Indices>(_host, Indices.ParseIndicesToZeroBased, null));
+                new CustomMappingTransformer<IntermediateInput, Indices>(_host, indexParser.ParseIndices, null);
             data = keyVectorsToIndexVectors.Transform(data);
             return CreateOutputTransformer(_host, (int)_featureCount, _indicesKind == FeatureIndices.Names, data.Schema).Transform(data);
         }
