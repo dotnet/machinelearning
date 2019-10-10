@@ -757,7 +757,7 @@ namespace Microsoft.ML.Data
             {
                 var segs = colInfo.Segments;
 
-                if (segs is null)
+                if ((segs is null) || (segs.Length == 0))
                 {
                     return DataReader.GetOrdinal(colInfo.Name);
                 }

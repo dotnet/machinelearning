@@ -35,6 +35,6 @@ namespace Microsoft.ML.Data
         }
 
         [BestFriend]
-        internal IReadOnlyList<string> Sources;
+        internal readonly IReadOnlyList<string> Sources;
     }
 }

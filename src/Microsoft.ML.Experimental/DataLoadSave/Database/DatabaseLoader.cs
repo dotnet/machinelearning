@@ -301,7 +301,7 @@ namespace Microsoft.ML.Data
             ///  The minimum index of the column, inclusive.
             /// </summary>
             /// <remarks>
-            /// This is <c>-1</c> if the range represents a column name.
+            /// This value is ignored if <see cref="Name" /> is not <c>null</c>.
             /// </remarks>
             [Argument(ArgumentType.Required, HelpText = "First index in the range")]
             public int Min;
@@ -310,7 +310,7 @@ namespace Microsoft.ML.Data
             /// The maximum index of the column, inclusive.
             /// </summary>
             /// <remarks>
-            /// This is <c>-1</c> if the range represents a column name.
+            /// This value is ignored if <see cref="Name" /> is not <c>null</c>.
             /// </remarks>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Last index in the range")]
             public int Max;
@@ -319,7 +319,7 @@ namespace Microsoft.ML.Data
             /// The name of the input column.
             /// </summary>
             /// <remarks>
-            /// This is <c>null</c> if the range represents an index.
+            /// This value, if non-<c>null</c>, overrides <see cref="Min" /> and <see cref="Max" />.
             /// </remarks>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the column")]
             public string Name;
@@ -417,7 +417,7 @@ namespace Microsoft.ML.Data
                 {
                     var order = Utils.GetIdentityPermutation(segs.Length);
 
-                    if (segs[0].Name is null)
+                    if ((segs.Length != 0) && (segs[0].Name is null))
                     {
                         Array.Sort(order, (x, y) => segs[x].Min.CompareTo(segs[y].Min));
 
