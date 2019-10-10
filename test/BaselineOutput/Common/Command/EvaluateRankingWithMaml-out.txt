@@ -1,0 +1,86 @@
+maml.exe CV tr=FastRankRanking{t=1} eval=RankingEvaluator{t=10} threads=- norm=Warn prexf=rangefilter{col=Label min=20 max=25} prexf=term{col=Strat:Label} loader=text{col=Features:R4:10-14 col=Label:R4:9 col=GroupId:TX:1 header+} data=%Data% out=%Output% xf=term{col=Label} xf=hash{col=GroupId}
+Not adding a normalizer.
+Making per-feature arrays
+Changing data from row-wise to column-wise
+Processed 38 instances
+Binning and forming Feature objects
+Reserved memory for tree learner: %Number% bytes
+Starting to train ...
+Not training a calibrator because it is not needed.
+Not adding a normalizer.
+Making per-feature arrays
+Changing data from row-wise to column-wise
+Processed 34 instances
+Binning and forming Feature objects
+Reserved memory for tree learner: %Number% bytes
+Starting to train ...
+Not training a calibrator because it is not needed.
+NDCG@1:             0.852151
+NDCG@2:             0.812691
+NDCG@3:             0.833123
+NDCG@4:             0.832012
+NDCG@5:             0.868823
+NDCG@6:             0.875724
+NDCG@7:             0.875724
+NDCG@8:             0.875724
+NDCG@9:             0.875724
+NDCG@10:            0.875724
+DCG@1:              16.470768
+DCG@2:              20.946111
+DCG@3:              23.891614
+DCG@4:              24.927172
+DCG@5:              27.206124
+DCG@6:              27.848497
+DCG@7:              27.848497
+DCG@8:              27.848497
+DCG@9:              27.848497
+DCG@10:             27.848497
+NDCG@1:             0.673118
+NDCG@2:             0.715724
+NDCG@3:             0.742017
+NDCG@4:             0.774032
+NDCG@5:             0.811047
+NDCG@6:             0.811657
+NDCG@7:             0.817541
+NDCG@8:             0.818655
+NDCG@9:             0.818655
+NDCG@10:            0.818655
+DCG@1:              21.255707
+DCG@2:              23.804377
+DCG@3:              26.160779
+DCG@4:              29.018919
+DCG@5:              31.288569
+DCG@6:              31.391349
+DCG@7:              31.872247
+DCG@8:              31.963271
+DCG@9:              31.963271
+DCG@10:             31.963271
+
+OVERALL RESULTS
+---------------------------------------
+NDCG@1:             0.762634 (0.0895)
+NDCG@2:             0.764207 (0.0485)
+NDCG@3:             0.787570 (0.0456)
+NDCG@4:             0.803022 (0.0290)
+NDCG@5:             0.839935 (0.0289)
+NDCG@6:             0.843691 (0.0320)
+NDCG@7:             0.846632 (0.0291)
+NDCG@8:             0.847189 (0.0285)
+NDCG@9:             0.847189 (0.0285)
+NDCG@10:            0.847189 (0.0285)
+DCG@1:              18.863238 (2.3925)
+DCG@2:              22.375244 (1.4291)
+DCG@3:              25.026196 (1.1346)
+DCG@4:              26.973046 (2.0459)
+DCG@5:              29.247346 (2.0412)
+DCG@6:              29.619923 (1.7714)
+DCG@7:              29.860372 (2.0119)
+DCG@8:              29.905884 (2.0574)
+DCG@9:              29.905884 (2.0574)
+DCG@10:             29.905884 (2.0574)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
