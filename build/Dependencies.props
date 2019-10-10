@@ -3,6 +3,7 @@
   <!-- Core Product Dependencies -->
   <PropertyGroup>
     <NewtonsoftJsonPackageVersion>10.0.3</NewtonsoftJsonPackageVersion>
+    <SystemBuffersVersion>4.4.0</SystemBuffersVersion>
     <SystemCodeDomPackageVersion>4.4.0</SystemCodeDomPackageVersion>
     <SystemCollectionsImmutableVersion>1.5.0</SystemCollectionsImmutableVersion>
     <SystemMemoryVersion>4.5.1</SystemMemoryVersion>
@@ -36,7 +37,7 @@
   <!-- Build/infrastructure Dependencies -->
   <PropertyGroup>
     <PublishSymbolsPackageVersion>1.0.0-beta-62824-02</PublishSymbolsPackageVersion>
-    <CodecovVersion>1.1.1</CodecovVersion>
+    <CodecovVersion>1.7.2</CodecovVersion>
     <CoverletVersion>2.6.0</CoverletVersion>
     <ReportGeneratorVersion>4.0.9</ReportGeneratorVersion>
     <MicrosoftDotNetApiCompatPackageVersion>1.0.0-beta.19225.5</MicrosoftDotNetApiCompatPackageVersion>
