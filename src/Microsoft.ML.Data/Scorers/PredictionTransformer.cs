@@ -776,10 +776,14 @@ namespace Microsoft.ML.Data
             var att = modelType.GetCustomAttribute(typeof(PredictionTransformerLoadType)) as PredictionTransformerLoadType;
             if (att != null)
             {
-                if (att.LoadType == typeof(CalibratedModelParametersBase<,>))
+                if (att.LoadType.IsGenericType && att.LoadType.GetGenericArguments().Length == modelType.GetGenericArguments().Length)
                 {
+                    // This assumes that if att.LoadType and modelType have the same number of type parameters
+                    // Then they should get the same type parameters.
+                    // This is the case for CalibratedModelParametersBase and its children generic clases.
+                    // But might break if other classes begin using the PredictionTransformerLoadtype attribute in the future.
                     Type[] typeArguments = modelType.GetGenericArguments();
-                    Type genericType = typeof(CalibratedModelParametersBase<,>);
+                    Type genericType = att.LoadType;
                     return genericType.MakeGenericType(typeArguments);
                 }
             }
