@@ -676,7 +676,7 @@ namespace Microsoft.ML.Data
             ctx.LoadModel<IPredictorProducing<float>, SignatureLoadModel>(host, out IPredictorProducing<float> model, DirModel);
 
             Type generic = typeof(BinaryPredictionTransformer<>);
-            return (ISingleFeaturePredictionTransformer<object>)CreatePredictionTransformer.Create(env, ctx, host, model, generic);
+            return (ISingleFeaturePredictionTransformer<object>) CreatePredictionTransformer.Create(env, ctx, host, model, generic);
         }
     }
 
@@ -692,7 +692,7 @@ namespace Microsoft.ML.Data
             ctx.LoadModel<IPredictorProducing<VBuffer<float>>, SignatureLoadModel>(host, out IPredictorProducing<VBuffer<float>> model, DirModel);
 
             Type generic = typeof(MulticlassPredictionTransformer<>);
-            return (ISingleFeaturePredictionTransformer<object>)CreatePredictionTransformer.Create(env, ctx, host, model, generic);
+            return (ISingleFeaturePredictionTransformer<object>) CreatePredictionTransformer.Create(env, ctx, host, model, generic);
         }
     }
 
@@ -708,7 +708,7 @@ namespace Microsoft.ML.Data
             ctx.LoadModel<IPredictorProducing<float>, SignatureLoadModel>(host, out IPredictorProducing<float> model, DirModel);
 
             Type generic = typeof(RegressionPredictionTransformer<>);
-            return (ISingleFeaturePredictionTransformer<object>)CreatePredictionTransformer.Create(env, ctx, host, model, generic);
+            return (ISingleFeaturePredictionTransformer<object>) CreatePredictionTransformer.Create(env, ctx, host, model, generic);
 
         }
     }
@@ -725,7 +725,7 @@ namespace Microsoft.ML.Data
             ctx.LoadModel<IPredictorProducing<float>, SignatureLoadModel>(host, out IPredictorProducing<float> model, DirModel);
 
             Type generic = typeof(RankingPredictionTransformer<>);
-            return (ISingleFeaturePredictionTransformer<object>)CreatePredictionTransformer.Create(env, ctx, host, model, generic);
+            return (ISingleFeaturePredictionTransformer<object>) CreatePredictionTransformer.Create(env, ctx, host, model, generic);
         }
     }
 
