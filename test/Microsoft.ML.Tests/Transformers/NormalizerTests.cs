@@ -888,6 +888,47 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(0f, transformedDataArray[2].Features[4]);
         }
 
+        [Fact]
+        public void TestNormalizeBackCompatibility2()
+        {
+            // Tests backward compatibility with a normalizing transformer
+            // whose version is "verWrittenCur: 0x00010001"
+
+            string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
+
+            var loader = new TextLoader(Env, new TextLoader.Options
+            {
+                Columns = new[] {
+                    new TextLoader.Column("float1", DataKind.Single, 1),
+                    new TextLoader.Column("float4", DataKind.Single, new[]{new TextLoader.Range(1, 4) }),
+                    new TextLoader.Column("double1", DataKind.Double, 1),
+                    new TextLoader.Column("double4", DataKind.Double, new[]{new TextLoader.Range(1, 4) }),
+                    new TextLoader.Column("int1", DataKind.Int32, 0),
+                    new TextLoader.Column("float0", DataKind.Single, new[]{ new TextLoader.Range { Min = 1, VariableEnd = true } }),
+                },
+                HasHeader = true
+            }, new MultiFileSource(dataPath));
+
+            var data = loader.Load(dataPath);
+            var normalizer = ML.Model.Load(@"C:\Users\anvelazq\Desktop\normalizers_verwrit-00010001.zip", out var schema);
+
+            var outputPath = GetOutputPath("NormalizerEstimator", "normalized2.tsv");
+            using (var ch = Env.Start("save"))
+            {
+                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
+                using (var fs = File.Create(outputPath))
+                {
+                    var transformedData = normalizer.Transform(data);
+                    var dataView = ML.Transforms.DropColumns(new[] { "float0" }).Fit(transformedData).Transform(transformedData);
+                    DataSaverUtils.SaveDataView(ch, saver, dataView, fs, keepHidden: true);
+                }
+            }
+
+            CheckEquality("NormalizerEstimator", "normalized2.tsv", "normalized.tsv");
+
+            Done();
+        }
+
         public class TensorData
         {
             private const int dim1 = 2;
