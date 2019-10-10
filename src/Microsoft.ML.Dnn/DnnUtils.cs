@@ -107,6 +107,7 @@ namespace Microsoft.ML.Dnn
                     //If current file size is not equal to expected file size, re-download file
                     if (currentSize != totalSizeInBytes)
                     {
+                        File.Delete(fileName);
                         var response = client.GetAsync(address).Result;
                         using FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None);
                             using Stream contentStream = response.Content.ReadAsStreamAsync().Result;

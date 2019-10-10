@@ -1755,6 +1755,90 @@ namespace Microsoft.ML.Scenarios
             Assert.InRange(lastEpoch, 1, 49);
         }
 
+        [TensorFlowFact]
+        public void TensorflowRedownloadModelFile()
+        {
+            string assetsRelativePath = @"assets";
+            string assetsPath = GetAbsolutePath(assetsRelativePath);
+            string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
+                "images");
+
+            //Download the image set and unzip
+            string finalImagesFolderName = DownloadImageSet(
+                imagesDownloadFolderPath);
+
+            string fullImagesetFolderPath = Path.Combine(
+                imagesDownloadFolderPath, finalImagesFolderName);
+
+            MLContext mlContext = new MLContext(seed: 1);
+
+            //Load all the original images info
+            IEnumerable<ImageData> images = LoadImagesFromDirectory(
+                folder: fullImagesetFolderPath, useFolderNameAsLabel: true).Take(20);
+
+            IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
+                mlContext.Data.LoadFromEnumerable(images), seed: 1);
+
+            shuffledFullImagesDataset = mlContext.Transforms.Conversion
+                .MapValueToKey("Label")
+                .Fit(shuffledFullImagesDataset)
+                .Transform(shuffledFullImagesDataset);
+
+            // Split the data 80:10 into train and test sets, train and evaluate.
+            TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
+                shuffledFullImagesDataset, testFraction: 0.2, seed: 1);
+
+            IDataView trainDataset = trainTestData.TrainSet;
+            IDataView testDataset = trainTestData.TestSet;
+            var validationSet = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+                    .Fit(testDataset)
+                    .Transform(testDataset);
+
+            //If model file exists, delete it
+            if(File.Exists(@"resnet_v2_101_299.meta"))
+                File.Delete(@"resnet_v2_101_299.meta");
+
+            //Create empty file with same name as model file to 
+            //simulate incomplete model file scenario.
+            using (File.Create(@"resnet_v2_101_299.meta")) { } 
+
+            //Create pipeline and run
+            var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+                .Append(mlContext.Model.ImageClassification(
+                    "Image", "Label",
+                    // Just by changing/selecting InceptionV3 here instead of 
+                    // ResnetV2101 you can try a different architecture/pre-trained 
+                    // model. 
+                    arch: ImageClassificationEstimator.Architecture.ResnetV2101,
+                    epoch: 1,
+                    batchSize: 10,
+                    learningRate: 0.01f,
+                    metricsCallback: (metrics) => Console.WriteLine(metrics),
+                    testOnTrainSet: false,
+                    disableEarlyStopping: true,
+                    reuseTrainSetBottleneckCachedValues: true,
+                    reuseValidationSetBottleneckCachedValues: true)
+                .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel")));
+
+            var trainedModel = pipeline.Fit(trainDataset);
+
+            mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
+                "model.zip");
+
+            ITransformer loadedModel;
+            DataViewSchema schema;
+            using (var file = File.OpenRead("model.zip"))
+                loadedModel = mlContext.Model.Load(file, out schema);
+
+            // Testing EvaluateModel: group testing on test dataset
+            IDataView predictions = trainedModel.Transform(testDataset);
+            var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
+
+            File.Delete(@"resnet_v2_101_299.meta");
+
+            // Accuracy should be returned, indicating training loop ran successfully. 
+            Assert.InRange(metrics.MicroAccuracy, 0.1, 1);          
+        }
         public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,
             bool useFolderNameAsLabel = true)
         {
