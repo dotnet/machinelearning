@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using Microsoft.ML;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Runtime;
@@ -675,7 +676,7 @@ namespace Microsoft.ML.Data
             ctx.LoadModel<IPredictorProducing<float>, SignatureLoadModel>(host, out IPredictorProducing<float> model, DirModel);
 
             Type generic = typeof(BinaryPredictionTransformer<>);
-            return (ISingleFeaturePredictionTransformer<object>) CreatePredictionTransformer.Create(env, ctx, host, model, generic);
+            return (ISingleFeaturePredictionTransformer<object>)CreatePredictionTransformer.Create(env, ctx, host, model, generic);
         }
     }
 
@@ -691,7 +692,7 @@ namespace Microsoft.ML.Data
             ctx.LoadModel<IPredictorProducing<VBuffer<float>>, SignatureLoadModel>(host, out IPredictorProducing<VBuffer<float>> model, DirModel);
 
             Type generic = typeof(MulticlassPredictionTransformer<>);
-            return (ISingleFeaturePredictionTransformer<object>) CreatePredictionTransformer.Create(env, ctx, host, model, generic);
+            return (ISingleFeaturePredictionTransformer<object>)CreatePredictionTransformer.Create(env, ctx, host, model, generic);
         }
     }
 
@@ -707,7 +708,7 @@ namespace Microsoft.ML.Data
             ctx.LoadModel<IPredictorProducing<float>, SignatureLoadModel>(host, out IPredictorProducing<float> model, DirModel);
 
             Type generic = typeof(RegressionPredictionTransformer<>);
-            return (ISingleFeaturePredictionTransformer<object>) CreatePredictionTransformer.Create(env, ctx, host, model, generic);
+            return (ISingleFeaturePredictionTransformer<object>)CreatePredictionTransformer.Create(env, ctx, host, model, generic);
 
         }
     }
@@ -724,7 +725,7 @@ namespace Microsoft.ML.Data
             ctx.LoadModel<IPredictorProducing<float>, SignatureLoadModel>(host, out IPredictorProducing<float> model, DirModel);
 
             Type generic = typeof(RankingPredictionTransformer<>);
-            return (ISingleFeaturePredictionTransformer<object>) CreatePredictionTransformer.Create(env, ctx, host, model, generic);
+            return (ISingleFeaturePredictionTransformer<object>)CreatePredictionTransformer.Create(env, ctx, host, model, generic);
         }
     }
 
@@ -734,7 +735,7 @@ namespace Microsoft.ML.Data
         {
             // Create generic type of the prediction transformer using the correct TModel.
             // Return an instance of that type, passing the previously loaded model to the constructor
-            Type[] genericTypeArgs = { GetLoadType(model.GetType()) ?? model.GetType() };
+            Type[] genericTypeArgs = { GetLoadType(model.GetType()) };
             Type constructed = generic.MakeGenericType(genericTypeArgs);
 
             Type[] constructorArgs = {
@@ -772,10 +773,30 @@ namespace Microsoft.ML.Data
 
         internal static Type GetLoadType(Type modelType)
         {
-            var y = modelType.GetField("LoadType", BindingFlags.NonPublic | BindingFlags.Static);
-            var x = (Type) y?.GetValue(null);
-            return x;
+            var att = modelType.GetCustomAttribute(typeof(PredictionTransformerLoadType)) as PredictionTransformerLoadType;
+            if (att != null)
+            {
+                if (att.LoadType == typeof(CalibratedModelParametersBase<,>))
+                {
+                    Type[] typeArguments = modelType.GetGenericArguments();
+                    Type genericType = typeof(CalibratedModelParametersBase<,>);
+                    return genericType.MakeGenericType(typeArguments);
+                }
+            }
+
+            return modelType;
         }
+    }
+
+    [AttributeUsage(AttributeTargets.Class)]
+    internal class PredictionTransformerLoadType : Attribute
+    {
+        internal Type LoadType;
+        internal PredictionTransformerLoadType(Type loadtype)
+        {
+            LoadType = loadtype;
+        }
+
     }
 
     internal static class AnomalyPredictionTransformer
