@@ -780,7 +780,7 @@ namespace Microsoft.ML.Data
                     // This assumes that if att.LoadType and modelType have the same number of type parameters
                     // Then they should get the same type parameters.
                     // This is the case for CalibratedModelParametersBase and its children generic clases.
-                    // But might break if other classes begin using the PredictionTransformerLoadtype attribute in the future.
+                    // But might break if other classes begin using the PredictionTransformerLoadtypeAttribute in the future.
                     Type[] typeArguments = modelType.GetGenericArguments();
                     Type genericType = att.LoadType;
                     return genericType.MakeGenericType(typeArguments);
@@ -794,7 +794,7 @@ namespace Microsoft.ML.Data
     [AttributeUsage(AttributeTargets.Class)]
     internal class PredictionTransformerLoadTypeAttribute : Attribute
     {
-        internal Type LoadType;
+        internal Type LoadType { get; }
         internal PredictionTransformerLoadTypeAttribute(Type loadtype)
         {
             LoadType = loadtype;
