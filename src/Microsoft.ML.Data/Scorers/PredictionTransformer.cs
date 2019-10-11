@@ -6,7 +6,6 @@ using System;
 using System.IO;
 using System.Reflection;
 using Microsoft.ML;
-using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Runtime;
