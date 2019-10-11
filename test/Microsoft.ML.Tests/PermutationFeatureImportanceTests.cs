@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
