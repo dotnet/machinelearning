@@ -541,8 +541,8 @@ namespace Microsoft.ML.Calibrators
             _featureWeights = predictor as IPredictorWithFeatureWeights<float>;
         }
 
-        internal const string LoaderSignature = "PMixCaliPredExec";
-        internal const string RegistrationName = "ParameterMixingCalibratedPredictor";
+        internal const string LoaderSignature = ParameterMixingCalibratedModelParameters.LoaderSignature;
+        internal const string RegistrationName = ParameterMixingCalibratedModelParameters.RegistrationName;
 
         private static VersionInfo GetVersionInfo()
         {
