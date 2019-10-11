@@ -772,7 +772,7 @@ namespace Microsoft.ML.Data
 
         internal static Type GetLoadType(Type modelType)
         {
-            var att = modelType.GetCustomAttribute(typeof(PredictionTransformerLoadType)) as PredictionTransformerLoadType;
+            var att = modelType.GetCustomAttribute(typeof(PredictionTransformerLoadTypeAttribute)) as PredictionTransformerLoadTypeAttribute;
             if (att != null)
             {
                 if (att.LoadType.IsGenericType && att.LoadType.GetGenericArguments().Length == modelType.GetGenericArguments().Length)
@@ -792,10 +792,10 @@ namespace Microsoft.ML.Data
     }
 
     [AttributeUsage(AttributeTargets.Class)]
-    internal class PredictionTransformerLoadType : Attribute
+    internal class PredictionTransformerLoadTypeAttribute : Attribute
     {
         internal Type LoadType;
-        internal PredictionTransformerLoadType(Type loadtype)
+        internal PredictionTransformerLoadTypeAttribute(Type loadtype)
         {
             LoadType = loadtype;
         }

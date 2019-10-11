@@ -521,7 +521,7 @@ namespace Microsoft.ML.Calibrators
     /// Encapsulates a predictor and a calibrator that implement <see cref="IParameterMixer"/>.
     /// Its implementation of <see cref="IParameterMixer.CombineParameters"/> combines both the predictors and the calibrators.
     /// </summary>
-    [PredictionTransformerLoadType(typeof(CalibratedModelParametersBase <,>))]
+    [PredictionTransformerLoadTypeAttribute(typeof(CalibratedModelParametersBase <,>))]
     internal sealed class ParameterMixingCalibratedModelParameters<TSubModel, TCalibrator> :
         ValueMapperCalibratedModelParametersBase<TSubModel, TCalibrator>,
         IParameterMixer<float>,
