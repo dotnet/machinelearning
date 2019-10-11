@@ -94,7 +94,7 @@ namespace Microsoft.ML.Dnn
             }
             return new Session(graph);
         }
-        internal static async void DownloadIfNeededAsync(Uri address, string fileName)
+        internal static void DownloadIfNeeded(Uri address, string fileName)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Dnn
                         var response = client.GetAsync(address).Result;
                         using FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None);
                             using Stream contentStream = response.Content.ReadAsStreamAsync().Result;
-                                await contentStream.CopyToAsync(fileStream);
+                                contentStream.CopyTo(fileStream);
                     }
                 }
                 else
@@ -119,7 +119,7 @@ namespace Microsoft.ML.Dnn
                     var response = client.GetAsync(address).Result;
                     using FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None);
                         using Stream contentStream = response.Content.ReadAsStreamAsync().Result;
-                            await contentStream.CopyToAsync(fileStream);
+                            contentStream.CopyTo(fileStream);
                 }
             }
         }
