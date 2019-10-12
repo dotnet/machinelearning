@@ -85,14 +85,15 @@ namespace Samples.Dynamic
                         // Just by changing/selecting InceptionV3 here instead of 
                         // ResnetV2101 you can try a different architecture/pre-trained 
                         // model. 
-                        arch: ImageClassificationEstimator.Architecture.ResnetV2101,
-                        epoch: 50,
-                        batchSize: 10,
-                        learningRate: 0.01f,
+                        arch: ImageClassificationEstimator.Architecture.ResnetV250,
+                        epoch: 182,
+                        batchSize: 128,
+                        //learningRate: 0.01f,
+                        learningRateScheduling: true,
                         metricsCallback: (metrics) => Console.WriteLine(metrics),
                         validationSet: validationSet,
-                        reuseValidationSetBottleneckCachedValues: true,
-                        reuseTrainSetBottleneckCachedValues :true,
+                        reuseValidationSetBottleneckCachedValues: false,
+                        reuseTrainSetBottleneckCachedValues :false,
                         disableEarlyStopping: true)
                     .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel")));
 

@@ -24,8 +24,8 @@ namespace Microsoft.ML.Samples
                 }
             }
             */
-            //ResnetV50TransferLearningTrainTestSplit.Example();
-            ResnetV2101TransferLearningTrainTestSplit.Example();
+            ResnetV50TransferLearningTrainTestSplit.Example();
+            //ResnetV2101TransferLearningTrainTestSplit.Example();
             Console.WriteLine("Number of samples that ran without any exception: " + samples);
         }
     }
