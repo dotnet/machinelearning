@@ -910,7 +910,9 @@ namespace Microsoft.ML.Tests.Transformers
             }, new MultiFileSource(dataPath));
 
             var data = loader.Load(dataPath);
-            var normalizer = ML.Model.Load(@"C:\Users\anvelazq\Desktop\normalizers_verwrit-00010001.zip", out var schema); // MYTODO: add this model to the models' repo and use that instead
+
+            var modelPath = Path.Combine("TestModels", "normalizer_verwrit-00010001.zip");
+            var normalizer = ML.Model.Load(modelPath, out var schema);
 
             var outputPath = GetOutputPath("NormalizerEstimator", "normalized2.tsv");
             using (var ch = Env.Start("save"))
