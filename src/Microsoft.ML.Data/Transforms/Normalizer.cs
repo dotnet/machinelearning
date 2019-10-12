@@ -423,11 +423,9 @@ namespace Microsoft.ML.Transforms
 
                 var dimensions = new int[ndimensions];
                 for (int i = 0; i < ndimensions; i++)
-                {
                     dimensions[i] = ctx.Reader.ReadInt32();
-                }
 
-                return (DataViewType)(new VectorDataViewType(itemType, dimensions));
+                return new VectorDataViewType(itemType, dimensions);
             }
 
             internal static void SaveType(ModelSaveContext ctx, DataViewType type)
@@ -448,10 +446,9 @@ namespace Microsoft.ML.Transforms
                 Contracts.Assert(itemKind == InternalDataKind.R4 || itemKind == InternalDataKind.R8);
                 ctx.Writer.Write((byte)itemKind);
 
-                if(vectorType != null)
+                Contracts.Assert(vectorType == null || vectorType.IsKnownSize);
+                if (vectorType != null)
                 {
-                    Contracts.Assert(vectorType == null || vectorType.IsKnownSize);
-
                     var dims = vectorType.Dimensions;
                     ctx.Writer.Write(dims.Length);
                     for (int i = 0; i < dims.Length; i++)
