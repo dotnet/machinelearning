@@ -59,9 +59,10 @@ public class IrisVectorData
 static void Main(string[] args)
 {
     // Here's a data array that we want to work on.
-    var dataArray = new[] {
-        new IrisData{Label=1, PetalLength=1, SepalLength=1, PetalWidth=1, SepalWidth=1},
-        new IrisData{Label=0, PetalLength=2, SepalLength=2, PetalWidth=2, SepalWidth=2}
+    var dataArray = new[]
+    {
+        new IrisData { Label = 1, PetalLength = 1, SepalLength = 1, PetalWidth = 1, SepalWidth = 1 },
+        new IrisData { Label = 0, PetalLength = 2, SepalLength = 2, PetalWidth = 2, SepalWidth = 2 }
     };
 
     // Create the ML.NET environment.
@@ -70,7 +71,7 @@ static void Main(string[] args)
     // Create the data view.
     // This method will use the definition of IrisData to understand what columns there are in the
     // data view.
-    var dv = context.Data.ReadFromEnumerable(dataArray);
+    var dataView = context.Data.LoadFromEnumerable(dataArray);
 
     // Now let's do something to the data view. For example, concatenate all four non-label columns
     // into 'Features' column.
@@ -78,15 +79,15 @@ static void Main(string[] args)
         "SepalLength", "SepalWidth", "PetalLength", "PetalWidth");
 
     // Next, let's fit and transform the data so the concatenation goes through the data view.
-    var transformedData = pipeline.Fit(dv).Transform(dv);
+    var transformedData = pipeline.Fit(dataView).Transform(dataView);
 
     // Read the data into an IEnumerable.
     // This method will use the definition of IrisData to understand which columns and of which types
     // are expected to be present in the input data.
-    var data = context.CreateEnumerable<IrisData>(transformedData, reuseRowObject: false);
+    var data = context.Data.CreateEnumerable<IrisVectorData>(transformedData, reuseRowObject: false).ToList();
 }
 ```
-After this code runs, `arr` will contain two `IrisVectorData` objects, each having `Features` filled with the actual values of the features (the 4 concatenated columns).
+After this code runs, `data` will contain two `IrisVectorData` objects, each having `Features` filled with the actual values of the features (the 4 concatenated columns).
 
 ### Streaming data views
 
@@ -100,7 +101,7 @@ The only subtle difference is, the resulting `streamingDv` will not support shuf
 
 When you read a data view as `AsEnumerable<OutType>`, ML.NET will create and populate an object per row. If you do not need multiple row objects to exist in memory (for example, you are writing them to disk one by one, as you scan through the `IEnumerable`), you may want to set `reuseRowObject` to `true`. This will make ML.NET create *only one row object for the entire data view* when you enumerate it, and just re-populate the values every time.
 
-Obviously, in the example above this would lead to incorrect behavior, as the `arr` variable will hold two copies of the same `IrisVectorData` object. Please consider carefully whether you want to reuse the row object, because it is more efficient, but can lead to hard to find issues.
+Obviously, in the example above this would lead to incorrect behavior, as the `data` variable will hold two copies of the same `IrisVectorData` object. Please consider carefully whether you want to reuse the row object, because it is more efficient, but can lead to hard to find issues.
 
 Sometimes, we don't even want to *populate* the row object per row. For example, we only want to see every 100th row of the data, so there's no need to populate the remaining 99% row objects. In this case, you can use `AsCursorable<OutType>` method:
 

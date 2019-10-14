@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Text;
 
@@ -39,7 +40,7 @@ namespace Microsoft.ML
                 outputColumnName, inputColumnName);
 
         /// <summary>
-        ///  Create a <see cref="TextFeaturizingEstimator"/>, which transforms a text column into featurized float array that represents normalized counts of n-grams and char-grams.
+        ///  Create a <see cref="TextFeaturizingEstimator"/>, which transforms a text column into featurized vector of <see cref="System.Single"/> that represents normalized counts of n-grams and char-grams.
         /// </summary>
         /// <remarks>This transform can operate over several columns.</remarks>
         /// <param name="catalog">The text-related transform's catalog.</param>
@@ -62,7 +63,8 @@ namespace Microsoft.ML
             TextFeaturizingEstimator.Options options,
             params string[] inputColumnNames)
             => new TextFeaturizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                outputColumnName, inputColumnNames, options);
+                outputColumnName, Utils.Size(inputColumnNames) == 0  ? new[] { outputColumnName } : inputColumnNames,
+                options);
 
         /// <summary>
         /// Create a <see cref="TokenizingByCharactersEstimator"/>, which tokenizes by splitting text into sequences of characters

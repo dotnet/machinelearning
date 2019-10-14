@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Transforms.Onnx
@@ -29,7 +30,7 @@ namespace Microsoft.ML.Transforms.Onnx
         /// <param name="elementType">The element type of a sequence.</param>
         public OnnxSequenceType(Type elementType) : base(MakeNativeType(elementType))
         {
-            DataViewTypeManager.Register(this, RawType, new[] { new OnnxSequenceTypeAttribute(elementType) });
+            DataViewTypeManager.Register(this, RawType, new OnnxSequenceTypeAttribute(elementType));
         }
 
         public override bool Equals(DataViewType other)
@@ -56,9 +57,11 @@ namespace Microsoft.ML.Transforms.Onnx
     {
         private Type _elemType;
 
-        /// <summary>
-        /// Create a sequence type.
-        /// </summary>
+        // Make default constructor obsolete.
+        // Use default constructor will left the _elemType field empty and cause exception in methods using _elemType.
+        // User will receive compile warning when try to use [OnnxSequenceType] attribute directly without specify sequence type
+        [Obsolete("Please specify sequence type when use OnnxSequenceType Attribute", false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public OnnxSequenceTypeAttribute()
         {
         }
@@ -96,7 +99,7 @@ namespace Microsoft.ML.Transforms.Onnx
         {
             var enumerableType = typeof(IEnumerable<>);
             var type = enumerableType.MakeGenericType(_elemType);
-            DataViewTypeManager.Register(new OnnxSequenceType(_elemType), type, new[] { this });
+            DataViewTypeManager.Register(new OnnxSequenceType(_elemType), type, this);
         }
     }
 }
