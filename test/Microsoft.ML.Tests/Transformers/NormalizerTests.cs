@@ -904,7 +904,6 @@ namespace Microsoft.ML.Tests.Transformers
                     new TextLoader.Column("double1", DataKind.Double, 1),
                     new TextLoader.Column("double4", DataKind.Double, new[]{new TextLoader.Range(1, 4) }),
                     new TextLoader.Column("int1", DataKind.Int32, 0),
-                    new TextLoader.Column("float0", DataKind.Single, new[]{ new TextLoader.Range { Min = 1, VariableEnd = true } }),
                 },
                 HasHeader = true
             }, new MultiFileSource(dataPath));
@@ -921,8 +920,7 @@ namespace Microsoft.ML.Tests.Transformers
                 using (var fs = File.Create(outputPath))
                 {
                     var transformedData = normalizer.Transform(data);
-                    var dataView = ML.Transforms.DropColumns(new[] { "float0" }).Fit(transformedData).Transform(transformedData);
-                    DataSaverUtils.SaveDataView(ch, saver, dataView, fs, keepHidden: true);
+                    DataSaverUtils.SaveDataView(ch, saver, transformedData, fs, keepHidden: true);
                 }
             }
 
