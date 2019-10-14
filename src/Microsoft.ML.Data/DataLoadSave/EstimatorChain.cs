@@ -15,8 +15,8 @@ namespace Microsoft.ML.Data
     public sealed class EstimatorChain<TLastTransformer> : IEstimator<TransformerChain<TLastTransformer>>
         where TLastTransformer : class, ITransformer
     {
-        // Host is not null if there are any 'true' values in _needCacheAfter (in this case, we need to create an instance of
-        // CacheDataView.
+        // Host is not null iff there are any 'true' values in _needCacheAfter (in this case, we need to create an instance of
+        // CacheDataView).
         private readonly IHost _host;
         private readonly TransformerScope[] _scopes;
         private readonly IEstimator<ITransformer>[] _estimators;
