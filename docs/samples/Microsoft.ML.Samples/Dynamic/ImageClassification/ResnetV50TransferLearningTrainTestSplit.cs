@@ -89,7 +89,7 @@ namespace Samples.Dynamic
                         epoch: 182,
                         batchSize: 128,
                         //learningRate: 0.01f,
-                        learningRateScheduling: true,
+                        uselearningRateScheduling: true,
                         metricsCallback: (metrics) => Console.WriteLine(metrics),
                         validationSet: validationSet,
                         reuseValidationSetBottleneckCachedValues: false,

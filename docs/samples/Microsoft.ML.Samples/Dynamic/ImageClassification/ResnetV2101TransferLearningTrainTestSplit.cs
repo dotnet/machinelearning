@@ -28,9 +28,9 @@ namespace Samples.Dynamic
                 "images");
 
             //Download the image set and unzip
-            //string finalImagesFolderName = DownloadImageSet(
-            //    imagesDownloadFolderPath);
-            string finalImagesFolderName = "flower_photos";
+            string finalImagesFolderName = DownloadImageSet(
+                imagesDownloadFolderPath);
+            //string finalImagesFolderName = "flower_photos";
             string fullImagesetFolderPath = Path.Combine(
                 imagesDownloadFolderPath, finalImagesFolderName);
 
@@ -71,9 +71,12 @@ namespace Samples.Dynamic
                         arch: ImageClassificationEstimator.Architecture.ResnetV2101,
                         epoch: 50,
                         batchSize: 10,
-                        learningRate: 0.01f,
+                        //learningRate: 0.01f,
+                        uselearningRateScheduling: true,
                         metricsCallback: (metrics) => Console.WriteLine(metrics),
                         validationSet: validationSet,
+                        reuseValidationSetBottleneckCachedValues: true,
+                        reuseTrainSetBottleneckCachedValues: true,
                         disableEarlyStopping: true)
                     .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel")));
 

@@ -101,7 +101,7 @@ namespace Microsoft.ML
         /// <param name="epoch">Number of training iterations. Each iteration/epoch refers to one pass over the dataset.</param>
         /// <param name="batchSize">The batch size for training.</param>
         /// <param name="learningRate">The learning rate for training.</param>
-        /// <param name="learningRateScheduling">Enables learning rate scheduling to use during optimization if true. Only use for Cifar dataset.</param>
+        /// <param name="uselearningRateScheduling">Enables learning rate scheduling to use during optimization if true. Only use for Cifar dataset.</param>
         /// <param name="disableEarlyStopping">Whether to disable use of early stopping technique. Training will go on for the full epoch count.</param>
         /// <param name="earlyStopping">Early stopping technique parameters to be used to terminate training when training metric stops improving.</param>
         /// <param name="metricsCallback">Callback for reporting model statistics during training phase.</param>
@@ -128,7 +128,7 @@ namespace Microsoft.ML
             int epoch = 100,
             int batchSize = 10,
             float learningRate = 0.01f,
-            bool learningRateScheduling = false,
+            bool uselearningRateScheduling = false,
             bool disableEarlyStopping = false,
             EarlyStopping earlyStopping = null,
             ImageClassificationMetricsCallback metricsCallback = null,
@@ -153,7 +153,7 @@ namespace Microsoft.ML
                 TensorFlowLabel = labelColumnName,
                 Epoch = epoch,
                 LearningRate = learningRate,
-                LearningRateScheduling = learningRateScheduling,
+                UseLearningRateScheduling = uselearningRateScheduling,
                 BatchSize = batchSize,
                 EarlyStoppingCriteria = disableEarlyStopping ? null : earlyStopping == null ? new EarlyStopping() : earlyStopping,
                 ScoreColumnName = scoreColumnName,
