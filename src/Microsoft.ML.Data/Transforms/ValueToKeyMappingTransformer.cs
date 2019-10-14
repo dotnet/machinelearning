@@ -777,7 +777,13 @@ namespace Microsoft.ML.Transforms
                 TermMap<ReadOnlyMemory<char>> map = (TermMap<ReadOnlyMemory<char>>)_termMap[iinfo].Map;
                 map.GetTerms(ref terms);
                 string opType = "LabelEncoder";
-                var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
+                ctx.AddIntermediateVariable(info.TypeSrc, "Cast", true);
+                var node = ctx.CreateNode(opType, srcVariableName, ctx.GetVariableName("Cast"), ctx.GetNodeName(opType));
+                opType = "Cast";
+                var castNode = ctx.CreateNode(opType, ctx.GetVariableName("Cast"), dstVariableName, ctx.GetNodeName(opType), "");
+                var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.UInt32).ToType();
+                castNode.AddAttribute("to", t);
+
                 node.AddAttribute("classes_strings", terms.DenseValues());
                 node.AddAttribute("default_int64", -1);
                 //default_string needs to be an empty string but there is a BUG in Lotus that

@@ -702,9 +702,13 @@ namespace Microsoft.ML.Transforms
                 // If Bag is true, the output of ONNX LabelEncoder needs to be fed into ONNX ReduceSum because
                 // default ONNX LabelEncoder just matches the behavior of Bag=false.
                 var encodedVariableName = _parent._columns[iinfo].OutputCountVector ? ctx.AddIntermediateVariable(null, "encoded", true) : dstVariableName;
-
                 string opType = "OneHotEncoder";
-                var node = ctx.CreateNode(opType, srcVariableName, encodedVariableName, ctx.GetNodeName(opType));
+                ctx.AddIntermediateVariable(info.TypeSrc, "Cast", true);
+                var node2 = ctx.CreateNode("Cast", srcVariableName, ctx.GetVariableName("Cast"), ctx.GetNodeName("Cast"), "");
+                var temp = ctx.GetNodeName("Cast");
+                node2.AddAttribute("to", typeof(long));
+
+                var node = ctx.CreateNode(opType, ctx.GetVariableName("Cast"), encodedVariableName, ctx.GetNodeName(opType));
                 node.AddAttribute("cats_int64s", Enumerable.Range(0, info.TypeSrc.GetItemType().GetKeyCountAsInt32(Host)).Select(x => (long)x));
                 node.AddAttribute("zeros", true);
                 if (_parent._columns[iinfo].OutputCountVector)
@@ -715,7 +719,7 @@ namespace Microsoft.ML.Transforms
                     opType = "ReduceSum";
                     var reduceNode = ctx.CreateNode(opType, encodedVariableName, dstVariableName, ctx.GetNodeName(opType), "");
                     reduceNode.AddAttribute("axes", new long[] { shape.Count - 1 });
-                    reduceNode.AddAttribute("keepdims", 0);
+                    reduceNode.AddAttribute("keepdims", 1); // Why is it 0?
                 }
                 return true;
             }

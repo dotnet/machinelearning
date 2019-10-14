@@ -373,7 +373,7 @@ namespace Microsoft.ML.Data
             {
                 int colIndex = Bindings.MapIinfoToCol(iinfo);
                 string colName = Bindings.GetColumnName(colIndex);
-                colName = ctx.AddIntermediateVariable(Bindings.GetColumnType(colIndex), colName, true);
+                colName = ctx.AddIntermediateVariable(Bindings.GetColumnType(colIndex), colName, false);
                 outVariableNames[iinfo] = colName;
             }
 
