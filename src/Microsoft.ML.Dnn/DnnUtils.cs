@@ -110,16 +110,16 @@ namespace Microsoft.ML.Dnn
                         File.Delete(fileName);
                         var response = client.GetAsync(address).Result;
                         using FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None);
-                            using Stream contentStream = response.Content.ReadAsStreamAsync().Result;
-                                contentStream.CopyTo(fileStream);
+                        using Stream contentStream = response.Content.ReadAsStreamAsync().Result;
+                        contentStream.CopyTo(fileStream);
                     }
                 }
                 else
                 {
                     var response = client.GetAsync(address).Result;
                     using FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None);
-                        using Stream contentStream = response.Content.ReadAsStreamAsync().Result;
-                            contentStream.CopyTo(fileStream);
+                    using Stream contentStream = response.Content.ReadAsStreamAsync().Result;
+                    contentStream.CopyTo(fileStream);
                 }
             }
         }

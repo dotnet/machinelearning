@@ -1755,8 +1755,10 @@ namespace Microsoft.ML.Scenarios
             Assert.InRange(lastEpoch, 1, 49);
         }
 
-        [TensorFlowFact]
-        public void TensorflowRedownloadModelFile()
+        [TensorFlowTheory]  
+        [InlineData(ImageClassificationEstimator.Architecture.ResnetV2101)]
+        [InlineData(ImageClassificationEstimator.Architecture.InceptionV3)]
+        public void TensorflowRedownloadModelFile(ImageClassificationEstimator.Architecture arch)
         {
             string assetsRelativePath = @"assets";
             string assetsPath = GetAbsolutePath(assetsRelativePath);
@@ -1774,7 +1776,7 @@ namespace Microsoft.ML.Scenarios
 
             //Load all the original images info
             IEnumerable<ImageData> images = LoadImagesFromDirectory(
-                folder: fullImagesetFolderPath, useFolderNameAsLabel: true).Take(20);
+                folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
 
             IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
                 mlContext.Data.LoadFromEnumerable(images), seed: 1);
@@ -1794,13 +1796,28 @@ namespace Microsoft.ML.Scenarios
                     .Fit(testDataset)
                     .Transform(testDataset);
 
-            //If model file exists, delete it
-            if(File.Exists(@"resnet_v2_101_299.meta"))
-                File.Delete(@"resnet_v2_101_299.meta");
-
-            //Create empty file with same name as model file to 
+            //If model file exists, delete it and create empty file
+            //with the same name as model file to 
             //simulate incomplete model file scenario.
-            using (File.Create(@"resnet_v2_101_299.meta")) { } 
+            if (arch == ImageClassificationEstimator.Architecture.ResnetV2101)
+            {
+
+                if (File.Exists(@"resnet_v2_101_299.meta"))
+                    File.Delete(@"resnet_v2_101_299.meta");
+
+                using (File.Create(@"resnet_v2_101_299.meta")) { }
+            }
+            else if(arch == ImageClassificationEstimator.Architecture.InceptionV3)
+            {
+                if (File.Exists(@"tfhub_modules.zip"))
+                    File.Delete(@"tfhub_modules.zip");
+                if (Directory.Exists(@"tfhub_modules"))
+                    Directory.Delete(@"tfhub_modules", true);
+                if (File.Exists(@"InceptionV3.meta"))
+                    File.Delete(@"InceptionV3.meta");
+
+                using (File.Create(@"InceptionV3.meta")) { }
+            }
 
             //Create pipeline and run
             var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
@@ -1809,7 +1826,7 @@ namespace Microsoft.ML.Scenarios
                     // Just by changing/selecting InceptionV3 here instead of 
                     // ResnetV2101 you can try a different architecture/pre-trained 
                     // model. 
-                    arch: ImageClassificationEstimator.Architecture.ResnetV2101,
+                    arch: arch,
                     epoch: 1,
                     batchSize: 10,
                     learningRate: 0.01f,
@@ -1833,8 +1850,6 @@ namespace Microsoft.ML.Scenarios
             // Testing EvaluateModel: group testing on test dataset
             IDataView predictions = trainedModel.Transform(testDataset);
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
-
-            File.Delete(@"resnet_v2_101_299.meta");
 
             // Accuracy should be returned, indicating training loop ran successfully. 
             Assert.InRange(metrics.MicroAccuracy, 0.1, 1);          
