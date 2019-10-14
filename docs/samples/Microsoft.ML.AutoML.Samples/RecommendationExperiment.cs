@@ -16,6 +16,8 @@ namespace Microsoft.ML.AutoML.Samples
         private static string TestDataPath = "<Path to your test dataset goes here>";
         private static string ModelPath = @"<Desired model output directory goes here>\Model.zip";
         private static string LabelColumnName = "Rating";
+        private static string UserColumnName = "UserId";
+        private static string ItemColumnName = "MovieId";
         private static uint ExperimentTime = 60;
 
         public static void Run()
@@ -26,20 +28,17 @@ namespace Microsoft.ML.AutoML.Samples
             IDataView trainDataView = mlContext.Data.LoadFromTextFile<Movie>(TrainDataPath, hasHeader: true, separatorChar: ',');
             IDataView testDataView = mlContext.Data.LoadFromTextFile<Movie>(TestDataPath, hasHeader: true, separatorChar: ',');
 
-            var settings = new RecommendationExperimentSettings(RecommendationExperimentScenario.MatrixFactorization, "UserId", "MovieId")
-            {
-                MaxExperimentTimeInSeconds = ExperimentTime
-            };
-            var inputColumnInformation = new ColumnInformation();
-            inputColumnInformation.LabelCategoricalColumnNames.Add("MovieId");
-            inputColumnInformation.LabelCategoricalColumnNames.Add("UserId");
-            inputColumnInformation.LabelColumnName = "Rating";
-
             // STEP 2: Run AutoML experiment
             Console.WriteLine($"Running AutoML recommendation experiment for {ExperimentTime} seconds...");
             ExperimentResult<RegressionMetrics> experimentResult = mlContext.Auto()
-                .CreateRecommendationExperiment(settings)
-                .Execute(trainDataView, inputColumnInformation);
+                .CreateRecommendationExperiment(ExperimentTime)
+                .Execute(trainDataView, testDataView,
+                    new ColumnInformation()
+                    {
+                        LabelColumnName = LabelColumnName,
+                        MatrixColumnIndexColumnName = UserColumnName,
+                        MatrixRowIndexColumnName = ItemColumnName
+                    });
 
             // STEP 3: Print metric from best model
             RunDetail<RegressionMetrics> bestRun = experimentResult.BestRun;
@@ -50,7 +49,7 @@ namespace Microsoft.ML.AutoML.Samples
 
             // STEP 5: Evaluate test data
             IDataView testDataViewWithBestScore = bestRun.Model.Transform(testDataView);
-            RegressionMetrics testMetrics = mlContext.Regression.Evaluate(testDataViewWithBestScore, labelColumnName: LabelColumnName);
+            RegressionMetrics testMetrics = mlContext.Recommendation().Evaluate(testDataViewWithBestScore, labelColumnName: LabelColumnName);
             Console.WriteLine($"Metrics of best model on test data --");
             PrintMetrics(testMetrics);
 
@@ -64,7 +63,7 @@ namespace Microsoft.ML.AutoML.Samples
             // STEP 8: Initialize a new test, and get the predicted fare
             var testMovie = new Movie
             {
-                UserId="1",
+                UserId = "1",
                 MovieId = "1097",
             };
             var prediction = predictionEngine.Predict(testMovie);

@@ -40,7 +40,7 @@ namespace Microsoft.ML.AutoML
                 { TrainerName.SgdCalibratedOva, typeof(SgdCalibratedOvaExtension) },
                 { TrainerName.SymbolicSgdLogisticRegressionBinary, typeof(SymbolicSgdLogisticRegressionBinaryExtension) },
                 { TrainerName.SymbolicSgdLogisticRegressionOva, typeof(SymbolicSgdLogisticRegressionOvaExtension) },
-                { TrainerName.MatrixFactorization, typeof(MatrixFactorizationExtension) },
+                { TrainerName.MatrixFactorization, typeof(MatrixFactorizationExtension) }
             };
 
         private static readonly IDictionary<Type, TrainerName> _extensionTypesToTrainerNames =
@@ -144,7 +144,7 @@ namespace Microsoft.ML.AutoML
         {
             return new ITrainerExtension[]
             {
-                new MatrixFactorizationExtension(),
+                new MatrixFactorizationExtension()
             };
         }
     }

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Microsoft.ML.Data;
@@ -55,6 +54,16 @@ namespace Microsoft.ML.AutoML
         public string LabelColumnName { get; set; }
 
         /// <summary>
+        /// The dataset column to use as a matrix column for computation.
+        /// </summary>
+        public string MatrixColumnIndexColumnName { get; set; }
+
+        /// <summary>
+        /// The dataset column to use as a matrix row for computation.
+        /// </summary>
+        public string MatrixRowIndexColumnName { get; set; }
+
+        /// <summary>
         /// The dataset column to use for example weight.
         /// </summary>
         public string ExampleWeightColumnName { get; set; }
@@ -78,15 +87,6 @@ namespace Microsoft.ML.AutoML
         public ICollection<string> CategoricalColumnNames { get; }
 
         /// <summary>
-        /// The dataset columns that are LabelFeature.
-        /// </summary>
-        /// <remarks>
-        /// It's quite similar with categorical feature, but it require ValueToKey converter instead of OneHotEncoding.
-        /// This column purpose can only be pre-set in this place, instead of being infered.
-        /// </remarks>
-        public ICollection<string> LabelCategoricalColumnNames { get; }
-
-        /// <summary>
         /// The dataset columns that are numeric.
         /// </summary>
         /// <value>The default value is a new, empty <see cref="Collection{String}"/>.</value>
@@ -107,8 +107,9 @@ namespace Microsoft.ML.AutoML
         public ColumnInformation()
         {
             LabelColumnName = DefaultColumnNames.Label;
+            MatrixColumnIndexColumnName = DefaultColumnNames.User;
+            MatrixRowIndexColumnName = DefaultColumnNames.Item;
             CategoricalColumnNames = new Collection<string>();
-            LabelCategoricalColumnNames = new Collection<string>();
             NumericColumnNames = new Collection<string>();
             TextColumnNames = new Collection<string>();
             IgnoredColumnNames = new Collection<string>();

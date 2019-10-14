@@ -14,6 +14,7 @@ namespace Microsoft.ML.AutoML
         Weight = 5,
         ImagePath = 6,
         SamplingKey = 7,
-        LabelFeature = 8   // CategoricalFeature that requires ValueToKey converter, better naming?
+        MatrixColumnIndex = 8,
+        MatrixRowIndex = 9
     }
 }

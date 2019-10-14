@@ -14,11 +14,6 @@ namespace Microsoft.ML.AutoML
     {
         private readonly MLContext _context;
 
-        /// <summary>
-        /// save some intermediate value
-        /// </summary>
-        public static Dictionary<string, object> ValuePairs { get; set; } = new Dictionary<string, object>();
-
         internal AutoCatalog(MLContext context)
         {
             _context = context;
@@ -127,6 +122,28 @@ namespace Microsoft.ML.AutoML
         public MulticlassClassificationExperiment CreateMulticlassClassificationExperiment(MulticlassExperimentSettings experimentSettings)
         {
             return new MulticlassClassificationExperiment(_context, experimentSettings);
+        }
+
+        /// <summary>
+        /// Creates a new AutoML experiment to run on a recommendation classification dataset.
+        /// </summary>
+        /// <param name="maxExperimentTimeInSeconds">Maximum number of seconds that experiment will run.</param>
+        /// <returns>A new AutoML recommendation classification experiment.</returns>
+        /// <remarks>
+        /// <para>See <see cref="RecommendationExperiment"/> for a more detailed code example of an AutoML multiclass classification experiment.</para>
+        /// <para>An experiment may run for longer than <paramref name="maxExperimentTimeInSeconds"/>.
+        /// This is because once AutoML starts training an ML.NET model, AutoML lets the
+        /// model train to completion. For instance, if the first model
+        /// AutoML trains takes 4 hours, and the second model trained takes 5 hours,
+        /// but <paramref name="maxExperimentTimeInSeconds"/> was the number of seconds in 6 hours,
+        /// the experiment will run for 4 + 5 = 9 hours (not 6 hours).</para>
+        /// </remarks>
+        public RecommendationExperiment CreateRecommendationExperiment(uint maxExperimentTimeInSeconds)
+        {
+            return new RecommendationExperiment(_context, new RecommendationExperimentSettings()
+            {
+                MaxExperimentTimeInSeconds = maxExperimentTimeInSeconds
+            });
         }
 
         /// <summary>

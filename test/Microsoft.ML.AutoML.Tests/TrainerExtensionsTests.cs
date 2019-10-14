@@ -21,11 +21,6 @@ namespace Microsoft.ML.AutoML.Test
                 .Except(new[] { TrainerName.Ova });
             foreach (var trainerName in trainerNames)
             {
-                if (trainerName == TrainerName.MatrixFactorization)
-                {
-                    // We don't test MatrixFactorization now
-                    continue;
-                }
                 var extension = TrainerExtensionCatalog.GetTrainerExtension(trainerName);
                 var sweepParams = extension.GetHyperparamSweepRanges();
                 Assert.NotNull(sweepParams);
@@ -292,6 +287,14 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
+        public void PublicToPrivateTrainerNamesRecommendationTest()
+        {
+            var publicNames = Enum.GetValues(typeof(RecommendationTrainer)).Cast<RecommendationTrainer>();
+            var internalNames = TrainerExtensionUtil.GetTrainerNames(publicNames);
+            Assert.Equal(publicNames.Distinct().Count(), internalNames.Distinct().Count());
+        }
+
+       [Fact]
         public void PublicToPrivateTrainerNamesNullTest()
         {
             var internalNames = TrainerExtensionUtil.GetTrainerNames(null as IEnumerable<BinaryClassificationTrainer>);

@@ -730,5 +730,15 @@ namespace Microsoft.ML.RunTests
             fileSeparator = '\t',
             loaderSettings = "loader=Text{col=Label:R4:0 col=User:U4[0-19]:1 col=Item:U4[0-39]:2 header+}"
         };
+
+        public static TestDataset trivialRecommendation = new TestDataset()
+        {
+            name = "trivialMatrixFactorization",
+            trainFilename = @"recommendation-ratings-test.csv",
+            testFilename = @"recommendation-ratings-test.csv",
+            fileHasHeader = true,
+            fileSeparator = '\t',
+            loaderSettings = "loader=Text"
+        };
     }
 }

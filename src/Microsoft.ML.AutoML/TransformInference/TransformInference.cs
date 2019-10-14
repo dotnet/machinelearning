@@ -152,7 +152,7 @@ namespace Microsoft.ML.AutoML
             yield return new Experts.NumericMissing(context);
 
             // for label categorical columns, use LabelCategorical
-            yield return new Experts.LabelCategorical(context);
+            yield return new Experts.MatrixColumns(context);
         }
 
         internal static class Experts
@@ -183,9 +183,9 @@ namespace Microsoft.ML.AutoML
                 }
             }
 
-            internal sealed class LabelCategorical : TransformInferenceExpertBase
+            internal sealed class MatrixColumns : TransformInferenceExpertBase
             {
-                public LabelCategorical(MLContext context) : base(context)
+                public MatrixColumns(MLContext context) : base(context)
                 {
                 }
 
@@ -193,12 +193,9 @@ namespace Microsoft.ML.AutoML
                 {
                     foreach (var column in columns)
                     {
-                        if (column.Purpose != ColumnPurpose.LabelFeature)
-                        {
-                            continue;
-                        }
-
-                        if (!column.Type.IsKey())
+                        if (column.Purpose == ColumnPurpose.MatrixColumnIndex ||
+                            column.Purpose == ColumnPurpose.MatrixRowIndex ||
+                            column.Purpose == ColumnPurpose.SamplingKey)
                         {
                             yield return ValueToKeyMappingExtension.CreateSuggestedTransform(Context, column.ColumnName, column.ColumnName);
                         }

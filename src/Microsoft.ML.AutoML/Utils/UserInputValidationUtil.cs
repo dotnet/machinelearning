@@ -20,6 +20,8 @@ namespace Microsoft.ML.AutoML
         private const string TextColumnPurposeName = "text";
         private const string IgnoredColumnPurposeName = "ignored";
         private const string SamplingKeyColumnPurposeName = "sampling key";
+        private const string MatrixColumnIndexColumnName = "matrix column index";
+        private const string MatrixRowIndexColumnName = "matrix row index";
 
         public static void ValidateExperimentExecuteArgs(IDataView trainData, ColumnInformation columnInformation,
             IDataView validationData, TaskKind task)
@@ -73,7 +75,10 @@ namespace Microsoft.ML.AutoML
                     throw new ArgumentException($"{DefaultColumnNames.Features} column must be of data type {NumberDataViewType.Single}", nameof(trainData));
                 }
 
-                if (column.Name != columnInformation.LabelColumnName &&
+                if ((column.Name != columnInformation.LabelColumnName &&
+                    column.Name != columnInformation.MatrixColumnIndexColumnName &&
+                    column.Name != columnInformation.MatrixRowIndexColumnName)
+                    &&
                         column.Type.GetItemType() != BooleanDataViewType.Instance &&
                         column.Type.GetItemType() != NumberDataViewType.Single &&
                         column.Type.GetItemType() != TextDataViewType.Instance)
@@ -92,6 +97,8 @@ namespace Microsoft.ML.AutoML
             ValidateTrainDataColumn(trainData, columnInformation.LabelColumnName, LabelColumnPurposeName, GetAllowedLabelTypes(task));
             ValidateTrainDataColumn(trainData, columnInformation.ExampleWeightColumnName, WeightColumnPurposeName);
             ValidateTrainDataColumn(trainData, columnInformation.SamplingKeyColumnName, SamplingKeyColumnPurposeName);
+            ValidateTrainDataColumn(trainData, columnInformation.MatrixColumnIndexColumnName, MatrixColumnIndexColumnName);
+            ValidateTrainDataColumn(trainData, columnInformation.MatrixRowIndexColumnName, MatrixRowIndexColumnName);
             ValidateTrainDataColumns(trainData, columnInformation.CategoricalColumnNames, CategoricalColumnPurposeName,
                 new DataViewType[] { NumberDataViewType.Single, TextDataViewType.Instance });
             ValidateTrainDataColumns(trainData, columnInformation.NumericColumnNames, NumericColumnPurposeName,

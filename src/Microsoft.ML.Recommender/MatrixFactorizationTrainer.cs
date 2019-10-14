@@ -303,6 +303,7 @@ namespace Microsoft.ML.Trainers
         PredictionKind ITrainer.PredictionKind => PredictionKind.Recommendation;
 
         TrainerInfo ITrainerEstimator<MatrixFactorizationPredictionTransformer, MatrixFactorizationModelParameters>.Info => _info;
+
         TrainerInfo ITrainer.Info => _info;
 
         internal const string LoadNameValue = "MatrixFactorization";

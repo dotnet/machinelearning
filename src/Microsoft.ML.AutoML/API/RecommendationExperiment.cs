@@ -6,42 +6,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.AutoML
 {
-    public enum RecommendationExperimentScenario
-    {
-        MatrixFactorization = 0,
-    }
-
     public sealed class RecommendationExperimentSettings : ExperimentSettings
     {
-        public RecommendationExperimentScenario Scenario { get; set; }
-
-        public string MatrixColumnIndexColumnName { get; set; }
-
-        public string MatrixRowIndexColumnName { get; set; }
-
-        // We can use RegressionMetric as evaluation Metric
         public RegressionMetric OptimizingMetric { get; set; }
 
         public ICollection<RecommendationTrainer> Trainers { get; }
 
-        public RecommendationExperimentSettings(RecommendationExperimentScenario scenario, string columnIndexName, string rowIndexName)
-            : this()
+        public RecommendationExperimentSettings()
         {
-            if (scenario == RecommendationExperimentScenario.MatrixFactorization)
-            {
-                AutoCatalog.ValuePairs[nameof(MatrixFactorizationTrainer.Options.MatrixColumnIndexColumnName)] = columnIndexName;
-                AutoCatalog.ValuePairs[nameof(MatrixFactorizationTrainer.Options.MatrixRowIndexColumnName)] = rowIndexName;
-                return;
-            }
-            throw new NotImplementedException();
-        }
 
-        private RecommendationExperimentSettings()
-        {
             OptimizingMetric = RegressionMetric.RSquared;
             Trainers = Enum.GetValues(typeof(RecommendationTrainer)).OfType<RecommendationTrainer>().ToList();
         }
@@ -49,7 +25,7 @@ namespace Microsoft.ML.AutoML
 
     public enum RecommendationTrainer
     {
-        MatrixFactorization,
+        MatrixFactorization
     }
 
     public sealed class RecommendationExperiment : ExperimentBase<RegressionMetrics, RecommendationExperimentSettings>
@@ -63,6 +39,7 @@ namespace Microsoft.ML.AutoML
                   TrainerExtensionUtil.GetTrainerNames(settings.Trainers))
         {
         }
+
         private protected override CrossValidationRunDetail<RegressionMetrics> GetBestCrossValRun(IEnumerable<CrossValidationRunDetail<RegressionMetrics>> results)
         {
             return BestResultUtil.GetBestRun(results, MetricsAgent, OptimizingMetricInfo.IsMaximizing);

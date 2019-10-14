@@ -5,6 +5,10 @@
 using Microsoft.ML.Data;
 using Xunit;
 using System.Linq;
+using Microsoft.ML.RunTests;
+using System.IO;
+using System;
+using Microsoft.ML.AutoML.Samples.DataStructures;
 
 namespace Microsoft.ML.AutoML.Test
 {
@@ -59,6 +63,61 @@ namespace Microsoft.ML.AutoML.Test
                     new ColumnInformation() { LabelColumnName = DatasetUtil.MlNetGeneratedRegressionLabel });
 
             Assert.True(result.RunDetails.Max(i => i.ValidationMetrics.RSquared > 0.9));
+        }
+
+        [Fact]
+        public void AutoFitRecommendationTest()
+        {
+            MLContext mlContext = new MLContext();
+
+            // STEP 1: Load data
+            var trainDataPath = GetDataPath(TestDatasets.trivialRecommendation.trainFilename);
+            var testDataPath = GetDataPath(TestDatasets.trivialRecommendation.testFilename);
+            IDataView trainDataView = mlContext.Data.LoadFromTextFile<Movie>(trainDataPath, hasHeader: true, separatorChar: ',');
+            IDataView testDataView = mlContext.Data.LoadFromTextFile<Movie>(testDataPath, hasHeader: true, separatorChar: ',');
+
+            // STEP 2: Run AutoML experiment
+            ExperimentResult<RegressionMetrics> experimentResult = mlContext.Auto()
+                .CreateRecommendationExperiment(5)
+                .Execute(trainDataView, testDataView,
+                    new ColumnInformation() { 
+                        LabelColumnName = "Rating",
+                        MatrixColumnIndexColumnName = "UserId",
+                        MatrixRowIndexColumnName = "MovieId"
+                    });
+
+            // STEP 3: Print metric from best model
+            RunDetail<RegressionMetrics> bestRun = experimentResult.BestRun;
+            Assert.True(experimentResult.RunDetails.Count() > 1);
+            Assert.NotNull(bestRun.ValidationMetrics);
+            Assert.True(experimentResult.BestRun.ValidationMetrics.RSquared > 0.9);
+        }
+
+        private static string GetRepoRoot()
+        {
+#if NETFRAMEWORK
+            string directory = AppDomain.CurrentDomain.BaseDirectory;
+#else
+            string directory = AppContext.BaseDirectory;
+#endif
+
+            while (!Directory.Exists(Path.Combine(directory, ".git")) && directory != null)
+            {
+                directory = Directory.GetParent(directory).FullName;
+            }
+
+            if (directory == null)
+            {
+                return null;
+            }
+            return directory;
+        }
+
+        public static string GetDataPath(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return null;
+            return Path.GetFullPath(Path.Combine(Path.Combine(GetRepoRoot(), "test", "data"), name));
         }
     }
 }
