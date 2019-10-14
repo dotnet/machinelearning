@@ -452,7 +452,7 @@ namespace Microsoft.ML.Transforms
                     var dims = vectorType.Dimensions;
                     ctx.Writer.Write(dims.Length);
                     for (int i = 0; i < dims.Length; i++)
-                            ctx.Writer.Write(dims[i]);
+                        ctx.Writer.Write(dims[i]);
                 }
             }
         }
