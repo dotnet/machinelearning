@@ -175,7 +175,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        public class ModelInput
+        internal sealed class ModelInput
         {
             [ColumnName("ImagePath"), LoadColumn(0)]
             public string ImagePath { get; set; }
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Tests
             public string Label { get; set; }
         }
 
-        public class ModelOutput
+        internal sealed class ModelOutput
         {
             // ColumnName attribute is used to change the column name from
             // its default value, which is the name of the field.
