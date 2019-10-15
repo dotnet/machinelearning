@@ -7,7 +7,7 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.AutoML
 {
-    using ITrainerEsitmator = ITrainerEstimator<ISingleFeaturePredictionTransformer<object>, object>;
+    using ITrainerEsitmator = ITrainerEstimator<IPredictionTransformer<object>, object>;
 
     internal class MatrixFactorizationExtension : ITrainerExtension
     {

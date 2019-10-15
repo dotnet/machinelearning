@@ -302,9 +302,12 @@ namespace Microsoft.ML.Trainers
 
         PredictionKind ITrainer.PredictionKind => PredictionKind.Recommendation;
 
-        TrainerInfo ITrainerEstimator<MatrixFactorizationPredictionTransformer, MatrixFactorizationModelParameters>.Info => _info;
-
+        /// <summary>
+        /// The <see cref="TrainerInfo"/> contains general parameters for this trainer.
+        /// </summary>
         TrainerInfo ITrainer.Info => _info;
+
+        public TrainerInfo Info => _info;
 
         internal const string LoadNameValue = "MatrixFactorization";
 
@@ -332,9 +335,6 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         internal readonly string LabelName;
 
-        /// <summary>
-        /// The <see cref="TrainerInfo"/> contains general parameters for this trainer.
-        /// </summary>
         private readonly TrainerInfo _info;
 
         /// <summary>
