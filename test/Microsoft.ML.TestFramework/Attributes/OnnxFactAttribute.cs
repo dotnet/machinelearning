@@ -19,8 +19,11 @@ namespace Microsoft.ML.TestFramework.Attributes
         /// <inheritdoc />
         protected override bool IsEnvironmentSupported()
         {
-            return !RuntimeInformation.IsOSPlatform(OSPlatform.Linux) 
-                || AttributeHelpers.CheckLibcVersionGreaterThanMinimum(new Version(2, 23));
+            return IsOnnxRuntimeSupported;
         }
+
+        public static bool IsOnnxRuntimeSupported { get; } =
+            !RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+                || AttributeHelpers.CheckLibcVersionGreaterThanMinimum(new Version(2, 23));
     }
 }
