@@ -143,6 +143,9 @@ namespace Microsoft.ML.Model.OnnxConverter
             while (transform != null)
             {
                 ITransformCanSaveOnnx onnxTransform = transform as ITransformCanSaveOnnx;
+                if (onnxTransform == null) {
+                    onnxTransform = null;
+                }
                 if (onnxTransform == null || !onnxTransform.CanSaveOnnx(ctx))
                 {
                     ch.Warning("Had to stop walkback of pipeline at {0} since it cannot save itself as ONNX.", transform.GetType().Name);
