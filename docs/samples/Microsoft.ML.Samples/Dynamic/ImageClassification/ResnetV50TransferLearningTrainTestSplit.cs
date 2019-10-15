@@ -27,9 +27,7 @@ namespace Samples.Dynamic
             string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
                 "images");
 
-            //Testing on cifar dataset
-            //string finalImagesFolderName = DownloadImageSet(
-            //    imagesDownloadFolderPath);
+            //This sample tests resnet_v2_50 with CIFAR-10 dataset
             string finalImagesFolderNameTrain = "cifar\\train";
             string fullImagesetFolderPathTrain = Path.Combine(
                 imagesDownloadFolderPath, finalImagesFolderNameTrain);
@@ -69,12 +67,6 @@ namespace Samples.Dynamic
                     .Transform(testDataset);
 
                 // Split the data 90:10 into train and test sets, train and evaluate.
-                //TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
-                //    shuffledFullImagesDataset, testFraction: 0.1, seed: 1);
-
-                //IDataView trainDataset = trainTestData.TrainSet;
-                //IDataView testDataset = trainTestData.TestSet;
-
                 var validationSet = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPathTest, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
                     .Fit(testDataset)
                     .Transform(testDataset);
@@ -92,8 +84,8 @@ namespace Samples.Dynamic
                         uselearningRateScheduling: true,
                         metricsCallback: (metrics) => Console.WriteLine(metrics),
                         validationSet: validationSet,
-                        reuseValidationSetBottleneckCachedValues: false,
-                        reuseTrainSetBottleneckCachedValues :false,
+                        reuseValidationSetBottleneckCachedValues: true,
+                        reuseTrainSetBottleneckCachedValues :true,
                         disableEarlyStopping: true)
                     .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel")));
 

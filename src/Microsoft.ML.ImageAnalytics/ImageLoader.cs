@@ -134,7 +134,7 @@ namespace Microsoft.ML.Data
 
             ImageFolder = ctx.LoadStringOrNull();
            if (ctx.Header.ModelVerWritten >= 0x00010003) // do a version check
-                UseImageType = ctx.Reader.ReadBoolean();
+                UseImageType = ctx.Reader.ReadBoolByte();
             else
                 UseImageType = true; // It is an ImageDataViewType
         }
@@ -276,12 +276,11 @@ namespace Microsoft.ML.Data
 
             private static bool TryLoadDataIntoBuffer(string path, ref VBuffer<byte> imgData)
             {
-                int count = -1;
-                int bytesread = -1;
                 // bufferSize == 1 used to avoid unnecessary buffer in FileStream
                 using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 1))
                 {
                     long fileLength = fs.Length;
+                    int count;
                     if (fileLength > int.MaxValue)
                         throw new IOException($"File {path} too big to open.");
                     else if (fileLength == 0)
@@ -292,12 +291,12 @@ namespace Microsoft.ML.Data
                         imageBuffer = File.ReadAllBytes(path);
                         count = imageBuffer.Length;
                         imgData = new VBuffer<byte>(count, imageBuffer);
-                        return (count> 0);
+                        return (count > 0);
                     }
 
                     count = (int)fileLength;
                     var editor = VBufferEditor.Create(ref imgData, count);
-                    bytesread = ReadToEnd(fs, editor.Values);
+                    int bytesread = ReadToEnd(fs, editor.Values);
                     imgData = editor.Commit();
                     return (count > 0);
                 }
