@@ -194,43 +194,40 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        public void TestSaveToDiskAndPredictionEngine()
+        public void TestLoadFromDiskAndPredictionEngine()
         {
-            var mlContext = new MLContext(seed: 1);
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 
-            var data = mlContext.Data.LoadFromTextFile<ModelInput>(
+            var data = ML.Data.LoadFromTextFile<ModelInput>(
                                 path: dataFile,
                                 hasHeader: false,
                                 separatorChar: '\t',
                                 allowQuoting: true,
                                 allowSparse: false);
 
-           var dataProcessPipeline = mlContext.Transforms.Conversion.MapValueToKey("Label", "Label")
-                                     .Append(mlContext.Transforms.LoadImages("ImagePath_featurized", imageFolder, "ImagePath"))
-                                     .Append(mlContext.Transforms.ResizeImages("ImagePath_featurized", 224, 224, "ImagePath_featurized"))
-                                     .Append(mlContext.Transforms.ExtractPixels("ImagePath_featurized", "ImagePath_featurized"))
-                                     .Append(mlContext.Transforms.DnnFeaturizeImage("ImagePath_featurized", m => m.ModelSelector.ResNet18(mlContext, m.OutputColumn, m.InputColumn), "ImagePath_featurized"))
-                                     .Append(mlContext.Transforms.Concatenate("Features", new[] { "ImagePath_featurized" }))
-                                     .Append(mlContext.Transforms.NormalizeMinMax("Features", "Features"))
-                                     .AppendCacheCheckpoint(mlContext);
+           var dataProcessPipeline = ML.Transforms.Conversion.MapValueToKey("Label", "Label")
+                                     .Append(ML.Transforms.LoadImages("ImagePath_featurized", imageFolder, "ImagePath"))
+                                     .Append(ML.Transforms.ResizeImages("ImagePath_featurized", 224, 224, "ImagePath_featurized"))
+                                     .Append(ML.Transforms.ExtractPixels("ImagePath_featurized", "ImagePath_featurized"))
+                                     .Append(ML.Transforms.DnnFeaturizeImage("ImagePath_featurized", m => m.ModelSelector.ResNet18(m.Environment, m.OutputColumn, m.InputColumn), "ImagePath_featurized"))
+                                     .Append(ML.Transforms.Concatenate("Features", new[] { "ImagePath_featurized" }))
+                                     .Append(ML.Transforms.NormalizeMinMax("Features", "Features"))
+                                     .AppendCacheCheckpoint(ML);
 
-            var trainer = mlContext.MulticlassClassification.Trainers.OneVersusAll(mlContext.BinaryClassification.Trainers.AveragedPerceptron(labelColumnName: "Label", numberOfIterations: 10, featureColumnName: "Features"), labelColumnName: "Label")
-                                      .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel", "PredictedLabel"));
+            var trainer = ML.MulticlassClassification.Trainers.OneVersusAll(ML.BinaryClassification.Trainers.AveragedPerceptron(labelColumnName: "Label", numberOfIterations: 10, featureColumnName: "Features"), labelColumnName: "Label")
+                                      .Append(ML.Transforms.Conversion.MapKeyToValue("PredictedLabel", "PredictedLabel"));
 
             var trainingPipeline = dataProcessPipeline.Append(trainer);
             var model = trainingPipeline.Fit(data);
 
             string modelPath = GetOutputPath("TestSaveToDiskAndPredictionEngine-model.zip");
-            // ML.Model.Save(model, data.Schema, modelPath);
-            mlContext.Model.Save(model, data.Schema, modelPath);
-            var loadedModel = mlContext.Model.Load(modelPath, out var inputSchema);
+            ML.Model.Save(model, data.Schema, modelPath);
+            var loadedModel = ML.Model.Load(modelPath, out var inputSchema);
 
-            var predEngine = mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(loadedModel);
-            ModelInput sample = mlContext.Data.CreateEnumerable<ModelInput>(data, false).First();
+            var predEngine = ML.Model.CreatePredictionEngine<ModelInput, ModelOutput>(loadedModel);
+            ModelInput sample = ML.Data.CreateEnumerable<ModelInput>(data, false).First();
             ModelOutput result = predEngine.Predict(sample);
-
             Assert.Equal("tomato", result.Prediction);
         }
     }
