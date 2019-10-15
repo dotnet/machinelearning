@@ -278,6 +278,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.AutoML.Samples
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Samples.GPU", "docs\samples\Microsoft.ML.Samples.GPU\Microsoft.ML.Samples.GPU.csproj", "{3C8F910B-7F23-4D25-B521-6D5AC9570ADD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.ML.TestFrameworkCommon", "test\Microsoft.ML.TestFrameworkCommon\Microsoft.ML.TestFrameworkCommon.csproj", "{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1637,6 +1639,30 @@ Global
 		{3C8F910B-7F23-4D25-B521-6D5AC9570ADD}.Release-netfx|Any CPU.Build.0 = Release-netfx|Any CPU
 		{3C8F910B-7F23-4D25-B521-6D5AC9570ADD}.Release-netfx|x64.ActiveCfg = Release-netfx|Any CPU
 		{3C8F910B-7F23-4D25-B521-6D5AC9570ADD}.Release-netfx|x64.Build.0 = Release-netfx|Any CPU
+		{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}.Debug|x64.Build.0 = Debug|Any CPU
+		{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}.Debug-netcoreapp3_0|Any CPU.ActiveCfg = Debug-netcoreapp3_0|Any CPU
+		{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}.Debug-netcoreapp3_0|Any CPU.Build.0 = Debug-netcoreapp3_0|Any CPU
+		{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}.Debug-netcoreapp3_0|x64.ActiveCfg = Debug-netcoreapp3_0|Any CPU
+		{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}.Debug-netcoreapp3_0|x64.Build.0 = Debug-netcoreapp3_0|Any CPU
+		{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}.Debug-netfx|Any CPU.ActiveCfg = Debug-netfx|Any CPU
+		{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}.Debug-netfx|Any CPU.Build.0 = Debug-netfx|Any CPU
+		{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}.Debug-netfx|x64.ActiveCfg = Debug-netfx|Any CPU
+		{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}.Debug-netfx|x64.Build.0 = Debug-netfx|Any CPU
+		{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}.Release|x64.ActiveCfg = Release|Any CPU
+		{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}.Release|x64.Build.0 = Release|Any CPU
+		{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}.Release-netcoreapp3_0|Any CPU.ActiveCfg = Release-netcoreapp3_0|Any CPU
+		{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}.Release-netcoreapp3_0|Any CPU.Build.0 = Release-netcoreapp3_0|Any CPU
+		{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}.Release-netcoreapp3_0|x64.ActiveCfg = Release-netcoreapp3_0|Any CPU
+		{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}.Release-netcoreapp3_0|x64.Build.0 = Release-netcoreapp3_0|Any CPU
+		{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}.Release-netfx|Any CPU.ActiveCfg = Release-netfx|Any CPU
+		{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}.Release-netfx|Any CPU.Build.0 = Release-netfx|Any CPU
+		{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}.Release-netfx|x64.ActiveCfg = Release-netfx|Any CPU
+		{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}.Release-netfx|x64.Build.0 = Release-netfx|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1724,6 +1750,7 @@ Global
 		{F5D11F71-2D61-4AE9-99D7-0F0B54649B15} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{A6924919-9E37-4023-8B7F-E85C8E3CC9B3} = {DA452A53-2E94-4433-B08C-041EDEC729E6}
 		{3C8F910B-7F23-4D25-B521-6D5AC9570ADD} = {DA452A53-2E94-4433-B08C-041EDEC729E6}
+		{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {41165AF1-35BB-4832-A189-73060F82B01D}

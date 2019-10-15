@@ -11,6 +11,7 @@ using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.TestFrameworkCommon;
 
 namespace Microsoft.ML.Benchmarks
 {

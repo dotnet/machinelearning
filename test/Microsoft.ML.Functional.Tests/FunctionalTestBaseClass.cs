@@ -1,31 +1,29 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
-using System;
+﻿using System;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Threading;
-using Microsoft.ML.Internal.Internallearn.Test;
 using Microsoft.ML.TestFrameworkCommon;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.TestFramework
+namespace Microsoft.ML.Functional.Tests
 {
-    public class BaseTestClass : IDisposable
+    public class FunctionalTestBaseClass : IDisposable
     {
-        public string TestName { get; set; }
-        public string FullTestName { get; set; }
-
-        static BaseTestClass()
+        static FunctionalTestBaseClass()
         {
-            GlobalBase.AssemblyInit();
             RootDir = CommonUtilities.GetRepoRoot();
             DataDir = Path.Combine(RootDir, "test", "data");
         }
 
-        public BaseTestClass(ITestOutputHelper output)
+        public string TestName { get; set; }
+        public string FullTestName { get; set; }
+        public string OutDir { get; }
+        protected static string RootDir { get; }
+        protected static string DataDir { get; }
+        protected ITestOutputHelper Output { get; }
+
+        public FunctionalTestBaseClass(ITestOutputHelper output)
         {
             //This locale is currently set for tests only so that the produced output
             //files can be compared on systems with other locales to give set of known
@@ -38,7 +36,7 @@ namespace Microsoft.ML.TestFramework
             var currentAssemblyLocation = new FileInfo(Directory.GetParent(path).FullName);
 #else
             // There is an extra folder in the netfx path representing the runtime identifier.
-            var currentAssemblyLocation = new FileInfo(typeof(BaseTestClass).Assembly.Location);
+            var currentAssemblyLocation = new FileInfo(typeof(FunctionalTestBaseClass).Assembly.Location);
 #endif
             OutDir = Path.Combine(currentAssemblyLocation.Directory.FullName, "TestOutput");
             Directory.CreateDirectory(OutDir);
@@ -65,42 +63,6 @@ namespace Microsoft.ML.TestFramework
 
         protected virtual void Cleanup()
         {
-        }
-
-        protected static string RootDir { get; }
-        protected string OutDir { get; }
-        protected static string DataDir { get; }
-
-        protected ITestOutputHelper Output { get; }
-
-        public static string GetDataPath(string name)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-                return null;
-            return Path.GetFullPath(Path.Combine(DataDir, name));
-        }
-        public static string GetDataPath(string subDir, string name)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-                return null;
-            return Path.GetFullPath(Path.Combine(DataDir, subDir, name));
-        }
-
-        protected string GetOutputPath(string name)
-        {
-            return CommonUtilities.GetOutputPath(name, OutDir);
-        }
-        protected string GetOutputPath(string subDir, string name)
-        {
-            return CommonUtilities.GetOutputPath(subDir, name, OutDir);
-        }
-        protected string DeleteOutputPath(string subDir, string name)
-        {
-            return CommonUtilities.DeleteOutputPath(subDir, name, OutDir);
-        }
-        protected string DeleteOutputPath(string name)
-        {
-            return CommonUtilities.DeleteOutputPath(name, OutDir);
         }
     }
 }

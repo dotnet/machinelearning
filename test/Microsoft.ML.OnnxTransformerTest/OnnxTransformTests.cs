@@ -17,6 +17,7 @@ using Microsoft.ML.Transforms.Image;
 using Xunit;
 using Xunit.Abstractions;
 using Microsoft.ML.Transforms.Onnx;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.Tests
 {

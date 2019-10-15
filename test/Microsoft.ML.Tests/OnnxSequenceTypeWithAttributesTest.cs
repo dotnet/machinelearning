@@ -13,6 +13,7 @@ using Xunit.Abstractions;
 using System.Linq;
 using System.IO;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.Tests
 {

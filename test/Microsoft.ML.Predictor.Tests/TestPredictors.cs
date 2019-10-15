@@ -23,6 +23,7 @@ namespace Microsoft.ML.RunTests
     using Xunit;
     using Xunit.Abstractions;
     using TestLearners = TestLearnersBase;
+    using Microsoft.ML.TestFrameworkCommon;
 
     /// <summary>
     /// Tests using maml commands (IDV) functionality.
