@@ -84,8 +84,8 @@ namespace Samples.Dynamic
                         uselearningRateScheduling: true,
                         metricsCallback: (metrics) => Console.WriteLine(metrics),
                         validationSet: validationSet,
-                        reuseValidationSetBottleneckCachedValues: true,
-                        reuseTrainSetBottleneckCachedValues :true,
+                        reuseValidationSetBottleneckCachedValues: false,
+                        reuseTrainSetBottleneckCachedValues :false,
                         disableEarlyStopping: true)
                     .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel")));
 
