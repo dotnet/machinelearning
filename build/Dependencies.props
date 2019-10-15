@@ -50,7 +50,7 @@
     <MicrosoftMLTestDatabasesPackageVersion>0.0.5-test</MicrosoftMLTestDatabasesPackageVersion>
     <MicrosoftMLTestModelsPackageVersion>0.0.5-test</MicrosoftMLTestModelsPackageVersion>
     <MicrosoftMLTensorFlowTestModelsVersion>0.0.11-test</MicrosoftMLTensorFlowTestModelsVersion>
-    <MicrosoftMLOnnxTestModelsVersion>0.0.5-test</MicrosoftMLOnnxTestModelsVersion>
+    <MicrosoftMLOnnxRuntimePackageVersion>0.5.0-dev-20191008-0632-b70fc34f</MicrosoftMLOnnxRuntimePackageVersion>
     <SystemDataSqlClientVersion>4.6.1</SystemDataSqlClientVersion>
   </PropertyGroup>
 

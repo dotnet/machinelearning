@@ -171,7 +171,7 @@ namespace Microsoft.ML.Tests
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(data);
                 var onnxResult = onnxTransformer.Transform(data);
-                CompareSelectedR4VectorColumns("Score", "Score0", transformedData, onnxResult, 3);
+                CompareSelectedR4VectorColumns("Score", "Score0", transformedData, onnxResult, 2);
             }
 
             // Check ONNX model's text format. We save the produced ONNX model as a text file and compare it against
@@ -201,7 +201,8 @@ namespace Microsoft.ML.Tests
             var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.OneHotEncodingEstimator.OutputKind.Bag)
             .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnOptions("F2")))
             .Append(mlContext.Transforms.Concatenate("Features", "F1", "F2"))
-            .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numberOfLeaves: 2, numberOfTrees: 1, minimumExampleCountPerLeaf: 2));
+            .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numberOfLeaves: 2, numberOfTrees: 1, minimumExampleCountPerLeaf: 2))
+            .Append(mlContext.Transforms.Conversion.ConvertType("PredictedLabel", null, DataKind.Int32));
 
             var model = pipeline.Fit(data);
             var predictions = model.Transform(data);
@@ -221,7 +222,7 @@ namespace Microsoft.ML.Tests
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(data);
                 var onnxResult = onnxTransformer.Transform(data);
-                //CompareSelectedR4VectorColumns("Score", "Score0", predictions, onnxResult, 3);
+                CompareSelectedR4ScalarColumns("Score", "Score0", predictions, onnxResult, 3);
             }
 
             // Check ONNX model's text format. We save the produced ONNX model as a text file and compare it against

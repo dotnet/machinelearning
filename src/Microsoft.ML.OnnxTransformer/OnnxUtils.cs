@@ -411,7 +411,9 @@ namespace Microsoft.ML.Transforms.Onnx
                      typeof(Int64),
                      typeof(UInt16),
                      typeof(UInt32),
-                     typeof(UInt64)
+                     typeof(UInt64),
+                     typeof(ReadOnlyMemory<Char>),
+                     typeof(Boolean)
                 };
         private static Dictionary<Type, InternalDataKind> _typeToKindMap=
             new Dictionary<Type, InternalDataKind>
@@ -439,7 +441,15 @@ namespace Microsoft.ML.Transforms.Onnx
         {
             if (!_onnxTypeMap.Contains(typeof(T)))
                 throw new NotImplementedException($"Not implemented type {typeof(T)}");
-            return NamedOnnxValue.CreateFromTensor<T>(name, new DenseTensor<T>(new T[] { data }, new int[] { 1 }));
+
+            if (data.GetType() == typeof(ReadOnlyMemory<char>))
+            {
+                var charMemory = (ReadOnlyMemory<Char>)Convert.ChangeType(data, typeof(ReadOnlyMemory<Char>));
+                var stringMemory = new Memory<string>(new string[] { charMemory.ToString() });
+                return NamedOnnxValue.CreateFromTensor<string>(name, new DenseTensor<string>(stringMemory, new int[] { 1, 1 }, false));
+            }
+
+            return NamedOnnxValue.CreateFromTensor<T>(name, new DenseTensor<T>(new T[] { data }, new int[] { 1, 1 }));
         }
 
         /// <summary>
