@@ -57,7 +57,7 @@ namespace Microsoft.ML.AutoML.Test
   ],
   ""Properties"": {
     ""NumberOfIterations"": 20,
-    ""LearningRate"": 1,
+    ""LearningRate"": 0.01,
     ""ApproximationRank"": 16,
     ""LabelColumnName"": ""Label"",
     ""MatrixColumnIndexColumnName"": null,
