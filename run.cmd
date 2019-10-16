@@ -19,7 +19,6 @@ set _dotnet=%_toolRuntime%\dotnetcli\dotnet.exe
 set _json=%~dp0config.json
 
 :: run.exe depends on running in the root directory, notably because the config.json specifies
-:: a relative path to the binclash logger
 
 pushd "%~dp0"
 call "%_dotnet%" "%_toolRuntime%\run.exe" "%_json%" %*
