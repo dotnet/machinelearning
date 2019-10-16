@@ -734,10 +734,10 @@ namespace Microsoft.ML.RunTests
         public static TestDataset trivialRecommendation = new TestDataset()
         {
             name = "trivialMatrixFactorization",
-            trainFilename = @"recommendation-ratings-test.csv",
+            trainFilename = @"recommendation-ratings-train.csv",
             testFilename = @"recommendation-ratings-test.csv",
             fileHasHeader = true,
-            fileSeparator = '\t',
+            fileSeparator = ',',
             loaderSettings = "loader=Text"
         };
     }

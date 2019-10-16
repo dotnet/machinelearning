@@ -151,7 +151,7 @@ namespace Microsoft.ML.AutoML
             // If numeric column has missing values, use Missing transform.
             yield return new Experts.NumericMissing(context);
 
-            // for label categorical columns, use LabelCategorical
+            // For recommendation tasks, convert both user and item columns as key
             yield return new Experts.MatrixColumns(context);
         }
 
@@ -191,6 +191,10 @@ namespace Microsoft.ML.AutoML
 
                 public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns, TaskKind task)
                 {
+                    if (task != TaskKind.Recommendation)
+                    {
+                        yield break;
+                    }
                     foreach (var column in columns)
                     {
                         if (column.Purpose == ColumnPurpose.MatrixColumnIndex ||

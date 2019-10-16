@@ -8,7 +8,7 @@ using System.Linq;
 using Microsoft.ML.RunTests;
 using System.IO;
 using System;
-using Microsoft.ML.AutoML.Samples.DataStructures;
+using Microsoft.ML.AutoML.Tests.Datasets;
 
 namespace Microsoft.ML.AutoML.Test
 {
@@ -68,13 +68,21 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void AutoFitRecommendationTest()
         {
+            const string matrixColName = "UserId";
+            const string matrixRowName = "MovieId";
             MLContext mlContext = new MLContext();
 
             // STEP 1: Load data
             var trainDataPath = GetDataPath(TestDatasets.trivialRecommendation.trainFilename);
             var testDataPath = GetDataPath(TestDatasets.trivialRecommendation.testFilename);
-            IDataView trainDataView = mlContext.Data.LoadFromTextFile<Movie>(trainDataPath, hasHeader: true, separatorChar: ',');
-            IDataView testDataView = mlContext.Data.LoadFromTextFile<Movie>(testDataPath, hasHeader: true, separatorChar: ',');
+            IDataView trainDataView = mlContext.Data.LoadFromTextFile<MovieRecommendation>(
+                trainDataPath, 
+                hasHeader: TestDatasets.trivialRecommendation.fileHasHeader, 
+                separatorChar: TestDatasets.trivialRecommendation.fileSeparator);
+            IDataView testDataView = mlContext.Data.LoadFromTextFile<MovieRecommendation>(
+                testDataPath, 
+                hasHeader: TestDatasets.trivialRecommendation.fileHasHeader, 
+                separatorChar: TestDatasets.trivialRecommendation.fileSeparator);
 
             // STEP 2: Run AutoML experiment
             ExperimentResult<RegressionMetrics> experimentResult = mlContext.Auto()
@@ -82,15 +90,14 @@ namespace Microsoft.ML.AutoML.Test
                 .Execute(trainDataView, testDataView,
                     new ColumnInformation() { 
                         LabelColumnName = "Rating",
-                        MatrixColumnIndexColumnName = "UserId",
-                        MatrixRowIndexColumnName = "MovieId"
+                        MatrixColumnIndexColumnName = matrixColName,
+                        MatrixRowIndexColumnName = matrixRowName
                     });
 
             // STEP 3: Print metric from best model
             RunDetail<RegressionMetrics> bestRun = experimentResult.BestRun;
             Assert.True(experimentResult.RunDetails.Count() > 1);
             Assert.NotNull(bestRun.ValidationMetrics);
-            Assert.True(experimentResult.BestRun.ValidationMetrics.RSquared > 0.9);
         }
 
         private static string GetRepoRoot()

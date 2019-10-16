@@ -107,8 +107,6 @@ namespace Microsoft.ML.AutoML
         public ColumnInformation()
         {
             LabelColumnName = DefaultColumnNames.Label;
-            MatrixColumnIndexColumnName = DefaultColumnNames.User;
-            MatrixRowIndexColumnName = DefaultColumnNames.Item;
             CategoricalColumnNames = new Collection<string>();
             NumericColumnNames = new Collection<string>();
             TextColumnNames = new Collection<string>();

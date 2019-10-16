@@ -52,7 +52,7 @@ namespace Microsoft.ML.AutoML.Test
             columnInfo.CategoricalColumnNames.Add("Cat2");
             columnInfo.NumericColumnNames.Add("Num");
             var columnNames = ColumnInformationUtil.GetColumnNames(columnInfo);
-            Assert.Equal(5, columnNames.Count());
+            Assert.Equal(7, columnNames.Count());
             Assert.Contains("Label", columnNames);
             Assert.Contains("SamplingKey", columnNames);
             Assert.Contains("UserId", columnNames);

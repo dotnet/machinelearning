@@ -4,17 +4,20 @@
 
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.AutoML.Samples.DataStructures
+namespace Microsoft.ML.AutoML.Tests.Datasets
 {
-    public class Movie
+    /// <summary>
+    /// A class describing the MovieRecommendation test dataset.
+    /// </summary>
+    internal sealed class MovieRecommendation
     {
         [LoadColumn(0)]
-        public string UserId;
+        public uint UserId { get; set; }
 
         [LoadColumn(1)]
-        public string MovieId;
+        public uint MovieId { get; set; }
 
         [LoadColumn(2)]
-        public float Rating;
+        public float Rating { get; set; }
     }
 }

@@ -69,6 +69,15 @@ namespace Microsoft.ML.AutoML.Samples
             var prediction = predictionEngine.Predict(testMovie);
             Console.WriteLine($"Predicted rating for: {prediction.Rating}");
 
+            // Note: MatrixFactorization only can predict for existing users
+            testMovie = new Movie
+            {
+                UserId = "612", // new user
+                MovieId = "2940"
+            };
+            prediction = predictionEngine.Predict(testMovie);
+            Console.WriteLine($"Expected Rating NaN for unknown user, Predicted: {prediction.Rating}");
+
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
         }
