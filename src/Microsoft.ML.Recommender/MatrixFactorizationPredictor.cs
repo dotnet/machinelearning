@@ -422,7 +422,7 @@ namespace Microsoft.ML.Trainers.Recommender
     /// <summary>
     /// Trains a <see cref="MatrixFactorizationModelParameters"/>. It factorizes the training matrix into the product of two low-rank matrices.
     /// </summary>
-    public sealed class MatrixFactorizationPredictionTransformer : PredictionTransformerBase<MatrixFactorizationModelParameters>, IPredictionTransformer<MatrixFactorizationModelParameters>
+    public sealed class MatrixFactorizationPredictionTransformer : PredictionTransformerBase<MatrixFactorizationModelParameters>
     {
         internal const string LoaderSignature = "MaFactPredXf";
         internal string MatrixColumnIndexColumnName { get; }

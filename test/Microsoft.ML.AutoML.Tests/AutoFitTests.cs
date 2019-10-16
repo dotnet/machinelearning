@@ -11,7 +11,6 @@ using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
 {
-
     public class AutoFitTests
     {
         [Fact]
