@@ -46,6 +46,7 @@ namespace Microsoft.ML.Transforms
         private readonly bool _addBatchDimensionInput;
         private Session _session;
         private Tensor _bottleneckTensor;
+        private Tensor _learningRateInput;
         private Operation _trainStep;
         private Tensor _softMaxTensor;
         private Tensor _crossEntropy;
@@ -324,6 +325,7 @@ namespace Microsoft.ML.Transforms
         {
             int batchSize = options.BatchSize;
             int epochs = options.Epoch;
+            double learningRate = options.LearningRate;
             bool evaluateOnly = !string.IsNullOrEmpty(validationSetBottleneckFilePath);
             ImageClassificationMetricsCallback statisticsCallback = options.MetricsCallback;
             var trainingSet = GetShuffledData(trainBottleneckFilePath);
@@ -372,6 +374,7 @@ namespace Microsoft.ML.Transforms
             trainSaver.save(_session, _checkpointPath);
 
             runner.AddInput(_bottleneckInput.name).AddInput(_labelTensor.name);
+            runner.AddInput(_learningRateInput.name);
             testEvalRunner.AddInput(_bottleneckInput.name).AddInput(_labelTensor.name);
             Dictionary<long, int> classStatsTrain = new Dictionary<long, int>();
             Dictionary<long, int> classStatsValidate = new Dictionary<long, int>();
@@ -382,12 +385,18 @@ namespace Microsoft.ML.Transforms
             metrics.Train = new TrainMetrics();
             float accuracy = 0;
             float crossentropy = 0;
+            TrainState trainstate = new TrainState();
+            trainstate.BatchSize = options.BatchSize;
+            trainstate.BatchesPerEpoch = (int)(trainingSet.GetRowCount() ?? 0 / options.BatchSize);
+
             for (int epoch = 0; epoch < epochs; epoch += 1)
             {
                 batchIndex = 0;
                 metrics.Train.Accuracy = 0;
                 metrics.Train.CrossEntropy = 0;
                 metrics.Train.BatchProcessedCount = 0;
+                // Update train state.
+                trainstate.CurrentEpoch = epoch;
                 using (var cursor = trainingSet.GetRowCursor(trainingSet.Schema.ToArray(), new Random()))
                 {
                     var labelGetter = cursor.GetGetter<long>(trainingSet.Schema[0]);
@@ -407,15 +416,18 @@ namespace Microsoft.ML.Transforms
 
                         labelBatch[batchIndex] = label;
                         batchIndex += 1;
+                        trainstate.CurrentBatchIndex = batchIndex;
                         // Train.
                         if (batchIndex == batchSize)
                         {
+
+                            learningRate = options.LearningRateScheduler.GetLearningRate(trainstate);
                             runner.AddInput(new Tensor(featureBatchPtr, featureTensorShape, TF_DataType.TF_FLOAT, featureBatchSizeInBytes), 0)
                                 .AddInput(new Tensor(labelBatchPtr, labelTensorShape, TF_DataType.TF_INT64, labelBatchSizeInBytes), 1)
+                                .AddInput(new Tensor(learningRate, TF_DataType.TF_DOUBLE), 2)
                                 .Run();
 
                             metrics.Train.BatchProcessedCount += 1;
-
                             if (options.TestOnTrainSet && statisticsCallback != null)
                             {
                                 var outputTensors = testEvalRunner
@@ -443,8 +455,10 @@ namespace Microsoft.ML.Transforms
                         featureBatchSizeInBytes = sizeof(float) * featureLength * batchIndex;
                         labelTensorShape[0] = batchIndex;
                         labelBatchSizeInBytes = sizeof(long) * batchIndex;
+                        learningRate = options.LearningRateScheduler.GetLearningRate(trainstate);
                         runner.AddInput(new Tensor(featureBatchPtr, featureTensorShape, TF_DataType.TF_FLOAT, featureBatchSizeInBytes), 0)
                                 .AddInput(new Tensor(labelBatchPtr, labelTensorShape, TF_DataType.TF_INT64, labelBatchSizeInBytes), 1)
+                                .AddInput(new Tensor(learningRate, TF_DataType.TF_DOUBLE), 2)
                                 .Run();
 
                         metrics.Train.BatchProcessedCount += 1;
@@ -584,7 +598,7 @@ namespace Microsoft.ML.Transforms
             Tensor bottleneckTensor = evalGraph.OperationByName(_bottleneckOperationName);
             evalGraph.as_default();
             var (_, _, groundTruthInput, finalTensor) = AddFinalRetrainOps(classCount, options.LabelColumn,
-                    options.ScoreColumnName, options.LearningRate, bottleneckTensor, false);
+                    options.ScoreColumnName, bottleneckTensor, false);
 
                 tf.train.Saver().restore(evalSess, _checkpointPath);
                 (evaluationStep, prediction) = AddEvaluationStep(finalTensor, groundTruthInput);
@@ -648,7 +662,7 @@ namespace Microsoft.ML.Transforms
         }
 
         private (Operation, Tensor, Tensor, Tensor) AddFinalRetrainOps(int classCount, string labelColumn,
-            string scoreColumnName, float learningRate, Tensor bottleneckTensor, bool isTraining)
+            string scoreColumnName, Tensor bottleneckTensor, bool isTraining)
         {
             var bottleneckTensorDims = bottleneckTensor.TensorShape.dims;
             var (batch_size, bottleneck_tensor_size) = (bottleneckTensorDims[0], bottleneckTensorDims[1]);
@@ -658,10 +672,11 @@ namespace Microsoft.ML.Transforms
                 {
                     _bottleneckInput = tf.placeholder_with_default(
                         bottleneckTensor,
-                        shape: bottleneckTensorDims ,
+                        shape: bottleneckTensorDims,
                         name: "BottleneckInputPlaceholder");
-                }
+                    _learningRateInput = tf.placeholder(tf.float64, null, name: "learningRateInputPlaceholder");
 
+                }
                 _labelTensor = tf.placeholder(tf.int64, new TensorShape(batch_size), name: labelColumn);
             });
 
@@ -710,7 +725,7 @@ namespace Microsoft.ML.Transforms
 
             tf_with(tf.name_scope("train"), delegate
             {
-                var optimizer = tf.train.GradientDescentOptimizer(learningRate);
+                var optimizer = new GradientDescentOptimizerTensor(_learningRateInput);
                 _trainStep = optimizer.minimize(crossEntropyMean);
             });
 
@@ -722,7 +737,7 @@ namespace Microsoft.ML.Transforms
         {
             _bottleneckTensor = Graph.OperationByName(_bottleneckOperationName);
             (_trainStep, _crossEntropy, _labelTensor, _softMaxTensor) =
-                    AddFinalRetrainOps(classCount, labelColumn, scoreColumnName, learningRate, _bottleneckTensor, true);
+                    AddFinalRetrainOps(classCount, labelColumn, scoreColumnName, _bottleneckTensor, true);
 
         }
 
@@ -1452,6 +1467,12 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the file path to store validationset bottleneck values for caching.", SortOrder = 15)]
             public string ValidationSetBottleneckCachedValuesFilePath;
+
+            /// <summary>
+            /// A class that performs learning rate scheduling.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "A class that performs learning rate scheduling.", SortOrder = 15)]
+            public ILearningRateScheduler LearningRateScheduler;
         }
 
         private readonly IHost _host;
