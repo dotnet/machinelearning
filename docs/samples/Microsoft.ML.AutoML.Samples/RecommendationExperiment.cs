@@ -54,13 +54,12 @@ namespace Microsoft.ML.AutoML.Samples
             PrintMetrics(testMetrics);
 
             // STEP 6: Save the best model for later deployment and inferencing
-            using (FileStream fs = File.Create(ModelPath))
-                mlContext.Model.Save(bestRun.Model, trainDataView.Schema, fs);
+            mlContext.Model.Save(bestRun.Model, trainDataView.Schema, ModelPath);
 
             // STEP 7: Create prediction engine from the best trained model
             var predictionEngine = mlContext.Model.CreatePredictionEngine<Movie, MovieRatingPrediction>(bestRun.Model);
 
-            // STEP 8: Initialize a new test, and get the predicted fare
+            // STEP 8: Initialize a new test, and get the prediction
             var testMovie = new Movie
             {
                 UserId = "1",
