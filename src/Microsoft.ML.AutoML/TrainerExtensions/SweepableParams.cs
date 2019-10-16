@@ -117,13 +117,13 @@ namespace Microsoft.ML.AutoML
             };
         }
 
-        public static IEnumerable<SweepableParam> BuildMatrixFactorizationParmas()
+        public static IEnumerable<SweepableParam> BuildMatrixFactorizationParams()
         {
             return new SweepableParam[]
             {
-                new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.NumberOfIterations), new object[] { 10, 20 }),
-                new SweepableFloatParam(nameof(MatrixFactorizationTrainer.Options.LearningRate), 0.025f, 0.04f, numSteps:2),
-                new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.ApproximationRank), new object[] { 10, 20 }),
+                new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.NumberOfIterations), new object[] { 10, 20, 40 }),
+                new SweepableFloatParam(nameof(MatrixFactorizationTrainer.Options.LearningRate), 0.001f, 0.1f, numSteps: 2),
+                new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.ApproximationRank), new object[] { 8, 16, 64, 128 }),
             };
         }
         public static IEnumerable<SweepableParam> BuildLinearSvmParams()

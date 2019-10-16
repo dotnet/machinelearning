@@ -17,7 +17,6 @@ namespace Microsoft.ML.AutoML
 
         public RecommendationExperimentSettings()
         {
-
             OptimizingMetric = RegressionMetric.RSquared;
             Trainers = Enum.GetValues(typeof(RecommendationTrainer)).OfType<RecommendationTrainer>().ToList();
         }

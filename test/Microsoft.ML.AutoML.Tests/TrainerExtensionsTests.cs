@@ -36,6 +36,38 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
+        public void BuildMatrixFactorizationPipelineNode()
+        {
+            var sweepParams = SweepableParams.BuildMatrixFactorizationParams();
+            foreach (var sweepParam in sweepParams)
+            {
+                sweepParam.RawValue = 1;
+            }
+
+            var pipelineNode = new MatrixFactorizationExtension().CreatePipelineNode(sweepParams, new ColumnInformation());
+
+            var expectedJson = @"{
+  ""Name"": ""MatrixFactorization"",
+  ""NodeType"": ""Trainer"",
+  ""InColumns"": [
+    ""Features""
+  ],
+  ""OutColumns"": [
+    ""Score""
+  ],
+  ""Properties"": {
+    ""NumberOfIterations"": 20,
+    ""LearningRate"": 1,
+    ""ApproximationRank"": 16,
+    ""LabelColumnName"": ""Label"",
+    ""MatrixColumnIndexColumnName"": null,
+    ""MatrixRowIndexColumnName"": null
+  }
+}";
+            Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
+        }
+
+        [Fact]
         public void BuildLightGbmPipelineNode()
         {
             var sweepParams = SweepableParams.BuildLightGbmParams();

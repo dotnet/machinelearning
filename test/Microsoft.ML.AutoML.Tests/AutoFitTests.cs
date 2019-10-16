@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Xunit;
-using System.Linq;
-using Microsoft.ML.RunTests;
-using System.IO;
 using System;
-using Microsoft.ML.AutoML.Tests.Datasets;
+using System.IO;
+using System.Linq;
+using Microsoft.ML.Data;
+using Microsoft.ML.RunTests;
+using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    
+
     public class AutoFitTests
     {
         [Fact]
@@ -68,36 +67,61 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void AutoFitRecommendationTest()
         {
-            const string matrixColName = "UserId";
-            const string matrixRowName = "MovieId";
+            // Specific column names of the considered data set
+            string labelColumnName = "Label";
+            string userColumnName = "User";
+            string itemColumnName = "Item";
+            string scoreColumnName = "Score";
             MLContext mlContext = new MLContext();
 
             // STEP 1: Load data
-            var trainDataPath = GetDataPath(TestDatasets.trivialRecommendation.trainFilename);
-            var testDataPath = GetDataPath(TestDatasets.trivialRecommendation.testFilename);
-            IDataView trainDataView = mlContext.Data.LoadFromTextFile<MovieRecommendation>(
-                trainDataPath, 
-                hasHeader: TestDatasets.trivialRecommendation.fileHasHeader, 
-                separatorChar: TestDatasets.trivialRecommendation.fileSeparator);
-            IDataView testDataView = mlContext.Data.LoadFromTextFile<MovieRecommendation>(
-                testDataPath, 
-                hasHeader: TestDatasets.trivialRecommendation.fileHasHeader, 
-                separatorChar: TestDatasets.trivialRecommendation.fileSeparator);
+            var reader = new TextLoader(mlContext, GetLoaderArgs(labelColumnName, userColumnName, itemColumnName));
+            var trainDataView = reader.Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
+            var testDataView = reader.Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
 
             // STEP 2: Run AutoML experiment
             ExperimentResult<RegressionMetrics> experimentResult = mlContext.Auto()
                 .CreateRecommendationExperiment(5)
                 .Execute(trainDataView, testDataView,
                     new ColumnInformation() { 
-                        LabelColumnName = "Rating",
-                        MatrixColumnIndexColumnName = matrixColName,
-                        MatrixRowIndexColumnName = matrixRowName
+                        LabelColumnName = labelColumnName,
+                        MatrixColumnIndexColumnName = userColumnName,
+                        MatrixRowIndexColumnName = itemColumnName
                     });
 
-            // STEP 3: Print metric from best model
             RunDetail<RegressionMetrics> bestRun = experimentResult.BestRun;
             Assert.True(experimentResult.RunDetails.Count() > 1);
             Assert.NotNull(bestRun.ValidationMetrics);
+            Assert.True(experimentResult.RunDetails.Max(i => i.ValidationMetrics.RSquared != 0));
+
+            var outputSchema = bestRun.Model.GetOutputSchema(trainDataView.Schema);
+            var expectedOutputNames = new string[] { labelColumnName, userColumnName, userColumnName, itemColumnName, itemColumnName, scoreColumnName };
+            foreach (var col in outputSchema)
+                Assert.True(col.Name == expectedOutputNames[col.Index]);
+
+            IDataView testDataViewWithBestScore = bestRun.Model.Transform(testDataView);
+            // Retrieve label column's index from the test IDataView
+            testDataView.Schema.TryGetColumnIndex(labelColumnName, out int labelColumnId);
+            // Retrieve score column's index from the IDataView produced by the trained model
+            testDataViewWithBestScore.Schema.TryGetColumnIndex(scoreColumnName, out int scoreColumnId);
+
+            var metrices = mlContext.Recommendation().Evaluate(testDataViewWithBestScore, labelColumnName: labelColumnName, scoreColumnName: scoreColumnName);
+            Assert.NotEqual(0, metrices.MeanSquaredError);
+        }
+
+        private TextLoader.Options GetLoaderArgs(string labelColumnName, string matrixColumnIndexColumnName, string matrixRowIndexColumnName)
+        {
+            return new TextLoader.Options()
+            {
+                Separator = "\t",
+                HasHeader = true,
+                Columns = new[]
+                {
+                    new TextLoader.Column(labelColumnName, DataKind.Single, new [] { new TextLoader.Range(0) }),
+                    new TextLoader.Column(matrixColumnIndexColumnName, DataKind.UInt32, new [] { new TextLoader.Range(1) }, new KeyCount(20)),
+                    new TextLoader.Column(matrixRowIndexColumnName, DataKind.UInt32, new [] { new TextLoader.Range(2) }, new KeyCount(40)),
+                }
+            };
         }
 
         private static string GetRepoRoot()

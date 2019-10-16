@@ -30,7 +30,7 @@ namespace Microsoft.ML.AutoML
 
         public IEnumerable<SweepableParam> GetHyperparamSweepRanges()
         {
-            return SweepableParams.BuildMatrixFactorizationParmas();
+            return SweepableParams.BuildMatrixFactorizationParams();
         }
     }
 }
