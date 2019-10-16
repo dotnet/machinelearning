@@ -46,7 +46,6 @@ namespace Microsoft.ML.Data
                 Sources.Add(new TextLoader.Range(col));
         }
 
-        [BestFriend]
         internal List<TextLoader.Range> Sources;
     }
 }
