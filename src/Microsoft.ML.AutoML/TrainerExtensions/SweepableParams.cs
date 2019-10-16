@@ -122,7 +122,7 @@ namespace Microsoft.ML.AutoML
             return new SweepableParam[]
             {
                 new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.NumberOfIterations), new object[] { 10, 20, 40 }),
-                new SweepableFloatParam(nameof(MatrixFactorizationTrainer.Options.LearningRate), 0.001f, 0.1f, numSteps: 2),
+                new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.LearningRate), new object[] { 0.001f, 0.01f, 0.1f }),
                 new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.ApproximationRank), new object[] { 8, 16, 64, 128 }),
             };
         }
