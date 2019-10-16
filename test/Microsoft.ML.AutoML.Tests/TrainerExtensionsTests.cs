@@ -59,6 +59,10 @@ namespace Microsoft.ML.AutoML.Test
     ""NumberOfIterations"": 20,
     ""LearningRate"": 0.01,
     ""ApproximationRank"": 16,
+    ""Lambda"": 0.05,
+    ""LossFunction"": ""SquareLossOneClass"",
+    ""Alpha"": 0.01,
+    ""C"": 0.0001,
     ""LabelColumnName"": ""Label"",
     ""MatrixColumnIndexColumnName"": null,
     ""MatrixRowIndexColumnName"": null
