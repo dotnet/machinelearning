@@ -20,8 +20,8 @@ namespace Microsoft.ML.AutoML
         private const string TextColumnPurposeName = "text";
         private const string IgnoredColumnPurposeName = "ignored";
         private const string SamplingKeyColumnPurposeName = "sampling key";
-        private const string MatrixColumnIndexColumnName = "matrix column index";
-        private const string MatrixRowIndexColumnName = "matrix row index";
+        private const string UserIdColumnPurposeName = "user ID";
+        private const string ItemIdColumnPurposeName = "item ID";
 
         public static void ValidateExperimentExecuteArgs(IDataView trainData, ColumnInformation columnInformation,
             IDataView validationData, TaskKind task)
@@ -97,8 +97,8 @@ namespace Microsoft.ML.AutoML
             ValidateTrainDataColumn(trainData, columnInformation.LabelColumnName, LabelColumnPurposeName, GetAllowedLabelTypes(task));
             ValidateTrainDataColumn(trainData, columnInformation.ExampleWeightColumnName, WeightColumnPurposeName);
             ValidateTrainDataColumn(trainData, columnInformation.SamplingKeyColumnName, SamplingKeyColumnPurposeName);
-            ValidateTrainDataColumn(trainData, columnInformation.UserIdColumnName, MatrixColumnIndexColumnName);
-            ValidateTrainDataColumn(trainData, columnInformation.ItemIdColumnName, MatrixRowIndexColumnName);
+            ValidateTrainDataColumn(trainData, columnInformation.UserIdColumnName, UserIdColumnPurposeName);
+            ValidateTrainDataColumn(trainData, columnInformation.ItemIdColumnName, ItemIdColumnPurposeName);
             ValidateTrainDataColumns(trainData, columnInformation.CategoricalColumnNames, CategoricalColumnPurposeName,
                 new DataViewType[] { NumberDataViewType.Single, TextDataViewType.Instance });
             ValidateTrainDataColumns(trainData, columnInformation.NumericColumnNames, NumericColumnPurposeName,

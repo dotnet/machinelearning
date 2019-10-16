@@ -660,7 +660,7 @@ namespace Microsoft.ML.AutoML.Test
         [InlineData(false, @"[]")]
         public void TransformInferenceCustomTextForRecommendation(bool useRecommendationTask, string expectedJson)
         {
-            foreach (var columnPurpose in new[] { ColumnPurpose.SamplingKey, ColumnPurpose.MatrixColumnIndex, ColumnPurpose.MatrixRowIndex })
+            foreach (var columnPurpose in new[] { ColumnPurpose.SamplingKey, ColumnPurpose.UserId, ColumnPurpose.ItemId })
             {
                 TransformInferenceTestCore(new[]
                     {
