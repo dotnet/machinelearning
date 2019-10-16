@@ -83,7 +83,6 @@ namespace Microsoft.ML.AutoML.Test
                 .CreateRecommendationExperiment(5)
                 .Execute(trainDataView, testDataView,
                     new ColumnInformation() { 
-                        LabelColumnName = labelColumnName,
                         UserIdColumnName = userColumnName,
                         ItemIdColumnName = itemColumnName
                     });

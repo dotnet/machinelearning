@@ -198,8 +198,7 @@ namespace Microsoft.ML.AutoML
                     foreach (var column in columns)
                     {
                         if (column.Purpose == ColumnPurpose.UserId ||
-                            column.Purpose == ColumnPurpose.ItemId ||
-                            column.Purpose == ColumnPurpose.SamplingKey)
+                            column.Purpose == ColumnPurpose.ItemId)
                         {
                             yield return ValueToKeyMappingExtension.CreateSuggestedTransform(Context, column.ColumnName, column.ColumnName);
                         }

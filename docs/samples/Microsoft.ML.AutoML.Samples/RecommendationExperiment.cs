@@ -35,7 +35,6 @@ namespace Microsoft.ML.AutoML.Samples
                 .Execute(trainDataView, testDataView,
                     new ColumnInformation()
                     {
-                        LabelColumnName = LabelColumnName,
                         UserIdColumnName = UserColumnName,
                         ItemIdColumnName = ItemColumnName
                     });
