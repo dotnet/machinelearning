@@ -84,8 +84,8 @@ namespace Microsoft.ML.AutoML.Test
                 .Execute(trainDataView, testDataView,
                     new ColumnInformation() { 
                         LabelColumnName = labelColumnName,
-                        MatrixColumnIndexColumnName = userColumnName,
-                        MatrixRowIndexColumnName = itemColumnName
+                        UserIdColumnName = userColumnName,
+                        ItemIdColumnName = itemColumnName
                     });
 
             RunDetail<RegressionMetrics> bestRun = experimentResult.BestRun;
@@ -108,7 +108,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.NotEqual(0, metrices.MeanSquaredError);
         }
 
-        private TextLoader.Options GetLoaderArgs(string labelColumnName, string matrixColumnIndexColumnName, string matrixRowIndexColumnName)
+        private TextLoader.Options GetLoaderArgs(string labelColumnName, string userIdColumnName, string itemIdColumnName)
         {
             return new TextLoader.Options()
             {
@@ -117,8 +117,8 @@ namespace Microsoft.ML.AutoML.Test
                 Columns = new[]
                 {
                     new TextLoader.Column(labelColumnName, DataKind.Single, new [] { new TextLoader.Range(0) }),
-                    new TextLoader.Column(matrixColumnIndexColumnName, DataKind.UInt32, new [] { new TextLoader.Range(1) }, new KeyCount(20)),
-                    new TextLoader.Column(matrixRowIndexColumnName, DataKind.UInt32, new [] { new TextLoader.Range(2) }, new KeyCount(40)),
+                    new TextLoader.Column(userIdColumnName, DataKind.UInt32, new [] { new TextLoader.Range(1) }, new KeyCount(20)),
+                    new TextLoader.Column(itemIdColumnName, DataKind.UInt32, new [] { new TextLoader.Range(2) }, new KeyCount(40)),
                 }
             };
         }

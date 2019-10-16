@@ -54,14 +54,14 @@ namespace Microsoft.ML.AutoML
         public string LabelColumnName { get; set; }
 
         /// <summary>
-        /// The dataset column to use as a matrix column for computation.
+        /// The dataset column to use as a user ID for computation.
         /// </summary>
-        public string MatrixColumnIndexColumnName { get; set; }
+        public string UserIdColumnName { get; set; }
 
         /// <summary>
-        /// The dataset column to use as a matrix row for computation.
+        /// The dataset column to use as a item ID for computation.
         /// </summary>
-        public string MatrixRowIndexColumnName { get; set; }
+        public string ItemIdColumnName { get; set; }
 
         /// <summary>
         /// The dataset column to use for example weight.

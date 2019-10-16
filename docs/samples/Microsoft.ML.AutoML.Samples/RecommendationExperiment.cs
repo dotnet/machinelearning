@@ -36,8 +36,8 @@ namespace Microsoft.ML.AutoML.Samples
                     new ColumnInformation()
                     {
                         LabelColumnName = LabelColumnName,
-                        MatrixColumnIndexColumnName = UserColumnName,
-                        MatrixRowIndexColumnName = ItemColumnName
+                        UserIdColumnName = UserColumnName,
+                        ItemIdColumnName = ItemColumnName
                     });
 
             // STEP 3: Print metric from best model

@@ -18,8 +18,8 @@ namespace Microsoft.ML.AutoML.Test
                 LabelColumnName = "Label",
                 ExampleWeightColumnName = "Weight",
                 SamplingKeyColumnName = "SamplingKey",
-                MatrixColumnIndexColumnName = "UserId",
-                MatrixRowIndexColumnName = "MovieId"
+                UserIdColumnName = "UserId",
+                ItemIdColumnName = "MovieId"
             };
             columnInfo.CategoricalColumnNames.Add("Cat");
             columnInfo.NumericColumnNames.Add("Num");
@@ -29,8 +29,8 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(ColumnPurpose.Label, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Label"));
             Assert.Equal(ColumnPurpose.Weight, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Weight"));
             Assert.Equal(ColumnPurpose.SamplingKey, ColumnInformationUtil.GetColumnPurpose(columnInfo, "SamplingKey"));
-            Assert.Equal(ColumnPurpose.MatrixColumnIndex, ColumnInformationUtil.GetColumnPurpose(columnInfo, "UserId"));
-            Assert.Equal(ColumnPurpose.MatrixRowIndex, ColumnInformationUtil.GetColumnPurpose(columnInfo, "MovieId"));
+            Assert.Equal(ColumnPurpose.UserId, ColumnInformationUtil.GetColumnPurpose(columnInfo, "UserId"));
+            Assert.Equal(ColumnPurpose.ItemId, ColumnInformationUtil.GetColumnPurpose(columnInfo, "MovieId"));
             Assert.Equal(ColumnPurpose.CategoricalFeature, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Cat"));
             Assert.Equal(ColumnPurpose.NumericFeature, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Num"));
             Assert.Equal(ColumnPurpose.TextFeature, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Text"));
@@ -45,8 +45,8 @@ namespace Microsoft.ML.AutoML.Test
             {
                 LabelColumnName = "Label",
                 SamplingKeyColumnName = "SamplingKey",
-                MatrixColumnIndexColumnName = "UserId",
-                MatrixRowIndexColumnName = "MovieId"
+                UserIdColumnName = "UserId",
+                ItemIdColumnName = "MovieId"
             };
             columnInfo.CategoricalColumnNames.Add("Cat1");
             columnInfo.CategoricalColumnNames.Add("Cat2");

@@ -14,7 +14,7 @@ namespace Microsoft.ML.AutoML
         Weight = 5,
         ImagePath = 6,
         SamplingKey = 7,
-        MatrixColumnIndex = 8,
-        MatrixRowIndex = 9
+        UserId = 8,
+        ItemId = 9
     }
 }

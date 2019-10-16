@@ -46,14 +46,14 @@ namespace Microsoft.ML.AutoML
                 return ColumnPurpose.Ignore;
             }
 
-            if (columnName == columnInfo.MatrixColumnIndexColumnName)
+            if (columnName == columnInfo.UserIdColumnName)
             {
-                return ColumnPurpose.MatrixColumnIndex;
+                return ColumnPurpose.UserId;
             }
 
-            if (columnName == columnInfo.MatrixRowIndexColumnName)
+            if (columnName == columnInfo.ItemIdColumnName)
             {
-                return ColumnPurpose.MatrixRowIndex;
+                return ColumnPurpose.ItemId;
             }
 
             return null;
@@ -85,11 +85,11 @@ namespace Microsoft.ML.AutoML
                     case ColumnPurpose.NumericFeature:
                         columnInfo.NumericColumnNames.Add(column.name);
                         break;
-                    case ColumnPurpose.MatrixColumnIndex:
-                        columnInfo.MatrixColumnIndexColumnName = column.name;
+                    case ColumnPurpose.UserId:
+                        columnInfo.UserIdColumnName = column.name;
                         break;
-                    case ColumnPurpose.MatrixRowIndex:
-                        columnInfo.MatrixRowIndexColumnName = column.name;
+                    case ColumnPurpose.ItemId:
+                        columnInfo.ItemIdColumnName = column.name;
                         break;
                     case ColumnPurpose.TextFeature:
                         columnInfo.TextColumnNames.Add(column.name);
@@ -113,8 +113,8 @@ namespace Microsoft.ML.AutoML
         {
             var columnNames = new List<string>();
             AddStringToListIfNotNull(columnNames, columnInformation.LabelColumnName);
-            AddStringToListIfNotNull(columnNames, columnInformation.MatrixColumnIndexColumnName);
-            AddStringToListIfNotNull(columnNames, columnInformation.MatrixRowIndexColumnName);
+            AddStringToListIfNotNull(columnNames, columnInformation.UserIdColumnName);
+            AddStringToListIfNotNull(columnNames, columnInformation.ItemIdColumnName);
             AddStringToListIfNotNull(columnNames, columnInformation.ExampleWeightColumnName);
             AddStringToListIfNotNull(columnNames, columnInformation.SamplingKeyColumnName);
             AddStringsToListIfNotNull(columnNames, columnInformation.CategoricalColumnNames);
