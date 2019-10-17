@@ -1,5 +1,5 @@
 {
-  "irVersion": "3",
+  "irVersion": "6",
   "producerName": "ML.NET",
   "producerVersion": "##VERSION##",
   "domain": "machinelearning.dotnet",
@@ -368,7 +368,7 @@
           "13",
           "50"
         ],
-        "dataType": "FLOAT",
+        "dataType": 1,
         "floatData": [
           0.06056195,
           -0.2956958,
@@ -1024,7 +1024,7 @@
         "name": "WordEmbeddingWeights"
       },
       {
-        "dataType": "INT64",
+        "dataType": 7,
         "int64Data": [
           "10"
         ],
@@ -1036,7 +1036,7 @@
         "name": "Tokens",
         "type": {
           "tensorType": {
-            "elemType": "STRING",
+            "elemType": 8,
             "shape": {
               "dim": [
                 {
@@ -1056,7 +1056,7 @@
         "name": "Tokens0",
         "type": {
           "tensorType": {
-            "elemType": "STRING",
+            "elemType": 8,
             "shape": {
               "dim": [
                 {
@@ -1074,7 +1074,7 @@
         "name": "Embed0",
         "type": {
           "tensorType": {
-            "elemType": "FLOAT",
+            "elemType": 1,
             "shape": {
               "dim": [
                 {
@@ -1094,7 +1094,7 @@
         "name": "Embed",
         "type": {
           "tensorType": {
-            "elemType": "FLOAT",
+            "elemType": 1,
             "shape": {
               "dim": [
                 {
@@ -1113,7 +1113,7 @@
   "opsetImport": [
     {
       "domain": "ai.onnx.ml",
-      "version": "1"
+      "version": "2"
     },
     {
       "version": "9"
