@@ -1023,7 +1023,10 @@ namespace Microsoft.ML.RunTests
         }
 
         // Verifies the equality of the values returned by the single valued getters passed in as parameters.
-   
+        protected void VerifyOneEquality<T>(ValueGetter<T> oneGetter, ValueGetter<T> oneNGetter)
+        {
+            T f1 = default(T);
+
             T f1n = default(T);
             oneGetter(ref f1);
             oneNGetter(ref f1n);
