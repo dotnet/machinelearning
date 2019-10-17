@@ -40,13 +40,6 @@
     <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
   </ItemGroup>
 
-  <!-- TensorFlow is 64-bit only -->
-  <ItemGroup Condition="'$(NativeTargetArchitecture)' == 'x64'">
-    <NativeAssemblyReference Include="tensorflow" />
-    <NativeAssemblyReferenceWithMajorVersion Condition="'$(OS)' != 'Windows_NT'" Include="tensorflow_framework">
-      <MajorVersion>$(TensorFlowMajorVersion)</MajorVersion>
-    </NativeAssemblyReferenceWithMajorVersion>
-  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.ML.TensorFlow.TestModels" Version="$(MicrosoftMLTensorFlowTestModelsVersion)" />
     <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="$(MicrosoftMLOnnxTestModelsVersion)" />

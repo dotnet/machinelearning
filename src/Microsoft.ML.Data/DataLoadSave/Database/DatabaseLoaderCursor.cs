@@ -375,9 +375,17 @@ namespace Microsoft.ML.Data
 
                     foreach (var seg in segs)
                     {
-                        for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                        if (seg.Name is null)
                         {
-                            editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetBoolean(columnIndex);
+                            for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                            {
+                                editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetBoolean(columnIndex);
+                            }
+                        }
+                        else
+                        {
+                            var columnIndex = DataReader.GetOrdinal(seg.Name);
+                            editor.Values[i++] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetBoolean(columnIndex);
                         }
                     }
 
@@ -397,9 +405,17 @@ namespace Microsoft.ML.Data
 
                     foreach (var seg in segs)
                     {
-                        for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                        if (seg.Name is null)
                         {
-                            editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetByte(columnIndex);
+                            for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                            {
+                                editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetByte(columnIndex);
+                            }
+                        }
+                        else
+                        {
+                            var columnIndex = DataReader.GetOrdinal(seg.Name);
+                            editor.Values[i++] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetByte(columnIndex);
                         }
                     }
 
@@ -419,9 +435,17 @@ namespace Microsoft.ML.Data
 
                     foreach (var seg in segs)
                     {
-                        for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                        if (seg.Name is null)
                         {
-                            editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetDateTime(columnIndex);
+                            for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                            {
+                                editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetDateTime(columnIndex);
+                            }
+                        }
+                        else
+                        {
+                            var columnIndex = DataReader.GetOrdinal(seg.Name);
+                            editor.Values[i++] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetDateTime(columnIndex);
                         }
                     }
 
@@ -441,9 +465,17 @@ namespace Microsoft.ML.Data
 
                     foreach (var seg in segs)
                     {
-                        for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                        if (seg.Name is null)
                         {
-                            editor.Values[i] = DataReader.IsDBNull(columnIndex) ? double.NaN : DataReader.GetDouble(columnIndex);
+                            for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                            {
+                                editor.Values[i] = DataReader.IsDBNull(columnIndex) ? double.NaN : DataReader.GetDouble(columnIndex);
+                            }
+                        }
+                        else
+                        {
+                            var columnIndex = DataReader.GetOrdinal(seg.Name);
+                            editor.Values[i++] = DataReader.IsDBNull(columnIndex) ? double.NaN : DataReader.GetDouble(columnIndex);
                         }
                     }
 
@@ -463,9 +495,17 @@ namespace Microsoft.ML.Data
 
                     foreach (var seg in segs)
                     {
-                        for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                        if (seg.Name is null)
                         {
-                            editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetInt16(columnIndex);
+                            for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                            {
+                                editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetInt16(columnIndex);
+                            }
+                        }
+                        else
+                        {
+                            var columnIndex = DataReader.GetOrdinal(seg.Name);
+                            editor.Values[i++] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetInt16(columnIndex);
                         }
                     }
 
@@ -485,9 +525,17 @@ namespace Microsoft.ML.Data
 
                     foreach (var seg in segs)
                     {
-                        for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                        if (seg.Name is null)
                         {
-                            editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetInt32(columnIndex);
+                            for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                            {
+                                editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetInt32(columnIndex);
+                            }
+                        }
+                        else
+                        {
+                            var columnIndex = DataReader.GetOrdinal(seg.Name);
+                            editor.Values[i++] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetInt32(columnIndex);
                         }
                     }
 
@@ -507,9 +555,17 @@ namespace Microsoft.ML.Data
 
                     foreach (var seg in segs)
                     {
-                        for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                        if (seg.Name is null)
                         {
-                            editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetInt64(columnIndex);
+                            for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                            {
+                                editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetInt64(columnIndex);
+                            }
+                        }
+                        else
+                        {
+                            var columnIndex = DataReader.GetOrdinal(seg.Name);
+                            editor.Values[i++] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetInt64(columnIndex);
                         }
                     }
 
@@ -529,9 +585,17 @@ namespace Microsoft.ML.Data
 
                     foreach (var seg in segs)
                     {
-                        for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                        if (seg.Name is null)
                         {
-                            editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : (sbyte)DataReader.GetByte(columnIndex);
+                            for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                            {
+                                editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : (sbyte)DataReader.GetByte(columnIndex);
+                            }
+                        }
+                        else
+                        {
+                            var columnIndex = DataReader.GetOrdinal(seg.Name);
+                            editor.Values[i++] = DataReader.IsDBNull(columnIndex) ? default : (sbyte)DataReader.GetByte(columnIndex);
                         }
                     }
 
@@ -551,9 +615,17 @@ namespace Microsoft.ML.Data
 
                     foreach (var seg in segs)
                     {
-                        for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                        if (seg.Name is null)
                         {
-                            editor.Values[i] = DataReader.IsDBNull(columnIndex) ? float.NaN : DataReader.GetFloat(columnIndex);
+                            for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                            {
+                                editor.Values[i] = DataReader.IsDBNull(columnIndex) ? float.NaN : DataReader.GetFloat(columnIndex);
+                            }
+                        }
+                        else
+                        {
+                            var columnIndex = DataReader.GetOrdinal(seg.Name);
+                            editor.Values[i++] = DataReader.IsDBNull(columnIndex) ? float.NaN : DataReader.GetFloat(columnIndex);
                         }
                     }
 
@@ -573,9 +645,17 @@ namespace Microsoft.ML.Data
 
                     foreach (var seg in segs)
                     {
-                        for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                        if (seg.Name is null)
                         {
-                            editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetString(columnIndex).AsMemory();
+                            for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                            {
+                                editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetString(columnIndex).AsMemory();
+                            }
+                        }
+                        else
+                        {
+                            var columnIndex = DataReader.GetOrdinal(seg.Name);
+                            editor.Values[i++] = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetString(columnIndex).AsMemory();
                         }
                     }
 
@@ -595,9 +675,17 @@ namespace Microsoft.ML.Data
 
                     foreach (var seg in segs)
                     {
-                        for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                        if (seg.Name is null)
                         {
-                            editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : (ushort)DataReader.GetInt16(columnIndex);
+                            for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                            {
+                                editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : (ushort)DataReader.GetInt16(columnIndex);
+                            }
+                        }
+                        else
+                        {
+                            var columnIndex = DataReader.GetOrdinal(seg.Name);
+                            editor.Values[i++] = DataReader.IsDBNull(columnIndex) ? default : (ushort)DataReader.GetInt16(columnIndex);
                         }
                     }
 
@@ -617,9 +705,17 @@ namespace Microsoft.ML.Data
 
                     foreach (var seg in segs)
                     {
-                        for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                        if (seg.Name is null)
                         {
-                            editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : (uint)DataReader.GetInt32(columnIndex);
+                            for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                            {
+                                editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : (uint)DataReader.GetInt32(columnIndex);
+                            }
+                        }
+                        else
+                        {
+                            var columnIndex = DataReader.GetOrdinal(seg.Name);
+                            editor.Values[i++] = DataReader.IsDBNull(columnIndex) ? default : (uint)DataReader.GetInt32(columnIndex);
                         }
                     }
 
@@ -639,9 +735,17 @@ namespace Microsoft.ML.Data
 
                     foreach (var seg in segs)
                     {
-                        for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                        if (seg.Name is null)
                         {
-                            editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : (ulong)DataReader.GetInt64(columnIndex);
+                            for (int columnIndex = seg.Min; columnIndex < seg.Lim; columnIndex++, i++)
+                            {
+                                editor.Values[i] = DataReader.IsDBNull(columnIndex) ? default : (ulong)DataReader.GetInt64(columnIndex);
+                            }
+                        }
+                        else
+                        {
+                            var columnIndex = DataReader.GetOrdinal(seg.Name);
+                            editor.Values[i++] = DataReader.IsDBNull(columnIndex) ? default : (ulong)DataReader.GetInt64(columnIndex);
                         }
                     }
 
@@ -653,7 +757,7 @@ namespace Microsoft.ML.Data
             {
                 var segs = colInfo.Segments;
 
-                if (segs is null)
+                if ((segs is null) || (segs.Length == 0))
                 {
                     return DataReader.GetOrdinal(colInfo.Name);
                 }
@@ -661,9 +765,16 @@ namespace Microsoft.ML.Data
                 Contracts.Check(segs.Length == 1);
 
                 var seg = segs[0];
-                Contracts.Check(seg.Min == seg.Lim);
 
-                return seg.Min;
+                if (seg.Name is null)
+                {
+                    Contracts.Check(seg.Min == seg.Lim);
+                    return seg.Min;
+                }
+                else
+                {
+                    return DataReader.GetOrdinal(seg.Name);
+                }
             }
         }
     }
