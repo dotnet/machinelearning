@@ -27,7 +27,7 @@ Install [CUDA v10.0](https://developer.nvidia.com/cuda-10.0-download-archive) an
 Make sure you install CUDA v10.0, not any other newer version.
 After downloading CUDNN v7.6.4 .zip file and unpacking it, you just need to do this step:
 
-copy <CUDNN_zip_files_path>\cuda\bin\cudnn64_7.dll to C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.0\bin
+`copy <CUDNN_zip_files_path>\cuda\bin\cudnn64_7.dll to C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.0\bin`
 
 For further info you can follow the [cuDNN Installation guide](https://docs.nvidia.com/deeplearning/sdk/cudnn-install/index.html#installwindows) although some steps in that guide are not needed because only apply for C/C++ development.
 
