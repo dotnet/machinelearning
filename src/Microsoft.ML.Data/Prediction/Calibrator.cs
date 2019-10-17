@@ -515,8 +515,8 @@ namespace Microsoft.ML.Calibrators
             TSubModel predictor, TCalibrator calibrator)
             : base(env, RegistrationName, predictor, calibrator)
         {
-            Host.Assert(predictor is IPredictorWithFeatureWeights<float>);
-            _featureWeights = predictor as IPredictorWithFeatureWeights<float>;
+            Host.Check(SubModel is IPredictorWithFeatureWeights<float>, "Predictor does not implement " + nameof(IPredictorWithFeatureWeights<float>));
+            _featureWeights = (IPredictorWithFeatureWeights<float>)SubModel;
         }
 
         private static CalibratedModelParametersBase Create(IHostEnvironment env, ModelLoadContext ctx)
