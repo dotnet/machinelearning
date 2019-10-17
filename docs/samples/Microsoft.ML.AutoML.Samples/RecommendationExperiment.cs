@@ -35,6 +35,7 @@ namespace Microsoft.ML.AutoML.Samples
                 .Execute(trainDataView, testDataView,
                     new ColumnInformation()
                     {
+                        LabelColumnName = LabelColumnName,
                         UserIdColumnName = UserColumnName,
                         ItemIdColumnName = ItemColumnName
                     });
@@ -67,7 +68,7 @@ namespace Microsoft.ML.AutoML.Samples
             var prediction = predictionEngine.Predict(testMovie);
             Console.WriteLine($"Predicted rating for: {prediction.Rating}");
 
-            // Note: MatrixFactorization only can predict for existing users
+            // Only predict for existing users
             testMovie = new Movie
             {
                 UserId = "612", // new user
