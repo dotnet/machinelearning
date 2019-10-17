@@ -194,6 +194,15 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [TestMethod]
+        public void ValidateRecommendationLabelTypes()
+        {
+            ValidateLabelTypeTestCore<float>(TaskKind.Recommendation, NumberDataViewType.Single, true);
+            ValidateLabelTypeTestCore<bool>(TaskKind.Recommendation, BooleanDataViewType.Instance, false);
+            ValidateLabelTypeTestCore<double>(TaskKind.Recommendation, NumberDataViewType.Double, false);
+            ValidateLabelTypeTestCore<string>(TaskKind.Recommendation, TextDataViewType.Instance, false);
+        }
+
+        [TestMethod]
         public void ValidateBinaryClassificationLabelTypes()
         {
             ValidateLabelTypeTestCore<float>(TaskKind.BinaryClassification, NumberDataViewType.Single, false);
@@ -218,8 +227,12 @@ namespace Microsoft.ML.AutoML.Test
             dataViewBuilder.AddColumn("Text", "a");
             dataViewBuilder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single, 0f);
             var dataView = dataViewBuilder.GetDataView();
-            UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, new ColumnInformation(),
-                null, TaskKind.Regression);
+
+            foreach (var task in new[] { TaskKind.Recommendation, TaskKind.Regression })
+            {
+                UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, new ColumnInformation(),
+                    null, task);
+            }
         }
 
         [TestMethod]

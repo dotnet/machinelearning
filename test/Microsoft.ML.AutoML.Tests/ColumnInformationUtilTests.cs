@@ -18,6 +18,8 @@ namespace Microsoft.ML.AutoML.Test
                 LabelColumnName = "Label",
                 ExampleWeightColumnName = "Weight",
                 SamplingKeyColumnName = "SamplingKey",
+                UserIdColumnName = "UserId",
+                ItemIdColumnName = "MovieId"
             };
             columnInfo.CategoricalColumnNames.Add("Cat");
             columnInfo.NumericColumnNames.Add("Num");
@@ -27,6 +29,8 @@ namespace Microsoft.ML.AutoML.Test
             Assert.AreEqual(ColumnPurpose.Label, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Label"));
             Assert.AreEqual(ColumnPurpose.Weight, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Weight"));
             Assert.AreEqual(ColumnPurpose.SamplingKey, ColumnInformationUtil.GetColumnPurpose(columnInfo, "SamplingKey"));
+            Assert.AreEqual(ColumnPurpose.UserId, ColumnInformationUtil.GetColumnPurpose(columnInfo, "UserId"));
+            Assert.AreEqual(ColumnPurpose.ItemId, ColumnInformationUtil.GetColumnPurpose(columnInfo, "MovieId"));
             Assert.AreEqual(ColumnPurpose.CategoricalFeature, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Cat"));
             Assert.AreEqual(ColumnPurpose.NumericFeature, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Num"));
             Assert.AreEqual(ColumnPurpose.TextFeature, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Text"));
@@ -41,14 +45,18 @@ namespace Microsoft.ML.AutoML.Test
             {
                 LabelColumnName = "Label",
                 SamplingKeyColumnName = "SamplingKey",
+                UserIdColumnName = "UserId",
+                ItemIdColumnName = "MovieId"
             };
             columnInfo.CategoricalColumnNames.Add("Cat1");
             columnInfo.CategoricalColumnNames.Add("Cat2");
             columnInfo.NumericColumnNames.Add("Num");
             var columnNames = ColumnInformationUtil.GetColumnNames(columnInfo);
-            Assert.AreEqual(5, columnNames.Count());
+            Assert.AreEqual(7, columnNames.Count());
             Assert.IsTrue(columnNames.Contains("Label"));
             Assert.IsTrue(columnNames.Contains("SamplingKey"));
+            Assert.IsTrue(columnNames.Contains("UserId"));
+            Assert.IsTrue(columnNames.Contains("MovieId"));
             Assert.IsTrue(columnNames.Contains("Cat1"));
             Assert.IsTrue(columnNames.Contains("Cat2"));
             Assert.IsTrue(columnNames.Contains("Num"));

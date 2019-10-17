@@ -36,6 +36,42 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [TestMethod]
+        public void BuildMatrixFactorizationPipelineNode()
+        {
+            var sweepParams = SweepableParams.BuildMatrixFactorizationParams();
+            foreach (var sweepParam in sweepParams)
+            {
+                sweepParam.RawValue = 1;
+            }
+
+            var pipelineNode = new MatrixFactorizationExtension().CreatePipelineNode(sweepParams, new ColumnInformation());
+
+            var expectedJson = @"{
+  ""Name"": ""MatrixFactorization"",
+  ""NodeType"": ""Trainer"",
+  ""InColumns"": [
+    ""Features""
+  ],
+  ""OutColumns"": [
+    ""Score""
+  ],
+  ""Properties"": {
+    ""NumberOfIterations"": 20,
+    ""LearningRate"": 0.01,
+    ""ApproximationRank"": 16,
+    ""Lambda"": 0.05,
+    ""LossFunction"": ""SquareLossOneClass"",
+    ""Alpha"": 0.01,
+    ""C"": 0.0001,
+    ""LabelColumnName"": ""Label"",
+    ""MatrixColumnIndexColumnName"": null,
+    ""MatrixRowIndexColumnName"": null
+  }
+}";
+            Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
+        }
+
+        [TestMethod]
         public void BuildLightGbmPipelineNode()
         {
             var sweepParams = SweepableParams.BuildLightGbmParams();
@@ -282,6 +318,14 @@ namespace Microsoft.ML.AutoML.Test
         public void PublicToPrivateTrainerNamesRegressionTest()
         {
             var publicNames = Enum.GetValues(typeof(RegressionTrainer)).Cast<RegressionTrainer>();
+            var internalNames = TrainerExtensionUtil.GetTrainerNames(publicNames);
+            Assert.AreEqual(publicNames.Distinct().Count(), internalNames.Distinct().Count());
+        }
+
+        [TestMethod]
+        public void PublicToPrivateTrainerNamesRecommendationTest()
+        {
+            var publicNames = Enum.GetValues(typeof(RecommendationTrainer)).Cast<RecommendationTrainer>();
             var internalNames = TrainerExtensionUtil.GetTrainerNames(publicNames);
             Assert.AreEqual(publicNames.Distinct().Count(), internalNames.Distinct().Count());
         }

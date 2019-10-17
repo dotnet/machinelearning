@@ -9,6 +9,7 @@
     <PackageReference Include="Microsoft.ML" Version="1.3.1" />
     <PackageReference Include="Microsoft.ML.LightGBM" Version="1.3.1" />
     <PackageReference Include="Microsoft.ML.Mkl.Components" Version="1.3.1" />
+    <PackageReference Include="Microsoft.ML.Recommender" Version="1.3.1" />
   </ItemGroup>
 
 </Project>
