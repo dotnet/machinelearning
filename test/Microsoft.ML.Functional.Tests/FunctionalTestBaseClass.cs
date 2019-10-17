@@ -35,7 +35,7 @@ namespace Microsoft.ML.Functional.Tests
             Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
 
 #if NETFRAMEWORK
-            string codeBaseUri = typeof(BaseTestClass).Assembly.CodeBase;
+            string codeBaseUri = typeof(FunctionalTestBaseClass).Assembly.CodeBase;
             string path = new Uri(codeBaseUri).AbsolutePath;
             var currentAssemblyLocation = new FileInfo(Directory.GetParent(path).FullName);
 #else
