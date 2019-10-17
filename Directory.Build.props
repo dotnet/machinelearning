@@ -117,4 +117,6 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
 
+  <Import Condition="Exists('DevProperties.props')" Project="DevProperties.props" />
+
 </Project>
