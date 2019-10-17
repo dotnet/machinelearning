@@ -22,8 +22,14 @@ As of now TensorFlow does not support running on GPUs for MacOS, so we cannot su
 You must have at least one CUDA compatible GPU, for a list of compatible GPUs see
 [Nvidia's Guide](https://developer.nvidia.com/cuda-gpus).
 
-Install [CUDA v10.0](https://developer.nvidia.com/cuda-10.0-download-archive) and [CUDNN v7.6.4](https://developer.nvidia.com/rdp/cudnn-download)
-following [Nvidia's Install guide](https://docs.nvidia.com/cuda/cuda-quick-start-guide/index.html).
+Install [CUDA v10.0](https://developer.nvidia.com/cuda-10.0-download-archive) and [CUDNN v7.6.4](https://developer.nvidia.com/rdp/cudnn-download). 
+
+Make sure you install CUDA v10.0, not any other newer version.
+After downloading CUDNN v7.6.4 .zip file and unpacking it, you just need to do this step:
+
+copy <CUDNN_zip_files_path>\cuda\bin\cudnn64_7.dll to C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.0\bin
+
+For further info you can follow the [cuDNN Installation guide](https://docs.nvidia.com/deeplearning/sdk/cudnn-install/index.html#installwindows) although some steps in that guide are not needed because only apply for C/C++ development.
 
 #### Usage
 To use TensorFlow with GPU support take a NuGet dependency on the following package depending on your OS:
