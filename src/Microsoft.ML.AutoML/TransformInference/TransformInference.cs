@@ -152,7 +152,7 @@ namespace Microsoft.ML.AutoML
             yield return new Experts.NumericMissing(context);
 
             // For recommendation tasks, convert both user and item columns as key
-            yield return new Experts.UserIdPairs(context);
+            yield return new Experts.RecommendationColumns(context);
         }
 
         internal static class Experts
@@ -183,9 +183,9 @@ namespace Microsoft.ML.AutoML
                 }
             }
 
-            internal sealed class UserIdPairs : TransformInferenceExpertBase
+            internal sealed class RecommendationColumns : TransformInferenceExpertBase
             {
-                public UserIdPairs(MLContext context) : base(context)
+                public RecommendationColumns(MLContext context) : base(context)
                 {
                 }
 
