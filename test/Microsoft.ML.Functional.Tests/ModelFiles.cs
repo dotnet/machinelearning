@@ -398,8 +398,6 @@ namespace Microsoft.ML.Functional.Tests
             var compositeLoader = Assert.IsType<CompositeDataLoader<IMultiStreamSource, ITransformer>>(loadedLoaderWithTransformer);
             var chainFromLoader = compositeLoader.Transformer;
             Assert.IsType<NormalizingTransformer>(Assert.Single(compositeLoader.Transformer));
-
-            //Done();
         }
 
         [Fact]
@@ -433,8 +431,6 @@ namespace Microsoft.ML.Functional.Tests
             CommonUtilities.CheckSameSchemas(expectedInputSchema, loadedInputSchema);
             var reloadedLoaderInputSchema = loadedLoaderWithTransformer.GetOutputSchema();
             CommonUtilities.CheckSameSchemas(expectedInputSchema, reloadedLoaderInputSchema);
-
-            //Done();
         }
 
         [Fact]
