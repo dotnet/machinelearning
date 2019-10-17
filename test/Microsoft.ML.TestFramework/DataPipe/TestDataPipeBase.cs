@@ -1018,75 +1018,8 @@ namespace Microsoft.ML.RunTests
                 {
                     g1(ref v1);
                     g2(ref v2);
-                    return CompareVec<T>(in v1, in v2, size, fn);
+                    return CommonUtilities.CompareVec<T>(in v1, in v2, size, fn);
                 };
-        }
-
-        protected bool CompareVec<T>(in VBuffer<T> v1, in VBuffer<T> v2, int size, Func<T, T, bool> fn)
-        {
-            return CompareVec(in v1, in v2, size, (i, x, y) => fn(x, y));
-        }
-
-        protected bool CompareVec<T>(in VBuffer<T> v1, in VBuffer<T> v2, int size, Func<int, T, T, bool> fn)
-        {
-            Contracts.Assert(size == 0 || v1.Length == size);
-            Contracts.Assert(size == 0 || v2.Length == size);
-            Contracts.Assert(v1.Length == v2.Length);
-
-            var v1Values = v1.GetValues();
-            var v2Values = v2.GetValues();
-
-            if (v1.IsDense && v2.IsDense)
-            {
-                for (int i = 0; i < v1.Length; i++)
-                {
-                    var x1 = v1Values[i];
-                    var x2 = v2Values[i];
-                    if (!fn(i, x1, x2))
-                        return false;
-                }
-                return true;
-            }
-
-            var v1Indices = v1.GetIndices();
-            var v2Indices = v2.GetIndices();
-
-            Contracts.Assert(!v1.IsDense || !v2.IsDense);
-            int iiv1 = 0;
-            int iiv2 = 0;
-            for (; ; )
-            {
-                int iv1 = v1.IsDense ? iiv1 : iiv1 < v1Indices.Length ? v1Indices[iiv1] : v1.Length;
-                int iv2 = v2.IsDense ? iiv2 : iiv2 < v2Indices.Length ? v2Indices[iiv2] : v2.Length;
-                T x1, x2;
-                int iv;
-                if (iv1 == iv2)
-                {
-                    if (iv1 == v1.Length)
-                        return true;
-                    x1 = v1Values[iiv1];
-                    x2 = v2Values[iiv2];
-                    iv = iv1;
-                    iiv1++;
-                    iiv2++;
-                }
-                else if (iv1 < iv2)
-                {
-                    x1 = v1Values[iiv1];
-                    x2 = default(T);
-                    iv = iv1;
-                    iiv1++;
-                }
-                else
-                {
-                    x1 = default(T);
-                    x2 = v2Values[iiv2];
-                    iv = iv2;
-                    iiv2++;
-                }
-                if (!fn(iv, x1, x2))
-                    return false;
-            }
         }
 
         // Verifies the equality of the values returned by the single valued getters passed in as parameters.
@@ -1106,7 +1039,7 @@ namespace Microsoft.ML.RunTests
             VBuffer<T> fvn = default(VBuffer<T>);
             vecGetter(ref fv);
             vecNGetter(ref fvn);
-            Assert.True(CompareVec(in fv, in fvn, size, compare));
+            Assert.True(CommonUtilities.CompareVec(in fv, in fvn, size, compare));
         }
     }
 }
