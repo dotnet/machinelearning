@@ -670,12 +670,13 @@ namespace Microsoft.ML.Data
 
         public static ISingleFeaturePredictionTransformer<object> Create(IHostEnvironment env, ModelLoadContext ctx)
         {
-            // Load internal model to be used as TModel of BinaryPredictionTransformer<TModel>
+            // Load internal model
             var host = Contracts.CheckRef(env, nameof(env)).Register(nameof(BinaryPredictionTransformer<IPredictorProducing<float>>));
             ctx.LoadModel<IPredictorProducing<float>, SignatureLoadModel>(host, out IPredictorProducing<float> model, DirModel);
 
-            Type generic = typeof(BinaryPredictionTransformer<>);
-            return (ISingleFeaturePredictionTransformer<object>) CreatePredictionTransformer.Create(env, ctx, host, model, generic);
+            // Returns prediction transformer using the right TModel from the previously loaded model
+            Type predictionTransformerType = typeof(BinaryPredictionTransformer<>);
+            return (ISingleFeaturePredictionTransformer<object>) CreatePredictionTransformer.Create(env, ctx, host, model, predictionTransformerType);
         }
     }
 
@@ -686,12 +687,13 @@ namespace Microsoft.ML.Data
 
         public static ISingleFeaturePredictionTransformer<object> Create(IHostEnvironment env, ModelLoadContext ctx)
         {
-            // Load internal model to be used as TModel of MulticlassPredictionTransformer<TModel>
+            // Load internal model
             var host = Contracts.CheckRef(env, nameof(env)).Register(nameof(MulticlassPredictionTransformer<IPredictorProducing<VBuffer<float>>>));
             ctx.LoadModel<IPredictorProducing<VBuffer<float>>, SignatureLoadModel>(host, out IPredictorProducing<VBuffer<float>> model, DirModel);
 
-            Type generic = typeof(MulticlassPredictionTransformer<>);
-            return (ISingleFeaturePredictionTransformer<object>) CreatePredictionTransformer.Create(env, ctx, host, model, generic);
+            // Returns prediction transformer using the right TModel from the previously loaded model
+            Type predictionTransformerType = typeof(MulticlassPredictionTransformer<>);
+            return (ISingleFeaturePredictionTransformer<object>) CreatePredictionTransformer.Create(env, ctx, host, model, predictionTransformerType);
         }
     }
 
@@ -702,12 +704,13 @@ namespace Microsoft.ML.Data
 
         public static ISingleFeaturePredictionTransformer<object> Create(IHostEnvironment env, ModelLoadContext ctx)
         {
-            // Load internal model to be used as TModel of RegressionPredictionTransformer<TModel>
+            // Load internal model
             var host = Contracts.CheckRef(env, nameof(env)).Register(nameof(RegressionPredictionTransformer<IPredictorProducing<float>>));
             ctx.LoadModel<IPredictorProducing<float>, SignatureLoadModel>(host, out IPredictorProducing<float> model, DirModel);
 
-            Type generic = typeof(RegressionPredictionTransformer<>);
-            return (ISingleFeaturePredictionTransformer<object>) CreatePredictionTransformer.Create(env, ctx, host, model, generic);
+            // Returns prediction transformer using the right TModel from the previously loaded model
+            Type predictionTransformerType = typeof(RegressionPredictionTransformer<>);
+            return (ISingleFeaturePredictionTransformer<object>) CreatePredictionTransformer.Create(env, ctx, host, model, predictionTransformerType);
 
         }
     }
@@ -719,59 +722,60 @@ namespace Microsoft.ML.Data
 
         public static ISingleFeaturePredictionTransformer<object> Create(IHostEnvironment env, ModelLoadContext ctx)
         {
-            // Load internal model to be used as TModel of RankingPredictionTransformer<TModel>
+            // Load internal model
             var host = Contracts.CheckRef(env, nameof(env)).Register(nameof(RankingPredictionTransformer<IPredictorProducing<float>>));
             ctx.LoadModel<IPredictorProducing<float>, SignatureLoadModel>(host, out IPredictorProducing<float> model, DirModel);
 
-            Type generic = typeof(RankingPredictionTransformer<>);
-            return (ISingleFeaturePredictionTransformer<object>) CreatePredictionTransformer.Create(env, ctx, host, model, generic);
+            // Returns prediction transformer using the right TModel from the previously loaded model
+            Type predictionTransformerType = typeof(RankingPredictionTransformer<>);
+            return (ISingleFeaturePredictionTransformer<object>) CreatePredictionTransformer.Create(env, ctx, host, model, predictionTransformerType);
         }
     }
 
     internal static class CreatePredictionTransformer
     {
-        internal static object Create(IHostEnvironment env, ModelLoadContext ctx, IHost host, IPredictorProducing<float> model, Type generic)
+        internal static object Create(IHostEnvironment env, ModelLoadContext ctx, IHost host, IPredictorProducing<float> model, Type predictionTransformerType)
         {
             // Create generic type of the prediction transformer using the correct TModel.
             // Return an instance of that type, passing the previously loaded model to the constructor
-            Type[] genericTypeArgs = { GetLoadType(model.GetType()) };
-            Type constructed = generic.MakeGenericType(genericTypeArgs);
 
-            Type[] constructorArgs = {
-                typeof(IHostEnvironment),
-                typeof(ModelLoadContext),
-                typeof(IHost),
-                model.GetType()
-            };
-
-            var genericCtor = constructed.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, constructorArgs, null);
+            var genericCtor = CreateConstructor(model.GetType(), predictionTransformerType);
             var genericInstance = genericCtor.Invoke(new object[] { env, ctx, host, model });
 
             return genericInstance;
         }
 
-        internal static object Create(IHostEnvironment env, ModelLoadContext ctx, IHost host, IPredictorProducing<VBuffer<float>> model, Type generic)
+        internal static object Create(IHostEnvironment env, ModelLoadContext ctx, IHost host, IPredictorProducing<VBuffer<float>> model, Type predictionTransformerType)
         {
             // Create generic type of the prediction transformer using the correct TModel.
             // Return an instance of that type, passing the previously loaded model to the constructor
-            Type[] genericTypeArgs = { model.GetType() };
-            Type constructed = generic.MakeGenericType(genericTypeArgs);
 
-            Type[] constructorArgs = {
-                typeof(IHostEnvironment),
-                typeof(ModelLoadContext),
-                typeof(IHost),
-                model.GetType()
-            };
-
-            var genericCtor = constructed.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, constructorArgs, null);
+            var genericCtor = CreateConstructor(model.GetType(), predictionTransformerType);
             var genericInstance = genericCtor.Invoke(new object[] { env, ctx, host, model });
 
             return genericInstance;
         }
 
-        internal static Type GetLoadType(Type modelType)
+        private static ConstructorInfo CreateConstructor(Type modelType, Type predictionTransformerType)
         {
+            Type modelLoadType = GetLoadType(modelType);
+            Type[] genericTypeArgs = { modelLoadType };
+            Type constructedType = predictionTransformerType.MakeGenericType(genericTypeArgs);
+
+            Type[] constructorArgs = {
+                typeof(IHostEnvironment),
+                typeof(ModelLoadContext),
+                typeof(IHost),
+                modelLoadType
+            };
+
+            var genericCtor = constructedType.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, constructorArgs, null);
+            return genericCtor;
+        }
+
+        private static Type GetLoadType(Type modelType)
+        {
+            // Returns the type that should be assigned as TModel of the Prediction Transformer being loaded
             var att = modelType.GetCustomAttribute(typeof(PredictionTransformerLoadTypeAttribute)) as PredictionTransformerLoadTypeAttribute;
             if (att != null)
             {
@@ -780,7 +784,7 @@ namespace Microsoft.ML.Data
                     // This assumes that if att.LoadType and modelType have the same number of type parameters
                     // Then they should get the same type parameters.
                     // This is the case for CalibratedModelParametersBase and its children generic clases.
-                    // But might break if other classes begin using the PredictionTransformerLoadtypeAttribute in the future.
+                    // But might break if other classes begin using the PredictionTransformerLoadTypeAttribute in the future.
                     Type[] typeArguments = modelType.GetGenericArguments();
                     Type genericType = att.LoadType;
                     return genericType.MakeGenericType(typeArguments);
