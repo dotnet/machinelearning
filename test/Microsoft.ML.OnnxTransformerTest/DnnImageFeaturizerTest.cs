@@ -193,7 +193,7 @@ namespace Microsoft.ML.Tests
             public float[] Score { get; set; }
         }
 
-        [Fact]
+        [OnnxFact]
         public void TestLoadFromDiskAndPredictionEngine()
         {
             var dataFile = GetDataPath("images/images.tsv");
