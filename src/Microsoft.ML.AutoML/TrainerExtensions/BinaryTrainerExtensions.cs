@@ -12,7 +12,7 @@ using Microsoft.ML.Trainers.LightGbm;
 
 namespace Microsoft.ML.AutoML
 {
-    using ITrainerEstimator = ITrainerEstimator<ISingleFeaturePredictionTransformer<object>, object>;
+    using ITrainerEstimator = ITrainerEstimator<IPredictionTransformer<object>, object>;
 
     internal class AveragedPerceptronBinaryExtension : ITrainerExtension
     {
