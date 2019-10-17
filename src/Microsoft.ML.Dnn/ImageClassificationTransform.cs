@@ -831,6 +831,11 @@ namespace Microsoft.ML.Transforms
                 _bottleneckOperationName = "import/MobilenetV2/Logits/Squeeze";
                 _inputTensorName = "import/input";
             }
+			else if (arch == ImageClassificationEstimator.Architecture.ResnetV250)
+            {
+                _bottleneckOperationName = "resnet_v2_50/SpatialSqueeze";
+                _inputTensorName = "input";
+            }
 
             _outputs = new[] { scoreColumnName, predictedLabelColumnName };
 
@@ -1086,7 +1091,8 @@ namespace Microsoft.ML.Transforms
         {
             ResnetV2101,
             InceptionV3,
-            MobilenetV2
+            MobilenetV2,
+            ResnetV250
         };
 
         /// <summary>
