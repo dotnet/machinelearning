@@ -209,8 +209,6 @@ namespace Microsoft.ML.Functional.Tests
             var fromComposite = Assert.Single(Assert.IsType<TransformerChain<ITransformer>>(
                 Assert.IsType<CompositeDataLoader<IMultiStreamSource, ITransformer>>(loadedCompositeLoader).Transformer));
             AssertIsGam(fromComposite);
-
-            //Done();
         }
 
         public class ModelInput

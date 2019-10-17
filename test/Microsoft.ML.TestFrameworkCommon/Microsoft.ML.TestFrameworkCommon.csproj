@@ -25,8 +25,4 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.PCA\Microsoft.ML.PCA.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="DataPipe\" />
-  </ItemGroup>
-
 </Project>

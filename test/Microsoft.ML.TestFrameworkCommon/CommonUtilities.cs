@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Xunit;
 
 namespace Microsoft.ML.TestFrameworkCommon
@@ -163,7 +165,7 @@ namespace Microsoft.ML.TestFrameworkCommon
             var v2Indices = v2.GetIndices();
             for (; ; )
             {
-                int iv1 = v1.IsDense ? iiv1 : iiv1 < v2Indices.Length ? v1Indices[iiv1] : v1.Length;
+                int iv1 = v1.IsDense ? iiv1 : iiv1 < v1Indices.Length ? v1Indices[iiv1] : v1.Length;
                 int iv2 = v2.IsDense ? iiv2 : iiv2 < v2Indices.Length ? v2Indices[iiv2] : v2.Length;
                 T x1, x2;
                 int iv;
@@ -221,7 +223,8 @@ namespace Microsoft.ML.TestFrameworkCommon
 
         private static void Log(string message, params object[] args)
         {
-
+            Console.WriteLine(message, args);
+            //Debug.Fail(message);
         }
 
         private static bool Check(bool f, string msg)
@@ -243,6 +246,13 @@ namespace Microsoft.ML.TestFrameworkCommon
         {
             if (!f)
                 Debug.Fail("Assertion Failed");
+        }
+
+        [Conditional("DEBUG")]
+        public static void Assert(bool f, string message)
+        {
+            if (!f)
+                Debug.Fail(message);
         }
 
         /// <summary>

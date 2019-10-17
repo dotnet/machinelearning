@@ -10,7 +10,7 @@ using Microsoft.ML.Trainers.Ensemble;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.RunTests
+namespace Microsoft.ML.TestFramework
 {
     public static class EnvironmentExtensions
     {
