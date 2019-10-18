@@ -67,9 +67,9 @@ using Newtonsoft.Json.Linq;
     "Feature Weights Calibrated Predictor Executor",
     FeatureWeightsCalibratedModelParameters<IPredictorWithFeatureWeights<float>, ICalibrator>.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(CalibratedModelParametersBase), typeof(ParameterMixingCalibratedModelParameters), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(CalibratedModelParametersBase), typeof(ParameterMixingCalibratedModelParameters<IPredictorProducing<float>, ICalibrator>), null, typeof(SignatureLoadModel),
     "Parameter Mixing Calibrated Predictor Executor",
-    ParameterMixingCalibratedModelParameters.LoaderSignature)]
+    ParameterMixingCalibratedModelParameters<IPredictorWithFeatureWeights<float>, ICalibrator>.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(CalibratedModelParametersBase), typeof(SchemaBindableCalibratedModelParameters<IPredictorProducing<float>, ICalibrator>), null, typeof(SignatureLoadModel),
     "Schema Bindable Calibrated Predictor", SchemaBindableCalibratedModelParameters<IPredictorProducing<float>, ICalibrator>.LoaderSignature)]
@@ -432,13 +432,8 @@ namespace Microsoft.ML.Calibrators
                 loaderAssemblyName: typeof(ValueMapperCalibratedModelParameters<TSubModel, TCalibrator>).Assembly.FullName);
         }
 
-        //private ValueMapperCalibratedModelParameters(IHostEnvironment env, ModelLoadContext ctx)
-        //    : base(env, RegistrationName, GetPredictor(env, ctx), GetCalibrator(env, ctx))
-        //{
-        //}
-
         private ValueMapperCalibratedModelParameters(IHostEnvironment env, ModelLoadContext ctx, TSubModel predictor, TCalibrator calibrator)
-            : base(env, ParameterMixingCalibratedModelParameters.RegistrationName, predictor, calibrator)
+            : base(env, RegistrationName, predictor, calibrator)
         {
         }
 
@@ -504,13 +499,6 @@ namespace Microsoft.ML.Calibrators
                 loaderAssemblyName: typeof(FeatureWeightsCalibratedModelParameters<TSubModel, TCalibrator>).Assembly.FullName);
         }
 
-        //private FeatureWeightsCalibratedModelParameters(IHostEnvironment env, ModelLoadContext ctx)
-        //    : base(env, RegistrationName, GetPredictor(env, ctx), GetCalibrator(env, ctx))
-        //{
-        //    Host.Check(SubModel is IPredictorWithFeatureWeights<float>, "Predictor does not implement " + nameof(IPredictorWithFeatureWeights<float>));
-        //    _featureWeights = (IPredictorWithFeatureWeights<float>)SubModel;
-        //}
-
         internal FeatureWeightsCalibratedModelParameters(IHostEnvironment env, ModelLoadContext ctx,
             TSubModel predictor, TCalibrator calibrator)
             : base(env, RegistrationName, predictor, calibrator)
@@ -574,8 +562,8 @@ namespace Microsoft.ML.Calibrators
             _featureWeights = predictor as IPredictorWithFeatureWeights<float>;
         }
 
-        internal const string LoaderSignature = ParameterMixingCalibratedModelParameters.LoaderSignature;
-        internal const string RegistrationName = ParameterMixingCalibratedModelParameters.RegistrationName;
+        internal const string LoaderSignature = "PMixCaliPredExec";
+        internal const string RegistrationName = "ParameterMixingCalibratedPredictor";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -588,16 +576,8 @@ namespace Microsoft.ML.Calibrators
                 loaderAssemblyName: typeof(ParameterMixingCalibratedModelParameters<TSubModel, TCalibrator>).Assembly.FullName);
         }
 
-        private ParameterMixingCalibratedModelParameters(IHostEnvironment env, ModelLoadContext ctx)
-            : base(env, RegistrationName, GetPredictor(env, ctx), GetCalibrator(env, ctx))
-        {
-            Host.Check(SubModel is IParameterMixer<float>, "Predictor does not implement " + nameof(IParameterMixer));
-            Host.Check(SubModel is IPredictorWithFeatureWeights<float>, "Predictor does not implement " + nameof(IPredictorWithFeatureWeights<float>));
-            _featureWeights = SubModel as IPredictorWithFeatureWeights<float>;
-        }
-
         private ParameterMixingCalibratedModelParameters(IHostEnvironment env, ModelLoadContext ctx, TSubModel predictor, TCalibrator calibrator)
-            : base(env, ParameterMixingCalibratedModelParameters.RegistrationName, predictor, calibrator)
+            : base(env, RegistrationName, predictor, calibrator)
         {
             Host.Check(SubModel is IParameterMixer<float>, "Predictor does not implement " + nameof(IParameterMixer));
             Host.Check(SubModel is IPredictorWithFeatureWeights<float>, "Predictor does not implement " + nameof(IPredictorWithFeatureWeights<float>));
@@ -653,17 +633,6 @@ namespace Microsoft.ML.Calibrators
             var combinedPredictor = predictors[0].CombineParameters(predictors);
             var combinedCalibrator = calibrators[0].CombineParameters(calibrators);
             return new ParameterMixingCalibratedModelParameters<TSubModel, TCalibrator>(Host, (TSubModel)combinedPredictor, (TCalibrator)combinedCalibrator);
-        }
-    }
-
-    internal static class ParameterMixingCalibratedModelParameters
-    {
-        internal const string LoaderSignature = "PMixCaliPredExec";
-        internal const string RegistrationName = "ParameterMixingCalibratedPredictor";
-
-        public static CalibratedModelParametersBase Create(IHostEnvironment env, ModelLoadContext ctx)
-        {
-            return ParameterMixingCalibratedModelParameters<IPredictorProducing<float>, ICalibrator>.Create(env, ctx);
         }
     }
 
