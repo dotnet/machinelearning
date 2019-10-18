@@ -8,6 +8,10 @@
     <RootNamespace>Microsoft.ML</RootNamespace>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <RestoreSources>$(RestoreSources);https://pkgs.dev.azure.com/foundry99/_packaging/SEAL/nuget/v3/index.json</RestoreSources>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.DataView\Microsoft.ML.DataView.csproj" />
     
