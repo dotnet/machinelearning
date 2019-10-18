@@ -22,20 +22,30 @@ namespace Microsoft.ML.Transforms
     {
         internal float GetLearningRate(TrainState options);
     };
-
     /// <summary>
-    /// This class implements a bare minimum learning rate scheduler class that uses a constant learning rate throughout the training.
+    /// This class implements linear scaling rule and LR decay.
     /// </summary>
-    public sealed class BasicLR : ILearningRateScheduler
+    public sealed class LsrDecay : ILearningRateScheduler
     {
-        public float LearningRate;
-        public BasicLR(float learningrate)
+        private static readonly float[,] _lrSchedule = new float[,] { { 182, 0.001f }, { 136, 0.01f }, { 91, 0.1f }, { 0, 1.0f } };
+        private float GetLearningRateScheduleMultiplier(int epoch)
         {
-            LearningRate = learningrate;
+            for(int i = 0; i < _lrSchedule.Length; i++)
+            {
+                if (epoch >= _lrSchedule[i,0])
+                {
+                    return _lrSchedule[i, 1];
+                }
+            }
+            return 1.0f;
         }
-        float ILearningRateScheduler.GetLearningRate(TrainState options)
+        float ILearningRateScheduler.GetLearningRate(TrainState trainstate)
         {
-            return LearningRate;
+            float learningrate;
+            float baseLearningRate = 0.1f;
+            float initialLearningRate = baseLearningRate * trainstate.BatchSize / 128;
+            learningrate = initialLearningRate * GetLearningRateScheduleMultiplier(trainstate.CurrentEpoch);
+            return learningrate;
         }
 
     }

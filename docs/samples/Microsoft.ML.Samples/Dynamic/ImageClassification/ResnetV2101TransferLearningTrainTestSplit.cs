@@ -71,7 +71,9 @@ namespace Samples.Dynamic
                         learningRate: 0.01f,
                         metricsCallback: (metrics) => Console.WriteLine(metrics),
                         validationSet: testDataset,
-                        disableEarlyStopping: true)
+                        disableEarlyStopping: true
+                        //learningRateScheduler: new LsrDecay()// Use linear scaling rule and Learning rate decay as an option
+                        )
                     .Append(mlContext.Transforms.Conversion.MapKeyToValue(
                         outputColumnName: "PredictedLabel", 
                         inputColumnName: "PredictedLabel"));

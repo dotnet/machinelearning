@@ -170,7 +170,7 @@ namespace Microsoft.ML
                 ValidationSetBottleneckCachedValuesFilePath = validationSetBottleneckCachedValuesFilePath,
                 ReuseTrainSetBottleneckCachedValues = reuseTrainSetBottleneckCachedValues,
                 ReuseValidationSetBottleneckCachedValues = reuseValidationSetBottleneckCachedValues,
-                LearningRateScheduler = learningRateScheduler ?? new BasicLR(learningRate)
+                LearningRateScheduler = learningRateScheduler
             };
 
             if (!File.Exists(options.ModelLocation))
