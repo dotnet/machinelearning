@@ -1207,8 +1207,10 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(string.Join(" ", input.B).Replace("/", " "), textOutput.BOut[0]);
         }
 
-        [TensorFlowFact]
-        public void TensorFlowImageClassification()
+        [TensorFlowTheory]
+        [InlineData(ImageClassificationEstimator.Architecture.ResnetV2101)]
+        [InlineData(ImageClassificationEstimator.Architecture.MobilenetV2)]
+        public void TensorFlowImageClassification(ImageClassificationEstimator.Architecture arch)
         {
             string assetsRelativePath = @"assets";
             string assetsPath = GetAbsolutePath(assetsRelativePath);
@@ -1252,7 +1254,7 @@ namespace Microsoft.ML.Scenarios
                     // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
                     // ResnetV2101 you can try a different architecture/pre-trained 
                     // model. 
-                    arch: ImageClassificationEstimator.Architecture.ResnetV2101,
+                    arch: arch,
                     epoch: 50,
                     batchSize: 10,
                     learningRate: 0.01f,
