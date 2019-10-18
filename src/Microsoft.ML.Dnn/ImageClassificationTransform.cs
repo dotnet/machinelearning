@@ -241,17 +241,9 @@ namespace Microsoft.ML.Transforms
             public Tensor ProcessImage(in VBuffer<byte> imageBuffer)
             {
                 var imageTensor = EncodeByteAsString(imageBuffer);
-                try
-                {
-                    var processedTensor = _imagePreprocessingRunner.AddInput(imageTensor, 0).Run()[0];
-                    imageTensor.Dispose();
-                    return processedTensor;
-                }
-                catch
-                {
-                    imageTensor.Dispose();
-                    return null;
-                }
+                var processedTensor = _imagePreprocessingRunner.AddInput(imageTensor, 0).Run()[0];
+                imageTensor.Dispose();
+                return processedTensor;
             }
         }
 
@@ -290,18 +282,15 @@ namespace Microsoft.ML.Transforms
                         continue; //Empty Image
 
                     var imageTensor = imageProcessor.ProcessImage(image);
-                    if (imageTensor != null)
-                    {
-                        runner.AddInput(imageTensor, 0);
-                        var featurizedImage = runner.Run()[0]; // Reuse memory
-                        featurizedImage.ToArray<float>(ref imageArray);
-                        Host.Assert((int)featurizedImage.size == imageArray.Length);
-                        writer.WriteLine(label - 1 + "," + string.Join(",", imageArray));
-                        featurizedImage.Dispose();
-                        imageTensor.Dispose();
-                        metrics.Bottleneck.Index++;
-                        metricsCallback?.Invoke(metrics);
-                    }
+                    runner.AddInput(imageTensor, 0);
+                    var featurizedImage = runner.Run()[0]; // Reuse memory
+                    featurizedImage.ToArray<float>(ref imageArray);
+                    Host.Assert((int)featurizedImage.size == imageArray.Length);
+                    writer.WriteLine(label - 1 + "," + string.Join(",", imageArray));
+                    featurizedImage.Dispose();
+                    imageTensor.Dispose();
+                    metrics.Bottleneck.Index++;
+                    metricsCallback?.Invoke(metrics);
                 }
             }
         }
@@ -1023,16 +1012,13 @@ namespace Microsoft.ML.Transforms
                             Position = _inputRow.Position;
                             _imageGetter(ref _image);
                             var processedTensor = _imageProcessor.ProcessImage(_image);
-                            if (processedTensor != null)
-                            {
-                                var outputTensor = _runner.AddInput(processedTensor, 0).Run();
-                                outputTensor[0].ToArray<float>(ref _classProbability);
-                                outputTensor[1].ToScalar<long>(ref _predictedLabel);
-                                _predictedLabel += 1;
-                                outputTensor[0].Dispose();
-                                outputTensor[1].Dispose();
-                                processedTensor.Dispose();
-                            }
+                            var outputTensor = _runner.AddInput(processedTensor, 0).Run();
+                            outputTensor[0].ToArray<float>(ref _classProbability);
+                            outputTensor[1].ToScalar<long>(ref _predictedLabel);
+                            _predictedLabel += 1;
+                            outputTensor[0].Dispose();
+                            outputTensor[1].Dispose();
+                            processedTensor.Dispose();
                         }
                     }
                 }

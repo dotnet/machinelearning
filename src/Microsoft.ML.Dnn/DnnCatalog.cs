@@ -196,8 +196,11 @@ namespace Microsoft.ML
                 }
                 else if(options.Arch == Architecture.MobilenetV2)
                 {
-                    if (!File.Exists(@"mobilenet_v2.pb"))
-                        throw new ArgumentException("mobilenet_v2.pb model file not found");
+                    var baseGitPath = @"https://tlcresources.blob.core.windows.net/image/MobileNetV2TensorFlow/mobilenet_v2.meta";
+                    using (WebClient client = new WebClient())
+                    {
+                        client.DownloadFile(new Uri($"{baseGitPath}"), @"mobilenet_v2.meta");
+                    }
                 }
             }
 
