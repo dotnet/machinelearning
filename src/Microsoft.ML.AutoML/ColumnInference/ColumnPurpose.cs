@@ -13,6 +13,8 @@ namespace Microsoft.ML.AutoML
         TextFeature = 4,
         Weight = 5,
         ImagePath = 6,
-        SamplingKey = 7
+        SamplingKey = 7,
+        UserId = 8,
+        ItemId = 9
     }
 }

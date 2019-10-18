@@ -179,11 +179,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.TensorFlow", "
 		pkg\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.symbols.nupkgproj = pkg\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.symbols.nupkgproj
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.TensorFlow.Redist", "Microsoft.ML.TensorFlow.Redist", "{7F3D89CF-EAAD-4F21-AE83-F2EF9C97EC32}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.TensorFlow.Redist\Microsoft.ML.TensorFlow.Redist.nupkgproj = pkg\Microsoft.ML.TensorFlow.Redist\Microsoft.ML.TensorFlow.Redist.nupkgproj
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.TimeSeries", "Microsoft.ML.TimeSeries", "{B836F712-7FB6-4B75-A3EB-FB05F8E0D15E}"
 	ProjectSection(SolutionItems) = preProject
 		pkg\Microsoft.ML.TimeSeries\Microsoft.ML.TimeSeries.nupkgproj = pkg\Microsoft.ML.TimeSeries\Microsoft.ML.TimeSeries.nupkgproj
@@ -1700,7 +1695,6 @@ Global
 		{93FF16AA-635E-421D-96C1-008818C143A2} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{320AF46A-4809-486E-8F9E-A00C8AE47751} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{11894B4A-78B4-4523-A6DD-4495722E244F} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
-		{7F3D89CF-EAAD-4F21-AE83-F2EF9C97EC32} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{B836F712-7FB6-4B75-A3EB-FB05F8E0D15E} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{B00098E4-771E-41DF-A3AA-A606AAB334B7} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{BD93C0F3-3CED-4BE8-9389-4234250FBFB1} = {D3D38B03-B557-484D-8348-8BADEE4DF592}

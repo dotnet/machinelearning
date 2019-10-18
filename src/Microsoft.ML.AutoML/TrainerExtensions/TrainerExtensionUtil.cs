@@ -42,7 +42,8 @@ namespace Microsoft.ML.AutoML
         SgdCalibratedBinary,
         SgdCalibratedOva,
         SymbolicSgdLogisticRegressionBinary,
-        SymbolicSgdLogisticRegressionOva
+        SymbolicSgdLogisticRegressionOva,
+        MatrixFactorization
     }
 
     internal static class TrainerExtensionUtil
@@ -54,6 +55,16 @@ namespace Microsoft.ML.AutoML
         {
             var options = Activator.CreateInstance<T>();
             options.LabelColumnName = labelColumn;
+            if (sweepParams != null)
+            {
+                UpdateFields(options, sweepParams);
+            }
+            return options;
+        }
+
+        public static T CreateOptions<T>(IEnumerable<SweepableParam> sweepParams) where T : class
+        {
+            var options = Activator.CreateInstance<T>();
             if (sweepParams != null)
             {
                 UpdateFields(options, sweepParams);
@@ -364,6 +375,18 @@ namespace Microsoft.ML.AutoML
             throw new NotSupportedException($"{regressionTrainer} not supported");
         }
 
+        public static TrainerName GetTrainerName(RecommendationTrainer recommendationTrainer)
+        {
+            switch (recommendationTrainer)
+            {
+                case RecommendationTrainer.MatrixFactorization:
+                    return TrainerName.MatrixFactorization;
+            }
+
+            // never expected to reach here
+            throw new NotSupportedException($"{recommendationTrainer} not supported");
+        }
+
         public static IEnumerable<TrainerName> GetTrainerNames(IEnumerable<BinaryClassificationTrainer> binaryTrainers)
         {
             return binaryTrainers?.Select(t => GetTrainerName(t));
@@ -377,6 +400,11 @@ namespace Microsoft.ML.AutoML
         public static IEnumerable<TrainerName> GetTrainerNames(IEnumerable<RegressionTrainer> regressionTrainers)
         {
             return regressionTrainers?.Select(t => GetTrainerName(t));
+        }
+
+        public static IEnumerable<TrainerName> GetTrainerNames(IEnumerable<RecommendationTrainer> recommendationTrainers)
+        {
+            return recommendationTrainers?.Select(t => GetTrainerName(t));
         }
     }
 }
