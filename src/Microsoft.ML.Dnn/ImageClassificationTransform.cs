@@ -114,6 +114,7 @@ namespace Microsoft.ML.Transforms
             // string: value of score column name
             // string: value of predicted label column name
             // float: value of learning rate
+            // bool: uses learning rate scheduling if true
             // int: number of prediction classes
             // for each key value annotation column
             //   string: value of key value annotations

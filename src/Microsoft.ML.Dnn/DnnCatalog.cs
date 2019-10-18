@@ -114,8 +114,7 @@ namespace Microsoft.ML
         /// <param name="reuseValidationSetBottleneckCachedValues">Indicates to not re-compute validataionset cached bottleneck validationset values if already available in the bin folder.</param>
         /// <param name="trainSetBottleneckCachedValuesFilePath">Indicates the file path to store trainset bottleneck values for caching.</param>
         /// <param name="validationSetBottleneckCachedValuesFilePath">Indicates the file path to store validationset bottleneck values for caching.</param>
-        /// <param name="learningRateScheduler">A class that defines the current learning rate scheduling technique and hyperparameters.
-        /// If null or not specified uses contant learning rate given in the option</param>
+        /// <param name="learningRateScheduler">A class that defines the current learning rate scheduling technique and hyperparameters.</param>
         /// <remarks>
         /// The support for image classification is under preview.
         /// </remarks>
