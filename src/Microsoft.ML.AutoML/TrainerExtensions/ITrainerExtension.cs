@@ -7,7 +7,7 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.AutoML
 {
-    using ITrainerEstimator = ITrainerEstimator<ISingleFeaturePredictionTransformer<object>, object>;
+    using ITrainerEstimator = ITrainerEstimator<IPredictionTransformer<object>, object>;
 
     internal interface ITrainerExtension
     {

@@ -30,10 +30,8 @@
 
     <!-- If we are not signing nuget packages we default to sign binaries -->
     <ItemGroup Condition="'$(SignNugetPackages)' != 'true'">
-      <!-- Don't sign tensorflow since we don't build it. -->
-      <ExcludeFilesToSign Include="$(OutDir)**/tensorflow.dll" />
 
-      <FilesToSign Include="$(OutDir)**/*.dll" Exclude="@(ExcludeFilesToSign)">
+      <FilesToSign Include="$(OutDir)**/*.dll">
         <Authenticode>Microsoft400</Authenticode>
       </FilesToSign>
     </ItemGroup>

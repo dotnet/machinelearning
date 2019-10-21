@@ -150,6 +150,9 @@ namespace Microsoft.ML.AutoML
 
             // If numeric column has missing values, use Missing transform.
             yield return new Experts.NumericMissing(context);
+
+            // For recommendation tasks, convert both user and item columns as key
+            yield return new Experts.RecommendationColumns(context);
         }
 
         internal static class Experts
@@ -176,6 +179,29 @@ namespace Microsoft.ML.AutoML
                     if (!col.Type.IsKey())
                     {
                         yield return ValueToKeyMappingExtension.CreateSuggestedTransform(Context, col.ColumnName, col.ColumnName);
+                    }
+                }
+            }
+
+            internal sealed class RecommendationColumns : TransformInferenceExpertBase
+            {
+                public RecommendationColumns(MLContext context) : base(context)
+                {
+                }
+
+                public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns, TaskKind task)
+                {
+                    if (task != TaskKind.Recommendation)
+                    {
+                        yield break;
+                    }
+                    foreach (var column in columns)
+                    {
+                        if (column.Purpose == ColumnPurpose.UserId ||
+                            column.Purpose == ColumnPurpose.ItemId)
+                        {
+                            yield return ValueToKeyMappingExtension.CreateSuggestedTransform(Context, column.ColumnName, column.ColumnName);
+                        }
                     }
                 }
             }
@@ -330,12 +356,14 @@ namespace Microsoft.ML.AutoML
                 suggestedTransforms.AddRange(suggestions);
             }
 
-            var finalFeaturesConcatTransform = BuildFinalFeaturesConcatTransform(context, suggestedTransforms, intermediateCols);
-            if (finalFeaturesConcatTransform != null)
+            if (task != TaskKind.Recommendation)
             {
-                suggestedTransforms.Add(finalFeaturesConcatTransform);
+                var finalFeaturesConcatTransform = BuildFinalFeaturesConcatTransform(context, suggestedTransforms, intermediateCols);
+                if (finalFeaturesConcatTransform != null)
+                {
+                    suggestedTransforms.Add(finalFeaturesConcatTransform);
+                }
             }
-
             return suggestedTransforms.ToArray();
         }
 

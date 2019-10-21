@@ -640,6 +640,21 @@ namespace Microsoft.ML
         public RankingMetrics Evaluate(IDataView data,
             string labelColumnName = DefaultColumnNames.Label,
             string rowGroupColumnName = DefaultColumnNames.GroupId,
+            string scoreColumnName = DefaultColumnNames.Score) => Evaluate(data, null, labelColumnName, rowGroupColumnName, scoreColumnName);
+
+        /// <summary>
+        /// Evaluates scored ranking data.
+        /// </summary>
+        /// <param name="data">The scored data.</param>
+        /// <param name="options">Options to control the evaluation result.</param>
+        /// <param name="labelColumnName">The name of the label column in <paramref name="data"/>.</param>
+        /// <param name="rowGroupColumnName">The name of the groupId column in <paramref name="data"/>.</param>
+        /// <param name="scoreColumnName">The name of the score column in <paramref name="data"/>.</param>
+        /// <returns>The evaluation results for these calibrated outputs.</returns>
+        public RankingMetrics Evaluate(IDataView data,
+            RankingEvaluatorOptions options,
+            string labelColumnName = DefaultColumnNames.Label,
+            string rowGroupColumnName = DefaultColumnNames.GroupId,
             string scoreColumnName = DefaultColumnNames.Score)
         {
             Environment.CheckValue(data, nameof(data));
@@ -647,7 +662,7 @@ namespace Microsoft.ML
             Environment.CheckNonEmpty(scoreColumnName, nameof(scoreColumnName));
             Environment.CheckNonEmpty(rowGroupColumnName, nameof(rowGroupColumnName));
 
-            var eval = new RankingEvaluator(Environment, new RankingEvaluator.Arguments() { });
+            var eval = new RankingEvaluator(Environment, options ?? new RankingEvaluatorOptions() { });
             return eval.Evaluate(data, labelColumnName, rowGroupColumnName, scoreColumnName);
         }
     }
