@@ -132,7 +132,7 @@ namespace Microsoft.ML.Transforms
 
             return new ImageClassificationTransformer(env, DnnUtils.LoadTFSession(env, modelBytes), outputs, inputs,
                 addBatchDimensionInput, 1, labelColumn, checkpointName, arch,
-                scoreColumnName, predictedColumnName, learningRate,null, null, classCount, true, predictionTensorName,
+                scoreColumnName, predictedColumnName, learningRate, null, null, classCount, true, predictionTensorName,
                 softMaxTensorName, jpegDataTensorName, resizeTensorName, keyValueAnnotations);
 
         }
@@ -831,7 +831,7 @@ namespace Microsoft.ML.Transforms
                 _bottleneckOperationName = "import/MobilenetV2/Logits/Squeeze";
                 _inputTensorName = "import/input";
             }
-			else if (arch == ImageClassificationEstimator.Architecture.ResnetV250)
+            else if (arch == ImageClassificationEstimator.Architecture.ResnetV250)
             {
                 _bottleneckOperationName = "resnet_v2_50/SpatialSqueeze";
                 _inputTensorName = "input";

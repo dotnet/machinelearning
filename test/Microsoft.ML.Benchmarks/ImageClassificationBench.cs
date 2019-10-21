@@ -70,8 +70,9 @@ namespace Microsoft.ML.Benchmarks
             testDataset = trainTestData.TestSet;
 
         }
+
         [Benchmark]
-        public TransformerChain<KeyToValueMappingTransformer> Train()
+        public TransformerChain<KeyToValueMappingTransformer> TrainResnetV250()
         {
             var pipeline = mlContext.Model.ImageClassification(
                 "Image", "Label",
