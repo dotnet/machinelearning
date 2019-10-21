@@ -19,6 +19,7 @@ using Microsoft.ML.Tools;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Onnx;
+using Microsoft.ML.Trainers.FastTree;
 using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
@@ -129,6 +130,14 @@ namespace Microsoft.ML.Tests
             [LoadColumn(2, 9), VectorType(8)]
             public float[] Features;
         }
+        private class BreastCancerBinaryClassification
+        {
+            [LoadColumn(0)]
+            public bool Label;
+
+            [LoadColumn(2, 9), VectorType(8)]
+            public float[] Features;
+        }
 
         [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline. Tracked by https://github.com/dotnet/machinelearning/issues/2087")]
         public void KmeansOnnxConversionTest()
@@ -186,6 +195,54 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
+        public void AveragePerceptronOnnxConversionTest()
+        {
+            var mlContext = new MLContext(seed: 1);
+            string dataPath = GetDataPath("breast-cancer.txt");
+            // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
+            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerBinaryClassification>(dataPath, separatorChar: '\t', hasHeader: true);
+            IEstimator<ITransformer>[] estimators = { 
+//                mlContext.BinaryClassification.Trainers.FastForest(),
+                //mlContext.BinaryClassification.Trainers.AveragedPerceptron(),               // Has support but fails
+                                     // Has support but fails
+                //mlContext.BinaryClassification.Trainers.FastTree(),                           // Has support but fails. Probably due to lack of boolean tensor support
+                //mlContext.BinaryClassification.Trainers.FieldAwareFactorizationMachine(),   // No support
+                mlContext.BinaryClassification.Trainers.Gam(),                             // No support
+                //mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(),            // Has support but fails. Probably due to lack of boolean tensor support
+                //mlContext.BinaryClassification.Trainers.LightGbm(),                           // Has support but fails. Probably due to lack of boolean tensor support
+                //mlContext.BinaryClassification.Trainers.LinearSvm(), };                        // Has support but fails
+                //mlContext.BinaryClassification.Trainers.Prior(),                              // No support
+                //mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(),                // Has support but fails. Probably due to lack of boolean tensor support
+                //mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(),                    // Has support but fails
+                //mlContext.BinaryClassification.Trainers.SgdCalibrated(),                       // Has support but fails. Probably due to lack of boolean tensor support
+                //mlContext.BinaryClassification.Trainers.SgdNonCalibrated()                    // Has support but fails
+                //mlContext.BinaryClassification.Trainers.SymbolicSgdLogisticRegression(),          // Has support but fails. Probably due to lack of boolean tensor support
+            };
+            var initialPipeline = mlContext.Transforms.NormalizeMinMax("Features");
+            foreach (var estimator in estimators)
+            {
+                var pipeline = initialPipeline.Append(estimator);
+                var model = pipeline.Fit(dataView);
+                var transformedData = model.Transform(dataView);
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+                var onnxFileName = $"{estimator.ToString()}.onnx";
+                var onnxModelPath = GetOutputPath(onnxFileName);
+                SaveOnnxModel(onnxModel, onnxModelPath, null);
+                // Compare results produced by ML.NET and ONNX's runtime.
+                if (IsOnnxRuntimeSupported())
+                {
+                    // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                    string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                    string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                    var onnxTransformer = onnxEstimator.Fit(dataView);
+                    var onnxResult = onnxTransformer.Transform(dataView);
+                    CompareSelectedR4ScalarColumns(transformedData.Schema[3].Name, outputNames[2], transformedData, onnxResult, 1);
+                }
+            }
+            Done();
+        }
+        [Fact]
         public void FastTreeOnnxConversionTest()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -201,9 +258,8 @@ namespace Microsoft.ML.Tests
             var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.OneHotEncodingEstimator.OutputKind.Bag)
             .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnOptions("F2")))
             .Append(mlContext.Transforms.Concatenate("Features", "F1", "F2"))
-            .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numberOfLeaves: 2, numberOfTrees: 1, minimumExampleCountPerLeaf: 2))
-            .Append(mlContext.Transforms.Conversion.ConvertType("PredictedLabel", null, DataKind.Int32));
-
+            .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numberOfLeaves: 2, numberOfTrees: 1, minimumExampleCountPerLeaf: 2));
+                      //  .Append(mlContext.Transforms.Conversion.ConvertType("PredictedLabel", null, DataKind.Int32));
             var model = pipeline.Fit(data);
             var predictions = model.Transform(data);
 
@@ -903,7 +959,8 @@ namespace Microsoft.ML.Tests
             var dummyExample1 = new BreastCancerCatFeatureExample() { Label = false, F1 = 0, F2 = "Amy" };
             var dummyExample2 = new BreastCancerMulticlassExample() { Label = "Amy", Features = null };
             var dummyExample3 = new SmallSentimentExample() { Tokens = null };
-        }
+            var dummyExample4 = new BreastCancerBinaryClassification() { Label = false, Features = null };
+        } 
 
         private void CompareResults(string leftColumnName, string rightColumnName, IDataView left, IDataView right)
         {

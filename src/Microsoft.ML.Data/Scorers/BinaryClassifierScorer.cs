@@ -202,13 +202,13 @@ namespace Microsoft.ML.Data
             if (Bindings.InfoCount >= 3 && ctx.ContainsColumn(outColumnNames[2]))
             {
                 string opType = "Binarizer";
-                ctx.AddIntermediateVariable(null, "Cast2", true);
+                ctx.AddIntermediateVariable(null, "Cast", true);
                 var node = ctx.CreateNode(opType, new[] { ctx.GetVariableName(outColumnNames[2]) },
-                    new[] { ctx.GetVariableName("Cast2") }, ctx.GetNodeName(opType));
+                    new[] { ctx.GetVariableName("Cast") }, ctx.GetNodeName(opType));
                 node.AddAttribute("threshold", 0.5);
                 opType = "Cast";
-                var node2 = ctx.CreateNode(opType, new[] { ctx.GetVariableName("Cast2") }, new[] { ctx.GetVariableName(outColumnNames[0]) }, ctx.GetNodeName(opType), "");
-                node2.AddAttribute("to", InternalDataKindExtensions.ToInternalDataKind(DataKind.Boolean).ToType());
+                node = ctx.CreateNode(opType, new[] { ctx.GetVariableName("Cast") }, new[] { ctx.GetVariableName(outColumnNames[0]) }, ctx.GetNodeName(opType), "");
+                node.AddAttribute("to", InternalDataKindExtensions.ToInternalDataKind(DataKind.Boolean).ToType());
             }
         }
 

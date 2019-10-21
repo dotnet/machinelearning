@@ -3109,9 +3109,10 @@ namespace Microsoft.ML.Trainers.FastTree
                     classWeights.Add(tree.LeafValues[leafIndex]);
                 }
             }
+            ctx.AddIntermediateVariable(null, "Cast", true);
 
             string opType = "TreeEnsembleRegressor";
-            var node = ctx.CreateNode(opType, new[] { featureColumn }, outputNames, ctx.GetNodeName(opType));
+            var node = ctx.CreateNode(opType, new[] { featureColumn }, new[] { ctx.GetVariableName("Cast") }, ctx.GetNodeName(opType));
 
             node.AddAttribute("post_transform", PostTransform.None.GetDescription());
             node.AddAttribute("n_targets", 1);
@@ -3130,6 +3131,9 @@ namespace Microsoft.ML.Trainers.FastTree
             node.AddAttribute("target_ids", classIds);
             node.AddAttribute("target_weights", classWeights);
 
+            opType = "Cast";
+            node = ctx.CreateNode(opType, new[] { ctx.GetVariableName("Cast") }, outputNames, ctx.GetNodeName(opType), "");
+            node.AddAttribute("to", InternalDataKindExtensions.ToInternalDataKind(DataKind.Boolean).ToType());
             return true;
         }
 

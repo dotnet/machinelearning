@@ -240,15 +240,21 @@ namespace Microsoft.ML.Trainers
         bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputs, string featureColumn)
         {
             Host.CheckValue(ctx, nameof(ctx));
-            Host.Check(Utils.Size(outputs) == 1);
+            //Host.Check(Utils.Size(outputs) == 1);
 
+            ctx.AddIntermediateVariable(null, "Cast", true);
             string opType = "LinearRegressor";
-            var node = ctx.CreateNode(opType, new[] { featureColumn }, outputs, ctx.GetNodeName(opType));
+            // only need one output, since we hace a cast
+            var node = ctx.CreateNode(opType, featureColumn, ctx.GetVariableName("Cast") , ctx.GetNodeName(opType));
             // Selection of logit or probit output transform. enum {'NONE', 'LOGIT', 'PROBIT}
             node.AddAttribute("post_transform", "NONE");
             node.AddAttribute("targets", 1);
             node.AddAttribute("coefficients", Weight.DenseValues());
             node.AddAttribute("intercepts", new float[] { Bias });
+
+            opType = "Cast";
+            node = ctx.CreateNode(opType, ctx.GetVariableName("Cast"), outputs[0], ctx.GetNodeName(opType), "");
+            node.AddAttribute("to", InternalDataKindExtensions.ToInternalDataKind(DataKind.Boolean).ToType());
             return true;
         }
 
