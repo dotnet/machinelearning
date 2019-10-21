@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -7,6 +7,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj" />
+    <NativeAssemblyReference Include="MatrixFactorizationNative" />
+    <NativeAssemblyReference Include="FastTreeNative" />
   </ItemGroup>
 
 </Project>

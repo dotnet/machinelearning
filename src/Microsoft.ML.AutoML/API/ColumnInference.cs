@@ -54,6 +54,16 @@ namespace Microsoft.ML.AutoML
         public string LabelColumnName { get; set; }
 
         /// <summary>
+        /// The dataset column to use as a user ID for computation.
+        /// </summary>
+        public string UserIdColumnName { get; set; }
+
+        /// <summary>
+        /// The dataset column to use as a item ID for computation.
+        /// </summary>
+        public string ItemIdColumnName { get; set; }
+
+        /// <summary>
         /// The dataset column to use for example weight.
         /// </summary>
         public string ExampleWeightColumnName { get; set; }
