@@ -1,5 +1,5 @@
 {
-  "irVersion": "3",
+  "irVersion": "6",
   "producerName": "ML.NET",
   "producerVersion": "##VERSION##",
   "domain": "machinelearning.dotnet",
@@ -51,13 +51,13 @@
           "Label"
         ],
         "output": [
-          "Label0"
+          "LabelEncoderOutput"
         ],
         "name": "LabelEncoder",
         "opType": "LabelEncoder",
         "attribute": [
           {
-            "name": "classes_strings",
+            "name": "keys_strings",
             "strings": [
               "NQ==",
               "Mw==",
@@ -78,12 +78,40 @@
             "type": "INT"
           },
           {
-            "name": "default_string",
-            "s": "IA==",
-            "type": "STRING"
+            "name": "values_int64s",
+            "ints": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8",
+              "9",
+              "10"
+            ],
+            "type": "INTS"
           }
         ],
         "domain": "ai.onnx.ml"
+      },
+      {
+        "input": [
+          "LabelEncoderOutput"
+        ],
+        "output": [
+          "Label0"
+        ],
+        "name": "Cast",
+        "opType": "Cast",
+        "attribute": [
+          {
+            "name": "to",
+            "i": "12",
+            "type": "INT"
+          }
+        ]
       },
       {
         "input": [
@@ -274,7 +302,7 @@
         "name": "Label",
         "type": {
           "tensorType": {
-            "elemType": "STRING",
+            "elemType": 8,
             "shape": {
               "dim": [
                 {
@@ -292,7 +320,7 @@
         "name": "Features",
         "type": {
           "tensorType": {
-            "elemType": "FLOAT",
+            "elemType": 1,
             "shape": {
               "dim": [
                 {
@@ -312,7 +340,7 @@
         "name": "Label1",
         "type": {
           "tensorType": {
-            "elemType": "UINT32",
+            "elemType": 12,
             "shape": {
               "dim": [
                 {
@@ -330,7 +358,7 @@
         "name": "Features1",
         "type": {
           "tensorType": {
-            "elemType": "FLOAT",
+            "elemType": 1,
             "shape": {
               "dim": [
                 {
@@ -348,7 +376,7 @@
         "name": "PredictedLabel0",
         "type": {
           "tensorType": {
-            "elemType": "UINT32",
+            "elemType": 12,
             "shape": {
               "dim": [
                 {
@@ -366,7 +394,7 @@
         "name": "Score0",
         "type": {
           "tensorType": {
-            "elemType": "FLOAT",
+            "elemType": 1,
             "shape": {
               "dim": [
                 {
@@ -386,7 +414,7 @@
         "name": "Features0",
         "type": {
           "tensorType": {
-            "elemType": "FLOAT",
+            "elemType": 1,
             "shape": {
               "dim": [
                 {
@@ -404,7 +432,7 @@
         "name": "Label0",
         "type": {
           "tensorType": {
-            "elemType": "UINT32",
+            "elemType": 12,
             "shape": {
               "dim": [
                 {
@@ -423,7 +451,7 @@
   "opsetImport": [
     {
       "domain": "ai.onnx.ml",
-      "version": "1"
+      "version": "2"
     },
     {
       "version": "9"
