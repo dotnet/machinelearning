@@ -62,7 +62,7 @@ namespace Samples.Dynamic
 
                 var pipeline = mlContext.Model.ImageClassification(
                         "Image", "Label",
-                        // Just by changing/selecting InceptionV3 here instead of 
+                        // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
                         // ResnetV2101 you can try a different architecture/
                         // pre-trained model. 
                         arch: ImageClassificationEstimator.Architecture.ResnetV2101,

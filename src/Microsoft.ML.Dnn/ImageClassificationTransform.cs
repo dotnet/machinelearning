@@ -588,7 +588,8 @@ namespace Microsoft.ML.Transforms
 
                 tf.train.Saver().restore(evalSess, _checkpointPath);
                 (evaluationStep, prediction) = AddEvaluationStep(finalTensor, groundTruthInput);
-                (_jpegData, _resizedImage) = AddJpegDecoding(299, 299, 3);
+            var imageSize = ImageClassificationEstimator.ImagePreprocessingSize[options.Arch];
+            (_jpegData, _resizedImage) = AddJpegDecoding(imageSize.Item1, imageSize.Item2, 3);
             return (evalSess, _labelTensor, evaluationStep, prediction);
         }
 
@@ -827,12 +828,18 @@ namespace Microsoft.ML.Transforms
                 _bottleneckOperationName = "module_apply_default/hub_output/feature_vector/SpatialSqueeze";
                 _inputTensorName = "Placeholder";
             }
+            else if(arch == ImageClassificationEstimator.Architecture.MobilenetV2)
+            {
+                _bottleneckOperationName = "import/MobilenetV2/Logits/Squeeze";
+                _inputTensorName = "import/input";
+            }
 
             _outputs = new[] { scoreColumnName, predictedLabelColumnName };
 
             if (loadModel == false)
             {
-                (_jpegData, _resizedImage) = AddJpegDecoding(299, 299, 3);
+                var imageSize = ImageClassificationEstimator.ImagePreprocessingSize[arch];
+                (_jpegData, _resizedImage) = AddJpegDecoding(imageSize.Item1, imageSize.Item2, 3);
                 _jpegDataTensorName = _jpegData.name;
                 _resizedImageTensorName = _resizedImage.name;
 
@@ -1080,7 +1087,28 @@ namespace Microsoft.ML.Transforms
         public enum Architecture
         {
             ResnetV2101,
-            InceptionV3
+            InceptionV3,
+            MobilenetV2
+        };
+
+        /// <summary>
+        /// Dictionary mapping model architecture to model location.
+        /// </summary>
+        internal static IReadOnlyDictionary<Architecture, string> ModelLocation = new Dictionary<Architecture, string>
+        {
+            { Architecture.ResnetV2101, @"resnet_v2_101_299.meta" },
+            { Architecture.InceptionV3, @"InceptionV3.meta" },
+            { Architecture.MobilenetV2, @"mobilenet_v2.meta" }
+        };
+
+        /// <summary>
+        /// Dictionary mapping model architecture to image input size supported.
+        /// </summary>
+        internal static IReadOnlyDictionary<Architecture, Tuple<int,int>> ImagePreprocessingSize = new Dictionary<Architecture, Tuple<int,int>>
+        {
+            { Architecture.ResnetV2101, new Tuple<int, int>(299,299) },
+            { Architecture.InceptionV3, new Tuple<int, int>(299,299) },
+            { Architecture.MobilenetV2, new Tuple<int, int>(224,224) }
         };
 
         /// <summary>

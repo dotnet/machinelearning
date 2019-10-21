@@ -1207,8 +1207,10 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(string.Join(" ", input.B).Replace("/", " "), textOutput.BOut[0]);
         }
 
-        [TensorFlowFact]
-        public void TensorFlowImageClassification()
+        [TensorFlowTheory]
+        [InlineData(ImageClassificationEstimator.Architecture.ResnetV2101)]
+        [InlineData(ImageClassificationEstimator.Architecture.MobilenetV2)]
+        public void TensorFlowImageClassification(ImageClassificationEstimator.Architecture arch)
         {
             string assetsRelativePath = @"assets";
             string assetsPath = GetAbsolutePath(assetsRelativePath);
@@ -1249,10 +1251,10 @@ namespace Microsoft.ML.Scenarios
             var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
                 .Append(mlContext.Model.ImageClassification(
                     "Image", "Label",
-                    // Just by changing/selecting InceptionV3 here instead of 
+                    // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
                     // ResnetV2101 you can try a different architecture/pre-trained 
                     // model. 
-                    arch: ImageClassificationEstimator.Architecture.ResnetV2101,
+                    arch: arch,
                     epoch: 50,
                     batchSize: 10,
                     learningRate: 0.01f,
@@ -1384,7 +1386,7 @@ namespace Microsoft.ML.Scenarios
             var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
                 .Append(mlContext.Model.ImageClassification(
                     "Image", "Label",
-                    // Just by changing/selecting InceptionV3 here instead of 
+                    // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
                     // ResnetV2101 you can try a different architecture/pre-trained 
                     // model. 
                     arch: ImageClassificationEstimator.Architecture.ResnetV2101,
@@ -1473,7 +1475,7 @@ namespace Microsoft.ML.Scenarios
             var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
                 .Append(mlContext.Model.ImageClassification(
                     "Image", "Label",
-                    // Just by changing/selecting InceptionV3 here instead of 
+                    // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
                     // ResnetV2101 you can try a different architecture/pre-trained 
                     // model. 
                     arch: ImageClassificationEstimator.Architecture.ResnetV2101,

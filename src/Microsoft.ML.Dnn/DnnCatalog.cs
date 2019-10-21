@@ -144,7 +144,7 @@ namespace Microsoft.ML
         {
             var options = new ImageClassificationEstimator.Options()
             {
-                ModelLocation = arch == Architecture.ResnetV2101 ? @"resnet_v2_101_299.meta" : @"InceptionV3.meta",
+                ModelLocation = ModelLocation[arch],
                 InputColumns = new[] { featuresColumnName },
                 OutputColumns = new[] { scoreColumnName, predictedLabelColumnName },
                 LabelColumn = labelColumnName,
@@ -192,6 +192,14 @@ namespace Microsoft.ML
                     using (WebClient client = new WebClient())
                     {
                         client.DownloadFile(new Uri($"{baseGitPath}"), @"resnet_v2_101_299.meta");
+                    }
+                }
+                else if(options.Arch == Architecture.MobilenetV2)
+                {
+                    var baseGitPath = @"https://tlcresources.blob.core.windows.net/image/MobileNetV2TensorFlow/mobilenet_v2.meta";
+                    using (WebClient client = new WebClient())
+                    {
+                        client.DownloadFile(new Uri($"{baseGitPath}"), @"mobilenet_v2.meta");
                     }
                 }
             }
