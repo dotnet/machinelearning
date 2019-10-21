@@ -64,7 +64,7 @@ namespace Samples.Dynamic
                 { 
                     FeaturesColumnName = "Image",
                     LabelColumnName = "Label",
-                    // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
+                    // Just by changing/selecting InceptionV3/MobilenetV2/ResnetV250 here instead of 
                     // ResnetV2101 you can try a different architecture/
                     // pre-trained model. 
                     Arch = ImageClassificationEstimator.Architecture.ResnetV2101,
