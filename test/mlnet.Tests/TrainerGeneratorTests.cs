@@ -138,6 +138,25 @@ namespace mlnet.Tests
         }
 
         [TestMethod]
+        public void MatrixFactorizationTest()
+        {
+            var context = new MLContext();
+            var elementProperties = new Dictionary<string, object>()
+            {
+                {"MatrixColumnIndexColumnName","userId" },
+                {"MatrixRowIndexColumnName","movieId" },
+                {"LabelColumnName","rating" },
+            };
+            PipelineNode node = new PipelineNode("MatrixFactorization", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
+            Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
+            var actual = codeGenerator.GenerateTrainerAndUsings();
+            string expectedTrainerString = "MatrixFactorization(matrixColumnIndexColumnName:\"userId\",matrixRowIndexColumnName:\"movieId\",labelColumnName:\"rating\",featureColumnName:\"Features\")";
+            Assert.AreEqual(expectedTrainerString, actual.Item1);
+            Assert.IsNull(actual.Item2);
+        }
+
+        [TestMethod]
         public void SgdCalibratedBinaryAdvancedParameterTest()
         {
 
