@@ -11,7 +11,6 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Dnn;
 using static Microsoft.ML.Transforms.ImageClassificationEstimator;
-using Options = Microsoft.ML.Transforms.DnnRetrainEstimator.Options;
 
 namespace Microsoft.ML
 {
@@ -47,7 +46,7 @@ namespace Microsoft.ML
         /// <remarks>
         /// The support for retraining is under preview.
         /// </remarks>
-        private static DnnRetrainEstimator RetrainDnnModel(
+        internal static DnnRetrainEstimator RetrainDnnModel(
             this ModelOperationsCatalog catalog,
             string[] outputColumnNames,
             string[] inputColumnNames,
@@ -63,7 +62,7 @@ namespace Microsoft.ML
             float learningRate = 0.01f,
             bool addBatchDimensionInput = false)
         {
-            var options = new Options()
+            var options = new DnnRetrainEstimator.Options()
             {
                 ModelLocation = modelPath,
                 InputColumns = inputColumnNames,
@@ -83,80 +82,6 @@ namespace Microsoft.ML
             var env = CatalogUtils.GetEnvironment(catalog);
             return new DnnRetrainEstimator(env, options, DnnUtils.LoadDnnModel(env, modelPath, true));
         }
-
-        /*
-        public class ImageClassificationOptions
-        {
-            string featuresColumnName;
-            string labelColumnName;
-            string scoreColumnName = "Score";
-            string predictedLabelColumnName = "PredictedLabel";
-            Architecture arch = Architecture.InceptionV3;
-            int epoch = 100;
-            int batchSize = 10;
-            float learningRate = 0.01f;
-            bool disableEarlyStopping = false;
-            EarlyStopping earlyStopping = null;
-            ImageClassificationMetricsCallback metricsCallback = null;
-            int statisticFrequency = 1;
-            DnnFramework framework = DnnFramework.Tensorflow;
-            string modelSavePath = null;
-            string finalModelPrefix = "custom_retrained_model_based_on_";
-            IDataView validationSet = null;
-            bool testOnTrainSet = true;
-            bool reuseTrainSetBottleneckCachedValues = false;
-            bool reuseValidationSetBottleneckCachedValues = false;
-            string trainSetBottleneckCachedValuesFilePath = "trainSetBottleneckFile.csv";
-            string validationSetBottleneckCachedValuesFilePath = "validationSetBottleneckFile.csv";
-
-            ImageClassificationOptions(string featuresColumnName,
-            string labelColumnName,
-            string scoreColumnName = "Score",
-            string predictedLabelColumnName = "PredictedLabel",
-            Architecture arch = Architecture.InceptionV3,
-            int epoch = 100,
-            int batchSize = 10,
-            float learningRate = 0.01f,
-            bool disableEarlyStopping = false,
-            EarlyStopping earlyStopping = null,
-            ImageClassificationMetricsCallback metricsCallback = null,
-            int statisticFrequency = 1,
-            DnnFramework framework = DnnFramework.Tensorflow,
-            string modelSavePath = null,
-            string finalModelPrefix = "custom_retrained_model_based_on_",
-            IDataView validationSet = null,
-            bool testOnTrainSet = true,
-            bool reuseTrainSetBottleneckCachedValues = false,
-            bool reuseValidationSetBottleneckCachedValues = false,
-            string trainSetBottleneckCachedValuesFilePath = "trainSetBottleneckFile.csv",
-            string validationSetBottleneckCachedValuesFilePath = "validationSetBottleneckFile.csv",
-                )
-            {
-                featuresColumnName=featuresColumnName;
-                labelColumnName = labelColumnName;
-                string scoreColumnName = "Score";
-                string predictedLabelColumnName = "PredictedLabel";
-                Architecture arch = Architecture.InceptionV3;
-                int epoch = 100;
-                int batchSize = 10;
-                float learningRate = 0.01f;
-                bool disableEarlyStopping = false;
-                EarlyStopping earlyStopping = null;
-                ImageClassificationMetricsCallback metricsCallback = null;
-                int statisticFrequency = 1;
-                DnnFramework framework = DnnFramework.Tensorflow;
-                string modelSavePath = null;
-                string finalModelPrefix = "custom_retrained_model_based_on_";
-                IDataView validationSet = null;
-                bool testOnTrainSet = true;
-                bool reuseTrainSetBottleneckCachedValues = false;
-                bool reuseValidationSetBottleneckCachedValues = false;
-                string trainSetBottleneckCachedValuesFilePath = "trainSetBottleneckFile.csv";
-                string validationSetBottleneckCachedValuesFilePath = "validationSetBottleneckFile.csv";
-            }
-
-        };
-        */
 
         /// <summary>
         /// The options for the <see cref="ImageClassificationTransformer"/>.
@@ -301,7 +226,6 @@ namespace Microsoft.ML
         {
             var options = new ImageClassificationEstimator.Options()
             {
-                ModelLocation = ModelLocation[arch],
                 InputColumns = new[] { featuresColumnName },
                 OutputColumns = new[] { scoreColumnName, predictedLabelColumnName },
                 LabelColumn = labelColumnName,
@@ -322,11 +246,11 @@ namespace Microsoft.ML
             };
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new ImageClassificationEstimator(env, options, DnnUtils.LoadDnnModel(env, options.ModelLocation, true));
+            return new ImageClassificationEstimator(env, options, DnnUtils.LoadDnnModel(env, options.Arch, true));
         }
 
         public static ImageClassificationEstimator ImageClassification(
-            this ModelOperationsCatalog catalog, DnnCatalog.Options options)
+            this ModelOperationsCatalog catalog, Options options)
         {
             var estimatorOptions = new ImageClassificationEstimator.Options()
             {
@@ -352,7 +276,7 @@ namespace Microsoft.ML
             };
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new ImageClassificationEstimator(env, estimatorOptions, DnnUtils.LoadDnnModel(env, options.ModelLocation, true));
+            return new ImageClassificationEstimator(env, estimatorOptions, DnnUtils.LoadDnnModel(env, options.Arch, true));
         }
     }
 }

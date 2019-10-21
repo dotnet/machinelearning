@@ -150,7 +150,7 @@ namespace Microsoft.ML.Transforms
         }
 
         internal ImageClassificationTransformer(IHostEnvironment env, ImageClassificationEstimator.Options options, IDataView input)
-            : this(env, options, DnnUtils.LoadDnnModel(env, options.ModelLocation), input)
+            : this(env, options, DnnUtils.LoadDnnModel(env, options.Arch), input)
         {
         }
 
@@ -577,7 +577,7 @@ namespace Microsoft.ML.Transforms
 
         private (Session, Tensor, Tensor, Tensor) BuildEvaluationSession(ImageClassificationEstimator.Options options, int classCount)
         {
-            var evalGraph = DnnUtils.LoadMetaGraph(options.ModelLocation);
+            var evalGraph = DnnUtils.LoadMetaGraph(ModelLocation[options.Arch]);
             var evalSess = tf.Session(graph: evalGraph);
             Tensor evaluationStep = null;
             Tensor prediction = null;

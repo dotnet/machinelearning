@@ -1248,20 +1248,25 @@ namespace Microsoft.ML.Scenarios
                     .Fit(testDataset)
                     .Transform(testDataset);
 
+            var options = new DnnCatalog.Options()
+            {
+                FeaturesColumnName = "Image",
+                LabelColumnName = "Label",
+                // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
+                // ResnetV2101 you can try a different architecture/
+                // pre-trained model. 
+                Arch = arch,
+                Epoch = 50,
+                BatchSize = 10,
+                LearningRate = 0.01f,
+                MetricsCallback = (metrics) => Console.WriteLine(metrics),
+                TestOnTrainSet = false,
+                ValidationSet = validationSet,
+                DisableEarlyStopping = true
+            };
+
             var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
-                .Append(mlContext.Model.ImageClassification(
-                    "Image", "Label",
-                    // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
-                    // ResnetV2101 you can try a different architecture/pre-trained 
-                    // model. 
-                    arch: arch,
-                    epoch: 50,
-                    batchSize: 10,
-                    learningRate: 0.01f,
-                    metricsCallback: (metrics) => Console.WriteLine(metrics),
-                    testOnTrainSet: false,
-                    validationSet: validationSet,
-                    disableEarlyStopping: true)
+                .Append(mlContext.Model.ImageClassification(options)
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel")));
 
             var trainedModel = pipeline.Fit(trainDataset);
@@ -1383,20 +1388,25 @@ namespace Microsoft.ML.Scenarios
                     .Fit(testDataset)
                     .Transform(testDataset);
 
+            var options = new DnnCatalog.Options()
+            {
+                FeaturesColumnName = "Image",
+                LabelColumnName = "Label",
+                // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
+                // ResnetV2101 you can try a different architecture/
+                // pre-trained model. 
+                Arch = ImageClassificationEstimator.Architecture.ResnetV2101,
+                Epoch = 100,
+                BatchSize = 5,
+                LearningRate = 0.01f,
+                EarlyStoppingCriteria = new ImageClassificationEstimator.EarlyStopping(),
+                MetricsCallback = (metrics) => { Console.WriteLine(metrics); lastEpoch = metrics.Train != null ? metrics.Train.Epoch : 0; },
+                TestOnTrainSet = false,
+                ValidationSet = validationSet,
+            };
+
             var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
-                .Append(mlContext.Model.ImageClassification(
-                    "Image", "Label",
-                    // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
-                    // ResnetV2101 you can try a different architecture/pre-trained 
-                    // model. 
-                    arch: ImageClassificationEstimator.Architecture.ResnetV2101,
-                    epoch: 100,
-                    batchSize: 5,
-                    learningRate: 0.01f,
-                    earlyStopping: new ImageClassificationEstimator.EarlyStopping(),
-                    metricsCallback: (metrics) => { Console.WriteLine(metrics); lastEpoch = metrics.Train != null ? metrics.Train.Epoch : 0; },
-                    testOnTrainSet: false,
-                    validationSet: validationSet));
+                .Append(mlContext.Model.ImageClassification(options));
 
             var trainedModel = pipeline.Fit(trainDataset);
             mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
@@ -1472,20 +1482,25 @@ namespace Microsoft.ML.Scenarios
                      .Fit(testDataset)
                      .Transform(testDataset);
 
+            var options = new DnnCatalog.Options()
+            {
+                FeaturesColumnName = "Image",
+                LabelColumnName = "Label",
+                // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
+                // ResnetV2101 you can try a different architecture/
+                // pre-trained model. 
+                Arch = ImageClassificationEstimator.Architecture.ResnetV2101,
+                Epoch = 100,
+                BatchSize = 5,
+                LearningRate = 0.01f,
+                EarlyStoppingCriteria = new ImageClassificationEstimator.EarlyStopping(metric: ImageClassificationEstimator.EarlyStoppingMetric.Loss),
+                MetricsCallback = (metrics) => { Console.WriteLine(metrics); lastEpoch = metrics.Train != null ? metrics.Train.Epoch : 0; },
+                TestOnTrainSet = false,
+                ValidationSet = validationSet,
+            };
+
             var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
-                .Append(mlContext.Model.ImageClassification(
-                    "Image", "Label",
-                    // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
-                    // ResnetV2101 you can try a different architecture/pre-trained 
-                    // model. 
-                    arch: ImageClassificationEstimator.Architecture.ResnetV2101,
-                    epoch: 100,
-                    batchSize: 5,
-                    learningRate: 0.01f,
-                    earlyStopping: new ImageClassificationEstimator.EarlyStopping(metric: ImageClassificationEstimator.EarlyStoppingMetric.Loss),
-                    metricsCallback: (metrics) => {Console.WriteLine(metrics); lastEpoch = metrics.Train != null ? metrics.Train.Epoch : 0;},
-                    testOnTrainSet: false,
-                    validationSet: validationSet));
+                .Append(mlContext.Model.ImageClassification(options));
 
             var trainedModel = pipeline.Fit(trainDataset);
             mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,

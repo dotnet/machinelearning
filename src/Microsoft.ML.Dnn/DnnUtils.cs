@@ -5,8 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
-using System.Runtime.InteropServices;
+using System.Net;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using Microsoft.ML.Data;
@@ -259,12 +260,25 @@ namespace Microsoft.ML.Transforms.Dnn
         /// <param name="modelPath">The model to load.</param>
         /// <param name="metaGraph"></param>
         /// <returns></returns>
-        internal static DnnModel LoadDnnModel(IHostEnvironment env, Architecture arch, bool metaGraph = false)
+        internal static DnnModel LoadDnnModel(IHostEnvironment env, string modelPath, bool metaGraph = false)
         {
-            var modelPath = ;
-            if (!File.Exists(options.ModelLocation))
+            var session = GetSession(env, modelPath, metaGraph);
+            return new DnnModel(env, session, modelPath);
+        }
+
+        /// <summary>
+        /// Load TensorFlow model into memory.
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="arch">The architecture of the model to load.</param>
+        /// <param name="metaGraph"></param>
+        /// <returns></returns>
+        internal static DnnModel LoadDnnModel(IHostEnvironment env, ImageClassificationEstimator.Architecture arch, bool metaGraph = false)
+        {
+            var modelPath = ImageClassificationEstimator.ModelLocation[arch];
+            if (!File.Exists(modelPath))
             {
-                if (options.Arch == Architecture.InceptionV3)
+                if (arch == ImageClassificationEstimator.Architecture.InceptionV3)
                 {
                     var baseGitPath = @"https://raw.githubusercontent.com/SciSharp/TensorFlow.NET/master/graph/InceptionV3.meta";
                     using (WebClient client = new WebClient())
@@ -279,7 +293,7 @@ namespace Microsoft.ML.Transforms.Dnn
                         ZipFile.ExtractToDirectory(Path.Combine(Directory.GetCurrentDirectory(), @"tfhub_modules.zip"), @"tfhub_modules");
                     }
                 }
-                else if (options.Arch == Architecture.ResnetV2101)
+                else if (arch == ImageClassificationEstimator.Architecture.ResnetV2101)
                 {
                     var baseGitPath = @"https://aka.ms/mlnet-resources/image/ResNet101Tensorflow/resnet_v2_101_299.meta";
                     using (WebClient client = new WebClient())
@@ -287,6 +301,15 @@ namespace Microsoft.ML.Transforms.Dnn
                         client.DownloadFile(new Uri($"{baseGitPath}"), @"resnet_v2_101_299.meta");
                     }
                 }
+                else if (arch == ImageClassificationEstimator.Architecture.MobilenetV2)
+                {
+                    var baseGitPath = @"https://tlcresources.blob.core.windows.net/image/MobileNetV2TensorFlow/mobilenet_v2.meta";
+                    using (WebClient client = new WebClient())
+                    {
+                        client.DownloadFile(new Uri($"{baseGitPath}"), @"mobilenet_v2.meta");
+                    }
+                }
+
             }
 
             var session = GetSession(env, modelPath, metaGraph);
