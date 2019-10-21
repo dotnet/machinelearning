@@ -170,9 +170,13 @@ namespace Microsoft.ML.Transforms
             var imageProcessor = new ImageProcessor(this);
             int trainingsetSize = -1;
             if (!options.ReuseTrainSetBottleneckCachedValues || !File.Exists(options.TrainSetBottleneckCachedValuesFilePath))
+            {
                 trainingsetSize = CacheFeaturizedImagesToDisk(input, options.LabelColumn, options.InputColumns[0], imageProcessor,
                     _inputTensorName, _bottleneckTensor.name, options.TrainSetBottleneckCachedValuesFilePath,
                     ImageClassificationMetrics.Dataset.Train, options.MetricsCallback);
+                File.WriteAllText("TrainingSetSize.txt", trainingsetSize.ToString()); // Write training set size to a file for use during training
+
+            }
 
             if (options.ValidationSet != null &&
                     (!options.ReuseTrainSetBottleneckCachedValues || !File.Exists(options.ValidationSetBottleneckCachedValuesFilePath)))
@@ -325,12 +329,18 @@ namespace Microsoft.ML.Transforms
                     .Load(new MultiFileSource(path)));
         }
 
+        private int GetNumSamples(string path)
+        {
+            using (var reader = File.OpenText(path))
+                return int.Parse(reader.ReadLine());
+        }
+
         private void TrainAndEvaluateClassificationLayer(string trainBottleneckFilePath, ImageClassificationEstimator.Options options,
             string validationSetBottleneckFilePath, int trainingsetSize)
         {
             int batchSize = options.BatchSize;
             int epochs = options.Epoch;
-            double learningRate = options.LearningRate;
+            float learningRate = options.LearningRate;
             bool evaluateOnly = !string.IsNullOrEmpty(validationSetBottleneckFilePath);
             ImageClassificationMetricsCallback statisticsCallback = options.MetricsCallback;
             var trainingSet = GetShuffledData(trainBottleneckFilePath);
@@ -394,7 +404,7 @@ namespace Microsoft.ML.Transforms
             TrainState trainstate = new TrainState
             {
                 BatchSize = options.BatchSize,
-                BatchesPerEpoch = trainingsetSize / options.BatchSize
+                BatchesPerEpoch = (trainingsetSize < 0 ? GetNumSamples("TrainingSetSize.txt") : trainingsetSize) / options.BatchSize
             };
 
             for (int epoch = 0; epoch < epochs; epoch += 1)
@@ -403,6 +413,7 @@ namespace Microsoft.ML.Transforms
                 metrics.Train.Accuracy = 0;
                 metrics.Train.CrossEntropy = 0;
                 metrics.Train.BatchProcessedCount = 0;
+                metrics.Train.LearningRate = learningRate;
                 // Update train state.
                 trainstate.CurrentEpoch = epoch;
                 using (var cursor = trainingSet.GetRowCursor(trainingSet.Schema.ToArray(), new Random()))
@@ -434,7 +445,8 @@ namespace Microsoft.ML.Transforms
                             {
                                 // Add learning rate as a placeholder only when learning rate scheduling is used.
                                 learningRate = options.LearningRateScheduler.GetLearningRate(trainstate);
-                                runner.AddInput(new Tensor(learningRate, TF_DataType.TF_DOUBLE), 2);
+                                metrics.Train.LearningRate = learningRate;
+                                runner.AddInput(new Tensor(learningRate, TF_DataType.TF_FLOAT), 2);
                             }
                             runner.Run();
 
@@ -472,7 +484,8 @@ namespace Microsoft.ML.Transforms
                         {
                             // Add learning rate as a placeholder only when learning rate scheduling is used.
                             learningRate = options.LearningRateScheduler.GetLearningRate(trainstate);
-                            runner.AddInput(new Tensor(learningRate, TF_DataType.TF_DOUBLE), 2);
+                            metrics.Train.LearningRate = learningRate;
+                            runner.AddInput(new Tensor(learningRate, TF_DataType.TF_FLOAT), 2);
                         }
                         runner.Run();
 
@@ -689,8 +702,8 @@ namespace Microsoft.ML.Transforms
                         bottleneckTensor,
                         shape: bottleneckTensorDims,
                         name: "BottleneckInputPlaceholder");
-                    if(useLearningRateScheduler)
-                        _learningRateInput = tf.placeholder(tf.float64, null, name: "learningRateInputPlaceholder");
+                    if (useLearningRateScheduler)
+                        _learningRateInput = tf.placeholder(tf.float32, null, name: "learningRateInputPlaceholder");
 
                 }
                 _labelTensor = tf.placeholder(tf.int64, new TensorShape(batch_size), name: labelColumn);
@@ -741,9 +754,7 @@ namespace Microsoft.ML.Transforms
 
             tf_with(tf.name_scope("train"), delegate
             {
-                var optimizer = (useLearningRateScheduler ?
-                                new Tensorflow.Train.GradientDescentOptimizer(_learningRateInput) :
-                                tf.train.GradientDescentOptimizer(learningRate));
+                var optimizer = useLearningRateScheduler ? tf.train.GradientDescentOptimizer(_learningRateInput) : tf.train.GradientDescentOptimizer(learningRate);
                 _trainStep = optimizer.minimize(crossEntropyMean);
             });
 
@@ -1175,12 +1186,17 @@ namespace Microsoft.ML.Transforms
             public float CrossEntropy { get; set; }
 
             /// <summary>
+            /// Learning Rate used for this <see cref="Epoch"/>. Changes for learning rate scheduling.
+            /// </summary>
+            public float LearningRate { get; set; }
+
+            /// <summary>
             /// String representation of the metrics.
             /// </summary>
             public override string ToString()
             {
                 if (DatasetUsed == ImageClassificationMetrics.Dataset.Train)
-                    return $"Phase: Training, Dataset used: {DatasetUsed.ToString(),10}, Batch Processed Count: {BatchProcessedCount,3}, " +
+                    return $"Phase: Training, Dataset used: {DatasetUsed.ToString(),10}, Batch Processed Count: {BatchProcessedCount,3}, learning rate: {LearningRate,10} " +
                         $"Epoch: {Epoch,3}, Accuracy: {Accuracy,10}, Cross-Entropy: {CrossEntropy,10}";
                 else
                     return $"Phase: Training, Dataset used: {DatasetUsed.ToString(),10}, Batch Processed Count: {BatchProcessedCount,3}, " +
