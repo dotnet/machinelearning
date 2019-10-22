@@ -77,13 +77,13 @@ namespace Samples.Dynamic
                         metricsCallback: (metrics) => Console.WriteLine(metrics),
                         validationSet: testDataset,
                         disableEarlyStopping: true,
-                        reuseValidationSetBottleneckCachedValues: false,
-                        reuseTrainSetBottleneckCachedValues: false,
+                        reuseValidationSetBottleneckCachedValues: true,
+                        reuseTrainSetBottleneckCachedValues: true,
                         // Use linear scaling rule and Learning rate decay as an option
                         // This is known to do well for Cifar dataset and Resnet models
                         // You can also try other types of Learning rate scheduling methods
                         // available in LearningRateScheduler.cs  
-                        learningRateScheduler: new LsrDecay() 
+                        learningRateScheduler: new LsrDecay()
                         )
                     .Append(mlContext.Transforms.Conversion.MapKeyToValue(
                         outputColumnName: "PredictedLabel",

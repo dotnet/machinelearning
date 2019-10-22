@@ -1537,7 +1537,7 @@ namespace Microsoft.ML.Transforms
             /// A class that performs learning rate scheduling.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "A class that performs learning rate scheduling.", SortOrder = 15)]
-            public ILearningRateScheduler LearningRateScheduler;
+            public LearningRateScheduler LearningRateScheduler;
 
         }
 

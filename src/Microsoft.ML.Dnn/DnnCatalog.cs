@@ -141,7 +141,7 @@ namespace Microsoft.ML
             bool reuseValidationSetBottleneckCachedValues = false,
             string trainSetBottleneckCachedValuesFilePath = "trainSetBottleneckFile.csv",
             string validationSetBottleneckCachedValuesFilePath = "validationSetBottleneckFile.csv",
-            ILearningRateScheduler learningRateScheduler = null
+            LearningRateScheduler learningRateScheduler = null
             )
         {
             var options = new ImageClassificationEstimator.Options()

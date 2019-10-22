@@ -18,9 +18,9 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// This interface defines a learning rate scheduler.
     /// </summary>
-    public interface ILearningRateScheduler
+    public abstract class LearningRateScheduler
     {
-        internal float GetLearningRate(TrainState options);
+        internal abstract float GetLearningRate(TrainState options);
     };
 
     /// <summary>
@@ -28,19 +28,40 @@ namespace Microsoft.ML.Transforms
     /// Implementation adopted from RESNET-CIFAR benchmark test in Tensorflow slim.
     /// https://github.com/tensorflow/models/blob/b974c3f95a37acedcc3c58566834c78fcae4b214/official/vision/image_classification/resnet_cifar_main.py
     /// </summary>
-    public sealed class LsrDecay : ILearningRateScheduler
+    public sealed class LsrDecay : LearningRateScheduler
     {
+        /// <summary>
+        /// Learning rate is scaled at epoch boundaries provided in LrSchedule to corresponding multiplier in the LrSchedule.
+        /// Format for LrSchedule: {epoch, scaling factor}
+        /// </summary>
         public readonly float[,] LrSchedule;
 
-        public LsrDecay()
+        /// <summary>
+        /// Base Learning rate to start off with.
+        /// </summary>
+        public float BaseLearningRate;
+
+        /// <summary>
+        /// Linear Scale rule and LR Decay construtor assigns a default LR scheduler.
+        /// </summary>
+        public LsrDecay(float baseLearningRate = 0.1f)
         {
             LrSchedule = new float[,] { { 182, 0.001f }, { 136, 0.01f }, { 91, 0.1f }, { 0, 1.0f } };
-        }
-        public LsrDecay(float[,] lrschedule)
-        {
-            LrSchedule = lrschedule;
+            BaseLearningRate = baseLearningRate;
         }
 
+        /// <summary>
+        /// Linear Scale rule and LR Decay construtor assigns a user defined LR scheduler.
+        /// </summary>
+        public LsrDecay(float[,] lrschedule, float baseLearningRate = 0.1f)
+        {
+            LrSchedule = lrschedule;
+            BaseLearningRate = baseLearningRate;
+        }
+
+        /// <summary>
+        /// This function returns the corresponding scaling factor or multiplier for the given epoch from the LrSchedule.
+        /// </summary>
         private float GetLearningRateScheduleMultiplier(int epoch)
         {
             for(int i = 0; i < LrSchedule.Length; i++)
@@ -52,11 +73,14 @@ namespace Microsoft.ML.Transforms
             }
             return 1.0f;
         }
-        float ILearningRateScheduler.GetLearningRate(TrainState trainstate)
+
+        /// <summary>
+        /// This function returns the Learning rate using linear scale rule and LR decay.
+        /// </summary>
+        internal override float GetLearningRate(TrainState trainstate)
         {
             float learningrate;
-            float baseLearningRate = 0.1f;
-            float initialLearningRate = baseLearningRate * trainstate.BatchSize / 128;
+            float initialLearningRate = BaseLearningRate * trainstate.BatchSize / 128;
             learningrate = initialLearningRate * GetLearningRateScheduleMultiplier(trainstate.CurrentEpoch);
             return learningrate;
         }
@@ -70,18 +94,42 @@ namespace Microsoft.ML.Transforms
     /// Default values and implementation of learning rate is from Tensorflow Slim model tests.
     /// Source : https://github.com/tensorflow/models/blob/master/research/slim/train_image_classifier.py
     /// </summary>
-    public sealed class ExponentialLRDecay : ILearningRateScheduler
+    public sealed class ExponentialLRDecay : LearningRateScheduler
     {
+        /// <summary>
+        /// Initial learning rate.
+        /// </summary>
         public float LearningRate;
+
+        /// <summary>
+        /// The number of batches seen by the graph so far.
+        /// </summary>
         public int GlobalStep;
+
+        /// <summary>
+        /// Number of decay steps
+        /// </summary>
         public int DecaySteps;
+
+        /// <summary>
+        /// Learning rate decay factor.
+        /// </summary>
         public float DecayRate;
 
+        /// <summary>
+        /// If Staircase is True the learning rate decays at discrete intervals and the decayed learning rate follows a staircase function.
+        /// </summary>
         public bool Staircase { get; }
 
-        public bool StairCase;
+        /// <summary>
+        /// Number of epochs after which learning rate decays.
+        /// </summary>
         public float NumEpochsPerDecay;
 
+        /// <summary>
+        /// This contructor initializes intial learning rate, number epochs per decay, decay rate and the staircase option.
+        /// The defaults are taken from Tensorflow Slim.
+        /// </summary>
         public ExponentialLRDecay(float learningRate = 0.01f, float numEpochsPerDecay = 2.0f, float decayRate = 0.94f, bool staircase = true)
         {
             LearningRate = learningRate;
@@ -90,7 +138,10 @@ namespace Microsoft.ML.Transforms
             Staircase = staircase;
         }
 
-        float ILearningRateScheduler.GetLearningRate(TrainState trainstate)
+        /// <summary>
+        /// Computes exponentially decayed learning rate
+        /// </summary>
+        internal override float GetLearningRate(TrainState trainstate)
         {
             int numSamplesPerEpoch = trainstate.BatchSize * trainstate.BatchesPerEpoch;
             DecaySteps = (int) (numSamplesPerEpoch * NumEpochsPerDecay / trainstate.BatchSize);
