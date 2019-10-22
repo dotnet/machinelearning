@@ -131,7 +131,7 @@ namespace Microsoft.ML.Transforms
                 throw env.ExceptDecode();
 
             return new ImageClassificationTransformer(env, DnnUtils.LoadTFSession(env, modelBytes), outputs, inputs,
-                null, addBatchDimensionInput, 1, labelColumn, checkpointName, arch,
+                addBatchDimensionInput, 1, labelColumn, checkpointName, arch,
                 scoreColumnName, predictedColumnName, learningRate, null, classCount, true, predictionTensorName,
                 softMaxTensorName, jpegDataTensorName, resizeTensorName, keyValueAnnotations);
 
@@ -150,14 +150,13 @@ namespace Microsoft.ML.Transforms
         }
 
         internal ImageClassificationTransformer(IHostEnvironment env, ImageClassificationEstimator.Options options, IDataView input)
-            : this(env, options, DnnUtils.LoadDnnModel(env, options.ModelLocation), input)
+            : this(env, options, DnnUtils.LoadDnnModel(env, options.Arch), input)
         {
         }
 
         internal ImageClassificationTransformer(IHostEnvironment env, ImageClassificationEstimator.Options options, DnnModel tensorFlowModel, IDataView input)
-            : this(env, tensorFlowModel.Session, options.OutputColumns, options.InputColumns,
-                  options.ModelLocation, null, options.BatchSize,
-                  options.LabelColumn, options.FinalModelPrefix, options.Arch, options.ScoreColumnName,
+            : this(env, tensorFlowModel.Session, options.OutputColumns, options.InputColumns, null, options.BatchSize,
+                  options.LabelColumnName, options.FinalModelPrefix, options.Arch, options.ScoreColumnName,
                   options.PredictedLabelColumnName, options.LearningRate, input.Schema)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -166,13 +165,13 @@ namespace Microsoft.ML.Transforms
             CheckTrainingParameters(options);
             var imageProcessor = new ImageProcessor(this);
             if (!options.ReuseTrainSetBottleneckCachedValues || !File.Exists(options.TrainSetBottleneckCachedValuesFilePath))
-                CacheFeaturizedImagesToDisk(input, options.LabelColumn, options.InputColumns[0], imageProcessor,
+                CacheFeaturizedImagesToDisk(input, options.LabelColumnName, options.InputColumns[0], imageProcessor,
                     _inputTensorName, _bottleneckTensor.name, options.TrainSetBottleneckCachedValuesFilePath,
                     ImageClassificationMetrics.Dataset.Train, options.MetricsCallback);
 
             if (options.ValidationSet != null &&
                     (!options.ReuseTrainSetBottleneckCachedValues || !File.Exists(options.ValidationSetBottleneckCachedValuesFilePath)))
-                CacheFeaturizedImagesToDisk(options.ValidationSet, options.LabelColumn, options.InputColumns[0],
+                CacheFeaturizedImagesToDisk(options.ValidationSet, options.LabelColumnName, options.InputColumns[0],
                     imageProcessor, _inputTensorName, _bottleneckTensor.name, options.ValidationSetBottleneckCachedValuesFilePath,
                     ImageClassificationMetrics.Dataset.Validation, options.MetricsCallback);
 
@@ -181,11 +180,10 @@ namespace Microsoft.ML.Transforms
 
         private void CheckTrainingParameters(ImageClassificationEstimator.Options options)
         {
-            Host.CheckNonWhiteSpace(options.LabelColumn, nameof(options.LabelColumn));
-            Host.CheckNonWhiteSpace(options.TensorFlowLabel, nameof(options.TensorFlowLabel));
+            Host.CheckNonWhiteSpace(options.LabelColumnName, nameof(options.LabelColumnName));
 
             if (_session.graph.OperationByName(_labelTensor.name.Split(':')[0]) == null)
-                throw Host.ExceptParam(nameof(options.TensorFlowLabel), $"'{options.TensorFlowLabel}' does not exist in the model");
+                throw Host.ExceptParam(nameof(_labelTensor.name), $"'{_labelTensor.name}' does not exist in the model");
             if (options.EarlyStoppingCriteria != null && options.ValidationSet == null && options.TestOnTrainSet == false)
                 throw Host.ExceptParam(nameof(options.EarlyStoppingCriteria), $"Early stopping enabled but unable to find a validation" +
                     $" set and/or train set testing disabled. Please disable early stopping or either provide a validation set or enable train set training.");
@@ -577,13 +575,13 @@ namespace Microsoft.ML.Transforms
 
         private (Session, Tensor, Tensor, Tensor) BuildEvaluationSession(ImageClassificationEstimator.Options options, int classCount)
         {
-            var evalGraph = DnnUtils.LoadMetaGraph(options.ModelLocation);
+            var evalGraph = DnnUtils.LoadMetaGraph(ModelLocation[options.Arch]);
             var evalSess = tf.Session(graph: evalGraph);
             Tensor evaluationStep = null;
             Tensor prediction = null;
             Tensor bottleneckTensor = evalGraph.OperationByName(_bottleneckOperationName);
             evalGraph.as_default();
-            var (_, _, groundTruthInput, finalTensor) = AddFinalRetrainOps(classCount, options.LabelColumn,
+            var (_, _, groundTruthInput, finalTensor) = AddFinalRetrainOps(classCount, options.LabelColumnName,
                     options.ScoreColumnName, options.LearningRate, bottleneckTensor, false);
 
                 tf.train.Saver().restore(evalSess, _checkpointPath);
@@ -775,7 +773,7 @@ namespace Microsoft.ML.Transforms
         }
 
         internal ImageClassificationTransformer(IHostEnvironment env, Session session, string[] outputColumnNames,
-            string[] inputColumnNames, string modelLocation,
+            string[] inputColumnNames,
             bool? addBatchDimensionInput, int batchSize, string labelColumnName, string finalModelPrefix, Architecture arch,
             string scoreColumnName, string predictedLabelColumnName, float learningRate, DataViewSchema inputSchema, int? classCount = null, bool loadModel = false,
             string predictionTensorName = null, string softMaxTensorName = null, string jpegDataTensorName = null, string resizeTensorName = null, string[] labelAnnotations = null)
@@ -815,7 +813,7 @@ namespace Microsoft.ML.Transforms
             else
                 _classCount = classCount.Value;
 
-            _checkpointPath = Path.Combine(Directory.GetCurrentDirectory(), finalModelPrefix + modelLocation);
+            _checkpointPath = Path.Combine(Directory.GetCurrentDirectory(), finalModelPrefix + ModelLocation[arch]);
 
             // Configure bottleneck tensor based on the model.
             if (arch == ImageClassificationEstimator.Architecture.ResnetV2101)
@@ -1341,37 +1339,31 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// The options for the <see cref="ImageClassificationTransformer"/>.
         /// </summary>
-        internal sealed class Options : TransformInputBase
+        public sealed class Options
         {
-            /// <summary>
-            /// Location of the TensorFlow model.
-            /// </summary>
-            [Argument(ArgumentType.Required, HelpText = "TensorFlow model used by the transform. Please see https://www.tensorflow.org/mobile/prepare_models for more details.", SortOrder = 0)]
-            public string ModelLocation;
-
             /// <summary>
             /// The names of the model inputs.
             /// </summary>
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The names of the model inputs", ShortName = "inputs", SortOrder = 1)]
-            public string[] InputColumns;
+            [Argument(ArgumentType.Multiple , HelpText = "The names of the model inputs", ShortName = "inputs", SortOrder = 1)]
+            internal string[] InputColumns;
 
             /// <summary>
             /// The names of the requested model outputs.
             /// </summary>
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The name of the outputs", ShortName = "outputs", SortOrder = 2)]
-            public string[] OutputColumns;
+            [Argument(ArgumentType.Multiple , HelpText = "The name of the outputs", ShortName = "outputs", SortOrder = 2)]
+            internal string[] OutputColumns;
+
+            /// <summary>
+            /// The names of the model input features.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce | ArgumentType.Required, HelpText = "The names of the model inputs", ShortName = "features", SortOrder = 1)]
+            public string FeaturesColumnName;
 
             /// <summary>
             /// The name of the label column in <see cref="IDataView"/> that will be mapped to label node in TensorFlow model.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Training labels.", ShortName = "label", SortOrder = 4)]
-            public string LabelColumn;
-
-            /// <summary>
-            /// The name of the label in TensorFlow model.
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "TensorFlow label node.", ShortName = "TFLabel", SortOrder = 5)]
-            public string TensorFlowLabel;
+            [Argument(ArgumentType.AtMostOnce | ArgumentType.Required, HelpText = "Training labels.", ShortName = "label", SortOrder = 4)]
+            public string LabelColumnName;
 
             /// <summary>
             /// Number of samples to use for mini-batch training.
@@ -1383,7 +1375,7 @@ namespace Microsoft.ML.Transforms
             /// Number of training iterations.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of training iterations.", SortOrder = 10)]
-            public int Epoch = 5;
+            public int Epoch = 100;
 
             /// <summary>
             /// Learning rate to use during optimization.
@@ -1392,9 +1384,15 @@ namespace Microsoft.ML.Transforms
             public float LearningRate = 0.01f;
 
             /// <summary>
-            /// Early Stopping technique to stop training when accuracy stops improving.
+            /// Whether to disable use of early stopping technique. Training will go on for the full epoch count.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Early Stopping technique to stop training when accuracy stops improving.", SortOrder = 15)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to disable use of early stopping technique. Training will go on for the full epoch count.", SortOrder = 15)]
+            public bool DisableEarlyStopping = false;
+
+            /// <summary>
+            /// Early stopping technique parameters to be used to terminate training when training metric stops improving.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Early stopping technique parameters to be used to terminate training when training metric stops improving.", SortOrder = 15)]
             public EarlyStopping EarlyStoppingCriteria;
 
             /// <summary>
@@ -1407,7 +1405,7 @@ namespace Microsoft.ML.Transforms
             /// Name of the tensor that will contain the output scores of the last layer when transfer learning is done.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Softmax tensor of the last layer in transfer learning.", SortOrder = 15)]
-            public string ScoreColumnName = "Scores";
+            public string ScoreColumnName = "Score";
 
             /// <summary>
             /// Name of the tensor that will contain the predicted label from output scores of the last layer when transfer learning is done.
@@ -1428,40 +1426,22 @@ namespace Microsoft.ML.Transforms
             public ImageClassificationMetricsCallback MetricsCallback = null;
 
             /// <summary>
-            /// Frequency of epochs at which statistics on training phase should be reported.
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Frequency of epochs at which statistics on training/validation phase should be reported.", SortOrder = 15)]
-            public int StatisticsFrequency = 1;
-
-            /// <summary>
-            /// Indicates the choice DNN training framework. Currently only TensorFlow is supported.
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the choice DNN training framework. Currently only TensorFlow is supported.", SortOrder = 15)]
-            public DnnFramework Framework = DnnFramework.Tensorflow;
-
-            /// <summary>
-            /// Indicates the path where the newly retrained model should be saved.
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the path where the newly retrained model should be saved.", SortOrder = 15)]
-            public string ModelSavePath = null;
-
-            /// <summary>
             /// Indicates to evaluate the model on train set after every epoch.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates to evaluate the model on train set after every epoch.", SortOrder = 15)]
-            public bool TestOnTrainSet;
+            public bool TestOnTrainSet = true;
 
             /// <summary>
             /// Indicates to not re-compute cached bottleneck trainset values if already available in the bin folder.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates to not re-compute trained cached bottleneck values if already available in the bin folder.", SortOrder = 15)]
-            public bool ReuseTrainSetBottleneckCachedValues;
+            public bool ReuseTrainSetBottleneckCachedValues = false;
 
             /// <summary>
             /// Indicates to not re-compute cached bottleneck validationset values if already available in the bin folder.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates to not re-compute validataionset cached bottleneck validationset values if already available in the bin folder.", SortOrder = 15)]
-            public bool ReuseValidationSetBottleneckCachedValues;
+            public bool ReuseValidationSetBottleneckCachedValues = false;
 
             /// <summary>
             /// Validation set.
@@ -1473,13 +1453,13 @@ namespace Microsoft.ML.Transforms
             /// Indicates the file path to store trainset bottleneck values for caching.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the file path to store trainset bottleneck values for caching.", SortOrder = 15)]
-            public string TrainSetBottleneckCachedValuesFilePath;
+            public string TrainSetBottleneckCachedValuesFilePath = "trainSetBottleneckFile.csv";
 
             /// <summary>
             /// Indicates the file path to store validationset bottleneck values for caching.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the file path to store validationset bottleneck values for caching.", SortOrder = 15)]
-            public string ValidationSetBottleneckCachedValuesFilePath;
+            public string ValidationSetBottleneckCachedValuesFilePath = "validationSetBottleneckFile.csv";
         }
 
         private readonly IHost _host;
@@ -1494,12 +1474,13 @@ namespace Microsoft.ML.Transforms
             _options = options;
             _dnnModel = dnnModel;
             _inputTypes = new[] { new VectorDataViewType(NumberDataViewType.Byte) };
+            options.InputColumns = new[] { options.FeaturesColumnName };
+            options.OutputColumns = new[] { options.ScoreColumnName, options.PredictedLabelColumnName };
         }
 
         private static Options CreateArguments(DnnModel tensorFlowModel, string[] outputColumnNames, string[] inputColumnName, bool addBatchDimensionInput)
         {
             var options = new Options();
-            options.ModelLocation = tensorFlowModel.ModelPath;
             options.InputColumns = inputColumnName;
             options.OutputColumns = outputColumnNames;
             return options;
