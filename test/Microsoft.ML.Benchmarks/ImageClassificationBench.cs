@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.IO;
 using System.IO.Compression;
 using System.Collections.Generic;
@@ -10,6 +14,8 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 using BenchmarkDotNet.Attributes;
 using static Microsoft.ML.DataOperationsCatalog;
+using System.Net.Http;
+using System.Diagnostics;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -80,7 +86,6 @@ namespace Microsoft.ML.Benchmarks
                 epoch: 50,
                 batchSize: 10,
                 learningRate: 0.01f,
-                metricsCallback: (metrics) => Console.WriteLine(metrics),
                 modelSavePath: assetsPath,
                 validationSet: testDataset,
                 disableEarlyStopping: true)
@@ -151,29 +156,39 @@ namespace Microsoft.ML.Benchmarks
             if (destFileName == null)
                 destFileName = url.Split(Path.DirectorySeparatorChar).Last();
 
-            Directory.CreateDirectory(destDir);
-
             string relativeFilePath = Path.Combine(destDir, destFileName);
 
-            if (File.Exists(relativeFilePath))
-            {
-                Console.WriteLine($"{relativeFilePath} already exists.");
-                return false;
-            }
 
-            var wc = new WebClient();
-            Console.WriteLine($"Downloading {relativeFilePath}");
-            var download = Task.Run(() => wc.DownloadFile(url, relativeFilePath));
-            while (!download.IsCompleted)
+            using (HttpClient client = new HttpClient())
             {
-                Thread.Sleep(1000);
-                Console.Write(".");
-            }
-            Console.WriteLine("");
-            Console.WriteLine($"Downloaded {relativeFilePath}");
+                if (File.Exists(relativeFilePath))
+                {
+                    var headerResponse = client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead).Result;
+                    var totalSizeInBytes = headerResponse.Content.Headers.ContentLength;
+                    var currentSize = new FileInfo(relativeFilePath).Length;
 
+                    //If current file size is not equal to expected file size, re-download file
+                    if (currentSize != totalSizeInBytes)
+                    {
+                        File.Delete(relativeFilePath);
+                        var response = client.GetAsync(url).Result;
+                        using FileStream fileStream = new FileStream(relativeFilePath, FileMode.Create, FileAccess.Write, FileShare.None);
+                        using Stream contentStream = response.Content.ReadAsStreamAsync().Result;
+                        contentStream.CopyTo(fileStream);
+                    }
+                }
+                else
+                {
+                    Directory.CreateDirectory(destDir);
+                    var response = client.GetAsync(url).Result;
+                    using FileStream fileStream = new FileStream(relativeFilePath, FileMode.Create, FileAccess.Write, FileShare.None);
+                    using Stream contentStream = response.Content.ReadAsStreamAsync().Result;
+                    contentStream.CopyTo(fileStream);
+                }
+            }
             return true;
         }
+
 
         public static void UnZip(String gzArchiveName, String destFolder)
         {
@@ -184,17 +199,7 @@ namespace Microsoft.ML.Benchmarks
 
             if (File.Exists(Path.Combine(destFolder, flag))) return;
 
-            Console.WriteLine($"Extracting.");
-            var task = Task.Run(() =>
-            {
-                ZipFile.ExtractToDirectory(gzArchiveName, destFolder);
-            });
-
-            while (!task.IsCompleted)
-            {
-                Thread.Sleep(200);
-                Console.Write(".");
-            }
+            ZipFile.ExtractToDirectory(gzArchiveName, destFolder);
 
             File.Create(Path.Combine(destFolder, flag));
             Console.WriteLine("");
@@ -222,5 +227,36 @@ namespace Microsoft.ML.Benchmarks
             public string Label;
         }
 
+    }
+    public static class HttpContentExtensions
+    {
+        public static Task ReadAsFileAsync(this HttpContent content, string filename, bool overwrite)
+        {
+            string pathname = Path.GetFullPath(filename);
+            if (!overwrite && File.Exists(filename))
+            {
+                throw new InvalidOperationException(string.Format("File {0} already exists.", pathname));
+            }
+
+            FileStream fileStream = null;
+            try
+            {
+                fileStream = new FileStream(pathname, FileMode.Create, FileAccess.Write, FileShare.None);
+                return content.CopyToAsync(fileStream).ContinueWith(
+                    (copyTask) =>
+                    {
+                        fileStream.Close();
+                    });
+            }
+            catch
+            {
+                if (fileStream != null)
+                {
+                    fileStream.Close();
+                }
+
+                throw;
+            }
+        }
     }
 }
