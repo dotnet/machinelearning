@@ -29,7 +29,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Load the Iris dataset
             var data = mlContext.Data.LoadFromTextFile<Iris>(
-                TestCommon.GetDataPath(TestDatasets.iris.trainFilename, DataDir),
+                TestCommon.GetDataPath(DataDir, TestDatasets.iris.trainFilename),
                 hasHeader: TestDatasets.iris.fileHasHeader,
                 separatorChar: TestDatasets.iris.fileSeparator);
 
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Load the Iris dataset
             var data = mlContext.Data.LoadFromTextFile<Iris>(
-                TestCommon.GetDataPath(TestDatasets.iris.trainFilename, DataDir),
+                TestCommon.GetDataPath(DataDir, TestDatasets.iris.trainFilename),
                 hasHeader: TestDatasets.iris.fileHasHeader,
                 separatorChar: TestDatasets.iris.fileSeparator);
 
@@ -128,7 +128,7 @@ namespace Microsoft.ML.Functional.Tests
             // Concurrency must be 1 to assure that the mapping is done sequentially.
             var mlContext = new MLContext(seed: 1);
 
-            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(TestCommon.GetDataPath(TestDatasets.Sentiment.trainFilename, DataDir),
+            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(TestCommon.GetDataPath(DataDir, TestDatasets.Sentiment.trainFilename),
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 separatorChar: TestDatasets.Sentiment.fileSeparator);
 
@@ -166,7 +166,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Load the Iris dataset.
             var data = mlContext.Data.LoadFromTextFile<Iris>(
-                TestCommon.GetDataPath(TestDatasets.iris.trainFilename, DataDir),
+                TestCommon.GetDataPath(DataDir, TestDatasets.iris.trainFilename),
                 hasHeader: TestDatasets.iris.fileHasHeader,
                 separatorChar: TestDatasets.iris.fileSeparator);
 

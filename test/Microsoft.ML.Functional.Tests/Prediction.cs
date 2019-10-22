@@ -36,7 +36,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(TestCommon.GetDataPath(TestDatasets.Sentiment.trainFilename, DataDir),
+            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(TestCommon.GetDataPath(DataDir, TestDatasets.Sentiment.trainFilename),
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 separatorChar: TestDatasets.Sentiment.fileSeparator);
 

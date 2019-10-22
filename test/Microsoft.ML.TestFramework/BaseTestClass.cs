@@ -88,19 +88,19 @@ namespace Microsoft.ML.TestFramework
 
         protected string GetOutputPath(string name)
         {
-            return TestCommon.GetOutputPath(name, OutDir);
+            return TestCommon.GetOutputPath(OutDir, name);
         }
         protected string GetOutputPath(string subDir, string name)
         {
-            return TestCommon.GetOutputPath(subDir, name, OutDir);
+            return TestCommon.GetOutputPath(OutDir, subDir, name);
         }
         protected string DeleteOutputPath(string subDir, string name)
         {
-            return TestCommon.DeleteOutputPath(subDir, name, OutDir);
+            return TestCommon.DeleteOutputPath(OutDir, subDir, name);
         }
         protected string DeleteOutputPath(string name)
         {
-            return TestCommon.DeleteOutputPath(name, OutDir);
+            return TestCommon.DeleteOutputPath(OutDir, name);
         }
     }
 }

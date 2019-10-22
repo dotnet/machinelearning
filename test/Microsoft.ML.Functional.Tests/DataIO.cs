@@ -118,7 +118,7 @@ namespace Microsoft.ML.Functional.Tests
 
         private string SerializeDatasetToFile(MLContext mlContext, IDataView data, char separator)
         {
-            var filePath = TestCommon.GetOutputPath(Path.GetRandomFileName(), OutDir);
+            var filePath = TestCommon.GetOutputPath(OutDir, Path.GetRandomFileName());
             using (var file = File.Create(filePath))
                 mlContext.Data.SaveAsText(data, file, separatorChar: separator, headerRow: true);
 
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Functional.Tests
 
         private string SerializeDatasetToBinaryFile(MLContext mlContext, IDataView data)
         {
-            var filePath = TestCommon.GetOutputPath(Path.GetRandomFileName(), OutDir);
+            var filePath = TestCommon.GetOutputPath(OutDir, Path.GetRandomFileName());
             using (var file = File.Create(filePath))
                 mlContext.Data.SaveAsBinary(data, file);
 

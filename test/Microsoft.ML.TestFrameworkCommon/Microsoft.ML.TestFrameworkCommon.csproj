@@ -9,14 +9,4 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.PCA\Microsoft.ML.PCA.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <NativeAssemblyReference Include="LdaNative" />
-    <NativeAssemblyReference Include="FastTreeNative" />
-    <NativeAssemblyReference Include="CpuMathNative" />
-    <NativeAssemblyReference Include="MklProxyNative" />
-    <NativeAssemblyReference Include="MatrixFactorizationNative" />
-    <NativeAssemblyReference Include="MklImports" />
-    <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
-  </ItemGroup>
-
 </Project>

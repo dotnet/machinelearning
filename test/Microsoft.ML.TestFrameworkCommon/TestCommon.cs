@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using Microsoft.ML.Data;
 using Xunit;
@@ -12,45 +11,45 @@ namespace Microsoft.ML.TestFrameworkCommon
 {
     public static class TestCommon
     {
-        public static string GetOutputPath(string name, string outDir)
+        public static string GetOutputPath(string outDir, string name)
         {
             if (string.IsNullOrWhiteSpace(name))
                 return null;
             return Path.Combine(outDir, name);
         }
-        public static string GetOutputPath(string subDir, string name, string outDir)
+        public static string GetOutputPath(string outDir, string subDir, string name)
         {
             if (string.IsNullOrWhiteSpace(subDir))
-                return GetOutputPath(name, outDir);
+                return GetOutputPath(outDir, name);
             EnsureOutputDir(subDir, outDir);
             if (string.IsNullOrWhiteSpace(name))
                 return null;
             return Path.Combine(outDir, subDir, name); // REVIEW: put the path in in braces in case the path has spaces
         }
 
-        public static string GetDataPath(string name, string dataDir)
+        public static string GetDataPath(string dataDir, string name)
         {
             if (string.IsNullOrWhiteSpace(name))
                 return null;
             return Path.GetFullPath(Path.Combine(dataDir, name));
         }
-        public static string GetDataPath(string subDir, string name, string dataDir)
+        public static string GetDataPath(string dataDir, string subDir, string name)
         {
             if (string.IsNullOrWhiteSpace(name))
                 return null;
             return Path.GetFullPath(Path.Combine(dataDir, subDir, name));
         }
 
-        public static string DeleteOutputPath(string subDir, string name, string outDir)
+        public static string DeleteOutputPath(string outDir, string subDir, string name)
         {
-            string path = GetOutputPath(subDir, name, outDir);
+            string path = GetOutputPath(outDir, subDir, name);
             if (!string.IsNullOrWhiteSpace(path))
                 File.Delete(path);
             return path;
         }
-        public static string DeleteOutputPath(string name, string outDir)
+        public static string DeleteOutputPath(string outDir, string name)
         {
-            string path = GetOutputPath(name, outDir);
+            string path = GetOutputPath(outDir, name);
             if (!string.IsNullOrWhiteSpace(path))
                 File.Delete(path);
             return path;
