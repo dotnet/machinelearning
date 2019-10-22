@@ -77,8 +77,8 @@ namespace Samples.Dynamic
                         metricsCallback: (metrics) => Console.WriteLine(metrics),
                         validationSet: testDataset,
                         disableEarlyStopping: true,
-                        reuseValidationSetBottleneckCachedValues: true,
-                        reuseTrainSetBottleneckCachedValues: true,
+                        reuseValidationSetBottleneckCachedValues: false,
+                        reuseTrainSetBottleneckCachedValues: false,
                         // Use linear scaling rule and Learning rate decay as an option
                         // This is known to do well for Cifar dataset and Resnet models
                         // You can also try other types of Learning rate scheduling methods
