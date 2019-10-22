@@ -62,7 +62,7 @@ namespace Samples.Dynamic
                 .Fit(testDataset)
                 .Transform(testDataset);
 
-                var options = new DnnCatalog.Options()
+                var options = new ImageClassificationEstimator.Options()
                 {
                     FeaturesColumnName = "Image",
                     LabelColumnName = "Label",

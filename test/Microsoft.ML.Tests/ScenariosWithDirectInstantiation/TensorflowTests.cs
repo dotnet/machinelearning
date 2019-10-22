@@ -1248,7 +1248,7 @@ namespace Microsoft.ML.Scenarios
                     .Fit(testDataset)
                     .Transform(testDataset);
 
-            var options = new DnnCatalog.Options()
+            var options = new ImageClassificationEstimator.Options()
             {
                 FeaturesColumnName = "Image",
                 LabelColumnName = "Label",
@@ -1388,7 +1388,7 @@ namespace Microsoft.ML.Scenarios
                     .Fit(testDataset)
                     .Transform(testDataset);
 
-            var options = new DnnCatalog.Options()
+            var options = new ImageClassificationEstimator.Options()
             {
                 FeaturesColumnName = "Image",
                 LabelColumnName = "Label",
@@ -1482,7 +1482,7 @@ namespace Microsoft.ML.Scenarios
                      .Fit(testDataset)
                      .Transform(testDataset);
 
-            var options = new DnnCatalog.Options()
+            var options = new ImageClassificationEstimator.Options()
             {
                 FeaturesColumnName = "Image",
                 LabelColumnName = "Label",

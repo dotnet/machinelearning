@@ -60,7 +60,7 @@ namespace Samples.Dynamic
                 IDataView trainDataset = trainTestData.TrainSet;
                 IDataView testDataset = trainTestData.TestSet;
 
-                var options = new DnnCatalog.Options()
+                var options = new ImageClassificationEstimator.Options()
                 { 
                     FeaturesColumnName = "Image",
                     LabelColumnName = "Label",
