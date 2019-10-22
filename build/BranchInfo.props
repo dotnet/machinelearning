@@ -1,6 +1,7 @@
 <Project>
   <PropertyGroup>
     <StableProjects>
+      Microsoft.Extensions.ML;
       Microsoft.ML.DataView;
       Microsoft.ML.CpuMath;
       Microsoft.ML;
