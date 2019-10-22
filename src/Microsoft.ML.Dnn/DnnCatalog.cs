@@ -93,9 +93,6 @@ namespace Microsoft.ML
         /// <param name="scoreColumnName">The name of the output score column.</param>
         /// <param name="predictedLabelColumnName">The name of the output predicted label columns.</param>
         /// <param name="validationSet">Validation set.</param>
-        /// <remarks>
-        /// The support for image classification is under preview.
-        /// </remarks>
         public static ImageClassificationEstimator ImageClassification(
             this ModelOperationsCatalog catalog,
             string featuresColumnName,
@@ -128,9 +125,6 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog"></param>
         /// <param name="options">An <see cref="Options"/> object specifying advanced options for <see cref="ImageClassificationEstimator"/>.</param>
-        /// <remarks>
-        /// The support for image classification is under preview.
-        /// </remarks>
         public static ImageClassificationEstimator ImageClassification(
             this ModelOperationsCatalog catalog, Options options)
         {
