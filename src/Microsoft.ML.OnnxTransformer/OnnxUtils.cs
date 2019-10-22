@@ -414,6 +414,7 @@ namespace Microsoft.ML.Transforms.Onnx
                      typeof(UInt32),
                      typeof(UInt64),
                      typeof(ReadOnlyMemory<Char>),
+                     typeof(Boolean)
                 };
         private static Dictionary<Type, InternalDataKind> _typeToKindMap=
             new Dictionary<Type, InternalDataKind>
@@ -447,13 +448,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 var charMemory = (ReadOnlyMemory<Char>)Convert.ChangeType(data, typeof(ReadOnlyMemory<Char>));
                 var stringMemory = new Memory<string>(new string[] { charMemory.ToString() });
                 return NamedOnnxValue.CreateFromTensor<string>(name, new DenseTensor<string>(stringMemory, new int[] { 1, 1 }, false));
-<<<<<<< HEAD
             }
-
-=======
-
-            }
->>>>>>> harishsk/ngramonnx
             return NamedOnnxValue.CreateFromTensor<T>(name, new DenseTensor<T>(new T[] { data }, new int[] { 1, 1 }));
         }
 

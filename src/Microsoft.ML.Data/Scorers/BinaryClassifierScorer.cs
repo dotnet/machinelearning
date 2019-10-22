@@ -207,7 +207,7 @@ namespace Microsoft.ML.Data
                     new[] { ctx.GetVariableName("Cast") }, ctx.GetNodeName(opType));
                 node.AddAttribute("threshold", 0.5);
                 opType = "Cast";
-                node = ctx.CreateNode(opType, new[] { ctx.GetVariableName("Cast") }, new[] { ctx.GetVariableName(outColumnNames[0]) }, ctx.GetNodeName(opType), "");
+                node = ctx.CreateNode(opType, ctx.GetVariableName("Cast"), ctx.GetVariableName(outColumnNames[0]), ctx.GetNodeName(opType), "");
                 node.AddAttribute("to", InternalDataKindExtensions.ToInternalDataKind(DataKind.Boolean).ToType());
             }
         }
