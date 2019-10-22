@@ -85,7 +85,7 @@ namespace Microsoft.ML.Tests.Transformers
             var dataLeft = ML.Transforms.SelectColumns(new[] { "ScalarString", "VectorString" }).Fit(data).Transform(data);
             var dataRight = ML.Transforms.SelectColumns(new[] { "ScalarString", "VectorString" }).Fit(data2Transformed).Transform(data2Transformed);
 
-            CommonUtilities.CheckSameSchemas(dataLeft.Schema, dataRight.Schema);
+            TestCommon.CheckSameSchemas(dataLeft.Schema, dataRight.Schema);
             CheckSameValues(dataLeft, dataRight);
             Done();
         }

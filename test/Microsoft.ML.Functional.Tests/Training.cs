@@ -28,7 +28,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1);
 
             // Get the dataset.
-            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(CommonUtilities.GetDataPath(TestDatasets.Sentiment.trainFilename, DataDir),
+            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(TestCommon.GetDataPath(TestDatasets.Sentiment.trainFilename, DataDir),
                 separatorChar: TestDatasets.Sentiment.fileSeparator,
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 allowQuoting: TestDatasets.Sentiment.allowQuoting);
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1);
 
             // Get the dataset.
-            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(CommonUtilities.GetDataPath(TestDatasets.Sentiment.trainFilename, DataDir),
+            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(TestCommon.GetDataPath(TestDatasets.Sentiment.trainFilename, DataDir),
                 separatorChar: TestDatasets.Sentiment.fileSeparator,
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 allowQuoting: TestDatasets.Sentiment.allowQuoting);
@@ -126,7 +126,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1);
 
             // Get the dataset.
-            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(CommonUtilities.GetDataPath(TestDatasets.Sentiment.trainFilename, DataDir),
+            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(TestCommon.GetDataPath(TestDatasets.Sentiment.trainFilename, DataDir),
                 separatorChar: TestDatasets.Sentiment.fileSeparator,
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 allowQuoting: TestDatasets.Sentiment.allowQuoting);
@@ -170,7 +170,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1);
 
             // Get the dataset.
-            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(CommonUtilities.GetDataPath(TestDatasets.Sentiment.trainFilename, DataDir),
+            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(TestCommon.GetDataPath(TestDatasets.Sentiment.trainFilename, DataDir),
                 separatorChar: TestDatasets.Sentiment.fileSeparator,
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 allowQuoting: TestDatasets.Sentiment.allowQuoting);
@@ -214,7 +214,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1);
 
             // Get the dataset.
-            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(CommonUtilities.GetDataPath(TestDatasets.Sentiment.trainFilename, DataDir),
+            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(TestCommon.GetDataPath(TestDatasets.Sentiment.trainFilename, DataDir),
                 separatorChar: TestDatasets.Sentiment.fileSeparator,
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 allowQuoting: TestDatasets.Sentiment.allowQuoting);
@@ -257,7 +257,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            var data = mlContext.Data.LoadFromTextFile<Iris>(CommonUtilities.GetDataPath(TestDatasets.iris.trainFilename, DataDir),
+            var data = mlContext.Data.LoadFromTextFile<Iris>(TestCommon.GetDataPath(TestDatasets.iris.trainFilename, DataDir),
                 hasHeader: TestDatasets.iris.fileHasHeader,
                 separatorChar: TestDatasets.iris.fileSeparator);
 
@@ -308,7 +308,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1);
 
             // Get the dataset.
-            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(CommonUtilities.GetDataPath(TestDatasets.housing.trainFilename, DataDir),
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(TestCommon.GetDataPath(TestDatasets.housing.trainFilename, DataDir),
                 separatorChar: TestDatasets.housing.fileSeparator,
                 hasHeader: TestDatasets.housing.fileHasHeader);
 
@@ -352,7 +352,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1);
 
             // Get the dataset.
-            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(CommonUtilities.GetDataPath(TestDatasets.housing.trainFilename, DataDir),
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(TestCommon.GetDataPath(TestDatasets.housing.trainFilename, DataDir),
                 separatorChar: TestDatasets.housing.fileSeparator,
                 hasHeader: TestDatasets.housing.fileHasHeader);
 
@@ -396,7 +396,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1);
 
             // Get the dataset.
-            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(CommonUtilities.GetDataPath(TestDatasets.Sentiment.trainFilename, DataDir),
+            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(TestCommon.GetDataPath(TestDatasets.Sentiment.trainFilename, DataDir),
                 separatorChar: TestDatasets.Sentiment.fileSeparator,
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 allowQuoting: TestDatasets.Sentiment.allowQuoting);
@@ -444,7 +444,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            var data = mlContext.Data.LoadFromTextFile<Iris>(CommonUtilities.GetDataPath(TestDatasets.iris.trainFilename, DataDir),
+            var data = mlContext.Data.LoadFromTextFile<Iris>(TestCommon.GetDataPath(TestDatasets.iris.trainFilename, DataDir),
                 hasHeader: TestDatasets.iris.fileHasHeader,
                 separatorChar: TestDatasets.iris.fileSeparator);
 
@@ -475,7 +475,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            var data = mlContext.Data.LoadFromTextFile<Iris>(CommonUtilities.GetDataPath(TestDatasets.iris.trainFilename, DataDir),
+            var data = mlContext.Data.LoadFromTextFile<Iris>(TestCommon.GetDataPath(TestDatasets.iris.trainFilename, DataDir),
                 hasHeader: TestDatasets.iris.fileHasHeader,
                 separatorChar: TestDatasets.iris.fileSeparator);
 

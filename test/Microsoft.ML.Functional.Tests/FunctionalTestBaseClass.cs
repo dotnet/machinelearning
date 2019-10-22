@@ -16,7 +16,7 @@ namespace Microsoft.ML.Functional.Tests
     {
         static FunctionalTestBaseClass()
         {
-            RootDir = CommonUtilities.GetRepoRoot();
+            RootDir = TestCommon.GetRepoRoot();
             DataDir = Path.Combine(RootDir, "test", "data");
         }
 

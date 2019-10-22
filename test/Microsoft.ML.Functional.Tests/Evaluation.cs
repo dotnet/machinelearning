@@ -29,10 +29,10 @@ namespace Microsoft.ML.Functional.Tests
 
             var trainData = MnistOneClass.GetTextLoader(mlContext,
                     TestDatasets.mnistOneClass.fileHasHeader, TestDatasets.mnistOneClass.fileSeparator)
-                .Load(CommonUtilities.GetDataPath(TestDatasets.mnistOneClass.trainFilename, DataDir));
+                .Load(TestCommon.GetDataPath(TestDatasets.mnistOneClass.trainFilename, DataDir));
             var testData = MnistOneClass.GetTextLoader(mlContext,
                     TestDatasets.mnistOneClass.fileHasHeader, TestDatasets.mnistOneClass.fileSeparator)
-                .Load(CommonUtilities.GetDataPath(TestDatasets.mnistOneClass.testFilename, DataDir));
+                .Load(TestCommon.GetDataPath(TestDatasets.mnistOneClass.testFilename, DataDir));
 
             // Create a training pipeline.
             var pipeline = mlContext.AnomalyDetection.Trainers.RandomizedPca();
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(CommonUtilities.GetDataPath(TestDatasets.Sentiment.trainFilename, DataDir),
+            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(TestCommon.GetDataPath(TestDatasets.Sentiment.trainFilename, DataDir),
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 separatorChar: TestDatasets.Sentiment.fileSeparator);
 
@@ -86,7 +86,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(CommonUtilities.GetDataPath(TestDatasets.Sentiment.trainFilename, DataDir),
+            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(TestCommon.GetDataPath(TestDatasets.Sentiment.trainFilename, DataDir),
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 separatorChar: TestDatasets.Sentiment.fileSeparator);
 
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            var data = mlContext.Data.LoadFromTextFile<Iris>(CommonUtilities.GetDataPath(TestDatasets.iris.trainFilename, DataDir),
+            var data = mlContext.Data.LoadFromTextFile<Iris>(TestCommon.GetDataPath(TestDatasets.iris.trainFilename, DataDir),
                 hasHeader: TestDatasets.iris.fileHasHeader,
                 separatorChar: TestDatasets.iris.fileSeparator);
 
@@ -143,7 +143,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            var data = mlContext.Data.LoadFromTextFile<Iris>(CommonUtilities.GetDataPath(TestDatasets.iris.trainFilename, DataDir),
+            var data = mlContext.Data.LoadFromTextFile<Iris>(TestCommon.GetDataPath(TestDatasets.iris.trainFilename, DataDir),
                 hasHeader: TestDatasets.iris.fileHasHeader,
                 separatorChar: TestDatasets.iris.fileSeparator);
 
@@ -168,7 +168,7 @@ namespace Microsoft.ML.Functional.Tests
         private IDataView GetScoredDataForRankingEvaluation(MLContext mlContext)
         {
             var data = Iris.LoadAsRankingProblem(mlContext,
-                CommonUtilities.GetDataPath(TestDatasets.iris.trainFilename, DataDir),
+                TestCommon.GetDataPath(TestDatasets.iris.trainFilename, DataDir),
                 hasHeader: TestDatasets.iris.fileHasHeader,
                 separatorChar: TestDatasets.iris.fileSeparator);
 
@@ -229,7 +229,7 @@ namespace Microsoft.ML.Functional.Tests
             // Get the dataset.
             var data = TrivialMatrixFactorization.LoadAndFeaturizeFromTextFile(
                 mlContext,
-                CommonUtilities.GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename, DataDir),
+                TestCommon.GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename, DataDir),
                 TestDatasets.trivialMatrixFactorization.fileHasHeader,
                 TestDatasets.trivialMatrixFactorization.fileSeparator);
 
@@ -264,7 +264,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1);
 
             // Get the dataset
-            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(CommonUtilities.GetDataPath(TestDatasets.housing.trainFilename, DataDir), hasHeader: true);
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(TestCommon.GetDataPath(TestDatasets.housing.trainFilename, DataDir), hasHeader: true);
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
                 .Append(mlContext.Regression.Trainers.FastForest(new FastForestRegressionTrainer.Options { NumberOfThreads = 1 }));
@@ -291,7 +291,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(CommonUtilities.GetDataPath(TestDatasets.Sentiment.trainFilename, DataDir),
+            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(TestCommon.GetDataPath(TestDatasets.Sentiment.trainFilename, DataDir),
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 separatorChar: TestDatasets.Sentiment.fileSeparator);
 

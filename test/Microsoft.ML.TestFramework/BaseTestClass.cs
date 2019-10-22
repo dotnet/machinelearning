@@ -21,7 +21,7 @@ namespace Microsoft.ML.TestFramework
         static BaseTestClass()
         {
             GlobalBase.AssemblyInit();
-            RootDir = CommonUtilities.GetRepoRoot();
+            RootDir = TestCommon.GetRepoRoot();
             DataDir = Path.Combine(RootDir, "test", "data");
         }
 
@@ -88,19 +88,19 @@ namespace Microsoft.ML.TestFramework
 
         protected string GetOutputPath(string name)
         {
-            return CommonUtilities.GetOutputPath(name, OutDir);
+            return TestCommon.GetOutputPath(name, OutDir);
         }
         protected string GetOutputPath(string subDir, string name)
         {
-            return CommonUtilities.GetOutputPath(subDir, name, OutDir);
+            return TestCommon.GetOutputPath(subDir, name, OutDir);
         }
         protected string DeleteOutputPath(string subDir, string name)
         {
-            return CommonUtilities.DeleteOutputPath(subDir, name, OutDir);
+            return TestCommon.DeleteOutputPath(subDir, name, OutDir);
         }
         protected string DeleteOutputPath(string name)
         {
-            return CommonUtilities.DeleteOutputPath(name, OutDir);
+            return TestCommon.DeleteOutputPath(name, OutDir);
         }
     }
 }

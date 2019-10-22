@@ -98,7 +98,7 @@ namespace Microsoft.ML.RunTests
                 {
                     var mapper = transformer.GetRowToRowMapper(data.Schema);
                     Check(mapper.InputSchema == data.Schema, "InputSchemas were not identical to actual input schema");
-                    CommonUtilities.CheckSameSchemas(schema, mapper.OutputSchema);
+                    TestCommon.CheckSameSchemas(schema, mapper.OutputSchema);
                 }
                 else
                 {
@@ -106,21 +106,21 @@ namespace Microsoft.ML.RunTests
                 }
 
                 // Loaded transformer needs to have the same schema propagation.
-                CommonUtilities.CheckSameSchemas(schema, loadedTransformer.GetOutputSchema(data.Schema));
+                TestCommon.CheckSameSchemas(schema, loadedTransformer.GetOutputSchema(data.Schema));
                 // Loaded schema needs to have the same schema as data.
-                CommonUtilities.CheckSameSchemas(data.Schema, loadedInputSchema);
+                TestCommon.CheckSameSchemas(data.Schema, loadedInputSchema);
 
                 var scoredTrain = transformer.Transform(data);
                 var scoredTrain2 = loadedTransformer.Transform(data);
 
                 // The schema of the transformed data must match the schema provided by schema propagation.
-                CommonUtilities.CheckSameSchemas(schema, scoredTrain.Schema);
+                TestCommon.CheckSameSchemas(schema, scoredTrain.Schema);
 
                 // The schema and data of scored dataset must be identical between loaded
                 // and original transformer.
                 // This in turn means that the schema of loaded transformer matches for 
                 // Transform and GetOutputSchema calls.
-                CommonUtilities.CheckSameSchemas(scoredTrain.Schema, scoredTrain2.Schema);
+                TestCommon.CheckSameSchemas(scoredTrain.Schema, scoredTrain2.Schema);
                 CheckSameValues(scoredTrain, scoredTrain2, exactDoubles: false);
             };
 
@@ -200,7 +200,7 @@ namespace Microsoft.ML.RunTests
                 if (!CheckMetadataTypes(reappliedPipe.Schema))
                     Failed();
 
-                if (!CommonUtilities.CheckSameSchemas(pipe1.Schema, reappliedPipe.Schema))
+                if (!TestCommon.CheckSameSchemas(pipe1.Schema, reappliedPipe.Schema))
                     Failed();
                 else if (!CheckSameValues(pipe1, reappliedPipe, checkId: checkId))
                     Failed();
@@ -233,7 +233,7 @@ namespace Microsoft.ML.RunTests
             if (!CheckMetadataTypes(pipe2.Schema))
                 Failed();
 
-            if (!CommonUtilities.CheckSameSchemas(pipe1.Schema, pipe2.Schema))
+            if (!TestCommon.CheckSameSchemas(pipe1.Schema, pipe2.Schema))
                 Failed();
             else if (!CheckSameValues(pipe1, pipe2, checkId: checkId))
                 Failed();
@@ -423,7 +423,7 @@ namespace Microsoft.ML.RunTests
             if (!CheckMetadataTypes(loadedData.Schema))
                 Failed();
 
-            if (!CommonUtilities.CheckSameSchemas(view.Schema, loadedData.Schema, exactTypes: false, keyNames: false))
+            if (!TestCommon.CheckSameSchemas(view.Schema, loadedData.Schema, exactTypes: false, keyNames: false))
                 return Failed();
             if (!CheckSameValues(view, loadedData, exactTypes: false, exactDoubles: false, checkId: false))
                 return Failed();
@@ -556,7 +556,7 @@ namespace Microsoft.ML.RunTests
                 if (!CheckMetadataTypes(loader.Schema))
                     return Failed();
 
-                if (!CommonUtilities.CheckSameSchemas(view.Schema, loader.Schema))
+                if (!TestCommon.CheckSameSchemas(view.Schema, loader.Schema))
                     return Failed();
                 if (!CheckSameValues(view, loader, checkId: false))
                     return Failed();
@@ -607,7 +607,7 @@ namespace Microsoft.ML.RunTests
             if (!CheckMetadataTypes(loader.Schema))
                 return Failed();
 
-            if (!CommonUtilities.CheckSameSchemas(view.Schema, loader.Schema))
+            if (!TestCommon.CheckSameSchemas(view.Schema, loader.Schema))
                 return Failed();
             if (!CheckSameValues(view, loader, checkId: false))
                 return Failed();
@@ -1018,7 +1018,7 @@ namespace Microsoft.ML.RunTests
                 {
                     g1(ref v1);
                     g2(ref v2);
-                    return CommonUtilities.CompareVec<T>(in v1, in v2, size, fn);
+                    return TestCommon.CompareVec<T>(in v1, in v2, size, fn);
                 };
         }
 
@@ -1040,7 +1040,7 @@ namespace Microsoft.ML.RunTests
             VBuffer<T> fvn = default(VBuffer<T>);
             vecGetter(ref fv);
             vecNGetter(ref fvn);
-            Assert.True(CommonUtilities.CompareVec(in fv, in fvn, size, compare));
+            Assert.True(TestCommon.CompareVec(in fv, in fvn, size, compare));
         }
     }
 }

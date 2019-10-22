@@ -42,7 +42,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1);
 
             // Get the dataset.
-            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(CommonUtilities.GetDataPath(TestDatasets.housing.trainFilename, DataDir), hasHeader: true);
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(TestCommon.GetDataPath(TestDatasets.housing.trainFilename, DataDir), hasHeader: true);
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Functional.Tests
             var model = pipeline.Fit(data);
 
             // Save model to a file.
-            var modelPath = CommonUtilities.DeleteOutputPath("determineNugetVersionFromModel.zip", OutDir);
+            var modelPath = TestCommon.DeleteOutputPath("determineNugetVersionFromModel.zip", OutDir);
             mlContext.Model.Save(model, data.Schema, modelPath);
 
             // Check that the version can be extracted from the model.
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1);
 
             // Get the dataset.
-            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(CommonUtilities.GetDataPath(TestDatasets.housing.trainFilename, DataDir), hasHeader: true);
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(TestCommon.GetDataPath(TestDatasets.housing.trainFilename, DataDir), hasHeader: true);
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Functional.Tests
             // Fit the pipeline.
             var model = pipeline.Fit(data);
 
-            var modelPath = CommonUtilities.DeleteOutputPath("fitPipelineSaveModelAndPredict.zip", OutDir);
+            var modelPath = TestCommon.DeleteOutputPath("fitPipelineSaveModelAndPredict.zip", OutDir);
             // Save model to a file.
             mlContext.Model.Save(model, data.Schema, modelPath);
 
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Functional.Tests
             using (var file = File.OpenRead(modelPath))
             {
                 serializedModel = mlContext.Model.Load(file, out var serializedSchema);
-                CommonUtilities.CheckSameSchemas(data.Schema, serializedSchema);
+                TestCommon.CheckSameSchemas(data.Schema, serializedSchema);
             }
             
             // Create prediction engine and test predictions.
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext();
 
-            var file = new MultiFileSource(CommonUtilities.GetDataPath(TestDatasets.adult.trainFilename, DataDir));
+            var file = new MultiFileSource(TestCommon.GetDataPath(TestDatasets.adult.trainFilename, DataDir));
             var loader = mlContext.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
             var data = loader.Load(file);
 
@@ -147,16 +147,16 @@ namespace Microsoft.ML.Functional.Tests
             // Save and reload the "same" model with some differences in structure.
 
             // In this case we are saving the transformer model, but *not* the loader, just the schema from that loader.
-            string modelAndSchemaPath = CommonUtilities.GetOutputPath(FullTestName + "-model-schema.zip", OutDir);
+            string modelAndSchemaPath = TestCommon.GetOutputPath(FullTestName + "-model-schema.zip", OutDir);
             mlContext.Model.Save(transformerModel, data.Schema, modelAndSchemaPath);
 
             // In this case we have combined the loader with the transformer model to form a "composite" loader, and are just
             // saving that one loader to this file.
-            string compositeLoaderModelPath = CommonUtilities.GetOutputPath(FullTestName + "-composite-model.zip", OutDir);
+            string compositeLoaderModelPath = TestCommon.GetOutputPath(FullTestName + "-composite-model.zip", OutDir);
             mlContext.Model.Save(null, compositeLoaderModel, compositeLoaderModelPath);
 
             // In this case we are saving the transformer model, as well as the associated data loader.
-            string loaderAndTransformerModelPath = CommonUtilities.GetOutputPath(FullTestName + "-loader-transformer.zip", OutDir);
+            string loaderAndTransformerModelPath = TestCommon.GetOutputPath(FullTestName + "-loader-transformer.zip", OutDir);
             mlContext.Model.Save(transformerModel, loader, loaderAndTransformerModelPath);
 
             ITransformer loadedTransformerModel;
@@ -175,7 +175,7 @@ namespace Microsoft.ML.Functional.Tests
                 // I'm not sure we should really insist on this as a design requirement.
                 var t1 = mlContext.Model.Load(fs, out var s);
 
-                CommonUtilities.CheckSameSchemas(loadedCompositeLoader.GetOutputSchema(), s);
+                TestCommon.CheckSameSchemas(loadedCompositeLoader.GetOutputSchema(), s);
                 // We combined the GAM with the loader, so the remaining chain should just be empty.
                 Assert.Empty(Assert.IsType<TransformerChain<ITransformer>>(t));
                 Assert.Empty(Assert.IsType<TransformerChain<ITransformer>>(t1));
@@ -185,7 +185,7 @@ namespace Microsoft.ML.Functional.Tests
                 // This model can be loaded either as a composite data loader,
                 // a transformer model + an input schema, or a transformer model + a data loader.
                 var t = mlContext.Model.Load(fs, out var s);
-                CommonUtilities.CheckSameSchemas(loader.GetOutputSchema(), s);
+                TestCommon.CheckSameSchemas(loader.GetOutputSchema(), s);
 
                 loadedTransformerModel1 = mlContext.Model.LoadWithDataLoader(fs, out var l);
             }
@@ -236,7 +236,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext();
             ITransformer trainedModel;
             DataViewSchema dataViewSchema;
-            trainedModel = mlContext.Model.Load(CommonUtilities.GetDataPath("backcompat", "modelwithoptionalcolumntransform.zip", DataDir), out dataViewSchema);
+            trainedModel = mlContext.Model.Load(TestCommon.GetDataPath("backcompat", "modelwithoptionalcolumntransform.zip", DataDir), out dataViewSchema);
             var model = mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(trainedModel, inputSchemaDefinition: inputSchemaDefinition);
             var prediction = model.Predict(new ModelInput() { CategoricalFeatures = new[] { "ABC", "ABC", "ABC", "ABC", "ABC" }, NumericalFeatures = new float [] { 1, 1, 1 } });
 
@@ -248,7 +248,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext();
 
-            var file = new MultiFileSource(CommonUtilities.GetDataPath(TestDatasets.adult.trainFilename, DataDir));
+            var file = new MultiFileSource(TestCommon.GetDataPath(TestDatasets.adult.trainFilename, DataDir));
             var loader = mlContext.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
             var data = loader.Load(file);
 
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Functional.Tests
             var model = pipeline.Fit(data);
 
             // Save and reload.
-            string modelPath = CommonUtilities.GetOutputPath(FullTestName + "-model.zip", OutDir);
+            string modelPath = TestCommon.GetOutputPath(FullTestName + "-model.zip", OutDir);
             mlContext.Model.Save(model, loader, modelPath);
 
             IDataLoader<IMultiStreamSource> loadedLoader;
@@ -273,7 +273,7 @@ namespace Microsoft.ML.Functional.Tests
                 loadedModelWithoutLoader = mlContext.Model.Load(fs, out loadedSchema);
                 Assert.IsAssignableFrom<ISingleFeaturePredictionTransformer<object>>(loadedModelWithoutLoader);
 
-                CommonUtilities.CheckSameSchemas(loadedLoader.GetOutputSchema(), loadedSchema);
+                TestCommon.CheckSameSchemas(loadedLoader.GetOutputSchema(), loadedSchema);
             }
 
             // When using a novel data source other than one derived from the loader, we will not have
@@ -305,7 +305,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext();
 
-            var file = new MultiFileSource(CommonUtilities.GetDataPath(TestDatasets.adult.trainFilename, DataDir));
+            var file = new MultiFileSource(TestCommon.GetDataPath(TestDatasets.adult.trainFilename, DataDir));
             var loader = mlContext.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
             var data = loader.Load(file);
 
@@ -316,7 +316,7 @@ namespace Microsoft.ML.Functional.Tests
             var model = pipeline.Fit(data);
 
             // Save and reload.
-            string modelPath = CommonUtilities.GetOutputPath(FullTestName + "-model.zip", OutDir);
+            string modelPath = TestCommon.GetOutputPath(FullTestName + "-model.zip", OutDir);
             mlContext.Model.Save(model, loader, modelPath);
 
             ITransformer loadedModel;
@@ -338,10 +338,10 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext();
 
-            var file = new MultiFileSource(CommonUtilities.GetDataPath(TestDatasets.adult.trainFilename, DataDir));
+            var file = new MultiFileSource(TestCommon.GetDataPath(TestDatasets.adult.trainFilename, DataDir));
             var loader = mlContext.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
 
-            string modelPath = CommonUtilities.GetOutputPath(FullTestName + "-model.zip", OutDir);
+            string modelPath = TestCommon.GetOutputPath(FullTestName + "-model.zip", OutDir);
             mlContext.Model.Save(null, loader, modelPath);
 
             Load(mlContext, modelPath, out var loadedWithSchema, out var loadedSchema,
@@ -367,12 +367,12 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext();
 
-            var file = new MultiFileSource(CommonUtilities.GetDataPath(TestDatasets.adult.trainFilename, DataDir));
+            var file = new MultiFileSource(TestCommon.GetDataPath(TestDatasets.adult.trainFilename, DataDir));
             var loader = mlContext.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
             var composite = loader.Append(mlContext.Transforms.NormalizeMinMax("Features"));
             var loaderWithEmbeddedModel = composite.Fit(file);
 
-            string modelPath = CommonUtilities.GetOutputPath(FullTestName + "-model.zip", OutDir);
+            string modelPath = TestCommon.GetOutputPath(FullTestName + "-model.zip", OutDir);
             mlContext.Model.Save(null, loaderWithEmbeddedModel, modelPath);
 
             Load(mlContext, modelPath, out var loadedWithSchema, out var loadedSchema,
@@ -389,9 +389,9 @@ namespace Microsoft.ML.Functional.Tests
             Assert.NotNull(expectedSchema.GetColumnOrNull("Features"));
             Assert.True(expectedSchema["Features"].HasSlotNames());
 
-            CommonUtilities.CheckSameSchemas(loaderWithEmbeddedModel.GetOutputSchema(), loadedSchema);
+            TestCommon.CheckSameSchemas(loaderWithEmbeddedModel.GetOutputSchema(), loadedSchema);
             var schemaFromLoadedLoader = loadedLoaderWithTransformer.GetOutputSchema();
-            CommonUtilities.CheckSameSchemas(loaderWithEmbeddedModel.GetOutputSchema(), schemaFromLoadedLoader);
+            TestCommon.CheckSameSchemas(loaderWithEmbeddedModel.GetOutputSchema(), schemaFromLoadedLoader);
 
             // The type of the loader itself should be a composite data loader, and its single transformer
             // should be the normalizing transformer.
@@ -405,7 +405,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext();
 
-            var file = new MultiFileSource(CommonUtilities.GetDataPath(TestDatasets.adult.trainFilename, DataDir));
+            var file = new MultiFileSource(TestCommon.GetDataPath(TestDatasets.adult.trainFilename, DataDir));
             var loader = mlContext.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
             var estimator = mlContext.Transforms.NormalizeMinMax("Features");
             var data = loader.Load(file);
@@ -418,7 +418,7 @@ namespace Microsoft.ML.Functional.Tests
             Assert.NotNull(expectedInputSchema.GetColumnOrNull("Features"));
             Assert.True(expectedInputSchema["Features"].HasSlotNames());
 
-            string modelPath = CommonUtilities.GetOutputPath(FullTestName + "-model.zip", OutDir);
+            string modelPath = TestCommon.GetOutputPath(FullTestName + "-model.zip", OutDir);
             mlContext.Model.Save(model, loader, modelPath);
 
             // Reload the loader and schema.
@@ -428,9 +428,9 @@ namespace Microsoft.ML.Functional.Tests
             Assert.IsType<NormalizingTransformer>(loadedWithLoader);
             Assert.IsType<TextLoader>(loadedLoaderWithTransformer);
 
-            CommonUtilities.CheckSameSchemas(expectedInputSchema, loadedInputSchema);
+            TestCommon.CheckSameSchemas(expectedInputSchema, loadedInputSchema);
             var reloadedLoaderInputSchema = loadedLoaderWithTransformer.GetOutputSchema();
-            CommonUtilities.CheckSameSchemas(expectedInputSchema, reloadedLoaderInputSchema);
+            TestCommon.CheckSameSchemas(expectedInputSchema, reloadedLoaderInputSchema);
         }
 
         [Fact]
@@ -438,12 +438,12 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext();
 
-            var file = new MultiFileSource(CommonUtilities.GetDataPath(TestDatasets.adult.trainFilename, DataDir));
+            var file = new MultiFileSource(TestCommon.GetDataPath(TestDatasets.adult.trainFilename, DataDir));
             var loader = mlContext.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
             var estimator = mlContext.Transforms.NormalizeMinMax("Features");
             var model = estimator.Fit(loader.Load(file));
 
-            string modelPath = CommonUtilities.GetOutputPath(FullTestName + "-model.zip", OutDir);
+            string modelPath = TestCommon.GetOutputPath(FullTestName + "-model.zip", OutDir);
             mlContext.Model.Save(model, loader.GetOutputSchema(), modelPath);
 
             Load(mlContext, modelPath, out var loadedWithSchema, out var loadedSchema,

@@ -273,7 +273,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.AutoML.Samples
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Samples.GPU", "docs\samples\Microsoft.ML.Samples.GPU\Microsoft.ML.Samples.GPU.csproj", "{3C8F910B-7F23-4D25-B521-6D5AC9570ADD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.ML.TestFrameworkCommon", "test\Microsoft.ML.TestFrameworkCommon\Microsoft.ML.TestFrameworkCommon.csproj", "{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.TestFrameworkCommon", "test\Microsoft.ML.TestFrameworkCommon\Microsoft.ML.TestFrameworkCommon.csproj", "{6EA76538-5B49-4B8B-8695-E9F59AA6ECEB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

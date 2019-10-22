@@ -29,7 +29,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void SchemaDefinitionForPredictionEngine()
         {
-            var fileName = CommonUtilities.GetDataPath(TestDatasets.adult.trainFilename, DataDir);
+            var fileName = TestCommon.GetDataPath(TestDatasets.adult.trainFilename, DataDir);
             var loader = _ml.Data.CreateTextLoader(new TextLoader.Options(), new MultiFileSource(fileName));
             var data = loader.Load(new MultiFileSource(fileName));
             var pipeline1 = _ml.Transforms.Categorical.OneHotEncoding("Cat", "Workclass", maximumNumberOfKeys: 3)
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void SchemaDefinitionForCustomMapping()
         {
-            var fileName = CommonUtilities.GetDataPath(TestDatasets.adult.trainFilename, DataDir);
+            var fileName = TestCommon.GetDataPath(TestDatasets.adult.trainFilename, DataDir);
             var data = new MultiFileSource(fileName);
             var loader = _ml.Data.CreateTextLoader(new TextLoader.Options(), new MultiFileSource(fileName));
             var pipeline = _ml.Transforms.Categorical.OneHotEncoding("Categories")

@@ -76,7 +76,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 {
                     g1(ref v1);
                     g2(ref v2);
-                    return CommonUtilities.CompareVec<T>(in v1, in v2, size, fn);
+                    return TestCommon.CompareVec<T>(in v1, in v2, size, fn);
                 };
         }
 
@@ -257,7 +257,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 {
                     var type1 = curs1.Schema[col].Type;
                     var type2 = curs2.Schema[col].Type;
-                    if (!CommonUtilities.EqualTypes(type1, type2, exactTypes))
+                    if (!TestCommon.EqualTypes(type1, type2, exactTypes))
                     {
                         Fail($"Different types {type1} and {type2}");
                         return Failed();
@@ -346,7 +346,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                     Contracts.Assert(cursors[col] != null);
                     var type1 = curs1.Schema[col].Type;
                     var type2 = cursors[col].Schema[col].Type;
-                    if (!CommonUtilities.EqualTypes(type1, type2, exactTypes))
+                    if (!TestCommon.EqualTypes(type1, type2, exactTypes))
                     {
                         Fail("Different types");
                         return Failed();

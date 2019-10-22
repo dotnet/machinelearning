@@ -147,7 +147,7 @@ namespace Microsoft.ML.Tests
             var type2 = result.Schema[copyIndex].Type;
             result.Schema[termIndex].GetKeyValues(ref names1);
             result.Schema[copyIndex].GetKeyValues(ref names2);
-            Assert.True(CommonUtilities.CompareVec(in names1, in names2, size, (a, b) => a.Span.SequenceEqual(b.Span)));
+            Assert.True(TestCommon.CompareVec(in names1, in names2, size, (a, b) => a.Span.SequenceEqual(b.Span)));
         }
 
         [Fact]

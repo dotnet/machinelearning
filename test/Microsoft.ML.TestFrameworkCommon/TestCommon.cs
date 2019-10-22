@@ -6,10 +6,11 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using Microsoft.ML.Data;
+using Xunit;
 
 namespace Microsoft.ML.TestFrameworkCommon
 {
-    public static class CommonUtilities
+    public static class TestCommon
     {
         public static string GetOutputPath(string name, string outDir)
         {
@@ -77,57 +78,41 @@ namespace Microsoft.ML.TestFrameworkCommon
 
         public static bool CheckSameSchemas(DataViewSchema sch1, DataViewSchema sch2, bool exactTypes = true, bool keyNames = true)
         {
-            if (sch1.Count != sch2.Count)
-            {
-                Fail("column count mismatch: {0} vs {1}", sch1.Count, sch2.Count);
-                return Failed();
-            }
+            Assert.True(sch1.Count == sch2.Count, $"column count mismatch: {sch1.Count} vs {sch2.Count}");
 
             for (int col = 0; col < sch1.Count; col++)
             {
                 string name1 = sch1[col].Name;
                 string name2 = sch2[col].Name;
-                if (name1 != name2)
-                {
-                    Fail("column name mismatch at index {0}: {1} vs {2}", col, name1, name2);
-                    return Failed();
-                }
+                Assert.True(name1 == name2, $"column name mismatch at index {col}: {name1} vs {name2}");
+
                 var type1 = sch1[col].Type;
                 var type2 = sch2[col].Type;
-                if (!EqualTypes(type1, type2, exactTypes))
-                {
-                    Fail("column type mismatch at index {0}", col);
-                    return Failed();
-                }
+                Assert.True(EqualTypes(type1, type2, exactTypes), $"column type mismatch at index {col}");
 
                 // This ensures that the two schemas map names to the same column indices.
                 int col1, col2;
                 bool f1 = sch1.TryGetColumnIndex(name1, out col1);
                 bool f2 = sch2.TryGetColumnIndex(name2, out col2);
-                if (!Check(f1, "TryGetColumnIndex unexpectedly failed"))
-                    return Failed();
-                if (!Check(f2, "TryGetColumnIndex unexpectedly failed"))
-                    return Failed();
-                if (col1 != col2)
-                {
-                    Fail("TryGetColumnIndex on '{0}' produced different results: '{1}' vs '{2}'", name1, col1, col2);
-                    return Failed();
-                }
+
+                Assert.True(f1, "TryGetColumnIndex unexpectedly failed");
+                Assert.True(f2, "TryGetColumnIndex unexpectedly failed");
+                Assert.True(col1 == col2, $"TryGetColumnIndex on '{name1}' produced different results: '{col1}' vs '{col2}'");
 
                 // This checks that an unknown metadata kind does the right thing.
                 if (!CheckMetadataNames("PurpleDragonScales", 0, sch1, sch2, col, exactTypes, true))
-                    return Failed();
+                    return false;
 
                 ulong vsize = type1 is VectorDataViewType vectorType ? (ulong)vectorType.Size : 0;
                 if (!CheckMetadataNames("SlotNames", vsize, sch1, sch2, col, exactTypes, true))
-                    return Failed();
+                    return false;
 
                 if (!keyNames)
                     continue;
 
                 ulong ksize = type1.GetItemType() is KeyDataViewType keyType ? keyType.Count : 0;
                 if (!CheckMetadataNames("KeyValues", ksize, sch1, sch2, col, exactTypes, false))
-                    return Failed();
+                    return false;
             }
 
             return true;
@@ -140,9 +125,9 @@ namespace Microsoft.ML.TestFrameworkCommon
 
         public static bool CompareVec<T>(in VBuffer<T> v1, in VBuffer<T> v2, int size, Func<int, T, T, bool> fn)
         {
-            Assert(size == 0 || v1.Length == size);
-            Assert(size == 0 || v2.Length == size);
-            Assert(v1.Length == v2.Length);
+            Assert.True(size == 0 || v1.Length == size);
+            Assert.True(size == 0 || v2.Length == size);
+            Assert.True(v1.Length == v2.Length);
 
             var v1Values = v1.GetValues();
             var v2Values = v2.GetValues();
@@ -159,7 +144,7 @@ namespace Microsoft.ML.TestFrameworkCommon
                 return true;
             }
 
-            Assert(!v1.IsDense || !v2.IsDense);
+            Assert.True(!v1.IsDense || !v2.IsDense);
             int iiv1 = 0;
             int iiv2 = 0;
             var v1Indices = v1.GetIndices();
@@ -201,58 +186,10 @@ namespace Microsoft.ML.TestFrameworkCommon
 
         public static bool EqualTypes(DataViewType type1, DataViewType type2, bool exactTypes)
         {
-            AssertValue(type1);
-            AssertValue(type2);
+            Assert.NotNull(type1);
+            Assert.NotNull(type2);
 
             return exactTypes ? type1.Equals(type2) : type1.SameSizeAndItemType(type2);
-        }
-
-        private static void Fail(string fmt, params object[] args)
-        {
-            Fail(false, fmt, args);
-        }
-
-        private static void Fail(bool relax, string fmt, params object[] args)
-        {
-            Log("*** Failure: " + fmt, args);
-        }
-
-        private static bool Failed()
-        {
-            return false;
-        }
-
-        private static void Log(string message, params object[] args)
-        {
-            Console.WriteLine(message, args);
-        }
-
-        private static bool Check(bool f, string msg)
-        {
-            if (!f)
-                Fail(msg);
-            return f;
-        }
-
-        [Conditional("DEBUG")]
-        private static void AssertValue<T>(T val) where T : class
-        {
-            if (ReferenceEquals(val, null))
-                Debug.Fail("Non - null assertion failure");
-        }
-
-        [Conditional("DEBUG")]
-        private static void Assert(bool f)
-        {
-            if (!f)
-                Debug.Fail("Assertion Failed");
-        }
-
-        [Conditional("DEBUG")]
-        public static void Assert(bool f, string message)
-        {
-            if (!f)
-                Debug.Fail(message);
         }
 
         /// <summary>
@@ -288,50 +225,33 @@ namespace Microsoft.ML.TestFrameworkCommon
 
             var t1 = sch1[col].Annotations.Schema.GetColumnOrNull(kind)?.Type;
             var t2 = sch2[col].Annotations.Schema.GetColumnOrNull(kind)?.Type;
-            if ((t1 == null) != (t2 == null))
-            {
-                Fail("Different null-ness of {0} metadata types", kind);
-                return Failed();
-            }
+            Assert.False((t1 == null) != (t2 == null), $"Different null-ness of {kind} metadata types");
+
             if (t1 == null)
             {
-                if (!CheckMetadataCallFailure(kind, sch1, col, ref names1))
-                    return Failed();
-                if (!CheckMetadataCallFailure(kind, sch2, col, ref names2))
-                    return Failed();
+                Assert.True(CheckMetadataCallFailure(kind, sch1, col, ref names1));
+                Assert.True(CheckMetadataCallFailure(kind, sch2, col, ref names2));
+
                 return true;
             }
-            if (size > int.MaxValue)
-                Fail(nameof(KeyDataViewType) + "." + nameof(KeyDataViewType.Count) + "is larger than int.MaxValue");
-            if (!EqualTypes(t1, t2, exactTypes))
-            {
-                Fail("Different {0} metadata types: {0} vs {1}", kind, t1, t2);
-                return Failed();
-            }
+
+            Assert.False(size > int.MaxValue, $"{nameof(KeyDataViewType)}.{nameof(KeyDataViewType.Count)} is larger than int.MaxValue");
+            Assert.True(EqualTypes(t1, t2, exactTypes), $"Different {kind} metadata types: {t1} vs {t2}");
+            
             if (!(t1.GetItemType() is TextDataViewType))
             {
                 if (!mustBeText)
-                {
-                    Log("Metadata '{0}' was not text so skipping comparison", kind);
-                    return true; // REVIEW: Do something a bit more clever here.
-                }
-                Fail("Unexpected {0} metadata type", kind);
-                return Failed();
+                    return true;
+
+                Assert.False(mustBeText, $"Unexpected {kind} metadata type");
             }
 
-            if ((int)size != t1.GetVectorSize())
-            {
-                Fail("{0} metadata type wrong size: {1} vs {2}", kind, t1.GetVectorSize(), size);
-                return Failed();
-            }
+            Assert.True((int)size == t1.GetVectorSize(), $"{kind} metadata type wrong size: {t1.GetVectorSize()} vs {size}");
 
             sch1[col].Annotations.GetValue(kind, ref names1);
             sch2[col].Annotations.GetValue(kind, ref names2);
-            if (!CompareVec(in names1, in names2, (int)size, (a, b) => a.Span.SequenceEqual(b.Span)))
-            {
-                Fail("Different {0} metadata values", kind);
-                return Failed();
-            }
+            Assert.True(CompareVec(in names1, in names2, (int)size, (a, b) => a.Span.SequenceEqual(b.Span)), $"Different {kind} metadata values");
+
             return true;
         }
 
@@ -340,15 +260,14 @@ namespace Microsoft.ML.TestFrameworkCommon
             try
             {
                 sch[col].Annotations.GetValue(kind, ref names);
-                Fail("Getting {0} metadata unexpectedly succeeded", kind);
-                return Failed();
+                
+                return false;
             }
             catch (InvalidOperationException ex)
             {
                 if (ex.Message != "Invalid call to 'GetValue'")
                 {
-                    Fail("Message from GetValue failed call doesn't match expected message: {0}", ex.Message);
-                    return Failed();
+                    return false;
                 }
             }
             return true;
