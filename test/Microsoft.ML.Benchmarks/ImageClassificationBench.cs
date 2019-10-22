@@ -80,15 +80,20 @@ namespace Microsoft.ML.Benchmarks
         [Benchmark]
         public TransformerChain<KeyToValueMappingTransformer> TrainResnetV250()
         {
-            var pipeline = mlContext.Model.ImageClassification(
-                "Image", "Label",
-                arch: ImageClassificationEstimator.Architecture.ResnetV250,
-                epoch: 50,
-                batchSize: 10,
-                learningRate: 0.01f,
-                modelSavePath: assetsPath,
-                validationSet: testDataset,
-                disableEarlyStopping: true)
+            var options = new ImageClassificationEstimator.Options()
+            {
+                FeaturesColumnName = "Image",
+                LabelColumnName = "Label",
+                Arch = ImageClassificationEstimator.Architecture.ResnetV250,
+                Epoch = 50,
+                BatchSize = 10,
+                LearningRate = 0.01f,
+                EarlyStoppingCriteria = new ImageClassificationEstimator.EarlyStopping(minDelta: 0.001f, patience: 20, metric: ImageClassificationEstimator.EarlyStoppingMetric.Loss),
+                ValidationSet = testDataset,
+                ModelSavePath = assetsPath,
+                DisableEarlyStopping = true
+            };
+            var pipeline = mlContext.Model.ImageClassification(options)
             .Append(mlContext.Transforms.Conversion.MapKeyToValue(
                 outputColumnName: "PredictedLabel",
                 inputColumnName: "PredictedLabel"));

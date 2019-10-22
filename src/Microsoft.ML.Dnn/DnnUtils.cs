@@ -309,6 +309,14 @@ namespace Microsoft.ML.Transforms.Dnn
                         client.DownloadFile(new Uri($"{baseGitPath}"), @"mobilenet_v2.meta");
                     }
                 }
+                else if (arch == ImageClassificationEstimator.Architecture.ResnetV250)
+                {
+                    var baseGitPath = @"https://tlcresources.blob.core.windows.net/image/ResNetV250TensorFlow/resnet_v2_50_299.meta";
+                    using (WebClient client = new WebClient())
+                    {
+                        client.DownloadFile(new Uri($"{baseGitPath}"), @"resnet_v2_50_299.meta");
+                    }
+                }
 
             }
 

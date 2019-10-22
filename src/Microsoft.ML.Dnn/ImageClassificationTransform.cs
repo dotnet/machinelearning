@@ -1434,6 +1434,12 @@ namespace Microsoft.ML.Transforms
             public ImageClassificationMetricsCallback MetricsCallback = null;
 
             /// <summary>
+            /// Indicates the path where the newly retrained model should be saved.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the path where the newly retrained model should be saved.", SortOrder = 15)]
+            public string ModelSavePath = null;
+
+            /// <summary>
             /// Indicates to evaluate the model on train set after every epoch.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates to evaluate the model on train set after every epoch.", SortOrder = 15)]

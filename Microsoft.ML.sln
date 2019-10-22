@@ -60,10 +60,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.Parquet", "Mic
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Benchmarks", "test\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj", "{7A9DB75F-2CA5-4184-9EF5-1F17EB39483F}"
-	ProjectSection(ProjectDependencies) = postProject
-		{00E38F77-1E61-4CDF-8F97-1417D4E85053} = {00E38F77-1E61-4CDF-8F97-1417D4E85053}
-		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8} = {4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Maml", "src\Microsoft.ML.Maml\Microsoft.ML.Maml.csproj", "{64F40A0D-D4C2-4AA7-8470-E9CC437827E4}"
 EndProject
