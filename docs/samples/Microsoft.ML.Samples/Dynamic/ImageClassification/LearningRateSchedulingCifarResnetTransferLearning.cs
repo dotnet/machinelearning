@@ -223,7 +223,9 @@ namespace Samples.Dynamic
                 searchOption: SearchOption.AllDirectories);
             foreach (var file in files)
             {
-                if (Path.GetExtension(file) != ".jpg")
+                if (Path.GetExtension(file) != ".jpg" &&
+                    Path.GetExtension(file) != ".JPEG" &&
+                    Path.GetExtension(file) != ".png")
                     continue;
 
                 var label = Path.GetFileName(file);
