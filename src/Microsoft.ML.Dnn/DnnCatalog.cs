@@ -2,11 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.IO;
-using System.IO.Compression;
-using System.Net;
-using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Dnn;
@@ -114,7 +109,6 @@ namespace Microsoft.ML
             {
                 FeaturesColumnName = featuresColumnName,
                 LabelColumnName = labelColumnName,
-                TensorFlowLabel = labelColumnName,
                 ScoreColumnName = scoreColumnName,
                 PredictedLabelColumnName = predictedLabelColumnName,
                 ValidationSet = validationSet,
@@ -123,12 +117,23 @@ namespace Microsoft.ML
             return ImageClassification(catalog, options);
         }
 
+        /// <summary>
+        /// Performs image classification using transfer learning.
+        /// usage of this API requires additional NuGet dependencies on TensorFlow redist, see linked document for more information.
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!include[io](~/../docs/samples/docs/api-reference/tensorflow-usage.md)]
+        /// ]]>
+        /// </format>
+        /// </summary>
+        /// <param name="catalog"></param>
+        /// <param name="options">An <see cref="Options"/> object specifying advanced options for <see cref="ImageClassificationEstimator"/>.</param>
+        /// <remarks>
+        /// The support for image classification is under preview.
+        /// </remarks>
         public static ImageClassificationEstimator ImageClassification(
-            this ModelOperationsCatalog catalog, ImageClassificationEstimator.Options options)
+            this ModelOperationsCatalog catalog, Options options)
         {
-            options.InputColumns ??= (new[] { options.FeaturesColumnName });
-            options.OutputColumns ??= (new[] { options.ScoreColumnName, options.PredictedLabelColumnName });
-            options.TensorFlowLabel ??= options.LabelColumnName;
             options.EarlyStoppingCriteria = options.DisableEarlyStopping ? null : options.EarlyStoppingCriteria ?? new EarlyStopping();
 
             var env = CatalogUtils.GetEnvironment(catalog);

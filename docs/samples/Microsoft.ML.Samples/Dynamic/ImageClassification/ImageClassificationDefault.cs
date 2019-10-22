@@ -280,17 +280,8 @@ namespace Samples.Dynamic
             if (File.Exists(Path.Combine(destFolder, flag))) return;
 
             Console.WriteLine($"Extracting.");
-            var task = Task.Run(() =>
-            {
-                ZipFile.ExtractToDirectory(gzArchiveName, destFolder);
-            });
-
-            while (!task.IsCompleted)
-            {
-                Thread.Sleep(200);
-                Console.Write(".");
-            }
-
+            ZipFile.ExtractToDirectory(gzArchiveName, destFolder);
+            
             File.Create(Path.Combine(destFolder, flag));
             Console.WriteLine("");
             Console.WriteLine("Extracting is completed.");

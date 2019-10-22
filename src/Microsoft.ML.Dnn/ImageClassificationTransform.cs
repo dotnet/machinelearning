@@ -181,10 +181,9 @@ namespace Microsoft.ML.Transforms
         private void CheckTrainingParameters(ImageClassificationEstimator.Options options)
         {
             Host.CheckNonWhiteSpace(options.LabelColumnName, nameof(options.LabelColumnName));
-            Host.CheckNonWhiteSpace(options.TensorFlowLabel, nameof(options.TensorFlowLabel));
 
             if (_session.graph.OperationByName(_labelTensor.name.Split(':')[0]) == null)
-                throw Host.ExceptParam(nameof(options.TensorFlowLabel), $"'{options.TensorFlowLabel}' does not exist in the model");
+                throw Host.ExceptParam(nameof(_labelTensor.name), $"'{_labelTensor.name}' does not exist in the model");
             if (options.EarlyStoppingCriteria != null && options.ValidationSet == null && options.TestOnTrainSet == false)
                 throw Host.ExceptParam(nameof(options.EarlyStoppingCriteria), $"Early stopping enabled but unable to find a validation" +
                     $" set and/or train set testing disabled. Please disable early stopping or either provide a validation set or enable train set training.");
@@ -1340,19 +1339,19 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// The options for the <see cref="ImageClassificationTransformer"/>.
         /// </summary>
-        public sealed class Options : TransformInputBase
+        public sealed class Options
         {
             /// <summary>
             /// The names of the model inputs.
             /// </summary>
             [Argument(ArgumentType.Multiple , HelpText = "The names of the model inputs", ShortName = "inputs", SortOrder = 1)]
-            public string[] InputColumns;
+            internal string[] InputColumns;
 
             /// <summary>
             /// The names of the requested model outputs.
             /// </summary>
             [Argument(ArgumentType.Multiple , HelpText = "The name of the outputs", ShortName = "outputs", SortOrder = 2)]
-            public string[] OutputColumns;
+            internal string[] OutputColumns;
 
             /// <summary>
             /// The names of the model input features.
@@ -1365,12 +1364,6 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             [Argument(ArgumentType.AtMostOnce | ArgumentType.Required, HelpText = "Training labels.", ShortName = "label", SortOrder = 4)]
             public string LabelColumnName;
-
-            /// <summary>
-            /// The name of the label in TensorFlow model.
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "TensorFlow label node.", ShortName = "TFLabel", SortOrder = 5)]
-            public string TensorFlowLabel;
 
             /// <summary>
             /// Number of samples to use for mini-batch training.
@@ -1431,7 +1424,7 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Callback to report metrics during training and validation phase.", SortOrder = 15)]
             public ImageClassificationMetricsCallback MetricsCallback = null;
-            
+
             /// <summary>
             /// Indicates to evaluate the model on train set after every epoch.
             /// </summary>
@@ -1481,6 +1474,8 @@ namespace Microsoft.ML.Transforms
             _options = options;
             _dnnModel = dnnModel;
             _inputTypes = new[] { new VectorDataViewType(NumberDataViewType.Byte) };
+            options.InputColumns = new[] { options.FeaturesColumnName };
+            options.OutputColumns = new[] { options.ScoreColumnName, options.PredictedLabelColumnName };
         }
 
         private static Options CreateArguments(DnnModel tensorFlowModel, string[] outputColumnNames, string[] inputColumnName, bool addBatchDimensionInput)
