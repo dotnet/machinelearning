@@ -93,6 +93,7 @@ namespace Microsoft.ML
         /// <param name="scoreColumnName">The name of the output score column.</param>
         /// <param name="predictedLabelColumnName">The name of the output predicted label columns.</param>
         /// <param name="validationSet">Validation set.</param>
+
         public static ImageClassificationEstimator ImageClassification(
             this ModelOperationsCatalog catalog,
             string featuresColumnName,
@@ -108,7 +109,7 @@ namespace Microsoft.ML
                 LabelColumnName = labelColumnName,
                 ScoreColumnName = scoreColumnName,
                 PredictedLabelColumnName = predictedLabelColumnName,
-                ValidationSet = validationSet,
+                ValidationSet = validationSet
             };
 
             return ImageClassification(catalog, options);
