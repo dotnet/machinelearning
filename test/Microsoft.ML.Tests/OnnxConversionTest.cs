@@ -1,4 +1,5 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+﻿
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -195,28 +196,19 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        public void AveragePerceptronOnnxConversionTest()
+        public void trainerOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
             string dataPath = GetDataPath("breast-cancer.txt");
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
             var dataView = mlContext.Data.LoadFromTextFile<BreastCancerBinaryClassification>(dataPath, separatorChar: '\t', hasHeader: true);
-            IEstimator<ITransformer>[] estimators = { 
-//                mlContext.BinaryClassification.Trainers.FastForest(),
-                //mlContext.BinaryClassification.Trainers.AveragedPerceptron(),               // Has support but fails
-                                     // Has support but fails
-                //mlContext.BinaryClassification.Trainers.FastTree(),                           // Has support but fails. Probably due to lack of boolean tensor support
-                //mlContext.BinaryClassification.Trainers.FieldAwareFactorizationMachine(),   // No support
-                mlContext.BinaryClassification.Trainers.Gam(),                             // No support
-                //mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(),            // Has support but fails. Probably due to lack of boolean tensor support
-                //mlContext.BinaryClassification.Trainers.LightGbm(),                           // Has support but fails. Probably due to lack of boolean tensor support
-                //mlContext.BinaryClassification.Trainers.LinearSvm(), };                        // Has support but fails
-                //mlContext.BinaryClassification.Trainers.Prior(),                              // No support
-                //mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(),                // Has support but fails. Probably due to lack of boolean tensor support
-                //mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(),                    // Has support but fails
-                //mlContext.BinaryClassification.Trainers.SgdCalibrated(),                       // Has support but fails. Probably due to lack of boolean tensor support
-                //mlContext.BinaryClassification.Trainers.SgdNonCalibrated()                    // Has support but fails
-                //mlContext.BinaryClassification.Trainers.SymbolicSgdLogisticRegression(),          // Has support but fails. Probably due to lack of boolean tensor support
+            IEstimator<ITransformer>[] estimators = {
+                mlContext.BinaryClassification.Trainers.FastTree(),
+                mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(),
+                mlContext.BinaryClassification.Trainers.LightGbm(),
+                mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(),
+                mlContext.BinaryClassification.Trainers.SgdCalibrated(),
+                mlContext.BinaryClassification.Trainers.SymbolicSgdLogisticRegression(),
             };
             var initialPipeline = mlContext.Transforms.NormalizeMinMax("Features");
             foreach (var estimator in estimators)
@@ -237,58 +229,9 @@ namespace Microsoft.ML.Tests
                     var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                     var onnxTransformer = onnxEstimator.Fit(dataView);
                     var onnxResult = onnxTransformer.Transform(dataView);
-                    CompareSelectedR4ScalarColumns(transformedData.Schema[3].Name, outputNames[2], transformedData, onnxResult, 1);
+                    CompareSelectedR4ScalarColumns(transformedData.Schema[4].Name, outputNames[3], transformedData, onnxResult, 1);
                 }
             }
-            Done();
-        }
-        [Fact]
-        public void FastTreeOnnxConversionTest()
-        {
-            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-            // as a catalog of available operations and as the source of randomness.
-            var mlContext = new MLContext(seed: 1);
-
-            string dataPath = GetDataPath("breast-cancer.txt");
-            var data = mlContext.Data.LoadFromTextFile<BreastCancerCatFeatureExample>(dataPath,
-                separatorChar: '\t',
-                hasHeader: true);
-
-            // Pipeline
-            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.OneHotEncodingEstimator.OutputKind.Bag)
-            .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnOptions("F2")))
-            .Append(mlContext.Transforms.Concatenate("Features", "F1", "F2"))
-            .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numberOfLeaves: 2, numberOfTrees: 1, minimumExampleCountPerLeaf: 2));
-                      //  .Append(mlContext.Transforms.Conversion.ConvertType("PredictedLabel", null, DataKind.Int32));
-            var model = pipeline.Fit(data);
-            var predictions = model.Transform(data);
-
-            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
-
-            // Compare results produced by ML.NET and ONNX's runtime.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
-            {
-                var onnxFileName = "fasttree-model.onnx";
-                var onnxModelPath = GetOutputPath(onnxFileName);
-                SaveOnnxModel(onnxModel, onnxModelPath, null);
-
-                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
-                var onnxTransformer = onnxEstimator.Fit(data);
-                var onnxResult = onnxTransformer.Transform(data);
-                CompareSelectedR4ScalarColumns("Score", "Score0", predictions, onnxResult, 3);
-            }
-
-            // Check ONNX model's text format. We save the produced ONNX model as a text file and compare it against
-            // the associated file in ML.NET repo. Such a comparison can be retired if ONNXRuntime ported to ML.NET
-            // can support Linux and Mac.
-            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
-            var onnxTextName = "FastTree.txt";
-            var onnxTextPath = GetOutputPath(subDir, onnxTextName);
-            SaveOnnxModel(onnxModel, null, onnxTextPath);
-            CheckEquality(subDir, onnxTextName, digitsOfPrecision: 2);
             Done();
         }
 

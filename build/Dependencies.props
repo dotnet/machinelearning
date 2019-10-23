@@ -16,7 +16,7 @@
     <GoogleProtobufPackageVersion>3.9.2</GoogleProtobufPackageVersion>
     <LightGBMPackageVersion>2.2.3</LightGBMPackageVersion>
     <MicrosoftExtensionsPackageVersion>2.1.0</MicrosoftExtensionsPackageVersion>
-    <MicrosoftMLOnnxRuntimePackageVersion>0.5.0-dev-f6b91f5f</MicrosoftMLOnnxRuntimePackageVersion>
+    <MicrosoftMLOnnxRuntimePackageVersion>0.5.0-dev-20191008-0632-b70fc34f</MicrosoftMLOnnxRuntimePackageVersion>
     <MlNetMklDepsPackageVersion>0.0.0.9</MlNetMklDepsPackageVersion>
     <ParquetDotNetPackageVersion>2.1.3</ParquetDotNetPackageVersion>
     <SystemDrawingCommonPackageVersion>4.5.0</SystemDrawingCommonPackageVersion>
