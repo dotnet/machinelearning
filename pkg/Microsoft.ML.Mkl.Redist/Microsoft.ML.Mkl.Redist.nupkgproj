@@ -6,8 +6,6 @@
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageDescription>$(MSBuildProjectName) contains the MKL library redistributed as a NuGet package.</PackageDescription>
     <PackageTags>$(PackageTags) MLNET MKL</PackageTags>
-    <!-- Mkl.Redist package should not include any dependencies because it doesn't have any managed libraries. -->
-    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
   </PropertyGroup>
 
   <PropertyGroup>
