@@ -21,7 +21,7 @@ namespace Microsoft.ML.Transforms
     public abstract class LearningRateScheduler
     {
         internal abstract float GetLearningRate(TrainState options);
-    };
+    }
 
     /// <summary>
     /// This class implements linear scaling rule and LR decay.
@@ -119,7 +119,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// If Staircase is True the learning rate decays at discrete intervals and the decayed learning rate follows a staircase function.
         /// </summary>
-        public bool Staircase { get; }
+        public bool Staircase;
 
         /// <summary>
         /// Number of epochs after which learning rate decays.

@@ -1286,6 +1286,7 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowTheory]
         [InlineData(ImageClassificationEstimator.Architecture.ResnetV2101)]
         [InlineData(ImageClassificationEstimator.Architecture.MobilenetV2)]
+        [InlineData(ImageClassificationEstimator.Architecture.ResnetV250)]
         public void TensorFlowImageClassification(ImageClassificationEstimator.Architecture arch)
         {
             string assetsRelativePath = @"assets";
@@ -1314,7 +1315,7 @@ namespace Microsoft.ML.Scenarios
                 .Fit(shuffledFullImagesDataset)
                 .Transform(shuffledFullImagesDataset);
 
-            // Split the data 80:10 into train and test sets, train and evaluate.
+            // Split the data 80:20 into train and test sets, train and evaluate.
             TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
                 shuffledFullImagesDataset, testFraction: 0.2, seed: 1);
 

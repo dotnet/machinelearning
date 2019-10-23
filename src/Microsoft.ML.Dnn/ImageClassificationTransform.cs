@@ -126,7 +126,8 @@ namespace Microsoft.ML.Transforms
 
             GetModelInfo(env, ctx, out string[] inputs, out string[] outputs, out bool addBatchDimensionInput,
                 out string labelColumn, out string checkpointName, out Architecture arch, out string scoreColumnName,
-                out string predictedColumnName, out float learningRate, out bool useLearningRateScheduling, out int classCount, out string[] keyValueAnnotations, out string predictionTensorName, out string softMaxTensorName,
+                out string predictedColumnName, out float learningRate, out bool useLearningRateScheduling, out int classCount,
+                out string[] keyValueAnnotations, out string predictionTensorName, out string softMaxTensorName,
                 out string jpegDataTensorName, out string resizeTensorName);
 
             byte[] modelBytes = null;
@@ -135,7 +136,7 @@ namespace Microsoft.ML.Transforms
 
             return new ImageClassificationTransformer(env, DnnUtils.LoadTFSession(env, modelBytes), outputs, inputs,
                 addBatchDimensionInput, 1, labelColumn, checkpointName, arch,
-                scoreColumnName, predictedColumnName, learningRate, useLearningRateScheduling, null, classCount, true, predictionTensorName,
+                scoreColumnName, predictedColumnName, learningRate, useLearningRateScheduling, null, null, classCount, true, predictionTensorName,
                 softMaxTensorName, jpegDataTensorName, resizeTensorName, keyValueAnnotations);
 
         }
@@ -160,7 +161,8 @@ namespace Microsoft.ML.Transforms
         internal ImageClassificationTransformer(IHostEnvironment env, ImageClassificationEstimator.Options options, DnnModel tensorFlowModel, IDataView input)
             : this(env, tensorFlowModel.Session, options.OutputColumns, options.InputColumns, null, options.BatchSize,
                   options.LabelColumnName, options.FinalModelPrefix, options.Arch, options.ScoreColumnName,
-                  options.PredictedLabelColumnName, options.LearningRate, options.LearningRateScheduler == null? false:true, input.Schema)
+                  options.PredictedLabelColumnName, options.LearningRate, options.LearningRateScheduler == null? false:true, options.ModelSavePath, input.Schema)
+
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(options, nameof(options));
@@ -779,7 +781,8 @@ namespace Microsoft.ML.Transforms
         private static void GetModelInfo(IHostEnvironment env, ModelLoadContext ctx, out string[] inputs,
             out string[] outputs, out bool addBatchDimensionInput,
             out string labelColumn, out string checkpointName, out Architecture arch,
-            out string scoreColumnName, out string predictedColumnName, out float learningRate, out bool useLearningRateScheduling, out int classCount, out string[] keyValueAnnotations, out string predictionTensorName, out string softMaxTensorName,
+            out string scoreColumnName, out string predictedColumnName, out float learningRate, out bool useLearningRateScheduling, out int classCount,
+            out string[] keyValueAnnotations, out string predictionTensorName, out string softMaxTensorName,
             out string jpegDataTensorName, out string resizeTensorName)
         {
             addBatchDimensionInput = ctx.Reader.ReadBoolByte();
@@ -819,7 +822,8 @@ namespace Microsoft.ML.Transforms
         internal ImageClassificationTransformer(IHostEnvironment env, Session session, string[] outputColumnNames,
             string[] inputColumnNames,
             bool? addBatchDimensionInput, int batchSize, string labelColumnName, string finalModelPrefix, Architecture arch,
-            string scoreColumnName, string predictedLabelColumnName, float learningRate, bool useLearningRateScheduling ,DataViewSchema inputSchema, int? classCount = null, bool loadModel = false,
+            string scoreColumnName, string predictedLabelColumnName, float learningRate, bool useLearningRateScheduling, string modelSavePath,
+            DataViewSchema inputSchema, int? classCount = null, bool loadModel = false,
             string predictionTensorName = null, string softMaxTensorName = null, string jpegDataTensorName = null, string resizeTensorName = null, string[] labelAnnotations = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageClassificationTransformer)))
 
@@ -858,7 +862,7 @@ namespace Microsoft.ML.Transforms
             else
                 _classCount = classCount.Value;
 
-            _checkpointPath = Path.Combine(Directory.GetCurrentDirectory(), finalModelPrefix + ModelLocation[arch]);
+            _checkpointPath = modelSavePath != null ? modelSavePath : Path.Combine(Directory.GetCurrentDirectory(), finalModelPrefix + ModelLocation[arch]);
 
             // Configure bottleneck tensor based on the model.
             if (arch == ImageClassificationEstimator.Architecture.ResnetV2101)
@@ -875,6 +879,11 @@ namespace Microsoft.ML.Transforms
             {
                 _bottleneckOperationName = "import/MobilenetV2/Logits/Squeeze";
                 _inputTensorName = "import/input";
+            }
+            else if (arch == ImageClassificationEstimator.Architecture.ResnetV250)
+            {
+                _bottleneckOperationName = "resnet_v2_50/SpatialSqueeze";
+                _inputTensorName = "input";
             }
 
             _outputs = new[] { scoreColumnName, predictedLabelColumnName };
@@ -1132,7 +1141,8 @@ namespace Microsoft.ML.Transforms
         {
             ResnetV2101,
             InceptionV3,
-            MobilenetV2
+            MobilenetV2,
+            ResnetV250
         };
 
         /// <summary>
@@ -1142,7 +1152,8 @@ namespace Microsoft.ML.Transforms
         {
             { Architecture.ResnetV2101, @"resnet_v2_101_299.meta" },
             { Architecture.InceptionV3, @"InceptionV3.meta" },
-            { Architecture.MobilenetV2, @"mobilenet_v2.meta" }
+            { Architecture.MobilenetV2, @"mobilenet_v2.meta" },
+            { Architecture.ResnetV250, @"resnet_v2_50_299.meta" }
         };
 
         /// <summary>
@@ -1152,7 +1163,8 @@ namespace Microsoft.ML.Transforms
         {
             { Architecture.ResnetV2101, new Tuple<int, int>(299,299) },
             { Architecture.InceptionV3, new Tuple<int, int>(299,299) },
-            { Architecture.MobilenetV2, new Tuple<int, int>(224,224) }
+            { Architecture.MobilenetV2, new Tuple<int, int>(224,224) },
+            { Architecture.ResnetV250, new Tuple<int, int>(299,299) }
         };
 
         /// <summary>
@@ -1475,6 +1487,12 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Callback to report metrics during training and validation phase.", SortOrder = 15)]
             public ImageClassificationMetricsCallback MetricsCallback = null;
+
+            /// <summary>
+            /// Indicates the path where the newly retrained model should be saved.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the path where the newly retrained model should be saved.", SortOrder = 15)]
+            public string ModelSavePath = null;
 
             /// <summary>
             /// Indicates to evaluate the model on train set after every epoch.
