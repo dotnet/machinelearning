@@ -20,6 +20,10 @@ namespace Microsoft.ML.Transforms
     /// </summary>
     public abstract class LearningRateScheduler
     {
+        internal LearningRateScheduler()
+        {
+        }
+
         internal abstract float GetLearningRate(TrainState options);
     }
 
