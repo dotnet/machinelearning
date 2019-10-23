@@ -3112,6 +3112,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             string opType = "TreeEnsembleRegressor";
             var node = ctx.CreateNode(opType, new[] { featureColumn }, outputNames, ctx.GetNodeName(opType));
+
             node.AddAttribute("post_transform", PostTransform.None.GetDescription());
             node.AddAttribute("n_targets", 1);
             node.AddAttribute("base_values", new List<float>() { 0 });

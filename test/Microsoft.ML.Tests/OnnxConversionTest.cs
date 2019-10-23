@@ -196,7 +196,8 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        public void trainerOnnxConversionTest()
+        // Conversion tests for all the trainers that are currently supported 
+        public void trainersOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
             string dataPath = GetDataPath("breast-cancer.txt");
@@ -210,7 +211,8 @@ namespace Microsoft.ML.Tests
                 mlContext.BinaryClassification.Trainers.SgdCalibrated(),
                 mlContext.BinaryClassification.Trainers.SymbolicSgdLogisticRegression(),
             };
-            var initialPipeline = mlContext.Transforms.NormalizeMinMax("Features");
+            var initialPipeline = mlContext.Transforms.ReplaceMissingValues("Features").
+                Append(mlContext.Transforms.NormalizeMinMax("Features"));
             foreach (var estimator in estimators)
             {
                 var pipeline = initialPipeline.Append(estimator);
@@ -220,7 +222,7 @@ namespace Microsoft.ML.Tests
                 var onnxFileName = $"{estimator.ToString()}.onnx";
                 var onnxModelPath = GetOutputPath(onnxFileName);
                 SaveOnnxModel(onnxModel, onnxModelPath, null);
-                // Compare results produced by ML.NET and ONNX's runtime.
+                // Compare model scores produced by ML.NET and ONNX's runtime.
                 if (IsOnnxRuntimeSupported())
                 {
                     // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
@@ -229,7 +231,7 @@ namespace Microsoft.ML.Tests
                     var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                     var onnxTransformer = onnxEstimator.Fit(dataView);
                     var onnxResult = onnxTransformer.Transform(dataView);
-                    CompareSelectedR4ScalarColumns(transformedData.Schema[4].Name, outputNames[3], transformedData, onnxResult, 1);
+                    CompareSelectedR4ScalarColumns(transformedData.Schema[5].Name, outputNames[3], transformedData, onnxResult, 1);
                 }
             }
             Done();

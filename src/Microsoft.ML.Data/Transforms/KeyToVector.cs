@@ -715,7 +715,7 @@ namespace Microsoft.ML.Transforms
                     opType = "ReduceSum";
                     var reduceNode = ctx.CreateNode(opType, encodedVariableName, dstVariableName, ctx.GetNodeName(opType), "");
                     reduceNode.AddAttribute("axes", new long[] { shape.Count - 1 });
-                    reduceNode.AddAttribute("keepdims", 1); // Why is it 0?
+                    reduceNode.AddAttribute("keepdims", 1); //In onnx, keepdims gets 1 as default
                 }
             }
         }
