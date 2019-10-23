@@ -47,7 +47,7 @@ namespace Samples.Dynamic
 
                 shuffledFullImagesDataset = mlContext.Transforms.Conversion
                         .MapValueToKey("Label")
-                    .Append(mlContext.Transforms.LoadImages("Image", 
+                    .Append(mlContext.Transforms.LoadImages("Image",
                                 fullImagesetFolderPath, false, "ImagePath"))
                     .Fit(shuffledFullImagesDataset)
                     .Transform(shuffledFullImagesDataset);
@@ -60,18 +60,23 @@ namespace Samples.Dynamic
                 IDataView trainDataset = trainTestData.TrainSet;
                 IDataView testDataset = trainTestData.TestSet;
 
-                var pipeline = mlContext.Model.ImageClassification(
-                        "Image", "Label",
-                        // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
-                        // ResnetV2101 you can try a different architecture/
-                        // pre-trained model. 
-                        arch: ImageClassificationEstimator.Architecture.ResnetV2101,
-                        epoch: 50,
-                        batchSize: 10,
-                        learningRate: 0.01f,
-                        metricsCallback: (metrics) => Console.WriteLine(metrics),
-                        validationSet: testDataset,
-                        disableEarlyStopping: true)
+                var options = new ImageClassificationEstimator.Options()
+                { 
+                    FeaturesColumnName = "Image",
+                    LabelColumnName = "Label",
+                    // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
+                    // ResnetV2101 you can try a different architecture/
+                    // pre-trained model. 
+                    Arch = ImageClassificationEstimator.Architecture.ResnetV2101,
+                    Epoch = 50,
+                    BatchSize = 10,
+                    LearningRate = 0.01f,
+                    MetricsCallback = (metrics) => Console.WriteLine(metrics),
+                    ValidationSet = testDataset,
+                    DisableEarlyStopping = true
+                };
+
+                var pipeline = mlContext.Model.ImageClassification(options)
                     .Append(mlContext.Transforms.Conversion.MapKeyToValue(
                         outputColumnName: "PredictedLabel", 
                         inputColumnName: "PredictedLabel"));
