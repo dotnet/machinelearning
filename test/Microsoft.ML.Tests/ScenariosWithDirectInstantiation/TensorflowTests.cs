@@ -1819,22 +1819,21 @@ namespace Microsoft.ML.Scenarios
                 using (File.Create(@"InceptionV3.meta")) { }
             }
 
+            var options = new ImageClassificationEstimator.Options()
+            {
+                FeaturesColumnName = "Image",
+                LabelColumnName = "Label",
+                Arch = arch,
+                Epoch = 1,
+                BatchSize = 10,
+                MetricsCallback = (metrics) => Console.WriteLine(metrics),
+                TestOnTrainSet = false,
+                DisableEarlyStopping = true
+            };
+
             //Create pipeline and run
             var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
-                .Append(mlContext.Model.ImageClassification(
-                    "Image", "Label",
-                    // Just by changing/selecting InceptionV3 here instead of 
-                    // ResnetV2101 you can try a different architecture/pre-trained 
-                    // model. 
-                    arch: arch,
-                    epoch: 1,
-                    batchSize: 10,
-                    learningRate: 0.01f,
-                    metricsCallback: (metrics) => Console.WriteLine(metrics),
-                    testOnTrainSet: false,
-                    disableEarlyStopping: true,
-                    reuseTrainSetBottleneckCachedValues: true,
-                    reuseValidationSetBottleneckCachedValues: true)
+                .Append(mlContext.Model.ImageClassification(options)
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel")));
 
             var trainedModel = pipeline.Fit(trainDataset);

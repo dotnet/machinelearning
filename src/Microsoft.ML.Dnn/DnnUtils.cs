@@ -7,11 +7,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Security.AccessControl;
 using System.Security.Principal;
-using System.Threading.Tasks;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Tensorflow;
@@ -94,6 +92,7 @@ namespace Microsoft.ML.Dnn
             }
             return new Session(graph);
         }
+
         internal static void DownloadIfNeeded(Uri address, string fileName)
         {
             using HttpClient client = new HttpClient();
@@ -295,34 +294,31 @@ namespace Microsoft.ML.Dnn
 
         internal static DnnModel LoadDnnModel(IHostEnvironment env, Architecture arch, bool metaGraph = false)
         {
-            var modelPath = ModelLocation[arch];
-            if (!File.Exists(modelPath))
+            var modelPath = ImageClassificationEstimator.ModelLocation[arch];
+            if (arch == ImageClassificationEstimator.Architecture.InceptionV3)
             {
-                if (arch == Architecture.InceptionV3)
-                {
-                    var baseGitPath = @"https://raw.githubusercontent.com/SciSharp/TensorFlow.NET/master/graph/InceptionV3.meta";
-                    DownloadIfNeeded(new Uri($"{baseGitPath}"), @"InceptionV3.meta");
+                var baseGitPath = @"https://raw.githubusercontent.com/SciSharp/TensorFlow.NET/master/graph/InceptionV3.meta";
+                DownloadIfNeeded(new Uri($"{baseGitPath}"), @"InceptionV3.meta");
 
-                    baseGitPath = @"https://github.com/SciSharp/TensorFlow.NET/raw/master/data/tfhub_modules.zip";
-                    DownloadIfNeeded(new Uri($"{baseGitPath}"), @"tfhub_modules.zip");
-                    if (!Directory.Exists(@"tfhub_modules"))
-                        ZipFile.ExtractToDirectory(Path.Combine(Directory.GetCurrentDirectory(), @"tfhub_modules.zip"), @"tfhub_modules");
-                }
-                else if (arch == Architecture.ResnetV2101)
-                {
-                    var baseGitPath = @"https://aka.ms/mlnet-resources/image/ResNet101Tensorflow/resnet_v2_101_299.meta";
-                    DownloadIfNeeded(new Uri($"{baseGitPath}"), @"resnet_v2_101_299.meta");
-                }
-                else if (arch == Architecture.MobilenetV2)
-                {
-                    var baseGitPath = @"https://tlcresources.blob.core.windows.net/image/MobileNetV2TensorFlow/mobilenet_v2.meta";
-                    DownloadIfNeeded(new Uri($"{baseGitPath}"), @"mobilenet_v2.meta");
-                }
-                else if (arch == Architecture.ResnetV250)
-                {
-                    var baseGitPath = @"https://tlcresources.blob.core.windows.net/image/ResNetV250TensorFlow/resnet_v2_50_299.meta";
-                    DownloadIfNeeded(new Uri($"{baseGitPath}"), @"resnet_v2_50_299.meta");
-                }
+                baseGitPath = @"https://github.com/SciSharp/TensorFlow.NET/raw/master/data/tfhub_modules.zip";
+                DownloadIfNeeded(new Uri($"{baseGitPath}"), @"tfhub_modules.zip");
+                if (!Directory.Exists(@"tfhub_modules"))
+                    ZipFile.ExtractToDirectory(Path.Combine(Directory.GetCurrentDirectory(), @"tfhub_modules.zip"), @"tfhub_modules");
+            }
+            else if (arch == ImageClassificationEstimator.Architecture.ResnetV2101)
+            {
+                var baseGitPath = @"https://aka.ms/mlnet-resources/image/ResNet101Tensorflow/resnet_v2_101_299.meta";
+                DownloadIfNeeded(new Uri($"{baseGitPath}"), @"resnet_v2_101_299.meta");
+            }
+            else if (arch == ImageClassificationEstimator.Architecture.MobilenetV2)
+            {
+                var baseGitPath = @"https://tlcresources.blob.core.windows.net/image/MobileNetV2TensorFlow/mobilenet_v2.meta";
+                DownloadIfNeeded(new Uri($"{baseGitPath}"), @"mobilenet_v2.meta");
+            }
+            else if (arch == ImageClassificationEstimator.Architecture.ResnetV250)
+            {
+                var baseGitPath = @"https://tlcresources.blob.core.windows.net/image/ResNetV250TensorFlow/resnet_v2_50_299.meta";
+                DownloadIfNeeded(new Uri($"{baseGitPath}"), @"resnet_v2_50_299.meta");
             }
 
             return new DnnModel(GetSession(env, modelPath, metaGraph), modelPath);
