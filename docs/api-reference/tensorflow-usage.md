@@ -31,9 +31,9 @@ After downloading CUDNN v7.6.4 .zip file and unpacking it, you need to do the fo
 
 For C/C++ development:
 
-`Copy <CUDNN_zip_files_path>\cuda\ include\cudnn.h to <YOUR_DRIVE>\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v9.0\include`
+`Copy <CUDNN_zip_files_path>\cuda\ include\cudnn.h to <YOUR_DRIVE>\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.0\include`
 
-`Copy <CUDNN_zip_files_path>\cuda\lib\x64\cudnn.lib to <YOUR_DRIVE>\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v9.0\lib\x64`
+`Copy <CUDNN_zip_files_path>\cuda\lib\x64\cudnn.lib to <YOUR_DRIVE>\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.0\lib\x64`
 
 For further details in cuDNN you can follow the [cuDNN Installation guide](https://docs.nvidia.com/deeplearning/sdk/cudnn-install/index.html#installwindows).
 
