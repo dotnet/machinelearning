@@ -499,7 +499,7 @@ namespace Microsoft.ML.Calibrators
                 loaderAssemblyName: typeof(FeatureWeightsCalibratedModelParameters<TSubModel, TCalibrator>).Assembly.FullName);
         }
 
-        internal FeatureWeightsCalibratedModelParameters(IHostEnvironment env, ModelLoadContext ctx,
+        private FeatureWeightsCalibratedModelParameters(IHostEnvironment env, ModelLoadContext ctx,
             TSubModel predictor, TCalibrator calibrator)
             : base(env, RegistrationName, predictor, calibrator)
         {
@@ -584,7 +584,7 @@ namespace Microsoft.ML.Calibrators
             _featureWeights = SubModel as IPredictorWithFeatureWeights<float>;
         }
 
-        internal static CalibratedModelParametersBase Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static CalibratedModelParametersBase Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
