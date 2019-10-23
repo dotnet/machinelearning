@@ -7,7 +7,7 @@
   
   <ItemGroup>
     <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
-    <ProjectReference Include="../Microsoft.ML.LightGBM/Microsoft.ML.LightGBM.nupkgproj" />
+    <ProjectReference Include="../Microsoft.ML.LightGbm/Microsoft.ML.LightGbm.nupkgproj" />
     <ProjectReference Include="../Microsoft.ML.Mkl.Components/Microsoft.ML.Mkl.Components.nupkgproj" />
     <ProjectReference Include="../Microsoft.ML.Recommender/Microsoft.ML.Recommender.nupkgproj" />
   </ItemGroup>

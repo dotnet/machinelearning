@@ -2,15 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.IO;
-using System.IO.Compression;
-using System.Net;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Dnn;
 using static Microsoft.ML.Transforms.ImageClassificationEstimator;
-using Options = Microsoft.ML.Transforms.DnnRetrainEstimator.Options;
 
 namespace Microsoft.ML
 {
@@ -46,7 +41,7 @@ namespace Microsoft.ML
         /// <remarks>
         /// The support for retraining is under preview.
         /// </remarks>
-        public static DnnRetrainEstimator RetrainDnnModel(
+        internal static DnnRetrainEstimator RetrainDnnModel(
             this ModelOperationsCatalog catalog,
             string[] outputColumnNames,
             string[] inputColumnNames,
@@ -62,7 +57,7 @@ namespace Microsoft.ML
             float learningRate = 0.01f,
             bool addBatchDimensionInput = false)
         {
-            var options = new Options()
+            var options = new DnnRetrainEstimator.Options()
             {
                 ModelLocation = modelPath,
                 InputColumns = inputColumnNames,
@@ -97,107 +92,47 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the labels column.</param>
         /// <param name="scoreColumnName">The name of the output score column.</param>
         /// <param name="predictedLabelColumnName">The name of the output predicted label columns.</param>
-        /// <param name="arch">The architecture of the image recognition DNN model.</param>
-        /// <param name="epoch">Number of training iterations. Each iteration/epoch refers to one pass over the dataset.</param>
-        /// <param name="batchSize">The batch size for training.</param>
-        /// <param name="learningRate">The learning rate for training.</param>
-        /// <param name="disableEarlyStopping">Whether to disable use of early stopping technique. Training will go on for the full epoch count.</param>
-        /// <param name="earlyStopping">Early stopping technique parameters to be used to terminate training when training metric stops improving.</param>
-        /// <param name="metricsCallback">Callback for reporting model statistics during training phase.</param>
-        /// <param name="statisticFrequency">Indicates the frequency of epochs at which to report model statistics during training phase.</param>
-        /// <param name="framework">Indicates the choice of DNN training framework. Currently only tensorflow is supported.</param>
-        /// <param name="modelSavePath">Optional name of the path where a copy new graph should be saved. The graph will be saved as part of model.</param>
-        /// <param name="finalModelPrefix">The name of the prefix for the final mode and checkpoint files.</param>
         /// <param name="validationSet">Validation set.</param>
-        /// <param name="testOnTrainSet">Indicates to evaluate the model on train set after every epoch.</param>
-        /// <param name="reuseTrainSetBottleneckCachedValues">Indicates to not re-compute cached trainset bottleneck values if already available in the bin folder.</param>
-        /// <param name="reuseValidationSetBottleneckCachedValues">Indicates to not re-compute validataionset cached bottleneck validationset values if already available in the bin folder.</param>
-        /// <param name="trainSetBottleneckCachedValuesFilePath">Indicates the file path to store trainset bottleneck values for caching.</param>
-        /// <param name="validationSetBottleneckCachedValuesFilePath">Indicates the file path to store validationset bottleneck values for caching.</param>
-        /// <remarks>
-        /// The support for image classification is under preview.
-        /// </remarks>
+
         public static ImageClassificationEstimator ImageClassification(
             this ModelOperationsCatalog catalog,
             string featuresColumnName,
             string labelColumnName,
             string scoreColumnName = "Score",
             string predictedLabelColumnName = "PredictedLabel",
-            Architecture arch = Architecture.InceptionV3,
-            int epoch = 100,
-            int batchSize = 10,
-            float learningRate = 0.01f,
-            bool disableEarlyStopping = false,
-            EarlyStopping earlyStopping = null,
-            ImageClassificationMetricsCallback metricsCallback = null,
-            int statisticFrequency = 1,
-            DnnFramework framework = DnnFramework.Tensorflow,
-            string modelSavePath = null,
-            string finalModelPrefix = "custom_retrained_model_based_on_",
-            IDataView validationSet = null,
-            bool testOnTrainSet = true,
-            bool reuseTrainSetBottleneckCachedValues = false,
-            bool reuseValidationSetBottleneckCachedValues = false,
-            string trainSetBottleneckCachedValuesFilePath = "trainSetBottleneckFile.csv",
-            string validationSetBottleneckCachedValuesFilePath = "validationSetBottleneckFile.csv"
+            IDataView validationSet = null
             )
         {
             var options = new ImageClassificationEstimator.Options()
             {
-                ModelLocation = arch == Architecture.ResnetV2101 ? @"resnet_v2_101_299.meta" : @"InceptionV3.meta",
-                InputColumns = new[] { featuresColumnName },
-                OutputColumns = new[] { scoreColumnName, predictedLabelColumnName },
-                LabelColumn = labelColumnName,
-                TensorFlowLabel = labelColumnName,
-                Epoch = epoch,
-                LearningRate = learningRate,
-                BatchSize = batchSize,
-                EarlyStoppingCriteria = disableEarlyStopping ? null : earlyStopping == null ? new EarlyStopping() : earlyStopping,
+                FeaturesColumnName = featuresColumnName,
+                LabelColumnName = labelColumnName,
                 ScoreColumnName = scoreColumnName,
                 PredictedLabelColumnName = predictedLabelColumnName,
-                FinalModelPrefix = finalModelPrefix,
-                Arch = arch,
-                MetricsCallback = metricsCallback,
-                StatisticsFrequency = statisticFrequency,
-                Framework = framework,
-                ModelSavePath = modelSavePath,
-                ValidationSet = validationSet,
-                TestOnTrainSet = testOnTrainSet,
-                TrainSetBottleneckCachedValuesFilePath = trainSetBottleneckCachedValuesFilePath,
-                ValidationSetBottleneckCachedValuesFilePath = validationSetBottleneckCachedValuesFilePath,
-                ReuseTrainSetBottleneckCachedValues = reuseTrainSetBottleneckCachedValues,
-                ReuseValidationSetBottleneckCachedValues = reuseValidationSetBottleneckCachedValues
+                ValidationSet = validationSet
             };
 
-            if (!File.Exists(options.ModelLocation))
-            {
-                if (options.Arch == Architecture.InceptionV3)
-                {
-                    var baseGitPath = @"https://raw.githubusercontent.com/SciSharp/TensorFlow.NET/master/graph/InceptionV3.meta";
-                    using (WebClient client = new WebClient())
-                    {
-                        client.DownloadFile(new Uri($"{baseGitPath}"), @"InceptionV3.meta");
-                    }
+            return ImageClassification(catalog, options);
+        }
 
-                    baseGitPath = @"https://github.com/SciSharp/TensorFlow.NET/raw/master/data/tfhub_modules.zip";
-                    using (WebClient client = new WebClient())
-                    {
-                        client.DownloadFile(new Uri($"{baseGitPath}"), @"tfhub_modules.zip");
-                        ZipFile.ExtractToDirectory(Path.Combine(Directory.GetCurrentDirectory(), @"tfhub_modules.zip"), @"tfhub_modules");
-                    }
-                }
-                else if(options.Arch == Architecture.ResnetV2101)
-                {
-                    var baseGitPath = @"https://aka.ms/mlnet-resources/image/ResNet101Tensorflow/resnet_v2_101_299.meta";
-                    using (WebClient client = new WebClient())
-                    {
-                        client.DownloadFile(new Uri($"{baseGitPath}"), @"resnet_v2_101_299.meta");
-                    }
-                }
-            }
+        /// <summary>
+        /// Performs image classification using transfer learning.
+        /// usage of this API requires additional NuGet dependencies on TensorFlow redist, see linked document for more information.
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!include[io](~/../docs/samples/docs/api-reference/tensorflow-usage.md)]
+        /// ]]>
+        /// </format>
+        /// </summary>
+        /// <param name="catalog"></param>
+        /// <param name="options">An <see cref="Options"/> object specifying advanced options for <see cref="ImageClassificationEstimator"/>.</param>
+        public static ImageClassificationEstimator ImageClassification(
+            this ModelOperationsCatalog catalog, Options options)
+        {
+            options.EarlyStoppingCriteria = options.DisableEarlyStopping ? null : options.EarlyStoppingCriteria ?? new EarlyStopping();
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new ImageClassificationEstimator(env, options, DnnUtils.LoadDnnModel(env, options.ModelLocation, true));
+            return new ImageClassificationEstimator(env, options, DnnUtils.LoadDnnModel(env, options.Arch, true));
         }
     }
 }
