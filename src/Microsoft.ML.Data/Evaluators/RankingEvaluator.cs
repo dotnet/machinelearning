@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -80,6 +79,10 @@ namespace Microsoft.ML.Data
 
             _truncationLevel = options.DcgTruncationLevel;
             _groupSummary = options.OutputGroupSummary;
+<<<<<<< HEAD
+=======
+            RankingUtils.SetTruncationLevel(options.DcgTruncationLevel);
+>>>>>>> 576bc461a878c35050285af4ccdb0d06611f592f
 
             var labelGains = new List<Double>();
             string[] gains = options.LabelGains.Split(',');
@@ -702,7 +705,7 @@ namespace Microsoft.ML.Data
                 int truncationLevel, Double[] labelGains)
                 : base(env, input, labelCol, scoreCol, groupCol, RegistrationName)
             {
-                Host.CheckParam(0 < truncationLevel, nameof(truncationLevel),
+                Host.CheckParam(0 < truncationLevel , nameof(truncationLevel),
                     "Truncation level must be greater than 0");
                 Host.CheckValue(labelGains, nameof(labelGains));
 
@@ -959,12 +962,20 @@ namespace Microsoft.ML.Data
 
     internal static class RankingUtils
     {
+<<<<<<< HEAD
         // Truncation levels are typically less than 100. So we maintain a fixed discount map of size 100
         // If truncation level greater than 100 is required, we build a new one and return that.
         private const int FixedDiscountMapSize = 100;
         private static Double[] _discountMapFixed;
 
         private static Double[] GetDiscountMapCore(int truncationLevel)
+=======
+        private static readonly object _lock = new object();
+        private static volatile Double[] _discountMap;
+        private static volatile int _maxTruncationLevel = 0;
+
+        public static Double[] DiscountMap
+>>>>>>> 576bc461a878c35050285af4ccdb0d06611f592f
         {
             var discountMap = new Double[truncationLevel];
 
@@ -979,9 +990,32 @@ namespace Microsoft.ML.Data
             var discountMap = _discountMapFixed;
             if (discountMap == null)
             {
+<<<<<<< HEAD
                 discountMap = GetDiscountMapCore(FixedDiscountMapSize);
                 Interlocked.CompareExchange(ref _discountMapFixed, discountMap, null);
                 discountMap = _discountMapFixed;
+=======
+                return _discountMap;
+            }
+        }
+        /// <summary>
+        /// Reallocates discountMap for the largest truncationLevel seen so far
+        /// </summary>
+        public static void SetTruncationLevel(int truncationLevel)
+        {
+            lock (_lock) {
+                if (truncationLevel > _maxTruncationLevel)
+                {
+                    _maxTruncationLevel = truncationLevel;
+
+                    var discountMap = new Double[_maxTruncationLevel];
+                    for (int i = 0; i < discountMap.Length; i++)
+                    {
+                        discountMap[i] = 1 / Math.Log(2 + i);
+                    }
+                    _discountMap = discountMap;
+                }
+>>>>>>> 576bc461a878c35050285af4ccdb0d06611f592f
             }
 
             if (truncationLevel <= discountMap.Length)
