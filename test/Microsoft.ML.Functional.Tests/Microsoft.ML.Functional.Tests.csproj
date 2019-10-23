@@ -23,7 +23,6 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.Recommender\Microsoft.ML.Recommender.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.StandardTrainers\Microsoft.ML.StandardTrainers.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.OnnxConverter\Microsoft.ML.OnnxConverter.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.TimeSeries\Microsoft.ML.TimeSeries.csproj" />
     <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
   </ItemGroup>
@@ -39,15 +38,7 @@
     <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
   </ItemGroup>
 
-  <!-- TensorFlow is 64-bit only -->
-  <ItemGroup Condition="'$(NativeTargetArchitecture)' == 'x64'">
-    <NativeAssemblyReference Include="tensorflow" />
-    <NativeAssemblyReferenceWithMajorVersion Condition="'$(OS)' != 'Windows_NT'" Include="tensorflow_framework">
-      <MajorVersion>$(TensorFlowMajorVersion)</MajorVersion>
-    </NativeAssemblyReferenceWithMajorVersion>
-  </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.ML.TensorFlow.TestModels" Version="$(MicrosoftMLTensorFlowTestModelsVersion)" />
     <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="$(MicrosoftMLOnnxTestModelsVersion)" />
   </ItemGroup>
 </Project>

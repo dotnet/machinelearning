@@ -12,7 +12,8 @@ namespace Microsoft.ML.AutoML.Test
     public enum TaskType
     {
         Classification = 1,
-        Regression
+        Regression = 2,
+        Recommendation = 3
     }
 
     /// <summary>
@@ -88,6 +89,28 @@ namespace Microsoft.ML.AutoML.Test
                             progressHandler: progressHandler);
 
                     iterationResults = regressionResult.RunDetails.Select(i => new TaskAgnosticIterationResult(i)).ToList();
+
+                    return iterationResults;
+
+                case TaskType.Recommendation:
+
+                    var recommendationSettings = new RecommendationExperimentSettings
+                    {
+                        OptimizingMetric = RegressionMetric.RSquared,
+
+                        MaxExperimentTimeInSeconds = maxExperimentTimeInSeconds,
+                        MaxModels = maxModels
+                    };
+
+                    var recommendationResult = this.context.Auto()
+                        .CreateRecommendationExperiment(recommendationSettings)
+                        .Execute(
+                            trainData,
+                            validationData,
+                            columnInformation,
+                            progressHandler: progressHandler);
+
+                    iterationResults = recommendationResult.RunDetails.Select(i => new TaskAgnosticIterationResult(i)).ToList();
 
                     return iterationResults;
 

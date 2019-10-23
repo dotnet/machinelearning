@@ -12,14 +12,18 @@ namespace Microsoft.ML.TestFramework.Attributes
     /// </summary>
     public sealed class OnnxFactAttribute : EnvironmentSpecificFactAttribute
     {
-        public OnnxFactAttribute() : base("Onnx is 64-bit Windows only")
+        public OnnxFactAttribute() : base("Onnx is not supported on Linux with libc < v2.23")
         {
         }
 
         /// <inheritdoc />
         protected override bool IsEnvironmentSupported()
         {
-            return Environment.Is64BitProcess && (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || AttributeHelpers.CheckLibcVersionGreaterThanMinimum(new Version(2, 23)));
+            return IsOnnxRuntimeSupported;
         }
+
+        public static bool IsOnnxRuntimeSupported { get; } =
+            !RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+                || AttributeHelpers.CheckLibcVersionGreaterThanMinimum(new Version(2, 23));
     }
 }
