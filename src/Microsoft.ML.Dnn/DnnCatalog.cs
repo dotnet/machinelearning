@@ -109,8 +109,7 @@ namespace Microsoft.ML
                 LabelColumnName = labelColumnName,
                 ScoreColumnName = scoreColumnName,
                 PredictedLabelColumnName = predictedLabelColumnName,
-                ValidationSet = validationSet,
-                LearningRateScheduler = new ExponentialLRDecay()
+                ValidationSet = validationSet
             };
 
             return ImageClassification(catalog, options);

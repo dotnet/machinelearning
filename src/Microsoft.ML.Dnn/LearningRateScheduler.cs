@@ -32,14 +32,14 @@ namespace Microsoft.ML.Transforms
     {
         /// <summary>
         /// Learning rate is scaled at epoch boundaries provided in LrSchedule to corresponding multiplier in the LrSchedule.
-        /// Format for LrSchedule: {epoch, scaling factor}
+        /// Format for LrSchedule: {start epoch, scaling factor}, ordered with largest start epoch first
         /// </summary>
         public readonly float[,] LrSchedule;
 
         /// <summary>
         /// Base Learning rate to start off with.
         /// </summary>
-        public float BaseLearningRate;
+        public readonly float BaseLearningRate;
 
         /// <summary>
         /// Linear Scale rule and LR Decay construtor assigns a default LR scheduler.

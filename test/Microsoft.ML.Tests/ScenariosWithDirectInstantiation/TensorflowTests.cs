@@ -1475,7 +1475,7 @@ namespace Microsoft.ML.Scenarios
                 BatchSize = 128,
                 LearningRate = 0.01f,
                 MetricsCallback = (metrics) => Console.WriteLine(metrics),
-                ValidationSet = testDataset,
+                ValidationSet = validationSet,
                 DisableEarlyStopping = true,
                 ReuseValidationSetBottleneckCachedValues = false,
                 ReuseTrainSetBottleneckCachedValues = false,
@@ -1486,11 +1486,11 @@ namespace Microsoft.ML.Scenarios
                 LearningRateScheduler = new LsrDecay()
             };
 
-            var pipeline = mlContext.Model.ImageClassification(options)
+            var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+                .Append(mlContext.Model.ImageClassification(options))
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(
-                    outputColumnName: "PredictedLabel",
-                    inputColumnName: "PredictedLabel"));
-
+                        outputColumnName: "PredictedLabel",
+                        inputColumnName: "PredictedLabel"));
             var trainedModel = pipeline.Fit(trainDataset);
 
             mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
