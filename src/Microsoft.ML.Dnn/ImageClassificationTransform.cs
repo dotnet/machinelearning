@@ -331,8 +331,8 @@ namespace Microsoft.ML.Transforms
 
         private int GetNumSamples(string path)
         {
-            using (var reader = File.OpenText(path))
-                return int.Parse(reader.ReadLine());
+            using var reader = File.OpenText(path);
+            return int.Parse(reader.ReadLine());
         }
 
         private void TrainAndEvaluateClassificationLayer(string trainBottleneckFilePath, ImageClassificationEstimator.Options options,
@@ -1233,7 +1233,7 @@ namespace Microsoft.ML.Transforms
             public override string ToString()
             {
                 if (DatasetUsed == ImageClassificationMetrics.Dataset.Train)
-                    return $"Phase: Training, Dataset used: {DatasetUsed.ToString(),10}, Batch Processed Count: {BatchProcessedCount,3}, learning rate: {LearningRate,10} " +
+                    return $"Phase: Training, Dataset used: {DatasetUsed.ToString(),10}, Batch Processed Count: {BatchProcessedCount,3}, Learning Rate: {LearningRate,10} " +
                         $"Epoch: {Epoch,3}, Accuracy: {Accuracy,10}, Cross-Entropy: {CrossEntropy,10}";
                 else
                     return $"Phase: Training, Dataset used: {DatasetUsed.ToString(),10}, Batch Processed Count: {BatchProcessedCount,3}, " +

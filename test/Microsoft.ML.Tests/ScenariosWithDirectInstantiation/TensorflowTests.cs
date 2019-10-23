@@ -1471,19 +1471,18 @@ namespace Microsoft.ML.Scenarios
                 // ResnetV2101 you can try a different architecture/
                 // pre-trained model. 
                 Arch = ImageClassificationEstimator.Architecture.ResnetV2101,
-                Epoch = 182,
-                BatchSize = 128,
+                Epoch = 50,
+                BatchSize = 10,
                 LearningRate = 0.01f,
                 MetricsCallback = (metrics) => Console.WriteLine(metrics),
                 ValidationSet = validationSet,
                 DisableEarlyStopping = true,
                 ReuseValidationSetBottleneckCachedValues = false,
                 ReuseTrainSetBottleneckCachedValues = false,
-                // Use linear scaling rule and Learning rate decay as an option
-                // This is known to do well for Cifar dataset and Resnet models
+                // Using Exponential Decay for learning rate scheduling
                 // You can also try other types of Learning rate scheduling methods
                 // available in LearningRateScheduler.cs  
-                LearningRateScheduler = new LsrDecay()
+                LearningRateScheduler = new ExponentialLRDecay()
             };
 
             var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>

@@ -16,7 +16,7 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// This interface defines a learning rate scheduler.
+    /// This abstract class defines a learning rate scheduler.
     /// </summary>
     public abstract class LearningRateScheduler
     {
@@ -35,31 +35,66 @@ namespace Microsoft.ML.Transforms
     public sealed class LsrDecay : LearningRateScheduler
     {
         /// <summary>
+        /// This structure represents a learning rate scheduler item type
+        /// </summary>
+        public readonly struct LearningRateSchedulerItem
+        {
+
+            /// <summary>
+            /// Start epoch to match with the scaling factor
+            /// </summary>
+            public readonly int Epoch;
+
+            /// <summary>
+            /// Scaling factor or multiplier that changes the learning rate for Linear scale rule
+            /// </summary>
+            public readonly float ScalingFactor;
+
+            public LearningRateSchedulerItem(int epoch, float scalingfactor) : this()
+            {
+                Epoch = epoch;
+                ScalingFactor = scalingfactor;
+            }
+        }
+
+        /// <summary>
         /// Learning rate is scaled at epoch boundaries provided in LrSchedule to corresponding multiplier in the LrSchedule.
         /// Format for LrSchedule: {start epoch, scaling factor}, ordered with largest start epoch first
         /// </summary>
-        public readonly float[,] LrSchedule;
+        private readonly IReadOnlyList<LearningRateSchedulerItem> _lrSchedule;
 
         /// <summary>
         /// Base Learning rate to start off with.
         /// </summary>
         public readonly float BaseLearningRate;
+        private IReadOnlyList<LearningRateSchedulerItem> GetDefaultLearningDecayItems()
+        {
+            List<LearningRateSchedulerItem> lrs = new List<LearningRateSchedulerItem>();
+            int[] epochs = { 182, 136, 91, 0 };
+            float[] scalingFactor = { 0.0001f, 0.01f, 0.1f, 1.0f };
+            for(int i = 0; i < 4; i++)
+            {
+                LearningRateSchedulerItem item = new LearningRateSchedulerItem(epochs[i], scalingFactor[i]);
+                lrs.Add(item);
+            }
+            return lrs.AsReadOnly();
+        }
 
         /// <summary>
         /// Linear Scale rule and LR Decay construtor assigns a default LR scheduler.
         /// </summary>
         public LsrDecay(float baseLearningRate = 0.1f)
         {
-            LrSchedule = new float[,] { { 182, 0.001f }, { 136, 0.01f }, { 91, 0.1f }, { 0, 1.0f } };
+            _lrSchedule = GetDefaultLearningDecayItems();
             BaseLearningRate = baseLearningRate;
         }
 
         /// <summary>
         /// Linear Scale rule and LR Decay construtor assigns a user defined LR scheduler.
         /// </summary>
-        public LsrDecay(float[,] lrschedule, float baseLearningRate = 0.1f)
+        public LsrDecay(IReadOnlyList<LearningRateSchedulerItem> lrschedule, float baseLearningRate = 0.1f)
         {
-            LrSchedule = lrschedule;
+            _lrSchedule = lrschedule;
             BaseLearningRate = baseLearningRate;
         }
 
@@ -68,11 +103,11 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         private float GetLearningRateScheduleMultiplier(int epoch)
         {
-            for(int i = 0; i < LrSchedule.Length; i++)
+            for(int i = 0; i < _lrSchedule.Count; i++)
             {
-                if (epoch >= LrSchedule[i,0])
+                if (epoch >= _lrSchedule[i].Epoch)
                 {
-                    return LrSchedule[i, 1];
+                    return _lrSchedule[i].ScalingFactor;
                 }
             }
             return 1.0f;
