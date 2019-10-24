@@ -39,7 +39,8 @@ namespace Microsoft.ML.AutoML
                 { TrainerName.SgdCalibratedBinary, typeof(SgdCalibratedBinaryExtension) },
                 { TrainerName.SgdCalibratedOva, typeof(SgdCalibratedOvaExtension) },
                 { TrainerName.SymbolicSgdLogisticRegressionBinary, typeof(SymbolicSgdLogisticRegressionBinaryExtension) },
-                { TrainerName.SymbolicSgdLogisticRegressionOva, typeof(SymbolicSgdLogisticRegressionOvaExtension) }
+                { TrainerName.SymbolicSgdLogisticRegressionOva, typeof(SymbolicSgdLogisticRegressionOvaExtension) },
+                { TrainerName.MatrixFactorization, typeof(MatrixFactorizationExtension) }
             };
 
         private static readonly IDictionary<Type, TrainerName> _extensionTypesToTrainerNames =
@@ -71,6 +72,10 @@ namespace Microsoft.ML.AutoML
             else if (task == TaskKind.Regression)
             {
                 trainers = GetRegressionLearners();
+            }
+            else if (task == TaskKind.Recommendation)
+            {
+                trainers = GetRecommendationLearners();
             }
             else
             {
@@ -132,6 +137,14 @@ namespace Microsoft.ML.AutoML
                 new LbfgsPoissonRegressionExtension(),
                 new OnlineGradientDescentRegressionExtension(),
                 new OlsRegressionExtension(),
+            };
+        }
+
+        private static IEnumerable<ITrainerExtension> GetRecommendationLearners()
+        {
+            return new ITrainerExtension[]
+            {
+                new MatrixFactorizationExtension()
             };
         }
     }
