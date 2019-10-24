@@ -65,8 +65,7 @@ jobs:
     name: Windows_x64_NetCoreApp21
     buildScript: build.cmd
     pool:
-      name: NetCorePublic-Pool
-      queue: buildpool.windows.10.amd64.vs2017.open
+      name: Hosted VS2017
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -82,8 +81,7 @@ jobs:
         _config_short: RFX
         _includeBenchmarkData: false
     pool:
-      name: NetCorePublic-Pool
-      queue: buildpool.windows.10.amd64.vs2017.open
+      name: Hosted VS2017
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -91,5 +89,4 @@ jobs:
     architecture: x86
     buildScript: build.cmd
     pool:
-      name: NetCorePublic-Pool
-      queue: buildpool.windows.10.amd64.vs2017.open
+      name: Hosted VS2017
