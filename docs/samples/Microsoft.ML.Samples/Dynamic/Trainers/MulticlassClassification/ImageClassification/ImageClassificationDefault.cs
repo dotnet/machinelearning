@@ -63,7 +63,8 @@ namespace Samples.Dynamic
 
                 var pipeline = mlContext.MulticlassClassification.Trainers
                         .ImageClassification(featureColumnName:"Image")
-                    .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel",
+                    .Append(mlContext.Transforms.Conversion.MapKeyToValue(
+                        outputColumnName: "PredictedLabel",
                         inputColumnName: "PredictedLabel"));
 
                 Console.WriteLine("*** Training the image classification model " +
@@ -124,10 +125,11 @@ namespace Samples.Dynamic
         {
             // Create prediction function to try one prediction
             var predictionEngine = mlContext.Model
-                .CreatePredictionEngine<InMemoryImageData, ImagePrediction>(trainedModel);
+                .CreatePredictionEngine<InMemoryImageData, 
+                ImagePrediction>(trainedModel);
 
-            IEnumerable<InMemoryImageData> testImages = LoadInMemoryImagesFromDirectory(
-                imagesForPredictions, false);
+            IEnumerable<InMemoryImageData> testImages = 
+                LoadInMemoryImagesFromDirectory(imagesForPredictions, false);
 
             InMemoryImageData imageToPredict = new InMemoryImageData
             {

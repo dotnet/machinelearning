@@ -46,7 +46,10 @@ namespace Samples.Dynamic
                 //Load all the original train images info
                 IEnumerable<ImageData> train_images = LoadImagesFromDirectory(
                     folder: fullImagesetFolderPathTrain, useFolderNameAsLabel: true);
-                IDataView trainDataset = mlContext.Data.LoadFromEnumerable(train_images);
+
+                IDataView trainDataset = mlContext.Data.
+                    LoadFromEnumerable(train_images);
+
                 trainDataset = mlContext.Transforms.Conversion
                         .MapValueToKey("Label")
                     .Append(mlContext.Transforms.LoadRawImageBytes("Image",
@@ -57,7 +60,8 @@ namespace Samples.Dynamic
                 //Load all the original test images info
                 IEnumerable<ImageData> test_images = LoadImagesFromDirectory(
                     folder: fullImagesetFolderPathTest, useFolderNameAsLabel: true);
-                IDataView testDataset = mlContext.Data.LoadFromEnumerable(test_images);
+                IDataView testDataset = mlContext.Data.
+                    LoadFromEnumerable(test_images);
                 testDataset = mlContext.Transforms.Conversion
                         .MapValueToKey("Label")
                     .Append(mlContext.Transforms.LoadRawImageBytes("Image",
@@ -69,7 +73,8 @@ namespace Samples.Dynamic
                 {
                     FeatureColumnName = "Image",
                     LabelColumnName = "Label",
-                    // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
+                    // Just by changing/selecting InceptionV3/MobilenetV2 
+                    // here instead of 
                     // ResnetV2101 you can try a different architecture/
                     // pre-trained model. 
                     Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
@@ -82,8 +87,8 @@ namespace Samples.Dynamic
                     ReuseTrainSetBottleneckCachedValues = false,
                     // Use linear scaling rule and Learning rate decay as an option
                     // This is known to do well for Cifar dataset and Resnet models
-                    // You can also try other types of Learning rate scheduling methods
-                    // available in LearningRateScheduler.cs  
+                    // You can also try other types of Learning rate scheduling 
+                    // methods available in LearningRateScheduler.cs  
                     LearningRateScheduler = new LsrDecay()
                 };
 
@@ -121,7 +126,8 @@ namespace Samples.Dynamic
                 watch = System.Diagnostics.Stopwatch.StartNew();
 
                 // Predict image class using an in-memory image.
-                TrySinglePrediction(fullImagesetFolderPathTest, mlContext, loadedModel);
+                TrySinglePrediction(fullImagesetFolderPathTest, mlContext, 
+                    loadedModel);
 
                 watch.Stop();
                 elapsedMs = watch.ElapsedMilliseconds;
@@ -143,10 +149,11 @@ namespace Samples.Dynamic
         {
             // Create prediction function to try one prediction
             var predictionEngine = mlContext.Model
-                .CreatePredictionEngine<InMemoryImageData, ImagePrediction>(trainedModel);
+                .CreatePredictionEngine<InMemoryImageData, 
+                ImagePrediction>(trainedModel);
 
-            IEnumerable<InMemoryImageData> testImages = LoadInMemoryImagesFromDirectory(
-                imagesForPredictions, false);
+            IEnumerable<InMemoryImageData> testImages = 
+                LoadInMemoryImagesFromDirectory(imagesForPredictions, false);
 
             InMemoryImageData imageToPredict = new InMemoryImageData
             {
@@ -260,10 +267,12 @@ namespace Samples.Dynamic
             // get a set of images to teach the network about the new classes
             // CIFAR dataset ( 50000 train images and 10000 test images )
             string fileName = "cifar10.zip";
-            string url = $"https://tlcresources.blob.core.windows.net/datasets/cifar10.zip";
+            string url = $"https://tlcresources.blob.core.windows.net/" + 
+                "datasets/cifar10.zip";
 
             Download(url, imagesDownloadFolder, fileName);
-            UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);
+            UnZip(Path.Combine(imagesDownloadFolder, fileName), 
+                imagesDownloadFolder);
 
             return Path.GetFileNameWithoutExtension(fileName);
         }

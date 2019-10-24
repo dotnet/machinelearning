@@ -57,8 +57,9 @@ namespace Samples.Dynamic
 
                 IDataView trainDataset = trainTestData.TrainSet;
                 IDataView testDataset = trainTestData.TestSet;
-                
-                var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
+
+                var validationSet = mlContext.Transforms.LoadRawImageBytes
+                    ("Image", fullImagesetFolderPath, "ImagePath")
                 .Fit(testDataset)
                 .Transform(testDataset);
 
@@ -66,19 +67,22 @@ namespace Samples.Dynamic
                 {
                     FeatureColumnName = "Image",
                     LabelColumnName = "Label",
-                     // Just by changing/selecting InceptionV3/MobilenetV2/ResnetV250 here instead of 
-                    // ResnetV2101 you can try a different architecture/
-                    // pre-trained model. 
+                    // Just by changing/selecting InceptionV3/MobilenetV2/ResnetV250
+                    // here instead of ResnetV2101 you can try a different 
+                    // architecture/pre-trained model. 
                     Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
                     BatchSize = 10,
                     LearningRate = 0.01f,
                     EarlyStoppingCriteria = new ImageClassificationTrainer.EarlyStopping(
-                        minDelta: 0.001f, patience: 20, metric: ImageClassificationTrainer.EarlyStoppingMetric.Loss),
+                        minDelta: 0.001f, patience: 20,
+                        metric: ImageClassificationTrainer.EarlyStoppingMetric.Loss),
                     MetricsCallback = (metrics) => Console.WriteLine(metrics),
                     ValidationSet = validationSet
                 };
 
-                var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
+
+                var pipeline = mlContext.Transforms.LoadRawImageBytes(
+                    "Image", fullImagesetFolderPath, "ImagePath")
                     .Append(mlContext.MulticlassClassification.Trainers.ImageClassification(options));
 
                 Console.WriteLine("*** Training the image classification model with " +

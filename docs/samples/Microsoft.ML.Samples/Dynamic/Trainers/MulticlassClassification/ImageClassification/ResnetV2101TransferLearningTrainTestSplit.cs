@@ -64,9 +64,9 @@ namespace Samples.Dynamic
                 { 
                     FeatureColumnName = "Image",
                     LabelColumnName = "Label",
-                    // Just by changing/selecting InceptionV3/MobilenetV2/ResnetV250 here instead of 
-                    // ResnetV2101 you can try a different architecture/
-                    // pre-trained model. 
+                    // Just by changing/selecting InceptionV3/MobilenetV2/ResnetV250
+                    // here instead of ResnetV2101 you can try a different 
+                    // architecture/ pre-trained model. 
                     Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
                     Epoch = 50,
                     BatchSize = 10,
@@ -131,10 +131,11 @@ namespace Samples.Dynamic
         {
             // Create prediction function to try one prediction
             var predictionEngine = mlContext.Model
-                .CreatePredictionEngine<InMemoryImageData, ImagePrediction>(trainedModel);
+                .CreatePredictionEngine<InMemoryImageData, 
+                ImagePrediction>(trainedModel);
 
-            IEnumerable<InMemoryImageData> testImages = LoadInMemoryImagesFromDirectory(
-                imagesForPredictions, false);
+            IEnumerable<InMemoryImageData> testImages = 
+                LoadInMemoryImagesFromDirectory(imagesForPredictions, false);
 
             InMemoryImageData imageToPredict = new InMemoryImageData
             {
