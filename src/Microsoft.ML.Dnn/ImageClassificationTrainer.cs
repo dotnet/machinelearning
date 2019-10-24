@@ -636,7 +636,12 @@ namespace Microsoft.ML.Dnn
             TrainAndEvaluateClassificationLayer(_options.TrainSetBottleneckCachedValuesFilePath, _options,
                 _options.ValidationSetBottleneckCachedValuesFilePath, trainingsetSize);
 
-            return new ImageClassificationModelParameters(Host, _session, _classCount, _jpegDataTensorName,
+            // Leave the ownership of _session so that it is not disposed/closed when this object goes out of scope
+            // since it will be used by ImageClassificationModelParameters class (new owner that will take care of
+            // disposing).
+            var session = _session;
+            _session = null;
+            return new ImageClassificationModelParameters(Host, session, _classCount, _jpegDataTensorName,
                 _resizedImageTensorName, _inputTensorName, _softmaxTensorName);
         }
 
@@ -1435,6 +1440,23 @@ namespace Microsoft.ML.Dnn
             };
 
             return (ValueMapper<TSrc, TDst>)(Delegate)del;
+        }
+
+        ~ImageClassificationModelParameters()
+        {
+            Dispose(false);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            // Ensure that the Session is not null and it's handle is not Zero, as it may have already been
+            // disposed/finalized. Technically we shouldn't be calling this if disposing == false,
+            // since we're running in finalizer and the GC doesn't guarantee ordering of finalization of managed
+            // objects, but we have to make sure that the Session is closed before deleting our temporary directory.
+            if (_session != null && _session != IntPtr.Zero)
+            {
+                _session.close();
+            }
         }
     }
 }
