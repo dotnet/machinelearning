@@ -9,17 +9,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ML;
 using Microsoft.ML.Data;
+using Microsoft.ML.Samples;
 using Microsoft.ML.Transforms;
 using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Samples.Dynamic
 {
-    public class ImageClassificationDefault
+    public class ImageClassificationDefault : SampleBase
     {
         public static void Example()
         {
             string assetsRelativePath = @"../../../assets";
-            string assetsPath = GetAbsolutePath(assetsRelativePath);
+            string assetsPath = GetAbsolutePath<ResnetV2101TransferLearningTrainTestSplit>(assetsRelativePath);
 
             var outputMlNetModelFilePath = Path.Combine(assetsPath, "outputs",
                 "imageClassifier.zip");
@@ -285,18 +286,6 @@ namespace Samples.Dynamic
             File.Create(Path.Combine(destFolder, flag));
             Console.WriteLine("");
             Console.WriteLine("Extracting is completed.");
-        }
-
-        public static string GetAbsolutePath(string relativePath)
-        {
-            FileInfo _dataRoot = new FileInfo(typeof(
-                ResnetV2101TransferLearningTrainTestSplit).Assembly.Location);
-
-            string assemblyFolderPath = _dataRoot.Directory.FullName;
-
-            string fullPath = Path.Combine(assemblyFolderPath, relativePath);
-
-            return fullPath;
         }
 
         public class InMemoryImageData
