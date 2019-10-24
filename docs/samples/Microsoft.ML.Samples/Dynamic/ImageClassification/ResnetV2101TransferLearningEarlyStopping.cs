@@ -62,19 +62,23 @@ namespace Samples.Dynamic
                 .Fit(testDataset)
                 .Transform(testDataset);
 
-                var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
-                    .Append(mlContext.Model.ImageClassification(
-                        "Image", "Label",
-                        // Just by changing/selecting InceptionV3 here instead of 
-                        // ResnetV2101 you can try a different architecture/pre-trained 
-                        // model. 
-                        arch: ImageClassificationEstimator.Architecture.ResnetV2101,
-                        batchSize: 10,
-                        learningRate: 0.01f,
-                        earlyStopping: new ImageClassificationEstimator.EarlyStopping(minDelta: 0.001f, patience: 20, metric: ImageClassificationEstimator.EarlyStoppingMetric.Loss),
-                        metricsCallback: (metrics) => Console.WriteLine(metrics),
-                        validationSet: validationSet));
+                var options = new ImageClassificationEstimator.Options()
+                {
+                    FeaturesColumnName = "Image",
+                    LabelColumnName = "Label",
+                     // Just by changing/selecting InceptionV3/MobilenetV2/ResnetV250 here instead of 
+                    // ResnetV2101 you can try a different architecture/
+                    // pre-trained model. 
+                    Arch = ImageClassificationEstimator.Architecture.ResnetV2101,
+                    BatchSize = 10,
+                    LearningRate = 0.01f,
+                    EarlyStoppingCriteria = new ImageClassificationEstimator.EarlyStopping(minDelta: 0.001f, patience: 20, metric: ImageClassificationEstimator.EarlyStoppingMetric.Loss),
+                    MetricsCallback = (metrics) => Console.WriteLine(metrics),
+                    ValidationSet = validationSet
+                };
 
+                var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+                    .Append(mlContext.Model.ImageClassification(options));
 
                 Console.WriteLine("*** Training the image classification model with " +
                     "DNN Transfer Learning on top of the selected pre-trained " +

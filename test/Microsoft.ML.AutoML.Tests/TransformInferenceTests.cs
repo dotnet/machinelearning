@@ -643,6 +643,33 @@ namespace Microsoft.ML.AutoML.Test
                 }, @"[]");
         }
 
+        [Theory]
+        [InlineData(true, @"[
+  {
+    ""Name"": ""ValueToKeyMapping"",
+    ""NodeType"": ""Transform"",
+    ""InColumns"": [
+      ""CustomName""
+    ],
+    ""OutColumns"": [
+      ""CustomName""
+    ],
+    ""Properties"": {}
+  }
+]")]
+        [InlineData(false, @"[]")]
+        public void TransformInferenceCustomTextForRecommendation(bool useRecommendationTask, string expectedJson)
+        {
+            foreach (var columnPurpose in new[] { ColumnPurpose.UserId, ColumnPurpose.ItemId })
+            {
+                TransformInferenceTestCore(new[]
+                    {
+                    new DatasetColumnInfo(DefaultColumnNames.Features, new VectorDataViewType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("CustomName", TextDataViewType.Instance, columnPurpose, new ColumnDimensions(null, null)),
+                }, expectedJson, useRecommendationTask ? TaskKind.Recommendation : TaskKind.MulticlassClassification);
+            }
+        }
+
         [Fact]
         public void TransformInferenceCustomTextLabelColMulticlass()
         {

@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.ML.AutoML
+using Microsoft.ML.Data;
+
+namespace Microsoft.ML.AutoML.Samples
 {
-    internal enum TaskKind
+    public class MovieRatingPrediction
     {
-        BinaryClassification,
-        MulticlassClassification,
-        Regression,
-        Recommendation
+        [ColumnName("Score")]
+        public float Rating;
     }
 }

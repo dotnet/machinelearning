@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.AutoML
 {
@@ -115,6 +116,19 @@ namespace Microsoft.ML.AutoML
             };
         }
 
+        public static IEnumerable<SweepableParam> BuildMatrixFactorizationParams()
+        {
+            return new SweepableParam[]
+            {
+                new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.NumberOfIterations), new object[] { 10, 20, 40 }),
+                new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.LearningRate), new object[] { 0.001f, 0.01f, 0.1f }),
+                new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.ApproximationRank), new object[] { 8, 16, 64, 128 }),
+                new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.Lambda), new object[] { 0.01f, 0.05f, 0.1f, 0.5f, 1f }),
+                new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.LossFunction), new object[] { MatrixFactorizationTrainer.LossFunctionType.SquareLossRegression, MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass }),
+                new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.Alpha), new object[] { 1f, 0.01f, 0.0001f, 0.000001f }),
+                new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.C), new object[] { 0.000001f, 0.0001f, 0.01f }),
+            };
+        }
         public static IEnumerable<SweepableParam> BuildLinearSvmParams()
         {
             return new SweepableParam[] {
