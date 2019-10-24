@@ -153,6 +153,9 @@ namespace Microsoft.ML.AutoML
 
             // For recommendation tasks, convert both user and item columns as key
             yield return new Experts.RecommendationColumns(context);
+
+            // For image columns, use image transforms.
+            yield return new Experts.Image(context);
         }
 
         internal static class Experts
@@ -442,6 +445,32 @@ namespace Microsoft.ML.AutoML
             }
 
             return newColNames;
+        }
+
+        internal sealed class Image : TransformInferenceExpertBase
+        {
+            public Image(MLContext context) : base(context)
+            {
+            }
+
+            public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns, TaskKind task)
+            {
+                var featureCols = new List<string>();
+
+                foreach (var column in columns)
+                {
+                    if (!column.Type.GetItemType().IsText() || column.Purpose != ColumnPurpose.ImagePath)
+                        continue;
+
+                    var columnDestSuffix = "_featurized";
+                    var columnNameSafe = column.ColumnName;
+
+                    string columnDestRenamed = $"{columnNameSafe}{columnDestSuffix}";
+
+                    featureCols.Add(columnDestRenamed);
+                    yield return ImageLoadingExtension.CreateSuggestedTransform(Context, columnNameSafe, columnDestRenamed);
+                }
+            }
         }
     }
 }
