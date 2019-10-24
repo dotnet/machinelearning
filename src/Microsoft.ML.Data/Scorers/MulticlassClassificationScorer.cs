@@ -35,9 +35,10 @@ namespace Microsoft.ML.Data
         // between scores and probabilities (using IDistributionPredictor)
         public sealed class Arguments : ScorerArgumentsBase
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Output column: The suffix to append to the default column names", ShortName = "ex")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Score Column Name.", ShortName = "scn")]
             public string ScoreColumnName = AnnotationUtils.Const.ScoreValueKind.Score;
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Output column: The suffix to append to the default column names", ShortName = "ex")]
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Predicted Label Column Name.", ShortName = "plcn")]
             public string PredictedLabelColumnName = DefaultColumnNames.PredictedLabel;
         }
 
