@@ -40,7 +40,7 @@ namespace Microsoft.ML.Dnn
     /// To create this trainer, use [ImageClassification](xref:Microsoft.ML.Dnn.DnnCatalog.ImageClassification(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String,System.String,System.String,Microsoft.ML.IDataView)).
     ///
     /// ### Input and Output Columns
-    /// The input label column data must be[key] (xref:Microsoft.ML.Data.KeyDataViewType) type and the feature column must be a variable-sized vector of<xref:System.UInt32>.
+    /// The input label column data must be[key] (xref:Microsoft.ML.Data.KeyDataViewType) type and the feature column must be a variable-sized vector of<xref:System.Byte>.
     ///
     /// This trainer outputs the following columns:
     ///
