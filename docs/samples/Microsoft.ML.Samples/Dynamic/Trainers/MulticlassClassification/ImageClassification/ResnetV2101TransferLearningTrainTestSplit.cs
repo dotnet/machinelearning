@@ -9,12 +9,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Dnn;
 using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Samples.Dynamic
 {
-    public class ImageClassificationDefault
+    public class ResnetV2101TransferLearningTrainTestSplit
     {
         public static void Example()
         {
@@ -60,7 +60,23 @@ namespace Samples.Dynamic
                 IDataView trainDataset = trainTestData.TrainSet;
                 IDataView testDataset = trainTestData.TestSet;
 
-                var pipeline = mlContext.Model.ImageClassification("Image", "Label", validationSet: testDataset)
+                var options = new ImageClassificationTrainer.Options()
+                { 
+                    FeatureColumnName = "Image",
+                    LabelColumnName = "Label",
+                    // Just by changing/selecting InceptionV3/MobilenetV2/ResnetV250 here instead of 
+                    // ResnetV2101 you can try a different architecture/
+                    // pre-trained model. 
+                    Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
+                    Epoch = 50,
+                    BatchSize = 10,
+                    LearningRate = 0.01f,
+                    MetricsCallback = (metrics) => Console.WriteLine(metrics),
+                    ValidationSet = testDataset,
+                    DisableEarlyStopping = true
+                };
+
+                var pipeline = mlContext.MulticlassClassification.Trainers.ImageClassification(options)
                     .Append(mlContext.Transforms.Conversion.MapKeyToValue(
                         outputColumnName: "PredictedLabel", 
                         inputColumnName: "PredictedLabel"));
@@ -280,8 +296,17 @@ namespace Samples.Dynamic
             if (File.Exists(Path.Combine(destFolder, flag))) return;
 
             Console.WriteLine($"Extracting.");
-            ZipFile.ExtractToDirectory(gzArchiveName, destFolder);
-            
+            var task = Task.Run(() =>
+            {
+                ZipFile.ExtractToDirectory(gzArchiveName, destFolder);
+            });
+
+            while (!task.IsCompleted)
+            {
+                Thread.Sleep(200);
+                Console.Write(".");
+            }
+
             File.Create(Path.Combine(destFolder, flag));
             Console.WriteLine("");
             Console.WriteLine("Extracting is completed.");
