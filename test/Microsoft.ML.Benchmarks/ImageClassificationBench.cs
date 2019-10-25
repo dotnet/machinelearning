@@ -7,15 +7,12 @@ using System.IO;
 using System.IO.Compression;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 using BenchmarkDotNet.Attributes;
 using static Microsoft.ML.DataOperationsCatalog;
 using System.Net.Http;
-using System.Diagnostics;
 using Microsoft.ML.Dnn;
 
 namespace Microsoft.ML.Benchmarks
