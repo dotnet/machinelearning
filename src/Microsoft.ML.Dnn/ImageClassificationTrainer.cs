@@ -1278,6 +1278,10 @@ namespace Microsoft.ML.Dnn
             IDataView trainData, IDataView validationData) => TrainTransformer(trainData, validationData);
     }
 
+    /// <summary>
+    /// Image Classification predictor. This class encapsulates the trained Deep Neural Network(DNN) model
+    /// and is used to score images.
+    /// </summary>
     public sealed class ImageClassificationModelParameters : ModelParametersBase<VBuffer<float>>, IValueMapper
     {
         internal const string LoaderSignature = "ImageClassificationPred";
