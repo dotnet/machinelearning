@@ -10,7 +10,7 @@ parameters:
 jobs:
   - job: ${{ parameters.name }}
     ${{ if eq(parameters.codeCoverage, 'false') }}:
-      timeoutInMinutes: 40
+      timeoutInMinutes: 60
     ${{ if eq(parameters.codeCoverage, 'true') }}:
       timeoutInMinutes: 60
     strategy:
@@ -77,5 +77,35 @@ jobs:
         pathToPublish: $(Build.ArtifactStagingDirectory)
         artifactName: ${{ parameters.name }} $(_config_short)
         artifactType: container
+    - ${{ if eq(parameters.buildScript, 'build.cmd') }}:
+      - powershell: |
+                  $taskListOutput = & TaskList /FI "IMAGENAME eq dotnet.exe" | Out-String
+                  if ($taskListOutput.Contains("dotnet.exe"))
+                  {
+                      Write-Output "Killing dotnet.exe processes..."
+                      & taskkill /IM dotnet.exe /F
+                  }
+
+                  if (Test-Path .\packages\)
+                  {
+                      Write-Output "Removing nuget cache dir..."
+                      Remove-Item -Force -Recurse .\packages\
+                  }
+
+                  if (Test-Path .\test\data\external\)
+                  {
+                      Write-Output "Removing external test data..."
+                      Remove-Item -Force -Recurse .\test\data\external\
+                  }
+
+                  mkdir .\tmp\
+                  Move-Item .\bin\obj\packages .\tmp\
+                  Write-Output "Removing bin dir..."
+                  Remove-Item -Force -Recurse .\bin\
+                  mkdir .\bin\obj\
+                  Move-Item .\tmp\packages\ .\bin\obj\
+                  Remove-Item -Force -Recurse .\tmp\
+                  Write-Output "Done cleaning up binary folder..."
+        displayName: Clean up test data
     - script: ${{ parameters.buildScript }} -buildPackages
       displayName: Build Packages

@@ -9,12 +9,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Transforms;
 using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Samples.Dynamic
 {
-    public class LearningRateSchedulingCifarResnetTransferLearning
+    public class ImageClassificationDefault
     {
         public static void Example()
         {
@@ -27,72 +26,43 @@ namespace Samples.Dynamic
             string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
                 "images");
 
-            // Download Cifar Dataset. 
+            //Download the image set and unzip
             string finalImagesFolderName = DownloadImageSet(
-                   imagesDownloadFolderPath);
-            string finalImagesFolderNameTrain = "cifar\\train";
-            string fullImagesetFolderPathTrain = Path.Combine(
-                imagesDownloadFolderPath, finalImagesFolderNameTrain);
-
-            string finalImagesFolderNameTest = "cifar\\test";
-            string fullImagesetFolderPathTest = Path.Combine(
-                imagesDownloadFolderPath, finalImagesFolderNameTest);
+                imagesDownloadFolderPath);
+            string fullImagesetFolderPath = Path.Combine(
+                imagesDownloadFolderPath, finalImagesFolderName);
 
             try
             {
 
                 MLContext mlContext = new MLContext(seed: 1);
 
-                //Load all the original train images info
-                IEnumerable<ImageData> train_images = LoadImagesFromDirectory(
-                    folder: fullImagesetFolderPathTrain, useFolderNameAsLabel: true);
-                IDataView trainDataset = mlContext.Data.LoadFromEnumerable(train_images);
-                trainDataset = mlContext.Transforms.Conversion
+                //Load all the original images info
+                IEnumerable<ImageData> images = LoadImagesFromDirectory(
+                    folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
+
+                IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
+                    mlContext.Data.LoadFromEnumerable(images));
+
+                shuffledFullImagesDataset = mlContext.Transforms.Conversion
                         .MapValueToKey("Label")
                     .Append(mlContext.Transforms.LoadImages("Image",
-                                fullImagesetFolderPathTrain, false, "ImagePath"))
-                    .Fit(trainDataset)
-                    .Transform(trainDataset);
+                                fullImagesetFolderPath, false, "ImagePath"))
+                    .Fit(shuffledFullImagesDataset)
+                    .Transform(shuffledFullImagesDataset);
 
-                //Load all the original test images info
-                IEnumerable<ImageData> test_images = LoadImagesFromDirectory(
-                    folder: fullImagesetFolderPathTest, useFolderNameAsLabel: true);
-                IDataView testDataset = mlContext.Data.LoadFromEnumerable(test_images);
-                testDataset = mlContext.Transforms.Conversion
-                        .MapValueToKey("Label")
-                    .Append(mlContext.Transforms.LoadImages("Image",
-                                fullImagesetFolderPathTest, false, "ImagePath"))
-                    .Fit(testDataset)
-                    .Transform(testDataset);
+                // Split the data 90:10 into train and test sets, train and
+                // evaluate.
+                TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
+                    shuffledFullImagesDataset, testFraction: 0.1, seed: 1);
 
-                var options = new ImageClassificationEstimator.Options()
-                {
-                    FeaturesColumnName = "Image",
-                    LabelColumnName = "Label",
-                    // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
-                    // ResnetV2101 you can try a different architecture/
-                    // pre-trained model. 
-                    Arch = ImageClassificationEstimator.Architecture.ResnetV2101,
-                    Epoch = 182,
-                    BatchSize = 128,
-                    LearningRate = 0.01f,
-                    MetricsCallback = (metrics) => Console.WriteLine(metrics),
-                    ValidationSet = testDataset,
-                    DisableEarlyStopping = true,
-                    ReuseValidationSetBottleneckCachedValues = false,
-                    ReuseTrainSetBottleneckCachedValues = false,
-                    // Use linear scaling rule and Learning rate decay as an option
-                    // This is known to do well for Cifar dataset and Resnet models
-                    // You can also try other types of Learning rate scheduling methods
-                    // available in LearningRateScheduler.cs  
-                    LearningRateScheduler = new LsrDecay()
-                };
+                IDataView trainDataset = trainTestData.TrainSet;
+                IDataView testDataset = trainTestData.TestSet;
 
-                var pipeline = mlContext.Model.ImageClassification(options)
-                    .Append(mlContext.Transforms.Conversion.MapKeyToValue(
-                        outputColumnName: "PredictedLabel",
+                var pipeline = mlContext.MulticlassClassification.Trainers
+                        .ImageClassification(featureColumnName:"Image", validationSet:testDataset)
+                    .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel",
                         inputColumnName: "PredictedLabel"));
-
 
                 Console.WriteLine("*** Training the image classification model " +
                     "with DNN Transfer Learning on top of the selected " +
@@ -109,7 +79,7 @@ namespace Samples.Dynamic
                 Console.WriteLine("Training with transfer learning took: " +
                     (elapsedMs / 1000).ToString() + " seconds");
 
-                mlContext.Model.Save(trainedModel, testDataset.Schema,
+                mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
                     "model.zip");
 
                 ITransformer loadedModel;
@@ -122,7 +92,7 @@ namespace Samples.Dynamic
                 watch = System.Diagnostics.Stopwatch.StartNew();
 
                 // Predict image class using an in-memory image.
-                TrySinglePrediction(fullImagesetFolderPathTest, mlContext, loadedModel);
+                TrySinglePrediction(fullImagesetFolderPath, mlContext, loadedModel);
 
                 watch.Stop();
                 elapsedMs = watch.ElapsedMilliseconds;
@@ -190,9 +160,7 @@ namespace Samples.Dynamic
                 searchOption: SearchOption.AllDirectories);
             foreach (var file in files)
             {
-                if (Path.GetExtension(file) != ".jpg" &&
-                    Path.GetExtension(file) != ".JPEG" &&
-                    Path.GetExtension(file) != ".png")
+                if (Path.GetExtension(file) != ".jpg")
                     continue;
 
                 var label = Path.GetFileName(file);
@@ -219,17 +187,15 @@ namespace Samples.Dynamic
             }
         }
 
-        public static IEnumerable<InMemoryImageData>
-            LoadInMemoryImagesFromDirectory(string folder,
+        public static IEnumerable<InMemoryImageData> 
+            LoadInMemoryImagesFromDirectory(string folder, 
                 bool useFolderNameAsLabel = true)
         {
             var files = Directory.GetFiles(folder, "*",
                 searchOption: SearchOption.AllDirectories);
             foreach (var file in files)
             {
-                if (Path.GetExtension(file) != ".jpg" &&
-                    Path.GetExtension(file) != ".JPEG" &&
-                    Path.GetExtension(file) != ".png")
+                if (Path.GetExtension(file) != ".jpg")
                     continue;
 
                 var label = Path.GetFileName(file);
@@ -259,9 +225,13 @@ namespace Samples.Dynamic
         public static string DownloadImageSet(string imagesDownloadFolder)
         {
             // get a set of images to teach the network about the new classes
-            // CIFAR dataset ( 50000 train images and 10000 test images )
-            string fileName = "cifar10.zip";
-            string url = $"https://tlcresources.blob.core.windows.net/datasets/cifar10.zip";
+
+            //SINGLE SMALL FLOWERS IMAGESET (200 files)
+            string fileName = "flower_photos_small_set.zip";
+            string url = $"https://mlnetfilestorage.file.core.windows.net/" +
+                $"imagesets/flower_images/flower_photos_small_set.zip?st=2019-08-" +
+                $"07T21%3A27%3A44Z&se=2030-08-08T21%3A27%3A00Z&sp=rl&sv=2018-03-" +
+                $"28&sr=f&sig=SZ0UBX47pXD0F1rmrOM%2BfcwbPVob8hlgFtIlN89micM%3D";
 
             Download(url, imagesDownloadFolder, fileName);
             UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);
@@ -308,17 +278,8 @@ namespace Samples.Dynamic
             if (File.Exists(Path.Combine(destFolder, flag))) return;
 
             Console.WriteLine($"Extracting.");
-            var task = Task.Run(() =>
-            {
-                ZipFile.ExtractToDirectory(gzArchiveName, destFolder);
-            });
-
-            while (!task.IsCompleted)
-            {
-                Thread.Sleep(200);
-                Console.Write(".");
-            }
-
+            ZipFile.ExtractToDirectory(gzArchiveName, destFolder);
+            
             File.Create(Path.Combine(destFolder, flag));
             Console.WriteLine("");
             Console.WriteLine("Extracting is completed.");
