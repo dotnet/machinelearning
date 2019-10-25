@@ -1339,8 +1339,7 @@ namespace Microsoft.ML.Scenarios
                 LearningRate = 0.01f,
                 MetricsCallback = (metrics) => Console.WriteLine(metrics),
                 TestOnTrainSet = false,
-                ValidationSet = validationSet,
-                DisableEarlyStopping = true
+                ValidationSet = validationSet
             };
 
             var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
@@ -1477,7 +1476,6 @@ namespace Microsoft.ML.Scenarios
                 LearningRate = 0.01f,
                 MetricsCallback = (metrics) => Console.WriteLine(metrics),
                 ValidationSet = validationSet,
-                DisableEarlyStopping = true,
                 ReuseValidationSetBottleneckCachedValues = false,
                 ReuseTrainSetBottleneckCachedValues = false,
                 // Using Exponential Decay for learning rate scheduling
@@ -1624,7 +1622,7 @@ namespace Microsoft.ML.Scenarios
                 EarlyStoppingCriteria = new ImageClassificationTrainer.EarlyStopping(),
                 MetricsCallback = (metrics) => { Console.WriteLine(metrics); lastEpoch = metrics.Train != null ? metrics.Train.Epoch : 0; },
                 TestOnTrainSet = false,
-                ValidationSet = validationSet,
+                ValidationSet = validationSet
             };
 
             var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>

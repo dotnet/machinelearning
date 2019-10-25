@@ -65,7 +65,7 @@ namespace Microsoft.ML.Dnn
     /// ]]>
     /// </format>
     /// </remarks>
-    public class ImageClassificationTrainer :
+    public sealed class ImageClassificationTrainer :
         TrainerEstimatorBase<MulticlassPredictionTransformer<ImageClassificationModelParameters>,
             ImageClassificationModelParameters>
     {
@@ -116,12 +116,6 @@ namespace Microsoft.ML.Dnn
             Accuracy,
             Loss
         }
-
-        /// <summary>
-        /// Callback that returns DNN statistics during bottlenack phase and training phase.
-        /// Train metrics may be null when bottleneck phase is running, so have check!
-        /// </summary>
-        public delegate void ImageClassificationMetricsCallback(ImageClassificationMetrics metrics);
 
         /// <summary>
         /// DNN training metrics.
@@ -333,6 +327,9 @@ namespace Microsoft.ML.Dnn
             public override string ToString() => Train != null ? Train.ToString() : Bottleneck.ToString();
         }
 
+        /// <summary>
+        /// Options class for <see cref="ImageClassificationTrainer"/>.
+        /// </summary>
         public sealed class Options : TrainerInputBaseWithLabel
         {
             /// <summary>
@@ -352,12 +349,6 @@ namespace Microsoft.ML.Dnn
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate to use during optimization.", SortOrder = 12)]
             public float LearningRate = 0.01f;
-
-            /// <summary>
-            /// Whether to disable use of early stopping technique. Training will go on for the full epoch count.
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to disable use of early stopping technique. Training will go on for the full epoch count.", SortOrder = 15)]
-            public bool DisableEarlyStopping = false;
 
             /// <summary>
             /// Early stopping technique parameters to be used to terminate training when training metric stops improving.
@@ -393,7 +384,7 @@ namespace Microsoft.ML.Dnn
             /// Callback to report statistics on accuracy/cross entropy during training phase.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Callback to report metrics during training and validation phase.", SortOrder = 15)]
-            public ImageClassificationMetricsCallback MetricsCallback = null;
+            public Action<ImageClassificationMetrics> MetricsCallback = null;
 
             /// <summary>
             /// Indicates the path where the newly retrained model should be saved.
@@ -499,7 +490,8 @@ namespace Microsoft.ML.Dnn
                 LabelColumnName = labelColumn,
                 ScoreColumnName = scoreColumn,
                 PredictedLabelColumnName = predictedLabelColumn,
-                ValidationSet = validationSet
+                ValidationSet = validationSet,
+                EarlyStoppingCriteria = new EarlyStopping()
             })
         {
         }
@@ -520,9 +512,6 @@ namespace Microsoft.ML.Dnn
             Host.CheckNonEmpty(options.PredictedLabelColumnName, nameof(options.PredictedLabelColumnName));
 
             _options = options;
-            _options.EarlyStoppingCriteria = _options.DisableEarlyStopping ? null : _options.EarlyStoppingCriteria ??
-                new EarlyStopping();
-
             _session = DnnUtils.LoadDnnModel(env, _options.Arch, true).Session;
             _useLRScheduling = _options.LearningRateScheduler != null;
             _checkpointPath = _options.ModelSavePath ??
@@ -723,7 +712,7 @@ namespace Microsoft.ML.Dnn
 
         private int CacheFeaturizedImagesToDisk(IDataView input, string labelColumnName, string imageColumnName,
             ImageProcessor imageProcessor, string inputTensorName, string outputTensorName, string cacheFilePath,
-            ImageClassificationMetrics.Dataset dataset, ImageClassificationMetricsCallback metricsCallback)
+            ImageClassificationMetrics.Dataset dataset, Action<ImageClassificationMetrics> metricsCallback)
         {
             var labelColumn = input.Schema[labelColumnName];
 
@@ -809,7 +798,7 @@ namespace Microsoft.ML.Dnn
             int epochs = options.Epoch;
             float learningRate = options.LearningRate;
             bool evaluateOnly = !string.IsNullOrEmpty(validationSetBottleneckFilePath);
-            ImageClassificationMetricsCallback statisticsCallback = _options.MetricsCallback;
+            Action<ImageClassificationMetrics> statisticsCallback = _options.MetricsCallback;
             var trainingSet = GetShuffledData(trainBottleneckFilePath);
             IDataView validationSet = null;
             if (options.ValidationSet != null && !string.IsNullOrEmpty(validationSetBottleneckFilePath))

@@ -72,8 +72,7 @@ namespace Samples.Dynamic
                     BatchSize = 10,
                     LearningRate = 0.01f,
                     MetricsCallback = (metrics) => Console.WriteLine(metrics),
-                    ValidationSet = testDataset,
-                    DisableEarlyStopping = true
+                    ValidationSet = testDataset
                 };
 
                 var pipeline = mlContext.MulticlassClassification.Trainers.ImageClassification(options)

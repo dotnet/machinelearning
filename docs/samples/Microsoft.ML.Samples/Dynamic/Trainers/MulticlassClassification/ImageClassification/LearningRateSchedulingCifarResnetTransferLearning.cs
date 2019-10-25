@@ -78,7 +78,6 @@ namespace Samples.Dynamic
                     LearningRate = 0.01f,
                     MetricsCallback = (metrics) => Console.WriteLine(metrics),
                     ValidationSet = testDataset,
-                    DisableEarlyStopping = true,
                     ReuseValidationSetBottleneckCachedValues = false,
                     ReuseTrainSetBottleneckCachedValues = false,
                     // Use linear scaling rule and Learning rate decay as an option

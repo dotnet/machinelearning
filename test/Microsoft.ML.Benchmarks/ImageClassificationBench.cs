@@ -91,8 +91,7 @@ namespace Microsoft.ML.Benchmarks
                 LearningRate = 0.01f,
                 EarlyStoppingCriteria = new ImageClassificationTrainer.EarlyStopping(minDelta: 0.001f, patience: 20, metric: ImageClassificationTrainer.EarlyStoppingMetric.Loss),
                 ValidationSet = testDataset,
-                ModelSavePath = assetsPath,
-                DisableEarlyStopping = true
+                ModelSavePath = assetsPath
             };
             var pipeline = mlContext.MulticlassClassification.Trainers.ImageClassification(options)
             .Append(mlContext.Transforms.Conversion.MapKeyToValue(

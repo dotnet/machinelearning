@@ -81,7 +81,8 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Performs image classification using transfer learning.
-        /// Usage of this API requires additional NuGet dependencies on TensorFlow redist, see linked document for more information.
+        /// Usage of this API requires additional NuGet dependencies on TensorFlow redist, see linked document 
+        /// for more information.
         /// <format type="text/markdown">
         /// <![CDATA[
         /// [!include[io](~/../docs/samples/docs/api-reference/tensorflow-usage.md)]
@@ -89,21 +90,19 @@ namespace Microsoft.ML
         /// </format>
         /// </summary>
         /// <param name="catalog">Catalog</param>
-        /// <param name="options">An <see cref="ImageClassificationTrainer.Options"/> object specifying advanced options for <see cref="ImageClassificationTrainer"/>.</param>
+        /// <param name="options">An <see cref="ImageClassificationTrainer.Options"/> object specifying advanced 
+        /// options for <see cref="ImageClassificationTrainer"/>.</param>
 
         public static ImageClassificationTrainer ImageClassification(
             this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
-            ImageClassificationTrainer.Options options)
-        {
-            options.EarlyStoppingCriteria = options.DisableEarlyStopping ? null : options.EarlyStoppingCriteria ?? new ImageClassificationTrainer.EarlyStopping();
+            ImageClassificationTrainer.Options options) =>
+                new ImageClassificationTrainer(CatalogUtils.GetEnvironment(catalog), options);
 
-            var env = CatalogUtils.GetEnvironment(catalog);
-            return new ImageClassificationTrainer(env, options);
-        }
 
         /// <summary>
         /// Performs image classification using transfer learning.
-        /// Usage of this API requires additional NuGet dependencies on TensorFlow redist, see linked document for more information.
+        /// Usage of this API requires additional NuGet dependencies on TensorFlow redist, see linked document for 
+        /// more information.
         /// <format type="text/markdown">
         /// <![CDATA[
         /// [!include[io](~/../docs/samples/docs/api-reference/tensorflow-usage.md)]
