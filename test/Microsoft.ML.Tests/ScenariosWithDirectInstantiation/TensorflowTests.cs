@@ -1792,22 +1792,22 @@ namespace Microsoft.ML.Scenarios
             IDataView trainDataset = trainTestData.TrainSet;
             IDataView testDataset = trainTestData.TestSet;
 
-            var options = new ImageClassificationEstimator.Options()
+            var options = new ImageClassificationTrainer.Options()
             {
-                FeaturesColumnName = "Image",
+                FeatureColumnName = "Image",
                 LabelColumnName = "Label",
                 // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
                 // ResnetV2101 you can try a different architecture/
                 // pre-trained model. 
-                Arch = ImageClassificationEstimator.Architecture.ResnetV2101,
+                Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
                 Epoch = 5,
                 BatchSize = 32,
                 LearningRate = 0.0001f,
                 ValidationSet = testDataset,
-                DisableEarlyStopping = true
+                EarlyStoppingCriteria = null
             };
 
-            var pipeline = mlContext.Model.ImageClassification(options);
+            var pipeline = mlContext.MulticlassClassification.Trainers.ImageClassification(options);
 
             var trainedModel = pipeline.Fit(trainDataset);
             mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,

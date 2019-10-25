@@ -757,15 +757,18 @@ namespace Microsoft.ML.Dnn
                         continue; //Empty Image
 
                     var imageTensor = imageProcessor.ProcessImage(image);
-                    runner.AddInput(imageTensor, 0);
-                    var featurizedImage = runner.Run()[0]; // Reuse memory
-                    featurizedImage.ToArray<float>(ref imageArray);
-                    Host.Assert((int)featurizedImage.size == imageArray.Length);
-                    writer.WriteLine(label - 1 + "," + string.Join(",", imageArray));
-                    featurizedImage.Dispose();
-                    imageTensor.Dispose();
-                    metrics.Bottleneck.Index++;
-                    metricsCallback?.Invoke(metrics);
+                    if (imageTensor != null)
+                    {
+                        runner.AddInput(imageTensor, 0);
+                        var featurizedImage = runner.Run()[0]; // Reuse memory
+                        featurizedImage.ToArray<float>(ref imageArray);
+                        Host.Assert((int)featurizedImage.size == imageArray.Length);
+                        writer.WriteLine(label - 1 + "," + string.Join(",", imageArray));
+                        featurizedImage.Dispose();
+                        imageTensor.Dispose();
+                        metrics.Bottleneck.Index++;
+                        metricsCallback?.Invoke(metrics);
+                    }
                 }
                 datasetsize = metrics.Bottleneck.Index;
             }
@@ -1420,10 +1423,13 @@ namespace Microsoft.ML.Dnn
             public void Score(in VBuffer<byte> image, Span<float> classProbabilities)
             {
                 var processedTensor = _imageProcessor.ProcessImage(image);
-                var outputTensor = _runner.AddInput(processedTensor, 0).Run();
-                outputTensor[0].CopyTo(classProbabilities);
-                outputTensor[0].Dispose();
-                processedTensor.Dispose();
+                if (processedTensor != null)
+                {
+                    var outputTensor = _runner.AddInput(processedTensor, 0).Run();
+                    outputTensor[0].CopyTo(classProbabilities);
+                    outputTensor[0].Dispose();
+                    processedTensor.Dispose();
+                }
             }
         }
 
