@@ -7,15 +7,13 @@ using System.IO;
 using System.IO.Compression;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 using BenchmarkDotNet.Attributes;
 using static Microsoft.ML.DataOperationsCatalog;
 using System.Net.Http;
-using System.Diagnostics;
+using Microsoft.ML.Dnn;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -80,20 +78,19 @@ namespace Microsoft.ML.Benchmarks
         [Benchmark]
         public TransformerChain<KeyToValueMappingTransformer> TrainResnetV250()
         {
-            var options = new ImageClassificationEstimator.Options()
+            var options = new ImageClassificationTrainer.Options()
             {
-                FeaturesColumnName = "Image",
+                FeatureColumnName = "Image",
                 LabelColumnName = "Label",
-                Arch = ImageClassificationEstimator.Architecture.ResnetV250,
+                Arch = ImageClassificationTrainer.Architecture.ResnetV250,
                 Epoch = 50,
                 BatchSize = 10,
                 LearningRate = 0.01f,
-                EarlyStoppingCriteria = new ImageClassificationEstimator.EarlyStopping(minDelta: 0.001f, patience: 20, metric: ImageClassificationEstimator.EarlyStoppingMetric.Loss),
+                EarlyStoppingCriteria = new ImageClassificationTrainer.EarlyStopping(minDelta: 0.001f, patience: 20, metric: ImageClassificationTrainer.EarlyStoppingMetric.Loss),
                 ValidationSet = testDataset,
-                ModelSavePath = assetsPath,
-                DisableEarlyStopping = true
+                ModelSavePath = assetsPath
             };
-            var pipeline = mlContext.Model.ImageClassification(options)
+            var pipeline = mlContext.MulticlassClassification.Trainers.ImageClassification(options)
             .Append(mlContext.Transforms.Conversion.MapKeyToValue(
                 outputColumnName: "PredictedLabel",
                 inputColumnName: "PredictedLabel"));
