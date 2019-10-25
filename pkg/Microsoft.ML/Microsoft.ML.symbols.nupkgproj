@@ -2,4 +2,12 @@
 
   <Import Project="Microsoft.ML.nupkgproj" />
 
+  <PropertyGroup>
+    <!--
+      NU5129 is getting raised because the Microsoft.ML package contains a Microsoft.ML.targets file.
+      But this package is named Microsoft.ML.symbols, so NuGet complains. However, we can ignore the warning.
+    -->
+    <NoWarn>$(NoWarn);NU5129</NoWarn>
+  </PropertyGroup>
+
 </Project>
