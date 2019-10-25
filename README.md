@@ -40,7 +40,7 @@ There a list of short videos each one focusing on a particular single topic of M
 
 ML.NET runs on Windows, Linux, and macOS using [.NET Core](https://github.com/dotnet/core), or Windows using .NET Framework. 
 
-64 bit is supported on all platforms. 32 bit is supported on Windows, except for TensorFlow, LightGBM, and ONNX related functionality.
+64 bit is supported on all platforms. 32 bit is supported on Windows, except for TensorFlow and LightGBM related functionality.
 
 ## ML.NET Nuget packages status
 

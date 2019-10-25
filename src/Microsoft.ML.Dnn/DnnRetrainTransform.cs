@@ -11,13 +11,13 @@ using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
+using Microsoft.ML.Dnn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Dnn;
 using NumSharp;
 using Tensorflow;
-using static Microsoft.ML.Transforms.Dnn.DnnUtils;
+using static Microsoft.ML.Dnn.DnnUtils;
 using static Tensorflow.Binding;
 
 [assembly: LoadableClass(DnnRetrainTransformer.Summary, typeof(IDataTransform), typeof(DnnRetrainTransformer),
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// <see cref="ITransformer" /> for the <see cref="DnnRetrainEstimator"/>.
     /// </summary>
-    public sealed class DnnRetrainTransformer : RowToRowTransformerBase
+    internal sealed class DnnRetrainTransformer : RowToRowTransformerBase
     {
         private readonly IHostEnvironment _env;
         private readonly string _modelLocation;
@@ -1184,7 +1184,7 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="DnnRetrainTransformer"]/*' />
-    public sealed class DnnRetrainEstimator : IEstimator<DnnRetrainTransformer>
+    internal sealed class DnnRetrainEstimator : IEstimator<DnnRetrainTransformer>
     {
         /// <summary>
         /// The options for the <see cref="DnnRetrainTransformer"/>.

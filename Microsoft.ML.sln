@@ -179,11 +179,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.TensorFlow", "
 		pkg\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.symbols.nupkgproj = pkg\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.symbols.nupkgproj
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.TensorFlow.Redist", "Microsoft.ML.TensorFlow.Redist", "{7F3D89CF-EAAD-4F21-AE83-F2EF9C97EC32}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.TensorFlow.Redist\Microsoft.ML.TensorFlow.Redist.nupkgproj = pkg\Microsoft.ML.TensorFlow.Redist\Microsoft.ML.TensorFlow.Redist.nupkgproj
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.TimeSeries", "Microsoft.ML.TimeSeries", "{B836F712-7FB6-4B75-A3EB-FB05F8E0D15E}"
 	ProjectSection(SolutionItems) = preProject
 		pkg\Microsoft.ML.TimeSeries\Microsoft.ML.TimeSeries.nupkgproj = pkg\Microsoft.ML.TimeSeries\Microsoft.ML.TimeSeries.nupkgproj
@@ -277,6 +272,16 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.AutoML.Samples", "docs\samples\Microsoft.ML.AutoML.Samples\Microsoft.ML.AutoML.Samples.csproj", "{A6924919-9E37-4023-8B7F-E85C8E3CC9B3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Samples.GPU", "docs\samples\Microsoft.ML.Samples.GPU\Microsoft.ML.Samples.GPU.csproj", "{3C8F910B-7F23-4D25-B521-6D5AC9570ADD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.CodeGenerator", "src\Microsoft.ML.CodeGenerator\Microsoft.ML.CodeGenerator.csproj", "{56CB0850-7341-4D71-9AE4-9EFC472D93DD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.CodeGenerator.Tests", "test\Microsoft.ML.CodeGenerator.Tests\Microsoft.ML.CodeGenerator.Tests.csproj", "{46CC5637-3DDF-4100-93FC-44BB87B2DB81}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.CodeGenerator", "Microsoft.ML.CodeGenerator", "{3817A875-278C-4140-BF66-3C4A8CA55F0D}"
+	ProjectSection(SolutionItems) = preProject
+		pkg\Microsoft.ML.CodeGenerator\Microsoft.ML.CodeGenerator.nupkgproj = pkg\Microsoft.ML.CodeGenerator\Microsoft.ML.CodeGenerator.nupkgproj
+		pkg\Microsoft.ML.CodeGenerator\Microsoft.ML.CodeGenerator.symbols.nupkgproj = pkg\Microsoft.ML.CodeGenerator\Microsoft.ML.CodeGenerator.symbols.nupkgproj
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1637,6 +1642,54 @@ Global
 		{3C8F910B-7F23-4D25-B521-6D5AC9570ADD}.Release-netfx|Any CPU.Build.0 = Release-netfx|Any CPU
 		{3C8F910B-7F23-4D25-B521-6D5AC9570ADD}.Release-netfx|x64.ActiveCfg = Release-netfx|Any CPU
 		{3C8F910B-7F23-4D25-B521-6D5AC9570ADD}.Release-netfx|x64.Build.0 = Release-netfx|Any CPU
+		{56CB0850-7341-4D71-9AE4-9EFC472D93DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56CB0850-7341-4D71-9AE4-9EFC472D93DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56CB0850-7341-4D71-9AE4-9EFC472D93DD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{56CB0850-7341-4D71-9AE4-9EFC472D93DD}.Debug|x64.Build.0 = Debug|Any CPU
+		{56CB0850-7341-4D71-9AE4-9EFC472D93DD}.Debug-netcoreapp3_0|Any CPU.ActiveCfg = Debug-netcoreapp3_0|Any CPU
+		{56CB0850-7341-4D71-9AE4-9EFC472D93DD}.Debug-netcoreapp3_0|Any CPU.Build.0 = Debug-netcoreapp3_0|Any CPU
+		{56CB0850-7341-4D71-9AE4-9EFC472D93DD}.Debug-netcoreapp3_0|x64.ActiveCfg = Debug-netcoreapp3_0|Any CPU
+		{56CB0850-7341-4D71-9AE4-9EFC472D93DD}.Debug-netcoreapp3_0|x64.Build.0 = Debug-netcoreapp3_0|Any CPU
+		{56CB0850-7341-4D71-9AE4-9EFC472D93DD}.Debug-netfx|Any CPU.ActiveCfg = Debug-netfx|Any CPU
+		{56CB0850-7341-4D71-9AE4-9EFC472D93DD}.Debug-netfx|Any CPU.Build.0 = Debug-netfx|Any CPU
+		{56CB0850-7341-4D71-9AE4-9EFC472D93DD}.Debug-netfx|x64.ActiveCfg = Debug-netfx|Any CPU
+		{56CB0850-7341-4D71-9AE4-9EFC472D93DD}.Debug-netfx|x64.Build.0 = Debug-netfx|Any CPU
+		{56CB0850-7341-4D71-9AE4-9EFC472D93DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56CB0850-7341-4D71-9AE4-9EFC472D93DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56CB0850-7341-4D71-9AE4-9EFC472D93DD}.Release|x64.ActiveCfg = Release|Any CPU
+		{56CB0850-7341-4D71-9AE4-9EFC472D93DD}.Release|x64.Build.0 = Release|Any CPU
+		{56CB0850-7341-4D71-9AE4-9EFC472D93DD}.Release-netcoreapp3_0|Any CPU.ActiveCfg = Release-netcoreapp3_0|Any CPU
+		{56CB0850-7341-4D71-9AE4-9EFC472D93DD}.Release-netcoreapp3_0|Any CPU.Build.0 = Release-netcoreapp3_0|Any CPU
+		{56CB0850-7341-4D71-9AE4-9EFC472D93DD}.Release-netcoreapp3_0|x64.ActiveCfg = Release-netcoreapp3_0|Any CPU
+		{56CB0850-7341-4D71-9AE4-9EFC472D93DD}.Release-netcoreapp3_0|x64.Build.0 = Release-netcoreapp3_0|Any CPU
+		{56CB0850-7341-4D71-9AE4-9EFC472D93DD}.Release-netfx|Any CPU.ActiveCfg = Release-netfx|Any CPU
+		{56CB0850-7341-4D71-9AE4-9EFC472D93DD}.Release-netfx|Any CPU.Build.0 = Release-netfx|Any CPU
+		{56CB0850-7341-4D71-9AE4-9EFC472D93DD}.Release-netfx|x64.ActiveCfg = Release-netfx|Any CPU
+		{56CB0850-7341-4D71-9AE4-9EFC472D93DD}.Release-netfx|x64.Build.0 = Release-netfx|Any CPU
+		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Debug|x64.Build.0 = Debug|Any CPU
+		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Debug-netcoreapp3_0|Any CPU.ActiveCfg = Debug-netcoreapp3_0|Any CPU
+		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Debug-netcoreapp3_0|Any CPU.Build.0 = Debug-netcoreapp3_0|Any CPU
+		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Debug-netcoreapp3_0|x64.ActiveCfg = Debug-netcoreapp3_0|Any CPU
+		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Debug-netcoreapp3_0|x64.Build.0 = Debug-netcoreapp3_0|Any CPU
+		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Debug-netfx|Any CPU.ActiveCfg = Debug-netfx|Any CPU
+		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Debug-netfx|Any CPU.Build.0 = Debug-netfx|Any CPU
+		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Debug-netfx|x64.ActiveCfg = Debug-netfx|Any CPU
+		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Debug-netfx|x64.Build.0 = Debug-netfx|Any CPU
+		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Release|x64.ActiveCfg = Release|Any CPU
+		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Release|x64.Build.0 = Release|Any CPU
+		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Release-netcoreapp3_0|Any CPU.ActiveCfg = Release-netcoreapp3_0|Any CPU
+		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Release-netcoreapp3_0|Any CPU.Build.0 = Release-netcoreapp3_0|Any CPU
+		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Release-netcoreapp3_0|x64.ActiveCfg = Release-netcoreapp3_0|Any CPU
+		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Release-netcoreapp3_0|x64.Build.0 = Release-netcoreapp3_0|Any CPU
+		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Release-netfx|Any CPU.ActiveCfg = Release-netfx|Any CPU
+		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Release-netfx|Any CPU.Build.0 = Release-netfx|Any CPU
+		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Release-netfx|x64.ActiveCfg = Release-netfx|Any CPU
+		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Release-netfx|x64.Build.0 = Release-netfx|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1700,7 +1753,6 @@ Global
 		{93FF16AA-635E-421D-96C1-008818C143A2} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{320AF46A-4809-486E-8F9E-A00C8AE47751} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{11894B4A-78B4-4523-A6DD-4495722E244F} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
-		{7F3D89CF-EAAD-4F21-AE83-F2EF9C97EC32} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{B836F712-7FB6-4B75-A3EB-FB05F8E0D15E} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{B00098E4-771E-41DF-A3AA-A606AAB334B7} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{BD93C0F3-3CED-4BE8-9389-4234250FBFB1} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
@@ -1724,6 +1776,9 @@ Global
 		{F5D11F71-2D61-4AE9-99D7-0F0B54649B15} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{A6924919-9E37-4023-8B7F-E85C8E3CC9B3} = {DA452A53-2E94-4433-B08C-041EDEC729E6}
 		{3C8F910B-7F23-4D25-B521-6D5AC9570ADD} = {DA452A53-2E94-4433-B08C-041EDEC729E6}
+		{56CB0850-7341-4D71-9AE4-9EFC472D93DD} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
+		{46CC5637-3DDF-4100-93FC-44BB87B2DB81} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
+		{3817A875-278C-4140-BF66-3C4A8CA55F0D} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {41165AF1-35BB-4832-A189-73060F82B01D}

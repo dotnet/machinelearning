@@ -1,6 +1,7 @@
 <Project>
   <PropertyGroup>
     <StableProjects>
+      Microsoft.Extensions.ML;
       Microsoft.ML.DataView;
       Microsoft.ML.CpuMath;
       Microsoft.ML;
@@ -19,9 +20,11 @@
       Microsoft.ML.TensorFlow;
       Microsoft.ML.OnnxTransformer;
     </StableProjects>
-    <IsStableProject Condition="'$(MSBuildProjectName.Contains(.symbols))' == 'false'">$(StableProjects.Contains($(MSBuildProjectName)))</IsStableProject>
-    <IsStableProject Condition="'$(MSBuildProjectName.Contains(.symbols))' == 'true'">$(StableProjects.Contains($(MSBuildProjectName.Substring(0, $(MSBuildProjectName.IndexOf(.symbols))))))</IsStableProject>
+    <_NormalizedStableProjectName Condition="'$(MSBuildProjectName.Contains(.symbols))' == 'true'">$(MSBuildProjectName.Substring(0, $(MSBuildProjectName.IndexOf(.symbols))))</_NormalizedStableProjectName>
+    <_NormalizedStableProjectName Condition="'$(_NormalizedStableProjectName)' == ''">$(MSBuildProjectName)</_NormalizedStableProjectName>
+
     <IsStableProject Condition="'$(UseStableVersionForNativeAssets)' == 'true'">true</IsStableProject>
+    <IsStableProject Condition="'$(StableProjects.IndexOf($(_NormalizedStableProjectName), StringComparison.OrdinalIgnoreCase))' != '-1'">true</IsStableProject>
   </PropertyGroup>
   <PropertyGroup Condition="'$(IsStableProject)' == 'true'">
     <MajorVersion>1</MajorVersion>

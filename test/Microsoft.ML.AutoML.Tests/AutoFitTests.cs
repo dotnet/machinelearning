@@ -2,13 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Xunit;
+using System;
+using System.IO;
 using System.Linq;
+using Microsoft.ML.Data;
+using Microsoft.ML.RunTests;
+using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    
     public class AutoFitTests
     {
         [Fact]
@@ -59,6 +61,93 @@ namespace Microsoft.ML.AutoML.Test
                     new ColumnInformation() { LabelColumnName = DatasetUtil.MlNetGeneratedRegressionLabel });
 
             Assert.True(result.RunDetails.Max(i => i.ValidationMetrics.RSquared > 0.9));
+        }
+
+        [Fact]
+        public void AutoFitRecommendationTest()
+        {
+            // Specific column names of the considered data set
+            string labelColumnName = "Label";
+            string userColumnName = "User";
+            string itemColumnName = "Item";
+            string scoreColumnName = "Score";
+            MLContext mlContext = new MLContext();
+
+            // STEP 1: Load data
+            var reader = new TextLoader(mlContext, GetLoaderArgs(labelColumnName, userColumnName, itemColumnName));
+            var trainDataView = reader.Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
+            var testDataView = reader.Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
+
+            // STEP 2: Run AutoML experiment
+            ExperimentResult<RegressionMetrics> experimentResult = mlContext.Auto()
+                .CreateRecommendationExperiment(5)
+                .Execute(trainDataView, testDataView,
+                    new ColumnInformation() { 
+                        LabelColumnName = labelColumnName,
+                        UserIdColumnName = userColumnName,
+                        ItemIdColumnName = itemColumnName
+                    });
+
+            RunDetail<RegressionMetrics> bestRun = experimentResult.BestRun;
+            Assert.True(experimentResult.RunDetails.Count() > 1);
+            Assert.NotNull(bestRun.ValidationMetrics);
+            Assert.True(experimentResult.RunDetails.Max(i => i.ValidationMetrics.RSquared != 0));
+
+            var outputSchema = bestRun.Model.GetOutputSchema(trainDataView.Schema);
+            var expectedOutputNames = new string[] { labelColumnName, userColumnName, userColumnName, itemColumnName, itemColumnName, scoreColumnName };
+            foreach (var col in outputSchema)
+                Assert.True(col.Name == expectedOutputNames[col.Index]);
+
+            IDataView testDataViewWithBestScore = bestRun.Model.Transform(testDataView);
+            // Retrieve label column's index from the test IDataView
+            testDataView.Schema.TryGetColumnIndex(labelColumnName, out int labelColumnId);
+            // Retrieve score column's index from the IDataView produced by the trained model
+            testDataViewWithBestScore.Schema.TryGetColumnIndex(scoreColumnName, out int scoreColumnId);
+
+            var metrices = mlContext.Recommendation().Evaluate(testDataViewWithBestScore, labelColumnName: labelColumnName, scoreColumnName: scoreColumnName);
+            Assert.NotEqual(0, metrices.MeanSquaredError);
+        }
+
+        private TextLoader.Options GetLoaderArgs(string labelColumnName, string userIdColumnName, string itemIdColumnName)
+        {
+            return new TextLoader.Options()
+            {
+                Separator = "\t",
+                HasHeader = true,
+                Columns = new[]
+                {
+                    new TextLoader.Column(labelColumnName, DataKind.Single, new [] { new TextLoader.Range(0) }),
+                    new TextLoader.Column(userIdColumnName, DataKind.UInt32, new [] { new TextLoader.Range(1) }, new KeyCount(20)),
+                    new TextLoader.Column(itemIdColumnName, DataKind.UInt32, new [] { new TextLoader.Range(2) }, new KeyCount(40)),
+                }
+            };
+        }
+
+        private static string GetRepoRoot()
+        {
+#if NETFRAMEWORK
+            string directory = AppDomain.CurrentDomain.BaseDirectory;
+#else
+            string directory = AppContext.BaseDirectory;
+#endif
+
+            while (!Directory.Exists(Path.Combine(directory, ".git")) && directory != null)
+            {
+                directory = Directory.GetParent(directory).FullName;
+            }
+
+            if (directory == null)
+            {
+                return null;
+            }
+            return directory;
+        }
+
+        public static string GetDataPath(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return null;
+            return Path.GetFullPath(Path.Combine(Path.Combine(GetRepoRoot(), "test", "data"), name));
         }
     }
 }

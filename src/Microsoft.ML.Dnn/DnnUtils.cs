@@ -5,15 +5,18 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Tensorflow;
+using static Microsoft.ML.Dnn.ImageClassificationTrainer;
 using static Tensorflow.Binding;
 
-namespace Microsoft.ML.Transforms.Dnn
+namespace Microsoft.ML.Dnn
 {
     internal static class DnnUtils
     {
@@ -258,10 +261,57 @@ namespace Microsoft.ML.Transforms.Dnn
         /// <param name="modelPath">The model to load.</param>
         /// <param name="metaGraph"></param>
         /// <returns></returns>
-        internal static DnnModel LoadDnnModel(IHostEnvironment env, string modelPath, bool metaGraph = false)
+        internal static DnnModel LoadDnnModel(IHostEnvironment env, string modelPath, bool metaGraph = false) =>
+            new DnnModel(GetSession(env, modelPath, metaGraph), modelPath);
+
+        internal static DnnModel LoadDnnModel(IHostEnvironment env, Architecture arch, bool metaGraph = false)
         {
-            var session = GetSession(env, modelPath, metaGraph);
-            return new DnnModel(env, session, modelPath);
+            var modelPath = ModelLocation[arch];
+            if (!File.Exists(modelPath))
+            {
+                if (arch == Architecture.InceptionV3)
+                {
+                    var baseGitPath = @"https://raw.githubusercontent.com/SciSharp/TensorFlow.NET/master/graph/InceptionV3.meta";
+                    using (WebClient client = new WebClient())
+                    {
+                        client.DownloadFile(new Uri($"{baseGitPath}"), @"InceptionV3.meta");
+                    }
+
+                    baseGitPath = @"https://github.com/SciSharp/TensorFlow.NET/raw/master/data/tfhub_modules.zip";
+                    using (WebClient client = new WebClient())
+                    {
+                        client.DownloadFile(new Uri($"{baseGitPath}"), @"tfhub_modules.zip");
+                        ZipFile.ExtractToDirectory(Path.Combine(Directory.GetCurrentDirectory(), @"tfhub_modules.zip"), @"tfhub_modules");
+                    }
+                }
+                else if (arch == Architecture.ResnetV2101)
+                {
+                    var baseGitPath = @"https://aka.ms/mlnet-resources/image/ResNet101Tensorflow/resnet_v2_101_299.meta";
+                    using (WebClient client = new WebClient())
+                    {
+                        client.DownloadFile(new Uri($"{baseGitPath}"), @"resnet_v2_101_299.meta");
+                    }
+                }
+                else if (arch == Architecture.MobilenetV2)
+                {
+                    var baseGitPath = @"https://tlcresources.blob.core.windows.net/image/MobileNetV2TensorFlow/mobilenet_v2.meta";
+                    using (WebClient client = new WebClient())
+                    {
+                        client.DownloadFile(new Uri($"{baseGitPath}"), @"mobilenet_v2.meta");
+                    }
+                }
+                else if (arch == Architecture.ResnetV250)
+                {
+                    var baseGitPath = @"https://tlcresources.blob.core.windows.net/image/ResNetV250TensorFlow/resnet_v2_50_299.meta";
+                    using (WebClient client = new WebClient())
+                    {
+                        client.DownloadFile(new Uri($"{baseGitPath}"), @"resnet_v2_50_299.meta");
+                    }
+                }
+
+            }
+
+            return new DnnModel(GetSession(env, modelPath, metaGraph), modelPath);
         }
 
         internal static Session GetSession(IHostEnvironment env, string modelPath, bool metaGraph = false)

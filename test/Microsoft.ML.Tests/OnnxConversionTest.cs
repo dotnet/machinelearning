@@ -43,7 +43,7 @@ namespace Microsoft.ML.Tests
 
         private bool IsOnnxRuntimeSupported()
         {
-            return Environment.Is64BitProcess && (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || AttributeHelpers.CheckLibcVersionGreaterThanMinimum(new System.Version(2, 23)));
+            return OnnxFactAttribute.IsOnnxRuntimeSupported;
         }
 
         /// <summary>
