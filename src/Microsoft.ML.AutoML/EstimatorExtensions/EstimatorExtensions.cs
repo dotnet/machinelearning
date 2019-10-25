@@ -257,16 +257,19 @@ namespace Microsoft.ML.AutoML
             return CreateInstance(context, pipelineNode.InColumns[0], pipelineNode.OutColumns[0]);
         }
 
-        public static SuggestedTransform CreateSuggestedTransform(MLContext context, string inColumn, string outColumn)
+        public static SuggestedTransform CreateSuggestedTransform(MLContext context, string inColumn, string outColumn, bool sort = false)
         {
             var pipelineNode = new PipelineNode(EstimatorName.ValueToKeyMapping.ToString(),
                 PipelineNodeType.Transform, inColumn, outColumn);
-            var estimator = CreateInstance(context, inColumn, outColumn);
+            var estimator = CreateInstance(context, inColumn, outColumn, sort);
             return new SuggestedTransform(pipelineNode, estimator);
         }
 
-        private static IEstimator<ITransformer> CreateInstance(MLContext context, string inColumn, string outColumn)
+        private static IEstimator<ITransformer> CreateInstance(MLContext context, string inColumn, string outColumn, bool sort = false)
         {
+            if(sort)
+                return context.Transforms.Conversion.MapValueToKey(outColumn, inColumn, keyOrdinality:ValueToKeyMappingEstimator.KeyOrdinality.ByValue);
+
             return context.Transforms.Conversion.MapValueToKey(outColumn, inColumn);
         }
     }
@@ -292,7 +295,7 @@ namespace Microsoft.ML.AutoML
 
         private static IEstimator<ITransformer> CreateInstance(MLContext context, string inColumn, string outColumn)
         {
-            return context.Transforms.LoadImages(outColumn, ImageFolder, inColumn);
+            return context.Transforms.LoadImages(outColumn, ImageFolder, false, inColumn);
         }
     }
 }

@@ -2,10 +2,13 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Dnn\Microsoft.ML.Dnn.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
     <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
   </ItemGroup>
-
+  <ItemGroup>
+    <PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
+  </ItemGroup>
   <ItemGroup>
     <None Update="TestData\DatasetWithDefaultColumnNames.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

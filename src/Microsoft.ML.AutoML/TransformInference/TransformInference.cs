@@ -181,7 +181,8 @@ namespace Microsoft.ML.AutoML
 
                     if (!col.Type.IsKey())
                     {
-                        yield return ValueToKeyMappingExtension.CreateSuggestedTransform(Context, col.ColumnName, col.ColumnName);
+                        yield return ValueToKeyMappingExtension.CreateSuggestedTransform(Context, col.ColumnName,
+                            col.ColumnName, columns.Any(col => col.Purpose == ColumnPurpose.ImagePath));
                     }
                 }
             }
@@ -341,6 +342,32 @@ namespace Microsoft.ML.AutoML
                     }
                 }
             }
+
+            internal sealed class Image : TransformInferenceExpertBase
+            {
+                public Image(MLContext context) : base(context)
+                {
+                }
+
+                public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns, TaskKind task)
+                {
+                    var featureCols = new List<string>();
+
+                    foreach (var column in columns)
+                    {
+                        if (!column.Type.GetItemType().IsText() || column.Purpose != ColumnPurpose.ImagePath)
+                            continue;
+
+                        var columnDestSuffix = "_featurized";
+                        var columnNameSafe = column.ColumnName;
+
+                        string columnDestRenamed = $"{columnNameSafe}{columnDestSuffix}";
+
+                        featureCols.Add(columnDestRenamed);
+                        yield return ImageLoadingExtension.CreateSuggestedTransform(Context, columnNameSafe, columnDestRenamed);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -400,7 +427,8 @@ namespace Microsoft.ML.AutoML
             concatColNames.Remove(labelColumnName);
 
             intermediateCols = intermediateCols.Where(c => c.Purpose == ColumnPurpose.NumericFeature ||
-                c.Purpose == ColumnPurpose.CategoricalFeature || c.Purpose == ColumnPurpose.TextFeature);
+                c.Purpose == ColumnPurpose.CategoricalFeature || c.Purpose == ColumnPurpose.TextFeature ||
+                c.Purpose == ColumnPurpose.ImagePath);
 
             if (!concatColNames.Any() || (concatColNames.Count == 1 &&
                 concatColNames[0] == DefaultColumnNames.Features &&
@@ -412,7 +440,8 @@ namespace Microsoft.ML.AutoML
             if (concatColNames.Count() == 1 &&
                 (intermediateCols.First().Type.IsVector() ||
                 intermediateCols.First().Purpose == ColumnPurpose.CategoricalFeature ||
-                intermediateCols.First().Purpose == ColumnPurpose.TextFeature))
+                intermediateCols.First().Purpose == ColumnPurpose.TextFeature ||
+                intermediateCols.First().Purpose == ColumnPurpose.ImagePath))
             {
                 return ColumnCopyingExtension.CreateSuggestedTransform(context, concatColNames.First(), DefaultColumnNames.Features);
             }
@@ -445,32 +474,6 @@ namespace Microsoft.ML.AutoML
             }
 
             return newColNames;
-        }
-
-        internal sealed class Image : TransformInferenceExpertBase
-        {
-            public Image(MLContext context) : base(context)
-            {
-            }
-
-            public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns, TaskKind task)
-            {
-                var featureCols = new List<string>();
-
-                foreach (var column in columns)
-                {
-                    if (!column.Type.GetItemType().IsText() || column.Purpose != ColumnPurpose.ImagePath)
-                        continue;
-
-                    var columnDestSuffix = "_featurized";
-                    var columnNameSafe = column.ColumnName;
-
-                    string columnDestRenamed = $"{columnNameSafe}{columnDestSuffix}";
-
-                    featureCols.Add(columnDestRenamed);
-                    yield return ImageLoadingExtension.CreateSuggestedTransform(Context, columnNameSafe, columnDestRenamed);
-                }
-            }
         }
     }
 }

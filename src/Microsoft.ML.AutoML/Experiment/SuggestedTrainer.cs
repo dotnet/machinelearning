@@ -63,7 +63,7 @@ namespace Microsoft.ML.AutoML
 
         public PipelineNode ToPipelineNode()
         {
-            var sweepParams = SweepParams.Where(p => p.RawValue != null);
+            var sweepParams = SweepParams?.Where(p => p.RawValue != null);
             return _trainerExtension.CreatePipelineNode(sweepParams, _columnInfo);
         }
 

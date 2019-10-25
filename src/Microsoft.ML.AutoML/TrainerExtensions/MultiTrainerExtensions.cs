@@ -229,4 +229,22 @@ namespace Microsoft.ML.AutoML
                 columnInfo.LabelColumnName, columnInfo.ExampleWeightColumnName);
         }
     }
+
+    internal class ImageClassificationExtension : ITrainerExtension
+    {
+        public IEnumerable<SweepableParam> GetHyperparamSweepRanges() => null;
+
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
+        {
+            var options = TrainerExtensionUtil.CreateOptions<Dnn.ImageClassificationTrainer.Options>(null, columnInfo.LabelColumnName);
+            return mlContext.MulticlassClassification.Trainers.ImageClassification(options);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams,
+                columnInfo.LabelColumnName, null);
+        }
+    }
 }

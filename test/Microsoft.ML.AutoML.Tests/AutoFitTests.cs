@@ -46,6 +46,22 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
+        public void AutoFitImageClassificationTest()
+        {
+            var context = new MLContext();
+            var datasetPath = DatasetUtil.GetFlowersDataset();
+            var columnInference = context.Auto().InferColumns(datasetPath, "Label");
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            var trainData = textLoader.Load(datasetPath);
+            var result = context.Auto()
+                .CreateMulticlassClassificationExperiment(0)
+                .Execute(trainData, 5, "Label");
+            Assert.True(result.BestRun.Results.First().ValidationMetrics.MicroAccuracy >= 0.6);
+            var scoredData = result.BestRun.Results.First().Model.Transform(trainData);
+            Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
+        }
+
+        [Fact]
         public void AutoFitRegressionTest()
         {
             var context = new MLContext();
