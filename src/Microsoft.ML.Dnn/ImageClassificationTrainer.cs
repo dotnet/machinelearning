@@ -1390,8 +1390,6 @@ namespace Microsoft.ML.Dnn
         {
             private Runner _runner;
             private ImageClassificationTrainer.ImageProcessor _imageProcessor;
-            private float[] _classProbabilities;
-            public float[] ClassProbabilities => _classProbabilities;
 
             public Classifier(ImageClassificationModelParameters model)
             {
