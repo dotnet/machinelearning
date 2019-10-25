@@ -1329,9 +1329,9 @@ namespace Microsoft.ML.Dnn
         /// <summary> Return the type of prediction task.</summary>
         private protected override PredictionKind PredictionKind => PredictionKind.MulticlassClassification;
 
-        public DataViewType InputType => _inputType;
+        DataViewType IValueMapper.InputType => _inputType;
 
-        public DataViewType OutputType => _outputType;
+        DataViewType IValueMapper.OutputType => _outputType;
 
         private ImageClassificationModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, LoaderSignature, ctx)
@@ -1353,7 +1353,7 @@ namespace Microsoft.ML.Dnn
             if (!ctx.TryLoadBinaryStream("TFModel", r => modelBytes = r.ReadByteArray()))
                 throw env.ExceptDecode();
 
-            _session = DnnUtils.LoadTFSession(env, modelBytes);
+            _session = LoadTFSession(env, modelBytes);
             _inputType = new VectorDataViewType(NumberDataViewType.Byte);
             _outputType = new VectorDataViewType(NumberDataViewType.Single, _classCount);
         }
