@@ -705,10 +705,19 @@ namespace Microsoft.ML.Dnn
 
             public Tensor ProcessImage(in VBuffer<byte> imageBuffer)
             {
-                var imageTensor = EncodeByteAsString(imageBuffer);
-                var processedTensor = _imagePreprocessingRunner.AddInput(imageTensor, 0).Run()[0];
-                imageTensor.Dispose();
-                return processedTensor;
+                using var imageTensor = EncodeByteAsString(imageBuffer);
+                try
+                {
+                    return _imagePreprocessingRunner.AddInput(imageTensor, 0).Run()[0];
+                }
+                catch (TensorflowException e)
+                {
+                    //catch the exception for images of unknown format
+                    if (e.HResult == -2146233088 && e.Message.Contains("Expected image (JPEG, PNG, or GIF), got unknown format"))
+                        return null;
+                    else
+                        throw (e);
+                }
             }
         }
 
