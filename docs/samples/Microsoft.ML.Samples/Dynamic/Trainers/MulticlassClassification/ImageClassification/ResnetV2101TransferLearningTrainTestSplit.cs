@@ -22,9 +22,6 @@ namespace Samples.Dynamic
             string assetsRelativePath = @"../../../assets";
             string assetsPath = GetAbsolutePath(assetsRelativePath);
 
-            //var outputMlNetModelFilePath = Path.Combine(assetsPath, "outputs",
-            //    "imageClassifier.zip");
-
             string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
                 "images");
 
@@ -36,7 +33,6 @@ namespace Samples.Dynamic
 
             try
             {
-
                 MLContext mlContext = new MLContext(seed: 1);
 
                 // Load all the original images info
@@ -95,21 +91,21 @@ namespace Samples.Dynamic
                 // Measuring training time
                 var watch = System.Diagnostics.Stopwatch.StartNew();
 
-            // Train the model
-            // This involves calculating the bottleneck values, and then
-            // training the final layer. Sample output is: 
-            // Phase: Bottleneck Computation, Dataset used: Train, Image Index:   1
-            // Phase: Bottleneck Computation, Dataset used: Train, Image Index:   2
-            // ...
-            // Phase: Training, Dataset used:      Train, Batch Processed Count:  18,
-            //    Learning Rate:       0.01 Epoch:   0, Accuracy:  0.9166667, 
-            //    Cross-Entropy:  0.4866541
-            // ...
-            // Phase: Training, Dataset used:      Train, Batch Processed Count:  18,
-            //    Learning Rate:       0.01 Epoch:  49, Accuracy:          1, 
-            //    Cross-Entropy: 0.01758162
-            // Phase: Training, Dataset used: Validation, Batch Processed Count: 3, 
-            //    Epoch: 49, Accuracy: 0.8666666
+                // Train the model
+                // This involves calculating the bottleneck values, and then
+                // training the final layer. Sample output is: 
+                // Phase: Bottleneck Computation, Dataset used: Train, Image Index:   1
+                // Phase: Bottleneck Computation, Dataset used: Train, Image Index:   2
+                // ...
+                // Phase: Training, Dataset used:      Train, Batch Processed Count:  18,
+                //    Learning Rate:       0.01 Epoch:   0, Accuracy:  0.9166667, 
+                //    Cross-Entropy:  0.4866541
+                // ...
+                // Phase: Training, Dataset used:      Train, Batch Processed Count:  18,
+                //    Learning Rate:       0.01 Epoch:  49, Accuracy:          1, 
+                //    Cross-Entropy: 0.01758162
+                // Phase: Training, Dataset used: Validation, Batch Processed Count: 3, 
+                //    Epoch: 49, Accuracy: 0.8666666
                 var trainedModel = pipeline.Fit(trainDataset);
 
                 watch.Stop();
@@ -138,7 +134,8 @@ namespace Samples.Dynamic
 
                 // Predict on a single image class using an in-memory image.
                 // Sample output:
-                // Scores : [0.04382296,6.549581E-05,0.002181591,0.9519566,0.001973327], Predicted Label : daisy
+                // Scores : [0.04382296,6.549581E-05,0.002181591,0.9519566,0.001973327],
+                //      Predicted Label : daisy
                 TrySinglePrediction(fullImagesetFolderPath, mlContext, loadedModel);
 
                 watch.Stop();
