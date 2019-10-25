@@ -1,0 +1,46 @@
+﻿<#@ template language="C#" visibility="internal" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ include file="Annotation.ttinclude" #><#if(Target == CSharp.GenerateTarget.Cli){ #>
+<#CLI_Annotation();#>
+<# } else if(Target == CSharp.GenerateTarget.ModelBuilder){ #>
+<#MB_Annotation();#>
+<# } #>
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Microsoft.ML;
+using <#= Namespace #>.Model;
+using <#= Namespace #>.Model.DataModels;
+
+namespace <#= Namespace #>.Model
+{
+	public class ConsumeModel
+    {
+        // For more info on consuming ML.NET models, visit https://aka.ms/model-builder-consume
+        // Method for consuming model in your app
+        public static ModelOutput Predict(ModelInput input)
+        {
+
+            // Create new MLContext
+            MLContext mlContext = new MLContext();
+
+            // Load model & create prediction engine
+            string modelPath = AppDomain.CurrentDomain.BaseDirectory + "MLModel.zip";
+            ITransformer mlModel = mlContext.Model.Load(modelPath, out var modelInputSchema);
+            var predEngine = mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(mlModel);
+
+            // Use model to make prediction on input data
+            ModelOutput result = predEngine.Predict(input);
+            return result;
+        }
+    }
+}
+<#+
+public string Namespace {get;set;}
+internal CSharp.GenerateTarget Target {get;set;}
+#>

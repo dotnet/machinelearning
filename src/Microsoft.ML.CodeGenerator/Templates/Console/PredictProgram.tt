@@ -1,0 +1,92 @@
+﻿<#@ template language="C#" linePragmas="false" visibility="internal" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="Microsoft.ML.CodeGenerator.Utilities" #>
+<#@ include file="Annotation.ttinclude" #><#if(Target == CSharp.GenerateTarget.Cli){ #>
+<#CLI_Annotation();#>
+<# } else if(Target == CSharp.GenerateTarget.ModelBuilder){ #>
+<#MB_Annotation();#>
+<# } #>
+
+using System;
+using System.IO;
+using System.Linq;
+using Microsoft.ML;
+using <#= Namespace #>.Model;
+using <#= Namespace #>.Model.DataModels;
+
+namespace <#= Namespace #>.ConsoleApp
+{
+    class Program
+    {
+        //Dataset to use for predictions 
+<#if(string.IsNullOrEmpty(TestDataPath)){ #>
+        private const string DATA_FILEPATH = @"<#= TrainDataPath #>";
+<# } else{ #>
+        private const string DATA_FILEPATH = @"<#= TestDataPath #>";
+<# } #>
+
+        static void Main(string[] args)
+        {
+			// Create single instance of sample data from first line of dataset for model input
+            ModelInput sampleData = CreateSingleDataSample(DATA_FILEPATH);
+
+			// Make a single prediction on the sample data and print results
+			ModelOutput predictionResult = ConsumeModel.Predict(sampleData);
+
+			Console.WriteLine("Using model to make single prediction -- Comparing actual <#= Utils.Normalize(LabelName) #> with predicted <#= Utils.Normalize(LabelName) #> from sample data...\n\n");
+<#foreach(var label in Features){#>
+			Console.WriteLine($"<#= label #>: {sampleData.<#= Utils.Normalize(label) #>}");
+<#}#>
+<#if("BinaryClassification".Equals(TaskType)){ #>
+			Console.WriteLine($"\n\nActual <#= Utils.Normalize(LabelName) #>: {sampleData.<#= Utils.Normalize(LabelName) #>} \nPredicted <#= Utils.Normalize(LabelName) #>: {predictionResult.Prediction}\n\n");
+<#}else if("Regression".Equals(TaskType)){#>
+			Console.WriteLine($"\n\nActual <#= Utils.Normalize(LabelName) #>: {sampleData.<#= Utils.Normalize(LabelName) #>} \nPredicted <#= Utils.Normalize(LabelName) #>: {predictionResult.Score}\n\n");
+<#} else if("MulticlassClassification".Equals(TaskType)){#>
+			Console.WriteLine($"\n\nActual <#= Utils.Normalize(LabelName) #>: {sampleData.<#= Utils.Normalize(LabelName) #>} \nPredicted <#= Utils.Normalize(LabelName) #> value {predictionResult.Prediction} \nPredicted <#= Utils.Normalize(LabelName) #> scores: [{String.Join(",", predictionResult.Score)}]\n\n");
+<#}#>
+            Console.WriteLine("=============== End of process, hit any key to finish ===============");
+            Console.ReadKey();
+        }
+
+        // Change this code to create your own sample data
+		#region CreateSingleDataSample
+        // Method to load single row of dataset to try a single prediction
+        private static ModelInput CreateSingleDataSample(string dataFilePath)
+        {
+            // Create MLContext
+			MLContext mlContext = new MLContext();
+
+			// Load dataset
+            IDataView dataView = mlContext.Data.LoadFromTextFile<ModelInput>(
+                                            path: dataFilePath,
+                                            hasHeader : <#= HasHeader.ToString().ToLowerInvariant() #>,
+                                            separatorChar : '<#= Regex.Escape(Separator.ToString()) #>',
+                                            allowQuoting : <#= AllowQuoting.ToString().ToLowerInvariant() #>,
+                                            allowSparse: <#= AllowSparse.ToString().ToLowerInvariant() #>);
+
+            // Use first line of dataset as model input
+			// You can replace this with new test data (hardcoded or from end-user application)
+            ModelInput sampleForPrediction = mlContext.Data.CreateEnumerable<ModelInput>(dataView, false)
+                                                                        .First();
+            return sampleForPrediction;
+        }
+		#endregion
+    }
+}
+<#+
+public string TaskType {get;set;}
+public string Namespace {get;set;}
+public string LabelName {get;set;}
+public string TestDataPath {get;set;}
+public string TrainDataPath {get;set;}
+public char Separator {get;set;}
+public bool AllowQuoting {get;set;}
+public bool AllowSparse {get;set;}
+public bool HasHeader {get;set;}
+public IList<string> Features {get;set;}
+internal CSharp.GenerateTarget Target {get;set;}
+#>

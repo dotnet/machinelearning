@@ -1,0 +1,43 @@
+﻿<#@ template language="C#" linePragmas="false" visibility="internal" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ include file="Annotation.ttinclude" #><#if(Target == CSharp.GenerateTarget.Cli){ #>
+<#CLI_Annotation();#>
+<# } else if(Target == CSharp.GenerateTarget.ModelBuilder){ #>
+<#MB_Annotation();#>
+<# } #>
+
+using System;
+using Microsoft.ML.Data;
+
+namespace  <#= Namespace #>.Model.DataModels
+{
+    public class ModelOutput
+    {
+<#if("BinaryClassification".Equals(TaskType)){ #>
+        // ColumnName attribute is used to change the column name from
+        // its default value, which is the name of the field.
+        [ColumnName("PredictedLabel")]
+        public bool Prediction { get; set; }
+
+<# } if("MulticlassClassification".Equals(TaskType)){ #>
+        // ColumnName attribute is used to change the column name from
+        // its default value, which is the name of the field.
+        [ColumnName("PredictedLabel")]
+        public <#= PredictionLabelType#> Prediction { get; set; }
+<# }#>
+<#if("MulticlassClassification".Equals(TaskType)){ #>
+        public float[] Score { get; set; }
+<#}else{ #>
+        public float Score { get; set; }
+<#}#>
+    }
+}
+<#+
+public string TaskType {get;set;}
+public string PredictionLabelType {get;set;}
+public string Namespace {get;set;}
+internal CSharp.GenerateTarget Target {get;set;}
+#>
