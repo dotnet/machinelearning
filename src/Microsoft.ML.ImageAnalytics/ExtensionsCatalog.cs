@@ -73,7 +73,7 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Create a <see cref="ImageLoadingEstimator"/>, which loads the data from the column specified in <paramref name="inputColumnName"/>
-        /// as an image of raw bytes type to a new column: <paramref name="outputColumnName"/>.
+        /// as an image of raw bytes to a new column: <paramref name="outputColumnName"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
