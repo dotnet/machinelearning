@@ -1373,8 +1373,8 @@ namespace Microsoft.ML.Scenarios
             }
             else
             {
-                Assert.Equal(1, metrics.MicroAccuracy);
-                Assert.Equal(1, metrics.MacroAccuracy);
+                Assert.InRange(metrics.MicroAccuracy, 0.8, 1);
+                Assert.InRange(metrics.MacroAccuracy, 0.8, 1);
             }
 
             // Testing TrySinglePrediction: Utilizing PredictionEngine for single
