@@ -16,7 +16,7 @@ using Tensorflow;
 using static Microsoft.ML.Dnn.ImageClassificationTrainer;
 using static Tensorflow.Binding;
 
-namespace Microsoft.ML.Transforms.Dnn
+namespace Microsoft.ML.Dnn
 {
     internal static class DnnUtils
     {
@@ -261,11 +261,8 @@ namespace Microsoft.ML.Transforms.Dnn
         /// <param name="modelPath">The model to load.</param>
         /// <param name="metaGraph"></param>
         /// <returns></returns>
-        internal static DnnModel LoadDnnModel(IHostEnvironment env, string modelPath, bool metaGraph = false)
-        {
-            var session = GetSession(env, modelPath, metaGraph);
-            return new DnnModel(env, session, modelPath);
-        }
+        internal static DnnModel LoadDnnModel(IHostEnvironment env, string modelPath, bool metaGraph = false) =>
+            new DnnModel(GetSession(env, modelPath, metaGraph), modelPath);
 
         internal static DnnModel LoadDnnModel(IHostEnvironment env, Architecture arch, bool metaGraph = false)
         {
@@ -314,8 +311,7 @@ namespace Microsoft.ML.Transforms.Dnn
 
             }
 
-            var session = GetSession(env, modelPath, metaGraph);
-            return new DnnModel(env, session, modelPath);
+            return new DnnModel(GetSession(env, modelPath, metaGraph), modelPath);
         }
 
         internal static Session GetSession(IHostEnvironment env, string modelPath, bool metaGraph = false)

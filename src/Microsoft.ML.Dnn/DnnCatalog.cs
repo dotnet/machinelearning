@@ -6,7 +6,6 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Dnn;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Dnn;
 
 namespace Microsoft.ML
 {
@@ -81,7 +80,7 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Performs image classification using transfer learning.
-        /// Usage of this API requires additional NuGet dependencies on TensorFlow redist, see linked document 
+        /// Usage of this API requires additional NuGet dependencies on TensorFlow redist, see linked document
         /// for more information.
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -90,7 +89,7 @@ namespace Microsoft.ML
         /// </format>
         /// </summary>
         /// <param name="catalog">Catalog</param>
-        /// <param name="options">An <see cref="ImageClassificationTrainer.Options"/> object specifying advanced 
+        /// <param name="options">An <see cref="ImageClassificationTrainer.Options"/> object specifying advanced
         /// options for <see cref="ImageClassificationTrainer"/>.</param>
 
         public static ImageClassificationTrainer ImageClassification(
@@ -98,10 +97,9 @@ namespace Microsoft.ML
             ImageClassificationTrainer.Options options) =>
                 new ImageClassificationTrainer(CatalogUtils.GetEnvironment(catalog), options);
 
-
         /// <summary>
         /// Performs image classification using transfer learning.
-        /// Usage of this API requires additional NuGet dependencies on TensorFlow redist, see linked document for 
+        /// Usage of this API requires additional NuGet dependencies on TensorFlow redist, see linked document for
         /// more information.
         /// <format type="text/markdown">
         /// <![CDATA[

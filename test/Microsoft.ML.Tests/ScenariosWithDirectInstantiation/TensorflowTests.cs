@@ -1478,6 +1478,7 @@ namespace Microsoft.ML.Scenarios
                 ValidationSet = validationSet,
                 ReuseValidationSetBottleneckCachedValues = false,
                 ReuseTrainSetBottleneckCachedValues = false,
+                EarlyStoppingCriteria = null,
                 // Using Exponential Decay for learning rate scheduling
                 // You can also try other types of Learning rate scheduling methods
                 // available in LearningRateScheduler.cs  
@@ -1619,7 +1620,6 @@ namespace Microsoft.ML.Scenarios
                 Epoch = 100,
                 BatchSize = 5,
                 LearningRate = 0.01f,
-                EarlyStoppingCriteria = new ImageClassificationTrainer.EarlyStopping(),
                 MetricsCallback = (metrics) => { Console.WriteLine(metrics); lastEpoch = metrics.Train != null ? metrics.Train.Epoch : 0; },
                 TestOnTrainSet = false,
                 ValidationSet = validationSet

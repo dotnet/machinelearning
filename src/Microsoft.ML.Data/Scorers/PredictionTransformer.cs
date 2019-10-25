@@ -525,7 +525,8 @@ namespace Microsoft.ML.Data
         {
             return new VersionInfo(
                 modelSignature: "MC  PRED",
-                verWrittenCur: 0x00010002, // Initial
+                //verWrittenCur: 0x00010002, // Initial
+                verWrittenCur: 0x00010002, // Score and Predicted Label column names.
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: MulticlassPredictionTransformer.LoaderSignature,

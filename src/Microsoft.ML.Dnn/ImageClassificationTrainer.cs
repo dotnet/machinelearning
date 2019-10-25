@@ -12,11 +12,10 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Dnn;
 using Tensorflow;
 using Tensorflow.Summaries;
 using static Microsoft.ML.Data.TextLoader;
-using static Microsoft.ML.Transforms.Dnn.DnnUtils;
+using static Microsoft.ML.Dnn.DnnUtils;
 using static Tensorflow.Binding;
 using Column = Microsoft.ML.Data.TextLoader.Column;
 
@@ -308,7 +307,7 @@ namespace Microsoft.ML.Dnn
             {
                 Train,
                 Validation
-            };
+            }
 
             /// <summary>
             /// Contains train time metrics.
@@ -354,7 +353,7 @@ namespace Microsoft.ML.Dnn
             /// Early stopping technique parameters to be used to terminate training when training metric stops improving.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Early stopping technique parameters to be used to terminate training when training metric stops improving.", SortOrder = 15)]
-            public EarlyStopping EarlyStoppingCriteria;
+            public EarlyStopping EarlyStoppingCriteria = new EarlyStopping();
 
             /// <summary>
             /// Specifies the model architecture to be used in the case of image classification training using transfer learning.
@@ -490,8 +489,7 @@ namespace Microsoft.ML.Dnn
                 LabelColumnName = labelColumn,
                 ScoreColumnName = scoreColumn,
                 PredictedLabelColumnName = predictedLabelColumn,
-                ValidationSet = validationSet,
-                EarlyStoppingCriteria = new EarlyStopping()
+                ValidationSet = validationSet
             })
         {
         }
@@ -1404,11 +1402,11 @@ namespace Microsoft.ML.Dnn
                     model._imagePreprocessorTensorInput, model._imagePreprocessorTensorOutput);
             }
 
-            public void Score(VBuffer<byte> image)
+            public void Score(in VBuffer<byte> image, Span<float> classProbabilities)
             {
                 var processedTensor = _imageProcessor.ProcessImage(image);
                 var outputTensor = _runner.AddInput(processedTensor, 0).Run();
-                outputTensor[0].ToArray<float>(ref _classProbabilities);
+                outputTensor[0].CopyTo(classProbabilities);
                 outputTensor[0].Dispose();
                 processedTensor.Dispose();
             }
@@ -1423,8 +1421,7 @@ namespace Microsoft.ML.Dnn
             ValueMapper<VBuffer<byte>, VBuffer<float>> del = (in VBuffer<byte> src, ref VBuffer<float> dst) =>
             {
                 var editor = VBufferEditor.Create(ref dst, _classCount);
-                classifier.Score(src);
-                new Span<float>(classifier.ClassProbabilities, 0, _classCount).CopyTo(editor.Values);
+                classifier.Score(src, editor.Values);
                 dst = editor.Commit();
             };
 
