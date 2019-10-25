@@ -81,15 +81,14 @@ namespace Microsoft.ML
         /// <param name="inputColumnName">Name of the column with paths to the images to load.
         /// This estimator operates over text data.</param>
         /// <param name="imageFolder">Folder where to look for images.</param>
-        /// <param name="useImageType">Image type flag - If true loads image as a ImageDataViewType type else loads image as VectorDataViewType. Defaults to ImageDataViewType if not specified or is true.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
         ///  [!code-csharp[LoadImages](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ImageAnalytics/LoadImages.cs)]
         /// ]]></format>
         /// </example>
-        public static ImageLoadingEstimator LoadImages(this TransformsCatalog catalog, string outputColumnName, string imageFolder, bool useImageType, string inputColumnName = null)
-           => new ImageLoadingEstimator(CatalogUtils.GetEnvironment(catalog), imageFolder, useImageType, new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
+        public static ImageLoadingEstimator LoadRawImageBytes(this TransformsCatalog catalog, string outputColumnName, string imageFolder, string inputColumnName = null)
+           => new ImageLoadingEstimator(CatalogUtils.GetEnvironment(catalog), imageFolder, false, new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
 
         /// <summary>
         /// Create a <see cref="ImagePixelExtractingEstimator"/>, which extracts pixels values from the data specified in column: <paramref name="inputColumnName"/>

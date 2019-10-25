@@ -1242,11 +1242,11 @@ namespace Microsoft.ML.Scenarios
 
             IDataView trainDataset = trainTestData.TrainSet;
             IDataView testDataset = trainTestData.TestSet;
-            var validationSet = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+            var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath") // false indicates we want the image as a VBuffer<byte>
                     .Fit(testDataset)
                     .Transform(testDataset);
 
-            var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath") // false indicates we want the image as a VBuffer<byte>
                 .Append(mlContext.Model.ImageClassification("Image", "Label", validationSet: validationSet)
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel"))); ;
 
@@ -1321,7 +1321,7 @@ namespace Microsoft.ML.Scenarios
 
             IDataView trainDataset = trainTestData.TrainSet;
             IDataView testDataset = trainTestData.TestSet;
-            var validationSet = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+            var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath") // false indicates we want the image as a VBuffer<byte>
                     .Fit(testDataset)
                     .Transform(testDataset);
 
@@ -1342,7 +1342,7 @@ namespace Microsoft.ML.Scenarios
                 DisableEarlyStopping = true
             };
 
-            var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath") // false indicates we want the image as a VBuffer<byte>
                 .Append(mlContext.Model.ImageClassification(options)
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel")));
 
@@ -1459,7 +1459,7 @@ namespace Microsoft.ML.Scenarios
 
             IDataView trainDataset = trainTestData.TrainSet;
             IDataView testDataset = trainTestData.TestSet;
-            var validationSet = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+            var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath") // false indicates we want the image as a VBuffer<byte>
                     .Fit(testDataset)
                     .Transform(testDataset);
 
@@ -1485,7 +1485,7 @@ namespace Microsoft.ML.Scenarios
                 LearningRateScheduler = new ExponentialLRDecay()
             };
 
-            var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath") // false indicates we want the image as a VBuffer<byte>
                 .Append(mlContext.Model.ImageClassification(options))
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(
                         outputColumnName: "PredictedLabel",
@@ -1605,7 +1605,7 @@ namespace Microsoft.ML.Scenarios
             IDataView testDataset = trainTestData.TestSet;
 
             int lastEpoch = 0;
-            var validationSet = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+            var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath") // false indicates we want the image as a VBuffer<byte>
                     .Fit(testDataset)
                     .Transform(testDataset);
 
@@ -1626,7 +1626,7 @@ namespace Microsoft.ML.Scenarios
                 ValidationSet = validationSet,
             };
 
-            var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath") // false indicates we want the image as a VBuffer<byte>
                 .Append(mlContext.Model.ImageClassification(options));
 
             var trainedModel = pipeline.Fit(trainDataset);
@@ -1699,7 +1699,7 @@ namespace Microsoft.ML.Scenarios
             IDataView testDataset = trainTestData.TestSet;
 
             int lastEpoch = 0;
-            var validationSet = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+            var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath") // false indicates we want the image as a VBuffer<byte>
                      .Fit(testDataset)
                      .Transform(testDataset);
 
@@ -1720,7 +1720,7 @@ namespace Microsoft.ML.Scenarios
                 ValidationSet = validationSet,
             };
 
-            var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath") // false indicates we want the image as a VBuffer<byte>
                 .Append(mlContext.Model.ImageClassification(options));
 
             var trainedModel = pipeline.Fit(trainDataset);

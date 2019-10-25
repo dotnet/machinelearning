@@ -58,7 +58,7 @@ namespace Samples.Dynamic
                 IDataView trainDataset = trainTestData.TrainSet;
                 IDataView testDataset = trainTestData.TestSet;
                 
-                var validationSet = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+                var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath") // false indicates we want the image as a VBuffer<byte>
                 .Fit(testDataset)
                 .Transform(testDataset);
 
@@ -77,7 +77,7 @@ namespace Samples.Dynamic
                     ValidationSet = validationSet
                 };
 
-                var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+                var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath") // false indicates we want the image as a VBuffer<byte>
                     .Append(mlContext.Model.ImageClassification(options));
 
                 Console.WriteLine("*** Training the image classification model with " +
