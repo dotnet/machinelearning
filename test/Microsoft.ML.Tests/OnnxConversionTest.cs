@@ -21,6 +21,7 @@ using Microsoft.ML.Tools;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Onnx;
+using Microsoft.ML.Transforms.Text;
 using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
@@ -845,6 +846,71 @@ namespace Microsoft.ML.Tests
             }
 
             CheckEquality(subDir, onnxTextName, parseOption: NumberParseOption.UseSingle);
+            Done();
+        }
+
+        private class TextData
+        {
+            public string Text { get; set; }
+        }
+
+        [Fact]
+        void NgramOnnxConnversionTest()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            var samples = new List<TextData>()
+            {
+                new TextData(){ Text = "cat sat on mat" },
+                new TextData(){ Text = "mat not fit cat" },
+                new TextData(){ Text = "cat think mat bad" },
+            };
+
+            int[] ngramLengths = { 1, 2, 3 };
+            bool[] useAllLengths = { true, false};
+            NgramExtractingEstimator.WeightingCriteria[] weightingCriteria = 
+            {
+                NgramExtractingEstimator.WeightingCriteria.Tf, 
+                NgramExtractingEstimator.WeightingCriteria.Idf,
+                NgramExtractingEstimator.WeightingCriteria.TfIdf 
+            };
+
+            var paramCombinations = from ngramLength in ngramLengths
+                                    from useAllLength in useAllLengths
+                                    from weighting in weightingCriteria
+                                    select new { ngramLength, useAllLength, weighting };
+
+
+            foreach (var combination in paramCombinations)
+            {
+                // Convert training data to IDataView.
+                var dataView = mlContext.Data.LoadFromEnumerable(samples);
+
+                var pipe = mlContext.Transforms.Text.TokenizeIntoWords("Tokens", "Text", new[] { ' ' }) 
+                                .Append(mlContext.Transforms.Conversion.MapValueToKey("Tokens"))
+                                .Append(mlContext.Transforms.Text.ProduceNgrams("NGrams", "Tokens",
+                                            ngramLength: combination.ngramLength,
+                                            useAllLengths:combination.useAllLength,
+                                            weighting: combination.weighting));
+
+                var model = pipe.Fit(dataView);
+                var transformedData = model.Transform(dataView);
+
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+                var onnxFilename = "Ngram.onnx";
+                var onnxFilePath = GetOutputPath(onnxFilename);
+                SaveOnnxModel(onnxModel, onnxFilePath, null);
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
+                {
+                    // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                    string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                    string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxFilePath);
+                    var onnxTransformer = onnxEstimator.Fit(dataView);
+                    var onnxResult = onnxTransformer.Transform(dataView);
+                    CompareSelectedR4VectorColumns(transformedData.Schema[3].Name, outputNames[2], transformedData, onnxResult, 3);
+                }
+            }
             Done();
         }
 
