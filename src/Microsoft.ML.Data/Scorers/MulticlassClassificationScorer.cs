@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
@@ -34,6 +35,11 @@ namespace Microsoft.ML.Data
         // between scores and probabilities (using IDistributionPredictor)
         public sealed class Arguments : ScorerArgumentsBase
         {
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Score Column Name.", ShortName = "scn")]
+            public string ScoreColumnName = AnnotationUtils.Const.ScoreValueKind.Score;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Predicted Label Column Name.", ShortName = "plcn")]
+            public string PredictedLabelColumnName = DefaultColumnNames.PredictedLabel;
         }
 
         public const string LoaderSignature = "MultiClassScoreTrans";
@@ -486,7 +492,7 @@ namespace Microsoft.ML.Data
         [BestFriend]
         internal MulticlassClassificationScorer(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
             : base(args, env, data, WrapIfNeeded(env, mapper, trainSchema), trainSchema, RegistrationName, AnnotationUtils.Const.ScoreColumnKind.MulticlassClassification,
-                AnnotationUtils.Const.ScoreValueKind.Score, OutputTypeMatches, GetPredColType)
+                args.ScoreColumnName, OutputTypeMatches, GetPredColType, args.PredictedLabelColumnName)
         {
         }
 

@@ -12,15 +12,15 @@ using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
+using Microsoft.ML.Dnn;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Dnn;
 using Microsoft.ML.Transforms.TensorFlow;
 using NumSharp;
 using Tensorflow;
-using static Microsoft.ML.Transforms.Dnn.DnnUtils;
+using static Microsoft.ML.Dnn.DnnUtils;
 using static Tensorflow.Binding;
 
 [assembly: LoadableClass(TensorFlowTransformer.Summary, typeof(IDataTransform), typeof(TensorFlowTransformer),

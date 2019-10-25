@@ -6,9 +6,9 @@ using System;
 using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Dnn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Transforms.Dnn;
 using Tensorflow;
 
 namespace Microsoft.ML.Transforms.TensorFlow
