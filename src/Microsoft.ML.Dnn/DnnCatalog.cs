@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
+using Microsoft.ML.Dnn;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Dnn;
-using static Microsoft.ML.Transforms.ImageClassificationEstimator;
 
 namespace Microsoft.ML
 {
@@ -80,59 +80,51 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Performs image classification using transfer learning.
-        /// usage of this API requires additional NuGet dependencies on TensorFlow redist, see linked document for more information.
+        /// Usage of this API requires additional NuGet dependencies on TensorFlow redist, see linked document
+        /// for more information.
         /// <format type="text/markdown">
         /// <![CDATA[
         /// [!include[io](~/../docs/samples/docs/api-reference/tensorflow-usage.md)]
         /// ]]>
         /// </format>
         /// </summary>
-        /// <param name="catalog"></param>
-        /// <param name="featuresColumnName">The name of the input features column.</param>
-        /// <param name="labelColumnName">The name of the labels column.</param>
-        /// <param name="scoreColumnName">The name of the output score column.</param>
-        /// <param name="predictedLabelColumnName">The name of the output predicted label columns.</param>
-        /// <param name="validationSet">Validation set.</param>
+        /// <param name="catalog">Catalog</param>
+        /// <param name="options">An <see cref="ImageClassificationTrainer.Options"/> object specifying advanced
+        /// options for <see cref="ImageClassificationTrainer"/>.</param>
 
-        public static ImageClassificationEstimator ImageClassification(
-            this ModelOperationsCatalog catalog,
-            string featuresColumnName,
-            string labelColumnName,
-            string scoreColumnName = "Score",
-            string predictedLabelColumnName = "PredictedLabel",
-            IDataView validationSet = null
-            )
-        {
-            var options = new ImageClassificationEstimator.Options()
-            {
-                FeaturesColumnName = featuresColumnName,
-                LabelColumnName = labelColumnName,
-                ScoreColumnName = scoreColumnName,
-                PredictedLabelColumnName = predictedLabelColumnName,
-                ValidationSet = validationSet
-            };
-
-            return ImageClassification(catalog, options);
-        }
+        public static ImageClassificationTrainer ImageClassification(
+            this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            ImageClassificationTrainer.Options options) =>
+                new ImageClassificationTrainer(CatalogUtils.GetEnvironment(catalog), options);
 
         /// <summary>
         /// Performs image classification using transfer learning.
-        /// usage of this API requires additional NuGet dependencies on TensorFlow redist, see linked document for more information.
+        /// Usage of this API requires additional NuGet dependencies on TensorFlow redist, see linked document for
+        /// more information.
         /// <format type="text/markdown">
         /// <![CDATA[
         /// [!include[io](~/../docs/samples/docs/api-reference/tensorflow-usage.md)]
         /// ]]>
         /// </format>
         /// </summary>
-        /// <param name="catalog"></param>
-        /// <param name="options">An <see cref="Options"/> object specifying advanced options for <see cref="ImageClassificationEstimator"/>.</param>
-        public static ImageClassificationEstimator ImageClassification(
-            this ModelOperationsCatalog catalog, Options options)
-        {
-            options.EarlyStoppingCriteria = options.DisableEarlyStopping ? null : options.EarlyStoppingCriteria ?? new EarlyStopping();
+        /// <param name="catalog">Catalog</param>
+        /// <param name="labelColumnName">The name of the labels column.</param>
+        /// <param name="featureColumnName">The name of the input features column.</param>
+        /// <param name="scoreColumnName">The name of the output score column.</param>
+        /// <param name="predictedLabelColumnName">The name of the output predicted label columns.</param>
+        /// <param name="validationSet">The validation set used while training to improve model quality.</param>
 
-            var env = CatalogUtils.GetEnvironment(catalog);
-            return new ImageClassificationEstimator(env, options, DnnUtils.LoadDnnModel(env, options.Arch, true));
+        public static ImageClassificationTrainer ImageClassification(
+            this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string scoreColumnName = DefaultColumnNames.Score,
+            string predictedLabelColumnName = DefaultColumnNames.PredictedLabel,
+            IDataView validationSet = null)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            return new ImageClassificationTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName,
+                featureColumnName, scoreColumnName, predictedLabelColumnName, validationSet);
         }
     }
 }

@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Transforms;
 using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Samples.Dynamic
@@ -60,11 +59,10 @@ namespace Samples.Dynamic
                 IDataView trainDataset = trainTestData.TrainSet;
                 IDataView testDataset = trainTestData.TestSet;
 
-                var pipeline = mlContext.Model.ImageClassification("Image", "Label", validationSet: testDataset)
-                    .Append(mlContext.Transforms.Conversion.MapKeyToValue(
-                        outputColumnName: "PredictedLabel", 
+                var pipeline = mlContext.MulticlassClassification.Trainers
+                        .ImageClassification(featureColumnName:"Image", validationSet:testDataset)
+                    .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel",
                         inputColumnName: "PredictedLabel"));
-
 
                 Console.WriteLine("*** Training the image classification model " +
                     "with DNN Transfer Learning on top of the selected " +

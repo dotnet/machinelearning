@@ -430,7 +430,7 @@ namespace Microsoft.ML.Data
                 if (_type)
                     result[outputColumnName] = new SchemaShape.Column(outputColumnName, SchemaShape.Column.VectorKind.Scalar, new ImageDataViewType(), false);
                 else
-                    result[outputColumnName] = new SchemaShape.Column(outputColumnName, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Byte, false);
+                    result[outputColumnName] = new SchemaShape.Column(outputColumnName, SchemaShape.Column.VectorKind.VariableVector, NumberDataViewType.Byte, false);
             }
 
             return new SchemaShape(result.Values);

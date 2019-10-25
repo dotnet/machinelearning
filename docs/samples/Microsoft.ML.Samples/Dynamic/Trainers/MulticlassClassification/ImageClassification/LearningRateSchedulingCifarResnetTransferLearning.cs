@@ -9,8 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ML;
 using Microsoft.ML.Data;
+using Microsoft.ML.Dnn;
 using Microsoft.ML.Transforms;
-using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Samples.Dynamic
 {
@@ -65,20 +65,19 @@ namespace Samples.Dynamic
                     .Fit(testDataset)
                     .Transform(testDataset);
 
-                var options = new ImageClassificationEstimator.Options()
+                var options = new ImageClassificationTrainer.Options()
                 {
-                    FeaturesColumnName = "Image",
+                    FeatureColumnName = "Image",
                     LabelColumnName = "Label",
                     // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
                     // ResnetV2101 you can try a different architecture/
                     // pre-trained model. 
-                    Arch = ImageClassificationEstimator.Architecture.ResnetV2101,
+                    Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
                     Epoch = 182,
                     BatchSize = 128,
                     LearningRate = 0.01f,
                     MetricsCallback = (metrics) => Console.WriteLine(metrics),
                     ValidationSet = testDataset,
-                    DisableEarlyStopping = true,
                     ReuseValidationSetBottleneckCachedValues = false,
                     ReuseTrainSetBottleneckCachedValues = false,
                     // Use linear scaling rule and Learning rate decay as an option
@@ -88,7 +87,7 @@ namespace Samples.Dynamic
                     LearningRateScheduler = new LsrDecay()
                 };
 
-                var pipeline = mlContext.Model.ImageClassification(options)
+                var pipeline = mlContext.MulticlassClassification.Trainers.ImageClassification(options)
                     .Append(mlContext.Transforms.Conversion.MapKeyToValue(
                         outputColumnName: "PredictedLabel",
                         inputColumnName: "PredictedLabel"));
