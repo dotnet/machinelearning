@@ -537,9 +537,13 @@ namespace Microsoft.ML.Transforms
             else
                 size = 1;
 
-            if (type == typeof(float))
+            // REVIEW:
+            // AddInitializer only supports long, float and string.
+            // Is it correct to cast double to float and ulong to long?
+            if ((type == typeof(float)) || (type == typeof(double)))
                 ctx.AddInitializer(new float[size], new long[] { 1, size }, inputColumnName, false);
-            else if (type == typeof(long))
+            else if ((type == typeof(long)) || (type == typeof(int)) || (type == typeof(short)) || (type == typeof(sbyte)) ||
+                     (type == typeof(ulong)) || (type == typeof(uint)) || (type == typeof(ushort)) || (type == typeof(byte)))
                 ctx.AddInitializer(new long[size], new long[] { 1, size }, inputColumnName, false);
             else if (type == typeof(string))
                 ctx.AddInitializer(new string[size], new long[] { 1, size }, inputColumnName, false);
