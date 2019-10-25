@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
@@ -45,7 +46,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(NumberDataViewType.Single, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
         }
 
-        [Fact]
+        [TensorFlowFact]
         public void AutoFitImageClassificationTest()
         {
             var context = new MLContext();
