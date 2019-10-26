@@ -46,8 +46,8 @@ namespace Samples.Dynamic
 
                 shuffledFullImagesDataset = mlContext.Transforms.Conversion
                         .MapValueToKey("Label")
-                    .Append(mlContext.Transforms.LoadImages("Image",
-                                fullImagesetFolderPath, false, "ImagePath"))
+                    .Append(mlContext.Transforms.LoadRawImageBytes("Image",
+                                fullImagesetFolderPath, "ImagePath"))
                     .Fit(shuffledFullImagesDataset)
                     .Transform(shuffledFullImagesDataset);
 
