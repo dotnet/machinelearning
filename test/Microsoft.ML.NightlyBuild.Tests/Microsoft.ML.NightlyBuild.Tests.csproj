@@ -13,6 +13,10 @@
 
   <ItemGroup>
     <Compile Include="..\Microsoft.ML.Functional.Tests\**\*.cs" />
+    <RestoreSources Include="https://devdiv.pkgs.visualstudio.com/_packaging/MachineLearning/nuget/v3/index.json">
+      <Username>frank-pat-nuget-builds</Username>
+      <Password>hgbnknrkd7dlnz6d4nazyraqzermmpw2drgubkrpsyiexefbivda</Password>
+    </RestoreSources>
   </ItemGroup>
 
   <ItemGroup>
