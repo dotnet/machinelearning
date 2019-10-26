@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
@@ -43,6 +44,22 @@ namespace Microsoft.ML.AutoML.Test
             Assert.True(result.BestRun.Results.First().ValidationMetrics.MicroAccuracy >= 0.7);
             var scoredData = result.BestRun.Results.First().Model.Transform(trainData);
             Assert.Equal(NumberDataViewType.Single, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
+        }
+
+        [TensorFlowFact]
+        public void AutoFitImageClassificationTest()
+        {
+            var context = new MLContext();
+            var datasetPath = DatasetUtil.GetFlowersDataset();
+            var columnInference = context.Auto().InferColumns(datasetPath, "Label");
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            var trainData = textLoader.Load(datasetPath);
+            var result = context.Auto()
+                .CreateMulticlassClassificationExperiment(0)
+                .Execute(trainData, 5, "Label");
+            Assert.True(result.BestRun.Results.First().ValidationMetrics.MicroAccuracy >= 0.6);
+            var scoredData = result.BestRun.Results.First().Model.Transform(trainData);
+            Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
         }
 
         [Fact]

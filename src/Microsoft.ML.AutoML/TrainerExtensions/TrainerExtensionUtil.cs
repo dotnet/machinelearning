@@ -43,7 +43,8 @@ namespace Microsoft.ML.AutoML
         SgdCalibratedOva,
         SymbolicSgdLogisticRegressionBinary,
         SymbolicSgdLogisticRegressionOva,
-        MatrixFactorization
+        MatrixFactorization,
+        ImageClassification
     }
 
     internal static class TrainerExtensionUtil

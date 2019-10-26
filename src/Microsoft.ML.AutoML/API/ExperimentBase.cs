@@ -102,16 +102,16 @@ namespace Microsoft.ML.AutoML
             const int crossValRowCountThreshold = 15000;
 
             var rowCount = DatasetDimensionsUtil.CountRows(trainData, crossValRowCountThreshold);
-
+            bool isImageClassificationTask = columnInformation.ImagePathColumnNames.Count != 1;
             if (rowCount < crossValRowCountThreshold)
             {
                 const int numCrossValFolds = 10;
-                var splitResult = SplitUtil.CrossValSplit(Context, trainData, numCrossValFolds, columnInformation?.SamplingKeyColumnName);
+                var splitResult = SplitUtil.CrossValSplit(Context, trainData, numCrossValFolds, columnInformation?.SamplingKeyColumnName, isImageClassificationTask);
                 return ExecuteCrossValSummary(splitResult.trainDatasets, columnInformation, splitResult.validationDatasets, preFeaturizer, progressHandler);
             }
             else
             {
-                var splitResult = SplitUtil.TrainValidateSplit(Context, trainData, columnInformation?.SamplingKeyColumnName);
+                var splitResult = SplitUtil.TrainValidateSplit(Context, trainData, columnInformation?.SamplingKeyColumnName, isImageClassificationTask);
                 return ExecuteTrainValidate(splitResult.trainData, columnInformation, splitResult.validationData, preFeaturizer, progressHandler);
             }
         }
