@@ -4,13 +4,11 @@
 
 using System;
 using System.Buffers;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
@@ -77,7 +75,7 @@ namespace Microsoft.ML.Data
         /// The flag for DataViewType for the image. If Type true, it is a VectorDataView of bytes else it is an ImageDataView type.
         /// If no options are specified, it defaults to false for ImageDataView type.
         /// </summary>
-        public readonly bool UseImageType;
+        private readonly bool _useImageType;
 
         /// <summary>
         /// The columns passed to this <see cref="ITransformer"/>.
@@ -94,7 +92,7 @@ namespace Microsoft.ML.Data
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoadingTransformer)), columns)
         {
             ImageFolder = imageFolder;
-            UseImageType = true;
+            _useImageType = true;
         }
 
         /// <summary>
@@ -108,7 +106,7 @@ namespace Microsoft.ML.Data
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoadingTransformer)), columns)
         {
             ImageFolder = imageFolder;
-            UseImageType = type;
+            _useImageType = type;
         }
 
         // Factory method for SignatureDataTransform.
@@ -137,9 +135,9 @@ namespace Microsoft.ML.Data
 
             ImageFolder = ctx.LoadStringOrNull();
            if (ctx.Header.ModelVerWritten >= 0x00010003) // do a version check
-                UseImageType = ctx.Reader.ReadBoolean();
+                _useImageType = ctx.Reader.ReadBoolean();
             else
-                UseImageType = true; // It is an ImageDataViewType
+                _useImageType = true; // It is an ImageDataViewType
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -169,7 +167,7 @@ namespace Microsoft.ML.Data
 
             base.SaveColumns(ctx);
             ctx.SaveStringOrNull(ImageFolder);
-            ctx.Writer.Write(UseImageType);
+            ctx.Writer.Write(_useImageType);
         }
 
         private static VersionInfo GetVersionInfo()
@@ -184,7 +182,7 @@ namespace Microsoft.ML.Data
                 loaderAssemblyName: typeof(ImageLoadingTransformer).Assembly.FullName);
         }
 
-        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema, UseImageType);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema, _useImageType);
 
         private sealed class Mapper : OneToOneMapperBase
         {
