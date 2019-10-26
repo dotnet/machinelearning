@@ -17,14 +17,14 @@ namespace Samples.Dynamic
     {
         public static void Example()
         {
-            // Set the path for input images
+            // Set the path for input images.
             string assetsRelativePath = @"../../../assets";
             string assetsPath = GetAbsolutePath(assetsRelativePath);
 
             string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
                 "images");
 
-            //Download the image set and unzip, set the path to image folder
+            //Download the image set and unzip, set the path to image folder.
             string finalImagesFolderName = DownloadImageSet(
                 imagesDownloadFolderPath);
 
@@ -41,7 +41,7 @@ namespace Samples.Dynamic
                 IEnumerable<ImageData> images = LoadImagesFromDirectory(
                     folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
 
-                // Shuffle images
+                // Shuffle images.
                 IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
                     mlContext.Data.LoadFromEnumerable(images));
 
@@ -55,7 +55,7 @@ namespace Samples.Dynamic
                     .Fit(shuffledFullImagesDataset)
                     .Transform(shuffledFullImagesDataset);
 
-                // Split the data 90:10 into train and test sets
+                // Split the data 90:10 into train and test sets.
                 TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
                     shuffledFullImagesDataset, testFraction: 0.1, seed: 1);
 
@@ -74,10 +74,10 @@ namespace Samples.Dynamic
                     "with DNN Transfer Learning on top of the selected " +
                     "pre-trained model/architecture ***");
 
-                // Measuring training time
+                // Measuring training time.
                 var watch = System.Diagnostics.Stopwatch.StartNew();
 
-                // Train the model
+                // Train the model.
                 // This involves calculating the bottleneck values, and then
                 // training the final layer. 
                 var trainedModel = pipeline.Fit(trainDataset);
@@ -88,17 +88,17 @@ namespace Samples.Dynamic
                 Console.WriteLine("Training with transfer learning took: " +
                     (elapsedMs / 1000).ToString() + " seconds");
 
-                // Save the trained model
+                // Save the trained model.
                 mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
                     "model.zip");
 
-                // Load the trained and saved model for prediction
+                // Load the trained and saved model for prediction.
                 ITransformer loadedModel;
                 DataViewSchema schema;
                 using (var file = File.OpenRead("model.zip"))
                     loadedModel = mlContext.Model.Load(file, out schema);
 
-                // Evaluate the model on the test dataset
+                // Evaluate the model on the test dataset.
                 // Sample output:
                 // Making bulk predictions and evaluating model's quality...
                 // Micro-accuracy: 0.888888888888889,macro-accuracy = 0.883333333333333
@@ -135,43 +135,43 @@ namespace Samples.Dynamic
             }
         }
 
-        // Predict on a single image
+        // Predict on a single image.
         private static void TrySinglePrediction(string imagesForPredictions,
             MLContext mlContext, ITransformer trainedModel)
         {
-            // Create prediction function to try one prediction
+            // Create prediction function to try one prediction.
             var predictionEngine = mlContext.Model
                 .CreatePredictionEngine<InMemoryImageData,
                 ImagePrediction>(trainedModel);
 
-            // Load test images
+            // Load test images.
             IEnumerable<InMemoryImageData> testImages =
                 LoadInMemoryImagesFromDirectory(imagesForPredictions, false);
 
-            // Create an in-memory image object from the first image in the test data
+            // Create an in-memory image object from the first image in the test data.
             InMemoryImageData imageToPredict = new InMemoryImageData
             {
                 Image = testImages.First().Image
             };
 
-            // Predict on the single image
+            // Predict on the single image.
             var prediction = predictionEngine.Predict(imageToPredict);
 
             Console.WriteLine($"Scores : [{string.Join(",", prediction.Score)}], " +
                 $"Predicted Label : {prediction.PredictedLabel}");
         }
 
-        // Evaluate the trained model on the passed test dataset
+        // Evaluate the trained model on the passed test dataset.
         private static void EvaluateModel(MLContext mlContext,
             IDataView testDataset, ITransformer trainedModel)
         {
             Console.WriteLine("Making bulk predictions and evaluating model's " +
                 "quality...");
 
-            // Measuring time to evaluate
+            // Measuring time to evaluate.
             var watch2 = System.Diagnostics.Stopwatch.StartNew();
 
-            // Evaluate the model on the test data and get the evaluation metrics
+            // Evaluate the model on the test data and get the evaluation metrics.
             IDataView predictions = trainedModel.Transform(testDataset);
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
 
@@ -185,7 +185,7 @@ namespace Samples.Dynamic
                 (elapsed2Ms / 1000).ToString() + " seconds");
         }
 
-        //Load the Image Data from input directory
+        //Load the Image Data from input directory.
         public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,
             bool useFolderNameAsLabel = true)
         {
@@ -220,7 +220,7 @@ namespace Samples.Dynamic
             }
         }
 
-        // Load In memory raw images from directory
+        // Load In memory raw images from directory.
         public static IEnumerable<InMemoryImageData>
             LoadInMemoryImagesFromDirectory(string folder,
                 bool useFolderNameAsLabel = true)
@@ -256,7 +256,7 @@ namespace Samples.Dynamic
             }
         }
 
-        // Download and unzip the image dataset
+        // Download and unzip the image dataset.
         public static string DownloadImageSet(string imagesDownloadFolder)
         {
             // get a set of images to teach the network about the new classes
@@ -274,7 +274,7 @@ namespace Samples.Dynamic
             return Path.GetFileNameWithoutExtension(fileName);
         }
 
-        // Download file to destination directory from input URL
+        // Download file to destination directory from input URL.
         public static bool Download(string url, string destDir, string destFileName)
         {
             if (destFileName == null)
@@ -304,7 +304,7 @@ namespace Samples.Dynamic
             return true;
         }
 
-        // Unzip the file to destination folder
+        // Unzip the file to destination folder.
         public static void UnZip(String gzArchiveName, String destFolder)
         {
             var flag = gzArchiveName.Split(Path.DirectorySeparatorChar)
@@ -322,7 +322,7 @@ namespace Samples.Dynamic
             Console.WriteLine("Extracting is completed.");
         }
 
-        // Get absolute path from relative path
+        // Get absolute path from relative path.
         public static string GetAbsolutePath(string relativePath)
         {
             FileInfo _dataRoot = new FileInfo(typeof(
@@ -335,7 +335,7 @@ namespace Samples.Dynamic
             return fullPath;
         }
 
-        // InMemoryImageData class holding the raw image byte array and label
+        // InMemoryImageData class holding the raw image byte array and label.
         public class InMemoryImageData
         {
             [LoadColumn(0)]
@@ -345,7 +345,7 @@ namespace Samples.Dynamic
             public string Label;
         }
 
-        // ImageData class holding the imagepath and label
+        // ImageData class holding the imagepath and label.
         public class ImageData
         {
             [LoadColumn(0)]
@@ -355,7 +355,7 @@ namespace Samples.Dynamic
             public string Label;
         }
 
-        // ImagePrediction class holding the score and predicted label metrics
+        // ImagePrediction class holding the score and predicted label metrics.
         public class ImagePrediction
         {
             [ColumnName("Score")]
