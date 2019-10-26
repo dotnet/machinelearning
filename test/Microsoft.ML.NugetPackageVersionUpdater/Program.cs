@@ -37,12 +37,12 @@ namespace Microsoft.ML.NugetPackageVersionUpdater
             using (var file = new StreamReader(tempVersionsFile))
             {
                 var output = file.ReadToEnd();
-                var splits = output.Split("\r\n");
+                var splits = output.Split("\r\n".ToCharArray());
                 foreach (var split in splits)
                 {
                     if (split.Contains(packageNamespace))
                     {
-                        var detailSplit = split.Split(" ");
+                        var detailSplit = split.Split(' ');
 
                         //valida NuGet package version should be separate by space like below:
                         //[PackageName]space[PackageVersion]

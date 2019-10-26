@@ -31,6 +31,11 @@ jobs:
     - ${{ if eq(parameters.pool.name, 'Hosted macOS High Sierra') }}:
       - script: brew update && brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/f5b1ac99a7fba27c19cee0bc4f036775c889b359/Formula/libomp.rb && brew install mono-libgdiplus gettext && brew link gettext --force && brew link libomp --force
         displayName: Install build dependencies
+    - task: NuGetCommand@2
+        displayName: Authenticate with NuGet feed
+        inputs:
+        command: custom
+        arguments: sources update -Name "feed_name_match_nameIn_NuGet_Config" -Username "this_value_could_anything" -Password "$(System.AccessToken)" -StorePasswordInClearText -ConfigFile NuGet.Config
     - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }}
       displayName: Builds 1st time to restore tools
     - script: dotnet run --project test\Microsoft.ML.NugetPackageVersionUpdater\Microsoft.ML.NugetPackageVersionUpdater.csproj

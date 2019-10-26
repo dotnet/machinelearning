@@ -5,7 +5,6 @@
     <SignAssembly>false</SignAssembly>
     <!-- DON'T CHANGE THIS!!! We are turning off strong naming to ensure we never add `InternalsVisibleTo` for these tests -->
     <PublicSign>false</PublicSign>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
     <IsPackable>false</IsPackable>
     <ReferenceTypeForTestFramework>NuGet</ReferenceTypeForTestFramework>
   </PropertyGroup>
