@@ -294,8 +294,8 @@ namespace Microsoft.ML.Dnn
 
         internal static DnnModel LoadDnnModel(IHostEnvironment env, Architecture arch, bool metaGraph = false)
         {
-            var modelPath = ImageClassificationEstimator.ModelLocation[arch];
-            if (arch == ImageClassificationEstimator.Architecture.InceptionV3)
+            var modelPath = ImageClassificationTrainer.ModelLocation[arch];
+            if (arch == ImageClassificationTrainer.Architecture.InceptionV3)
             {
                 var baseGitPath = @"https://raw.githubusercontent.com/SciSharp/TensorFlow.NET/master/graph/InceptionV3.meta";
                 DownloadIfNeeded(new Uri($"{baseGitPath}"), @"InceptionV3.meta");
@@ -305,17 +305,17 @@ namespace Microsoft.ML.Dnn
                 if (!Directory.Exists(@"tfhub_modules"))
                     ZipFile.ExtractToDirectory(Path.Combine(Directory.GetCurrentDirectory(), @"tfhub_modules.zip"), @"tfhub_modules");
             }
-            else if (arch == ImageClassificationEstimator.Architecture.ResnetV2101)
+            else if (arch == ImageClassificationTrainer.Architecture.ResnetV2101)
             {
                 var baseGitPath = @"https://aka.ms/mlnet-resources/image/ResNet101Tensorflow/resnet_v2_101_299.meta";
                 DownloadIfNeeded(new Uri($"{baseGitPath}"), @"resnet_v2_101_299.meta");
             }
-            else if (arch == ImageClassificationEstimator.Architecture.MobilenetV2)
+            else if (arch == ImageClassificationTrainer.Architecture.MobilenetV2)
             {
                 var baseGitPath = @"https://tlcresources.blob.core.windows.net/image/MobileNetV2TensorFlow/mobilenet_v2.meta";
                 DownloadIfNeeded(new Uri($"{baseGitPath}"), @"mobilenet_v2.meta");
             }
-            else if (arch == ImageClassificationEstimator.Architecture.ResnetV250)
+            else if (arch == ImageClassificationTrainer.Architecture.ResnetV250)
             {
                 var baseGitPath = @"https://tlcresources.blob.core.windows.net/image/ResNetV250TensorFlow/resnet_v2_50_299.meta";
                 DownloadIfNeeded(new Uri($"{baseGitPath}"), @"resnet_v2_50_299.meta");

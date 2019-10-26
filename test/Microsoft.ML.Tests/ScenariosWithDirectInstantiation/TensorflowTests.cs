@@ -1756,9 +1756,9 @@ namespace Microsoft.ML.Scenarios
         }
 
         [TensorFlowTheory]  
-        [InlineData(ImageClassificationEstimator.Architecture.ResnetV2101)]
-        [InlineData(ImageClassificationEstimator.Architecture.InceptionV3)]
-        public void TensorflowRedownloadModelFile(ImageClassificationEstimator.Architecture arch)
+        [InlineData(ImageClassificationTrainer.Architecture.ResnetV2101)]
+        [InlineData(ImageClassificationTrainer.Architecture.InceptionV3)]
+        public void TensorflowRedownloadModelFile(ImageClassificationTrainer.Architecture arch)
         {
             string assetsRelativePath = @"assets";
             string assetsPath = GetAbsolutePath(assetsRelativePath);
@@ -1799,7 +1799,7 @@ namespace Microsoft.ML.Scenarios
             //If model file exists, delete it and create empty file
             //with the same name as model file to 
             //simulate incomplete model file scenario.
-            if (arch == ImageClassificationEstimator.Architecture.ResnetV2101)
+            if (arch == ImageClassificationTrainer.Architecture.ResnetV2101)
             {
 
                 if (File.Exists(@"resnet_v2_101_299.meta"))
@@ -1807,7 +1807,7 @@ namespace Microsoft.ML.Scenarios
 
                 using (File.Create(@"resnet_v2_101_299.meta")) { }
             }
-            else if(arch == ImageClassificationEstimator.Architecture.InceptionV3)
+            else if(arch == ImageClassificationTrainer.Architecture.InceptionV3)
             {
                 if (File.Exists(@"tfhub_modules.zip"))
                     File.Delete(@"tfhub_modules.zip");
@@ -1819,21 +1819,21 @@ namespace Microsoft.ML.Scenarios
                 using (File.Create(@"InceptionV3.meta")) { }
             }
 
-            var options = new ImageClassificationEstimator.Options()
+            var options = new ImageClassificationTrainer.Options()
             {
-                FeaturesColumnName = "Image",
+                FeatureColumnName = "Image",
                 LabelColumnName = "Label",
                 Arch = arch,
                 Epoch = 1,
                 BatchSize = 10,
                 MetricsCallback = (metrics) => Console.WriteLine(metrics),
                 TestOnTrainSet = false,
-                DisableEarlyStopping = true
+                EarlyStoppingCriteria = null
             };
 
             //Create pipeline and run
             var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
-                .Append(mlContext.Model.ImageClassification(options)
+                .Append(mlContext.MulticlassClassification.Trainers.ImageClassification(options)
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel")));
 
             var trainedModel = pipeline.Fit(trainDataset);
