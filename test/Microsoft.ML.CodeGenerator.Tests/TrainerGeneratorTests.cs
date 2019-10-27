@@ -729,7 +729,7 @@ namespace mlnet.Tests
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "ImageClassification(labelColumnName:\"Label\",featureColumnName:\"Features\")";
+            string expectedTrainerString = "ImageClassificationTrainer(LabelColumnName:\"Label\",FeatureColumnName:\"Features\")";
             Assert.Equal(expectedTrainerString, actual.Item1);
             Assert.Null(actual.Item2);
         }

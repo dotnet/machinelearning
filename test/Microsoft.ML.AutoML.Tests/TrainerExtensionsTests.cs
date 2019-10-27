@@ -22,11 +22,16 @@ namespace Microsoft.ML.AutoML.Test
             foreach (var trainerName in trainerNames)
             {
                 var extension = TrainerExtensionCatalog.GetTrainerExtension(trainerName);
-                var sweepParams = extension.GetHyperparamSweepRanges();
-                Assert.NotNull(sweepParams);
-                foreach (var sweepParam in sweepParams)
+
+                IEnumerable<SweepableParam> sweepParams = null;
+                if (trainerName != TrainerName.ImageClassification)
                 {
-                    sweepParam.RawValue = 1;
+                    sweepParams = extension.GetHyperparamSweepRanges();
+                    Assert.NotNull(sweepParams);
+                    foreach (var sweepParam in sweepParams)
+                    {
+                        sweepParam.RawValue = 1;
+                    }
                 }
                 var instance = extension.CreateInstance(context, sweepParams, columnInfo);
                 Assert.NotNull(instance);

@@ -178,7 +178,7 @@ namespace mlnet.Tests
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTransformsAndUsings(new PipelineNode[] { node });
-            string expectedTransform = "LoadImages(\"Label\", @\"C:\\\\Test\", \"Label\")";
+            string expectedTransform = "LoadRawImageBytes(\"Label\", @\"C:\\\\Test\", \"Label\")";
             Assert.Equal(expectedTransform, actual[0].Item1);
             Assert.Null(actual[0].Item2);
         }
