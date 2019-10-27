@@ -363,7 +363,7 @@ namespace Microsoft.ML.Dnn
             /// Specifies the model architecture to be used in the case of image classification training using transfer learning.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Model architecture to be used in transfer learning for image classification.", SortOrder = 15)]
-            public Architecture Arch = Architecture.InceptionV3;
+            public Architecture Arch = Architecture.ResnetV250;
 
             /// <summary>
             /// Name of the tensor that will contain the output scores of the last layer when transfer learning is done.
