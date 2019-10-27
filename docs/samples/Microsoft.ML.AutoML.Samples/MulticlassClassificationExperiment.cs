@@ -8,29 +8,19 @@ namespace Microsoft.ML.AutoML.Samples
 {
     public static class MulticlassClassificationExperiment
     {
-        private static string TrainDataPath = @"C:\Users\mzs\Downloads\WeatherData\WeatherData\WeatherData.TRAIN.tsv";
-        private static string TestDataPath = @"C:\Users\mzs\Downloads\WeatherData\WeatherData\WeatherData.TEST.tsv";
-        private static string ModelPath = @"C:\Users\mzs\Downloads\tiny\OptDigitsModel.zip";
-        private static string LabelColumnName = "Label";
+        private static string TrainDataPath = "<Path to your train dataset goes here>";
+        private static string TestDataPath = "<Path to your test dataset goes here>";
+        private static string ModelPath = @"<Desired model output directory goes here>\OptDigitsModel.zip";
+        private static string LabelColumnName = "Number";
         private static uint ExperimentTime = 60;
-
-        public class Image
-        {
-            [LoadColumn(0)]
-            public string Label;
-
-            [LoadColumn(3)]
-            public string ImageSource;
-        }
-
 
         public static void Run()
         {
             MLContext mlContext = new MLContext();
 
             // STEP 1: Load data
-            IDataView trainDataView = mlContext.Data.LoadFromTextFile<Image>(TrainDataPath, separatorChar: '\t', hasHeader:true);
-            IDataView testDataView = mlContext.Data.LoadFromTextFile<Image>(TestDataPath, separatorChar: '\t', hasHeader: true);
+            IDataView trainDataView = mlContext.Data.LoadFromTextFile<PixelData>(TrainDataPath, separatorChar: ',');
+            IDataView testDataView = mlContext.Data.LoadFromTextFile<PixelData>(TestDataPath, separatorChar: ',');
 
             // STEP 2: Run AutoML experiment
             Console.WriteLine($"Running AutoML multiclass classification experiment for {ExperimentTime} seconds...");
@@ -56,7 +46,7 @@ namespace Microsoft.ML.AutoML.Samples
                 mlContext.Model.Save(bestRun.Model, trainDataView.Schema, fs);
 
             // STEP 6: Create prediction engine from the best trained model
-             var predictionEngine = mlContext.Model.CreatePredictionEngine<PixelData, PixelPrediction>(bestRun.Model);
+            var predictionEngine = mlContext.Model.CreatePredictionEngine<PixelData, PixelPrediction>(bestRun.Model);
 
             // STEP 7: Initialize new pixel data, and get the predicted number
             var testPixelData = new PixelData
