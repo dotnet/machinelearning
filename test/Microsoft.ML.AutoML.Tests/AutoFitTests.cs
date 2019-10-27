@@ -68,7 +68,7 @@ namespace Microsoft.ML.AutoML.Test
             if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
                 RuntimeInformation.IsOSPlatform(OSPlatform.OSX)))
             {
-                Assert.Equal(0.444, result.BestRun.ValidationMetrics.MicroAccuracy, 3);
+                Assert.Equal(0.778, result.BestRun.ValidationMetrics.MicroAccuracy, 3);
             }
             else
             {
