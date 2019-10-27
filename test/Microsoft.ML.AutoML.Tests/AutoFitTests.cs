@@ -68,11 +68,11 @@ namespace Microsoft.ML.AutoML.Test
             if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
                 (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))))
             {
-                Assert.Equal(0.889, result.BestRun.ValidationMetrics.MicroAccuracy, 3);
+                Assert.Equal(0.444, result.BestRun.ValidationMetrics.MicroAccuracy, 3);
             }
             else
             {
-                Assert.Equal(0.444, result.BestRun.ValidationMetrics.MicroAccuracy, 3);
+                Assert.Equal(0.889, result.BestRun.ValidationMetrics.MicroAccuracy, 3);
             }
             var scoredData = result.BestRun.Model.Transform(trainData);
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
