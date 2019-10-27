@@ -342,14 +342,9 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         {
             string inputColumn = InputColumns.Count() == 1 ? InputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
             string outputColumn = OutputColumns.Count() == 1 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
-            string inputFolder = Properties["imageFolder"] as string;
-            if (inputFolder == null)
-            {
-                throw new Exception($"miss imageFolder property");
-            }
 
             // example: Transforms.LoadImages(output, inputfolder, input)
-            return $"{MethodName}({outputColumn}, @\"{inputFolder}\", {inputColumn})";
+            return $"{MethodName}({outputColumn}, {@"null"}, {inputColumn})";
         }
     }
 }
