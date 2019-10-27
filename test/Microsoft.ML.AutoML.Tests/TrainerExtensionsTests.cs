@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
@@ -32,12 +33,25 @@ namespace Microsoft.ML.AutoML.Test
                     {
                         sweepParam.RawValue = 1;
                     }
+
+                    var instance = extension.CreateInstance(context, sweepParams, columnInfo);
+                    Assert.NotNull(instance);
+                    var pipelineNode = extension.CreatePipelineNode(null, columnInfo);
+                    Assert.NotNull(pipelineNode);
                 }
-                var instance = extension.CreateInstance(context, sweepParams, columnInfo);
-                Assert.NotNull(instance);
-                var pipelineNode = extension.CreatePipelineNode(null, columnInfo);
-                Assert.NotNull(pipelineNode);
             }
+        }
+
+        [TensorFlowFact]
+        public void TrainerExtensionTensorFlowInstanceTests()
+        {
+            var context = new MLContext();
+            var columnInfo = new ColumnInformation();
+            var extension = TrainerExtensionCatalog.GetTrainerExtension(TrainerName.ImageClassification);
+            var instance = extension.CreateInstance(context, null, columnInfo);
+            Assert.NotNull(instance);
+            var pipelineNode = extension.CreatePipelineNode(null, columnInfo);
+            Assert.NotNull(pipelineNode);
         }
 
         [Fact]
