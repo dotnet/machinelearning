@@ -66,13 +66,43 @@ namespace Microsoft.ML.AutoML.Test
 
             //Known issue, where on Ubuntu there is degradation in accuracy.
             if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
-                (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))))
+                RuntimeInformation.IsOSPlatform(OSPlatform.OSX)))
             {
                 Assert.Equal(0.444, result.BestRun.ValidationMetrics.MicroAccuracy, 3);
             }
             else
             {
                 Assert.Equal(0.889, result.BestRun.ValidationMetrics.MicroAccuracy, 3);
+            }
+            var scoredData = result.BestRun.Model.Transform(trainData);
+            Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
+        }
+
+        [TensorFlowFact]
+        public void AutoFitImageClassification()
+        {
+            // This test executes the code path that model builder code will take to get a model using image 
+            // classification API. Please note here the dataset is split 90:10 for train:test, hence the accuracy is 
+            // 100%. The previous test takes a different code path for achieving the same goal but is able to modify 
+            // the train:test split ratio to 80:20.
+            var context = new MLContext();
+            var datasetPath = DatasetUtil.GetFlowersDataset();
+            var columnInference = context.Auto().InferColumns(datasetPath, "Label");
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            var trainData = textLoader.Load(datasetPath);
+            var result = context.Auto()
+                            .CreateMulticlassClassificationExperiment(0)
+                            .Execute(trainData, columnInference.ColumnInformation);
+
+            //Known issue, where on Ubuntu there is degradation in accuracy.
+            if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || 
+                RuntimeInformation.IsOSPlatform(OSPlatform.OSX)))
+            {
+                Assert.Equal(0.444, result.BestRun.ValidationMetrics.MicroAccuracy, 3);
+            }
+            else
+            {
+                Assert.Equal(1, result.BestRun.ValidationMetrics.MicroAccuracy, 3);
             }
             var scoredData = result.BestRun.Model.Transform(trainData);
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);

@@ -51,7 +51,7 @@ namespace Microsoft.ML.AutoML
         {
             var originalColumnNames = trainData.Schema.Select(c => c.Name);
             if (shuffle)
-                trainData = context.Data.ShuffleRows(trainData);
+                trainData = context.Data.ShuffleRows(trainData, seed: 1);
             var splitData = context.Data.TrainTestSplit(trainData, samplingKeyColumnName: samplingKeyColumn);
             trainData = DropAllColumnsExcept(context, splitData.TrainSet, originalColumnNames);
             var validationData = DropAllColumnsExcept(context, splitData.TestSet, originalColumnNames);
