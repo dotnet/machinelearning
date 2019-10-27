@@ -10,5 +10,7 @@
     <NativeAssemblyReference Include="MatrixFactorizationNative" />
     <NativeAssemblyReference Include="FastTreeNative" />
   </ItemGroup>
-
+  <ItemGroup>
+    <PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
+  </ItemGroup>
 </Project>

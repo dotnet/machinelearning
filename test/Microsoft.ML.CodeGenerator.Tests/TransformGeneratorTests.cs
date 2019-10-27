@@ -166,5 +166,21 @@ namespace mlnet.Tests
             Assert.Null(actual[0].Item2);
         }
 
+        [Fact]
+        public void ImageLoadingTest()
+        {
+            var context = new MLContext();
+            var elementProperties = new Dictionary<string, object>()
+            {
+                {"imageFolder", @"C:\\Test" },
+            };
+            PipelineNode node = new PipelineNode("ImageLoading", PipelineNodeType.Transform, new string[] { "Label" }, new string[] { "Label" }, elementProperties);
+            Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
+            var actual = codeGenerator.GenerateTransformsAndUsings(new PipelineNode[] { node });
+            string expectedTransform = "LoadImages(\"Label\", @\"C:\\\\Test\", \"Label\")";
+            Assert.Equal(expectedTransform, actual[0].Item1);
+            Assert.Null(actual[0].Item2);
+        }
     }
 }

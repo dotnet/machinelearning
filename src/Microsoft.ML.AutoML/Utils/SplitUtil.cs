@@ -11,12 +11,9 @@ namespace Microsoft.ML.AutoML
     internal static class SplitUtil
     {
         public static (IDataView[] trainDatasets, IDataView[] validationDatasets) CrossValSplit(MLContext context,
-            IDataView trainData, uint numFolds, string samplingKeyColumn, bool shuffle = false)
+            IDataView trainData, uint numFolds, string samplingKeyColumn)
         {
             var originalColumnNames = trainData.Schema.Select(c => c.Name);
-            if (shuffle)
-                trainData = context.Data.ShuffleRows(trainData);
-
             var splits = context.Data.CrossValidationSplit(trainData, (int)numFolds, samplingKeyColumnName: samplingKeyColumn);
             var trainDatasets = new List<IDataView>();
             var validationDatasets = new List<IDataView>();
@@ -61,7 +58,7 @@ namespace Microsoft.ML.AutoML
             return (trainData, validationData);
         }
 
-        private static IDataView DropAllColumnsExcept(MLContext context, IDataView data, IEnumerable<string> columnsToKeep)
+        public static IDataView DropAllColumnsExcept(MLContext context, IDataView data, IEnumerable<string> columnsToKeep)
         {
             var allColumns = data.Schema.Select(c => c.Name);
             var columnsToDrop = allColumns.Except(columnsToKeep);

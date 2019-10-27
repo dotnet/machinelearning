@@ -9,6 +9,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
+using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Microsoft.ML.AutoML.Test
 {
@@ -47,18 +48,23 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [TensorFlowFact]
-        public void AutoFitImageClassificationTest()
+        public void AutoFitImageClassificationTrainTest()
         {
             var context = new MLContext();
             var datasetPath = DatasetUtil.GetFlowersDataset();
             var columnInference = context.Auto().InferColumns(datasetPath, "Label");
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
-            var trainData = textLoader.Load(datasetPath);
+            var trainData = context.Data.ShuffleRows(textLoader.Load(datasetPath), seed: 1);
+            var originalColumnNames = trainData.Schema.Select(c => c.Name);
+            TrainTestData trainTestData = context.Data.TrainTestSplit(trainData, testFraction: 0.2, seed: 1);
+            IDataView trainDataset = SplitUtil.DropAllColumnsExcept(context, trainTestData.TrainSet, originalColumnNames);
+            IDataView testDataset = SplitUtil.DropAllColumnsExcept(context, trainTestData.TestSet, originalColumnNames);
             var result = context.Auto()
-                .CreateMulticlassClassificationExperiment(0)
-                .Execute(trainData, 5, "Label");
-            Assert.True(result.BestRun.Results.First().ValidationMetrics.MicroAccuracy >= 0.6);
-            var scoredData = result.BestRun.Results.First().Model.Transform(trainData);
+                            .CreateMulticlassClassificationExperiment(0)
+                            .Execute(trainDataset, testDataset, columnInference.ColumnInformation);
+
+            Assert.Equal(0.889, result.BestRun.ValidationMetrics.MicroAccuracy, 3);
+            var scoredData = result.BestRun.Model.Transform(trainData);
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
         }
 
@@ -99,7 +105,8 @@ namespace Microsoft.ML.AutoML.Test
             ExperimentResult<RegressionMetrics> experimentResult = mlContext.Auto()
                 .CreateRecommendationExperiment(5)
                 .Execute(trainDataView, testDataView,
-                    new ColumnInformation() { 
+                    new ColumnInformation()
+                    {
                         LabelColumnName = labelColumnName,
                         UserIdColumnName = userColumnName,
                         ItemIdColumnName = itemColumnName

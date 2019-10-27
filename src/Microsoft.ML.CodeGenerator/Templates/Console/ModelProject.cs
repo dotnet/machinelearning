@@ -37,6 +37,12 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
  if (IncludeFastTreePackage){ 
             this.Write("    <PackageReference Include=\"Microsoft.ML.FastTree\" Version=\"1.3.1\" />\r\n");
 }
+ if (IncludeImageTransformerPackage){ 
+            this.Write("    <PackageReference Include=\"Microsoft.ML.ImageAnalytics\" Version=\"1.4.0\" />\r\n");
+}
+ if (IncludeImageClassificationPackage){ 
+            this.Write("    <PackageReference Include=\"Microsoft.ML.Dnn\" Version=\"1.4.0\" />\r\n");
+}
             this.Write("  </ItemGroup>\r\n\r\n  <ItemGroup>\r\n    <None Update=\"MLModel.zip\">\r\n      <CopyToOu" +
                     "tputDirectory>PreserveNewest</CopyToOutputDirectory>\r\n    </None>\r\n  </ItemGroup" +
                     ">\r\n  \r\n</Project>\r\n");
@@ -46,6 +52,8 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
 public bool IncludeLightGBMPackage {get;set;}
 public bool IncludeMklComponentsPackage {get;set;}
 public bool IncludeFastTreePackage {get;set;}
+public bool IncludeImageTransformerPackage {get; set;}
+public bool IncludeImageClassificationPackage {get; set;}
 
     }
     #region Base class

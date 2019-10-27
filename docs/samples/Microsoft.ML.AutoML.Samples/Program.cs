@@ -8,14 +8,14 @@ namespace Microsoft.ML.AutoML.Samples
         {
             try
             {
-                RecommendationExperiment.Run();
+                /*RecommendationExperiment.Run();
                 Console.Clear();
 
                 RegressionExperiment.Run();
                 Console.Clear();
 
                 BinaryClassificationExperiment.Run();
-                Console.Clear();
+                Console.Clear();*/
 
                 MulticlassClassificationExperiment.Run();
                 Console.Clear();

@@ -103,10 +103,10 @@ namespace Microsoft.ML.AutoML
 
             var rowCount = DatasetDimensionsUtil.CountRows(trainData, crossValRowCountThreshold);
             bool isImageClassificationTask = columnInformation.ImagePathColumnNames.Count != 1;
-            if (rowCount < crossValRowCountThreshold)
+            if (!isImageClassificationTask && rowCount < crossValRowCountThreshold)
             {
                 const int numCrossValFolds = 10;
-                var splitResult = SplitUtil.CrossValSplit(Context, trainData, numCrossValFolds, columnInformation?.SamplingKeyColumnName, isImageClassificationTask);
+                var splitResult = SplitUtil.CrossValSplit(Context, trainData, numCrossValFolds, columnInformation?.SamplingKeyColumnName);
                 return ExecuteCrossValSummary(splitResult.trainDatasets, columnInformation, splitResult.validationDatasets, preFeaturizer, progressHandler);
             }
             else
@@ -188,7 +188,9 @@ namespace Microsoft.ML.AutoML
         /// <remarks>
         /// Depending on the size of your data, the AutoML experiment could take a long time to execute.
         /// </remarks>
-        public CrossValidationExperimentResult<TMetrics> Execute(IDataView trainData, uint numberOfCVFolds, ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizer = null, IProgress<CrossValidationRunDetail<TMetrics>> progressHandler = null)
+        public CrossValidationExperimentResult<TMetrics> Execute(IDataView trainData, uint numberOfCVFolds,
+            ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizer = null,
+            IProgress<CrossValidationRunDetail<TMetrics>> progressHandler = null)
         {
             UserInputValidationUtil.ValidateNumberOfCVFoldsArg(numberOfCVFolds);
             var splitResult = SplitUtil.CrossValSplit(Context, trainData, numberOfCVFolds, columnInformation?.SamplingKeyColumnName);
