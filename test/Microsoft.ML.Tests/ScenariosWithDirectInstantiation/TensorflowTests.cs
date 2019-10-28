@@ -1780,8 +1780,7 @@ namespace Microsoft.ML.Scenarios
 
             shuffledFullImagesDataset = mlContext.Transforms.Conversion
                 .MapValueToKey("Label")
-                .Append(mlContext.Transforms.LoadImages("Image",
-                                fullImagesetFolderPath, false, "ImagePath"))
+                .Append(mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath"))
                 .Fit(shuffledFullImagesDataset)
                 .Transform(shuffledFullImagesDataset);
 
@@ -1823,8 +1822,8 @@ namespace Microsoft.ML.Scenarios
 
             // Assert accuracy was returned meaning training completed
             // by skipping bad images.
-            Assert.InRange(metrics.MicroAccuracy, 0.1, 1);
-            Assert.InRange(metrics.MacroAccuracy, 0.1, 1);
+            Assert.InRange(metrics.MicroAccuracy, 0.3, 1);
+            Assert.InRange(metrics.MacroAccuracy, 0.3, 1);
         }
 
         public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,

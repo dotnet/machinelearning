@@ -716,7 +716,7 @@ namespace Microsoft.ML.Dnn
                     if (e.HResult == -2146233088 && e.Message.Contains("Expected image (JPEG, PNG, or GIF), got unknown format"))
                         return null;
                     else
-                        throw (e);
+                        throw;
                 }
             }
         }
