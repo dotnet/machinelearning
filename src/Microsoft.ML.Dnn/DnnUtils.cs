@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Security.AccessControl;
 using System.Security.Principal;
+using System.Threading.Tasks;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Tensorflow;
@@ -93,15 +94,13 @@ namespace Microsoft.ML.Dnn
             return new Session(graph);
         }
 
-        internal static void DownloadIfNeeded(Uri address, string fileName)
+        internal static async Task DownloadIfNeeded(Uri address, string fileName)
         {
             using (var client = new HttpClient())
             {
                 if (File.Exists(fileName))
                 {
-                    var task = client.GetAsync(address, HttpCompletionOption.ResponseHeadersRead);
-                    task.Wait();
-                    var headerResponse = task.Result;
+                    var headerResponse = await client.GetAsync(address, HttpCompletionOption.ResponseHeadersRead);
                     var totalSizeInBytes = headerResponse.Content.Headers.ContentLength;
                     var currentSize = new FileInfo(fileName).Length;
 
@@ -109,13 +108,9 @@ namespace Microsoft.ML.Dnn
                     if (currentSize != totalSizeInBytes)
                     {
                         File.Delete(fileName);
-                        task = client.GetAsync(address);
-                        task.Wait();
-                        var response = task.Result;
-                        var contentTask = response.Content.ReadAsStreamAsync();
-                        contentTask.Wait();
+                        var response = await client.GetAsync(address);
                         using FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None);
-                        using Stream contentStream = contentTask.Result;
+                        using Stream contentStream = await response.Content.ReadAsStreamAsync();
                         {
                             contentStream.CopyTo(fileStream);
                         }
@@ -123,13 +118,9 @@ namespace Microsoft.ML.Dnn
                 }
                 else
                 {
-                    var task = client.GetAsync(address);
-                    task.Wait();
-                    var response = task.Result;
-                    var contentTask = response.Content.ReadAsStreamAsync();
-                    contentTask.Wait();
+                    var response = await client.GetAsync(address);
                     using FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None);
-                    using Stream contentStream = contentTask.Result;
+                    using Stream contentStream = await response.Content.ReadAsStreamAsync();
                     {
                         contentStream.CopyTo(fileStream);
                     }
@@ -314,27 +305,27 @@ namespace Microsoft.ML.Dnn
             if (arch == ImageClassificationTrainer.Architecture.InceptionV3)
             {
                 var baseGitPath = @"https://raw.githubusercontent.com/SciSharp/TensorFlow.NET/master/graph/InceptionV3.meta";
-                DownloadIfNeeded(new Uri($"{baseGitPath}"), @"InceptionV3.meta");
+                DownloadIfNeeded(new Uri($"{baseGitPath}"), @"InceptionV3.meta").Wait();
 
                 baseGitPath = @"https://github.com/SciSharp/TensorFlow.NET/raw/master/data/tfhub_modules.zip";
-                DownloadIfNeeded(new Uri($"{baseGitPath}"), @"tfhub_modules.zip");
+                DownloadIfNeeded(new Uri($"{baseGitPath}"), @"tfhub_modules.zip").Wait();
                 if (!Directory.Exists(@"tfhub_modules"))
                     ZipFile.ExtractToDirectory(Path.Combine(Directory.GetCurrentDirectory(), @"tfhub_modules.zip"), @"tfhub_modules");
             }
             else if (arch == ImageClassificationTrainer.Architecture.ResnetV2101)
             {
                 var baseGitPath = @"https://aka.ms/mlnet-resources/image/ResNet101Tensorflow/resnet_v2_101_299.meta";
-                DownloadIfNeeded(new Uri($"{baseGitPath}"), @"resnet_v2_101_299.meta");
+                DownloadIfNeeded(new Uri($"{baseGitPath}"), @"resnet_v2_101_299.meta").Wait();
             }
             else if (arch == ImageClassificationTrainer.Architecture.MobilenetV2)
             {
                 var baseGitPath = @"https://tlcresources.blob.core.windows.net/image/MobileNetV2TensorFlow/mobilenet_v2.meta";
-                DownloadIfNeeded(new Uri($"{baseGitPath}"), @"mobilenet_v2.meta");
+                DownloadIfNeeded(new Uri($"{baseGitPath}"), @"mobilenet_v2.meta").Wait();
             }
             else if (arch == ImageClassificationTrainer.Architecture.ResnetV250)
             {
                 var baseGitPath = @"https://tlcresources.blob.core.windows.net/image/ResNetV250TensorFlow/resnet_v2_50_299.meta";
-                DownloadIfNeeded(new Uri($"{baseGitPath}"), @"resnet_v2_50_299.meta");
+                DownloadIfNeeded(new Uri($"{baseGitPath}"), @"resnet_v2_50_299.meta").Wait();
             }
 
             return new DnnModel(GetSession(env, modelPath, metaGraph), modelPath);
