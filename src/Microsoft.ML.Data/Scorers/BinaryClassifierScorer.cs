@@ -211,6 +211,18 @@ namespace Microsoft.ML.Data
                 var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Boolean).ToType();
                 node.AddAttribute("to", t);
             }
+            else if (Bindings.InfoCount == 2)
+            {
+                string opType = "Binarizer";
+                var binarizerOutput = ctx.AddIntermediateVariable(null, "BinarizerOutput", true);
+                var node = ctx.CreateNode(opType, ctx.GetVariableName(outColumnNames[1]), binarizerOutput, ctx.GetNodeName(opType));
+                node.AddAttribute("threshold", 0.0);
+
+                opType = "Cast";
+                node = ctx.CreateNode(opType, binarizerOutput, ctx.GetVariableName(outColumnNames[0]), ctx.GetNodeName(opType), "");
+                var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Boolean).ToType();
+                node.AddAttribute("to", t);
+            }
         }
 
         private protected override IDataTransform ApplyToDataCore(IHostEnvironment env, IDataView newSource)

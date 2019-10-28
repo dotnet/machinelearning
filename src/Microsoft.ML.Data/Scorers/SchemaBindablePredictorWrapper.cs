@@ -320,7 +320,8 @@ namespace Microsoft.ML.Data
             if (!ctx.ContainsColumn(featName))
                 return false;
             Contracts.Assert(ctx.ContainsColumn(featName));
-            return mapper.SaveAsOnnx(ctx, outputNames, ctx.GetVariableName(featName));
+            return mapper.SaveAsOnnx(ctx, new[] { outputNames[1] }, ctx.GetVariableName(featName));
+            //return mapper.SaveAsOnnx(ctx, outputNames, ctx.GetVariableName(featName));
         }
 
         private protected override ISchemaBoundMapper BindCore(IChannel ch, RoleMappedSchema schema) =>

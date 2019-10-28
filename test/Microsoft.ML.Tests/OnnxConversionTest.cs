@@ -204,12 +204,20 @@ namespace Microsoft.ML.Tests
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
             var dataView = mlContext.Data.LoadFromTextFile<BreastCancerBinaryClassification>(dataPath, separatorChar: '\t', hasHeader: true);
             IEstimator<ITransformer>[] estimators = {
-                mlContext.BinaryClassification.Trainers.FastTree(),
+                //mlContext.BinaryClassification.Trainers.SymbolicSgdLogisticRegression(),
+                //mlContext.BinaryClassification.Trainers.SgdCalibrated(),
+                //mlContext.BinaryClassification.Trainers.AveragedPerceptron(),              // Has support but fails
+                
+                mlContext.BinaryClassification.Trainers.FastForest(),                       // Has support but fails
+                mlContext.BinaryClassification.Trainers.LinearSvm(),                        // Has support but fails
+                mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(),                // Has support but fails
+                mlContext.BinaryClassification.Trainers.SgdNonCalibrated() 
+                /*mlContext.BinaryClassification.Trainers.FastTree(),
                 mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(),
                 mlContext.BinaryClassification.Trainers.LightGbm(),
                 mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(),
                 mlContext.BinaryClassification.Trainers.SgdCalibrated(),
-                mlContext.BinaryClassification.Trainers.SymbolicSgdLogisticRegression(),
+                mlContext.BinaryClassification.Trainers.SymbolicSgdLogisticRegression(), */
             };
             var initialPipeline = mlContext.Transforms.ReplaceMissingValues("Features").
                 Append(mlContext.Transforms.NormalizeMinMax("Features"));
@@ -232,6 +240,7 @@ namespace Microsoft.ML.Tests
                     var onnxTransformer = onnxEstimator.Fit(dataView);
                     var onnxResult = onnxTransformer.Transform(dataView);
                     CompareSelectedR4ScalarColumns(transformedData.Schema[5].Name, outputNames[3], transformedData, onnxResult, 1);
+                    CompareSelectedScalarColumns<Boolean>(transformedData.Schema[4].Name, outputNames[2], transformedData, onnxResult);
                 }
             }
             Done();
@@ -1080,8 +1089,35 @@ namespace Microsoft.ML.Tests
                 }
             }
         }
+        private void CompareSelectedScalarColumns<T>(string leftColumnName, string rightColumnName, IDataView left, IDataView right)
+        {
+            var leftColumn = left.Schema[leftColumnName];
+            var rightColumn = right.Schema[rightColumnName];
 
-        private void CompareSelectedR4ScalarColumns(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
+            using (var expectedCursor = left.GetRowCursor(leftColumn))
+            using (var actualCursor = right.GetRowCursor(rightColumn))
+            {
+                T expected = default;
+                VBuffer<T> actual = default;
+                var expectedGetter = expectedCursor.GetGetter<T>(leftColumn);
+                var actualGetter = actualCursor.GetGetter<VBuffer<T>>(rightColumn);
+                while (expectedCursor.MoveNext() && actualCursor.MoveNext())
+                {
+                    expectedGetter(ref expected);
+                    actualGetter(ref actual);
+                    var actualVal = actual.GetItemOrDefault(0);
+
+                    Assert.Equal(1, actual.Length);
+
+                    if (typeof(T) == typeof(ReadOnlyMemory<Char>))
+                        Assert.Equal(expected.ToString(), actualVal.ToString());
+                    else
+                        Assert.Equal(expected, actualVal);
+                }
+            }
+        }
+
+            private void CompareSelectedR4ScalarColumns(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
         {
             var leftColumn = left.Schema[leftColumnName];
             var rightColumn = right.Schema[rightColumnName];
