@@ -7,10 +7,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Tensorflow;
 using static Microsoft.ML.Dnn.ImageClassificationTrainer;
@@ -91,6 +91,23 @@ namespace Microsoft.ML.Dnn
 
             }
             return new Session(graph);
+        }
+
+        internal static void DownloadIfNeeded(IHostEnvironment env, string url, string dir, string fileName, int timeout)
+        {
+            using (var ch = env.Start("Ensuring meta files are present."))
+            {
+                var ensureModel = ResourceManagerUtils.Instance.EnsureResource(env, ch, url, fileName, dir, timeout);
+                ensureModel.Wait();
+                var errorResult = ResourceManagerUtils.GetErrorMessage(out var errorMessage, ensureModel.Result);
+                if (errorResult != null)
+                {
+                    var directory = Path.GetDirectoryName(errorResult.FileName);
+                    var name = Path.GetFileName(errorResult.FileName);
+                    throw ch.Except($"{errorMessage}\nMeta file could not be downloaded! " +
+                        $@"Please copy the model file '{name}' from '{url}' to '{directory}'.");
+                }
+            }
         }
 
         internal static Graph LoadMetaGraph(string path)
@@ -266,52 +283,18 @@ namespace Microsoft.ML.Dnn
 
         internal static DnnModel LoadDnnModel(IHostEnvironment env, Architecture arch, bool metaGraph = false)
         {
-            var modelPath = ModelLocation[arch];
-            if (!File.Exists(modelPath))
+            var modelFileName = ModelFileName[arch];
+            int timeout = 10 * 60 * 1000;
+            string currentDirectory = Directory.GetCurrentDirectory();
+            DownloadIfNeeded(env, modelFileName, currentDirectory, modelFileName, timeout);
+            if (arch == Architecture.InceptionV3)
             {
-                if (arch == Architecture.InceptionV3)
-                {
-                    var baseGitPath = @"https://raw.githubusercontent.com/SciSharp/TensorFlow.NET/master/graph/InceptionV3.meta";
-                    using (WebClient client = new WebClient())
-                    {
-                        client.DownloadFile(new Uri($"{baseGitPath}"), @"InceptionV3.meta");
-                    }
-
-                    baseGitPath = @"https://github.com/SciSharp/TensorFlow.NET/raw/master/data/tfhub_modules.zip";
-                    using (WebClient client = new WebClient())
-                    {
-                        client.DownloadFile(new Uri($"{baseGitPath}"), @"tfhub_modules.zip");
-                        ZipFile.ExtractToDirectory(Path.Combine(Directory.GetCurrentDirectory(), @"tfhub_modules.zip"), @"tfhub_modules");
-                    }
-                }
-                else if (arch == Architecture.ResnetV2101)
-                {
-                    var baseGitPath = @"https://aka.ms/mlnet-resources/image/ResNet101Tensorflow/resnet_v2_101_299.meta";
-                    using (WebClient client = new WebClient())
-                    {
-                        client.DownloadFile(new Uri($"{baseGitPath}"), @"resnet_v2_101_299.meta");
-                    }
-                }
-                else if (arch == Architecture.MobilenetV2)
-                {
-                    var baseGitPath = @"https://tlcresources.blob.core.windows.net/image/MobileNetV2TensorFlow/mobilenet_v2.meta";
-                    using (WebClient client = new WebClient())
-                    {
-                        client.DownloadFile(new Uri($"{baseGitPath}"), @"mobilenet_v2.meta");
-                    }
-                }
-                else if (arch == Architecture.ResnetV250)
-                {
-                    var baseGitPath = @"https://tlcresources.blob.core.windows.net/image/ResNetV250TensorFlow/resnet_v2_50_299.meta";
-                    using (WebClient client = new WebClient())
-                    {
-                        client.DownloadFile(new Uri($"{baseGitPath}"), @"resnet_v2_50_299.meta");
-                    }
-                }
-
+                DownloadIfNeeded(env, @"tfhub_modules.zip",currentDirectory,@"tfhub_modules.zip",timeout);
+                if (!Directory.Exists(@"tfhub_modules"))
+                    ZipFile.ExtractToDirectory(Path.Combine(currentDirectory, @"tfhub_modules.zip"), @"tfhub_modules");
             }
 
-            return new DnnModel(GetSession(env, modelPath, metaGraph), modelPath);
+            return new DnnModel(GetSession(env, modelFileName, metaGraph), modelFileName);
         }
 
         internal static Session GetSession(IHostEnvironment env, string modelPath, bool metaGraph = false)

@@ -91,10 +91,10 @@ namespace Microsoft.ML.Dnn
         /// <summary>
         /// Dictionary mapping model architecture to model location.
         /// </summary>
-        internal static IReadOnlyDictionary<Architecture, string> ModelLocation = new Dictionary<Architecture, string>
+        internal static IReadOnlyDictionary<Architecture, string> ModelFileName = new Dictionary<Architecture, string>
         {
             { Architecture.ResnetV2101, @"resnet_v2_101_299.meta" },
-            { Architecture.InceptionV3, @"InceptionV3.meta" },
+            { Architecture.InceptionV3, @"inception_v3.meta" },
             { Architecture.MobilenetV2, @"mobilenet_v2.meta" },
             { Architecture.ResnetV250, @"resnet_v2_50_299.meta" }
         };
@@ -514,11 +514,11 @@ namespace Microsoft.ML.Dnn
             Host.CheckNonEmpty(options.PredictedLabelColumnName, nameof(options.PredictedLabelColumnName));
 
             _options = options;
-            _session = DnnUtils.LoadDnnModel(env, _options.Arch, true).Session;
+            _session = LoadDnnModel(env, _options.Arch, true).Session;
             _useLRScheduling = _options.LearningRateScheduler != null;
             _checkpointPath = _options.ModelSavePath ??
                 Path.Combine(Directory.GetCurrentDirectory(), _options.FinalModelPrefix +
-                    ModelLocation[_options.Arch]);
+                    ModelFileName[_options.Arch]);
 
             // Configure bottleneck tensor based on the model.
             var arch = _options.Arch;
@@ -1093,7 +1093,7 @@ namespace Microsoft.ML.Dnn
 
         private (Session, Tensor, Tensor, Tensor) BuildEvaluationSession(int classCount)
         {
-            var evalGraph = DnnUtils.LoadMetaGraph(ModelLocation[_options.Arch]);
+            var evalGraph = DnnUtils.LoadMetaGraph(ModelFileName[_options.Arch]);
             var evalSess = tf.Session(graph: evalGraph);
             Tensor evaluationStep = null;
             Tensor prediction = null;

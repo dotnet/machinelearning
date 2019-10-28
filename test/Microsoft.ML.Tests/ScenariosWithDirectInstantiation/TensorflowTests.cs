@@ -17,7 +17,6 @@ using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Image;
 using Microsoft.ML.Transforms.TensorFlow;
-using Tensorflow;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.DataOperationsCatalog;
@@ -1243,11 +1242,11 @@ namespace Microsoft.ML.Scenarios
 
             IDataView trainDataset = trainTestData.TrainSet;
             IDataView testDataset = trainTestData.TestSet;
-            var validationSet = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+            var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
                     .Fit(testDataset)
                     .Transform(testDataset);
 
-            var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
                 .Append(mlContext.MulticlassClassification.Trainers.ImageClassification("Label", "Image", validationSet: validationSet)
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel"))); ;
 
@@ -1322,7 +1321,7 @@ namespace Microsoft.ML.Scenarios
 
             IDataView trainDataset = trainTestData.TrainSet;
             IDataView testDataset = trainTestData.TestSet;
-            var validationSet = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+            var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
                     .Fit(testDataset)
                     .Transform(testDataset);
 
@@ -1342,7 +1341,7 @@ namespace Microsoft.ML.Scenarios
                 ValidationSet = validationSet
             };
 
-            var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
                 .Append(mlContext.MulticlassClassification.Trainers.ImageClassification(options)
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel")));
 
@@ -1459,7 +1458,7 @@ namespace Microsoft.ML.Scenarios
 
             IDataView trainDataset = trainTestData.TrainSet;
             IDataView testDataset = trainTestData.TestSet;
-            var validationSet = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+            var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
                     .Fit(testDataset)
                     .Transform(testDataset);
 
@@ -1485,7 +1484,7 @@ namespace Microsoft.ML.Scenarios
                 LearningRateScheduler = new ExponentialLRDecay()
             };
 
-            var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
                 .Append(mlContext.MulticlassClassification.Trainers.ImageClassification(options))
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(
                         outputColumnName: "PredictedLabel",
@@ -1605,7 +1604,7 @@ namespace Microsoft.ML.Scenarios
             IDataView testDataset = trainTestData.TestSet;
 
             int lastEpoch = 0;
-            var validationSet = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+            var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
                     .Fit(testDataset)
                     .Transform(testDataset);
 
@@ -1625,7 +1624,7 @@ namespace Microsoft.ML.Scenarios
                 ValidationSet = validationSet
             };
 
-            var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath") 
                 .Append(mlContext.MulticlassClassification.Trainers.ImageClassification(options));
 
             var trainedModel = pipeline.Fit(trainDataset);
@@ -1698,7 +1697,7 @@ namespace Microsoft.ML.Scenarios
             IDataView testDataset = trainTestData.TestSet;
 
             int lastEpoch = 0;
-            var validationSet = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+            var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
                      .Fit(testDataset)
                      .Transform(testDataset);
 
@@ -1719,7 +1718,7 @@ namespace Microsoft.ML.Scenarios
                 ValidationSet = validationSet,
             };
 
-            var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
                 .Append(mlContext.MulticlassClassification.Trainers.ImageClassification(options));
 
             var trainedModel = pipeline.Fit(trainDataset);
