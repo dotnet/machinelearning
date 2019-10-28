@@ -14,6 +14,7 @@ using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
+using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.Transforms.NormalizingTransformer;
@@ -885,6 +886,92 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(0f, transformedDataArray[2].Features[0]);
             Assert.Equal(0f, transformedDataArray[2].Features[1]);
             Assert.Equal(0f, transformedDataArray[2].Features[4]);
+        }
+
+        [Fact]
+        public void TestNormalizeBackCompatibility2()
+        {
+            // Tests backward compatibility with a normalizing transformer
+            // whose version is "verWrittenCur: 0x00010001"
+
+            string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
+
+            var loader = new TextLoader(Env, new TextLoader.Options
+            {
+                Columns = new[] {
+                    new TextLoader.Column("float1", DataKind.Single, 1),
+                    new TextLoader.Column("float4", DataKind.Single, new[]{new TextLoader.Range(1, 4) }),
+                    new TextLoader.Column("double1", DataKind.Double, 1),
+                    new TextLoader.Column("double4", DataKind.Double, new[]{new TextLoader.Range(1, 4) }),
+                    new TextLoader.Column("int1", DataKind.Int32, 0),
+                },
+                HasHeader = true
+            }, new MultiFileSource(dataPath));
+
+            var data = loader.Load(dataPath);
+
+            var modelPath = Path.Combine("TestModels", "normalizer_verwrit-00010001.zip");
+            var normalizer = ML.Model.Load(modelPath, out var schema);
+
+            var outputPath = GetOutputPath("NormalizerEstimator", "normalized2.tsv");
+            using (var ch = Env.Start("save"))
+            {
+                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
+                using (var fs = File.Create(outputPath))
+                {
+                    var transformedData = normalizer.Transform(data);
+                    DataSaverUtils.SaveDataView(ch, saver, transformedData, fs, keepHidden: true);
+                }
+            }
+
+            CheckEquality("NormalizerEstimator", "normalized2.tsv", "normalized.tsv");
+
+            Done();
+        }
+
+        public class TensorData
+        {
+            private const int dim1 = 2;
+            private const int dim2 = 3;
+            private const int dim3 = 4;
+            private const int size = dim1 * dim2 * dim3;
+
+            [VectorType(dim1, dim2, dim3)]
+            public float[] input { get; set; }
+
+            public static TensorData[] GetTensorData()
+            {
+                var tensor1 = Enumerable.Range(0, size).Select(
+                x => (float)x).ToArray();
+
+                var tensor2 = Enumerable.Range(0, size).Select(
+                x => (float)(x + 10000)).ToArray();
+
+                return new TensorData[]
+                {
+                    new TensorData() { input = tensor1},
+                    new TensorData() { input = tensor2}
+                };
+            }
+        }
+
+        [Fact]
+        void TestSavingNormalizerWithMultidimensionalVectorInput()
+        {
+            var samples = TensorData.GetTensorData();
+            var data = ML.Data.LoadFromEnumerable(samples);
+            var model = ML.Transforms.NormalizeMinMax("output", "input").Fit(data);
+            var transformedData = model.Transform(data);
+
+            var modelAndSchemaPath = GetOutputPath("TestSavingNormalizerWithMultidimensionalVectorInput.zip");
+            ML.Model.Save(model, data.Schema, modelAndSchemaPath);
+            var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
+            var transformedData2 = loadedModel.Transform(data);
+
+            var dimensions1 = (transformedData.Schema["output"].Type as VectorDataViewType).Dimensions;
+            var dimensions2 = (transformedData2.Schema["output"].Type as VectorDataViewType).Dimensions;
+
+            Assert.True(dimensions1.SequenceEqual(dimensions2));
         }
     }
 }
