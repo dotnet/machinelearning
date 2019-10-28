@@ -109,11 +109,15 @@ namespace Microsoft.ML.AutoML.Test
                 {
                     LabelColumnName = DefaultColumnNames.Label,
                     ExampleWeightColumnName = DefaultColumnNames.Weight,
+                    UserIdColumnName = DefaultColumnNames.User,
+                    ItemIdColumnName = DefaultColumnNames.Item,
                 },
                 groupColumns : false);
 
             Assert.Equal(DefaultColumnNames.Label, result.ColumnInformation.LabelColumnName);
             Assert.Equal(DefaultColumnNames.Weight, result.ColumnInformation.ExampleWeightColumnName);
+            Assert.Equal(DefaultColumnNames.User, result.ColumnInformation.UserIdColumnName);
+            Assert.Equal(DefaultColumnNames.Item, result.ColumnInformation.ItemIdColumnName);
             Assert.Equal(3, result.ColumnInformation.NumericColumnNames.Count());
         }
 

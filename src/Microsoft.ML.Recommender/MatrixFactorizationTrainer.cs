@@ -110,7 +110,7 @@ namespace Microsoft.ML.Trainers
     /// <seealso cref="Microsoft.ML.RecommendationCatalog.RecommendationTrainers.MatrixFactorization(MatrixFactorizationTrainer.Options)"/>
     /// <seealso cref="Options"/>
     public sealed class MatrixFactorizationTrainer : ITrainer<MatrixFactorizationModelParameters>,
-        IEstimator<MatrixFactorizationPredictionTransformer>
+        ITrainerEstimator<MatrixFactorizationPredictionTransformer, MatrixFactorizationModelParameters>
     {
         /// <summary>
         /// Type of loss function.
@@ -302,6 +302,11 @@ namespace Microsoft.ML.Trainers
 
         PredictionKind ITrainer.PredictionKind => PredictionKind.Recommendation;
 
+        /// <summary>
+        /// The <see cref="TrainerInfo"/> contains general parameters for this trainer.
+        /// </summary>
+        public TrainerInfo Info => _info;
+
         internal const string LoadNameValue = "MatrixFactorization";
 
         /// <summary>
@@ -327,11 +332,6 @@ namespace Microsoft.ML.Trainers
         /// The name variable (i.e., column in a <see cref="IDataView"/> type system) used as matrix's element value.
         /// </summary>
         internal readonly string LabelName;
-
-        /// <summary>
-        /// The <see cref="TrainerInfo"/> contains general parameters for this trainer.
-        /// </summary>
-        TrainerInfo ITrainer.Info => _info;
 
         private readonly TrainerInfo _info;
 

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
@@ -165,14 +166,8 @@ namespace Microsoft.ML.Functional.Tests
             Common.AssertMetrics(metrics);
         }
 
-        /// <summary>
-        /// Train and Evaluate: Ranking.
-        /// </summary>
-        [Fact]
-        public void TrainAndEvaluateRanking()
+        private IDataView GetScoredDataForRankingEvaluation(MLContext mlContext)
         {
-            var mlContext = new MLContext(seed: 1);
-
             var data = Iris.LoadAsRankingProblem(mlContext,
                 GetDataPath(TestDatasets.iris.trainFilename),
                 hasHeader: TestDatasets.iris.fileHasHeader,
@@ -187,10 +182,41 @@ namespace Microsoft.ML.Functional.Tests
 
             // Evaluate the model.
             var scoredData = model.Transform(data);
+
+            return scoredData;
+        }
+
+        /// <summary>
+        /// Train and Evaluate: Ranking.
+        /// </summary>
+        [Fact]
+        public void TrainAndEvaluateRanking()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            var scoredData = GetScoredDataForRankingEvaluation(mlContext);
             var metrics = mlContext.Ranking.Evaluate(scoredData, labelColumnName: "Label", rowGroupColumnName: "GroupId");
 
             // Check that the metrics returned are valid.
             Common.AssertMetrics(metrics);
+        }
+
+        /// <summary>
+        /// Train and Evaluate: Ranking with options.
+        /// </summary>
+        [Fact]
+        public void TrainAndEvaluateRankingWithOptions()
+        {
+            var mlContext = new MLContext(seed: 1);
+            int[] tlevels = { 50, 150, 100 };
+            var options = new RankingEvaluatorOptions();
+            foreach (int i in tlevels)
+            {
+                options.DcgTruncationLevel = i;
+                var scoredData = GetScoredDataForRankingEvaluation(mlContext);
+                var metrics = mlContext.Ranking.Evaluate(scoredData, options, labelColumnName: "Label", rowGroupColumnName: "GroupId");
+                Common.AssertMetrics(metrics);
+            }
         }
 
         /// <summary>
