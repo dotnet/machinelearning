@@ -89,7 +89,7 @@ namespace Samples.Dynamic
 
                 // Create the ImageClassification pipeline.
                 var pipeline = mlContext.Transforms.LoadRawImageBytes(
-                    "Image", fullImagesetFolderPath, "ImagePath") 
+                    "Image", fullImagesetFolderPath, "ImagePath")
                     .Append(mlContext.MulticlassClassification.Trainers.
                         ImageClassification(options));
 
@@ -135,13 +135,17 @@ namespace Samples.Dynamic
                 // Micro-accuracy: 0.851851851851852,macro-accuracy = 0.85
                 EvaluateModel(mlContext, testDataset, loadedModel);
 
+                VBuffer<ReadOnlyMemory<char>> keys = default;
+                loadedModel.GetOutputSchema(schema)["Label"].GetKeyValues(ref keys);
+
                 watch = System.Diagnostics.Stopwatch.StartNew();
 
                 // Predict on a single image class using an in-memory image.
                 // Sample output:
                 // Scores : [0.09683081,0.0002645972,0.007213613,0.8912219,0.004469037],
                 //      Predicted Label : daisy
-                TrySinglePrediction(fullImagesetFolderPath, mlContext, loadedModel);
+                TrySinglePrediction(fullImagesetFolderPath, mlContext, loadedModel,
+                    keys.DenseValues().ToArray());
 
                 watch.Stop();
                 elapsedMs = watch.ElapsedMilliseconds;
@@ -160,28 +164,31 @@ namespace Samples.Dynamic
 
         // Predict on a single image.
         private static void TrySinglePrediction(string imagesForPredictions,
-            MLContext mlContext, ITransformer trainedModel)
+            MLContext mlContext, ITransformer trainedModel,
+            ReadOnlyMemory<char>[] originalLabels)
         {
             // Create prediction function to try one prediction.
             var predictionEngine = mlContext.Model
-                .CreatePredictionEngine<InMemoryImageData,
-                ImagePrediction>(trainedModel);
+                .CreatePredictionEngine<ImageData, ImagePrediction>(trainedModel);
 
             // Load test images
-            IEnumerable<InMemoryImageData> testImages =
-                LoadInMemoryImagesFromDirectory(imagesForPredictions, false);
+            IEnumerable<ImageData> testImages = LoadImagesFromDirectory(
+                imagesForPredictions, false);
 
             // Create an in-memory image object from the first image in the test data.
-            InMemoryImageData imageToPredict = new InMemoryImageData
+            ImageData imageToPredict = new ImageData
             {
-                Image = testImages.First().Image
+                ImagePath = testImages.First().ImagePath
             };
 
             // Predict on the single image.
             var prediction = predictionEngine.Predict(imageToPredict);
+            var index = prediction.PredictedLabel;
 
-            Console.WriteLine($"Scores : [{string.Join(",", prediction.Score)}], " +
-                $"Predicted Label : {prediction.PredictedLabel}");
+            Console.WriteLine($"ImageFile : " +
+                $"[{Path.GetFileName(imageToPredict.ImagePath)}], " +
+                $"Scores : [{string.Join(",", prediction.Score)}], " +
+                $"Predicted Label : {originalLabels[index]}");
         }
 
         // Evaluate the trained model on the passed test dataset.
@@ -237,42 +244,6 @@ namespace Samples.Dynamic
                 yield return new ImageData()
                 {
                     ImagePath = file,
-                    Label = label
-                };
-
-            }
-        }
-
-        // Load In memory raw images from directory.
-        public static IEnumerable<InMemoryImageData>
-            LoadInMemoryImagesFromDirectory(string folder,
-                bool useFolderNameAsLabel = true)
-        {
-            var files = Directory.GetFiles(folder, "*",
-                searchOption: SearchOption.AllDirectories);
-            foreach (var file in files)
-            {
-                if (Path.GetExtension(file) != ".jpg")
-                    continue;
-
-                var label = Path.GetFileName(file);
-                if (useFolderNameAsLabel)
-                    label = Directory.GetParent(file).Name;
-                else
-                {
-                    for (int index = 0; index < label.Length; index++)
-                    {
-                        if (!char.IsLetter(label[index]))
-                        {
-                            label = label.Substring(0, index);
-                            break;
-                        }
-                    }
-                }
-
-                yield return new InMemoryImageData()
-                {
-                    Image = File.ReadAllBytes(file),
                     Label = label
                 };
 
@@ -367,16 +338,6 @@ namespace Samples.Dynamic
             return fullPath;
         }
 
-        // InMemoryImageData class holding the raw image byte array and label.
-        public class InMemoryImageData
-        {
-            [LoadColumn(0)]
-            public byte[] Image;
-
-            [LoadColumn(1)]
-            public string Label;
-        }
-
         // ImageData class holding the imagepath and label.
         public class ImageData
         {
@@ -394,7 +355,7 @@ namespace Samples.Dynamic
             public float[] Score;
 
             [ColumnName("PredictedLabel")]
-            public string PredictedLabel;
+            public UInt32 PredictedLabel;
         }
     }
 }
