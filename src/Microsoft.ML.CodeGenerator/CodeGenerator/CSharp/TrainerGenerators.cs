@@ -576,7 +576,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                         { "MatrixColumnIndexColumnName","matrixColumnIndexColumnName" },
                         { "MatrixRowIndexColumnName","matrixRowIndexColumnName" },
                         { "LabelColumnName","labelColumnName" }
-                };
+                    };
                 }
             }
 
