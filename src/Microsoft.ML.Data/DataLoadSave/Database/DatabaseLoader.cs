@@ -333,7 +333,14 @@ namespace Microsoft.ML.Data
             internal static Range FromTextLoaderRange(TextLoader.Range range)
             {
                 Contracts.Assert(range.Max.HasValue);
-                return new Range(range.Min, range.Max.Value);
+                if ((range.Max.Value == range.Min) && !range.ForceVector)
+                {
+                    return new Range(range.Min);
+                }
+                else
+                {
+                    return new Range(range.Min, range.Max.Value);
+                }
             }
         }
 
