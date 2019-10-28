@@ -95,29 +95,45 @@ namespace Microsoft.ML.Dnn
 
         internal static void DownloadIfNeeded(Uri address, string fileName)
         {
-            using HttpClient client = new HttpClient();
-            if (File.Exists(fileName))
+            using (var client = new HttpClient())
             {
-                var headerResponse = client.GetAsync(address, HttpCompletionOption.ResponseHeadersRead).Result;
-                var totalSizeInBytes = headerResponse.Content.Headers.ContentLength;
-                var currentSize = new FileInfo(fileName).Length;
-
-                //If current file size is not equal to expected file size, re-download file
-                if (currentSize != totalSizeInBytes)
+                if (File.Exists(fileName))
                 {
-                    File.Delete(fileName);
-                    var response = client.GetAsync(address).Result;
-                    using FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None);
-                    using Stream contentStream = response.Content.ReadAsStreamAsync().Result;
-                    contentStream.CopyTo(fileStream);
+                    var task = client.GetAsync(address, HttpCompletionOption.ResponseHeadersRead);
+                    task.Wait();
+                    var headerResponse = task.Result;
+                    var totalSizeInBytes = headerResponse.Content.Headers.ContentLength;
+                    var currentSize = new FileInfo(fileName).Length;
+
+                    //If current file size is not equal to expected file size, re-download file
+                    if (currentSize != totalSizeInBytes)
+                    {
+                        File.Delete(fileName);
+                        task = client.GetAsync(address);
+                        task.Wait();
+                        var response = task.Result;
+                        var contentTask = response.Content.ReadAsStreamAsync();
+                        contentTask.Wait();
+                        using FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None);
+                        using Stream contentStream = contentTask.Result;
+                        {
+                            contentStream.CopyTo(fileStream);
+                        }
+                    }
                 }
-            }
-            else
-            {
-                var response = client.GetAsync(address).Result;
-                using FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None);
-                using Stream contentStream = response.Content.ReadAsStreamAsync().Result;
-                contentStream.CopyTo(fileStream);
+                else
+                {
+                    var task = client.GetAsync(address);
+                    task.Wait();
+                    var response = task.Result;
+                    var contentTask = response.Content.ReadAsStreamAsync();
+                    contentTask.Wait();
+                    using FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None);
+                    using Stream contentStream = contentTask.Result;
+                    {
+                        contentStream.CopyTo(fileStream);
+                    }
+                }
             }
         }
 
