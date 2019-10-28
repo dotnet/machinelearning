@@ -1424,7 +1424,18 @@ namespace Microsoft.ML.Scenarios
         }
 
         [TensorFlowFact]
-        public void TensorFlowImageClassificationWithLRScheduling()
+        public void TensorFlowImageClassificationWithExponentialLRScheduling()
+        {
+            TensorFlowImageClassificationWithLRScheduling(new ExponentialLRDecay());
+        }
+
+        [TensorFlowFact]
+        public void TensorFlowImageClassificationWithPolynomialLRScheduling()
+        {
+            TensorFlowImageClassificationWithLRScheduling(new PolynomialLRDecay());
+        }
+
+        internal void TensorFlowImageClassificationWithLRScheduling(LearningRateScheduler  learningRateScheduler)
         {
             string assetsRelativePath = @"assets";
             string assetsPath = GetAbsolutePath(assetsRelativePath);
@@ -1481,7 +1492,7 @@ namespace Microsoft.ML.Scenarios
                 // Using Exponential Decay for learning rate scheduling
                 // You can also try other types of Learning rate scheduling methods
                 // available in LearningRateScheduler.cs  
-                LearningRateScheduler = new ExponentialLRDecay()
+                LearningRateScheduler = learningRateScheduler
             };
 
             var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
