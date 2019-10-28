@@ -86,6 +86,15 @@ To build ML.NET from source please visit our [developers guide](docs/project-doc
 |**Windows x86**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x86_NetCoreApp21&configuration=Windows_x86_NetCoreApp21%20Debug_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x86_NetCoreApp21&configuration=Windows_x86_NetCoreApp21%20Release_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|
 |**Windows NetCore3.0**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x64_NetCoreApp30&configuration=Windows_x64_NetCoreApp30%20Debug_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x64_NetCoreApp30&configuration=Windows_x64_NetCoreApp30%20Release_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|
 
+## Release process
+
+ML.NET has four kinds of releases: nightly builds, monthly preview releases, periodic general availability (GA) releases, and fix releases. We detail each kind of release below.
+
+1. **Nightly builds:** these are supported in NuGet, and support the most cutting-edge work. The trade-off is that these releases are not as rigorously tested.
+1. **Monthly preview releases:** These releases enable you to preview new features, with the guarantee that those features have met our preview bar, which is higher than that for our nightly features.
+1. **GA releases:** These releases are rigorously tested, stable, and meant for general use.
+1. **Fix releases:** These releases include patches for bugs in GA releases.
+
 ## Contributing
 
 We welcome contributions! Please review our [contribution guide](CONTRIBUTING.md).
