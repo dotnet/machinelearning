@@ -705,10 +705,19 @@ namespace Microsoft.ML.Dnn
 
             public Tensor ProcessImage(in VBuffer<byte> imageBuffer)
             {
-                var imageTensor = EncodeByteAsString(imageBuffer);
-                var processedTensor = _imagePreprocessingRunner.AddInput(imageTensor, 0).Run()[0];
-                imageTensor.Dispose();
-                return processedTensor;
+                using var imageTensor = EncodeByteAsString(imageBuffer);
+                try
+                {
+                    return _imagePreprocessingRunner.AddInput(imageTensor, 0).Run()[0];
+                }
+                catch (TensorflowException e)
+                {
+                    //catch the exception for images of unknown format
+                    if (e.HResult == -2146233088 && e.Message.Contains("Expected image (JPEG, PNG, or GIF), got unknown format"))
+                        return null;
+                    else
+                        throw;
+                }
             }
         }
 
@@ -748,15 +757,18 @@ namespace Microsoft.ML.Dnn
                         continue; //Empty Image
 
                     var imageTensor = imageProcessor.ProcessImage(image);
-                    runner.AddInput(imageTensor, 0);
-                    var featurizedImage = runner.Run()[0]; // Reuse memory
-                    featurizedImage.ToArray<float>(ref imageArray);
-                    Host.Assert((int)featurizedImage.size == imageArray.Length);
-                    writer.WriteLine(label - 1 + "," + string.Join(",", imageArray));
-                    featurizedImage.Dispose();
-                    imageTensor.Dispose();
-                    metrics.Bottleneck.Index++;
-                    metricsCallback?.Invoke(metrics);
+                    if (imageTensor != null)
+                    {
+                        runner.AddInput(imageTensor, 0);
+                        var featurizedImage = runner.Run()[0]; // Reuse memory
+                        featurizedImage.ToArray<float>(ref imageArray);
+                        Host.Assert((int)featurizedImage.size == imageArray.Length);
+                        writer.WriteLine(label - 1 + "," + string.Join(",", imageArray));
+                        featurizedImage.Dispose();
+                        imageTensor.Dispose();
+                        metrics.Bottleneck.Index++;
+                        metricsCallback?.Invoke(metrics);
+                    }
                 }
                 datasetsize = metrics.Bottleneck.Index;
             }
@@ -1411,10 +1423,13 @@ namespace Microsoft.ML.Dnn
             public void Score(in VBuffer<byte> image, Span<float> classProbabilities)
             {
                 var processedTensor = _imageProcessor.ProcessImage(image);
-                var outputTensor = _runner.AddInput(processedTensor, 0).Run();
-                outputTensor[0].CopyTo(classProbabilities);
-                outputTensor[0].Dispose();
-                processedTensor.Dispose();
+                if (processedTensor != null)
+                {
+                    var outputTensor = _runner.AddInput(processedTensor, 0).Run();
+                    outputTensor[0].CopyTo(classProbabilities);
+                    outputTensor[0].Dispose();
+                    processedTensor.Dispose();
+                }
             }
         }
 
