@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.ML.Dnn;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Transforms;
 using Xunit;
