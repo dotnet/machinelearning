@@ -12,6 +12,7 @@ using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Threading.Tasks;
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Tensorflow;
 using static Microsoft.ML.Dnn.ImageClassificationTrainer;
@@ -94,36 +95,19 @@ namespace Microsoft.ML.Dnn
             return new Session(graph);
         }
 
-        internal static async Task DownloadIfNeeded(Uri address, string fileName)
+        internal static void DownloadIfNeeded(IHostEnvironment env, string url, string dir, string fileName, int timeout)
         {
-            using (var client = new HttpClient())
+            using (var ch = env.Start("Ensuring meta files are present."))
             {
-                if (File.Exists(fileName))
+                var ensureModel = ResourceManagerUtils.Instance.EnsureResource(env, ch, url, fileName, dir, timeout);
+                ensureModel.Wait();
+                var errorResult = ResourceManagerUtils.GetErrorMessage(out var errorMessage, ensureModel.Result);
+                if (errorResult != null)
                 {
-                    var headerResponse = await client.GetAsync(address, HttpCompletionOption.ResponseHeadersRead);
-                    var totalSizeInBytes = headerResponse.Content.Headers.ContentLength;
-                    var currentSize = new FileInfo(fileName).Length;
-
-                    //If current file size is not equal to expected file size, re-download file
-                    if (currentSize != totalSizeInBytes)
-                    {
-                        File.Delete(fileName);
-                        var response = await client.GetAsync(address);
-                        using FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None);
-                        using Stream contentStream = await response.Content.ReadAsStreamAsync();
-                        {
-                            contentStream.CopyTo(fileStream);
-                        }
-                    }
-                }
-                else
-                {
-                    var response = await client.GetAsync(address);
-                    using FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None);
-                    using Stream contentStream = await response.Content.ReadAsStreamAsync();
-                    {
-                        contentStream.CopyTo(fileStream);
-                    }
+                    var directory = Path.GetDirectoryName(errorResult.FileName);
+                    var name = Path.GetFileName(errorResult.FileName);
+                    throw ch.Except($"{errorMessage}\nMeta file could not be downloaded! " +
+                        $@"Please copy the model file '{name}' from '{url}' to '{directory}'.");
                 }
             }
         }
@@ -301,34 +285,18 @@ namespace Microsoft.ML.Dnn
 
         internal static DnnModel LoadDnnModel(IHostEnvironment env, Architecture arch, bool metaGraph = false)
         {
-            var modelPath = ImageClassificationTrainer.ModelLocation[arch];
-            if (arch == ImageClassificationTrainer.Architecture.InceptionV3)
+            var modelFileName = ModelFileName[arch];
+            int timeout = 10 * 60 * 1000;
+            string currentDirectory = Directory.GetCurrentDirectory();
+            DownloadIfNeeded(env, modelFileName, currentDirectory, modelFileName, timeout);
+            if (arch == Architecture.InceptionV3)
             {
-                var baseGitPath = @"https://raw.githubusercontent.com/SciSharp/TensorFlow.NET/master/graph/InceptionV3.meta";
-                DownloadIfNeeded(new Uri($"{baseGitPath}"), @"InceptionV3.meta").Wait();
-
-                baseGitPath = @"https://github.com/SciSharp/TensorFlow.NET/raw/master/data/tfhub_modules.zip";
-                DownloadIfNeeded(new Uri($"{baseGitPath}"), @"tfhub_modules.zip").Wait();
+                DownloadIfNeeded(env, @"tfhub_modules.zip",currentDirectory,@"tfhub_modules.zip",timeout);
                 if (!Directory.Exists(@"tfhub_modules"))
-                    ZipFile.ExtractToDirectory(Path.Combine(Directory.GetCurrentDirectory(), @"tfhub_modules.zip"), @"tfhub_modules");
-            }
-            else if (arch == ImageClassificationTrainer.Architecture.ResnetV2101)
-            {
-                var baseGitPath = @"https://aka.ms/mlnet-resources/image/ResNet101Tensorflow/resnet_v2_101_299.meta";
-                DownloadIfNeeded(new Uri($"{baseGitPath}"), @"resnet_v2_101_299.meta").Wait();
-            }
-            else if (arch == ImageClassificationTrainer.Architecture.MobilenetV2)
-            {
-                var baseGitPath = @"https://tlcresources.blob.core.windows.net/image/MobileNetV2TensorFlow/mobilenet_v2.meta";
-                DownloadIfNeeded(new Uri($"{baseGitPath}"), @"mobilenet_v2.meta").Wait();
-            }
-            else if (arch == ImageClassificationTrainer.Architecture.ResnetV250)
-            {
-                var baseGitPath = @"https://tlcresources.blob.core.windows.net/image/ResNetV250TensorFlow/resnet_v2_50_299.meta";
-                DownloadIfNeeded(new Uri($"{baseGitPath}"), @"resnet_v2_50_299.meta").Wait();
+                    ZipFile.ExtractToDirectory(Path.Combine(currentDirectory, @"tfhub_modules.zip"), @"tfhub_modules");
             }
 
-            return new DnnModel(GetSession(env, modelPath, metaGraph), modelPath);
+            return new DnnModel(GetSession(env, modelFileName, metaGraph), modelFileName);
         }
 
         internal static Session GetSession(IHostEnvironment env, string modelPath, bool metaGraph = false)
