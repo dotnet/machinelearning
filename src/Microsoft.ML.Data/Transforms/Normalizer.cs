@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Runtime;
@@ -417,15 +418,7 @@ namespace Microsoft.ML.Transforms
 
                 if (!isVector)
                     return itemType;
-
-                int ndimensions = ctx.Reader.ReadInt32();
-                Contracts.CheckDecode(ndimensions > 0);
-
-                var dimensions = new int[ndimensions];
-                for (int i = 0; i < ndimensions; i++)
-                    dimensions[i] = ctx.Reader.ReadInt32();
-
-                return new VectorDataViewType(itemType, dimensions);
+                return new VectorDataViewType(itemType, ctx.Reader.ReadIntArray());
             }
 
             internal static void SaveType(ModelSaveContext ctx, DataViewType type)
@@ -448,12 +441,7 @@ namespace Microsoft.ML.Transforms
 
                 Contracts.Assert(vectorType == null || vectorType.IsKnownSize);
                 if (vectorType != null)
-                {
-                    var dims = vectorType.Dimensions;
-                    ctx.Writer.Write(dims.Length);
-                    for (int i = 0; i < dims.Length; i++)
-                        ctx.Writer.Write(dims[i]);
-                }
+                    ctx.Writer.WriteIntArray(vectorType.Dimensions.ToArray());
             }
         }
 
