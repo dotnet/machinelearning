@@ -1336,7 +1336,7 @@ namespace Microsoft.ML.Scenarios
                 Epoch = 50,
                 BatchSize = 10,
                 LearningRate = 0.01f,
-                MetricsCallback = (metrics) => Console.WriteLine(metrics),
+                MetricsCallback = (metric) => Console.WriteLine(metric),
                 TestOnTrainSet = false,
                 ValidationSet = validationSet
             };
@@ -1424,7 +1424,18 @@ namespace Microsoft.ML.Scenarios
         }
 
         [TensorFlowFact]
-        public void TensorFlowImageClassificationWithLRScheduling()
+        public void TensorFlowImageClassificationWithExponentialLRScheduling()
+        {
+            TensorFlowImageClassificationWithLRScheduling(new ExponentialLRDecay());
+        }
+
+        [TensorFlowFact]
+        public void TensorFlowImageClassificationWithPolynomialLRScheduling()
+        {
+            TensorFlowImageClassificationWithLRScheduling(new PolynomialLRDecay());
+        }
+
+        internal void TensorFlowImageClassificationWithLRScheduling(LearningRateScheduler  learningRateScheduler)
         {
             string assetsRelativePath = @"assets";
             string assetsPath = GetAbsolutePath(assetsRelativePath);
@@ -1473,7 +1484,7 @@ namespace Microsoft.ML.Scenarios
                 Epoch = 50,
                 BatchSize = 10,
                 LearningRate = 0.01f,
-                MetricsCallback = (metrics) => Console.WriteLine(metrics),
+                MetricsCallback = (metric) => Console.WriteLine(metric),
                 ValidationSet = validationSet,
                 ReuseValidationSetBottleneckCachedValues = false,
                 ReuseTrainSetBottleneckCachedValues = false,
@@ -1481,7 +1492,7 @@ namespace Microsoft.ML.Scenarios
                 // Using Exponential Decay for learning rate scheduling
                 // You can also try other types of Learning rate scheduling methods
                 // available in LearningRateScheduler.cs  
-                LearningRateScheduler = new ExponentialLRDecay()
+                LearningRateScheduler = learningRateScheduler
             };
 
             var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
@@ -1616,10 +1627,11 @@ namespace Microsoft.ML.Scenarios
                 // ResnetV2101 you can try a different architecture/
                 // pre-trained model. 
                 Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
+                EarlyStoppingCriteria = new ImageClassificationTrainer.EarlyStopping(),
                 Epoch = 100,
                 BatchSize = 5,
                 LearningRate = 0.01f,
-                MetricsCallback = (metrics) => { Console.WriteLine(metrics); lastEpoch = metrics.Train != null ? metrics.Train.Epoch : 0; },
+                MetricsCallback = (metric) => { Console.WriteLine(metric); lastEpoch = metric.Train != null ? metric.Train.Epoch : 0; },
                 TestOnTrainSet = false,
                 ValidationSet = validationSet
             };
@@ -1713,7 +1725,7 @@ namespace Microsoft.ML.Scenarios
                 BatchSize = 5,
                 LearningRate = 0.01f,
                 EarlyStoppingCriteria = new ImageClassificationTrainer.EarlyStopping(metric: ImageClassificationTrainer.EarlyStoppingMetric.Loss),
-                MetricsCallback = (metrics) => { Console.WriteLine(metrics); lastEpoch = metrics.Train != null ? metrics.Train.Epoch : 0; },
+                MetricsCallback = (metric) => { Console.WriteLine(metric); lastEpoch = metric.Train != null ? metric.Train.Epoch : 0; },
                 TestOnTrainSet = false,
                 ValidationSet = validationSet,
             };

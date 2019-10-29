@@ -8,6 +8,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
     <ProjectReference Include="..\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Dnn\Microsoft.ML.Dnn.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.csproj" />
     <ProjectReference Include="..\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Recommender\Microsoft.ML.Recommender.csproj" />

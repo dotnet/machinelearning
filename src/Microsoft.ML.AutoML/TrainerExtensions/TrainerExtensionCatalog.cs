@@ -40,7 +40,8 @@ namespace Microsoft.ML.AutoML
                 { TrainerName.SgdCalibratedOva, typeof(SgdCalibratedOvaExtension) },
                 { TrainerName.SymbolicSgdLogisticRegressionBinary, typeof(SymbolicSgdLogisticRegressionBinaryExtension) },
                 { TrainerName.SymbolicSgdLogisticRegressionOva, typeof(SymbolicSgdLogisticRegressionOvaExtension) },
-                { TrainerName.MatrixFactorization, typeof(MatrixFactorizationExtension) }
+                { TrainerName.MatrixFactorization, typeof(MatrixFactorizationExtension) },
+                { TrainerName.ImageClassification, typeof(ImageClassificationExtension) }
             };
 
         private static readonly IDictionary<Type, TrainerName> _extensionTypesToTrainerNames =
@@ -58,12 +59,23 @@ namespace Microsoft.ML.AutoML
         }
 
         public static IEnumerable<ITrainerExtension> GetTrainers(TaskKind task,
-            IEnumerable<TrainerName> whitelist)
+            IEnumerable<TrainerName> whitelist, ColumnInformation columnInfo)
         {
             IEnumerable<ITrainerExtension> trainers;
             if (task == TaskKind.BinaryClassification)
             {
                 trainers = GetBinaryLearners();
+            }
+            else if (task == TaskKind.MulticlassClassification &&
+                columnInfo.ImagePathColumnNames.Count == 1 &&
+                columnInfo.CategoricalColumnNames.Count == 0 &&
+                columnInfo.NumericColumnNames.Count == 0 &&
+                columnInfo.TextColumnNames.Count == 0)
+            {
+                // Image Classification case where all you have is a label column and image column.
+                // This trainer takes features column of vector of bytes which will not work with any
+                // other trainer.
+                return new List<ITrainerExtension>() { new ImageClassificationExtension() };
             }
             else if (task == TaskKind.MulticlassClassification)
             {

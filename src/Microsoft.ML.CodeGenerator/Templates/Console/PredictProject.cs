@@ -50,6 +50,15 @@ UnstablePackageVersion();
             this.Write("    <PackageReference Include=\"Microsoft.ML.FastTree\" Version=\"$(StablePackageVer" +
                     "sion)\" />\r\n");
 }
+ if (IncludeImageTransformerPackage){ 
+            this.Write("    <PackageReference Include=\"Microsoft.ML.ImageAnalytics\" Version=\"$(StablePack" +
+                    "ageVersion)\" />\r\n");
+}
+ if (IncludeImageClassificationPackage){ 
+            this.Write("    <PackageReference Include=\"Microsoft.ML.Dnn\" Version=\"$(StablePackageVersion)" +
+                    "\" />\r\n\t<PackageReference Include=\"SciSharp.TensorFlow.Redist\" Version=\"$(StableP" +
+                    "ackageVersion)\" />\r\n");
+}
  if (IncludeRecommenderPackage){ 
             this.Write("    <PackageReference Include=\"Microsoft.ML.Recommender\" Version=\"$(UnstablePacka" +
                     "geVersion)\" />\r\n");
@@ -66,6 +75,8 @@ public string Namespace {get;set;}
 public bool IncludeLightGBMPackage {get;set;}
 public bool IncludeMklComponentsPackage {get;set;}
 public bool IncludeFastTreePackage {get;set;}
+public bool IncludeImageTransformerPackage {get; set;}
+public bool IncludeImageClassificationPackage {get; set;}
 public bool IncludeRecommenderPackage {get;set;}
 
 

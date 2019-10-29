@@ -26,6 +26,13 @@
 <# if (IncludeFastTreePackage){ #>
     <PackageReference Include="Microsoft.ML.FastTree" Version="$(StablePackageVersion)" />
 <#}#>
+<# if (IncludeImageTransformerPackage){ #>
+    <PackageReference Include="Microsoft.ML.ImageAnalytics" Version="$(StablePackageVersion)" />
+<#}#>
+<# if (IncludeImageClassificationPackage){ #>
+    <PackageReference Include="Microsoft.ML.Dnn" Version="$(StablePackageVersion)" />
+	<PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(StablePackageVersion)" />
+<#}#>
 <# if (IncludeRecommenderPackage){ #>
     <PackageReference Include="Microsoft.ML.Recommender" Version="$(UnstablePackageVersion)" />
 <#}#>
@@ -39,5 +46,7 @@ public string Namespace {get;set;}
 public bool IncludeLightGBMPackage {get;set;}
 public bool IncludeMklComponentsPackage {get;set;}
 public bool IncludeFastTreePackage {get;set;}
+public bool IncludeImageTransformerPackage {get; set;}
+public bool IncludeImageClassificationPackage {get; set;}
 public bool IncludeRecommenderPackage {get;set;}
 #>

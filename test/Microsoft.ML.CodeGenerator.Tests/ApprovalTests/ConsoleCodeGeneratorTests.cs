@@ -41,7 +41,8 @@ namespace mlnet.Tests
                 LabelName = "Label",
                 ModelPath = "x:\\models\\model.zip"
             });
-            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true, false, false);
+            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true,
+                false, false, false, false);
 
             Approvals.Verify(result.modelBuilderCSFileContent);
         }
@@ -64,7 +65,8 @@ namespace mlnet.Tests
                 LabelName = "Label",
                 ModelPath = "x:\\models\\model.zip"
             });
-            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true, false, false);
+            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true,
+                false, false, false, false);
 
             Approvals.Verify(result.modelBuilderCSFileContent);
         }
@@ -87,7 +89,8 @@ namespace mlnet.Tests
                 LabelName = "Label",
                 ModelPath = "x:\\models\\model.zip"
             });
-            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true, false, false);
+            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true,
+                false, false, false, false);
 
             Approvals.Verify(result.modelBuilderCSFileContent);
         }
@@ -110,7 +113,8 @@ namespace mlnet.Tests
                 LabelName = "Label",
                 ModelPath = "x:\\models\\model.zip"
             });
-            var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), true, true, true, false);
+            var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), true, true, true,
+                false, false, false);
 
             Approvals.Verify(result.ModelProjectFileContent);
         }
@@ -134,7 +138,8 @@ namespace mlnet.Tests
                 ModelPath = "x:\\models\\model.zip",
                 Target = GenerateTarget.Cli,
             });
-            var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), true, true, false, false);
+            var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), true, true, false,
+                false, false, false);
 
             Approvals.Verify(result.ConsumeModelCSFileContent);
         }
@@ -157,7 +162,8 @@ namespace mlnet.Tests
                 LabelName = "Label",
                 ModelPath = "x:\\models\\model.zip"
             });
-            var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), true, true, false, false);
+            var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), true, true, false,
+                false, false, false);
 
             Approvals.Verify(result.ModelInputCSFileContent);
         }
@@ -180,7 +186,8 @@ namespace mlnet.Tests
                 LabelName = "Label",
                 ModelPath = "x:\\models\\model.zip"
             });
-            var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), true, true, false, false);
+            var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), true, true, false,
+                false, false, false);
 
             Approvals.Verify(result.ModelOutputCSFileContent);
         }
@@ -203,7 +210,8 @@ namespace mlnet.Tests
                 LabelName = "Label",
                 ModelPath = "x:\\models\\model.zip"
             });
-            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true, false, false);
+            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true,
+                false, false, false, false);
 
             Approvals.Verify(result.ConsoleAppProgramCSFileContent);
         }
@@ -227,7 +235,8 @@ namespace mlnet.Tests
                 LabelName = "Label",
                 ModelPath = "x:\\models\\model.zip"
             });
-            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true, false, false);
+            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true,
+                false, false, false, false);
 
             Approvals.Verify(result.ConsoleAppProgramCSFileContent);
         }
@@ -250,7 +259,8 @@ namespace mlnet.Tests
                 LabelName = "Label",
                 ModelPath = "x:\\models\\model.zip"
             });
-            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true, false, false);
+            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true,
+                false, false, false, false);
 
             Approvals.Verify(result.ConsoleAppProjectFileContent);
         }
@@ -348,12 +358,12 @@ namespace mlnet.Tests
 
         private (string ModelInputCSFileContent, string ModelOutputCSFileContent, string ConsumeModelCSFileContent, string ModelProjectFileContent) GenerateModelProjectContents(CodeGenerator consoleCodeGen)
         {
-            return consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), false, false, false, includeRecommenderPackage: true);
+            return consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), false, false, false, false, false, includeRecommenderPackage: true);
         }
 
         private (string ConsoleAppProgramCSFileContent, string ConsoleAppProjectFileContent, string modelBuilderCSFileContent) GenerateConsoleAppProjectContents(CodeGenerator consoleCodeGen)
         {
-            return consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), false, false, false, includeRecommenderPackage: true);
+            return consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), false, false, false, false, false, includeRecommenderPackage: true);
         }
 
         private CodeGenerator PrepareForRecommendationTask()
