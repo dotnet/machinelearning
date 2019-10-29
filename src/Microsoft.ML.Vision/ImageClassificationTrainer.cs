@@ -558,7 +558,7 @@ namespace Microsoft.ML.Vision
 
             _classCount = labelCount == 1 ? 2 : (int)labelCount;
             var imageSize = ImagePreprocessingSize[_options.Arch];
-            _session = LoadTensorFlowSession(Host, _options.Arch, true).Session;
+            _session = LoadTensorFlowSessionFromMetaGraph(Host, _options.Arch).Session;
             (_jpegData, _resizedImage) = AddJpegDecoding(imageSize.Item1, imageSize.Item2, 3);
             _jpegDataTensorName = _jpegData.name;
             _resizedImageTensorName = _resizedImage.name;
@@ -1267,7 +1267,7 @@ namespace Microsoft.ML.Vision
 
         }
 
-        internal static TensorFlowSessionWrapper LoadTensorFlowSession(IHostEnvironment env, Architecture arch, bool metaGraph = false)
+        internal static TensorFlowSessionWrapper LoadTensorFlowSessionFromMetaGraph(IHostEnvironment env, Architecture arch)
         {
             var modelFileName = ModelFileName[arch];
             int timeout = 10 * 60 * 1000;
@@ -1280,7 +1280,7 @@ namespace Microsoft.ML.Vision
                     ZipFile.ExtractToDirectory(Path.Combine(currentDirectory, @"tfhub_modules.zip"), @"tfhub_modules");
             }
 
-            return new TensorFlowSessionWrapper(GetSession(env, modelFileName, metaGraph), modelFileName);
+            return new TensorFlowSessionWrapper(GetSession(env, modelFileName, true), modelFileName);
         }
 
         ~ImageClassificationTrainer()
