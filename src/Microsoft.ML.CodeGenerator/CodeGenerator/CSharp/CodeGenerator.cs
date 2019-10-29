@@ -91,7 +91,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         private void SetRequiredNugetPackages(IEnumerable<PipelineNode> trainerNodes, ref bool includeLightGbmPackage,
             ref bool includeMklComponentsPackage, ref bool includeFastTreePackage,
-            ref bool includeImageTransformerPackage, ref bool includeImageClassificationPackage, includeRecommenderPackage)
+            ref bool includeImageTransformerPackage, ref bool includeImageClassificationPackage, ref bool includeRecommenderPackage)
         {
             foreach (var node in trainerNodes)
             {

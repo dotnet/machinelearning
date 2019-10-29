@@ -7,7 +7,7 @@
 using System;
 using Microsoft.ML.Data;
 
-namespace TestNamespace.Model.DataModels
+namespace TestNamespace.Model
 {
     public class ModelOutput
     {

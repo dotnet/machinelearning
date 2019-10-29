@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using Microsoft.ML;
 using TestNamespace.Model;
-using TestNamespace.Model.DataModels;
 
 namespace TestNamespace.ConsoleApp
 {
