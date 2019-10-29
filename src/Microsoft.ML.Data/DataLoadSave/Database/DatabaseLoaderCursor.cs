@@ -768,7 +768,7 @@ namespace Microsoft.ML.Data
 
                 if (seg.Name is null)
                 {
-                    Contracts.Check(seg.Min == seg.Lim);
+                    Contracts.Check(seg.Lim == (seg.Min + 1));
                     return seg.Min;
                 }
                 else
