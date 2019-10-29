@@ -100,8 +100,7 @@ namespace Microsoft.ML.AutoML.Test
             string fullImagesetFolderPath = Path.Combine(
                 imagesDownloadFolderPath, finalImagesFolderName);
 
-            var images = LoadImagesFromDirectory(
-                folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
+            var images = LoadImagesFromDirectory(folder: fullImagesetFolderPath);
 
             using (StreamWriter file = new StreamWriter(datasetName))
             {
@@ -113,31 +112,22 @@ namespace Microsoft.ML.AutoML.Test
             return datasetName;
         }
 
-        public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,
-            bool useFolderNameAsLabel)
+        public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder)
         {
             var files = Directory.GetFiles(folder, "*",
                 searchOption: SearchOption.AllDirectories);
             foreach (var file in files)
             {
-                if (Path.GetExtension(file) != ".jpg")
+                var extension = Path.GetExtension(file).ToLower();
+                if (extension != ".jpg" &&
+                    extension != ".jpeg" &&
+                    extension != ".png" &&
+                    extension != ".gif"
+                )
                     continue;
 
                 var label = Path.GetFileName(file);
-                if (useFolderNameAsLabel)
-                    label = Directory.GetParent(file).Name;
-                else
-                {
-                    for (int index = 0; index < label.Length; index++)
-                    {
-                        if (!char.IsLetter(label[index]))
-                        {
-                            label = label.Substring(0, index);
-                            break;
-                        }
-                    }
-                }
-
+                label = Directory.GetParent(file).Name;
                 yield return new ImageData()
                 {
                     ImagePath = file,
@@ -164,7 +154,7 @@ namespace Microsoft.ML.AutoML.Test
         private static void Download(string url, string destDir, string destFileName)
         {
             if (destFileName == null)
-                destFileName = url.Split(Path.DirectorySeparatorChar).Last();
+                destFileName = Path.GetFileName(new Uri(url).AbsolutePath); ;
 
             Directory.CreateDirectory(destDir);
 
