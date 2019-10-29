@@ -714,7 +714,7 @@ namespace Microsoft.ML.Dnn
                     catch (TensorflowException e)
                     {
                         //catch the exception for images of unknown format
-                        if (e.HResult == -2146233088 && e.Message.Contains("Expected image (JPEG, PNG, or GIF), got unknown format"))
+                        if (e.HResult == -2146233088)
                             return null;
                         else
                             throw;
