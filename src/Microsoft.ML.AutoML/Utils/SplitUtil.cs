@@ -47,11 +47,9 @@ namespace Microsoft.ML.AutoML
         /// Split the data into a single train/test split.
         /// </summary>
         public static (IDataView trainData, IDataView validationData) TrainValidateSplit(MLContext context, IDataView trainData,
-            string samplingKeyColumn, bool shuffle = false)
+            string samplingKeyColumn)
         {
             var originalColumnNames = trainData.Schema.Select(c => c.Name);
-            if (shuffle)
-                trainData = context.Data.ShuffleRows(trainData, seed: 1);
             var splitData = context.Data.TrainTestSplit(trainData, samplingKeyColumnName: samplingKeyColumn);
             trainData = DropAllColumnsExcept(context, splitData.TrainSet, originalColumnNames);
             var validationData = DropAllColumnsExcept(context, splitData.TestSet, originalColumnNames);

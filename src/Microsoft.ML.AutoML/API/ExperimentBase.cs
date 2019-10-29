@@ -102,7 +102,6 @@ namespace Microsoft.ML.AutoML
             const int crossValRowCountThreshold = 15000;
 
             var rowCount = DatasetDimensionsUtil.CountRows(trainData, crossValRowCountThreshold);
-            bool isImageClassificationTask = columnInformation.ImagePathColumnNames.Count == 1;
             if (rowCount < crossValRowCountThreshold)
             {
                 const int numCrossValFolds = 10;
@@ -111,7 +110,7 @@ namespace Microsoft.ML.AutoML
             }
             else
             {
-                var splitResult = SplitUtil.TrainValidateSplit(Context, trainData, columnInformation?.SamplingKeyColumnName, isImageClassificationTask);
+                var splitResult = SplitUtil.TrainValidateSplit(Context, trainData, columnInformation?.SamplingKeyColumnName);
                 return ExecuteTrainValidate(splitResult.trainData, columnInformation, splitResult.validationData, preFeaturizer, progressHandler);
             }
         }

@@ -79,7 +79,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
         }
 
-        [TensorFlowFact(Skip ="Takes too much time, ~10 minutes.")]
+        [Fact(Skip ="Takes too much time, ~10 minutes.")]
         public void AutoFitImageClassification()
         {
             // This test executes the code path that model builder code will take to get a model using image 
