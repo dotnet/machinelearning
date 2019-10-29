@@ -10,9 +10,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-<# if (IncludeLightGBMPackage || IncludeMklComponentsPackage || IncludeFastTreePackage){ #>
     <StablePackageVersion><#StablePackageVersion();#></StablePackageVersion>
-<#}#>
 <# if (IncludeRecommenderPackage){ #>
     <UnstablePackageVersion><#UnstablePackageVersion();#></UnstablePackageVersion>
 <#}#>

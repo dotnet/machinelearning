@@ -243,26 +243,28 @@ if("Regression".Equals(TaskType)){
 if("Regression".Equals(TaskType) || "Recommendation".Equals(TaskType)){ 
             this.Write("        public static void PrintRegressionMetrics(RegressionMetrics metrics)\r\n   " +
                     "     {\r\n            Console.WriteLine($\"****************************************" +
-                    "*********\");\r\n            Console.WriteLine($\"*       Metrics for regression mod" +
-                    "el      \");\r\n            Console.WriteLine($\"*----------------------------------" +
-                    "--------------\");\r\n            Console.WriteLine($\"*       LossFn:        {metri" +
-                    "cs.LossFunction:0.##}\");\r\n            Console.WriteLine($\"*       R2 Score:     " +
-                    " {metrics.RSquared:0.##}\");\r\n            Console.WriteLine($\"*       Absolute lo" +
-                    "ss: {metrics.MeanAbsoluteError:#.##}\");\r\n            Console.WriteLine($\"*      " +
-                    " Squared loss:  {metrics.MeanSquaredError:#.##}\");\r\n            Console.WriteLin" +
-                    "e($\"*       RMS loss:      {metrics.RootMeanSquaredError:#.##}\");\r\n            C" +
-                    "onsole.WriteLine($\"*************************************************\");\r\n       " +
-                    " }\r\n\r\n        public static void PrintRegressionFoldsAverageMetrics(IEnumerable<" +
-                    "TrainCatalogBase.CrossValidationResult<RegressionMetrics>> crossValidationResult" +
-                    "s)\r\n        {\r\n            var L1 = crossValidationResults.Select(r => r.Metrics" +
-                    ".MeanAbsoluteError);\r\n            var L2 = crossValidationResults.Select(r => r." +
-                    "Metrics.MeanSquaredError);\r\n            var RMS = crossValidationResults.Select(" +
-                    "r => r.Metrics.RootMeanSquaredError);\r\n            var lossFunction = crossValid" +
-                    "ationResults.Select(r => r.Metrics.LossFunction);\r\n            var R2 = crossVal" +
-                    "idationResults.Select(r => r.Metrics.RSquared);\r\n\r\n            Console.WriteLine" +
-                    "($\"*****************************************************************************" +
-                    "********************************\");\r\n            Console.WriteLine($\"*       Met" +
-                    "rics for ");
+                    "*********\");\r\n            Console.WriteLine($\"*       Metrics for ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
+            this.Write(@" model      "");
+            Console.WriteLine($""*------------------------------------------------"");
+            Console.WriteLine($""*       LossFn:        {metrics.LossFunction:0.##}"");
+            Console.WriteLine($""*       R2 Score:      {metrics.RSquared:0.##}"");
+            Console.WriteLine($""*       Absolute loss: {metrics.MeanAbsoluteError:#.##}"");
+            Console.WriteLine($""*       Squared loss:  {metrics.MeanSquaredError:#.##}"");
+            Console.WriteLine($""*       RMS loss:      {metrics.RootMeanSquaredError:#.##}"");
+            Console.WriteLine($""*************************************************"");
+        }
+
+        public static void PrintRegressionFoldsAverageMetrics(IEnumerable<TrainCatalogBase.CrossValidationResult<RegressionMetrics>> crossValidationResults)
+        {
+            var L1 = crossValidationResults.Select(r => r.Metrics.MeanAbsoluteError);
+            var L2 = crossValidationResults.Select(r => r.Metrics.MeanSquaredError);
+            var RMS = crossValidationResults.Select(r => r.Metrics.RootMeanSquaredError);
+            var lossFunction = crossValidationResults.Select(r => r.Metrics.LossFunction);
+            var R2 = crossValidationResults.Select(r => r.Metrics.RSquared);
+
+            Console.WriteLine($""*************************************************************************************************************"");
+            Console.WriteLine($""*       Metrics for ");
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
             this.Write(@" model      "");
             Console.WriteLine($""*------------------------------------------------------------------------------------------------------------"");

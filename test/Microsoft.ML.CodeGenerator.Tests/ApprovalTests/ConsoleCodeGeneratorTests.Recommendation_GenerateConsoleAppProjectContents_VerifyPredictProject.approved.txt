@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <StablePackageVersion>1.4.0-preview3-28229-2</StablePackageVersion>
     <UnstablePackageVersion>0.16.0-preview3-28229-2</UnstablePackageVersion>
   </PropertyGroup>
   <ItemGroup>

@@ -26,12 +26,9 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
         public virtual string TransformText()
         {
             this.Write("<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n  <PropertyGroup>\r\n    <TargetFramework>nets" +
-                    "tandard2.0</TargetFramework>\r\n");
- if (IncludeLightGBMPackage || IncludeMklComponentsPackage || IncludeFastTreePackage){ 
-            this.Write("    <StablePackageVersion>");
+                    "tandard2.0</TargetFramework>\r\n    <StablePackageVersion>");
 StablePackageVersion();
             this.Write("</StablePackageVersion>\r\n");
-}
  if (IncludeRecommenderPackage){ 
             this.Write("    <UnstablePackageVersion>");
 UnstablePackageVersion();

@@ -106,7 +106,7 @@ namespace TestNamespace.ConsoleApp
         public static void PrintRegressionMetrics(RegressionMetrics metrics)
         {
             Console.WriteLine($"*************************************************");
-            Console.WriteLine($"*       Metrics for regression model      ");
+            Console.WriteLine($"*       Metrics for Regression model      ");
             Console.WriteLine($"*------------------------------------------------");
             Console.WriteLine($"*       LossFn:        {metrics.LossFunction:0.##}");
             Console.WriteLine($"*       R2 Score:      {metrics.RSquared:0.##}");

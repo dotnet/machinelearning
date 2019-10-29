@@ -27,12 +27,10 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
         public virtual string TransformText()
         {
             this.Write("<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n  <PropertyGroup>\r\n    <OutputType>Exe</Outp" +
-                    "utType>\r\n    <TargetFramework>netcoreapp2.1</TargetFramework>\r\n");
- if (IncludeLightGBMPackage || IncludeMklComponentsPackage || IncludeFastTreePackage){ 
-            this.Write("    <StablePackageVersion>");
+                    "utType>\r\n    <TargetFramework>netcoreapp2.1</TargetFramework>\r\n    <StablePackag" +
+                    "eVersion>");
 StablePackageVersion();
             this.Write("</StablePackageVersion>\r\n");
-}
  if (IncludeRecommenderPackage){ 
             this.Write("    <UnstablePackageVersion>");
 UnstablePackageVersion();

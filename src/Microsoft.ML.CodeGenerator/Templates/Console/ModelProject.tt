@@ -8,9 +8,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-<# if (IncludeLightGBMPackage || IncludeMklComponentsPackage || IncludeFastTreePackage){ #>
     <StablePackageVersion><#StablePackageVersion();#></StablePackageVersion>
-<#}#>
 <# if (IncludeRecommenderPackage){ #>
     <UnstablePackageVersion><#UnstablePackageVersion();#></UnstablePackageVersion>
 <#}#>
