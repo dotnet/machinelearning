@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Xml;
 
@@ -11,8 +10,8 @@ namespace Microsoft.ML.NugetPackageVersionUpdater
 {
     class Program
     {
-        private const string getLatestVersionBatFileName = "get-latest-package-version.bat";
-        private const string tempVersionsFile = "latest_versions.txt";
+        //private const string getLatestVersionBatFileName = "get-latest-package-version.bat";
+        private const string tempVersionsFile = "..\\..\\latest_versions.txt";
         private const string targetPropsFile = "..\\PackageDependency.props";
         private const string packageNamespace = "Microsoft.ML";
 
@@ -27,12 +26,12 @@ namespace Microsoft.ML.NugetPackageVersionUpdater
         {
             Dictionary<string, string> packageVersions = new Dictionary<string, string>();
 
-            Process p = new Process();
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.RedirectStandardOutput = true;
-            p.StartInfo.FileName = getLatestVersionBatFileName;
-            p.Start();
-            p.WaitForExit();
+            //Process p = new Process();
+            //p.StartInfo.UseShellExecute = false;
+            //p.StartInfo.RedirectStandardOutput = true;
+            //p.StartInfo.FileName = getLatestVersionBatFileName;
+            //p.Start();
+            //p.WaitForExit();
 
             using (var file = new StreamReader(tempVersionsFile))
             {
