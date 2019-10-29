@@ -10,7 +10,7 @@ using static Microsoft.ML.TensorFlow.TensorFlowUtils;
 
 namespace Microsoft.ML
 {
-    public static class DnnCatalog
+    public static class VisionCatalog
     {
 
         /// <summary>
