@@ -33,7 +33,7 @@ jobs:
         displayName: Install build dependencies
     - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }}
       displayName: Builds 1st time to restore tools
-    - script: dotnet run --project test\Microsoft.ML.NugetPackageVersionUpdater\Microsoft.ML.NugetPackageVersionUpdater.csproj
+    - script: dotnet run --project $(Build.SourcesDirectory)\test\Microsoft.ML.NugetPackageVersionUpdater\Microsoft.ML.NugetPackageVersionUpdater.csproj
       displayName: Update package version
     - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }}
       displayName: Builds

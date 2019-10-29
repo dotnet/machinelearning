@@ -1,1 +1,1 @@
-nuget list Microsoft.ML -Source https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json -Prerelease > latest_versions.txt
+$(Build.SourcesDirectory)\Tools\nuget.exe list Microsoft.ML -Source https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json -Prerelease > latest_versions.txt
