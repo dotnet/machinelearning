@@ -242,7 +242,6 @@ namespace Microsoft.ML.AutoML
             ColumnInformation columnInfo)
         {
             data = context.Data.TakeRows(data, MaxRowsToRead);
-
             var allColumns = new List<IntermediateColumn>();
             var columnsToInfer = new List<IntermediateColumn>();
 

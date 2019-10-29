@@ -33,9 +33,7 @@ MB_Annotation();
             this.Write("\r\nusing System;\r\nusing System.Collections.Generic;\r\nusing System.Linq;\r\nusing Sys" +
                     "tem.Text;\r\nusing Microsoft.ML;\r\nusing ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model;\r\nusing ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model.DataModels;\r\n\r\nnamespace ");
+            this.Write(".Model;\r\n\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             this.Write(@".Model
 {

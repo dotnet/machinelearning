@@ -5,9 +5,12 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
+using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Microsoft.ML.AutoML.Test
 {
@@ -43,6 +46,63 @@ namespace Microsoft.ML.AutoML.Test
             Assert.True(result.BestRun.Results.First().ValidationMetrics.MicroAccuracy >= 0.7);
             var scoredData = result.BestRun.Results.First().Model.Transform(trainData);
             Assert.Equal(NumberDataViewType.Single, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
+        }
+
+        [TensorFlowFact]
+        public void AutoFitImageClassificationTrainTest()
+        {
+            var context = new MLContext();
+            var datasetPath = DatasetUtil.GetFlowersDataset();
+            var columnInference = context.Auto().InferColumns(datasetPath, "Label");
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            var trainData = context.Data.ShuffleRows(textLoader.Load(datasetPath), seed: 1);
+            var originalColumnNames = trainData.Schema.Select(c => c.Name);
+            TrainTestData trainTestData = context.Data.TrainTestSplit(trainData, testFraction: 0.2, seed: 1);
+            IDataView trainDataset = SplitUtil.DropAllColumnsExcept(context, trainTestData.TrainSet, originalColumnNames);
+            IDataView testDataset = SplitUtil.DropAllColumnsExcept(context, trainTestData.TestSet, originalColumnNames);
+            var result = context.Auto()
+                            .CreateMulticlassClassificationExperiment(0)
+                            .Execute(trainDataset, testDataset, columnInference.ColumnInformation);
+
+            //Known issue, where on Ubuntu there is degradation in accuracy.
+            if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
+                RuntimeInformation.IsOSPlatform(OSPlatform.OSX)))
+            {
+                Assert.Equal(0.778, result.BestRun.ValidationMetrics.MicroAccuracy, 3);
+            }
+            else
+            {
+                Assert.Equal(1, result.BestRun.ValidationMetrics.MicroAccuracy, 3);
+            }
+
+            var scoredData = result.BestRun.Model.Transform(trainData);
+            Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
+        }
+
+        [Fact(Skip ="Takes too much time, ~10 minutes.")]
+        public void AutoFitImageClassification()
+        {
+            // This test executes the code path that model builder code will take to get a model using image 
+            // classification API.
+
+            var context = new MLContext();
+            context.Log += Context_Log;
+            var datasetPath = DatasetUtil.GetFlowersDataset();
+            var columnInference = context.Auto().InferColumns(datasetPath, "Label");
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            var trainData = textLoader.Load(datasetPath);
+            var result = context.Auto()
+                            .CreateMulticlassClassificationExperiment(0)
+                            .Execute(trainData, columnInference.ColumnInformation);
+
+            Assert.InRange(result.BestRun.ValidationMetrics.MicroAccuracy, 0.80, 0.9);
+            var scoredData = result.BestRun.Model.Transform(trainData);
+            Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
+        }
+
+        private void Context_Log(object sender, LoggingEventArgs e)
+        {
+            //throw new NotImplementedException();
         }
 
         [Fact]
@@ -82,7 +142,8 @@ namespace Microsoft.ML.AutoML.Test
             ExperimentResult<RegressionMetrics> experimentResult = mlContext.Auto()
                 .CreateRecommendationExperiment(5)
                 .Execute(trainDataView, testDataView,
-                    new ColumnInformation() { 
+                    new ColumnInformation()
+                    {
                         LabelColumnName = labelColumnName,
                         UserIdColumnName = userColumnName,
                         ItemIdColumnName = itemColumnName

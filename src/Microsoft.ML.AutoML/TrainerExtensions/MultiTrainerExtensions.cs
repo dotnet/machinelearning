@@ -4,12 +4,14 @@
 
 using System.Collections.Generic;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.LightGbm;
 
 namespace Microsoft.ML.AutoML
 {
+    using static Microsoft.ML.Dnn.ImageClassificationTrainer;
     using ITrainerEstimator = ITrainerEstimator<IPredictionTransformer<object>, object>;
 
     internal class AveragedPerceptronOvaExtension : ITrainerExtension
@@ -22,7 +24,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as AveragedPerceptronTrainer;
             return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumnName: columnInfo.LabelColumnName);
@@ -44,7 +46,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as FastForestBinaryTrainer;
             return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumnName: columnInfo.LabelColumnName);
@@ -64,7 +66,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             LightGbmMulticlassTrainer.Options options = TrainerExtensionUtil.CreateLightGbmOptions<LightGbmMulticlassTrainer.Options, VBuffer<float>, MulticlassPredictionTransformer<OneVersusAllModelParameters>, OneVersusAllModelParameters>(sweepParams, columnInfo);
             return mlContext.MulticlassClassification.Trainers.LightGbm(options);
@@ -87,7 +89,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as LinearSvmTrainer;
             return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumnName: columnInfo.LabelColumnName);
@@ -107,7 +109,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             var options = TrainerExtensionUtil.CreateOptions<SdcaMaximumEntropyMulticlassTrainer.Options>(sweepParams, columnInfo.LabelColumnName);
             return mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(options);
@@ -130,7 +132,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as LbfgsLogisticRegressionBinaryTrainer;
             return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumnName: columnInfo.LabelColumnName);
@@ -152,7 +154,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as SgdCalibratedTrainer;
             return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumnName: columnInfo.LabelColumnName);
@@ -174,7 +176,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as SymbolicSgdLogisticRegressionBinaryTrainer;
             return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumnName: columnInfo.LabelColumnName);
@@ -196,7 +198,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as FastTreeBinaryTrainer;
             return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumnName: columnInfo.LabelColumnName);
@@ -216,7 +218,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             var options = TrainerExtensionUtil.CreateOptions<LbfgsMaximumEntropyMulticlassTrainer.Options>(sweepParams, columnInfo.LabelColumnName);
             options.ExampleWeightColumnName = columnInfo.ExampleWeightColumnName;
@@ -227,6 +229,27 @@ namespace Microsoft.ML.AutoML
         {
             return TrainerExtensionUtil.BuildPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams,
                 columnInfo.LabelColumnName, columnInfo.ExampleWeightColumnName);
+        }
+    }
+
+    internal class ImageClassificationExtension : ITrainerExtension
+    {
+        public IEnumerable<SweepableParam> GetHyperparamSweepRanges() => new List<SweepableParam>();
+
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo, IDataView validationSet)
+        {
+            var options = TrainerExtensionUtil.CreateOptions<Options>(null, columnInfo.LabelColumnName);
+            options.ValidationSet = validationSet;
+            var logger = ((IChannelProvider)mlContext).Start(nameof(ImageClassificationExtension));
+            options.MetricsCallback = (ImageClassificationMetrics metric) => { logger.Trace(metric.ToString()); } ;
+            return mlContext.MulticlassClassification.Trainers.ImageClassification(options);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams,
+                columnInfo.LabelColumnName, null);
         }
     }
 }

@@ -339,13 +339,13 @@ namespace Microsoft.ML.Dnn
             /// Number of samples to use for mini-batch training.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of samples to use for mini-batch training.", SortOrder = 9)]
-            public int BatchSize = 64;
+            public int BatchSize = 10;
 
             /// <summary>
             /// Number of training iterations.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of training iterations.", SortOrder = 10)]
-            public int Epoch = 100;
+            public int Epoch = 200;
 
             /// <summary>
             /// Learning rate to use during optimization.
@@ -357,13 +357,13 @@ namespace Microsoft.ML.Dnn
             /// Early stopping technique parameters to be used to terminate training when training metric stops improving.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Early stopping technique parameters to be used to terminate training when training metric stops improving.", SortOrder = 15)]
-            public EarlyStopping EarlyStoppingCriteria = new EarlyStopping();
+            public EarlyStopping EarlyStoppingCriteria;
 
             /// <summary>
             /// Specifies the model architecture to be used in the case of image classification training using transfer learning.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Model architecture to be used in transfer learning for image classification.", SortOrder = 15)]
-            public Architecture Arch = Architecture.InceptionV3;
+            public Architecture Arch = Architecture.ResnetV250;
 
             /// <summary>
             /// Name of the tensor that will contain the output scores of the last layer when transfer learning is done.
@@ -435,7 +435,7 @@ namespace Microsoft.ML.Dnn
             /// A class that performs learning rate scheduling.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "A class that performs learning rate scheduling.", SortOrder = 15)]
-            public LearningRateScheduler LearningRateScheduler;
+            public LearningRateScheduler LearningRateScheduler = new LsrDecay();
         }
 
         /// <summary> Return the type of prediction task.</summary>
@@ -514,7 +514,6 @@ namespace Microsoft.ML.Dnn
             Host.CheckNonEmpty(options.PredictedLabelColumnName, nameof(options.PredictedLabelColumnName));
 
             _options = options;
-            _session = LoadDnnModel(env, _options.Arch, true).Session;
             _useLRScheduling = _options.LearningRateScheduler != null;
             _checkpointPath = _options.ModelSavePath ??
                 Path.Combine(Directory.GetCurrentDirectory(), _options.FinalModelPrefix +
@@ -557,6 +556,7 @@ namespace Microsoft.ML.Dnn
 
             _classCount = labelCount == 1 ? 2 : (int)labelCount;
             var imageSize = ImagePreprocessingSize[_options.Arch];
+            _session = LoadDnnModel(Host, _options.Arch, true).Session;
             (_jpegData, _resizedImage) = AddJpegDecoding(imageSize.Item1, imageSize.Item2, 3);
             _jpegDataTensorName = _jpegData.name;
             _resizedImageTensorName = _resizedImage.name;
@@ -705,18 +705,20 @@ namespace Microsoft.ML.Dnn
 
             public Tensor ProcessImage(in VBuffer<byte> imageBuffer)
             {
-                using var imageTensor = EncodeByteAsString(imageBuffer);
-                try
+                using (var imageTensor = EncodeByteAsString(imageBuffer))
                 {
-                    return _imagePreprocessingRunner.AddInput(imageTensor, 0).Run()[0];
-                }
-                catch (TensorflowException e)
-                {
-                    //catch the exception for images of unknown format
-                    if (e.HResult == -2146233088 && e.Message.Contains("Expected image (JPEG, PNG, or GIF), got unknown format"))
-                        return null;
-                    else
-                        throw;
+                    try
+                    {
+                        return _imagePreprocessingRunner.AddInput(imageTensor, 0).Run()[0];
+                    }
+                    catch (TensorflowException e)
+                    {
+                        //catch the exception for images of unknown format
+                        if (e.HResult == -2146233088)
+                            return null;
+                        else
+                            throw;
+                    }
                 }
             }
         }
@@ -801,8 +803,8 @@ namespace Microsoft.ML.Dnn
 
         private int GetNumSamples(string path)
         {
-            using var reader = File.OpenText(path);
-            return int.Parse(reader.ReadLine());
+            using (var reader = File.OpenText(path))
+                return int.Parse(reader.ReadLine());
         }
 
         private void TrainAndEvaluateClassificationLayer(string trainBottleneckFilePath, Options options,
