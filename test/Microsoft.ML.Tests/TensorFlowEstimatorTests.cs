@@ -11,7 +11,7 @@ using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.TensorFlow;
+using Microsoft.ML.TensorFlow;
 using Xunit;
 using Xunit.Abstractions;
 

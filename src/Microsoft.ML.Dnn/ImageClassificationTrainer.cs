@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Google.Protobuf;
@@ -14,12 +15,13 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Dnn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.TensorFlow;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Tensorflow;
 using Tensorflow.Summaries;
 using static Microsoft.ML.Data.TextLoader;
-using static Microsoft.ML.Dnn.DnnUtils;
+using static Microsoft.ML.TensorFlow.TensorFlowUtils;
 using static Tensorflow.Binding;
 using Column = Microsoft.ML.Data.TextLoader.Column;
 
@@ -556,7 +558,7 @@ namespace Microsoft.ML.Dnn
 
             _classCount = labelCount == 1 ? 2 : (int)labelCount;
             var imageSize = ImagePreprocessingSize[_options.Arch];
-            _session = LoadDnnModel(Host, _options.Arch, true).Session;
+            _session = LoadTensorFlowSession(Host, _options.Arch, true).Session;
             (_jpegData, _resizedImage) = AddJpegDecoding(imageSize.Item1, imageSize.Item2, 3);
             _jpegDataTensorName = _jpegData.name;
             _resizedImageTensorName = _resizedImage.name;
@@ -1107,7 +1109,7 @@ namespace Microsoft.ML.Dnn
 
         private (Session, Tensor, Tensor, Tensor) BuildEvaluationSession(int classCount)
         {
-            var evalGraph = DnnUtils.LoadMetaGraph(ModelFileName[_options.Arch]);
+            var evalGraph = LoadMetaGraph(ModelFileName[_options.Arch]);
             var evalSess = tf.Session(graph: evalGraph);
             Tensor evaluationStep = null;
             Tensor prediction = null;
@@ -1263,6 +1265,22 @@ namespace Microsoft.ML.Dnn
                     AddFinalRetrainOps(classCount, labelColumn, scoreColumnName, _bottleneckTensor, true,
                         useLearningRateScheduling, learningRate);
 
+        }
+
+        internal static TensorFlowSessionWrapper LoadTensorFlowSession(IHostEnvironment env, Architecture arch, bool metaGraph = false)
+        {
+            var modelFileName = ModelFileName[arch];
+            int timeout = 10 * 60 * 1000;
+            string currentDirectory = Directory.GetCurrentDirectory();
+            DownloadIfNeeded(env, modelFileName, currentDirectory, modelFileName, timeout);
+            if (arch == Architecture.InceptionV3)
+            {
+                DownloadIfNeeded(env, @"tfhub_modules.zip", currentDirectory, @"tfhub_modules.zip", timeout);
+                if (!Directory.Exists(@"tfhub_modules"))
+                    ZipFile.ExtractToDirectory(Path.Combine(currentDirectory, @"tfhub_modules.zip"), @"tfhub_modules");
+            }
+
+            return new TensorFlowSessionWrapper(GetSession(env, modelFileName, metaGraph), modelFileName);
         }
 
         ~ImageClassificationTrainer()
