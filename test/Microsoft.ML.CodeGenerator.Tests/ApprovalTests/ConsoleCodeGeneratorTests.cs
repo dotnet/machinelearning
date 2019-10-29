@@ -255,6 +255,166 @@ namespace mlnet.Tests
             Approvals.Verify(result.ConsoleAppProjectFileContent);
         }
 
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void Recommendation_GenerateModelProjectContents_VerifyModelInput()
+        {
+            CodeGenerator consoleCodeGen = PrepareForRecommendationTask();
+
+            (string ModelInputCSFileContent, string ModelOutputCSFileContent, string ConsumeModelCSFileContent, string ModelProjectFileContent) codeGenResult
+                = GenerateModelProjectContents(consoleCodeGen);
+
+            Approvals.Verify(codeGenResult.ModelInputCSFileContent);
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void Recommendation_GenerateModelProjectContents_VerifyModelOutput()
+        {
+            CodeGenerator consoleCodeGen = PrepareForRecommendationTask();
+
+            (string ModelInputCSFileContent, string ModelOutputCSFileContent, string ConsumeModelCSFileContent, string ModelProjectFileContent) codeGenResult
+                = GenerateModelProjectContents(consoleCodeGen);
+
+            Approvals.Verify(codeGenResult.ModelOutputCSFileContent);
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void Recommendation_GenerateModelProjectContents_VerifyConsumeModel()
+        {
+            CodeGenerator consoleCodeGen = PrepareForRecommendationTask();
+
+            (string ModelInputCSFileContent, string ModelOutputCSFileContent, string ConsumeModelCSFileContent, string ModelProjectFileContent) codeGenResult
+                = GenerateModelProjectContents(consoleCodeGen);
+
+            Approvals.Verify(codeGenResult.ConsumeModelCSFileContent);
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void Recommendation_GenerateModelProjectContents_VerifyModelProject()
+        {
+            CodeGenerator consoleCodeGen = PrepareForRecommendationTask();
+
+            (string ModelInputCSFileContent, string ModelOutputCSFileContent, string ConsumeModelCSFileContent, string ModelProjectFileContent) codeGenResult
+                = GenerateModelProjectContents(consoleCodeGen);
+
+            Approvals.Verify(codeGenResult.ModelProjectFileContent);
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void Recommendation_GenerateConsoleAppProjectContents_VerifyPredictProgram()
+        {
+            CodeGenerator consoleCodeGen = PrepareForRecommendationTask();
+
+            (string ConsoleAppProgramCSFileContent, string ConsoleAppProjectFileContent, string modelBuilderCSFileContent) codeGenResult
+                = GenerateConsoleAppProjectContents(consoleCodeGen);
+
+            Approvals.Verify(codeGenResult.ConsoleAppProgramCSFileContent);
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void Recommendation_GenerateConsoleAppProjectContents_VerifyPredictProject()
+        {
+            CodeGenerator consoleCodeGen = PrepareForRecommendationTask();
+
+            (string ConsoleAppProgramCSFileContent, string ConsoleAppProjectFileContent, string modelBuilderCSFileContent) codeGenResult
+                = GenerateConsoleAppProjectContents(consoleCodeGen);
+
+            Approvals.Verify(codeGenResult.ConsoleAppProjectFileContent);
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void Recommendation_GenerateConsoleAppProjectContents_VerifyModelBuilder()
+        {
+            CodeGenerator consoleCodeGen = PrepareForRecommendationTask();
+
+            (string ConsoleAppProgramCSFileContent, string ConsoleAppProjectFileContent, string modelBuilderCSFileContent) codeGenResult
+                = GenerateConsoleAppProjectContents(consoleCodeGen);
+
+            Approvals.Verify(codeGenResult.modelBuilderCSFileContent);
+        }
+
+        private (string ModelInputCSFileContent, string ModelOutputCSFileContent, string ConsumeModelCSFileContent, string ModelProjectFileContent) GenerateModelProjectContents(CodeGenerator consoleCodeGen)
+        {
+            return consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), false, false, false, includeRecommenderPackage: true);
+        }
+
+        private (string ConsoleAppProgramCSFileContent, string ConsoleAppProjectFileContent, string modelBuilderCSFileContent) GenerateConsoleAppProjectContents(CodeGenerator consoleCodeGen)
+        {
+            return consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), false, false, false, includeRecommenderPackage: true);
+        }
+
+        private CodeGenerator PrepareForRecommendationTask()
+        {
+            (Pipeline pipeline,
+                       ColumnInferenceResults columnInference) = GetMockedRecommendationPipelineAndInference();
+
+            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorSettings()
+            {
+                MlTask = TaskKind.Recommendation,
+                OutputBaseDir = null,
+                OutputName = "MyNamespace",
+                TrainDataset = "x:\\dummypath\\dummy_train.csv",
+                TestDataset = "x:\\dummypath\\dummy_test.csv",
+                LabelName = "Label",
+                ModelPath = "x:\\models\\model.zip"
+            });
+            return consoleCodeGen;
+        }
+
+        private (Pipeline, ColumnInferenceResults) GetMockedRecommendationPipelineAndInference()
+        {
+            if (mockedPipeline == null)
+            {
+                MLContext context = new MLContext();
+
+                var trainer1 = new SuggestedTrainer(context, new MatrixFactorizationExtension(), new ColumnInformation() {
+                    LabelColumnName = "Label",
+                    UserIdColumnName = "userId",
+                    ItemIdColumnName = "movieId",
+                }, hyperParamSet: null);
+                var transforms1 = new List<SuggestedTransform>() { ColumnConcatenatingExtension.CreateSuggestedTransform(context, new[] { "In" }, "Out") };
+                var inferredPipeline1 = new SuggestedPipeline(transforms1, new List<SuggestedTransform>(), trainer1, context, false);
+
+                mockedPipeline = inferredPipeline1.ToPipeline();
+                var textLoaderArgs = new TextLoader.Options()
+                {
+                    Columns = new[] {
+                        new TextLoader.Column("Label", DataKind.String, 0),
+                        new TextLoader.Column("userId", DataKind.String, 1),
+                        new TextLoader.Column("movieId", DataKind.String, 2),
+                    },
+                    AllowQuoting = true,
+                    AllowSparse = true,
+                    HasHeader = true,
+                    Separators = new[] { ',' }
+                };
+
+                this.columnInference = new ColumnInferenceResults()
+                {
+                    TextLoaderOptions = textLoaderArgs,
+                    ColumnInformation = new ColumnInformation() {
+                        LabelColumnName = "Label",
+                        UserIdColumnName = "userId",
+                        ItemIdColumnName = "movieId"
+                    }
+                };
+            }
+            return (mockedPipeline, columnInference);
+        }
+
         private (Pipeline, ColumnInferenceResults) GetMockedBinaryPipelineAndInference()
         {
             if (mockedPipeline == null)
