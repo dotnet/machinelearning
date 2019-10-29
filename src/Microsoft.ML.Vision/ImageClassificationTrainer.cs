@@ -877,7 +877,7 @@ namespace Microsoft.ML.Vision
             metrics.Train = new TrainMetrics();
             float accuracy = 0;
             float crossentropy = 0;
-            TrainState trainstate = new TrainState
+            DnnTrainState trainstate = new DnnTrainState
             {
                 BatchSize = options.BatchSize,
                 BatchesPerEpoch =
@@ -1267,7 +1267,7 @@ namespace Microsoft.ML.Vision
 
         }
 
-        internal static TensorFlowSessionWrapper LoadTensorFlowSessionFromMetaGraph(IHostEnvironment env, Architecture arch)
+        private static TensorFlowSessionWrapper LoadTensorFlowSessionFromMetaGraph(IHostEnvironment env, Architecture arch)
         {
             var modelFileName = ModelFileName[arch];
             int timeout = 10 * 60 * 1000;

@@ -5,17 +5,18 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.ML.Vision
+namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// A class that contains the current train state to use for learning rate scheduling.
     /// </summary>
-    internal class TrainState
+    [BestFriend]
+    internal class DnnTrainState
     {
-        internal int CurrentBatchIndex;
-        internal int CurrentEpoch;
-        internal int BatchSize;
-        internal int BatchesPerEpoch;
+        public int CurrentBatchIndex;
+        public int CurrentEpoch;
+        public int BatchSize;
+        public int BatchesPerEpoch;
     }
 
     /// <summary>
@@ -27,7 +28,7 @@ namespace Microsoft.ML.Vision
         {
         }
 
-        internal abstract float GetLearningRate(TrainState options);
+        internal abstract float GetLearningRate(DnnTrainState options);
     }
 
     /// <summary>
@@ -119,7 +120,7 @@ namespace Microsoft.ML.Vision
         /// <summary>
         /// This function returns the Learning rate using linear scale rule and LR decay.
         /// </summary>
-        internal override float GetLearningRate(TrainState trainstate)
+        internal override float GetLearningRate(DnnTrainState trainstate)
         {
             float learningrate;
             float initialLearningRate = BaseLearningRate * trainstate.BatchSize / 128;
@@ -183,7 +184,7 @@ namespace Microsoft.ML.Vision
         /// <summary>
         /// Computes exponentially decayed learning rate
         /// </summary>
-        internal override float GetLearningRate(TrainState trainstate)
+        internal override float GetLearningRate(DnnTrainState trainstate)
         {
             int numSamplesPerEpoch = trainstate.BatchSize * trainstate.BatchesPerEpoch;
             DecaySteps = (int) (numSamplesPerEpoch * NumEpochsPerDecay / trainstate.BatchSize);
@@ -238,7 +239,7 @@ namespace Microsoft.ML.Vision
             Cycle = cycle;
         }
 
-        internal override float GetLearningRate(TrainState trainstate)
+        internal override float GetLearningRate(DnnTrainState trainstate)
         {
             int numSamplesPerEpoch = trainstate.BatchSize * trainstate.BatchesPerEpoch;
             int decaySteps = (int) (numSamplesPerEpoch * NumEpochsPerDecay / trainstate.BatchSize);
