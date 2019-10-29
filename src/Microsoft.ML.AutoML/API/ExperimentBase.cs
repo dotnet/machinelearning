@@ -103,7 +103,7 @@ namespace Microsoft.ML.AutoML
 
             var rowCount = DatasetDimensionsUtil.CountRows(trainData, crossValRowCountThreshold);
             bool isImageClassificationTask = columnInformation.ImagePathColumnNames.Count == 1;
-            if (!isImageClassificationTask && rowCount < crossValRowCountThreshold)
+            if (rowCount < crossValRowCountThreshold)
             {
                 const int numCrossValFolds = 10;
                 var splitResult = SplitUtil.CrossValSplit(Context, trainData, numCrossValFolds, columnInformation?.SamplingKeyColumnName);

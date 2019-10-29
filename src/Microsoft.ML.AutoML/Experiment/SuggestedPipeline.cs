@@ -105,7 +105,8 @@ namespace Microsoft.ML.AutoML
             return new SuggestedPipeline(transforms, transformsPostTrainer, trainer, context, pipeline.CacheBeforeTrainer);
         }
 
-        public IEstimator<ITransformer> ToEstimator()
+        public IEstimator<ITransformer> ToEstimator(IDataView trainset = null,
+            IDataView validationSet = null)
         {
             IEstimator<ITransformer> pipeline = new EstimatorChain<ITransformer>();
 
@@ -118,8 +119,13 @@ namespace Microsoft.ML.AutoML
                 }
             }
 
+            if(validationSet != null)
+            {
+                validationSet = pipeline.Fit(trainset).Transform(trainset);
+            }
+
             // Get learner
-            var learner = Trainer.BuildTrainer();
+            var learner = Trainer.BuildTrainer(validationSet);
 
             if (_cacheBeforeTrainer)
             {

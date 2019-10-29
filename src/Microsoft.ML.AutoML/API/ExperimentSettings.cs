@@ -57,6 +57,8 @@ namespace Microsoft.ML.AutoML
         /// <value>The default value is <see cref="CacheBeforeTrainer.Auto"/>.</value>
         public CacheBeforeTrainer CacheBeforeTrainer { get; set; }
 
+        public virtual System.Action<string> TrainingMetrics { get; set; }
+
         internal int MaxModels;
 
         /// <summary>
@@ -69,6 +71,7 @@ namespace Microsoft.ML.AutoML
             CacheDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "Microsoft.ML.AutoML"));
             CacheBeforeTrainer = CacheBeforeTrainer.Auto;
             MaxModels = int.MaxValue;
+            TrainingMetrics = (string metrics) => { };
         }
     }
 

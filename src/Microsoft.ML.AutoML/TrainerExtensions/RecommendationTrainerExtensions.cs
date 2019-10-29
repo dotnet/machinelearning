@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.ML.Trainers;
 
@@ -11,7 +12,8 @@ namespace Microsoft.ML.AutoML
 
     internal class MatrixFactorizationExtension : ITrainerExtension
     {
-        public ITrainerEsitmator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        public ITrainerEsitmator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             var options = TrainerExtensionUtil.CreateOptions<MatrixFactorizationTrainer.Options>(sweepParams);
             options.LabelColumnName = columnInfo.LabelColumnName;

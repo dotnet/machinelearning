@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.ML.Trainers;
 
@@ -13,7 +14,8 @@ namespace Microsoft.ML.AutoML
     {
         IEnumerable<SweepableParam> GetHyperparamSweepRanges();
 
-        ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo);
+        ITrainerEstimator CreateInstance(MLContext mlContext,
+            IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo, IDataView validationSet = null);
 
         PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo);
     }

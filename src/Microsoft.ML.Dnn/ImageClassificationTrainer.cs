@@ -339,13 +339,13 @@ namespace Microsoft.ML.Dnn
             /// Number of samples to use for mini-batch training.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of samples to use for mini-batch training.", SortOrder = 9)]
-            public int BatchSize = 64;
+            public int BatchSize = 10;
 
             /// <summary>
             /// Number of training iterations.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of training iterations.", SortOrder = 10)]
-            public int Epoch = 100;
+            public int Epoch = 200;
 
             /// <summary>
             /// Learning rate to use during optimization.
@@ -357,7 +357,7 @@ namespace Microsoft.ML.Dnn
             /// Early stopping technique parameters to be used to terminate training when training metric stops improving.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Early stopping technique parameters to be used to terminate training when training metric stops improving.", SortOrder = 15)]
-            public EarlyStopping EarlyStoppingCriteria = new EarlyStopping();
+            public EarlyStopping EarlyStoppingCriteria;
 
             /// <summary>
             /// Specifies the model architecture to be used in the case of image classification training using transfer learning.
@@ -435,7 +435,7 @@ namespace Microsoft.ML.Dnn
             /// A class that performs learning rate scheduling.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "A class that performs learning rate scheduling.", SortOrder = 15)]
-            public LearningRateScheduler LearningRateScheduler;
+            public LearningRateScheduler LearningRateScheduler = new LsrDecay();
         }
 
         /// <summary> Return the type of prediction task.</summary>
