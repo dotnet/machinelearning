@@ -24,10 +24,12 @@ namespace Microsoft.ML.Trainers
     /// </summary>
     public abstract class LearningRateScheduler
     {
+        [BestFriend]
         internal LearningRateScheduler()
         {
         }
 
+        [BestFriend]
         internal abstract float GetLearningRate(DnnTrainState options);
     }
 

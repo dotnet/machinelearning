@@ -20,6 +20,7 @@ using Microsoft.ML.TensorFlow;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.DataOperationsCatalog;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Scenarios
 {
