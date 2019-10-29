@@ -20,7 +20,6 @@ namespace Microsoft.ML.Benchmarks
     [Config(typeof(TrainConfig))]
     public class ImageClassificationBench
     {
-        private string assetsPath;
         private MLContext mlContext;
         private IDataView trainDataset;
         private IDataView testDataset;
@@ -36,7 +35,7 @@ namespace Microsoft.ML.Benchmarks
              * level up to prevent issues with saving data.
              */
             string assetsRelativePath = @"../../../../assets";
-            assetsPath = GetAbsolutePath(assetsRelativePath);
+            string assetsPath = GetAbsolutePath(assetsRelativePath);
 
             var outputMlNetModelFilePath = Path.Combine(assetsPath, "outputs",
                 "imageClassifier.zip");
@@ -87,8 +86,7 @@ namespace Microsoft.ML.Benchmarks
                 BatchSize = 10,
                 LearningRate = 0.01f,
                 EarlyStoppingCriteria = new ImageClassificationTrainer.EarlyStopping(minDelta: 0.001f, patience: 20, metric: ImageClassificationTrainer.EarlyStoppingMetric.Loss),
-                ValidationSet = testDataset,
-                ModelSavePath = assetsPath
+                ValidationSet = testDataset
             };
             var pipeline = mlContext.MulticlassClassification.Trainers.ImageClassification(options)
             .Append(mlContext.Transforms.Conversion.MapKeyToValue(

@@ -392,10 +392,10 @@ namespace Microsoft.ML.Vision
             public Action<ImageClassificationMetrics> MetricsCallback = null;
 
             /// <summary>
-            /// Indicates the path where the newly retrained model should be saved.
+            /// Indicates the path where the models get downloaded to and cache files saved, default is a new temporary directory
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the path where the newly retrained model should be saved.", SortOrder = 15)]
-            public string ModelSavePath = null;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the path where the models get downloaded to and cache files saved, default is a new temporary directory.", SortOrder = 15)]
+            public string WorkspacePath = null;
 
             /// <summary>
             /// Indicates to evaluate the model on train set after every epoch.
@@ -422,16 +422,16 @@ namespace Microsoft.ML.Vision
             public IDataView ValidationSet;
 
             /// <summary>
-            /// Indicates the file path to store trainset bottleneck values for caching.
+            /// Indicates the file name within the workspace to store trainset bottleneck values for caching.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the file path to store trainset bottleneck values for caching.", SortOrder = 15)]
-            public string TrainSetBottleneckCachedValuesFilePath = "trainSetBottleneckFile.csv";
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the file name to store trainset bottleneck values for caching.", SortOrder = 15)]
+            public string TrainSetBottleneckCachedValuesFileName = "trainSetBottleneckFile.csv";
 
             /// <summary>
-            /// Indicates the file path to store validationset bottleneck values for caching.
+            /// Indicates the file name within the workspace to store validationset  bottleneck values for caching.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the file path to store validationset bottleneck values for caching.", SortOrder = 15)]
-            public string ValidationSetBottleneckCachedValuesFilePath = "validationSetBottleneckFile.csv";
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the file name to store validationset bottleneck values for caching.", SortOrder = 15)]
+            public string ValidationSetBottleneckCachedValuesFileName = "validationSetBottleneckFile.csv";
 
             /// <summary>
             /// A class that performs learning rate scheduling.
@@ -515,10 +515,26 @@ namespace Microsoft.ML.Vision
             Host.CheckNonEmpty(options.ScoreColumnName, nameof(options.ScoreColumnName));
             Host.CheckNonEmpty(options.PredictedLabelColumnName, nameof(options.PredictedLabelColumnName));
 
+            if (string.IsNullOrEmpty(options.WorkspacePath))
+            {
+                options.WorkspacePath = GetTemporaryDirectory();
+            }
+
+            if (string.IsNullOrEmpty(options.TrainSetBottleneckCachedValuesFileName))
+            {
+                //If the user decided to set to null reset back to default value
+                options.TrainSetBottleneckCachedValuesFileName = _options.TrainSetBottleneckCachedValuesFileName;
+            }
+
+            if (string.IsNullOrEmpty(options.ValidationSetBottleneckCachedValuesFileName))
+            {
+                //If the user decided to set to null reset back to default value
+                options.ValidationSetBottleneckCachedValuesFileName = _options.ValidationSetBottleneckCachedValuesFileName;
+            }
+
             _options = options;
             _useLRScheduling = _options.LearningRateScheduler != null;
-            _checkpointPath = _options.ModelSavePath ??
-                Path.Combine(Directory.GetCurrentDirectory(), _options.FinalModelPrefix +
+            _checkpointPath = Path.Combine(_options.WorkspacePath, _options.FinalModelPrefix +
                     ModelFileName[_options.Arch]);
 
             // Configure bottleneck tensor based on the model.
@@ -558,7 +574,7 @@ namespace Microsoft.ML.Vision
 
             _classCount = labelCount == 1 ? 2 : (int)labelCount;
             var imageSize = ImagePreprocessingSize[_options.Arch];
-            _session = LoadTensorFlowSessionFromMetaGraph(Host, _options.Arch).Session;
+            _session = LoadTensorFlowSessionFromMetaGraph(Host, _options.Arch, _options.WorkspacePath).Session;
             (_jpegData, _resizedImage) = AddJpegDecoding(imageSize.Item1, imageSize.Item2, 3);
             _jpegDataTensorName = _jpegData.name;
             _resizedImageTensorName = _resizedImage.name;
@@ -604,12 +620,14 @@ namespace Microsoft.ML.Vision
             var validationSet = trainContext.ValidationSet?.Data ?? _options.ValidationSet;
             var imageProcessor = new ImageProcessor(_session, _jpegDataTensorName, _resizedImageTensorName);
             int trainingsetSize = -1;
+            string trainSetBottleneckCachedValuesFilePath = Path.Combine(_options.WorkspacePath, _options.TrainSetBottleneckCachedValuesFileName);
+            string validationSetBottleneckCachedValuesFilePath = Path.Combine(_options.WorkspacePath, _options.ValidationSetBottleneckCachedValuesFileName);
             if (!_options.ReuseTrainSetBottleneckCachedValues ||
-                !File.Exists(_options.TrainSetBottleneckCachedValuesFilePath))
+                !File.Exists(trainSetBottleneckCachedValuesFilePath))
             {
                 trainingsetSize = CacheFeaturizedImagesToDisk(trainContext.TrainingSet.Data, _options.LabelColumnName,
                     _options.FeatureColumnName, imageProcessor,
-                    _inputTensorName, _bottleneckTensor.name, _options.TrainSetBottleneckCachedValuesFilePath,
+                    _inputTensorName, _bottleneckTensor.name, trainSetBottleneckCachedValuesFilePath,
                     ImageClassificationMetrics.Dataset.Train, _options.MetricsCallback);
 
                 // Write training set size to a file for use during training
@@ -618,16 +636,16 @@ namespace Microsoft.ML.Vision
 
             if (validationSet != null &&
                     (!_options.ReuseTrainSetBottleneckCachedValues ||
-                    !File.Exists(_options.ValidationSetBottleneckCachedValuesFilePath)))
+                    !File.Exists(validationSetBottleneckCachedValuesFilePath)))
             {
                 CacheFeaturizedImagesToDisk(validationSet, _options.LabelColumnName,
                     _options.FeatureColumnName, imageProcessor, _inputTensorName, _bottleneckTensor.name,
-                    _options.ValidationSetBottleneckCachedValuesFilePath,
+                    validationSetBottleneckCachedValuesFilePath,
                     ImageClassificationMetrics.Dataset.Validation, _options.MetricsCallback);
             }
 
-            TrainAndEvaluateClassificationLayer(_options.TrainSetBottleneckCachedValuesFilePath, _options,
-                _options.ValidationSetBottleneckCachedValuesFilePath, trainingsetSize);
+            TrainAndEvaluateClassificationLayer(trainSetBottleneckCachedValuesFilePath, _options,
+                validationSetBottleneckCachedValuesFilePath, trainingsetSize);
 
             // Leave the ownership of _session so that it is not disposed/closed when this object goes out of scope
             // since it will be used by ImageClassificationModelParameters class (new owner that will take care of
@@ -858,7 +876,7 @@ namespace Microsoft.ML.Vision
             Saver trainSaver = null;
             FileWriter trainWriter = null;
             Tensor merged = tf.summary.merge_all();
-            trainWriter = tf.summary.FileWriter(Path.Combine(Directory.GetCurrentDirectory(), "train"),
+            trainWriter = tf.summary.FileWriter(Path.Combine(_options.WorkspacePath, "train"),
                 _session.graph);
 
             trainSaver = tf.train.Saver();
@@ -1109,7 +1127,7 @@ namespace Microsoft.ML.Vision
 
         private (Session, Tensor, Tensor, Tensor) BuildEvaluationSession(int classCount)
         {
-            var evalGraph = LoadMetaGraph(ModelFileName[_options.Arch]);
+            var evalGraph = LoadMetaGraph(Path.Combine(_options.WorkspacePath, ModelFileName[_options.Arch]));
             var evalSess = tf.Session(graph: evalGraph);
             Tensor evaluationStep = null;
             Tensor prediction = null;
@@ -1267,20 +1285,25 @@ namespace Microsoft.ML.Vision
 
         }
 
-        private static TensorFlowSessionWrapper LoadTensorFlowSessionFromMetaGraph(IHostEnvironment env, Architecture arch)
+        private static TensorFlowSessionWrapper LoadTensorFlowSessionFromMetaGraph(IHostEnvironment env, Architecture arch, string path)
         {
-            var modelFileName = ModelFileName[arch];
-            int timeout = 10 * 60 * 1000;
-            string currentDirectory = Directory.GetCurrentDirectory();
-            DownloadIfNeeded(env, modelFileName, currentDirectory, modelFileName, timeout);
-            if (arch == Architecture.InceptionV3)
+            if (string.IsNullOrEmpty(path))
             {
-                DownloadIfNeeded(env, @"tfhub_modules.zip", currentDirectory, @"tfhub_modules.zip", timeout);
-                if (!Directory.Exists(@"tfhub_modules"))
-                    ZipFile.ExtractToDirectory(Path.Combine(currentDirectory, @"tfhub_modules.zip"), @"tfhub_modules");
+                path = GetTemporaryDirectory();
             }
 
-            return new TensorFlowSessionWrapper(GetSession(env, modelFileName, true), modelFileName);
+            var modelFileName = ModelFileName[arch];
+            var modelFilePath = Path.Combine(path, modelFileName);
+            int timeout = 10 * 60 * 1000;
+            DownloadIfNeeded(env, modelFileName, path, modelFileName, timeout);
+            if (arch == Architecture.InceptionV3)
+            {
+                DownloadIfNeeded(env, @"tfhub_modules.zip", path, @"tfhub_modules.zip", timeout);
+                if (!Directory.Exists(@"tfhub_modules"))
+                    ZipFile.ExtractToDirectory(Path.Combine(path, @"tfhub_modules.zip"), @"tfhub_modules");
+            }
+
+            return new TensorFlowSessionWrapper(GetSession(env, modelFilePath, true), modelFilePath);
         }
 
         ~ImageClassificationTrainer()
