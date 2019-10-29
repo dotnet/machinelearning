@@ -19,14 +19,19 @@ namespace Microsoft.ML.Tests
         public void TestPolynomialDecayNoCycle()
         {
             //Values obtained by running tf.compat.v1.train.polynomial_decay on TF 1.14
-            float[] expectedValues = new float[] { 0.1f, 0.091f, 0.082f, 0.073f, 0.064f, 0.055f, 0.045999996f, 0.037f, 0.027999999f, 0.019000001f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f };
+            float[] expectedValues = new float[] { 0.1f, 0.091f, 0.082f, 0.073f, 0.064f, 0.055f, 0.045999996f, 0.037f,
+                0.027999999f, 0.019000001f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f };
+
             TestPolynomialDecay(expectedValues, false);
         }
+
         [Fact]
         public void TestPolynomialDecayCycle()
         {
             //Values obtained by running tf.compat.v1.train.polynomial_decay on TF 1.14
-            float[] expectedValues = new float[] { 0.1f, 0.091f, 0.082f, 0.073f, 0.064f, 0.055f, 0.045999996f, 0.037f, 0.027999999f, 0.019000001f, 0.01f, 0.050499998f, 0.045999996f, 0.041500002f, 0.037f };
+            float[] expectedValues = new float[] { 0.1f, 0.091f, 0.082f, 0.073f, 0.064f, 0.055f, 0.045999996f, 0.037f,
+                0.027999999f, 0.019000001f, 0.01f, 0.050499998f, 0.045999996f, 0.041500002f, 0.037f };
+
             TestPolynomialDecay(expectedValues, true);
         }
 
@@ -45,7 +50,6 @@ namespace Microsoft.ML.Tests
                 float decayedLR = learningRateScheduler.GetLearningRate(trainState);
                 Assert.Equal(expectedValues[i], decayedLR, 4);
             }
-
         }
     }
 }

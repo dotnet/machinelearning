@@ -78,7 +78,7 @@ namespace Microsoft.ML.Trainers
             List<LearningRateSchedulerItem> lrs = new List<LearningRateSchedulerItem>();
             int[] epochs = { 182, 136, 91, 0 };
             float[] scalingFactor = { 0.0001f, 0.01f, 0.1f, 1.0f };
-            for(int i = 0; i < 4; i++)
+            for (int i = 0; i < 4; i++)
             {
                 LearningRateSchedulerItem item = new LearningRateSchedulerItem(epochs[i], scalingFactor[i]);
                 lrs.Add(item);
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         private float GetLearningRateScheduleMultiplier(int epoch)
         {
-            for(int i = 0; i < _lrSchedule.Count; i++)
+            for (int i = 0; i < _lrSchedule.Count; i++)
             {
                 if (epoch >= _lrSchedule[i].Epoch)
                 {
@@ -189,11 +189,11 @@ namespace Microsoft.ML.Trainers
         internal override float GetLearningRate(DnnTrainState trainstate)
         {
             int numSamplesPerEpoch = trainstate.BatchSize * trainstate.BatchesPerEpoch;
-            DecaySteps = (int) (numSamplesPerEpoch * NumEpochsPerDecay / trainstate.BatchSize);
-            GlobalStep = (trainstate.CurrentEpoch) *(trainstate.BatchesPerEpoch) + trainstate.CurrentBatchIndex;
+            DecaySteps = (int)(numSamplesPerEpoch * NumEpochsPerDecay / trainstate.BatchSize);
+            GlobalStep = (trainstate.CurrentEpoch) * (trainstate.BatchesPerEpoch) + trainstate.CurrentBatchIndex;
             float decayPower = (float)GlobalStep / DecaySteps;
-            decayPower = Staircase ? (float) Math.Floor(decayPower) : decayPower;
-            float decayedLearningRate = LearningRate * (float) Math.Pow(DecayRate, decayPower);
+            decayPower = Staircase ? (float)Math.Floor(decayPower) : decayPower;
+            float decayedLearningRate = LearningRate * (float)Math.Pow(DecayRate, decayPower);
             return decayedLearningRate;
         }
 
@@ -244,19 +244,19 @@ namespace Microsoft.ML.Trainers
         internal override float GetLearningRate(DnnTrainState trainstate)
         {
             int numSamplesPerEpoch = trainstate.BatchSize * trainstate.BatchesPerEpoch;
-            int decaySteps = (int) (numSamplesPerEpoch * NumEpochsPerDecay / trainstate.BatchSize);
-            int globalStep = (trainstate.CurrentEpoch) *(trainstate.BatchesPerEpoch) + trainstate.CurrentBatchIndex;
+            int decaySteps = (int)(numSamplesPerEpoch * NumEpochsPerDecay / trainstate.BatchSize);
+            int globalStep = (trainstate.CurrentEpoch) * (trainstate.BatchesPerEpoch) + trainstate.CurrentBatchIndex;
 
             float decayedLearningRate;
             if (Cycle && globalStep > decaySteps)
             {
-                float calculatedStep = (float)decaySteps * (float)Math.Ceiling((double)globalStep/(double)decaySteps);
-                decayedLearningRate = (LearningRate - EndLearningRate) * ((float) Math.Pow((1 - (float)globalStep / calculatedStep), Power)) + EndLearningRate;
+                float calculatedStep = (float)decaySteps * (float)Math.Ceiling((double)globalStep / (double)decaySteps);
+                decayedLearningRate = (LearningRate - EndLearningRate) * ((float)Math.Pow((1 - (float)globalStep / calculatedStep), Power)) + EndLearningRate;
             }
             else
             {
                 float calculatedStep = Math.Min(globalStep, decaySteps);
-                decayedLearningRate = (LearningRate - EndLearningRate) * ((float) Math.Pow((1 - calculatedStep / (float)decaySteps), Power)) + EndLearningRate;
+                decayedLearningRate = (LearningRate - EndLearningRate) * ((float)Math.Pow((1 - calculatedStep / (float)decaySteps), Power)) + EndLearningRate;
             }
             return decayedLearningRate;
         }
