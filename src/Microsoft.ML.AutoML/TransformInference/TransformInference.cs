@@ -182,7 +182,7 @@ namespace Microsoft.ML.AutoML
                     if (!col.Type.IsKey())
                     {
                         yield return ValueToKeyMappingExtension.CreateSuggestedTransform(Context, col.ColumnName,
-                            col.ColumnName, columns.Any(col => col.Purpose == ColumnPurpose.ImagePath));
+                            col.ColumnName, columns.Any(c => c.Purpose == ColumnPurpose.ImagePath));
                     }
                 }
             }

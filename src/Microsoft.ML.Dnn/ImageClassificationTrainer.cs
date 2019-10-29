@@ -514,7 +514,6 @@ namespace Microsoft.ML.Dnn
             Host.CheckNonEmpty(options.PredictedLabelColumnName, nameof(options.PredictedLabelColumnName));
 
             _options = options;
-            _session = LoadDnnModel(env, _options.Arch, true).Session;
             _useLRScheduling = _options.LearningRateScheduler != null;
             _checkpointPath = _options.ModelSavePath ??
                 Path.Combine(Directory.GetCurrentDirectory(), _options.FinalModelPrefix +
@@ -557,6 +556,7 @@ namespace Microsoft.ML.Dnn
 
             _classCount = labelCount == 1 ? 2 : (int)labelCount;
             var imageSize = ImagePreprocessingSize[_options.Arch];
+            _session = LoadDnnModel(Host, _options.Arch, true).Session;
             (_jpegData, _resizedImage) = AddJpegDecoding(imageSize.Item1, imageSize.Item2, 3);
             _jpegDataTensorName = _jpegData.name;
             _resizedImageTensorName = _resizedImage.name;
@@ -705,18 +705,20 @@ namespace Microsoft.ML.Dnn
 
             public Tensor ProcessImage(in VBuffer<byte> imageBuffer)
             {
-                using var imageTensor = EncodeByteAsString(imageBuffer);
-                try
+                using (var imageTensor = EncodeByteAsString(imageBuffer))
                 {
-                    return _imagePreprocessingRunner.AddInput(imageTensor, 0).Run()[0];
-                }
-                catch (TensorflowException e)
-                {
-                    //catch the exception for images of unknown format
-                    if (e.HResult == -2146233088 && e.Message.Contains("Expected image (JPEG, PNG, or GIF), got unknown format"))
-                        return null;
-                    else
-                        throw;
+                    try
+                    {
+                        return _imagePreprocessingRunner.AddInput(imageTensor, 0).Run()[0];
+                    }
+                    catch (TensorflowException e)
+                    {
+                        //catch the exception for images of unknown format
+                        if (e.HResult == -2146233088 && e.Message.Contains("Expected image (JPEG, PNG, or GIF), got unknown format"))
+                            return null;
+                        else
+                            throw;
+                    }
                 }
             }
         }
@@ -801,8 +803,8 @@ namespace Microsoft.ML.Dnn
 
         private int GetNumSamples(string path)
         {
-            using var reader = File.OpenText(path);
-            return int.Parse(reader.ReadLine());
+            using (var reader = File.OpenText(path))
+                return int.Parse(reader.ReadLine());
         }
 
         private void TrainAndEvaluateClassificationLayer(string trainBottleneckFilePath, Options options,
