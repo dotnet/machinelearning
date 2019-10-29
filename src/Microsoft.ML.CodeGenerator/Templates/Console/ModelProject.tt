@@ -24,6 +24,7 @@
 <#}#>
 <# if (IncludeImageClassificationPackage){ #>
     <PackageReference Include="Microsoft.ML.Dnn" Version="1.4.0" />
+	<PackageReference Include="SciSharp.TensorFlow.Redist" Version="1.14.0" />
 <#}#>
   </ItemGroup>
 

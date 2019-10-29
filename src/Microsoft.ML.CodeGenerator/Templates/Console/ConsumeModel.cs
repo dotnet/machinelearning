@@ -59,14 +59,23 @@ MB_Annotation();
             
             #line 17 "C:\CodeHub\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\Console\ConsumeModel.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
+            
+            #line default
+            #line hidden
             this.Write(".Model;\r\nusing ");
             
-            #line 18 "C:\CodeHub\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\Console\ConsumeModel.tt"
+            #line 18 "E:\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\Console\ConsumeModel.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
+            
+            #line default
+            #line hidden
             this.Write(".Model.DataModels;\r\n\r\nnamespace ");
             
-            #line 20 "C:\CodeHub\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\Console\ConsumeModel.tt"
+            #line 20 "E:\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\Console\ConsumeModel.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
+            
+            #line default
+            #line hidden
             this.Write(@".Model
 {
 	public class ConsumeModel
@@ -94,7 +103,7 @@ MB_Annotation();
             return this.GenerationEnvironment.ToString();
         }
         
-        #line 43 "C:\CodeHub\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\Console\ConsumeModel.tt"
+        #line 43 "E:\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\Console\ConsumeModel.tt"
 
 public string Namespace {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}

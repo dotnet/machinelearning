@@ -12,7 +12,7 @@
 using System;
 using Microsoft.ML.Data;
 
-namespace  <#= Namespace #>.Model.DataModels
+namespace  <#= Namespace #>.Model
 {
     public class ModelOutput
     {
