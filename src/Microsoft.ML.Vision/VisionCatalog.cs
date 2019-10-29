@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Dnn;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Vision;
 using static Microsoft.ML.TensorFlow.TensorFlowUtils;
 
 namespace Microsoft.ML

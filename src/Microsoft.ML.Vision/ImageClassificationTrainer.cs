@@ -12,12 +12,12 @@ using Google.Protobuf;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Dnn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TensorFlow;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Vision;
 using Tensorflow;
 using Tensorflow.Summaries;
 using static Microsoft.ML.Data.TextLoader;
@@ -35,14 +35,14 @@ using Column = Microsoft.ML.Data.TextLoader.Column;
 [assembly: LoadableClass(typeof(ImageClassificationModelParameters), null, typeof(SignatureLoadModel),
     "Image classification predictor", ImageClassificationModelParameters.LoaderSignature)]
 
-namespace Microsoft.ML.Dnn
+namespace Microsoft.ML.Vision
 {
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for training a Deep Neural Network(DNN) to classify images.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
-    /// To create this trainer, use [ImageClassification](xref:Microsoft.ML.Dnn.DnnCatalog.ImageClassification(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String,System.String,System.String,Microsoft.ML.IDataView)).
+    /// To create this trainer, use [ImageClassification](xref:Microsoft.ML.Vision.DnnCatalog.ImageClassification(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String,System.String,System.String,Microsoft.ML.IDataView)).
     ///
     /// ### Input and Output Columns
     /// The input label column data must be[key] (xref:Microsoft.ML.Data.KeyDataViewType) type and the feature column must be a variable-sized vector of<xref:System.Byte>.
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Dnn
     /// | Machine learning task | Multiclass classification |
     /// | Is normalization required? | No |
     /// | Is caching required? | No |
-    /// | Required NuGet in addition to Microsoft.ML | Micrsoft.ML.Dnn and SciSharp.TensorFlow.Redist / SciSharp.TensorFlow.Redist-Windows-GPU / SciSharp.TensorFlow.Redist-Linux-GPU |
+    /// | Required NuGet in addition to Microsoft.ML | Micrsoft.ML.Vision and SciSharp.TensorFlow.Redist / SciSharp.TensorFlow.Redist-Windows-GPU / SciSharp.TensorFlow.Redist-Linux-GPU |
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/tensorflow-usage.md)]
     ///

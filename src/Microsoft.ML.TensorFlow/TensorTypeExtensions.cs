@@ -4,9 +4,6 @@
 
 using System;
 using Microsoft.ML.Internal.Utilities;
-using NumSharp.Backends;
-using NumSharp.Backends.Unmanaged;
-using NumSharp.Utilities;
 using Tensorflow;
 
 namespace Microsoft.ML.TensorFlow

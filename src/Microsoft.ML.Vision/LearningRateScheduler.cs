@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.ML.Dnn
+namespace Microsoft.ML.Vision
 {
     /// <summary>
     /// A class that contains the current train state to use for learning rate scheduling.
