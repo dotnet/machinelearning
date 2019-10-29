@@ -31,8 +31,6 @@ jobs:
     - ${{ if eq(parameters.pool.name, 'Hosted macOS High Sierra') }}:
       - script: brew update && brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/f5b1ac99a7fba27c19cee0bc4f036775c889b359/Formula/libomp.rb && brew install mono-libgdiplus gettext && brew link gettext --force && brew link libomp --force
         displayName: Install build dependencies
-    - script: $(Build.SourcesDirectory)\Tools\nuget.exe sources add -Name "MLNETPrivateSource" -Source "https://devdiv.pkgs.visualstudio.com/_packaging/MachineLearning/nuget/v3/index.json" -username "frank-pat-nuget-builds" -password "hgbnknrkd7dlnz6d4nazyraqzermmpw2drgubkrpsyiexefbivda"
-      displayName: add private nuget source
     - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }}
       displayName: Builds 1st time to restore tools
     - script: dotnet run --project test\Microsoft.ML.NugetPackageVersionUpdater\Microsoft.ML.NugetPackageVersionUpdater.csproj
@@ -40,7 +38,7 @@ jobs:
     - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }}
       displayName: Builds
     - script: ${{ parameters.buildScript }} -$(_configuration) -runnightlybuildtests
-      displayName: Run Nightly Build Tests.
+      displayName: Run Nightly Build Tests
       condition: succeeded()
     - task: PublishTestResults@2
       displayName: Publish Test Results
