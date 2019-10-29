@@ -52,11 +52,10 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
             this.Write("\" />\r\n");
 }
  if (IncludeImageClassificationPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.Dnn\" Version=\"");
+            this.Write("    <PackageReference Include=\"Microsoft.ML.Vision\" Version=\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
-            this.Write("\" />\r\n\t<PackageReference Include=\"SciSharp.TensorFlow.Redist\" Version=\"");
-            this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
-            this.Write("\" />\r\n");
+            this.Write("\" />\r\n\t<PackageReference Include=\"SciSharp.TensorFlow.Redist\" Version=\"1.14.0\" />" +
+                    "\r\n");
 }
  if (IncludeRecommenderPackage){ 
             this.Write("    <PackageReference Include=\"Microsoft.ML.Recommender\" Version=\"");

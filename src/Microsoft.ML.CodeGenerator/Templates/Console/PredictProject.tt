@@ -25,8 +25,8 @@
     <PackageReference Include="Microsoft.ML.ImageAnalytics" Version="<#= StablePackageVersion #>" />
 <#}#>
 <# if (IncludeImageClassificationPackage){ #>
-    <PackageReference Include="Microsoft.ML.Dnn" Version="<#= StablePackageVersion #>" />
-	<PackageReference Include="SciSharp.TensorFlow.Redist" Version="<#= StablePackageVersion #>" />
+    <PackageReference Include="Microsoft.ML.Vision" Version="<#= StablePackageVersion #>" />
+	<PackageReference Include="SciSharp.TensorFlow.Redist" Version="1.14.0" />
 <#}#>
 <# if (IncludeRecommenderPackage){ #>
     <PackageReference Include="Microsoft.ML.Recommender" Version="<#= UnstablePackageVersion #>" />
