@@ -119,6 +119,9 @@ if(!string.IsNullOrEmpty(TestPath)){
             this.Write("\r\n            // Set the training algorithm \r\n            var trainer = mlContext" +
                     ".");
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
+if("Recommendation".Equals(TaskType)){ 
+            this.Write("()");
+ } 
             this.Write(".Trainers.");
             this.Write(this.ToStringHelper.ToStringWithCulture(Trainer));
  for(int i=0;i<PostTrainerTransforms.Count;i++) 
@@ -168,9 +171,12 @@ if("BinaryClassification".Equals(TaskType)){
             this.Write(".Evaluate(predictions, \"");
             this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
             this.Write("\", \"Score\");\r\n            PrintMulticlassClassificationMetrics(metrics);\r\n");
-}if("Regression".Equals(TaskType)){ 
+}if("Regression".Equals(TaskType) || "Recommendation".Equals(TaskType)){ 
             this.Write("            var metrics = mlContext.");
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
+if("Recommendation".Equals(TaskType)){ 
+            this.Write("()");
+ } 
             this.Write(".Evaluate(predictions, \"");
             this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
             this.Write("\", \"Score\");\r\n            PrintRegressionMetrics(metrics);\r\n");
@@ -214,7 +220,8 @@ if("Regression".Equals(TaskType)){
 }
             this.Write("        }\r\n");
 }
-            this.Write(@"        private static void SaveModel(MLContext mlContext, ITransformer mlModel, string modelRelativePath, DataViewSchema modelInputSchema)
+            this.Write(@"
+        private static void SaveModel(MLContext mlContext, ITransformer mlModel, string modelRelativePath, DataViewSchema modelInputSchema)
         {
             // Save/persist the trained model to a .ZIP file
             Console.WriteLine($""=============== Saving the model  ==============="");
@@ -233,7 +240,7 @@ if("Regression".Equals(TaskType)){
         }
 
 ");
-if("Regression".Equals(TaskType)){ 
+if("Regression".Equals(TaskType) || "Recommendation".Equals(TaskType)){ 
             this.Write("        public static void PrintRegressionMetrics(RegressionMetrics metrics)\r\n   " +
                     "     {\r\n            Console.WriteLine($\"****************************************" +
                     "*********\");\r\n            Console.WriteLine($\"*       Metrics for regression mod" +
@@ -255,16 +262,18 @@ if("Regression".Equals(TaskType)){
                     "idationResults.Select(r => r.Metrics.RSquared);\r\n\r\n            Console.WriteLine" +
                     "($\"*****************************************************************************" +
                     "********************************\");\r\n            Console.WriteLine($\"*       Met" +
-                    "rics for Regression model      \");\r\n            Console.WriteLine($\"*-----------" +
-                    "--------------------------------------------------------------------------------" +
-                    "-----------------\");\r\n            Console.WriteLine($\"*       Average L1 Loss:  " +
-                    "     {L1.Average():0.###} \");\r\n            Console.WriteLine($\"*       Average L" +
-                    "2 Loss:       {L2.Average():0.###}  \");\r\n            Console.WriteLine($\"*      " +
-                    " Average RMS:           {RMS.Average():0.###}  \");\r\n            Console.WriteLin" +
-                    "e($\"*       Average Loss Function: {lossFunction.Average():0.###}  \");\r\n        " +
-                    "    Console.WriteLine($\"*       Average R-squared:     {R2.Average():0.###}  \");" +
-                    "\r\n            Console.WriteLine($\"**********************************************" +
-                    "***************************************************************\");\r\n        }\r\n");
+                    "rics for ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
+            this.Write(@" model      "");
+            Console.WriteLine($""*------------------------------------------------------------------------------------------------------------"");
+            Console.WriteLine($""*       Average L1 Loss:       {L1.Average():0.###} "");
+            Console.WriteLine($""*       Average L2 Loss:       {L2.Average():0.###}  "");
+            Console.WriteLine($""*       Average RMS:           {RMS.Average():0.###}  "");
+            Console.WriteLine($""*       Average Loss Function: {lossFunction.Average():0.###}  "");
+            Console.WriteLine($""*       Average R-squared:     {R2.Average():0.###}  "");
+            Console.WriteLine($""*************************************************************************************************************"");
+        }
+");
  } if("BinaryClassification".Equals(TaskType)){ 
             this.Write("        public static void PrintBinaryClassificationMetrics(BinaryClassificationM" +
                     "etrics metrics)\r\n        {\r\n            Console.WriteLine($\"********************" +

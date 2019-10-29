@@ -27,17 +27,34 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
         public virtual string TransformText()
         {
             this.Write("<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n  <PropertyGroup>\r\n    <OutputType>Exe</Outp" +
-                    "utType>\r\n    <TargetFramework>netcoreapp2.1</TargetFramework>\r\n  </PropertyGroup" +
-                    ">\r\n  <ItemGroup>\r\n    <PackageReference Include=\"Microsoft.ML\" Version=\"1.3.1\" /" +
-                    ">\r\n");
+                    "utType>\r\n    <TargetFramework>netcoreapp2.1</TargetFramework>\r\n");
+ if (IncludeLightGBMPackage || IncludeMklComponentsPackage || IncludeFastTreePackage){ 
+            this.Write("    <StablePackageVersion>");
+StablePackageVersion();
+            this.Write("</StablePackageVersion>\r\n");
+}
+ if (IncludeRecommenderPackage){ 
+            this.Write("    <UnstablePackageVersion>");
+UnstablePackageVersion();
+            this.Write("</UnstablePackageVersion>\r\n");
+}
+            this.Write("  </PropertyGroup>\r\n  <ItemGroup>\r\n    <PackageReference Include=\"Microsoft.ML\" V" +
+                    "ersion=\"$(StablePackageVersion)\" />\r\n");
  if (IncludeLightGBMPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.LightGBM\" Version=\"1.3.1\" />\r\n");
+            this.Write("    <PackageReference Include=\"Microsoft.ML.LightGBM\" Version=\"$(StablePackageVer" +
+                    "sion)\" />\r\n");
 }
  if (IncludeMklComponentsPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.Mkl.Components\" Version=\"1.3.1\" />\r\n");
+            this.Write("    <PackageReference Include=\"Microsoft.ML.Mkl.Components\" Version=\"$(StablePack" +
+                    "ageVersion)\" />\r\n");
 }
  if (IncludeFastTreePackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.FastTree\" Version=\"1.3.1\" />\r\n");
+            this.Write("    <PackageReference Include=\"Microsoft.ML.FastTree\" Version=\"$(StablePackageVer" +
+                    "sion)\" />\r\n");
+}
+ if (IncludeRecommenderPackage){ 
+            this.Write("    <PackageReference Include=\"Microsoft.ML.Recommender\" Version=\"$(UnstablePacka" +
+                    "geVersion)\" />\r\n");
 }
             this.Write("  </ItemGroup>\r\n  <ItemGroup>\r\n    <ProjectReference Include=\"..\\");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
@@ -51,6 +68,23 @@ public string Namespace {get;set;}
 public bool IncludeLightGBMPackage {get;set;}
 public bool IncludeMklComponentsPackage {get;set;}
 public bool IncludeFastTreePackage {get;set;}
+public bool IncludeRecommenderPackage {get;set;}
+
+
+void StablePackageVersion()
+{
+this.Write("1.4.0-preview3-28229-2");
+
+
+}
+
+
+void UnstablePackageVersion()
+{
+this.Write("0.16.0-preview3-28229-2");
+
+
+}
 
     }
     #region Base class

@@ -84,6 +84,7 @@ namespace TestNamespace.ConsoleApp
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions, "Label", "Score");
             PrintMulticlassClassificationMetrics(metrics);
         }
+
         private static void SaveModel(MLContext mlContext, ITransformer mlModel, string modelRelativePath, DataViewSchema modelInputSchema)
         {
             // Save/persist the trained model to a .ZIP file
