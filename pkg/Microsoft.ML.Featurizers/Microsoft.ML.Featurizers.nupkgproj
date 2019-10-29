@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageDescription>ML.NET additional featurizers for AutoML</PackageDescription>
+    <PackageDescription>Additional ML.NET featurizers for AutoML</PackageDescription>
   </PropertyGroup>
 
   <ItemGroup>
