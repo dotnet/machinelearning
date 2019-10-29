@@ -257,19 +257,17 @@ namespace Microsoft.ML.AutoML
             return CreateInstance(context, pipelineNode.InColumns[0], pipelineNode.OutColumns[0]);
         }
 
-        public static SuggestedTransform CreateSuggestedTransform(MLContext context, string inColumn, string outColumn, bool sort = false)
+        public static SuggestedTransform CreateSuggestedTransform(MLContext context, string inColumn, string outColumn)
         {
             var pipelineNode = new PipelineNode(EstimatorName.ValueToKeyMapping.ToString(),
                 PipelineNodeType.Transform, inColumn, outColumn);
-            var estimator = CreateInstance(context, inColumn, outColumn, sort);
+
+            var estimator = CreateInstance(context, inColumn, outColumn);
             return new SuggestedTransform(pipelineNode, estimator);
         }
 
-        private static IEstimator<ITransformer> CreateInstance(MLContext context, string inColumn, string outColumn, bool sort = false)
+        private static IEstimator<ITransformer> CreateInstance(MLContext context, string inColumn, string outColumn)
         {
-            if (sort)
-                return context.Transforms.Conversion.MapValueToKey(outColumn, inColumn, keyOrdinality: ValueToKeyMappingEstimator.KeyOrdinality.ByValue);
-
             return context.Transforms.Conversion.MapValueToKey(outColumn, inColumn);
         }
     }

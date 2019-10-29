@@ -95,7 +95,7 @@ namespace Microsoft.ML.AutoML.Test
                             .CreateMulticlassClassificationExperiment(0)
                             .Execute(trainData, columnInference.ColumnInformation);
 
-            Assert.InRange(result.BestRun.ValidationMetrics.MicroAccuracy, 0.80, 0.85);
+            Assert.InRange(result.BestRun.ValidationMetrics.MicroAccuracy, 0.80, 0.9);
             var scoredData = result.BestRun.Model.Transform(trainData);
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
         }
