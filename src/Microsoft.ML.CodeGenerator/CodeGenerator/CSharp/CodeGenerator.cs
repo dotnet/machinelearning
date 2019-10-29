@@ -139,7 +139,8 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
             var predictProjectFileContent = GeneratPredictProjectFileContent(_settings.OutputName,
                 includeLightGbmPackage, includeMklComponentsPackage, includeFastTreePackage,
-                includeImageTransformerPackage, includeImageClassificationPackage, includeRecommenderPackage);
+                includeImageTransformerPackage, includeImageClassificationPackage, includeRecommenderPackage,
+                _settings.StablePackageVersion, _settings.UnstablePackageVersion);
 
             var transformsAndTrainers = GenerateTransformsAndTrainers();
             var modelBuilderCSFileContent = GenerateModelBuilderCSFileContent(transformsAndTrainers.Usings, transformsAndTrainers.TrainerMethod, transformsAndTrainers.PreTrainerTransforms, transformsAndTrainers.PostTrainerTransforms, namespaceValue, _pipeline.CacheBeforeTrainer, labelTypeCsharp.Name);
@@ -169,7 +170,8 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             consumeModelCSFileContent = Utils.FormatCode(consumeModelCSFileContent);
             var modelProjectFileContent = GenerateModelProjectFileContent(includeLightGbmPackage,
                 includeMklComponentsPackage, includeFastTreePackage, includeImageTransformerPackage,
-                includeImageClassificationPackage, includeRecommenderPackage);
+                includeImageClassificationPackage, includeRecommenderPackage,
+                _settings.StablePackageVersion, _settings.UnstablePackageVersion);
 
             return (modelInputCSFileContent, modelOutputCSFileContent, consumeModelCSFileContent, modelProjectFileContent);
         }
@@ -314,7 +316,8 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         #region Model project
         private static string GenerateModelProjectFileContent(bool includeLightGbmPackage,
             bool includeMklComponentsPackage, bool includeFastTreePackage, bool includeImageTransformerPackage,
-                bool includeImageClassificationPackage, bool includeRecommenderPackage)
+                bool includeImageClassificationPackage, bool includeRecommenderPackage,
+                string stablePackageVersion, string unstablePackageVersion)
         {
             ModelProject modelProject = new ModelProject()
             {
@@ -323,7 +326,9 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 IncludeFastTreePackage = includeFastTreePackage,
                 IncludeImageTransformerPackage = includeImageTransformerPackage,
                 IncludeImageClassificationPackage = includeImageClassificationPackage,
-                IncludeRecommenderPackage = includeRecommenderPackage
+                IncludeRecommenderPackage = includeRecommenderPackage,
+                StablePackageVersion = stablePackageVersion,
+                UnstablePackageVersion = unstablePackageVersion
             };
 
             return modelProject.TransformText();
@@ -354,7 +359,8 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         #region Predict Project
         private static string GeneratPredictProjectFileContent(string namespaceValue, bool includeLightGbmPackage,
             bool includeMklComponentsPackage, bool includeFastTreePackage, bool includeImageTransformerPackage,
-                bool includeImageClassificationPackage, bool includeRecommenderPackage)
+                bool includeImageClassificationPackage, bool includeRecommenderPackage,
+                string stablePackageVersion, string unstablePackageVersion)
         {
             var predictProjectFileContent = new PredictProject()
             {
@@ -364,7 +370,9 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 IncludeFastTreePackage = includeFastTreePackage,
                 IncludeImageTransformerPackage = includeImageTransformerPackage,
                 IncludeImageClassificationPackage = includeImageClassificationPackage,
-                IncludeRecommenderPackage = includeRecommenderPackage
+                IncludeRecommenderPackage = includeRecommenderPackage,
+                StablePackageVersion = stablePackageVersion,
+                UnstablePackageVersion = unstablePackageVersion
             };
             return predictProjectFileContent.TransformText();
         }

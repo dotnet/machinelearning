@@ -3,36 +3,31 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ include file="PackageVersion.ttinclude" #>
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <StablePackageVersion><#StablePackageVersion();#></StablePackageVersion>
-<# if (IncludeRecommenderPackage){ #>
-    <UnstablePackageVersion><#UnstablePackageVersion();#></UnstablePackageVersion>
-<#}#>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.ML" Version="$(StablePackageVersion)" />
+    <PackageReference Include="Microsoft.ML" Version="<#= StablePackageVersion #>" />
 <# if (IncludeLightGBMPackage) { #>
-    <PackageReference Include="Microsoft.ML.LightGBM" Version="$(StablePackageVersion)" />
+    <PackageReference Include="Microsoft.ML.LightGBM" Version="<#= StablePackageVersion #>" />
 <#}#>
 <# if (IncludeMklComponentsPackage){ #>
-    <PackageReference Include="Microsoft.ML.Mkl.Components" Version="$(StablePackageVersion)" />
+    <PackageReference Include="Microsoft.ML.Mkl.Components" Version="<#= StablePackageVersion #>" />
 <#}#>
 <# if (IncludeFastTreePackage){ #>
-    <PackageReference Include="Microsoft.ML.FastTree" Version="$(StablePackageVersion)" />
+    <PackageReference Include="Microsoft.ML.FastTree" Version="<#= StablePackageVersion #>" />
 <#}#>
 <# if (IncludeImageTransformerPackage){ #>
-    <PackageReference Include="Microsoft.ML.ImageAnalytics" Version="$(StablePackageVersion)" />
+    <PackageReference Include="Microsoft.ML.ImageAnalytics" Version="<#= StablePackageVersion #>" />
 <#}#>
 <# if (IncludeImageClassificationPackage){ #>
-    <PackageReference Include="Microsoft.ML.Dnn" Version="$(StablePackageVersion)" />
-	<PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(StablePackageVersion)" />
+    <PackageReference Include="Microsoft.ML.Dnn" Version="<#= StablePackageVersion #>" />
+	<PackageReference Include="SciSharp.TensorFlow.Redist" Version="<#= StablePackageVersion #>" />
 <#}#>
 <# if (IncludeRecommenderPackage){ #>
-    <PackageReference Include="Microsoft.ML.Recommender" Version="$(UnstablePackageVersion)" />
+    <PackageReference Include="Microsoft.ML.Recommender" Version="<#= UnstablePackageVersion #>" />
 <#}#>
   </ItemGroup>
 
@@ -50,4 +45,6 @@ public bool IncludeFastTreePackage {get;set;}
 public bool IncludeImageTransformerPackage {get; set;}
 public bool IncludeImageClassificationPackage {get; set;}
 public bool IncludeRecommenderPackage {get;set;}
+public string StablePackageVersion {get;set;}
+public string UnstablePackageVersion {get;set;}
 #>

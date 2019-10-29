@@ -27,41 +27,41 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
         public virtual string TransformText()
         {
             this.Write("<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n  <PropertyGroup>\r\n    <OutputType>Exe</Outp" +
-                    "utType>\r\n    <TargetFramework>netcoreapp2.1</TargetFramework>\r\n    <StablePackag" +
-                    "eVersion>");
-StablePackageVersion();
-            this.Write("</StablePackageVersion>\r\n");
- if (IncludeRecommenderPackage){ 
-            this.Write("    <UnstablePackageVersion>");
-UnstablePackageVersion();
-            this.Write("</UnstablePackageVersion>\r\n");
-}
-            this.Write("  </PropertyGroup>\r\n  <ItemGroup>\r\n    <PackageReference Include=\"Microsoft.ML\" V" +
-                    "ersion=\"$(StablePackageVersion)\" />\r\n");
+                    "utType>\r\n    <TargetFramework>netcoreapp2.1</TargetFramework>\r\n  </PropertyGroup" +
+                    ">\r\n  <ItemGroup>\r\n    <PackageReference Include=\"Microsoft.ML\" Version=\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
+            this.Write("\" />\r\n");
  if (IncludeLightGBMPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.LightGBM\" Version=\"$(StablePackageVer" +
-                    "sion)\" />\r\n");
+            this.Write("    <PackageReference Include=\"Microsoft.ML.LightGBM\" Version=\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
+            this.Write("\" />\r\n");
 }
  if (IncludeMklComponentsPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.Mkl.Components\" Version=\"$(StablePack" +
-                    "ageVersion)\" />\r\n");
+            this.Write("    <PackageReference Include=\"Microsoft.ML.Mkl.Components\" Version=\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
+            this.Write("\" />\r\n");
 }
  if (IncludeFastTreePackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.FastTree\" Version=\"$(StablePackageVer" +
-                    "sion)\" />\r\n");
+            this.Write("    <PackageReference Include=\"Microsoft.ML.FastTree\" Version=\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
+            this.Write("\" />\r\n");
 }
  if (IncludeImageTransformerPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.ImageAnalytics\" Version=\"$(StablePack" +
-                    "ageVersion)\" />\r\n");
+            this.Write("    <PackageReference Include=\"Microsoft.ML.ImageAnalytics\" Version=\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
+            this.Write("\" />\r\n");
 }
  if (IncludeImageClassificationPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.Dnn\" Version=\"$(StablePackageVersion)" +
-                    "\" />\r\n\t<PackageReference Include=\"SciSharp.TensorFlow.Redist\" Version=\"$(StableP" +
-                    "ackageVersion)\" />\r\n");
+            this.Write("    <PackageReference Include=\"Microsoft.ML.Dnn\" Version=\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
+            this.Write("\" />\r\n\t<PackageReference Include=\"SciSharp.TensorFlow.Redist\" Version=\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
+            this.Write("\" />\r\n");
 }
  if (IncludeRecommenderPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.Recommender\" Version=\"$(UnstablePacka" +
-                    "geVersion)\" />\r\n");
+            this.Write("    <PackageReference Include=\"Microsoft.ML.Recommender\" Version=\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(UnstablePackageVersion));
+            this.Write("\" />\r\n");
 }
             this.Write("  </ItemGroup>\r\n  <ItemGroup>\r\n    <ProjectReference Include=\"..\\");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
@@ -78,22 +78,8 @@ public bool IncludeFastTreePackage {get;set;}
 public bool IncludeImageTransformerPackage {get; set;}
 public bool IncludeImageClassificationPackage {get; set;}
 public bool IncludeRecommenderPackage {get;set;}
-
-
-void StablePackageVersion()
-{
-this.Write("1.4.0-preview3-28229-2");
-
-
-}
-
-
-void UnstablePackageVersion()
-{
-this.Write("0.16.0-preview3-28229-2");
-
-
-}
+public string StablePackageVersion {get;set;}
+public string UnstablePackageVersion {get;set;}
 
     }
     #region Base class

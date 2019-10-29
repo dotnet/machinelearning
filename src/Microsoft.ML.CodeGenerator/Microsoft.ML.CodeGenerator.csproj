@@ -37,8 +37,6 @@
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>ModelProject.cs</LastGenOutput>
     </None>
-    <None Update="Templates\Console\PackageVersion.ttinclude">
-    </None>
     <None Update="Templates\Console\PredictProgram.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>PredictProgram.cs</LastGenOutput>
