@@ -3,14 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Dnn;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Vision;
+using static Microsoft.ML.TensorFlow.TensorFlowUtils;
 
 namespace Microsoft.ML
 {
-    /// <include file='doc.xml' path='doc/members/member[@name="DnnRetrainTransformer"]/*' />
-    public static class DnnCatalog
+    public static class VisionCatalog
     {
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace Microsoft.ML
             };
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new DnnRetrainEstimator(env, options, DnnUtils.LoadDnnModel(env, modelPath, true));
+            return new DnnRetrainEstimator(env, options, LoadDnnModel(env, modelPath, true));
         }
 
         /// <summary>

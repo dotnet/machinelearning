@@ -10,16 +10,17 @@ using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
-using Microsoft.ML.Dnn;
+using Microsoft.ML.Vision;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Image;
-using Microsoft.ML.Transforms.TensorFlow;
+using Microsoft.ML.TensorFlow;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.DataOperationsCatalog;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Scenarios
 {

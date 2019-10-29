@@ -5,21 +5,23 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Google.Protobuf;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Dnn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.TensorFlow;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Vision;
 using Tensorflow;
 using Tensorflow.Summaries;
 using static Microsoft.ML.Data.TextLoader;
-using static Microsoft.ML.Dnn.DnnUtils;
+using static Microsoft.ML.TensorFlow.TensorFlowUtils;
 using static Tensorflow.Binding;
 using Column = Microsoft.ML.Data.TextLoader.Column;
 
@@ -33,14 +35,14 @@ using Column = Microsoft.ML.Data.TextLoader.Column;
 [assembly: LoadableClass(typeof(ImageClassificationModelParameters), null, typeof(SignatureLoadModel),
     "Image classification predictor", ImageClassificationModelParameters.LoaderSignature)]
 
-namespace Microsoft.ML.Dnn
+namespace Microsoft.ML.Vision
 {
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for training a Deep Neural Network(DNN) to classify images.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
-    /// To create this trainer, use [ImageClassification](xref:Microsoft.ML.Dnn.DnnCatalog.ImageClassification(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String,System.String,System.String,Microsoft.ML.IDataView)).
+    /// To create this trainer, use [ImageClassification](xref:Microsoft.ML.Vision.DnnCatalog.ImageClassification(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String,System.String,System.String,Microsoft.ML.IDataView)).
     ///
     /// ### Input and Output Columns
     /// The input label column data must be[key] (xref:Microsoft.ML.Data.KeyDataViewType) type and the feature column must be a variable-sized vector of<xref:System.Byte>.
@@ -58,7 +60,7 @@ namespace Microsoft.ML.Dnn
     /// | Machine learning task | Multiclass classification |
     /// | Is normalization required? | No |
     /// | Is caching required? | No |
-    /// | Required NuGet in addition to Microsoft.ML | Micrsoft.ML.Dnn and SciSharp.TensorFlow.Redist / SciSharp.TensorFlow.Redist-Windows-GPU / SciSharp.TensorFlow.Redist-Linux-GPU |
+    /// | Required NuGet in addition to Microsoft.ML | Micrsoft.ML.Vision and SciSharp.TensorFlow.Redist / SciSharp.TensorFlow.Redist-Windows-GPU / SciSharp.TensorFlow.Redist-Linux-GPU |
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/tensorflow-usage.md)]
     ///
@@ -556,7 +558,7 @@ namespace Microsoft.ML.Dnn
 
             _classCount = labelCount == 1 ? 2 : (int)labelCount;
             var imageSize = ImagePreprocessingSize[_options.Arch];
-            _session = LoadDnnModel(Host, _options.Arch, true).Session;
+            _session = LoadTensorFlowSessionFromMetaGraph(Host, _options.Arch).Session;
             (_jpegData, _resizedImage) = AddJpegDecoding(imageSize.Item1, imageSize.Item2, 3);
             _jpegDataTensorName = _jpegData.name;
             _resizedImageTensorName = _resizedImage.name;
@@ -875,7 +877,7 @@ namespace Microsoft.ML.Dnn
             metrics.Train = new TrainMetrics();
             float accuracy = 0;
             float crossentropy = 0;
-            TrainState trainstate = new TrainState
+            DnnTrainState trainstate = new DnnTrainState
             {
                 BatchSize = options.BatchSize,
                 BatchesPerEpoch =
@@ -1107,7 +1109,7 @@ namespace Microsoft.ML.Dnn
 
         private (Session, Tensor, Tensor, Tensor) BuildEvaluationSession(int classCount)
         {
-            var evalGraph = DnnUtils.LoadMetaGraph(ModelFileName[_options.Arch]);
+            var evalGraph = LoadMetaGraph(ModelFileName[_options.Arch]);
             var evalSess = tf.Session(graph: evalGraph);
             Tensor evaluationStep = null;
             Tensor prediction = null;
@@ -1263,6 +1265,22 @@ namespace Microsoft.ML.Dnn
                     AddFinalRetrainOps(classCount, labelColumn, scoreColumnName, _bottleneckTensor, true,
                         useLearningRateScheduling, learningRate);
 
+        }
+
+        private static TensorFlowSessionWrapper LoadTensorFlowSessionFromMetaGraph(IHostEnvironment env, Architecture arch)
+        {
+            var modelFileName = ModelFileName[arch];
+            int timeout = 10 * 60 * 1000;
+            string currentDirectory = Directory.GetCurrentDirectory();
+            DownloadIfNeeded(env, modelFileName, currentDirectory, modelFileName, timeout);
+            if (arch == Architecture.InceptionV3)
+            {
+                DownloadIfNeeded(env, @"tfhub_modules.zip", currentDirectory, @"tfhub_modules.zip", timeout);
+                if (!Directory.Exists(@"tfhub_modules"))
+                    ZipFile.ExtractToDirectory(Path.Combine(currentDirectory, @"tfhub_modules.zip"), @"tfhub_modules");
+            }
+
+            return new TensorFlowSessionWrapper(GetSession(env, modelFileName, true), modelFileName);
         }
 
         ~ImageClassificationTrainer()
