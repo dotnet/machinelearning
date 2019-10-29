@@ -79,13 +79,11 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
         }
 
-        [TensorFlowFact(Skip ="Takes too much time.")]
+        [TensorFlowFact(Skip ="Takes too much time, ~10 minutes.")]
         public void AutoFitImageClassification()
         {
             // This test executes the code path that model builder code will take to get a model using image 
-            // classification API. Please note here the dataset is split 90:10 for train:test, hence the accuracy is 
-            // 100%. The previous test takes a different code path for achieving the same goal but is able to modify 
-            // the train:test split ratio to 80:20.
+            // classification API.
 
             var context = new MLContext();
             context.Log += Context_Log;
@@ -97,7 +95,7 @@ namespace Microsoft.ML.AutoML.Test
                             .CreateMulticlassClassificationExperiment(0)
                             .Execute(trainData, columnInference.ColumnInformation);
 
-            Assert.InRange(0.71, 0.7, 0.75);
+            Assert.InRange(result.BestRun.ValidationMetrics.MicroAccuracy, 0.80, 0.85);
             var scoredData = result.BestRun.Model.Transform(trainData);
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
         }

@@ -64,7 +64,7 @@ Redistributing the dataset "taxi-fare-test.csv", "taxi-fare-train.csv" with attr
 
 ### Flowers dataset.
 
-Redistributing the dataset "tflower_photos_tiny_set_for_unit_tests.zip" with attribution:
+Redistributing the dataset "tflower_photos_tiny_set_for_unit_tests.zip" (slimed down version of original dataset) with attribution:
 
 > Original source: http://download.tensorflow.org/example_images/flower_photos.tgz
 > 
