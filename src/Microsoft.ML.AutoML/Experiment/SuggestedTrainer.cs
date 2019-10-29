@@ -41,7 +41,7 @@ namespace Microsoft.ML.AutoML
             return new SuggestedTrainer(_mlContext, _trainerExtension, _columnInfo, HyperParamSet?.Clone());
         }
 
-        public ITrainerEstimator<ISingleFeaturePredictionTransformer<object>, object> BuildTrainer()
+        public ITrainerEstimator<IPredictionTransformer<object>, object> BuildTrainer()
         {
             IEnumerable<SweepableParam> sweepParams = null;
             if (HyperParamSet != null)

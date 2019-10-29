@@ -5,15 +5,18 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Tensorflow;
+using static Microsoft.ML.Dnn.ImageClassificationTrainer;
 using static Tensorflow.Binding;
 
-namespace Microsoft.ML.Transforms.Dnn
+namespace Microsoft.ML.Dnn
 {
     internal static class DnnUtils
     {
@@ -88,6 +91,23 @@ namespace Microsoft.ML.Transforms.Dnn
 
             }
             return new Session(graph);
+        }
+
+        internal static void DownloadIfNeeded(IHostEnvironment env, string url, string dir, string fileName, int timeout)
+        {
+            using (var ch = env.Start("Ensuring meta files are present."))
+            {
+                var ensureModel = ResourceManagerUtils.Instance.EnsureResource(env, ch, url, fileName, dir, timeout);
+                ensureModel.Wait();
+                var errorResult = ResourceManagerUtils.GetErrorMessage(out var errorMessage, ensureModel.Result);
+                if (errorResult != null)
+                {
+                    var directory = Path.GetDirectoryName(errorResult.FileName);
+                    var name = Path.GetFileName(errorResult.FileName);
+                    throw ch.Except($"{errorMessage}\nMeta file could not be downloaded! " +
+                        $@"Please copy the model file '{name}' from '{url}' to '{directory}'.");
+                }
+            }
         }
 
         internal static Graph LoadMetaGraph(string path)
@@ -258,10 +278,23 @@ namespace Microsoft.ML.Transforms.Dnn
         /// <param name="modelPath">The model to load.</param>
         /// <param name="metaGraph"></param>
         /// <returns></returns>
-        internal static DnnModel LoadDnnModel(IHostEnvironment env, string modelPath, bool metaGraph = false)
+        internal static DnnModel LoadDnnModel(IHostEnvironment env, string modelPath, bool metaGraph = false) =>
+            new DnnModel(GetSession(env, modelPath, metaGraph), modelPath);
+
+        internal static DnnModel LoadDnnModel(IHostEnvironment env, Architecture arch, bool metaGraph = false)
         {
-            var session = GetSession(env, modelPath, metaGraph);
-            return new DnnModel(env, session, modelPath);
+            var modelFileName = ModelFileName[arch];
+            int timeout = 10 * 60 * 1000;
+            string currentDirectory = Directory.GetCurrentDirectory();
+            DownloadIfNeeded(env, modelFileName, currentDirectory, modelFileName, timeout);
+            if (arch == Architecture.InceptionV3)
+            {
+                DownloadIfNeeded(env, @"tfhub_modules.zip",currentDirectory,@"tfhub_modules.zip",timeout);
+                if (!Directory.Exists(@"tfhub_modules"))
+                    ZipFile.ExtractToDirectory(Path.Combine(currentDirectory, @"tfhub_modules.zip"), @"tfhub_modules");
+            }
+
+            return new DnnModel(GetSession(env, modelFileName, metaGraph), modelFileName);
         }
 
         internal static Session GetSession(IHostEnvironment env, string modelPath, bool metaGraph = false)
@@ -275,14 +308,6 @@ namespace Microsoft.ML.Transforms.Dnn
 
             env.CheckUserArg(File.Exists(modelPath), nameof(modelPath));
             return LoadTFSessionByModelFilePath(env, modelPath, metaGraph);
-        }
-
-        internal static unsafe void FetchData<T>(T[] data, Span<T> result)
-        {
-            var dataCopy = new T[data.Length];
-            Array.Copy(data, dataCopy, data.Length);
-            var dataSpan = new Span<T>(dataCopy, 0, result.Length);
-            dataSpan.CopyTo(result);
         }
 
         internal static unsafe void FetchStringData<T>(Tensor tensor, Span<T> result)
@@ -397,6 +422,11 @@ namespace Microsoft.ML.Transforms.Dnn
                 }
 
                 return this;
+            }
+
+            public List<Tensor> GetInputValues()
+            {
+                return _inputValues;
             }
 
             public Runner AddOutputs(string output)

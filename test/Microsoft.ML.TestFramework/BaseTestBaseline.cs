@@ -506,7 +506,7 @@ namespace Microsoft.ML.RunTests
                         if (line1 == null || line2 == null)
                             Fail("Output and baseline different lengths: '{0}'", relPath);
                         else
-                            Fail(_allowMismatch, "Output and baseline mismatch at line {1}: '{0}'", relPath, count);
+                            Fail(_allowMismatch, "Output and baseline mismatch at line {1}, expected '{2}' but got '{3}' : '{0}'", relPath, count, line1, line2);
                         return false;
                     }
                 }

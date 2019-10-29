@@ -106,7 +106,6 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Column name.
         /// </summary>
-        [BestFriend]
         internal string Name { get; }
 
         /// <summary>

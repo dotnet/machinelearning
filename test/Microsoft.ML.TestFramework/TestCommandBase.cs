@@ -676,6 +676,23 @@ namespace Microsoft.ML.RunTests
         // are explicit in favor of the more generic tests where appropriate.
 
         [TestCategory(Cat)]
+        [Fact]
+        public void EvaluateRankingWithMaml()
+        {
+            RunMTAThread(() =>
+            {
+                string trainData = GetDataPath("adult.tiny.with-schema.txt");
+                string extraArgs = $"tr=FastRankRanking{{t=1}} eval=RankingEvaluator{{t=10}} prexf=rangefilter{{col=Label min=20 max=25}} " +
+                $"prexf=term{{col=Strat:Label}} xf=term{{col=Label}} xf=hash{{col=GroupId}} threads- norm=Warn";
+
+                string loaderArgs = "loader=text{col=Features:R4:10-14 col=Label:R4:9 col=GroupId:TX:1 header+}";
+
+                TestCore("cv", trainData, loaderArgs, extraArgs);
+            });
+            Done();
+        }
+
+        [TestCategory(Cat)]
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         public void CommandShowSchema()
         {
