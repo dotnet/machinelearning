@@ -119,7 +119,6 @@ namespace Microsoft.ML.Featurizers
     {
         private readonly IntPtr _dataSize;
 
-        // TODO: Update with correct entry point.
         [DllImport("Featurizers", EntryPoint = "DestroyTransformerSaveData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
         private static extern bool DestroyTransformerSaveDataNative(IntPtr buffer, IntPtr bufferSize, out IntPtr error);
 
