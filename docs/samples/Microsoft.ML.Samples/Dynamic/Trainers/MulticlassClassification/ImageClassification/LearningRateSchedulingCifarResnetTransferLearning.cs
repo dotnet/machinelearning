@@ -9,8 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Dnn;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Vision;
 
 namespace Samples.Dynamic
 {

@@ -41,8 +41,8 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
             this.Write("    <PackageReference Include=\"Microsoft.ML.ImageAnalytics\" Version=\"1.4.0\" />\r\n");
 }
  if (IncludeImageClassificationPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.Dnn\" Version=\"1.4.0\" />\r\n\t<PackageRef" +
-                    "erence Include=\"SciSharp.TensorFlow.Redist\" Version=\"1.14.0\" />\r\n");
+            this.Write("    <PackageReference Include=\"Microsoft.ML.Vision\" Version=\"1.4.0\" />\r\n\t<Package" +
+                    "Reference Include=\"SciSharp.TensorFlow.Redist\" Version=\"1.14.0\" />\r\n");
 }
             this.Write("  </ItemGroup>\r\n\r\n  <ItemGroup>\r\n    <None Update=\"MLModel.zip\">\r\n      <CopyToOu" +
                     "tputDirectory>PreserveNewest</CopyToOutputDirectory>\r\n    </None>\r\n  </ItemGroup" +

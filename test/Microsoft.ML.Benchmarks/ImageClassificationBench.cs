@@ -13,7 +13,7 @@ using Microsoft.ML.Transforms;
 using BenchmarkDotNet.Attributes;
 using static Microsoft.ML.DataOperationsCatalog;
 using System.Net.Http;
-using Microsoft.ML.Dnn;
+using Microsoft.ML.Vision;
 
 namespace Microsoft.ML.Benchmarks
 {

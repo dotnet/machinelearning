@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Dnn;
+using Microsoft.ML.Vision;
 using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Samples.Dynamic
