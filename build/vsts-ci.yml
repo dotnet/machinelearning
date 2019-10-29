@@ -262,7 +262,7 @@ phases:
       command: push 
       packagesToPush: $(Build.SourcesDirectory)/bin/packages/**/*.nupkg;!$(Build.SourcesDirectory)/bin/packages/**/*.symbols.nupkg 
       nuGetFeedType: internal 
-      feedPublish: MachineLearning
+      feedPublish: ModelBuilder
 
   # Terminate all dotnet build processes.
   - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet.exe build-server shutdown
