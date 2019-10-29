@@ -556,5 +556,26 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 return _binaryTrainerUsings;
             }
         }
+
+        internal sealed class ImageClassificationTrainer : TrainerGeneratorBase
+        {
+            //ClassName of the trainer
+            internal override string MethodName => "ImageClassification";
+            internal override string OptionsName => "ImageClassificationTrainer.Options";
+            internal override string[] Usings => new string[] { "using Microsoft.ML.Dnn;\r\n" };
+
+            public ImageClassificationTrainer(PipelineNode node) : base(node)
+            {
+            }
+            //The named parameters to the trainer.
+            internal override IDictionary<string, string> NamedParameters
+            {
+                get
+                {
+                    return
+                    new Dictionary<string, string>();
+                }
+            }
+        }
     }
 }

@@ -99,7 +99,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 }
                 //more special cases to handle
 
-                if (NamedParameters != null)
+                if (NamedParameters != null && NamedParameters.Count > 0)
                 {
                     _arguments.Add(_hasAdvancedSettings ? kv.Key : NamedParameters[kv.Key], value);
                 }

@@ -24,7 +24,7 @@ namespace Microsoft.ML.AutoML
         {
             try
             {
-                var estimator = pipeline.ToEstimator();
+                var estimator = pipeline.ToEstimator(trainData, validData);
                 var model = estimator.Fit(trainData);
 
                 var scoredData = model.Transform(validData);

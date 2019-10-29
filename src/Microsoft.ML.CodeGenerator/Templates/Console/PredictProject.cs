@@ -28,16 +28,23 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
         {
             this.Write("<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n  <PropertyGroup>\r\n    <OutputType>Exe</Outp" +
                     "utType>\r\n    <TargetFramework>netcoreapp2.1</TargetFramework>\r\n  </PropertyGroup" +
-                    ">\r\n  <ItemGroup>\r\n    <PackageReference Include=\"Microsoft.ML\" Version=\"1.3.1\" /" +
+                    ">\r\n  <ItemGroup>\r\n    <PackageReference Include=\"Microsoft.ML\" Version=\"1.4.0\" /" +
                     ">\r\n");
  if (IncludeLightGBMPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.LightGBM\" Version=\"1.3.1\" />\r\n");
+            this.Write("    <PackageReference Include=\"Microsoft.ML.LightGBM\" Version=\"1.4.0\" />\r\n");
 }
  if (IncludeMklComponentsPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.Mkl.Components\" Version=\"1.3.1\" />\r\n");
+            this.Write("    <PackageReference Include=\"Microsoft.ML.Mkl.Components\" Version=\"1.4.0\" />\r\n");
 }
  if (IncludeFastTreePackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.FastTree\" Version=\"1.3.1\" />\r\n");
+            this.Write("    <PackageReference Include=\"Microsoft.ML.FastTree\" Version=\"1.4.0\" />\r\n");
+}
+ if (IncludeImageTransformerPackage){ 
+            this.Write("    <PackageReference Include=\"Microsoft.ML.ImageAnalytics\" Version=\"1.4.0\" />\r\n");
+}
+ if (IncludeImageClassificationPackage){ 
+            this.Write("    <PackageReference Include=\"Microsoft.ML.Dnn\" Version=\"1.4.0\" />\r\n\t<PackageRef" +
+                    "erence Include=\"SciSharp.TensorFlow.Redist\" Version=\"1.14.0\" />\r\n");
 }
             this.Write("  </ItemGroup>\r\n  <ItemGroup>\r\n    <ProjectReference Include=\"..\\");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
@@ -51,6 +58,8 @@ public string Namespace {get;set;}
 public bool IncludeLightGBMPackage {get;set;}
 public bool IncludeMklComponentsPackage {get;set;}
 public bool IncludeFastTreePackage {get;set;}
+public bool IncludeImageTransformerPackage {get; set;}
+public bool IncludeImageClassificationPackage {get; set;}
 
     }
     #region Base class

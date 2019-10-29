@@ -65,6 +65,8 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                         return new SymbolicSgdLogisticRegressionBinary(node);
                     case TrainerName.Ova:
                         return new OneVersusAll(node);
+                    case TrainerName.ImageClassification:
+                        return new ImageClassificationTrainer(node);
                     default:
                         throw new ArgumentException($"The trainer '{trainer}' is not handled currently.");
                 }

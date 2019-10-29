@@ -13,7 +13,8 @@ namespace Microsoft.ML.AutoML
     {
         IEnumerable<SweepableParam> GetHyperparamSweepRanges();
 
-        ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo);
+        ITrainerEstimator CreateInstance(MLContext mlContext,
+            IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo, IDataView validationSet = null);
 
         PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo);
     }

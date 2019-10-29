@@ -35,9 +35,7 @@ MB_Annotation();
             this.Write("\r\nusing System;\r\nusing System.IO;\r\nusing System.Linq;\r\nusing Microsoft.ML;\r\nusing" +
                     " ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model;\r\nusing ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model.DataModels;\r\n\r\nnamespace ");
+            this.Write(".Model;\r\n\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             this.Write(".ConsoleApp\r\n{\r\n    class Program\r\n    {\r\n        //Dataset to use for prediction" +
                     "s \r\n");

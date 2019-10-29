@@ -40,7 +40,7 @@ namespace Microsoft.ML.AutoML
         public override bool Equals(object obj)
         {
             var pipeline = obj as SuggestedPipeline;
-            if(pipeline == null)
+            if (pipeline == null)
             {
                 return false;
             }
@@ -55,7 +55,7 @@ namespace Microsoft.ML.AutoML
         public Pipeline ToPipeline()
         {
             var pipelineElements = new List<PipelineNode>();
-            foreach(var transform in Transforms)
+            foreach (var transform in Transforms)
             {
                 pipelineElements.Add(transform.PipelineNode);
             }
@@ -74,9 +74,9 @@ namespace Microsoft.ML.AutoML
             SuggestedTrainer trainer = null;
 
             var trainerEncountered = false;
-            foreach(var pipelineNode in pipeline.Nodes)
+            foreach (var pipelineNode in pipeline.Nodes)
             {
-                if(pipelineNode.NodeType == PipelineNodeType.Trainer)
+                if (pipelineNode.NodeType == PipelineNodeType.Trainer)
                 {
                     var trainerName = (TrainerName)Enum.Parse(typeof(TrainerName), pipelineNode.Name);
                     var trainerExtension = TrainerExtensionCatalog.GetTrainerExtension(trainerName);
@@ -105,7 +105,8 @@ namespace Microsoft.ML.AutoML
             return new SuggestedPipeline(transforms, transformsPostTrainer, trainer, context, pipeline.CacheBeforeTrainer);
         }
 
-        public IEstimator<ITransformer> ToEstimator()
+        public IEstimator<ITransformer> ToEstimator(IDataView trainset = null,
+            IDataView validationSet = null)
         {
             IEstimator<ITransformer> pipeline = new EstimatorChain<ITransformer>();
 
@@ -118,8 +119,13 @@ namespace Microsoft.ML.AutoML
                 }
             }
 
+            if (validationSet != null)
+            {
+                validationSet = pipeline.Fit(validationSet).Transform(validationSet);
+            }
+
             // Get learner
-            var learner = Trainer.BuildTrainer();
+            var learner = Trainer.BuildTrainer(validationSet);
 
             if (_cacheBeforeTrainer)
             {
