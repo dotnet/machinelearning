@@ -58,7 +58,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
             // Write files to disk.
             var modelprojectDir = Path.Combine(_settings.OutputBaseDir, $"{_settings.OutputName}.Model");
-            var dataModelsDir = Path.Combine(modelprojectDir, "DataModels");
+            var dataModelsDir = modelprojectDir;
             var modelProjectName = $"{_settings.OutputName}.Model.csproj";
 
             Utils.WriteOutputToFiles(modelProjectContents.ModelInputCSFileContent, "ModelInput.cs", dataModelsDir);
