@@ -21,10 +21,6 @@
       https://dotnet.myget.org/F/roslyn-analyzers/api/v3/index.json;
       https://devdiv.pkgs.visualstudio.com/_packaging/MachineLearning/nuget/v3/index.json;
     </RestoreSources>
-    <!-- <RestoreSources Include="https://devdiv.pkgs.visualstudio.com/_packaging/MachineLearning/nuget/v3/index.json">
-      <Username>frank-pat-nuget-builds</Username>
-      <Password>hgbnknrkd7dlnz6d4nazyraqzermmpw2drgubkrpsyiexefbivda</Password>
-    </RestoreSources> -->
   </PropertyGroup>
 
   <!-- Common repo directories -->
