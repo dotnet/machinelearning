@@ -10,10 +10,16 @@ using Microsoft.Research.SEAL;
 
 namespace Microsoft.ML.DataView
 {
+    /// <summary>
+    /// The standard Ciphertext type. The representation type of this is Ciphertext.
+    /// </summary>
     public class CiphertextDataViewType : StructuredDataViewType
     {
         private static volatile CiphertextDataViewType _instance;
 
+        /// <summary>
+        /// Returns an instance of this object.
+        /// </summary>
         public static CiphertextDataViewType Instance
         {
             get
@@ -39,10 +45,16 @@ namespace Microsoft.ML.DataView
         public override string ToString() => "Ciphertext[]";
     }
 
+    /// <summary>
+    /// The standard Ciphertext type. The representation type of this is GaloisKeys.
+    /// </summary>
     public class CipherGaloisKeyDataViewType : StructuredDataViewType
     {
         private static volatile CipherGaloisKeyDataViewType _instance;
 
+        /// <summary>
+        /// Returns an instance of this object.
+        /// </summary>
         public static CipherGaloisKeyDataViewType Instance
         {
             get
