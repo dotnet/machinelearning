@@ -270,10 +270,8 @@ namespace mlnet.Tests
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void Recommendation_GenerateModelProjectContents_VerifyModelInput()
         {
-            CodeGenerator consoleCodeGen = PrepareForRecommendationTask();
-
             (string ModelInputCSFileContent, string ModelOutputCSFileContent, string ConsumeModelCSFileContent, string ModelProjectFileContent) codeGenResult
-                = GenerateModelProjectContents(consoleCodeGen);
+                = GenerateModelProjectContentsForRecommendation();
 
             Approvals.Verify(codeGenResult.ModelInputCSFileContent);
         }
@@ -283,10 +281,8 @@ namespace mlnet.Tests
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void Recommendation_GenerateModelProjectContents_VerifyModelOutput()
         {
-            CodeGenerator consoleCodeGen = PrepareForRecommendationTask();
-
             (string ModelInputCSFileContent, string ModelOutputCSFileContent, string ConsumeModelCSFileContent, string ModelProjectFileContent) codeGenResult
-                = GenerateModelProjectContents(consoleCodeGen);
+                = GenerateModelProjectContentsForRecommendation();
 
             Approvals.Verify(codeGenResult.ModelOutputCSFileContent);
         }
@@ -296,10 +292,8 @@ namespace mlnet.Tests
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void Recommendation_GenerateModelProjectContents_VerifyConsumeModel()
         {
-            CodeGenerator consoleCodeGen = PrepareForRecommendationTask();
-
             (string ModelInputCSFileContent, string ModelOutputCSFileContent, string ConsumeModelCSFileContent, string ModelProjectFileContent) codeGenResult
-                = GenerateModelProjectContents(consoleCodeGen);
+                = GenerateModelProjectContentsForRecommendation();
 
             Approvals.Verify(codeGenResult.ConsumeModelCSFileContent);
         }
@@ -309,10 +303,8 @@ namespace mlnet.Tests
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void Recommendation_GenerateModelProjectContents_VerifyModelProject()
         {
-            CodeGenerator consoleCodeGen = PrepareForRecommendationTask();
-
             (string ModelInputCSFileContent, string ModelOutputCSFileContent, string ConsumeModelCSFileContent, string ModelProjectFileContent) codeGenResult
-                = GenerateModelProjectContents(consoleCodeGen);
+                = GenerateModelProjectContentsForRecommendation();
 
             Approvals.Verify(codeGenResult.ModelProjectFileContent);
         }
@@ -322,10 +314,8 @@ namespace mlnet.Tests
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void Recommendation_GenerateConsoleAppProjectContents_VerifyPredictProgram()
         {
-            CodeGenerator consoleCodeGen = PrepareForRecommendationTask();
-
             (string ConsoleAppProgramCSFileContent, string ConsoleAppProjectFileContent, string modelBuilderCSFileContent) codeGenResult
-                = GenerateConsoleAppProjectContents(consoleCodeGen);
+                = GenerateConsoleAppProjectContentsForRecommendation();
 
             Approvals.Verify(codeGenResult.ConsoleAppProgramCSFileContent);
         }
@@ -335,10 +325,8 @@ namespace mlnet.Tests
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void Recommendation_GenerateConsoleAppProjectContents_VerifyPredictProject()
         {
-            CodeGenerator consoleCodeGen = PrepareForRecommendationTask();
-
             (string ConsoleAppProgramCSFileContent, string ConsoleAppProjectFileContent, string modelBuilderCSFileContent) codeGenResult
-                = GenerateConsoleAppProjectContents(consoleCodeGen);
+                = GenerateConsoleAppProjectContentsForRecommendation();
 
             Approvals.Verify(codeGenResult.ConsoleAppProjectFileContent);
         }
@@ -348,22 +336,38 @@ namespace mlnet.Tests
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void Recommendation_GenerateConsoleAppProjectContents_VerifyModelBuilder()
         {
-            CodeGenerator consoleCodeGen = PrepareForRecommendationTask();
-
             (string ConsoleAppProgramCSFileContent, string ConsoleAppProjectFileContent, string modelBuilderCSFileContent) codeGenResult
-                = GenerateConsoleAppProjectContents(consoleCodeGen);
+                = GenerateConsoleAppProjectContentsForRecommendation();
 
             Approvals.Verify(codeGenResult.modelBuilderCSFileContent);
         }
 
-        private (string ModelInputCSFileContent, string ModelOutputCSFileContent, string ConsumeModelCSFileContent, string ModelProjectFileContent) GenerateModelProjectContents(CodeGenerator consoleCodeGen)
+        private (string ModelInputCSFileContent, string ModelOutputCSFileContent, string ConsumeModelCSFileContent, string ModelProjectFileContent) GenerateModelProjectContentsForRecommendation()
         {
-            return consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), false, false, false, false, false, includeRecommenderPackage: true);
+            CodeGenerator consoleCodeGen = PrepareForRecommendationTask();
+            return consoleCodeGen.GenerateModelProjectContents(
+                namespaceValue, 
+                labelTypeCsharp: typeof(float),
+                includeLightGbmPackage: false,
+                includeMklComponentsPackage: false,
+                includeFastTreePackage: false,
+                includeImageTransformerPackage: false,
+                includeImageClassificationPackage: false,
+                includeRecommenderPackage: true);
         }
 
-        private (string ConsoleAppProgramCSFileContent, string ConsoleAppProjectFileContent, string modelBuilderCSFileContent) GenerateConsoleAppProjectContents(CodeGenerator consoleCodeGen)
+        private (string ConsoleAppProgramCSFileContent, string ConsoleAppProjectFileContent, string modelBuilderCSFileContent) GenerateConsoleAppProjectContentsForRecommendation()
         {
-            return consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), false, false, false, false, false, includeRecommenderPackage: true);
+            CodeGenerator consoleCodeGen = PrepareForRecommendationTask();
+            return consoleCodeGen.GenerateConsoleAppProjectContents(
+                namespaceValue,
+                labelTypeCsharp: typeof(float),
+                includeLightGbmPackage: false,
+                includeMklComponentsPackage: false,
+                includeFastTreePackage: false,
+                includeImageTransformerPackage: false,
+                includeImageClassificationPackage: false,
+                includeRecommenderPackage: true);
         }
 
         private CodeGenerator PrepareForRecommendationTask()
