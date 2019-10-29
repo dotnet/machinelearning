@@ -6,9 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
+    <PackageReference Include="Microsoft.ML" Version="1.4.0" />
+    <PackageReference Include="Microsoft.ML.DataView" Version="1.4.0" />
 
-    <PackageReference Include="MicrosoftMLFeaturizers" Version="0.1.0" />
+    <PackageReference Include="Microsoft.MLFeaturizers" Version="0.3.5" />
   </ItemGroup>
   
 </Project>
