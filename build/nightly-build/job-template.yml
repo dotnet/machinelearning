@@ -33,6 +33,8 @@ jobs:
         displayName: Install build dependencies
     - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }}
       displayName: Builds 1st time to restore tools
+    - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet restore
+      displayName: Restore dotnet cli
     - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet list $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj package --source https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json --outdated
       displayName: List latest package versions on screen, only for test
     - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet list $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj package --source https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json --outdated > $(Build.SourcesDirectory)/test/Microsoft.ML.NugetPackageVersionUpdater/latest_versions.txt
