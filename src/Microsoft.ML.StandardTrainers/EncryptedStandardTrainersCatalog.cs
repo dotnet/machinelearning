@@ -57,7 +57,7 @@ namespace Microsoft.ML.Trainers
         ///  [!code-csharp[SdcaLogisticRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/SdcaLogisticRegressionWithOptions.cs)]
         /// ]]></format>
         /// </example>
-        public static EncryptedSdcaLogisticRegressionBinaryTrainer SdcaLogisticRegression(
+        public static EncryptedSdcaLogisticRegressionBinaryTrainer EncryptedSdcaLogisticRegression(
                 this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
                 EncryptedSdcaLogisticRegressionBinaryTrainer.Options options)
         {
