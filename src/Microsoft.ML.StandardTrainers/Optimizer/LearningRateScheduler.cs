@@ -262,4 +262,69 @@ namespace Microsoft.ML.Trainers
         }
 
     }
+
+    /// <summary>
+    /// This class implements Cyclical Learning Rate.
+    /// Source: https://arxiv.org/pdf/1506.01186.pdf
+    /// </summary>
+    public sealed class CyclicLR : LearningRateScheduler
+    {
+        /// <summary>
+        /// Defines number of iterations in a halfcycle.
+        /// Note: The paper recommends setting StepSize as 2 to 10 times the number of iterations in an epoch.
+        /// </summary>
+        public int Stepsize;
+
+        /// <summary>
+        /// Initial learning rate, also the lower bound of the cycle.
+        /// </summary>
+        public float LearningRate;
+
+        /// <summary>
+        /// The maximum learning rate boundary.
+        /// </summary>
+        public float MaxLR;
+
+        /// <summary>
+        /// A contant in the "exp_range" mode. See Mode options for more information.
+        /// </summary>
+        public float Gamma;
+
+        /// <summary>
+        /// There are three modes to compute CyclicLR:
+        /// "triangular" : Default, the learning rate linearly increases and then linearly decreases for each cycle.
+        /// "triangular2" : It is the same as triangular policy, except the learning rate difference is cut in half at the end of each cycle.This means the learning rate difference drops after each cycle.
+        /// "exp range" : The learning rate varies between the minimum and maximum boundaries and each boundary value declines by an exponential factor of gamma^iteration.
+        /// </summary>
+        public string Mode;
+
+        public CyclicLR(int stepsize = 20, float initialLR = 0.01f, float maxLR = 0.1f, string mode = "triangular", float gamma = 0.99994f)
+        {
+            Stepsize = stepsize;
+            LearningRate = initialLR;
+            MaxLR = maxLR;
+            Gamma = gamma;
+            Mode = mode;
+        }
+
+        internal override float GetLearningRate(TrainState trainstate)
+        {
+            int globalStep = (trainstate.CurrentEpoch) * (trainstate.BatchesPerEpoch) + trainstate.CurrentBatchIndex;
+            float temp = 1 + (float)globalStep / (2 * Stepsize);
+            int cycle = (int)Math.Floor(temp);
+            float x = Math.Abs((float)globalStep / Stepsize - 2 * cycle + 1);
+            float clr = (MaxLR - LearningRate) * ((1 - x) > 0 ? (1 - x) : 0);
+
+            if (string.Compare(Mode, "triangular2") == 0)
+            {
+                clr /= (float)Math.Pow(2, cycle - 1);
+            }
+            else if (string.Compare(Mode, "exp_range") == 0)
+            {
+                clr = (float)Math.Pow(Gamma, globalStep) * clr;
+            }
+
+            return clr + LearningRate;
+        }
+    }
 }

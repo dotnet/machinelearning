@@ -1476,9 +1476,17 @@ namespace Microsoft.ML.Scenarios
             TensorFlowImageClassificationWithLRScheduling(new PolynomialLRDecay(), 50);
         }
 
+        [TensorFlowFact]
+        public void TensorFlowImageClassificationWithCyclicLRScheduling()
+        {
+            TensorFlowImageClassificationWithLRScheduling(new CyclicLR(), 50);
+        }
+
         internal void TensorFlowImageClassificationWithLRScheduling(LearningRateScheduler  learningRateScheduler, int epoch)
         {
-            string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
+            string assetsRelativePath = @"assets";
+            string assetsPath = GetAbsolutePath(assetsRelativePath);
+            string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
                 "images");
 
             //Download the image set and unzip
