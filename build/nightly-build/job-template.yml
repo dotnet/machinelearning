@@ -37,7 +37,7 @@ jobs:
       displayName: List latest package versions on screen, only for test
     - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet list $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj package --source https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json --outdated > $(Build.SourcesDirectory)/test/Microsoft.ML.NugetPackageVersionUpdater/latest_versions.txt
       displayName: List latest package versions
-    - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet run $(Build.SourcesDirectory)/test/Microsoft.ML.NugetPackageVersionUpdater/Microsoft.ML.NugetPackageVersionUpdater.csproj
+    - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet run --project $(Build.SourcesDirectory)/test/Microsoft.ML.NugetPackageVersionUpdater/Microsoft.ML.NugetPackageVersionUpdater.csproj
       displayName: Update package version
     - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet build $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj
       displayName: Build Nightly Build Project with latest package versions
