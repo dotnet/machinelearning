@@ -8,6 +8,18 @@ pr: none
 # no CI builds
 trigger: none
 
+# scheduled trigger
+schedules:
+- cron: "30 22 * * *"
+  displayName: Nightly Build at midnight
+  branches:
+    include:
+    - master
+    - releases/1.0
+    - features/automl
+    - features/integrationPackage
+    exclude:
+
 resources:
   containers:
   - container: CentosContainer
