@@ -1493,11 +1493,12 @@ namespace Microsoft.ML.Scenarios
                 // Using Exponential Decay for learning rate scheduling
                 // You can also try other types of Learning rate scheduling methods
                 // available in LearningRateScheduler.cs  
-                LearningRateScheduler = learningRateScheduler
+                LearningRateScheduler = learningRateScheduler,
+                WorkspacePath = GetTemporaryDirectory()
             };
 
             var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
-                .Append(mlContext.MulticlassClassification.Trainers.ImageClassification(options))
+                    .Append(mlContext.MulticlassClassification.Trainers.ImageClassification(options))
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(
                         outputColumnName: "PredictedLabel",
                         inputColumnName: "PredictedLabel"));
@@ -1577,6 +1578,11 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal("roses", predictionSecond.PredictedLabel);
             Assert.True(Array.IndexOf(labels, predictionFirst.PredictedLabel) > -1);
             Assert.True(Array.IndexOf(labels, predictionSecond.PredictedLabel) > -1);
+
+            Assert.True(File.Exists(Path.Combine(options.WorkspacePath, options.TrainSetBottleneckCachedValuesFileName)));
+            Assert.True(File.Exists(Path.Combine(options.WorkspacePath, options.ValidationSetBottleneckCachedValuesFileName)));
+            Assert.True(File.Exists(Path.Combine(options.WorkspacePath, ImageClassificationTrainer.ModelFileName[options.Arch])));
+            Directory.Delete(options.WorkspacePath, true);
         }
 
         [TensorFlowFact]
@@ -1952,5 +1958,11 @@ namespace Microsoft.ML.Scenarios
             public string PredictedLabel;
         }
 
+        private static string GetTemporaryDirectory()
+        {
+            string tempDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(tempDirectory);
+            return tempDirectory;
+        }
     }
 }
