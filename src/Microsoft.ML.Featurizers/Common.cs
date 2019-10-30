@@ -19,9 +19,24 @@ namespace Microsoft.ML.Featurizers
     // Not all these types are currently supported. This is so the ordering will allign with the native code.
     internal enum TypeId : uint
     {
-        String = 1, SByte, Short, Int, Long, Byte, UShort,
-        UInt, ULong, Float16, Float32, Double, Complex64,
-        Complex128, BFloat16, Bool, Timepoint, Duration,
+        String = 1,
+        SByte,
+        Short,
+        Int,
+        Long,
+        Byte,
+        UShort,
+        UInt,
+        ULong,
+        Float16,
+        Float32,
+        Double,
+        Complex64,
+        Complex128,
+        BFloat16,
+        Bool,
+        Timepoint,
+        Duration,
 
         LastStaticValue,
         Tensor = 0x1001 | LastStaticValue + 1,
