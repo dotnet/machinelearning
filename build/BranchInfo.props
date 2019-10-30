@@ -29,14 +29,14 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(IsStableProject)' == 'true'">
     <MajorVersion>1</MajorVersion>
-    <MinorVersion>4</MinorVersion>
+    <MinorVersion>5</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseLabel>preview3</PreReleaseLabel>
+    <PreReleaseLabel>preview</PreReleaseLabel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(IsStableProject)' != 'true'">
     <MajorVersion>0</MajorVersion>
-    <MinorVersion>16</MinorVersion>
+    <MinorVersion>17</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseLabel>preview3</PreReleaseLabel>
+    <PreReleaseLabel>preview</PreReleaseLabel>
   </PropertyGroup>
 </Project>
