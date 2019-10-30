@@ -9,7 +9,7 @@
     <ReferenceTypeForTestFramework>NuGet</ReferenceTypeForTestFramework>
   </PropertyGroup>
 
-  <Import Project="..\PackageDependency.props" />
+  <Import Project="..\NightlyBuildDependency.props" />
 
   <ItemGroup>
     <Compile Include="..\Microsoft.ML.Functional.Tests\**\*.cs" />
@@ -33,5 +33,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.TestFrameworkCommon\Microsoft.ML.TestFrameworkCommon.csproj" />
   </ItemGroup>
+
+  <Target Name="TestMessage" AfterTargets="Build">
+    <Message Text="Running with args in NightlyBuild: $(ReferenceTypeForTestFramework)" Importance="high"/>
+  </Target>
 
 </Project>

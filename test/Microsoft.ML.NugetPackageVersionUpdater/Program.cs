@@ -13,14 +13,14 @@ namespace Microsoft.ML.NugetPackageVersionUpdater
     {
         //private const string getLatestVersionBatFileName = "get-latest-package-version.bat";
         private const string tempVersionsFile = "latest_versions.txt";
-        private const string targetPropsFile = "../PackageDependency.props";
+        private const string targetPropsFiles = "../NightlyBuildDependency.props;../TestFrameworkDependency.props";
         private const string packageNamespace = "Microsoft.ML";
 
         public static void Main(string[] args)
         {
-            string projFilePath = targetPropsFile;
+            string projFiles = targetPropsFiles;
             var packageVersions = GetLatestPackageVersions();
-            UpdatePackageVersion(projFilePath, packageVersions);
+            UpdatePackageVersion(projFiles, packageVersions);
         }
 
         private static IDictionary<string, string> GetLatestPackageVersions()
@@ -56,29 +56,34 @@ namespace Microsoft.ML.NugetPackageVersionUpdater
             return packageVersions;
         }
 
-        private static void UpdatePackageVersion(string filePath, IDictionary<string, string> latestPackageVersions)
+        private static void UpdatePackageVersion(string projectFiles, IDictionary<string, string> latestPackageVersions)
         {
             string packageReferencePath = "/Project/ItemGroup/PackageReference";
 
-            var CsprojDoc = new XmlDocument();
-            CsprojDoc.Load(filePath);
+            var projectFilePaths = projectFiles.Split(";".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 
-            var packageReferenceNodes = CsprojDoc.DocumentElement.SelectNodes(packageReferencePath);
-
-            for (int i = 0; i < packageReferenceNodes.Count; i++)
+            foreach (var projectFilePath in projectFilePaths)
             {
-                var packageName = packageReferenceNodes.Item(i).Attributes.GetNamedItem("Include").InnerText;
+                var CsprojDoc = new XmlDocument();
+                CsprojDoc.Load(projectFilePath);
 
-                if (latestPackageVersions.ContainsKey(packageName))
+                var packageReferenceNodes = CsprojDoc.DocumentElement.SelectNodes(packageReferencePath);
+
+                for (int i = 0; i < packageReferenceNodes.Count; i++)
                 {
-                    var latestVersion = latestPackageVersions[packageName];
-                    packageReferenceNodes.Item(i).Attributes.GetNamedItem("Version").InnerText = latestVersion;
-                }
-                else
-                    Console.WriteLine($"Can't find newer version of Package {packageName} from NuGet source, don't need to update version.");
-            }
+                    var packageName = packageReferenceNodes.Item(i).Attributes.GetNamedItem("Include").InnerText;
 
-            CsprojDoc.Save(filePath);
+                    if (latestPackageVersions.ContainsKey(packageName))
+                    {
+                        var latestVersion = latestPackageVersions[packageName];
+                        packageReferenceNodes.Item(i).Attributes.GetNamedItem("Version").InnerText = latestVersion;
+                    }
+                    else
+                        Console.WriteLine($"Can't find newer version of Package {packageName} from NuGet source, don't need to update version.");
+                }
+
+                CsprojDoc.Save(projectFilePath);
+            }
         }
     }
 }
