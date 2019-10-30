@@ -46,13 +46,14 @@ jobs:
     pool:
       name: Hosted Ubuntu 1604
 
-- template: /build/nightly-build/job-template.yml
-  parameters:
-    name: Ubuntu_x64_NetCoreApp21
-    buildScript: ./build.sh
-    container: UbuntuContainer
-    pool:
-      name: Hosted Ubuntu 1604
+# disable for now, have issue in referencing SymSgdNative native library
+# - template: /build/nightly-build/job-template.yml
+#   parameters:
+#     name: Ubuntu_x64_NetCoreApp21
+#     buildScript: ./build.sh
+#     container: UbuntuContainer
+#     pool:
+#       name: Hosted Ubuntu 1604
 
 - template: /build/nightly-build/job-template.yml
   parameters:
