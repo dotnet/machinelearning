@@ -38,7 +38,7 @@ jobs:
     #   inputs:
     #     command: 'custom'
     #     arguments: 'list Microsoft.ML -Source https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json -Prerelease > $(Build.SourcesDirectory)/latest_versions.txt'
-    - script: nuget list Microsoft.ML -Source https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json -Prerelease > $(Build.SourcesDirectory)/latest_versions.txt
+    - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet nuget list Microsoft.ML -Source https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json -Prerelease > $(Build.SourcesDirectory)/latest_versions.txt
       displayName: List latest package versions
     - task: DotNetCoreCLI@2
       displayName: Update package version
