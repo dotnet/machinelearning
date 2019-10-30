@@ -12,7 +12,7 @@ namespace Microsoft.ML.NugetPackageVersionUpdater
     class Program
     {
         //private const string getLatestVersionBatFileName = "get-latest-package-version.bat";
-        private const string tempVersionsFile = "..\\..\\latest_versions.txt";
+        private const string tempVersionsFile = "latest_versions.txt";
         private const string targetPropsFile = "..\\PackageDependency.props";
         private const string packageNamespace = "Microsoft.ML";
 
@@ -42,7 +42,7 @@ namespace Microsoft.ML.NugetPackageVersionUpdater
                 {
                     if (split.Contains(packageNamespace))
                     {
-                        var detailSplit = split.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                        var detailSplit = split.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 
                         //valida NuGet package version should be separate by space like below:
                         //> [PackageName]space[Requested PackageVersion]space[Resolved PackageVersion]space[Latest PackageVersion]
@@ -75,7 +75,7 @@ namespace Microsoft.ML.NugetPackageVersionUpdater
                     packageReferenceNodes.Item(i).Attributes.GetNamedItem("Version").InnerText = latestVersion;
                 }
                 else
-                    throw new InvalidDataException($"Can't find latest version of Package {packageName} from NuGet source, fail to update version.");
+                    Console.WriteLine($"Can't find newer version of Package {packageName} from NuGet source, don't need to update version.");
             }
 
             CsprojDoc.Save(filePath);
