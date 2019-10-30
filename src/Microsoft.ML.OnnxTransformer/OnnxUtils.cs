@@ -444,10 +444,7 @@ namespace Microsoft.ML.Transforms.Onnx
 
             if (typeof(T) == typeof(ReadOnlyMemory<char>))
             {
-                var charMemory = (ReadOnlyMemory<char>)Convert.ChangeType(data, typeof(ReadOnlyMemory<char>));
-                var stringMemory = new Memory<string>(new string[] { charMemory.ToString() });
-                return NamedOnnxValue.CreateFromTensor<string>(name, new DenseTensor<string>(stringMemory, new int[] { 1, 1 }, false));
-
+                return NamedOnnxValue.CreateFromTensor<string>(name, new DenseTensor<string>(new string[] { data.ToString() }, new int[] { 1, 1 }, false));
             }
             return NamedOnnxValue.CreateFromTensor<T>(name, new DenseTensor<T>(new T[] { data }, new int[] { 1, 1 }));
         }
