@@ -33,11 +33,9 @@ jobs:
         displayName: Install build dependencies
     - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }}
       displayName: Builds 1st time to restore tools
-    - task: NuGetCommand@2
+    - script: $(Build.SourcesDirectory)/Tools/nuget.exe list Microsoft.ML -Source https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json -Prerelease > latest_versions.txt
       displayName: List latest package versions
-      inputs:
-        command: 'custom'
-        arguments: 'list Microsoft.ML -Source https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json -Prerelease > $(Build.SourcesDirectory)/latest_versions.txt'
+      workingDirectory: $(Build.SourcesDirectory)
     - task: DotNetCoreCLI@2
       displayName: Update package version
       inputs:
