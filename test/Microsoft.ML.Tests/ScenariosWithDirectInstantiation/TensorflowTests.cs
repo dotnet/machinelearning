@@ -1438,6 +1438,12 @@ namespace Microsoft.ML.Scenarios
             TensorFlowImageClassificationWithLRScheduling(new PolynomialLRDecay());
         }
 
+        [TensorFlowFact]
+        public void TensorFlowImageClassificationWithCyclicLRScheduling()
+        {
+            TensorFlowImageClassificationWithLRScheduling(new CyclicLR());
+        }
+
         internal void TensorFlowImageClassificationWithLRScheduling(LearningRateScheduler  learningRateScheduler)
         {
             string assetsRelativePath = @"assets";
