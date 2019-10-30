@@ -5,11 +5,11 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.ML.TestFramework.Attributes
+namespace Microsoft.ML.TestFrameworkCommon.Attributes
 {
-    internal static class AttributeHelpers
+    public static class AttributeHelpers
     {
-        internal static bool CheckLibcVersionGreaterThanMinimum(Version minVersion)
+        public static bool CheckLibcVersionGreaterThanMinimum(Version minVersion)
         {
 #if !NETFRAMEWORK
             Version version;

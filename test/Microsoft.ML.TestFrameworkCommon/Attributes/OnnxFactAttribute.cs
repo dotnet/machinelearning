@@ -5,7 +5,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.ML.TestFramework.Attributes
+namespace Microsoft.ML.TestFrameworkCommon.Attributes
 {
     /// <summary>
     /// A fact for tests requiring Onnx.

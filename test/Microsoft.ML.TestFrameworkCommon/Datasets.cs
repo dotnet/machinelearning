@@ -5,7 +5,7 @@
 using System;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.RunTests
+namespace Microsoft.ML.TestFrameworkCommon
 {
     public class TestDataset
     {

@@ -5,6 +5,7 @@
 using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;

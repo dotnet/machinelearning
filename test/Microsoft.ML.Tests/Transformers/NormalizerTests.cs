@@ -12,6 +12,7 @@ using Microsoft.ML.Experimental;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using System.Linq;
@@ -411,10 +412,10 @@ namespace Microsoft.ML.Tests.Transformers
             var data4 = est4.Fit(data).Transform(data);
             var data5 = est5.Fit(data).Transform(data);
 
-            CheckSameSchemas(data1.Schema, data2.Schema);
-            CheckSameSchemas(data1.Schema, data3.Schema);
-            CheckSameSchemas(data1.Schema, data4.Schema);
-            CheckSameSchemas(data1.Schema, data5.Schema);
+            TestCommon.CheckSameSchemas(data1.Schema, data2.Schema);
+            TestCommon.CheckSameSchemas(data1.Schema, data3.Schema);
+            TestCommon.CheckSameSchemas(data1.Schema, data4.Schema);
+            TestCommon.CheckSameSchemas(data1.Schema, data5.Schema);
             CheckSameValues(data1, data2);
             CheckSameValues(data1, data3);
             CheckSameValues(data1, data4);
@@ -428,8 +429,8 @@ namespace Microsoft.ML.Tests.Transformers
             var data6 = est6.Fit(data).Transform(data);
             var data7 = est7.Fit(data).Transform(data);
             var data8 = est8.Fit(data).Transform(data);
-            CheckSameSchemas(data6.Schema, data7.Schema);
-            CheckSameSchemas(data6.Schema, data8.Schema);
+            TestCommon.CheckSameSchemas(data6.Schema, data7.Schema);
+            TestCommon.CheckSameSchemas(data6.Schema, data8.Schema);
             CheckSameValues(data6, data7);
             CheckSameValues(data6, data8);
 
@@ -441,8 +442,8 @@ namespace Microsoft.ML.Tests.Transformers
             var data9 = est9.Fit(data).Transform(data);
             var data10 = est10.Fit(data).Transform(data);
             var data11 = est11.Fit(data).Transform(data);
-            CheckSameSchemas(data9.Schema, data10.Schema);
-            CheckSameSchemas(data9.Schema, data11.Schema);
+            TestCommon.CheckSameSchemas(data9.Schema, data10.Schema);
+            TestCommon.CheckSameSchemas(data9.Schema, data11.Schema);
             CheckSameValues(data9, data10);
             CheckSameValues(data9, data11);
 
@@ -454,8 +455,8 @@ namespace Microsoft.ML.Tests.Transformers
             var data12 = est12.Fit(data).Transform(data);
             var data13 = est13.Fit(data).Transform(data);
             var data14 = est14.Fit(data).Transform(data);
-            CheckSameSchemas(data12.Schema, data13.Schema);
-            CheckSameSchemas(data12.Schema, data14.Schema);
+            TestCommon.CheckSameSchemas(data12.Schema, data13.Schema);
+            TestCommon.CheckSameSchemas(data12.Schema, data14.Schema);
             CheckSameValues(data12, data13);
             CheckSameValues(data12, data14);
 
@@ -467,8 +468,8 @@ namespace Microsoft.ML.Tests.Transformers
             var data15 = est15.Fit(data).Transform(data);
             var data16 = est16.Fit(data).Transform(data);
             var data17 = est17.Fit(data).Transform(data);
-            CheckSameSchemas(data15.Schema, data16.Schema);
-            CheckSameSchemas(data15.Schema, data17.Schema);
+            TestCommon.CheckSameSchemas(data15.Schema, data16.Schema);
+            TestCommon.CheckSameSchemas(data15.Schema, data17.Schema);
             CheckSameValues(data15, data16);
             CheckSameValues(data15, data17);
 
@@ -517,11 +518,11 @@ namespace Microsoft.ML.Tests.Transformers
             var data10 = est10.Fit(data).Transform(data);
 
             // Schema Checks
-            CheckSameSchemas(data1.Schema, data6.Schema);
-            CheckSameSchemas(data2.Schema, data7.Schema);
-            CheckSameSchemas(data3.Schema, data8.Schema);
-            CheckSameSchemas(data4.Schema, data9.Schema);
-            CheckSameSchemas(data5.Schema, data10.Schema);
+            TestCommon.CheckSameSchemas(data1.Schema, data6.Schema);
+            TestCommon.CheckSameSchemas(data2.Schema, data7.Schema);
+            TestCommon.CheckSameSchemas(data3.Schema, data8.Schema);
+            TestCommon.CheckSameSchemas(data4.Schema, data9.Schema);
+            TestCommon.CheckSameSchemas(data5.Schema, data10.Schema);
 
             // Value Checks
             CheckSameValues(data1, data6);
