@@ -121,7 +121,7 @@ namespace Microsoft.ML.Trainers
 
                 if (L2Regularization < L2LowerBound)
                 {
-                    using (var ch = env.Start("SDCA arguments checking"))
+                    using (var ch = env.Start("Encrypted SDCA arguments checking"))
                     {
                         ch.Warning($"The L2 regularization constant must be at least {L2LowerBound}. In SDCA, the dual formulation " +
                             $"is only valid with a positive constant, and values below {L2LowerBound} cause very slow convergence. " +
@@ -147,17 +147,17 @@ namespace Microsoft.ML.Trainers
             BiasReg
         }
 
-        // The maximum number of dual variables SDCA intends to support.
+        // The maximum number of dual variables Encrypted SDCA intends to support.
         // Actual bound of training dataset size may depend on hardware limit.
         // Note that currently the maximum dimension linear learners can support is about 2 billion,
         // it is not clear if training a linear learner with more than 10^15 examples provides
         // substantial additional benefits in terms of accuracy.
         private const long MaxDualTableSize = 1L << 50;
         private const float L2LowerBound = 1e-09f;
-        private protected readonly TOptions SdcaTrainerOptions;
+        private protected readonly TOptions EncryptedSdcaTrainerOptions;
         private protected ISupportSdcaLoss Loss;
 
-        private protected override bool ShuffleData => SdcaTrainerOptions.Shuffle;
+        private protected override bool ShuffleData => EncryptedSdcaTrainerOptions.Shuffle;
 
         private const string RegisterName = nameof(EncryptedSdcaTrainerBase<TOptions, TTransformer, TModel>);
 
@@ -181,11 +181,11 @@ namespace Microsoft.ML.Trainers
             float? l2Const = null, float? l1Threshold = null, int? maxIterations = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName), label, weight)
         {
-            SdcaTrainerOptions = options;
-            SdcaTrainerOptions.L2Regularization = l2Const ?? options.L2Regularization;
-            SdcaTrainerOptions.L1Regularization = l1Threshold ?? options.L1Regularization;
-            SdcaTrainerOptions.MaximumNumberOfIterations = maxIterations ?? options.MaximumNumberOfIterations;
-            SdcaTrainerOptions.Check(env);
+            EncryptedSdcaTrainerOptions = options;
+            EncryptedSdcaTrainerOptions.L2Regularization = l2Const ?? options.L2Regularization;
+            EncryptedSdcaTrainerOptions.L1Regularization = l1Threshold ?? options.L1Regularization;
+            EncryptedSdcaTrainerOptions.MaximumNumberOfIterations = maxIterations ?? options.MaximumNumberOfIterations;
+            EncryptedSdcaTrainerOptions.Check(env);
         }
 
         private protected float WDot(in VBuffer<float> features, in VBuffer<float> weights, float bias)
@@ -195,7 +195,7 @@ namespace Microsoft.ML.Trainers
 
         private protected sealed override TModel TrainCore(IChannel ch, RoleMappedData data, LinearModelParameters predictor, int weightSetCount)
         {
-            Contracts.Assert(predictor == null, "SDCA based trainers don't support continuous training.");
+            Contracts.Assert(predictor == null, "Encrypted SDCA based trainers don't support continuous training.");
             Contracts.Assert(weightSetCount >= 1);
 
             int numFeatures = data.Schema.Feature.Value.Type.GetVectorSize();
@@ -207,9 +207,9 @@ namespace Microsoft.ML.Trainers
 
             var cursorFactory = new FloatLabelCursor.Factory(data, cursorOpt);
             int numThreads;
-            if (SdcaTrainerOptions.NumberOfThreads.HasValue)
+            if (EncryptedSdcaTrainerOptions.NumberOfThreads.HasValue)
             {
-                numThreads = SdcaTrainerOptions.NumberOfThreads.Value;
+                numThreads = EncryptedSdcaTrainerOptions.NumberOfThreads.Value;
                 Host.CheckUserArg(numThreads > 0, nameof(OptionsBase.NumberOfThreads), "The number of threads must be either null or a positive integer.");
             }
             else
@@ -222,8 +222,8 @@ namespace Microsoft.ML.Trainers
                 ch.Info("Using {0} threads to train.", numThreads);
 
             int checkFrequency = 0;
-            if (SdcaTrainerOptions.ConvergenceCheckFrequency.HasValue)
-                checkFrequency = SdcaTrainerOptions.ConvergenceCheckFrequency.Value;
+            if (EncryptedSdcaTrainerOptions.ConvergenceCheckFrequency.HasValue)
+                checkFrequency = EncryptedSdcaTrainerOptions.ConvergenceCheckFrequency.Value;
             else
             {
                 checkFrequency = numThreads;
@@ -253,7 +253,7 @@ namespace Microsoft.ML.Trainers
             IdToIdxLookup idToIdx = null;
 
             using (var cursor = cursorFactory.Create())
-            using (var pch = Host.StartProgressChannel("SDCA preprocessing"))
+            using (var pch = Host.StartProgressChannel("Encrypted SDCA preprocessing"))
             {
                 pch.SetHeader(new ProgressHeader("examples"), e => e.SetProgress(0, count));
                 while (cursor.MoveNext())
@@ -303,7 +303,7 @@ namespace Microsoft.ML.Trainers
                 count = 0;
 
                 using (var cursor = cursorFactory.Create())
-                using (var pch = Host.StartProgressChannel("SDCA preprocessing with lookup"))
+                using (var pch = Host.StartProgressChannel("Encrypted SDCA preprocessing with lookup"))
                 {
                     pch.SetHeader(new ProgressHeader("examples"), e => e.SetProgress(0, count));
                     while (cursor.MoveNext())
@@ -324,19 +324,19 @@ namespace Microsoft.ML.Trainers
 
             ch.Check(count > 0, "Training set has 0 instances, aborting training.");
             // Tune the default hyperparameters based on dataset size.
-            if (SdcaTrainerOptions.MaximumNumberOfIterations == null)
-                SdcaTrainerOptions.MaximumNumberOfIterations = TuneDefaultMaxIterations(ch, count, numThreads);
+            if (EncryptedSdcaTrainerOptions.MaximumNumberOfIterations == null)
+                EncryptedSdcaTrainerOptions.MaximumNumberOfIterations = TuneDefaultMaxIterations(ch, count, numThreads);
 
-            Contracts.Assert(SdcaTrainerOptions.MaximumNumberOfIterations.HasValue);
-            if (SdcaTrainerOptions.L2Regularization == null)
-                SdcaTrainerOptions.L2Regularization = TuneDefaultL2(ch, SdcaTrainerOptions.MaximumNumberOfIterations.Value, count, numThreads);
+            Contracts.Assert(EncryptedSdcaTrainerOptions.MaximumNumberOfIterations.HasValue);
+            if (EncryptedSdcaTrainerOptions.L2Regularization == null)
+                EncryptedSdcaTrainerOptions.L2Regularization = TuneDefaultL2(ch, EncryptedSdcaTrainerOptions.MaximumNumberOfIterations.Value, count, numThreads);
 
-            Contracts.Assert(SdcaTrainerOptions.L2Regularization.HasValue);
-            if (SdcaTrainerOptions.L1Regularization == null)
-                SdcaTrainerOptions.L1Regularization = TuneDefaultL1(ch, numFeatures);
+            Contracts.Assert(EncryptedSdcaTrainerOptions.L2Regularization.HasValue);
+            if (EncryptedSdcaTrainerOptions.L1Regularization == null)
+                EncryptedSdcaTrainerOptions.L1Regularization = TuneDefaultL1(ch, numFeatures);
 
-            ch.Assert(SdcaTrainerOptions.L1Regularization.HasValue);
-            var l1Threshold = SdcaTrainerOptions.L1Regularization.Value;
+            ch.Assert(EncryptedSdcaTrainerOptions.L1Regularization.HasValue);
+            var l1Threshold = EncryptedSdcaTrainerOptions.L1Regularization.Value;
             var l1ThresholdZero = l1Threshold == 0;
             var weights = new VBuffer<float>[weightSetCount];
             var bestWeights = new VBuffer<float>[weightSetCount];
@@ -365,8 +365,8 @@ namespace Microsoft.ML.Trainers
 
             int bestIter = 0;
             var bestPrimalLoss = double.PositiveInfinity;
-            ch.Assert(SdcaTrainerOptions.L2Regularization.HasValue);
-            var l2Const = SdcaTrainerOptions.L2Regularization.Value;
+            ch.Assert(EncryptedSdcaTrainerOptions.L2Regularization.HasValue);
+            var l2Const = EncryptedSdcaTrainerOptions.L2Regularization.Value;
             float lambdaNInv = 1 / (l2Const * count);
 
             DualsTableBase duals = null;
@@ -429,8 +429,8 @@ namespace Microsoft.ML.Trainers
             ch.AssertValue(metricNames);
             ch.AssertValue(metrics);
             ch.Assert(metricNames.Length == metrics.Length);
-            ch.Assert(SdcaTrainerOptions.MaximumNumberOfIterations.HasValue);
-            var maxIterations = SdcaTrainerOptions.MaximumNumberOfIterations.Value;
+            ch.Assert(EncryptedSdcaTrainerOptions.MaximumNumberOfIterations.HasValue);
+            var maxIterations = EncryptedSdcaTrainerOptions.MaximumNumberOfIterations.Value;
 
             var rands = new Random[maxIterations];
             for (int i = 0; i < maxIterations; i++)
@@ -443,7 +443,7 @@ namespace Microsoft.ML.Trainers
                 Func<DataViewRowId, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
                 int invariantCoeff = weightSetCount == 1 ? 1 : 2;
                 using (var cursor = cursorFactory.Create())
-                using (var pch = Host.StartProgressChannel("SDCA invariants initialization"))
+                using (var pch = Host.StartProgressChannel("Encrypted SDCA invariants initialization"))
                 {
                     long row = 0;
                     pch.SetHeader(new ProgressHeader("examples"), e => e.SetProgress(0, row, count));
@@ -455,7 +455,7 @@ namespace Microsoft.ML.Trainers
                         int idx = (int)longIdx;
                         var features = cursor.Features;
                         var normSquared = VectorUtils.NormSquared(features);
-                        if (SdcaTrainerOptions.BiasLearningRate == 0)
+                        if (EncryptedSdcaTrainerOptions.BiasLearningRate == 0)
                             normSquared += 1;
 
                         if (featureNormSquared != null)
@@ -471,7 +471,7 @@ namespace Microsoft.ML.Trainers
             }
 
             // Start training.
-            using (var pch = Host.StartProgressChannel("SDCA training"))
+            using (var pch = Host.StartProgressChannel("Encrypted SDCA training"))
             {
                 int iter = 0;
                 pch.SetHeader(new ProgressHeader(metricNames, new[] { "iterations" }), e => e.SetProgress(0, iter, maxIterations));
@@ -615,7 +615,7 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Train the SDCA optimizer with one iteration over the entire training examples.
+        /// Train the encrypted SDCA optimizer with one iteration over the entire training examples.
         /// </summary>
         /// <param name="progress">The progress reporting channel.</param>
         /// <param name="cursorFactory">The cursor factory to create cursors over the training examples.</param>
@@ -666,17 +666,17 @@ namespace Microsoft.ML.Trainers
             VBuffer<float>[] weights, float[] biasUnreg, VBuffer<float>[] l1IntermediateWeights, float[] l1IntermediateBias, float[] featureNormSquared)
         {
             Contracts.AssertValueOrNull(progress);
-            Contracts.Assert(SdcaTrainerOptions.L1Regularization.HasValue);
+            Contracts.Assert(EncryptedSdcaTrainerOptions.L1Regularization.HasValue);
             Contracts.AssertValueOrNull(idToIdx);
             Contracts.AssertValueOrNull(invariants);
             Contracts.AssertValueOrNull(featureNormSquared);
             int maxUpdateTrials = 2 * numThreads;
-            var l1Threshold = SdcaTrainerOptions.L1Regularization.Value;
+            var l1Threshold = EncryptedSdcaTrainerOptions.L1Regularization.Value;
             bool l1ThresholdZero = l1Threshold == 0;
-            var lr = SdcaTrainerOptions.BiasLearningRate * SdcaTrainerOptions.L2Regularization.Value;
+            var lr = EncryptedSdcaTrainerOptions.BiasLearningRate * EncryptedSdcaTrainerOptions.L2Regularization.Value;
             var pch = progress != null ? progress.StartProgressChannel("Dual update") : null;
             using (pch)
-            using (var cursor = SdcaTrainerOptions.Shuffle ? cursorFactory.Create(rand) : cursorFactory.Create())
+            using (var cursor = EncryptedSdcaTrainerOptions.Shuffle ? cursorFactory.Create(rand) : cursorFactory.Create())
             {
                 long rowCount = 0;
                 if (pch != null)
@@ -696,7 +696,7 @@ namespace Microsoft.ML.Trainers
                     {
                         Contracts.Assert(featureNormSquared == null);
                         var featuresNormSquared = VectorUtils.NormSquared(features);
-                        if (SdcaTrainerOptions.BiasLearningRate == 0)
+                        if (EncryptedSdcaTrainerOptions.BiasLearningRate == 0)
                             featuresNormSquared += 1;
 
                         invariant = Loss.ComputeDualUpdateInvariant(featuresNormSquared * lambdaNInv * GetInstanceWeight(cursor));
@@ -742,7 +742,7 @@ namespace Microsoft.ML.Trainers
                                 //Thresholding: if |v[j]| < threshold, turn off weights[j]
                                 //If not, shrink: w[j] = v[i] - sign(v[j]) * threshold
                                 l1IntermediateBias[0] += primalUpdate;
-                                if (SdcaTrainerOptions.BiasLearningRate == 0)
+                                if (EncryptedSdcaTrainerOptions.BiasLearningRate == 0)
                                 {
                                     biasReg[0] = Math.Abs(l1IntermediateBias[0]) - l1Threshold > 0.0
                                     ? l1IntermediateBias[0] - Math.Sign(l1IntermediateBias[0]) * l1Threshold
@@ -863,10 +863,10 @@ namespace Microsoft.ML.Trainers
                 Host.Assert(idToIdx == null || row == duals.Length);
             }
 
-            Contracts.Assert(SdcaTrainerOptions.L2Regularization.HasValue);
-            Contracts.Assert(SdcaTrainerOptions.L1Regularization.HasValue);
-            Double l2Const = SdcaTrainerOptions.L2Regularization.Value;
-            Double l1Threshold = SdcaTrainerOptions.L1Regularization.Value;
+            Contracts.Assert(EncryptedSdcaTrainerOptions.L2Regularization.HasValue);
+            Contracts.Assert(EncryptedSdcaTrainerOptions.L1Regularization.HasValue);
+            Double l2Const = EncryptedSdcaTrainerOptions.L2Regularization.Value;
+            Double l1Threshold = EncryptedSdcaTrainerOptions.L1Regularization.Value;
             Double l1Regularizer = l1Threshold * l2Const * (VectorUtils.L1Norm(in weights[0]) + Math.Abs(biasReg[0]));
             var l2Regularizer = l2Const * (VectorUtils.NormSquared(weights[0]) + biasReg[0] * biasReg[0]) * 0.5;
             var newLoss = lossSum.Sum / count + l2Regularizer + l1Regularizer;
@@ -878,9 +878,9 @@ namespace Microsoft.ML.Trainers
             var dualityGap = metrics[(int)MetricKind.DualityGap] = newLoss - newDualLoss;
             metrics[(int)MetricKind.BiasUnreg] = biasUnreg[0];
             metrics[(int)MetricKind.BiasReg] = biasReg[0];
-            metrics[(int)MetricKind.L1Sparsity] = SdcaTrainerOptions.L1Regularization == 0 ? 1 : (Double)firstWeights.GetValues().Count(w => w != 0) / weights.Length;
+            metrics[(int)MetricKind.L1Sparsity] = EncryptedSdcaTrainerOptions.L1Regularization == 0 ? 1 : (Double)firstWeights.GetValues().Count(w => w != 0) / weights.Length;
 
-            bool converged = dualityGap / newLoss < SdcaTrainerOptions.ConvergenceTolerance;
+            bool converged = dualityGap / newLoss < EncryptedSdcaTrainerOptions.ConvergenceTolerance;
 
             if (metrics[(int)MetricKind.Loss] < bestPrimalLoss)
             {
@@ -1289,12 +1289,12 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// SDCA is a general training algorithm for (generalized) linear models such as support vector machine, linear regression, logistic regression,
-    /// and so on. SDCA binary classification trainer family includes several sealed members:
+    /// Encrypted SDCA is a general training algorithm for (generalized) linear models such as support vector machine, linear regression, logistic regression,
+    /// and so on support SEAL encrypted evaluation. Encrypted SDCA binary classification trainer family includes several sealed members:
     /// (1) <see cref="SdcaNonCalibratedBinaryTrainer"/> supports general loss functions and returns <see cref="LinearBinaryModelParameters"/>.
-    /// (2) <see cref="SdcaLogisticRegressionBinaryTrainer"/> essentially trains a regularized logistic regression model. Because logistic regression
+    /// (2) <see cref="EncryptedSdcaLogisticRegressionBinaryTrainer"/> essentially trains a regularized logistic regression model. Because logistic regression
     /// naturally provide probability output, this generated model's type is <see cref="CalibratedModelParametersBase{TSubModel, TCalibrator}"/>.
-    /// where <see langword="TSubModel"/> is <see cref="LinearBinaryModelParameters"/> and <see langword="TCalibrator "/> is <see cref="PlattCalibrator"/>.
+    /// where <see langword="TSubModel"/> is <see cref="EncryptedLinearBinaryModelParameters"/> and <see langword="TCalibrator "/> is <see cref="PlattCalibrator"/>.
     /// </summary>
     public abstract class EncryptedSdcaBinaryTrainerBase<TModelParameters> :
         EncryptedSdcaTrainerBase<EncryptedSdcaBinaryTrainerBase<TModelParameters>.BinaryOptionsBase, BinaryPredictionTransformer<TModelParameters>, TModelParameters>
@@ -1306,7 +1306,7 @@ namespace Microsoft.ML.Trainers
         private readonly ISupportSdcaClassificationLoss _loss;
         private readonly float _positiveInstanceWeight;
 
-        private protected override bool ShuffleData => SdcaTrainerOptions.Shuffle;
+        private protected override bool ShuffleData => EncryptedSdcaTrainerOptions.Shuffle;
 
         private readonly SchemaShape.Column[] _outputColumns;
 
@@ -1317,7 +1317,7 @@ namespace Microsoft.ML.Trainers
         public override TrainerInfo Info { get; }
 
         /// <summary>
-        /// Options for <see cref="SdcaBinaryTrainerBase{TModelParameters}"/>.
+        /// Options for <see cref="EncryptedSdcaBinaryTrainerBase{TModelParameters}"/>.
         /// </summary>
         public class BinaryOptionsBase : OptionsBase
         {
@@ -1338,7 +1338,7 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="SdcaBinaryTrainerBase{TModelParameters}"/>
+        /// Initializes a new instance of <see cref="EncryptedSdcaBinaryTrainerBase{TModelParameters}"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="polyModulusDegree">The value of the PolyModulusDegree encryption parameter.</param>
@@ -1373,7 +1373,7 @@ namespace Microsoft.ML.Trainers
             _loss = loss ?? new LogLossFactory().CreateComponent(env);
             Loss = _loss;
             Info = new TrainerInfo(calibration: false);
-            _positiveInstanceWeight = SdcaTrainerOptions.PositiveInstanceWeight;
+            _positiveInstanceWeight = EncryptedSdcaTrainerOptions.PositiveInstanceWeight;
             _outputColumns = ComputeSdcaBinaryClassifierSchemaShape();
         }
 
@@ -1383,7 +1383,7 @@ namespace Microsoft.ML.Trainers
             _loss = loss ?? new LogLossFactory().CreateComponent(env);
             Loss = _loss;
             Info = new TrainerInfo(calibration: doCalibration);
-            _positiveInstanceWeight = SdcaTrainerOptions.PositiveInstanceWeight;
+            _positiveInstanceWeight = EncryptedSdcaTrainerOptions.PositiveInstanceWeight;
             _outputColumns = ComputeSdcaBinaryClassifierSchemaShape();
         }
 
@@ -1419,14 +1419,14 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// The <see cref="IEstimator{TTransformer}"/> for training a binary logistic regression classification model using the stochastic dual coordinate ascent method.
+    /// The <see cref="IEstimator{TTransformer}"/> for training an encrypted binary logistic regression classification model using the stochastic dual coordinate ascent method.
     /// The trained model is <a href='https://en.wikipedia.org/wiki/Calibration_(statistics)'>calibrated</a> and can produce probability by feeding the output value of the
     /// linear function to a <see cref="PlattCalibrator"/>.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
-    /// To create this trainer, use [SdcaLogisticRegression](xref:Microsoft.ML.StandardTrainersCatalog.SdcaLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Int32}))
-    /// or [SdcaLogisticRegression(Options)](xref:Microsoft.ML.StandardTrainersCatalog.SdcaLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.SdcaLogisticRegressionBinaryTrainer.Options)).
+    /// To create this trainer, use [EncryptedSdcaLogisticRegression](xref:Microsoft.ML.EncryptedStandardTrainersCatalog.EncryptedSdcaLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Int32}))
+    /// or [EncryptedSdcaLogisticRegression(Options)](xref:Microsoft.ML.EncryptedStandardTrainersCatalog.EncryptedSdcaLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.EncryptedSdcaLogisticRegressionBinaryTrainer.Options)).
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification.md)]
     ///
@@ -1446,18 +1446,47 @@ namespace Microsoft.ML.Trainers
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="StandardTrainersCatalog.SdcaLogisticRegression(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, float?, float?, int?)"/>
-    /// <seealso cref="StandardTrainersCatalog.SdcaLogisticRegression(BinaryClassificationCatalog.BinaryClassificationTrainers, SdcaLogisticRegressionBinaryTrainer.Options)"/>
+    /// <seealso cref="EncryptedStandardTrainersCatalog.EncryptedSdcaLogisticRegression(BinaryClassificationCatalog.BinaryClassificationTrainers, ulong, IEnumerable&lt;int&gt;, double, string, string, string, float?, float?, int?)"/>
+    /// <seealso cref="EncryptedStandardTrainersCatalog.EncryptedSdcaLogisticRegression(BinaryClassificationCatalog.BinaryClassificationTrainers, EncryptedSdcaLogisticRegressionBinaryTrainer.Options)"/>
     /// <seealso cref="Options"/>
     public sealed class EncryptedSdcaLogisticRegressionBinaryTrainer :
         EncryptedSdcaBinaryTrainerBase<CalibratedModelParametersBase<EncryptedLinearBinaryModelParameters, PlattCalibrator>>
     {
         /// <summary>
-        /// Options for the <see cref="SdcaLogisticRegressionBinaryTrainer"/> as used in
-        /// [SdcaLogisticRegression(Options)](xref:Microsoft.ML.StandardTrainersCatalog.SdcaLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.SdcaLogisticRegressionBinaryTrainer.Options)).
+        /// Options for the <see cref="EncryptedSdcaLogisticRegressionBinaryTrainer"/> as used in
+        /// [EncryptedSdcaLogisticRegression(Options)](xref:Microsoft.ML.EncryptedStandardTrainersCatalog.EncryptedSdcaLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.EncryptedSdcaLogisticRegressionBinaryTrainer.Options)).
         /// </summary>
         public sealed class Options : BinaryOptionsBase
         {
+            /// <summary>
+            /// The value of the PolyModulusDegree encryption parameter.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Polynomial Modulus Degree", ShortName = "pmd")]
+            public ulong PolyModDegree;
+
+            /// <summary>
+            /// The bit-lengths of the primes to be generated.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The bit-lengths of the primes to be generated", ShortName = "bs")]
+            public IEnumerable<int> BitSizes;
+
+            /// <summary>
+            /// Scaling parameter defining encoding precision.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Scaling parameter defining encoding precision", ShortName = "s")]
+            public double Scale;
+
+            internal override void Check(IHostEnvironment env)
+            {
+                base.Check(env);
+                env.CheckUserArg(PolyModDegree > 0, nameof(PolyModDegree), "Polynomial modulus degree must be positive");
+                env.CheckUserArg(Scale > 0, nameof(Scale), "Scale must be positive");
+
+                foreach(var bitSize in BitSizes)
+                {
+                    env.CheckUserArg(bitSize > 0, nameof(BitSizes), "Bit size must be positive");
+                }
+            }
         }
 
         internal EncryptedSdcaLogisticRegressionBinaryTrainer(IHostEnvironment env,
