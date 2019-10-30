@@ -77,7 +77,7 @@ namespace Microsoft.ML.Tests
         internal void TestExponentialDecay(float[] expectedValues, int[] epochs, int[] batchIndex, bool staircase)
         {
             LearningRateScheduler expDecayLR = new ExponentialLRDecay(0.01f, 2.0f, 0.94f, staircase);
-            TrainState trainState = new TrainState();
+            DnnTrainState trainState = new DnnTrainState();
             trainState.CurrentBatchIndex = 0;
             trainState.CurrentEpoch = 0;
             trainState.BatchSize = 10;
@@ -123,7 +123,7 @@ namespace Microsoft.ML.Tests
         internal void TestCyclicLR(float[] expectedValues, int[] epochs, int[] batchIndex, string mode)
         {
             LearningRateScheduler clr = new CyclicLR(20, 0.01f, 0.1f, mode, 0.99994f) ;
-            TrainState trainState = new TrainState();
+            DnnTrainState trainState = new DnnTrainState();
             trainState.CurrentBatchIndex = 0;
             trainState.CurrentEpoch = 0;
             trainState.BatchSize = 10;
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Tests
             float[] expectedValues = new float[] {7.8125e-06f, 7.8125e-05f, 0.00078125f, 0.0078125f};
             LearningRateScheduler lsr = new LsrDecay();
 
-            TrainState trainState = new TrainState();
+            DnnTrainState trainState = new DnnTrainState();
             trainState.CurrentBatchIndex = 0;
             trainState.CurrentEpoch = 0;
             trainState.BatchSize = 10;

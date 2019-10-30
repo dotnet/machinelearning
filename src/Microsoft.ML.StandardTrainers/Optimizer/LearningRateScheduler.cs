@@ -307,7 +307,7 @@ namespace Microsoft.ML.Trainers
             Mode = mode;
         }
 
-        internal override float GetLearningRate(TrainState trainstate)
+        internal override float GetLearningRate(DnnTrainState trainstate)
         {
             int globalStep = (trainstate.CurrentEpoch) * (trainstate.BatchesPerEpoch) + trainstate.CurrentBatchIndex;
             float temp = 1 + (float)globalStep / (2 * Stepsize);
