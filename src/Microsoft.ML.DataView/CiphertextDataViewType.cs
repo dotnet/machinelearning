@@ -5,10 +5,9 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.ML.Data;
 using Microsoft.Research.SEAL;
 
-namespace Microsoft.ML.DataView
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// The standard Ciphertext type. The representation type of this is Ciphertext.
