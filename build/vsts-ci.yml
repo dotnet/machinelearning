@@ -174,7 +174,7 @@ phases:
   variables:
     BuildConfig: Release
     OfficialBuildId: $(BUILD.BUILDNUMBER)
-    DOTNET_CLI_TELEMETRY_OUTPUT: 1
+    DOTNET_CLI_TELEMETRY_OPTOUT: 1
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
     DOTNET_MULTILEVEL_LOOKUP: 0
     _SignType: real
@@ -226,13 +226,6 @@ phases:
       msbuildVersion: 15.0
     continueOnError: false
 
-  # - task: MSBuild@1
-  #   displayName: Publish Packages to MyGet Feed
-  #   inputs:
-  #     solution: build/publish.proj
-  #     msbuildArguments: /t:PublishPackages /p:NuGetFeedUrl=$(_NuGetFeedUrl) /p:NuGetApiKey=$(dotnet-myget-org-api-key)
-  #     msbuildVersion: 15.0
-
   - task: NuGetAuthenticate@0
     inputs:
       nuGetServiceConnections: machinelearning-dnceng-public-feed # To allow publishing to a feed of another organization
@@ -255,14 +248,6 @@ phases:
       msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_MsdlSymbolServerPath) /p:SymbolServerPAT=$(MsdlSymbolServerPAT)
       msbuildVersion: 15.0
     continueOnError: true
-
-  - task: NuGetCommand@2 
-    displayName: Publish Packages to private VSTS Feed 
-    inputs:
-      command: push 
-      packagesToPush: $(Build.SourcesDirectory)/bin/packages/**/*.nupkg;!$(Build.SourcesDirectory)/bin/packages/**/*.symbols.nupkg 
-      nuGetFeedType: internal 
-      feedPublish: MachineLearning
 
   # Terminate all dotnet build processes.
   - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet.exe build-server shutdown
