@@ -10,17 +10,18 @@ using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
+using Microsoft.ML.Vision;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Image;
-using Microsoft.ML.Transforms.TensorFlow;
-using Tensorflow;
+using Microsoft.ML.TensorFlow;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.DataOperationsCatalog;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Scenarios
 {
@@ -1243,12 +1244,12 @@ namespace Microsoft.ML.Scenarios
 
             IDataView trainDataset = trainTestData.TrainSet;
             IDataView testDataset = trainTestData.TestSet;
-            var validationSet = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+            var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
                     .Fit(testDataset)
                     .Transform(testDataset);
 
-            var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
-                .Append(mlContext.Model.ImageClassification("Image", "Label", validationSet: validationSet)
+            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
+                .Append(mlContext.MulticlassClassification.Trainers.ImageClassification("Label", "Image", validationSet: validationSet)
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel"))); ;
 
             var trainedModel = pipeline.Fit(trainDataset);
@@ -1285,10 +1286,10 @@ namespace Microsoft.ML.Scenarios
         }
 
         [TensorFlowTheory]
-        [InlineData(ImageClassificationEstimator.Architecture.ResnetV2101)]
-        [InlineData(ImageClassificationEstimator.Architecture.MobilenetV2)]
-        [InlineData(ImageClassificationEstimator.Architecture.ResnetV250)]
-        public void TensorFlowImageClassification(ImageClassificationEstimator.Architecture arch)
+        [InlineData(ImageClassificationTrainer.Architecture.ResnetV2101)]
+        [InlineData(ImageClassificationTrainer.Architecture.MobilenetV2)]
+        [InlineData(ImageClassificationTrainer.Architecture.ResnetV250)]
+        public void TensorFlowImageClassification(ImageClassificationTrainer.Architecture arch)
         {
             string assetsRelativePath = @"assets";
             string assetsPath = GetAbsolutePath(assetsRelativePath);
@@ -1322,13 +1323,13 @@ namespace Microsoft.ML.Scenarios
 
             IDataView trainDataset = trainTestData.TrainSet;
             IDataView testDataset = trainTestData.TestSet;
-            var validationSet = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+            var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
                     .Fit(testDataset)
                     .Transform(testDataset);
 
-            var options = new ImageClassificationEstimator.Options()
+            var options = new ImageClassificationTrainer.Options()
             {
-                FeaturesColumnName = "Image",
+                FeatureColumnName = "Image",
                 LabelColumnName = "Label",
                 // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
                 // ResnetV2101 you can try a different architecture/
@@ -1337,14 +1338,13 @@ namespace Microsoft.ML.Scenarios
                 Epoch = 50,
                 BatchSize = 10,
                 LearningRate = 0.01f,
-                MetricsCallback = (metrics) => Console.WriteLine(metrics),
+                MetricsCallback = (metric) => Console.WriteLine(metric),
                 TestOnTrainSet = false,
-                ValidationSet = validationSet,
-                DisableEarlyStopping = true
+                ValidationSet = validationSet
             };
 
-            var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
-                .Append(mlContext.Model.ImageClassification(options)
+            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
+                .Append(mlContext.MulticlassClassification.Trainers.ImageClassification(options)
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel")));
 
             var trainedModel = pipeline.Fit(trainDataset);
@@ -1374,8 +1374,8 @@ namespace Microsoft.ML.Scenarios
             }
             else
             {
-                Assert.Equal(1, metrics.MicroAccuracy);
-                Assert.Equal(1, metrics.MacroAccuracy);
+                Assert.InRange(metrics.MicroAccuracy, 0.8, 1);
+                Assert.InRange(metrics.MacroAccuracy, 0.8, 1);
             }
 
             // Testing TrySinglePrediction: Utilizing PredictionEngine for single
@@ -1426,7 +1426,18 @@ namespace Microsoft.ML.Scenarios
         }
 
         [TensorFlowFact]
-        public void TensorFlowImageClassificationWithLRScheduling()
+        public void TensorFlowImageClassificationWithExponentialLRScheduling()
+        {
+            TensorFlowImageClassificationWithLRScheduling(new ExponentialLRDecay());
+        }
+
+        [TensorFlowFact]
+        public void TensorFlowImageClassificationWithPolynomialLRScheduling()
+        {
+            TensorFlowImageClassificationWithLRScheduling(new PolynomialLRDecay());
+        }
+
+        internal void TensorFlowImageClassificationWithLRScheduling(LearningRateScheduler  learningRateScheduler)
         {
             string assetsRelativePath = @"assets";
             string assetsPath = GetAbsolutePath(assetsRelativePath);
@@ -1460,34 +1471,34 @@ namespace Microsoft.ML.Scenarios
 
             IDataView trainDataset = trainTestData.TrainSet;
             IDataView testDataset = trainTestData.TestSet;
-            var validationSet = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+            var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
                     .Fit(testDataset)
                     .Transform(testDataset);
 
-            var options = new ImageClassificationEstimator.Options()
+            var options = new ImageClassificationTrainer.Options()
             {
-                FeaturesColumnName = "Image",
+                FeatureColumnName = "Image",
                 LabelColumnName = "Label",
                 // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
                 // ResnetV2101 you can try a different architecture/
                 // pre-trained model. 
-                Arch = ImageClassificationEstimator.Architecture.ResnetV2101,
+                Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
                 Epoch = 50,
                 BatchSize = 10,
                 LearningRate = 0.01f,
-                MetricsCallback = (metrics) => Console.WriteLine(metrics),
+                MetricsCallback = (metric) => Console.WriteLine(metric),
                 ValidationSet = validationSet,
-                DisableEarlyStopping = true,
                 ReuseValidationSetBottleneckCachedValues = false,
                 ReuseTrainSetBottleneckCachedValues = false,
+                EarlyStoppingCriteria = null,
                 // Using Exponential Decay for learning rate scheduling
                 // You can also try other types of Learning rate scheduling methods
                 // available in LearningRateScheduler.cs  
-                LearningRateScheduler = new ExponentialLRDecay()
+                LearningRateScheduler = learningRateScheduler
             };
 
-            var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
-                .Append(mlContext.Model.ImageClassification(options))
+            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
+                .Append(mlContext.MulticlassClassification.Trainers.ImageClassification(options))
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(
                         outputColumnName: "PredictedLabel",
                         inputColumnName: "PredictedLabel"));
@@ -1518,8 +1529,8 @@ namespace Microsoft.ML.Scenarios
             }
             else
             {
-                Assert.Equal(1, metrics.MicroAccuracy);
-                Assert.Equal(1, metrics.MacroAccuracy);
+                Assert.InRange(metrics.MicroAccuracy, 0.8, 1);
+                Assert.InRange(metrics.MacroAccuracy, 0.8, 1);
             }
 
             // Testing TrySinglePrediction: Utilizing PredictionEngine for single
@@ -1606,29 +1617,29 @@ namespace Microsoft.ML.Scenarios
             IDataView testDataset = trainTestData.TestSet;
 
             int lastEpoch = 0;
-            var validationSet = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+            var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
                     .Fit(testDataset)
                     .Transform(testDataset);
 
-            var options = new ImageClassificationEstimator.Options()
+            var options = new ImageClassificationTrainer.Options()
             {
-                FeaturesColumnName = "Image",
+                FeatureColumnName = "Image",
                 LabelColumnName = "Label",
                 // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
                 // ResnetV2101 you can try a different architecture/
                 // pre-trained model. 
-                Arch = ImageClassificationEstimator.Architecture.ResnetV2101,
+                Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
+                EarlyStoppingCriteria = new ImageClassificationTrainer.EarlyStopping(),
                 Epoch = 100,
                 BatchSize = 5,
                 LearningRate = 0.01f,
-                EarlyStoppingCriteria = new ImageClassificationEstimator.EarlyStopping(),
-                MetricsCallback = (metrics) => { Console.WriteLine(metrics); lastEpoch = metrics.Train != null ? metrics.Train.Epoch : 0; },
+                MetricsCallback = (metric) => { Console.WriteLine(metric); lastEpoch = metric.Train != null ? metric.Train.Epoch : 0; },
                 TestOnTrainSet = false,
-                ValidationSet = validationSet,
+                ValidationSet = validationSet
             };
 
-            var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
-                .Append(mlContext.Model.ImageClassification(options));
+            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath") 
+                .Append(mlContext.MulticlassClassification.Trainers.ImageClassification(options));
 
             var trainedModel = pipeline.Fit(trainDataset);
             mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
@@ -1655,8 +1666,8 @@ namespace Microsoft.ML.Scenarios
             }
             else
             {
-                Assert.Equal(1, metrics.MicroAccuracy);
-                Assert.Equal(1, metrics.MacroAccuracy);
+                Assert.InRange(metrics.MicroAccuracy, 0.8, 1);
+                Assert.InRange(metrics.MacroAccuracy, 0.8, 1);
             }
 
             //Assert that the training ran and stopped within half epochs due to EarlyStopping
@@ -1700,29 +1711,29 @@ namespace Microsoft.ML.Scenarios
             IDataView testDataset = trainTestData.TestSet;
 
             int lastEpoch = 0;
-            var validationSet = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+            var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
                      .Fit(testDataset)
                      .Transform(testDataset);
 
-            var options = new ImageClassificationEstimator.Options()
+            var options = new ImageClassificationTrainer.Options()
             {
-                FeaturesColumnName = "Image",
+                FeatureColumnName = "Image",
                 LabelColumnName = "Label",
                 // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
                 // ResnetV2101 you can try a different architecture/
                 // pre-trained model. 
-                Arch = ImageClassificationEstimator.Architecture.ResnetV2101,
+                Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
                 Epoch = 100,
                 BatchSize = 5,
                 LearningRate = 0.01f,
-                EarlyStoppingCriteria = new ImageClassificationEstimator.EarlyStopping(metric: ImageClassificationEstimator.EarlyStoppingMetric.Loss),
-                MetricsCallback = (metrics) => { Console.WriteLine(metrics); lastEpoch = metrics.Train != null ? metrics.Train.Epoch : 0; },
+                EarlyStoppingCriteria = new ImageClassificationTrainer.EarlyStopping(metric: ImageClassificationTrainer.EarlyStoppingMetric.Loss),
+                MetricsCallback = (metric) => { Console.WriteLine(metric); lastEpoch = metric.Train != null ? metric.Train.Epoch : 0; },
                 TestOnTrainSet = false,
                 ValidationSet = validationSet,
             };
 
-            var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
-                .Append(mlContext.Model.ImageClassification(options));
+            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
+                .Append(mlContext.MulticlassClassification.Trainers.ImageClassification(options));
 
             var trainedModel = pipeline.Fit(trainDataset);
             mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
@@ -1749,12 +1760,84 @@ namespace Microsoft.ML.Scenarios
             }
             else
             {
-                Assert.Equal(1, metrics.MicroAccuracy);
-                Assert.Equal(1, metrics.MacroAccuracy);
+                Assert.InRange(metrics.MicroAccuracy, 0.8, 1);
+                Assert.InRange(metrics.MacroAccuracy, 0.8, 1);
             }
 
             //Assert that the training ran and stopped within half epochs due to EarlyStopping
             Assert.InRange(lastEpoch, 1, 49);
+        }
+
+        [TensorFlowFact]
+        public void TensorFlowImageClassificationBadImages()
+        {
+            string assetsRelativePath = @"assets";
+            string assetsPath = GetAbsolutePath(assetsRelativePath);
+            string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
+                "images");
+
+            //Download the image set and unzip
+            string finalImagesFolderName = DownloadBadImageSet(
+                imagesDownloadFolderPath);
+
+            string fullImagesetFolderPath = Path.Combine(
+                imagesDownloadFolderPath, finalImagesFolderName);
+
+            MLContext mlContext = new MLContext(seed: 1);
+
+            //Load all the original images info
+            IEnumerable<ImageData> images = LoadImagesFromDirectory(
+                folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
+
+            IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
+                mlContext.Data.LoadFromEnumerable(images), seed: 1);
+
+            shuffledFullImagesDataset = mlContext.Transforms.Conversion
+                .MapValueToKey("Label")
+                .Append(mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath"))
+                .Fit(shuffledFullImagesDataset)
+                .Transform(shuffledFullImagesDataset);
+
+            // Split the data 90:10 into train and test sets, train and evaluate.
+            TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
+                shuffledFullImagesDataset, testFraction: 0.1, seed: 1);
+
+            IDataView trainDataset = trainTestData.TrainSet;
+            IDataView testDataset = trainTestData.TestSet;
+
+            var options = new ImageClassificationTrainer.Options()
+            {
+                FeatureColumnName = "Image",
+                LabelColumnName = "Label",
+                // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
+                // ResnetV2101 you can try a different architecture/
+                // pre-trained model. 
+                Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
+                Epoch = 5,
+                BatchSize = 32,
+                LearningRate = 0.0001f,
+                ValidationSet = testDataset,
+                EarlyStoppingCriteria = null
+            };
+
+            var pipeline = mlContext.MulticlassClassification.Trainers.ImageClassification(options);
+
+            var trainedModel = pipeline.Fit(trainDataset);
+            mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
+                "model.zip");
+
+            ITransformer loadedModel;
+            DataViewSchema schema;
+            using (var file = File.OpenRead("model.zip"))
+                loadedModel = mlContext.Model.Load(file, out schema);
+
+            IDataView predictions = trainedModel.Transform(testDataset);
+            var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
+
+            // Assert accuracy was returned meaning training completed
+            // by skipping bad images.
+            Assert.InRange(metrics.MicroAccuracy, 0.3, 1);
+            Assert.InRange(metrics.MacroAccuracy, 0.3, 1);
         }
 
         public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,
@@ -1798,6 +1881,18 @@ namespace Microsoft.ML.Scenarios
                 $"/flower_images/flower_photos_tiny_set_for_unit_tests.zip?st=2019" +
                 $"-08-29T00%3A07%3A21Z&se=2030-08-30T00%3A07%3A00Z&sp=rl&sv=2018" +
                 $"-03-28&sr=f&sig=N8HbLziTcT61kstprNLmn%2BDC0JoMrNwo6yRWb3hLLag%3D";
+
+            Download(url, imagesDownloadFolder, fileName);
+            UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);
+
+            return Path.GetFileNameWithoutExtension(fileName);
+        }
+
+        public static string DownloadBadImageSet(string imagesDownloadFolder)
+        {
+            string fileName = "CatsVsDogs_tiny_for_unit_tests.zip";
+            string url = $"https://tlcresources.blob.core.windows.net/datasets/" +
+                $"CatsVsDogs_tiny_for_unit_tests.zip"; 
 
             Download(url, imagesDownloadFolder, fileName);
             UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);

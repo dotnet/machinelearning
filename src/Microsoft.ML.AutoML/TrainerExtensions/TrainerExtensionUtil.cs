@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.LightGbm;
@@ -43,7 +42,8 @@ namespace Microsoft.ML.AutoML
         SgdCalibratedOva,
         SymbolicSgdLogisticRegressionBinary,
         SymbolicSgdLogisticRegressionOva,
-        MatrixFactorization
+        MatrixFactorization,
+        ImageClassification
     }
 
     internal static class TrainerExtensionUtil
