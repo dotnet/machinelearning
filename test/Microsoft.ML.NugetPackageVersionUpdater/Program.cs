@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
@@ -36,20 +37,18 @@ namespace Microsoft.ML.NugetPackageVersionUpdater
             using (var file = new StreamReader(tempVersionsFile))
             {
                 var output = file.ReadToEnd();
-                var splits = output.Split("\r\n".ToCharArray());
+                var splits = output.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
                 foreach (var split in splits)
                 {
                     if (split.Contains(packageNamespace))
                     {
-                        var detailSplit = split.Split(' ');
+                        var detailSplit = split.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
                         //valida NuGet package version should be separate by space like below:
-                        //[PackageName]space[PackageVersion]
-                        //One Example: Microsoft.ML 1.4.0-preview3-28223-2
-                        if (detailSplit.Length == 2)
-                            packageVersions.Add(detailSplit[0], detailSplit[1]);
-                        else
-                            throw new InvalidDataException($"Package version format is invalid for: {split}.");
+                        //> [PackageName]space[Requested PackageVersion]space[Resolved PackageVersion]space[Latest PackageVersion]
+                        //One Example: > Microsoft.ML.LightGbm 1.4.0-preview3-28229-8 1.4.0-preview3-28229-8 1.4.0-preview3-28229-9  
+                        if (detailSplit.Length == 5)
+                            packageVersions.Add(detailSplit[1], detailSplit[4]);
                     }
                 }
             }
