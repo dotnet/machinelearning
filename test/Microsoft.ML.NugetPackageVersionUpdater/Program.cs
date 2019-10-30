@@ -13,7 +13,7 @@ namespace Microsoft.ML.NugetPackageVersionUpdater
     {
         //private const string getLatestVersionBatFileName = "get-latest-package-version.bat";
         private const string tempVersionsFile = "latest_versions.txt";
-        private const string targetPropsFile = "..\\PackageDependency.props";
+        private const string targetPropsFile = "../PackageDependency.props";
         private const string packageNamespace = "Microsoft.ML";
 
         public static void Main(string[] args)
