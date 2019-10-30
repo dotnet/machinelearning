@@ -8,13 +8,19 @@ namespace Microsoft.ML.AutoML.Samples.DataStructures
 {
     public class Movie
     {
-        [LoadColumn(0)]
-        public string UserId;
+        [ColumnName("userId"), LoadColumn(0)]
+        public float UserId { get; set; }
 
-        [LoadColumn(1)]
-        public string MovieId;
 
-        [LoadColumn(2)]
-        public float Rating;
+        [ColumnName("movieId"), LoadColumn(1)]
+        public float MovieId { get; set; }
+
+
+        [ColumnName("rating"), LoadColumn(2)]
+        public float Rating { get; set; }
+
+
+        [ColumnName("timestamp"), LoadColumn(3)]
+        public float Timestamp { get; set; }
     }
 }

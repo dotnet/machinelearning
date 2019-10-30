@@ -25,10 +25,11 @@ namespace TestNamespace.ConsoleApp
             // Make a single prediction on the sample data and print results
             ModelOutput predictionResult = ConsumeModel.Predict(sampleData);
 
-            Console.WriteLine("Using model to make single prediction -- Comparing actual Label with predicted Label from sample data...\n\n");
+            Console.WriteLine("Using model to make single prediction -- Comparing actual Rating with predicted Rating from sample data...\n\n");
             Console.WriteLine($"userId: {sampleData.UserId}");
             Console.WriteLine($"movieId: {sampleData.MovieId}");
-            Console.WriteLine($"\n\nActual Label: {sampleData.Label} \nPredicted Label: {predictionResult.Score}\n\n");
+            Console.WriteLine($"timestamp: {sampleData.Timestamp}");
+            Console.WriteLine($"\n\nActual Rating: {sampleData.Rating} \nPredicted Rating: {predictionResult.Score}\n\n");
             Console.WriteLine("=============== End of process, hit any key to finish ===============");
             Console.ReadKey();
         }

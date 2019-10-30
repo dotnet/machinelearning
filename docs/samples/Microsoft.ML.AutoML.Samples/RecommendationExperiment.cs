@@ -12,13 +12,14 @@ namespace Microsoft.ML.AutoML.Samples
 {
     public static class RecommendationExperiment
     {
-        private static string TrainDataPath = "<Path to your train dataset goes here>";
-        private static string TestDataPath = "<Path to your test dataset goes here>";
+        private static string PathToMachineLearningSamplesRepo = "<Path to machinelearning-samples repo goes here>"; // https://github.com/dotnet/machinelearning-samples/
+        private static string TrainDataPath = Path.Combine(PathToMachineLearningSamplesRepo, @"samples\csharp\getting-started\MatrixFactorization_MovieRecommendation\Data\recommendation-ratings-train.csv");
+        private static string TestDataPath = Path.Combine(PathToMachineLearningSamplesRepo, @"samples\csharp\getting-started\MatrixFactorization_MovieRecommendation\Data\recommendation-ratings-test.csv");
         private static string ModelPath = @"<Desired model output directory goes here>\Model.zip";
-        private static string LabelColumnName = "Rating";
-        private static string UserColumnName = "UserId";
-        private static string ItemColumnName = "MovieId";
-        private static uint ExperimentTime = 60;
+        private static string LabelColumnName = "rating";
+        private static string UserColumnName = "userId";
+        private static string ItemColumnName = "movieId";
+        private static uint ExperimentTime = 540;
 
         public static void Run()
         {
@@ -30,15 +31,17 @@ namespace Microsoft.ML.AutoML.Samples
 
             // STEP 2: Run AutoML experiment
             Console.WriteLine($"Running AutoML recommendation experiment for {ExperimentTime} seconds...");
+            var columnInformation = new ColumnInformation()
+            {
+                LabelColumnName = LabelColumnName,
+                UserIdColumnName = UserColumnName,
+                ItemIdColumnName = ItemColumnName
+            };
+            columnInformation.IgnoredColumnNames.Add("timestamp");
             ExperimentResult<RegressionMetrics> experimentResult = mlContext.Auto()
                 .CreateRecommendationExperiment(new RecommendationExperimentSettings() { MaxExperimentTimeInSeconds = ExperimentTime })
                 .Execute(trainDataView, testDataView,
-                    new ColumnInformation()
-                    {
-                        LabelColumnName = LabelColumnName,
-                        UserIdColumnName = UserColumnName,
-                        ItemIdColumnName = ItemColumnName
-                    });
+                    columnInformation);
 
             // STEP 3: Print metric from best model
             RunDetail<RegressionMetrics> bestRun = experimentResult.BestRun;
@@ -62,8 +65,8 @@ namespace Microsoft.ML.AutoML.Samples
             // STEP 8: Initialize a new test, and get the prediction
             var testMovie = new Movie
             {
-                UserId = "1",
-                MovieId = "1097",
+                UserId = 1,
+                MovieId = 1097,
             };
             var prediction = predictionEngine.Predict(testMovie);
             Console.WriteLine($"Predicted rating for: {prediction.Rating}");
@@ -71,8 +74,8 @@ namespace Microsoft.ML.AutoML.Samples
             // Only predict for existing users
             testMovie = new Movie
             {
-                UserId = "612", // new user
-                MovieId = "2940"
+                UserId = 612, // new user
+                MovieId = 2940
             };
             prediction = predictionEngine.Predict(testMovie);
             Console.WriteLine($"Expected Rating NaN for unknown user, Predicted: {prediction.Rating}");

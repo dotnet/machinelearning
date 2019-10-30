@@ -59,7 +59,7 @@ namespace TestNamespace.ConsoleApp
             var dataProcessPipeline = mlContext.Transforms.Concatenate("Out", new[] { "In" });
 
             // Set the training algorithm 
-            var trainer = mlContext.Recommendation().Trainers.MatrixFactorization(labelColumnName: "Label", matrixColumnIndexColumnName: "userId", matrixRowIndexColumnName: "movieId");
+            var trainer = mlContext.Recommendation().Trainers.MatrixFactorization(labelColumnName: "rating", matrixColumnIndexColumnName: "userId", matrixRowIndexColumnName: "movieId");
             var trainingPipeline = dataProcessPipeline.Append(trainer);
 
             return trainingPipeline;
@@ -80,7 +80,7 @@ namespace TestNamespace.ConsoleApp
             // Evaluate the model and show accuracy stats
             Console.WriteLine("===== Evaluating Model's accuracy with Test data =====");
             IDataView predictions = mlModel.Transform(testDataView);
-            var metrics = mlContext.Recommendation().Evaluate(predictions, "Label", "Score");
+            var metrics = mlContext.Recommendation().Evaluate(predictions, "rating", "Score");
             PrintRegressionMetrics(metrics);
         }
 

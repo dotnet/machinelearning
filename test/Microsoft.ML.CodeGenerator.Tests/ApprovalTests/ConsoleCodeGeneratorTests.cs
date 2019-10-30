@@ -286,7 +286,7 @@ namespace mlnet.Tests
             (Pipeline pipeline,
                        ColumnInferenceResults columnInference) = GetMockedRecommendationPipelineAndInference();
 
-            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.Recommendation));
+            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.Recommendation, columnInference.ColumnInformation.LabelColumnName));
             return consoleCodeGen;
         }
 
@@ -297,7 +297,7 @@ namespace mlnet.Tests
                 MLContext context = new MLContext();
 
                 var trainer1 = new SuggestedTrainer(context, new MatrixFactorizationExtension(), new ColumnInformation() {
-                    LabelColumnName = "Label",
+                    LabelColumnName = "rating",
                     UserIdColumnName = "userId",
                     ItemIdColumnName = "movieId",
                 }, hyperParamSet: null);
@@ -308,9 +308,10 @@ namespace mlnet.Tests
                 var textLoaderArgs = new TextLoader.Options()
                 {
                     Columns = new[] {
-                        new TextLoader.Column("Label", DataKind.String, 0),
-                        new TextLoader.Column("userId", DataKind.String, 1),
-                        new TextLoader.Column("movieId", DataKind.String, 2),
+                        new TextLoader.Column("userId", DataKind.Single, 0),
+                        new TextLoader.Column("movieId", DataKind.Single, 1),
+                        new TextLoader.Column("rating", DataKind.Single, 2),
+                        new TextLoader.Column("timestamp", DataKind.Single, 3),
                     },
                     AllowQuoting = true,
                     AllowSparse = true,
@@ -321,12 +322,14 @@ namespace mlnet.Tests
                 this.columnInference = new ColumnInferenceResults()
                 {
                     TextLoaderOptions = textLoaderArgs,
-                    ColumnInformation = new ColumnInformation() {
-                        LabelColumnName = "Label",
+                    ColumnInformation = new ColumnInformation()
+                    {
                         UserIdColumnName = "userId",
-                        ItemIdColumnName = "movieId"
+                        ItemIdColumnName = "movieId",
+                        LabelColumnName = "rating",
                     }
                 };
+                columnInference.ColumnInformation.IgnoredColumnNames.Add("timestamp");
             }
             return (mockedPipeline, columnInference);
         }
@@ -444,7 +447,7 @@ namespace mlnet.Tests
             return (mockedOvaPipeline, columnInference);
         }
 
-        private static CodeGeneratorSettings CreateCodeGeneratorSettingsFor(TaskKind task)
+        private static CodeGeneratorSettings CreateCodeGeneratorSettingsFor(TaskKind task, string labelName = "Label")
         {
             return new CodeGeneratorSettings()
             {
@@ -453,7 +456,7 @@ namespace mlnet.Tests
                 OutputName = "MyNamespace",
                 TrainDataset = "x:\\dummypath\\dummy_train.csv",
                 TestDataset = "x:\\dummypath\\dummy_test.csv",
-                LabelName = "Label",
+                LabelName = labelName,
                 ModelPath = "x:\\models\\model.zip",
                 StablePackageVersion = StablePackageVersion,
                 UnstablePackageVersion = UnstablePackageVersion

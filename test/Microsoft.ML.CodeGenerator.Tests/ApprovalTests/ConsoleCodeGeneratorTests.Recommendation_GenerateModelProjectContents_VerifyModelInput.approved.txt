@@ -10,16 +10,20 @@ namespace TestNamespace.Model
 {
     public class ModelInput
     {
-        [ColumnName("Label"), LoadColumn(0)]
-        public string Label { get; set; }
+        [ColumnName("userId"), LoadColumn(0)]
+        public float UserId { get; set; }
 
 
-        [ColumnName("userId"), LoadColumn(1)]
-        public string UserId { get; set; }
+        [ColumnName("movieId"), LoadColumn(1)]
+        public float MovieId { get; set; }
 
 
-        [ColumnName("movieId"), LoadColumn(2)]
-        public string MovieId { get; set; }
+        [ColumnName("rating"), LoadColumn(2)]
+        public float Rating { get; set; }
+
+
+        [ColumnName("timestamp"), LoadColumn(3)]
+        public float Timestamp { get; set; }
 
 
     }
