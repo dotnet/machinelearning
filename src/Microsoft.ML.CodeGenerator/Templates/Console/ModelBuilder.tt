@@ -91,7 +91,7 @@ namespace <#= Namespace #>.ConsoleApp
 <#}#>
 
             // Set the training algorithm 
-            var trainer = mlContext.<#= TaskType #>.Trainers.<#= Trainer #><# for(int i=0;i<PostTrainerTransforms.Count;i++) 
+            var trainer = mlContext.<#= TaskType #><#if("Recommendation".Equals(TaskType)){ #>()<# } #>.Trainers.<#= Trainer #><# for(int i=0;i<PostTrainerTransforms.Count;i++) 
                                          { 
                                              Write("\r\n                                      .Append(");
                                              Write("mlContext.Transforms."+PostTrainerTransforms[i]);
@@ -129,8 +129,8 @@ else{#>
 <#} if("MulticlassClassification".Equals(TaskType)){ #>
             var metrics = mlContext.<#= TaskType #>.Evaluate(predictions, "<#= LabelName #>", "Score");
             PrintMulticlassClassificationMetrics(metrics);
-<#}if("Regression".Equals(TaskType)){ #>
-            var metrics = mlContext.<#= TaskType #>.Evaluate(predictions, "<#= LabelName #>", "Score");
+<#}if("Regression".Equals(TaskType) || "Recommendation".Equals(TaskType)){ #>
+            var metrics = mlContext.<#= TaskType #><#if("Recommendation".Equals(TaskType)){ #>()<# } #>.Evaluate(predictions, "<#= LabelName #>", "Score");
             PrintRegressionMetrics(metrics);
 <#} #>
         }
@@ -152,6 +152,7 @@ else{#>
 <#}#>
         }
 <#}#>
+
         private static void SaveModel(MLContext mlContext, ITransformer mlModel, string modelRelativePath, DataViewSchema modelInputSchema)
         {
             // Save/persist the trained model to a .ZIP file
@@ -170,11 +171,11 @@ else{#>
             return fullPath;
         }
 
-<#if("Regression".Equals(TaskType)){ #>
+<#if("Regression".Equals(TaskType) || "Recommendation".Equals(TaskType)){ #>
         public static void PrintRegressionMetrics(RegressionMetrics metrics)
         {
             Console.WriteLine($"*************************************************");
-            Console.WriteLine($"*       Metrics for regression model      ");
+            Console.WriteLine($"*       Metrics for <#= TaskType #> model      ");
             Console.WriteLine($"*------------------------------------------------");
             Console.WriteLine($"*       LossFn:        {metrics.LossFunction:0.##}");
             Console.WriteLine($"*       R2 Score:      {metrics.RSquared:0.##}");
@@ -193,7 +194,7 @@ else{#>
             var R2 = crossValidationResults.Select(r => r.Metrics.RSquared);
 
             Console.WriteLine($"*************************************************************************************************************");
-            Console.WriteLine($"*       Metrics for Regression model      ");
+            Console.WriteLine($"*       Metrics for <#= TaskType #> model      ");
             Console.WriteLine($"*------------------------------------------------------------------------------------------------------------");
             Console.WriteLine($"*       Average L1 Loss:       {L1.Average():0.###} ");
             Console.WriteLine($"*       Average L2 Loss:       {L2.Average():0.###}  ");

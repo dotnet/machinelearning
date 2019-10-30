@@ -577,5 +577,35 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 }
             }
         }
+
+        internal class MatrixFactorization : TrainerGeneratorBase
+        {
+            //ClassName of the trainer
+            internal override string MethodName => "MatrixFactorization";
+
+            internal override string OptionsName => "MatrixFactorizationTrainer.Options";
+            protected override bool IncludeFeatureColumnName => false;
+
+            //The named parameters to the trainer.
+            internal override IDictionary<string, string> NamedParameters
+            {
+                get
+                {
+                    return
+                    new Dictionary<string, string>()
+                    {
+                        { "MatrixColumnIndexColumnName","matrixColumnIndexColumnName" },
+                        { "MatrixRowIndexColumnName","matrixRowIndexColumnName" },
+                        { "LabelColumnName","labelColumnName" }
+                    };
+                }
+            }
+
+            internal override string[] Usings => new string[] { "using Microsoft.ML.Trainers;\r\n" };
+
+            public MatrixFactorization(PipelineNode node) : base(node)
+            {
+            }
+        }
     }
 }

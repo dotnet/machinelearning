@@ -27,22 +27,39 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
         {
             this.Write("<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n  <PropertyGroup>\r\n    <TargetFramework>nets" +
                     "tandard2.0</TargetFramework>\r\n  </PropertyGroup>\r\n  <ItemGroup>\r\n    <PackageRef" +
-                    "erence Include=\"Microsoft.ML\" Version=\"1.4.0\" />\r\n");
+                    "erence Include=\"Microsoft.ML\" Version=\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
+            this.Write("\" />\r\n");
  if (IncludeLightGBMPackage) { 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.LightGBM\" Version=\"1.4.0\" />\r\n");
+            this.Write("    <PackageReference Include=\"Microsoft.ML.LightGBM\" Version=\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
+            this.Write("\" />\r\n");
 }
  if (IncludeMklComponentsPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.Mkl.Components\" Version=\"1.4.0\" />\r\n");
+            this.Write("    <PackageReference Include=\"Microsoft.ML.Mkl.Components\" Version=\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
+            this.Write("\" />\r\n");
 }
  if (IncludeFastTreePackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.FastTree\" Version=\"1.4.0\" />\r\n");
+            this.Write("    <PackageReference Include=\"Microsoft.ML.FastTree\" Version=\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
+            this.Write("\" />\r\n");
 }
  if (IncludeImageTransformerPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.ImageAnalytics\" Version=\"1.4.0\" />\r\n");
+            this.Write("    <PackageReference Include=\"Microsoft.ML.ImageAnalytics\" Version=\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
+            this.Write("\" />\r\n");
 }
  if (IncludeImageClassificationPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.Vision\" Version=\"1.4.0\" />\r\n\t<Package" +
-                    "Reference Include=\"SciSharp.TensorFlow.Redist\" Version=\"1.14.0\" />\r\n");
+            this.Write("    <PackageReference Include=\"Microsoft.ML.Vision\" Version=\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
+            this.Write("\" />\r\n\t<PackageReference Include=\"SciSharp.TensorFlow.Redist\" Version=\"1.14.0\" />" +
+                    "\r\n");
+}
+ if (IncludeRecommenderPackage){ 
+            this.Write("    <PackageReference Include=\"Microsoft.ML.Recommender\" Version=\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(UnstablePackageVersion));
+            this.Write("\" />\r\n");
 }
             this.Write("  </ItemGroup>\r\n\r\n  <ItemGroup>\r\n    <None Update=\"MLModel.zip\">\r\n      <CopyToOu" +
                     "tputDirectory>PreserveNewest</CopyToOutputDirectory>\r\n    </None>\r\n  </ItemGroup" +
@@ -55,6 +72,9 @@ public bool IncludeMklComponentsPackage {get;set;}
 public bool IncludeFastTreePackage {get;set;}
 public bool IncludeImageTransformerPackage {get; set;}
 public bool IncludeImageClassificationPackage {get; set;}
+public bool IncludeRecommenderPackage {get;set;}
+public string StablePackageVersion {get;set;}
+public string UnstablePackageVersion {get;set;}
 
     }
     #region Base class
