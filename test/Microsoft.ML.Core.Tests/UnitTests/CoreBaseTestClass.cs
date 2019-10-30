@@ -9,6 +9,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.TestFrameworkCommon;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.Core.Tests.UnitTests
@@ -23,16 +24,6 @@ namespace Microsoft.ML.Core.Tests.UnitTests
         protected bool Failed()
         {
             return false;
-        }
-
-        protected bool EqualTypes(DataViewType type1, DataViewType type2, bool exactTypes)
-        {
-            Contracts.AssertValue(type1);
-            Contracts.AssertValue(type2);
-
-            if (type1.Equals(type2))
-                return true;
-            return !exactTypes && type1 is VectorDataViewType vt1 && type2 is VectorDataViewType vt2 && vt1.ItemType.Equals(vt2.ItemType) && vt1.Size == vt2.Size;
         }
 
         protected Func<bool> GetIdComparer(DataViewRow r1, DataViewRow r2, out ValueGetter<DataViewRowId> idGetter)
@@ -85,75 +76,10 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 {
                     g1(ref v1);
                     g2(ref v2);
-                    return CompareVec<T>(in v1, in v2, size, fn);
+                    return TestCommon.CompareVec<T>(in v1, in v2, size, fn);
                 };
         }
 
-        protected bool CompareVec<T>(in VBuffer<T> v1, in VBuffer<T> v2, int size, Func<T, T, bool> fn)
-        {
-            return CompareVec(in v1, in v2, size, (i, x, y) => fn(x, y));
-        }
-
-        protected bool CompareVec<T>(in VBuffer<T> v1, in VBuffer<T> v2, int size, Func<int, T, T, bool> fn)
-        {
-            Contracts.Assert(size == 0 || v1.Length == size);
-            Contracts.Assert(size == 0 || v2.Length == size);
-            Contracts.Assert(v1.Length == v2.Length);
-
-            var v1Values = v1.GetValues();
-            var v2Values = v2.GetValues();
-
-            if (v1.IsDense && v2.IsDense)
-            {
-                for (int i = 0; i < v1.Length; i++)
-                {
-                    var x1 = v1Values[i];
-                    var x2 = v2Values[i];
-                    if (!fn(i, x1, x2))
-                        return false;
-                }
-                return true;
-            }
-
-            Contracts.Assert(!v1.IsDense || !v2.IsDense);
-            int iiv1 = 0;
-            int iiv2 = 0;
-            var v1Indices = v1.GetIndices();
-            var v2Indices = v2.GetIndices();
-            for (; ; )
-            {
-                int iv1 = v1.IsDense ? iiv1 : iiv1 < v2Indices.Length ? v1Indices[iiv1] : v1.Length;
-                int iv2 = v2.IsDense ? iiv2 : iiv2 < v2Indices.Length ? v2Indices[iiv2] : v2.Length;
-                T x1, x2;
-                int iv;
-                if (iv1 == iv2)
-                {
-                    if (iv1 == v1.Length)
-                        return true;
-                    x1 = v1Values[iiv1];
-                    x2 = v2Values[iiv2];
-                    iv = iv1;
-                    iiv1++;
-                    iiv2++;
-                }
-                else if (iv1 < iv2)
-                {
-                    x1 = v1Values[iiv1];
-                    x2 = default(T);
-                    iv = iv1;
-                    iiv1++;
-                }
-                else
-                {
-                    x1 = default(T);
-                    x2 = v2Values[iiv2];
-                    iv = iv2;
-                    iiv2++;
-                }
-                if (!fn(iv, x1, x2))
-                    return false;
-            }
-        }
         protected Func<bool> GetColumnComparer(DataViewRow r1, DataViewRow r2, int col, DataViewType type, bool exactDoubles)
         {
             if (type is VectorDataViewType vecType)
@@ -331,7 +257,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 {
                     var type1 = curs1.Schema[col].Type;
                     var type2 = curs2.Schema[col].Type;
-                    if (!EqualTypes(type1, type2, exactTypes))
+                    if (!TestCommon.EqualTypes(type1, type2, exactTypes))
                     {
                         Fail($"Different types {type1} and {type2}");
                         return Failed();
@@ -420,7 +346,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                     Contracts.Assert(cursors[col] != null);
                     var type1 = curs1.Schema[col].Type;
                     var type2 = cursors[col].Schema[col].Type;
-                    if (!EqualTypes(type1, type2, exactTypes))
+                    if (!TestCommon.EqualTypes(type1, type2, exactTypes))
                     {
                         Fail("Different types");
                         return Failed();

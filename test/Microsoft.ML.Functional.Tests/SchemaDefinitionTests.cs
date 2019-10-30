@@ -5,14 +5,13 @@
 using System;
 using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.ML.RunTests;
-using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFrameworkCommon;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.Functional.Tests
 {
-    public class SchemaDefinitionTests : BaseTestClass
+    public class SchemaDefinitionTests : FunctionalTestBaseClass
     {
         private MLContext _ml;
 
@@ -25,13 +24,12 @@ namespace Microsoft.ML.Functional.Tests
             base.Initialize();
 
             _ml = new MLContext(42);
-            _ml.AddStandardComponents();
         }
 
         [Fact]
         public void SchemaDefinitionForPredictionEngine()
         {
-            var fileName = GetDataPath(TestDatasets.adult.trainFilename);
+            var fileName = TestCommon.GetDataPath(DataDir, TestDatasets.adult.trainFilename);
             var loader = _ml.Data.CreateTextLoader(new TextLoader.Options(), new MultiFileSource(fileName));
             var data = loader.Load(new MultiFileSource(fileName));
             var pipeline1 = _ml.Transforms.Categorical.OneHotEncoding("Cat", "Workclass", maximumNumberOfKeys: 3)
@@ -61,7 +59,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void SchemaDefinitionForCustomMapping()
         {
-            var fileName = GetDataPath(TestDatasets.adult.trainFilename);
+            var fileName = TestCommon.GetDataPath(DataDir, TestDatasets.adult.trainFilename);
             var data = new MultiFileSource(fileName);
             var loader = _ml.Data.CreateTextLoader(new TextLoader.Options(), new MultiFileSource(fileName));
             var pipeline = _ml.Transforms.Categorical.OneHotEncoding("Categories")

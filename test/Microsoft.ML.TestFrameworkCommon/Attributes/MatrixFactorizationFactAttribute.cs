@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-namespace Microsoft.ML.TestFramework.Attributes
+namespace Microsoft.ML.TestFrameworkCommon.Attributes
 {
     /// <summary>
     /// A fact for tests requiring matrix factorization.

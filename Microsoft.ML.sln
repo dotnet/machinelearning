@@ -283,6 +283,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.CodeGenerator"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Vision", "src\Microsoft.ML.Vision\Microsoft.ML.Vision.csproj", "{419F93D5-4135-4DA0-A76E-EFC23E04093D}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.TestFrameworkCommon", "test\Microsoft.ML.TestFrameworkCommon\Microsoft.ML.TestFrameworkCommon.csproj", "{A22FAD27-77E8-4460-8B92-EC7090B7173A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1690,6 +1692,30 @@ Global
 		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Release-netfx|Any CPU.Build.0 = Release-netfx|Any CPU
 		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Release-netfx|x64.ActiveCfg = Release-netfx|Any CPU
 		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Release-netfx|x64.Build.0 = Release-netfx|Any CPU
+		{A22FAD27-77E8-4460-8B92-EC7090B7173A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A22FAD27-77E8-4460-8B92-EC7090B7173A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A22FAD27-77E8-4460-8B92-EC7090B7173A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A22FAD27-77E8-4460-8B92-EC7090B7173A}.Debug|x64.Build.0 = Debug|Any CPU
+		{A22FAD27-77E8-4460-8B92-EC7090B7173A}.Debug-netcoreapp3_0|Any CPU.ActiveCfg = Debug-netcoreapp3_0|Any CPU
+		{A22FAD27-77E8-4460-8B92-EC7090B7173A}.Debug-netcoreapp3_0|Any CPU.Build.0 = Debug-netcoreapp3_0|Any CPU
+		{A22FAD27-77E8-4460-8B92-EC7090B7173A}.Debug-netcoreapp3_0|x64.ActiveCfg = Debug-netcoreapp3_0|Any CPU
+		{A22FAD27-77E8-4460-8B92-EC7090B7173A}.Debug-netcoreapp3_0|x64.Build.0 = Debug-netcoreapp3_0|Any CPU
+		{A22FAD27-77E8-4460-8B92-EC7090B7173A}.Debug-netfx|Any CPU.ActiveCfg = Debug-netfx|Any CPU
+		{A22FAD27-77E8-4460-8B92-EC7090B7173A}.Debug-netfx|Any CPU.Build.0 = Debug-netfx|Any CPU
+		{A22FAD27-77E8-4460-8B92-EC7090B7173A}.Debug-netfx|x64.ActiveCfg = Debug-netfx|Any CPU
+		{A22FAD27-77E8-4460-8B92-EC7090B7173A}.Debug-netfx|x64.Build.0 = Debug-netfx|Any CPU
+		{A22FAD27-77E8-4460-8B92-EC7090B7173A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A22FAD27-77E8-4460-8B92-EC7090B7173A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A22FAD27-77E8-4460-8B92-EC7090B7173A}.Release|x64.ActiveCfg = Release|Any CPU
+		{A22FAD27-77E8-4460-8B92-EC7090B7173A}.Release|x64.Build.0 = Release|Any CPU
+		{A22FAD27-77E8-4460-8B92-EC7090B7173A}.Release-netcoreapp3_0|Any CPU.ActiveCfg = Release-netcoreapp3_0|Any CPU
+		{A22FAD27-77E8-4460-8B92-EC7090B7173A}.Release-netcoreapp3_0|Any CPU.Build.0 = Release-netcoreapp3_0|Any CPU
+		{A22FAD27-77E8-4460-8B92-EC7090B7173A}.Release-netcoreapp3_0|x64.ActiveCfg = Release-netcoreapp3_0|Any CPU
+		{A22FAD27-77E8-4460-8B92-EC7090B7173A}.Release-netcoreapp3_0|x64.Build.0 = Release-netcoreapp3_0|Any CPU
+		{A22FAD27-77E8-4460-8B92-EC7090B7173A}.Release-netfx|Any CPU.ActiveCfg = Release-netfx|Any CPU
+		{A22FAD27-77E8-4460-8B92-EC7090B7173A}.Release-netfx|Any CPU.Build.0 = Release-netfx|Any CPU
+		{A22FAD27-77E8-4460-8B92-EC7090B7173A}.Release-netfx|x64.ActiveCfg = Release-netfx|Any CPU
+		{A22FAD27-77E8-4460-8B92-EC7090B7173A}.Release-netfx|x64.Build.0 = Release-netfx|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1779,6 +1805,7 @@ Global
 		{46CC5637-3DDF-4100-93FC-44BB87B2DB81} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
 		{3817A875-278C-4140-BF66-3C4A8CA55F0D} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{419F93D5-4135-4DA0-A76E-EFC23E04093D} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
+		{A22FAD27-77E8-4460-8B92-EC7090B7173A} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {41165AF1-35BB-4832-A189-73060F82B01D}
