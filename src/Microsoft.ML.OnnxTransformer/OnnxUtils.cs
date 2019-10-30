@@ -442,9 +442,9 @@ namespace Microsoft.ML.Transforms.Onnx
             if (!_onnxTypeMap.Contains(typeof(T)))
                 throw new NotImplementedException($"Not implemented type {typeof(T)}");
 
-            if (data.GetType() == typeof(ReadOnlyMemory<Char>))
+            if (typeof(T) == typeof(ReadOnlyMemory<char>))
             {
-                var charMemory = (ReadOnlyMemory<Char>)Convert.ChangeType(data, typeof(ReadOnlyMemory<Char>));
+                var charMemory = (ReadOnlyMemory<char>)Convert.ChangeType(data, typeof(ReadOnlyMemory<char>));
                 var stringMemory = new Memory<string>(new string[] { charMemory.ToString() });
                 return NamedOnnxValue.CreateFromTensor<string>(name, new DenseTensor<string>(stringMemory, new int[] { 1, 1 }, false));
 
