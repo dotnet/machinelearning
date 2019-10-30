@@ -4,14 +4,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.ML;
-using Microsoft.ML.Transforms;
 using static Microsoft.ML.DataOperationsCatalog;
 using System.Linq;
 using Microsoft.ML.Data;
 using System.IO.Compression;
 using System.Threading;
 using System.Net;
-using Microsoft.ML.Dnn;
+using Microsoft.ML.Vision;
 
 namespace Samples.Dynamic
 {

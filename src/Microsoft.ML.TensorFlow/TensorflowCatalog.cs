@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
+using Microsoft.ML.TensorFlow;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.TensorFlow;
 
 namespace Microsoft.ML
 {

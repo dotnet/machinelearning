@@ -257,8 +257,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.Extensions.ML", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.StableApi", "tools-local\Microsoft.ML.StableApi\Microsoft.ML.StableApi.csproj", "{F308DC6B-7E59-40D7-A581-834E8CD99CFE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Dnn", "src\Microsoft.ML.Dnn\Microsoft.ML.Dnn.csproj", "{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.AutoML.Tests", "test\Microsoft.ML.AutoML.Tests\Microsoft.ML.AutoML.Tests.csproj", "{C2652287-CD6D-40FB-B042-95FB56D09DB8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.AutoML", "src\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj", "{E48285BF-F49A-4EA3-AED0-1BDDBF77EB80}"
@@ -282,6 +280,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.CodeGenerator"
 		pkg\Microsoft.ML.CodeGenerator\Microsoft.ML.CodeGenerator.nupkgproj = pkg\Microsoft.ML.CodeGenerator\Microsoft.ML.CodeGenerator.nupkgproj
 		pkg\Microsoft.ML.CodeGenerator\Microsoft.ML.CodeGenerator.symbols.nupkgproj = pkg\Microsoft.ML.CodeGenerator\Microsoft.ML.CodeGenerator.symbols.nupkgproj
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Vision", "src\Microsoft.ML.Vision\Microsoft.ML.Vision.csproj", "{419F93D5-4135-4DA0-A76E-EFC23E04093D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1523,30 +1523,6 @@ Global
 		{F308DC6B-7E59-40D7-A581-834E8CD99CFE}.Release-netfx|Any CPU.Build.0 = Release-netfx|Any CPU
 		{F308DC6B-7E59-40D7-A581-834E8CD99CFE}.Release-netfx|x64.ActiveCfg = Release-netfx|Any CPU
 		{F308DC6B-7E59-40D7-A581-834E8CD99CFE}.Release-netfx|x64.Build.0 = Release-netfx|Any CPU
-		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Debug|x64.Build.0 = Debug|Any CPU
-		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Debug-netcoreapp3_0|Any CPU.ActiveCfg = Debug-netcoreapp3_0|Any CPU
-		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Debug-netcoreapp3_0|Any CPU.Build.0 = Debug-netcoreapp3_0|Any CPU
-		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Debug-netcoreapp3_0|x64.ActiveCfg = Debug-netcoreapp3_0|Any CPU
-		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Debug-netcoreapp3_0|x64.Build.0 = Debug-netcoreapp3_0|Any CPU
-		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Debug-netfx|Any CPU.ActiveCfg = Debug-netfx|Any CPU
-		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Debug-netfx|Any CPU.Build.0 = Debug-netfx|Any CPU
-		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Debug-netfx|x64.ActiveCfg = Debug-netfx|Any CPU
-		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Debug-netfx|x64.Build.0 = Debug-netfx|Any CPU
-		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Release|x64.ActiveCfg = Release|Any CPU
-		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Release|x64.Build.0 = Release|Any CPU
-		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Release-netcoreapp3_0|Any CPU.ActiveCfg = Release-netcoreapp3_0|Any CPU
-		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Release-netcoreapp3_0|Any CPU.Build.0 = Release-netcoreapp3_0|Any CPU
-		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Release-netcoreapp3_0|x64.ActiveCfg = Release-netcoreapp3_0|Any CPU
-		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Release-netcoreapp3_0|x64.Build.0 = Release-netcoreapp3_0|Any CPU
-		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Release-netfx|Any CPU.ActiveCfg = Release-netfx|Any CPU
-		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Release-netfx|Any CPU.Build.0 = Release-netfx|Any CPU
-		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Release-netfx|x64.ActiveCfg = Release-netfx|Any CPU
-		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8}.Release-netfx|x64.Build.0 = Release-netfx|Any CPU
 		{C2652287-CD6D-40FB-B042-95FB56D09DB8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C2652287-CD6D-40FB-B042-95FB56D09DB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C2652287-CD6D-40FB-B042-95FB56D09DB8}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -1690,6 +1666,30 @@ Global
 		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Release-netfx|Any CPU.Build.0 = Release-netfx|Any CPU
 		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Release-netfx|x64.ActiveCfg = Release-netfx|Any CPU
 		{46CC5637-3DDF-4100-93FC-44BB87B2DB81}.Release-netfx|x64.Build.0 = Release-netfx|Any CPU
+		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Debug|x64.Build.0 = Debug|Any CPU
+		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Debug-netcoreapp3_0|Any CPU.ActiveCfg = Debug-netcoreapp3_0|Any CPU
+		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Debug-netcoreapp3_0|Any CPU.Build.0 = Debug-netcoreapp3_0|Any CPU
+		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Debug-netcoreapp3_0|x64.ActiveCfg = Debug-netcoreapp3_0|Any CPU
+		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Debug-netcoreapp3_0|x64.Build.0 = Debug-netcoreapp3_0|Any CPU
+		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Debug-netfx|Any CPU.ActiveCfg = Debug-netfx|Any CPU
+		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Debug-netfx|Any CPU.Build.0 = Debug-netfx|Any CPU
+		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Debug-netfx|x64.ActiveCfg = Debug-netfx|Any CPU
+		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Debug-netfx|x64.Build.0 = Debug-netfx|Any CPU
+		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Release|x64.ActiveCfg = Release|Any CPU
+		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Release|x64.Build.0 = Release|Any CPU
+		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Release-netcoreapp3_0|Any CPU.ActiveCfg = Release-netcoreapp3_0|Any CPU
+		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Release-netcoreapp3_0|Any CPU.Build.0 = Release-netcoreapp3_0|Any CPU
+		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Release-netcoreapp3_0|x64.ActiveCfg = Release-netcoreapp3_0|Any CPU
+		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Release-netcoreapp3_0|x64.Build.0 = Release-netcoreapp3_0|Any CPU
+		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Release-netfx|Any CPU.ActiveCfg = Release-netfx|Any CPU
+		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Release-netfx|Any CPU.Build.0 = Release-netfx|Any CPU
+		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Release-netfx|x64.ActiveCfg = Release-netfx|Any CPU
+		{419F93D5-4135-4DA0-A76E-EFC23E04093D}.Release-netfx|x64.Build.0 = Release-netfx|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1770,7 +1770,6 @@ Global
 		{21CAD3A1-5E1F-42C1-BB73-46B6E67F4206} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
 		{AE4F7569-26F3-4160-8A8B-7A57D0DA3350} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{F308DC6B-7E59-40D7-A581-834E8CD99CFE} = {7F13E156-3EBA-4021-84A5-CD56BA72F99E}
-		{4C2D1A8F-7AC1-4036-B5E3-4B31769D73B8} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 		{C2652287-CD6D-40FB-B042-95FB56D09DB8} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
 		{E48285BF-F49A-4EA3-AED0-1BDDBF77EB80} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 		{F5D11F71-2D61-4AE9-99D7-0F0B54649B15} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
@@ -1779,6 +1778,7 @@ Global
 		{56CB0850-7341-4D71-9AE4-9EFC472D93DD} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 		{46CC5637-3DDF-4100-93FC-44BB87B2DB81} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
 		{3817A875-278C-4140-BF66-3C4A8CA55F0D} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
+		{419F93D5-4135-4DA0-A76E-EFC23E04093D} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {41165AF1-35BB-4832-A189-73060F82B01D}

@@ -562,7 +562,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             //ClassName of the trainer
             internal override string MethodName => "ImageClassification";
             internal override string OptionsName => "ImageClassificationTrainer.Options";
-            internal override string[] Usings => new string[] { "using Microsoft.ML.Dnn;\r\n" };
+            internal override string[] Usings => new string[] { "using Microsoft.ML.Vision;\r\n" };
 
             public ImageClassificationTrainer(PipelineNode node) : base(node)
             {

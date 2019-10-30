@@ -5,21 +5,23 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Google.Protobuf;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Dnn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.TensorFlow;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Vision;
 using Tensorflow;
 using Tensorflow.Summaries;
 using static Microsoft.ML.Data.TextLoader;
-using static Microsoft.ML.Dnn.DnnUtils;
+using static Microsoft.ML.TensorFlow.TensorFlowUtils;
 using static Tensorflow.Binding;
 using Column = Microsoft.ML.Data.TextLoader.Column;
 
@@ -33,14 +35,14 @@ using Column = Microsoft.ML.Data.TextLoader.Column;
 [assembly: LoadableClass(typeof(ImageClassificationModelParameters), null, typeof(SignatureLoadModel),
     "Image classification predictor", ImageClassificationModelParameters.LoaderSignature)]
 
-namespace Microsoft.ML.Dnn
+namespace Microsoft.ML.Vision
 {
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for training a Deep Neural Network(DNN) to classify images.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
-    /// To create this trainer, use [ImageClassification](xref:Microsoft.ML.Dnn.DnnCatalog.ImageClassification(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String,System.String,System.String,Microsoft.ML.IDataView)).
+    /// To create this trainer, use [ImageClassification](xref:Microsoft.ML.Vision.DnnCatalog.ImageClassification(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String,System.String,System.String,Microsoft.ML.IDataView)).
     ///
     /// ### Input and Output Columns
     /// The input label column data must be[key] (xref:Microsoft.ML.Data.KeyDataViewType) type and the feature column must be a variable-sized vector of<xref:System.Byte>.
@@ -58,7 +60,7 @@ namespace Microsoft.ML.Dnn
     /// | Machine learning task | Multiclass classification |
     /// | Is normalization required? | No |
     /// | Is caching required? | No |
-    /// | Required NuGet in addition to Microsoft.ML | Micrsoft.ML.Dnn and SciSharp.TensorFlow.Redist / SciSharp.TensorFlow.Redist-Windows-GPU / SciSharp.TensorFlow.Redist-Linux-GPU |
+    /// | Required NuGet in addition to Microsoft.ML | Micrsoft.ML.Vision and SciSharp.TensorFlow.Redist / SciSharp.TensorFlow.Redist-Windows-GPU / SciSharp.TensorFlow.Redist-Linux-GPU |
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/tensorflow-usage.md)]
     ///
@@ -390,10 +392,10 @@ namespace Microsoft.ML.Dnn
             public Action<ImageClassificationMetrics> MetricsCallback = null;
 
             /// <summary>
-            /// Indicates the path where the newly retrained model should be saved.
+            /// Indicates the path where the models get downloaded to and cache files saved, default is a new temporary directory
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the path where the newly retrained model should be saved.", SortOrder = 15)]
-            public string ModelSavePath = null;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the path where the models get downloaded to and cache files saved, default is a new temporary directory.", SortOrder = 15)]
+            public string WorkspacePath = null;
 
             /// <summary>
             /// Indicates to evaluate the model on train set after every epoch.
@@ -420,16 +422,16 @@ namespace Microsoft.ML.Dnn
             public IDataView ValidationSet;
 
             /// <summary>
-            /// Indicates the file path to store trainset bottleneck values for caching.
+            /// Indicates the file name within the workspace to store trainset bottleneck values for caching.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the file path to store trainset bottleneck values for caching.", SortOrder = 15)]
-            public string TrainSetBottleneckCachedValuesFilePath = "trainSetBottleneckFile.csv";
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the file name to store trainset bottleneck values for caching.", SortOrder = 15)]
+            public string TrainSetBottleneckCachedValuesFileName = "trainSetBottleneckFile.csv";
 
             /// <summary>
-            /// Indicates the file path to store validationset bottleneck values for caching.
+            /// Indicates the file name within the workspace to store validationset  bottleneck values for caching.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the file path to store validationset bottleneck values for caching.", SortOrder = 15)]
-            public string ValidationSetBottleneckCachedValuesFilePath = "validationSetBottleneckFile.csv";
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the file name to store validationset bottleneck values for caching.", SortOrder = 15)]
+            public string ValidationSetBottleneckCachedValuesFileName = "validationSetBottleneckFile.csv";
 
             /// <summary>
             /// A class that performs learning rate scheduling.
@@ -513,10 +515,26 @@ namespace Microsoft.ML.Dnn
             Host.CheckNonEmpty(options.ScoreColumnName, nameof(options.ScoreColumnName));
             Host.CheckNonEmpty(options.PredictedLabelColumnName, nameof(options.PredictedLabelColumnName));
 
+            if (string.IsNullOrEmpty(options.WorkspacePath))
+            {
+                options.WorkspacePath = GetTemporaryDirectory();
+            }
+
+            if (string.IsNullOrEmpty(options.TrainSetBottleneckCachedValuesFileName))
+            {
+                //If the user decided to set to null reset back to default value
+                options.TrainSetBottleneckCachedValuesFileName = _options.TrainSetBottleneckCachedValuesFileName;
+            }
+
+            if (string.IsNullOrEmpty(options.ValidationSetBottleneckCachedValuesFileName))
+            {
+                //If the user decided to set to null reset back to default value
+                options.ValidationSetBottleneckCachedValuesFileName = _options.ValidationSetBottleneckCachedValuesFileName;
+            }
+
             _options = options;
             _useLRScheduling = _options.LearningRateScheduler != null;
-            _checkpointPath = _options.ModelSavePath ??
-                Path.Combine(Directory.GetCurrentDirectory(), _options.FinalModelPrefix +
+            _checkpointPath = Path.Combine(_options.WorkspacePath, _options.FinalModelPrefix +
                     ModelFileName[_options.Arch]);
 
             // Configure bottleneck tensor based on the model.
@@ -556,7 +574,7 @@ namespace Microsoft.ML.Dnn
 
             _classCount = labelCount == 1 ? 2 : (int)labelCount;
             var imageSize = ImagePreprocessingSize[_options.Arch];
-            _session = LoadDnnModel(Host, _options.Arch, true).Session;
+            _session = LoadTensorFlowSessionFromMetaGraph(Host, _options.Arch, _options.WorkspacePath).Session;
             (_jpegData, _resizedImage) = AddJpegDecoding(imageSize.Item1, imageSize.Item2, 3);
             _jpegDataTensorName = _jpegData.name;
             _resizedImageTensorName = _resizedImage.name;
@@ -602,12 +620,14 @@ namespace Microsoft.ML.Dnn
             var validationSet = trainContext.ValidationSet?.Data ?? _options.ValidationSet;
             var imageProcessor = new ImageProcessor(_session, _jpegDataTensorName, _resizedImageTensorName);
             int trainingsetSize = -1;
+            string trainSetBottleneckCachedValuesFilePath = Path.Combine(_options.WorkspacePath, _options.TrainSetBottleneckCachedValuesFileName);
+            string validationSetBottleneckCachedValuesFilePath = Path.Combine(_options.WorkspacePath, _options.ValidationSetBottleneckCachedValuesFileName);
             if (!_options.ReuseTrainSetBottleneckCachedValues ||
-                !File.Exists(_options.TrainSetBottleneckCachedValuesFilePath))
+                !File.Exists(trainSetBottleneckCachedValuesFilePath))
             {
                 trainingsetSize = CacheFeaturizedImagesToDisk(trainContext.TrainingSet.Data, _options.LabelColumnName,
                     _options.FeatureColumnName, imageProcessor,
-                    _inputTensorName, _bottleneckTensor.name, _options.TrainSetBottleneckCachedValuesFilePath,
+                    _inputTensorName, _bottleneckTensor.name, trainSetBottleneckCachedValuesFilePath,
                     ImageClassificationMetrics.Dataset.Train, _options.MetricsCallback);
 
                 // Write training set size to a file for use during training
@@ -616,16 +636,16 @@ namespace Microsoft.ML.Dnn
 
             if (validationSet != null &&
                     (!_options.ReuseTrainSetBottleneckCachedValues ||
-                    !File.Exists(_options.ValidationSetBottleneckCachedValuesFilePath)))
+                    !File.Exists(validationSetBottleneckCachedValuesFilePath)))
             {
                 CacheFeaturizedImagesToDisk(validationSet, _options.LabelColumnName,
                     _options.FeatureColumnName, imageProcessor, _inputTensorName, _bottleneckTensor.name,
-                    _options.ValidationSetBottleneckCachedValuesFilePath,
+                    validationSetBottleneckCachedValuesFilePath,
                     ImageClassificationMetrics.Dataset.Validation, _options.MetricsCallback);
             }
 
-            TrainAndEvaluateClassificationLayer(_options.TrainSetBottleneckCachedValuesFilePath, _options,
-                _options.ValidationSetBottleneckCachedValuesFilePath, trainingsetSize);
+            TrainAndEvaluateClassificationLayer(trainSetBottleneckCachedValuesFilePath, _options,
+                validationSetBottleneckCachedValuesFilePath, trainingsetSize);
 
             // Leave the ownership of _session so that it is not disposed/closed when this object goes out of scope
             // since it will be used by ImageClassificationModelParameters class (new owner that will take care of
@@ -856,7 +876,7 @@ namespace Microsoft.ML.Dnn
             Saver trainSaver = null;
             FileWriter trainWriter = null;
             Tensor merged = tf.summary.merge_all();
-            trainWriter = tf.summary.FileWriter(Path.Combine(Directory.GetCurrentDirectory(), "train"),
+            trainWriter = tf.summary.FileWriter(Path.Combine(_options.WorkspacePath, "train"),
                 _session.graph);
 
             trainSaver = tf.train.Saver();
@@ -875,7 +895,7 @@ namespace Microsoft.ML.Dnn
             metrics.Train = new TrainMetrics();
             float accuracy = 0;
             float crossentropy = 0;
-            TrainState trainstate = new TrainState
+            DnnTrainState trainstate = new DnnTrainState
             {
                 BatchSize = options.BatchSize,
                 BatchesPerEpoch =
@@ -1107,7 +1127,7 @@ namespace Microsoft.ML.Dnn
 
         private (Session, Tensor, Tensor, Tensor) BuildEvaluationSession(int classCount)
         {
-            var evalGraph = DnnUtils.LoadMetaGraph(ModelFileName[_options.Arch]);
+            var evalGraph = LoadMetaGraph(Path.Combine(_options.WorkspacePath, ModelFileName[_options.Arch]));
             var evalSess = tf.Session(graph: evalGraph);
             Tensor evaluationStep = null;
             Tensor prediction = null;
@@ -1263,6 +1283,27 @@ namespace Microsoft.ML.Dnn
                     AddFinalRetrainOps(classCount, labelColumn, scoreColumnName, _bottleneckTensor, true,
                         useLearningRateScheduling, learningRate);
 
+        }
+
+        private static TensorFlowSessionWrapper LoadTensorFlowSessionFromMetaGraph(IHostEnvironment env, Architecture arch, string path)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                path = GetTemporaryDirectory();
+            }
+
+            var modelFileName = ModelFileName[arch];
+            var modelFilePath = Path.Combine(path, modelFileName);
+            int timeout = 10 * 60 * 1000;
+            DownloadIfNeeded(env, modelFileName, path, modelFileName, timeout);
+            if (arch == Architecture.InceptionV3)
+            {
+                DownloadIfNeeded(env, @"tfhub_modules.zip", path, @"tfhub_modules.zip", timeout);
+                if (!Directory.Exists(@"tfhub_modules"))
+                    ZipFile.ExtractToDirectory(Path.Combine(path, @"tfhub_modules.zip"), @"tfhub_modules");
+            }
+
+            return new TensorFlowSessionWrapper(GetSession(env, modelFilePath, true), modelFilePath);
         }
 
         ~ImageClassificationTrainer()
