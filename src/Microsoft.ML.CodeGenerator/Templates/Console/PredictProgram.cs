@@ -55,7 +55,7 @@ if(string.IsNullOrEmpty(TestDataPath)){
             ModelInput sampleData = CreateSingleDataSample(DATA_FILEPATH);
 
 			// Make a single prediction on the sample data and print results
-			ModelOutput predictionResult = ConsumeModel.Predict(sampleData);
+			var predictionResult = ConsumeModel.Predict(sampleData);
 
 			Console.WriteLine(""Using model to make single prediction -- Comparing actual ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));

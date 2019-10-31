@@ -37,10 +37,10 @@
     </None>
 <# if (IncludeOnnxModel){ #>
     <None Update="bestModel.onnx">
-		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-	<None Update = "bestModelMap.json">
-		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <None Update = "bestModelMap.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
 <#}#>
   </ItemGroup>

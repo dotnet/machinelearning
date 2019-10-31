@@ -28,14 +28,9 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
         {
             this.Write("<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n  <PropertyGroup>\r\n    <OutputType>Exe</Outp" +
                     "utType>\r\n    <TargetFramework>netcoreapp2.1</TargetFramework>\r\n  </PropertyGroup" +
-<<<<<<< HEAD
-                    ">\r\n  <ItemGroup>\r\n    <PackageReference Include=\"Microsoft.ML\" Version=\"1.3.1\" /" +
-                    ">\r\n");
-=======
                     ">\r\n  <ItemGroup>\r\n    <PackageReference Include=\"Microsoft.ML\" Version=\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
             this.Write("\" />\r\n");
->>>>>>> f341ca337699708c87b25e8e987ab09be88a19e6
  if (IncludeLightGBMPackage){ 
             this.Write("    <PackageReference Include=\"Microsoft.ML.LightGBM\" Version=\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
@@ -52,21 +47,18 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
             this.Write("\" />\r\n");
 }
  if (IncludeImageTransformerPackage){ 
-<<<<<<< HEAD
-            this.Write("    <PackageReference Include=\"Microsoft.ML.ImageAnalytics\" Version=\"1.3.1\" />\r\n");
+            this.Write("    <PackageReference Include=\"Microsoft.ML.ImageAnalytics\" Version=\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
+            this.Write("\" />\r\n");
 }
  if (IncludeOnnxPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.OnnxTransformer\" Version=\"1.3.1\" />\r\n" +
-                    "");
+            this.Write("    <PackageReference Include=\"Microsoft.ML.OnnxTransformer\" Version=\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
+            this.Write("\" />\r\n");
 }
  if (IncludeResNet18Package){ 
             this.Write("    <PackageReference Include=\"Microsoft.ML.DnnImageFeaturizer.ResNet18\" Version=" +
                     "\"0.15.1\" />\r\n");
-=======
-            this.Write("    <PackageReference Include=\"Microsoft.ML.ImageAnalytics\" Version=\"");
-            this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
-            this.Write("\" />\r\n");
->>>>>>> f341ca337699708c87b25e8e987ab09be88a19e6
 }
  if (IncludeImageClassificationPackage){ 
             this.Write("    <PackageReference Include=\"Microsoft.ML.Vision\" Version=\"");
@@ -93,14 +85,11 @@ public bool IncludeMklComponentsPackage {get;set;}
 public bool IncludeFastTreePackage {get;set;}
 public bool IncludeImageTransformerPackage {get; set;}
 public bool IncludeImageClassificationPackage {get; set;}
-<<<<<<< HEAD
 public bool IncludeOnnxPackage {get; set;}
 public bool IncludeResNet18Package {get; set;}
-=======
 public bool IncludeRecommenderPackage {get;set;}
 public string StablePackageVersion {get;set;}
 public string UnstablePackageVersion {get;set;}
->>>>>>> f341ca337699708c87b25e8e987ab09be88a19e6
 
     }
     #region Base class

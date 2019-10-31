@@ -27,13 +27,9 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
         {
             this.Write("<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n  <PropertyGroup>\r\n    <TargetFramework>nets" +
                     "tandard2.0</TargetFramework>\r\n  </PropertyGroup>\r\n  <ItemGroup>\r\n    <PackageRef" +
-<<<<<<< HEAD
-                    "erence Include=\"Microsoft.ML\" Version=\"1.3.1\" />\r\n");
-=======
                     "erence Include=\"Microsoft.ML\" Version=\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
             this.Write("\" />\r\n");
->>>>>>> f341ca337699708c87b25e8e987ab09be88a19e6
  if (IncludeLightGBMPackage) { 
             this.Write("    <PackageReference Include=\"Microsoft.ML.LightGBM\" Version=\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
@@ -50,13 +46,9 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
             this.Write("\" />\r\n");
 }
  if (IncludeImageTransformerPackage){ 
-<<<<<<< HEAD
-            this.Write("    <PackageReference Include=\"Microsoft.ML.ImageAnalytics\" Version=\"1.3.1\" />\r\n");
-=======
             this.Write("    <PackageReference Include=\"Microsoft.ML.ImageAnalytics\" Version=\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
             this.Write("\" />\r\n");
->>>>>>> f341ca337699708c87b25e8e987ab09be88a19e6
 }
  if (IncludeImageClassificationPackage){ 
             this.Write("    <PackageReference Include=\"Microsoft.ML.Vision\" Version=\"");
@@ -72,9 +64,10 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
             this.Write("  </ItemGroup>\r\n\r\n  <ItemGroup>\r\n    <None Update=\"MLModel.zip\">\r\n      <CopyToOu" +
                     "tputDirectory>PreserveNewest</CopyToOutputDirectory>\r\n    </None>\r\n");
  if (IncludeOnnxModel){ 
-            this.Write("    <None Update=\"bestModel.onnx\">\r\n\t\t<CopyToOutputDirectory>PreserveNewest</Copy" +
-                    "ToOutputDirectory>\r\n    </None>\r\n\t<None Update = \"bestModelMap.json\">\r\n\t\t<CopyTo" +
-                    "OutputDirectory>PreserveNewest</CopyToOutputDirectory>\r\n    </None>\r\n");
+            this.Write("    <None Update=\"bestModel.onnx\">\r\n      <CopyToOutputDirectory>PreserveNewest</" +
+                    "CopyToOutputDirectory>\r\n    </None>\r\n    <None Update = \"bestModelMap.json\">\r\n  " +
+                    "    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>\r\n    </None>\r\n" +
+                    "");
 }
             this.Write("  </ItemGroup>\r\n  \r\n</Project>\r\n");
             return this.GenerationEnvironment.ToString();
@@ -85,13 +78,10 @@ public bool IncludeMklComponentsPackage {get;set;}
 public bool IncludeFastTreePackage {get;set;}
 public bool IncludeImageTransformerPackage {get; set;}
 public bool IncludeImageClassificationPackage {get; set;}
-<<<<<<< HEAD
 public bool IncludeOnnxModel {get; set;}
-=======
 public bool IncludeRecommenderPackage {get;set;}
 public string StablePackageVersion {get;set;}
 public string UnstablePackageVersion {get;set;}
->>>>>>> f341ca337699708c87b25e8e987ab09be88a19e6
 
     }
     #region Base class

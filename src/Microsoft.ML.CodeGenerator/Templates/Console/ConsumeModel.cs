@@ -43,7 +43,7 @@ MB_Annotation();
         // Method for consuming model in your app
         public static ModelOutput Predict(ModelInput input)
         {
-
+		
             // Create new MLContext
             MLContext mlContext = new MLContext();
 

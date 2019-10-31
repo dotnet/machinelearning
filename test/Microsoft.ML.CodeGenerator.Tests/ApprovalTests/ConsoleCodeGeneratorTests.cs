@@ -105,6 +105,8 @@ namespace mlnet.Tests
                 OutputBaseDir = @"C:\Users\xiaoyuz\Desktop\flower_photos_tiny_set_for_unit_tests\CodeGenTest",
                 LabelName = "Label",
                 Target = GenerateTarget.ModelBuilder,
+                StablePackageVersion = "1.3.1",
+                UnstablePackageVersion = "0.16.0-preview3-28231-2",
             };
 
             // generate project
