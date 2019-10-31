@@ -78,7 +78,6 @@ namespace Microsoft.ML.Vision
         internal const string UserName = "Image Classification Trainer";
         internal const string ShortName = "IMGCLSS";
         internal const string Summary = "Trains a DNN model to classify images.";
-        internal const string ResourceDir = "MLNET_VISION";
 
         /// <summary>
         /// Image classification model.
@@ -439,13 +438,6 @@ namespace Microsoft.ML.Vision
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "A class that performs learning rate scheduling.", SortOrder = 15)]
             public LearningRateScheduler LearningRateScheduler = new LsrDecay();
-
-            /// <summary>
-            /// Indicates if the temporary workspace should be deleted on cleanup
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates if the temporary workspace should be deleted on cleanup", SortOrder = 15)]
-            public bool CleanTmpWorkspace = true;
-
         }
 
         /// <summary> Return the type of prediction task.</summary>
@@ -479,8 +471,11 @@ namespace Microsoft.ML.Vision
         private readonly string _checkpointPath;
         private readonly string _bottleneckOperationName;
         private readonly bool _useLRScheduling;
+        private readonly bool _cleanupWorkspace;
         private int _classCount;
         private Graph Graph => _session.graph;
+
+        private static readonly string _resourcePath = Path.Combine(Path.GetTempPath(), "MLNET");
 
         /// <summary>
         /// Initializes a new instance of <see cref="ImageClassificationTrainer"/>
@@ -526,17 +521,16 @@ namespace Microsoft.ML.Vision
             if (string.IsNullOrEmpty(options.WorkspacePath))
             {
                 options.WorkspacePath = GetTemporaryDirectory();
+                _cleanupWorkspace = true;
             }
             else
             {
-                //Since this is not a tmp workspace, but one provided by the user, do not allow deletion.
-                options.CleanTmpWorkspace = false;
+                _cleanupWorkspace = false;
             }
 
-            string resourcePath = Path.Combine(Path.GetTempPath(), ResourceDir);
-            if (!Directory.Exists(resourcePath))
+            if (!Directory.Exists(_resourcePath))
             {
-                Directory.CreateDirectory(resourcePath);
+                Directory.CreateDirectory(_resourcePath);
             }
 
             if (string.IsNullOrEmpty(options.TrainSetBottleneckCachedValuesFileName))
@@ -1148,7 +1142,7 @@ namespace Microsoft.ML.Vision
         }
         private void CleanUpTmpWorkspace()
         {
-            if (_options.CleanTmpWorkspace && Directory.Exists(_options.WorkspacePath))
+            if (_cleanupWorkspace && Directory.Exists(_options.WorkspacePath))
             {
                 Directory.Delete(_options.WorkspacePath, true);
             }
@@ -1156,7 +1150,7 @@ namespace Microsoft.ML.Vision
 
         private (Session, Tensor, Tensor, Tensor) BuildEvaluationSession(int classCount)
         {
-            var evalGraph = LoadMetaGraph(Path.Combine(Path.GetTempPath(), ResourceDir, ModelFileName[_options.Arch]));
+            var evalGraph = LoadMetaGraph(Path.Combine(_resourcePath, ModelFileName[_options.Arch]));
             var evalSess = tf.Session(graph: evalGraph);
             Tensor evaluationStep = null;
             Tensor prediction = null;
@@ -1316,16 +1310,15 @@ namespace Microsoft.ML.Vision
 
         private static TensorFlowSessionWrapper LoadTensorFlowSessionFromMetaGraph(IHostEnvironment env, Architecture arch)
         {
-            string resourcePath = Path.Combine(Path.GetTempPath(), ResourceDir);
             var modelFileName = ModelFileName[arch];
-            var modelFilePath = Path.Combine(resourcePath, modelFileName);
+            var modelFilePath = Path.Combine(_resourcePath, modelFileName);
             int timeout = 10 * 60 * 1000;
-            DownloadIfNeeded(env, modelFileName, resourcePath, modelFileName, timeout);
+            DownloadIfNeeded(env, modelFileName, _resourcePath, modelFileName, timeout);
             if (arch == Architecture.InceptionV3)
             {
-                DownloadIfNeeded(env, @"tfhub_modules.zip", resourcePath, @"tfhub_modules.zip", timeout);
+                DownloadIfNeeded(env, @"tfhub_modules.zip", _resourcePath, @"tfhub_modules.zip", timeout);
                 if (!Directory.Exists(@"tfhub_modules"))
-                    ZipFile.ExtractToDirectory(Path.Combine(resourcePath, @"tfhub_modules.zip"), @"tfhub_modules");
+                    ZipFile.ExtractToDirectory(Path.Combine(_resourcePath, @"tfhub_modules.zip"), @"tfhub_modules");
             }
 
             return new TensorFlowSessionWrapper(GetSession(env, modelFilePath, true), modelFilePath);

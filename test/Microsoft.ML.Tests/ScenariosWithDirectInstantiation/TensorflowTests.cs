@@ -1582,8 +1582,9 @@ namespace Microsoft.ML.Scenarios
 
             Assert.True(File.Exists(Path.Combine(options.WorkspacePath, options.TrainSetBottleneckCachedValuesFileName)));
             Assert.True(File.Exists(Path.Combine(options.WorkspacePath, options.ValidationSetBottleneckCachedValuesFileName)));
-            Assert.True(File.Exists(Path.Combine(options.WorkspacePath, ImageClassificationTrainer.ModelFileName[options.Arch])));
+            Assert.True(File.Exists(Path.Combine(options.WorkspacePath, "TrainingSetSize.txt")));
             Directory.Delete(options.WorkspacePath, true);
+            Assert.True(File.Exists(Path.Combine(Path.GetTempPath(), "MLNET", ImageClassificationTrainer.ModelFileName[options.Arch])));
         }
 
         [TensorFlowFact]
