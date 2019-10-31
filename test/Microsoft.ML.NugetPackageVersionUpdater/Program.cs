@@ -77,6 +77,7 @@ namespace Microsoft.ML.NugetPackageVersionUpdater
                     {
                         var latestVersion = latestPackageVersions[packageName];
                         packageReferenceNodes.Item(i).Attributes.GetNamedItem("Version").InnerText = latestVersion;
+                        Console.WriteLine($"Update packege {packageName} to version {latestVersion}.");
                     }
                     else
                         Console.WriteLine($"Can't find newer version of Package {packageName} from NuGet source, don't need to update version.");
