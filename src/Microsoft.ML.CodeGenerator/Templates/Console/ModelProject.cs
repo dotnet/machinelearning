@@ -47,8 +47,9 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
             this.Write("  </ItemGroup>\r\n\r\n  <ItemGroup>\r\n    <None Update=\"MLModel.zip\">\r\n      <CopyToOu" +
                     "tputDirectory>PreserveNewest</CopyToOutputDirectory>\r\n    </None>\r\n");
  if (IncludeOnnxModel){ 
-            this.Write("    <None Update=\"BestModel.onnx\">\r\n      <CopyToOutputDirectory>PreserveNewest</" +
-                    "CopyToOutputDirectory>\r\n    </None>\r\n");
+            this.Write("    <None Update=\"bestModel.onnx\">\r\n\t\t<CopyToOutputDirectory>PreserveNewest</Copy" +
+                    "ToOutputDirectory>\r\n    </None>\r\n\t<None Update = \"bestModelMap.json\">\r\n\t\t<CopyTo" +
+                    "OutputDirectory>PreserveNewest</CopyToOutputDirectory>\r\n    </None>\r\n");
 }
             this.Write("  </ItemGroup>\r\n  \r\n</Project>\r\n");
             return this.GenerationEnvironment.ToString();

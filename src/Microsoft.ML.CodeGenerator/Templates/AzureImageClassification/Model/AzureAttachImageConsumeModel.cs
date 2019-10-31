@@ -31,37 +31,38 @@ CLI_Annotation();
 MB_Annotation();
  } 
             this.Write("using System;\r\nusing System.Collections.Generic;\r\nusing System.Linq;\r\nusing Syste" +
-                    "m.Text;\r\nusing Microsoft.ML;\r\nusing ");
+                    "m.Text;\r\nusing Microsoft.ML;\r\nusing System.Runtime.Serialization.Json;\r\nusing Sy" +
+                    "stem.IO;\r\n\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model;\r\n\r\nnamespace ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(@".Model
-{
-	public class ConsumeModel
-    {
-        // For more info on consuming ML.NET models, visit https://aka.ms/model-builder-consume
-        // Method for consuming model in your app
-        public static ModelOutput Predict(ModelInput input)
-        {
-
-            // Create new MLContext
-            MLContext mlContext = new MLContext();
-
-			// Register NormalizeMapping
-			mlContext.ComponentCatalog.RegisterAssembly(typeof(NormalizeMapping).Assembly);
-
-            // Load model & create prediction engine
-            string modelPath = AppDomain.CurrentDomain.BaseDirectory + ""MLModel.zip"";
-            ITransformer mlModel = mlContext.Model.Load(modelPath, out var modelInputSchema);
-            var predEngine = mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(mlModel);
-
-            // Use model to make prediction on input data
-            ModelOutput result = predEngine.Predict(input);
-            return result;
-        }
-    }
-}
-");
+            this.Write(".Model\r\n{\r\n    public class ConsumeModel\r\n    {\r\n        private static string LA" +
+                    "BEL_MAP = @\"bestModelMap.json\";\r\n\r\n        // For more info on consuming ML.NET " +
+                    "models, visit https://aka.ms/model-builder-consume\r\n        // Method for consum" +
+                    "ing model in your app\r\n        public static IEnumerable<KeyValuePair<string, fl" +
+                    "oat>> Predict(ModelInput input)\r\n        {\r\n            // Create new MLContext\r" +
+                    "\n            MLContext mlContext = new MLContext();\r\n\r\n            // Register N" +
+                    "ormalizeMapping\r\n            mlContext.ComponentCatalog.RegisterAssembly(typeof(" +
+                    "NormalizeMapping).Assembly);\r\n\r\n            // Load model & create prediction en" +
+                    "gine\r\n            string modelPath = AppDomain.CurrentDomain.BaseDirectory + \"ML" +
+                    "Model.zip\";\r\n            ITransformer mlModel = mlContext.Model.Load(modelPath, " +
+                    "out var modelInputSchema);\r\n            var predEngine = mlContext.Model.CreateP" +
+                    "redictionEngine<ModelInput, ModelOutput>(mlModel);\r\n\r\n            // Use model t" +
+                    "o make prediction on input data\r\n            ModelOutput result = predEngine.Pre" +
+                    "dict(input);\r\n\r\n            // SoftMax the score\r\n            var predictScore =" +
+                    " ConsumeModel.SoftMax(result.Score);\r\n            // Load LabelMap\r\n            " +
+                    "List<string> map = default;\r\n            Dictionary<int, string> labelMap = new " +
+                    "Dictionary<int, string>();\r\n\r\n            using (StreamReader sr = new StreamRea" +
+                    "der(ConsumeModel.LABEL_MAP))\r\n            {\r\n                var json = sr.ReadL" +
+                    "ine();\r\n                var ms = new MemoryStream(Encoding.UTF8.GetBytes(json));" +
+                    "\r\n                var ser = new DataContractJsonSerializer(typeof(List<string>))" +
+                    ";\r\n                map = ser.ReadObject(ms) as List<string>;\r\n                ms" +
+                    ".Close();\r\n            }\r\n\r\n            for (int i = 0; i != map.Count(); ++i)\r\n" +
+                    "            {\r\n                labelMap.Add(i, map[i]);\r\n            }\r\n\r\n      " +
+                    "      return predictScore.Select((score, keyIndex) => new KeyValuePair<string, f" +
+                    "loat>(labelMap[keyIndex], score)).OrderByDescending(x => x.Value);\r\n        }\r\n\r" +
+                    "\n        private static float[] SoftMax(float[] values)\r\n        {\r\n            " +
+                    "var maxVal = values.Max();\r\n            var exp = values.Select(v => Math.Exp(v " +
+                    "- maxVal));\r\n            var sumExp = exp.Sum();\r\n\r\n            return exp.Selec" +
+                    "t(v => (float)(v / sumExp)).ToArray();\r\n        }\r\n    }\r\n}\r\n");
             return this.GenerationEnvironment.ToString();
         }
 
