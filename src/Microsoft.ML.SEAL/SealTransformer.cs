@@ -191,7 +191,7 @@ namespace Microsoft.ML.SEAL
                 _parent = parent;
                 _featureColIndex = inputSchema.GetColumnOrNull(_parent.InputColumnName)?.Index ?? -1;
                 var errorMsg = string.Format("The data to encrypt contains no '{0}' column", _parent.InputColumnName);
-                parent.Host.Check(_featureColIndex > 0, errorMsg);
+                parent.Host.Check(_featureColIndex >= 0, errorMsg);
             }
 
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
@@ -284,19 +284,19 @@ namespace Microsoft.ML.SEAL
         /// <param name="scale">How much to scale the values.</param>
         /// <param name="polyModDegree">The polynomial modulus degree.</param>
         /// <param name="sealKeyFilePath">The path to the SEAL key file.</param>
-        /// <param name="bitSizes">The bit sizes needed to create the SEAL context.</param>
+        /// <param name="coeffModuli">The coefficient moduli needed to create the SEAL context.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
         /// This column's data type will be the same as that of the input column.</param>
         /// <param name="inputColumnName">Name of the column to copy the data from.
         /// This estimator operates over any data type.</param>
-        public SealEstimator(IHostEnvironment env, bool encrypt, double scale, ulong polyModDegree, string sealKeyFilePath, IEnumerable<int> bitSizes, string outputColumnName, string inputColumnName = null)
+        public SealEstimator(IHostEnvironment env, bool encrypt, double scale, ulong polyModDegree, string sealKeyFilePath, IEnumerable<SmallModulus> coeffModuli, string outputColumnName, string inputColumnName = null)
         {
             _env = env;
             _encrypt = encrypt;
             _scale = scale;
             _sealEncryptionParameters = new EncryptionParameters(SchemeType.CKKS);
             _sealEncryptionParameters.PolyModulusDegree = polyModDegree;
-            _sealEncryptionParameters.CoeffModulus = CoeffModulus.Create(polyModDegree, bitSizes);
+            _sealEncryptionParameters.CoeffModulus = coeffModuli;
             _sealKeyFilePath = sealKeyFilePath;
             _inputColumnName = inputColumnName ?? outputColumnName;
             _outputColumnName = outputColumnName;

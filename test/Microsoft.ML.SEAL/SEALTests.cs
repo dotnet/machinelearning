@@ -2,35 +2,56 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.IO;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.Trainers;
+using Microsoft.ML.SEAL;
 using Microsoft.Research.SEAL;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests.SEAL
 {
-    public sealed class SEALTests : TestDataPipeBase
+    public sealed class SEALTests : TestDataPipeBase, IDisposable
     {
+        private readonly TextWriter _originalOut;
+        private readonly TextWriter _textWriter;
+
         public SEALTests(ITestOutputHelper helper)
             : base(helper)
         {
+            _originalOut = System.Console.Out;
+            _textWriter = new StringWriter();
+            System.Console.SetOut(_textWriter);
+        }
+
+        public void Dispose()
+        {
+            Output.WriteLine(_textWriter.ToString());
+            System.Console.SetOut(_originalOut);
         }
 
         private class TestClass
         {
             public double[] plaintext;
-            public Ciphertext[] ciphertext;
+            //public Ciphertext[] ciphertext;
         }
 
         [Fact]
         public void EncryptFeaturesTest()
         {
+            var coeffModuli = new[] {
+                new SmallModulus(36028797005856769),
+                new SmallModulus(36028797001138177),
+                new SmallModulus(18014398492704769),
+                new SmallModulus(18014398491918337)
+            };
+            var scale = 1152921504606846976;
+            var polyModDegree = 8192UL;
             var encParams = new EncryptionParameters(SchemeType.CKKS)
             {
-                PolyModulusDegree = 8192,
-                CoeffModulus = CoeffModulus.BFVDefault(polyModulusDegree: 8192)
+                PolyModulusDegree = polyModDegree,
+                CoeffModulus = coeffModuli
             };
             var context = new SEALContext(encParams);
             var keygen = new KeyGenerator(context);
@@ -45,37 +66,31 @@ namespace Microsoft.ML.Tests.SEAL
                 keygen.PublicKey.Save(fs2);
             }
 
-            var scale = 1152921504606846976;
-            var polyModDegree = 8192;
-            var bitSizes = new[] {
-                36028797005856769,
-                36028797001138177,
-                18014398492704769,
-                18014398491918337
-            };
-
             var encryptPipeline = ML.Transforms.EncryptFeatures(true,
                 scale,
                 polyModDegree,
                 "public.key",
-                bitSizes,
+                coeffModuli,
                 "ciphertext",
                 "plaintext");
 
             var decryptPipeline = encryptPipeline.Append(ML.Transforms.EncryptFeatures(false,
                 scale,
                 polyModDegree,
-                "private.key",
-                bitSizes,
+                "secret.key",
+                coeffModuli,
                 "plaintext",
                 "ciphertext"));
 
             var data = new[] { new TestClass() { plaintext = new[] { 1.1, 2.2, 3.3, 4.4 }}};
             var dataView = ML.Data.LoadFromEnumerable(data);
             var model = encryptPipeline.Fit(dataView);
-            var engine = model.CreatePredictionEngine<TestClass, TestClass>(ML);
-            var prediction = engine.Predict(data[0]);
-            Assert.Equal(data[0].plaintext, prediction.plaintext);
+            var prediction = model.Transform(dataView);
+            var rawPredictionEnumerable = ML.Data.CreateEnumerable<TestClass>(prediction, false);
+            foreach (var rawPrediction in rawPredictionEnumerable)
+            {
+                Assert.Equal(data[0].plaintext, rawPrediction.plaintext);
+            }
         }
 
         /*

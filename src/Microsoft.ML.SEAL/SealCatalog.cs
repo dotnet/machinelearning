@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
+using Microsoft.Research.SEAL;
 
 namespace Microsoft.ML.SEAL
 {
@@ -23,7 +24,7 @@ namespace Microsoft.ML.SEAL
         /// <param name="scale">How much to scale the values.</param>
         /// <param name="polyModDegree">The polynomial modulus degree.</param>
         /// <param name="sealKeyFilePath">The path to the SEAL key file.</param>
-        /// <param name="bitSizes">The bit sizes needed to create the SEAL context.</param>
+        /// <param name="coeffModuli">The coefficient moduli needed to create the SEAL context.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
         /// This column's data type will be the same as that of the input column.</param>
         /// <param name="inputColumnName">Name of the column to copy the data from.
@@ -33,10 +34,10 @@ namespace Microsoft.ML.SEAL
             double scale,
             ulong polyModDegree,
             string sealKeyFilePath,
-            IEnumerable<int> bitSizes,
+            IEnumerable<SmallModulus> coeffModuli,
             string outputColumnName,
             string inputColumnName = null)
             => new SealEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                encrypt, scale, polyModDegree, sealKeyFilePath, bitSizes, outputColumnName, inputColumnName);
+                encrypt, scale, polyModDegree, sealKeyFilePath, coeffModuli, outputColumnName, inputColumnName);
     }
 }
