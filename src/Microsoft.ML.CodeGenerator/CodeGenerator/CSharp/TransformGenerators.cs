@@ -336,7 +336,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         {
         }
 
-        internal override string MethodName => "LoadRawImageBytes";
+        internal override string MethodName => "LoadImages";
 
         public override string GenerateTransformer()
         {
@@ -345,6 +345,54 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
             // example: Transforms.LoadImages(output, inputfolder, input)
             return $"{MethodName}({outputColumn}, {@"null"}, {inputColumn})";
+        }
+    }
+
+    internal class ImageResizing : TransformGeneratorBase
+    {
+        public ImageResizing(PipelineNode node) : base(node) { }
+        internal override string MethodName => "ResizeImages";
+
+        public override string GenerateTransformer()
+        {
+            return @"ResizeImages(""ImageSource_featurized"", 224, 224, ""ImageSource_featurized"")";
+        }
+    }
+
+    internal class PixelExtract : TransformGeneratorBase
+    {
+        public PixelExtract(PipelineNode node) : base(node) { }
+        internal override string MethodName => "ExtractPixels";
+
+        public override string GenerateTransformer()
+        {
+            return @"ExtractPixels(""ImageSource_featurized"", ""ImageSource_featurized"")";
+        }
+    }
+
+    internal class CustomNormalizeMapping : TransformGeneratorBase
+    {
+        public CustomNormalizeMapping(PipelineNode node) : base(node) { }
+        internal override string MethodName => "NormalizeMapping";
+
+        public override string GenerateTransformer()
+        {
+            return @"CustomMapping<NormalizeInput, NormalizeOutput>(
+                                          (input, output) => NormalizeMapping.Mapping(input, output),
+                                          contractName: nameof(NormalizeMapping))";
+        }
+    }
+    internal class ApplyOnnxModel : TransformGeneratorBase
+    {
+        public ApplyOnnxModel(PipelineNode node) : base(node) { }
+        internal override string MethodName => "ApplyOnnxModel";
+
+        public override string GenerateTransformer()
+        {
+            var modelPath = Properties["modelFile"];
+            var outputColumnName = Properties["outputColumnNames"];
+            var inputColumnName = Properties["inputColumnNames"];
+            return $"ApplyOnnxModel(modelFile: ONNX_MODEL, outputColumnNames: new[] {{ \"{outputColumnName}\" }}, inputColumnNames: new[] {{ \"{inputColumnName}\" }})";
         }
     }
 }

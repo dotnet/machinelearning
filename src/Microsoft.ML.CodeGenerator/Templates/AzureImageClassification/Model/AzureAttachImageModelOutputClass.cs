@@ -7,77 +7,148 @@
 //     the code is regenerated.
 // </auto-generated>
 // ------------------------------------------------------------------------------
-namespace Microsoft.ML.CodeGenerator.Templates.Console
+namespace Microsoft.ML.CodeGenerator.Templates.AzureImageClassification.Model
 {
     using System.Linq;
     using System.Text;
-    using System.Text.RegularExpressions;
     using System.Collections.Generic;
     using System;
     
     /// <summary>
     /// Class to produce the template output
     /// </summary>
+    
+    #line 1 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\AzureAttachImageModelOutputClass.tt"
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "16.0.0.0")]
-    internal partial class PredictProject : PredictProjectBase
+    public partial class AzureAttachImageModelOutputClass : AzureAttachImageModelOutputClassBase
     {
+#line hidden
         /// <summary>
         /// Create the template output
         /// </summary>
         public virtual string TransformText()
         {
-            this.Write("<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n  <PropertyGroup>\r\n    <OutputType>Exe</Outp" +
-                    "utType>\r\n    <TargetFramework>netcoreapp2.1</TargetFramework>\r\n  </PropertyGroup" +
-                    ">\r\n  <ItemGroup>\r\n    <PackageReference Include=\"Microsoft.ML\" Version=\"1.3.1\" /" +
-                    ">\r\n");
- if (IncludeLightGBMPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.LightGBM\" Version=\"1.4.0\" />\r\n");
-}
- if (IncludeMklComponentsPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.Mkl.Components\" Version=\"1.4.0\" />\r\n");
-}
- if (IncludeFastTreePackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.FastTree\" Version=\"1.4.0\" />\r\n");
-}
- if (IncludeImageTransformerPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.ImageAnalytics\" Version=\"1.3.1\" />\r\n");
-}
- if (IncludeOnnxPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.OnnxTransformer\" Version=\"1.3.1\" />\r\n" +
-                    "");
-}
- if (IncludeResNet18Package){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.DnnImageFeaturizer.ResNet18\" Version=" +
-                    "\"0.15.1\" />\r\n");
-}
- if (IncludeImageClassificationPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.Vision\" Version=\"1.4.0\" />\r\n\t<Package" +
-                    "Reference Include=\"SciSharp.TensorFlow.Redist\" Version=\"1.14.0\" />\r\n");
-}
-            this.Write("  </ItemGroup>\r\n  <ItemGroup>\r\n    <ProjectReference Include=\"..\\");
+            
+            #line 6 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\AzureAttachImageModelOutputClass.tt"
+if(Target == CSharp.GenerateTarget.Cli){ 
+            
+            #line default
+            #line hidden
+            
+            #line 7 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\AzureAttachImageModelOutputClass.tt"
+CLI_Annotation();
+            
+            #line default
+            #line hidden
+            
+            #line 8 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\AzureAttachImageModelOutputClass.tt"
+ } else if(Target == CSharp.GenerateTarget.ModelBuilder){ 
+            
+            #line default
+            #line hidden
+            
+            #line 9 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\AzureAttachImageModelOutputClass.tt"
+MB_Annotation();
+            
+            #line default
+            #line hidden
+            
+            #line 10 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\AzureAttachImageModelOutputClass.tt"
+ } 
+            
+            #line default
+            #line hidden
+            this.Write("using System;\r\nusing Microsoft.ML.Data;\r\n\r\nnamespace ");
+            
+            #line 14 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\AzureAttachImageModelOutputClass.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model\\");
-            this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model.csproj\" />\r\n  </ItemGroup>\r\n</Project>\r\n");
+            
+            #line default
+            #line hidden
+            this.Write(@".Model
+{
+    public class ModelOutput
+    {
+        // ColumnName attribute is used to change the column name from
+        // its default value, which is the name of the field.
+        [ColumnName(""output1"")]
+        public float[] Score { get; set; }
+    }
+}
+
+");
             return this.GenerationEnvironment.ToString();
         }
+        
+        #line 25 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\AzureAttachImageModelOutputClass.tt"
 
 public string Namespace {get;set;}
-public bool IncludeLightGBMPackage {get;set;}
-public bool IncludeMklComponentsPackage {get;set;}
-public bool IncludeFastTreePackage {get;set;}
-public bool IncludeImageTransformerPackage {get; set;}
-public bool IncludeImageClassificationPackage {get; set;}
-public bool IncludeOnnxPackage {get; set;}
-public bool IncludeResNet18Package {get; set;}
+internal CSharp.GenerateTarget Target {get;set;}
 
+        
+        #line default
+        #line hidden
+        
+        #line 1 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\..\..\Console\Annotation.ttinclude"
+
+void CLI_Annotation()
+{
+        
+        #line default
+        #line hidden
+        
+        #line 3 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\..\..\Console\Annotation.ttinclude"
+this.Write(@"//*****************************************************************************************
+//*                                                                                       *
+//* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *
+//*                                                                                       *
+//*****************************************************************************************
+");
+
+        
+        #line default
+        #line hidden
+        
+        #line 9 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\..\..\Console\Annotation.ttinclude"
+
+}
+
+        
+        #line default
+        #line hidden
+        
+        #line 12 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\..\..\Console\Annotation.ttinclude"
+
+void MB_Annotation()
+{
+        
+        #line default
+        #line hidden
+        
+        #line 14 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\..\..\Console\Annotation.ttinclude"
+this.Write("// This file was auto-generated by ML.NET Model Builder. \r\n");
+
+        
+        #line default
+        #line hidden
+        
+        #line 16 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\..\..\Console\Annotation.ttinclude"
+
+}
+
+        
+        #line default
+        #line hidden
     }
+    
+    #line default
+    #line hidden
     #region Base class
     /// <summary>
     /// Base class for this transformation
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "16.0.0.0")]
-    internal class PredictProjectBase
+    public class AzureAttachImageModelOutputClassBase
     {
         #region Fields
         private global::System.Text.StringBuilder generationEnvironmentField;

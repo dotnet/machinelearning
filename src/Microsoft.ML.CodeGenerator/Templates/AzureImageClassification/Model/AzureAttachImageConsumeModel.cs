@@ -7,11 +7,10 @@
 //     the code is regenerated.
 // </auto-generated>
 // ------------------------------------------------------------------------------
-namespace Microsoft.ML.CodeGenerator.Templates.Console
+namespace Microsoft.ML.CodeGenerator.Templates.AzureImageClassification.Model
 {
     using System.Linq;
     using System.Text;
-    using System.Text.RegularExpressions;
     using System.Collections.Generic;
     using System;
     
@@ -19,57 +18,76 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
     /// Class to produce the template output
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "16.0.0.0")]
-    internal partial class PredictProject : PredictProjectBase
+    internal partial class AzureAttachImageConsumeModel : AzureAttachImageConsumeModelBase
     {
         /// <summary>
         /// Create the template output
         /// </summary>
         public virtual string TransformText()
         {
-            this.Write("<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n  <PropertyGroup>\r\n    <OutputType>Exe</Outp" +
-                    "utType>\r\n    <TargetFramework>netcoreapp2.1</TargetFramework>\r\n  </PropertyGroup" +
-                    ">\r\n  <ItemGroup>\r\n    <PackageReference Include=\"Microsoft.ML\" Version=\"1.3.1\" /" +
-                    ">\r\n");
- if (IncludeLightGBMPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.LightGBM\" Version=\"1.4.0\" />\r\n");
-}
- if (IncludeMklComponentsPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.Mkl.Components\" Version=\"1.4.0\" />\r\n");
-}
- if (IncludeFastTreePackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.FastTree\" Version=\"1.4.0\" />\r\n");
-}
- if (IncludeImageTransformerPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.ImageAnalytics\" Version=\"1.3.1\" />\r\n");
-}
- if (IncludeOnnxPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.OnnxTransformer\" Version=\"1.3.1\" />\r\n" +
-                    "");
-}
- if (IncludeResNet18Package){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.DnnImageFeaturizer.ResNet18\" Version=" +
-                    "\"0.15.1\" />\r\n");
-}
- if (IncludeImageClassificationPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.Vision\" Version=\"1.4.0\" />\r\n\t<Package" +
-                    "Reference Include=\"SciSharp.TensorFlow.Redist\" Version=\"1.14.0\" />\r\n");
-}
-            this.Write("  </ItemGroup>\r\n  <ItemGroup>\r\n    <ProjectReference Include=\"..\\");
+if(Target == CSharp.GenerateTarget.Cli){ 
+CLI_Annotation();
+ } else if(Target == CSharp.GenerateTarget.ModelBuilder){ 
+MB_Annotation();
+ } 
+            this.Write("using System;\r\nusing System.Collections.Generic;\r\nusing System.Linq;\r\nusing Syste" +
+                    "m.Text;\r\nusing Microsoft.ML;\r\nusing ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model\\");
+            this.Write(".Model;\r\n\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model.csproj\" />\r\n  </ItemGroup>\r\n</Project>\r\n");
+            this.Write(@".Model
+{
+	public class ConsumeModel
+    {
+        // For more info on consuming ML.NET models, visit https://aka.ms/model-builder-consume
+        // Method for consuming model in your app
+        public static ModelOutput Predict(ModelInput input)
+        {
+
+            // Create new MLContext
+            MLContext mlContext = new MLContext();
+
+			// Register NormalizeMapping
+			mlContext.ComponentCatalog.RegisterAssembly(typeof(NormalizeMapping).Assembly);
+
+            // Load model & create prediction engine
+            string modelPath = AppDomain.CurrentDomain.BaseDirectory + ""MLModel.zip"";
+            ITransformer mlModel = mlContext.Model.Load(modelPath, out var modelInputSchema);
+            var predEngine = mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(mlModel);
+
+            // Use model to make prediction on input data
+            ModelOutput result = predEngine.Predict(input);
+            return result;
+        }
+    }
+}
+");
             return this.GenerationEnvironment.ToString();
         }
 
 public string Namespace {get;set;}
-public bool IncludeLightGBMPackage {get;set;}
-public bool IncludeMklComponentsPackage {get;set;}
-public bool IncludeFastTreePackage {get;set;}
-public bool IncludeImageTransformerPackage {get; set;}
-public bool IncludeImageClassificationPackage {get; set;}
-public bool IncludeOnnxPackage {get; set;}
-public bool IncludeResNet18Package {get; set;}
+internal CSharp.GenerateTarget Target {get;set;}
+
+
+void CLI_Annotation()
+{
+this.Write(@"//*****************************************************************************************
+//*                                                                                       *
+//* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *
+//*                                                                                       *
+//*****************************************************************************************
+");
+
+
+}
+
+
+void MB_Annotation()
+{
+this.Write("// This file was auto-generated by ML.NET Model Builder. \r\n");
+
+
+}
 
     }
     #region Base class
@@ -77,7 +95,7 @@ public bool IncludeResNet18Package {get; set;}
     /// Base class for this transformation
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "16.0.0.0")]
-    internal class PredictProjectBase
+    internal class AzureAttachImageConsumeModelBase
     {
         #region Fields
         private global::System.Text.StringBuilder generationEnvironmentField;

@@ -14,6 +14,13 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         string[] GenerateUsings();
     }
 
+    internal enum SpecialTransformer
+    {
+        ApplyOnnxModel = 0,
+        ResizeImage =1,
+        ExtractPixel = 2,
+        NormalizeMapping = 3,
+    }
     internal static class TransformGeneratorFactory
     {
         internal static ITransformGenerator GetInstance(PipelineNode node)
@@ -60,8 +67,29 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                         result = new ImageLoading(node);
                         break;
                     default:
+                        // see if node is one of those Transformer
                         return null;
+                }
+            }
 
+            if (Enum.TryParse(node.Name, out SpecialTransformer transformer))
+            {
+                switch (transformer)
+                {
+                    case SpecialTransformer.ExtractPixel:
+                        result = new PixelExtract(node);
+                        break;
+                    case SpecialTransformer.NormalizeMapping:
+                        result = new CustomNormalizeMapping(node);
+                        break;
+                    case SpecialTransformer.ResizeImage:
+                        result = new ImageResizing(node);
+                        break;
+                    case SpecialTransformer.ApplyOnnxModel:
+                        result = new ApplyOnnxModel(node);
+                        break;
+                    default:
+                        return null;
                 }
             }
             return result;

@@ -15,6 +15,14 @@
   </ItemGroup>
   
   <ItemGroup>
+    <None Update="Templates\AzureImageClassification\Model\AzureAttachImageConsumeModel.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>AzureAttachImageConsumeModel.cs</LastGenOutput>
+    </None>
+    <None Update="Templates\AzureImageClassification\Model\AzureAttachImageModelOutputClass.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>AzureAttachImageModelOutputClass.cs</LastGenOutput>
+    </None>
     <None Update="Templates\AzureImageClassification\Model\NormalizeMapping.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>NormalizeMapping.cs</LastGenOutput>
@@ -56,6 +64,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Templates\AzureImageClassification\Model\AzureAttachImageConsumeModel.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AzureAttachImageConsumeModel.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\AzureImageClassification\Model\AzureAttachImageModelOutputClass.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AzureAttachImageModelOutputClass.tt</DependentUpon>
+    </Compile>
     <Compile Update="Templates\AzureImageClassification\Model\NormalizeMapping.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

@@ -7,11 +7,10 @@
 //     the code is regenerated.
 // </auto-generated>
 // ------------------------------------------------------------------------------
-namespace Microsoft.ML.CodeGenerator.Templates.Console
+namespace Microsoft.ML.CodeGenerator.Templates.AzureImageClassification.Model
 {
     using System.Linq;
     using System.Text;
-    using System.Text.RegularExpressions;
     using System.Collections.Generic;
     using System;
     
@@ -19,57 +18,67 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
     /// Class to produce the template output
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "16.0.0.0")]
-    internal partial class PredictProject : PredictProjectBase
+    internal partial class NormalizeMapping : NormalizeMappingBase
     {
         /// <summary>
         /// Create the template output
         /// </summary>
         public virtual string TransformText()
         {
-            this.Write("<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n  <PropertyGroup>\r\n    <OutputType>Exe</Outp" +
-                    "utType>\r\n    <TargetFramework>netcoreapp2.1</TargetFramework>\r\n  </PropertyGroup" +
-                    ">\r\n  <ItemGroup>\r\n    <PackageReference Include=\"Microsoft.ML\" Version=\"1.3.1\" /" +
-                    ">\r\n");
- if (IncludeLightGBMPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.LightGBM\" Version=\"1.4.0\" />\r\n");
-}
- if (IncludeMklComponentsPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.Mkl.Components\" Version=\"1.4.0\" />\r\n");
-}
- if (IncludeFastTreePackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.FastTree\" Version=\"1.4.0\" />\r\n");
-}
- if (IncludeImageTransformerPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.ImageAnalytics\" Version=\"1.3.1\" />\r\n");
-}
- if (IncludeOnnxPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.OnnxTransformer\" Version=\"1.3.1\" />\r\n" +
-                    "");
-}
- if (IncludeResNet18Package){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.DnnImageFeaturizer.ResNet18\" Version=" +
-                    "\"0.15.1\" />\r\n");
-}
- if (IncludeImageClassificationPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.Vision\" Version=\"1.4.0\" />\r\n\t<Package" +
-                    "Reference Include=\"SciSharp.TensorFlow.Redist\" Version=\"1.14.0\" />\r\n");
-}
-            this.Write("  </ItemGroup>\r\n  <ItemGroup>\r\n    <ProjectReference Include=\"..\\");
+if(Target == CSharp.GenerateTarget.Cli){ 
+CLI_Annotation();
+ } else if(Target == CSharp.GenerateTarget.ModelBuilder){ 
+MB_Annotation();
+ } 
+            this.Write("\r\nusing Microsoft.ML.Data;\r\nusing Microsoft.ML.Transforms;\r\nusing System;\r\nusing " +
+                    "System.Linq;\r\n\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model\\");
-            this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model.csproj\" />\r\n  </ItemGroup>\r\n</Project>\r\n");
+            this.Write(".Model\r\n{\r\n    [CustomMappingFactoryAttribute(nameof(NormalizeMapping))]\r\n    pub" +
+                    "lic class NormalizeMapping : CustomMappingFactory<NormalizeInput, NormalizeOutpu" +
+                    "t>\r\n    {\r\n        // This is the custom mapping. We now separate it into a meth" +
+                    "od, so that we can use it both in training and in loading.\r\n        public stati" +
+                    "c void Mapping(NormalizeInput input, NormalizeOutput output)\r\n        {\r\n       " +
+                    "     var values = input.Reshape.GetValues().ToArray();\r\n\r\n            var image_" +
+                    "mean = new float[] { 0.485f, 0.456f, 0.406f }; \r\n            var image_std = new" +
+                    " float[] { 0.229f, 0.224f, 0.225f };\r\n\r\n            for (int x = 0; x<values.Cou" +
+                    "nt(); x++)\r\n            {\r\n                var y = x % 3;\r\n                // No" +
+                    "rmalize by 255 first\r\n                values[x] /= 255;\r\n                values[" +
+                    "x] = (values[x] - image_mean[y]) / image_std[y];\r\n            };\r\n\r\n            " +
+                    "output.Reshape = new VBuffer<float>(values.Count(), values);\r\n        }\r\n       " +
+                    " // This factory method will be called when loading the model to get the mapping" +
+                    " operation.\r\n        public override Action<NormalizeInput, NormalizeOutput> Get" +
+                    "Mapping()\r\n        {\r\n            return Mapping;\r\n        }\r\n    }\r\n    public " +
+                    "class NormalizeInput\r\n    {\r\n        [ColumnName(\"ImageSource_featurized\")]\r\n   " +
+                    "     [VectorType(3, 224, 224)]\r\n        public VBuffer<float> Reshape;\r\n    }\r\n " +
+                    "   public class NormalizeOutput\r\n    {\r\n        [ColumnName(\"input1\")]\r\n        " +
+                    "[VectorType(3 * 224 * 224)]\r\n        public VBuffer<float> Reshape;\r\n    }\r\n}\r\n\r" +
+                    "\n");
             return this.GenerationEnvironment.ToString();
         }
 
 public string Namespace {get;set;}
-public bool IncludeLightGBMPackage {get;set;}
-public bool IncludeMklComponentsPackage {get;set;}
-public bool IncludeFastTreePackage {get;set;}
-public bool IncludeImageTransformerPackage {get; set;}
-public bool IncludeImageClassificationPackage {get; set;}
-public bool IncludeOnnxPackage {get; set;}
-public bool IncludeResNet18Package {get; set;}
+internal CSharp.GenerateTarget Target {get;set;}
+
+
+void CLI_Annotation()
+{
+this.Write(@"//*****************************************************************************************
+//*                                                                                       *
+//* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *
+//*                                                                                       *
+//*****************************************************************************************
+");
+
+
+}
+
+
+void MB_Annotation()
+{
+this.Write("// This file was auto-generated by ML.NET Model Builder. \r\n");
+
+
+}
 
     }
     #region Base class
@@ -77,7 +86,7 @@ public bool IncludeResNet18Package {get; set;}
     /// Base class for this transformation
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "16.0.0.0")]
-    internal class PredictProjectBase
+    internal class NormalizeMappingBase
     {
         #region Fields
         private global::System.Text.StringBuilder generationEnvironmentField;

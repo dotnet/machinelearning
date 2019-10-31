@@ -96,9 +96,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             Type labelTypeCsharp = Utils.GetCSharpType(labelType);
 
             // Generate Model Project
-            var modelProjectContents = GenerateModelProjectContents(namespaceValue, labelTypeCsharp,
-                false, false, false,
-                false, false,true);
+            var modelProjectContents = GenerateAzureAttachImageModelProjectContents(namespaceValue);
 
             var modelProjectDir = Path.Combine(_settings.OutputBaseDir, $"{_settings.OutputName}.Model");
             var modelProjectName = $"{_settings.OutputName}.Model.csproj";
@@ -120,7 +118,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
             // Generate ConsoleApp Project
             var consoleAppProjectContents = GenerateConsoleAppProjectContents(namespaceValue, labelTypeCsharp,
-                false, false, false, false, false, true, true);
+                false, false, false, true, false, true, true);
 
             // Write files to disk.
             var consoleAppProjectDir = Path.Combine(_settings.OutputBaseDir, $"{_settings.OutputName}.ConsoleApp");
@@ -136,7 +134,6 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             // Add projects to solution
             var solutionPath = Path.Combine(_settings.OutputBaseDir, $"{_settings.OutputName}.sln");
             Utils.AddProjectsToSolution(modelProjectDir, modelProjectName, consoleAppProjectDir, consoleAppProjectName, solutionPath);
-
         }
         private void SetRequiredNugetPackages(IEnumerable<PipelineNode> trainerNodes, ref bool includeLightGbmPackage,
             ref bool includeMklComponentsPackage, ref bool includeFastTreePackage,
@@ -187,7 +184,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 includeImageTransformerPackage, includeImageClassificationPackage, includeOnnxPackage, includeResNet18Package);
 
             var transformsAndTrainers = GenerateTransformsAndTrainers();
-            var modelBuilderCSFileContent = GenerateModelBuilderCSFileContent(transformsAndTrainers.Usings, transformsAndTrainers.TrainerMethod, transformsAndTrainers.PreTrainerTransforms, transformsAndTrainers.PostTrainerTransforms, namespaceValue, _pipeline.CacheBeforeTrainer, labelTypeCsharp.Name);
+            var modelBuilderCSFileContent = GenerateModelBuilderCSFileContent(transformsAndTrainers.Usings, transformsAndTrainers.TrainerMethod, transformsAndTrainers.PreTrainerTransforms, transformsAndTrainers.PostTrainerTransforms, namespaceValue, _pipeline.CacheBeforeTrainer, labelTypeCsharp.Name, includeOnnxPackage);
             modelBuilderCSFileContent = Utils.FormatCode(modelBuilderCSFileContent);
 
             return (predictProgramCSFileContent, predictProjectFileContent, modelBuilderCSFileContent);
@@ -215,6 +212,39 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             var modelProjectFileContent = GenerateModelProjectFileContent(includeLightGbmPackage,
                 includeMklComponentsPackage, includeFastTreePackage, includeImageTransformerPackage,
                 includeImageClassificationPackage, includeOnnxModel);
+
+            return (modelInputCSFileContent, modelOutputCSFileContent, consumeModelCSFileContent, modelProjectFileContent);
+        }
+
+        internal (string ModelInputCSFileContent, string ModelOutputCSFileContent, string ConsumeModelCSFileContent,
+    string ModelProjectFileContent) GenerateAzureAttachImageModelProjectContents(string namespaceValue)
+        {
+            var classLabels = GenerateClassLabels();
+
+            // generate ModelInput.cs
+            var modelInputCSFileContent = GenerateModelInputCSFileContent(namespaceValue, classLabels);
+            modelInputCSFileContent = Utils.FormatCode(modelInputCSFileContent);
+
+            // generate ModelOutput.cs
+            var modelOutputCSFileContent = new AzureAttachImageModelOutputClass()
+            {
+                Namespace = namespaceValue,
+                Target = _settings.Target,
+            }.TransformText();
+            modelOutputCSFileContent = Utils.FormatCode(modelOutputCSFileContent);
+
+            // generate ConsumeModel.cs
+            var consumeModelCSFileContent = new AzureAttachImageConsumeModel()
+            {
+                Namespace = namespaceValue,
+                Target = _settings.Target,
+            }.TransformText();
+            consumeModelCSFileContent = Utils.FormatCode(consumeModelCSFileContent);
+
+            // generate Model.csproj
+            var modelProjectFileContent = GenerateModelProjectFileContent(false,
+                false, false, true,
+                false, true);
 
             return (modelInputCSFileContent, modelOutputCSFileContent, consumeModelCSFileContent, modelProjectFileContent);
         }
@@ -287,14 +317,18 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         {
             if (_pipeline == null)
                 throw new ArgumentNullException(nameof(_pipeline));
-            var node = _pipeline.Nodes.Where(t => t.NodeType == PipelineNodeType.Trainer).First();
-            if (node == null)
-                throw new ArgumentException($"The trainer was not found.");
-
-            ITrainerGenerator generator = TrainerGeneratorFactory.GetInstance(node);
-            var trainerString = generator.GenerateTrainer();
-            var trainerUsings = generator.GenerateUsings();
-            return (trainerString, trainerUsings);
+            try
+            {
+                var node = _pipeline.Nodes.Where(t => t.NodeType == PipelineNodeType.Trainer).First();
+                ITrainerGenerator generator = TrainerGeneratorFactory.GetInstance(node);
+                var trainerString = generator.GenerateTrainer();
+                var trainerUsings = generator.GenerateUsings();
+                return (trainerString, trainerUsings);
+            }
+            catch (Exception)
+            {
+                return (string.Empty, new string[0]);
+            }
         }
 
         internal IList<string> GenerateClassLabels()
@@ -442,7 +476,8 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             List<string> postTrainerTransforms,
             string namespaceValue,
             bool cacheBeforeTrainer,
-            string predictionLabelType)
+            string predictionLabelType,
+            bool hasOnnxModel = false)
         {
             var modelBuilder = new ModelBuilder()
             {
@@ -461,6 +496,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 LabelName = _settings.LabelName,
                 CacheBeforeTrainer = cacheBeforeTrainer,
                 Target = _settings.Target,
+                HasOnnxModel = hasOnnxModel,
             };
 
             return modelBuilder.TransformText();

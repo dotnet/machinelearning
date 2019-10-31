@@ -54,10 +54,16 @@ namespace mlnet.Tests
         public void IgniteDemoTest()
         {
             // construct pipeline
-            var onnxPipeLineNode = new PipelineNode("ApplyOnnxModel", PipelineNodeType.Trainer, new[] { "input.1" }, new[] { "output.1" });
+            var onnxPipeLineNode = new PipelineNode(nameof(SpecialTransformer.ApplyOnnxModel), PipelineNodeType.Transform, new[] { "input.1" }, new[] { "output.1" },
+                new Dictionary<string, object>()
+                {
+                    { "outputColumnNames", "output1" },
+                    { "inputColumnNames", "input1"},
+                    { "modelFile" , "awesomeModel.onnx"},
+                });
             var loadImageNode = new PipelineNode(EstimatorName.ImageLoading.ToString(), PipelineNodeType.Transform, "ImageSource", "ImageSource_featurized");
             var resizeImageNode = new PipelineNode(
-                "ImageResizing",
+                nameof(SpecialTransformer.ResizeImage),
                 PipelineNodeType.Transform,
                 "ImageSource_featurized",
                 "ImageSource_featurized",
@@ -66,8 +72,8 @@ namespace mlnet.Tests
                     { "imageWidth", 224 },
                     { "imageHeight", 224 },
                 });
-            var extractPixelsNode = new PipelineNode("PixelExtracting", PipelineNodeType.Transform, "ImageSource_featurized", "ImageSource_featurized");
-            var customePipeline = new PipelineNode("NormalizeMapping", PipelineNodeType.Transform, string.Empty, string.Empty);
+            var extractPixelsNode = new PipelineNode(nameof(SpecialTransformer.ExtractPixel), PipelineNodeType.Transform, "ImageSource_featurized", "ImageSource_featurized");
+            var customePipeline = new PipelineNode(nameof(SpecialTransformer.NormalizeMapping), PipelineNodeType.Transform, string.Empty, string.Empty);
             var bestPipeLine = new Pipeline(new PipelineNode[]
             {
                 loadImageNode,
@@ -103,7 +109,7 @@ namespace mlnet.Tests
                 ModelPath = @"C:\Users\xiaoyuz\Desktop\flower_photos_tiny_set_for_unit_tests\CodeGenTest\MLModel.zip",
                 MlTask = TaskKind.MulticlassClassification,
                 OutputName = @"CodeGenTest",
-                OutputBaseDir = @"C:\Users\xiaoyuz\Desktop\flower_photos_tiny_set_for_unit_tests\",
+                OutputBaseDir = @"C:\Users\xiaoyuz\Desktop\flower_photos_tiny_set_for_unit_tests\CodeGenTest",
                 LabelName = "Label",
                 Target = GenerateTarget.ModelBuilder,
             };
