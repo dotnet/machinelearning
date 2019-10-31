@@ -1289,6 +1289,7 @@ namespace Microsoft.ML.Scenarios
         [InlineData(ImageClassificationTrainer.Architecture.ResnetV2101)]
         [InlineData(ImageClassificationTrainer.Architecture.MobilenetV2)]
         [InlineData(ImageClassificationTrainer.Architecture.ResnetV250)]
+        [InlineData(ImageClassificationTrainer.Architecture.InceptionV3)]
         public void TensorFlowImageClassification(ImageClassificationTrainer.Architecture arch)
         {
             string assetsRelativePath = @"assets";

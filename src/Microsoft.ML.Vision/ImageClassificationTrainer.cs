@@ -475,6 +475,7 @@ namespace Microsoft.ML.Vision
         private int _classCount;
         private Graph Graph => _session.graph;
         private static readonly string _resourcePath = Path.Combine(Path.GetTempPath(), "MLNET");
+        private readonly string _sizeFile;
 
         /// <summary>
         /// Initializes a new instance of <see cref="ImageClassificationTrainer"/>
@@ -544,6 +545,7 @@ namespace Microsoft.ML.Vision
             _useLRScheduling = _options.LearningRateScheduler != null;
             _checkpointPath = Path.Combine(_options.WorkspacePath, _options.FinalModelPrefix +
                     ModelFileName[_options.Arch]);
+            _sizeFile = Path.Combine(_options.WorkspacePath, "TrainingSetSize.txt");
 
             // Configure bottleneck tensor based on the model.
             var arch = _options.Arch;
@@ -638,9 +640,8 @@ namespace Microsoft.ML.Vision
                     _inputTensorName, _bottleneckTensor.name, trainSetBottleneckCachedValuesFilePath,
                     ImageClassificationMetrics.Dataset.Train, _options.MetricsCallback);
 
-                string sizeFile = Path.Combine(_options.WorkspacePath, "TrainingSetSize.txt");
                 // Write training set size to a file for use during training
-                File.WriteAllText(sizeFile, trainingsetSize.ToString());
+                File.WriteAllText(_sizeFile, trainingsetSize.ToString());
             }
 
             if (validationSet != null &&
@@ -904,12 +905,11 @@ namespace Microsoft.ML.Vision
             metrics.Train = new TrainMetrics();
             float accuracy = 0;
             float crossentropy = 0;
-            string sizeFile = Path.Combine(_options.WorkspacePath, "TrainingSetSize.txt");
             DnnTrainState trainstate = new DnnTrainState
             {
                 BatchSize = options.BatchSize,
                 BatchesPerEpoch =
-                (trainingsetSize < 0 ? GetNumSamples(sizeFile) : trainingsetSize) / options.BatchSize
+                (trainingsetSize < 0 ? GetNumSamples(_sizeFile) : trainingsetSize) / options.BatchSize
             };
 
             for (int epoch = 0; epoch < epochs; epoch += 1)
@@ -1140,7 +1140,14 @@ namespace Microsoft.ML.Vision
         {
             if (_cleanupWorkspace && Directory.Exists(_options.WorkspacePath))
             {
-                Directory.Delete(_options.WorkspacePath, true);
+                try
+                {
+                    Directory.Delete(_options.WorkspacePath, true);
+                }
+                catch (Exception e)
+                {
+                    //We do not want to stop pipeline due to failed cleanup.
+                }
             }
         }
 
@@ -1314,7 +1321,7 @@ namespace Microsoft.ML.Vision
             {
                 DownloadIfNeeded(env, @"tfhub_modules.zip", _resourcePath, @"tfhub_modules.zip", timeout);
                 if (!Directory.Exists(@"tfhub_modules"))
-                    ZipFile.ExtractToDirectory(Path.Combine(_resourcePath, @"tfhub_modules.zip"), @"tfhub_modules");
+                    ZipFile.ExtractToDirectory(Path.Combine(_resourcePath, @"tfhub_modules.zip"), Path.Combine(_resourcePath, @"tfhub_modules"));
             }
 
             return new TensorFlowSessionWrapper(GetSession(env, modelFilePath, true), modelFilePath);
