@@ -60,7 +60,7 @@ namespace Samples.Dynamic
                 IDataView testDataset = trainTestData.TestSet;
 
                 var pipeline = mlContext.MulticlassClassification.Trainers
-                        .ImageClassification(featureColumnName:"Image", validationSet:testDataset)
+                        .ImageClassification(featureColumnName:"Image", validationSet:null)
                     .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel",
                         inputColumnName: "PredictedLabel"));
 

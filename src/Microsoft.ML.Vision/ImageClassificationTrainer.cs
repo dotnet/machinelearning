@@ -389,7 +389,7 @@ namespace Microsoft.ML.Vision
             /// Callback to report statistics on accuracy/cross entropy during training phase.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Callback to report metrics during training and validation phase.", SortOrder = 15)]
-            public Action<ImageClassificationMetrics> MetricsCallback = null;
+            public Action<ImageClassificationMetrics> MetricsCallback = (metrics) => Console.WriteLine(metrics);
 
             /// <summary>
             /// Indicates the path where the models get downloaded to and cache files saved, default is a new temporary directory
