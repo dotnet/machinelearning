@@ -33,16 +33,12 @@ jobs:
         displayName: Install build dependencies
     - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }}
       displayName: Builds
-    # - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet restore $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj
-    #   displayName: Restore dotnet cli
-    - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet list $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj package --source https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json --outdated
-      displayName: List latest package versions on screen
+    # - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet list $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj package --source https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json --outdated
+    #   displayName: List latest package versions on screen
     - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet list $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj package --source https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json --outdated > $(Build.SourcesDirectory)/test/Microsoft.ML.NugetPackageVersionUpdater/latest_versions.txt
       displayName: List latest package versions
     - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet run --project $(Build.SourcesDirectory)/test/Microsoft.ML.NugetPackageVersionUpdater/Microsoft.ML.NugetPackageVersionUpdater.csproj
       displayName: Update package version
-    # - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }}
-    #   displayName: Builds second time to take updated packages
     - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet msbuild -restore -v:normal $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj /p:ReferenceTypeForTestFramework="Nuget" /p:Configuration=$(_configuration) /p:TargetArchitecture=${{ parameters.architecture }}
       displayName: Build Nightly Build Project with latest package versions
     - script: ${{ parameters.buildScript }} -$(_configuration) -runnightlybuildtests

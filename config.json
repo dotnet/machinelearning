@@ -199,7 +199,7 @@
           "path": "Tools/dotnetcli/dotnet"
         },
         "unix": {
-          "defaultParameters": "msbuild /nologo /verbosity:minimal /clp:Summary /maxcpucount /l:BinClashLogger,Tools/Microsoft.DotNet.Build.Tasks.dll;LogFile=binclash.log",
+          "defaultParameters": "msbuild /nologo /verbosity:normal /clp:Summary /maxcpucount /l:BinClashLogger,Tools/Microsoft.DotNet.Build.Tasks.dll;LogFile=binclash.log",
           "path": "Tools/dotnetcli/dotnet"
         }
       },
