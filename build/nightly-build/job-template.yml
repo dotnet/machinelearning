@@ -43,8 +43,8 @@ jobs:
       displayName: Update package version
     # - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }}
     #   displayName: Builds second time to take updated packages
-    - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet msbuild -restore $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj /p:ReferenceTypeForTestFramework="Nuget"
-      displayName: Build Nightly Build Project with latest package versions
+    # - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet msbuild -restore $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj /p:ReferenceTypeForTestFramework="Nuget"
+    #   displayName: Build Nightly Build Project with latest package versions
     - script: ${{ parameters.buildScript }} -$(_configuration) -runnightlybuildtests
       displayName: Run Nightly Build Tests
       condition: succeeded()
