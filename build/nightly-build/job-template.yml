@@ -41,8 +41,8 @@ jobs:
       displayName: List latest package versions
     - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet run --project $(Build.SourcesDirectory)/test/Microsoft.ML.NugetPackageVersionUpdater/Microsoft.ML.NugetPackageVersionUpdater.csproj
       displayName: Update package version
-    - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet msbuild -restore $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj /p:ReferenceTypeForTestFramework="Nuget"
-      displayName: Build Nightly Build Project with latest package versions
+    # - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet msbuild -restore $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj /p:ReferenceTypeForTestFramework="Nuget"
+    #   displayName: Build Nightly Build Project with latest package versions
     - script: ${{ parameters.buildScript }} -$(_configuration) -runnightlybuildtests
       displayName: Run Nightly Build Tests
       condition: succeeded()
