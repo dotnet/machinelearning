@@ -18,6 +18,12 @@ namespace Microsoft.ML.Data
     internal delegate void ValueMapper<TVal1, TVal2, TVal3>(in TVal1 val1, ref TVal2 val2, ref TVal3 val3);
 
     /// <summary>
+    /// Delegate type to map two values to one.
+    /// </summary>
+    [BestFriend]
+    internal delegate void ValueMapperTwoToOne<TVal1, TVal2, TVal3>(in TVal1 val1, in TVal2 val2, ref TVal3 val3);
+
+    /// <summary>
     /// Interface for mapping a single input value (of an indicated ColumnType) to
     /// an output value (of an indicated ColumnType). This interface is commonly implemented
     /// by predictors. Note that the input and output ColumnTypes determine the proper
@@ -54,5 +60,19 @@ namespace Microsoft.ML.Data
         /// should only be used on a single thread - it should NOT be assumed to be safe for concurrency.
         /// </summary>
         ValueMapper<TSrc, TDst, TDist> GetMapper<TSrc, TDst, TDist>();
+    }
+
+    /// <summary>
+    /// Interface for mapping two input values (of the indicated ColumnType) to one output value (of the
+    /// indicated ColumType).
+    /// </summary>
+    [BestFriend]
+    internal interface IValueMapperTwoToOne : IValueMapper
+    {
+        /// <summary>
+        /// Get a delegate used for mapping from input to output values. Note that the delegate
+        /// should only be used on a single thread - it should NOT be assumed to be safe for concurrency.
+        /// </summary>
+        ValueMapperTwoToOne<TSrc, TKey, TDst> GetMapper<TSrc, TKey, TDst>();
     }
 }
