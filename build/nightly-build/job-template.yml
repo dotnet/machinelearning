@@ -46,3 +46,66 @@ jobs:
     - script: ${{ parameters.buildScript }} -$(_configuration) -runnightlybuildtests
       displayName: Run Nightly Build Tests
       condition: succeeded()
+    - task: PublishTestResults@2
+      displayName: Publish Test Results
+      condition: succeededOrFailed()
+      inputs:
+        testRunner: 'vSTest'
+        searchFolder: '$(System.DefaultWorkingDirectory)/bin'
+        testResultsFiles: '**/*.trx'
+        testRunTitle: Machinelearning_Tests_${{ parameters.name }}_$(_configuration)_$(Build.BuildNumber)
+        configuration: $(_configuration)
+        mergeTestResults: true
+    - task: CopyFiles@2
+      displayName: Stage build logs
+      condition: not(succeeded())
+      inputs:
+        sourceFolder: $(Build.SourcesDirectory)
+        contents: '?(msbuild.*|binclash.log|init-tools.log)'
+        targetFolder: $(Build.ArtifactStagingDirectory)
+    - task: CopyFiles@2
+      displayName: Stage test output
+      condition: not(succeeded())
+      inputs:
+        sourceFolder: $(Build.SourcesDirectory)/bin
+        contents: |
+          **/TestOutput/**/*
+          **/*.trx
+        targetFolder: $(Build.ArtifactStagingDirectory)
+    - task: PublishBuildArtifacts@1
+      displayName: Publish build and test logs
+      condition: not(succeeded())
+      inputs:
+        pathToPublish: $(Build.ArtifactStagingDirectory)
+        artifactName: ${{ parameters.name }} $(_config_short)
+        artifactType: container
+    - ${{ if eq(parameters.buildScript, 'build.cmd') }}:
+      - powershell: |
+                  $taskListOutput = & TaskList /FI "IMAGENAME eq dotnet.exe" | Out-String
+                  if ($taskListOutput.Contains("dotnet.exe"))
+                  {
+                      Write-Output "Killing dotnet.exe processes..."
+                      & taskkill /IM dotnet.exe /F
+                  }
+
+                  if (Test-Path .\packages\)
+                  {
+                      Write-Output "Removing nuget cache dir..."
+                      Remove-Item -Force -Recurse .\packages\
+                  }
+
+                  if (Test-Path .\test\data\external\)
+                  {
+                      Write-Output "Removing external test data..."
+                      Remove-Item -Force -Recurse .\test\data\external\
+                  }
+
+                  mkdir .\tmp\
+                  Move-Item .\bin\obj\packages .\tmp\
+                  Write-Output "Removing bin dir..."
+                  Remove-Item -Force -Recurse .\bin\
+                  mkdir .\bin\obj\
+                  Move-Item .\tmp\packages\ .\bin\obj\
+                  Remove-Item -Force -Recurse .\tmp\
+                  Write-Output "Done cleaning up binary folder..."
+        displayName: Clean up test data
