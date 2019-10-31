@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using ApprovalTests;
@@ -11,6 +12,7 @@ using Microsoft.ML.AutoML;
 using Microsoft.ML.CodeGenerator.CSharp;
 using Microsoft.ML.Data;
 using Xunit;
+using CodeGenerator = Microsoft.ML.CodeGenerator.CSharp.CodeGenerator;
 
 namespace mlnet.Tests
 {
@@ -45,6 +47,70 @@ namespace mlnet.Tests
                 false, false, false);
 
             Approvals.Verify(result.modelBuilderCSFileContent);
+        }
+
+        [Fact]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void IgniteDemoTest()
+        {
+            // construct pipeline
+            var onnxPipeLineNode = new PipelineNode("ApplyOnnxModel", PipelineNodeType.Trainer, new[] { "input.1" }, new[] { "output.1" });
+            var loadImageNode = new PipelineNode(EstimatorName.ImageLoading.ToString(), PipelineNodeType.Transform, "ImageSource", "ImageSource_featurized");
+            var resizeImageNode = new PipelineNode(
+                "ImageResizing",
+                PipelineNodeType.Transform,
+                "ImageSource_featurized",
+                "ImageSource_featurized",
+                new Dictionary<string, object>()
+                {
+                    { "imageWidth", 224 },
+                    { "imageHeight", 224 },
+                });
+            var extractPixelsNode = new PipelineNode("PixelExtracting", PipelineNodeType.Transform, "ImageSource_featurized", "ImageSource_featurized");
+            var customePipeline = new PipelineNode("NormalizeMapping", PipelineNodeType.Transform, string.Empty, string.Empty);
+            var bestPipeLine = new Pipeline(new PipelineNode[]
+            {
+                loadImageNode,
+                resizeImageNode,
+                extractPixelsNode,
+                customePipeline,
+                onnxPipeLineNode,
+            });
+
+            // construct column inference
+            var textLoaderArgs = new TextLoader.Options()
+            {
+                Columns = new[] {
+                        new TextLoader.Column("Label", DataKind.String, 0),
+                        new TextLoader.Column("ImageSource", DataKind.String, 1), // 0?
+                    },
+                AllowQuoting = true,
+                AllowSparse = true,
+                HasHeader = true,
+                Separators = new[] { '\t' }
+            };
+
+            var columnInference = new ColumnInferenceResults()
+            {
+                TextLoaderOptions = textLoaderArgs,
+                ColumnInformation = new ColumnInformation() { LabelColumnName = "Label" }
+            };
+
+            // construct CodeGen option
+            var setting = new CodeGeneratorSettings()
+            {
+                TrainDataset = @"C:\Users\xiaoyuz\Desktop\flower_photos_tiny_set_for_unit_tests\data.tsv",
+                ModelPath = @"C:\Users\xiaoyuz\Desktop\flower_photos_tiny_set_for_unit_tests\CodeGenTest\MLModel.zip",
+                MlTask = TaskKind.MulticlassClassification,
+                OutputName = @"CodeGenTest",
+                OutputBaseDir = @"C:\Users\xiaoyuz\Desktop\flower_photos_tiny_set_for_unit_tests\",
+                LabelName = "Label",
+                Target = GenerateTarget.ModelBuilder,
+            };
+
+            // generate project
+            var codeGen = new CodeGenerator(bestPipeLine, columnInference, setting);
+            codeGen.GenerateAzureRemoteImageOutput();
         }
 
         [Fact]

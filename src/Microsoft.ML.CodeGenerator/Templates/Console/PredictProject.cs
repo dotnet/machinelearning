@@ -42,6 +42,14 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
  if (IncludeImageTransformerPackage){ 
             this.Write("    <PackageReference Include=\"Microsoft.ML.ImageAnalytics\" Version=\"1.4.0\" />\r\n");
 }
+ if (IncludeOnnxPackage){ 
+            this.Write("    <PackageReference Include=\"Microsoft.ML.OnnxTransformer\" Version=\"1.3.1\" />\r\n" +
+                    "");
+}
+ if (IncludeResNet18Package){ 
+            this.Write("    <PackageReference Include=\"Microsoft.ML.DnnImageFeaturizer.ResNet18\" Version=" +
+                    "\"0.15.1\" />\r\n");
+}
  if (IncludeImageClassificationPackage){ 
             this.Write("    <PackageReference Include=\"Microsoft.ML.Vision\" Version=\"1.4.0\" />\r\n\t<Package" +
                     "Reference Include=\"SciSharp.TensorFlow.Redist\" Version=\"1.14.0\" />\r\n");
@@ -60,6 +68,8 @@ public bool IncludeMklComponentsPackage {get;set;}
 public bool IncludeFastTreePackage {get;set;}
 public bool IncludeImageTransformerPackage {get; set;}
 public bool IncludeImageClassificationPackage {get; set;}
+public bool IncludeOnnxPackage {get; set;}
+public bool IncludeResNet18Package {get; set;}
 
     }
     #region Base class

@@ -15,6 +15,10 @@
   </ItemGroup>
   
   <ItemGroup>
+    <None Update="Templates\AzureImageClassification\Model\NormalizeMapping.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>NormalizeMapping.cs</LastGenOutput>
+    </None>
     <None Update="Templates\Console\Annotation.ttinclude">
     </None>
     <None Update="Templates\Console\ConsumeModel.tt">
@@ -52,6 +56,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Templates\AzureImageClassification\Model\NormalizeMapping.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>NormalizeMapping.tt</DependentUpon>
+    </Compile>
     <Compile Update="Templates\Console\ConsumeModel.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -87,15 +96,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>PredictProject.tt</DependentUpon>
     </Compile>
-    <Compile Update="Templates\Templates\Console\ModelInputClass.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ModelInputClass.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Templates\Templates\Console\ModelOutputClass.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ModelOutputClass.tt</DependentUpon>
-    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Templates\AzureImageClassification\ConsoleApp\" />
   </ItemGroup>
 </Project>

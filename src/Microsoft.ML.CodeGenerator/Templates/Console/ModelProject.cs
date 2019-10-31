@@ -45,8 +45,12 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
                     "Reference Include=\"SciSharp.TensorFlow.Redist\" Version=\"1.14.0\" />\r\n");
 }
             this.Write("  </ItemGroup>\r\n\r\n  <ItemGroup>\r\n    <None Update=\"MLModel.zip\">\r\n      <CopyToOu" +
-                    "tputDirectory>PreserveNewest</CopyToOutputDirectory>\r\n    </None>\r\n  </ItemGroup" +
-                    ">\r\n  \r\n</Project>\r\n");
+                    "tputDirectory>PreserveNewest</CopyToOutputDirectory>\r\n    </None>\r\n");
+ if (IncludeOnnxModel){ 
+            this.Write("    <None Update=\"BestModel.onnx\">\r\n      <CopyToOutputDirectory>PreserveNewest</" +
+                    "CopyToOutputDirectory>\r\n    </None>\r\n");
+}
+            this.Write("  </ItemGroup>\r\n  \r\n</Project>\r\n");
             return this.GenerationEnvironment.ToString();
         }
 
@@ -55,6 +59,7 @@ public bool IncludeMklComponentsPackage {get;set;}
 public bool IncludeFastTreePackage {get;set;}
 public bool IncludeImageTransformerPackage {get; set;}
 public bool IncludeImageClassificationPackage {get; set;}
+public bool IncludeOnnxModel {get; set;}
 
     }
     #region Base class
