@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <!-- DON'T CHANGE THIS!!! We are turning off strong naming to ensure we never add `InternalsVisibleTo` for these tests -->
@@ -6,7 +6,10 @@
     <!-- DON'T CHANGE THIS!!! We are turning off strong naming to ensure we never add `InternalsVisibleTo` for these tests -->
     <PublicSign>false</PublicSign>
     <IsPackable>false</IsPackable>
-    <ReferenceTypeForTestFramework>NuGet</ReferenceTypeForTestFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>DEBUG</DefineConstants>
   </PropertyGroup>
 
   <Import Project="..\NightlyBuildDependency.props" />
@@ -33,9 +36,5 @@
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.TestFrameworkCommon\Microsoft.ML.TestFrameworkCommon.csproj" />
   </ItemGroup>
-
-  <Target Name="TestMessage" AfterTargets="Build">
-    <Message Text="Running with args in NightlyBuild: $(ReferenceTypeForTestFramework)" Importance="high"/>
-  </Target>
 
 </Project>
