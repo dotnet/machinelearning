@@ -17,8 +17,9 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Trainers;
 
-namespace Microsoft.ML.Trainers
+namespace Microsoft.ML.SEAL
 {
     public abstract class EncryptedSdcaTrainerBase<TOptions, TTransformer, TModel> : StochasticTrainerBase<TTransformer, TModel>
             where TTransformer : ISingleFeaturePredictionTransformer<TModel>

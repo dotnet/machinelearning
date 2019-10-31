@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.ML.Data;
 using Microsoft.Research.SEAL;
 
-namespace Microsoft.ML.Transforms.SEAL
+namespace Microsoft.ML.SEAL
 {
     public sealed class CiphertextTypeAttribute : DataViewTypeAttribute
     {
@@ -49,12 +50,12 @@ namespace Microsoft.ML.Transforms.SEAL
         public override string ToString() => "Ciphertext[]";
     }
 
-    public sealed class GaloisKeysTypeAttribute : DataViewTypeAttribute
+    public sealed class CipherGaloisKeysTypeAttribute : DataViewTypeAttribute
     {
         /// <summary>
         /// Create Galois keys
         /// </summary>
-        public GaloisKeysTypeAttribute()
+        public CipherGaloisKeysTypeAttribute()
         {
         }
 
@@ -63,22 +64,22 @@ namespace Microsoft.ML.Transforms.SEAL
         /// </summary>
         public override bool Equals(DataViewTypeAttribute other)
         {
-            if (other is GaloisKeysTypeAttribute otherGaloisKeys) return true;
+            if (other is CipherGaloisKeysTypeAttribute otherCipherGaloisKeys) return true;
             return false;
         }
 
         public override void Register()
         {
-            DataViewTypeManager.Register(new GaloisKeysDataViewType(), typeof(GaloisKeys), this);
+            DataViewTypeManager.Register(new CipherGaloisKeysDataViewType(), typeof(Tuple<Ciphertext[], GaloisKeys>), this);
         }
     }
 
     /// <summary>
-    /// The standard GaloisKeys type. The representation type of this is GaloisKeys.
+    /// The standard Ciphertext and Galois Keys type. The representation type of this is Tuple&lt;Ciphertext[], GaloisKeys&gt;.
     /// </summary>
-    public class GaloisKeysDataViewType : StructuredDataViewType
+    public class CipherGaloisKeysDataViewType : StructuredDataViewType
     {
-        public GaloisKeysDataViewType() : base(typeof(GaloisKeys))
+        public CipherGaloisKeysDataViewType() : base(typeof(Tuple<Ciphertext[], GaloisKeys>))
         {
         }
 
@@ -88,6 +89,6 @@ namespace Microsoft.ML.Transforms.SEAL
             return false;
         }
 
-        public override string ToString() => "GaloisKeys";
+        public override string ToString() => "Tuple<Ciphertext[], GaloisKeys>";
     }
 }

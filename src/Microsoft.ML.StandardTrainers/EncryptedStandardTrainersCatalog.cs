@@ -5,8 +5,9 @@
 using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Trainers;
 
-namespace Microsoft.ML.Trainers
+namespace Microsoft.ML.SEAL
 {
     public static class EncryptedStandardTrainersCatalog
     {

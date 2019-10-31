@@ -15,17 +15,18 @@ using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.Research.SEAL;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.ML.Trainers
+namespace Microsoft.ML.SEAL
 {
     /// <summary>
     /// Base class for linear model parameters.
     /// </summary>
     public abstract class EncryptedLinearModelParameters : ModelParametersBase<float>,
-        IValueMapperEncrypted,
+        IValueMapperTwoToOne,
         ICanSaveInIniFormat,
         ICanSaveInTextFormat,
         ICanSaveInSourceCode,
@@ -118,7 +119,7 @@ namespace Microsoft.ML.Trainers
 
             Weight = weights;
             Bias = bias;
-            _inputType = CipherGaloisKeyDataViewType.Instance;
+            _inputType = new CipherGaloisKeysDataViewType();
 
             if (Weight.IsDense)
                 _weightsDense = Weight;
@@ -325,21 +326,21 @@ namespace Microsoft.ML.Trainers
 
         DataViewType IValueMapper.OutputType
         {
-            get { return CiphertextDataViewType.Instance; }
+            get { return new CiphertextDataViewType(); }
         }
 
-        ValueMapperEncrypted<TIn, TKey, TOut> IValueMapperEncrypted.GetMapper<TIn, TKey, TOut>()
+        ValueMapperTwoToOne<TIn, TKey, TOut> IValueMapperTwoToOne.GetMapper<TIn, TKey, TOut>()
         {
             Contracts.Check(typeof(TIn) == typeof(VBuffer<Ciphertext>));
             Contracts.Check(typeof(TKey) == typeof(GaloisKeys));
             Contracts.Check(typeof(TOut) == typeof(Ciphertext));
 
-            ValueMapperEncrypted<VBuffer<Ciphertext>, GaloisKeys, Ciphertext> del =
+            ValueMapperTwoToOne<VBuffer<Ciphertext>, GaloisKeys, Ciphertext> del =
                 (in VBuffer<Ciphertext> src, in GaloisKeys key, ref Ciphertext dst) =>
                 {
                     dst = Score(in src, in key);
                 };
-            return (ValueMapperEncrypted<TIn, TKey, TOut>)(Delegate)del;
+            return (ValueMapperTwoToOne<TIn, TKey, TOut>)(Delegate)del;
         }
 
         /// <summary>

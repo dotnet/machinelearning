@@ -8,7 +8,6 @@ using System.IO;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.DataView;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.SEAL;
@@ -98,7 +97,8 @@ namespace Microsoft.ML.SEAL
             ctx.CheckVersionInfo(GetVersionInfo());
             var encrypt = ctx.LoadString();
             var scale = Convert.ToDouble(ctx.LoadString());
-            var parameters = EncryptionParameters.Load(ctx.Reader.BaseStream);
+            var parameters = new EncryptionParameters();
+            parameters.Load(ctx.Reader.BaseStream);
             var sealKeyFilePath = ctx.LoadString();
             var inputColumnName = ctx.LoadString();
             var outputColumnName = ctx.LoadString();
@@ -172,7 +172,7 @@ namespace Microsoft.ML.SEAL
             if (Encrypt) ctx.SaveString("Encrypt");
             else ctx.SaveString("Decrypt");
             ctx.SaveString(Convert.ToString(Scale));
-            EncryptionParameters.Save(SealEncryptionParameters, ctx.Writer.BaseStream);
+            SealEncryptionParameters.Save(ctx.Writer.BaseStream);
             ctx.SaveString(SealKeyFileName);
             ctx.SaveString(InputColumnName);
             ctx.SaveString(OutputColumnName);
@@ -198,7 +198,7 @@ namespace Microsoft.ML.SEAL
             {
                 return new[]
                 {
-                    new DataViewSchema.DetachedColumn(_parent.OutputColumnName, CiphertextDataViewType.Instance)
+                    new DataViewSchema.DetachedColumn(_parent.OutputColumnName, new CiphertextDataViewType())
                 };
             }
 
@@ -307,7 +307,7 @@ namespace Microsoft.ML.SEAL
             var columns = inputSchema.GetEnumerator();
             var columnsList = new List<SchemaShape.Column>();
             while (columns.MoveNext()) columnsList.Add(columns.Current);
-            if (_encrypt) columnsList.Add(new SchemaShape.Column(_inputColumnName, SchemaShape.Column.VectorKind.Scalar, CiphertextDataViewType.Instance, false));
+            if (_encrypt) columnsList.Add(new SchemaShape.Column(_inputColumnName, SchemaShape.Column.VectorKind.Scalar, new CiphertextDataViewType(), false));
             else columnsList.Add(new SchemaShape.Column(_inputColumnName, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Double, false));
             SchemaShape outputShape = new SchemaShape(columnsList);
             return outputShape;
