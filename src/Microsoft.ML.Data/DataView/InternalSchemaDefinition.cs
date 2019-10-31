@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.ML.Runtime;
-using Microsoft.Research.SEAL;
 
 namespace Microsoft.ML.Data
 {
@@ -190,8 +189,6 @@ namespace Microsoft.ML.Data
             // The internal type of string is ReadOnlyMemory<char>. That is, string will be stored as ReadOnlyMemory<char> in IDataView.
             if (itemType == typeof(string))
                 itemType = typeof(ReadOnlyMemory<char>);
-            else if (itemType == typeof(Ciphertext))
-                itemType = typeof(Ciphertext[]);
             // Check if the itemType extracted from rawType is supported by ML.NET's type system.
             // It must be one of either ML.NET's pre-defined types or custom types registered by the user.
             else if (!itemType.TryGetDataKind(out _) && !DataViewTypeManager.Knows(itemType, attributes))
@@ -266,16 +263,15 @@ namespace Microsoft.ML.Data
                 }
                 else
                 {
-                    var ctType = col.ColumnType as CiphertextDataViewType;
                     // Make sure that the types are compatible with the declared type, including
                     // whether it is a vector type.
                     VectorDataViewType columnVectorType = col.ColumnType as VectorDataViewType;
-                    if (isVector != ((columnVectorType != null) || (ctType != null)))
+                    if (isVector != (columnVectorType != null))
                     {
                         throw Contracts.ExceptParam(nameof(userSchemaDefinition), "Column '{0}' is supposed to be {1}, but type of associated field '{2}' is {3}",
                             colName, columnVectorType != null ? "vector" : "scalar", col.MemberName, isVector ? "vector" : "scalar");
                     }
-                    DataViewType itemType = columnVectorType?.ItemType ?? ctType ?? col.ColumnType;
+                    DataViewType itemType = columnVectorType?.ItemType ?? col.ColumnType;
                     if (itemType.RawType != dataItemType)
                     {
                         throw Contracts.ExceptParam(nameof(userSchemaDefinition), "Column '{0}' is supposed to have item type {1}, but associated field has type {2}",

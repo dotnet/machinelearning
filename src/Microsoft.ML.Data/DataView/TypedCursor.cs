@@ -8,7 +8,6 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
-using Microsoft.Research.SEAL;
 
 namespace Microsoft.ML.Data
 {
@@ -129,7 +128,7 @@ namespace Microsoft.ML.Data
             var schema = _data.Schema;
             for (int i = 0; i < n; i++)
             {
-                if ((_columns[i].ColumnType is VectorDataViewType) || (_columns[i].ColumnType is CiphertextDataViewType))
+                if (_columns[i].ColumnType is VectorDataViewType)
                     _peeks[i] = ApiUtils.GeneratePeek<TypedCursorable<TRow>, TRow>(_columns[i]);
                 _pokes[i] = ApiUtils.GeneratePoke<TypedCursorable<TRow>, TRow>(_columns[i]);
             }
@@ -143,13 +142,7 @@ namespace Microsoft.ML.Data
         {
             InternalSchemaDefinition.GetVectorAndItemType(memberInfo, out bool isVector, out Type itemType);
             if (isVector)
-            {
-                if (colType is VectorDataViewType vectorType)
-                    return vectorType.ItemType.RawType == itemType;
-                else if (colType is CiphertextDataViewType cipherType)
-                    return cipherType.RawType == itemType;
-                else return false;
-            }
+                return colType is VectorDataViewType vectorType && vectorType.ItemType.RawType == itemType;
             else
                 return !(colType is VectorDataViewType) && colType.RawType == itemType;
         }
@@ -295,8 +288,7 @@ namespace Microsoft.ML.Data
                         Ch.Assert(colType.GetItemType().RawType == Nullable.GetUnderlyingType(fieldType.GetElementType()));
                     else
                         Ch.Assert(colType.GetItemType().RawType == fieldType.GetElementType());
-                    if (fieldType.GetElementType() == typeof(Ciphertext)) del = CreateDirectVBufferSetter<Ciphertext>;
-                    else del = CreateDirectVBufferSetter<int>;
+                    del = CreateDirectVBufferSetter<int>;
                     genericType = fieldType.GetElementType();
                 }
                 else if (colType is VectorDataViewType vectorType)
