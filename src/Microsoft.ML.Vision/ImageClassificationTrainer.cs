@@ -1154,7 +1154,6 @@ namespace Microsoft.ML.Vision
             }
         }
 
-
         private (Session, Tensor, Tensor, Tensor) BuildEvaluationSession(int classCount)
         {
             var evalGraph = LoadMetaGraph(Path.Combine(Path.GetTempPath(), ResourceDir, ModelFileName[_options.Arch]));
