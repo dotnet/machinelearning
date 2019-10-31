@@ -78,6 +78,7 @@ namespace Microsoft.ML.Vision
         internal const string UserName = "Image Classification Trainer";
         internal const string ShortName = "IMGCLSS";
         internal const string Summary = "Trains a DNN model to classify images.";
+        internal const string ResourceDir = "MLNET_VISION";
 
         /// <summary>
         /// Image classification model.
@@ -438,6 +439,13 @@ namespace Microsoft.ML.Vision
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "A class that performs learning rate scheduling.", SortOrder = 15)]
             public LearningRateScheduler LearningRateScheduler = new LsrDecay();
+
+            /// <summary>
+            /// Indicates if the temporary workspace should be deleted on cleanup
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates if the temporary workspace should be deleted on cleanup", SortOrder = 15)]
+            public bool CleanTmpWorkspace = true;
+
         }
 
         /// <summary> Return the type of prediction task.</summary>
@@ -519,6 +527,17 @@ namespace Microsoft.ML.Vision
             {
                 options.WorkspacePath = GetTemporaryDirectory();
             }
+            else
+            {
+                //Since this is not a tmp workspace, but one provided by the user, do not allow deletion.
+                options.CleanTmpWorkspace = false;
+            }
+
+            string resourcePath = Path.Combine(Path.GetTempPath(), ResourceDir);
+            if (!Directory.Exists(resourcePath))
+            {
+                Directory.CreateDirectory(resourcePath);
+            }
 
             if (string.IsNullOrEmpty(options.TrainSetBottleneckCachedValuesFileName))
             {
@@ -574,7 +593,7 @@ namespace Microsoft.ML.Vision
 
             _classCount = labelCount == 1 ? 2 : (int)labelCount;
             var imageSize = ImagePreprocessingSize[_options.Arch];
-            _session = LoadTensorFlowSessionFromMetaGraph(Host, _options.Arch, _options.WorkspacePath).Session;
+            _session = LoadTensorFlowSessionFromMetaGraph(Host, _options.Arch).Session;
             (_jpegData, _resizedImage) = AddJpegDecoding(imageSize.Item1, imageSize.Item2, 3);
             _jpegDataTensorName = _jpegData.name;
             _resizedImageTensorName = _resizedImage.name;
@@ -630,8 +649,9 @@ namespace Microsoft.ML.Vision
                     _inputTensorName, _bottleneckTensor.name, trainSetBottleneckCachedValuesFilePath,
                     ImageClassificationMetrics.Dataset.Train, _options.MetricsCallback);
 
+                string sizeFile = Path.Combine(_options.WorkspacePath, "TrainingSetSize.txt");
                 // Write training set size to a file for use during training
-                File.WriteAllText("TrainingSetSize.txt", trainingsetSize.ToString());
+                File.WriteAllText(sizeFile, trainingsetSize.ToString());
             }
 
             if (validationSet != null &&
@@ -895,11 +915,12 @@ namespace Microsoft.ML.Vision
             metrics.Train = new TrainMetrics();
             float accuracy = 0;
             float crossentropy = 0;
+            string sizeFile = Path.Combine(_options.WorkspacePath, "TrainingSetSize.txt");
             DnnTrainState trainstate = new DnnTrainState
             {
                 BatchSize = options.BatchSize,
                 BatchesPerEpoch =
-                (trainingsetSize < 0 ? GetNumSamples("TrainingSetSize.txt") : trainingsetSize) / options.BatchSize
+                (trainingsetSize < 0 ? GetNumSamples(sizeFile) : trainingsetSize) / options.BatchSize
             };
 
             for (int epoch = 0; epoch < epochs; epoch += 1)
@@ -1123,11 +1144,20 @@ namespace Microsoft.ML.Vision
 
             trainSaver.save(_session, _checkpointPath);
             UpdateTransferLearningModelOnDisk(_classCount);
+            CleanUpTmpWorkspace();
         }
+        private void CleanUpTmpWorkspace()
+        {
+            if (_options.CleanTmpWorkspace && Directory.Exists(_options.WorkspacePath))
+            {
+                Directory.Delete(_options.WorkspacePath, true);
+            }
+        }
+
 
         private (Session, Tensor, Tensor, Tensor) BuildEvaluationSession(int classCount)
         {
-            var evalGraph = LoadMetaGraph(Path.Combine(_options.WorkspacePath, ModelFileName[_options.Arch]));
+            var evalGraph = LoadMetaGraph(Path.Combine(Path.GetTempPath(), ResourceDir, ModelFileName[_options.Arch]));
             var evalSess = tf.Session(graph: evalGraph);
             Tensor evaluationStep = null;
             Tensor prediction = null;
@@ -1285,22 +1315,18 @@ namespace Microsoft.ML.Vision
 
         }
 
-        private static TensorFlowSessionWrapper LoadTensorFlowSessionFromMetaGraph(IHostEnvironment env, Architecture arch, string path)
+        private static TensorFlowSessionWrapper LoadTensorFlowSessionFromMetaGraph(IHostEnvironment env, Architecture arch)
         {
-            if (string.IsNullOrEmpty(path))
-            {
-                path = GetTemporaryDirectory();
-            }
-
+            string resourcePath = Path.Combine(Path.GetTempPath(), ResourceDir);
             var modelFileName = ModelFileName[arch];
-            var modelFilePath = Path.Combine(path, modelFileName);
+            var modelFilePath = Path.Combine(resourcePath, modelFileName);
             int timeout = 10 * 60 * 1000;
-            DownloadIfNeeded(env, modelFileName, path, modelFileName, timeout);
+            DownloadIfNeeded(env, modelFileName, resourcePath, modelFileName, timeout);
             if (arch == Architecture.InceptionV3)
             {
-                DownloadIfNeeded(env, @"tfhub_modules.zip", path, @"tfhub_modules.zip", timeout);
+                DownloadIfNeeded(env, @"tfhub_modules.zip", resourcePath, @"tfhub_modules.zip", timeout);
                 if (!Directory.Exists(@"tfhub_modules"))
-                    ZipFile.ExtractToDirectory(Path.Combine(path, @"tfhub_modules.zip"), @"tfhub_modules");
+                    ZipFile.ExtractToDirectory(Path.Combine(resourcePath, @"tfhub_modules.zip"), @"tfhub_modules");
             }
 
             return new TensorFlowSessionWrapper(GetSession(env, modelFilePath, true), modelFilePath);
