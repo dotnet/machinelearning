@@ -32,7 +32,7 @@ jobs:
       - script: brew update && brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/f5b1ac99a7fba27c19cee0bc4f036775c889b359/Formula/libomp.rb && brew install mono-libgdiplus gettext && brew link gettext --force && brew link libomp --force
         displayName: Install build dependencies
     - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }}
-      displayName: Builds
+      displayName: Builds first time mainly to restore tools
     - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet restore $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj
       displayName: Restore dotnet cli
     - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet list $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj package --source https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json --outdated
@@ -41,6 +41,8 @@ jobs:
       displayName: List latest package versions
     - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet run --project $(Build.SourcesDirectory)/test/Microsoft.ML.NugetPackageVersionUpdater/Microsoft.ML.NugetPackageVersionUpdater.csproj
       displayName: Update package version
+    - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }} -referenceType=Nuget
+    displayName: Builds second time to take updated packages
     # - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet msbuild -restore $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj /p:ReferenceTypeForTestFramework="Nuget"
     #   displayName: Build Nightly Build Project with latest package versions
     - script: ${{ parameters.buildScript }} -$(_configuration) -runnightlybuildtests

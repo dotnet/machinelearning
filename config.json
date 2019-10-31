@@ -12,6 +12,12 @@
       "values": [ "x64", "x86" ],
       "defaultValue": "x64"
     },
+    "ReferenceTypeForTestFramework": {
+      "description": "Sets how TestFrameworkCommon project reference Microsoft.ML.",
+      "valueType": "property",
+      "values": [ "Project", "Nuget" ],
+      "defaultValue": "Project"
+    },
     "OfficialBuildId": {
       "description": "Specifies the SeedDate and the revision of the build to generate the version of the libraries.",
       "valueType": "property",
@@ -140,6 +146,12 @@
           "description": "Sets the architecture for the native build. (/p:TargetArchitecture=[value])",
           "settings": {
             "TargetArchitecture": "default"
+          }
+        },
+        "referenceType": {
+          "description": "Sets the reference type for TestFrameworkCommon. (/p:ReferenceTypeForTestFramework=[value])",
+          "settings": {
+            "ReferenceTypeForTestFramework": "default"
           }
         },
         "buildNative": {
