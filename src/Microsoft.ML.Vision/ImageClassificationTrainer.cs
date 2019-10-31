@@ -474,7 +474,6 @@ namespace Microsoft.ML.Vision
         private readonly bool _cleanupWorkspace;
         private int _classCount;
         private Graph Graph => _session.graph;
-
         private static readonly string _resourcePath = Path.Combine(Path.GetTempPath(), "MLNET");
 
         /// <summary>
@@ -522,10 +521,6 @@ namespace Microsoft.ML.Vision
             {
                 options.WorkspacePath = GetTemporaryDirectory();
                 _cleanupWorkspace = true;
-            }
-            else
-            {
-                _cleanupWorkspace = false;
             }
 
             if (!Directory.Exists(_resourcePath))
@@ -1138,9 +1133,10 @@ namespace Microsoft.ML.Vision
 
             trainSaver.save(_session, _checkpointPath);
             UpdateTransferLearningModelOnDisk(_classCount);
-            CleanUpTmpWorkspace();
+            TryCleanupTemporaryWorkspace();
         }
-        private void CleanUpTmpWorkspace()
+
+        private void TryCleanupTemporaryWorkspace()
         {
             if (_cleanupWorkspace && Directory.Exists(_options.WorkspacePath))
             {
