@@ -1144,7 +1144,7 @@ namespace Microsoft.ML.Vision
                 {
                     Directory.Delete(_options.WorkspacePath, true);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     //We do not want to stop pipeline due to failed cleanup.
                 }
