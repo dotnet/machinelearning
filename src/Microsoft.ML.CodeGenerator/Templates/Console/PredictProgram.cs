@@ -77,7 +77,7 @@ if("BinaryClassification".Equals(TaskType)){
             this.Write("} \\nPredicted ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(": {predictionResult.Prediction}\\n\\n\");\r\n");
-}else if("Regression".Equals(TaskType)){
+} else if("Regression".Equals(TaskType) || "Recommendation".Equals(TaskType)){
             this.Write("\t\t\tConsole.WriteLine($\"\\n\\nActual ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(": {sampleData.");

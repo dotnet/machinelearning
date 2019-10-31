@@ -20,6 +20,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         private readonly Pipeline _pipeline;
         private readonly CodeGeneratorSettings _settings;
         private readonly ColumnInferenceResults _columnInferenceResult;
+        private static readonly HashSet<string> _recommendationTrainers = new HashSet<string>() { TrainerName.MatrixFactorization.ToString() };
         private static readonly HashSet<string> _lightGbmTrainers = new HashSet<string>() { TrainerName.LightGbmBinary.ToString(), TrainerName.LightGbmMulti.ToString(), TrainerName.LightGbmRegression.ToString() };
         private static readonly HashSet<string> _mklComponentsTrainers = new HashSet<string>() { TrainerName.OlsRegression.ToString(), TrainerName.SymbolicSgdLogisticRegressionBinary.ToString() };
         private static readonly HashSet<string> _fastTreeTrainers = new HashSet<string>() { TrainerName.FastForestBinary.ToString(), TrainerName.FastForestRegression.ToString(), TrainerName.FastTreeBinary.ToString(), TrainerName.FastTreeRegression.ToString(), TrainerName.FastTreeTweedieRegression.ToString() };
@@ -43,9 +44,10 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             bool includeFastTreeePackage = false;
             bool includeImageTransformerPackage = false;
             bool includeImageClassificationPackage = false;
+            bool includeRecommenderPackage = false;
             // Get the extra nuget packages to be included in the generated project.
             SetRequiredNugetPackages(_pipeline.Nodes, ref includeLightGbmPackage, ref includeMklComponentsPackage,
-                ref includeFastTreeePackage, ref includeImageTransformerPackage, ref includeImageClassificationPackage);
+                ref includeFastTreeePackage, ref includeImageTransformerPackage, ref includeImageClassificationPackage, ref includeRecommenderPackage);
 
             // Get Namespace
             var namespaceValue = Utils.Normalize(_settings.OutputName);
@@ -55,7 +57,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             // Generate Model Project
             var modelProjectContents = GenerateModelProjectContents(namespaceValue, labelTypeCsharp,
                 includeLightGbmPackage, includeMklComponentsPackage, includeFastTreeePackage,
-                includeImageTransformerPackage, includeImageClassificationPackage);
+                includeImageTransformerPackage, includeImageClassificationPackage, includeRecommenderPackage);
 
             // Write files to disk.
             var modelprojectDir = Path.Combine(_settings.OutputBaseDir, $"{_settings.OutputName}.Model");
@@ -70,7 +72,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             // Generate ConsoleApp Project
             var consoleAppProjectContents = GenerateConsoleAppProjectContents(namespaceValue, labelTypeCsharp,
                 includeLightGbmPackage, includeMklComponentsPackage, includeFastTreeePackage,
-                includeImageTransformerPackage, includeImageClassificationPackage);
+                includeImageTransformerPackage, includeImageClassificationPackage, includeRecommenderPackage);
 
             // Write files to disk.
             var consoleAppProjectDir = Path.Combine(_settings.OutputBaseDir, $"{_settings.OutputName}.ConsoleApp");
@@ -137,7 +139,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         }
         private void SetRequiredNugetPackages(IEnumerable<PipelineNode> trainerNodes, ref bool includeLightGbmPackage,
             ref bool includeMklComponentsPackage, ref bool includeFastTreePackage,
-            ref bool includeImageTransformerPackage, ref bool includeImageClassificationPackage)
+            ref bool includeImageTransformerPackage, ref bool includeImageClassificationPackage, ref bool includeRecommenderPackage)
         {
             foreach (var node in trainerNodes)
             {
@@ -167,6 +169,10 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 {
                     includeImageClassificationPackage = true;
                 }
+                else if (_recommendationTrainers.Contains(currentNode.Name))
+                {
+                    includeRecommenderPackage = true;
+                }
             }
         }
 
@@ -174,14 +180,23 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             string modelBuilderCSFileContent) GenerateConsoleAppProjectContents(string namespaceValue,
                 Type labelTypeCsharp, bool includeLightGbmPackage, bool includeMklComponentsPackage,
                 bool includeFastTreePackage, bool includeImageTransformerPackage,
+<<<<<<< HEAD
                 bool includeImageClassificationPackage, bool includeOnnxPackage = false , bool includeResNet18Package = false)
+=======
+                bool includeImageClassificationPackage, bool includeRecommenderPackage)
+>>>>>>> f341ca337699708c87b25e8e987ab09be88a19e6
         {
             var predictProgramCSFileContent = GeneratePredictProgramCSFileContent(namespaceValue);
             predictProgramCSFileContent = Utils.FormatCode(predictProgramCSFileContent);
 
             var predictProjectFileContent = GeneratPredictProjectFileContent(_settings.OutputName,
                 includeLightGbmPackage, includeMklComponentsPackage, includeFastTreePackage,
+<<<<<<< HEAD
                 includeImageTransformerPackage, includeImageClassificationPackage, includeOnnxPackage, includeResNet18Package);
+=======
+                includeImageTransformerPackage, includeImageClassificationPackage, includeRecommenderPackage,
+                _settings.StablePackageVersion, _settings.UnstablePackageVersion);
+>>>>>>> f341ca337699708c87b25e8e987ab09be88a19e6
 
             var transformsAndTrainers = GenerateTransformsAndTrainers();
             var modelBuilderCSFileContent = GenerateModelBuilderCSFileContent(transformsAndTrainers.Usings, transformsAndTrainers.TrainerMethod, transformsAndTrainers.PreTrainerTransforms, transformsAndTrainers.PostTrainerTransforms, namespaceValue, _pipeline.CacheBeforeTrainer, labelTypeCsharp.Name, includeOnnxPackage);
@@ -194,7 +209,11 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             string ModelProjectFileContent) GenerateModelProjectContents(string namespaceValue,
                 Type labelTypeCsharp, bool includeLightGbmPackage, bool includeMklComponentsPackage,
                 bool includeFastTreePackage, bool includeImageTransformerPackage,
+<<<<<<< HEAD
                 bool includeImageClassificationPackage, bool includeOnnxModel = false)
+=======
+                bool includeImageClassificationPackage, bool includeRecommenderPackage)
+>>>>>>> f341ca337699708c87b25e8e987ab09be88a19e6
         {
             var classLabels = GenerateClassLabels();
 
@@ -211,6 +230,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             consumeModelCSFileContent = Utils.FormatCode(consumeModelCSFileContent);
             var modelProjectFileContent = GenerateModelProjectFileContent(includeLightGbmPackage,
                 includeMklComponentsPackage, includeFastTreePackage, includeImageTransformerPackage,
+<<<<<<< HEAD
                 includeImageClassificationPackage, includeOnnxModel);
 
             return (modelInputCSFileContent, modelOutputCSFileContent, consumeModelCSFileContent, modelProjectFileContent);
@@ -245,6 +265,10 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             var modelProjectFileContent = GenerateModelProjectFileContent(false,
                 false, false, true,
                 false, true);
+=======
+                includeImageClassificationPackage, includeRecommenderPackage,
+                _settings.StablePackageVersion, _settings.UnstablePackageVersion);
+>>>>>>> f341ca337699708c87b25e8e987ab09be88a19e6
 
             return (modelInputCSFileContent, modelOutputCSFileContent, consumeModelCSFileContent, modelProjectFileContent);
         }
@@ -393,7 +417,12 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         #region Model project
         private static string GenerateModelProjectFileContent(bool includeLightGbmPackage,
             bool includeMklComponentsPackage, bool includeFastTreePackage, bool includeImageTransformerPackage,
+<<<<<<< HEAD
                 bool includeImageClassificationPackage, bool includeOnnxModel)
+=======
+                bool includeImageClassificationPackage, bool includeRecommenderPackage,
+                string stablePackageVersion, string unstablePackageVersion)
+>>>>>>> f341ca337699708c87b25e8e987ab09be88a19e6
         {
             ModelProject modelProject = new ModelProject()
             {
@@ -402,7 +431,13 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 IncludeFastTreePackage = includeFastTreePackage,
                 IncludeImageTransformerPackage = includeImageTransformerPackage,
                 IncludeImageClassificationPackage = includeImageClassificationPackage,
+<<<<<<< HEAD
                 IncludeOnnxModel = includeOnnxModel,
+=======
+                IncludeRecommenderPackage = includeRecommenderPackage,
+                StablePackageVersion = stablePackageVersion,
+                UnstablePackageVersion = unstablePackageVersion
+>>>>>>> f341ca337699708c87b25e8e987ab09be88a19e6
             };
 
             return modelProject.TransformText();
@@ -433,7 +468,12 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         #region Predict Project
         private static string GeneratPredictProjectFileContent(string namespaceValue, bool includeLightGbmPackage,
             bool includeMklComponentsPackage, bool includeFastTreePackage, bool includeImageTransformerPackage,
+<<<<<<< HEAD
                 bool includeImageClassificationPackage, bool includeOnnxPackage, bool includeResNet18Package)
+=======
+                bool includeImageClassificationPackage, bool includeRecommenderPackage,
+                string stablePackageVersion, string unstablePackageVersion)
+>>>>>>> f341ca337699708c87b25e8e987ab09be88a19e6
         {
             var predictProjectFileContent = new PredictProject()
             {
@@ -443,8 +483,14 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 IncludeFastTreePackage = includeFastTreePackage,
                 IncludeImageTransformerPackage = includeImageTransformerPackage,
                 IncludeImageClassificationPackage = includeImageClassificationPackage,
+<<<<<<< HEAD
                 IncludeOnnxPackage = includeOnnxPackage,
                 IncludeResNet18Package = includeResNet18Package,
+=======
+                IncludeRecommenderPackage = includeRecommenderPackage,
+                StablePackageVersion = stablePackageVersion,
+                UnstablePackageVersion = unstablePackageVersion
+>>>>>>> f341ca337699708c87b25e8e987ab09be88a19e6
             };
             return predictProjectFileContent.TransformText();
         }

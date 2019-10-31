@@ -4,10 +4,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.ML" Version="1.4.0" />
-    <PackageReference Include="Microsoft.ML.LightGBM" Version="1.4.0" />
-    <PackageReference Include="Microsoft.ML.Mkl.Components" Version="1.4.0" />
-    <PackageReference Include="Microsoft.ML.FastTree" Version="1.4.0" />
+    <PackageReference Include="Microsoft.ML" Version="1.4.0-preview3-28229-2" />
+    <PackageReference Include="Microsoft.ML.Recommender" Version="0.16.0-preview3-28229-2" />
   </ItemGroup>
 
   <ItemGroup>

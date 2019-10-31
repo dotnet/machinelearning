@@ -174,7 +174,7 @@ phases:
   variables:
     BuildConfig: Release
     OfficialBuildId: $(BUILD.BUILDNUMBER)
-    DOTNET_CLI_TELEMETRY_OUTPUT: 1
+    DOTNET_CLI_TELEMETRY_OPTOUT: 1
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
     DOTNET_MULTILEVEL_LOOKUP: 0
     _SignType: real
@@ -225,13 +225,6 @@ phases:
       msbuildArguments: /p:SignType=$(_SignType) /p:SignNugetPackages=true
       msbuildVersion: 15.0
     continueOnError: false
-
-  # - task: MSBuild@1
-  #   displayName: Publish Packages to MyGet Feed
-  #   inputs:
-  #     solution: build/publish.proj
-  #     msbuildArguments: /t:PublishPackages /p:NuGetFeedUrl=$(_NuGetFeedUrl) /p:NuGetApiKey=$(dotnet-myget-org-api-key)
-  #     msbuildVersion: 15.0
 
   - task: NuGetAuthenticate@0
     inputs:

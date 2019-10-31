@@ -23,6 +23,8 @@ namespace mlnet.Tests
         private Pipeline mockedOvaPipeline;
         private ColumnInferenceResults columnInference = default;
         private string namespaceValue = "TestNamespace";
+        private const string StablePackageVersion = "1.4.0-preview3-28229-2";
+        private const string UnstablePackageVersion = "0.16.0-preview3-28229-2";
 
 
         [Fact]
@@ -33,18 +35,9 @@ namespace mlnet.Tests
             (Pipeline pipeline,
                         ColumnInferenceResults columnInference) = GetMockedOvaPipelineAndInference();
 
-            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorSettings()
-            {
-                MlTask = TaskKind.MulticlassClassification,
-                OutputBaseDir = null,
-                OutputName = "MyNamespace",
-                TrainDataset = "x:\\dummypath\\dummy_train.csv",
-                TestDataset = "x:\\dummypath\\dummy_test.csv",
-                LabelName = "Label",
-                ModelPath = "x:\\models\\model.zip"
-            });
+            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.MulticlassClassification));
             var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true,
-                false, false, false);
+                false, false, false, false);
 
             Approvals.Verify(result.modelBuilderCSFileContent);
         }
@@ -127,18 +120,9 @@ namespace mlnet.Tests
             (Pipeline pipeline,
                         ColumnInferenceResults columnInference) = GetMockedBinaryPipelineAndInference();
 
-            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorSettings()
-            {
-                MlTask = TaskKind.BinaryClassification,
-                OutputBaseDir = null,
-                OutputName = "MyNamespace",
-                TrainDataset = "x:\\dummypath\\dummy_train.csv",
-                TestDataset = "x:\\dummypath\\dummy_test.csv",
-                LabelName = "Label",
-                ModelPath = "x:\\models\\model.zip"
-            });
+            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.BinaryClassification));
             var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true,
-                false, false, false);
+                false, false, false, false);
 
             Approvals.Verify(result.modelBuilderCSFileContent);
         }
@@ -151,18 +135,9 @@ namespace mlnet.Tests
             (Pipeline pipeline,
                         ColumnInferenceResults columnInference) = GetMockedRegressionPipelineAndInference();
 
-            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorSettings()
-            {
-                MlTask = TaskKind.Regression,
-                OutputBaseDir = null,
-                OutputName = "MyNamespace",
-                TrainDataset = "x:\\dummypath\\dummy_train.csv",
-                TestDataset = "x:\\dummypath\\dummy_test.csv",
-                LabelName = "Label",
-                ModelPath = "x:\\models\\model.zip"
-            });
+            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.Regression));
             var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true,
-                false, false, false);
+                false, false, false, false);
 
             Approvals.Verify(result.modelBuilderCSFileContent);
         }
@@ -170,23 +145,14 @@ namespace mlnet.Tests
         [Fact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void ModelProjectFileContentTest()
+        public void ModelProjectFileContentTestOnlyStableProjects()
         {
             (Pipeline pipeline,
                        ColumnInferenceResults columnInference) = GetMockedBinaryPipelineAndInference();
 
-            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorSettings()
-            {
-                MlTask = TaskKind.BinaryClassification,
-                OutputBaseDir = null,
-                OutputName = "MyNamespace",
-                TrainDataset = "x:\\dummypath\\dummy_train.csv",
-                TestDataset = "x:\\dummypath\\dummy_test.csv",
-                LabelName = "Label",
-                ModelPath = "x:\\models\\model.zip"
-            });
+            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.BinaryClassification));
             var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), true, true, true,
-                false, false);
+                false, false, false);
 
             Approvals.Verify(result.ModelProjectFileContent);
         }
@@ -199,19 +165,9 @@ namespace mlnet.Tests
             (Pipeline pipeline,
                        ColumnInferenceResults columnInference) = GetMockedBinaryPipelineAndInference();
 
-            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorSettings()
-            {
-                MlTask = TaskKind.BinaryClassification,
-                OutputBaseDir = null,
-                OutputName = "MyNamespace",
-                TrainDataset = "x:\\dummypath\\dummy_train.csv",
-                TestDataset = "x:\\dummypath\\dummy_test.csv",
-                LabelName = "Label",
-                ModelPath = "x:\\models\\model.zip",
-                Target = GenerateTarget.Cli,
-            });
+            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.BinaryClassification));
             var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), true, true, false,
-                false, false);
+                false, false, false);
 
             Approvals.Verify(result.ConsumeModelCSFileContent);
         }
@@ -224,22 +180,12 @@ namespace mlnet.Tests
             (Pipeline pipeline,
                        ColumnInferenceResults columnInference) = GetMockedBinaryPipelineAndInference();
 
-            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorSettings()
-            {
-                MlTask = TaskKind.BinaryClassification,
-                OutputBaseDir = null,
-                OutputName = "MyNamespace",
-                TrainDataset = "x:\\dummypath\\dummy_train.csv",
-                TestDataset = "x:\\dummypath\\dummy_test.csv",
-                LabelName = "Label",
-                ModelPath = "x:\\models\\model.zip"
-            });
+            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.BinaryClassification));
             var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), true, true, false,
-                false, false);
+                false, false, false);
 
             Approvals.Verify(result.ModelInputCSFileContent);
         }
-
 
         [Fact]
         [UseReporter(typeof(DiffReporter))]
@@ -249,18 +195,9 @@ namespace mlnet.Tests
             (Pipeline pipeline,
                        ColumnInferenceResults columnInference) = GetMockedBinaryPipelineAndInference();
 
-            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorSettings()
-            {
-                MlTask = TaskKind.BinaryClassification,
-                OutputBaseDir = null,
-                OutputName = "MyNamespace",
-                TrainDataset = "x:\\dummypath\\dummy_train.csv",
-                TestDataset = "x:\\dummypath\\dummy_test.csv",
-                LabelName = "Label",
-                ModelPath = "x:\\models\\model.zip"
-            });
+            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.BinaryClassification));
             var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), true, true, false,
-                false, false);
+                false, false, false);
 
             Approvals.Verify(result.ModelOutputCSFileContent);
         }
@@ -273,18 +210,9 @@ namespace mlnet.Tests
             (Pipeline pipeline,
                        ColumnInferenceResults columnInference) = GetMockedBinaryPipelineAndInference();
 
-            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorSettings()
-            {
-                MlTask = TaskKind.BinaryClassification,
-                OutputBaseDir = null,
-                OutputName = "MyNamespace",
-                TrainDataset = "x:\\dummypath\\dummy_train.csv",
-                TestDataset = "x:\\dummypath\\dummy_test.csv",
-                LabelName = "Label",
-                ModelPath = "x:\\models\\model.zip"
-            });
+            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.BinaryClassification));
             var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true,
-                false, false, false);
+                false, false, false, false);
 
             Approvals.Verify(result.ConsoleAppProgramCSFileContent);
         }
@@ -298,18 +226,9 @@ namespace mlnet.Tests
             (Pipeline pipeline,
                        ColumnInferenceResults columnInference) = GetMockedBinaryPipelineAndInference();
 
-            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorSettings()
-            {
-                MlTask = TaskKind.BinaryClassification,
-                OutputBaseDir = null,
-                OutputName = "MyNamespace",
-                TrainDataset = "x:\\dummypath\\dummy_train.csv",
-                TestDataset = "x:\\dummypath\\dummy_test.csv",
-                LabelName = "Label",
-                ModelPath = "x:\\models\\model.zip"
-            });
+            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.BinaryClassification));
             var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true,
-                false, false, false);
+                false, false, false, false);
 
             Approvals.Verify(result.ConsoleAppProgramCSFileContent);
         }
@@ -322,20 +241,166 @@ namespace mlnet.Tests
             (Pipeline pipeline,
                        ColumnInferenceResults columnInference) = GetMockedBinaryPipelineAndInference();
 
-            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorSettings()
-            {
-                MlTask = TaskKind.BinaryClassification,
-                OutputBaseDir = null,
-                OutputName = "MyNamespace",
-                TrainDataset = "x:\\dummypath\\dummy_train.csv",
-                TestDataset = "x:\\dummypath\\dummy_test.csv",
-                LabelName = "Label",
-                ModelPath = "x:\\models\\model.zip"
-            });
+            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.BinaryClassification));
             var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true,
-                false, false, false);
+                false, false, false, false);
 
             Approvals.Verify(result.ConsoleAppProjectFileContent);
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void Recommendation_GenerateModelProjectContents_VerifyModelInput()
+        {
+            (string ModelInputCSFileContent, string ModelOutputCSFileContent, string ConsumeModelCSFileContent, string ModelProjectFileContent) codeGenResult
+                = GenerateModelProjectContentsForRecommendation();
+
+            Approvals.Verify(codeGenResult.ModelInputCSFileContent);
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void Recommendation_GenerateModelProjectContents_VerifyModelOutput()
+        {
+            (string ModelInputCSFileContent, string ModelOutputCSFileContent, string ConsumeModelCSFileContent, string ModelProjectFileContent) codeGenResult
+                = GenerateModelProjectContentsForRecommendation();
+
+            Approvals.Verify(codeGenResult.ModelOutputCSFileContent);
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void Recommendation_GenerateModelProjectContents_VerifyConsumeModel()
+        {
+            (string ModelInputCSFileContent, string ModelOutputCSFileContent, string ConsumeModelCSFileContent, string ModelProjectFileContent) codeGenResult
+                = GenerateModelProjectContentsForRecommendation();
+
+            Approvals.Verify(codeGenResult.ConsumeModelCSFileContent);
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void Recommendation_GenerateModelProjectContents_VerifyModelProject()
+        {
+            (string ModelInputCSFileContent, string ModelOutputCSFileContent, string ConsumeModelCSFileContent, string ModelProjectFileContent) codeGenResult
+                = GenerateModelProjectContentsForRecommendation();
+
+            Approvals.Verify(codeGenResult.ModelProjectFileContent);
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void Recommendation_GenerateConsoleAppProjectContents_VerifyPredictProgram()
+        {
+            (string ConsoleAppProgramCSFileContent, string ConsoleAppProjectFileContent, string modelBuilderCSFileContent) codeGenResult
+                = GenerateConsoleAppProjectContentsForRecommendation();
+
+            Approvals.Verify(codeGenResult.ConsoleAppProgramCSFileContent);
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void Recommendation_GenerateConsoleAppProjectContents_VerifyPredictProject()
+        {
+            (string ConsoleAppProgramCSFileContent, string ConsoleAppProjectFileContent, string modelBuilderCSFileContent) codeGenResult
+                = GenerateConsoleAppProjectContentsForRecommendation();
+
+            Approvals.Verify(codeGenResult.ConsoleAppProjectFileContent);
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void Recommendation_GenerateConsoleAppProjectContents_VerifyModelBuilder()
+        {
+            (string ConsoleAppProgramCSFileContent, string ConsoleAppProjectFileContent, string modelBuilderCSFileContent) codeGenResult
+                = GenerateConsoleAppProjectContentsForRecommendation();
+
+            Approvals.Verify(codeGenResult.modelBuilderCSFileContent);
+        }
+
+        private (string ModelInputCSFileContent, string ModelOutputCSFileContent, string ConsumeModelCSFileContent, string ModelProjectFileContent) GenerateModelProjectContentsForRecommendation()
+        {
+            CodeGenerator consoleCodeGen = PrepareForRecommendationTask();
+            return consoleCodeGen.GenerateModelProjectContents(
+                namespaceValue, 
+                labelTypeCsharp: typeof(float),
+                includeLightGbmPackage: false,
+                includeMklComponentsPackage: false,
+                includeFastTreePackage: false,
+                includeImageTransformerPackage: false,
+                includeImageClassificationPackage: false,
+                includeRecommenderPackage: true);
+        }
+
+        private (string ConsoleAppProgramCSFileContent, string ConsoleAppProjectFileContent, string modelBuilderCSFileContent) GenerateConsoleAppProjectContentsForRecommendation()
+        {
+            CodeGenerator consoleCodeGen = PrepareForRecommendationTask();
+            return consoleCodeGen.GenerateConsoleAppProjectContents(
+                namespaceValue,
+                labelTypeCsharp: typeof(float),
+                includeLightGbmPackage: false,
+                includeMklComponentsPackage: false,
+                includeFastTreePackage: false,
+                includeImageTransformerPackage: false,
+                includeImageClassificationPackage: false,
+                includeRecommenderPackage: true);
+        }
+
+        private CodeGenerator PrepareForRecommendationTask()
+        {
+            (Pipeline pipeline,
+                       ColumnInferenceResults columnInference) = GetMockedRecommendationPipelineAndInference();
+
+            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.Recommendation));
+            return consoleCodeGen;
+        }
+
+        private (Pipeline, ColumnInferenceResults) GetMockedRecommendationPipelineAndInference()
+        {
+            if (mockedPipeline == null)
+            {
+                MLContext context = new MLContext();
+
+                var trainer1 = new SuggestedTrainer(context, new MatrixFactorizationExtension(), new ColumnInformation() {
+                    LabelColumnName = "Label",
+                    UserIdColumnName = "userId",
+                    ItemIdColumnName = "movieId",
+                }, hyperParamSet: null);
+                var transforms1 = new List<SuggestedTransform>() { ColumnConcatenatingExtension.CreateSuggestedTransform(context, new[] { "In" }, "Out") };
+                var inferredPipeline1 = new SuggestedPipeline(transforms1, new List<SuggestedTransform>(), trainer1, context, false);
+
+                mockedPipeline = inferredPipeline1.ToPipeline();
+                var textLoaderArgs = new TextLoader.Options()
+                {
+                    Columns = new[] {
+                        new TextLoader.Column("Label", DataKind.String, 0),
+                        new TextLoader.Column("userId", DataKind.String, 1),
+                        new TextLoader.Column("movieId", DataKind.String, 2),
+                    },
+                    AllowQuoting = true,
+                    AllowSparse = true,
+                    HasHeader = true,
+                    Separators = new[] { ',' }
+                };
+
+                this.columnInference = new ColumnInferenceResults()
+                {
+                    TextLoaderOptions = textLoaderArgs,
+                    ColumnInformation = new ColumnInformation() {
+                        LabelColumnName = "Label",
+                        UserIdColumnName = "userId",
+                        ItemIdColumnName = "movieId"
+                    }
+                };
+            }
+            return (mockedPipeline, columnInference);
         }
 
         private (Pipeline, ColumnInferenceResults) GetMockedBinaryPipelineAndInference()
@@ -411,6 +476,7 @@ namespace mlnet.Tests
             }
             return (mockedPipeline, columnInference);
         }
+
         private (Pipeline, ColumnInferenceResults) GetMockedOvaPipelineAndInference()
         {
             if (mockedOvaPipeline == null)
@@ -448,6 +514,22 @@ namespace mlnet.Tests
 
             }
             return (mockedOvaPipeline, columnInference);
+        }
+
+        private static CodeGeneratorSettings CreateCodeGeneratorSettingsFor(TaskKind task)
+        {
+            return new CodeGeneratorSettings()
+            {
+                MlTask = task,
+                OutputBaseDir = null,
+                OutputName = "MyNamespace",
+                TrainDataset = "x:\\dummypath\\dummy_train.csv",
+                TestDataset = "x:\\dummypath\\dummy_test.csv",
+                LabelName = "Label",
+                ModelPath = "x:\\models\\model.zip",
+                StablePackageVersion = StablePackageVersion,
+                UnstablePackageVersion = UnstablePackageVersion
+            };
         }
     }
 }

@@ -42,7 +42,7 @@ namespace <#= Namespace #>.ConsoleApp
 <#}#>
 <#if("BinaryClassification".Equals(TaskType)){ #>
 			Console.WriteLine($"\n\nActual <#= Utils.Normalize(LabelName) #>: {sampleData.<#= Utils.Normalize(LabelName) #>} \nPredicted <#= Utils.Normalize(LabelName) #>: {predictionResult.Prediction}\n\n");
-<#}else if("Regression".Equals(TaskType)){#>
+<#} else if("Regression".Equals(TaskType) || "Recommendation".Equals(TaskType)){#>
 			Console.WriteLine($"\n\nActual <#= Utils.Normalize(LabelName) #>: {sampleData.<#= Utils.Normalize(LabelName) #>} \nPredicted <#= Utils.Normalize(LabelName) #>: {predictionResult.Score}\n\n");
 <#} else if("MulticlassClassification".Equals(TaskType)){#>
 			Console.WriteLine($"\n\nActual <#= Utils.Normalize(LabelName) #>: {sampleData.<#= Utils.Normalize(LabelName) #>} \nPredicted <#= Utils.Normalize(LabelName) #> value {predictionResult.Prediction} \nPredicted <#= Utils.Normalize(LabelName) #> scores: [{String.Join(",", predictionResult.Score)}]\n\n");

@@ -19,6 +19,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         private Dictionary<string, object> _arguments;
         private bool _hasAdvancedSettings;
         private string _seperator;
+        protected virtual bool IncludeFeatureColumnName => true;
 
         //abstract properties
         internal abstract string OptionsName { get; }
@@ -47,7 +48,10 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             {
                 node.Properties.Add("LabelColumnName", "Label");
             }
-            node.Properties.Add("FeatureColumnName", "Features");
+            if (IncludeFeatureColumnName)
+            {
+                node.Properties.Add("FeatureColumnName", "Features");
+            }
 
             foreach (var kv in node.Properties)
             {
