@@ -532,7 +532,7 @@ namespace Microsoft.ML.Vision
                 options.ValidationSetBottleneckCachedValuesFileName = _options.ValidationSetBottleneckCachedValuesFileName;
             }
 
-            if ( options.MetricsCallback == null )
+            if (options.MetricsCallback == null)
             {
                 var logger = Host.Start(nameof(ImageClassificationTrainer));
                 options.MetricsCallback = (ImageClassificationMetrics metric) => { logger.Trace(metric.ToString()); };

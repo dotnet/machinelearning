@@ -29,7 +29,7 @@ namespace Samples.Dynamic
             //Download the image set and unzip
             string finalImagesFolderName = DownloadImageSet(
                 imagesDownloadFolderPath);
-            //string finalImagesFolderName = "flower_photos";
+
             string fullImagesetFolderPath = Path.Combine(
                 imagesDownloadFolderPath, finalImagesFolderName);
 
@@ -62,7 +62,7 @@ namespace Samples.Dynamic
                 IDataView testDataset = trainTestData.TestSet;
 
                 var pipeline = mlContext.MulticlassClassification.Trainers
-                        .ImageClassification(featureColumnName:"Image", validationSet:null)
+                        .ImageClassification(featureColumnName:"Image")
                     .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel",
                         inputColumnName: "PredictedLabel"));
 
