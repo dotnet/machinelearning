@@ -44,6 +44,7 @@ namespace Microsoft.ML.SEAL
         public override bool Equals(DataViewType other)
         {
             if (other == this) return true;
+            if (other is CiphertextDataViewType otherCiphertext) return true;
             return false;
         }
 
