@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -304,12 +305,10 @@ namespace Microsoft.ML.SEAL
 
         SchemaShape IEstimator<SealTransformer>.GetOutputSchema(SchemaShape inputSchema)
         {
-            var columns = inputSchema.GetEnumerator();
-            var columnsList = new List<SchemaShape.Column>();
-            while (columns.MoveNext()) columnsList.Add(columns.Current);
-            if (_encrypt) columnsList.Add(new SchemaShape.Column(_inputColumnName, SchemaShape.Column.VectorKind.Scalar, new CiphertextDataViewType(), false));
-            else columnsList.Add(new SchemaShape.Column(_inputColumnName, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Double, false));
-            SchemaShape outputShape = new SchemaShape(columnsList);
+            var result = inputSchema.ToDictionary(x => x.Name);
+            if (_encrypt) result[_outputColumnName] = new SchemaShape.Column(_outputColumnName, SchemaShape.Column.VectorKind.Scalar, new CiphertextDataViewType(), false);
+            else result[_outputColumnName] = new SchemaShape.Column(_outputColumnName, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Double, false);
+            SchemaShape outputShape = new SchemaShape(result.Values);
             return outputShape;
         }
 
