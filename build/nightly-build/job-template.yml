@@ -41,6 +41,10 @@ jobs:
       displayName: Update package version
     - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet msbuild -restore -v:normal $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj /p:ReferenceTypeForTestFramework="Nuget" /p:Configuration=$(_configuration) /p:TargetArchitecture=${{ parameters.architecture }}
       displayName: Build Nightly Build Project with latest package versions
+    - script: test.sh
+      displayName: test steps
+    - script: ${{ parameters.buildScript }} -$(_configuration) -runtests -coverage=${{ parameters.codeCoverage }}
+      displayName: Run Tests, only for test
     - script: ${{ parameters.buildScript }} -$(_configuration) -runnightlybuildtests
       displayName: Run Nightly Build Tests
       condition: succeeded()
