@@ -113,11 +113,6 @@ namespace Samples.Dynamic
 
         private static void MlContext_Log(object sender, LoggingEventArgs e)
         {
-            /*var regex = new Regex();
-            foreach (var line in e.Message.Where(line => regex.Match(line).Success))
-            {
-                Console.WriteLine(e.Message);
-            }*/
             if (e.Message.StartsWith("[Source=ImageClassificationTrainer;"))
             {
                 Console.WriteLine(e.Message);
