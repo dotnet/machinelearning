@@ -109,9 +109,9 @@ namespace Microsoft.ML.SEAL
         /// of the i-th feature. Note that this will take ownership of the <see cref="VBuffer{T}"/>.</param>
         /// <param name="bias">The bias added to every output score.</param>
         /// <param name="polyModulusDegree">The value of the PolyModulusDegree encryption parameter.</param>
-        /// <param name="bitSizes">The bit-lengths of the primes to be generated.</param>
+        /// <param name="coeffModuli">The coefficient moduli.</param>
         /// <param name="scale">Scaling parameter defining encoding precision.</param>
-        internal EncryptedLinearModelParameters(IHostEnvironment env, string name, in VBuffer<float> weights, float bias, ulong polyModulusDegree, IEnumerable<int> bitSizes, double scale)
+        internal EncryptedLinearModelParameters(IHostEnvironment env, string name, in VBuffer<float> weights, float bias, ulong polyModulusDegree, IEnumerable<SmallModulus> coeffModuli, double scale)
             : base(env, name)
         {
             Host.CheckParam(FloatUtils.IsFinite(weights.GetValues()), nameof(weights), "Cannot initialize linear predictor with non-finite weights");
@@ -128,7 +128,7 @@ namespace Microsoft.ML.SEAL
 
             var encryptionParameters = new EncryptionParameters(SchemeType.CKKS);
             encryptionParameters.PolyModulusDegree = polyModulusDegree;
-            encryptionParameters.CoeffModulus = CoeffModulus.Create(polyModulusDegree, bitSizes);
+            encryptionParameters.CoeffModulus = coeffModuli;
             var sealContext = new SEALContext(encryptionParameters);
             _evaluator = new Evaluator(sealContext);
             _ckksEncoder = new CKKSEncoder(sealContext);
@@ -474,7 +474,7 @@ namespace Microsoft.ML.SEAL
         /// of the i-th feature. Note that this will take ownership of the <see cref="VBuffer{T}"/>.</param>
         /// <param name="bias">The bias added to every output score.</param>
         /// <param name="polyModulusDegree">The value of the PolyModulusDegree encryption parameter.</param>
-        /// <param name="bitSizes">The bit-lengths of the primes to be generated.</param>
+        /// <param name="coeffModuli">The coefficient moduli.</param>
         /// <param name="scale">Scaling parameter defining encoding precision.</param>
         /// <param name="stats"></param>
         internal EncryptedLinearBinaryModelParameters(
@@ -482,10 +482,10 @@ namespace Microsoft.ML.SEAL
             in VBuffer<float> weights,
             float bias,
             ulong polyModulusDegree,
-            IEnumerable<int> bitSizes,
+            IEnumerable<SmallModulus> coeffModuli,
             double scale,
             ModelStatisticsBase stats = null)
-            : base(env, RegistrationName, in weights, bias, polyModulusDegree, bitSizes, scale)
+            : base(env, RegistrationName, in weights, bias, polyModulusDegree, coeffModuli, scale)
         {
             Contracts.AssertValueOrNull(stats);
             Statistics = stats;

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
+using Microsoft.Research.SEAL;
 
 namespace Microsoft.ML.SEAL
 {
@@ -16,7 +17,7 @@ namespace Microsoft.ML.SEAL
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="polyModulusDegree">The value of the PolyModulusDegree encryption parameter.</param>
-        /// <param name="bitSizes">The bit-lengths of the primes to be generated.</param>
+        /// <param name="coeffModuli">The coefficient moduli.</param>
         /// <param name="scale">Scaling parameter defining encoding precision.</param>
         /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Single"/>.</param>
         /// <param name="featureColumnName">The name of the feature column. The column data must be a known-sized vector of <see cref="System.Single"/>.</param>
@@ -33,7 +34,7 @@ namespace Microsoft.ML.SEAL
         public static EncryptedSdcaLogisticRegressionBinaryTrainer EncryptedSdcaLogisticRegression(
                 this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
                 ulong polyModulusDegree,
-                IEnumerable<int> bitSizes,
+                IEnumerable<SmallModulus> coeffModuli,
                 double scale,
                 string labelColumnName = DefaultColumnNames.Label,
                 string featureColumnName = DefaultColumnNames.Features,
@@ -44,7 +45,7 @@ namespace Microsoft.ML.SEAL
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new EncryptedSdcaLogisticRegressionBinaryTrainer(env, polyModulusDegree, bitSizes, scale, labelColumnName, featureColumnName, exampleWeightColumnName, l2Regularization, l1Regularization, maximumNumberOfIterations);
+            return new EncryptedSdcaLogisticRegressionBinaryTrainer(env, polyModulusDegree, coeffModuli, scale, labelColumnName, featureColumnName, exampleWeightColumnName, l2Regularization, l1Regularization, maximumNumberOfIterations);
         }
 
         /// <summary>

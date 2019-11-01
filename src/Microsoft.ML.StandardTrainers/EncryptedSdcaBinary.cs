@@ -18,6 +18,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
+using Microsoft.Research.SEAL;
 
 namespace Microsoft.ML.SEAL
 {
@@ -1302,7 +1303,7 @@ namespace Microsoft.ML.SEAL
         where TModelParameters : class
     {
         private readonly ulong _polyModulusDegree;
-        private readonly IEnumerable<int> _bitSizes;
+        private readonly IEnumerable<SmallModulus> _coeffModuli;
         private readonly double _scale;
         private readonly ISupportSdcaClassificationLoss _loss;
         private readonly float _positiveInstanceWeight;
@@ -1343,7 +1344,7 @@ namespace Microsoft.ML.SEAL
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="polyModulusDegree">The value of the PolyModulusDegree encryption parameter.</param>
-        /// <param name="bitSizes">The bit-lengths of the primes to be generated.</param>
+        /// <param name="coeffModuli">The coefficient moduli.</param>
         /// <param name="scale">Scaling parameter defining encoding precision.</param>
         /// <param name="labelColumnName">The label, or dependent variable.</param>
         /// <param name="featureColumnName">The features, or independent variables.</param>
@@ -1354,7 +1355,7 @@ namespace Microsoft.ML.SEAL
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
         private protected EncryptedSdcaBinaryTrainerBase(IHostEnvironment env,
             ulong polyModulusDegree,
-            IEnumerable<int> bitSizes,
+            IEnumerable<SmallModulus> coeffModuli,
             double scale,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
@@ -1369,7 +1370,7 @@ namespace Microsoft.ML.SEAL
             Host.CheckNonEmpty(featureColumnName, nameof(featureColumnName));
             Host.CheckNonEmpty(labelColumnName, nameof(labelColumnName));
             _polyModulusDegree = polyModulusDegree;
-            _bitSizes = bitSizes;
+            _coeffModuli = coeffModuli;
             _scale = scale;
             _loss = loss ?? new LogLossFactory().CreateComponent(env);
             Loss = _loss;
@@ -1401,7 +1402,7 @@ namespace Microsoft.ML.SEAL
             VBufferUtils.CreateMaybeSparseCopy(weights[0], ref maybeSparseWeights,
                 Conversions.Instance.GetIsDefaultPredicate<float>(NumberDataViewType.Single));
 
-            return new EncryptedLinearBinaryModelParameters(Host, in maybeSparseWeights, bias[0], _polyModulusDegree, _bitSizes, _scale);
+            return new EncryptedLinearBinaryModelParameters(Host, in maybeSparseWeights, bias[0], _polyModulusDegree, _coeffModuli, _scale);
         }
 
         private protected override float GetInstanceWeight(FloatLabelCursor cursor)
@@ -1447,7 +1448,7 @@ namespace Microsoft.ML.SEAL
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="EncryptedStandardTrainersCatalog.EncryptedSdcaLogisticRegression(BinaryClassificationCatalog.BinaryClassificationTrainers, ulong, IEnumerable&lt;int&gt;, double, string, string, string, float?, float?, int?)"/>
+    /// <seealso cref="EncryptedStandardTrainersCatalog.EncryptedSdcaLogisticRegression(BinaryClassificationCatalog.BinaryClassificationTrainers, ulong, IEnumerable&lt;SmallModulus&gt;, double, string, string, string, float?, float?, int?)"/>
     /// <seealso cref="EncryptedStandardTrainersCatalog.EncryptedSdcaLogisticRegression(BinaryClassificationCatalog.BinaryClassificationTrainers, EncryptedSdcaLogisticRegressionBinaryTrainer.Options)"/>
     /// <seealso cref="Options"/>
     public sealed class EncryptedSdcaLogisticRegressionBinaryTrainer :
@@ -1492,7 +1493,7 @@ namespace Microsoft.ML.SEAL
 
         internal EncryptedSdcaLogisticRegressionBinaryTrainer(IHostEnvironment env,
             ulong polyModulusDegree,
-            IEnumerable<int> bitSizes,
+            IEnumerable<SmallModulus> coeffModuli,
             double scale,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
@@ -1500,7 +1501,7 @@ namespace Microsoft.ML.SEAL
             float? l2Const = null,
             float? l1Threshold = null,
             int? maxIterations = null)
-             : base(env, polyModulusDegree, bitSizes, scale, labelColumnName, featureColumnName, weightColumnName, new LogLoss(), l2Const, l1Threshold, maxIterations)
+             : base(env, polyModulusDegree, coeffModuli, scale, labelColumnName, featureColumnName, weightColumnName, new LogLoss(), l2Const, l1Threshold, maxIterations)
         {
         }
 
