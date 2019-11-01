@@ -240,9 +240,6 @@ namespace Microsoft.ML.AutoML
             ColumnInformation columnInfo, IDataView validationSet)
         {
             var options = TrainerExtensionUtil.CreateOptions<Options>(null, columnInfo.LabelColumnName);
-            options.ValidationSet = validationSet;
-            var logger = ((IChannelProvider)mlContext).Start(nameof(ImageClassificationExtension));
-            options.MetricsCallback = (ImageClassificationMetrics metric) => { logger.Trace(metric.ToString()); } ;
             return mlContext.MulticlassClassification.Trainers.ImageClassification(options);
         }
 
