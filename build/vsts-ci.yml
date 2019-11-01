@@ -230,9 +230,6 @@ phases:
     inputs:
       nuGetServiceConnections: machinelearning-dnceng-public-feed # To allow publishing to a feed of another organization
 
-  - script: Tools\dotnetcli\dotnet msbuild build\publish.proj /t:PublishPackages /p:NuGetFeedUrl=$(_AzureDevopsFeedUrl) /p:NuGetApiKey=AzureArtifacts
-    displayName: Publish Packages to AzureDevOps Feed
-
   - task: MSBuild@1
     displayName: Publish Symbols to SymWeb Symbol Server
     inputs:
