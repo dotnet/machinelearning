@@ -31,6 +31,8 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         public string UnstablePackageVersion { get; set; }
 
+        public bool IsAzureAttach { get; set; }
+
         internal TaskKind MlTask { get; set; }
 
     }

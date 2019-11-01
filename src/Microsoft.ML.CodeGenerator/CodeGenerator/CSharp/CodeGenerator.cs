@@ -483,6 +483,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 AllowSparse = _columnInferenceResult.TextLoaderOptions.AllowSparse,
                 Features = featuresList,
                 Target = _settings.Target,
+                IsAzureAttach = _settings.IsAzureAttach,
             };
             return predictProgram.TransformText();
         }

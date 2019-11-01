@@ -69,7 +69,7 @@ foreach(var label in Features){
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(label)));
             this.Write("}\");\r\n");
 }
-if("BinaryClassification".Equals(TaskType)){ 
+if("BinaryClassification".Equals(TaskType) && !IsAzureAttach ){ 
             this.Write("\t\t\tConsole.WriteLine($\"\\n\\nActual ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(": {sampleData.");
@@ -77,7 +77,7 @@ if("BinaryClassification".Equals(TaskType)){
             this.Write("} \\nPredicted ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(": {predictionResult.Prediction}\\n\\n\");\r\n");
-} else if("Regression".Equals(TaskType) || "Recommendation".Equals(TaskType)){
+} else if("Regression".Equals(TaskType) || "Recommendation".Equals(TaskType) && !IsAzureAttach){
             this.Write("\t\t\tConsole.WriteLine($\"\\n\\nActual ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(": {sampleData.");
@@ -85,7 +85,7 @@ if("BinaryClassification".Equals(TaskType)){
             this.Write("} \\nPredicted ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(": {predictionResult.Score}\\n\\n\");\r\n");
-} else if("MulticlassClassification".Equals(TaskType)){
+} else if("MulticlassClassification".Equals(TaskType) && !IsAzureAttach){
             this.Write("\t\t\tConsole.WriteLine($\"\\n\\nActual ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(": {sampleData.");
@@ -95,6 +95,17 @@ if("BinaryClassification".Equals(TaskType)){
             this.Write(" value {predictionResult.Prediction} \\nPredicted ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(" scores: [{String.Join(\",\", predictionResult.Score)}]\\n\\n\");\r\n");
+} else if(IsAzureAttach){
+            this.Write("\t\t\tConsole.WriteLine($\"\\n\\nActual ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
+            this.Write(": {sampleData.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
+            this.Write("} \\nPredicted ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
+            this.Write(" value {predictionResult.First().Key} \\nPredicted ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
+            this.Write(" scores: [{String.Join(\",\", predictionResult.Select((kv,i) =>kv.Value))}]\\n\\n\");\r" +
+                    "\n");
 }
             this.Write(@"            Console.WriteLine(""=============== End of process, hit any key to finish ==============="");
             Console.ReadKey();
@@ -144,6 +155,7 @@ public bool AllowQuoting {get;set;}
 public bool AllowSparse {get;set;}
 public bool HasHeader {get;set;}
 public IList<string> Features {get;set;}
+public bool IsAzureAttach {get; set;}
 internal CSharp.GenerateTarget Target {get;set;}
 
 

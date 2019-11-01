@@ -107,6 +107,7 @@ namespace mlnet.Tests
                 Target = GenerateTarget.ModelBuilder,
                 StablePackageVersion = "1.3.1",
                 UnstablePackageVersion = "0.16.0-preview3-28231-2",
+                IsAzureAttach = true,
             };
 
             // generate project
