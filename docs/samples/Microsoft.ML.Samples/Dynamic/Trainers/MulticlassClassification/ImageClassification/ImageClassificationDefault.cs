@@ -29,6 +29,7 @@ namespace Samples.Dynamic
             //Download the image set and unzip
             string finalImagesFolderName = DownloadImageSet(
                 imagesDownloadFolderPath);
+            //string finalImagesFolderName = "flower_photos";
             string fullImagesetFolderPath = Path.Combine(
                 imagesDownloadFolderPath, finalImagesFolderName);
 
@@ -36,6 +37,7 @@ namespace Samples.Dynamic
             {
 
                 MLContext mlContext = new MLContext(seed: 1);
+                mlContext.Log += MlContext_Log;
 
                 //Load all the original images info
                 IEnumerable<ImageData> images = LoadImagesFromDirectory(
@@ -107,6 +109,19 @@ namespace Samples.Dynamic
 
             Console.WriteLine("Press any key to finish");
             Console.ReadKey();
+        }
+
+        private static void MlContext_Log(object sender, LoggingEventArgs e)
+        {
+            /*var regex = new Regex();
+            foreach (var line in e.Message.Where(line => regex.Match(line).Success))
+            {
+                Console.WriteLine(e.Message);
+            }*/
+            if (e.Message.StartsWith("[Source=ImageClassificationTrainer;"))
+            {
+                Console.WriteLine(e.Message);
+            }
         }
 
         private static void TrySinglePrediction(string imagesForPredictions,

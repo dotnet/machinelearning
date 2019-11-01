@@ -389,7 +389,7 @@ namespace Microsoft.ML.Vision
             /// Callback to report statistics on accuracy/cross entropy during training phase.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Callback to report metrics during training and validation phase.", SortOrder = 15)]
-            public Action<ImageClassificationMetrics> MetricsCallback = (metrics) => Console.WriteLine(metrics);
+            public Action<ImageClassificationMetrics> MetricsCallback = null;
 
             /// <summary>
             /// Indicates the path where the models get downloaded to and cache files saved, default is a new temporary directory
@@ -419,7 +419,7 @@ namespace Microsoft.ML.Vision
             /// Validation set.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Validation set.", SortOrder = 15)]
-            public IDataView ValidationSet;
+            public IDataView ValidationSet = null;
 
             /// <summary>
             /// Indicates the file name within the workspace to store trainset bottleneck values for caching.
@@ -530,6 +530,12 @@ namespace Microsoft.ML.Vision
             {
                 //If the user decided to set to null reset back to default value
                 options.ValidationSetBottleneckCachedValuesFileName = _options.ValidationSetBottleneckCachedValuesFileName;
+            }
+
+            if ( options.MetricsCallback == null )
+            {
+                var logger = Host.Start(nameof(ImageClassificationTrainer));
+                options.MetricsCallback = (ImageClassificationMetrics metric) => { logger.Trace(metric.ToString()); };
             }
 
             _options = options;
