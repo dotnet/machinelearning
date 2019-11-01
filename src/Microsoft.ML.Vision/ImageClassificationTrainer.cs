@@ -1319,9 +1319,10 @@ namespace Microsoft.ML.Vision
             DownloadIfNeeded(env, modelFileName, _resourcePath, modelFileName, timeout);
             if (arch == Architecture.InceptionV3)
             {
+                var extrasPath = Path.Combine(_resourcePath, @"tfhub_modules");
                 DownloadIfNeeded(env, @"tfhub_modules.zip", _resourcePath, @"tfhub_modules.zip", timeout);
-                if (!Directory.Exists(@"tfhub_modules"))
-                    ZipFile.ExtractToDirectory(Path.Combine(_resourcePath, @"tfhub_modules.zip"), Path.Combine(_resourcePath, @"tfhub_modules"));
+                if (!Directory.Exists(extrasPath))
+                    ZipFile.ExtractToDirectory(Path.Combine(_resourcePath, @"tfhub_modules.zip"), extrasPath);
             }
 
             return new TensorFlowSessionWrapper(GetSession(env, modelFilePath, true), modelFilePath);
