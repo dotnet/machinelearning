@@ -359,7 +359,7 @@ namespace Microsoft.ML.Vision
             /// Early stopping technique parameters to be used to terminate training when training metric stops improving.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Early stopping technique parameters to be used to terminate training when training metric stops improving.", SortOrder = 15)]
-            public EarlyStopping EarlyStoppingCriteria;
+            public EarlyStopping EarlyStoppingCriteria = new EarlyStopping();
 
             /// <summary>
             /// Specifies the model architecture to be used in the case of image classification training using transfer learning.
@@ -437,7 +437,7 @@ namespace Microsoft.ML.Vision
             /// A class that performs learning rate scheduling.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "A class that performs learning rate scheduling.", SortOrder = 15)]
-            public LearningRateScheduler LearningRateScheduler = new LsrDecay();
+            public LearningRateScheduler LearningRateScheduler = new ExponentialLRDecay();
         }
 
         /// <summary> Return the type of prediction task.</summary>
@@ -530,6 +530,12 @@ namespace Microsoft.ML.Vision
             {
                 //If the user decided to set to null reset back to default value
                 options.ValidationSetBottleneckCachedValuesFileName = _options.ValidationSetBottleneckCachedValuesFileName;
+            }
+
+            if (options.MetricsCallback == null)
+            {
+                var logger = Host.Start(nameof(ImageClassificationTrainer));
+                options.MetricsCallback = (ImageClassificationMetrics metric) => { logger.Trace(metric.ToString()); };
             }
 
             _options = options;
