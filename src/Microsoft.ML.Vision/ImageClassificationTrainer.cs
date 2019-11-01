@@ -471,8 +471,11 @@ namespace Microsoft.ML.Vision
         private readonly string _checkpointPath;
         private readonly string _bottleneckOperationName;
         private readonly bool _useLRScheduling;
+        private readonly bool _cleanupWorkspace;
         private int _classCount;
         private Graph Graph => _session.graph;
+        private static readonly string _resourcePath = Path.Combine(Path.GetTempPath(), "MLNET");
+        private readonly string _sizeFile;
 
         /// <summary>
         /// Initializes a new instance of <see cref="ImageClassificationTrainer"/>
@@ -518,6 +521,12 @@ namespace Microsoft.ML.Vision
             if (string.IsNullOrEmpty(options.WorkspacePath))
             {
                 options.WorkspacePath = GetTemporaryDirectory();
+                _cleanupWorkspace = true;
+            }
+
+            if (!Directory.Exists(_resourcePath))
+            {
+                Directory.CreateDirectory(_resourcePath);
             }
 
             if (string.IsNullOrEmpty(options.TrainSetBottleneckCachedValuesFileName))
@@ -542,6 +551,7 @@ namespace Microsoft.ML.Vision
             _useLRScheduling = _options.LearningRateScheduler != null;
             _checkpointPath = Path.Combine(_options.WorkspacePath, _options.FinalModelPrefix +
                     ModelFileName[_options.Arch]);
+            _sizeFile = Path.Combine(_options.WorkspacePath, "TrainingSetSize.txt");
 
             // Configure bottleneck tensor based on the model.
             var arch = _options.Arch;
@@ -552,8 +562,8 @@ namespace Microsoft.ML.Vision
             }
             else if (arch == Architecture.InceptionV3)
             {
-                _bottleneckOperationName = "module_apply_default/hub_output/feature_vector/SpatialSqueeze";
-                _inputTensorName = "Placeholder";
+                _bottleneckOperationName = "InceptionV3/Logits/SpatialSqueeze";
+                _inputTensorName = "input";
             }
             else if (arch == Architecture.MobilenetV2)
             {
@@ -580,7 +590,7 @@ namespace Microsoft.ML.Vision
 
             _classCount = labelCount == 1 ? 2 : (int)labelCount;
             var imageSize = ImagePreprocessingSize[_options.Arch];
-            _session = LoadTensorFlowSessionFromMetaGraph(Host, _options.Arch, _options.WorkspacePath).Session;
+            _session = LoadTensorFlowSessionFromMetaGraph(Host, _options.Arch).Session;
             (_jpegData, _resizedImage) = AddJpegDecoding(imageSize.Item1, imageSize.Item2, 3);
             _jpegDataTensorName = _jpegData.name;
             _resizedImageTensorName = _resizedImage.name;
@@ -637,7 +647,7 @@ namespace Microsoft.ML.Vision
                     ImageClassificationMetrics.Dataset.Train, _options.MetricsCallback);
 
                 // Write training set size to a file for use during training
-                File.WriteAllText("TrainingSetSize.txt", trainingsetSize.ToString());
+                File.WriteAllText(_sizeFile, trainingsetSize.ToString());
             }
 
             if (validationSet != null &&
@@ -905,7 +915,7 @@ namespace Microsoft.ML.Vision
             {
                 BatchSize = options.BatchSize,
                 BatchesPerEpoch =
-                (trainingsetSize < 0 ? GetNumSamples("TrainingSetSize.txt") : trainingsetSize) / options.BatchSize
+                (trainingsetSize < 0 ? GetNumSamples(_sizeFile) : trainingsetSize) / options.BatchSize
             };
 
             for (int epoch = 0; epoch < epochs; epoch += 1)
@@ -1129,11 +1139,27 @@ namespace Microsoft.ML.Vision
 
             trainSaver.save(_session, _checkpointPath);
             UpdateTransferLearningModelOnDisk(_classCount);
+            TryCleanupTemporaryWorkspace();
+        }
+
+        private void TryCleanupTemporaryWorkspace()
+        {
+            if (_cleanupWorkspace && Directory.Exists(_options.WorkspacePath))
+            {
+                try
+                {
+                    Directory.Delete(_options.WorkspacePath, true);
+                }
+                catch (Exception)
+                {
+                    //We do not want to stop pipeline due to failed cleanup.
+                }
+            }
         }
 
         private (Session, Tensor, Tensor, Tensor) BuildEvaluationSession(int classCount)
         {
-            var evalGraph = LoadMetaGraph(Path.Combine(_options.WorkspacePath, ModelFileName[_options.Arch]));
+            var evalGraph = LoadMetaGraph(Path.Combine(_resourcePath, ModelFileName[_options.Arch]));
             var evalSess = tf.Session(graph: evalGraph);
             Tensor evaluationStep = null;
             Tensor prediction = null;
@@ -1291,24 +1317,12 @@ namespace Microsoft.ML.Vision
 
         }
 
-        private static TensorFlowSessionWrapper LoadTensorFlowSessionFromMetaGraph(IHostEnvironment env, Architecture arch, string path)
+        private static TensorFlowSessionWrapper LoadTensorFlowSessionFromMetaGraph(IHostEnvironment env, Architecture arch)
         {
-            if (string.IsNullOrEmpty(path))
-            {
-                path = GetTemporaryDirectory();
-            }
-
             var modelFileName = ModelFileName[arch];
-            var modelFilePath = Path.Combine(path, modelFileName);
+            var modelFilePath = Path.Combine(_resourcePath, modelFileName);
             int timeout = 10 * 60 * 1000;
-            DownloadIfNeeded(env, modelFileName, path, modelFileName, timeout);
-            if (arch == Architecture.InceptionV3)
-            {
-                DownloadIfNeeded(env, @"tfhub_modules.zip", path, @"tfhub_modules.zip", timeout);
-                if (!Directory.Exists(@"tfhub_modules"))
-                    ZipFile.ExtractToDirectory(Path.Combine(path, @"tfhub_modules.zip"), @"tfhub_modules");
-            }
-
+            DownloadIfNeeded(env, modelFileName, _resourcePath, modelFileName, timeout);
             return new TensorFlowSessionWrapper(GetSession(env, modelFilePath, true), modelFilePath);
         }
 

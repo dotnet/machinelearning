@@ -1289,6 +1289,7 @@ namespace Microsoft.ML.Scenarios
         [InlineData(ImageClassificationTrainer.Architecture.ResnetV2101)]
         [InlineData(ImageClassificationTrainer.Architecture.MobilenetV2)]
         [InlineData(ImageClassificationTrainer.Architecture.ResnetV250)]
+        [InlineData(ImageClassificationTrainer.Architecture.InceptionV3)]
         public void TensorFlowImageClassification(ImageClassificationTrainer.Architecture arch)
         {
             string assetsRelativePath = @"assets";
@@ -1582,8 +1583,9 @@ namespace Microsoft.ML.Scenarios
 
             Assert.True(File.Exists(Path.Combine(options.WorkspacePath, options.TrainSetBottleneckCachedValuesFileName)));
             Assert.True(File.Exists(Path.Combine(options.WorkspacePath, options.ValidationSetBottleneckCachedValuesFileName)));
-            Assert.True(File.Exists(Path.Combine(options.WorkspacePath, ImageClassificationTrainer.ModelFileName[options.Arch])));
+            Assert.True(File.Exists(Path.Combine(options.WorkspacePath, "TrainingSetSize.txt")));
             Directory.Delete(options.WorkspacePath, true);
+            Assert.True(File.Exists(Path.Combine(Path.GetTempPath(), "MLNET", ImageClassificationTrainer.ModelFileName[options.Arch])));
         }
 
         [TensorFlowFact]
