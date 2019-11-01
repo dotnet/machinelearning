@@ -283,7 +283,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.CodeGenerator"
 		pkg\Microsoft.ML.CodeGenerator\Microsoft.ML.CodeGenerator.symbols.nupkgproj = pkg\Microsoft.ML.CodeGenerator\Microsoft.ML.CodeGenerator.symbols.nupkgproj
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.ML.SEAL.Tests", "test\Microsoft.ML.SEAL\Microsoft.ML.SEAL.Tests.csproj", "{D793FE79-3A14-4474-8694-3649DB759293}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.ML.SEAL.Tests", "test\Microsoft.ML.SEAL.Tests\Microsoft.ML.SEAL.Tests.csproj", "{D793FE79-3A14-4474-8694-3649DB759293}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
