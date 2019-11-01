@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
-LD_DEBUG=libs
+sudo ls /bin/AnyCPU.Debug/Microsoft.ML.NightlyBuild.Tests/netcoreapp2.1/
 
-ls /bin/AnyCPU.Debug/Microsoft.ML.NightlyBuild.Tests/netcoreapp2.1/
+sudo LD_DEBUG=libs
