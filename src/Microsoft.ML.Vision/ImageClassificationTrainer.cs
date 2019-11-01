@@ -556,8 +556,8 @@ namespace Microsoft.ML.Vision
             }
             else if (arch == Architecture.InceptionV3)
             {
-                _bottleneckOperationName = "module_apply_default/hub_output/feature_vector/SpatialSqueeze";
-                _inputTensorName = "Placeholder";
+                _bottleneckOperationName = "InceptionV3/Logits/SpatialSqueeze";
+                _inputTensorName = "input";
             }
             else if (arch == Architecture.MobilenetV2)
             {
@@ -1317,14 +1317,6 @@ namespace Microsoft.ML.Vision
             var modelFilePath = Path.Combine(_resourcePath, modelFileName);
             int timeout = 10 * 60 * 1000;
             DownloadIfNeeded(env, modelFileName, _resourcePath, modelFileName, timeout);
-            if (arch == Architecture.InceptionV3)
-            {
-                var extrasPath = Path.Combine(_resourcePath, @"tfhub_modules");
-                DownloadIfNeeded(env, @"tfhub_modules.zip", _resourcePath, @"tfhub_modules.zip", timeout);
-                if (!Directory.Exists(extrasPath))
-                    ZipFile.ExtractToDirectory(Path.Combine(_resourcePath, @"tfhub_modules.zip"), extrasPath);
-            }
-
             return new TensorFlowSessionWrapper(GetSession(env, modelFilePath, true), modelFilePath);
         }
 
