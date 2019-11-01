@@ -419,7 +419,7 @@ namespace Microsoft.ML.Vision
             /// Validation set.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Validation set.", SortOrder = 15)]
-            public IDataView ValidationSet = null;
+            public IDataView ValidationSet;
 
             /// <summary>
             /// Indicates the file name within the workspace to store trainset bottleneck values for caching.
