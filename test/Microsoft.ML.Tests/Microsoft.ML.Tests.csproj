@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Vision\Microsoft.ML.Vision.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Ensemble\Microsoft.ML.Ensemble.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.EntryPoints\Microsoft.ML.EntryPoints.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Experimental\Microsoft.ML.Experimental.csproj" />
@@ -40,13 +41,6 @@
     <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
   </ItemGroup>
 
-  <!-- TensorFlow is 64-bit only -->
-  <ItemGroup Condition="'$(NativeTargetArchitecture)' == 'x64'">
-    <NativeAssemblyReference Include="tensorflow" />
-    <NativeAssemblyReferenceWithMajorVersion Condition="'$(OS)' != 'Windows_NT'" Include="tensorflow_framework">
-      <MajorVersion>$(TensorFlowMajorVersion)</MajorVersion>
-    </NativeAssemblyReferenceWithMajorVersion>
-  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.ML.TensorFlow.TestModels" Version="$(MicrosoftMLTensorFlowTestModelsVersion)" />
     <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="$(MicrosoftMLOnnxTestModelsVersion)" />

@@ -2,13 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Xunit;
+using System;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using Microsoft.ML.Data;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFramework.Attributes;
+using Xunit;
+using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    
     public class AutoFitTests
     {
         [Fact]
@@ -43,6 +49,63 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(NumberDataViewType.Single, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
         }
 
+        [TensorFlowFact]
+        public void AutoFitImageClassificationTrainTest()
+        {
+            var context = new MLContext();
+            var datasetPath = DatasetUtil.GetFlowersDataset();
+            var columnInference = context.Auto().InferColumns(datasetPath, "Label");
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            var trainData = context.Data.ShuffleRows(textLoader.Load(datasetPath), seed: 1);
+            var originalColumnNames = trainData.Schema.Select(c => c.Name);
+            TrainTestData trainTestData = context.Data.TrainTestSplit(trainData, testFraction: 0.2, seed: 1);
+            IDataView trainDataset = SplitUtil.DropAllColumnsExcept(context, trainTestData.TrainSet, originalColumnNames);
+            IDataView testDataset = SplitUtil.DropAllColumnsExcept(context, trainTestData.TestSet, originalColumnNames);
+            var result = context.Auto()
+                            .CreateMulticlassClassificationExperiment(0)
+                            .Execute(trainDataset, testDataset, columnInference.ColumnInformation);
+
+            //Known issue, where on Ubuntu there is degradation in accuracy.
+            if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
+                RuntimeInformation.IsOSPlatform(OSPlatform.OSX)))
+            {
+                Assert.Equal(0.778, result.BestRun.ValidationMetrics.MicroAccuracy, 3);
+            }
+            else
+            {
+                Assert.Equal(1, result.BestRun.ValidationMetrics.MicroAccuracy, 3);
+            }
+
+            var scoredData = result.BestRun.Model.Transform(trainData);
+            Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
+        }
+
+        [Fact(Skip ="Takes too much time, ~10 minutes.")]
+        public void AutoFitImageClassification()
+        {
+            // This test executes the code path that model builder code will take to get a model using image 
+            // classification API.
+
+            var context = new MLContext();
+            context.Log += Context_Log;
+            var datasetPath = DatasetUtil.GetFlowersDataset();
+            var columnInference = context.Auto().InferColumns(datasetPath, "Label");
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            var trainData = textLoader.Load(datasetPath);
+            var result = context.Auto()
+                            .CreateMulticlassClassificationExperiment(0)
+                            .Execute(trainData, columnInference.ColumnInformation);
+
+            Assert.InRange(result.BestRun.ValidationMetrics.MicroAccuracy, 0.80, 0.9);
+            var scoredData = result.BestRun.Model.Transform(trainData);
+            Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
+        }
+
+        private void Context_Log(object sender, LoggingEventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
+
         [Fact]
         public void AutoFitRegressionTest()
         {
@@ -59,6 +122,94 @@ namespace Microsoft.ML.AutoML.Test
                     new ColumnInformation() { LabelColumnName = DatasetUtil.MlNetGeneratedRegressionLabel });
 
             Assert.True(result.RunDetails.Max(i => i.ValidationMetrics.RSquared > 0.9));
+        }
+
+        [Fact]
+        public void AutoFitRecommendationTest()
+        {
+            // Specific column names of the considered data set
+            string labelColumnName = "Label";
+            string userColumnName = "User";
+            string itemColumnName = "Item";
+            string scoreColumnName = "Score";
+            MLContext mlContext = new MLContext();
+
+            // STEP 1: Load data
+            var reader = new TextLoader(mlContext, GetLoaderArgs(labelColumnName, userColumnName, itemColumnName));
+            var trainDataView = reader.Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
+            var testDataView = reader.Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
+
+            // STEP 2: Run AutoML experiment
+            ExperimentResult<RegressionMetrics> experimentResult = mlContext.Auto()
+                .CreateRecommendationExperiment(5)
+                .Execute(trainDataView, testDataView,
+                    new ColumnInformation()
+                    {
+                        LabelColumnName = labelColumnName,
+                        UserIdColumnName = userColumnName,
+                        ItemIdColumnName = itemColumnName
+                    });
+
+            RunDetail<RegressionMetrics> bestRun = experimentResult.BestRun;
+            Assert.True(experimentResult.RunDetails.Count() > 1);
+            Assert.NotNull(bestRun.ValidationMetrics);
+            Assert.True(experimentResult.RunDetails.Max(i => i.ValidationMetrics.RSquared != 0));
+
+            var outputSchema = bestRun.Model.GetOutputSchema(trainDataView.Schema);
+            var expectedOutputNames = new string[] { labelColumnName, userColumnName, userColumnName, itemColumnName, itemColumnName, scoreColumnName };
+            foreach (var col in outputSchema)
+                Assert.True(col.Name == expectedOutputNames[col.Index]);
+
+            IDataView testDataViewWithBestScore = bestRun.Model.Transform(testDataView);
+            // Retrieve label column's index from the test IDataView
+            testDataView.Schema.TryGetColumnIndex(labelColumnName, out int labelColumnId);
+            // Retrieve score column's index from the IDataView produced by the trained model
+            testDataViewWithBestScore.Schema.TryGetColumnIndex(scoreColumnName, out int scoreColumnId);
+
+            var metrices = mlContext.Recommendation().Evaluate(testDataViewWithBestScore, labelColumnName: labelColumnName, scoreColumnName: scoreColumnName);
+            Assert.NotEqual(0, metrices.MeanSquaredError);
+        }
+
+        private TextLoader.Options GetLoaderArgs(string labelColumnName, string userIdColumnName, string itemIdColumnName)
+        {
+            return new TextLoader.Options()
+            {
+                Separator = "\t",
+                HasHeader = true,
+                Columns = new[]
+                {
+                    new TextLoader.Column(labelColumnName, DataKind.Single, new [] { new TextLoader.Range(0) }),
+                    new TextLoader.Column(userIdColumnName, DataKind.UInt32, new [] { new TextLoader.Range(1) }, new KeyCount(20)),
+                    new TextLoader.Column(itemIdColumnName, DataKind.UInt32, new [] { new TextLoader.Range(2) }, new KeyCount(40)),
+                }
+            };
+        }
+
+        private static string GetRepoRoot()
+        {
+#if NETFRAMEWORK
+            string directory = AppDomain.CurrentDomain.BaseDirectory;
+#else
+            string directory = AppContext.BaseDirectory;
+#endif
+
+            while (!Directory.Exists(Path.Combine(directory, ".git")) && directory != null)
+            {
+                directory = Directory.GetParent(directory).FullName;
+            }
+
+            if (directory == null)
+            {
+                return null;
+            }
+            return directory;
+        }
+
+        public static string GetDataPath(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return null;
+            return Path.GetFullPath(Path.Combine(Path.Combine(GetRepoRoot(), "test", "data"), name));
         }
     }
 }

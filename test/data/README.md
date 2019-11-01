@@ -62,6 +62,14 @@ Redistributing the dataset "taxi-fare-test.csv", "taxi-fare-train.csv" with attr
 > 
 > The dataset is provided under terms provided by City of New York: https://opendata.cityofnewyork.us/overview/#termsofuse.
 
+### Flowers dataset.
+
+Redistributing the dataset "tflower_photos_tiny_set_for_unit_tests.zip" (slimed down version of original dataset) with attribution:
+
+> Original source: http://download.tensorflow.org/example_images/flower_photos.tgz
+> 
+> The dataset is provided under terms provided by TensforFlow/Google.
+
 ### MSLR-WEB10K, MSLR-WEB30K
 
 This dataset is originally from [Introducing LETOR 4.0 Datasets](https://arxiv.org/abs/1306.2597).

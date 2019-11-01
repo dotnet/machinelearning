@@ -7,15 +7,14 @@ using System.Collections.Generic;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
-using Microsoft.ML.RunTests;
-using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Trainers;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.Functional.Tests
 {
-    public class PredictionScenarios : BaseTestClass
+    public class PredictionScenarios : FunctionalTestBaseClass
     {
         public PredictionScenarios(ITestOutputHelper output) : base(output)
         {
@@ -37,7 +36,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
+            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(TestCommon.GetDataPath(DataDir, TestDatasets.Sentiment.trainFilename),
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 separatorChar: TestDatasets.Sentiment.fileSeparator);
 

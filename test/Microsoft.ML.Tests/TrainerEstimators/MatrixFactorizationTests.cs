@@ -11,6 +11,8 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Xunit;
 
@@ -717,7 +719,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         // Create an in-memory matrix as a list of tuples (column index, row index, value). Notice that one-class matrix
-        // factorization handle scenerios where only positive signals (e.g., on Facebook, only likes are recorded and no dislike before)
+        // factorization handle scenarios where only positive signals (e.g., on Facebook, only likes are recorded and no dislike before)
         // can be observed so that all values are set to 1.
         private static void GetOneClassMatrix(out List<OneClassMatrixElement> observedMatrix, out List<OneClassMatrixElement> fullMatrix)
         {

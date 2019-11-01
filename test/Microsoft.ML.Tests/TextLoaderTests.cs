@@ -11,6 +11,7 @@ using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFrameworkCommon;
 using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;

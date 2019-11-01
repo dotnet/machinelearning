@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
@@ -22,17 +23,71 @@ namespace Microsoft.ML.AutoML.Test
             foreach (var trainerName in trainerNames)
             {
                 var extension = TrainerExtensionCatalog.GetTrainerExtension(trainerName);
-                var sweepParams = extension.GetHyperparamSweepRanges();
-                Assert.NotNull(sweepParams);
-                foreach (var sweepParam in sweepParams)
+
+                IEnumerable<SweepableParam> sweepParams = null;
+                if (trainerName != TrainerName.ImageClassification)
                 {
-                    sweepParam.RawValue = 1;
+                    sweepParams = extension.GetHyperparamSweepRanges();
+                    Assert.NotNull(sweepParams);
+                    foreach (var sweepParam in sweepParams)
+                    {
+                        sweepParam.RawValue = 1;
+                    }
+
+                    var instance = extension.CreateInstance(context, sweepParams, columnInfo);
+                    Assert.NotNull(instance);
+                    var pipelineNode = extension.CreatePipelineNode(null, columnInfo);
+                    Assert.NotNull(pipelineNode);
                 }
-                var instance = extension.CreateInstance(context, sweepParams, columnInfo);
-                Assert.NotNull(instance);
-                var pipelineNode = extension.CreatePipelineNode(null, columnInfo);
-                Assert.NotNull(pipelineNode);
             }
+        }
+
+        [TensorFlowFact]
+        public void TrainerExtensionTensorFlowInstanceTests()
+        {
+            var context = new MLContext();
+            var columnInfo = new ColumnInformation();
+            var extension = TrainerExtensionCatalog.GetTrainerExtension(TrainerName.ImageClassification);
+            var instance = extension.CreateInstance(context, null, columnInfo);
+            Assert.NotNull(instance);
+            var pipelineNode = extension.CreatePipelineNode(null, columnInfo);
+            Assert.NotNull(pipelineNode);
+        }
+
+        [Fact]
+        public void BuildMatrixFactorizationPipelineNode()
+        {
+            var sweepParams = SweepableParams.BuildMatrixFactorizationParams();
+            foreach (var sweepParam in sweepParams)
+            {
+                sweepParam.RawValue = 1;
+            }
+
+            var pipelineNode = new MatrixFactorizationExtension().CreatePipelineNode(sweepParams, new ColumnInformation());
+
+            var expectedJson = @"{
+  ""Name"": ""MatrixFactorization"",
+  ""NodeType"": ""Trainer"",
+  ""InColumns"": [
+    ""Features""
+  ],
+  ""OutColumns"": [
+    ""Score""
+  ],
+  ""Properties"": {
+    ""NumberOfIterations"": 20,
+    ""LearningRate"": 0.01,
+    ""ApproximationRank"": 16,
+    ""Lambda"": 0.05,
+    ""LossFunction"": ""SquareLossOneClass"",
+    ""Alpha"": 0.01,
+    ""C"": 0.0001,
+    ""LabelColumnName"": ""Label"",
+    ""MatrixColumnIndexColumnName"": null,
+    ""MatrixRowIndexColumnName"": null
+  }
+}";
+            Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
         }
 
         [Fact]
@@ -287,6 +342,14 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
+        public void PublicToPrivateTrainerNamesRecommendationTest()
+        {
+            var publicNames = Enum.GetValues(typeof(RecommendationTrainer)).Cast<RecommendationTrainer>();
+            var internalNames = TrainerExtensionUtil.GetTrainerNames(publicNames);
+            Assert.Equal(publicNames.Distinct().Count(), internalNames.Distinct().Count());
+        }
+
+       [Fact]
         public void PublicToPrivateTrainerNamesNullTest()
         {
             var internalNames = TrainerExtensionUtil.GetTrainerNames(null as IEnumerable<BinaryClassificationTrainer>);

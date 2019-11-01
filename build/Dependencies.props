@@ -3,6 +3,7 @@
   <!-- Core Product Dependencies -->
   <PropertyGroup>
     <NewtonsoftJsonPackageVersion>10.0.3</NewtonsoftJsonPackageVersion>
+    <SystemBuffersVersion>4.4.0</SystemBuffersVersion>
     <SystemCodeDomPackageVersion>4.4.0</SystemCodeDomPackageVersion>
     <SystemCollectionsImmutableVersion>1.5.0</SystemCollectionsImmutableVersion>
     <SystemMemoryVersion>4.5.1</SystemMemoryVersion>
@@ -15,7 +16,7 @@
     <GoogleProtobufPackageVersion>3.5.1</GoogleProtobufPackageVersion>
     <LightGBMPackageVersion>2.2.3</LightGBMPackageVersion>
     <MicrosoftExtensionsPackageVersion>2.1.0</MicrosoftExtensionsPackageVersion>
-    <MicrosoftMLOnnxRuntimePackageVersion>0.4.0</MicrosoftMLOnnxRuntimePackageVersion>
+    <MicrosoftMLOnnxRuntimePackageVersion>0.5.1</MicrosoftMLOnnxRuntimePackageVersion>
     <MlNetMklDepsPackageVersion>0.0.0.9</MlNetMklDepsPackageVersion>
     <ParquetDotNetPackageVersion>2.1.3</ParquetDotNetPackageVersion>
     <SystemDrawingCommonPackageVersion>4.5.0</SystemDrawingCommonPackageVersion>
@@ -23,7 +24,7 @@
     <SystemSecurityPrincipalWindows>4.5.0</SystemSecurityPrincipalWindows>
     <TensorFlowVersion>1.14.0</TensorFlowVersion>
     <TensorFlowMajorVersion>1</TensorFlowMajorVersion>
-    <TensorflowDotNETVersion>0.11.3</TensorflowDotNETVersion>
+    <TensorflowDotNETVersion>0.11.8.1</TensorflowDotNETVersion>
   </PropertyGroup>
 
   <!-- Code Analyzer Dependencies -->
@@ -36,7 +37,7 @@
   <!-- Build/infrastructure Dependencies -->
   <PropertyGroup>
     <PublishSymbolsPackageVersion>1.0.0-beta-62824-02</PublishSymbolsPackageVersion>
-    <CodecovVersion>1.1.1</CodecovVersion>
+    <CodecovVersion>1.7.2</CodecovVersion>
     <CoverletVersion>2.6.0</CoverletVersion>
     <ReportGeneratorVersion>4.0.9</ReportGeneratorVersion>
     <MicrosoftDotNetApiCompatPackageVersion>1.0.0-beta.19225.5</MicrosoftDotNetApiCompatPackageVersion>
@@ -47,7 +48,7 @@
     <BenchmarkDotNetVersion>0.11.3</BenchmarkDotNetVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.0.0-beta1-63812-02</MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftMLTestDatabasesPackageVersion>0.0.5-test</MicrosoftMLTestDatabasesPackageVersion>
-    <MicrosoftMLTestModelsPackageVersion>0.0.5-test</MicrosoftMLTestModelsPackageVersion>
+    <MicrosoftMLTestModelsPackageVersion>0.0.6-test</MicrosoftMLTestModelsPackageVersion>
     <MicrosoftMLTensorFlowTestModelsVersion>0.0.11-test</MicrosoftMLTensorFlowTestModelsVersion>
     <MicrosoftMLOnnxTestModelsVersion>0.0.5-test</MicrosoftMLOnnxTestModelsVersion>
     <SystemDataSqlClientVersion>4.6.1</SystemDataSqlClientVersion>

@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
@@ -448,44 +449,60 @@ namespace Microsoft.ML.Data
         where TModel : class
     {
         private readonly string _trainLabelColumn;
+        private readonly string _scoreColumn;
+        private readonly string _predictedLabelColumn;
 
         [BestFriend]
-        internal MulticlassPredictionTransformer(IHostEnvironment env, TModel model, DataViewSchema inputSchema, string featureColumn, string labelColumn)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MulticlassPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
+        internal MulticlassPredictionTransformer(IHostEnvironment env, TModel model, DataViewSchema inputSchema, string featureColumn, string labelColumn,
+            string scoreColumn = AnnotationUtils.Const.ScoreValueKind.Score, string predictedLabel = DefaultColumnNames.PredictedLabel) :
+            base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MulticlassPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {
             Host.CheckValueOrNull(labelColumn);
 
             _trainLabelColumn = labelColumn;
+            _scoreColumn = scoreColumn;
+            _predictedLabelColumn = predictedLabel;
             SetScorer();
         }
 
         internal MulticlassPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MulticlassPredictionTransformer<TModel>)), ctx)
         {
-            InitializationLogic(ctx, out _trainLabelColumn);
+            InitializationLogic(ctx, out _trainLabelColumn, out _scoreColumn, out _predictedLabelColumn);
         }
 
         internal MulticlassPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx, IHost host, TModel model)
             : base(host, ctx, model)
         {
 
-            InitializationLogic(ctx, out _trainLabelColumn);
+            InitializationLogic(ctx, out _trainLabelColumn, out _scoreColumn, out _predictedLabelColumn);
         }
 
-        private void InitializationLogic(ModelLoadContext ctx, out string trainLabelColumn)
+        private void InitializationLogic(ModelLoadContext ctx, out string trainLabelColumn, out string scoreColumn, out string predictedLabelColumn)
         {
             // *** Binary format ***
             // <base info>
             // id of string: train label column
 
             trainLabelColumn = ctx.LoadStringOrNull();
+            if (ctx.Header.ModelVerWritten >= 0x00010002)
+            {
+                scoreColumn = ctx.LoadStringOrNull();
+                predictedLabelColumn = ctx.LoadStringOrNull();
+            }
+            else
+            {
+                scoreColumn = AnnotationUtils.Const.ScoreValueKind.Score;
+                predictedLabelColumn = DefaultColumnNames.PredictedLabel;
+            }
+
             SetScorer();
         }
 
         private void SetScorer()
         {
             var schema = new RoleMappedSchema(TrainSchema, _trainLabelColumn, FeatureColumnName);
-            var args = new MulticlassClassificationScorer.Arguments();
+            var args = new MulticlassClassificationScorer.Arguments() { ScoreColumnName = _scoreColumn, PredictedLabelColumnName = _predictedLabelColumn};
             Scorer = new MulticlassClassificationScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
@@ -500,13 +517,16 @@ namespace Microsoft.ML.Data
             base.SaveCore(ctx);
 
             ctx.SaveStringOrNull(_trainLabelColumn);
+            ctx.SaveStringOrNull(_scoreColumn);
+            ctx.SaveStringOrNull(_predictedLabelColumn);
         }
 
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
                 modelSignature: "MC  PRED",
-                verWrittenCur: 0x00010001, // Initial
+                //verWrittenCur: 0x00010001, // Initial
+                verWrittenCur: 0x00010002, // Score and Predicted Label column names.
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: MulticlassPredictionTransformer.LoaderSignature,

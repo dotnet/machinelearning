@@ -15,6 +15,8 @@ using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
@@ -43,7 +45,7 @@ namespace Microsoft.ML.Tests
 
         private bool IsOnnxRuntimeSupported()
         {
-            return Environment.Is64BitProcess && (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || AttributeHelpers.CheckLibcVersionGreaterThanMinimum(new System.Version(2, 23)));
+            return OnnxFactAttribute.IsOnnxRuntimeSupported;
         }
 
         /// <summary>

@@ -8,8 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
-using Microsoft.ML.RunTests;
-using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms;
@@ -18,7 +17,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Functional.Tests
 {
-    public class IntrospectiveTraining : BaseTestClass
+    public class IntrospectiveTraining : FunctionalTestBaseClass
     {
         public IntrospectiveTraining(ITestOutputHelper output) : base(output)
         {
@@ -33,7 +32,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1);
 
             // Get the dataset.
-            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(TestCommon.GetDataPath(DataDir, TestDatasets.housing.trainFilename), hasHeader: true);
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
@@ -73,7 +72,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
+            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(TestCommon.GetDataPath(DataDir, TestDatasets.Sentiment.trainFilename),
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 separatorChar: TestDatasets.Sentiment.fileSeparator,
                 allowQuoting: TestDatasets.Sentiment.allowQuoting);
@@ -136,7 +135,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Load the Iris dataset.
             var data = mlContext.Data.LoadFromTextFile<Iris>(
-                GetDataPath(TestDatasets.iris.trainFilename),
+                TestCommon.GetDataPath(DataDir, TestDatasets.iris.trainFilename),
                 hasHeader: TestDatasets.iris.fileHasHeader,
                 separatorChar: TestDatasets.iris.fileSeparator);
 
@@ -176,7 +175,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1);
 
             // Load the dataset.
-            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
+            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(TestCommon.GetDataPath(DataDir, TestDatasets.Sentiment.trainFilename),
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 separatorChar: TestDatasets.Sentiment.fileSeparator,
                 allowQuoting: TestDatasets.Sentiment.allowQuoting);
@@ -208,7 +207,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
+            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(TestCommon.GetDataPath(DataDir, TestDatasets.Sentiment.trainFilename),
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 separatorChar: TestDatasets.Sentiment.fileSeparator,
                 allowQuoting: TestDatasets.Sentiment.allowQuoting);
@@ -248,7 +247,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Load the Iris dataset.
             var data = mlContext.Data.LoadFromTextFile<Iris>(
-                GetDataPath(TestDatasets.iris.trainFilename),
+                TestCommon.GetDataPath(DataDir, TestDatasets.iris.trainFilename),
                 hasHeader: TestDatasets.iris.fileHasHeader,
                 separatorChar: TestDatasets.iris.fileSeparator);
 
@@ -278,7 +277,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1);
 
             // Get the dataset.
-            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(TestCommon.GetDataPath(DataDir, TestDatasets.housing.trainFilename), hasHeader: true);
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
@@ -321,7 +320,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1);
 
             // Load the Adult dataset.
-            var data = mlContext.Data.LoadFromTextFile<Adult>(GetDataPath(TestDatasets.adult.trainFilename),
+            var data = mlContext.Data.LoadFromTextFile<Adult>(TestCommon.GetDataPath(DataDir, TestDatasets.adult.trainFilename),
                 hasHeader: TestDatasets.adult.fileHasHeader,
                 separatorChar: TestDatasets.adult.fileSeparator);
 
@@ -378,7 +377,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            var data = mlContext.Data.LoadFromTextFile<Iris>(GetDataPath(TestDatasets.iris.trainFilename),
+            var data = mlContext.Data.LoadFromTextFile<Iris>(TestCommon.GetDataPath(DataDir, TestDatasets.iris.trainFilename),
                 hasHeader: TestDatasets.iris.fileHasHeader,
                 separatorChar: TestDatasets.iris.fileSeparator);
 
