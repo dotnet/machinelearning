@@ -43,18 +43,26 @@ jobs:
       displayName: Update package version
     - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet msbuild -restore -v:normal $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj /p:ReferenceTypeForTestFramework="Nuget" /p:Configuration=$(_configuration) /p:TargetArchitecture=${{ parameters.architecture }}
       displayName: Build Nightly Build Project with latest package versions
-    - bash: LD_DEBUG=libs
+    - bash: export LD_DEBUG=libs
       displayName: test steps1, enable ld_debug
+      continueOnError: true
+      workingDirectory: $(Build.SourcesDirectory)
+    - bash: printenv
+      displayName: test, print system variable
       continueOnError: true
       workingDirectory: $(Build.SourcesDirectory)
     - bash: ls
       displayName: test steps2, list every file in nightly build run folder
       continueOnError: true
-      workingDirectory: $(Build.SourcesDirectory)/bin/AnyCPU.Debug/Microsoft.ML.NightlyBuild.Tests/netcoreapp2.1/
-    - script: ${{ parameters.buildScript }} -$(_configuration) -runnightlybuildtests
-      displayName: Run Nightly Build Tests
+      workingDirectory: $(Build.SourcesDirectory)/bin/AnyCPU.$(_configuration)/Microsoft.ML.NightlyBuild.Tests/netcoreapp2.1/
+    - bash: ls
+      displayName: test steps3, list every file functional test run folder
+      continueOnError: true
+      workingDirectory: $(Build.SourcesDirectory)/bin/AnyCPU.$(_configuration)/Microsoft.ML.Functional.Tests/netcoreapp2.1/
     - script: ${{ parameters.buildScript }} -$(_configuration) -runtests -coverage=${{ parameters.codeCoverage }}
       displayName: Run Tests, only for test
+    - script: ${{ parameters.buildScript }} -$(_configuration) -runnightlybuildtests
+      displayName: Run Nightly Build Tests
       condition: succeeded()
     - task: PublishTestResults@2
       displayName: Publish Test Results

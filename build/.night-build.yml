@@ -55,12 +55,12 @@ jobs:
     pool:
       name: Hosted Ubuntu 1604
 
-- template: /build/nightly-build/job-template.yml
-  parameters:
-    name: MacOS_x64_NetCoreApp21
-    buildScript: ./build.sh
-    pool:
-      name: Hosted macOS High Sierra
+# - template: /build/nightly-build/job-template.yml
+#   parameters:
+#     name: MacOS_x64_NetCoreApp21
+#     buildScript: ./build.sh
+#     pool:
+#       name: Hosted macOS High Sierra
 
 # - template: /build/nightly-build/job-template.yml
 #   parameters:
