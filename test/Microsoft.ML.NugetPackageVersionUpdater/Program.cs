@@ -11,7 +11,6 @@ namespace Microsoft.ML.NugetPackageVersionUpdater
 {
     class Program
     {
-        //private const string getLatestVersionBatFileName = "get-latest-package-version.bat";
         private const string tempVersionsFile = "latest_versions.txt";
         private const string targetPropsFiles = "../NightlyBuildDependency.props;../TestFrameworkDependency.props";
         private const string packageNamespace = "Microsoft.ML";
@@ -26,13 +25,6 @@ namespace Microsoft.ML.NugetPackageVersionUpdater
         private static IDictionary<string, string> GetLatestPackageVersions()
         {
             Dictionary<string, string> packageVersions = new Dictionary<string, string>();
-
-            //Process p = new Process();
-            //p.StartInfo.UseShellExecute = false;
-            //p.StartInfo.RedirectStandardOutput = true;
-            //p.StartInfo.FileName = getLatestVersionBatFileName;
-            //p.Start();
-            //p.WaitForExit();
 
             using (var file = new StreamReader(tempVersionsFile))
             {

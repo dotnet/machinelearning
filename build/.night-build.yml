@@ -8,9 +8,9 @@ pr: none
 # no CI builds
 trigger: none
 
-# scheduled trigger
+# scheduled trigger, runs at UTC 8:00 every day which is midnight of GMT-8 
 schedules:
-- cron: "0 * * * *"
+- cron: "0 8 * * *"
   displayName: Nightly Build at midnight
   branches:
     include:
