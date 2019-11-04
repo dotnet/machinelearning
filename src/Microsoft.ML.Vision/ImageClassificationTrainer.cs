@@ -393,7 +393,7 @@ namespace Microsoft.ML.Vision
             public Action<ImageClassificationMetrics> MetricsCallback = null;
 
             /// <summary>
-            /// Indicates the path where the image bottleneck cache files are saved, default is a new temporary directory
+            /// Indicates the path where the image bottleneck cache files and trained model are saved, default is a new temporary directory
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the path where the models get downloaded to and cache files saved, default is a new temporary directory.", SortOrder = 15)]
             public string WorkspacePath = null;
