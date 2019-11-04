@@ -40,7 +40,7 @@
       "description": "MsBuild logging options.",
       "valueType": "passThrough",
       "values": [],
-      "defaultValue": "/flp:v=detailed"
+      "defaultValue": "/flp:v=minimal"
     },
     "MsBuildWarning": {
       "description": "MsBuild warning logging.",

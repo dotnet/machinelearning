@@ -35,32 +35,12 @@ jobs:
       displayName: Builds
     - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet restore $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj
       displayName: Restore nightly build project
-    - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet list $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj package --source https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json --outdated
-      displayName: List latest package versions on screen
     - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet list $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj package --source https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json --outdated > $(Build.SourcesDirectory)/test/Microsoft.ML.NugetPackageVersionUpdater/latest_versions.txt
       displayName: List latest package versions
     - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet run --project $(Build.SourcesDirectory)/test/Microsoft.ML.NugetPackageVersionUpdater/Microsoft.ML.NugetPackageVersionUpdater.csproj
       displayName: Update package version
     - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet msbuild -restore -v:normal $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj /p:ReferenceTypeForTestFramework="Nuget" /p:Configuration=$(_configuration) /p:TargetArchitecture=${{ parameters.architecture }}
       displayName: Build Nightly Build Project with latest package versions
-    - bash: export LD_DEBUG=libs
-      displayName: test steps1, enable ld_debug
-      continueOnError: true
-      workingDirectory: $(Build.SourcesDirectory)
-    - bash: printenv
-      displayName: test, print system variable
-      continueOnError: true
-      workingDirectory: $(Build.SourcesDirectory)
-    - bash: ls
-      displayName: test steps2, list every file in nightly build run folder
-      continueOnError: true
-      workingDirectory: $(Build.SourcesDirectory)/bin/AnyCPU.$(_configuration)/Microsoft.ML.NightlyBuild.Tests/netcoreapp2.1/
-    - bash: ls
-      displayName: test steps3, list every file functional test run folder
-      continueOnError: true
-      workingDirectory: $(Build.SourcesDirectory)/bin/AnyCPU.$(_configuration)/Microsoft.ML.Functional.Tests/netcoreapp2.1/
-    - script: ${{ parameters.buildScript }} -$(_configuration) -runtests -coverage=${{ parameters.codeCoverage }}
-      displayName: Run Tests, only for test
     - script: ${{ parameters.buildScript }} -$(_configuration) -runnightlybuildtests
       displayName: Run Nightly Build Tests
       condition: succeeded()
