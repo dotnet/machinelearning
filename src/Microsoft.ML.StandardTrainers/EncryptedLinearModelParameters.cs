@@ -88,7 +88,7 @@ namespace Microsoft.ML.SEAL
 
         private CKKSEncoder _ckksEncoder;
 
-        private readonly DataViewType _inputType;
+        private DataViewType _inputType;
 
         bool ICanSavePfa.CanSavePfa => true;
 
@@ -138,7 +138,7 @@ namespace Microsoft.ML.SEAL
             for (int i = 0; i < Weight.Length; i += slotCount)
             {
                 var tmpWeightValues = new List<double>(slotCount);
-                for (int j = (i * (int)_ckksEncoder.SlotCount); j < slotCount; ++j) tmpWeightValues.Add(Weight.GetItemOrDefault(j));
+                for (int j = 0; (j < slotCount) && ((i + j) < Weight.Length); ++j) tmpWeightValues.Add(Weight.GetItemOrDefault(i + j));
                 var plaintext = new Plaintext();
                 _ckksEncoder.Encode(tmpWeightValues, scale, plaintext);
                 _encodedWeights.Add(plaintext);
@@ -319,14 +319,14 @@ namespace Microsoft.ML.SEAL
             }
         }
 
-        DataViewType IValueMapper.InputType
+        DataViewType IValueMapperTwoToOne.InputType
         {
             get { return _inputType; }
         }
 
-        DataViewType IValueMapper.OutputType
+        DataViewType IValueMapperTwoToOne.OutputType
         {
-            get { return new CiphertextDataViewType(); }
+            get { return new CipherGaloisKeysDataViewType(); }
         }
 
         ValueMapperTwoToOne<TIn, TKey, TOut> IValueMapperTwoToOne.GetMapper<TIn, TKey, TOut>()
@@ -433,11 +433,6 @@ namespace Microsoft.ML.SEAL
                 };
             return (ValueMapper<TSrc, VBuffer<float>>)(Delegate)del;
         }
-
-        ValueMapper<TSrc, TDst> IValueMapper.GetMapper<TSrc, TDst>()
-        {
-            throw new NotImplementedException();
-        }
     }
 
     /// <summary>
@@ -447,10 +442,10 @@ namespace Microsoft.ML.SEAL
         ICanGetSummaryInKeyValuePairs,
         IParameterMixer<float>
     {
-        internal const string LoaderSignature = "Linear2CExec";
-        internal const string RegistrationName = "LinearBinaryPredictor";
+        internal const string LoaderSignature = "ELinear2CExec";
+        internal const string RegistrationName = "ELinearBinaryPredictor";
 
-        private const string ModelStatsSubModelFilename = "ModelStats";
+        private const string ModelStatsSubModelFilename = "EModelStats";
         public readonly ModelStatisticsBase Statistics;
 
         private static VersionInfo GetVersionInfo()

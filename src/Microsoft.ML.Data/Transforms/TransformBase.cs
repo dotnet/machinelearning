@@ -738,6 +738,7 @@ namespace Microsoft.ML.Data
 
         public sealed override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
+            System.Console.WriteLine("OneToOneTransformBase.GetRowCursorSet");
             Host.CheckValueOrNull(rand);
 
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);

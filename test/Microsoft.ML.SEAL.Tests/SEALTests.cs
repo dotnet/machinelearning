@@ -154,7 +154,7 @@ namespace Microsoft.ML.Tests.SEAL
             // Step 2: Create a binary classifier.
             // We set the "Label" column as the label of the dataset, and the "Features" column as the features column.
             var esdcaPipeline = encryptPipeline.Append(mlContext.BinaryClassification.Trainers.EncryptedSdcaLogisticRegression(polyModulusDegree: polyModDegree,
-                coeffModuli: coeffModuli, scale: scale, labelColumnName: "Label", featureColumnName: "Ciphertext", l2Regularization: 0.001f));
+                coeffModuli: coeffModuli, scale: scale, encryptedFeatureColumnName: "Ciphertext", labelColumnName: "Label", featureColumnName: "Features", l2Regularization: 0.001f));
 
             var decryptPipeline = esdcaPipeline.Append(encryptPipeline.Append(ML.Transforms.EncryptFeatures(false,
                 scale,
@@ -165,6 +165,7 @@ namespace Microsoft.ML.Tests.SEAL
                 "Label")));
 
             // Step 3: Train the pipeline created.
+            System.Console.WriteLine("\n\nTraining encrypted pipeline");
             var encryptedModel = decryptPipeline.Fit(data);
 
             // Step 4: Make prediction and evaluate its quality (on training set).
@@ -172,12 +173,20 @@ namespace Microsoft.ML.Tests.SEAL
             var encryptedPrediction = encryptedModel.Transform(data);
             var rawUnencryptedPrediction = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.CalibratedBinaryClassifierOutput>(unencryptedPrediction, false);
             var rawEncryptedPrediction = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.CalibratedBinaryClassifierOutput>(encryptedPrediction, false);
+
+            foreach (var raw in rawEncryptedPrediction)
+            {
+                Assert.Equal(0, raw.Score);
+            }
+            
+            /*
             var bothPredictions = rawUnencryptedPrediction.Zip(rawEncryptedPrediction, (u, e) => new { unencrypted = u, encrypted = e });
 
             foreach (var rawPrediction in bothPredictions)
             {
                 Assert.Equal(rawPrediction.unencrypted, rawPrediction.encrypted);
             }
+            */
         }
     }
 }

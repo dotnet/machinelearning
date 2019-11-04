@@ -516,6 +516,7 @@ namespace Microsoft.ML.Data
 
             private Delegate[] CreateGetters(DataViewRow input, bool[] active)
             {
+                System.Console.WriteLine("CalibratedRowMapper.CreateGetters");
                 Contracts.Assert(Utils.Size(active) == 2);
                 Contracts.Assert(_parent._distMapper != null);
 
@@ -572,6 +573,7 @@ namespace Microsoft.ML.Data
 
             DataViewRow ISchemaBoundRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
+                System.Console.WriteLine("SchemaBindableBinaryPredictorWrapper.ISchemaBoundRowMapper.GetRow");
                 Contracts.AssertValue(input);
                 var active = Utils.BuildArray(OutputSchema.Count, activeColumns);
                 var getters = CreateGetters(input, active);

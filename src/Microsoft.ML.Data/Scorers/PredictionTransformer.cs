@@ -145,7 +145,9 @@ namespace Microsoft.ML.Data
         /// <returns>The transformed <see cref="IDataView"/></returns>
         public IDataView Transform(IDataView input)
         {
+            System.Console.WriteLine("PredictionTransformerBase.Transform");
             Host.CheckValue(input, nameof(input));
+            System.Console.WriteLine(Scorer);
             return Scorer.ApplyToData(Host, input);
         }
 
@@ -219,6 +221,7 @@ namespace Microsoft.ML.Data
             else
                 FeatureColumnType = trainSchema[col].Type;
 
+            System.Console.WriteLine("SingleFeaturePredictionTransformerBase");
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, ModelAsPredictor);
         }
 
@@ -409,6 +412,7 @@ namespace Microsoft.ML.Data
 
         private void SetScorer()
         {
+            System.Console.WriteLine("BinaryPredictionTransformer.SetScorer");
             var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumnName);
             var args = new BinaryClassifierScorer.Arguments { Threshold = Threshold, ThresholdColumn = ThresholdColumn };
             Scorer = new BinaryClassifierScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);

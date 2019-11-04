@@ -67,8 +67,11 @@ namespace Microsoft.ML.Data
     /// indicated ColumType).
     /// </summary>
     [BestFriend]
-    internal interface IValueMapperTwoToOne : IValueMapper
+    internal interface IValueMapperTwoToOne
     {
+        DataViewType InputType { get; }
+        DataViewType OutputType { get; }
+
         /// <summary>
         /// Get a delegate used for mapping from input to output values. Note that the delegate
         /// should only be used on a single thread - it should NOT be assumed to be safe for concurrency.

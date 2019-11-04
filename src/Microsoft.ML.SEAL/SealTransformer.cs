@@ -305,11 +305,7 @@ namespace Microsoft.ML.SEAL
 
         SchemaShape IEstimator<SealTransformer>.GetOutputSchema(SchemaShape inputSchema)
         {
-            var result = inputSchema.ToDictionary(x => x.Name);
-            if (_encrypt) result[_outputColumnName] = new SchemaShape.Column(_outputColumnName, SchemaShape.Column.VectorKind.Scalar, new CiphertextDataViewType(), false);
-            else result[_outputColumnName] = new SchemaShape.Column(_outputColumnName, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Double, false);
-            SchemaShape outputShape = new SchemaShape(result.Values);
-            return outputShape;
+            return inputSchema;
         }
 
         /// <summary>

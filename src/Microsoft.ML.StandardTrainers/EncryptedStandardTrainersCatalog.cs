@@ -19,6 +19,7 @@ namespace Microsoft.ML.SEAL
         /// <param name="polyModulusDegree">The value of the PolyModulusDegree encryption parameter.</param>
         /// <param name="coeffModuli">The coefficient moduli.</param>
         /// <param name="scale">Scaling parameter defining encoding precision.</param>
+        /// <param name="encryptedFeatureColumnName">The name of the encrypted feature column. The column data must be <see cref="T:System.Tuple&lt;Ciphertext[], GaloisKeys&gt;"/>.</param>
         /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Single"/>.</param>
         /// <param name="featureColumnName">The name of the feature column. The column data must be a known-sized vector of <see cref="System.Single"/>.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
@@ -36,6 +37,7 @@ namespace Microsoft.ML.SEAL
                 ulong polyModulusDegree,
                 IEnumerable<SmallModulus> coeffModuli,
                 double scale,
+                string encryptedFeatureColumnName,
                 string labelColumnName = DefaultColumnNames.Label,
                 string featureColumnName = DefaultColumnNames.Features,
                 string exampleWeightColumnName = null,
@@ -45,7 +47,7 @@ namespace Microsoft.ML.SEAL
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new EncryptedSdcaLogisticRegressionBinaryTrainer(env, polyModulusDegree, coeffModuli, scale, labelColumnName, featureColumnName, exampleWeightColumnName, l2Regularization, l1Regularization, maximumNumberOfIterations);
+            return new EncryptedSdcaLogisticRegressionBinaryTrainer(env, polyModulusDegree, coeffModuli, scale, encryptedFeatureColumnName, labelColumnName, featureColumnName, exampleWeightColumnName, l2Regularization, l1Regularization, maximumNumberOfIterations);
         }
 
         /// <summary>

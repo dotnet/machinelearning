@@ -300,6 +300,7 @@ namespace Microsoft.ML.Trainers
 
         ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
+            System.Console.WriteLine("LinearModelParameters.IValueMapper.GetMapper");
             Contracts.Check(typeof(TIn) == typeof(VBuffer<float>));
             Contracts.Check(typeof(TOut) == typeof(float));
 

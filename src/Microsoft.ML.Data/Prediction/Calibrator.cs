@@ -317,11 +317,13 @@ namespace Microsoft.ML.Calibrators
 
         ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
+            System.Console.WriteLine("Calibrator.IValueMapper.GetMapper");
             return _mapper.GetMapper<TIn, TOut>();
         }
 
         ValueMapper<TIn, TOut, TDist> IValueMapperDist.GetMapper<TIn, TOut, TDist>()
         {
+            System.Console.WriteLine("Calibrator.IValueMapperDist.GetMapper");
             Host.Check(typeof(TOut) == typeof(float));
             Host.Check(typeof(TDist) == typeof(float));
             var map = ((IValueMapper)this).GetMapper<TIn, float>();
@@ -653,6 +655,7 @@ namespace Microsoft.ML.Calibrators
 
             DataViewRow ISchemaBoundRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
+                System.Console.WriteLine("Bound.ISchemaBoundRowMapper.GetRow");
                 var predictorRow = _predictor.GetRow(input, activeColumns.Count() > 0 ? OutputSchema : Enumerable.Empty<DataViewSchema.Column>());
                 var getters = new Delegate[OutputSchema.Count];
 

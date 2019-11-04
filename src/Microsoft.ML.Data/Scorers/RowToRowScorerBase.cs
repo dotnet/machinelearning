@@ -137,6 +137,7 @@ namespace Microsoft.ML.Data
 
         public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
+            System.Console.WriteLine("RowToRowScorerBase.GetRowCursorSet");
             Host.CheckValueOrNull(rand);
 
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
@@ -160,6 +161,7 @@ namespace Microsoft.ML.Data
 
         protected override Delegate[] CreateGetters(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns, out Action disp)
         {
+            System.Console.WriteLine("RowToRowScorerBase.CreateGetters");
             var bindings = GetBindings();
             IEnumerable<DataViewSchema.Column> inputColumns;
             GetActive(bindings, activeColumns, out inputColumns, out IEnumerable<DataViewSchema.Column> activeMapperColumns);
@@ -236,6 +238,7 @@ namespace Microsoft.ML.Data
             public Cursor(IChannelProvider provider, RowToRowScorerBase parent, DataViewRowCursor input, bool[] active, IEnumerable<DataViewSchema.Column> activeMapperColumns)
                 : base(provider, input)
             {
+                System.Console.WriteLine("Cursor.Cursor");
                 Ch.AssertValue(parent);
                 Ch.AssertValue(active);
                 Ch.AssertValue(activeMapperColumns);
