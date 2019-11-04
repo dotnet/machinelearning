@@ -21,7 +21,7 @@ namespace Microsoft.Extensions.ML
         /// The <see cref="IServiceCollection "/> to add services to.
         /// </param>
         /// <param name="implementationFactory">
-        /// The factory that creates the service.
+        /// The factory that creates the <see cref="PredictionEnginePoolBuilder{TData, TPrediction}"/>.
         /// </param>
         /// <returns>
         /// The <see cref="PredictionEnginePoolBuilder{TData, TPrediction}"/> that was added to the collection.
@@ -58,7 +58,7 @@ namespace Microsoft.Extensions.ML
             return new PredictionEnginePoolBuilder<TData, TPrediction>(services);
         }
 
-        private static IServiceCollection AddPrerequisiteServices(this IServiceCollection services)
+        public static IServiceCollection AddPrerequisiteServices(this IServiceCollection services)
         {
             services
                 .AddLogging()
