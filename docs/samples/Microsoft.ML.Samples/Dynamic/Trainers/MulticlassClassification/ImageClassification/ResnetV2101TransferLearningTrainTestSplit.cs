@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Dnn;
+using Microsoft.ML.Vision;
 using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Samples.Dynamic
@@ -47,8 +47,8 @@ namespace Samples.Dynamic
 
                 shuffledFullImagesDataset = mlContext.Transforms.Conversion
                         .MapValueToKey("Label")
-                    .Append(mlContext.Transforms.LoadImages("Image",
-                                fullImagesetFolderPath, false, "ImagePath"))
+                    .Append(mlContext.Transforms.LoadRawImageBytes("Image",
+                                fullImagesetFolderPath, "ImagePath"))
                     .Fit(shuffledFullImagesDataset)
                     .Transform(shuffledFullImagesDataset);
 

@@ -10,7 +10,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using TestNamespace.Model.DataModels;
+using TestNamespace.Model;
 
 namespace TestNamespace.ConsoleApp
 {
@@ -84,6 +84,7 @@ namespace TestNamespace.ConsoleApp
             var metrics = mlContext.BinaryClassification.EvaluateNonCalibrated(predictions, "Label", "Score");
             PrintBinaryClassificationMetrics(metrics);
         }
+
         private static void SaveModel(MLContext mlContext, ITransformer mlModel, string modelRelativePath, DataViewSchema modelInputSchema)
         {
             // Save/persist the trained model to a .ZIP file

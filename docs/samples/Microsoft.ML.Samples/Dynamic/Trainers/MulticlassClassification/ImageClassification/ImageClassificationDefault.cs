@@ -29,6 +29,7 @@ namespace Samples.Dynamic
             //Download the image set and unzip
             string finalImagesFolderName = DownloadImageSet(
                 imagesDownloadFolderPath);
+
             string fullImagesetFolderPath = Path.Combine(
                 imagesDownloadFolderPath, finalImagesFolderName);
 
@@ -36,6 +37,7 @@ namespace Samples.Dynamic
             {
 
                 MLContext mlContext = new MLContext(seed: 1);
+                mlContext.Log += MlContext_Log;
 
                 //Load all the original images info
                 IEnumerable<ImageData> images = LoadImagesFromDirectory(
@@ -46,8 +48,8 @@ namespace Samples.Dynamic
 
                 shuffledFullImagesDataset = mlContext.Transforms.Conversion
                         .MapValueToKey("Label")
-                    .Append(mlContext.Transforms.LoadImages("Image",
-                                fullImagesetFolderPath, false, "ImagePath"))
+                    .Append(mlContext.Transforms.LoadRawImageBytes("Image",
+                                fullImagesetFolderPath, "ImagePath"))
                     .Fit(shuffledFullImagesDataset)
                     .Transform(shuffledFullImagesDataset);
 
@@ -60,7 +62,7 @@ namespace Samples.Dynamic
                 IDataView testDataset = trainTestData.TestSet;
 
                 var pipeline = mlContext.MulticlassClassification.Trainers
-                        .ImageClassification(featureColumnName:"Image", validationSet:testDataset)
+                        .ImageClassification(featureColumnName:"Image")
                     .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel",
                         inputColumnName: "PredictedLabel"));
 
@@ -107,6 +109,14 @@ namespace Samples.Dynamic
 
             Console.WriteLine("Press any key to finish");
             Console.ReadKey();
+        }
+
+        private static void MlContext_Log(object sender, LoggingEventArgs e)
+        {
+            if (e.Message.StartsWith("[Source=ImageClassificationTrainer;"))
+            {
+                Console.WriteLine(e.Message);
+            }
         }
 
         private static void TrySinglePrediction(string imagesForPredictions,

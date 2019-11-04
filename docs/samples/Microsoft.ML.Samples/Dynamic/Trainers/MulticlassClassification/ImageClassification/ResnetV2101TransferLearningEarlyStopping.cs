@@ -4,14 +4,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.ML;
-using Microsoft.ML.Transforms;
 using static Microsoft.ML.DataOperationsCatalog;
 using System.Linq;
 using Microsoft.ML.Data;
 using System.IO.Compression;
 using System.Threading;
 using System.Net;
-using Microsoft.ML.Dnn;
+using Microsoft.ML.Vision;
 
 namespace Samples.Dynamic
 {
@@ -59,7 +58,7 @@ namespace Samples.Dynamic
                 IDataView trainDataset = trainTestData.TrainSet;
                 IDataView testDataset = trainTestData.TestSet;
                 
-                var validationSet = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+                var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
                 .Fit(testDataset)
                 .Transform(testDataset);
 
@@ -79,7 +78,7 @@ namespace Samples.Dynamic
                     ValidationSet = validationSet
                 };
 
-                var pipeline = mlContext.Transforms.LoadImages("Image", fullImagesetFolderPath, false, "ImagePath") // false indicates we want the image as a VBuffer<byte>
+                var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
                     .Append(mlContext.MulticlassClassification.Trainers.ImageClassification(options));
 
                 Console.WriteLine("*** Training the image classification model with " +

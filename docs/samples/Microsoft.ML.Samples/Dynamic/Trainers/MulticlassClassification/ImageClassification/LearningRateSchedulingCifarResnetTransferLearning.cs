@@ -9,8 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Dnn;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Vision;
 
 namespace Samples.Dynamic
 {
@@ -49,8 +49,8 @@ namespace Samples.Dynamic
                 IDataView trainDataset = mlContext.Data.LoadFromEnumerable(train_images);
                 trainDataset = mlContext.Transforms.Conversion
                         .MapValueToKey("Label")
-                    .Append(mlContext.Transforms.LoadImages("Image",
-                                fullImagesetFolderPathTrain, false, "ImagePath"))
+                    .Append(mlContext.Transforms.LoadRawImageBytes("Image",
+                                fullImagesetFolderPathTrain, "ImagePath"))
                     .Fit(trainDataset)
                     .Transform(trainDataset);
 
@@ -60,8 +60,8 @@ namespace Samples.Dynamic
                 IDataView testDataset = mlContext.Data.LoadFromEnumerable(test_images);
                 testDataset = mlContext.Transforms.Conversion
                         .MapValueToKey("Label")
-                    .Append(mlContext.Transforms.LoadImages("Image",
-                                fullImagesetFolderPathTest, false, "ImagePath"))
+                    .Append(mlContext.Transforms.LoadRawImageBytes("Image",
+                                fullImagesetFolderPathTest, "ImagePath"))
                     .Fit(testDataset)
                     .Transform(testDataset);
 
