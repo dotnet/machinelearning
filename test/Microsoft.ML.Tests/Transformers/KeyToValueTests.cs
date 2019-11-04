@@ -6,6 +6,7 @@ using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
@@ -84,7 +85,7 @@ namespace Microsoft.ML.Tests.Transformers
             var dataLeft = ML.Transforms.SelectColumns(new[] { "ScalarString", "VectorString" }).Fit(data).Transform(data);
             var dataRight = ML.Transforms.SelectColumns(new[] { "ScalarString", "VectorString" }).Fit(data2Transformed).Transform(data2Transformed);
 
-            CheckSameSchemas(dataLeft.Schema, dataRight.Schema);
+            TestCommon.CheckSameSchemas(dataLeft.Schema, dataRight.Schema);
             CheckSameValues(dataLeft, dataRight);
             Done();
         }

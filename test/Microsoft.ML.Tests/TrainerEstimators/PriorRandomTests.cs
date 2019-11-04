@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators

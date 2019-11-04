@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
@@ -22,17 +23,35 @@ namespace Microsoft.ML.AutoML.Test
             foreach (var trainerName in trainerNames)
             {
                 var extension = TrainerExtensionCatalog.GetTrainerExtension(trainerName);
-                var sweepParams = extension.GetHyperparamSweepRanges();
-                Assert.NotNull(sweepParams);
-                foreach (var sweepParam in sweepParams)
+
+                IEnumerable<SweepableParam> sweepParams = null;
+                if (trainerName != TrainerName.ImageClassification)
                 {
-                    sweepParam.RawValue = 1;
+                    sweepParams = extension.GetHyperparamSweepRanges();
+                    Assert.NotNull(sweepParams);
+                    foreach (var sweepParam in sweepParams)
+                    {
+                        sweepParam.RawValue = 1;
+                    }
+
+                    var instance = extension.CreateInstance(context, sweepParams, columnInfo);
+                    Assert.NotNull(instance);
+                    var pipelineNode = extension.CreatePipelineNode(null, columnInfo);
+                    Assert.NotNull(pipelineNode);
                 }
-                var instance = extension.CreateInstance(context, sweepParams, columnInfo);
-                Assert.NotNull(instance);
-                var pipelineNode = extension.CreatePipelineNode(null, columnInfo);
-                Assert.NotNull(pipelineNode);
             }
+        }
+
+        [TensorFlowFact]
+        public void TrainerExtensionTensorFlowInstanceTests()
+        {
+            var context = new MLContext();
+            var columnInfo = new ColumnInformation();
+            var extension = TrainerExtensionCatalog.GetTrainerExtension(TrainerName.ImageClassification);
+            var instance = extension.CreateInstance(context, null, columnInfo);
+            Assert.NotNull(instance);
+            var pipelineNode = extension.CreatePipelineNode(null, columnInfo);
+            Assert.NotNull(pipelineNode);
         }
 
         [Fact]

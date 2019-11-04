@@ -8,6 +8,7 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using Microsoft.ML.Internal.Internallearn.Test;
+using Microsoft.ML.TestFrameworkCommon;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.TestFramework
@@ -20,28 +21,8 @@ namespace Microsoft.ML.TestFramework
         static BaseTestClass()
         {
             GlobalBase.AssemblyInit();
-            RootDir = GetRepoRoot();
+            RootDir = TestCommon.GetRepoRoot();
             DataDir = Path.Combine(RootDir, "test", "data");
-        }
-
-        private static string GetRepoRoot()
-        {
-#if NETFRAMEWORK
-            string directory = AppDomain.CurrentDomain.BaseDirectory;
-#else
-            string directory = AppContext.BaseDirectory;
-#endif
-
-            while (!Directory.Exists(Path.Combine(directory, ".git")) && directory != null)
-            {
-                directory = Directory.GetParent(directory).FullName;
-            }
-
-            if (directory == null)
-            {
-                return null;
-            }
-            return directory;
         }
 
         public BaseTestClass(ITestOutputHelper output)
@@ -105,38 +86,21 @@ namespace Microsoft.ML.TestFramework
             return Path.GetFullPath(Path.Combine(DataDir, subDir, name));
         }
 
-        protected void EnsureOutputDir(string subDir)
-        {
-            Directory.CreateDirectory(Path.Combine(OutDir, subDir));
-        }
         protected string GetOutputPath(string name)
         {
-            if (string.IsNullOrWhiteSpace(name))
-                return null;
-            return Path.Combine(OutDir, name);
+            return TestCommon.GetOutputPath(OutDir, name);
         }
         protected string GetOutputPath(string subDir, string name)
         {
-            if (string.IsNullOrWhiteSpace(subDir))
-                return GetOutputPath(name);
-            EnsureOutputDir(subDir);
-            if (string.IsNullOrWhiteSpace(name))
-                return null;
-            return Path.Combine(OutDir, subDir, name); // REVIEW: put the path in in braces in case the path has spaces
+            return TestCommon.GetOutputPath(OutDir, subDir, name);
         }
         protected string DeleteOutputPath(string subDir, string name)
         {
-            string path = GetOutputPath(subDir, name);
-            if (!string.IsNullOrWhiteSpace(path))
-                File.Delete(path);
-            return path;
+            return TestCommon.DeleteOutputPath(OutDir, subDir, name);
         }
         protected string DeleteOutputPath(string name)
         {
-            string path = GetOutputPath(name);
-            if (!string.IsNullOrWhiteSpace(path))
-                File.Delete(path);
-            return path;
+            return TestCommon.DeleteOutputPath(OutDir, name);
         }
     }
 }

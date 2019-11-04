@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <Compile Include="..\Microsoft.ML.Samples\Program.cs" Link="Program.cs" />
-    <Compile Include="..\Microsoft.ML.Samples\Dynamic\ImageClassification\*.cs">
+    <Compile Include="..\Microsoft.ML.Samples\Dynamic\Trainers\MulticlassClassification\ImageClassification\*.cs">
       <Link>Dynamic\ImageClassification\%(FileName)</Link>
     </Compile>
     <Compile Include="..\Microsoft.ML.Samples\Dynamic\TensorFlow\*.cs">
@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Microsoft.ML.Dnn\Microsoft.ML.Dnn.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.Vision\Microsoft.ML.Vision.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.SamplesUtils\Microsoft.ML.SamplesUtils.csproj" />

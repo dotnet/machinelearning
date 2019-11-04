@@ -2,7 +2,7 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.props))\Directory.Build.props" />
 
   <ItemGroup>
-    <Project Include="$(MSBuildThisFileDirectory)**\*.csproj" />
+    <Project Include="$(MSBuildThisFileDirectory)**\*.csproj" Exclude="$(MSBuildThisFileDirectory)Microsoft.ML.NightlyBuild.Tests\Microsoft.ML.NightlyBuild.Tests.csproj" />
     <Project Include="$(MSBuildThisFileDirectory)**\*.fsproj" />
   </ItemGroup>
 

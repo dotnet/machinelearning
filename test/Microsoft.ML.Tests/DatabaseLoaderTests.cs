@@ -10,6 +10,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -53,6 +54,7 @@ namespace Microsoft.ML.Tests
 
             IEstimator<ITransformer> pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
+                .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.MulticlassClassification.Trainers.LightGbm())
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
@@ -99,6 +101,7 @@ namespace Microsoft.ML.Tests
 
             IEstimator<ITransformer> pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
+                .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.MulticlassClassification.Trainers.LightGbm())
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
@@ -145,6 +148,7 @@ namespace Microsoft.ML.Tests
 
             IEstimator<ITransformer> pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.Transforms.Concatenate("Features", "SepalInfo", "PetalInfo"))
+                .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.MulticlassClassification.Trainers.LightGbm())
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
@@ -187,6 +191,7 @@ namespace Microsoft.ML.Tests
 
             IEstimator<ITransformer> pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.Transforms.Concatenate("Features", "SepalInfo", "PetalInfo"))
+                .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.MulticlassClassification.Trainers.LightGbm())
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
@@ -229,6 +234,7 @@ namespace Microsoft.ML.Tests
 
             var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
+                .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy())
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
@@ -294,6 +300,7 @@ namespace Microsoft.ML.Tests
 
         public class IrisVectorData
         {
+            [LoadColumn(0)]
             public int Label;
 
             [LoadColumn(1, 2)]
@@ -307,6 +314,7 @@ namespace Microsoft.ML.Tests
 
         public class IrisVectorDataWithLoadColumnName
         {
+            [LoadColumnName("Label")]
             public int Label;
 
             [LoadColumnName("SepalLength", "SepalWidth")]

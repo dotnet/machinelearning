@@ -1,0 +1,8 @@
+<Project>
+  <ItemGroup Condition="'$(ReferenceTypeForTestFramework)'=='' OR '$(ReferenceTypeForTestFramework)'=='Project'">
+    <ProjectReference Include="..\..\src\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(ReferenceTypeForTestFramework)'=='NuGet'">
+    <PackageReference Include="Microsoft.ML" Version="1.4.0-preview3-28230-4" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,26 @@
+﻿//*****************************************************************************************
+//*                                                                                       *
+//* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *
+//*                                                                                       *
+//*****************************************************************************************
+
+using Microsoft.ML.Data;
+
+namespace TestNamespace.Model
+{
+    public class ModelInput
+    {
+        [ColumnName("Label"), LoadColumn(0)]
+        public string Label { get; set; }
+
+
+        [ColumnName("userId"), LoadColumn(1)]
+        public string UserId { get; set; }
+
+
+        [ColumnName("movieId"), LoadColumn(2)]
+        public string MovieId { get; set; }
+
+
+    }
+}
