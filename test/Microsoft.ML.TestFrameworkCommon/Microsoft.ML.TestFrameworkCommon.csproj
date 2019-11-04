@@ -1,16 +1,3 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-<<<<<<< HEAD
   <Import Project="..\TestFrameworkDependency.props" />
-=======
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.ML.Ensemble\Microsoft.ML.Ensemble.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.ML.EntryPoints\Microsoft.ML.EntryPoints.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.ML.FastTree\Microsoft.ML.FastTree.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.ML.KMeansClustering\Microsoft.ML.KMeansClustering.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.ML.PCA\Microsoft.ML.PCA.csproj" />
-  </ItemGroup>
-
->>>>>>> cc0b7869d50df819783f30b3f7da4d5c3725bb8f
 </Project>

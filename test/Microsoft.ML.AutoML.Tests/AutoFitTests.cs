@@ -7,12 +7,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
-using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFrameworkCommon;
-<<<<<<< HEAD
-=======
 using Microsoft.ML.TestFramework.Attributes;
->>>>>>> cc0b7869d50df819783f30b3f7da4d5c3725bb8f
 using Xunit;
 using static Microsoft.ML.DataOperationsCatalog;
 

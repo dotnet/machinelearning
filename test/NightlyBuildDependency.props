@@ -1,7 +1,6 @@
 <Project>
   <ItemGroup>
     <PackageReference Include="Microsoft.ML" Version="1.4.0-preview3-28230-4" />
-    <!-- <PackageReference Include="Microsoft.ML.DataView" Version="1.4.0-preview3-28230-4" /> -->
     <PackageReference Include="Microsoft.ML.Ensemble" Version="0.16.0-preview3-28230-4" />
     <PackageReference Include="Microsoft.ML.EntryPoints" Version="0.16.0-preview3-28230-4" />
     <PackageReference Include="Microsoft.ML.FastTree" Version="1.4.0-preview3-28230-4" />
