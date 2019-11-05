@@ -25,7 +25,6 @@
     <ItemGroup>
       <_contractReferencePath Include="@(ReferencePath)" Condition="'%(FileName)' == '$(ContractName)'" />
       <_allReferenceDirectories Include="%(ReferencePath.RootDir)%(ReferencePath.Directory)" />
-      <_contractReferencePath Include="@(ReferencePath)" Condition="'%(FileName)' == '$(ContractName)'" />
       <_contractReferencePath DependencyPaths="@(_allReferenceDirectories)" />
     </ItemGroup>
     <Error Condition="'@(_contractReferencePath)' == ''" Text="Could not locate $(ContractName)" />
