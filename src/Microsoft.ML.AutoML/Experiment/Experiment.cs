@@ -62,7 +62,9 @@ namespace Microsoft.ML.AutoML
 
                 // get next pipeline
                 var getPiplelineStopwatch = Stopwatch.StartNew();
-                var pipeline = PipelineSuggester.GetNextInferredPipeline(_context, _history, _datasetColumnInfo, _task, _optimizingMetricInfo.IsMaximizing, _experimentSettings.CacheBeforeTrainer, _trainerWhitelist);
+                var pipeline = PipelineSuggester.GetNextInferredPipeline(_context, _history, _datasetColumnInfo, _task,
+                    _optimizingMetricInfo.IsMaximizing, _experimentSettings.CacheBeforeTrainer, _trainerWhitelist);
+
                 var pipelineInferenceTimeInSeconds = getPiplelineStopwatch.Elapsed.TotalSeconds;
 
                 // break if no candidates returned, means no valid pipeline available
@@ -75,6 +77,7 @@ namespace Microsoft.ML.AutoML
                 _logger.Trace($"Evaluating pipeline {pipeline.ToString()}");
                 (SuggestedPipelineRunDetail suggestedPipelineRunDetail, TRunDetail runDetail)
                     = _runner.Run(pipeline, _modelDirectory, _history.Count + 1);
+
                 _history.Add(suggestedPipelineRunDetail);
                 WriteIterationLog(pipeline, suggestedPipelineRunDetail, iterationStopwatch);
 

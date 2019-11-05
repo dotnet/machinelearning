@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Trainers;
 using Xunit;
 
