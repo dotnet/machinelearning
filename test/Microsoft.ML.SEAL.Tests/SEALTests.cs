@@ -156,28 +156,36 @@ namespace Microsoft.ML.Tests.SEAL
             var esdcaPipeline = encryptPipeline.Append(mlContext.BinaryClassification.Trainers.EncryptedSdcaLogisticRegression(polyModulusDegree: polyModDegree,
                 coeffModuli: coeffModuli, scale: scale, encryptedFeatureColumnName: "Ciphertext", labelColumnName: "Label", featureColumnName: "Features", l2Regularization: 0.001f));
 
-            var decryptPipeline = esdcaPipeline.Append(encryptPipeline.Append(ML.Transforms.EncryptFeatures(false,
+            var decryptPipeline = esdcaPipeline.Append(ML.Transforms.EncryptFeatures(false,
                 scale,
                 polyModDegree,
                 "secret.key",
                 coeffModuli,
                 "Plaintext",
-                "Label")));
+                "Label"));
 
             // Step 3: Train the pipeline created.
-            System.Console.WriteLine("\n\nTraining encrypted pipeline");
+            System.Console.WriteLine("\n\nTraining encrypted pipeline\n");
             var encryptedModel = decryptPipeline.Fit(data);
+            System.Console.WriteLine("\nCompleted training encrypted pipeline\n\n");
 
             // Step 4: Make prediction and evaluate its quality (on training set).
-            var unencryptedPrediction = unencryptedModel.Transform(data);
+            //var unencryptedPrediction = unencryptedModel.Transform(data);
+            System.Console.WriteLine("\n\nTransforming data\n");
             var encryptedPrediction = encryptedModel.Transform(data);
-            var rawUnencryptedPrediction = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.CalibratedBinaryClassifierOutput>(unencryptedPrediction, false);
-            var rawEncryptedPrediction = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.CalibratedBinaryClassifierOutput>(encryptedPrediction, false);
+            System.Console.WriteLine("\nCompleted transforming data\n\n");
+            //var rawUnencryptedPrediction = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.CalibratedBinaryClassifierOutput>(unencryptedPrediction, false);
+            //var rawEncryptedPrediction = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.CalibratedBinaryClassifierOutput>(encryptedPrediction, false);
+            var rawEncryptedPrediction = mlContext.Data.CreateEnumerable<TestClass>(encryptedPrediction, false);
 
+            System.Console.WriteLine("\n\nEnumerating data\n");
             foreach (var raw in rawEncryptedPrediction)
             {
+                System.Console.WriteLine("\nChecking score");
                 Assert.Equal(0, raw.Score);
+                System.Console.WriteLine("Checked score\n");
             }
+            System.Console.WriteLine("\nCompleted enumerating data\n\n");
             
             /*
             var bothPredictions = rawUnencryptedPrediction.Zip(rawEncryptedPrediction, (u, e) => new { unencrypted = u, encrypted = e });

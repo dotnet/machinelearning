@@ -74,7 +74,12 @@ namespace Microsoft.ML.Trainers
         /// Derived class can overload this function.
         /// For example, it could take an additional dataset to train with a separate validation set.
         /// </remarks>
-        public TTransformer Fit(IDataView input) => TrainTransformer(input);
+//        public TTransformer Fit(IDataView input) => TrainTransformer(input);
+        public TTransformer Fit(IDataView input)
+        {
+            System.Console.WriteLine("EncryptedSdcaLogisticRegressionBinaryTrainer.Fit -> TrainerEstimatorBase.Fit: TrainTransformer");
+            return TrainTransformer(input);
+        }
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
@@ -144,6 +149,7 @@ namespace Microsoft.ML.Trainers
         private protected TTransformer TrainTransformer(IDataView trainSet,
             IDataView validationSet = null, IPredictor initPredictor = null)
         {
+            System.Console.WriteLine("TrainerEstimatorBase.TrainTransformer");
             CheckInputSchema(SchemaShape.Create(trainSet.Schema));
             var trainRoleMapped = MakeRoles(trainSet);
             RoleMappedData validRoleMapped = null;
@@ -154,7 +160,10 @@ namespace Microsoft.ML.Trainers
                 validRoleMapped = MakeRoles(validationSet);
             }
 
+            System.Console.WriteLine("TrainerEstimatorBase.TrainTransformer: TrainModelCore");
             var pred = TrainModelCore(new TrainContext(trainRoleMapped, validRoleMapped, null, initPredictor));
+            System.Console.WriteLine("TrainerEstimatorBase.TrainTransformer: TrainModelCore results: " + pred);
+            System.Console.WriteLine("TrainerEstimatorBase.TrainTransformer: MakeTransformer");
             return MakeTransformer(pred, trainSet.Schema);
         }
 

@@ -210,6 +210,7 @@ namespace Microsoft.ML.Data
 
         private protected override IDataTransform ApplyToDataCore(IHostEnvironment env, IDataView newSource)
         {
+            System.Console.WriteLine("? -> BinaryClassifierScorer.ApplyToDataCore");
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(newSource, nameof(newSource));
 

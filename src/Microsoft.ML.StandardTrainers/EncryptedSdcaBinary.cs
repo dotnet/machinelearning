@@ -127,6 +127,7 @@ namespace Microsoft.ML.SEAL
 
         private protected override CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> CreatePredictor(VBuffer<float>[] weights, float[] bias)
         {
+            System.Console.WriteLine("SdcaTrainerBase.CreatePredictor -> EncryptedSdcaBinary.CreatePredictor");
             Host.CheckParam(Utils.Size(weights) == 1, nameof(weights));
             Host.CheckParam(Utils.Size(bias) == 1, nameof(bias));
             Host.CheckParam(weights[0].Length > 0, nameof(weights));
@@ -135,7 +136,6 @@ namespace Microsoft.ML.SEAL
             // below should be `in weights[0]`, but can't because of https://github.com/dotnet/roslyn/issues/29371
             VBufferUtils.CreateMaybeSparseCopy(weights[0], ref maybeSparseWeights,
                 Conversions.Instance.GetIsDefaultPredicate<float>(NumberDataViewType.Single));
-            System.Console.WriteLine("CreatePredictor");
 
             var linearModel = new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias[0]);
             var encryptedLinearModel = new EncryptedLinearBinaryModelParameters(Host, in maybeSparseWeights, bias[0], _polyModulusDegree, _coeffModuli, _scale);
