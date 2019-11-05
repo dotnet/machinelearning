@@ -1119,6 +1119,7 @@ namespace Microsoft.ML.Transforms
     /// ]]></format>
     /// </remarks>
     /// <seealso cref="ConversionsExtensionsCatalog.Hash(TransformsCatalog.ConversionTransforms, string, string, int, int)"/>
+    /// <seealso cref="ConversionsExtensionsCatalog.Hash(TransformsCatalog.ConversionTransforms, HashingEstimator.Options[])"/>
     public sealed class HashingEstimator : IEstimator<HashingTransformer>
     {
         internal const int NumBitsMin = 1;
