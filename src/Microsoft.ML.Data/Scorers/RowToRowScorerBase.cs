@@ -124,6 +124,7 @@ namespace Microsoft.ML.Data
 
         protected override DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
+            System.Console.WriteLine("? -> RowToRowScorerBase.GetRowCursorCore");
             Contracts.AssertValueOrNull(rand);
 
             var bindings = GetBindings();

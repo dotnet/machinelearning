@@ -64,6 +64,7 @@ namespace Microsoft.ML.Data
 
         public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
+            System.Console.WriteLine("? -> TransformBase.GetRowCursor");
             Host.CheckValueOrNull(rand);
 
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
@@ -82,6 +83,7 @@ namespace Microsoft.ML.Data
                 return curs;
             }
 
+            System.Console.WriteLine("TransformBase.GetRowCursor: GetRowCursorCore");
             return GetRowCursorCore(columnsNeeded, rng);
         }
 

@@ -33,7 +33,9 @@ namespace Microsoft.ML
 
         public IEnumerable<TDst> RunPipe(bool reuseRowObject)
         {
+            System.Console.WriteLine("? -> PipeEngine.RunPipe");
             var curCounter = _counter;
+            System.Console.WriteLine("PipeEngine.RunPipe: GetCursor");
             using (var cursor = _cursorablePipe.GetCursor())
             {
                 TDst row = null;

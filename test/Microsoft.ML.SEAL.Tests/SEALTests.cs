@@ -154,7 +154,8 @@ namespace Microsoft.ML.Tests.SEAL
             // Step 2: Create a binary classifier.
             // We set the "Label" column as the label of the dataset, and the "Features" column as the features column.
             var esdcaPipeline = encryptPipeline.Append(mlContext.BinaryClassification.Trainers.EncryptedSdcaLogisticRegression(polyModulusDegree: polyModDegree,
-                coeffModuli: coeffModuli, scale: scale, encryptedFeatureColumnName: "Ciphertext", labelColumnName: "Label", featureColumnName: "Features", l2Regularization: 0.001f));
+                coeffModuli: coeffModuli, scale: scale, encryptedFeatureColumnName: "Ciphertext", labelColumnName: "Label", featureColumnName: "Features",
+                l2Regularization: 0.001f));
 
             var decryptPipeline = esdcaPipeline.Append(ML.Transforms.EncryptFeatures(false,
                 scale,
@@ -175,8 +176,8 @@ namespace Microsoft.ML.Tests.SEAL
             var encryptedPrediction = encryptedModel.Transform(data);
             System.Console.WriteLine("\nCompleted transforming data\n\n");
             //var rawUnencryptedPrediction = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.CalibratedBinaryClassifierOutput>(unencryptedPrediction, false);
-            //var rawEncryptedPrediction = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.CalibratedBinaryClassifierOutput>(encryptedPrediction, false);
-            var rawEncryptedPrediction = mlContext.Data.CreateEnumerable<TestClass>(encryptedPrediction, false);
+            var rawEncryptedPrediction = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.CalibratedBinaryClassifierOutput>(encryptedPrediction, false);
+            //var rawEncryptedPrediction = mlContext.Data.CreateEnumerable<TestClass>(encryptedPrediction, false);
 
             System.Console.WriteLine("\n\nEnumerating data\n");
             foreach (var raw in rawEncryptedPrediction)

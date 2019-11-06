@@ -129,10 +129,13 @@ namespace Microsoft.ML
             bool ignoreMissingColumns = false, SchemaDefinition schemaDefinition = null)
             where TRow : class, new()
         {
+            System.Console.WriteLine("? -> DataOperationsCatalog.CreateEnumerable");
             _env.CheckValue(data, nameof(data));
             _env.CheckValueOrNull(schemaDefinition);
 
+            System.Console.WriteLine("DataOperationsCatalog.CreateEnumerable: PipeEngine");
             var engine = new PipeEngine<TRow>(_env, data, ignoreMissingColumns, schemaDefinition);
+            System.Console.WriteLine("DataOperationsCatalog.CreateEnumerable: RunPipe");
             return engine.RunPipe(reuseRowObject);
         }
 
