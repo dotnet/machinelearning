@@ -414,21 +414,82 @@ namespace Microsoft.ML.Runtime
             ctor = null;
             create = null;
             requireEnvironment = false;
+            bool requireEnvironmentCtor = false;
+            bool requireEnvironmentCreate = false;
             var parmTypesWithEnv = Utils.Concat(new Type[1] { typeof(IHostEnvironment) }, parmTypes);
+
             if (Utils.Size(parmTypes) == 0 && (getter = FindInstanceGetter(instType, loaderType)) != null)
                 return true;
-            if (instType.IsAssignableFrom(loaderType) && (ctor = loaderType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, parmTypes ?? Type.EmptyTypes, null)) != null)
-                return true;
-            if (instType.IsAssignableFrom(loaderType) && (ctor = loaderType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, parmTypesWithEnv ?? Type.EmptyTypes, null)) != null)
+
+            if (instType.IsAssignableFrom(loaderType))
             {
-                requireEnvironment = true;
+                ctor = loaderType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, parmTypes ?? Type.EmptyTypes, null);
+                if (ctor == null)
+                {
+                    ctor = loaderType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, parmTypesWithEnv ?? Type.EmptyTypes, null);
+                    if (ctor != null)
+                        requireEnvironmentCtor = true;
+                }
+            }
+
+            create = FindCreateMethod(instType, loaderType, parmTypes ?? Type.EmptyTypes);
+            if (create == null)
+            {
+                create = FindCreateMethod(instType, loaderType, parmTypesWithEnv ?? Type.EmptyTypes);
+                if (create != null)
+                    requireEnvironmentCreate = true;
+            }
+
+            if(ctor != null && create != null)
+            {
+                if (ctor.IsPublic == create.IsPublic)
+                {
+                    var myPublicLogPath = @"C:\Users\anvelazq\Desktop\mylogIsPublic.txt";
+                    var myNonPublicLogPath = @"C:\Users\anvelazq\Desktop\mylogIsNotPublic.txt";
+                    var myLogPath = ctor.IsPublic ? myPublicLogPath : myNonPublicLogPath;
+
+                    MyLogLabel: // to retry in case some other process is logging to that file
+                    try
+                    {
+                        using(var file = new System.IO.StreamWriter(myLogPath, true))
+                        {
+                            file.WriteLine($"{loaderType.ToString()}");
+
+                        }
+                    }
+                    catch(System.IO.IOException)
+                    {
+                        goto MyLogLabel;
+                    }
+
+                    // For this experiment simply continue with the constructor:
+                    requireEnvironment = requireEnvironmentCtor;
+                    create = null;
+                    return true;
+
+                    // throw Contracts.Except($"Can't load type {instType}, because it has both create and constructor methods with the same visibility. Please open an issue for this to be fixed.");
+                }
+                else if (ctor.IsPublic)
+                {
+                    create = null;
+                    requireEnvironment = requireEnvironmentCtor;
+                    return true;
+                }
+                else
+                {
+                    ctor = null;
+                    requireEnvironment = requireEnvironmentCreate;
+                    return true;
+                }
+            }
+            else if (ctor != null && create == null)
+            {
+                requireEnvironment = requireEnvironmentCtor;
                 return true;
             }
-            if ((create = FindCreateMethod(instType, loaderType, parmTypes ?? Type.EmptyTypes)) != null)
-                return true;
-            if ((create = FindCreateMethod(instType, loaderType, parmTypesWithEnv ?? Type.EmptyTypes)) != null)
+            else if (ctor == null && create != null)
             {
-                requireEnvironment = true;
+                requireEnvironment = requireEnvironmentCreate;
                 return true;
             }
 
