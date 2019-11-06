@@ -6,10 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Numerics.Tensors;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.OnnxRuntime;
+using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.ML.Runtime;
 using OnnxShape = System.Collections.Generic.List<int>;
 
@@ -159,19 +159,9 @@ namespace Microsoft.ML.Transforms.Onnx
 
             if (gpuDeviceId != null)
             {
-                try
-                {
-                    _session = new InferenceSession(modelFile,
-                        SessionOptions.MakeSessionOptionWithCudaProvider(gpuDeviceId.Value));
-                }
-                catch (OnnxRuntimeException)
-                {
-                    if (fallbackToCpu)
-                        _session = new InferenceSession(modelFile);
-                    else
-                        // if called from OnnxTranform, is caught and rethrown.
-                        throw;
-                }
+                // The onnxruntime v1.0 currently does not support running on the GPU on all of ML.NET's supported platforms.
+                // This code path will be re-enabled when there is appropriate support in onnxruntime
+                throw new NotSupportedException("Running Onnx models on a GPU is temporarily not supported!");
             }
             else
             {
@@ -411,7 +401,9 @@ namespace Microsoft.ML.Transforms.Onnx
                      typeof(Int64),
                      typeof(UInt16),
                      typeof(UInt32),
-                     typeof(UInt64)
+                     typeof(UInt64),
+                     typeof(ReadOnlyMemory<Char>),
+                     typeof(Boolean)
                 };
         private static Dictionary<Type, InternalDataKind> _typeToKindMap=
             new Dictionary<Type, InternalDataKind>
@@ -439,7 +431,12 @@ namespace Microsoft.ML.Transforms.Onnx
         {
             if (!_onnxTypeMap.Contains(typeof(T)))
                 throw new NotImplementedException($"Not implemented type {typeof(T)}");
-            return NamedOnnxValue.CreateFromTensor<T>(name, new DenseTensor<T>(new T[] { data }, new int[] { 1 }));
+
+            if (typeof(T) == typeof(ReadOnlyMemory<char>))
+            {
+                return NamedOnnxValue.CreateFromTensor<string>(name, new DenseTensor<string>(new string[] { data.ToString() }, new int[] { 1, 1 }, false));
+            }
+            return NamedOnnxValue.CreateFromTensor<T>(name, new DenseTensor<T>(new T[] { data }, new int[] { 1, 1 }));
         }
 
         /// <summary>

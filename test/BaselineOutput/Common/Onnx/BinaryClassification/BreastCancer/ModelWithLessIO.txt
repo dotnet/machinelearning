@@ -1,5 +1,5 @@
 {
-  "irVersion": "3",
+  "irVersion": "6",
   "producerName": "ML.NET",
   "producerVersion": "##VERSION##",
   "domain": "machinelearning.dotnet",
@@ -748,7 +748,7 @@
         "name": "F1",
         "type": {
           "tensorType": {
-            "elemType": "FLOAT",
+            "elemType": 1,
             "shape": {
               "dim": [
                 {
@@ -766,7 +766,7 @@
         "name": "F2",
         "type": {
           "tensorType": {
-            "elemType": "STRING",
+            "elemType": 8,
             "shape": {
               "dim": [
                 {
@@ -786,7 +786,7 @@
         "name": "PredictedLabel0",
         "type": {
           "tensorType": {
-            "elemType": "BOOL",
+            "elemType": 9,
             "shape": {
               "dim": [
                 {
@@ -804,7 +804,7 @@
         "name": "Score0",
         "type": {
           "tensorType": {
-            "elemType": "FLOAT",
+            "elemType": 1,
             "shape": {
               "dim": [
                 {
@@ -822,7 +822,7 @@
         "name": "Probability0",
         "type": {
           "tensorType": {
-            "elemType": "FLOAT",
+            "elemType": 1,
             "shape": {
               "dim": [
                 {
@@ -842,7 +842,7 @@
         "name": "F20",
         "type": {
           "tensorType": {
-            "elemType": "UINT32",
+            "elemType": 12,
             "shape": {
               "dim": [
                 {
@@ -860,7 +860,7 @@
         "name": "F21",
         "type": {
           "tensorType": {
-            "elemType": "FLOAT",
+            "elemType": 1,
             "shape": {
               "dim": [
                 {
@@ -878,7 +878,7 @@
         "name": "Features",
         "type": {
           "tensorType": {
-            "elemType": "FLOAT",
+            "elemType": 1,
             "shape": {
               "dim": [
                 {
@@ -897,7 +897,7 @@
   "opsetImport": [
     {
       "domain": "ai.onnx.ml",
-      "version": "1"
+      "version": "2"
     },
     {
       "version": "9"
