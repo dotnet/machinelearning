@@ -1,0 +1,63 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+<#@ include file="ColumnArithmeticTemplate.ttinclude" #>
+
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+// Generated from PrimitiveDataFrameColumn.Computations.tt. Do not modify directly
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Microsoft.Data.Analysis
+{
+    public partial class PrimitiveDataFrameColumn<T> : DataFrameColumn
+        where T : unmanaged
+    {
+<# foreach (MethodConfiguration compMethod in computationMethodConfiguration) { #>
+<# if (compMethod.MethodType == MethodType.ElementwiseComputation && compMethod.HasReturnValue == false && compMethod.SupportsRowSubsets == true) {#>
+        public override DataFrameColumn <#=compMethod.MethodName#>(IEnumerable<long> rowIndices, bool inPlace = false)
+<# } else if (compMethod.MethodType == MethodType.ElementwiseComputation && compMethod.HasReturnValue == false) {#>
+        public override DataFrameColumn <#=compMethod.MethodName#>(bool inPlace = false)
+<# } else if (compMethod.MethodType == MethodType.ElementwiseComputation && compMethod.HasReturnValue == true) {#>
+        public override object <#=compMethod.MethodName#>()
+<# } else if (compMethod.MethodType == MethodType.Reduction && compMethod.IsNumeric == true && compMethod.SupportsRowSubsets == true) { #>
+        public override object <#=compMethod.MethodName#>(IEnumerable<long> rowIndices)
+<# } else if (compMethod.MethodType == MethodType.Reduction && compMethod.IsNumeric == true) { #>
+        public override object <#=compMethod.MethodName#>()
+<# } else { #>
+        public override bool <#=compMethod.MethodName#>()
+<# } #>
+        {
+<# if (compMethod.MethodType == MethodType.ElementwiseComputation && compMethod.HasReturnValue == false && compMethod.SupportsRowSubsets == true) {#>
+            PrimitiveDataFrameColumn<T> ret = <#=GenerateInPlaceStatement("this", "Clone()")#>;
+            PrimitiveColumnComputation<T>.Instance.<#=compMethod.MethodName#>(ret._columnContainer, rowIndices);
+            return ret;
+<# } else if (compMethod.MethodType == MethodType.ElementwiseComputation && compMethod.HasReturnValue == false) {#>
+            PrimitiveDataFrameColumn<T> ret = <#=GenerateInPlaceStatement("this", "Clone()")#>;
+            PrimitiveColumnComputation<T>.Instance.<#=compMethod.MethodName#>(ret._columnContainer);
+            return ret;
+<# } else if (compMethod.MethodType == MethodType.ElementwiseComputation && compMethod.HasReturnValue == true) {#>
+            PrimitiveColumnComputation<T>.Instance.<#=compMethod.MethodName#>(_columnContainer, out T ret);
+            return ret;
+<# } else if (compMethod.MethodType == MethodType.Reduction && compMethod.IsNumeric == true && compMethod.SupportsRowSubsets == true) { #>
+            PrimitiveColumnComputation<T>.Instance.<#=compMethod.MethodName#>(_columnContainer, rowIndices, out T ret);
+            return ret;
+<# } else if (compMethod.MethodType == MethodType.Reduction && compMethod.IsNumeric == true) { #>
+            PrimitiveColumnComputation<T>.Instance.<#=compMethod.MethodName#>(_columnContainer, out T ret);
+            return ret;
+<# } else { #>
+            PrimitiveColumnComputation<T>.Instance.<#=compMethod.MethodName#>(_columnContainer, out bool ret);
+            return ret;
+<# } #>
+        }
+<# } #>
+    }
+}

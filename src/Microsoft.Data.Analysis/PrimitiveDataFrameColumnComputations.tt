@@ -1,0 +1,268 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+<#@ include file="ColumnArithmeticTemplate.ttinclude" #>
+
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+// Generated from PrimitiveColumnComputations.tt. Do not modify directly
+
+using System;
+using System.Collections.Generic;
+
+namespace Microsoft.Data.Analysis
+{
+    internal interface IPrimitiveColumnComputation<T>
+        where T : struct
+    {
+<# foreach (MethodConfiguration compMethod in computationMethodConfiguration) { #>
+<# if (compMethod.MethodType == MethodType.ElementwiseComputation && compMethod.HasReturnValue == false && compMethod.SupportsRowSubsets == true) {#>
+        void <#=compMethod.MethodName#>(PrimitiveColumnContainer<T> column, IEnumerable<long> rows);
+<# } else if (compMethod.MethodType == MethodType.ElementwiseComputation && compMethod.HasReturnValue == false) {#>
+        void <#=compMethod.MethodName#>(PrimitiveColumnContainer<T> column);
+<# } else if (compMethod.MethodType == MethodType.ElementwiseComputation && compMethod.HasReturnValue == true) {#>
+        void <#=compMethod.MethodName#>(PrimitiveColumnContainer<T> column, out T ret);
+<# } else if (compMethod.MethodType == MethodType.Reduction && compMethod.IsNumeric == true && compMethod.SupportsRowSubsets == true) { #>
+        void <#=compMethod.MethodName#>(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T ret);
+<# } else if (compMethod.MethodType == MethodType.Reduction && compMethod.IsNumeric == true) { #>
+        void <#=compMethod.MethodName#>(PrimitiveColumnContainer<T> column, out T ret);
+<# } else { #>
+        void <#=compMethod.MethodName#>(PrimitiveColumnContainer<T> column, out bool ret);
+<# } #>
+<# } #>
+    }
+
+    internal static class PrimitiveColumnComputation<T>
+        where T : struct
+    {
+        public static IPrimitiveColumnComputation<T> Instance { get; } = PrimitiveColumnComputation.GetComputation<T>();
+    }
+
+    internal static class PrimitiveColumnComputation
+    {
+        public static IPrimitiveColumnComputation<T> GetComputation<T>()
+            where T : struct
+        {
+<# foreach (TypeConfiguration type in typeConfiguration) { #>
+            <#=GenerateIfStatementHeader(type)#>
+            {
+                return (IPrimitiveColumnComputation<T>)new <#=type.ClassPrefix#>Computation();
+            }
+<# } #>
+            throw new NotSupportedException();
+        }
+    }
+
+<# foreach (TypeConfiguration type in typeConfiguration) { #>
+    internal class <#=type.ClassPrefix#>Computation : IPrimitiveColumnComputation<<#=type.TypeName#>>
+    {
+<# foreach (MethodConfiguration method in computationMethodConfiguration) { #>
+<# if (method.MethodType == MethodType.ElementwiseComputation && method.HasReturnValue == false && method.SupportsRowSubsets == true) {#>
+        public void <#=method.MethodName#>(PrimitiveColumnContainer<<#=type.TypeName#>> column, IEnumerable<long> rows)
+<# } else if (method.MethodType == MethodType.ElementwiseComputation && method.HasReturnValue == false) {#>
+        public void <#=method.MethodName#>(PrimitiveColumnContainer<<#=type.TypeName#>> column)
+<# } else if (method.MethodType == MethodType.ElementwiseComputation && method.HasReturnValue == true) {#>
+        public void <#=method.MethodName#>(PrimitiveColumnContainer<<#=type.TypeName#>> column, out <#=type.TypeName#> ret)
+<# } else if (method.MethodType == MethodType.Reduction && method.IsNumeric == true && method.SupportsRowSubsets == true) { #>
+        public void <#=method.MethodName#>(PrimitiveColumnContainer<<#=type.TypeName#>> column, IEnumerable<long> rows, out <#=type.TypeName#> ret)
+<# } else if (method.MethodType == MethodType.Reduction && method.IsNumeric == true) { #>
+        public void <#=method.MethodName#>(PrimitiveColumnContainer<<#=type.TypeName#>> column, out <#=type.TypeName#> ret)
+<# } else { #>
+        public void <#=method.MethodName#>(PrimitiveColumnContainer<<#=type.TypeName#>> column, out bool ret)
+<# } #>
+        {
+<# if ((method.IsNumeric && !type.SupportsNumeric) || (method.IsBitwise && !type.SupportsBitwise) || (type.UnsupportedMethods.Contains(method.MethodName))) { #>
+            throw new NotSupportedException();
+<# } else { #>
+<# if ((method.MethodName == "Max" || method.MethodName == "Min" || method.MethodName == "Product" || method.MethodName == "Sum") && method.SupportsRowSubsets == true) { #>
+            ret = default;
+            var readOnlySpan = column.Buffers[0].ReadOnlySpan;
+            long minRange = 0;
+            long maxRange = ReadOnlyDataFrameBuffer<<#=type.TypeName#>>.MaxCapacity;
+            long maxCapacity = maxRange;
+            IEnumerator<long> enumerator = rows.GetEnumerator();
+            while (enumerator.MoveNext())
+            {
+                long row = enumerator.Current;
+                if (row < minRange || row >= maxRange)
+                {
+                    int bufferIndex = (int)(row / maxCapacity);
+                    readOnlySpan = column.Buffers[bufferIndex].ReadOnlySpan;
+                    minRange = checked(bufferIndex * maxCapacity);
+                    maxRange = checked((bufferIndex + 1) * maxCapacity);
+                }
+                row -= minRange;
+<# if (method.MethodName == "Max") { #>
+                ret = (<#=type.TypeName#>)(Math.Max(readOnlySpan[(int)row], ret));
+<# } #>
+<# if (method.MethodName == "Min") { #>
+                ret = (<#=type.TypeName#>)(Math.Min(readOnlySpan[(int)row], ret));
+<# } #>
+<# if (method.MethodName == "Product") { #>
+                ret = checked((<#=type.TypeName#>)(readOnlySpan[(int)row] * ret));
+<# } #>
+<# if (method.MethodName == "Sum") { #>
+                ret = checked((<#=type.TypeName#>)(readOnlySpan[(int)row] + ret));
+<# } #>
+            }
+<# } else if ((method.MethodName == "CumulativeMax" || method.MethodName == "CumulativeMin" || method.MethodName == "CumulativeProduct" || method.MethodName == "CumulativeSum") && method.SupportsRowSubsets == true) { #>
+            var ret = default(<#=type.TypeName#>);
+            var mutableBuffer = DataFrameBuffer<<#=type.TypeName#>>.GetMutableBuffer(column.Buffers[0]);
+            var span = mutableBuffer.Span;
+            long minRange = 0;
+            long maxRange = ReadOnlyDataFrameBuffer<<#=type.TypeName#>>.MaxCapacity;
+            long maxCapacity = maxRange;
+            IEnumerator<long> enumerator = rows.GetEnumerator();
+            if (enumerator.MoveNext())
+            {
+                long row = enumerator.Current;
+                if (row < minRange || row >= maxRange)
+                {
+                    int bufferIndex = (int)(row / maxCapacity);
+                    mutableBuffer = DataFrameBuffer<<#=type.TypeName#>>.GetMutableBuffer(column.Buffers[bufferIndex]);
+                    span = mutableBuffer.Span;
+                    minRange = checked(bufferIndex * maxCapacity);
+                    maxRange = checked((bufferIndex + 1) * maxCapacity);
+                }
+                row -= minRange;
+                ret = span[(int)row];
+            }
+
+            while (enumerator.MoveNext())
+            {
+                long row = enumerator.Current;
+                if (row < minRange || row >= maxRange)
+                {
+                    int bufferIndex = (int)(row / maxCapacity);
+                    mutableBuffer = DataFrameBuffer<<#=type.TypeName#>>.GetMutableBuffer(column.Buffers[bufferIndex]);
+                    span = mutableBuffer.Span;
+                    minRange = checked(bufferIndex * maxCapacity);
+                    maxRange = checked((bufferIndex + 1) * maxCapacity);
+                }
+                row -= minRange;
+<# if (method.MethodName == "CumulativeMax") { #>
+                ret = (<#=type.TypeName#>)Math.Max(span[(int)row], ret);
+                span[(int)row] = ret;
+<# } else if (method.MethodName == "CumulativeMin") { #>
+                ret = (<#=type.TypeName#>)Math.Min(span[(int)row], ret);
+                span[(int)row] = ret;
+<# } else if (method.MethodName == "CumulativeProduct") { #>
+                ret = checked((<#=type.TypeName#>)((span[(int)row]) * ret));
+                span[(int)row] = ret;
+<# } else if (method.MethodName =="CumulativeSum") { #>
+                ret = checked((<#=type.TypeName#>)((span[(int)row]) + ret));
+                span[(int)row] = ret;
+<# } #>
+            }
+<# } else if (method.MethodName == "CumulativeMax" || method.MethodName == "CumulativeMin" || method.MethodName == "CumulativeProduct" || method.MethodName == "CumulativeSum" || method.MethodName == "Max" || method.MethodName == "Min" || method.MethodName == "Product" || method.MethodName == "Sum") { #>
+<# if (method.MethodName == "CumulativeMax" || method.MethodName == "CumulativeMin") { #>
+            var ret = column.Buffers[0].ReadOnlySpan[0];
+<# } else if ((method.MethodName == "Max" || method.MethodName == "Min") && method.SupportsRowSubsets == false) { #>
+            ret = column.Buffers[0].ReadOnlySpan[0];
+<# } else if (method.MethodName == "CumulativeProduct") { #>
+            var ret = (<#=type.TypeName#>)1;
+<# } else if (method.MethodName =="Product" && method.SupportsRowSubsets == false) { #>
+            ret = (<#=type.TypeName#>)1;
+<# } else if (method.MethodName =="CumulativeSum") { #>
+            var ret = (<#=type.TypeName#>)0;
+<# } else if (method.SupportsRowSubsets == false) { #>
+            ret = (<#=type.TypeName#>)0;
+<# } #>
+            for (int b = 0 ; b < column.Buffers.Count; b++)
+            {
+                var buffer = column.Buffers[b];
+<# if (method.MethodName == "CumulativeMax" || method.MethodName == "CumulativeMin" || method.MethodName == "CumulativeProduct" || method.MethodName == "CumulativeSum") { #>
+                var mutableBuffer = DataFrameBuffer<<#=type.TypeName#>>.GetMutableBuffer(buffer);
+                var mutableSpan = mutableBuffer.Span;
+<# } #>
+                var readOnlySpan = buffer.ReadOnlySpan;
+                for (int i = 0; i < readOnlySpan.Length; i++)
+                {
+<# if (method.MethodName == "CumulativeMax") { #>
+                    ret = (<#=type.TypeName#>)(Math.Max(readOnlySpan[i], ret));
+                    mutableSpan[i] = ret;
+<# } #>
+<# if (method.MethodName == "CumulativeMin") { #>
+                    ret = (<#=type.TypeName#>)(Math.Min(readOnlySpan[i], ret));
+                    mutableSpan[i] = ret;
+<# } #>
+<# if (method.MethodName == "CumulativeProduct") { #>
+                    ret = (<#=type.TypeName#>)(readOnlySpan[i] * ret);
+                    mutableSpan[i] = ret;
+<# } #>
+<# if (method.MethodName == "CumulativeSum") { #>
+                    ret = (<#=type.TypeName#>)(readOnlySpan[i] + ret);
+                    mutableSpan[i] = ret;
+<# } #>
+<# if (method.MethodName == "Max") { #>
+                    ret = (<#=type.TypeName#>)(Math.Max(readOnlySpan[i], ret));
+<# } #>
+<# if (method.MethodName == "Min") { #>
+                    ret = (<#=type.TypeName#>)(Math.Min(readOnlySpan[i], ret));
+<# } #>
+<# if (method.MethodName == "Product") { #>
+                    ret = (<#=type.TypeName#>)(readOnlySpan[i] * ret);
+<# } #>
+<# if (method.MethodName == "Sum") { #>
+                    ret = (<#=type.TypeName#>)(readOnlySpan[i] + ret);
+<# } #>
+                }
+<# if (method.MethodName == "CumulativeMax" || method.MethodName == "CumulativeMin" || method.MethodName == "CumulativeProduct" || method.MethodName == "CumulativeSum") { #>
+                column.Buffers[b] = mutableBuffer;
+<# } #>
+            }
+<# } else if (method.MethodType == MethodType.ElementwiseComputation && method.Operator != null) { #>
+            for (int b = 0; b < column.Buffers.Count; b++)
+            {
+                var buffer = column.Buffers[b];
+                var mutableBuffer = DataFrameBuffer<<#=type.TypeName#>>.GetMutableBuffer(buffer);
+                var mutableSpan = mutableBuffer.Span;
+                for (int i = 0; i < mutableSpan.Length; i++)
+                {
+                    mutableSpan[i] = (<#=type.TypeName#>)(<#=method.Operator#>((decimal)mutableSpan[i]));
+                }
+                column.Buffers[b] = mutableBuffer;
+            }
+<# } else if (method.MethodType == MethodType.Reduction) { #>
+<# if (method.MethodName == "All") { #>
+            ret = true;
+<# } else if (method.MethodName == "Any") { #>
+            ret = false;
+<# } #>
+            for (int b = 0; b < column.Buffers.Count; b++)
+            {
+                var buffer = column.Buffers[b];
+                var span = buffer.ReadOnlySpan;
+                for (int i = 0; i < span.Length; i++)
+                {
+<# if (method.MethodName == "All") { #>
+                    if (span[i] == false)
+                    {
+                        ret = false;
+                        return;
+                    }
+<# } else if (method.MethodName == "Any") { #>
+                    if (span[i] == true)
+                    {
+                        ret = true;
+                        return;
+                    }
+<# } #>
+                }
+            }
+<# } else { #>
+            throw new NotImplementedException();
+<# } #>
+<# } #>
+        }
+
+<# } #>
+    }
+<# } #>
+}

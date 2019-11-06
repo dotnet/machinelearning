@@ -1,0 +1,283 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#+
+    public class TypeConfiguration
+    {
+        public TypeConfiguration(string typeName, string classPrefix = null, string oneLiteral = "1", string zeroLiteral = "0", bool supportsNumeric = true, bool supportsBitwise = true, IEnumerable<string> unsupportedMethods = null)
+        {
+            TypeName = typeName;
+            ClassPrefix = classPrefix ?? char.ToUpper(typeName[0]) + typeName.Substring(1);
+            OneLiteral = oneLiteral;
+            ZeroLiteral = zeroLiteral;
+            SupportsNumeric = supportsNumeric;
+            SupportsBitwise = supportsBitwise;
+            UnsupportedMethods = new HashSet<string>(unsupportedMethods ?? Enumerable.Empty<string>());
+        }
+
+        public string TypeName { get; }
+        public string ClassPrefix { get; }
+        public string OneLiteral { get; }
+        public string ZeroLiteral { get; }
+        
+        public bool SupportsNumeric { get; }
+        public bool SupportsBitwise { get; }
+        public ISet<string> UnsupportedMethods { get; }
+    }
+
+    public string GenerateInPlaceStatement(string trueCondition, string falseCondition)
+    {
+        return $"inPlace ? {trueCondition} : {falseCondition}";
+    }
+
+    public string GenerateIfStatementHeader(TypeConfiguration type)
+    {
+        string keyword = (type == typeConfiguration[0]) ? "if" : "else if";
+        return $"{keyword} (typeof(T) == typeof({type.TypeName}))";
+    }
+
+    public TypeConfiguration[] typeConfiguration = new []
+    {
+        new TypeConfiguration("bool", oneLiteral:"true", zeroLiteral:"false", supportsNumeric: false, unsupportedMethods: new[] {"LeftShift", "RightShift"}),
+        new TypeConfiguration("byte", unsupportedMethods: new[] {"All", "Any"}),
+        new TypeConfiguration("char", oneLiteral:"(char)1", zeroLiteral:"(char)0", unsupportedMethods: new[] {"All", "Any"}),
+        new TypeConfiguration("decimal", supportsBitwise: false, unsupportedMethods: new[] {"All", "Any"}),
+        new TypeConfiguration("double", oneLiteral:"1.0", supportsBitwise: false, unsupportedMethods: new[] {"All", "Any"}),
+        new TypeConfiguration("float", oneLiteral:"1.0f", supportsBitwise: false, unsupportedMethods: new[] {"All", "Any"}),
+        new TypeConfiguration("int", unsupportedMethods: new[] {"All", "Any"}),
+        new TypeConfiguration("long", unsupportedMethods: new[] {"All", "Any"}),
+        new TypeConfiguration("sbyte", classPrefix:"SByte", unsupportedMethods: new[] {"All", "Any"}),
+        new TypeConfiguration("short", unsupportedMethods: new[] {"All", "Any"}),
+        new TypeConfiguration("uint", classPrefix:"UInt", unsupportedMethods: new[] {"UnaryMinus", "All", "Any"}),
+        new TypeConfiguration("ulong", classPrefix:"ULong", unsupportedMethods: new[] {"UnaryMinus", "All", "Any"}),
+        new TypeConfiguration("ushort", classPrefix:"UShort", unsupportedMethods: new[] {"UnaryMinus", "All", "Any"})
+    };
+
+    public enum MethodType
+    {
+       Unary,
+       UnaryInPlace,
+       BinaryScalar,
+       BinaryInt,
+       Binary,
+       Comparison,
+       ComparisonScalar,
+       Contraction,
+       ElementwiseComputation,
+       Reduction
+    }
+
+    public MethodConfiguration[] computationMethodConfiguration = new [] 
+    {
+        new MethodConfiguration("Abs", MethodType.ElementwiseComputation, "Math.Abs", isNumeric: true, methodComments: "Updates each numeric element with its absolute numeric value"),
+        new MethodConfiguration("All", MethodType.Reduction, "", isBitwise: true, methodComments: "Returns whether all the elements are True"),
+        new MethodConfiguration("Any", MethodType.Reduction, "", isBitwise: true, methodComments: "Returns whether any element is True"),
+        new MethodConfiguration("CumulativeMax", MethodType.ElementwiseComputation, "", isNumeric:true, methodComments: "Updates each element with its cumulative maximum"),
+        new MethodConfiguration("CumulativeMax", MethodType.ElementwiseComputation, "", isNumeric:true, supportsRowSubsets: true, methodComments: "Updates column values at rowIndices with its cumulative rowIndices maximum"),
+        new MethodConfiguration("CumulativeMin", MethodType.ElementwiseComputation, "", isNumeric:true, methodComments: "Updates each element with its cumulative minimum"),
+        new MethodConfiguration("CumulativeMin", MethodType.ElementwiseComputation, "", isNumeric:true, supportsRowSubsets: true, methodComments: "Updates column values at rowIndices with its cumulative rowIndices minimum"),
+        new MethodConfiguration("CumulativeProduct", MethodType.ElementwiseComputation, "", isNumeric:true, methodComments: "Updates each element with its cumulative product"),
+        new MethodConfiguration("CumulativeProduct", MethodType.ElementwiseComputation, "", isNumeric:true, supportsRowSubsets: true, methodComments: "Updates column values at rowIndices with its cumulative rowIndices product"),
+        new MethodConfiguration("CumulativeSum", MethodType.ElementwiseComputation, "", isNumeric:true, methodComments: "Updates each element with its cumulative sum"),
+        new MethodConfiguration("CumulativeSum", MethodType.ElementwiseComputation, "", isNumeric:true, supportsRowSubsets: true, methodComments: "Updates column values at rowIndices with its cumulative rowIndices sum"),
+        new MethodConfiguration("Max", MethodType.Reduction, "", isNumeric:true, hasReturnValue:true, methodComments: "Returns the maximum of the values in the column"),
+        new MethodConfiguration("Max", MethodType.Reduction, "", isNumeric:true, hasReturnValue:true, supportsRowSubsets: true, methodComments: "Returns the maximum of the values at rowIndices"),
+        new MethodConfiguration("Min", MethodType.Reduction, "", isNumeric:true, hasReturnValue:true, methodComments: "Returns the minimum of the values in the column"),
+        new MethodConfiguration("Min", MethodType.Reduction, "", isNumeric:true, hasReturnValue:true, supportsRowSubsets: true, methodComments: "Returns the minimum of the values at the rowIndices"),
+        new MethodConfiguration("Product", MethodType.Reduction, "*", isNumeric:true, hasReturnValue:true, methodComments: "Returns the product of the values in the column"),
+        new MethodConfiguration("Product", MethodType.Reduction, "*", isNumeric:true, hasReturnValue:true, supportsRowSubsets: true, methodComments: "Returns the product of the values at the rowIndices"),
+        new MethodConfiguration("Sum", MethodType.Reduction, "+", isNumeric:true, hasReturnValue:true, methodComments: "Returns the sum of the values in the column"),
+        new MethodConfiguration("Sum", MethodType.Reduction, "+", isNumeric:true, hasReturnValue:true, supportsRowSubsets: true, methodComments: "Returns the sum of the values at the rowIndices"),
+        new MethodConfiguration("Round", MethodType.ElementwiseComputation, "Math.Round", isNumeric:true, methodComments: "Calls Math.Round on each value in a column"),
+    };
+
+    public MethodConfiguration[] methodConfiguration = new [] 
+    {
+        new MethodConfiguration("Add", MethodType.Binary, "+", isNumeric:true),
+        new MethodConfiguration("Add", MethodType.BinaryScalar, "+", isNumeric:true),
+        new MethodConfiguration("Subtract", MethodType.Binary, "-", isNumeric:true),
+        new MethodConfiguration("Subtract", MethodType.BinaryScalar, "-", isNumeric:true),
+        new MethodConfiguration("Multiply", MethodType.Binary, "*", isNumeric:true),  // element-wise product, not matrix product
+        new MethodConfiguration("Multiply", MethodType.BinaryScalar, "*", isNumeric:true),
+        new MethodConfiguration("Divide", MethodType.Binary, "/", isNumeric:true),
+        new MethodConfiguration("Divide", MethodType.BinaryScalar, "/", isNumeric:true),
+        new MethodConfiguration("Modulo", MethodType.Binary, "%", isNumeric:true),
+        new MethodConfiguration("Modulo", MethodType.BinaryScalar, "%", isNumeric:true),
+        new MethodConfiguration("And", MethodType.Binary, "&", isBitwise: true),
+        new MethodConfiguration("And", MethodType.BinaryScalar, "&", isBitwise: true),
+        new MethodConfiguration("Or", MethodType.Binary, "|", isBitwise: true),
+        new MethodConfiguration("Or", MethodType.BinaryScalar, "|", isBitwise: true),
+        new MethodConfiguration("Xor", MethodType.Binary, "^", isBitwise: true),
+        new MethodConfiguration("Xor", MethodType.BinaryScalar, "^", isBitwise: true),
+        new MethodConfiguration("LeftShift", MethodType.BinaryInt, "<<", isBitwise: true),
+        new MethodConfiguration("RightShift", MethodType.BinaryInt, ">>", isBitwise: true),
+
+        new MethodConfiguration("ElementwiseEquals", MethodType.Comparison, "=="),
+        new MethodConfiguration("ElementwiseEquals", MethodType.ComparisonScalar, "=="),
+        new MethodConfiguration("ElementwiseNotEquals", MethodType.Comparison, "!="),
+        new MethodConfiguration("ElementwiseNotEquals", MethodType.ComparisonScalar, "!="),
+        new MethodConfiguration("ElementwiseGreaterThanOrEqual", MethodType.Comparison, ">=", isNumeric:true),
+        new MethodConfiguration("ElementwiseGreaterThanOrEqual", MethodType.ComparisonScalar, ">=", isNumeric:true),
+        new MethodConfiguration("ElementwiseLessThanOrEqual", MethodType.Comparison, "<=", isNumeric:true),
+        new MethodConfiguration("ElementwiseLessThanOrEqual", MethodType.ComparisonScalar, "<=", isNumeric:true),
+        new MethodConfiguration("ElementwiseGreaterThan", MethodType.Comparison, ">", isNumeric:true),
+        new MethodConfiguration("ElementwiseGreaterThan", MethodType.ComparisonScalar, ">", isNumeric:true),
+        new MethodConfiguration("ElementwiseLessThan", MethodType.Comparison, "<", isNumeric:true),
+        new MethodConfiguration("ElementwiseLessThan", MethodType.ComparisonScalar, "<", isNumeric:true),
+    };
+
+     public class MethodConfiguration
+    {
+        public MethodConfiguration(string methodName, MethodType methodType, string op = null, bool isNumeric = false, bool isBitwise = false, bool hasReturnValue = false, bool supportsRowSubsets = false, string methodComments = null)
+        {
+            MethodName = methodName;
+            MethodType = methodType;
+            Operator = op;
+            IsNumeric = isNumeric;
+            IsBitwise = isBitwise;
+            HasReturnValue = hasReturnValue;
+            SupportsRowSubsets = supportsRowSubsets;
+            MethodComments = methodComments;
+        }
+
+        public string ResultName => "result";
+
+        public string Op1Name 
+        {
+            get
+            {
+                switch (MethodType)
+                {
+                    case MethodType.Unary:
+                    case MethodType.UnaryInPlace:
+                    case MethodType.BinaryScalar:
+                    case MethodType.BinaryInt:
+                    case MethodType.ComparisonScalar:
+                    case MethodType.ElementwiseComputation:
+                    case MethodType.Reduction:
+                        return "column";
+                    case MethodType.Binary:
+                    case MethodType.Comparison:
+                    case MethodType.Contraction:
+                        return "left";
+                    default:
+                        throw new ArgumentException();
+                };
+            }
+        }
+
+        public string Op2Name 
+        {
+            get
+            {
+                switch (MethodType)
+                {
+                    case MethodType.BinaryScalar:
+                    case MethodType.ComparisonScalar:
+                        return "scalar";
+                    case MethodType.BinaryInt:
+                        return "value";
+                    case MethodType.Binary:
+                    case MethodType.Comparison:
+                    case MethodType.Contraction:
+                        return "right";
+                    case MethodType.Unary:
+                    case MethodType.UnaryInPlace:
+                    default:
+                        throw new ArgumentException();
+                };
+            }
+        }
+
+        public string MethodName { get; }
+        public MethodType MethodType { get; }
+        public string Operator { get; }
+        public string MethodComments { get; }
+        
+        public string GetMethodSignature(string columnType, string genericType)
+        {
+            var arguments = GetMethodArguments(columnType, genericType);
+            return $"void {MethodName}({arguments})";
+        }
+
+        public string GetSingleArgumentMethodSignature(string columnType, string genericType)
+        {
+            var arguments = GetSingleParameterMethodArguments(columnType, genericType);
+            return $"PrimitiveColumnContainer<T> {MethodName}({arguments})";
+        }
+
+        public string GetComputationOrReductionMethodSignature(string columnType, string genericType)
+        {
+            var arguments = GetMethodArguments(columnType, genericType);
+            switch (MethodType)
+            {
+                case MethodType.ElementwiseComputation:
+                    return $"{columnType}<{genericType}> {MethodName}({arguments})";
+                case MethodType.Reduction:
+                    return $"{genericType} {MethodName}({arguments})";
+                default:
+                    throw new ArgumentException();
+            }
+        }
+
+        public string GetMethodArguments(string dataFrameType, string genericType)
+        {
+            switch (MethodType)
+            {
+                case MethodType.Unary:
+                case MethodType.UnaryInPlace:
+                    return $"{dataFrameType}<{genericType}> {Op1Name}";
+                case MethodType.BinaryScalar:
+                    return $"{dataFrameType}<{genericType}> {Op1Name}, {genericType} {Op2Name}";
+                case MethodType.ComparisonScalar:
+                    return $"{dataFrameType}<{genericType}> {Op1Name}, {genericType} {Op2Name}, {dataFrameType}<bool> ret";
+                case MethodType.BinaryInt:
+                    return $"{dataFrameType}<{genericType}> {Op1Name}, int {Op2Name}";
+                case MethodType.Binary:
+                    return $"{dataFrameType}<{genericType}> {Op1Name}, {dataFrameType}<{genericType}> {Op2Name}";
+                case MethodType.Comparison:
+                    return $"{dataFrameType}<{genericType}> {Op1Name}, {dataFrameType}<{genericType}> {Op2Name}, {dataFrameType}<bool> ret";
+                case MethodType.Contraction:
+                    return $"{dataFrameType}<{genericType}> {Op1Name}, {dataFrameType}<{genericType}> {Op2Name}, int[] leftAxes, int[] rightAxes";
+                case MethodType.ElementwiseComputation:
+                case MethodType.Reduction:
+                    return $"";
+                default:
+                    throw new ArgumentException();
+            }
+        }
+
+        public string GetSingleParameterMethodArguments(string dataFrameType, string genericType)
+        {
+            switch (MethodType)
+            {
+                case MethodType.Unary:
+                case MethodType.UnaryInPlace:
+                    throw new ArgumentException();
+                    return $"{dataFrameType}<{genericType}> {Op1Name}";
+                case MethodType.BinaryScalar:
+                    return $"{genericType} {Op2Name}";
+                case MethodType.ComparisonScalar:
+                    return $"{genericType} {Op2Name}, {dataFrameType}<bool> ret";
+                case MethodType.BinaryInt:
+                    return $"int {Op2Name}";
+                case MethodType.Binary:
+                    return $"{dataFrameType}<{genericType}> {Op2Name}";
+                case MethodType.Comparison:
+                    return $"{dataFrameType}<{genericType}> {Op2Name}, {dataFrameType}<bool> ret";
+                case MethodType.Contraction:
+                    throw new ArgumentException();
+                    return $"{dataFrameType}<{genericType}> {Op1Name}, {dataFrameType}<{genericType}> {Op2Name}, int[] leftAxes, int[] rightAxes";
+                default:
+                    throw new ArgumentException();
+            }
+        }
+        
+        public bool IsNumeric { get; }
+        public bool IsBitwise { get; }
+        public bool HasReturnValue { get; }
+        public bool SupportsRowSubsets { get; }
+    }
+#>
