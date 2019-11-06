@@ -433,9 +433,8 @@ namespace Microsoft.ML.Transforms.Onnx
                 throw new NotImplementedException($"Not implemented type {typeof(T)}");
 
             if (typeof(T) == typeof(ReadOnlyMemory<char>))
-            {
-                return NamedOnnxValue.CreateFromTensor<string>(name, new DenseTensor<string>(new string[] { data.ToString() }, new int[] { 1, 1 }, false));
-            }
+                return NamedOnnxValue.CreateFromTensor<string>(name, new DenseTensor<string>(new string[] { data.ToString() }, new int[] { 1, 1 }));
+
             return NamedOnnxValue.CreateFromTensor<T>(name, new DenseTensor<T>(new T[] { data }, new int[] { 1, 1 }));
         }
 
@@ -452,7 +451,19 @@ namespace Microsoft.ML.Transforms.Onnx
         {
             if (!_onnxTypeMap.Contains(typeof(T)))
                 throw new NotImplementedException($"Not implemented type {typeof(T)}");
-            return NamedOnnxValue.CreateFromTensor<T>(name, new DenseTensor<T>(data.ToArray(), shape.Select(x => (int)x).ToArray()));
+
+            var dimensions = shape.Select(x => (int)x).ToArray();
+
+            if (typeof(T) == typeof(ReadOnlyMemory<char>))
+            {
+                string[] stringData = new string[data.Length];
+                for (int i = 0; i < data.Length; i++)
+                    stringData[i] = data[i].ToString();
+
+                return NamedOnnxValue.CreateFromTensor<string>(name, new DenseTensor<string>(stringData, dimensions));
+            }
+
+            return NamedOnnxValue.CreateFromTensor<T>(name, new DenseTensor<T>(data.ToArray(), dimensions));
         }
 
         /// <summary>

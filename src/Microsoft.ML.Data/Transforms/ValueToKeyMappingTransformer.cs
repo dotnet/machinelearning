@@ -790,45 +790,47 @@ namespace Microsoft.ML.Transforms
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
-                var isStringTensor = info.TypeSrc.GetItemType().Equals(TextDataViewType.Instance);
-                var isInt64Tensor = info.TypeSrc.GetItemType().Equals(NumberDataViewType.Int64);
-                var isFloatTensor = info.TypeSrc.GetItemType().Equals(NumberDataViewType.Single);
-
                 OnnxNode node;
                 long[] termIds;
                 string opType = "LabelEncoder";
                 var labelEncoderOutput = ctx.AddIntermediateVariable(_types[iinfo], "LabelEncoderOutput", true);
 
-                if (isStringTensor)
+                if (info.TypeSrc.GetItemType().Equals(TextDataViewType.Instance))
                 {
                     node = ctx.CreateNode(opType, srcVariableName, labelEncoderOutput, ctx.GetNodeName(opType));
                     var terms = GetTermsAndIds<ReadOnlyMemory<char>>(iinfo, out termIds);
                     node.AddAttribute("keys_strings", terms);
                 }
-                else if (isInt64Tensor)
-                {
-                    node = ctx.CreateNode(opType, srcVariableName, labelEncoderOutput, ctx.GetNodeName(opType));
-                    var terms = GetTermsAndIds<long>(iinfo, out termIds);
-                    node.AddAttribute("keys_int64s", terms);
-                }
-                else if (isFloatTensor)
+                else if (info.TypeSrc.GetItemType().Equals(NumberDataViewType.Single))
                 {
                     node = ctx.CreateNode(opType, srcVariableName, labelEncoderOutput, ctx.GetNodeName(opType));
                     var terms = GetTermsAndIds<float>(iinfo, out termIds);
-                    node.AddAttribute("keys_int64s", terms);
+                    node.AddAttribute("keys_floats", terms);
                 }
                 else
                 {
+                    // LabelEncoder-2 in ORT v1 only supports the following mappings
+                    // int64-> float
+                    // int64-> string
+                    // float -> int64
+                    // float -> string
+                    // string -> int64
+                    // string -> float
+                    // In ML.NET the output of ValueToKeyMappingTransformer is always an integer type.
+                    // Therefore the only input types we can accept for Onnx conversion are strings and floats handled above.
                     return false;
                 }
+
                 node.AddAttribute("default_int64", -1);
                 node.AddAttribute("values_int64s", termIds);
 
-                // Onnx outputs an Int64, but ML.NET outputs UInt32. So cast the Onnx output here
+                // Onnx outputs an Int64, but ML.NET outputs a keytype. So cast it here
+                InternalDataKind dataKind;
+                InternalDataKindExtensions.TryGetDataKind(_parent._unboundMaps[iinfo].OutputType.RawType, out dataKind);
+
                 opType = "Cast";
                 var castNode = ctx.CreateNode(opType, labelEncoderOutput, dstVariableName, ctx.GetNodeName(opType), "");
-                var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.UInt32).ToType();
-                castNode.AddAttribute("to", t);
+                castNode.AddAttribute("to", dataKind.ToType());
 
                 return true;
             }

@@ -750,10 +750,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     string inputColumnName = _parent.ColumnPairs[iinfo].inputColumnName;
                     if (!ctx.ContainsColumn(inputColumnName))
-                    {
-                        ctx.RemoveColumn(inputColumnName, false);
                         continue;
-                    }
 
                     string outputColumnName = _parent.ColumnPairs[iinfo].outputColumnName;
                     string dstVariableName = ctx.AddIntermediateVariable(_srcTypes[iinfo], outputColumnName, true);
