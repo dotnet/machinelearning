@@ -57,7 +57,6 @@ namespace Microsoft.ML.Scenarios
     {
         public TensorFlowScenariosTests(ITestOutputHelper output) : base(output)
         {
-            // test
         }
 
         private class TestData
