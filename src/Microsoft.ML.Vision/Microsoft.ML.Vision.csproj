@@ -5,7 +5,6 @@
     <IncludeInPackage>Microsoft.ML.Vision</IncludeInPackage>
     <DefineConstants>CORECLR</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <RunApiCompat>false</RunApiCompat>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
