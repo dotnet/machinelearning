@@ -31,119 +31,112 @@ namespace Samples.Dynamic
             string fullImagesetFolderPath = Path.Combine(
                 imagesDownloadFolderPath, finalImagesFolderName);
 
-            try
-            {
-                MLContext mlContext = new MLContext(seed: 1);
+            MLContext mlContext = new MLContext(seed: 1);
 
-                // Load all the original images info.
-                IEnumerable<ImageData> images = LoadImagesFromDirectory(
-                    folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
+            // Load all the original images info.
+            IEnumerable<ImageData> images = LoadImagesFromDirectory(
+                folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
 
-                // Shuffle images.
-                IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
-                    mlContext.Data.LoadFromEnumerable(images));
+            // Shuffle images.
+            IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
+                mlContext.Data.LoadFromEnumerable(images));
 
-                // Apply transforms to the input dataset:
-                // MapValueToKey : map 'string' type labels to keys
-                // LoadImages : load raw images to "Image" column
-                shuffledFullImagesDataset = mlContext.Transforms.Conversion
-                        .MapValueToKey("Label")
-                    .Append(mlContext.Transforms.LoadRawImageBytes("Image",
-                                fullImagesetFolderPath, "ImagePath"))
-                    .Fit(shuffledFullImagesDataset)
-                    .Transform(shuffledFullImagesDataset);
+            // Apply transforms to the input dataset:
+            // MapValueToKey : map 'string' type labels to keys
+            // LoadImages : load raw images to "Image" column
+            shuffledFullImagesDataset = mlContext.Transforms.Conversion
+                    .MapValueToKey("Label")
+                .Append(mlContext.Transforms.LoadRawImageBytes("Image",
+                            fullImagesetFolderPath, "ImagePath"))
+                .Fit(shuffledFullImagesDataset)
+                .Transform(shuffledFullImagesDataset);
 
-                // Split the data 90:10 into train and test sets.
-                TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
-                    shuffledFullImagesDataset, testFraction: 0.1, seed: 1);
+            // Split the data 90:10 into train and test sets.
+            TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
+                shuffledFullImagesDataset, testFraction: 0.1, seed: 1);
 
-                IDataView trainDataset = trainTestData.TrainSet;
-                IDataView testDataset = trainTestData.TestSet;
+            IDataView trainDataset = trainTestData.TrainSet;
+            IDataView testDataset = trainTestData.TestSet;
 
-                // Set the options for ImageClassification.
-                var options = new ImageClassificationTrainer.Options()
-                { 
-                    FeatureColumnName = "Image",
-                    LabelColumnName = "Label",
-                    // Just by changing/selecting InceptionV3/MobilenetV2/ResnetV250
-                    // here instead of ResnetV2101 you can try a different 
-                    // architecture/ pre-trained model. 
-                    Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
-                    Epoch = 50,
-                    BatchSize = 10,
-                    LearningRate = 0.01f,
-                    MetricsCallback = (metrics) => Console.WriteLine(metrics),
-                    ValidationSet = testDataset
-                };
+            // Set the options for ImageClassification.
+            var options = new ImageClassificationTrainer.Options()
+            { 
+                FeatureColumnName = "Image",
+                LabelColumnName = "Label",
+                // Just by changing/selecting InceptionV3/MobilenetV2/ResnetV250
+                // here instead of ResnetV2101 you can try a different 
+                // architecture/ pre-trained model. 
+                Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
+                Epoch = 50,
+                BatchSize = 10,
+                LearningRate = 0.01f,
+                MetricsCallback = (metrics) => Console.WriteLine(metrics),
+                ValidationSet = testDataset
+            };
 
-                // Create the ImageClassification pipeline.
-                var pipeline = mlContext.MulticlassClassification.Trainers.
-                    ImageClassification(options)
-                    .Append(mlContext.Transforms.Conversion.MapKeyToValue(
-                        outputColumnName: "PredictedLabel", 
-                        inputColumnName: "PredictedLabel"));
+            // Create the ImageClassification pipeline.
+            var pipeline = mlContext.MulticlassClassification.Trainers.
+                ImageClassification(options)
+                .Append(mlContext.Transforms.Conversion.MapKeyToValue(
+                    outputColumnName: "PredictedLabel", 
+                    inputColumnName: "PredictedLabel"));
 
 
-                Console.WriteLine("*** Training the image classification model " +
-                    "with DNN Transfer Learning on top of the selected " +
-                    "pre-trained model/architecture ***");
+            Console.WriteLine("*** Training the image classification model " +
+                "with DNN Transfer Learning on top of the selected " +
+                "pre-trained model/architecture ***");
 
-                // Measuring training time.
-                var watch = System.Diagnostics.Stopwatch.StartNew();
+            // Measuring training time.
+            var watch = System.Diagnostics.Stopwatch.StartNew();
 
-                // Train the model
-                // This involves calculating the bottleneck values, and then
-                // training the final layer. Sample output is: 
-                // Phase: Bottleneck Computation, Dataset used: Train, Image Index:   1
-                // Phase: Bottleneck Computation, Dataset used: Train, Image Index:   2
-                // ...
-                // Phase: Training, Dataset used: Train, Batch Processed Count:  18, Learning Rate: 0.01 Epoch: 0, Accuracy: 0.9166667, Cross-Entropy:  0.4866541
-                // ...
-                // Phase: Training, Dataset used: Train, Batch Processed Count:  18, Learning Rate: 0.01 Epoch: 49, Accuracy:        1, Cross-Entropy: 0.01758162
-                // Phase: Training, Dataset used: Validation, Batch Processed Count: 3, Epoch: 49, Accuracy: 0.8666666
-                var trainedModel = pipeline.Fit(trainDataset);
+            // Train the model
+            // This involves calculating the bottleneck values, and then
+            // training the final layer. Sample output is: 
+            // Phase: Bottleneck Computation, Dataset used: Train, Image Index:   1
+            // Phase: Bottleneck Computation, Dataset used: Train, Image Index:   2
+            // ...
+            // Phase: Training, Dataset used: Train, Batch Processed Count:  18, Learning Rate: 0.01 Epoch: 0, Accuracy: 0.9166667, Cross-Entropy:  0.4866541
+            // ...
+            // Phase: Training, Dataset used: Train, Batch Processed Count:  18, Learning Rate: 0.01 Epoch: 49, Accuracy:        1, Cross-Entropy: 0.01758162
+            // Phase: Training, Dataset used: Validation, Batch Processed Count: 3, Epoch: 49, Accuracy: 0.8666666
+            var trainedModel = pipeline.Fit(trainDataset);
 
-                watch.Stop();
-                long elapsedMs = watch.ElapsedMilliseconds;
+            watch.Stop();
+            long elapsedMs = watch.ElapsedMilliseconds;
 
-                Console.WriteLine("Training with transfer learning took: " +
-                    (elapsedMs / 1000).ToString() + " seconds");
+            Console.WriteLine("Training with transfer learning took: " +
+                (elapsedMs / 1000).ToString() + " seconds");
 
-                // Save the trained model.
-                mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
-                    "model.zip");
+            // Save the trained model.
+            mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
+                "model.zip");
 
-                // Load the trained and saved model for prediction.
-                ITransformer loadedModel;
-                DataViewSchema schema;
-                using (var file = File.OpenRead("model.zip"))
-                    loadedModel = mlContext.Model.Load(file, out schema);
+            // Load the trained and saved model for prediction.
+            ITransformer loadedModel;
+            DataViewSchema schema;
+            using (var file = File.OpenRead("model.zip"))
+                loadedModel = mlContext.Model.Load(file, out schema);
 
-                // Evaluate the model on the test dataset.
-                // Sample output:
-                // Making bulk predictions and evaluating model's quality...
-                // Micro - accuracy: 0.851851851851852,macro - accuracy = 0.85
-                EvaluateModel(mlContext, testDataset, loadedModel);
+            // Evaluate the model on the test dataset.
+            // Sample output:
+            // Making bulk predictions and evaluating model's quality...
+            // Micro - accuracy: 0.851851851851852,macro - accuracy = 0.85
+            EvaluateModel(mlContext, testDataset, loadedModel);
 
-                watch = System.Diagnostics.Stopwatch.StartNew();
+            watch = System.Diagnostics.Stopwatch.StartNew();
 
-                // Predict on a single image class using an in-memory image.
-                // Sample output:
-                // Scores : [0.04382296,6.549581E-05,0.002181591,0.9519566,0.001973327],
-                //      Predicted Label : daisy
-                TrySinglePrediction(fullImagesetFolderPath, mlContext, loadedModel);
+            // Predict on a single image class using an in-memory image.
+            // Sample output:
+            // Scores : [0.04382296,6.549581E-05,0.002181591,0.9519566,0.001973327],
+            //      Predicted Label : daisy
+            TrySinglePrediction(fullImagesetFolderPath, mlContext, loadedModel);
 
-                watch.Stop();
-                elapsedMs = watch.ElapsedMilliseconds;
+            watch.Stop();
+            elapsedMs = watch.ElapsedMilliseconds;
 
-                Console.WriteLine("Prediction engine took: " +
-                    (elapsedMs / 1000).ToString() + " seconds");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
-
+            Console.WriteLine("Prediction engine took: " +
+                (elapsedMs / 1000).ToString() + " seconds");
+            
             Console.WriteLine("Press any key to finish");
             Console.ReadKey();
         }

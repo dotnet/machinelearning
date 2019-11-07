@@ -31,97 +31,89 @@ namespace Samples.Dynamic
             string fullImagesetFolderPath = Path.Combine(
                 imagesDownloadFolderPath, finalImagesFolderName);
 
-            try
-            {
+            MLContext mlContext = new MLContext(seed: 1);
+            mlContext.Log += MlContext_Log;
 
-                MLContext mlContext = new MLContext(seed: 1);
-                mlContext.Log += MlContext_Log;
+            // Load all the original images info
+            IEnumerable<ImageData> images = LoadImagesFromDirectory(
+                folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
 
-                // Load all the original images info
-                IEnumerable<ImageData> images = LoadImagesFromDirectory(
-                    folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
+            // Shuffle images.
+            IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
+                mlContext.Data.LoadFromEnumerable(images));
 
-                // Shuffle images.
-                IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
-                    mlContext.Data.LoadFromEnumerable(images));
+            // Apply transforms to the input dataset:
+            // MapValueToKey : map 'string' type labels to keys
+            // LoadImages : load raw images to "Image" column
+            shuffledFullImagesDataset = mlContext.Transforms.Conversion
+                    .MapValueToKey("Label")
+                .Append(mlContext.Transforms.LoadRawImageBytes("Image",
+                            fullImagesetFolderPath, "ImagePath"))
+                .Fit(shuffledFullImagesDataset)
+                .Transform(shuffledFullImagesDataset);
 
-                // Apply transforms to the input dataset:
-                // MapValueToKey : map 'string' type labels to keys
-                // LoadImages : load raw images to "Image" column
-                shuffledFullImagesDataset = mlContext.Transforms.Conversion
-                        .MapValueToKey("Label")
-                    .Append(mlContext.Transforms.LoadRawImageBytes("Image",
-                                fullImagesetFolderPath, "ImagePath"))
-                    .Fit(shuffledFullImagesDataset)
-                    .Transform(shuffledFullImagesDataset);
+            // Split the data 90:10 into train and test sets.
+            TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
+                shuffledFullImagesDataset, testFraction: 0.1, seed: 1);
 
-                // Split the data 90:10 into train and test sets.
-                TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
-                    shuffledFullImagesDataset, testFraction: 0.1, seed: 1);
+            IDataView trainDataset = trainTestData.TrainSet;
+            IDataView testDataset = trainTestData.TestSet;
 
-                IDataView trainDataset = trainTestData.TrainSet;
-                IDataView testDataset = trainTestData.TestSet;
+            // Create the ImageClassification pipeline by just passing the 
+            // input feature and label column name, and validation set. 
+            var pipeline = mlContext.MulticlassClassification.Trainers
+                    .ImageClassification(featureColumnName:"Image")
+                .Append(mlContext.Transforms.Conversion.MapKeyToValue(
+                    outputColumnName: "PredictedLabel",
+                    inputColumnName: "PredictedLabel"));
 
-                // Create the ImageClassification pipeline by just passing the 
-                // input feature and label column name, and validation set. 
-                var pipeline = mlContext.MulticlassClassification.Trainers
-                        .ImageClassification(featureColumnName:"Image")
-                    .Append(mlContext.Transforms.Conversion.MapKeyToValue(
-                        outputColumnName: "PredictedLabel",
-                        inputColumnName: "PredictedLabel"));
+            Console.WriteLine("*** Training the image classification model " +
+                "with DNN Transfer Learning on top of the selected " +
+                "pre-trained model/architecture ***");
 
-                Console.WriteLine("*** Training the image classification model " +
-                    "with DNN Transfer Learning on top of the selected " +
-                    "pre-trained model/architecture ***");
+            // Measuring training time.
+            var watch = System.Diagnostics.Stopwatch.StartNew();
 
-                // Measuring training time.
-                var watch = System.Diagnostics.Stopwatch.StartNew();
+            // Train the model.
+            // This involves calculating the bottleneck values, and then
+            // training the final layer. 
+            var trainedModel = pipeline.Fit(trainDataset);
 
-                // Train the model.
-                // This involves calculating the bottleneck values, and then
-                // training the final layer. 
-                var trainedModel = pipeline.Fit(trainDataset);
+            watch.Stop();
+            long elapsedMs = watch.ElapsedMilliseconds;
 
-                watch.Stop();
-                long elapsedMs = watch.ElapsedMilliseconds;
+            Console.WriteLine("Training with transfer learning took: " +
+                (elapsedMs / 1000).ToString() + " seconds");
 
-                Console.WriteLine("Training with transfer learning took: " +
-                    (elapsedMs / 1000).ToString() + " seconds");
+            // Save the trained model.
+            mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
+                "model.zip");
 
-                // Save the trained model.
-                mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
-                    "model.zip");
+            // Load the trained and saved model for prediction.
+            ITransformer loadedModel;
+            DataViewSchema schema;
+            using (var file = File.OpenRead("model.zip"))
+                loadedModel = mlContext.Model.Load(file, out schema);
 
-                // Load the trained and saved model for prediction.
-                ITransformer loadedModel;
-                DataViewSchema schema;
-                using (var file = File.OpenRead("model.zip"))
-                    loadedModel = mlContext.Model.Load(file, out schema);
+            // Evaluate the model on the test dataset.
+            // Sample output:
+            // Making bulk predictions and evaluating model's quality...
+            // Micro-accuracy: 0.888888888888889,macro-accuracy = 0.883333333333333
+            EvaluateModel(mlContext, testDataset, loadedModel);
 
-                // Evaluate the model on the test dataset.
-                // Sample output:
-                // Making bulk predictions and evaluating model's quality...
-                // Micro-accuracy: 0.888888888888889,macro-accuracy = 0.883333333333333
-                EvaluateModel(mlContext, testDataset, loadedModel);
+            watch = System.Diagnostics.Stopwatch.StartNew();
 
-                watch = System.Diagnostics.Stopwatch.StartNew();
+            // Predict on a single image class using an in-memory image.
+            // Sample output:
+            // Scores : [0.04382296,6.549581E-05,0.002181591,0.9519566,0.001973327],
+            //      Predicted Label : daisy
+            TrySinglePrediction(fullImagesetFolderPath, mlContext, loadedModel);
 
-                // Predict on a single image class using an in-memory image.
-                // Sample output:
-                // Scores : [0.04382296,6.549581E-05,0.002181591,0.9519566,0.001973327],
-                //      Predicted Label : daisy
-                TrySinglePrediction(fullImagesetFolderPath, mlContext, loadedModel);
+            watch.Stop();
+            elapsedMs = watch.ElapsedMilliseconds;
 
-                watch.Stop();
-                elapsedMs = watch.ElapsedMilliseconds;
-
-                Console.WriteLine("Prediction engine took: " +
-                    (elapsedMs / 1000).ToString() + " seconds");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
+            Console.WriteLine("Prediction engine took: " +
+                (elapsedMs / 1000).ToString() + " seconds");
 
             Console.WriteLine("Press any key to finish");
             Console.ReadKey();

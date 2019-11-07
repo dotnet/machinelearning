@@ -37,127 +37,120 @@ namespace Samples.Dynamic
             string fullImagesetFolderPathTest = Path.Combine(
                 imagesDownloadFolderPath, finalImagesFolderNameTest);
 
-            try
+            MLContext mlContext = new MLContext(seed: 1);
+
+            //Load all the original train images info.
+            IEnumerable<ImageData> train_images = LoadImagesFromDirectory(
+                folder: fullImagesetFolderPathTrain, useFolderNameAsLabel: true);
+
+            IDataView trainDataset = mlContext.Data.
+                LoadFromEnumerable(train_images);
+
+            // Apply transforms to the input dataset:
+            // MapValueToKey : map 'string' type labels to keys
+            // LoadImages : load raw images to "Image" column
+            trainDataset = mlContext.Transforms.Conversion
+                    .MapValueToKey("Label")
+                .Append(mlContext.Transforms.LoadRawImageBytes("Image",
+                            fullImagesetFolderPathTrain, "ImagePath"))
+                .Fit(trainDataset)
+                .Transform(trainDataset);
+
+            // Load all the original test images info and apply
+            // the same transforms as above.
+            IEnumerable<ImageData> test_images = LoadImagesFromDirectory(
+                folder: fullImagesetFolderPathTest, useFolderNameAsLabel: true);
+            IDataView testDataset = mlContext.Data.
+                LoadFromEnumerable(test_images);
+            testDataset = mlContext.Transforms.Conversion
+                    .MapValueToKey("Label")
+                .Append(mlContext.Transforms.LoadRawImageBytes("Image",
+                            fullImagesetFolderPathTest, "ImagePath"))
+                .Fit(testDataset)
+                .Transform(testDataset);
+
+            // Set the options for ImageClassification.
+            var options = new ImageClassificationTrainer.Options()
             {
-                MLContext mlContext = new MLContext(seed: 1);
+                FeatureColumnName = "Image",
+                LabelColumnName = "Label",
+                // Just by changing/selecting InceptionV3/MobilenetV2 
+                // here instead of 
+                // ResnetV2101 you can try a different architecture/
+                // pre-trained model. 
+                Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
+                Epoch = 182,
+                BatchSize = 128,
+                LearningRate = 0.01f,
+                MetricsCallback = (metrics) => Console.WriteLine(metrics),
+                ValidationSet = testDataset,
+                ReuseValidationSetBottleneckCachedValues = false,
+                ReuseTrainSetBottleneckCachedValues = false,
+                // Use linear scaling rule and Learning rate decay as an option
+                // This is known to do well for Cifar dataset and Resnet models
+                // You can also try other types of Learning rate scheduling 
+                // methods available in LearningRateScheduler.cs  
+                LearningRateScheduler = new LsrDecay()
+            };
 
-                //Load all the original train images info.
-                IEnumerable<ImageData> train_images = LoadImagesFromDirectory(
-                    folder: fullImagesetFolderPathTrain, useFolderNameAsLabel: true);
-
-                IDataView trainDataset = mlContext.Data.
-                    LoadFromEnumerable(train_images);
-
-                // Apply transforms to the input dataset:
-                // MapValueToKey : map 'string' type labels to keys
-                // LoadImages : load raw images to "Image" column
-                trainDataset = mlContext.Transforms.Conversion
-                        .MapValueToKey("Label")
-                    .Append(mlContext.Transforms.LoadRawImageBytes("Image",
-                                fullImagesetFolderPathTrain, "ImagePath"))
-                    .Fit(trainDataset)
-                    .Transform(trainDataset);
-
-                // Load all the original test images info and apply
-                // the same transforms as above.
-                IEnumerable<ImageData> test_images = LoadImagesFromDirectory(
-                    folder: fullImagesetFolderPathTest, useFolderNameAsLabel: true);
-                IDataView testDataset = mlContext.Data.
-                    LoadFromEnumerable(test_images);
-                testDataset = mlContext.Transforms.Conversion
-                        .MapValueToKey("Label")
-                    .Append(mlContext.Transforms.LoadRawImageBytes("Image",
-                                fullImagesetFolderPathTest, "ImagePath"))
-                    .Fit(testDataset)
-                    .Transform(testDataset);
-
-                // Set the options for ImageClassification.
-                var options = new ImageClassificationTrainer.Options()
-                {
-                    FeatureColumnName = "Image",
-                    LabelColumnName = "Label",
-                    // Just by changing/selecting InceptionV3/MobilenetV2 
-                    // here instead of 
-                    // ResnetV2101 you can try a different architecture/
-                    // pre-trained model. 
-                    Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
-                    Epoch = 182,
-                    BatchSize = 128,
-                    LearningRate = 0.01f,
-                    MetricsCallback = (metrics) => Console.WriteLine(metrics),
-                    ValidationSet = testDataset,
-                    ReuseValidationSetBottleneckCachedValues = false,
-                    ReuseTrainSetBottleneckCachedValues = false,
-                    // Use linear scaling rule and Learning rate decay as an option
-                    // This is known to do well for Cifar dataset and Resnet models
-                    // You can also try other types of Learning rate scheduling 
-                    // methods available in LearningRateScheduler.cs  
-                    LearningRateScheduler = new LsrDecay()
-                };
-
-                // Create the ImageClassification pipeline.
-                var pipeline = mlContext.MulticlassClassification.Trainers.
-                    ImageClassification(options)
-                    .Append(mlContext.Transforms.Conversion.MapKeyToValue(
-                        outputColumnName: "PredictedLabel",
-                        inputColumnName: "PredictedLabel"));
+            // Create the ImageClassification pipeline.
+            var pipeline = mlContext.MulticlassClassification.Trainers.
+                ImageClassification(options)
+                .Append(mlContext.Transforms.Conversion.MapKeyToValue(
+                    outputColumnName: "PredictedLabel",
+                    inputColumnName: "PredictedLabel"));
 
 
-                Console.WriteLine("*** Training the image classification model " +
-                    "with DNN Transfer Learning on top of the selected " +
-                    "pre-trained model/architecture ***");
+            Console.WriteLine("*** Training the image classification model " +
+                "with DNN Transfer Learning on top of the selected " +
+                "pre-trained model/architecture ***");
 
-                // Measuring training time.
-                var watch = System.Diagnostics.Stopwatch.StartNew();
+            // Measuring training time.
+            var watch = System.Diagnostics.Stopwatch.StartNew();
 
-                // Train the model.
-                // This involves calculating the bottleneck values, and then
-                // training the final layer. Sample output is: 
-                // Phase: Bottleneck Computation, Dataset used: Train, Image Index:   1
-                // Phase: Bottleneck Computation, Dataset used: Train, Image Index:   2
-                // ...
-                // Phase: Training, Dataset used: Train, Batch Processed Count:  18, Learning Rate: 0.01 Epoch: 0, Accuracy: 0.9166667,Cross-Entropy:  0.4866541
-                // ...
-                var trainedModel = pipeline.Fit(trainDataset);
+            // Train the model.
+            // This involves calculating the bottleneck values, and then
+            // training the final layer. Sample output is: 
+            // Phase: Bottleneck Computation, Dataset used: Train, Image Index:   1
+            // Phase: Bottleneck Computation, Dataset used: Train, Image Index:   2
+            // ...
+            // Phase: Training, Dataset used: Train, Batch Processed Count:  18, Learning Rate: 0.01 Epoch: 0, Accuracy: 0.9166667,Cross-Entropy:  0.4866541
+            // ...
+            var trainedModel = pipeline.Fit(trainDataset);
 
-                watch.Stop();
-                long elapsedMs = watch.ElapsedMilliseconds;
+            watch.Stop();
+            long elapsedMs = watch.ElapsedMilliseconds;
 
-                Console.WriteLine("Training with transfer learning took: " +
-                    (elapsedMs / 1000).ToString() + " seconds");
+            Console.WriteLine("Training with transfer learning took: " +
+                (elapsedMs / 1000).ToString() + " seconds");
 
-                // Save the trained model.
-                mlContext.Model.Save(trainedModel, testDataset.Schema,
-                    "model.zip");
+            // Save the trained model.
+            mlContext.Model.Save(trainedModel, testDataset.Schema,
+                "model.zip");
 
-                // Load the trained and saved model for prediction.
-                ITransformer loadedModel;
-                DataViewSchema schema;
-                using (var file = File.OpenRead("model.zip"))
-                    loadedModel = mlContext.Model.Load(file, out schema);
+            // Load the trained and saved model for prediction.
+            ITransformer loadedModel;
+            DataViewSchema schema;
+            using (var file = File.OpenRead("model.zip"))
+                loadedModel = mlContext.Model.Load(file, out schema);
 
-                // Evaluate the model on the test dataset.
-                // Sample output:
-                // Making bulk predictions and evaluating model's quality...
-                // Micro - accuracy: ...,macro - accuracy = ...
-                EvaluateModel(mlContext, testDataset, loadedModel);
+            // Evaluate the model on the test dataset.
+            // Sample output:
+            // Making bulk predictions and evaluating model's quality...
+            // Micro - accuracy: ...,macro - accuracy = ...
+            EvaluateModel(mlContext, testDataset, loadedModel);
 
-                watch = System.Diagnostics.Stopwatch.StartNew();
+            watch = System.Diagnostics.Stopwatch.StartNew();
 
-                // Predict image class using a single in-memory image.
-                TrySinglePrediction(fullImagesetFolderPathTest, mlContext,
-                    loadedModel);
+            // Predict image class using a single in-memory image.
+            TrySinglePrediction(fullImagesetFolderPathTest, mlContext,
+                loadedModel);
 
-                watch.Stop();
-                elapsedMs = watch.ElapsedMilliseconds;
+            watch.Stop();
+            elapsedMs = watch.ElapsedMilliseconds;
 
-                Console.WriteLine("Prediction engine took: " +
-                    (elapsedMs / 1000).ToString() + " seconds");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
+            Console.WriteLine("Prediction engine took: " +
+                (elapsedMs / 1000).ToString() + " seconds");
 
             Console.WriteLine("Press any key to finish");
             Console.ReadKey();
