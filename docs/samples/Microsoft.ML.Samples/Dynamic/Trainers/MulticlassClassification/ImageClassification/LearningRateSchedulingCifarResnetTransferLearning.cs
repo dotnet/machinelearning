@@ -365,7 +365,7 @@ namespace Samples.Dynamic
         public static string GetAbsolutePath(string relativePath)
         {
             FileInfo _dataRoot = new FileInfo(typeof(
-                ResnetV2101TransferLearningTrainTestSplit).Assembly.Location);
+                LearningRateSchedulingCifarResnetTransferLearning).Assembly.Location);
 
             string assemblyFolderPath = _dataRoot.Directory.FullName;
 
