@@ -937,7 +937,7 @@ namespace Microsoft.ML.Vision
                 metrics.Train.LearningRate = learningRate;
                 // Update train state.
                 trainstate.CurrentEpoch = epoch;
-                using (var cursor = trainingSet.GetRowCursor(trainingSet.Schema.ToArray(), new Random()))
+                using (var cursor = trainingSet.GetRowCursor(trainingSet.Schema.ToArray(), Host.Rand))
                 {
                     var labelGetter = cursor.GetGetter<long>(trainingSet.Schema[0]);
                     var featuresGetter = cursor.GetGetter<VBuffer<float>>(featureColumn);
@@ -1069,7 +1069,7 @@ namespace Microsoft.ML.Vision
                 metrics.Train.BatchProcessedCount = 0;
                 metrics.Train.Accuracy = 0;
                 metrics.Train.CrossEntropy = 0;
-                using (var cursor = validationSet.GetRowCursor(validationSet.Schema.ToArray(), new Random()))
+                using (var cursor = validationSet.GetRowCursor(validationSet.Schema.ToArray(), Host.Rand))
                 {
                     var labelGetter = cursor.GetGetter<long>(validationSet.Schema[0]);
                     var featuresGetter = cursor.GetGetter<VBuffer<float>>(featureColumn);
