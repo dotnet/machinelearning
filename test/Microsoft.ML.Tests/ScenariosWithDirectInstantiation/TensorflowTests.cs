@@ -1893,6 +1893,7 @@ namespace Microsoft.ML.Scenarios
         public static string DownloadImageSet(string imagesDownloadFolder)
         {
             string fileName = "flower_photos_tiny_set_for_unit_tests.zip";
+            string filenameAlias = "FPTSUT";
             string url = $"https://mlnetfilestorage.file.core.windows.net/imagesets" +
                 $"/flower_images/flower_photos_tiny_set_for_unit_tests.zip?st=2019" +
                 $"-08-29T00%3A07%3A21Z&se=2030-08-30T00%3A07%3A00Z&sp=rl&sv=2018" +
@@ -1900,8 +1901,10 @@ namespace Microsoft.ML.Scenarios
 
             Download(url, imagesDownloadFolder, fileName);
             UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);
-
-            return Path.GetFileNameWithoutExtension(fileName);
+            // Sometimes tests fail because the path is too long. So rename the dataset folder to a shorter directory.
+            if(!Directory.Exists(Path.Combine(imagesDownloadFolder, filenameAlias)))
+                Directory.Move(Path.Combine(imagesDownloadFolder, Path.GetFileNameWithoutExtension(fileName)), Path.Combine(imagesDownloadFolder,"FPTSUT"));
+            return filenameAlias;
         }
 
         public static string DownloadBadImageSet(string imagesDownloadFolder)
