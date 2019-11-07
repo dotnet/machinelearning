@@ -50,7 +50,8 @@ namespace Samples.Dynamic
             // MapValueToKey : map 'string' type labels to keys
             // LoadImages : load raw images to "Image" column
             trainDataset = mlContext.Transforms.Conversion
-                    .MapValueToKey("Label")
+                    .MapValueToKey("Label", keyOrdinality:Microsoft.ML.Transforms
+                    .ValueToKeyMappingEstimator.KeyOrdinality.ByValue)
                 .Append(mlContext.Transforms.LoadRawImageBytes("Image",
                             fullImagesetFolderPathTrain, "ImagePath"))
                 .Fit(trainDataset)
@@ -60,10 +61,13 @@ namespace Samples.Dynamic
             // the same transforms as above.
             IEnumerable<ImageData> test_images = LoadImagesFromDirectory(
                 folder: fullImagesetFolderPathTest, useFolderNameAsLabel: true);
+
             IDataView testDataset = mlContext.Data.
                 LoadFromEnumerable(test_images);
+
             testDataset = mlContext.Transforms.Conversion
-                    .MapValueToKey("Label")
+                    .MapValueToKey("Label", keyOrdinality: Microsoft.ML.Transforms
+                    .ValueToKeyMappingEstimator.KeyOrdinality.ByValue)
                 .Append(mlContext.Transforms.LoadRawImageBytes("Image",
                             fullImagesetFolderPathTest, "ImagePath"))
                 .Fit(testDataset)
@@ -105,9 +109,6 @@ namespace Samples.Dynamic
                 "with DNN Transfer Learning on top of the selected " +
                 "pre-trained model/architecture ***");
 
-            // Measuring training time.
-            var watch = System.Diagnostics.Stopwatch.StartNew();
-
             // Train the model.
             // This involves calculating the bottleneck values, and then
             // training the final layer. Sample output is: 
@@ -118,11 +119,7 @@ namespace Samples.Dynamic
             // ...
             var trainedModel = pipeline.Fit(trainDataset);
 
-            watch.Stop();
-            long elapsedMs = watch.ElapsedMilliseconds;
-
-            Console.WriteLine("Training with transfer learning took: " +
-                (elapsedMs / 1000).ToString() + " seconds");
+            Console.WriteLine("Training with transfer learning finished.");
 
             // Save the trained model.
             mlContext.Model.Save(trainedModel, testDataset.Schema,
@@ -140,17 +137,11 @@ namespace Samples.Dynamic
             // Micro - accuracy: ...,macro - accuracy = ...
             EvaluateModel(mlContext, testDataset, loadedModel);
 
-            watch = System.Diagnostics.Stopwatch.StartNew();
-
             // Predict image class using a single in-memory image.
             TrySinglePrediction(fullImagesetFolderPathTest, mlContext,
                 loadedModel);
 
-            watch.Stop();
-            elapsedMs = watch.ElapsedMilliseconds;
-
-            Console.WriteLine("Prediction engine took: " +
-                (elapsedMs / 1000).ToString() + " seconds");
+            Console.WriteLine("Prediction on a single image finished.");
 
             Console.WriteLine("Press any key to finish");
             Console.ReadKey();
@@ -189,9 +180,6 @@ namespace Samples.Dynamic
             Console.WriteLine("Making bulk predictions and evaluating model's " +
                 "quality...");
 
-            // Measuring time to evaluate.
-            var watch2 = System.Diagnostics.Stopwatch.StartNew();
-
             // Evaluate the model on the test data and get the evaluation metrics.
             IDataView predictions = trainedModel.Transform(testDataset);
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
@@ -199,11 +187,7 @@ namespace Samples.Dynamic
             Console.WriteLine($"Micro-accuracy: {metrics.MicroAccuracy}," +
                               $"macro-accuracy = {metrics.MacroAccuracy}");
 
-            watch2.Stop();
-            long elapsed2Ms = watch2.ElapsedMilliseconds;
-
-            Console.WriteLine("Predicting and Evaluation took: " +
-                (elapsed2Ms / 1000).ToString() + " seconds");
+            Console.WriteLine("Predicting and Evaluation complete.");
         }
 
         //Load the Image Data from input directory.

@@ -46,7 +46,8 @@ namespace Samples.Dynamic
             // MapValueToKey : map 'string' type labels to keys
             // LoadImages : load raw images to "Image" column
             shuffledFullImagesDataset = mlContext.Transforms.Conversion
-                    .MapValueToKey("Label")
+                    .MapValueToKey("Label", keyOrdinality: Microsoft.ML.Transforms
+                    .ValueToKeyMappingEstimator.KeyOrdinality.ByValue)
                 .Append(mlContext.Transforms.LoadRawImageBytes("Image",
                             fullImagesetFolderPath, "ImagePath"))
                 .Fit(shuffledFullImagesDataset)
@@ -60,7 +61,7 @@ namespace Samples.Dynamic
             IDataView testDataset = trainTestData.TestSet;
 
             // Create the ImageClassification pipeline by just passing the 
-            // input feature and label column name, and validation set. 
+            // input feature and label column name. 
             var pipeline = mlContext.MulticlassClassification.Trainers
                     .ImageClassification(featureColumnName:"Image")
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(
@@ -71,19 +72,19 @@ namespace Samples.Dynamic
                 "with DNN Transfer Learning on top of the selected " +
                 "pre-trained model/architecture ***");
 
-            // Measuring training time.
-            var watch = System.Diagnostics.Stopwatch.StartNew();
-
             // Train the model.
             // This involves calculating the bottleneck values, and then
-            // training the final layer. 
+            // training the final layerSample output is: 
+            // [Source=ImageClassificationTrainer; ImageClassificationTrainer, Kind=Trace] Phase: Bottleneck Computation, Dataset used:      Train, Image Index:   1
+            // [Source=ImageClassificationTrainer; ImageClassificationTrainer, Kind=Trace] Phase: Bottleneck Computation, Dataset used:      Train, Image Index:   2
+            // ...
+            // [Source=ImageClassificationTrainer; ImageClassificationTrainer, Kind=Trace] Phase: Training, Dataset used:      Train, Batch Processed Count:  18, Learning Rate:       0.01 Epoch:   0, Accuracy:        0.9, Cross-Entropy:  0.481340
+            // ...
+            // [Source=ImageClassificationTrainer; ImageClassificationTrainer, Kind=Trace] Phase: Training, Dataset used:      Train, Batch Processed Count:  18, Learning Rate: 0.004759203 Epoch:  25, Accuracy:          1, Cross-Entropy: 0.04848097
+            // [Source=ImageClassificationTrainer; ImageClassificationTrainer, Kind=Trace] Phase: Training, Dataset used:      Train, Batch Processed Count:  18, Learning Rate: 0.004473651 Epoch:  26, Accuracy:          1, Cross-Entropy: 0.04930306
             var trainedModel = pipeline.Fit(trainDataset);
 
-            watch.Stop();
-            long elapsedMs = watch.ElapsedMilliseconds;
-
-            Console.WriteLine("Training with transfer learning took: " +
-                (elapsedMs / 1000).ToString() + " seconds");
+            Console.WriteLine("Training with transfer learning finished.");
 
             // Save the trained model.
             mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
@@ -98,22 +99,15 @@ namespace Samples.Dynamic
             // Evaluate the model on the test dataset.
             // Sample output:
             // Making bulk predictions and evaluating model's quality...
-            // Micro-accuracy: 0.888888888888889,macro-accuracy = 0.883333333333333
+            // Micro-accuracy: 0.925925925925926,macro-accuracy = 0.933333333333333
             EvaluateModel(mlContext, testDataset, loadedModel);
-
-            watch = System.Diagnostics.Stopwatch.StartNew();
 
             // Predict on a single image class using an in-memory image.
             // Sample output:
-            // Scores : [0.04382296,6.549581E-05,0.002181591,0.9519566,0.001973327],
-            //      Predicted Label : daisy
+            // Scores :  [0.8657553,0.006911285,1.46484E-05,0.1266835,0.0006352618], Predicted Label : daisy
             TrySinglePrediction(fullImagesetFolderPath, mlContext, loadedModel);
 
-            watch.Stop();
-            elapsedMs = watch.ElapsedMilliseconds;
-
-            Console.WriteLine("Prediction engine took: " +
-                (elapsedMs / 1000).ToString() + " seconds");
+            Console.WriteLine("Prediction on a single image finished.");
 
             Console.WriteLine("Press any key to finish");
             Console.ReadKey();
@@ -160,9 +154,6 @@ namespace Samples.Dynamic
             Console.WriteLine("Making bulk predictions and evaluating model's " +
                 "quality...");
 
-            // Measuring time to evaluate.
-            var watch2 = System.Diagnostics.Stopwatch.StartNew();
-
             // Evaluate the model on the test data and get the evaluation metrics.
             IDataView predictions = trainedModel.Transform(testDataset);
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
@@ -170,11 +161,7 @@ namespace Samples.Dynamic
             Console.WriteLine($"Micro-accuracy: {metrics.MicroAccuracy}," +
                               $"macro-accuracy = {metrics.MacroAccuracy}");
 
-            watch2.Stop();
-            long elapsed2Ms = watch2.ElapsedMilliseconds;
-
-            Console.WriteLine("Predicting and Evaluation took: " +
-                (elapsed2Ms / 1000).ToString() + " seconds");
+            Console.WriteLine("Predicting and Evaluation complete.");
         }
 
         //Load the Image Data from input directory.

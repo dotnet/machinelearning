@@ -45,7 +45,8 @@ namespace Samples.Dynamic
             // MapValueToKey : map 'string' type labels to keys
             // LoadImages : load raw images to "Image" column
             shuffledFullImagesDataset = mlContext.Transforms.Conversion
-                    .MapValueToKey("Label")
+                    .MapValueToKey("Label", keyOrdinality: Microsoft.ML.Transforms
+                    .ValueToKeyMappingEstimator.KeyOrdinality.ByValue)
                 .Append(mlContext.Transforms.LoadRawImageBytes("Image",
                             fullImagesetFolderPath, "ImagePath"))
                 .Fit(shuffledFullImagesDataset)
@@ -95,27 +96,20 @@ namespace Samples.Dynamic
                 "with DNN Transfer Learning on top of the selected " +
                 "pre-trained model/architecture ***");
 
-            // Measuring training time.
-            var watch = System.Diagnostics.Stopwatch.StartNew();
-
             // Train the model.
             // This involves calculating the bottleneck values, and then
             // training the final layer. Sample output is: 
             // Phase: Bottleneck Computation, Dataset used: Train, Image Index: 1
             // Phase: Bottleneck Computation, Dataset used: Train, Image Index: 2
             // ...
-            // Phase: Training, Dataset used: Train, Batch Processed Count: 18,Learning Rate: 0.01 Epoch: 0, Accuracy:  0.9166667,Cross-Entropy:  0.4866541
+            // Phase: Training, Dataset used:      Train, Batch Processed Count:  18, Learning Rate:       0.01 Epoch:   0, Accuracy:  0.9388888, Cross-Entropy:  0.4604503
             // ...
-            // Phase: Training, Dataset used: Train, Batch Processed Count: 18,Learning Rate: 0.01 Epoch: 19, Accuracy: 1,Cross-Entropy: 0.03978536
-            // Phase: Training, Dataset used: Validation, Batch Processed Count: 3,Epoch: 19, Accuracy: 0.852381
+            // Phase: Training, Dataset used:      Train, Batch Processed Count:  18, Learning Rate: 0.005729948 Epoch:  19, Accuracy:          1, Cross-Entropy: 0.05458016
+            // Phase: Training, Dataset used: Validation, Batch Processed Count:   3, Epoch:  19, Accuracy:   0.852381
             // We see that the training stops when the metric stops improving.
             var trainedModel = pipeline.Fit(trainDataset);
 
-            watch.Stop();
-            long elapsedMs = watch.ElapsedMilliseconds;
-
-            Console.WriteLine("Training with transfer learning took: " +
-                (elapsedMs / 1000).ToString() + " seconds");
+            Console.WriteLine("Training with transfer learning finished.");
 
             // Save the trained model.
             mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
@@ -136,21 +130,14 @@ namespace Samples.Dynamic
             VBuffer<ReadOnlyMemory<char>> keys = default;
             loadedModel.GetOutputSchema(schema)["Label"].GetKeyValues(ref keys);
 
-            watch = System.Diagnostics.Stopwatch.StartNew();
-
             // Predict on a single image class using an in-memory image.
             // Sample output:
-            // Scores : [0.09683081,0.0002645972,0.007213613,0.8912219,0.004469037],
-            //      Predicted Label : daisy
+            // ImageFile : [100080576_f52e8ee070_n.jpg], Scores : [0.8987003,0.00917082,0.0003364562,0.08622094,0.005571446], Predicted Label : dandelion
             TrySinglePrediction(fullImagesetFolderPath, mlContext, loadedModel,
                 keys.DenseValues().ToArray());
 
-            watch.Stop();
-            elapsedMs = watch.ElapsedMilliseconds;
+            Console.WriteLine("Prediction on a single image finished.");
 
-            Console.WriteLine("Prediction engine took: " +
-                (elapsedMs / 1000).ToString() + " seconds");
-            
             Console.WriteLine("Press any key to finish");
             Console.ReadKey();
         }
@@ -191,9 +178,6 @@ namespace Samples.Dynamic
             Console.WriteLine("Making bulk predictions and evaluating model's " +
                 "quality...");
 
-            // Measuring time to evaluate.
-            var watch2 = System.Diagnostics.Stopwatch.StartNew();
-
             // Evaluate the model on the test data and get the evaluation metrics.
             IDataView predictions = trainedModel.Transform(testDataset);
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
@@ -201,11 +185,7 @@ namespace Samples.Dynamic
             Console.WriteLine($"Micro-accuracy: {metrics.MicroAccuracy}," +
                               $"macro-accuracy = {metrics.MacroAccuracy}");
 
-            watch2.Stop();
-            long elapsed2Ms = watch2.ElapsedMilliseconds;
-
-            Console.WriteLine("Predicting and Evaluation took: " +
-                (elapsed2Ms / 1000).ToString() + " seconds");
+            Console.WriteLine("Predicting and Evaluation complete.");
         }
 
         //Load the Image Data from input directory.
