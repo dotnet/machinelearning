@@ -1,0 +1,110 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+<#@ include file="ColumnArithmeticTemplate.ttinclude" #>
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+// Generated from PrimitiveDataFrameColumn.ReversedBinaryOperations.tt. Do not modify directly
+
+using System;
+using System.Collections.Generic;
+
+namespace Microsoft.Data.Analysis
+{
+    public partial class PrimitiveDataFrameColumn<T> : DataFrameColumn
+        where T : unmanaged
+    {
+
+<# foreach (MethodConfiguration method in methodConfiguration) { #>
+<# if (method.MethodType == MethodType.BinaryScalar) {#>
+<# if (method.IsBitwise == true) { #>
+        public override PrimitiveDataFrameColumn<bool> Reverse<#=method.MethodName#>(bool value, bool inPlace = false)
+<# } else { #>
+        public override DataFrameColumn Reverse<#=method.MethodName#><U>(U value, bool inPlace = false)
+<# } #>
+        {
+<# if (method.IsBitwise == true) { #>
+            switch (this)
+            {
+                case PrimitiveDataFrameColumn<bool> boolColumn:
+                    PrimitiveDataFrameColumn<bool> retColumn = inPlace ? boolColumn : boolColumn.Clone();
+                    retColumn._columnContainer.Reverse<#=method.MethodName#>(value);
+                    return retColumn;
+                default:
+                    throw new NotSupportedException();
+                    
+            }
+<# } else { #>
+            switch (this)
+            {
+                case PrimitiveDataFrameColumn<bool> boolColumn:
+                    throw new NotSupportedException();
+                case PrimitiveDataFrameColumn<decimal> decimalColumn:
+                    if (typeof(U) == typeof(bool))
+                    {
+                        throw new NotSupportedException();
+                    }
+                    if (typeof(U) == typeof(T))
+                    {
+                        // No conversions
+                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
+                        PrimitiveDataFrameColumn<U> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
+                        newColumn._columnContainer.Reverse<#=method.MethodName#>(value);
+                        return newColumn;
+                    }
+                    else
+                    {
+                        PrimitiveDataFrameColumn<decimal> clonedDecimalColumn = CloneAsDecimalColumn();
+                        clonedDecimalColumn._columnContainer.Reverse<#=method.MethodName#>(DecimalConverter<U>.Instance.GetDecimal(value));
+                        return clonedDecimalColumn;
+                    }
+<# foreach (TypeConfiguration type in typeConfiguration) { #>
+<# if (type.TypeName == "bool") { #>
+<# } else if (type.TypeName == "decimal") { #>
+<# } else { #>
+                case PrimitiveDataFrameColumn<<#=type.TypeName#>> <#=type.TypeName#>Column:
+<# } #>
+<# } #>
+                    if (typeof(U) == typeof(bool))
+                    {
+                        throw new NotSupportedException();
+                    }
+                    if (typeof(U) == typeof(T))
+                    {
+                        // No conversions
+                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
+                        PrimitiveDataFrameColumn<U> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
+                        newColumn._columnContainer.Reverse<#=method.MethodName#>(value);
+                        return newColumn;
+                    }
+                    else
+                    {
+                        if (typeof(U) == typeof(decimal))
+                        {
+                            PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
+                            decimalColumn._columnContainer.Reverse<#=method.MethodName#>(DecimalConverter<U>.Instance.GetDecimal(value));
+                            return decimalColumn;
+                        }
+                        else
+                        {
+                            PrimitiveDataFrameColumn<double> clonedDoubleColumn = CloneAsDoubleColumn();
+                            clonedDoubleColumn._columnContainer.Reverse<#=method.MethodName#>(DoubleConverter<U>.Instance.GetDouble(value));
+                            return clonedDoubleColumn;
+                        }
+                    }
+                default:
+                    throw new NotSupportedException();
+            }
+<# } #>
+        }
+<# } #>
+<# } #>
+        
+
+    }
+}

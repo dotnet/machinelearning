@@ -12,8 +12,6 @@ namespace Microsoft.Data.Analysis
 {
     public partial class DataFrame
     {
-        #region Binary Operations
-
         public DataFrame Add<T>(IReadOnlyList<T> values, bool inPlace = false)
             where T : unmanaged
         {
@@ -34,6 +32,9 @@ namespace Microsoft.Data.Analysis
             }
             return retDataFrame;
         }
+        /// <summary>
+        /// Performs an element wise addition on each column
+        /// </summary>
         public DataFrame Add<T>(T value, bool inPlace = false)
             where T : unmanaged
         {
@@ -70,6 +71,9 @@ namespace Microsoft.Data.Analysis
             }
             return retDataFrame;
         }
+        /// <summary>
+        /// Performs an element wise subtraction on each column
+        /// </summary>
         public DataFrame Subtract<T>(T value, bool inPlace = false)
             where T : unmanaged
         {
@@ -106,6 +110,9 @@ namespace Microsoft.Data.Analysis
             }
             return retDataFrame;
         }
+        /// <summary>
+        /// Performs an element wise multiplication on each column
+        /// </summary>
         public DataFrame Multiply<T>(T value, bool inPlace = false)
             where T : unmanaged
         {
@@ -142,6 +149,9 @@ namespace Microsoft.Data.Analysis
             }
             return retDataFrame;
         }
+        /// <summary>
+        /// Performs an element wise division on each column
+        /// </summary>
         public DataFrame Divide<T>(T value, bool inPlace = false)
             where T : unmanaged
         {
@@ -178,6 +188,9 @@ namespace Microsoft.Data.Analysis
             }
             return retDataFrame;
         }
+        /// <summary>
+        /// Performs an element wise modulus operation on each column
+        /// </summary>
         public DataFrame Modulo<T>(T value, bool inPlace = false)
             where T : unmanaged
         {
@@ -213,6 +226,9 @@ namespace Microsoft.Data.Analysis
             }
             return retDataFrame;
         }
+        /// <summary>
+        /// Performs an element wise boolean And on each column
+        /// </summary>
         public DataFrame And(bool value, bool inPlace = false)
         {
             DataFrame retDataFrame = inPlace ? this : new DataFrame();
@@ -247,6 +263,9 @@ namespace Microsoft.Data.Analysis
             }
             return retDataFrame;
         }
+        /// <summary>
+        /// Performs an element wise boolean Or on each column
+        /// </summary>
         public DataFrame Or(bool value, bool inPlace = false)
         {
             DataFrame retDataFrame = inPlace ? this : new DataFrame();
@@ -281,6 +300,9 @@ namespace Microsoft.Data.Analysis
             }
             return retDataFrame;
         }
+        /// <summary>
+        /// Performs an element wise boolean Xor on each column
+        /// </summary>
         public DataFrame Xor(bool value, bool inPlace = false)
         {
             DataFrame retDataFrame = inPlace ? this : new DataFrame();
@@ -296,6 +318,9 @@ namespace Microsoft.Data.Analysis
             }
             return retDataFrame;
         }
+        /// <summary>
+        /// Performs an element wise left shift on each column
+        /// </summary>
         public DataFrame LeftShift(int value, bool inPlace = false)
         {
             DataFrame retDataFrame = inPlace ? this : new DataFrame();
@@ -311,6 +336,9 @@ namespace Microsoft.Data.Analysis
             }
             return retDataFrame;
         }
+        /// <summary>
+        /// Performs an element wise right shift on each column
+        /// </summary>
         public DataFrame RightShift(int value, bool inPlace = false)
         {
             DataFrame retDataFrame = inPlace ? this : new DataFrame();
@@ -343,6 +371,9 @@ namespace Microsoft.Data.Analysis
             }
             return retDataFrame;
         }
+        /// <summary>
+        /// Performs an element wise equals on each column
+        /// </summary>
         public DataFrame ElementwiseEquals<T>(T value)
             where T : unmanaged
         {
@@ -373,6 +404,9 @@ namespace Microsoft.Data.Analysis
             }
             return retDataFrame;
         }
+        /// <summary>
+        /// Performs an element wise not-equals on each column
+        /// </summary>
         public DataFrame ElementwiseNotEquals<T>(T value)
             where T : unmanaged
         {
@@ -403,6 +437,9 @@ namespace Microsoft.Data.Analysis
             }
             return retDataFrame;
         }
+        /// <summary>
+        /// Performs an element wise greater than or equal on each column
+        /// </summary>
         public DataFrame ElementwiseGreaterThanOrEqual<T>(T value)
             where T : unmanaged
         {
@@ -433,6 +470,9 @@ namespace Microsoft.Data.Analysis
             }
             return retDataFrame;
         }
+        /// <summary>
+        /// Performs an element wise less than or equal on each column
+        /// </summary>
         public DataFrame ElementwiseLessThanOrEqual<T>(T value)
             where T : unmanaged
         {
@@ -463,6 +503,9 @@ namespace Microsoft.Data.Analysis
             }
             return retDataFrame;
         }
+        /// <summary>
+        /// Performs an element wise greater than on each column
+        /// </summary>
         public DataFrame ElementwiseGreaterThan<T>(T value)
             where T : unmanaged
         {
@@ -493,6 +536,9 @@ namespace Microsoft.Data.Analysis
             }
             return retDataFrame;
         }
+        /// <summary>
+        /// Performs an element wise less than on each column
+        /// </summary>
         public DataFrame ElementwiseLessThan<T>(T value)
             where T : unmanaged
         {
@@ -506,6 +552,147 @@ namespace Microsoft.Data.Analysis
             }
             return retDataFrame;
         }
-        #endregion
+
+        /// <summary>
+        /// Performs a reversed element wise addition on each column
+        /// </summary>
+        public DataFrame ReverseAdd<T>(T value, bool inPlace = false)
+            where T : unmanaged
+        {
+            DataFrame retDataFrame = inPlace ? this : new DataFrame();
+            for (int i = 0; i < Columns.Count; i++)
+            {
+                DataFrameColumn baseColumn = _columnCollection[i];
+                DataFrameColumn newColumn = baseColumn.ReverseAdd(value, inPlace);
+                if (inPlace)
+                    retDataFrame.Columns[i] = newColumn;
+                else
+                    retDataFrame.Columns.Insert(i, newColumn);
+            }
+            return retDataFrame;
+        }
+        /// <summary>
+        /// Performs a reversed element wise subtraction on each column
+        /// </summary>
+        public DataFrame ReverseSubtract<T>(T value, bool inPlace = false)
+            where T : unmanaged
+        {
+            DataFrame retDataFrame = inPlace ? this : new DataFrame();
+            for (int i = 0; i < Columns.Count; i++)
+            {
+                DataFrameColumn baseColumn = _columnCollection[i];
+                DataFrameColumn newColumn = baseColumn.ReverseSubtract(value, inPlace);
+                if (inPlace)
+                    retDataFrame.Columns[i] = newColumn;
+                else
+                    retDataFrame.Columns.Insert(i, newColumn);
+            }
+            return retDataFrame;
+        }
+        /// <summary>
+        /// Performs a reversed element wise multiplication on each column
+        /// </summary>
+        public DataFrame ReverseMultiply<T>(T value, bool inPlace = false)
+            where T : unmanaged
+        {
+            DataFrame retDataFrame = inPlace ? this : new DataFrame();
+            for (int i = 0; i < Columns.Count; i++)
+            {
+                DataFrameColumn baseColumn = _columnCollection[i];
+                DataFrameColumn newColumn = baseColumn.ReverseMultiply(value, inPlace);
+                if (inPlace)
+                    retDataFrame.Columns[i] = newColumn;
+                else
+                    retDataFrame.Columns.Insert(i, newColumn);
+            }
+            return retDataFrame;
+        }
+        /// <summary>
+        /// Performs a reversed element wise division on each column
+        /// </summary>
+        public DataFrame ReverseDivide<T>(T value, bool inPlace = false)
+            where T : unmanaged
+        {
+            DataFrame retDataFrame = inPlace ? this : new DataFrame();
+            for (int i = 0; i < Columns.Count; i++)
+            {
+                DataFrameColumn baseColumn = _columnCollection[i];
+                DataFrameColumn newColumn = baseColumn.ReverseDivide(value, inPlace);
+                if (inPlace)
+                    retDataFrame.Columns[i] = newColumn;
+                else
+                    retDataFrame.Columns.Insert(i, newColumn);
+            }
+            return retDataFrame;
+        }
+        /// <summary>
+        /// Performs a reversed element wise modulus operation on each column
+        /// </summary>
+        public DataFrame ReverseModulo<T>(T value, bool inPlace = false)
+            where T : unmanaged
+        {
+            DataFrame retDataFrame = inPlace ? this : new DataFrame();
+            for (int i = 0; i < Columns.Count; i++)
+            {
+                DataFrameColumn baseColumn = _columnCollection[i];
+                DataFrameColumn newColumn = baseColumn.ReverseModulo(value, inPlace);
+                if (inPlace)
+                    retDataFrame.Columns[i] = newColumn;
+                else
+                    retDataFrame.Columns.Insert(i, newColumn);
+            }
+            return retDataFrame;
+        }
+        /// <summary>
+        /// Performs a reversed element wise boolean And on each column
+        /// </summary>
+        public DataFrame ReverseAnd(bool value, bool inPlace = false)
+        {
+            DataFrame retDataFrame = inPlace ? this : new DataFrame();
+            for (int i = 0; i < Columns.Count; i++)
+            {
+                DataFrameColumn baseColumn = _columnCollection[i];
+                DataFrameColumn newColumn = baseColumn.ReverseAnd(value, inPlace);
+                if (inPlace)
+                    retDataFrame.Columns[i] = newColumn;
+                else
+                    retDataFrame.Columns.Insert(i, newColumn);
+            }
+            return retDataFrame;
+        }
+        /// <summary>
+        /// Performs a reversed element wise boolean Or on each column
+        /// </summary>
+        public DataFrame ReverseOr(bool value, bool inPlace = false)
+        {
+            DataFrame retDataFrame = inPlace ? this : new DataFrame();
+            for (int i = 0; i < Columns.Count; i++)
+            {
+                DataFrameColumn baseColumn = _columnCollection[i];
+                DataFrameColumn newColumn = baseColumn.ReverseOr(value, inPlace);
+                if (inPlace)
+                    retDataFrame.Columns[i] = newColumn;
+                else
+                    retDataFrame.Columns.Insert(i, newColumn);
+            }
+            return retDataFrame;
+        }
+        /// <summary>
+        /// Performs a reversed element wise boolean Xor on each column
+        /// </summary>
+        public DataFrame ReverseXor(bool value, bool inPlace = false)
+        {
+            DataFrame retDataFrame = inPlace ? this : new DataFrame();
+            for (int i = 0; i < Columns.Count; i++)
+            {
+                DataFrameColumn baseColumn = _columnCollection[i];
+                DataFrameColumn newColumn = baseColumn.ReverseXor(value, inPlace);
+                if (inPlace)
+                    retDataFrame.Columns[i] = newColumn;
+                else
+                    retDataFrame.Columns.Insert(i, newColumn);
+            }
+            return retDataFrame;
+        }
     }
 }

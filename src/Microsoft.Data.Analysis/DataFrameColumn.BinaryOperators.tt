@@ -25,12 +25,24 @@ namespace Microsoft.Data.Analysis
         {
             return column.<#=method.MethodName#>(value);
         }
+
+        public static DataFrameColumn operator <#=method.Operator#>(bool value, DataFrameColumn column)
+        {
+            return column.Reverse<#=method.MethodName#>(value);
+        }
+
 <# } else { #>
 <# foreach (TypeConfiguration type in typeConfiguration) { #>
         public static DataFrameColumn operator <#=method.Operator#>(DataFrameColumn column, <#=type.TypeName#> value)
         {
             return column.<#=method.MethodName#>(value);
         }
+
+        public static DataFrameColumn operator <#=method.Operator#>(<#=type.TypeName#> value, DataFrameColumn column)
+        {
+            return column.Reverse<#=method.MethodName#>(value);
+        }
+
 <# } #>
 
 <# } #>

@@ -96,36 +96,36 @@
     public MethodConfiguration[] methodConfiguration = new [] 
     {
         new MethodConfiguration("Add", MethodType.Binary, "+", isNumeric:true),
-        new MethodConfiguration("Add", MethodType.BinaryScalar, "+", isNumeric:true),
+        new MethodConfiguration("Add", MethodType.BinaryScalar, "+", isNumeric:true, methodComments: "Performs an element wise addition on each column"),
         new MethodConfiguration("Subtract", MethodType.Binary, "-", isNumeric:true),
-        new MethodConfiguration("Subtract", MethodType.BinaryScalar, "-", isNumeric:true),
+        new MethodConfiguration("Subtract", MethodType.BinaryScalar, "-", isNumeric:true, methodComments: "Performs an element wise subtraction on each column"),
         new MethodConfiguration("Multiply", MethodType.Binary, "*", isNumeric:true),  // element-wise product, not matrix product
-        new MethodConfiguration("Multiply", MethodType.BinaryScalar, "*", isNumeric:true),
+        new MethodConfiguration("Multiply", MethodType.BinaryScalar, "*", isNumeric:true, methodComments: "Performs an element wise multiplication on each column"),
         new MethodConfiguration("Divide", MethodType.Binary, "/", isNumeric:true),
-        new MethodConfiguration("Divide", MethodType.BinaryScalar, "/", isNumeric:true),
+        new MethodConfiguration("Divide", MethodType.BinaryScalar, "/", isNumeric:true, methodComments: "Performs an element wise division on each column"),
         new MethodConfiguration("Modulo", MethodType.Binary, "%", isNumeric:true),
-        new MethodConfiguration("Modulo", MethodType.BinaryScalar, "%", isNumeric:true),
+        new MethodConfiguration("Modulo", MethodType.BinaryScalar, "%", isNumeric:true, methodComments: "Performs an element wise modulus operation on each column"),
         new MethodConfiguration("And", MethodType.Binary, "&", isBitwise: true),
-        new MethodConfiguration("And", MethodType.BinaryScalar, "&", isBitwise: true),
+        new MethodConfiguration("And", MethodType.BinaryScalar, "&", isBitwise: true, methodComments: "Performs an element wise boolean And on each column"),
         new MethodConfiguration("Or", MethodType.Binary, "|", isBitwise: true),
-        new MethodConfiguration("Or", MethodType.BinaryScalar, "|", isBitwise: true),
+        new MethodConfiguration("Or", MethodType.BinaryScalar, "|", isBitwise: true, methodComments: "Performs an element wise boolean Or on each column"),
         new MethodConfiguration("Xor", MethodType.Binary, "^", isBitwise: true),
-        new MethodConfiguration("Xor", MethodType.BinaryScalar, "^", isBitwise: true),
-        new MethodConfiguration("LeftShift", MethodType.BinaryInt, "<<", isBitwise: true),
-        new MethodConfiguration("RightShift", MethodType.BinaryInt, ">>", isBitwise: true),
+        new MethodConfiguration("Xor", MethodType.BinaryScalar, "^", isBitwise: true, methodComments: "Performs an element wise boolean Xor on each column"),
+        new MethodConfiguration("LeftShift", MethodType.BinaryInt, "<<", isBitwise: true, methodComments: "Performs an element wise left shift on each column"),
+        new MethodConfiguration("RightShift", MethodType.BinaryInt, ">>", isBitwise: true, methodComments: "Performs an element wise right shift on each column"),
 
         new MethodConfiguration("ElementwiseEquals", MethodType.Comparison, "=="),
-        new MethodConfiguration("ElementwiseEquals", MethodType.ComparisonScalar, "=="),
+        new MethodConfiguration("ElementwiseEquals", MethodType.ComparisonScalar, "==", methodComments: "Performs an element wise equals on each column"),
         new MethodConfiguration("ElementwiseNotEquals", MethodType.Comparison, "!="),
-        new MethodConfiguration("ElementwiseNotEquals", MethodType.ComparisonScalar, "!="),
+        new MethodConfiguration("ElementwiseNotEquals", MethodType.ComparisonScalar, "!=", methodComments: "Performs an element wise not-equals on each column"),
         new MethodConfiguration("ElementwiseGreaterThanOrEqual", MethodType.Comparison, ">=", isNumeric:true),
-        new MethodConfiguration("ElementwiseGreaterThanOrEqual", MethodType.ComparisonScalar, ">=", isNumeric:true),
+        new MethodConfiguration("ElementwiseGreaterThanOrEqual", MethodType.ComparisonScalar, ">=", isNumeric:true, methodComments: "Performs an element wise greater than or equal on each column"),
         new MethodConfiguration("ElementwiseLessThanOrEqual", MethodType.Comparison, "<=", isNumeric:true),
-        new MethodConfiguration("ElementwiseLessThanOrEqual", MethodType.ComparisonScalar, "<=", isNumeric:true),
+        new MethodConfiguration("ElementwiseLessThanOrEqual", MethodType.ComparisonScalar, "<=", isNumeric:true, methodComments: "Performs an element wise less than or equal on each column"),
         new MethodConfiguration("ElementwiseGreaterThan", MethodType.Comparison, ">", isNumeric:true),
-        new MethodConfiguration("ElementwiseGreaterThan", MethodType.ComparisonScalar, ">", isNumeric:true),
+        new MethodConfiguration("ElementwiseGreaterThan", MethodType.ComparisonScalar, ">", isNumeric:true, methodComments: "Performs an element wise greater than on each column"),
         new MethodConfiguration("ElementwiseLessThan", MethodType.Comparison, "<", isNumeric:true),
-        new MethodConfiguration("ElementwiseLessThan", MethodType.ComparisonScalar, "<", isNumeric:true),
+        new MethodConfiguration("ElementwiseLessThan", MethodType.ComparisonScalar, "<", isNumeric:true, methodComments: "Performs an element wise less than on each column"),
     };
 
      public class MethodConfiguration
@@ -196,9 +196,32 @@
         public string Operator { get; }
         public string MethodComments { get; }
         
+        public string GetColumnSpecificMethodComments()
+        {
+            var str = MethodComments;
+            return str.Replace("column", "value in the column");
+        }
+
+        public string GetReverseMethodComments()
+        {
+            var str = MethodComments;
+            return str.Replace(" an", " a reversed");
+        }
+
+        public string GetColumnSpecificReverseMethodComments()
+        {
+            return GetColumnSpecificMethodComments().Replace(" an", " a reversed");
+        }
+
         public string GetMethodSignature(string columnType, string genericType)
         {
             var arguments = GetMethodArguments(columnType, genericType);
+            return $"void {MethodName}({arguments})";
+        }
+
+        public string GetInvertedMethodSignatureForBinaryScalarsOps(string columnType, string genericType)
+        {
+            var arguments = GetInvertedMethodArguments(columnType, genericType);
             return $"void {MethodName}({arguments})";
         }
 
@@ -217,6 +240,17 @@
                     return $"{columnType}<{genericType}> {MethodName}({arguments})";
                 case MethodType.Reduction:
                     return $"{genericType} {MethodName}({arguments})";
+                default:
+                    throw new ArgumentException();
+            }
+        }
+
+        public string GetInvertedMethodArguments(string dataFrameType, string genericType)
+        {
+            switch (MethodType)
+            {
+                case MethodType.BinaryScalar:
+                    return $"{genericType} {Op2Name}, {dataFrameType}<{genericType}> {Op1Name}";
                 default:
                     throw new ArgumentException();
             }

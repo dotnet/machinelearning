@@ -561,7 +561,97 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(tempDf[0, 0], (byte)df[0, 0] % 1.1m);
             Assert.True(typeof(decimal) == tempDf["Int"].DataType);
 
+            tempDf = 1 + df;
+            Assert.Equal(tempDf[0, 0], (byte)df[0, 0] + (double)1);
+            tempDf = 1.1 + df;
+            Assert.Equal(tempDf[0, 0], (byte)df[0, 0] + 1.1);
+            tempDf = 1.1m + df;
+            Assert.Equal(tempDf[0, 0], (byte)df[0, 0] + 1.1m);
+            Assert.True(typeof(decimal) == tempDf["Int"].DataType);
+
+            tempDf = 1.1 - df;
+            Assert.Equal(tempDf[0, 0], 1.1 - (byte)df[0, 0]);
+            tempDf = 1.1m - df;
+            Assert.Equal(tempDf[0, 0], 1.1m - (byte)df[0, 0]);
+            Assert.True(typeof(decimal) == tempDf["Int"].DataType);
+
+            tempDf = 1.1 * df;
+            Assert.Equal(tempDf[0, 0], (byte)df[0, 0] * 1.1);
+            tempDf = 1.1m * df;
+            Assert.Equal(tempDf[0, 0], (byte)df[0, 0] * 1.1m);
+            Assert.True(typeof(decimal) == tempDf["Int"].DataType);
+
+            // To prevent a divide by zero
+            var plusOne = df + 1;
+            tempDf = 1.1 / plusOne;
+            Assert.Equal(tempDf[0, 0], 1.1 / (double)plusOne[0, 0]);
+            var plusDecimal = df + 1.1m;
+            tempDf = 1.1m / plusDecimal;
+            Assert.Equal(tempDf[0, 0], (1.1m) / (decimal)plusDecimal[0, 0]);
+            Assert.True(typeof(decimal) == tempDf["Int"].DataType);
+
+            tempDf = 1.1 % plusOne;
+            Assert.Equal(tempDf[0, 0], 1.1 % (double)plusOne[0, 0]);
+            tempDf = 1.1m % plusDecimal;
+            Assert.Equal(tempDf[0, 0], 1.1m % (decimal)plusDecimal[0, 0]);
+            Assert.True(typeof(decimal) == tempDf["Int"].DataType);
+
             Assert.Equal((byte)0, df[0, 0]);
+        }
+
+        [Fact]
+        public void TestBinaryOperatorsOnBoolColumns()
+        {
+            var df = new DataFrame();
+            var dataFrameColumn1 = new PrimitiveDataFrameColumn<bool>("Bool1", Enumerable.Range(0, 10).Select(x => x % 2 == 0 ? true : false));
+            var dataFrameColumn2 = new PrimitiveDataFrameColumn<bool>("Bool2", Enumerable.Range(0, 10).Select(x => x % 2 == 0 ? true : false));
+            df.Columns.Insert(0, dataFrameColumn1);
+            df.Columns.Insert(1, dataFrameColumn2);
+
+            DataFrame and = df & true;
+            for (int i = 0; i < dataFrameColumn1.Length; i++)
+            {
+                Assert.Equal(dataFrameColumn1[i], and["Bool1"][i]);
+            }
+
+            and = true & df;
+            for (int i = 0; i < dataFrameColumn1.Length; i++)
+            {
+                Assert.Equal(dataFrameColumn1[i], and["Bool1"][i]);
+            }
+
+            DataFrame or = df | true;
+            Assert.True(or.Columns[0].All());
+            Assert.True(or.Columns[1].All());
+            or = true | df;
+            Assert.True(or.Columns[0].All());
+            Assert.True(or.Columns[1].All());
+
+            DataFrame xor = df ^ true;
+            for (int i = 0; i < xor.RowCount; i++)
+            {
+                if (i % 2 == 0)
+                    Assert.False((bool)xor["Bool1"][i]);
+                else
+                    Assert.True((bool)xor["Bool1"][i]);
+            }
+            xor = true ^ df;
+            for (int i = 0; i < xor.RowCount; i++)
+            {
+                if (i % 2 == 0)
+                    Assert.False((bool)xor["Bool1"][i]);
+                else
+                    Assert.True((bool)xor["Bool1"][i]);
+            }
+        }
+
+        [Fact]
+        public void TestColumnReverseOrderState()
+        {
+            var column = new PrimitiveDataFrameColumn<int>("Int", Enumerable.Range(0, 10));
+            var newColumn = 1 - column;
+            var checkOrderColumn = 1 - newColumn;
+            Assert.True(checkOrderColumn.ElementwiseEquals(column).All());
         }
 
         [Fact]

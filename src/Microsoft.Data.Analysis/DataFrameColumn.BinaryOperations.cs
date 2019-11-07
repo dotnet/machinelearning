@@ -17,7 +17,19 @@ namespace Microsoft.Data.Analysis
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Performs an element wise addition on each value in the column
+        /// </summary>
         public virtual DataFrameColumn Add<T>(T value, bool inPlace = false)
+            where T : unmanaged
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Performs a reversed element wise addition on each value in the column
+        /// </summary>
+        public virtual DataFrameColumn ReverseAdd<T>(T value, bool inPlace = false)
             where T : unmanaged
         {
             throw new NotImplementedException();
@@ -28,7 +40,19 @@ namespace Microsoft.Data.Analysis
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Performs an element wise subtraction on each value in the column
+        /// </summary>
         public virtual DataFrameColumn Subtract<T>(T value, bool inPlace = false)
+            where T : unmanaged
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Performs a reversed element wise subtraction on each value in the column
+        /// </summary>
+        public virtual DataFrameColumn ReverseSubtract<T>(T value, bool inPlace = false)
             where T : unmanaged
         {
             throw new NotImplementedException();
@@ -39,7 +63,19 @@ namespace Microsoft.Data.Analysis
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Performs an element wise multiplication on each value in the column
+        /// </summary>
         public virtual DataFrameColumn Multiply<T>(T value, bool inPlace = false)
+            where T : unmanaged
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Performs a reversed element wise multiplication on each value in the column
+        /// </summary>
+        public virtual DataFrameColumn ReverseMultiply<T>(T value, bool inPlace = false)
             where T : unmanaged
         {
             throw new NotImplementedException();
@@ -50,7 +86,19 @@ namespace Microsoft.Data.Analysis
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Performs an element wise division on each value in the column
+        /// </summary>
         public virtual DataFrameColumn Divide<T>(T value, bool inPlace = false)
+            where T : unmanaged
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Performs a reversed element wise division on each value in the column
+        /// </summary>
+        public virtual DataFrameColumn ReverseDivide<T>(T value, bool inPlace = false)
             where T : unmanaged
         {
             throw new NotImplementedException();
@@ -61,7 +109,19 @@ namespace Microsoft.Data.Analysis
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Performs an element wise modulus operation on each value in the column
+        /// </summary>
         public virtual DataFrameColumn Modulo<T>(T value, bool inPlace = false)
+            where T : unmanaged
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Performs a reversed element wise modulus operation on each value in the column
+        /// </summary>
+        public virtual DataFrameColumn ReverseModulo<T>(T value, bool inPlace = false)
             where T : unmanaged
         {
             throw new NotImplementedException();
@@ -72,7 +132,18 @@ namespace Microsoft.Data.Analysis
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Performs an element wise boolean And on each value in the column
+        /// </summary>
         public virtual PrimitiveDataFrameColumn<bool> And(bool value, bool inPlace = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Performs a reversed element wise boolean And on each value in the column
+        /// </summary>
+        public virtual PrimitiveDataFrameColumn<bool> ReverseAnd(bool value, bool inPlace = false)
         {
             throw new NotImplementedException();
         }
@@ -82,7 +153,18 @@ namespace Microsoft.Data.Analysis
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Performs an element wise boolean Or on each value in the column
+        /// </summary>
         public virtual PrimitiveDataFrameColumn<bool> Or(bool value, bool inPlace = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Performs a reversed element wise boolean Or on each value in the column
+        /// </summary>
+        public virtual PrimitiveDataFrameColumn<bool> ReverseOr(bool value, bool inPlace = false)
         {
             throw new NotImplementedException();
         }
@@ -92,16 +174,33 @@ namespace Microsoft.Data.Analysis
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Performs an element wise boolean Xor on each value in the column
+        /// </summary>
         public virtual PrimitiveDataFrameColumn<bool> Xor(bool value, bool inPlace = false)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Performs a reversed element wise boolean Xor on each value in the column
+        /// </summary>
+        public virtual PrimitiveDataFrameColumn<bool> ReverseXor(bool value, bool inPlace = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Performs an element wise left shift on each value in the column
+        /// </summary>
         public virtual DataFrameColumn LeftShift(int value, bool inPlace = false)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Performs an element wise right shift on each value in the column
+        /// </summary>
         public virtual DataFrameColumn RightShift(int value, bool inPlace = false)
         {
             throw new NotImplementedException();
@@ -112,6 +211,9 @@ namespace Microsoft.Data.Analysis
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Performs an element wise equals on each value in the column
+        /// </summary>
         public virtual PrimitiveDataFrameColumn<bool> ElementwiseEquals<T>(T value)
             where T : unmanaged
         {
@@ -123,6 +225,9 @@ namespace Microsoft.Data.Analysis
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Performs an element wise not-equals on each value in the column
+        /// </summary>
         public virtual PrimitiveDataFrameColumn<bool> ElementwiseNotEquals<T>(T value)
             where T : unmanaged
         {
@@ -134,6 +239,9 @@ namespace Microsoft.Data.Analysis
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Performs an element wise greater than or equal on each value in the column
+        /// </summary>
         public virtual PrimitiveDataFrameColumn<bool> ElementwiseGreaterThanOrEqual<T>(T value)
             where T : unmanaged
         {
@@ -145,6 +253,9 @@ namespace Microsoft.Data.Analysis
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Performs an element wise less than or equal on each value in the column
+        /// </summary>
         public virtual PrimitiveDataFrameColumn<bool> ElementwiseLessThanOrEqual<T>(T value)
             where T : unmanaged
         {
@@ -156,6 +267,9 @@ namespace Microsoft.Data.Analysis
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Performs an element wise greater than on each value in the column
+        /// </summary>
         public virtual PrimitiveDataFrameColumn<bool> ElementwiseGreaterThan<T>(T value)
             where T : unmanaged
         {
@@ -167,6 +281,9 @@ namespace Microsoft.Data.Analysis
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Performs an element wise less than on each value in the column
+        /// </summary>
         public virtual PrimitiveDataFrameColumn<bool> ElementwiseLessThan<T>(T value)
             where T : unmanaged
         {

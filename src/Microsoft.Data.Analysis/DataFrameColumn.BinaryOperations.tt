@@ -21,13 +21,22 @@ namespace Microsoft.Data.Analysis
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
 <# if (method.MethodType == MethodType.BinaryScalar) { #>
 <# if (method.IsBitwise == true) { #>
+        /// <summary>
+        /// <#=method.GetColumnSpecificMethodComments()#>
+        /// </summary>
         public virtual PrimitiveDataFrameColumn<bool> <#=method.MethodName#>(bool value, bool inPlace = false)
 <# } else { #>
+        /// <summary>
+        /// <#=method.GetColumnSpecificMethodComments()#>
+        /// </summary>
         public virtual DataFrameColumn <#=method.MethodName#><T>(T value, bool inPlace = false)
             where T : unmanaged
 <# } #>
 <# } #>
 <# if (method.MethodType == MethodType.ComparisonScalar) { #>
+        /// <summary>
+        /// <#=method.GetColumnSpecificMethodComments()#>
+        /// </summary>
         public virtual PrimitiveDataFrameColumn<bool> <#=method.MethodName#><T>(T value)
             where T : unmanaged
 <# } #>
@@ -38,12 +47,33 @@ namespace Microsoft.Data.Analysis
         public virtual PrimitiveDataFrameColumn<bool> <#=method.MethodName#>(DataFrameColumn column)
 <# } #>
 <# if (method.MethodType == MethodType.BinaryInt ) {#>
+        /// <summary>
+        /// <#=method.GetColumnSpecificMethodComments()#>
+        /// </summary>
         public virtual DataFrameColumn <#=method.MethodName#>(int value, bool inPlace = false)
 <# } #>
         {
             throw new NotImplementedException();
         }
 
+<# if (method.MethodType == MethodType.BinaryScalar) { #>
+<# if (method.IsBitwise == true) { #>
+        /// <summary>
+        /// <#=method.GetColumnSpecificReverseMethodComments()#>
+        /// </summary>
+        public virtual PrimitiveDataFrameColumn<bool> Reverse<#=method.MethodName#>(bool value, bool inPlace = false)
+<# } else { #>
+        /// <summary>
+        /// <#=method.GetColumnSpecificReverseMethodComments()#>
+        /// </summary>
+        public virtual DataFrameColumn Reverse<#=method.MethodName#><T>(T value, bool inPlace = false)
+            where T : unmanaged
+<# } #>
+        {
+            throw new NotImplementedException();
+        }
+
+<# } #>
 <# } #>
     }
 }
