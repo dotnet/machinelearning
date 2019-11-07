@@ -1421,6 +1421,19 @@ namespace Microsoft.ML.RunTests
 
             Done();
         }
+
+        [Fact]
+        public void SavePipeCountTable()
+        {
+            TestCore(null, true,
+                new[] {
+                    "loader=Text{col=Text:TX:1-9 col=OneText:TX:1 col=Label:0}",
+                    "xf=HashJoin{col=Hash1:Text col=Hash2:OneText bits=14 ord-}",
+                    "xf=CountTable{col=Hash1c:Hash1 col=Hash2c:Hash2 label=Label table=Dict prior=60}"
+                });
+
+            Done();
+        }
     }
     /// <summary>
     /// A class for non-baseline data pipe tests.
