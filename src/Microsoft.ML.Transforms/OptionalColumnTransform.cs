@@ -509,10 +509,7 @@ namespace Microsoft.ML.Transforms
                 var columnType = _bindings.ColumnTypes[iinfo];
                 string inputColumnName = Source.Schema[_bindings.SrcCols[iinfo]].Name;
                 if (!ctx.ContainsColumn(inputColumnName))
-                {
-                    ctx.RemoveColumn(inputColumnName, false);
                     continue;
-                }
 
                 if (!SaveAsOnnxCore(ctx, iinfo, ctx.GetVariableName(inputColumnName),
                     ctx.AddIntermediateVariable(OutputSchema[_bindings.MapIinfoToCol(iinfo)].Type, inputColumnName)))
