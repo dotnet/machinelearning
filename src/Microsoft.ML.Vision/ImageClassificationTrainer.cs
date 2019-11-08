@@ -42,10 +42,10 @@ namespace Microsoft.ML.Vision
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
-    /// To create this trainer, use [ImageClassification](xref:Microsoft.ML.Vision.DnnCatalog.ImageClassification(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String,System.String,System.String,Microsoft.ML.IDataView)).
+    /// To create this trainer, use [ImageClassification](xref:Microsoft.ML.VisionCatalog.ImageClassification(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String,System.String,System.String,Microsoft.ML.IDataView)).
     ///
     /// ### Input and Output Columns
-    /// The input label column data must be[key] (xref:Microsoft.ML.Data.KeyDataViewType) type and the feature column must be a variable-sized vector of<xref:System.Byte>.
+    /// The input label column data must be [key](xref:Microsoft.ML.Data.KeyDataViewType) type and the feature column must be a variable-sized vector of <xref:System.Byte>.
     ///
     /// This trainer outputs the following columns:
     ///
@@ -66,8 +66,7 @@ namespace Microsoft.ML.Vision
     ///
     /// ### Training Algorithm Details
     /// Trains a Deep Neural Network(DNN) by leveraging an existing pre-trained model such as Resnet50 for the purpose
-    /// of classifying images. The technique was inspired from [TensorFlow's retrain image classification tutorial]
-    /// (https://www.tensorflow.org/hub/tutorials/image_retraining)
+    /// of classifying images. The technique was inspired from [TensorFlow's retrain image classification tutorial](https://www.tensorflow.org/hub/tutorials/image_retraining)
     /// ]]>
     /// </format>
     /// </remarks>
@@ -339,79 +338,79 @@ namespace Microsoft.ML.Vision
         public sealed class Options : TrainerInputBaseWithLabel
         {
             /// <summary>
-            /// Number of samples to use for mini-batch training.
+            /// Number of samples to use for mini-batch training. The default value for BatchSize is 10.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of samples to use for mini-batch training.", SortOrder = 9)]
             public int BatchSize = 10;
 
             /// <summary>
-            /// Number of training iterations.
+            /// Number of training iterations. The default value for Epoch is 200.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of training iterations.", SortOrder = 10)]
             public int Epoch = 200;
 
             /// <summary>
-            /// Learning rate to use during optimization.
+            /// Learning rate to use during optimization. The default value for Learning Rate is 0.01.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate to use during optimization.", SortOrder = 12)]
             public float LearningRate = 0.01f;
 
             /// <summary>
-            /// Early stopping technique parameters to be used to terminate training when training metric stops improving.
+            /// Early stopping technique parameters to be used to terminate training when training metric stops improving. By default EarlyStopping is turned on and the monitoring metric is Accuracy.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Early stopping technique parameters to be used to terminate training when training metric stops improving.", SortOrder = 15)]
             public EarlyStopping EarlyStoppingCriteria = new EarlyStopping();
 
             /// <summary>
-            /// Specifies the model architecture to be used in the case of image classification training using transfer learning.
+            /// Specifies the model architecture to be used in the case of image classification training using transfer learning. The default Architecture is Resnet_v2_50.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Model architecture to be used in transfer learning for image classification.", SortOrder = 15)]
             public Architecture Arch = Architecture.ResnetV250;
 
             /// <summary>
-            /// Name of the tensor that will contain the output scores of the last layer when transfer learning is done.
+            /// Name of the tensor that will contain the output scores of the last layer when transfer learning is done. The default tensor name is "Score".
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Softmax tensor of the last layer in transfer learning.", SortOrder = 15)]
             public string ScoreColumnName = "Score";
 
             /// <summary>
-            /// Name of the tensor that will contain the predicted label from output scores of the last layer when transfer learning is done.
+            /// Name of the tensor that will contain the predicted label from output scores of the last layer when transfer learning is done. The default tensor name is "PredictedLabel".
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Argmax tensor of the last layer in transfer learning.", SortOrder = 15)]
             public string PredictedLabelColumnName = "PredictedLabel";
 
             /// <summary>
-            /// Final model and checkpoint files/folder prefix for storing graph files.
+            /// Final model and checkpoint files/folder prefix for storing graph files. The default prefix is "custom_retrained_model_based_on_".
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Final model and checkpoint files/folder prefix for storing graph files.", SortOrder = 15)]
             public string FinalModelPrefix = "custom_retrained_model_based_on_";
 
             /// <summary>
-            /// Callback to report statistics on accuracy/cross entropy during training phase.
+            /// Callback to report statistics on accuracy/cross entropy during training phase. Metrics Callback is set to null by default.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Callback to report metrics during training and validation phase.", SortOrder = 15)]
             public Action<ImageClassificationMetrics> MetricsCallback = null;
 
             /// <summary>
-            /// Indicates the path where the image bottleneck cache files and trained model are saved, default is a new temporary directory
+            /// Indicates the path where the image bottleneck cache files and trained model are saved, default is a new temporary directory.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the path where the models get downloaded to and cache files saved, default is a new temporary directory.", SortOrder = 15)]
             public string WorkspacePath = null;
 
             /// <summary>
-            /// Indicates to evaluate the model on train set after every epoch.
+            /// Indicates to evaluate the model on train set after every epoch. Test on trainset is set to true by default.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates to evaluate the model on train set after every epoch.", SortOrder = 15)]
             public bool TestOnTrainSet = true;
 
             /// <summary>
-            /// Indicates to not re-compute cached bottleneck trainset values if already available in the bin folder.
+            /// Indicates to not re-compute cached bottleneck trainset values if already available in the bin folder. This parameter is set to false by default.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates to not re-compute trained cached bottleneck values if already available in the bin folder.", SortOrder = 15)]
             public bool ReuseTrainSetBottleneckCachedValues = false;
 
             /// <summary>
-            /// Indicates to not re-compute cached bottleneck validationset values if already available in the bin folder.
+            /// Indicates to not re-compute cached bottleneck validationset values if already available in the bin folder. This parameter is set to false by default.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates to not re-compute validataionset cached bottleneck validationset values if already available in the bin folder.", SortOrder = 15)]
             public bool ReuseValidationSetBottleneckCachedValues = false;
@@ -423,19 +422,19 @@ namespace Microsoft.ML.Vision
             public IDataView ValidationSet;
 
             /// <summary>
-            /// Indicates the file name within the workspace to store trainset bottleneck values for caching.
+            /// Indicates the file name within the workspace to store trainset bottleneck values for caching, default file name is "trainSetBottleneckFile.csv".
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the file name to store trainset bottleneck values for caching.", SortOrder = 15)]
             public string TrainSetBottleneckCachedValuesFileName = "trainSetBottleneckFile.csv";
 
             /// <summary>
-            /// Indicates the file name within the workspace to store validationset  bottleneck values for caching.
+            /// Indicates the file name within the workspace to store validationset  bottleneck values for caching, default file name is "validationSetBottleneckFile.csv".
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the file name to store validationset bottleneck values for caching.", SortOrder = 15)]
             public string ValidationSetBottleneckCachedValuesFileName = "validationSetBottleneckFile.csv";
 
             /// <summary>
-            /// A class that performs learning rate scheduling.
+            /// A class that performs learning rate scheduling. The default learning rate scheduler is exponential learning rate decay.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "A class that performs learning rate scheduling.", SortOrder = 15)]
             public LearningRateScheduler LearningRateScheduler = new ExponentialLRDecay();
