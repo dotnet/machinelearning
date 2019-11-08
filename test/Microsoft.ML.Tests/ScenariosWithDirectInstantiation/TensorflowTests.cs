@@ -1435,7 +1435,14 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowImageClassificationWithPolynomialLRScheduling()
         {
-            TensorFlowImageClassificationWithLRScheduling(new PolynomialLRDecay(), 50);
+
+            /*
+             * Due to an issue with Nix based os performance is not as good,
+             * as such increase the number of epochs to produce a better model.
+             */
+            bool isNix = (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
+                (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))));
+            TensorFlowImageClassificationWithLRScheduling(new PolynomialLRDecay(), isNix ? 75: 50);
         }
 
         internal void TensorFlowImageClassificationWithLRScheduling(LearningRateScheduler  learningRateScheduler, int epoch)
