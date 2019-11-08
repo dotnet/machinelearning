@@ -35,6 +35,10 @@ namespace Microsoft.Data.Analysis
                     }
                     else
                     {
+                        if (inPlace)
+                        {
+                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
+                        }
                         PrimitiveDataFrameColumn<decimal> clonedDecimalColumn = CloneAsDecimalColumn();
                         clonedDecimalColumn._columnContainer.ReverseAdd(DecimalConverter<U>.Instance.GetDecimal(value));
                         return clonedDecimalColumn;
@@ -64,6 +68,10 @@ namespace Microsoft.Data.Analysis
                     }
                     else
                     {
+                        if (inPlace)
+                        {
+                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
+                        }
                         if (typeof(U) == typeof(decimal))
                         {
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
@@ -102,6 +110,10 @@ namespace Microsoft.Data.Analysis
                     }
                     else
                     {
+                        if (inPlace)
+                        {
+                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
+                        }
                         PrimitiveDataFrameColumn<decimal> clonedDecimalColumn = CloneAsDecimalColumn();
                         clonedDecimalColumn._columnContainer.ReverseSubtract(DecimalConverter<U>.Instance.GetDecimal(value));
                         return clonedDecimalColumn;
@@ -131,6 +143,10 @@ namespace Microsoft.Data.Analysis
                     }
                     else
                     {
+                        if (inPlace)
+                        {
+                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
+                        }
                         if (typeof(U) == typeof(decimal))
                         {
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
@@ -169,6 +185,10 @@ namespace Microsoft.Data.Analysis
                     }
                     else
                     {
+                        if (inPlace)
+                        {
+                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
+                        }
                         PrimitiveDataFrameColumn<decimal> clonedDecimalColumn = CloneAsDecimalColumn();
                         clonedDecimalColumn._columnContainer.ReverseMultiply(DecimalConverter<U>.Instance.GetDecimal(value));
                         return clonedDecimalColumn;
@@ -198,6 +218,10 @@ namespace Microsoft.Data.Analysis
                     }
                     else
                     {
+                        if (inPlace)
+                        {
+                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
+                        }
                         if (typeof(U) == typeof(decimal))
                         {
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
@@ -236,6 +260,10 @@ namespace Microsoft.Data.Analysis
                     }
                     else
                     {
+                        if (inPlace)
+                        {
+                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
+                        }
                         PrimitiveDataFrameColumn<decimal> clonedDecimalColumn = CloneAsDecimalColumn();
                         clonedDecimalColumn._columnContainer.ReverseDivide(DecimalConverter<U>.Instance.GetDecimal(value));
                         return clonedDecimalColumn;
@@ -265,6 +293,10 @@ namespace Microsoft.Data.Analysis
                     }
                     else
                     {
+                        if (inPlace)
+                        {
+                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
+                        }
                         if (typeof(U) == typeof(decimal))
                         {
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
@@ -303,6 +335,10 @@ namespace Microsoft.Data.Analysis
                     }
                     else
                     {
+                        if (inPlace)
+                        {
+                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
+                        }
                         PrimitiveDataFrameColumn<decimal> clonedDecimalColumn = CloneAsDecimalColumn();
                         clonedDecimalColumn._columnContainer.ReverseModulo(DecimalConverter<U>.Instance.GetDecimal(value));
                         return clonedDecimalColumn;
@@ -332,6 +368,10 @@ namespace Microsoft.Data.Analysis
                     }
                     else
                     {
+                        if (inPlace)
+                        {
+                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
+                        }
                         if (typeof(U) == typeof(decimal))
                         {
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();

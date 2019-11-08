@@ -153,6 +153,9 @@
   <data name="MismatchedColumnLengths" xml:space="preserve">
     <value>Column lengths are mismatched</value>
   </data>
+  <data name="MismatchedColumnValueType" xml:space="preserve">
+    <value>Expected column to hold values of type {0}</value>
+  </data>
   <data name="MismatchedRowCount" xml:space="preserve">
     <value>rowCount differs from Column length for Column </value>
   </data>

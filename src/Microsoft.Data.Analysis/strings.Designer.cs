@@ -169,6 +169,15 @@ namespace Microsoft.Data {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expected column to hold values of type {0}.
+        /// </summary>
+        internal static string MismatchedColumnValueType {
+            get {
+                return ResourceManager.GetString("MismatchedColumnValueType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to rowCount differs from Column length for Column .
         /// </summary>
         internal static string MismatchedRowCount {

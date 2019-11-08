@@ -209,6 +209,17 @@ namespace Microsoft.Data.Analysis
                     }
                     else 
                     {
+<# if (method.MethodType == MethodType.BinaryScalar) { #>
+                        if (inPlace)
+                        {
+                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
+                        }
+<# } else if (method.MethodType == MethodType.Binary) { #>
+                        if (inPlace)
+                        {
+                            throw new ArgumentException(string.Format(Strings.MismatchedColumnValueType, typeof(T)), nameof(column));
+                        }
+<# } #>
 <# if (method.MethodType == MethodType.ComparisonScalar || method.MethodType == MethodType.Comparison) { #>
                         PrimitiveDataFrameColumn<bool> newColumn = CloneAsBoolColumn();
 <# if (method.MethodType == MethodType.ComparisonScalar) { #>
@@ -277,6 +288,17 @@ namespace Microsoft.Data.Analysis
                     }
                     else 
                     {
+<# if (method.MethodType == MethodType.BinaryScalar) { #>
+                        if (inPlace)
+                        {
+                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
+                        }
+<# } else if (method.MethodType == MethodType.Binary) { #>
+                        if (inPlace)
+                        {
+                            throw new ArgumentException(string.Format(Strings.MismatchedColumnValueType, typeof(T)), nameof(column));
+                        }
+<# } #>
                         if (typeof(U) == typeof(decimal))
                         {
 <# if (method.MethodType == MethodType.ComparisonScalar || method.MethodType == MethodType.Comparison) { #>
