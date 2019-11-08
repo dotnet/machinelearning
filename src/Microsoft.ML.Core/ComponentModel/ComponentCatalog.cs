@@ -453,7 +453,8 @@ namespace Microsoft.ML.Runtime
                     {
                         using(var file = new System.IO.StreamWriter(myLogPath, true))
                         {
-                            file.WriteLine($"{loaderType.ToString()}");
+                            var parmsString = string.Join<Type>(", ", parmTypes);
+                            file.WriteLine($"{loaderType.ToString()}\t\t- parmTypes: {parmsString}\t\t- reqEnvCtor: {requireEnvironmentCtor} - reqEnvCreate: {requireEnvironmentCreate}");
 
                         }
                     }
