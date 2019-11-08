@@ -45,32 +45,32 @@ jobs:
     - ${{ if eq(parameters.pool.name, 'Hosted macOS High Sierra') }}:
       - script: brew update && brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/f5b1ac99a7fba27c19cee0bc4f036775c889b359/Formula/libomp.rb && brew install mono-libgdiplus gettext && brew link gettext --force && brew link libomp --force
         displayName: Install build dependencies
-    - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"
-      displayName: Set LD_LIBRARY_PATH for Ubuntu to locate Native shared library
-      condition: ${{ and(eq(parameters.nightlyBuild, 'true'), eq(parameters.name, 'Ubuntu_x64_NetCoreApp21')) }}
+    - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.name, 'Ubuntu_x64_NetCoreApp21')) }}:
+      - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"
+        displayName: Set LD_LIBRARY_PATH for Ubuntu to locate Native shared library
     - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }}
       displayName: Build
-    - script: $(dotnetPath) restore $(nightlyBuildProjPath)
-      displayName: Restore nightly build project
-      condition: eq(${{ parameters.nightlyBuild }}, true)
-    - script: $(dotnetPath) list $(nightlyBuildProjPath) package --source $(nugetFeed) --outdated > $(versionFilePath)
-      displayName: List latest package versions
-      condition: eq(${{ parameters.nightlyBuild }}, true)
-    - script: $(dotnetPath) run --project $(packageUpdaterProjPath)
-      displayName: Update package version
-      condition: eq(${{ parameters.nightlyBuild }}, true)
-    - script: $(dotnetPath) msbuild -restore $(nightlyBuildProjPath) /p:ReferenceTypeForTestFramework="Nuget" /p:Configuration=$(_configuration) /p:TargetArchitecture=${{ parameters.architecture }}
-      displayName: Build Nightly Build Project with latest package versions
-      condition: eq(${{ parameters.nightlyBuild }}, true)
-    - script: ${{ parameters.buildScript }} -$(_configuration) -runnightlybuildtests
-      displayName: Run Nightly Build Tests
-      condition: and(succeeded(), eq(${{ parameters.nightlyBuild }}, true))
-    - script: ${{ parameters.buildScript }} -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=$(_includeBenchmarkData)
-      displayName: Download Benchmark Data
-      condition: eq(${{ parameters.nightlyBuild }}, false)
-    - script: ${{ parameters.buildScript }} -$(_configuration) -runtests -coverage=${{ parameters.codeCoverage }}
-      displayName: Run Tests.
-      condition: eq(${{ parameters.nightlyBuild }}, false)
+    - ${{ if eq(parameters.nightlyBuild, 'true') }}:
+      - script: $(dotnetPath) restore $(nightlyBuildProjPath)
+        displayName: Restore nightly build project
+    - ${{ if eq(parameters.nightlyBuild, 'true') }}:
+      - script: $(dotnetPath) list $(nightlyBuildProjPath) package --source $(nugetFeed) --outdated > $(versionFilePath)
+        displayName: List latest package versions
+    - ${{ if eq(parameters.nightlyBuild, 'true') }}:
+      - script: $(dotnetPath) run --project $(packageUpdaterProjPath)
+        displayName: Update package version
+    - ${{ if eq(parameters.nightlyBuild, 'true') }}:
+      - script: $(dotnetPath) msbuild -restore $(nightlyBuildProjPath) /p:ReferenceTypeForTestFramework="Nuget" /p:Configuration=$(_configuration) /p:TargetArchitecture=${{ parameters.architecture }}
+        displayName: Build Nightly Build Project with latest package versions
+    - ${{ if eq(parameters.nightlyBuild, 'true') }}:
+      - script: ${{ parameters.buildScript }} -$(_configuration) -runnightlybuildtests
+        displayName: Run Nightly Build Tests
+    - ${{ if eq(parameters.nightlyBuild, 'false') }}:
+      - script: ${{ parameters.buildScript }} -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=$(_includeBenchmarkData)
+        displayName: Download Benchmark Data
+    - ${{ if eq(parameters.nightlyBuild, 'false') }}:
+      - script: ${{ parameters.buildScript }} -$(_configuration) -runtests -coverage=${{ parameters.codeCoverage }}
+        displayName: Run Tests.
     - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet msbuild build/Codecoverage.proj /p:CodeCovToken=$(CODECOV_TOKEN)
       displayName: Upload coverage to codecov.io
       condition: and(succeeded(), eq(${{ parameters.codeCoverage }}, True))
@@ -137,6 +137,6 @@ jobs:
                   Remove-Item -Force -Recurse .\tmp\
                   Write-Output "Done cleaning up binary folder..."
         displayName: Clean up test data
-    - script: ${{ parameters.buildScript }} -buildPackages
-      displayName: Build Packages
-      condition: eq(${{ parameters.nightlyBuild }}, false)
+    - ${{ if eq(parameters.nightlyBuild, 'false') }}:
+      - script: ${{ parameters.buildScript }} -buildPackages
+        displayName: Build Packages
