@@ -53,22 +53,17 @@ jobs:
     - ${{ if eq(parameters.nightlyBuild, 'true') }}:
       - script: $(dotnetPath) restore $(nightlyBuildProjPath)
         displayName: Restore nightly build project
-    - ${{ if eq(parameters.nightlyBuild, 'true') }}:
       - script: $(dotnetPath) list $(nightlyBuildProjPath) package --source $(nugetFeed) --outdated > $(versionFilePath)
         displayName: List latest package versions
-    - ${{ if eq(parameters.nightlyBuild, 'true') }}:
       - script: $(dotnetPath) run --project $(packageUpdaterProjPath)
         displayName: Update package version
-    - ${{ if eq(parameters.nightlyBuild, 'true') }}:
       - script: $(dotnetPath) msbuild -restore $(nightlyBuildProjPath) /p:ReferenceTypeForTestFramework="Nuget" /p:Configuration=$(_configuration) /p:TargetArchitecture=${{ parameters.architecture }}
         displayName: Build Nightly Build Project with latest package versions
-    - ${{ if eq(parameters.nightlyBuild, 'true') }}:
       - script: ${{ parameters.buildScript }} -$(_configuration) -runnightlybuildtests
         displayName: Run Nightly Build Tests
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
       - script: ${{ parameters.buildScript }} -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=$(_includeBenchmarkData)
         displayName: Download Benchmark Data
-    - ${{ if eq(parameters.nightlyBuild, 'false') }}:
       - script: ${{ parameters.buildScript }} -$(_configuration) -runtests -coverage=${{ parameters.codeCoverage }}
         displayName: Run Tests.
     - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet msbuild build/Codecoverage.proj /p:CodeCovToken=$(CODECOV_TOKEN)
