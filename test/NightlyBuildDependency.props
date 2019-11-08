@@ -1,5 +1,7 @@
 <Project>
   <ItemGroup>
+    <!-- Versions below are just placeholder, will be updated during nighly build pipeline to latest package version
+    -->
     <PackageReference Include="Microsoft.ML" Version="1.5.0-preview-28305-3" />
     <PackageReference Include="Microsoft.ML.Ensemble" Version="0.17.0-preview-28305-3" />
     <PackageReference Include="Microsoft.ML.EntryPoints" Version="0.17.0-preview-28305-3" />
