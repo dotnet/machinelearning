@@ -47,7 +47,7 @@ jobs:
         displayName: Install build dependencies
     - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.name, 'Ubuntu_x64_NetCoreApp21')) }}:
       - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"
-        displayName: Set LD_LIBRARY_PATH for Ubuntu to locate Native shared library
+        displayName: Set LD_LIBRARY_PATH for Ubuntu to locate Native shared library in current running path
     - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }}
       displayName: Build
     - ${{ if eq(parameters.nightlyBuild, 'true') }}:
@@ -56,9 +56,9 @@ jobs:
       - script: $(dotnetPath) list $(nightlyBuildProjPath) package --source $(nugetFeed) --outdated > $(versionFilePath)
         displayName: List latest package versions
       - script: $(dotnetPath) run --project $(packageUpdaterProjPath)
-        displayName: Update package version
+        displayName: Update package versions for nightly build
       - script: $(dotnetPath) msbuild -restore $(nightlyBuildProjPath) /p:ReferenceTypeForTestFramework="Nuget" /p:Configuration=$(_configuration) /p:TargetArchitecture=${{ parameters.architecture }}
-        displayName: Build Nightly Build Project with latest package versions
+        displayName: Build Nightly-Build Project with latest package versions
       - script: ${{ parameters.buildScript }} -$(_configuration) -runnightlybuildtests
         displayName: Run Nightly Build Tests
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
