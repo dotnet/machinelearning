@@ -2,12 +2,11 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.props))\Directory.Build.props" />
 
   <ItemGroup>
-    <Project Include="$(MSBuildThisFileDirectory)**\*.csproj" Exclude="$(MSBuildThisFileDirectory)Microsoft.ML.NightlyBuild.Tests\Microsoft.ML.NightlyBuild.Tests.csproj"/>
-    <Project Include="$(MSBuildThisFileDirectory)**\*.fsproj" />
+    <Project Include="$(MSBuildThisFileDirectory)Microsoft.ML.NightlyBuild.Tests\Microsoft.ML.NightlyBuild.Tests.csproj" />
   </ItemGroup>
 
-  <Target Name="RunTests">
-    <Message Importance="High" Text="Running tests ..." />
+  <Target Name="RunNightlyBuildTests">
+    <Message Importance="High" Text="Running nightly build tests ..." />
     <MSBuild Targets="VSTest"
              Projects="@(Project)"
              Properties="VSTestNoBuild=true" />
