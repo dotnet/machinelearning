@@ -10,12 +10,11 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(SvmLightSaver.Summary, typeof(SvmLightSaver), typeof(SvmLightSaver.Arguments), typeof(SignatureDataSaver),
     "SVM-Light Saver", SvmLightSaver.LoadName, "SvmLight", "Svm")]
 
-namespace Microsoft.ML.Transforms
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// The SVM-light saver is a saver class that is capable of saving the label,

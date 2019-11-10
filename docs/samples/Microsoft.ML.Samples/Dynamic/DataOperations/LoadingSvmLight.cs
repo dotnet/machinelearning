@@ -76,7 +76,7 @@ namespace Samples.Dynamic.DataOperations
             // 1 1 0 0.02958358 0.9334617 0 0 0.8833956 0.2947684 0 0 0
 
             // If the loader is created without a data sample we need to specify the number of features expected in the file.
-            loader = mlContext.Data.CreateSvmLightLoader(10);
+            loader = mlContext.Data.CreateSvmLightLoader(inputSize: 10);
             svmData = loader.Load(file);
 
             PrintSchema(svmData);

@@ -2199,7 +2199,7 @@ namespace Microsoft.ML.RunTests
             path = CreateOutputPath("DataC.txt");
             File.WriteAllLines(path.Path, new string[] {
                 "-1 aurora:1 chagrin:2",
-                "1 chagrin:3 euclid:4 chagrin:5"
+                "1 chagrin:3 euclid:4"
             });
             TestInCore("showdata", path.Path, modelPath, "");
 

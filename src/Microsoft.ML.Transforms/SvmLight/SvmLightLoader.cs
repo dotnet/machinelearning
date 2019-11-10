@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -169,14 +170,9 @@ namespace Microsoft.ML.Data
 
                 var ator = ReadOnlyMemoryUtils.Split(left, _seps).GetEnumerator();
 
-                if (!ator.MoveNext())
-                {
-                    intermediate.Label = float.NaN;
-                    intermediate.Weight = float.NaN;
-                    VBufferUtils.Clear(ref intermediate.FeatureKeys);
-                    VBufferUtils.Clear(ref intermediate.FeatureValues);
-                    return;
-                }
+                // Empty lines are filtered in the Input.MapComment step.
+                var notEmpty = ator.MoveNext();
+                Contracts.Assert(notEmpty);
 
                 ReadOnlyMemory<char> token = ator.Current;
 
@@ -239,6 +235,7 @@ namespace Microsoft.ML.Data
                         // it a feature, but right now we have no learners that pay
                         // attention to so-called "slack IDs" so we'll ignore these for
                         // right now.
+                        continue;
                     }
                     else
                     {
@@ -321,10 +318,16 @@ namespace Microsoft.ML.Data
                 var inputValues = input.FeatureKeys.GetValues();
                 for (int i = 0; i < inputValues.Length; i++)
                 {
-                    if (Conversions.Instance.TryParse(in inputValues[i], out uint index) && index >= _offset)
+                    if (Conversions.Instance.TryParse(in inputValues[i], out uint index))
+                    {
+                        if (index < _offset)
+                        {
+                            throw Contracts.Except("Encountered 0 index while parsing a 1-based dataset");
+                        }
                         editor.Values[i] = index - _offset + 1;
+                    }
                     else
-                        editor.Values[i] = _na;
+                        throw Contracts.Except($"Encountered non-parsable index '{inputValues[i]}' while parsing dataset");
                 }
                 output.FeatureKeys = editor.Commit();
             }
@@ -354,7 +357,7 @@ namespace Microsoft.ML.Data
         {
             private readonly uint _keyMax;
             private readonly BufferBuilder<float> _bldr;
-            private readonly bool[] _indexUsed;
+            private readonly BitArray _indexUsed;
 
             public OutputMapper(int keyCount)
             {
@@ -363,7 +366,7 @@ namespace Microsoft.ML.Data
                 // incur any sort of implicit value conversions.
                 _keyMax = (uint)keyCount;
                 _bldr = new BufferBuilder<float>(FloatAdder.Instance);
-                _indexUsed = new bool[_keyMax];
+                _indexUsed = new BitArray((int)_keyMax);
             }
 
             public void Map(IntermediateOut intermediate, Output output)
@@ -383,14 +386,14 @@ namespace Microsoft.ML.Data
 
                 // The output vector could be sparse, so we use BufferBuilder here.
                 _bldr.Reset((int)_keyMax, false);
-                Array.Clear(_indexUsed, 0, _indexUsed.Length);
+                _indexUsed.SetAll(false);
                 for (int i = 0; i < keys.Length; ++i)
                 {
                     var key = keysValues[i];
                     if (key == 0 || key > _keyMax)
                         continue;
                     if (_indexUsed[(int)key - 1])
-                        continue;
+                        throw Contracts.Except("Duplicate keys found in dataset");
                     _bldr.AddFeature((int)key - 1, valuesValues[i]);
                     _indexUsed[(int)key - 1] = true;
                 }
@@ -411,9 +414,11 @@ namespace Microsoft.ML.Data
             private readonly IHost _host;
             private readonly IMultiStreamSource _files;
 
-            public TextDataView(IHostEnvironment env, IMultiStreamSource files = null)
+            public TextDataView(IHostEnvironment env, IMultiStreamSource files)
             {
                 Contracts.CheckValue(env, nameof(env));
+                env.CheckValue(files, nameof(files));
+
                 _host = env.Register("TextDataView");
                 _files = files;
 
@@ -424,7 +429,7 @@ namespace Microsoft.ML.Data
 
             public long? GetRowCount()
             {
-                if (_files == null || _files.Count == 0)
+                if (_files.Count == 0)
                     return 0;
                 return null;
             }
@@ -461,7 +466,7 @@ namespace Microsoft.ML.Data
                 {
                     _parent = parent;
                     _isActive = isActive;
-                    if (_parent._files == null || _parent._files.Count == 0)
+                    if (_parent._files.Count == 0)
                     {
                         // Rather than corrupt MoveNextCore with a bunch of custom logic for
                         // the empty file case and make that less efficient, be slightly inefficient
@@ -513,9 +518,9 @@ namespace Microsoft.ML.Data
                 protected override bool MoveNextCore()
                 {
                     Ch.AssertValue(_currReader);
-                    Ch.Assert(-1 <= _fileIdx && _fileIdx < (_parent._files == null ? 0 : _parent._files.Count));
+                    Ch.Assert(-1 <= _fileIdx && _fileIdx < _parent._files.Count);
 
-                    var count = _parent._files == null ? 0 : _parent._files.Count;
+                    var count = _parent._files.Count;
                     for (; ; )
                     {
                         var line = _currReader.ReadLine();
@@ -570,7 +575,7 @@ namespace Microsoft.ML.Data
                     _featureCount = (ulong)options.InputSize;
                 else
                 {
-                    if (dataSample == null)
+                    if (dataSample == null || dataSample.Count == 0)
                         throw env.Except("If the number of features is not specified, a dataset must be provided to infer it.");
                     var data = GetData(_host, options.NumberOfRows, dataSample);
                     _featureCount = InferMax(_host, data) + (ulong)(_indicesKind == FeatureIndices.ZeroBased ? 1 : 0);
@@ -580,7 +585,7 @@ namespace Microsoft.ML.Data
             else
             {
                 // We need to train a ValueToKeyMappingTransformer.
-                if (dataSample == null)
+                if (dataSample == null || dataSample.Count == 0)
                     throw env.Except("To use the text feature names option, a dataset must be provided");
 
                 var data = GetData(_host, options.NumberOfRows, dataSample);
@@ -644,7 +649,7 @@ namespace Microsoft.ML.Data
 
         private DataViewSchema CreateOutputSchema()
         {
-            var data = GetData(_host, null, null);
+            var data = GetData(_host, null, new MultiFileSource(null));
             var indexParser = new IndexParser(_indicesKind == FeatureIndices.ZeroBased, _featureCount);
             var schemaDef = SchemaDefinition.Create(typeof(Indices));
             schemaDef[nameof(Indices.FeatureKeys)].ColumnType = new KeyDataViewType(typeof(uint), _featureCount);
@@ -752,8 +757,6 @@ namespace Microsoft.ML.Data
             {
                 outputTransformer = new CustomMappingTransformer<IntermediateOut, Output>(env,
                     outputMapper.Map, null, outputSchemaDefinition: schemaDef);
-                //outputTransformer = new CustomMappingTransformer<IntermediateOut, Output>(env,
-                //    outputMapper.Map, null, outputSchemaDefinition: schemaDef);
             }
 
             string[] toKeep = { "Label", "Weight", "GroupId", "Comment", "Features" };
@@ -764,6 +767,8 @@ namespace Microsoft.ML.Data
 
         public IDataView Load(IMultiStreamSource input)
         {
+            _host.CheckValue(input, nameof(input));
+
             var data = GetData(_host, null, input);
             var indexParser = new IndexParser(_indicesKind == FeatureIndices.ZeroBased, _featureCount);
             var keyVectorsToIndexVectors = _keyVectorsToIndexVectors ??

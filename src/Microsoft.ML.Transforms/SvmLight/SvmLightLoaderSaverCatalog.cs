@@ -4,10 +4,9 @@
 
 using System.IO;
 using System.Linq;
-using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.Transforms
+namespace Microsoft.ML.Data
 {
     public static class SvmLightLoaderSaverCatalog
     {
@@ -22,8 +21,8 @@ namespace Microsoft.ML.Transforms
         /// it should be set to false.</param>
         /// <param name="dataSample">A data sample to be used for determining the number of features in the Features column.</param>
         public static SvmLightLoader CreateSvmLightLoader(this DataOperationsCatalog catalog,
-            int inputSize = 0,
             long? numberOfRows = null,
+            int inputSize = 0,
             bool zeroBased = false,
             IMultiStreamSource dataSample = null)
             => new SvmLightLoader(CatalogUtils.GetEnvironment(catalog), new SvmLightLoader.Options()
@@ -54,14 +53,14 @@ namespace Microsoft.ML.Transforms
         /// <param name="numberOfRows">The number of rows from the sample to be used for determining the number of features.</param>
         public static IDataView LoadFromSvmLightFile(this DataOperationsCatalog catalog,
             string path,
+            long? numberOfRows = null,
             int inputSize = 0,
-            bool zeroBased = false,
-            long? numberOfRows = null)
+            bool zeroBased = false)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
 
             var file = new MultiFileSource(path);
-            var loader = catalog.CreateSvmLightLoader(inputSize, numberOfRows, zeroBased, file);
+            var loader = catalog.CreateSvmLightLoader(numberOfRows, inputSize, zeroBased, file);
             return loader.Load(file);
         }
 
