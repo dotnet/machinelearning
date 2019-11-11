@@ -42,10 +42,10 @@ namespace Microsoft.ML.Vision
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
-    /// To create this trainer, use [ImageClassification](xref:Microsoft.ML.Vision.DnnCatalog.ImageClassification(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String,System.String,System.String,Microsoft.ML.IDataView)).
+    /// To create this trainer, use [ImageClassification](xref:Microsoft.ML.VisionCatalog.ImageClassification(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String,System.String,System.String,Microsoft.ML.IDataView)).
     ///
     /// ### Input and Output Columns
-    /// The input label column data must be[key] (xref:Microsoft.ML.Data.KeyDataViewType) type and the feature column must be a variable-sized vector of<xref:System.Byte>.
+    /// The input label column data must be [key](xref:Microsoft.ML.Data.KeyDataViewType) type and the feature column must be a variable-sized vector of <xref:System.Byte>.
     ///
     /// This trainer outputs the following columns:
     ///
@@ -66,7 +66,7 @@ namespace Microsoft.ML.Vision
     ///
     /// ### Training Algorithm Details
     /// Trains a Deep Neural Network(DNN) by leveraging an existing pre-trained model such as Resnet50 for the purpose
-    /// of classifying images.
+    /// of classifying images. The technique was inspired from [TensorFlow's retrain image classification tutorial](https://www.tensorflow.org/hub/tutorials/image_retraining)
     /// ]]>
     /// </format>
     /// </remarks>
@@ -338,79 +338,79 @@ namespace Microsoft.ML.Vision
         public sealed class Options : TrainerInputBaseWithLabel
         {
             /// <summary>
-            /// Number of samples to use for mini-batch training.
+            /// Number of samples to use for mini-batch training. The default value for BatchSize is 10.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of samples to use for mini-batch training.", SortOrder = 9)]
             public int BatchSize = 10;
 
             /// <summary>
-            /// Number of training iterations.
+            /// Number of training iterations. The default value for Epoch is 200.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of training iterations.", SortOrder = 10)]
             public int Epoch = 200;
 
             /// <summary>
-            /// Learning rate to use during optimization.
+            /// Learning rate to use during optimization. The default value for Learning Rate is 0.01.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate to use during optimization.", SortOrder = 12)]
             public float LearningRate = 0.01f;
 
             /// <summary>
-            /// Early stopping technique parameters to be used to terminate training when training metric stops improving.
+            /// Early stopping technique parameters to be used to terminate training when training metric stops improving. By default EarlyStopping is turned on and the monitoring metric is Accuracy.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Early stopping technique parameters to be used to terminate training when training metric stops improving.", SortOrder = 15)]
-            public EarlyStopping EarlyStoppingCriteria;
+            public EarlyStopping EarlyStoppingCriteria = new EarlyStopping();
 
             /// <summary>
-            /// Specifies the model architecture to be used in the case of image classification training using transfer learning.
+            /// Specifies the model architecture to be used in the case of image classification training using transfer learning. The default Architecture is Resnet_v2_50.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Model architecture to be used in transfer learning for image classification.", SortOrder = 15)]
             public Architecture Arch = Architecture.ResnetV250;
 
             /// <summary>
-            /// Name of the tensor that will contain the output scores of the last layer when transfer learning is done.
+            /// Name of the tensor that will contain the output scores of the last layer when transfer learning is done. The default tensor name is "Score".
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Softmax tensor of the last layer in transfer learning.", SortOrder = 15)]
             public string ScoreColumnName = "Score";
 
             /// <summary>
-            /// Name of the tensor that will contain the predicted label from output scores of the last layer when transfer learning is done.
+            /// Name of the tensor that will contain the predicted label from output scores of the last layer when transfer learning is done. The default tensor name is "PredictedLabel".
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Argmax tensor of the last layer in transfer learning.", SortOrder = 15)]
             public string PredictedLabelColumnName = "PredictedLabel";
 
             /// <summary>
-            /// Final model and checkpoint files/folder prefix for storing graph files.
+            /// Final model and checkpoint files/folder prefix for storing graph files. The default prefix is "custom_retrained_model_based_on_".
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Final model and checkpoint files/folder prefix for storing graph files.", SortOrder = 15)]
             public string FinalModelPrefix = "custom_retrained_model_based_on_";
 
             /// <summary>
-            /// Callback to report statistics on accuracy/cross entropy during training phase.
+            /// Callback to report statistics on accuracy/cross entropy during training phase. Metrics Callback is set to null by default.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Callback to report metrics during training and validation phase.", SortOrder = 15)]
             public Action<ImageClassificationMetrics> MetricsCallback = null;
 
             /// <summary>
-            /// Indicates the path where the models get downloaded to and cache files saved, default is a new temporary directory
+            /// Indicates the path where the image bottleneck cache files and trained model are saved, default is a new temporary directory.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the path where the models get downloaded to and cache files saved, default is a new temporary directory.", SortOrder = 15)]
             public string WorkspacePath = null;
 
             /// <summary>
-            /// Indicates to evaluate the model on train set after every epoch.
+            /// Indicates to evaluate the model on train set after every epoch. Test on trainset is set to true by default.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates to evaluate the model on train set after every epoch.", SortOrder = 15)]
             public bool TestOnTrainSet = true;
 
             /// <summary>
-            /// Indicates to not re-compute cached bottleneck trainset values if already available in the bin folder.
+            /// Indicates to not re-compute cached bottleneck trainset values if already available in the bin folder. This parameter is set to false by default.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates to not re-compute trained cached bottleneck values if already available in the bin folder.", SortOrder = 15)]
             public bool ReuseTrainSetBottleneckCachedValues = false;
 
             /// <summary>
-            /// Indicates to not re-compute cached bottleneck validationset values if already available in the bin folder.
+            /// Indicates to not re-compute cached bottleneck validationset values if already available in the bin folder. This parameter is set to false by default.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates to not re-compute validataionset cached bottleneck validationset values if already available in the bin folder.", SortOrder = 15)]
             public bool ReuseValidationSetBottleneckCachedValues = false;
@@ -422,22 +422,22 @@ namespace Microsoft.ML.Vision
             public IDataView ValidationSet;
 
             /// <summary>
-            /// Indicates the file name within the workspace to store trainset bottleneck values for caching.
+            /// Indicates the file name within the workspace to store trainset bottleneck values for caching, default file name is "trainSetBottleneckFile.csv".
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the file name to store trainset bottleneck values for caching.", SortOrder = 15)]
             public string TrainSetBottleneckCachedValuesFileName = "trainSetBottleneckFile.csv";
 
             /// <summary>
-            /// Indicates the file name within the workspace to store validationset  bottleneck values for caching.
+            /// Indicates the file name within the workspace to store validationset  bottleneck values for caching, default file name is "validationSetBottleneckFile.csv".
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the file name to store validationset bottleneck values for caching.", SortOrder = 15)]
             public string ValidationSetBottleneckCachedValuesFileName = "validationSetBottleneckFile.csv";
 
             /// <summary>
-            /// A class that performs learning rate scheduling.
+            /// A class that performs learning rate scheduling. The default learning rate scheduler is exponential learning rate decay.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "A class that performs learning rate scheduling.", SortOrder = 15)]
-            public LearningRateScheduler LearningRateScheduler = new LsrDecay();
+            public LearningRateScheduler LearningRateScheduler = new ExponentialLRDecay();
         }
 
         /// <summary> Return the type of prediction task.</summary>
@@ -471,8 +471,11 @@ namespace Microsoft.ML.Vision
         private readonly string _checkpointPath;
         private readonly string _bottleneckOperationName;
         private readonly bool _useLRScheduling;
+        private readonly bool _cleanupWorkspace;
         private int _classCount;
         private Graph Graph => _session.graph;
+        private static readonly string _resourcePath = Path.Combine(Path.GetTempPath(), "MLNET");
+        private readonly string _sizeFile;
 
         /// <summary>
         /// Initializes a new instance of <see cref="ImageClassificationTrainer"/>
@@ -518,6 +521,12 @@ namespace Microsoft.ML.Vision
             if (string.IsNullOrEmpty(options.WorkspacePath))
             {
                 options.WorkspacePath = GetTemporaryDirectory();
+                _cleanupWorkspace = true;
+            }
+
+            if (!Directory.Exists(_resourcePath))
+            {
+                Directory.CreateDirectory(_resourcePath);
             }
 
             if (string.IsNullOrEmpty(options.TrainSetBottleneckCachedValuesFileName))
@@ -532,10 +541,17 @@ namespace Microsoft.ML.Vision
                 options.ValidationSetBottleneckCachedValuesFileName = _options.ValidationSetBottleneckCachedValuesFileName;
             }
 
+            if (options.MetricsCallback == null)
+            {
+                var logger = Host.Start(nameof(ImageClassificationTrainer));
+                options.MetricsCallback = (ImageClassificationMetrics metric) => { logger.Trace(metric.ToString()); };
+            }
+
             _options = options;
             _useLRScheduling = _options.LearningRateScheduler != null;
             _checkpointPath = Path.Combine(_options.WorkspacePath, _options.FinalModelPrefix +
                     ModelFileName[_options.Arch]);
+            _sizeFile = Path.Combine(_options.WorkspacePath, "TrainingSetSize.txt");
 
             // Configure bottleneck tensor based on the model.
             var arch = _options.Arch;
@@ -546,8 +562,8 @@ namespace Microsoft.ML.Vision
             }
             else if (arch == Architecture.InceptionV3)
             {
-                _bottleneckOperationName = "module_apply_default/hub_output/feature_vector/SpatialSqueeze";
-                _inputTensorName = "Placeholder";
+                _bottleneckOperationName = "InceptionV3/Logits/SpatialSqueeze";
+                _inputTensorName = "input";
             }
             else if (arch == Architecture.MobilenetV2)
             {
@@ -574,7 +590,8 @@ namespace Microsoft.ML.Vision
 
             _classCount = labelCount == 1 ? 2 : (int)labelCount;
             var imageSize = ImagePreprocessingSize[_options.Arch];
-            _session = LoadTensorFlowSessionFromMetaGraph(Host, _options.Arch, _options.WorkspacePath).Session;
+            _session = LoadTensorFlowSessionFromMetaGraph(Host, _options.Arch).Session;
+            _session.graph.as_default();
             (_jpegData, _resizedImage) = AddJpegDecoding(imageSize.Item1, imageSize.Item2, 3);
             _jpegDataTensorName = _jpegData.name;
             _resizedImageTensorName = _resizedImage.name;
@@ -615,6 +632,14 @@ namespace Microsoft.ML.Vision
 
         private protected override ImageClassificationModelParameters TrainModelCore(TrainContext trainContext)
         {
+            // Workspace directory is cleaned after training run. However, the pipeline can be re-used by calling
+            // fit() again after transform(), in which case we must ensure workspace directory exists. This scenario
+            // is typical in the case of cross-validation.
+            if (!Directory.Exists(_options.WorkspacePath))
+            {
+                Directory.CreateDirectory(_options.WorkspacePath);
+            }
+
             InitializeTrainingGraph(trainContext.TrainingSet.Data);
             CheckTrainingParameters(_options);
             var validationSet = trainContext.ValidationSet?.Data ?? _options.ValidationSet;
@@ -631,7 +656,7 @@ namespace Microsoft.ML.Vision
                     ImageClassificationMetrics.Dataset.Train, _options.MetricsCallback);
 
                 // Write training set size to a file for use during training
-                File.WriteAllText("TrainingSetSize.txt", trainingsetSize.ToString());
+                File.WriteAllText(_sizeFile, trainingsetSize.ToString());
             }
 
             if (validationSet != null &&
@@ -899,7 +924,7 @@ namespace Microsoft.ML.Vision
             {
                 BatchSize = options.BatchSize,
                 BatchesPerEpoch =
-                (trainingsetSize < 0 ? GetNumSamples("TrainingSetSize.txt") : trainingsetSize) / options.BatchSize
+                (trainingsetSize < 0 ? GetNumSamples(_sizeFile) : trainingsetSize) / options.BatchSize
             };
 
             for (int epoch = 0; epoch < epochs; epoch += 1)
@@ -1123,11 +1148,27 @@ namespace Microsoft.ML.Vision
 
             trainSaver.save(_session, _checkpointPath);
             UpdateTransferLearningModelOnDisk(_classCount);
+            TryCleanupTemporaryWorkspace();
+        }
+
+        private void TryCleanupTemporaryWorkspace()
+        {
+            if (_cleanupWorkspace && Directory.Exists(_options.WorkspacePath))
+            {
+                try
+                {
+                    Directory.Delete(_options.WorkspacePath, true);
+                }
+                catch (Exception)
+                {
+                    //We do not want to stop pipeline due to failed cleanup.
+                }
+            }
         }
 
         private (Session, Tensor, Tensor, Tensor) BuildEvaluationSession(int classCount)
         {
-            var evalGraph = LoadMetaGraph(Path.Combine(_options.WorkspacePath, ModelFileName[_options.Arch]));
+            var evalGraph = LoadMetaGraph(Path.Combine(_resourcePath, ModelFileName[_options.Arch]));
             var evalSess = tf.Session(graph: evalGraph);
             Tensor evaluationStep = null;
             Tensor prediction = null;
@@ -1269,7 +1310,7 @@ namespace Microsoft.ML.Vision
                 var optimizer = useLearningRateScheduler ? tf.train.GradientDescentOptimizer(_learningRateInput) :
                                     tf.train.GradientDescentOptimizer(learningRate);
 
-                _trainStep = optimizer.minimize(crossEntropyMean);
+               _trainStep = optimizer.minimize(crossEntropyMean);
             });
 
             return (_trainStep, crossEntropyMean, _labelTensor, _softMaxTensor);
@@ -1285,24 +1326,12 @@ namespace Microsoft.ML.Vision
 
         }
 
-        private static TensorFlowSessionWrapper LoadTensorFlowSessionFromMetaGraph(IHostEnvironment env, Architecture arch, string path)
+        private static TensorFlowSessionWrapper LoadTensorFlowSessionFromMetaGraph(IHostEnvironment env, Architecture arch)
         {
-            if (string.IsNullOrEmpty(path))
-            {
-                path = GetTemporaryDirectory();
-            }
-
             var modelFileName = ModelFileName[arch];
-            var modelFilePath = Path.Combine(path, modelFileName);
+            var modelFilePath = Path.Combine(_resourcePath, modelFileName);
             int timeout = 10 * 60 * 1000;
-            DownloadIfNeeded(env, modelFileName, path, modelFileName, timeout);
-            if (arch == Architecture.InceptionV3)
-            {
-                DownloadIfNeeded(env, @"tfhub_modules.zip", path, @"tfhub_modules.zip", timeout);
-                if (!Directory.Exists(@"tfhub_modules"))
-                    ZipFile.ExtractToDirectory(Path.Combine(path, @"tfhub_modules.zip"), @"tfhub_modules");
-            }
-
+            DownloadIfNeeded(env, modelFileName, _resourcePath, modelFileName, timeout);
             return new TensorFlowSessionWrapper(GetSession(env, modelFilePath, true), modelFilePath);
         }
 
@@ -1320,6 +1349,11 @@ namespace Microsoft.ML.Vision
             if (_session != null && _session != IntPtr.Zero)
             {
                 _session.close();
+            }
+
+            if (_session != null && _session.graph != IntPtr.Zero)
+            {
+                _session.graph.Dispose();
             }
         }
 
@@ -1506,6 +1540,11 @@ namespace Microsoft.ML.Vision
             if (_session != null && _session != IntPtr.Zero)
             {
                 _session.close();
+            }
+
+            if (_session != null && _session.graph != IntPtr.Zero)
+            {
+                _session.graph.Dispose();
             }
         }
     }

@@ -5,14 +5,24 @@ parameters:
   pool: {}
   customMatrixes: ''
   codeCoverage: false
+  nightlyBuild: false
   container: ''
 
 jobs:
   - job: ${{ parameters.name }}
-    ${{ if eq(parameters.codeCoverage, 'false') }}:
+    ${{ if eq(parameters.nightlyBuild, 'true') }}:
+      timeoutInMinutes: 20
+    ${{ if and(eq(parameters.nightlyBuild, 'false'), eq(parameters.codeCoverage, 'false')) }}:
       timeoutInMinutes: 75
     ${{ if eq(parameters.codeCoverage, 'true') }}:
       timeoutInMinutes: 60
+    variables:
+      dotnetPath: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet
+      nugetFeed: https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json
+      nightlyBuildProjPath: $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj
+      nightlyBuildRunPath: (Build.SourcesDirectory)/bin/AnyCPU.(_configuration)/Microsoft.ML.NightlyBuild.Tests/netcoreapp2.1
+      packageUpdaterProjPath: $(Build.SourcesDirectory)/test/Microsoft.ML.NugetPackageVersionUpdater/Microsoft.ML.NugetPackageVersionUpdater.csproj
+      versionFilePath: $(Build.SourcesDirectory)/test/Microsoft.ML.NugetPackageVersionUpdater/latest_versions.txt
     strategy:
       matrix:
         ${{ if eq(parameters.customMatrixes, '') }}:
@@ -35,12 +45,27 @@ jobs:
     - ${{ if eq(parameters.pool.name, 'Hosted macOS High Sierra') }}:
       - script: brew update && brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/f5b1ac99a7fba27c19cee0bc4f036775c889b359/Formula/libomp.rb && brew install mono-libgdiplus gettext && brew link gettext --force && brew link libomp --force
         displayName: Install build dependencies
+    - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.name, 'Ubuntu_x64_NetCoreApp21')) }}:
+      - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"
+        displayName: Set LD_LIBRARY_PATH for Ubuntu to locate Native shared library in current running path
     - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }}
       displayName: Build
-    - script: ${{ parameters.buildScript }} -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=$(_includeBenchmarkData)
-      displayName: Download Benchmark Data
-    - script: ${{ parameters.buildScript }} -$(_configuration) -runtests -coverage=${{ parameters.codeCoverage }}
-      displayName: Run Tests.
+    - ${{ if eq(parameters.nightlyBuild, 'true') }}:
+      - script: $(dotnetPath) restore $(nightlyBuildProjPath)
+        displayName: Restore nightly build project
+      - script: $(dotnetPath) list $(nightlyBuildProjPath) package --source $(nugetFeed) --outdated > $(versionFilePath)
+        displayName: List latest package versions
+      - script: $(dotnetPath) run --project $(packageUpdaterProjPath)
+        displayName: Update package versions for nightly build
+      - script: $(dotnetPath) msbuild -restore $(nightlyBuildProjPath) /p:ReferenceTypeForTestFramework="Nuget" /p:Configuration=$(_configuration) /p:TargetArchitecture=${{ parameters.architecture }}
+        displayName: Build Nightly-Build Project with latest package versions
+      - script: ${{ parameters.buildScript }} -$(_configuration) -runnightlybuildtests
+        displayName: Run Nightly Build Tests
+    - ${{ if eq(parameters.nightlyBuild, 'false') }}:
+      - script: ${{ parameters.buildScript }} -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=$(_includeBenchmarkData)
+        displayName: Download Benchmark Data
+      - script: ${{ parameters.buildScript }} -$(_configuration) -runtests -coverage=${{ parameters.codeCoverage }}
+        displayName: Run Tests.
     - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet msbuild build/Codecoverage.proj /p:CodeCovToken=$(CODECOV_TOKEN)
       displayName: Upload coverage to codecov.io
       condition: and(succeeded(), eq(${{ parameters.codeCoverage }}, True))
@@ -77,7 +102,7 @@ jobs:
         pathToPublish: $(Build.ArtifactStagingDirectory)
         artifactName: ${{ parameters.name }} $(_config_short)
         artifactType: container
-    - ${{ if eq(parameters.buildScript, 'build.cmd') }}:
+    - ${{ if and(eq(parameters.nightlyBuild, 'false'), eq(parameters.buildScript, 'build.cmd')) }}:
       - powershell: |
                   $taskListOutput = & TaskList /FI "IMAGENAME eq dotnet.exe" | Out-String
                   if ($taskListOutput.Contains("dotnet.exe"))
@@ -107,5 +132,6 @@ jobs:
                   Remove-Item -Force -Recurse .\tmp\
                   Write-Output "Done cleaning up binary folder..."
         displayName: Clean up test data
-    - script: ${{ parameters.buildScript }} -buildPackages
-      displayName: Build Packages
+    - ${{ if eq(parameters.nightlyBuild, 'false') }}:
+      - script: ${{ parameters.buildScript }} -buildPackages
+        displayName: Build Packages

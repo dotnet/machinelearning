@@ -5,6 +5,7 @@
     <SignAssembly>false</SignAssembly>
     <!-- DON'T CHANGE THIS!!! We are turning off strong naming to ensure we never add `InternalsVisibleTo` for these tests -->
     <PublicSign>false</PublicSign>
+    <ReferenceTypeForTestFramework>Project</ReferenceTypeForTestFramework>
   </PropertyGroup>
 
   <ItemGroup>

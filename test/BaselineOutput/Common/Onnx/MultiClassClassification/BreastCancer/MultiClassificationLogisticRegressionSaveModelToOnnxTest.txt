@@ -1,5 +1,5 @@
 {
-  "irVersion": "3",
+  "irVersion": "6",
   "producerName": "ML.NET",
   "producerVersion": "##VERSION##",
   "domain": "machinelearning.dotnet",
@@ -274,7 +274,7 @@
         "name": "Label",
         "type": {
           "tensorType": {
-            "elemType": "STRING",
+            "elemType": 8,
             "shape": {
               "dim": [
                 {
@@ -292,7 +292,7 @@
         "name": "Features",
         "type": {
           "tensorType": {
-            "elemType": "FLOAT",
+            "elemType": 1,
             "shape": {
               "dim": [
                 {
@@ -312,7 +312,7 @@
         "name": "Label1",
         "type": {
           "tensorType": {
-            "elemType": "UINT32",
+            "elemType": 12,
             "shape": {
               "dim": [
                 {
@@ -330,7 +330,7 @@
         "name": "Features1",
         "type": {
           "tensorType": {
-            "elemType": "FLOAT",
+            "elemType": 1,
             "shape": {
               "dim": [
                 {
@@ -348,7 +348,7 @@
         "name": "PredictedLabel0",
         "type": {
           "tensorType": {
-            "elemType": "UINT32",
+            "elemType": 12,
             "shape": {
               "dim": [
                 {
@@ -366,7 +366,7 @@
         "name": "Score0",
         "type": {
           "tensorType": {
-            "elemType": "FLOAT",
+            "elemType": 1,
             "shape": {
               "dim": [
                 {
@@ -386,7 +386,7 @@
         "name": "Features0",
         "type": {
           "tensorType": {
-            "elemType": "FLOAT",
+            "elemType": 1,
             "shape": {
               "dim": [
                 {
@@ -404,7 +404,7 @@
         "name": "Label0",
         "type": {
           "tensorType": {
-            "elemType": "UINT32",
+            "elemType": 12,
             "shape": {
               "dim": [
                 {
@@ -423,7 +423,7 @@
   "opsetImport": [
     {
       "domain": "ai.onnx.ml",
-      "version": "1"
+      "version": "2"
     },
     {
       "version": "9"

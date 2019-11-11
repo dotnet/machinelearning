@@ -10,6 +10,12 @@ using static Microsoft.ML.TensorFlow.TensorFlowUtils;
 
 namespace Microsoft.ML
 {
+    /// <summary>
+    /// Collection of extension methods for <see cref="T:Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers" /> to create instances of ImageClassification trainer components.
+    /// </summary>
+    /// <remarks>
+    /// This requires additional nuget dependencies to link against Tensorflow native dlls. See <see cref="T:Microsoft.ML.Vision.ImageClassificationTrainer"/> for more information.
+    /// </remarks>
     public static class VisionCatalog
     {
 
@@ -79,18 +85,17 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Performs image classification using transfer learning.
-        /// Usage of this API requires additional NuGet dependencies on TensorFlow redist, see linked document
-        /// for more information.
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!include[io](~/../docs/samples/docs/api-reference/tensorflow-usage.md)]
-        /// ]]>
-        /// </format>
+        /// Create <see cref="Microsoft.ML.Vision.ImageClassificationTrainer"/> using advanced options, which trains a Deep Neural Network(DNN) to classify images.
         /// </summary>
         /// <param name="catalog">Catalog</param>
         /// <param name="options">An <see cref="ImageClassificationTrainer.Options"/> object specifying advanced
         /// options for <see cref="ImageClassificationTrainer"/>.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[ImageClassification](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/ImageClassification/ResnetV2101TransferLearningTrainTestSplit.cs)]
+        /// ]]></format>
+        /// </example>
 
         public static ImageClassificationTrainer ImageClassification(
             this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
@@ -98,21 +103,20 @@ namespace Microsoft.ML
                 new ImageClassificationTrainer(CatalogUtils.GetEnvironment(catalog), options);
 
         /// <summary>
-        /// Performs image classification using transfer learning.
-        /// Usage of this API requires additional NuGet dependencies on TensorFlow redist, see linked document for
-        /// more information.
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!include[io](~/../docs/samples/docs/api-reference/tensorflow-usage.md)]
-        /// ]]>
-        /// </format>
+        /// Create <see cref="Microsoft.ML.Vision.ImageClassificationTrainer"/>, which trains a Deep Neural Network(DNN) to classify images.
         /// </summary>
         /// <param name="catalog">Catalog</param>
-        /// <param name="labelColumnName">The name of the labels column.</param>
-        /// <param name="featureColumnName">The name of the input features column.</param>
-        /// <param name="scoreColumnName">The name of the output score column.</param>
-        /// <param name="predictedLabelColumnName">The name of the output predicted label columns.</param>
-        /// <param name="validationSet">The validation set used while training to improve model quality.</param>
+        /// <param name="labelColumnName">The name of the labels column. The default for this parameter is "label".</param>
+        /// <param name="featureColumnName">The name of the input features column. The default for this parameter is "Features".</param>
+        /// <param name="scoreColumnName">The name of the output score column. The default for this parameter is "Score"</param>
+        /// <param name="predictedLabelColumnName">The name of the output predicted label columns. The default for this parameter is "PredictedLabel"</param>
+        /// <param name="validationSet">The validation set used while training to improve model quality. The default for this parameter is null.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[ImageClassification](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/ImageClassification/ImageClassificationDefault.cs)]
+        ///  ]]></format>
+        /// </example>
 
         public static ImageClassificationTrainer ImageClassification(
             this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,

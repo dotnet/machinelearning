@@ -1,0 +1,16 @@
+<Project>
+  <ItemGroup>
+    <!-- Versions below are just placeholder, will be updated during nighly build pipeline to latest package version
+    -->
+    <PackageReference Include="Microsoft.ML" Version="1.5.0-preview-28305-3" />
+    <PackageReference Include="Microsoft.ML.Ensemble" Version="0.17.0-preview-28305-3" />
+    <PackageReference Include="Microsoft.ML.EntryPoints" Version="0.17.0-preview-28305-3" />
+    <PackageReference Include="Microsoft.ML.FastTree" Version="1.5.0-preview-28305-3" />
+    <PackageReference Include="Microsoft.ML.LightGbm" Version="1.5.0-preview-28305-3" />
+    <PackageReference Include="Microsoft.ML.Mkl.Components" Version="1.5.0-preview-28305-3" />
+    <PackageReference Include="Microsoft.ML.OnnxConverter" Version="0.17.0-preview-28305-3" />
+    <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="1.5.0-preview-28305-3" />
+    <PackageReference Include="Microsoft.ML.Parquet" Version="0.17.0-preview-28305-3" />
+    <PackageReference Include="Microsoft.ML.Recommender" Version="0.17.0-preview-28305-3" />
+  </ItemGroup>
+</Project>
