@@ -15,7 +15,25 @@ namespace Microsoft.Extensions.ML
     public static class ServiceCollectionExtensions
     {
         /// <summary>
-        /// Adds a <see cref="PredictionEnginePoolBuilder{TData, TPrediction}"/> to the service collection.
+        /// Adds a <see cref="PredictionEnginePool{TData, TPrediction}"/> and required config services to the service collection.
+        /// </summary>
+        /// <param name="services">
+        /// The <see cref="IServiceCollection "/> to add services to.
+        /// </param>
+        /// <returns>
+        /// The <see cref="PredictionEnginePoolBuilder{TData, TPrediction}"/> that was added to the collection.
+        /// </returns>
+        public static PredictionEnginePoolBuilder<TData, TPrediction> AddPredictionEnginePool<TData, TPrediction>(
+            this IServiceCollection services)
+            where TData : class
+            where TPrediction : class, new()
+        {
+            return services.AddPredictionEnginePool<TData, TPrediction>(() =>
+                services.AddSingleton<PredictionEnginePool<TData, TPrediction>, PredictionEnginePool<TData, TPrediction>>());
+        }
+
+        /// <summary>
+        /// Adds a <see cref="PredictionEnginePool{TData, TPrediction}"/> and required config services to the service collection.
         /// </summary>
         /// <param name="services">
         /// The <see cref="IServiceCollection "/> to add services to.
@@ -32,38 +50,38 @@ namespace Microsoft.Extensions.ML
             where TData : class
             where TPrediction : class, new()
         {
-            services
-                .AddPrerequisiteServices()
-                .AddSingleton<PredictionEnginePool<TData, TPrediction>, PredictionEnginePool<TData, TPrediction>>(implementationFactory);
+            return services.AddPredictionEnginePool<TData, TPrediction>(() =>
+                services.AddSingleton<PredictionEnginePool<TData, TPrediction>, PredictionEnginePool<TData, TPrediction>>(implementationFactory));
+        }
+
+        private static PredictionEnginePoolBuilder<TData, TPrediction> AddPredictionEnginePool<TData, TPrediction>(
+            this IServiceCollection services,
+            Action callback)
+            where TData : class
+            where TPrediction : class, new()
+        {
+            services.AddPredictionEnginePoolConfigOnly();
+            callback();
+
             return new PredictionEnginePoolBuilder<TData, TPrediction>(services);
         }
 
         /// <summary>
-        /// Adds a <see cref="PredictionEnginePoolBuilder{TData, TPrediction}"/> to the service collection.
+        /// Adds only the required config services for <see cref="PredictionEnginePool{TData, TPrediction}"/> to the service collection.
         /// </summary>
         /// <param name="services">
         /// The <see cref="IServiceCollection "/> to add services to.
         /// </param>
         /// <returns>
-        /// The <see cref="PredictionEnginePoolBuilder{TData, TPrediction}"/> that was added to the collection.
+        /// A reference to this instance after the operation has completed.
         /// </returns>
-        public static PredictionEnginePoolBuilder<TData, TPrediction> AddPredictionEnginePool<TData, TPrediction>(
-            this IServiceCollection services)
-            where TData : class
-            where TPrediction : class, new()
-        {
-            services
-                .AddPrerequisiteServices()
-                .AddSingleton<PredictionEnginePool<TData, TPrediction>, PredictionEnginePool<TData, TPrediction>>();
-            return new PredictionEnginePoolBuilder<TData, TPrediction>(services);
-        }
-
-        public static IServiceCollection AddPrerequisiteServices(this IServiceCollection services)
+        public static IServiceCollection AddPredictionEnginePoolConfigOnly(this IServiceCollection services)
         {
             services
                 .AddLogging()
                 .AddOptions()
                 .TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<MLOptions>, PostMLContextOptionsConfiguration>());
+
             return services;
         }
     }
