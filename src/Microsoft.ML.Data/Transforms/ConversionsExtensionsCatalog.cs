@@ -222,7 +222,7 @@ namespace Microsoft.ML
         /// The input data types can be numeric, text, boolean, <see cref="System.DateTime"/> or <see cref="System.DateTimeOffset"/>.
         /// </param>
         /// <param name="maximumNumberOfKeys">Maximum number of keys to keep per column when training.</param>
-        /// <param name="keyOrdinality">The order applied to the mapping of categorical values to keys.
+        /// <param name="keyOrdinality">The order in which keys are assigned.
         /// If set to <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByOccurrence"/>, keys are assigned in the order encountered.
         /// If set to <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByValue"/>, values are sorted, and keys are assigned based on the sort order.</param>
         /// <param name="addKeyValueAnnotationsAsText">Whether key value annotations should be text, regardless of the actual input type.</param>
@@ -255,7 +255,7 @@ namespace Microsoft.ML
         /// The input data types can be numeric, text, boolean, <see cref="System.DateTime"/> or <see cref="System.DateTimeOffset"/>.
         /// </param>
         /// <param name="maximumNumberOfKeys">Maximum number of keys to keep per column when training.</param>
-        /// <param name="keyOrdinality">The order applied to the mapping of categorical values to keys.
+        /// <param name="keyOrdinality">The order in which keys are assigned.
         /// If set to <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByOccurrence"/>, keys are assigned in the order encountered.
         /// If set to <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByValue"/>, values are sorted, and keys are assigned based on the sort order.</param>
         /// <param name="addKeyValueAnnotationsAsText">Whether key value annotations should be text, regardless of the actual input type.</param>

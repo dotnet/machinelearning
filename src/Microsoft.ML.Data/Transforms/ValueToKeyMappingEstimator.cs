@@ -111,8 +111,9 @@ namespace Microsoft.ML.Transforms
             /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
             /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
             /// <param name="maximumNumberOfKeys">Maximum number of keys to keep per column when auto-training.</param>
-            /// <param name="keyOrdinality">How items should be ordered when vectorized. If <see cref="KeyOrdinality.ByOccurrence"/> choosen they will be in the order encountered.
-            /// If <see cref="KeyOrdinality.ByValue"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
+            /// <param name="keyOrdinality">The order in which keys are assigned.
+            /// If set to <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByOccurrence"/>, keys are assigned in the order encountered.
+            /// If set to <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByValue"/>, values are sorted, and keys are assigned based on the sort order.</param>
             /// <param name="addKeyValueAnnotationsAsText">Whether key value annotations should be text, regardless of the actual input type.</param>
             public ColumnOptions(string outputColumnName, string inputColumnName = null,
                 int maximumNumberOfKeys = Defaults.MaximumNumberOfKeys,
@@ -134,7 +135,9 @@ namespace Microsoft.ML.Transforms
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="maximumNumberOfKeys">Maximum number of keys to keep per column when auto-training.</param>
-        /// <param name="keyOrdinality">How items should be ordered when vectorized. If <see cref="KeyOrdinality.ByOccurrence"/> choosen they will be in the order encountered.
+        /// <param name="keyOrdinality">The order in which keys are assigned.
+        /// If set to <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByOccurrence"/>, keys are assigned in the order encountered.
+        /// If set to <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByValue"/>, values are sorted, and keys are assigned based on the sort order.</param>
         /// If <see cref="KeyOrdinality.ByValue"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
         internal ValueToKeyMappingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int maximumNumberOfKeys = Defaults.MaximumNumberOfKeys, KeyOrdinality keyOrdinality = Defaults.Ordinality) :
            this(env, new [] { new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName, maximumNumberOfKeys, keyOrdinality) })
