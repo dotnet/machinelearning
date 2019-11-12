@@ -10,7 +10,9 @@ namespace Microsoft.ML.Transforms
 {
 
     /// <summary>
-    /// Estimator for <see cref="ValueToKeyMappingTransformer"/>. Converts input values (words, numbers, etc.) <see cref="KeyDataViewType"/>.
+    /// <see cref="IEstimator{TTransformer}"/> for the
+    /// <see cref="ValueToKeyMappingTransformer"/>. Converts a set of categorical
+    /// values (for example, US state abbreviations) into key values (1-50).
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
@@ -22,13 +24,14 @@ namespace Microsoft.ML.Transforms
     /// | Input column data type | Scalar or vector of numeric, boolean, [text](xref:Microsoft.ML.Data.TextDataViewType), [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
     /// | Output column data type | Scalar or vector of [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
     ///
-    /// The ValueToKeyMappingEstimator builds up term vocabularies(dictionaries) mapping the input values to the keys on the dictionary.
-    /// If multiple columns are used, each column builds/uses exactly one vocabulary.
-    /// The output columns are KeyDataViewType-valued.
-    /// The Key value is the one-based index of the item in the dictionary.
-    /// If the key is not found in the dictionary, it is assigned the missing value indicator.
-    /// This dictionary mapping values to keys is most commonly learnt from the unique values in input data,
-    /// but can be defined through other means: either with the mapping defined, or as loaded from an external file.
+    /// The ValueToKeyMappingEstimator maps the input values to keys using a
+    /// dictionary that is built during training. The dictionary mapping values to
+    /// keys is most commonly learnt from the unique values in input data,
+    /// but can be pre-defined.
+    /// The key value is the one-based index of the item in the dictionary.
+    /// If the key is not found in the dictionary, it is assigned the missing value
+    /// indicator.
+    /// If multiple columns are used, each column builds exactly one dictionary.
     ///
     /// Check the See Also section for links to usage examples.
     /// ]]></format>
