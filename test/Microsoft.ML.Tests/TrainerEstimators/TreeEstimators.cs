@@ -308,7 +308,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var options = new LightGbmMulticlassTrainer.Options
             {
-                EvaluationMetric = LightGbmMulticlassTrainer.Options.EvaluateMetricType.Default
+                EvaluationMetric = LightGbmMulticlassTrainer.Options.EvaluateMetricType.Default,
+                UseSoftmax = true
+
             };
 
             var (pipeline, dataView) = GetMulticlassPipeline();
