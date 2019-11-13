@@ -20,146 +20,155 @@ using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
+using Microsoft.Research.SEAL;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.SEAL
 {
-    /*
-    /// <summary>
-    /// Class for allowing a post-processing step, defined by <see cref="Calibrator"/>, to <see cref="SubModel"/>'s
-    /// output.
-    /// </summary>
-    /// <typeparam name="TSubModel">Type being calibrated.</typeparam>
-    /// <typeparam name="TCalibrator">Type used to calibrate.</typeparam>
-    /// <remarks>
-    /// For example, in binary classification, <see cref="Calibrator"/> can convert support vector machine's
-    /// output value to the probability of belonging to the positive (or negative) class. Detailed math materials
-    /// can be found at <a href="https://www.csie.ntu.edu.tw/~cjlin/papers/plattprob.pdf">this paper</a>.
-    /// </remarks>
-    public abstract class EncryptedCalibratedModelParametersBase<TSubModel, TCalibrator> : CalibratedModelParametersBase,
-        IDistPredictorProducing<float, float>,
-        ICanSaveInIniFormat,
-        ICanSaveInTextFormat,
-        ICanSaveInSourceCode,
-        ICanSaveSummary,
-        ICanGetSummaryInKeyValuePairs,
-        IWeaklyTypedCalibratedModelParameters
+    internal abstract class EncryptedValueMapperCalibratedModelParametersBase<TSubModel, TCalibrator, TESubModel> :
+        CalibratedModelParametersBase<TSubModel, TCalibrator>,
+        IValueMapperDist, IValueMapperTwoToOne, IFeatureContributionMapper, ICalculateFeatureContribution,
+        IDistCanSavePfa, IDistCanSaveOnnx
         where TSubModel : class
         where TCalibrator : class, ICalibrator
     {
-        private protected readonly IHost Host;
+        private readonly IValueMapper _mapper;
+        private readonly IValueMapperTwoToOne _mapperTwoToOne;
+        private readonly IFeatureContributionMapper _featureContribution;
 
-        // Strongly-typed members.
-        /// <summary>
-        /// <see cref="SubModel"/>'s output would calibrated by <see cref="Calibrator"/>.
-        /// </summary>
-        public new TSubModel SubModel { get; }
+        DataViewType IValueMapper.InputType => _mapper.InputType;
+        DataViewType IValueMapper.OutputType => _mapper.OutputType;
+        DataViewType IValueMapperDist.DistType => NumberDataViewType.Single;
+        DataViewType IValueMapperTwoToOne.InputType => _mapperTwoToOne.InputType;
+        DataViewType IValueMapperTwoToOne.OutputType => _mapperTwoToOne.OutputType;
+        bool ICanSavePfa.CanSavePfa => (_mapper as ICanSavePfa)?.CanSavePfa == true;
 
-        /// <summary>
-        /// <see cref="Calibrator"/> is used to post-process score produced by <see cref="SubModel"/>.
-        /// </summary>
-        public new TCalibrator Calibrator { get; }
+        FeatureContributionCalculator ICalculateFeatureContribution.FeatureContributionCalculator => new FeatureContributionCalculator(this);
 
-        // Type-unsafed accessors of strongly-typed members.
-        IPredictorProducing<float> IWeaklyTypedCalibratedModelParameters.WeaklyTypedSubModel => (IPredictorProducing<float>)SubModel;
-        ICalibrator IWeaklyTypedCalibratedModelParameters.WeaklyTypedCalibrator => Calibrator;
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => (_mapper as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
 
-        PredictionKind IPredictor.PredictionKind => ((IPredictorProducing<float>)SubModel).PredictionKind;
-
-        private protected CalibratedModelParametersBase(IHostEnvironment env, string name, TSubModel predictor, TCalibrator calibrator)
-            : base(predictor, calibrator)
+        private protected EncryptedValueMapperCalibratedModelParametersBase(IHostEnvironment env, string name, TSubModel predictor, TCalibrator calibrator, TESubModel ePredictor)
+            : base(env, name, predictor, calibrator)
         {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckNonWhiteSpace(name, nameof(name));
-            Host = env.Register(name);
-            Host.CheckValue(predictor, nameof(predictor));
-            Host.CheckValue(calibrator, nameof(calibrator));
-            Host.Assert(predictor is IPredictorProducing<float>);
+            Contracts.AssertValue(Host);
 
-            SubModel = predictor;
-            Calibrator = calibrator;
+            _mapper = SubModel as IValueMapper;
+            _mapperTwoToOne = ePredictor as IValueMapperTwoToOne;
+            Host.Check(_mapper != null, "The predictor does not implement IValueMapper");
+            Host.Check(_mapper.OutputType == NumberDataViewType.Single, "The output type of the predictor is expected to be float");
+
+            _featureContribution = predictor as IFeatureContributionMapper;
         }
 
-        void ICanSaveInIniFormat.SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator)
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
-            Host.Check(calibrator == null, "Too many calibrators.");
-            var saver = SubModel as ICanSaveInIniFormat;
-            saver?.SaveAsIni(writer, schema, Calibrator);
+            System.Console.WriteLine("? -> EncryptedValueMapperCalibratedModelParametersBase.IValueMapper.GetMapper");
+            return _mapper.GetMapper<TIn, TOut>();
         }
 
-        void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
+        ValueMapper<TIn, TOut, TDist> IValueMapperDist.GetMapper<TIn, TOut, TDist>()
         {
-            // REVIEW: What about the calibrator?
-            var saver = SubModel as ICanSaveInTextFormat;
-            if (saver != null)
-                saver.SaveAsText(writer, schema);
+            System.Console.WriteLine("? -> EncryptedValueMapperCalibratedModelParametersBase.IValueMapperDist.GetMapper");
+            Host.Check(typeof(TOut) == typeof(float));
+            Host.Check(typeof(TDist) == typeof(float));
+            var map = ((IValueMapper)this).GetMapper<TIn, float>();
+            ValueMapper<TIn, float, float> del =
+                (in TIn src, ref float score, ref float prob) =>
+                {
+                    map(in src, ref score);
+                    prob = Calibrator.PredictProbability(score);
+                };
+            return (ValueMapper<TIn, TOut, TDist>)(Delegate)del;
         }
 
-        void ICanSaveInSourceCode.SaveAsCode(TextWriter writer, RoleMappedSchema schema)
+        ValueMapperTwoToOne<TSrc, TKey, TDst> IValueMapperTwoToOne.GetMapper<TSrc, TKey, TDst>()
         {
-            // REVIEW: What about the calibrator?
-            var saver = SubModel as ICanSaveInSourceCode;
-            if (saver != null)
-                saver.SaveAsCode(writer, schema);
+            System.Console.WriteLine("? -> EncryptedValueMapperCalibratedModelParametersBase.IValueMapperTwoToOne.GetMapper");
+            Host.Check(typeof(TSrc) == typeof(Ciphertext[]));
+            Host.Check(typeof(TKey) == typeof(GaloisKeys));
+            Host.Check(typeof(TDst) == typeof(Ciphertext[]));
+            return _mapperTwoToOne.GetMapper<TSrc, TKey, TDst>();
         }
 
-        void ICanSaveSummary.SaveSummary(TextWriter writer, RoleMappedSchema schema)
+        ValueMapper<TSrc, VBuffer<float>> IFeatureContributionMapper.GetFeatureContributionMapper<TSrc, TDst>(int top, int bottom, bool normalize)
         {
-            // REVIEW: What about the calibrator?
-            var saver = SubModel as ICanSaveSummary;
-            if (saver != null)
-                saver.SaveSummary(writer, schema);
+            // REVIEW: checking this a bit too late.
+            Host.Check(_featureContribution != null, "Predictor does not implement IFeatureContributionMapper");
+            System.Console.WriteLine("? -> EncryptedValueMapperCalibratedModelParametersBase.GetFeatureContributionMapper");
+            return _featureContribution.GetFeatureContributionMapper<TSrc, TDst>(top, bottom, normalize);
         }
 
-        ///<inheritdoc/>
-        IList<KeyValuePair<string, object>> ICanGetSummaryInKeyValuePairs.GetSummaryInKeyValuePairs(RoleMappedSchema schema)
+        JToken ISingleCanSavePfa.SaveAsPfa(BoundPfaContext ctx, JToken input)
         {
-            // REVIEW: What about the calibrator?
-            var saver = SubModel as ICanGetSummaryInKeyValuePairs;
-            if (saver != null)
-                return saver.GetSummaryInKeyValuePairs(schema);
+            Host.CheckValue(ctx, nameof(ctx));
+            Host.CheckValue(input, nameof(input));
 
-            return null;
+            Host.Assert(_mapper is ISingleCanSavePfa);
+            var mapper = (ISingleCanSavePfa)_mapper;
+            return mapper.SaveAsPfa(ctx, input);
         }
 
-        private protected void SaveCore(ModelSaveContext ctx)
+        void IDistCanSavePfa.SaveAsPfa(BoundPfaContext ctx, JToken input,
+            string score, out JToken scoreToken, string prob, out JToken probToken)
         {
-            ctx.SaveModel(SubModel, ModelFileUtils.DirPredictor);
-            ctx.SaveModel(Calibrator, @"Calibrator");
+            Host.CheckValue(ctx, nameof(ctx));
+            Host.CheckValue(input, nameof(input));
+            Host.CheckValueOrNull(score);
+            Host.CheckValueOrNull(prob);
+
+            JToken scoreExpression = ((ISingleCanSavePfa)this).SaveAsPfa(ctx, input);
+            scoreToken = ctx.DeclareVar(score, scoreExpression);
+            var calibrator = Calibrator as ISingleCanSavePfa;
+            if (calibrator?.CanSavePfa != true)
+            {
+                ctx.Hide(prob);
+                probToken = null;
+                return;
+            }
+            JToken probExpression = calibrator.SaveAsPfa(ctx, scoreToken);
+            probToken = ctx.DeclareVar(prob, probExpression);
         }
 
-        private protected static TSubModel GetPredictor(IHostEnvironment env, ModelLoadContext ctx)
+        bool IDistCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumnName)
+            => ((ISingleCanSaveOnnx)this).SaveAsOnnx(ctx, outputNames, featureColumnName);
+
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumnName)
         {
-            TSubModel predictor;
-            ctx.LoadModel<TSubModel, SignatureLoadModel>(env, out predictor, ModelFileUtils.DirPredictor);
-            return predictor;
+            Host.CheckValue(ctx, nameof(ctx));
+            Host.CheckValue(outputNames, nameof(outputNames));
+
+            Host.Assert(_mapper is ISingleCanSaveOnnx);
+
+            var mapper = (ISingleCanSaveOnnx)_mapper;
+            if (!mapper.SaveAsOnnx(ctx, new[] { outputNames[1] }, featureColumnName))
+                return false;
+
+            var calibrator = Calibrator as ISingleCanSaveOnnx;
+            if (!(calibrator?.CanSaveOnnx(ctx) == true && calibrator.SaveAsOnnx(ctx, new[] { outputNames[1], outputNames[2] }, featureColumnName)))
+                ctx.RemoveVariable(outputNames[1], true);
+
+            return true;
         }
 
-        private protected static TCalibrator GetCalibrator(IHostEnvironment env, ModelLoadContext ctx)
-        {
-            TCalibrator calibrator;
-            ctx.LoadModel<TCalibrator, SignatureLoadModel>(env, out calibrator, @"Calibrator");
-            return calibrator;
-        }
     }
-    */
 
     /// <summary>
     /// Encapsulates a predictor and a calibrator that implement <see cref="IParameterMixer"/>.
     /// Its implementation of <see cref="IParameterMixer.CombineParameters"/> combines both the predictors and the calibrators.
     /// </summary>
     internal sealed class EncryptedParameterMixingCalibratedModelParameters<TSubModel, TCalibrator, TESubModel> :
-        ValueMapperCalibratedModelParametersBase<TSubModel, TCalibrator>,
+        EncryptedValueMapperCalibratedModelParametersBase<TSubModel, TCalibrator, TESubModel>,
         IParameterMixer<float>,
         IPredictorWithFeatureWeights<float>,
         ICanSaveModel
         where TSubModel : class
         where TCalibrator : class, ICalibrator
+        where TESubModel : class
     {
         private readonly IPredictorWithFeatureWeights<float> _featureWeights;
 
         internal EncryptedParameterMixingCalibratedModelParameters(IHostEnvironment env, TSubModel predictor, TCalibrator calibrator, TESubModel ePredictor)
-            : base(env, RegistrationName, predictor, calibrator)
+            : base(env, RegistrationName, predictor, calibrator, ePredictor)
         {
             Host.Check(predictor is IParameterMixer<float>, "Predictor does not implement " + nameof(IParameterMixer<float>));
             Host.Check(calibrator is IParameterMixer, "Calibrator does not implement " + nameof(IParameterMixer));
@@ -181,8 +190,15 @@ namespace Microsoft.ML.SEAL
                 loaderAssemblyName: typeof(EncryptedParameterMixingCalibratedModelParameters<TSubModel, TCalibrator, TESubModel>).Assembly.FullName);
         }
 
+        private static TESubModel GetEPredictor(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            TESubModel predictor;
+            ctx.LoadModel<TESubModel, SignatureLoadModel>(env, out predictor, ModelFileUtils.DirPredictor);
+            return predictor;
+        }
+
         private EncryptedParameterMixingCalibratedModelParameters(IHostEnvironment env, ModelLoadContext ctx)
-            : base(env, RegistrationName, GetPredictor(env, ctx), GetCalibrator(env, ctx))
+            : base(env, RegistrationName, GetPredictor(env, ctx), GetCalibrator(env, ctx), GetEPredictor(env, ctx))
         {
             Host.Check(SubModel is IParameterMixer<float>, "Predictor does not implement " + nameof(IParameterMixer));
             Host.Check(SubModel is IPredictorWithFeatureWeights<float>, "Predictor does not implement " + nameof(IPredictorWithFeatureWeights<float>));
@@ -207,6 +223,7 @@ namespace Microsoft.ML.SEAL
 
         public void GetFeatureWeights(ref VBuffer<float> weights)
         {
+            System.Console.WriteLine("? -> EncryptedParameterMixingCalibratedModelParameters.GetFeatureWeights");
             _featureWeights.GetFeatureWeights(ref weights);
         }
 

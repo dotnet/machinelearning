@@ -77,6 +77,7 @@ namespace Microsoft.ML.Data
             // instead of before. This is likely to produce better performance, for example, when
             // this is RangeFilter.
             DataViewRowCursor curs;
+            System.Console.WriteLine("TransformBase.GetRowCursor: TryCreateConsolidatingCursor");
             if (useParallel != false &&
                 DataViewUtils.TryCreateConsolidatingCursor(out curs, this, columnsNeeded, Host, rng))
             {

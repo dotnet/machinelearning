@@ -255,6 +255,7 @@ namespace Microsoft.ML.Trainers
         // Generate the score from the given values, assuming they have already been normalized.
         private protected virtual float Score(in VBuffer<float> src)
         {
+            System.Console.WriteLine("? -> LinearModelParameters.Score");
             if (src.IsDense)
             {
                 var weights = Weight;
@@ -266,6 +267,7 @@ namespace Microsoft.ML.Trainers
 
         private protected virtual void GetFeatureContributions(in VBuffer<float> features, ref VBuffer<float> contributions, int top, int bottom, bool normalize)
         {
+            System.Console.WriteLine("? -> LinearModelParameters.GetFeatureContributions");
             if (features.Length != Weight.Length)
                 throw Contracts.Except("Input is of length {0} does not match expected length  of weights {1}", features.Length, Weight.Length);
 
@@ -300,7 +302,7 @@ namespace Microsoft.ML.Trainers
 
         ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
-            System.Console.WriteLine("LinearModelParameters.IValueMapper.GetMapper");
+            System.Console.WriteLine("? -> LinearModelParameters.IValueMapper.GetMapper");
             Contracts.Check(typeof(TIn) == typeof(VBuffer<float>));
             Contracts.Check(typeof(TOut) == typeof(float));
 
@@ -309,6 +311,7 @@ namespace Microsoft.ML.Trainers
                 {
                     if (src.Length != Weight.Length)
                         throw Contracts.Except("Input is of length {0}, but predictor expected length {1}", src.Length, Weight.Length);
+                    System.Console.WriteLine("LinearModelParameters.IValueMapper.GetMapper: Score");
                     dst = Score(in src);
                 };
             return (ValueMapper<TIn, TOut>)(Delegate)del;
@@ -389,6 +392,7 @@ namespace Microsoft.ML.Trainers
 
         void IHaveFeatureWeights.GetFeatureWeights(ref VBuffer<float> weights)
         {
+            System.Console.WriteLine("? -> LinearModelParameters.GetFeatureWeights");
             Weight.CopyTo(ref weights);
         }
 

@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <AssemblyName>Microsoft.ML.SEAL.Tests</AssemblyName>
     <DefineConstants>CORECLR</DefineConstants>
   </PropertyGroup>
 

@@ -20,7 +20,6 @@ namespace Microsoft.ML.SEAL
         /// to a new column: <paramref name="outputColumnName"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="encrypt">Whether the estimator should encrypt (true) or decrypt (false) the data.</param>
         /// <param name="scale">How much to scale the values.</param>
         /// <param name="polyModDegree">The polynomial modulus degree.</param>
         /// <param name="sealKeyFilePath">The path to the SEAL key file.</param>
@@ -30,7 +29,6 @@ namespace Microsoft.ML.SEAL
         /// <param name="inputColumnName">Name of the column to copy the data from.
         /// This estimator operates over any data type.</param>
         public static SealEstimator EncryptFeatures(this TransformsCatalog catalog,
-            bool encrypt,
             double scale,
             ulong polyModDegree,
             string sealKeyFilePath,
@@ -38,6 +36,29 @@ namespace Microsoft.ML.SEAL
             string outputColumnName,
             string inputColumnName = null)
             => new SealEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                encrypt, scale, polyModDegree, sealKeyFilePath, coeffModuli, outputColumnName, inputColumnName);
+                true, scale, polyModDegree, sealKeyFilePath, coeffModuli, outputColumnName, inputColumnName);
+
+        /// <summary>
+        /// Create a <see cref="SealEstimator"/>, which encrypts or decrypts the data from the column specified in <paramref name="inputColumnName"/>
+        /// to a new column: <paramref name="outputColumnName"/>.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="scale">How much to scale the values.</param>
+        /// <param name="polyModDegree">The polynomial modulus degree.</param>
+        /// <param name="sealKeyFilePath">The path to the SEAL key file.</param>
+        /// <param name="coeffModuli">The coefficient moduli needed to create the SEAL context.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// This column's data type will be the same as that of the input column.</param>
+        /// <param name="inputColumnName">Name of the column to copy the data from.
+        /// This estimator operates over any data type.</param>
+        public static SealEstimator DecryptFeatures(this TransformsCatalog catalog,
+            double scale,
+            ulong polyModDegree,
+            string sealKeyFilePath,
+            IEnumerable<SmallModulus> coeffModuli,
+            string outputColumnName,
+            string inputColumnName = null)
+            => new SealEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
+                false, scale, polyModDegree, sealKeyFilePath, coeffModuli, outputColumnName, inputColumnName);
     }
 }

@@ -196,12 +196,13 @@ namespace Microsoft.ML.Data
 
         public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
-            //System.Console.WriteLine("RowToRowMapperTransform.GetRowCursorSet");
+            System.Console.WriteLine("? -> RowToRowMapperTransform.GetRowCursorSet");
             Host.CheckValueOrNull(rand);
 
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
             var active = GetActive(predicate, out IEnumerable<DataViewSchema.Column> inputCols);
 
+            System.Console.WriteLine("RowToRowMapperTransform.GetRowCursorSet: " + Source + ".GetRowCursorSet");
             var inputs = Source.GetRowCursorSet(inputCols, n, rand);
             Host.AssertNonEmpty(inputs);
 
@@ -211,7 +212,11 @@ namespace Microsoft.ML.Data
 
             var cursors = new DataViewRowCursor[inputs.Length];
             for (int i = 0; i < inputs.Length; i++)
+            {
+                System.Console.WriteLine("RowToRowMapperTransform.GetRowCursorSet: Cursor");
                 cursors[i] = new Cursor(Host, inputs[i], this, active);
+            }
+            System.Console.WriteLine("RowToRowMapperTransform.GetRowCursorSet: returning " + cursors);
             return cursors;
         }
 
@@ -391,10 +396,16 @@ namespace Microsoft.ML.Data
             /// <param name="column"> is the output column whose getter should be returned.</param>
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
+                System.Console.WriteLine("? -> Cursor.GetGetter");
                 Ch.Check(IsColumnActive(column));
 
                 bool isSrc;
+                System.Console.WriteLine("Cursor.GetGetter _bindings: " + _bindings);
+                System.Console.WriteLine("Cursor.GetGetter column: " + column);
                 int index = _bindings.MapColumnIndex(out isSrc, column.Index);
+                System.Console.WriteLine("Cursor.GetGetter isSrc: " + isSrc);
+                System.Console.WriteLine("Cursor.GetGetter index: " + index);
+                System.Console.WriteLine("Cursor.GetGetter Input.Schema[index]: " + Input.Schema[index]);
                 if (isSrc)
                     return Input.GetGetter<TValue>(Input.Schema[index]);
 

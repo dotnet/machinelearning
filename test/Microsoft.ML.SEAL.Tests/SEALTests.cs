@@ -3,11 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.SEAL;
 using Microsoft.Research.SEAL;
+using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -32,6 +35,7 @@ namespace Microsoft.ML.Tests.SEAL
             System.Console.SetOut(_originalOut);
         }
 
+        /*
         private class TestClass
         {
             public double[] plaintext;
@@ -66,16 +70,14 @@ namespace Microsoft.ML.Tests.SEAL
                 keygen.PublicKey.Save(fs2);
             }
 
-            var encryptPipeline = ML.Transforms.EncryptFeatures(true,
-                scale,
+            var encryptPipeline = ML.Transforms.EncryptFeatures(scale,
                 polyModDegree,
                 "public.key",
                 coeffModuli,
                 "ciphertext",
                 "plaintext");
 
-            var decryptPipeline = encryptPipeline.Append(ML.Transforms.EncryptFeatures(false,
-                scale,
+            var decryptPipeline = encryptPipeline.Append(ML.Transforms.DecryptFeatures(scale,
                 polyModDegree,
                 "secret.key",
                 coeffModuli,
@@ -92,6 +94,7 @@ namespace Microsoft.ML.Tests.SEAL
                 Assert.Equal(data[0].plaintext, rawPrediction.plaintext);
             }
         }
+         */
 
         [Fact]
         public void EncryptedEvaluation()
@@ -101,7 +104,7 @@ namespace Microsoft.ML.Tests.SEAL
 
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging,
             // as a catalog of available operations and as the source of randomness.
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(0);
 
             // Step 1: Read the data as an IDataView.
             var data = mlContext.Data.LoadFromEnumerable(rawData);
@@ -131,25 +134,8 @@ namespace Microsoft.ML.Tests.SEAL
                 CoeffModulus = coeffModuli
             };
             var context = new SEALContext(encParams);
-            var keygen = new KeyGenerator(context);
 
-            using (var fs = File.Open("secret.key", FileMode.OpenOrCreate))
-            {
-                keygen.SecretKey.Save(fs);
-            }
-
-            using (var fs2 = File.Open("public.key", FileMode.OpenOrCreate))
-            {
-                keygen.PublicKey.Save(fs2);
-            }
-
-            var encryptPipeline = ML.Transforms.EncryptFeatures(true,
-                scale,
-                polyModDegree,
-                "public.key",
-                coeffModuli,
-                "Ciphertext",
-                "Features");
+            var encryptPipeline = mlContext.Transforms.EncryptFeatures(scale, polyModDegree, "public.key", coeffModuli, "Ciphertext", "Features");
 
             // Step 2: Create a binary classifier.
             // We set the "Label" column as the label of the dataset, and the "Features" column as the features column.
@@ -157,13 +143,7 @@ namespace Microsoft.ML.Tests.SEAL
                 coeffModuli: coeffModuli, scale: scale, encryptedFeatureColumnName: "Ciphertext", labelColumnName: "Label", featureColumnName: "Features",
                 l2Regularization: 0.001f));
 
-            var decryptPipeline = esdcaPipeline.Append(ML.Transforms.EncryptFeatures(false,
-                scale,
-                polyModDegree,
-                "secret.key",
-                coeffModuli,
-                "Plaintext",
-                "Label"));
+            var decryptPipeline = esdcaPipeline.Append(mlContext.Transforms.DecryptFeatures(scale, polyModDegree, "secret.key", coeffModuli, "Plaintext", "Label"));
 
             // Step 3: Train the pipeline created.
             System.Console.WriteLine("\n\nTraining encrypted pipeline\n");
@@ -171,11 +151,13 @@ namespace Microsoft.ML.Tests.SEAL
             System.Console.WriteLine("\nCompleted training encrypted pipeline\n\n");
 
             // Step 4: Make prediction and evaluate its quality (on training set).
-            //var unencryptedPrediction = unencryptedModel.Transform(data);
-            System.Console.WriteLine("\n\nTransforming data\n");
+            System.Console.WriteLine("\n\nTransforming unencrypted data\n");
+            var unencryptedPrediction = unencryptedModel.Transform(data);
+            System.Console.WriteLine("\nCompleted transforming unencrypted data\n\n");
+            System.Console.WriteLine("\n\nTransforming encrypted data\n");
             var encryptedPrediction = encryptedModel.Transform(data);
-            System.Console.WriteLine("\nCompleted transforming data\n\n");
-            //var rawUnencryptedPrediction = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.CalibratedBinaryClassifierOutput>(unencryptedPrediction, false);
+            System.Console.WriteLine("\nCompleted transforming encrypted data\n\n");
+            var rawUnencryptedPrediction = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.CalibratedBinaryClassifierOutput>(unencryptedPrediction, false);
             var rawEncryptedPrediction = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.CalibratedBinaryClassifierOutput>(encryptedPrediction, false);
             //var rawEncryptedPrediction = mlContext.Data.CreateEnumerable<TestClass>(encryptedPrediction, false);
 
@@ -187,15 +169,13 @@ namespace Microsoft.ML.Tests.SEAL
                 System.Console.WriteLine("Checked score\n");
             }
             System.Console.WriteLine("\nCompleted enumerating data\n\n");
-            
-            /*
+
             var bothPredictions = rawUnencryptedPrediction.Zip(rawEncryptedPrediction, (u, e) => new { unencrypted = u, encrypted = e });
 
             foreach (var rawPrediction in bothPredictions)
             {
                 Assert.Equal(rawPrediction.unencrypted, rawPrediction.encrypted);
             }
-            */
         }
     }
 }

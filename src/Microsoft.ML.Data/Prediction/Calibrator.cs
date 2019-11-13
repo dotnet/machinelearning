@@ -317,13 +317,13 @@ namespace Microsoft.ML.Calibrators
 
         ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
-            System.Console.WriteLine("Calibrator.IValueMapper.GetMapper");
+            System.Console.WriteLine("? -> ValueMapperCalibratedModelParametersBase.IValueMapper.GetMapper");
             return _mapper.GetMapper<TIn, TOut>();
         }
 
         ValueMapper<TIn, TOut, TDist> IValueMapperDist.GetMapper<TIn, TOut, TDist>()
         {
-            System.Console.WriteLine("Calibrator.IValueMapperDist.GetMapper");
+            System.Console.WriteLine("? -> ValueMapperCalibratedModelParametersBase.IValueMapperDist.GetMapper");
             Host.Check(typeof(TOut) == typeof(float));
             Host.Check(typeof(TDist) == typeof(float));
             var map = ((IValueMapper)this).GetMapper<TIn, float>();
@@ -340,6 +340,7 @@ namespace Microsoft.ML.Calibrators
         {
             // REVIEW: checking this a bit too late.
             Host.Check(_featureContribution != null, "Predictor does not implement IFeatureContributionMapper");
+            System.Console.WriteLine("? -> ValueMapperCalibratedModelParametersBase.GetFeatureContributionMapper");
             return _featureContribution.GetFeatureContributionMapper<TSrc, TDst>(top, bottom, normalize);
         }
 

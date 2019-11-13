@@ -124,7 +124,6 @@ namespace Microsoft.ML.Data
 
         protected override DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
-            System.Console.WriteLine("? -> RowToRowScorerBase.GetRowCursorCore");
             Contracts.AssertValueOrNull(rand);
 
             var bindings = GetBindings();
@@ -138,7 +137,7 @@ namespace Microsoft.ML.Data
 
         public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
-            System.Console.WriteLine("RowToRowScorerBase.GetRowCursorSet");
+            System.Console.WriteLine("? -> RowToRowScorerBase.GetRowCursorSet");
             Host.CheckValueOrNull(rand);
 
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
@@ -147,6 +146,7 @@ namespace Microsoft.ML.Data
             var active = GetActive(bindings, columnsNeeded,
                out IEnumerable<DataViewSchema.Column> inputCols,
                out IEnumerable<DataViewSchema.Column> activeMapperColumns);
+            System.Console.WriteLine("RowToRowScorerBase.GetRowCursorSet: " + Source + ".GetRowCursorSet");
             var inputs = Source.GetRowCursorSet(inputCols, n, rand);
             Contracts.AssertNonEmpty(inputs);
 
@@ -155,8 +155,10 @@ namespace Microsoft.ML.Data
             Contracts.AssertNonEmpty(inputs);
 
             var cursors = new DataViewRowCursor[inputs.Length];
+            System.Console.WriteLine("RowToRowScorerBase.GetRowCursorSet: Cursor");
             for (int i = 0; i < inputs.Length; i++)
                 cursors[i] = new Cursor(Host, this, inputs[i], active, activeMapperColumns);
+            System.Console.WriteLine("RowToRowScorerBase.GetRowCursorSet: returning " + cursors);
             return cursors;
         }
 
@@ -239,20 +241,26 @@ namespace Microsoft.ML.Data
             public Cursor(IChannelProvider provider, RowToRowScorerBase parent, DataViewRowCursor input, bool[] active, IEnumerable<DataViewSchema.Column> activeMapperColumns)
                 : base(provider, input)
             {
-                System.Console.WriteLine("Cursor.Cursor");
+                System.Console.WriteLine("? -> Cursor.Cursor");
                 Ch.AssertValue(parent);
                 Ch.AssertValue(active);
                 Ch.AssertValue(activeMapperColumns);
 
+                System.Console.WriteLine("Cursor.Cursor: " + parent + ".GetBindings");
                 _bindings = parent.GetBindings();
+                System.Console.WriteLine("Cursor.Cursor: " + parent + ".GetBindings returned " + _bindings);
+                System.Console.WriteLine("Cursor.Cursor: " + parent + ".OutputSchema");
                 Schema = parent.OutputSchema;
+                System.Console.WriteLine("Cursor.Cursor: " + parent + ".OutputSchema returned " + Schema);
                 Ch.Assert(active.Length == _bindings.ColumnCount);
                 _active = active;
 
+                System.Console.WriteLine("Cursor.Cursor: " + _bindings + ".RowMapper.GetRow");
                 _output = _bindings.RowMapper.GetRow(input, activeMapperColumns);
                 try
                 {
                     Ch.Assert(_output.Schema == _bindings.RowMapper.OutputSchema);
+                    System.Console.WriteLine("Cursor.Cursor: " + parent + ".GetGetters");
                     _getters = parent.GetGetters(_output, iinfo => active[_bindings.MapIinfoToCol(iinfo)]);
                 }
                 catch (Exception)

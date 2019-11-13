@@ -310,6 +310,7 @@ namespace Microsoft.ML.Trainers
 
         private protected float WDot(in VBuffer<float> features, in VBuffer<float> weights, float bias)
         {
+            //System.Console.WriteLine("? -> SdcaTrainerBase.WDot");
             return VectorUtils.DotProduct(in weights, in features) + bias;
         }
 

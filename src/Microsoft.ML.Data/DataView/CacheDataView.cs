@@ -250,6 +250,7 @@ namespace Microsoft.ML.Data
 
         public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
+            System.Console.WriteLine("? -> CacheDataView.GetRowCursorSet");
             _host.CheckValueOrNull(rand);
 
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
@@ -268,6 +269,7 @@ namespace Microsoft.ML.Data
         private DataViewRowCursor[] GetRowCursorSetWaiterCore<TWaiter>(TWaiter waiter, Func<int, bool> predicate, int n, Random rand)
             where TWaiter : struct, IWaiter
         {
+            System.Console.WriteLine("? -> CacheDataView.GetRowCursorSetWaiterCore");
             _host.AssertValue(predicate);
             _host.Assert(n > 1);
             _host.AssertValueOrNull(rand);
@@ -277,18 +279,21 @@ namespace Microsoft.ML.Data
             int[] perm = GetPermutationOrNull(rand);
             for (int i = 0; i < n; ++i)
             {
+                System.Console.WriteLine("CacheDataView.GetRowCursorSetWaiterCore CreateCursor");
                 // While the counter and waiter is shared among the cursors, the indexer is not.
                 if (perm == null)
                     cursors[i] = CreateCursor(predicate, BlockSequenceIndex<TWaiter>.Create(waiter, scheduler));
                 else
                     cursors[i] = CreateCursor(predicate, BlockRandomIndex<TWaiter>.Create(waiter, scheduler, perm));
             }
+            System.Console.WriteLine("CacheDataView.GetRowCursorSetWaiterCore returning " + cursors);
             return cursors;
         }
 
         private DataViewRowCursor CreateCursor<TIndex>(Func<int, bool> predicate, TIndex index)
             where TIndex : struct, IIndex
         {
+            System.Console.WriteLine("? -> CacheDataView.CreateCursor");
             Contracts.AssertValue(predicate);
             return new RowCursor<TIndex>(this, predicate, index);
         }
