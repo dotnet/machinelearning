@@ -536,7 +536,8 @@ namespace Microsoft.ML.Transforms
 
             // REVIEW:
             // AddInitializer only supports long, float and string.
-            // Is it correct to cast double to float and ulong to long?
+            // Here we are casting double to float and ulong to long.
+            // Fixing this would involve adding additional functions to OnnxContext.
             if ((type == typeof(float)) || (type == typeof(double)))
                 ctx.AddInitializer(new float[size], new long[] { 1, size }, inputColumnName, false);
             else if ((type == typeof(long)) || (type == typeof(int)) || (type == typeof(short)) || (type == typeof(sbyte)) ||
