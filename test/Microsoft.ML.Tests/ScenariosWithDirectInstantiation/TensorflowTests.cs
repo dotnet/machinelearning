@@ -1455,14 +1455,7 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowImageClassificationWithPolynomialLRScheduling()
         {
-
-            /*
-             * Due to an issue with Nix based os performance is not as good,
-             * as such increase the number of epochs to produce a better model.
-             */
-            bool isNix = (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
-                (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))));
-            TensorFlowImageClassificationWithLRScheduling(new PolynomialLRDecay(), isNix ? 75: 50);
+            TensorFlowImageClassificationWithLRScheduling(new PolynomialLRDecay(), 50);
         }
 
         internal void TensorFlowImageClassificationWithLRScheduling(LearningRateScheduler  learningRateScheduler, int epoch)
@@ -1550,8 +1543,8 @@ namespace Microsoft.ML.Scenarios
             if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
                 (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))))
             {
-                Assert.InRange(metrics.MicroAccuracy, 0.2, 1);
-                Assert.InRange(metrics.MacroAccuracy, 0.2, 1);
+                Assert.InRange(metrics.MicroAccuracy, 0.99, 1);
+                Assert.InRange(metrics.MacroAccuracy, 0.99, 1);
             }
             else
             {
@@ -1909,10 +1902,13 @@ namespace Microsoft.ML.Scenarios
         public static string DownloadImageSet(string imagesDownloadFolder)
         {
             string fileName = "flower_photos_tiny_set_for_unit_tests.zip";
+            /*
             string url = $"https://mlnetfilestorage.file.core.windows.net/imagesets" +
                 $"/flower_images/flower_photos_tiny_set_for_unit_tests.zip?st=2019" +
                 $"-08-29T00%3A07%3A21Z&se=2030-08-30T00%3A07%3A00Z&sp=rl&sv=2018" +
                 $"-03-28&sr=f&sig=N8HbLziTcT61kstprNLmn%2BDC0JoMrNwo6yRWb3hLLag%3D";
+            */
+            string url = "https://tlcresources.blob.core.windows.net/datasets/flower_photos_tiny_set_for_unit_test.zip";
 
             Download(url, imagesDownloadFolder, fileName);
             UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);
