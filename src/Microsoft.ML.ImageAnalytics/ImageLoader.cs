@@ -61,6 +61,9 @@ namespace Microsoft.ML.Data
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Folder where to search for images", ShortName = "folder")]
             public string ImageFolder;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to load images as bytes or as image type.")]
+            public bool LoadAsBytes = false;
         }
 
         internal const string Summary = "Load images from files.";
@@ -112,7 +115,7 @@ namespace Microsoft.ML.Data
         // Factory method for SignatureDataTransform.
         internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView data)
         {
-            return new ImageLoadingTransformer(env, options.ImageFolder, options.Columns.Select(x => (x.Name, x.Source ?? x.Name)).ToArray())
+            return new ImageLoadingTransformer(env, options.ImageFolder, !options.LoadAsBytes, options.Columns.Select(x => (x.Name, x.Source ?? x.Name)).ToArray())
                 .MakeDataTransform(data);
         }
 

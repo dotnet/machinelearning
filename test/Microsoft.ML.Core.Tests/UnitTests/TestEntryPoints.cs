@@ -23,8 +23,10 @@ using Microsoft.ML.Trainers.Ensemble;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.LightGbm;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Image;
 using Microsoft.ML.Transforms.Text;
 using Microsoft.ML.Transforms.TimeSeries;
+using Microsoft.ML.Vision;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -325,7 +327,6 @@ namespace Microsoft.ML.RunTests
         {
             Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransformer).Assembly);
-            Env.ComponentCatalog.RegisterAssembly(typeof(ImageLoadingTransformer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SymbolicSgdLogisticRegressionBinaryTrainer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SaveOnnxCommand).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TimeSeriesProcessingEntryPoints).Assembly);
@@ -2885,6 +2886,81 @@ namespace Microsoft.ML.RunTests
             TestEntryPointRoutine("iris.txt", "Trainers.NaiveBayesClassifier");
         }
 
+        [TensorFlowFact]
+        public void EntryPointImageClassification()
+        {
+            Env.ComponentCatalog.RegisterAssembly(typeof(ImageClassificationTrainer).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(ImageAnalyticsEntryPoints).Assembly);
+
+            string dataFile = "images/images.tsv";
+            string dataDir = DataDir + "//images";
+
+            var dataPath = GetDataPath(dataFile);
+            var outputPath = DeleteOutputPath("model.zip");
+            
+            string inputGraph = string.Format(@"
+                {{
+                  'Nodes': [
+                    {{
+                      'Name': 'Data.CustomTextLoader',
+                      'Inputs': {{
+                        'InputFile': '$file1',
+                        'CustomSchema' : 'col=ImagePath:TX:0 col=Label:TX:0'
+                      }},
+                      'Outputs': {{
+                        'Data': '$data1'
+                      }}
+                    }},
+                    {{
+                      'Name': 'Transforms.Dictionarizer',
+                      'Inputs': {{
+                        'Column': [{{ 'Name': 'Label', 'Source': 'Label' }}],
+                        'Data': '$data1',
+                      }},
+                      'Outputs': {{
+                        'OutputData': '$data2'
+                      }}
+                    }},
+                    {{
+                      'Name': 'Transforms.ImageLoader',
+                      'Inputs': {{
+                        'Column': [{{ 'Name': 'Features', 'Source': 'ImagePath' }}],
+                        'Data': '$data2',
+                        'LoadAsBytes': true, 
+                        'ImageFolder': '{2}'
+                      }},
+                      'Outputs': {{
+                        'OutputData': '$data3'
+                      }}
+                    }},
+                    {{
+                      'Name': 'Trainers.ImageClassifier',
+                      'Inputs': {{
+                        'TrainingData': '$data3'
+                      }},
+                      'Outputs': {{
+                        'PredictorModel': '$model'
+                      }}
+                    }}
+                  ],
+                  'Inputs' : {{
+                    'file1' : '{0}'
+                  }},
+                  'Outputs' : {{
+                    'model' : '{1}'
+                  }}
+                }}", EscapePath(dataPath), EscapePath(outputPath), 
+            EscapePath(dataDir)
+            );
+
+            var jsonPath = DeleteOutputPath("graph.json");
+            File.WriteAllLines(jsonPath, new[] { inputGraph });
+
+            var args = new ExecuteGraphCommand.Arguments() { GraphPath = jsonPath };
+            var cmd = new ExecuteGraphCommand(Env, args);
+            cmd.Run();
+        }
+        
         [Fact]
         public void EntryPointHogwildSGD()
         {

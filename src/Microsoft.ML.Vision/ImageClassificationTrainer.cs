@@ -12,6 +12,7 @@ using Google.Protobuf;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TensorFlow;
@@ -34,6 +35,9 @@ using Column = Microsoft.ML.Data.TextLoader.Column;
 
 [assembly: LoadableClass(typeof(ImageClassificationModelParameters), null, typeof(SignatureLoadModel),
     "Image classification predictor", ImageClassificationModelParameters.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(void), typeof(ImageClassificationTrainer), null,
+    typeof(SignatureEntryPointModule), ImageClassificationTrainer.LoadName)]
 
 namespace Microsoft.ML.Vision
 {
@@ -1365,6 +1369,22 @@ namespace Microsoft.ML.Vision
         /// <param name="validationData">The validation data set.</param>
         public MulticlassPredictionTransformer<ImageClassificationModelParameters> Fit(
             IDataView trainData, IDataView validationData) => TrainTransformer(trainData, validationData);
+
+        [TlcModule.EntryPoint(Name = "Trainers.ImageClassifier",
+            Desc = "Train a ImageClassificationTrainer.",
+            UserName = UserName,
+            ShortName = ShortName)]
+        internal static CommonOutputs.MulticlassClassificationOutput TrainImageClassificationTrainer(IHostEnvironment env, Options input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            var host = env.Register("TrainImageClassification");
+            host.CheckValue(input, nameof(input));
+            EntryPointUtils.CheckInputArgs(host, input);
+
+            return TrainerEntryPointsUtils.Train<Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
+                () => new ImageClassificationTrainer(host, input),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName));
+        }
     }
 
     /// <summary>
