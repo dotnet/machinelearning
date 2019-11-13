@@ -41,7 +41,7 @@ namespace Microsoft.Extensions.ML
             loaderUnderTest.Start(new Uri("http://microsoft.com"), TimeSpan.FromMilliseconds(1));
 
             using AutoResetEvent changed = new AutoResetEvent(false);
-            var changeTokenRegistration = ChangeToken.OnChange(
+            using IDisposable changeTokenRegistration = ChangeToken.OnChange(
                         () => loaderUnderTest.GetReloadToken(),
                         () => changed.Set());
             
@@ -63,7 +63,7 @@ namespace Microsoft.Extensions.ML
             loaderUnderTest.Start(new Uri("http://microsoft.com"), TimeSpan.FromMilliseconds(1));
 
             using AutoResetEvent changed = new AutoResetEvent(false);
-            var changeTokenRegistration = ChangeToken.OnChange(
+            using IDisposable changeTokenRegistration = ChangeToken.OnChange(
                         () => loaderUnderTest.GetReloadToken(),
                         () => changed.Set());
 
