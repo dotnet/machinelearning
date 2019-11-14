@@ -1197,34 +1197,6 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        private void CompareSelectedScalarColumns<T>(string leftColumnName, string rightColumnName, IDataView left, IDataView right)
-        {
-            var leftColumn = left.Schema[leftColumnName];
-            var rightColumn = right.Schema[rightColumnName];
-
-            using (var expectedCursor = left.GetRowCursor(leftColumn))
-            using (var actualCursor = right.GetRowCursor(rightColumn))
-            {
-                T expected = default;
-                VBuffer<T> actual = default;
-                var expectedGetter = expectedCursor.GetGetter<T>(leftColumn);
-                var actualGetter = actualCursor.GetGetter<VBuffer<T>>(rightColumn);
-                while (expectedCursor.MoveNext() && actualCursor.MoveNext())
-                {
-                    expectedGetter(ref expected);
-                    actualGetter(ref actual);
-                    var actualVal = actual.GetItemOrDefault(0);
-
-                    Assert.Equal(1, actual.Length);
-
-                    if (typeof(T) == typeof(ReadOnlyMemory<Char>))
-                        Assert.Equal(expected.ToString(), actualVal.ToString());
-                    else
-                        Assert.Equal(expected, actualVal);
-                }
-            }
-        }
-
         private void CompareSelectedR8VectorColumns(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
         {
             var leftColumn = left.Schema[leftColumnName];
