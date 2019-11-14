@@ -1803,8 +1803,8 @@ namespace Microsoft.ML.Scenarios
                 searchOption: SearchOption.AllDirectories);
             /*
              * This is only needed as Linux can produce files in a different 
-             * order than other OSs. As this is a test case we want to maintain
-             * consisten accuracy across all OSs, so we sort to remove this discrepency.
+             * order than other OSes. As this is a test case we want to maintain
+             * consistent accuracy across all OSes, so we sort to remove this discrepency.
              */
             Array.Sort(files);
             foreach (var file in files)
