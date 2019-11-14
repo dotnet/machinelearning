@@ -86,14 +86,34 @@ To build ML.NET from source please visit our [developers guide](docs/project-doc
 |**Windows x86**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x86_NetCoreApp21&configuration=Windows_x86_NetCoreApp21%20Debug_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x86_NetCoreApp21&configuration=Windows_x86_NetCoreApp21%20Release_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|
 |**Windows NetCore3.0**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x64_NetCoreApp30&configuration=Windows_x64_NetCoreApp30%20Debug_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x64_NetCoreApp30&configuration=Windows_x64_NetCoreApp30%20Release_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|
 
-## Release process
+## Release process and versioning
+
+ML.NET NuGets (of which there are approximately 25) are versioned with the following format: `A.B.C<-D>`, where `A`, `B`, and `C` are integers, and `D` is an optional string.
+
+- `A` - **version number**: If `A` is 0, this NuGet is considered a **work in progress (WIP)**, and could be deleted at any time. If `A` is greater than 0, then we plan to support the corresponding NuGet indefinitely. 
+- `B` - **sub-version number**: This number is consistent within each GA release and within each WIP release. Therefore, all GA NuGets that are released at the same time will have the same sub-version number, and all WIP releases that are released at the same time will have the same sub-version number.
+- `C` - **bug fix index**: `C` starts at 0 and is incremented every time we introduce a bug fix between releases.
+- `D` - **preview suffix**: `D` is an optional suffix which contains the word "preview" followed by an integer. If D is not included and A is not 0, then the API surface is locked.
 
 ML.NET has four kinds of releases: nightly builds, monthly preview releases, periodic general availability (GA) releases, and fix releases. We detail each kind of release below.
 
-1. **Nightly builds:** these are supported in NuGet, and support the most cutting-edge work. The trade-off is that these releases are not as rigorously tested.
-1. **Monthly preview releases:** These releases enable you to preview new features, with the guarantee that those features have met our preview bar, which is higher than that for our nightly features.
-1. **GA releases:** These releases are rigorously tested, stable, and meant for general use.
-1. **Fix releases:** These releases include patches for bugs in GA releases.
+1. **Nightly builds:** these can be downloaded from [this NuGet feed](https://dev.azure.com/dnceng/public/_packaging?_a=feed&feed=MachineLearning), and are built automatically once per day, based on the content of the `master` branch.
+1. **Monthly preview releases:** These releases are built from the corresponding `A.B-preview-X` branch, and are expected to meet a higher quality bar than the nightly builds. These can also be downloaded from [this NuGet feed](https://dev.azure.com/dnceng/public/_packaging?_a=feed&feed=MachineLearning), or within Visual Studio, as detailed below.
+1. **GA releases:** These releases are built from the corresponding `A.B` branch. They are rigorously tested, stable, and meant for general use. They are also the default choice when installing ML.NET via the `Install-Package Microsoft.ML` command.
+1. **Fix releases:** These releases include patches for bugs in either the preview or GA releases.
+
+The table below explains how each of the elements in our versioning schema would change for each kind of release.
+
+| Release type | Change in A | Change in B | Change in C | Change in D |
+| -------------|-------------|-------------|-------------|-------------|
+| Nightly build| No change   | No change   | No change   | No change   |
+| Monthly preview| No change | No change   | No change   | `preview` tag added, if this is the first preview, or preview index incremented (i.e. `A.B.C-preview` -> `A.B.C-preview2`) |
+| GA releases | Possibly incremented for non-WIP NuGets | Incremented | Reset to 0 | `preview` tag is removed |
+| Fix releases | No change | No change | Incremented | No change
+
+> Note: to install the preview packages via the NuGet Package Manager in Visual Studio, you must make sure to check the "Include prerelease" checkbox:
+
+![include-prerelease](./docs/images/include-prerelease.png)
 
 ## Contributing
 
