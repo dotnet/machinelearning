@@ -103,8 +103,8 @@ ML.NET has four kinds of releases: nightly builds, monthly preview releases, per
 1. **Fix releases:** These releases include patches for bugs in either the preview or GA releases.
 
 The table below explains how each of the elements in our versioning schema would change for each kind of release.
-
-| Release type | Change in A | Change in B | Change in C | Change in D |
+`
+| Release type | Change in `A` | Change in `B` | Change in `C` | Change in `D` |
 | -------------|-------------|-------------|-------------|-------------|
 | Nightly build| No change   | No change   | No change   | No change   |
 | Monthly preview| No change | No change   | No change   | `preview` tag added, if this is the first preview, or preview index incremented (i.e. `A.B.C-preview` -> `A.B.C-preview2`) |
