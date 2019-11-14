@@ -1085,17 +1085,21 @@ namespace Microsoft.ML.Tests
             string dataPath = GetDataPath("breast-cancer.txt");
             var dataView = mlContext.Data.LoadFromTextFile<BreastCancerMulticlassExample>(dataPath, separatorChar: '\t', hasHeader: true);
 
-            IEstimator<ITransformer>[] estimators =
+            List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
             {
                 mlContext.MulticlassClassification.Trainers.LbfgsMaximumEntropy(),
-                mlContext.MulticlassClassification.Trainers.LightGbm(),
-                mlContext.MulticlassClassification.Trainers.LightGbm(
-                    new LightGbmMulticlassTrainer.Options{ UseSoftmax = true }),
                 mlContext.MulticlassClassification.Trainers.OneVersusAll(
                     mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(), useProbabilities:false),
                 mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(),
                 mlContext.MulticlassClassification.Trainers.SdcaNonCalibrated()
             };
+
+            if (Environment.Is64BitProcess)
+            {
+                estimators.Add(mlContext.MulticlassClassification.Trainers.LightGbm());
+                estimators.Add(mlContext.MulticlassClassification.Trainers.LightGbm(
+                    new LightGbmMulticlassTrainer.Options { UseSoftmax = true }));
+            }
 
             var initialPipeline = mlContext.Transforms.ReplaceMissingValues("Features")
                 .Append(mlContext.Transforms.NormalizeMinMax("Features"))
