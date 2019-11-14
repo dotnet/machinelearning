@@ -133,6 +133,7 @@ namespace Microsoft.ML.Tests
             [LoadColumn(2, 9), VectorType(8)]
             public float[] Features;
         }
+
         private class BreastCancerBinaryClassification
         {
             [LoadColumn(0)]
