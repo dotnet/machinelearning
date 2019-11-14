@@ -1493,7 +1493,7 @@ namespace Microsoft.ML.Scenarios
                 .Fit(shuffledFullImagesDataset)
                 .Transform(shuffledFullImagesDataset);
 
-            // Split the data 80:10 into train and test sets, train and evaluate.
+            // Split the data 80:20 into train and test sets, train and evaluate.
             TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
                 shuffledFullImagesDataset, testFraction: 0.2, seed: 1);
 
@@ -1877,6 +1877,7 @@ namespace Microsoft.ML.Scenarios
         {
             var files = Directory.GetFiles(folder, "*",
                 searchOption: SearchOption.AllDirectories);
+            Array.Sort(files);
             foreach (var file in files)
             {
                 if (Path.GetExtension(file) != ".jpg")
