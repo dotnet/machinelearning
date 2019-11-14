@@ -2894,74 +2894,18 @@ namespace Microsoft.ML.RunTests
             Env.ComponentCatalog.RegisterAssembly(typeof(ImageAnalyticsEntryPoints).Assembly);
 
             string dataFile = "images/images.tsv";
-            string dataDir = DataDir + "//images";
+            string imageFolder = DataDir + "//images";
+            string loader = "col=ImagePath:TX:0 col=Label:TX:0";
+            string trainerArgs = null;
+            string[] xfNames = { "Transforms.Dictionarizer", "Transforms.ImageLoader" };
+            string[] xfArgs = { "'Column': [{ 'Name': 'Label', 'Source': 'Label' }]",
+               String.Format(@"'Column': [{{ 'Name': 'Features', 'Source': 'ImagePath' }}]," +
+               "'LoadAsBytes': true," +
+               "'ImageFolder': '{0}'", EscapePath(imageFolder))};
 
-            var dataPath = GetDataPath(dataFile);
-            var outputPath = DeleteOutputPath("model.zip");
-            
-            string inputGraph = string.Format(@"
-                {{
-                  'Nodes': [
-                    {{
-                      'Name': 'Data.CustomTextLoader',
-                      'Inputs': {{
-                        'InputFile': '$file1',
-                        'CustomSchema' : 'col=ImagePath:TX:0 col=Label:TX:0'
-                      }},
-                      'Outputs': {{
-                        'Data': '$data1'
-                      }}
-                    }},
-                    {{
-                      'Name': 'Transforms.Dictionarizer',
-                      'Inputs': {{
-                        'Column': [{{ 'Name': 'Label', 'Source': 'Label' }}],
-                        'Data': '$data1',
-                      }},
-                      'Outputs': {{
-                        'OutputData': '$data2'
-                      }}
-                    }},
-                    {{
-                      'Name': 'Transforms.ImageLoader',
-                      'Inputs': {{
-                        'Column': [{{ 'Name': 'Features', 'Source': 'ImagePath' }}],
-                        'Data': '$data2',
-                        'LoadAsBytes': true, 
-                        'ImageFolder': '{2}'
-                      }},
-                      'Outputs': {{
-                        'OutputData': '$data3'
-                      }}
-                    }},
-                    {{
-                      'Name': 'Trainers.ImageClassifier',
-                      'Inputs': {{
-                        'TrainingData': '$data3'
-                      }},
-                      'Outputs': {{
-                        'PredictorModel': '$model'
-                      }}
-                    }}
-                  ],
-                  'Inputs' : {{
-                    'file1' : '{0}'
-                  }},
-                  'Outputs' : {{
-                    'model' : '{1}'
-                  }}
-                }}", EscapePath(dataPath), EscapePath(outputPath), 
-            EscapePath(dataDir)
-            );
-
-            var jsonPath = DeleteOutputPath("graph.json");
-            File.WriteAllLines(jsonPath, new[] { inputGraph });
-
-            var args = new ExecuteGraphCommand.Arguments() { GraphPath = jsonPath };
-            var cmd = new ExecuteGraphCommand(Env, args);
-            cmd.Run();
+            TestEntryPointRoutine(dataFile,  "Trainers.ImageClassifier", loader, trainerArgs, xfNames, xfArgs);
         }
-        
+                
         [Fact]
         public void EntryPointHogwildSGD()
         {

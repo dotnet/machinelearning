@@ -7,3 +7,4 @@ using Microsoft.ML;
 
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Tests" + PublicKey.TestValue)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Core.Tests" + PublicKey.TestValue)]
+[assembly: InternalsVisibleTo(assemblyName: "DotNetBridge" + InternalPublicKey.Value)]

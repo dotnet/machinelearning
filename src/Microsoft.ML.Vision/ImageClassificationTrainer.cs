@@ -36,8 +36,8 @@ using Column = Microsoft.ML.Data.TextLoader.Column;
 [assembly: LoadableClass(typeof(ImageClassificationModelParameters), null, typeof(SignatureLoadModel),
     "Image classification predictor", ImageClassificationModelParameters.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(void), typeof(ImageClassificationTrainer), null,
-    typeof(SignatureEntryPointModule), ImageClassificationTrainer.LoadName)]
+[assembly: LoadableClass(typeof(void), typeof(ImageClassifier), null,
+    typeof(SignatureEntryPointModule), "ImageClassifier")]
 
 namespace Microsoft.ML.Vision
 {
@@ -1314,7 +1314,7 @@ namespace Microsoft.ML.Vision
                 var optimizer = useLearningRateScheduler ? tf.train.GradientDescentOptimizer(_learningRateInput) :
                                     tf.train.GradientDescentOptimizer(learningRate);
 
-               _trainStep = optimizer.minimize(crossEntropyMean);
+                _trainStep = optimizer.minimize(crossEntropyMean);
             });
 
             return (_trainStep, crossEntropyMean, _labelTensor, _softMaxTensor);
@@ -1369,19 +1369,22 @@ namespace Microsoft.ML.Vision
         /// <param name="validationData">The validation data set.</param>
         public MulticlassPredictionTransformer<ImageClassificationModelParameters> Fit(
             IDataView trainData, IDataView validationData) => TrainTransformer(trainData, validationData);
+    }
 
+    internal static class ImageClassifier
+    {
         [TlcModule.EntryPoint(Name = "Trainers.ImageClassifier",
-            Desc = "Train a ImageClassificationTrainer.",
-            UserName = UserName,
-            ShortName = ShortName)]
-        internal static CommonOutputs.MulticlassClassificationOutput TrainImageClassificationTrainer(IHostEnvironment env, Options input)
+            Desc = "Train an ImageClassificationTrainer.",
+            UserName = ImageClassificationTrainer.UserName,
+            ShortName = ImageClassificationTrainer.ShortName)]
+        internal static CommonOutputs.MulticlassClassificationOutput TrainImageClassifier(IHostEnvironment env, ImageClassificationTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
-            var host = env.Register("TrainImageClassification");
+            var host = env.Register("TrainImageClassifier");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return TrainerEntryPointsUtils.Train<Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
+            return TrainerEntryPointsUtils.Train<ImageClassificationTrainer.Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
                 () => new ImageClassificationTrainer(host, input),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName));
         }
