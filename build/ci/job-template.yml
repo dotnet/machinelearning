@@ -17,6 +17,7 @@ jobs:
     ${{ if eq(parameters.codeCoverage, 'true') }}:
       timeoutInMinutes: 60
     variables:
+      system.debug: true
       dotnetPath: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet
       nugetFeed: https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json
       nightlyBuildProjPath: $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj
