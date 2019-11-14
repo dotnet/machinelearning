@@ -40,12 +40,12 @@ namespace Microsoft.Extensions.ML
             var loaderUnderTest = ActivatorUtilities.CreateInstance<UriLoaderMock>(sp);
             loaderUnderTest.Start(new Uri("http://microsoft.com"), TimeSpan.FromMilliseconds(1));
 
-            var changed = false;
-            var changeTokenRegistration = ChangeToken.OnChange(
+            using AutoResetEvent changed = new AutoResetEvent(false);
+            using IDisposable changeTokenRegistration = ChangeToken.OnChange(
                         () => loaderUnderTest.GetReloadToken(),
-                        () => changed = true);
-            Thread.Sleep(30);
-            Assert.True(changed);
+                        () => changed.Set());
+            
+            Assert.True(changed.WaitOne(1000), "UriLoader ChangeToken didn't fire before the allotted time.");
         }
 
         [Fact]
@@ -62,12 +62,12 @@ namespace Microsoft.Extensions.ML
 
             loaderUnderTest.Start(new Uri("http://microsoft.com"), TimeSpan.FromMilliseconds(1));
 
-            var changed = false;
-            var changeTokenRegistration = ChangeToken.OnChange(
+            using AutoResetEvent changed = new AutoResetEvent(false);
+            using IDisposable changeTokenRegistration = ChangeToken.OnChange(
                         () => loaderUnderTest.GetReloadToken(),
-                        () => changed = true);
-            Thread.Sleep(30);
-            Assert.False(changed);
+                        () => changed.Set());
+
+            Assert.False(changed.WaitOne(100), "UriLoader ChangeToken fired but shouldn't have.");
         }
     }
 

@@ -11,13 +11,13 @@ using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Dnn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.TensorFlow;
 using Microsoft.ML.Transforms;
 using NumSharp;
 using Tensorflow;
-using static Microsoft.ML.Dnn.DnnUtils;
+using static Microsoft.ML.TensorFlow.TensorFlowUtils;
 using static Tensorflow.Binding;
 
 [assembly: LoadableClass(DnnRetrainTransformer.Summary, typeof(IDataTransform), typeof(DnnRetrainTransformer),
@@ -109,12 +109,12 @@ namespace Microsoft.ML.Transforms
                 if (!ctx.TryLoadBinaryStream("TFModel", r => modelBytes = r.ReadByteArray()))
                     throw env.ExceptDecode();
 
-                return new DnnRetrainTransformer(env, DnnUtils.LoadTFSession(env, modelBytes), outputs, inputs,
+                return new DnnRetrainTransformer(env, TensorFlowUtils.LoadTFSession(env, modelBytes), outputs, inputs,
                     null, false, addBatchDimensionInput, 1);
             }
 
             var tempDirPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), nameof(DnnRetrainTransformer) + "_" + Guid.NewGuid()));
-            DnnUtils.CreateFolderWithAclIfNotExists(env, tempDirPath);
+            CreateFolderWithAclIfNotExists(env, tempDirPath);
             try
             {
                 var load = ctx.TryLoadBinaryStream("TFSavedModel", br =>
@@ -129,7 +129,7 @@ namespace Microsoft.ML.Transforms
                         string fullFileDir = Path.GetDirectoryName(fullFilePath);
                         if (fullFileDir != tempDirPath)
                         {
-                            DnnUtils.CreateFolderWithAclIfNotExists(env, fullFileDir);
+                            CreateFolderWithAclIfNotExists(env, fullFileDir);
                         }
                         using (var fs = new FileStream(fullFilePath, FileMode.Create, FileAccess.Write))
                         {
@@ -139,12 +139,12 @@ namespace Microsoft.ML.Transforms
                     }
                 });
 
-                return new DnnRetrainTransformer(env, DnnUtils.GetSession(env, tempDirPath), outputs, inputs, tempDirPath, true,
+                return new DnnRetrainTransformer(env, GetSession(env, tempDirPath), outputs, inputs, tempDirPath, true,
                     addBatchDimensionInput, 1);
             }
             catch (Exception)
             {
-                DnnUtils.DeleteFolderWithRetries(env, tempDirPath);
+                DeleteFolderWithRetries(env, tempDirPath);
                 throw;
             }
         }
@@ -162,11 +162,11 @@ namespace Microsoft.ML.Transforms
         }
 
         internal DnnRetrainTransformer(IHostEnvironment env, DnnRetrainEstimator.Options options, IDataView input)
-            : this(env, options, DnnUtils.LoadDnnModel(env, options.ModelLocation), input)
+            : this(env, options, LoadDnnModel(env, options.ModelLocation), input)
         {
         }
 
-        internal DnnRetrainTransformer(IHostEnvironment env, DnnRetrainEstimator.Options options, DnnModel tensorFlowModel, IDataView input, IDataView validationSet = null)
+        internal DnnRetrainTransformer(IHostEnvironment env, DnnRetrainEstimator.Options options, ML.TensorFlow.TensorFlowSessionWrapper tensorFlowModel, IDataView input, IDataView validationSet = null)
             : this(env, tensorFlowModel.Session, options.OutputColumns, options.InputColumns,
                   options.ModelLocation, false, options.AddBatchDimensionInputs, options.BatchSize)
         {
@@ -175,7 +175,7 @@ namespace Microsoft.ML.Transforms
             env.CheckValue(input, nameof(input));
             CheckTrainingParameters(options);
 
-            if (!DnnUtils.IsSavedModel(env, options.ModelLocation))
+            if (!IsSavedModel(env, options.ModelLocation))
                 throw env.ExceptNotSupp("TensorFlowTransform: Re-Training of TensorFlow model is only supported for un-frozen model.");
 
             TrainCore(options, input, validationSet);
@@ -258,7 +258,7 @@ namespace Microsoft.ML.Transforms
                 tfInputShape = new TensorShape(newShape);
             }
 
-            var expectedType = DnnUtils.Tf2MlNetType(tfInputType);
+            var expectedType = Tf2MlNetType(tfInputType);
             var actualType = type.GetItemType().RawType;
             if (type is KeyDataViewType && actualType == typeof(UInt32))
                 actualType = typeof(Int64);
@@ -451,7 +451,7 @@ namespace Microsoft.ML.Transforms
                 }
 
                 if (tmpParamDir != null && tmpParamDir.Length > 0)
-                    DnnUtils.DeleteFolderWithRetries(Host, tmpParamDir[0]);
+                    DeleteFolderWithRetries(Host, tmpParamDir[0]);
             }
             catch (Exception e)
             {
@@ -468,7 +468,7 @@ namespace Microsoft.ML.Transforms
 
         private static ITensorValueGetter CreateTensorValueGetter(DataViewRow input, TF_DataType tfType, bool isVector, int colIndex, TensorShape tfShape)
         {
-            var type = DnnUtils.Tf2MlNetType(tfType);
+            var type = Tf2MlNetType(tfType);
             if (input.Schema[colIndex].Type is KeyDataViewType && type.RawType == typeof(Int64))
                 return Utils.MarshalInvoke(CreateTensorValueGetter<int>, typeof(UInt32), input, isVector, colIndex, tfShape, true);
 
@@ -589,7 +589,7 @@ namespace Microsoft.ML.Transforms
                     throw host.ExceptParam(nameof(inputs), $"Input column '{input}' does not exist in the model");
 
                 TF_DataType tfInputType = string.Compare(inputTensor.OpType, "PlaceHolder", true) == 0 ? inputTensor.OutputType(inputTensorIndex) : inputTensor.InputType(index);
-                if (!DnnUtils.IsTypeSupported(tfInputType))
+                if (!IsTypeSupported(tfInputType))
                     throw host.ExceptParam(nameof(session), $"Input type '{tfInputType}' of input column '{input}' is not supported in TensorFlow");
 
                 tfInputTypes[index] = tfInputType;
@@ -650,11 +650,11 @@ namespace Microsoft.ML.Transforms
                 if (dims == null || dims.Length == 0)
                 {
                     dims = new[] { 1 };
-                    outputTypes[i] = DnnUtils.Tf2MlNetType(tfOutputType);
+                    outputTypes[i] = Tf2MlNetType(tfOutputType);
                 }
                 else
                 {
-                    var type = DnnUtils.Tf2MlNetType(tfOutputType);
+                    var type = Tf2MlNetType(tfOutputType);
                     outputTypes[i] = new VectorDataViewType(type, dims);
                 }
 
@@ -683,7 +683,7 @@ namespace Microsoft.ML.Transforms
             // for each output column
             //   int: id of output column name
             // stream: tensorFlow model.
-            var isFrozen = !DnnUtils.IsSavedModel(_env, _modelLocation);
+            var isFrozen = !IsSavedModel(_env, _modelLocation);
             ctx.Writer.WriteBoolByte(isFrozen);
             ctx.Writer.WriteBoolByte(_addBatchDimensionInput);
 
@@ -745,9 +745,9 @@ namespace Microsoft.ML.Transforms
             }
             finally
             {
-                if (DnnUtils.IsSavedModel(_env, _modelLocation) && _isTemporarySavedModel)
+                if (IsSavedModel(_env, _modelLocation) && _isTemporarySavedModel)
                 {
-                    DnnUtils.DeleteFolderWithRetries(Host, _modelLocation);
+                    DeleteFolderWithRetries(Host, _modelLocation);
                 }
             }
         }
@@ -781,7 +781,7 @@ namespace Microsoft.ML.Transforms
                     if (!_isInputVector[i])
                         throw Host.Except("Non-vector columns are not supported and should be loaded as vector columns of size 1");
                     vecType = (VectorDataViewType)type;
-                    var expectedType = DnnUtils.Tf2MlNetType(_parent._tfInputTypes[i]);
+                    var expectedType = Tf2MlNetType(_parent._tfInputTypes[i]);
                     if (type.GetItemType() != expectedType)
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent._inputs[i], expectedType.ToString(), type.ToString());
                     var originalShape = _parent._tfInputShapes[i];
@@ -858,7 +858,7 @@ namespace Microsoft.ML.Transforms
                 var outputCache = new OutputCache();
                 var activeOutputColNames = _parent._outputs.Where((x, i) => activeOutput(i)).ToArray();
 
-                var type = DnnUtils.Tf2MlNetType(_parent._tfOutputTypes[iinfo]).RawType;
+                var type = Tf2MlNetType(_parent._tfOutputTypes[iinfo]).RawType;
                 Host.Assert(type == _parent._outputTypes[iinfo].GetItemType().RawType);
                 var srcTensorGetters = GetTensorValueGetters(input, _inputColIndices, _isInputVector, _parent._tfInputTypes, _fullySpecifiedShapes);
                 return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcTensorGetters, activeOutputColNames, outputCache);
@@ -891,7 +891,7 @@ namespace Microsoft.ML.Transforms
                             var tensorSize = tensor.TensorShape.dims.Where(x => x > 0).Aggregate((x, y) => x * y);
 
                             var editor = VBufferEditor.Create(ref dst, (int)tensorSize);
-                            DnnUtils.FetchStringData(tensor, editor.Values);
+                            FetchStringData(tensor, editor.Values);
                             dst = editor.Commit();
                         };
                         return valuegetter;
@@ -1183,7 +1183,6 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    /// <include file='doc.xml' path='doc/members/member[@name="DnnRetrainTransformer"]/*' />
     internal sealed class DnnRetrainEstimator : IEstimator<DnnRetrainTransformer>
     {
         /// <summary>
@@ -1296,12 +1295,12 @@ namespace Microsoft.ML.Transforms
 
         private readonly IHost _host;
         private readonly Options _options;
-        private readonly DnnModel _tensorFlowModel;
+        private readonly ML.TensorFlow.TensorFlowSessionWrapper _tensorFlowModel;
         private readonly TF_DataType[] _tfInputTypes;
         private readonly DataViewType[] _outputTypes;
         private DnnRetrainTransformer _transformer;
 
-        internal DnnRetrainEstimator(IHostEnvironment env, Options options, DnnModel tensorFlowModel)
+        internal DnnRetrainEstimator(IHostEnvironment env, Options options, ML.TensorFlow.TensorFlowSessionWrapper tensorFlowModel)
         {
             _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(DnnRetrainEstimator));
             _options = options;
@@ -1311,7 +1310,7 @@ namespace Microsoft.ML.Transforms
             _outputTypes = DnnRetrainTransformer.GetOutputInfo(_host, tensorFlowModel.Session, options.OutputColumns).outputTypes;
         }
 
-        private static Options CreateArguments(DnnModel tensorFlowModel, string[] outputColumnNames, string[] inputColumnName, bool addBatchDimensionInput)
+        private static Options CreateArguments(ML.TensorFlow.TensorFlowSessionWrapper tensorFlowModel, string[] outputColumnNames, string[] inputColumnName, bool addBatchDimensionInput)
         {
             var options = new Options();
             options.ModelLocation = tensorFlowModel.ModelPath;
@@ -1337,7 +1336,7 @@ namespace Microsoft.ML.Transforms
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
                 if (!(col.Kind == SchemaShape.Column.VectorKind.Vector))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, "vector", col.GetTypeString());
-                var expectedType = DnnUtils.Tf2MlNetType(_tfInputTypes[i]);
+                var expectedType = Tf2MlNetType(_tfInputTypes[i]);
                 if (col.ItemType != expectedType)
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());
             }

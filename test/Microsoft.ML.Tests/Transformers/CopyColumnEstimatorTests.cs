@@ -7,6 +7,7 @@ using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -146,7 +147,7 @@ namespace Microsoft.ML.Tests
             var type2 = result.Schema[copyIndex].Type;
             result.Schema[termIndex].GetKeyValues(ref names1);
             result.Schema[copyIndex].GetKeyValues(ref names2);
-            Assert.True(CompareVec(in names1, in names2, size, (a, b) => a.Span.SequenceEqual(b.Span)));
+            Assert.True(TestCommon.CompareVec(in names1, in names2, size, (a, b) => a.Span.SequenceEqual(b.Span)));
         }
 
         [Fact]
@@ -180,72 +181,6 @@ namespace Microsoft.ML.Tests
                     Assert.Equal(bvalue, evalue);
                     Assert.Equal(avalue, fvalue);
                 }
-            }
-        }
-        private bool CompareVec<T>(in VBuffer<T> v1, in VBuffer<T> v2, int size, Func<T, T, bool> fn)
-        {
-            return CompareVec(in v1, in v2, size, (i, x, y) => fn(x, y));
-        }
-
-        private bool CompareVec<T>(in VBuffer<T> v1, in VBuffer<T> v2, int size, Func<int, T, T, bool> fn)
-        {
-            Contracts.Assert(size == 0 || v1.Length == size);
-            Contracts.Assert(size == 0 || v2.Length == size);
-            Contracts.Assert(v1.Length == v2.Length);
-
-            var v1Values = v1.GetValues();
-            var v2Values = v2.GetValues();
-
-            if (v1.IsDense && v2.IsDense)
-            {
-                for (int i = 0; i < v1.Length; i++)
-                {
-                    var x1 = v1Values[i];
-                    var x2 = v2Values[i];
-                    if (!fn(i, x1, x2))
-                        return false;
-                }
-                return true;
-            }
-
-            var v1Indices = v1.GetIndices();
-            var v2Indices = v2.GetIndices();
-
-            Contracts.Assert(!v1.IsDense || !v2.IsDense);
-            int iiv1 = 0;
-            int iiv2 = 0;
-            for (; ; )
-            {
-                int iv1 = v1.IsDense ? iiv1 : iiv1 < v1Indices.Length ? v1Indices[iiv1] : v1.Length;
-                int iv2 = v2.IsDense ? iiv2 : iiv2 < v2Indices.Length ? v2Indices[iiv2] : v2.Length;
-                T x1, x2;
-                int iv;
-                if (iv1 == iv2)
-                {
-                    if (iv1 == v1.Length)
-                        return true;
-                    x1 = v1Values[iiv1];
-                    x2 = v2Values[iiv2];
-                    iv = iv1;
-                    iiv1++;
-                    iiv2++;
-                }
-                else if (iv1 < iv2)
-                {
-                    x1 = v1Values[iiv1];
-                    x2 = default(T);
-                    iv = iv1;
-                    iiv1++;
-                }
-                else
-                {
-                    x1 = default(T);
-                    x2 = v2Values[iiv2];
-                    iv = iv2;
-                    iiv2++;
-                }
-                if (!fn(iv, x1, x2))
-                    return false;
             }
         }
     }

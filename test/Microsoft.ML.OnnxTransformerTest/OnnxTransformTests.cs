@@ -17,6 +17,7 @@ using Microsoft.ML.Transforms.Image;
 using Xunit;
 using Xunit.Abstractions;
 using Microsoft.ML.Transforms.Onnx;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.Tests
 {
@@ -192,7 +193,7 @@ namespace Microsoft.ML.Tests
                             i++;
                         }
                     }
-                    Assert.InRange(sum, 1.0, 1.00001);
+                    Assert.InRange(sum, 0.99999, 1.00001);
                 }
             }
         }

@@ -10,6 +10,7 @@ using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.TestFrameworkCommon;
 
 namespace Microsoft.ML.Benchmarks
 {

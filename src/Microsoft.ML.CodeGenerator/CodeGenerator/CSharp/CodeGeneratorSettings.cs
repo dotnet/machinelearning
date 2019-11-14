@@ -27,6 +27,10 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         public GenerateTarget Target { get; set; }
 
+        public string StablePackageVersion { get; set; }
+
+        public string UnstablePackageVersion { get; set; }
+
         internal TaskKind MlTask { get; set; }
 
     }

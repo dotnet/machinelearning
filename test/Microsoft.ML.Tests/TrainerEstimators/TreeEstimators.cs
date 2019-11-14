@@ -303,12 +303,15 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// LightGbmMulticlass TrainerEstimator test with options
         /// </summary>
-        [LightGBMFact]
-        public void LightGbmMulticlassEstimatorWithOptions()
+        [LightGBMTheory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void LightGbmMulticlassEstimatorWithOptions(bool softMax)
         {
             var options = new LightGbmMulticlassTrainer.Options
             {
-                EvaluationMetric = LightGbmMulticlassTrainer.Options.EvaluateMetricType.Default
+                EvaluationMetric = LightGbmMulticlassTrainer.Options.EvaluateMetricType.Default,
+                UseSoftmax = softMax
             };
 
             var (pipeline, dataView) = GetMulticlassPipeline();

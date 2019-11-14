@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
+
 namespace Microsoft.ML.TestFramework.Attributes
 {
     /// <summary>
