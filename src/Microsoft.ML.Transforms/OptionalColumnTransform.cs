@@ -13,6 +13,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
@@ -29,7 +30,7 @@ namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="OptionalColumnTransform"]/*' />
     [BestFriend]
-    internal sealed class OptionalColumnTransform : RowToRowMapperTransformBase
+    internal sealed class OptionalColumnTransform : RowToRowMapperTransformBase, ITransformCanSaveOnnx
     {
         public sealed class Arguments : TransformInputBase
         {
@@ -496,6 +497,58 @@ namespace Microsoft.ML.Transforms
                 return (ValueGetter<VBuffer<T>>)((ref VBuffer<T> value) =>
                     VBufferUtils.Resize(ref value, length, 0));
             }
+        }
+
+        public void SaveAsOnnx(OnnxContext ctx)
+        {
+            Host.CheckValue(ctx, nameof(ctx));
+            Host.Assert(((ICanSaveOnnx)this).CanSaveOnnx(ctx));
+
+            for (int iinfo = 0; iinfo < _bindings.ColumnTypes.Length; ++iinfo)
+            {
+                var columnType = _bindings.ColumnTypes[iinfo];
+                string inputColumnName = Source.Schema[_bindings.SrcCols[iinfo]].Name;
+                if (!ctx.ContainsColumn(inputColumnName))
+                    continue;
+
+                if (!SaveAsOnnxCore(ctx, iinfo, ctx.GetVariableName(inputColumnName),
+                    ctx.AddIntermediateVariable(OutputSchema[_bindings.MapIinfoToCol(iinfo)].Type, inputColumnName)))
+                {
+                    ctx.RemoveColumn(inputColumnName, true);
+                }
+            }
+        }
+
+        public bool CanSaveOnnx(OnnxContext ctx) => true;
+
+        private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
+        {
+            var columnType = _bindings.ColumnTypes[iinfo];
+            string inputColumnName = Source.Schema[_bindings.SrcCols[iinfo]].Name;
+
+            Type type = columnType.RawType;
+
+            int size;
+            if (columnType is VectorDataViewType && columnType.IsKnownSizeVector())
+                size = columnType.GetVectorSize();
+            else
+                size = 1;
+
+            // REVIEW:
+            // AddInitializer only supports long, float and string.
+            // Here we are casting double to float and ulong to long.
+            // Fixing this would involve adding additional functions to OnnxContext.
+            if ((type == typeof(float)) || (type == typeof(double)))
+                ctx.AddInitializer(new float[size], new long[] { 1, size }, inputColumnName, false);
+            else if ((type == typeof(long)) || (type == typeof(int)) || (type == typeof(short)) || (type == typeof(sbyte)) ||
+                     (type == typeof(ulong)) || (type == typeof(uint)) || (type == typeof(ushort)) || (type == typeof(byte)))
+                ctx.AddInitializer(new long[size], new long[] { 1, size }, inputColumnName, false);
+            else if (type == typeof(string))
+                ctx.AddInitializer(new string[size], new long[] { 1, size }, inputColumnName, false);
+            else
+                return false;
+
+            return true;
         }
 
         [TlcModule.EntryPoint(Desc = Summary,

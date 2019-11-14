@@ -997,6 +997,49 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
+        [Fact]
+        public void OptionalColumnOnnxTest()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            var samples = new List<BreastCancerCatFeatureExample>()
+            {
+                new BreastCancerCatFeatureExample() { Label = false, F1 = 0.0f, F2 = "F2"},
+                new BreastCancerCatFeatureExample() { Label = true, F1 = 0.1f, F2 = "F2"},
+            };
+            IHostEnvironment env = mlContext as IHostEnvironment;
+            var dataView = mlContext.Data.LoadFromEnumerable(samples);
+            var args = new OptionalColumnTransform.Arguments { Columns = new[] { "F1" }, Data = dataView };
+            var transform = OptionalColumnTransform.MakeOptional(env, args);
+
+            var ctx = new OnnxContextImpl(mlContext, "model", "ML.NET", "0", 0, "machinelearning.dotnet", OnnxVersion.Stable);
+            var outputData = transform.OutputData;
+            LinkedList<ITransformCanSaveOnnx> transforms = null;
+            ModelProto onnxModel;
+            using (var ch = env.Start("ONNX conversion"))
+            {
+                SaveOnnxCommand.GetPipe(ctx, ch, outputData, out IDataView root, out IDataView sink, out transforms);
+                onnxModel = SaveOnnxCommand.ConvertTransformListToOnnxModel(ctx, ch, root, sink, transforms, null, null);
+            }
+
+            var onnxFileName = "optionalcol.onnx";
+            var onnxModelPath = GetOutputPath(onnxFileName);
+            var onnxTextFileName = "optionalcol.txt";
+            var onnxTextPath = GetOutputPath(onnxTextFileName);
+
+            SaveOnnxModel(onnxModel, onnxModelPath, onnxTextPath);
+            if (IsOnnxRuntimeSupported())
+            {
+                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(dataView);
+                var onnxResult = onnxTransformer.Transform(dataView);
+                CompareSelectedR4ScalarColumns(transform.Model.OutputSchema[2].Name, outputNames[1], outputData, onnxResult);
+            }
+            Done();
+        }
+
         private void CreateDummyExamplesToMakeComplierHappy()
         {
             var dummyExample = new BreastCancerFeatureVector() { Features = null };
