@@ -66,9 +66,9 @@ Install-Package Microsoft.ML
 
 Or alternatively, you can add the Microsoft.ML package from within Visual Studio's NuGet package manager or via [Paket](https://github.com/fsprojects/Paket).
 
-Daily NuGet builds of the project are also available in our [MyGet](https://dotnet.myget.org/feed/dotnet-core/package/nuget/Microsoft.ML) feed:
+Daily NuGet builds of the project are also available in our Azure DevOps feed:
 
-> [https://dotnet.myget.org/F/dotnet-core/api/v3/index.json](https://dotnet.myget.org/F/dotnet-core/api/v3/index.json)
+> [https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json](https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json)
 
 ## Building ML.NET (For contributors building ML.NET open source code)
 

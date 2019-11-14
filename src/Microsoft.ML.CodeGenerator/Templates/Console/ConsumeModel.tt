@@ -1,4 +1,4 @@
-﻿<#@ template language="C#" visibility="internal" #>
+﻿<#@ template language="C#" linePragmas="false" visibility="internal" #>
 <#@ assembly name="System.Core" #>
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
@@ -15,7 +15,6 @@ using System.Linq;
 using System.Text;
 using Microsoft.ML;
 using <#= Namespace #>.Model;
-using <#= Namespace #>.Model.DataModels;
 
 namespace <#= Namespace #>.Model
 {

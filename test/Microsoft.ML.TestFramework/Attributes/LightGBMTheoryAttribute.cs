@@ -4,26 +4,23 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.TestFramework.Attributes
 {
     /// <summary>
-    /// A fact for tests requiring Onnx.
+    /// A theory for tests requiring LightGBM.
     /// </summary>
-    public sealed class OnnxFactAttribute : EnvironmentSpecificFactAttribute
+    public sealed class LightGBMTheoryAttribute : EnvironmentSpecificTheoryAttribute
     {
-        public OnnxFactAttribute() : base("Onnx is not supported on Linux with libc < v2.23")
+        public LightGBMTheoryAttribute() : base("LightGBM is 64-bit only")
         {
         }
 
         /// <inheritdoc />
         protected override bool IsEnvironmentSupported()
         {
-            return IsOnnxRuntimeSupported;
+            return Environment.Is64BitProcess;
         }
-
-        public static bool IsOnnxRuntimeSupported { get; } =
-            !RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-                || AttributeHelpers.CheckLibcVersionGreaterThanMinimum(new Version(2, 23));
     }
 }

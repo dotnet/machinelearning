@@ -5,7 +5,7 @@
 using System;
 using Xunit;
 
-namespace Microsoft.ML.TestFramework.Attributes
+namespace Microsoft.ML.TestFrameworkCommon.Attributes
 {
     /// <summary>
     /// A base class for environment-specific fact attributes.

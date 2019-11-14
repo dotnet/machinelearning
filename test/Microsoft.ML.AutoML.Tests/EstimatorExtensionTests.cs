@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -18,7 +19,8 @@ namespace Microsoft.ML.AutoML.Test
             var pipelineNode = new PipelineNode()
             {
                 InColumns = new string[] { "Input" },
-                OutColumns = new string[] { "Output" }
+                OutColumns = new string[] { "Output" },
+                Properties = new Dictionary<string, object> { }
             };
 
             var estimatorNames = Enum.GetValues(typeof(EstimatorName)).Cast<EstimatorName>();

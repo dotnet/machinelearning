@@ -56,6 +56,9 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                     case EstimatorName.ValueToKeyMapping:
                         result = new ValueToKeyMapping(node);
                         break;
+                    case EstimatorName.ImageLoading:
+                        result = new ImageLoading(node);
+                        break;
                     default:
                         return null;
 

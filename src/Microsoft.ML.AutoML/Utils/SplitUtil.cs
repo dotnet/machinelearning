@@ -56,7 +56,7 @@ namespace Microsoft.ML.AutoML
             return (trainData, validationData);
         }
 
-        private static IDataView DropAllColumnsExcept(MLContext context, IDataView data, IEnumerable<string> columnsToKeep)
+        public static IDataView DropAllColumnsExcept(MLContext context, IDataView data, IEnumerable<string> columnsToKeep)
         {
             var allColumns = data.Schema.Select(c => c.Name);
             var columnsToDrop = allColumns.Except(columnsToKeep);

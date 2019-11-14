@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Runtime;
@@ -357,7 +358,8 @@ namespace Microsoft.ML.Transforms
         {
             return new VersionInfo(
                 modelSignature: "NORMALZR",
-                verWrittenCur: 0x00010001, // Initial
+                // verWrittenCur: 0x00010001 // Initial
+                verWrittenCur: 0x00010002, // Support for multidimensional vectors
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
@@ -385,20 +387,38 @@ namespace Microsoft.ML.Transforms
             internal static DataViewType LoadType(ModelLoadContext ctx)
             {
                 Contracts.AssertValue(ctx);
+
+                if (ctx.Header.ModelVerWritten < 0x00010002)
+                {
+                    // *** Previous Binary format ***
+                    //   - bool: is vector
+                    //   - int: vector size
+                    //   - byte: ItemKind of input column (only R4 and R8 are valid)
+                    bool isVectorOld = ctx.Reader.ReadBoolean();
+                    int vectorSize = ctx.Reader.ReadInt32();
+                    Contracts.CheckDecode(vectorSize >= 0);
+                    Contracts.CheckDecode(vectorSize > 0 || !isVectorOld);
+                    InternalDataKind itemKindOld = (InternalDataKind)ctx.Reader.ReadByte();
+                    Contracts.CheckDecode(itemKindOld == InternalDataKind.R4 || itemKindOld == InternalDataKind.R8);
+                    var itemTypeOld = ColumnTypeExtensions.PrimitiveTypeFromKind(itemKindOld);
+                    return isVectorOld ? (DataViewType)(new VectorDataViewType(itemTypeOld, vectorSize)) : itemTypeOld;
+                }
+
                 // *** Binary format ***
                 //   - bool: is vector
-                //   - int: vector size
                 //   - byte: ItemKind of input column (only R4 and R8 are valid)
-                bool isVector = ctx.Reader.ReadBoolean();
-                int vectorSize = ctx.Reader.ReadInt32();
-                Contracts.CheckDecode(vectorSize >= 0);
-                Contracts.CheckDecode(vectorSize > 0 || !isVector);
+                // If it is a vector:
+                //   - int: number of dimensions
+                //   - ints: as many as dimensions, each one represent the size of each dimension
 
+                bool isVector = ctx.Reader.ReadBoolean();
                 InternalDataKind itemKind = (InternalDataKind)ctx.Reader.ReadByte();
                 Contracts.CheckDecode(itemKind == InternalDataKind.R4 || itemKind == InternalDataKind.R8);
-
                 var itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(itemKind);
-                return isVector ? (DataViewType)(new VectorDataViewType(itemType, vectorSize)) : itemType;
+
+                if (!isVector)
+                    return itemType;
+                return new VectorDataViewType(itemType, ctx.Reader.ReadIntArray());
             }
 
             internal static void SaveType(ModelSaveContext ctx, DataViewType type)
@@ -406,18 +426,22 @@ namespace Microsoft.ML.Transforms
                 Contracts.AssertValue(ctx);
                 // *** Binary format ***
                 //   - bool: is vector
-                //   - int: vector size
                 //   - byte: ItemKind of input column (only R4 and R8 are valid)
+                //   If it is a vector:
+                //   - int: number of dimensions of the vector
+                //   - ints: as many as dimensions, each one represents the size of each dimension
+
                 VectorDataViewType vectorType = type as VectorDataViewType;
                 ctx.Writer.Write(vectorType != null);
-
-                Contracts.Assert(vectorType == null || vectorType.IsKnownSize);
-                ctx.Writer.Write(vectorType?.Size ?? 0);
 
                 DataViewType itemType = vectorType?.ItemType ?? type;
                 itemType.RawType.TryGetDataKind(out InternalDataKind itemKind);
                 Contracts.Assert(itemKind == InternalDataKind.R4 || itemKind == InternalDataKind.R8);
                 ctx.Writer.Write((byte)itemKind);
+
+                Contracts.Assert(vectorType == null || vectorType.IsKnownSize);
+                if (vectorType != null)
+                    ctx.Writer.WriteIntArray(vectorType.Dimensions.ToArray());
             }
         }
 

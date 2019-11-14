@@ -11,7 +11,8 @@ namespace Microsoft.ML.AutoML
 
     internal class MatrixFactorizationExtension : ITrainerExtension
     {
-        public ITrainerEsitmator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        public ITrainerEsitmator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             var options = TrainerExtensionUtil.CreateOptions<MatrixFactorizationTrainer.Options>(sweepParams);
             options.LabelColumnName = columnInfo.LabelColumnName;

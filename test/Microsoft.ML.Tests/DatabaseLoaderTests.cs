@@ -10,6 +10,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -299,6 +300,7 @@ namespace Microsoft.ML.Tests
 
         public class IrisVectorData
         {
+            [LoadColumn(0)]
             public int Label;
 
             [LoadColumn(1, 2)]
@@ -312,6 +314,7 @@ namespace Microsoft.ML.Tests
 
         public class IrisVectorDataWithLoadColumnName
         {
+            [LoadColumnName("Label")]
             public int Label;
 
             [LoadColumnName("SepalLength", "SepalWidth")]

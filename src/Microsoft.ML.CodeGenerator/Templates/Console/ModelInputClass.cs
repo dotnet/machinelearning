@@ -32,7 +32,7 @@ MB_Annotation();
  } 
             this.Write("\r\nusing Microsoft.ML.Data;\r\n\r\nnamespace  ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model.DataModels\r\n{\r\n    public class ModelInput\r\n    {\r\n");
+            this.Write(".Model\r\n{\r\n    public class ModelInput\r\n    {\r\n");
 foreach(var label in ClassLabels){
             this.Write("       ");
             this.Write(this.ToStringHelper.ToStringWithCulture(label));

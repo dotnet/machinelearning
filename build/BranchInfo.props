@@ -19,6 +19,7 @@
       Microsoft.ML.TimeSeries;
       Microsoft.ML.TensorFlow;
       Microsoft.ML.OnnxTransformer;
+      Microsoft.ML.Vision;
     </StableProjects>
     <_NormalizedStableProjectName Condition="'$(MSBuildProjectName.Contains(.symbols))' == 'true'">$(MSBuildProjectName.Substring(0, $(MSBuildProjectName.IndexOf(.symbols))))</_NormalizedStableProjectName>
     <_NormalizedStableProjectName Condition="'$(_NormalizedStableProjectName)' == ''">$(MSBuildProjectName)</_NormalizedStableProjectName>
@@ -28,14 +29,14 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(IsStableProject)' == 'true'">
     <MajorVersion>1</MajorVersion>
-    <MinorVersion>4</MinorVersion>
+    <MinorVersion>5</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseLabel>preview3</PreReleaseLabel>
+    <PreReleaseLabel>preview</PreReleaseLabel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(IsStableProject)' != 'true'">
     <MajorVersion>0</MajorVersion>
-    <MinorVersion>16</MinorVersion>
+    <MinorVersion>17</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseLabel>preview3</PreReleaseLabel>
+    <PreReleaseLabel>preview</PreReleaseLabel>
   </PropertyGroup>
 </Project>

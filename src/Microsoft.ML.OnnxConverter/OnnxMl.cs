@@ -8,10 +8,12 @@
 using pb = global::Google.Protobuf;
 using pbc = global::Google.Protobuf.Collections;
 using pbr = global::Google.Protobuf.Reflection;
-namespace Microsoft.ML.Model.OnnxConverter
+using scg = global::System.Collections.Generic;
+namespace Microsoft.ML.Model.OnnxConverter 
 {
     internal class OnnxCSharpToProtoWrapper
     {
+
         /// <summary>Holder for reflection information generated from onnx-ml.proto3</summary>
         public static partial class OnnxMlReflection
         {
@@ -28,80 +30,102 @@ namespace Microsoft.ML.Model.OnnxConverter
             {
                 byte[] descriptorData = global::System.Convert.FromBase64String(
                     string.Concat(
-                      "Cg5vbm54LW1sLnByb3RvMxIEb25ueCLgAwoOQXR0cmlidXRlUHJvdG8SDAoE",
+                      "Cg5vbm54LW1sLnByb3RvMxIEb25ueCLoBAoOQXR0cmlidXRlUHJvdG8SDAoE",
                       "bmFtZRgBIAEoCRIVCg1yZWZfYXR0cl9uYW1lGBUgASgJEhIKCmRvY19zdHJp",
                       "bmcYDSABKAkSMAoEdHlwZRgUIAEoDjIiLm9ubnguQXR0cmlidXRlUHJvdG8u",
                       "QXR0cmlidXRlVHlwZRIJCgFmGAIgASgCEgkKAWkYAyABKAMSCQoBcxgEIAEo",
                       "DBIcCgF0GAUgASgLMhEub25ueC5UZW5zb3JQcm90bxIbCgFnGAYgASgLMhAu",
-                      "b25ueC5HcmFwaFByb3RvEg4KBmZsb2F0cxgHIAMoAhIMCgRpbnRzGAggAygD",
-                      "Eg8KB3N0cmluZ3MYCSADKAwSIgoHdGVuc29ycxgKIAMoCzIRLm9ubnguVGVu",
-                      "c29yUHJvdG8SIAoGZ3JhcGhzGAsgAygLMhAub25ueC5HcmFwaFByb3RvIpEB",
-                      "Cg1BdHRyaWJ1dGVUeXBlEg0KCVVOREVGSU5FRBAAEgkKBUZMT0FUEAESBwoD",
-                      "SU5UEAISCgoGU1RSSU5HEAMSCgoGVEVOU09SEAQSCQoFR1JBUEgQBRIKCgZG",
-                      "TE9BVFMQBhIICgRJTlRTEAcSCwoHU1RSSU5HUxAIEgsKB1RFTlNPUlMQCRIK",
-                      "CgZHUkFQSFMQCiJRCg5WYWx1ZUluZm9Qcm90bxIMCgRuYW1lGAEgASgJEh0K",
-                      "BHR5cGUYAiABKAsyDy5vbm54LlR5cGVQcm90bxISCgpkb2Nfc3RyaW5nGAMg",
-                      "ASgJIpYBCglOb2RlUHJvdG8SDQoFaW5wdXQYASADKAkSDgoGb3V0cHV0GAIg",
-                      "AygJEgwKBG5hbWUYAyABKAkSDwoHb3BfdHlwZRgEIAEoCRIOCgZkb21haW4Y",
-                      "ByABKAkSJwoJYXR0cmlidXRlGAUgAygLMhQub25ueC5BdHRyaWJ1dGVQcm90",
-                      "bxISCgpkb2Nfc3RyaW5nGAYgASgJIpMCCgpNb2RlbFByb3RvEhIKCmlyX3Zl",
-                      "cnNpb24YASABKAMSLgoMb3BzZXRfaW1wb3J0GAggAygLMhgub25ueC5PcGVy",
-                      "YXRvclNldElkUHJvdG8SFQoNcHJvZHVjZXJfbmFtZRgCIAEoCRIYChBwcm9k",
-                      "dWNlcl92ZXJzaW9uGAMgASgJEg4KBmRvbWFpbhgEIAEoCRIVCg1tb2RlbF92",
-                      "ZXJzaW9uGAUgASgDEhIKCmRvY19zdHJpbmcYBiABKAkSHwoFZ3JhcGgYByAB",
-                      "KAsyEC5vbm54LkdyYXBoUHJvdG8SNAoObWV0YWRhdGFfcHJvcHMYDiADKAsy",
-                      "HC5vbm54LlN0cmluZ1N0cmluZ0VudHJ5UHJvdG8iNAoWU3RyaW5nU3RyaW5n",
-                      "RW50cnlQcm90bxILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAki6gEKCkdy",
-                      "YXBoUHJvdG8SHQoEbm9kZRgBIAMoCzIPLm9ubnguTm9kZVByb3RvEgwKBG5h",
-                      "bWUYAiABKAkSJgoLaW5pdGlhbGl6ZXIYBSADKAsyES5vbm54LlRlbnNvclBy",
-                      "b3RvEhIKCmRvY19zdHJpbmcYCiABKAkSIwoFaW5wdXQYCyADKAsyFC5vbm54",
-                      "LlZhbHVlSW5mb1Byb3RvEiQKBm91dHB1dBgMIAMoCzIULm9ubnguVmFsdWVJ",
-                      "bmZvUHJvdG8SKAoKdmFsdWVfaW5mbxgNIAMoCzIULm9ubnguVmFsdWVJbmZv",
-                      "UHJvdG8irwQKC1RlbnNvclByb3RvEgwKBGRpbXMYASADKAMSLQoJZGF0YV90",
-                      "eXBlGAIgASgOMhoub25ueC5UZW5zb3JQcm90by5EYXRhVHlwZRIqCgdzZWdt",
-                      "ZW50GAMgASgLMhkub25ueC5UZW5zb3JQcm90by5TZWdtZW50EhYKCmZsb2F0",
-                      "X2RhdGEYBCADKAJCAhABEhYKCmludDMyX2RhdGEYBSADKAVCAhABEhMKC3N0",
-                      "cmluZ19kYXRhGAYgAygMEhYKCmludDY0X2RhdGEYByADKANCAhABEgwKBG5h",
-                      "bWUYCCABKAkSEgoKZG9jX3N0cmluZxgMIAEoCRIQCghyYXdfZGF0YRgJIAEo",
-                      "DBIXCgtkb3VibGVfZGF0YRgKIAMoAUICEAESFwoLdWludDY0X2RhdGEYCyAD",
-                      "KARCAhABGiUKB1NlZ21lbnQSDQoFYmVnaW4YASABKAMSCwoDZW5kGAIgASgD",
-                      "IswBCghEYXRhVHlwZRINCglVTkRFRklORUQQABIJCgVGTE9BVBABEgkKBVVJ",
-                      "TlQ4EAISCAoESU5UOBADEgoKBlVJTlQxNhAEEgkKBUlOVDE2EAUSCQoFSU5U",
-                      "MzIQBhIJCgVJTlQ2NBAHEgoKBlNUUklORxAIEggKBEJPT0wQCRILCgdGTE9B",
-                      "VDE2EAoSCgoGRE9VQkxFEAsSCgoGVUlOVDMyEAwSCgoGVUlOVDY0EA0SDQoJ",
-                      "Q09NUExFWDY0EA4SDgoKQ09NUExFWDEyOBAPIpUBChBUZW5zb3JTaGFwZVBy",
-                      "b3RvEi0KA2RpbRgBIAMoCzIgLm9ubnguVGVuc29yU2hhcGVQcm90by5EaW1l",
-                      "bnNpb24aUgoJRGltZW5zaW9uEhMKCWRpbV92YWx1ZRgBIAEoA0gAEhMKCWRp",
-                      "bV9wYXJhbRgCIAEoCUgAEhIKCmRlbm90YXRpb24YAyABKAlCBwoFdmFsdWUi",
-                      "nQMKCVR5cGVQcm90bxItCgt0ZW5zb3JfdHlwZRgBIAEoCzIWLm9ubnguVHlw",
-                      "ZVByb3RvLlRlbnNvckgAEjEKDXNlcXVlbmNlX3R5cGUYBCABKAsyGC5vbm54",
-                      "LlR5cGVQcm90by5TZXF1ZW5jZUgAEicKCG1hcF90eXBlGAUgASgLMhMub25u",
-                      "eC5UeXBlUHJvdG8uTWFwSAASEgoKZGVub3RhdGlvbhgGIAEoCRpeCgZUZW5z",
-                      "b3ISLQoJZWxlbV90eXBlGAEgASgOMhoub25ueC5UZW5zb3JQcm90by5EYXRh",
-                      "VHlwZRIlCgVzaGFwZRgCIAEoCzIWLm9ubnguVGVuc29yU2hhcGVQcm90bxou",
-                      "CghTZXF1ZW5jZRIiCgllbGVtX3R5cGUYASABKAsyDy5vbm54LlR5cGVQcm90",
-                      "bxpYCgNNYXASLAoIa2V5X3R5cGUYASABKA4yGi5vbm54LlRlbnNvclByb3Rv",
-                      "LkRhdGFUeXBlEiMKCnZhbHVlX3R5cGUYAiABKAsyDy5vbm54LlR5cGVQcm90",
-                      "b0IHCgV2YWx1ZSI1ChJPcGVyYXRvclNldElkUHJvdG8SDgoGZG9tYWluGAEg",
-                      "ASgJEg8KB3ZlcnNpb24YAiABKAMqYwoHVmVyc2lvbhISCg5fU1RBUlRfVkVS",
-                      "U0lPThAAEhkKFUlSX1ZFUlNJT05fMjAxN18xMF8xMBABEhkKFUlSX1ZFUlNJ",
-                      "T05fMjAxN18xMF8zMBACEg4KCklSX1ZFUlNJT04QA0IxqgIuTWljcm9zb2Z0",
-                      "Lk1MLlJ1bnRpbWUuVW5pdmVyc2FsTW9kZWxGb3JtYXQuT25ueGIGcHJvdG8z"));
+                      "b25ueC5HcmFwaFByb3RvEi4KDXNwYXJzZV90ZW5zb3IYFiABKAsyFy5vbm54",
+                      "LlNwYXJzZVRlbnNvclByb3RvEg4KBmZsb2F0cxgHIAMoAhIMCgRpbnRzGAgg",
+                      "AygDEg8KB3N0cmluZ3MYCSADKAwSIgoHdGVuc29ycxgKIAMoCzIRLm9ubngu",
+                      "VGVuc29yUHJvdG8SIAoGZ3JhcGhzGAsgAygLMhAub25ueC5HcmFwaFByb3Rv",
+                      "Ei8KDnNwYXJzZV90ZW5zb3JzGBcgAygLMhcub25ueC5TcGFyc2VUZW5zb3JQ",
+                      "cm90byK4AQoNQXR0cmlidXRlVHlwZRINCglVTkRFRklORUQQABIJCgVGTE9B",
+                      "VBABEgcKA0lOVBACEgoKBlNUUklORxADEgoKBlRFTlNPUhAEEgkKBUdSQVBI",
+                      "EAUSEQoNU1BBUlNFX1RFTlNPUhALEgoKBkZMT0FUUxAGEggKBElOVFMQBxIL",
+                      "CgdTVFJJTkdTEAgSCwoHVEVOU09SUxAJEgoKBkdSQVBIUxAKEhIKDlNQQVJT",
+                      "RV9URU5TT1JTEAwiUQoOVmFsdWVJbmZvUHJvdG8SDAoEbmFtZRgBIAEoCRId",
+                      "CgR0eXBlGAIgASgLMg8ub25ueC5UeXBlUHJvdG8SEgoKZG9jX3N0cmluZxgD",
+                      "IAEoCSKWAQoJTm9kZVByb3RvEg0KBWlucHV0GAEgAygJEg4KBm91dHB1dBgC",
+                      "IAMoCRIMCgRuYW1lGAMgASgJEg8KB29wX3R5cGUYBCABKAkSDgoGZG9tYWlu",
+                      "GAcgASgJEicKCWF0dHJpYnV0ZRgFIAMoCzIULm9ubnguQXR0cmlidXRlUHJv",
+                      "dG8SEgoKZG9jX3N0cmluZxgGIAEoCSKTAgoKTW9kZWxQcm90bxISCgppcl92",
+                      "ZXJzaW9uGAEgASgDEi4KDG9wc2V0X2ltcG9ydBgIIAMoCzIYLm9ubnguT3Bl",
+                      "cmF0b3JTZXRJZFByb3RvEhUKDXByb2R1Y2VyX25hbWUYAiABKAkSGAoQcHJv",
+                      "ZHVjZXJfdmVyc2lvbhgDIAEoCRIOCgZkb21haW4YBCABKAkSFQoNbW9kZWxf",
+                      "dmVyc2lvbhgFIAEoAxISCgpkb2Nfc3RyaW5nGAYgASgJEh8KBWdyYXBoGAcg",
+                      "ASgLMhAub25ueC5HcmFwaFByb3RvEjQKDm1ldGFkYXRhX3Byb3BzGA4gAygL",
+                      "Mhwub25ueC5TdHJpbmdTdHJpbmdFbnRyeVByb3RvIjQKFlN0cmluZ1N0cmlu",
+                      "Z0VudHJ5UHJvdG8SCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJImsKEFRl",
+                      "bnNvckFubm90YXRpb24SEwoLdGVuc29yX25hbWUYASABKAkSQgoccXVhbnRf",
+                      "cGFyYW1ldGVyX3RlbnNvcl9uYW1lcxgCIAMoCzIcLm9ubnguU3RyaW5nU3Ry",
+                      "aW5nRW50cnlQcm90byLYAgoKR3JhcGhQcm90bxIdCgRub2RlGAEgAygLMg8u",
+                      "b25ueC5Ob2RlUHJvdG8SDAoEbmFtZRgCIAEoCRImCgtpbml0aWFsaXplchgF",
+                      "IAMoCzIRLm9ubnguVGVuc29yUHJvdG8SMwoSc3BhcnNlX2luaXRpYWxpemVy",
+                      "GA8gAygLMhcub25ueC5TcGFyc2VUZW5zb3JQcm90bxISCgpkb2Nfc3RyaW5n",
+                      "GAogASgJEiMKBWlucHV0GAsgAygLMhQub25ueC5WYWx1ZUluZm9Qcm90bxIk",
+                      "CgZvdXRwdXQYDCADKAsyFC5vbm54LlZhbHVlSW5mb1Byb3RvEigKCnZhbHVl",
+                      "X2luZm8YDSADKAsyFC5vbm54LlZhbHVlSW5mb1Byb3RvEjcKF3F1YW50aXph",
+                      "dGlvbl9hbm5vdGF0aW9uGA4gAygLMhYub25ueC5UZW5zb3JBbm5vdGF0aW9u",
+                      "IrgFCgtUZW5zb3JQcm90bxIMCgRkaW1zGAEgAygDEhEKCWRhdGFfdHlwZRgC",
+                      "IAEoBRIqCgdzZWdtZW50GAMgASgLMhkub25ueC5UZW5zb3JQcm90by5TZWdt",
+                      "ZW50EhYKCmZsb2F0X2RhdGEYBCADKAJCAhABEhYKCmludDMyX2RhdGEYBSAD",
+                      "KAVCAhABEhMKC3N0cmluZ19kYXRhGAYgAygMEhYKCmludDY0X2RhdGEYByAD",
+                      "KANCAhABEgwKBG5hbWUYCCABKAkSEgoKZG9jX3N0cmluZxgMIAEoCRIQCghy",
+                      "YXdfZGF0YRgJIAEoDBIzCg1leHRlcm5hbF9kYXRhGA0gAygLMhwub25ueC5T",
+                      "dHJpbmdTdHJpbmdFbnRyeVByb3RvEjUKDWRhdGFfbG9jYXRpb24YDiABKA4y",
+                      "Hi5vbm54LlRlbnNvclByb3RvLkRhdGFMb2NhdGlvbhIXCgtkb3VibGVfZGF0",
+                      "YRgKIAMoAUICEAESFwoLdWludDY0X2RhdGEYCyADKARCAhABGiUKB1NlZ21l",
+                      "bnQSDQoFYmVnaW4YASABKAMSCwoDZW5kGAIgASgDItoBCghEYXRhVHlwZRIN",
+                      "CglVTkRFRklORUQQABIJCgVGTE9BVBABEgkKBVVJTlQ4EAISCAoESU5UOBAD",
+                      "EgoKBlVJTlQxNhAEEgkKBUlOVDE2EAUSCQoFSU5UMzIQBhIJCgVJTlQ2NBAH",
+                      "EgoKBlNUUklORxAIEggKBEJPT0wQCRILCgdGTE9BVDE2EAoSCgoGRE9VQkxF",
+                      "EAsSCgoGVUlOVDMyEAwSCgoGVUlOVDY0EA0SDQoJQ09NUExFWDY0EA4SDgoK",
+                      "Q09NUExFWDEyOBAPEgwKCEJGTE9BVDE2EBAiKQoMRGF0YUxvY2F0aW9uEgsK",
+                      "B0RFRkFVTFQQABIMCghFWFRFUk5BTBABImgKEVNwYXJzZVRlbnNvclByb3Rv",
+                      "EiEKBnZhbHVlcxgBIAEoCzIRLm9ubnguVGVuc29yUHJvdG8SIgoHaW5kaWNl",
+                      "cxgCIAEoCzIRLm9ubnguVGVuc29yUHJvdG8SDAoEZGltcxgDIAMoAyKVAQoQ",
+                      "VGVuc29yU2hhcGVQcm90bxItCgNkaW0YASADKAsyIC5vbm54LlRlbnNvclNo",
+                      "YXBlUHJvdG8uRGltZW5zaW9uGlIKCURpbWVuc2lvbhITCglkaW1fdmFsdWUY",
+                      "ASABKANIABITCglkaW1fcGFyYW0YAiABKAlIABISCgpkZW5vdGF0aW9uGAMg",
+                      "ASgJQgcKBXZhbHVlIsIECglUeXBlUHJvdG8SLQoLdGVuc29yX3R5cGUYASAB",
+                      "KAsyFi5vbm54LlR5cGVQcm90by5UZW5zb3JIABIxCg1zZXF1ZW5jZV90eXBl",
+                      "GAQgASgLMhgub25ueC5UeXBlUHJvdG8uU2VxdWVuY2VIABInCghtYXBfdHlw",
+                      "ZRgFIAEoCzITLm9ubnguVHlwZVByb3RvLk1hcEgAEjoKEnNwYXJzZV90ZW5z",
+                      "b3JfdHlwZRgIIAEoCzIcLm9ubnguVHlwZVByb3RvLlNwYXJzZVRlbnNvckgA",
+                      "Ei0KC29wYXF1ZV90eXBlGAcgASgLMhYub25ueC5UeXBlUHJvdG8uT3BhcXVl",
+                      "SAASEgoKZGVub3RhdGlvbhgGIAEoCRpCCgZUZW5zb3ISEQoJZWxlbV90eXBl",
+                      "GAEgASgFEiUKBXNoYXBlGAIgASgLMhYub25ueC5UZW5zb3JTaGFwZVByb3Rv",
+                      "Gi4KCFNlcXVlbmNlEiIKCWVsZW1fdHlwZRgBIAEoCzIPLm9ubnguVHlwZVBy",
+                      "b3RvGjwKA01hcBIQCghrZXlfdHlwZRgBIAEoBRIjCgp2YWx1ZV90eXBlGAIg",
+                      "ASgLMg8ub25ueC5UeXBlUHJvdG8aSAoMU3BhcnNlVGVuc29yEhEKCWVsZW1f",
+                      "dHlwZRgBIAEoBRIlCgVzaGFwZRgCIAEoCzIWLm9ubnguVGVuc29yU2hhcGVQ",
+                      "cm90bxomCgZPcGFxdWUSDgoGZG9tYWluGAEgASgJEgwKBG5hbWUYAiABKAlC",
+                      "BwoFdmFsdWUiNQoST3BlcmF0b3JTZXRJZFByb3RvEg4KBmRvbWFpbhgBIAEo",
+                      "CRIPCgd2ZXJzaW9uGAIgASgDKrEBCgdWZXJzaW9uEhIKDl9TVEFSVF9WRVJT",
+                      "SU9OEAASGQoVSVJfVkVSU0lPTl8yMDE3XzEwXzEwEAESGQoVSVJfVkVSU0lP",
+                      "Tl8yMDE3XzEwXzMwEAISGAoUSVJfVkVSU0lPTl8yMDE3XzExXzMQAxIYChRJ",
+                      "Ul9WRVJTSU9OXzIwMTlfMV8yMhAEEhgKFElSX1ZFUlNJT05fMjAxOV8zXzE4",
+                      "EAUSDgoKSVJfVkVSU0lPThAGQgJIA2IGcHJvdG8z"));
                 descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
                     new pbr::FileDescriptor[] { },
-                    new pbr::GeneratedClrTypeInfo(new[] { typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.Version), }, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.AttributeProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.AttributeProto.Parser, new[]{ "Name", "RefAttrName", "DocString", "Type", "F", "I", "S", "T", "G", "Floats", "Ints", "Strings", "Tensors", "Graphs" }, null, new[]{ typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.AttributeProto.Types.AttributeType) }, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ValueInfoProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ValueInfoProto.Parser, new[]{ "Name", "Type", "DocString" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.NodeProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.NodeProto.Parser, new[]{ "Input", "Output", "Name", "OpType", "Domain", "Attribute", "DocString" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ModelProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ModelProto.Parser, new[]{ "IrVersion", "OpsetImport", "ProducerName", "ProducerVersion", "Domain", "ModelVersion", "DocString", "Graph", "MetadataProps" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.StringStringEntryProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.StringStringEntryProto.Parser, new[]{ "Key", "Value" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto.Parser, new[]{ "Node", "Name", "Initializer", "DocString", "Input", "Output", "ValueInfo" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Parser, new[]{ "Dims", "DataType", "Segment", "FloatData", "Int32Data", "StringData", "Int64Data", "Name", "DocString", "RawData", "DoubleData", "Uint64Data" }, null, new[]{ typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType) }, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.Segment), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.Segment.Parser, new[]{ "Begin", "End" }, null, null, null)}),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto.Parser, new[]{ "Dim" }, null, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension.Parser, new[]{ "DimValue", "DimParam", "Denotation" }, new[]{ "Value" }, null, null)}),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Parser, new[]{ "TensorType", "SequenceType", "MapType", "Denotation" }, new[]{ "Value" }, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Tensor), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Tensor.Parser, new[]{ "ElemType", "Shape" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Sequence), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Sequence.Parser, new[]{ "ElemType" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Map), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Map.Parser, new[]{ "KeyType", "ValueType" }, null, null, null)}),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OperatorSetIdProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OperatorSetIdProto.Parser, new[]{ "Domain", "Version" }, null, null, null)
+                    new pbr::GeneratedClrTypeInfo(new[] { typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.Version), }, null, new pbr::GeneratedClrTypeInfo[] {
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.AttributeProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.AttributeProto.Parser, new[]{ "Name", "RefAttrName", "DocString", "Type", "F", "I", "S", "T", "G", "SparseTensor", "Floats", "Ints", "Strings", "Tensors", "Graphs", "SparseTensors" }, null, new[]{ typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.AttributeProto.Types.AttributeType) }, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ValueInfoProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ValueInfoProto.Parser, new[]{ "Name", "Type", "DocString" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.NodeProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.NodeProto.Parser, new[]{ "Input", "Output", "Name", "OpType", "Domain", "Attribute", "DocString" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ModelProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ModelProto.Parser, new[]{ "IrVersion", "OpsetImport", "ProducerName", "ProducerVersion", "Domain", "ModelVersion", "DocString", "Graph", "MetadataProps" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.StringStringEntryProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.StringStringEntryProto.Parser, new[]{ "Key", "Value" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorAnnotation), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorAnnotation.Parser, new[]{ "TensorName", "QuantParameterTensorNames" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto.Parser, new[]{ "Node", "Name", "Initializer", "SparseInitializer", "DocString", "Input", "Output", "ValueInfo", "QuantizationAnnotation" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Parser, new[]{ "Dims", "DataType", "Segment", "FloatData", "Int32Data", "StringData", "Int64Data", "Name", "DocString", "RawData", "ExternalData", "DataLocation", "DoubleData", "Uint64Data" }, null, new[]{ typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType), typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataLocation) }, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.Segment), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.Segment.Parser, new[]{ "Begin", "End" }, null, null, null, null)}),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.SparseTensorProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.SparseTensorProto.Parser, new[]{ "Values", "Indices", "Dims" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto.Parser, new[]{ "Dim" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension.Parser, new[]{ "DimValue", "DimParam", "Denotation" }, new[]{ "Value" }, null, null, null)}),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Parser, new[]{ "TensorType", "SequenceType", "MapType", "SparseTensorType", "OpaqueType", "Denotation" }, new[]{ "Value" }, null, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Tensor), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Tensor.Parser, new[]{ "ElemType", "Shape" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Sequence), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Sequence.Parser, new[]{ "ElemType" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Map), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Map.Parser, new[]{ "KeyType", "ValueType" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.SparseTensor), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.SparseTensor.Parser, new[]{ "ElemType", "Shape" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Opaque), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Opaque.Parser, new[]{ "Domain", "Name" }, null, null, null, null)}),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OperatorSetIdProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OperatorSetIdProto.Parser, new[]{ "Domain", "Version" }, null, null, null, null)
                     }));
             }
             #endregion
@@ -143,7 +167,26 @@ namespace Microsoft.ML.Model.OnnxConverter
             ///    - Added opset_import in ModelProto
             /// - For vendor extensions, added domain in NodeProto
             /// </summary>
-            [pbr::OriginalName("IR_VERSION")] IrVersion = 3,
+            [pbr::OriginalName("IR_VERSION_2017_11_3")] IrVersion2017113 = 3,
+            /// <summary>
+            /// IR VERSION 4 published on Jan 22, 2019
+            /// - Relax constraint that initializers should be a subset of graph inputs
+            /// - Add type BFLOAT16
+            /// </summary>
+            [pbr::OriginalName("IR_VERSION_2019_1_22")] IrVersion2019122 = 4,
+            /// <summary>
+            /// IR VERSION 5 published on March 18, 2019
+            /// - Add message TensorAnnotation.
+            /// - Add quantization annotation in GraphProto to map tensor with its scale and zero point quantization parameters.
+            /// </summary>
+            [pbr::OriginalName("IR_VERSION_2019_3_18")] IrVersion2019318 = 5,
+            /// <summary>
+            /// IR VERSION 6 published on Sep 19, 2019
+            /// - Add support for sparse tensor constants stored in model.
+            ///   - Add message SparseTensorProto
+            ///   - Add sparse initializers
+            /// </summary>
+            [pbr::OriginalName("IR_VERSION")] IrVersion = 6,
         }
 
         #endregion
@@ -194,13 +237,15 @@ namespace Microsoft.ML.Model.OnnxConverter
                 f_ = other.f_;
                 i_ = other.i_;
                 s_ = other.s_;
-                T = other.t_ != null ? other.T.Clone() : null;
-                G = other.g_ != null ? other.G.Clone() : null;
+                t_ = other.t_ != null ? other.t_.Clone() : null;
+                g_ = other.g_ != null ? other.g_.Clone() : null;
+                sparseTensor_ = other.sparseTensor_ != null ? other.sparseTensor_.Clone() : null;
                 floats_ = other.floats_.Clone();
                 ints_ = other.ints_.Clone();
                 strings_ = other.strings_.Clone();
                 tensors_ = other.tensors_.Clone();
                 graphs_ = other.graphs_.Clone();
+                sparseTensors_ = other.sparseTensors_.Clone();
                 _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
             }
 
@@ -263,7 +308,7 @@ namespace Microsoft.ML.Model.OnnxConverter
 
             /// <summary>Field number for the "type" field.</summary>
             public const int TypeFieldNumber = 20;
-            private global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.AttributeProto.Types.AttributeType type_ = 0;
+            private global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.AttributeProto.Types.AttributeType type_ = global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.AttributeProto.Types.AttributeType.Undefined;
             /// <summary>
             /// The type field MUST be present for this version of the IR.
             /// For 0.0.1 versions of the IR, this field was not defined, and
@@ -362,6 +407,22 @@ namespace Microsoft.ML.Model.OnnxConverter
                 }
             }
 
+            /// <summary>Field number for the "sparse_tensor" field.</summary>
+            public const int SparseTensorFieldNumber = 22;
+            private global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.SparseTensorProto sparseTensor_;
+            /// <summary>
+            /// sparse tensor value
+            /// </summary>
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.SparseTensorProto SparseTensor
+            {
+                get { return sparseTensor_; }
+                set
+                {
+                    sparseTensor_ = value;
+                }
+            }
+
             /// <summary>Field number for the "floats" field.</summary>
             public const int FloatsFieldNumber = 7;
             private static readonly pb::FieldCodec<float> _repeated_floats_codec
@@ -432,6 +493,20 @@ namespace Microsoft.ML.Model.OnnxConverter
                 get { return graphs_; }
             }
 
+            /// <summary>Field number for the "sparse_tensors" field.</summary>
+            public const int SparseTensorsFieldNumber = 23;
+            private static readonly pb::FieldCodec<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.SparseTensorProto> _repeated_sparseTensors_codec
+                = pb::FieldCodec.ForMessage(186, global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.SparseTensorProto.Parser);
+            private readonly pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.SparseTensorProto> sparseTensors_ = new pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.SparseTensorProto>();
+            /// <summary>
+            /// list of sparse tensors
+            /// </summary>
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.SparseTensorProto> SparseTensors
+            {
+                get { return sparseTensors_; }
+            }
+
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
             public override bool Equals(object other)
             {
@@ -458,11 +533,13 @@ namespace Microsoft.ML.Model.OnnxConverter
                 if (S != other.S) return false;
                 if (!object.Equals(T, other.T)) return false;
                 if (!object.Equals(G, other.G)) return false;
+                if (!object.Equals(SparseTensor, other.SparseTensor)) return false;
                 if (!floats_.Equals(other.floats_)) return false;
                 if (!ints_.Equals(other.ints_)) return false;
                 if (!strings_.Equals(other.strings_)) return false;
                 if (!tensors_.Equals(other.tensors_)) return false;
                 if (!graphs_.Equals(other.graphs_)) return false;
+                if (!sparseTensors_.Equals(other.sparseTensors_)) return false;
                 return Equals(_unknownFields, other._unknownFields);
             }
 
@@ -473,17 +550,19 @@ namespace Microsoft.ML.Model.OnnxConverter
                 if (Name.Length != 0) hash ^= Name.GetHashCode();
                 if (RefAttrName.Length != 0) hash ^= RefAttrName.GetHashCode();
                 if (DocString.Length != 0) hash ^= DocString.GetHashCode();
-                if (Type != 0) hash ^= Type.GetHashCode();
+                if (Type != global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.AttributeProto.Types.AttributeType.Undefined) hash ^= Type.GetHashCode();
                 if (F != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(F);
                 if (I != 0L) hash ^= I.GetHashCode();
                 if (S.Length != 0) hash ^= S.GetHashCode();
                 if (t_ != null) hash ^= T.GetHashCode();
                 if (g_ != null) hash ^= G.GetHashCode();
+                if (sparseTensor_ != null) hash ^= SparseTensor.GetHashCode();
                 hash ^= floats_.GetHashCode();
                 hash ^= ints_.GetHashCode();
                 hash ^= strings_.GetHashCode();
                 hash ^= tensors_.GetHashCode();
                 hash ^= graphs_.GetHashCode();
+                hash ^= sparseTensors_.GetHashCode();
                 if (_unknownFields != null)
                 {
                     hash ^= _unknownFields.GetHashCode();
@@ -540,7 +619,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                     output.WriteRawTag(106);
                     output.WriteString(DocString);
                 }
-                if (Type != 0)
+                if (Type != global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.AttributeProto.Types.AttributeType.Undefined)
                 {
                     output.WriteRawTag(160, 1);
                     output.WriteEnum((int)Type);
@@ -550,6 +629,12 @@ namespace Microsoft.ML.Model.OnnxConverter
                     output.WriteRawTag(170, 1);
                     output.WriteString(RefAttrName);
                 }
+                if (sparseTensor_ != null)
+                {
+                    output.WriteRawTag(178, 1);
+                    output.WriteMessage(SparseTensor);
+                }
+                sparseTensors_.WriteTo(output, _repeated_sparseTensors_codec);
                 if (_unknownFields != null)
                 {
                     _unknownFields.WriteTo(output);
@@ -572,7 +657,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                 {
                     size += 1 + pb::CodedOutputStream.ComputeStringSize(DocString);
                 }
-                if (Type != 0)
+                if (Type != global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.AttributeProto.Types.AttributeType.Undefined)
                 {
                     size += 2 + pb::CodedOutputStream.ComputeEnumSize((int)Type);
                 }
@@ -596,11 +681,16 @@ namespace Microsoft.ML.Model.OnnxConverter
                 {
                     size += 1 + pb::CodedOutputStream.ComputeMessageSize(G);
                 }
+                if (sparseTensor_ != null)
+                {
+                    size += 2 + pb::CodedOutputStream.ComputeMessageSize(SparseTensor);
+                }
                 size += floats_.CalculateSize(_repeated_floats_codec);
                 size += ints_.CalculateSize(_repeated_ints_codec);
                 size += strings_.CalculateSize(_repeated_strings_codec);
                 size += tensors_.CalculateSize(_repeated_tensors_codec);
                 size += graphs_.CalculateSize(_repeated_graphs_codec);
+                size += sparseTensors_.CalculateSize(_repeated_sparseTensors_codec);
                 if (_unknownFields != null)
                 {
                     size += _unknownFields.CalculateSize();
@@ -627,7 +717,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                 {
                     DocString = other.DocString;
                 }
-                if (other.Type != 0)
+                if (other.Type != global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.AttributeProto.Types.AttributeType.Undefined)
                 {
                     Type = other.Type;
                 }
@@ -647,7 +737,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                 {
                     if (t_ == null)
                     {
-                        t_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto();
+                        T = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto();
                     }
                     T.MergeFrom(other.T);
                 }
@@ -655,15 +745,24 @@ namespace Microsoft.ML.Model.OnnxConverter
                 {
                     if (g_ == null)
                     {
-                        g_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto();
+                        G = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto();
                     }
                     G.MergeFrom(other.G);
+                }
+                if (other.sparseTensor_ != null)
+                {
+                    if (sparseTensor_ == null)
+                    {
+                        SparseTensor = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.SparseTensorProto();
+                    }
+                    SparseTensor.MergeFrom(other.SparseTensor);
                 }
                 floats_.Add(other.floats_);
                 ints_.Add(other.ints_);
                 strings_.Add(other.strings_);
                 tensors_.Add(other.tensors_);
                 graphs_.Add(other.graphs_);
+                sparseTensors_.Add(other.sparseTensors_);
                 _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
             }
 
@@ -702,18 +801,18 @@ namespace Microsoft.ML.Model.OnnxConverter
                             {
                                 if (t_ == null)
                                 {
-                                    t_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto();
+                                    T = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto();
                                 }
-                                input.ReadMessage(t_);
+                                input.ReadMessage(T);
                                 break;
                             }
                         case 50:
                             {
                                 if (g_ == null)
                                 {
-                                    g_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto();
+                                    G = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto();
                                 }
-                                input.ReadMessage(g_);
+                                input.ReadMessage(G);
                                 break;
                             }
                         case 58:
@@ -750,12 +849,26 @@ namespace Microsoft.ML.Model.OnnxConverter
                             }
                         case 160:
                             {
-                                type_ = (global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.AttributeProto.Types.AttributeType)input.ReadEnum();
+                                Type = (global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.AttributeProto.Types.AttributeType)input.ReadEnum();
                                 break;
                             }
                         case 170:
                             {
                                 RefAttrName = input.ReadString();
+                                break;
+                            }
+                        case 178:
+                            {
+                                if (sparseTensor_ == null)
+                                {
+                                    SparseTensor = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.SparseTensorProto();
+                                }
+                                input.ReadMessage(SparseTensor);
+                                break;
+                            }
+                        case 186:
+                            {
+                                sparseTensors_.AddEntriesFrom(input, _repeated_sparseTensors_codec);
                                 break;
                             }
                     }
@@ -779,11 +892,13 @@ namespace Microsoft.ML.Model.OnnxConverter
                     [pbr::OriginalName("STRING")] String = 3,
                     [pbr::OriginalName("TENSOR")] Tensor = 4,
                     [pbr::OriginalName("GRAPH")] Graph = 5,
+                    [pbr::OriginalName("SPARSE_TENSOR")] SparseTensor = 11,
                     [pbr::OriginalName("FLOATS")] Floats = 6,
                     [pbr::OriginalName("INTS")] Ints = 7,
                     [pbr::OriginalName("STRINGS")] Strings = 8,
                     [pbr::OriginalName("TENSORS")] Tensors = 9,
                     [pbr::OriginalName("GRAPHS")] Graphs = 10,
+                    [pbr::OriginalName("SPARSE_TENSORS")] SparseTensors = 12,
                 }
 
             }
@@ -826,7 +941,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             public ValueInfoProto(ValueInfoProto other) : this()
             {
                 name_ = other.name_;
-                Type = other.type_ != null ? other.Type.Clone() : null;
+                type_ = other.type_ != null ? other.type_.Clone() : null;
                 docString_ = other.docString_;
                 _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
             }
@@ -857,7 +972,8 @@ namespace Microsoft.ML.Model.OnnxConverter
             public const int TypeFieldNumber = 2;
             private global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto type_;
             /// <summary>
-            /// This field MUST be present in this version of the IR.
+            /// This field MUST be present in this version of the IR for
+            /// inputs and outputs of the top-level graph.
             /// </summary>
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
             public global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto Type
@@ -990,7 +1106,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                 {
                     if (type_ == null)
                     {
-                        type_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto();
+                        Type = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto();
                     }
                     Type.MergeFrom(other.Type);
                 }
@@ -1021,9 +1137,9 @@ namespace Microsoft.ML.Model.OnnxConverter
                             {
                                 if (type_ == null)
                                 {
-                                    type_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto();
+                                    Type = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto();
                                 }
-                                input.ReadMessage(type_);
+                                input.ReadMessage(Type);
                                 break;
                             }
                         case 26:
@@ -1438,7 +1554,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                 domain_ = other.domain_;
                 modelVersion_ = other.modelVersion_;
                 docString_ = other.docString_;
-                Graph = other.graph_ != null ? other.Graph.Clone() : null;
+                graph_ = other.graph_ != null ? other.graph_.Clone() : null;
                 metadataProps_ = other.metadataProps_.Clone();
                 _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
             }
@@ -1784,7 +1900,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                 {
                     if (graph_ == null)
                     {
-                        graph_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto();
+                        Graph = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto();
                     }
                     Graph.MergeFrom(other.Graph);
                 }
@@ -1837,9 +1953,9 @@ namespace Microsoft.ML.Model.OnnxConverter
                             {
                                 if (graph_ == null)
                                 {
-                                    graph_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto();
+                                    Graph = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto();
                                 }
-                                input.ReadMessage(graph_);
+                                input.ReadMessage(Graph);
                                 break;
                             }
                         case 66:
@@ -2053,6 +2169,191 @@ namespace Microsoft.ML.Model.OnnxConverter
 
         }
 
+        public sealed partial class TensorAnnotation : pb::IMessage<TensorAnnotation>
+        {
+            private static readonly pb::MessageParser<TensorAnnotation> _parser = new pb::MessageParser<TensorAnnotation>(() => new TensorAnnotation());
+            private pb::UnknownFieldSet _unknownFields;
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public static pb::MessageParser<TensorAnnotation> Parser { get { return _parser; } }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public static pbr::MessageDescriptor Descriptor
+            {
+                get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[5]; }
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            pbr::MessageDescriptor pb::IMessage.Descriptor
+            {
+                get { return Descriptor; }
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public TensorAnnotation()
+            {
+                OnConstruction();
+            }
+
+            partial void OnConstruction();
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public TensorAnnotation(TensorAnnotation other) : this()
+            {
+                tensorName_ = other.tensorName_;
+                quantParameterTensorNames_ = other.quantParameterTensorNames_.Clone();
+                _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public TensorAnnotation Clone()
+            {
+                return new TensorAnnotation(this);
+            }
+
+            /// <summary>Field number for the "tensor_name" field.</summary>
+            public const int TensorNameFieldNumber = 1;
+            private string tensorName_ = "";
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public string TensorName
+            {
+                get { return tensorName_; }
+                set
+                {
+                    tensorName_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+                }
+            }
+
+            /// <summary>Field number for the "quant_parameter_tensor_names" field.</summary>
+            public const int QuantParameterTensorNamesFieldNumber = 2;
+            private static readonly pb::FieldCodec<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.StringStringEntryProto> _repeated_quantParameterTensorNames_codec
+                = pb::FieldCodec.ForMessage(18, global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.StringStringEntryProto.Parser);
+            private readonly pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.StringStringEntryProto> quantParameterTensorNames_ = new pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.StringStringEntryProto>();
+            /// <summary>
+            /// &lt;key, value> pairs to annotate tensor specified by &lt;tensor_name> above.
+            /// The keys used in the mapping below must be pre-defined in ONNX spec.
+            /// For example, for 8-bit linear quantization case, 'SCALE_TENSOR', 'ZERO_POINT_TENSOR' will be pre-defined as
+            /// quantization parameter keys.
+            /// </summary>
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.StringStringEntryProto> QuantParameterTensorNames
+            {
+                get { return quantParameterTensorNames_; }
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public override bool Equals(object other)
+            {
+                return Equals(other as TensorAnnotation);
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public bool Equals(TensorAnnotation other)
+            {
+                if (ReferenceEquals(other, null))
+                {
+                    return false;
+                }
+                if (ReferenceEquals(other, this))
+                {
+                    return true;
+                }
+                if (TensorName != other.TensorName) return false;
+                if (!quantParameterTensorNames_.Equals(other.quantParameterTensorNames_)) return false;
+                return Equals(_unknownFields, other._unknownFields);
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public override int GetHashCode()
+            {
+                int hash = 1;
+                if (TensorName.Length != 0) hash ^= TensorName.GetHashCode();
+                hash ^= quantParameterTensorNames_.GetHashCode();
+                if (_unknownFields != null)
+                {
+                    hash ^= _unknownFields.GetHashCode();
+                }
+                return hash;
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public override string ToString()
+            {
+                return pb::JsonFormatter.ToDiagnosticString(this);
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public void WriteTo(pb::CodedOutputStream output)
+            {
+                if (TensorName.Length != 0)
+                {
+                    output.WriteRawTag(10);
+                    output.WriteString(TensorName);
+                }
+                quantParameterTensorNames_.WriteTo(output, _repeated_quantParameterTensorNames_codec);
+                if (_unknownFields != null)
+                {
+                    _unknownFields.WriteTo(output);
+                }
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public int CalculateSize()
+            {
+                int size = 0;
+                if (TensorName.Length != 0)
+                {
+                    size += 1 + pb::CodedOutputStream.ComputeStringSize(TensorName);
+                }
+                size += quantParameterTensorNames_.CalculateSize(_repeated_quantParameterTensorNames_codec);
+                if (_unknownFields != null)
+                {
+                    size += _unknownFields.CalculateSize();
+                }
+                return size;
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public void MergeFrom(TensorAnnotation other)
+            {
+                if (other == null)
+                {
+                    return;
+                }
+                if (other.TensorName.Length != 0)
+                {
+                    TensorName = other.TensorName;
+                }
+                quantParameterTensorNames_.Add(other.quantParameterTensorNames_);
+                _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public void MergeFrom(pb::CodedInputStream input)
+            {
+                uint tag;
+                while ((tag = input.ReadTag()) != 0)
+                {
+                    switch (tag)
+                    {
+                        default:
+                            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+                            break;
+                        case 10:
+                            {
+                                TensorName = input.ReadString();
+                                break;
+                            }
+                        case 18:
+                            {
+                                quantParameterTensorNames_.AddEntriesFrom(input, _repeated_quantParameterTensorNames_codec);
+                                break;
+                            }
+                    }
+                }
+            }
+
+        }
+
         /// <summary>
         /// Graphs
         ///
@@ -2071,7 +2372,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
             public static pbr::MessageDescriptor Descriptor
             {
-                get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[5]; }
+                get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[6]; }
             }
 
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2094,10 +2395,12 @@ namespace Microsoft.ML.Model.OnnxConverter
                 node_ = other.node_.Clone();
                 name_ = other.name_;
                 initializer_ = other.initializer_.Clone();
+                sparseInitializer_ = other.sparseInitializer_.Clone();
                 docString_ = other.docString_;
                 input_ = other.input_.Clone();
                 output_ = other.output_.Clone();
                 valueInfo_ = other.valueInfo_.Clone();
+                quantizationAnnotation_ = other.quantizationAnnotation_.Clone();
                 _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
             }
 
@@ -2145,12 +2448,26 @@ namespace Microsoft.ML.Model.OnnxConverter
             /// <summary>
             /// A list of named tensor values, used to specify constant inputs of the graph.
             /// Each TensorProto entry must have a distinct name (within the list) that
-            /// also appears in the input list.
+            /// MAY also appear in the input list.
             /// </summary>
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
             public pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto> Initializer
             {
                 get { return initializer_; }
+            }
+
+            /// <summary>Field number for the "sparse_initializer" field.</summary>
+            public const int SparseInitializerFieldNumber = 15;
+            private static readonly pb::FieldCodec<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.SparseTensorProto> _repeated_sparseInitializer_codec
+                = pb::FieldCodec.ForMessage(122, global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.SparseTensorProto.Parser);
+            private readonly pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.SparseTensorProto> sparseInitializer_ = new pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.SparseTensorProto>();
+            /// <summary>
+            /// Initializers (see above) stored in sparse format.
+            /// </summary>
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.SparseTensorProto> SparseInitializer
+            {
+                get { return sparseInitializer_; }
             }
 
             /// <summary>Field number for the "doc_string" field.</summary>
@@ -2209,6 +2526,23 @@ namespace Microsoft.ML.Model.OnnxConverter
                 get { return valueInfo_; }
             }
 
+            /// <summary>Field number for the "quantization_annotation" field.</summary>
+            public const int QuantizationAnnotationFieldNumber = 14;
+            private static readonly pb::FieldCodec<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorAnnotation> _repeated_quantizationAnnotation_codec
+                = pb::FieldCodec.ForMessage(114, global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorAnnotation.Parser);
+            private readonly pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorAnnotation> quantizationAnnotation_ = new pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorAnnotation>();
+            /// <summary>
+            /// This field carries information to indicate the mapping among a tensor and its
+            /// quantization parameter tensors. For example:
+            /// For tensor 'a', it may have {'SCALE_TENSOR', 'a_scale'} and {'ZERO_POINT_TENSOR', 'a_zero_point'} annotated,
+            /// which means, tensor 'a_scale' and tensor 'a_zero_point' are scale and zero point of tensor 'a' in the model.
+            /// </summary>
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorAnnotation> QuantizationAnnotation
+            {
+                get { return quantizationAnnotation_; }
+            }
+
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
             public override bool Equals(object other)
             {
@@ -2229,10 +2563,12 @@ namespace Microsoft.ML.Model.OnnxConverter
                 if (!node_.Equals(other.node_)) return false;
                 if (Name != other.Name) return false;
                 if (!initializer_.Equals(other.initializer_)) return false;
+                if (!sparseInitializer_.Equals(other.sparseInitializer_)) return false;
                 if (DocString != other.DocString) return false;
                 if (!input_.Equals(other.input_)) return false;
                 if (!output_.Equals(other.output_)) return false;
                 if (!valueInfo_.Equals(other.valueInfo_)) return false;
+                if (!quantizationAnnotation_.Equals(other.quantizationAnnotation_)) return false;
                 return Equals(_unknownFields, other._unknownFields);
             }
 
@@ -2243,10 +2579,12 @@ namespace Microsoft.ML.Model.OnnxConverter
                 hash ^= node_.GetHashCode();
                 if (Name.Length != 0) hash ^= Name.GetHashCode();
                 hash ^= initializer_.GetHashCode();
+                hash ^= sparseInitializer_.GetHashCode();
                 if (DocString.Length != 0) hash ^= DocString.GetHashCode();
                 hash ^= input_.GetHashCode();
                 hash ^= output_.GetHashCode();
                 hash ^= valueInfo_.GetHashCode();
+                hash ^= quantizationAnnotation_.GetHashCode();
                 if (_unknownFields != null)
                 {
                     hash ^= _unknownFields.GetHashCode();
@@ -2278,6 +2616,8 @@ namespace Microsoft.ML.Model.OnnxConverter
                 input_.WriteTo(output, _repeated_input_codec);
                 output_.WriteTo(output, _repeated_output_codec);
                 valueInfo_.WriteTo(output, _repeated_valueInfo_codec);
+                quantizationAnnotation_.WriteTo(output, _repeated_quantizationAnnotation_codec);
+                sparseInitializer_.WriteTo(output, _repeated_sparseInitializer_codec);
                 if (_unknownFields != null)
                 {
                     _unknownFields.WriteTo(output);
@@ -2294,6 +2634,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                     size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
                 }
                 size += initializer_.CalculateSize(_repeated_initializer_codec);
+                size += sparseInitializer_.CalculateSize(_repeated_sparseInitializer_codec);
                 if (DocString.Length != 0)
                 {
                     size += 1 + pb::CodedOutputStream.ComputeStringSize(DocString);
@@ -2301,6 +2642,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                 size += input_.CalculateSize(_repeated_input_codec);
                 size += output_.CalculateSize(_repeated_output_codec);
                 size += valueInfo_.CalculateSize(_repeated_valueInfo_codec);
+                size += quantizationAnnotation_.CalculateSize(_repeated_quantizationAnnotation_codec);
                 if (_unknownFields != null)
                 {
                     size += _unknownFields.CalculateSize();
@@ -2321,6 +2663,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                     Name = other.Name;
                 }
                 initializer_.Add(other.initializer_);
+                sparseInitializer_.Add(other.sparseInitializer_);
                 if (other.DocString.Length != 0)
                 {
                     DocString = other.DocString;
@@ -2328,6 +2671,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                 input_.Add(other.input_);
                 output_.Add(other.output_);
                 valueInfo_.Add(other.valueInfo_);
+                quantizationAnnotation_.Add(other.quantizationAnnotation_);
                 _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
             }
 
@@ -2377,6 +2721,16 @@ namespace Microsoft.ML.Model.OnnxConverter
                                 valueInfo_.AddEntriesFrom(input, _repeated_valueInfo_codec);
                                 break;
                             }
+                        case 114:
+                            {
+                                quantizationAnnotation_.AddEntriesFrom(input, _repeated_quantizationAnnotation_codec);
+                                break;
+                            }
+                        case 122:
+                            {
+                                sparseInitializer_.AddEntriesFrom(input, _repeated_sparseInitializer_codec);
+                                break;
+                            }
                     }
                 }
             }
@@ -2398,7 +2752,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
             public static pbr::MessageDescriptor Descriptor
             {
-                get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[6]; }
+                get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[7]; }
             }
 
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2420,7 +2774,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             {
                 dims_ = other.dims_.Clone();
                 dataType_ = other.dataType_;
-                Segment = other.segment_ != null ? other.Segment.Clone() : null;
+                segment_ = other.segment_ != null ? other.segment_.Clone() : null;
                 floatData_ = other.floatData_.Clone();
                 int32Data_ = other.int32Data_.Clone();
                 stringData_ = other.stringData_.Clone();
@@ -2428,6 +2782,8 @@ namespace Microsoft.ML.Model.OnnxConverter
                 name_ = other.name_;
                 docString_ = other.docString_;
                 rawData_ = other.rawData_;
+                externalData_ = other.externalData_.Clone();
+                dataLocation_ = other.dataLocation_;
                 doubleData_ = other.doubleData_.Clone();
                 uint64Data_ = other.uint64Data_.Clone();
                 _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
@@ -2455,12 +2811,13 @@ namespace Microsoft.ML.Model.OnnxConverter
 
             /// <summary>Field number for the "data_type" field.</summary>
             public const int DataTypeFieldNumber = 2;
-            private global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType dataType_ = 0;
+            private int dataType_;
             /// <summary>
             /// The data type of the tensor.
+            /// This field MUST have a valid TensorProto.DataType value
             /// </summary>
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-            public global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType DataType
+            public int DataType
             {
                 get { return dataType_; }
                 set
@@ -2492,7 +2849,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             /// Complex64 tensors are encoded as a single array of floats,
             /// with the real components appearing in odd numbered positions,
             /// and the corresponding imaginary component apparing in the
-            /// subsequent even numbered position. (for example, [1.0 + 2.0i, 3.0 + 4.0i]
+            /// subsequent even numbered position. (e.g., [1.0 + 2.0i, 3.0 + 4.0i]
             /// is encoded as [1.0, 2.0 ,3.0 ,4.0]
             /// When this field is present, the data_type field MUST be FLOAT or COMPLEX64.
             /// </summary>
@@ -2512,7 +2869,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             /// float16 values must be bit-wise converted to an uint16_t prior
             /// to writing to the buffer.
             /// When this field is present, the data_type field MUST be
-            /// INT32, INT16, INT8, UINT16, INT8, BOOL, or FLOAT16
+            /// INT32, INT16, INT8, UINT16, UINT8, BOOL, or FLOAT16
             /// </summary>
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
             public pbc::RepeatedField<int> Int32Data
@@ -2601,7 +2958,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             /// Boolean type MUST be written one byte per tensor element (00000001 for true, 00000000 for false).
             ///
             /// Note: the advantage of specific field rather than the raw_data field is
-            /// that in some cases (for example, int data), protobuf does a better packing via
+            /// that in some cases (e.g. int data), protobuf does a better packing via
             /// variable length storage, and may lead to smaller binary footprint.
             /// When this field is present, the data_type field MUST NOT be STRING or UNDEFINED
             /// </summary>
@@ -2615,6 +2972,44 @@ namespace Microsoft.ML.Model.OnnxConverter
                 }
             }
 
+            /// <summary>Field number for the "external_data" field.</summary>
+            public const int ExternalDataFieldNumber = 13;
+            private static readonly pb::FieldCodec<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.StringStringEntryProto> _repeated_externalData_codec
+                = pb::FieldCodec.ForMessage(106, global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.StringStringEntryProto.Parser);
+            private readonly pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.StringStringEntryProto> externalData_ = new pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.StringStringEntryProto>();
+            /// <summary>
+            /// Data can be stored inside the protobuf file using type-specific fields or raw_data.
+            /// Alternatively, raw bytes data can be stored in an external file, using the external_data field.
+            /// external_data stores key-value pairs describing data location. Recognized keys are:
+            /// - "location" (required) - POSIX filesystem path relative to the directory where the ONNX
+            ///                           protobuf model was stored
+            /// - "offset" (optional) - position of byte at which stored data begins. Integer stored as string.
+            ///                         Offset values SHOULD be multiples 4096 (page size) to enable mmap support.
+            /// - "length" (optional) - number of bytes containing data. Integer stored as string.
+            /// - "checksum" (optional) - SHA1 digest of file specified in under 'location' key.
+            /// </summary>
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.StringStringEntryProto> ExternalData
+            {
+                get { return externalData_; }
+            }
+
+            /// <summary>Field number for the "data_location" field.</summary>
+            public const int DataLocationFieldNumber = 14;
+            private global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataLocation dataLocation_ = global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataLocation.Default;
+            /// <summary>
+            /// If value not set, data is stored in raw_data (if set) otherwise in type-specified field.
+            /// </summary>
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataLocation DataLocation
+            {
+                get { return dataLocation_; }
+                set
+                {
+                    dataLocation_ = value;
+                }
+            }
+
             /// <summary>Field number for the "double_data" field.</summary>
             public const int DoubleDataFieldNumber = 10;
             private static readonly pb::FieldCodec<double> _repeated_doubleData_codec
@@ -2622,10 +3017,10 @@ namespace Microsoft.ML.Model.OnnxConverter
             private readonly pbc::RepeatedField<double> doubleData_ = new pbc::RepeatedField<double>();
             /// <summary>
             /// For double
-            /// Complex64 tensors are encoded as a single array of doubles,
+            /// Complex128 tensors are encoded as a single array of doubles,
             /// with the real components appearing in odd numbered positions,
             /// and the corresponding imaginary component apparing in the
-            /// subsequent even numbered position. (for example, [1.0 + 2.0i, 3.0 + 4.0i]
+            /// subsequent even numbered position. (e.g., [1.0 + 2.0i, 3.0 + 4.0i]
             /// is encoded as [1.0, 2.0 ,3.0 ,4.0]
             /// When this field is present, the data_type field MUST be DOUBLE or COMPLEX128
             /// </summary>
@@ -2678,6 +3073,8 @@ namespace Microsoft.ML.Model.OnnxConverter
                 if (Name != other.Name) return false;
                 if (DocString != other.DocString) return false;
                 if (RawData != other.RawData) return false;
+                if (!externalData_.Equals(other.externalData_)) return false;
+                if (DataLocation != other.DataLocation) return false;
                 if (!doubleData_.Equals(other.doubleData_)) return false;
                 if (!uint64Data_.Equals(other.uint64Data_)) return false;
                 return Equals(_unknownFields, other._unknownFields);
@@ -2697,6 +3094,8 @@ namespace Microsoft.ML.Model.OnnxConverter
                 if (Name.Length != 0) hash ^= Name.GetHashCode();
                 if (DocString.Length != 0) hash ^= DocString.GetHashCode();
                 if (RawData.Length != 0) hash ^= RawData.GetHashCode();
+                hash ^= externalData_.GetHashCode();
+                if (DataLocation != global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataLocation.Default) hash ^= DataLocation.GetHashCode();
                 hash ^= doubleData_.GetHashCode();
                 hash ^= uint64Data_.GetHashCode();
                 if (_unknownFields != null)
@@ -2719,7 +3118,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                 if (DataType != 0)
                 {
                     output.WriteRawTag(16);
-                    output.WriteEnum((int)DataType);
+                    output.WriteInt32(DataType);
                 }
                 if (segment_ != null)
                 {
@@ -2747,6 +3146,12 @@ namespace Microsoft.ML.Model.OnnxConverter
                     output.WriteRawTag(98);
                     output.WriteString(DocString);
                 }
+                externalData_.WriteTo(output, _repeated_externalData_codec);
+                if (DataLocation != global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataLocation.Default)
+                {
+                    output.WriteRawTag(112);
+                    output.WriteEnum((int)DataLocation);
+                }
                 if (_unknownFields != null)
                 {
                     _unknownFields.WriteTo(output);
@@ -2760,7 +3165,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                 size += dims_.CalculateSize(_repeated_dims_codec);
                 if (DataType != 0)
                 {
-                    size += 1 + pb::CodedOutputStream.ComputeEnumSize((int)DataType);
+                    size += 1 + pb::CodedOutputStream.ComputeInt32Size(DataType);
                 }
                 if (segment_ != null)
                 {
@@ -2781,6 +3186,11 @@ namespace Microsoft.ML.Model.OnnxConverter
                 if (RawData.Length != 0)
                 {
                     size += 1 + pb::CodedOutputStream.ComputeBytesSize(RawData);
+                }
+                size += externalData_.CalculateSize(_repeated_externalData_codec);
+                if (DataLocation != global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataLocation.Default)
+                {
+                    size += 1 + pb::CodedOutputStream.ComputeEnumSize((int)DataLocation);
                 }
                 size += doubleData_.CalculateSize(_repeated_doubleData_codec);
                 size += uint64Data_.CalculateSize(_repeated_uint64Data_codec);
@@ -2807,7 +3217,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                 {
                     if (segment_ == null)
                     {
-                        segment_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.Segment();
+                        Segment = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.Segment();
                     }
                     Segment.MergeFrom(other.Segment);
                 }
@@ -2826,6 +3236,11 @@ namespace Microsoft.ML.Model.OnnxConverter
                 if (other.RawData.Length != 0)
                 {
                     RawData = other.RawData;
+                }
+                externalData_.Add(other.externalData_);
+                if (other.DataLocation != global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataLocation.Default)
+                {
+                    DataLocation = other.DataLocation;
                 }
                 doubleData_.Add(other.doubleData_);
                 uint64Data_.Add(other.uint64Data_);
@@ -2851,16 +3266,16 @@ namespace Microsoft.ML.Model.OnnxConverter
                             }
                         case 16:
                             {
-                                dataType_ = (global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType)input.ReadEnum();
+                                DataType = input.ReadInt32();
                                 break;
                             }
                         case 26:
                             {
                                 if (segment_ == null)
                                 {
-                                    segment_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.Segment();
+                                    Segment = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.Segment();
                                 }
-                                input.ReadMessage(segment_);
+                                input.ReadMessage(Segment);
                                 break;
                             }
                         case 34:
@@ -2913,6 +3328,16 @@ namespace Microsoft.ML.Model.OnnxConverter
                                 DocString = input.ReadString();
                                 break;
                             }
+                        case 106:
+                            {
+                                externalData_.AddEntriesFrom(input, _repeated_externalData_codec);
+                                break;
+                            }
+                        case 112:
+                            {
+                                DataLocation = (global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataLocation)input.ReadEnum();
+                                break;
+                            }
                     }
                 }
             }
@@ -2962,7 +3387,8 @@ namespace Microsoft.ML.Model.OnnxConverter
                     /// </summary>
                     [pbr::OriginalName("BOOL")] Bool = 9,
                     /// <summary>
-                    /// Advanced types
+                    /// IEEE754 half-precision floating-point format (16 bits wide).
+                    /// This format has 1 sign bit, 5 exponent bits, and 10 mantissa bits.
                     /// </summary>
                     [pbr::OriginalName("FLOAT16")] Float16 = 10,
                     [pbr::OriginalName("DOUBLE")] Double = 11,
@@ -2976,6 +3402,23 @@ namespace Microsoft.ML.Model.OnnxConverter
                     /// complex with float64 real and imaginary components
                     /// </summary>
                     [pbr::OriginalName("COMPLEX128")] Complex128 = 15,
+                    /// <summary>
+                    /// Non-IEEE floating-point format based on IEEE754 single-precision
+                    /// floating-point number truncated to 16 bits.
+                    /// This format has 1 sign bit, 8 exponent bits, and 7 mantissa bits.
+                    /// </summary>
+                    [pbr::OriginalName("BFLOAT16")] Bfloat16 = 16,
+                }
+
+                /// <summary>
+                /// Location of the data for this tensor. MUST be one of:
+                /// - DEFAULT - data stored inside the protobuf message. Data is stored in raw_data (if set) otherwise in type-specified field.
+                /// - EXTERNAL - data stored in an external location as described by external_data field.
+                /// </summary>
+                public enum DataLocation
+                {
+                    [pbr::OriginalName("DEFAULT")] Default = 0,
+                    [pbr::OriginalName("EXTERNAL")] External = 1,
                 }
 
                 /// <summary>
@@ -3180,6 +3623,258 @@ namespace Microsoft.ML.Model.OnnxConverter
         }
 
         /// <summary>
+        /// A serialized sparse-tensor value
+        /// </summary>
+        public sealed partial class SparseTensorProto : pb::IMessage<SparseTensorProto>
+        {
+            private static readonly pb::MessageParser<SparseTensorProto> _parser = new pb::MessageParser<SparseTensorProto>(() => new SparseTensorProto());
+            private pb::UnknownFieldSet _unknownFields;
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public static pb::MessageParser<SparseTensorProto> Parser { get { return _parser; } }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public static pbr::MessageDescriptor Descriptor
+            {
+                get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[8]; }
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            pbr::MessageDescriptor pb::IMessage.Descriptor
+            {
+                get { return Descriptor; }
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public SparseTensorProto()
+            {
+                OnConstruction();
+            }
+
+            partial void OnConstruction();
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public SparseTensorProto(SparseTensorProto other) : this()
+            {
+                values_ = other.values_ != null ? other.values_.Clone() : null;
+                indices_ = other.indices_ != null ? other.indices_.Clone() : null;
+                dims_ = other.dims_.Clone();
+                _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public SparseTensorProto Clone()
+            {
+                return new SparseTensorProto(this);
+            }
+
+            /// <summary>Field number for the "values" field.</summary>
+            public const int ValuesFieldNumber = 1;
+            private global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto values_;
+            /// <summary>
+            /// The sequence of non-default values are encoded as a tensor of shape [NNZ].
+            /// The default-value is zero for numeric tensors, and empty-string for string tensors.
+            /// </summary>
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto Values
+            {
+                get { return values_; }
+                set
+                {
+                    values_ = value;
+                }
+            }
+
+            /// <summary>Field number for the "indices" field.</summary>
+            public const int IndicesFieldNumber = 2;
+            private global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto indices_;
+            /// <summary>
+            /// The indices of the non-default values, which may be stored in one of two formats.
+            /// (a) Indices can be a tensor of shape [NNZ, rank] with the [i,j]-th value
+            /// corresponding to the j-th index of the i-th value (in the values tensor).
+            /// (b) Indices can be a tensor of shape [NNZ], in which case the i-th value
+            /// must be the linearized-index of the i-th value (in the values tensor).
+            /// The linearized-index can be converted into an index tuple (k_1,...,k_rank)
+            /// using the shape provided below.
+            /// The indices must appear in ascending order without duplication.
+            /// In the first format, the ordering is lexicographic-ordering:
+            /// e.g., index-value [1,4] must appear before [2,1]
+            /// </summary>
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto Indices
+            {
+                get { return indices_; }
+                set
+                {
+                    indices_ = value;
+                }
+            }
+
+            /// <summary>Field number for the "dims" field.</summary>
+            public const int DimsFieldNumber = 3;
+            private static readonly pb::FieldCodec<long> _repeated_dims_codec
+                = pb::FieldCodec.ForInt64(26);
+            private readonly pbc::RepeatedField<long> dims_ = new pbc::RepeatedField<long>();
+            /// <summary>
+            /// The shape of the underlying dense-tensor: [dim_1, dim_2, ... dim_rank]
+            /// </summary>
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public pbc::RepeatedField<long> Dims
+            {
+                get { return dims_; }
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public override bool Equals(object other)
+            {
+                return Equals(other as SparseTensorProto);
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public bool Equals(SparseTensorProto other)
+            {
+                if (ReferenceEquals(other, null))
+                {
+                    return false;
+                }
+                if (ReferenceEquals(other, this))
+                {
+                    return true;
+                }
+                if (!object.Equals(Values, other.Values)) return false;
+                if (!object.Equals(Indices, other.Indices)) return false;
+                if (!dims_.Equals(other.dims_)) return false;
+                return Equals(_unknownFields, other._unknownFields);
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public override int GetHashCode()
+            {
+                int hash = 1;
+                if (values_ != null) hash ^= Values.GetHashCode();
+                if (indices_ != null) hash ^= Indices.GetHashCode();
+                hash ^= dims_.GetHashCode();
+                if (_unknownFields != null)
+                {
+                    hash ^= _unknownFields.GetHashCode();
+                }
+                return hash;
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public override string ToString()
+            {
+                return pb::JsonFormatter.ToDiagnosticString(this);
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public void WriteTo(pb::CodedOutputStream output)
+            {
+                if (values_ != null)
+                {
+                    output.WriteRawTag(10);
+                    output.WriteMessage(Values);
+                }
+                if (indices_ != null)
+                {
+                    output.WriteRawTag(18);
+                    output.WriteMessage(Indices);
+                }
+                dims_.WriteTo(output, _repeated_dims_codec);
+                if (_unknownFields != null)
+                {
+                    _unknownFields.WriteTo(output);
+                }
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public int CalculateSize()
+            {
+                int size = 0;
+                if (values_ != null)
+                {
+                    size += 1 + pb::CodedOutputStream.ComputeMessageSize(Values);
+                }
+                if (indices_ != null)
+                {
+                    size += 1 + pb::CodedOutputStream.ComputeMessageSize(Indices);
+                }
+                size += dims_.CalculateSize(_repeated_dims_codec);
+                if (_unknownFields != null)
+                {
+                    size += _unknownFields.CalculateSize();
+                }
+                return size;
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public void MergeFrom(SparseTensorProto other)
+            {
+                if (other == null)
+                {
+                    return;
+                }
+                if (other.values_ != null)
+                {
+                    if (values_ == null)
+                    {
+                        Values = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto();
+                    }
+                    Values.MergeFrom(other.Values);
+                }
+                if (other.indices_ != null)
+                {
+                    if (indices_ == null)
+                    {
+                        Indices = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto();
+                    }
+                    Indices.MergeFrom(other.Indices);
+                }
+                dims_.Add(other.dims_);
+                _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public void MergeFrom(pb::CodedInputStream input)
+            {
+                uint tag;
+                while ((tag = input.ReadTag()) != 0)
+                {
+                    switch (tag)
+                    {
+                        default:
+                            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+                            break;
+                        case 10:
+                            {
+                                if (values_ == null)
+                                {
+                                    Values = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto();
+                                }
+                                input.ReadMessage(Values);
+                                break;
+                            }
+                        case 18:
+                            {
+                                if (indices_ == null)
+                                {
+                                    Indices = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto();
+                                }
+                                input.ReadMessage(Indices);
+                                break;
+                            }
+                        case 26:
+                        case 24:
+                            {
+                                dims_.AddEntriesFrom(input, _repeated_dims_codec);
+                                break;
+                            }
+                    }
+                }
+            }
+
+        }
+
+        /// <summary>
         /// Defines a tensor shape. A dimension can be either an integer value
         /// or a symbolic variable. A symbolic variable represents an unknown
         /// dimension.
@@ -3194,7 +3889,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
             public static pbr::MessageDescriptor Descriptor
             {
-                get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[7]; }
+                get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[9]; }
             }
 
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3621,7 +4316,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
             public static pbr::MessageDescriptor Descriptor
             {
-                get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[8]; }
+                get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[10]; }
             }
 
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3652,6 +4347,12 @@ namespace Microsoft.ML.Model.OnnxConverter
                         break;
                     case ValueOneofCase.MapType:
                         MapType = other.MapType.Clone();
+                        break;
+                    case ValueOneofCase.SparseTensorType:
+                        SparseTensorType = other.SparseTensorType.Clone();
+                        break;
+                    case ValueOneofCase.OpaqueType:
+                        OpaqueType = other.OpaqueType.Clone();
                         break;
                 }
 
@@ -3712,6 +4413,32 @@ namespace Microsoft.ML.Model.OnnxConverter
                 }
             }
 
+            /// <summary>Field number for the "sparse_tensor_type" field.</summary>
+            public const int SparseTensorTypeFieldNumber = 8;
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.SparseTensor SparseTensorType
+            {
+                get { return valueCase_ == ValueOneofCase.SparseTensorType ? (global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.SparseTensor)value_ : null; }
+                set
+                {
+                    value_ = value;
+                    valueCase_ = value == null ? ValueOneofCase.None : ValueOneofCase.SparseTensorType;
+                }
+            }
+
+            /// <summary>Field number for the "opaque_type" field.</summary>
+            public const int OpaqueTypeFieldNumber = 7;
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            public global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Opaque OpaqueType
+            {
+                get { return valueCase_ == ValueOneofCase.OpaqueType ? (global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Opaque)value_ : null; }
+                set
+                {
+                    value_ = value;
+                    valueCase_ = value == null ? ValueOneofCase.None : ValueOneofCase.OpaqueType;
+                }
+            }
+
             /// <summary>Field number for the "denotation" field.</summary>
             public const int DenotationFieldNumber = 6;
             private string denotation_ = "";
@@ -3739,6 +4466,8 @@ namespace Microsoft.ML.Model.OnnxConverter
                 TensorType = 1,
                 SequenceType = 4,
                 MapType = 5,
+                SparseTensorType = 8,
+                OpaqueType = 7,
             }
             private ValueOneofCase valueCase_ = ValueOneofCase.None;
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3774,6 +4503,8 @@ namespace Microsoft.ML.Model.OnnxConverter
                 if (!object.Equals(TensorType, other.TensorType)) return false;
                 if (!object.Equals(SequenceType, other.SequenceType)) return false;
                 if (!object.Equals(MapType, other.MapType)) return false;
+                if (!object.Equals(SparseTensorType, other.SparseTensorType)) return false;
+                if (!object.Equals(OpaqueType, other.OpaqueType)) return false;
                 if (Denotation != other.Denotation) return false;
                 if (ValueCase != other.ValueCase) return false;
                 return Equals(_unknownFields, other._unknownFields);
@@ -3786,6 +4517,8 @@ namespace Microsoft.ML.Model.OnnxConverter
                 if (valueCase_ == ValueOneofCase.TensorType) hash ^= TensorType.GetHashCode();
                 if (valueCase_ == ValueOneofCase.SequenceType) hash ^= SequenceType.GetHashCode();
                 if (valueCase_ == ValueOneofCase.MapType) hash ^= MapType.GetHashCode();
+                if (valueCase_ == ValueOneofCase.SparseTensorType) hash ^= SparseTensorType.GetHashCode();
+                if (valueCase_ == ValueOneofCase.OpaqueType) hash ^= OpaqueType.GetHashCode();
                 if (Denotation.Length != 0) hash ^= Denotation.GetHashCode();
                 hash ^= (int)valueCase_;
                 if (_unknownFields != null)
@@ -3824,6 +4557,16 @@ namespace Microsoft.ML.Model.OnnxConverter
                     output.WriteRawTag(50);
                     output.WriteString(Denotation);
                 }
+                if (valueCase_ == ValueOneofCase.OpaqueType)
+                {
+                    output.WriteRawTag(58);
+                    output.WriteMessage(OpaqueType);
+                }
+                if (valueCase_ == ValueOneofCase.SparseTensorType)
+                {
+                    output.WriteRawTag(66);
+                    output.WriteMessage(SparseTensorType);
+                }
                 if (_unknownFields != null)
                 {
                     _unknownFields.WriteTo(output);
@@ -3845,6 +4588,14 @@ namespace Microsoft.ML.Model.OnnxConverter
                 if (valueCase_ == ValueOneofCase.MapType)
                 {
                     size += 1 + pb::CodedOutputStream.ComputeMessageSize(MapType);
+                }
+                if (valueCase_ == ValueOneofCase.SparseTensorType)
+                {
+                    size += 1 + pb::CodedOutputStream.ComputeMessageSize(SparseTensorType);
+                }
+                if (valueCase_ == ValueOneofCase.OpaqueType)
+                {
+                    size += 1 + pb::CodedOutputStream.ComputeMessageSize(OpaqueType);
                 }
                 if (Denotation.Length != 0)
                 {
@@ -3890,6 +4641,20 @@ namespace Microsoft.ML.Model.OnnxConverter
                             MapType = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Map();
                         }
                         MapType.MergeFrom(other.MapType);
+                        break;
+                    case ValueOneofCase.SparseTensorType:
+                        if (SparseTensorType == null)
+                        {
+                            SparseTensorType = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.SparseTensor();
+                        }
+                        SparseTensorType.MergeFrom(other.SparseTensorType);
+                        break;
+                    case ValueOneofCase.OpaqueType:
+                        if (OpaqueType == null)
+                        {
+                            OpaqueType = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Opaque();
+                        }
+                        OpaqueType.MergeFrom(other.OpaqueType);
                         break;
                 }
 
@@ -3945,6 +4710,28 @@ namespace Microsoft.ML.Model.OnnxConverter
                                 Denotation = input.ReadString();
                                 break;
                             }
+                        case 58:
+                            {
+                                global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Opaque subBuilder = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Opaque();
+                                if (valueCase_ == ValueOneofCase.OpaqueType)
+                                {
+                                    subBuilder.MergeFrom(OpaqueType);
+                                }
+                                input.ReadMessage(subBuilder);
+                                OpaqueType = subBuilder;
+                                break;
+                            }
+                        case 66:
+                            {
+                                global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.SparseTensor subBuilder = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.SparseTensor();
+                                if (valueCase_ == ValueOneofCase.SparseTensorType)
+                                {
+                                    subBuilder.MergeFrom(SparseTensorType);
+                                }
+                                input.ReadMessage(subBuilder);
+                                SparseTensorType = subBuilder;
+                                break;
+                            }
                     }
                 }
             }
@@ -3985,7 +4772,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                     public Tensor(Tensor other) : this()
                     {
                         elemType_ = other.elemType_;
-                        Shape = other.shape_ != null ? other.Shape.Clone() : null;
+                        shape_ = other.shape_ != null ? other.shape_.Clone() : null;
                         _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
                     }
 
@@ -3997,13 +4784,14 @@ namespace Microsoft.ML.Model.OnnxConverter
 
                     /// <summary>Field number for the "elem_type" field.</summary>
                     public const int ElemTypeFieldNumber = 1;
-                    private global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType elemType_ = 0;
+                    private int elemType_;
                     /// <summary>
                     /// This field MUST NOT have the value of UNDEFINED
+                    /// This field MUST have a valid TensorProto.DataType value
                     /// This field MUST be present for this version of the IR.
                     /// </summary>
                     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-                    public global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType ElemType
+                    public int ElemType
                     {
                         get { return elemType_; }
                         set
@@ -4072,7 +4860,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                         if (ElemType != 0)
                         {
                             output.WriteRawTag(8);
-                            output.WriteEnum((int)ElemType);
+                            output.WriteInt32(ElemType);
                         }
                         if (shape_ != null)
                         {
@@ -4091,7 +4879,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                         int size = 0;
                         if (ElemType != 0)
                         {
-                            size += 1 + pb::CodedOutputStream.ComputeEnumSize((int)ElemType);
+                            size += 1 + pb::CodedOutputStream.ComputeInt32Size(ElemType);
                         }
                         if (shape_ != null)
                         {
@@ -4119,7 +4907,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                         {
                             if (shape_ == null)
                             {
-                                shape_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto();
+                                Shape = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto();
                             }
                             Shape.MergeFrom(other.Shape);
                         }
@@ -4139,16 +4927,16 @@ namespace Microsoft.ML.Model.OnnxConverter
                                     break;
                                 case 8:
                                     {
-                                        elemType_ = (global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType)input.ReadEnum();
+                                        ElemType = input.ReadInt32();
                                         break;
                                     }
                                 case 18:
                                     {
                                         if (shape_ == null)
                                         {
-                                            shape_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto();
+                                            Shape = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto();
                                         }
-                                        input.ReadMessage(shape_);
+                                        input.ReadMessage(Shape);
                                         break;
                                     }
                             }
@@ -4190,7 +4978,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
                     public Sequence(Sequence other) : this()
                     {
-                        ElemType = other.elemType_ != null ? other.ElemType.Clone() : null;
+                        elemType_ = other.elemType_ != null ? other.elemType_.Clone() : null;
                         _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
                     }
 
@@ -4296,7 +5084,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                         {
                             if (elemType_ == null)
                             {
-                                elemType_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto();
+                                ElemType = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto();
                             }
                             ElemType.MergeFrom(other.ElemType);
                         }
@@ -4318,9 +5106,9 @@ namespace Microsoft.ML.Model.OnnxConverter
                                     {
                                         if (elemType_ == null)
                                         {
-                                            elemType_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto();
+                                            ElemType = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto();
                                         }
-                                        input.ReadMessage(elemType_);
+                                        input.ReadMessage(ElemType);
                                         break;
                                     }
                             }
@@ -4363,7 +5151,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                     public Map(Map other) : this()
                     {
                         keyType_ = other.keyType_;
-                        ValueType = other.valueType_ != null ? other.ValueType.Clone() : null;
+                        valueType_ = other.valueType_ != null ? other.valueType_.Clone() : null;
                         _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
                     }
 
@@ -4375,13 +5163,14 @@ namespace Microsoft.ML.Model.OnnxConverter
 
                     /// <summary>Field number for the "key_type" field.</summary>
                     public const int KeyTypeFieldNumber = 1;
-                    private global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType keyType_ = 0;
+                    private int keyType_;
                     /// <summary>
+                    /// This field MUST have a valid TensorProto.DataType value
                     /// This field MUST be present for this version of the IR.
                     /// This field MUST refer to an integral type ([U]INT{8|16|32|64}) or STRING
                     /// </summary>
                     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-                    public global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType KeyType
+                    public int KeyType
                     {
                         get { return keyType_; }
                         set
@@ -4453,7 +5242,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                         if (KeyType != 0)
                         {
                             output.WriteRawTag(8);
-                            output.WriteEnum((int)KeyType);
+                            output.WriteInt32(KeyType);
                         }
                         if (valueType_ != null)
                         {
@@ -4472,7 +5261,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                         int size = 0;
                         if (KeyType != 0)
                         {
-                            size += 1 + pb::CodedOutputStream.ComputeEnumSize((int)KeyType);
+                            size += 1 + pb::CodedOutputStream.ComputeInt32Size(KeyType);
                         }
                         if (valueType_ != null)
                         {
@@ -4500,7 +5289,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                         {
                             if (valueType_ == null)
                             {
-                                valueType_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto();
+                                ValueType = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto();
                             }
                             ValueType.MergeFrom(other.ValueType);
                         }
@@ -4520,16 +5309,417 @@ namespace Microsoft.ML.Model.OnnxConverter
                                     break;
                                 case 8:
                                     {
-                                        keyType_ = (global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType)input.ReadEnum();
+                                        KeyType = input.ReadInt32();
                                         break;
                                     }
                                 case 18:
                                     {
                                         if (valueType_ == null)
                                         {
-                                            valueType_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto();
+                                            ValueType = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto();
                                         }
-                                        input.ReadMessage(valueType_);
+                                        input.ReadMessage(ValueType);
+                                        break;
+                                    }
+                            }
+                        }
+                    }
+
+                }
+
+                public sealed partial class SparseTensor : pb::IMessage<SparseTensor>
+                {
+                    private static readonly pb::MessageParser<SparseTensor> _parser = new pb::MessageParser<SparseTensor>(() => new SparseTensor());
+                    private pb::UnknownFieldSet _unknownFields;
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public static pb::MessageParser<SparseTensor> Parser { get { return _parser; } }
+
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public static pbr::MessageDescriptor Descriptor
+                    {
+                        get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Descriptor.NestedTypes[3]; }
+                    }
+
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    pbr::MessageDescriptor pb::IMessage.Descriptor
+                    {
+                        get { return Descriptor; }
+                    }
+
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public SparseTensor()
+                    {
+                        OnConstruction();
+                    }
+
+                    partial void OnConstruction();
+
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public SparseTensor(SparseTensor other) : this()
+                    {
+                        elemType_ = other.elemType_;
+                        shape_ = other.shape_ != null ? other.shape_.Clone() : null;
+                        _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+                    }
+
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public SparseTensor Clone()
+                    {
+                        return new SparseTensor(this);
+                    }
+
+                    /// <summary>Field number for the "elem_type" field.</summary>
+                    public const int ElemTypeFieldNumber = 1;
+                    private int elemType_;
+                    /// <summary>
+                    /// This field MUST NOT have the value of UNDEFINED 
+                    /// This field MUST have a valid TensorProto.DataType value
+                    /// This field MUST be present for this version of the IR. 
+                    /// </summary>
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public int ElemType
+                    {
+                        get { return elemType_; }
+                        set
+                        {
+                            elemType_ = value;
+                        }
+                    }
+
+                    /// <summary>Field number for the "shape" field.</summary>
+                    public const int ShapeFieldNumber = 2;
+                    private global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto shape_;
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto Shape
+                    {
+                        get { return shape_; }
+                        set
+                        {
+                            shape_ = value;
+                        }
+                    }
+
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public override bool Equals(object other)
+                    {
+                        return Equals(other as SparseTensor);
+                    }
+
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public bool Equals(SparseTensor other)
+                    {
+                        if (ReferenceEquals(other, null))
+                        {
+                            return false;
+                        }
+                        if (ReferenceEquals(other, this))
+                        {
+                            return true;
+                        }
+                        if (ElemType != other.ElemType) return false;
+                        if (!object.Equals(Shape, other.Shape)) return false;
+                        return Equals(_unknownFields, other._unknownFields);
+                    }
+
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public override int GetHashCode()
+                    {
+                        int hash = 1;
+                        if (ElemType != 0) hash ^= ElemType.GetHashCode();
+                        if (shape_ != null) hash ^= Shape.GetHashCode();
+                        if (_unknownFields != null)
+                        {
+                            hash ^= _unknownFields.GetHashCode();
+                        }
+                        return hash;
+                    }
+
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public override string ToString()
+                    {
+                        return pb::JsonFormatter.ToDiagnosticString(this);
+                    }
+
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public void WriteTo(pb::CodedOutputStream output)
+                    {
+                        if (ElemType != 0)
+                        {
+                            output.WriteRawTag(8);
+                            output.WriteInt32(ElemType);
+                        }
+                        if (shape_ != null)
+                        {
+                            output.WriteRawTag(18);
+                            output.WriteMessage(Shape);
+                        }
+                        if (_unknownFields != null)
+                        {
+                            _unknownFields.WriteTo(output);
+                        }
+                    }
+
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public int CalculateSize()
+                    {
+                        int size = 0;
+                        if (ElemType != 0)
+                        {
+                            size += 1 + pb::CodedOutputStream.ComputeInt32Size(ElemType);
+                        }
+                        if (shape_ != null)
+                        {
+                            size += 1 + pb::CodedOutputStream.ComputeMessageSize(Shape);
+                        }
+                        if (_unknownFields != null)
+                        {
+                            size += _unknownFields.CalculateSize();
+                        }
+                        return size;
+                    }
+
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public void MergeFrom(SparseTensor other)
+                    {
+                        if (other == null)
+                        {
+                            return;
+                        }
+                        if (other.ElemType != 0)
+                        {
+                            ElemType = other.ElemType;
+                        }
+                        if (other.shape_ != null)
+                        {
+                            if (shape_ == null)
+                            {
+                                Shape = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto();
+                            }
+                            Shape.MergeFrom(other.Shape);
+                        }
+                        _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+                    }
+
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public void MergeFrom(pb::CodedInputStream input)
+                    {
+                        uint tag;
+                        while ((tag = input.ReadTag()) != 0)
+                        {
+                            switch (tag)
+                            {
+                                default:
+                                    _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+                                    break;
+                                case 8:
+                                    {
+                                        ElemType = input.ReadInt32();
+                                        break;
+                                    }
+                                case 18:
+                                    {
+                                        if (shape_ == null)
+                                        {
+                                            Shape = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto();
+                                        }
+                                        input.ReadMessage(Shape);
+                                        break;
+                                    }
+                            }
+                        }
+                    }
+
+                }
+
+                public sealed partial class Opaque : pb::IMessage<Opaque>
+                {
+                    private static readonly pb::MessageParser<Opaque> _parser = new pb::MessageParser<Opaque>(() => new Opaque());
+                    private pb::UnknownFieldSet _unknownFields;
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public static pb::MessageParser<Opaque> Parser { get { return _parser; } }
+
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public static pbr::MessageDescriptor Descriptor
+                    {
+                        get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Descriptor.NestedTypes[4]; }
+                    }
+
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    pbr::MessageDescriptor pb::IMessage.Descriptor
+                    {
+                        get { return Descriptor; }
+                    }
+
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public Opaque()
+                    {
+                        OnConstruction();
+                    }
+
+                    partial void OnConstruction();
+
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public Opaque(Opaque other) : this()
+                    {
+                        domain_ = other.domain_;
+                        name_ = other.name_;
+                        _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+                    }
+
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public Opaque Clone()
+                    {
+                        return new Opaque(this);
+                    }
+
+                    /// <summary>Field number for the "domain" field.</summary>
+                    public const int DomainFieldNumber = 1;
+                    private string domain_ = "";
+                    /// <summary>
+                    /// When missing, the domain is the same as the model's.
+                    /// </summary>
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public string Domain
+                    {
+                        get { return domain_; }
+                        set
+                        {
+                            domain_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+                        }
+                    }
+
+                    /// <summary>Field number for the "name" field.</summary>
+                    public const int NameFieldNumber = 2;
+                    private string name_ = "";
+                    /// <summary>
+                    /// The name is optional but significant when provided.
+                    /// </summary>
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public string Name
+                    {
+                        get { return name_; }
+                        set
+                        {
+                            name_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+                        }
+                    }
+
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public override bool Equals(object other)
+                    {
+                        return Equals(other as Opaque);
+                    }
+
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public bool Equals(Opaque other)
+                    {
+                        if (ReferenceEquals(other, null))
+                        {
+                            return false;
+                        }
+                        if (ReferenceEquals(other, this))
+                        {
+                            return true;
+                        }
+                        if (Domain != other.Domain) return false;
+                        if (Name != other.Name) return false;
+                        return Equals(_unknownFields, other._unknownFields);
+                    }
+
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public override int GetHashCode()
+                    {
+                        int hash = 1;
+                        if (Domain.Length != 0) hash ^= Domain.GetHashCode();
+                        if (Name.Length != 0) hash ^= Name.GetHashCode();
+                        if (_unknownFields != null)
+                        {
+                            hash ^= _unknownFields.GetHashCode();
+                        }
+                        return hash;
+                    }
+
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public override string ToString()
+                    {
+                        return pb::JsonFormatter.ToDiagnosticString(this);
+                    }
+
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public void WriteTo(pb::CodedOutputStream output)
+                    {
+                        if (Domain.Length != 0)
+                        {
+                            output.WriteRawTag(10);
+                            output.WriteString(Domain);
+                        }
+                        if (Name.Length != 0)
+                        {
+                            output.WriteRawTag(18);
+                            output.WriteString(Name);
+                        }
+                        if (_unknownFields != null)
+                        {
+                            _unknownFields.WriteTo(output);
+                        }
+                    }
+
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public int CalculateSize()
+                    {
+                        int size = 0;
+                        if (Domain.Length != 0)
+                        {
+                            size += 1 + pb::CodedOutputStream.ComputeStringSize(Domain);
+                        }
+                        if (Name.Length != 0)
+                        {
+                            size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+                        }
+                        if (_unknownFields != null)
+                        {
+                            size += _unknownFields.CalculateSize();
+                        }
+                        return size;
+                    }
+
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public void MergeFrom(Opaque other)
+                    {
+                        if (other == null)
+                        {
+                            return;
+                        }
+                        if (other.Domain.Length != 0)
+                        {
+                            Domain = other.Domain;
+                        }
+                        if (other.Name.Length != 0)
+                        {
+                            Name = other.Name;
+                        }
+                        _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+                    }
+
+                    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+                    public void MergeFrom(pb::CodedInputStream input)
+                    {
+                        uint tag;
+                        while ((tag = input.ReadTag()) != 0)
+                        {
+                            switch (tag)
+                            {
+                                default:
+                                    _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+                                    break;
+                                case 10:
+                                    {
+                                        Domain = input.ReadString();
+                                        break;
+                                    }
+                                case 18:
+                                    {
+                                        Name = input.ReadString();
                                         break;
                                     }
                             }
@@ -4558,7 +5748,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
             public static pbr::MessageDescriptor Descriptor
             {
-                get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[9]; }
+                get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[11]; }
             }
 
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4748,9 +5938,8 @@ namespace Microsoft.ML.Model.OnnxConverter
             }
 
         }
-
-        #endregion
     }
+  #endregion
 }
 
 #endregion Designer generated code

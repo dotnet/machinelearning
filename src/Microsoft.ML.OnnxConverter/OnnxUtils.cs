@@ -26,7 +26,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             if (typeProto.TensorType == null)
                 typeProto.TensorType = new TypeProto.Types.Tensor();
 
-            typeProto.TensorType.ElemType = dataType;
+            typeProto.TensorType.ElemType = (int)dataType;
             if (dims != null)
             {
                 for (int index = 0; index < dims.Count; index++)
@@ -304,7 +304,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             model.ProducerVersion = producerVersion;
             model.IrVersion = (long)OnnxCSharpToProtoWrapper.Version.IrVersion;
             model.ModelVersion = modelVersion;
-            model.OpsetImport.Add(new OperatorSetIdProto() { Domain = "ai.onnx.ml", Version = 1 });
+            model.OpsetImport.Add(new OperatorSetIdProto() { Domain = "ai.onnx.ml", Version = 2 });
             model.OpsetImport.Add(new OperatorSetIdProto() { Domain = "", Version = 9 });
             model.Graph = new GraphProto();
             var graph = model.Graph;
@@ -386,7 +386,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         {
             var tensor = new TensorProto();
             tensor.Name = name;
-            tensor.DataType = TensorProto.Types.DataType.Int64;
+            tensor.DataType = (int)TensorProto.Types.DataType.Int64;
             tensor.Int64Data.Add(value);
             return tensor;
         }
@@ -396,7 +396,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         {
             var tensor = new TensorProto();
             tensor.Name = name;
-            tensor.DataType = TensorProto.Types.DataType.Int64;
+            tensor.DataType = (int)TensorProto.Types.DataType.Int64;
             tensor.Int64Data.AddRange(values);
             if (dims != null)
                 tensor.Dims.AddRange(dims);
@@ -410,7 +410,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         {
             var tensor = new TensorProto();
             tensor.Name = name;
-            tensor.DataType = TensorProto.Types.DataType.Float;
+            tensor.DataType = (int)TensorProto.Types.DataType.Float;
             tensor.FloatData.Add(value);
             return tensor;
         }
@@ -420,7 +420,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         {
             var tensor = new TensorProto();
             tensor.Name = name;
-            tensor.DataType = TensorProto.Types.DataType.Float;
+            tensor.DataType = (int)TensorProto.Types.DataType.Float;
             tensor.FloatData.AddRange(values);
             if (dims != null)
                 tensor.Dims.AddRange(dims);
@@ -434,7 +434,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         {
             var tensor = new TensorProto();
             tensor.Name = name;
-            tensor.DataType = TensorProto.Types.DataType.String;
+            tensor.DataType = (int)TensorProto.Types.DataType.String;
             tensor.StringData.Add(StringToByteString(value));
             return tensor;
         }
@@ -444,7 +444,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         {
             var tensor = new TensorProto();
             tensor.Name = name;
-            tensor.DataType = TensorProto.Types.DataType.String;
+            tensor.DataType = (int)TensorProto.Types.DataType.String;
             tensor.StringData.AddRange(StringToByteString(values));
             if (dims != null)
                 tensor.Dims.AddRange(dims);
