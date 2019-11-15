@@ -64,18 +64,13 @@ namespace Microsoft.ML.Data
             for (int i = 0; i < _estimators.Length; i++)
             {
                 var est = _estimators[i];
-                System.Console.WriteLine("\nEstimatorChain.Fit: " + est + ".Fit");
                 xfs[i] = est.Fit(current);
-                System.Console.WriteLine("EstimatorChain.Fit: Finished fitting " + est + " - xfs[" + i + "]: " + xfs[i] + "\n");
-                System.Console.WriteLine("\nEstimatorChain.Fit: " + xfs[i] + ".Transform");
                 current = xfs[i].Transform(current);
-                System.Console.WriteLine("EstimatorChain.Fit: Finished " + xfs[i] + ".Transform - " + current + "\n");
                 if (_needCacheAfter[i] && i < _estimators.Length - 1)
                 {
                     Contracts.AssertValue(_host);
                     current = new CacheDataView(_host, current, null);
                 }
-                System.Console.WriteLine("Done with estimator [" + i + "]\n");
             }
 
             return new TransformerChain<TLastTransformer>(xfs, _scopes);

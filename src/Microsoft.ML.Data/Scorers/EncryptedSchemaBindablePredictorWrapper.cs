@@ -124,7 +124,6 @@ namespace Microsoft.ML.Data
 
         private protected override ISchemaBoundMapper BindCore(IChannel ch, RoleMappedSchema schema)
         {
-            System.Console.WriteLine("? -> EncryptedSchemaBindableBinaryPredictorWrapper.BindCore");
             if (Predictor.PredictionKind != PredictionKind.BinaryClassification)
                 ch.Warning("Scoring predictor of kind '{0}' as '{1}'.", Predictor.PredictionKind, PredictionKind.BinaryClassification);
 
@@ -150,7 +149,6 @@ namespace Microsoft.ML.Data
 
             public EncryptedCalibratedRowMapper(RoleMappedSchema schema, EncryptedSchemaBindableBinaryPredictorWrapper parent)
             {
-                System.Console.WriteLine("? -> EncryptedCalibratedRowMapper.EncryptedCalibratedRowMapper");
                 Contracts.AssertValue(parent);
                 Contracts.Assert(parent._distMapper != null);
                 Contracts.AssertValue(schema);
@@ -187,7 +185,6 @@ namespace Microsoft.ML.Data
 
             private Delegate[] CreateGetters(DataViewRow input, bool[] active)
             {
-                System.Console.WriteLine("? -> EncryptedCalibratedRowMapper.CreateGetters");
                 Contracts.Assert(Utils.Size(active) == 2);
                 Contracts.Assert(_parent._distMapper != null);
 
@@ -195,16 +192,13 @@ namespace Microsoft.ML.Data
                 if (active[0] || active[1])
                 {
                     // Put all captured locals at this scope.
-                    System.Console.WriteLine("EncryptedCalibratedRowMapper.CreateGetters: " + input + ".GetGetter");
                     var featureGetter = InputRoleMappedSchema.Feature.HasValue ? input.GetGetter<VBuffer<float>>(InputRoleMappedSchema.Feature.Value) : null;
-                    System.Console.WriteLine("EncryptedCalibratedRowMapper.CreateGetters: " + input + ".GetGetter returns " + featureGetter);
                     float prob = 0;
                     float score = 0;
                     long cachedPosition = -1;
                     var features = default(VBuffer<float>);
                     ValueMapper<VBuffer<float>, float, float> mapper;
 
-                    System.Console.WriteLine("EncryptedCalibratedRowMapper.CreateGetters: " + _parent + "." + _parent._distMapper + ".GetMapper");
                     mapper = _parent._distMapper.GetMapper<VBuffer<float>, float, float>();
                     if (active[0])
                     {
@@ -247,10 +241,8 @@ namespace Microsoft.ML.Data
 
             DataViewRow ISchemaBoundRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
-                System.Console.WriteLine("? -> EncryptedCalibratedRowMapper.ISchemaBoundRowMapper.GetRow");
                 Contracts.AssertValue(input);
                 var active = Utils.BuildArray(OutputSchema.Count, activeColumns);
-                System.Console.WriteLine("EncryptedCalibratedRowMapper.ISchemaBoundRowMapper.GetRow: CreateGetters");
                 var getters = CreateGetters(input, active);
                 return new SimpleRow(OutputSchema, input, getters);
             }

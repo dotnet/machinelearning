@@ -127,7 +127,6 @@ namespace Microsoft.ML.SEAL
 
         private protected override CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> CreatePredictor(VBuffer<float>[] weights, float[] bias)
         {
-            System.Console.WriteLine("SdcaTrainerBase.CreatePredictor -> EncryptedSdcaBinary.CreatePredictor");
             Host.CheckParam(Utils.Size(weights) == 1, nameof(weights));
             Host.CheckParam(Utils.Size(bias) == 1, nameof(bias));
             Host.CheckParam(weights[0].Length > 0, nameof(weights));

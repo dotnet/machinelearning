@@ -29,7 +29,6 @@ namespace Microsoft.ML.Trainers
 
         private protected override TModel TrainModelCore(TrainContext context)
         {
-            System.Console.WriteLine("TrainerEstimatorBase.TrainModelCore -> StochasticTrainerBase.TrainModelCore");
             Host.CheckValue(context, nameof(context));
             using (var ch = Host.Start("Training"))
             {
@@ -41,7 +40,6 @@ namespace Microsoft.ML.Trainers
                 linInitPred = linInitPred ?? initPred as LinearModelParameters;
                 Host.CheckParam(context.InitialPredictor == null || linInitPred != null, nameof(context),
                     "Initial predictor was not a linear predictor.");
-                System.Console.WriteLine("StochasticTrainerBase.TrainModelCore: TrainCore");
                 return TrainCore(ch, preparedData, linInitPred, weightSetCount);
             }
         }

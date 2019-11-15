@@ -310,13 +310,11 @@ namespace Microsoft.ML.Trainers
 
         private protected float WDot(in VBuffer<float> features, in VBuffer<float> weights, float bias)
         {
-            //System.Console.WriteLine("? -> SdcaTrainerBase.WDot");
             return VectorUtils.DotProduct(in weights, in features) + bias;
         }
 
         private protected sealed override TModel TrainCore(IChannel ch, RoleMappedData data, LinearModelParameters predictor, int weightSetCount)
         {
-            System.Console.WriteLine("StochasticTrainerBase.TrainCore -> SdcaTrainerBase.TrainCore");
             Contracts.Assert(predictor == null, "SDCA based trainers don't support continuous training.");
             Contracts.Assert(weightSetCount >= 1);
 
@@ -669,7 +667,6 @@ namespace Microsoft.ML.Trainers
                 for (int i = 0; i < weightSetCount; i++)
                     bias[i] = biasReg[i] + biasUnreg[i];
             }
-            System.Console.WriteLine("SdcaTrainerBase.TrainCore: CreatePredictor");
             return CreatePredictor(weights, bias);
         }
 
@@ -1547,7 +1544,6 @@ namespace Microsoft.ML.Trainers
         private protected override BinaryPredictionTransformer<TModelParameters> MakeTransformer(TModelParameters model, DataViewSchema trainSchema)
             //=> new BinaryPredictionTransformer<TModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
         {
-            System.Console.WriteLine("TrainerEstimatorBase.MakeTransformer -> SdcaBinary.MakeTransformer");
             return new BinaryPredictionTransformer<TModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
         }
     }

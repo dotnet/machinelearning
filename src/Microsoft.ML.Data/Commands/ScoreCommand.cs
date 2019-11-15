@@ -365,7 +365,6 @@ namespace Microsoft.ML.Data
             IComponentFactory<IPredictor, ISchemaBindableMapper> mapperFactory = null,
             ICommandLineComponentFactory scorerFactorySettings = null)
         {
-            System.Console.WriteLine("? -> ScoreUtils.GetSchemaBindableMapper");
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(predictor, nameof(predictor));
             env.CheckValueOrNull(mapperFactory);
@@ -386,15 +385,10 @@ namespace Microsoft.ML.Data
 
             // Use one of the standard wrappers.
             if (predictor is IValueMapperTwoToOne)
-            {
-                System.Console.WriteLine("ScoreUtils.GetSchemaBindableMapper: " + predictor + " is IValueMapperTwoToOne");
                 return new EncryptedSchemaBindableBinaryPredictorWrapper(predictor);
-            }
 
             if (predictor is IValueMapperDist)
-            {
                 return new SchemaBindableBinaryPredictorWrapper(predictor);
-            }
 
             return new SchemaBindablePredictorWrapper(predictor);
         }

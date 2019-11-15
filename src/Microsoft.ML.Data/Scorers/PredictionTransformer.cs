@@ -145,9 +145,7 @@ namespace Microsoft.ML.Data
         /// <returns>The transformed <see cref="IDataView"/></returns>
         public IDataView Transform(IDataView input)
         {
-            System.Console.WriteLine("? -> PredictionTransformerBase.Transform");
             Host.CheckValue(input, nameof(input));
-            System.Console.WriteLine("PredictionTransformerBase.Transform: ApplyToData");
             return Scorer.ApplyToData(Host, input);
         }
 

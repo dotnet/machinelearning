@@ -318,13 +318,11 @@ namespace Microsoft.ML.Calibrators
 
         ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
-            System.Console.WriteLine("? -> ValueMapperCalibratedModelParametersBase.IValueMapper.GetMapper");
             return _mapper.GetMapper<TIn, TOut>();
         }
 
         ValueMapper<TIn, TOut, TDist> IValueMapperDist.GetMapper<TIn, TOut, TDist>()
         {
-            System.Console.WriteLine("? -> ValueMapperCalibratedModelParametersBase.IValueMapperDist.GetMapper");
             Host.Check(typeof(TOut) == typeof(float));
             Host.Check(typeof(TDist) == typeof(float));
             var map = ((IValueMapper)this).GetMapper<TIn, float>();
@@ -341,7 +339,6 @@ namespace Microsoft.ML.Calibrators
         {
             // REVIEW: checking this a bit too late.
             Host.Check(_featureContribution != null, "Predictor does not implement IFeatureContributionMapper");
-            System.Console.WriteLine("? -> ValueMapperCalibratedModelParametersBase.GetFeatureContributionMapper");
             return _featureContribution.GetFeatureContributionMapper<TSrc, TDst>(top, bottom, normalize);
         }
 
@@ -688,7 +685,6 @@ namespace Microsoft.ML.Calibrators
 
             DataViewRow ISchemaBoundRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
-                System.Console.WriteLine("Bound.ISchemaBoundRowMapper.GetRow");
                 var predictorRow = _predictor.GetRow(input, activeColumns.Count() > 0 ? OutputSchema : Enumerable.Empty<DataViewSchema.Column>());
                 var getters = new Delegate[OutputSchema.Count];
 

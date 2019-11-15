@@ -62,13 +62,11 @@ namespace Microsoft.ML.SEAL
 
         ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
-            System.Console.WriteLine("? -> EncryptedValueMapperCalibratedModelParametersBase.IValueMapper.GetMapper");
             return _mapper.GetMapper<TIn, TOut>();
         }
 
         ValueMapper<TIn, TOut, TDist> IValueMapperDist.GetMapper<TIn, TOut, TDist>()
         {
-            System.Console.WriteLine("? -> EncryptedValueMapperCalibratedModelParametersBase.IValueMapperDist.GetMapper");
             Host.Check(typeof(TOut) == typeof(float));
             Host.Check(typeof(TDist) == typeof(float));
             var map = ((IValueMapper)this).GetMapper<TIn, float>();
@@ -83,7 +81,6 @@ namespace Microsoft.ML.SEAL
 
         ValueMapperTwoToOne<TSrc, TKey, TDst> IValueMapperTwoToOne.GetMapper<TSrc, TKey, TDst>()
         {
-            System.Console.WriteLine("? -> EncryptedValueMapperCalibratedModelParametersBase.IValueMapperTwoToOne.GetMapper");
             Host.Check(typeof(TSrc) == typeof(Ciphertext[]));
             Host.Check(typeof(TKey) == typeof(GaloisKeys));
             Host.Check(typeof(TDst) == typeof(Ciphertext[]));
@@ -94,7 +91,6 @@ namespace Microsoft.ML.SEAL
         {
             // REVIEW: checking this a bit too late.
             Host.Check(_featureContribution != null, "Predictor does not implement IFeatureContributionMapper");
-            System.Console.WriteLine("? -> EncryptedValueMapperCalibratedModelParametersBase.GetFeatureContributionMapper");
             return _featureContribution.GetFeatureContributionMapper<TSrc, TDst>(top, bottom, normalize);
         }
 
@@ -223,7 +219,6 @@ namespace Microsoft.ML.SEAL
 
         public void GetFeatureWeights(ref VBuffer<float> weights)
         {
-            System.Console.WriteLine("? -> EncryptedParameterMixingCalibratedModelParameters.GetFeatureWeights");
             _featureWeights.GetFeatureWeights(ref weights);
         }
 

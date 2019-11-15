@@ -64,7 +64,6 @@ namespace Microsoft.ML.Data
 
         public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
-            System.Console.WriteLine("? -> TransformBase.GetRowCursor");
             Host.CheckValueOrNull(rand);
 
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
@@ -77,14 +76,12 @@ namespace Microsoft.ML.Data
             // instead of before. This is likely to produce better performance, for example, when
             // this is RangeFilter.
             DataViewRowCursor curs;
-            System.Console.WriteLine("TransformBase.GetRowCursor: TryCreateConsolidatingCursor");
             if (useParallel != false &&
                 DataViewUtils.TryCreateConsolidatingCursor(out curs, this, columnsNeeded, Host, rng))
             {
                 return curs;
             }
 
-            System.Console.WriteLine("TransformBase.GetRowCursor: GetRowCursorCore");
             return GetRowCursorCore(columnsNeeded, rng);
         }
 
@@ -741,7 +738,6 @@ namespace Microsoft.ML.Data
 
         public sealed override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
-            System.Console.WriteLine("OneToOneTransformBase.GetRowCursorSet");
             Host.CheckValueOrNull(rand);
 
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);

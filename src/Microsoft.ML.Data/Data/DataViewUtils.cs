@@ -113,7 +113,6 @@ namespace Microsoft.ML.Data
         public static bool TryCreateConsolidatingCursor(out DataViewRowCursor curs,
             IDataView view, IEnumerable<DataViewSchema.Column> columnsNeeded, IHost host, Random rand)
         {
-            System.Console.WriteLine("? -> DataViewUtils.TryCreateConsolidatingCursor");
             Contracts.CheckValue(host, nameof(host));
             host.CheckValue(view, nameof(view));
 
@@ -125,7 +124,6 @@ namespace Microsoft.ML.Data
                 return false;
             }
 
-            System.Console.WriteLine("DataViewUtils.TryCreateConsolidatingCursor: GetRowCursorSet");
             var inputs = view.GetRowCursorSet(columnsNeeded, cthd, rand);
             host.Check(Utils.Size(inputs) > 0);
 
@@ -138,7 +136,6 @@ namespace Microsoft.ML.Data
                 // strike a nice balance between a size large enough to benefit from parallelism but
                 // small enough so as to not be too onerous to keep in memory.
                 const int batchSize = 64;
-                System.Console.WriteLine("DataViewUtils.TryCreateConsolidatingCursor: ConsolidateGeneric");
                 curs = DataViewUtils.ConsolidateGeneric(host, inputs, batchSize);
             }
             return true;
@@ -258,7 +255,6 @@ namespace Microsoft.ML.Data
         /// </summary>
         public static DataViewRowCursor ConsolidateGeneric(IChannelProvider provider, DataViewRowCursor[] inputs, int batchSize)
         {
-            System.Console.WriteLine("? -> DataViewUtils.ConsolidateGeneric");
             Contracts.CheckValue(provider, nameof(provider));
             provider.CheckNonEmpty(inputs, nameof(inputs));
             provider.CheckParam(batchSize >= 0, nameof(batchSize));
@@ -267,7 +263,6 @@ namespace Microsoft.ML.Data
                 return inputs[0];
 
             object[] pools = null;
-            System.Console.WriteLine("DataViewUtils.ConsolidateGeneric Consolidate");
             return Splitter.Consolidate(provider, inputs, batchSize, ref pools);
         }
 
@@ -319,7 +314,6 @@ namespace Microsoft.ML.Data
 
             public static DataViewRowCursor Consolidate(IChannelProvider provider, DataViewRowCursor[] inputs, int batchSize, ref object[] ourPools)
             {
-                System.Console.WriteLine("? -> Splitter.Consolidate");
                 Contracts.AssertValue(provider);
                 using (var ch = provider.Start("Consolidate"))
                 {
@@ -329,7 +323,6 @@ namespace Microsoft.ML.Data
 
             private static DataViewRowCursor ConsolidateCore(IChannelProvider provider, DataViewRowCursor[] inputs, ref object[] ourPools, IChannel ch)
             {
-                System.Console.WriteLine("? -> Splitter.ConsolidateCore");
                 ch.CheckNonEmpty(inputs, nameof(inputs));
                 if (inputs.Length == 1)
                     return inputs[0];
@@ -478,7 +471,6 @@ namespace Microsoft.ML.Data
                     Task.WaitAll(workers);
                 };
 
-                System.Console.WriteLine("Splitter.ConsolidateCore: Cursor");
                 return new Cursor(provider, schema, activeToCol, colToActive, outPipes, toConsume, quitAction);
             }
 

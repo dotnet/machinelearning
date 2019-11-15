@@ -177,7 +177,6 @@ namespace Microsoft.ML.Data
         /// <param name="randomSeed">The random seed to use. If <c>null</c>, the cursor will be non-randomized.</param>
         public RowCursor<TRow> GetCursor(Func<int, bool> additionalColumnsPredicate, int? randomSeed = null)
         {
-            System.Console.WriteLine("? -> TypedCursorable.GetCursor");
             _host.CheckValue(additionalColumnsPredicate, nameof(additionalColumnsPredicate));
 
             Random rand = randomSeed.HasValue ? RandomUtils.Create(randomSeed.Value) : null;
@@ -185,7 +184,6 @@ namespace Microsoft.ML.Data
             var deps = GetDependencies(additionalColumnsPredicate);
 
             var inputCols = _data.Schema.Where(x => deps(x.Index));
-            System.Console.WriteLine("TypedCursorable.GetCursor: GetRowCursor");
             var cursor = _data.GetRowCursor(inputCols, rand);
             return new RowCursorImplementation(new TypedCursor(this, cursor));
         }

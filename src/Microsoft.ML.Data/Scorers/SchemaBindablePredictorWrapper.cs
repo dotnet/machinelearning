@@ -516,7 +516,6 @@ namespace Microsoft.ML.Data
 
             private Delegate[] CreateGetters(DataViewRow input, bool[] active)
             {
-                System.Console.WriteLine("? -> CalibratedRowMapper.CreateGetters");
                 Contracts.Assert(Utils.Size(active) == 2);
                 Contracts.Assert(_parent._distMapper != null);
 
@@ -524,16 +523,13 @@ namespace Microsoft.ML.Data
                 if (active[0] || active[1])
                 {
                     // Put all captured locals at this scope.
-                    System.Console.WriteLine("CalibratedRowMapper.CreateGetters: " + input + ".GetGetter");
                     var featureGetter = InputRoleMappedSchema.Feature.HasValue ? input.GetGetter<VBuffer<float>>(InputRoleMappedSchema.Feature.Value) : null;
-                    System.Console.WriteLine("CalibratedRowMapper.CreateGetters: " + input + ".GetGetter returns " + featureGetter);
                     float prob = 0;
                     float score = 0;
                     long cachedPosition = -1;
                     var features = default(VBuffer<float>);
                     ValueMapper<VBuffer<float>, float, float> mapper;
 
-                    System.Console.WriteLine("CalibratedRowMapper.CreateGetters: " + _parent + "." + _parent._distMapper + ".GetMapper");
                     mapper = _parent._distMapper.GetMapper<VBuffer<float>, float, float>();
                     if (active[0])
                     {
@@ -576,10 +572,8 @@ namespace Microsoft.ML.Data
 
             DataViewRow ISchemaBoundRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
-                System.Console.WriteLine("? -> CalibratedRowMapper.ISchemaBoundRowMapper.GetRow");
                 Contracts.AssertValue(input);
                 var active = Utils.BuildArray(OutputSchema.Count, activeColumns);
-                System.Console.WriteLine("CalibratedRowMapper.ISchemaBoundRowMapper.GetRow: CreateGetters");
                 var getters = CreateGetters(input, active);
                 return new SimpleRow(OutputSchema, input, getters);
             }
