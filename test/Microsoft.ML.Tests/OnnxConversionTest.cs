@@ -997,6 +997,56 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
+        private class HashData
+        {
+            public ReadOnlyMemory<char> Education { get; set; }
+        }
+
+        [Fact]
+        public void MurmurHashTest()
+        {
+            var mlContext = new MLContext();
+
+            var samples = new[]
+            {
+                new HashData {Education = "alibaba".AsMemory()},
+                //new DataP {Education = "0-5yrs"},
+                //new DataP {Education = "6-11yrs"},
+                //new DataP {Education = "6-11yrs"},
+                //new DataP {Education = "11-15yrs"}
+            };
+
+            IDataView data = mlContext.Data.LoadFromEnumerable(samples);
+            //ta.GetRowCursor.Schema[0].Type = KeyDataViewType;
+
+            var hashEstimator = new HashingEstimator(Env, "Education");
+            //var modelPath = "MurmurHashModel.zip";
+            var model = hashEstimator.Fit(data);
+            //mlContext.Model.Save(model, data.Schema, modelPath);
+            var hashTransformedData = model.Transform(data);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
+
+            var onnxFileName = "MurmurHashV2.onnx";
+            var onnxTextName = "MurmurHashV2.txt";
+            var onnxModelPath = GetOutputPath(onnxFileName);
+            var onnxTextPath = GetOutputPath(onnxTextName);
+
+            SaveOnnxModel(onnxModel, onnxModelPath, onnxTextPath);
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
+            {
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(data);
+                var onnxResult = onnxTransformer.Transform(data);
+                CompareSelectedScalarColumns<uint>("Education", outputNames[0], hashTransformedData, onnxResult);
+            }
+
+            Done();
+        }
+        
         private void CreateDummyExamplesToMakeComplierHappy()
         {
             var dummyExample = new BreastCancerFeatureVector() { Features = null };
@@ -1033,6 +1083,29 @@ namespace Microsoft.ML.Tests
                 CompareSelectedR4VectorColumns(leftColumnName, rightColumnName, left, right);
             else if (leftType == NumberDataViewType.Double)
                 CompareSelectedVectorColumns<double>(leftColumnName, rightColumnName, left, right);
+        }
+
+        private void CompareSelectedScalarColumns<T>(string leftColumnName, string rightColumnName, IDataView left, IDataView right)
+        {
+            var leftColumn = left.Schema[leftColumnName];
+            var rightColumn = right.Schema[rightColumnName];
+
+            using (var expectedCursor = left.GetRowCursor(leftColumn))
+            using (var actualCursor = right.GetRowCursor(rightColumn))
+            {
+                T expected = default;
+                VBuffer<T> actual = default;
+                var expectedGetter = expectedCursor.GetGetter<T>(leftColumn);
+                var actualGetter = actualCursor.GetGetter<VBuffer<T>>(rightColumn);
+                while (expectedCursor.MoveNext() && actualCursor.MoveNext())
+                {
+                    expectedGetter(ref expected);
+                    actualGetter(ref actual);
+
+                    Assert.Equal(1, actual.Length);
+                    Assert.Equal(expected, actual.GetItemOrDefault(0));
+                }
+            }
         }
 
         private void CompareSelectedVectorColumns<T>(string leftColumnName, string rightColumnName, IDataView left, IDataView right)
