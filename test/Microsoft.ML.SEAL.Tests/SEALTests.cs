@@ -96,6 +96,7 @@ namespace Microsoft.ML.Tests.SEAL
         }
          */
 
+        /*
         [Fact]
         public void EncryptedEvaluation()
         {
@@ -177,5 +178,6 @@ namespace Microsoft.ML.Tests.SEAL
                 Assert.Equal(rawPrediction.unencrypted, rawPrediction.encrypted);
             }
         }
+        */
     }
 }
