@@ -591,7 +591,7 @@ namespace Microsoft.ML.Transforms
                 try
                 {
                     int circularIndex = 0;
-                    while (await _toProduce.OutputAvailableAsync())
+                    while (await _toProduce.OutputAvailableAsync().ConfigureAwait(false))
                     {
                         int requested;
                         if (!_toProduce.TryReceive(out requested))
