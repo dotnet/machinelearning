@@ -105,6 +105,167 @@ namespace Microsoft.ML.Internal.Utilities
             return hash;
         }
 
+        private static unsafe uint MurmurRoundV2(uint hash, byte* key, int len)
+        {
+            int nblocks = len / 4;
+            byte* data = key;
+            uint* blocks = (uint*)(data + nblocks * 4);
+
+            for (int i = -nblocks; i!=0; i++)
+            {
+                uint chunk = blocks[i];
+                chunk *= 0xCC9E2D51;
+                chunk = Rotate(chunk, 15);
+                chunk *= 0x1B873593;
+
+                hash ^= chunk;
+                hash = Rotate(hash, 13);
+                hash *= 5;
+                hash += 0xE6546B64;
+            }
+
+            byte* tail = (byte*)(data + nblocks * 4);
+
+            uint k1 = 0;
+
+            switch (len & 3)
+            {
+                case 3:
+                    k1 ^= (uint)tail[2] << 16;
+                    goto case 2;
+                case 2:
+                    k1 ^= (uint)tail[1] << 8;
+                    goto case 1;
+                case 1:
+                    k1 ^= tail[0];
+                    k1 *= 0xCC9E2D51; k1 = Rotate(k1, 15);
+                    k1 *= 0x1B873593;
+                    hash ^= k1;
+                    break;
+            }
+
+            return hash;
+        }
+
+        public static uint MurmurRoundFloat(uint hash, float chunk)
+        {
+            unsafe
+            {
+                float* keys = &chunk;
+                byte* key;
+                key = (byte*)keys;
+                return MurmurRoundV2(hash, key, 4);
+            }
+        }
+
+        public static uint MurmurRoundDouble(uint hash, double chunk)
+        {
+            unsafe
+            {
+                double* keys = &chunk;
+                byte* key;
+                key = (byte*)keys;
+                return MurmurRoundV2(hash, key, 4);
+            }
+        }
+
+        public static uint MurmurRoundText(uint hash, string chunk)
+        {
+            unsafe
+            {
+                byte[] utf16Bytes = Encoding.Unicode.GetBytes(chunk);
+                byte[] utf8Bytes = Encoding.Convert(Encoding.Unicode, Encoding.UTF8, utf16Bytes);
+                fixed (byte* key = utf8Bytes)
+                return MurmurRoundV2(hash, key, chunk.Length);
+            }
+        }
+
+        public static uint MurmurRoundU1(uint hash, byte chunk)
+        {
+            unsafe
+            {
+                byte* key = &chunk;
+                return MurmurRoundV2(hash, key, 1);
+            }
+        }
+
+        public static uint MurmurRoundU2(uint hash, ushort chunk)
+        {
+            unsafe
+            {
+                ushort* keys = &chunk;
+                byte* key;
+                key = (byte*)keys;
+                return MurmurRoundV2(hash, key, 2);
+            }
+        }
+
+        public static uint MurmurRoundU4(uint hash, uint chunk)
+        {
+            unsafe
+            {
+                uint* keys = &chunk;
+                byte* key;
+                key = (byte*)keys;
+                return MurmurRoundV2(hash, key, 4);
+            }
+        }
+
+        public static uint MurmurRoundU8(uint hash, ulong chunk)
+        {
+            unsafe
+            {
+                ulong* keys = &chunk;
+                byte* key;
+                key = (byte*)keys;
+                return MurmurRoundV2(hash, key, 8);
+            }
+        }
+
+        public static uint MurmurRoundI1(uint hash, sbyte chunk)
+        {
+            unsafe
+            {
+                sbyte* keys = &chunk;
+                byte* key;
+                key = (byte*)keys;
+                return MurmurRoundV2(hash, key, 1);
+            }
+        }
+
+        public static uint MurmurRoundI2(uint hash, short chunk)
+        {
+            unsafe
+            {
+                short* keys = &chunk;
+                byte* key;
+                key = (byte*)keys;
+                return MurmurRoundV2(hash, key, 1);
+            }
+        }
+
+        public static uint MurmurRoundI4(uint hash, int chunk)
+        {
+            unsafe
+            {
+                int* keys = &chunk;
+                byte* key;
+                key = (byte*)keys;
+                return MurmurRoundV2(hash, key, 1);
+            }
+        }
+
+        public static uint MurmurRoundI8(uint hash, long chunk)
+        {
+            unsafe
+            {
+                long* keys = &chunk;
+                byte* key;
+                key = (byte*)keys;
+                return MurmurRoundV2(hash, key, 1);
+            }
+        }
+
         /// <summary>
         /// Implements the murmur hash 3 algorithm, using a mock UTF-8 encoding.
         /// The UTF-8 conversion ignores the possibilities of unicode planes other than the 0th.
@@ -276,6 +437,18 @@ namespace Microsoft.ML.Internal.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint MixHash(uint hash)
         {
+            hash ^= hash >> 16;
+            hash *= 0x85ebca6b;
+            hash ^= hash >> 13;
+            hash *= 0xc2b2ae35;
+            hash ^= hash >> 16;
+            return hash;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static uint MixHashV2(uint hash, int len)
+        {
+            hash ^= (uint)len;
             hash ^= hash >> 16;
             hash *= 0x85ebca6b;
             hash ^= hash >> 13;
