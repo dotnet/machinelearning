@@ -12,7 +12,8 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// <see cref="IEstimator{TTransformer}"/> for the
     /// <see cref="ValueToKeyMappingTransformer"/>. Converts a set of categorical
-    /// values (for example, US state abbreviations) into key values (1-50).
+    /// values (for example, US state abbreviations) into numerical key values (e.g. 1-50).
+    /// The numerical key can be used directly by classification algorithms.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
@@ -32,6 +33,8 @@ namespace Microsoft.ML.Transforms
     /// If the key is not found in the dictionary, it is assigned the missing value
     /// indicator.
     /// If multiple columns are used, each column builds exactly one dictionary.
+    /// The dictionary data is stored as an annotation in the schema, to enable
+    /// the reverse mapping to occur using [KeyToValueMappingEstimator](xref:Microsoft.ML.Transforms.KeyToValueMappingEstimator)
     ///
     /// Check the See Also section for links to usage examples.
     /// ]]></format>
@@ -114,7 +117,9 @@ namespace Microsoft.ML.Transforms
             /// <param name="keyOrdinality">The order in which keys are assigned.
             /// If set to <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByOccurrence"/>, keys are assigned in the order encountered.
             /// If set to <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByValue"/>, values are sorted, and keys are assigned based on the sort order.</param>
-            /// <param name="addKeyValueAnnotationsAsText">Whether key value annotations should be text, regardless of the actual input type.</param>
+            /// <param name="addKeyValueAnnotationsAsText">If set to true, use text type
+            /// for values, regardless of the actual input type. When doing the reverse
+            /// mapping, the values are text rather than the original input type.</param>
             public ColumnOptions(string outputColumnName, string inputColumnName = null,
                 int maximumNumberOfKeys = Defaults.MaximumNumberOfKeys,
                 KeyOrdinality keyOrdinality = Defaults.Ordinality,

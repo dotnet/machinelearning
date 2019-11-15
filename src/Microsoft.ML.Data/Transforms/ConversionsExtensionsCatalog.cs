@@ -214,7 +214,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create a <see cref="ValueToKeyMappingEstimator"/>, which converts categorical values into keys.
+        /// Create a <see cref="ValueToKeyMappingEstimator"/>, which converts categorical values into numerical keys.
         /// </summary>
         /// <param name="catalog">The conversion transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column containing the keys.</param>
@@ -225,7 +225,9 @@ namespace Microsoft.ML
         /// <param name="keyOrdinality">The order in which keys are assigned.
         /// If set to <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByOccurrence"/>, keys are assigned in the order encountered.
         /// If set to <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByValue"/>, values are sorted, and keys are assigned based on the sort order.</param>
-        /// <param name="addKeyValueAnnotationsAsText">Whether key value annotations should be text, regardless of the actual input type.</param>
+        /// <param name="addKeyValueAnnotationsAsText">If set to true, use text type
+        /// for values, regardless of the actual input type. When doing the reverse
+        /// mapping, the values are text rather than the original input type.</param>
         /// <param name="keyData">Use a pre-defined mapping between values and keys, instead of building
         /// the mapping from the input data during training. If specified, this should be a single column <see cref="IDataView"/> containing the values.
         /// The keys are allocated based on the value of keyOrdinality.</param>
@@ -258,7 +260,9 @@ namespace Microsoft.ML
         /// <param name="keyOrdinality">The order in which keys are assigned.
         /// If set to <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByOccurrence"/>, keys are assigned in the order encountered.
         /// If set to <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByValue"/>, values are sorted, and keys are assigned based on the sort order.</param>
-        /// <param name="addKeyValueAnnotationsAsText">Whether key value annotations should be text, regardless of the actual input type.</param>
+        /// <param name="addKeyValueAnnotationsAsText">If set to true, use text type
+        /// for values, regardless of the actual input type. When doing the reverse
+        /// mapping, the values are text rather than the original input type.</param>
         /// <param name="keyData">Use a pre-defined mapping between values and keys, instead of building
         /// the mapping from the input data during training. If specified, this should be a single column <see cref="IDataView"/> containing the values.
         /// The keys are allocated based on the value of keyOrdinality.</param>

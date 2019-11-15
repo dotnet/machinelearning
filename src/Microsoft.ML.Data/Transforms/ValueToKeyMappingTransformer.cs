@@ -37,12 +37,6 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// <see cref="ITransformer"/> resulting from fitting a <see cref="ValueToKeyMappingEstimator"/>.
     /// </summary>
-    /// <remarks>
-    /// Each column builds/uses exactly one dictionary.
-    /// Output columns are KeyType-valued.
-    /// The Key value is the one-based index of the item in the dictionary.
-    /// Not found is assigned the value zero.
-    /// </remarks>
     public sealed partial class ValueToKeyMappingTransformer : OneToOneTransformerBase
     {
         [BestFriend]

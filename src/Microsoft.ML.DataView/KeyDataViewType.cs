@@ -13,11 +13,11 @@ namespace Microsoft.ML.Data
     /// the values of labels in multiclass classification models.
     /// </summary>
     /// <remarks>
-    /// The underlying .NET type is one of the unsigned integer types. Most commonly
-    /// this is <see cref="uint"/>, but could be <see cref="byte"/>,
+    /// The underlying .NET type is one of the unsigned integer types. The default is
+    /// <see cref="uint"/>, but it can also be <see cref="byte"/>,
     /// <see cref="ushort"/>, or <see cref="ulong"/>.
-    /// Despite this, the information is not inherently numeric, so typically,
-    /// arithmetic is not meaningful.
+    /// Despite keys being numerical types, the information is not inherently numeric,
+    /// so typically, arithmetic is not meaningful.
     ///
     /// Missing values are mapped to 0.
     ///
