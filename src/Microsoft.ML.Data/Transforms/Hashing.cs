@@ -11,6 +11,7 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
@@ -122,8 +123,9 @@ namespace Microsoft.ML.Transforms
             return new VersionInfo(
                 modelSignature: "HASHTRNS",
                 // verWrittenCur: 0x00010001, // Initial
-                verWrittenCur: 0x00010002, // Invert hash key values, hash fix
-                verReadableCur: 0x00010002,
+                //verWrittenCur: 0x00010002, // Invert hash key values, hash fix
+                verWrittenCur: 0x00010003,
+                verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010002,
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(HashingTransformer).Assembly.FullName);
@@ -245,9 +247,15 @@ namespace Microsoft.ML.Transforms
             disposer = null;
             input.Schema.TryGetColumnIndex(_columns[iinfo].InputColumnName, out int srcCol);
             var srcType = input.Schema[srcCol].Type;
-            if (!(srcType is VectorDataViewType vectorType))
-                return ComposeGetterOne(input, iinfo, srcCol, srcType);
-            return ComposeGetterVec(input, iinfo, srcCol, vectorType);
+            if (GetVersionInfo().VerWrittenCur == 0x00010002)
+            {
+                if (!(srcType is VectorDataViewType vectorType))
+                    return ComposeGetterOne(input, iinfo, srcCol, srcType);
+                return ComposeGetterVec(input, iinfo, srcCol, vectorType);
+            }
+            if (!(srcType is VectorDataViewType vectorType2))
+                return ComposeGetterOneV2(input, iinfo, srcCol, srcType);
+            return ComposeGetterVec(input, iinfo, srcCol, vectorType2);
         }
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
@@ -378,6 +386,58 @@ namespace Microsoft.ML.Transforms
             return MakeScalarHashGetter<bool, HashBool>(input, srcCol, seed, mask);
         }
 
+        private ValueGetter<uint> ComposeGetterOneV2(DataViewRow input, int iinfo, int srcCol, DataViewType srcType)
+        {
+            Host.Assert(HashingEstimator.IsColumnTypeValid(srcType));
+
+            var mask = (1U << _columns[iinfo].NumberOfBits) - 1;
+            uint seed = _columns[iinfo].Seed;
+            // In case of single valued input column, hash in 0 for the slot index.
+            if (_columns[iinfo].UseOrderedHashing)
+                seed = Hashing.MurmurRound(seed, 0);
+
+            if (srcType is KeyDataViewType)
+            {
+                if (srcType.RawType == typeof(uint))
+                    return MakeScalarHashGetter<uint, HashKey4>(input, srcCol, seed, mask);
+                else if (srcType.RawType == typeof(ulong))
+                    return MakeScalarHashGetter<ulong, HashKey8>(input, srcCol, seed, mask);
+                else if (srcType.RawType == typeof(ushort))
+                    return MakeScalarHashGetter<ushort, HashKey2>(input, srcCol, seed, mask);
+
+                Host.Assert(srcType.RawType == typeof(byte));
+                return MakeScalarHashGetter<byte, HashKey1>(input, srcCol, seed, mask);
+            }
+
+            if (srcType.RawType == typeof(ReadOnlyMemory<char>))
+                return MakeScalarHashGetter<ReadOnlyMemory<char>, HashTextV2>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(float))
+                return MakeScalarHashGetter<float, HashFloatV2>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(double))
+                return MakeScalarHashGetter<double, HashDoubleV2>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(sbyte))
+                return MakeScalarHashGetter<sbyte, HashI1V2>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(short))
+                return MakeScalarHashGetter<short, HashI2V2>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(int))
+                return MakeScalarHashGetter<int, HashI4V2>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(long))
+                return MakeScalarHashGetter<long, HashI8V2>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(byte))
+                return MakeScalarHashGetter<byte, HashU1V2>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(ushort))
+                return MakeScalarHashGetter<ushort, HashU2V2>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(uint))
+                return MakeScalarHashGetter<uint, HashU4V2>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(ulong))
+                return MakeScalarHashGetter<ulong, HashU8V2>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(DataViewRowId))
+                return MakeScalarHashGetter<DataViewRowId, HashU16>(input, srcCol, seed, mask);
+
+            Host.Assert(srcType.RawType == typeof(bool));
+            return MakeScalarHashGetter<bool, HashBoolV2>(input, srcCol, seed, mask);
+        }
+
         private ValueGetter<VBuffer<uint>> ComposeGetterVec(DataViewRow input, int iinfo, int srcCol, VectorDataViewType srcType)
         {
             Host.Assert(HashingEstimator.IsColumnTypeValid(srcType.ItemType));
@@ -472,6 +532,13 @@ namespace Microsoft.ML.Transforms
                 => float.IsNaN(value) ? 0 : (Hashing.MixHash(Hashing.MurmurRound(seed, FloatUtils.GetBits(value == 0 ? 0 : value))) & mask) + 1;
         }
 
+        private readonly struct HashFloatV2 : IHasher<float>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in float value)
+                => float.IsNaN(value) ? 0 : (Hashing.MixHashV2(Hashing.MurmurRoundFloat(seed, value), 4));
+        }
+
         private readonly struct HashDouble : IHasher<double>
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -490,11 +557,29 @@ namespace Microsoft.ML.Transforms
             }
         }
 
+        private readonly struct HashDoubleV2 : IHasher<double>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in double value)
+                => double.IsNaN(value) ? 0 : (Hashing.MixHashV2(Hashing.MurmurRoundDouble(seed, value), 8));
+        }
+
         private readonly struct HashText : IHasher<ReadOnlyMemory<char>>
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in ReadOnlyMemory<char> value)
                 => value.IsEmpty ? 0 : (Hashing.MurmurHash(seed, value.Span.Trim(' ')) & mask) + 1;
+        }
+
+        private readonly struct HashTextV2 : IHasher<ReadOnlyMemory<char>>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in ReadOnlyMemory<char> value)
+            {
+                var len = value.Length;
+                string valueString = value.ToString();
+                return Hashing.MixHashV2(Hashing.MurmurRoundText(seed, valueString), len);
+            }
         }
 
         private readonly struct HashKey1 : IHasher<byte>
@@ -504,6 +589,13 @@ namespace Microsoft.ML.Transforms
                 => value == 0 ? 0 : (Hashing.MixHash(Hashing.MurmurRound(seed, value)) & mask) + 1;
         }
 
+        private readonly struct HashKey1V2 : IHasher<byte>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in byte value)
+                => value == 0 ? 0 : (Hashing.MixHashV2(Hashing.MurmurRoundU1(seed, value), 1) & mask) + 1;
+        }
+
         private readonly struct HashKey2 : IHasher<ushort>
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -511,11 +603,25 @@ namespace Microsoft.ML.Transforms
                 => value == 0 ? 0 : (Hashing.MixHash(Hashing.MurmurRound(seed, value)) & mask) + 1;
         }
 
+        private readonly struct HashKey2V2 : IHasher<ushort>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in ushort value)
+                => value == 0 ? 0 : (Hashing.MixHashV2(Hashing.MurmurRoundU2(seed, value), 2) & mask) + 1;
+        }
+
         private readonly struct HashKey4 : IHasher<uint>
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in uint value)
                 => value == 0 ? 0 : (Hashing.MixHash(Hashing.MurmurRound(seed, value)) & mask) + 1;
+        }
+
+        private readonly struct HashKey4V2 : IHasher<uint>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in uint value)
+                => value == 0 ? 0 : (Hashing.MixHashV2(Hashing.MurmurRoundU4(seed, value), 4) & mask) + 1;
         }
 
         private readonly struct HashKey8 : IHasher<ulong>
@@ -533,11 +639,25 @@ namespace Microsoft.ML.Transforms
             }
         }
 
+        private readonly struct HashKey8V2 : IHasher<ulong>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in ulong value)
+                => value == 0 ? 0 : (Hashing.MixHashV2(Hashing.MurmurRoundU8(seed, value), 8) & mask) + 1;
+        }
+
         private readonly struct HashU1 : IHasher<byte>
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in byte value)
                 => (Hashing.MixHash(Hashing.MurmurRound(seed, value)) & mask) + 1;
+        }
+
+        private readonly struct HashU1V2 : IHasher<byte>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in byte value)
+                => (Hashing.MixHashV2(Hashing.MurmurRoundU1(seed, value), 1) & mask);
         }
 
         private readonly struct HashU2 : IHasher<ushort>
@@ -547,11 +667,25 @@ namespace Microsoft.ML.Transforms
                 => (Hashing.MixHash(Hashing.MurmurRound(seed, value)) & mask) + 1;
         }
 
+        private readonly struct HashU2V2 : IHasher<ushort>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in ushort value)
+                => (Hashing.MixHashV2(Hashing.MurmurRoundU2(seed, value), 2) & mask);
+        }
+
         private readonly struct HashU4 : IHasher<uint>
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in uint value)
                 => (Hashing.MixHash(Hashing.MurmurRound(seed, value)) & mask) + 1;
+        }
+
+        private readonly struct HashU4V2 : IHasher<uint>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in uint value)
+                => (Hashing.MixHashV2(Hashing.MurmurRoundU4(seed, value), 4)); //&mask
         }
 
         private readonly struct HashU8 : IHasher<ulong>
@@ -565,6 +699,13 @@ namespace Microsoft.ML.Transforms
                     hash = Hashing.MurmurRound(hash, hi);
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
+        }
+
+        private readonly struct HashU8V2 : IHasher<ulong>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in ulong value)
+                => (Hashing.MixHashV2(Hashing.MurmurRoundU8(seed, value), 8) & mask); //&mask
         }
 
         private readonly struct HashU16 : IHasher<DataViewRowId>
@@ -594,11 +735,25 @@ namespace Microsoft.ML.Transforms
                 => (Hashing.MixHash(Hashing.MurmurRound(seed, value ? 1u : 0u)) & mask) + 1;
         }
 
+        private readonly struct HashBoolV2 : IHasher<bool>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in bool value)
+                => (Hashing.MixHashV2(Hashing.MurmurRoundU1(seed, value ? (byte)1 : (byte)0), 1) & mask);
+        }
+
         private readonly struct HashI1 : IHasher<sbyte>
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in sbyte value)
                 => (Hashing.MixHash(Hashing.MurmurRound(seed, (uint)value)) & mask) + 1;
+        }
+
+        private readonly struct HashI1V2 : IHasher<sbyte>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in sbyte value)
+                => (Hashing.MixHashV2(Hashing.MurmurRoundI1(seed, value),  1) & mask);
         }
 
         private readonly struct HashI2 : IHasher<short>
@@ -608,11 +763,25 @@ namespace Microsoft.ML.Transforms
                 => (Hashing.MixHash(Hashing.MurmurRound(seed, (uint)value)) & mask) + 1;
         }
 
+        private readonly struct HashI2V2 : IHasher<short>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in short value)
+                => (Hashing.MixHashV2(Hashing.MurmurRoundI2(seed, value), 2) & mask);
+        }
+
         private readonly struct HashI4 : IHasher<int>
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in int value)
                 => (Hashing.MixHash(Hashing.MurmurRound(seed, (uint)value)) & mask) + 1;
+        }
+
+        private readonly struct HashI4V2 : IHasher<int>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in int value)
+                => (Hashing.MixHashV2(Hashing.MurmurRoundI4(seed, value), 4) & mask);
         }
 
         private readonly struct HashI8 : IHasher<long>
@@ -626,6 +795,13 @@ namespace Microsoft.ML.Transforms
                     hash = Hashing.MurmurRound(hash, hi);
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
+        }
+
+        private readonly struct HashI8V2 : IHasher<long>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in long value)
+                => (Hashing.MixHashV2(Hashing.MurmurRoundI8(seed, value), 8) & mask);
         }
 
         private static ValueGetter<uint> MakeScalarHashGetter<T, THash>(DataViewRow input, int srcCol, uint seed, uint mask)
@@ -780,7 +956,7 @@ namespace Microsoft.ML.Transforms
             };
         }
 
-        private sealed class Mapper : OneToOneMapperBase
+        private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
         {
             private sealed class ColInfo
             {
@@ -834,6 +1010,59 @@ namespace Microsoft.ML.Transforms
             }
 
             protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer) => _parent.GetGetterCore(input, iinfo, out disposer);
+
+            private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariable, string dstVariable)
+            {
+                string opType;
+/*
+                opType = "Cast";
+                string castOutput = ctx.AddIntermediateVariable(_types[iinfo], "CastOutput", true);
+                var castNode = ctx.CreateNode(opType, srcVariable, castOutput, ctx.GetNodeName(opType), "");
+                var t = _types[iinfo].RawType;//OutputKind.ToInternalDataKind().ToType();
+                castNode.AddAttribute("to", t);*/
+
+                opType = "MurmurHash3";
+                string murmurOutput = ctx.AddIntermediateVariable(_types[iinfo], "MurmurOutput", true);
+                var murmurNode = ctx.CreateNode(opType, srcVariable, dstVariable, ctx.GetNodeName(opType), "com.microsoft");
+                murmurNode.AddAttribute("positive", 1);
+                var seed = _parent._columns[iinfo].Seed;
+                murmurNode.AddAttribute("seed", seed);
+
+                /*
+                opType = "And";
+                var mask = (1U << _parent._columns[iinfo].NumberOfBits) - 1;
+                string m = ctx.AddInitializer(mask);
+                string andOutput = ctx.AddIntermediateVariable(_types[iinfo], "andOutput", true);
+                var andNode = ctx.CreateNode(opType, new[] { murmurOutput, m}, new[] { andOutput}, ctx.GetNodeName(opType), "");
+
+                opType = "Add";
+                string one = ctx.AddInitializer(1);
+                var addNode = ctx.CreateNode(opType, new[] { andOutput, one }, new[] { dstVariable }, ctx.GetNodeName(opType), "");*/
+
+                return true;
+            }
+
+            void ISaveAsOnnx.SaveAsOnnx(OnnxContext ctx)
+            {
+                Host.CheckValue(ctx, nameof(ctx));
+                for (int iinfo = 0; iinfo < _parent._columns.Length; ++iinfo)
+                {
+                    var colName = _parent._columns[iinfo].Name;
+                    string inputColumnName = InputSchema[colName].Name;
+                    if (!ctx.ContainsColumn(inputColumnName))
+                    {
+                        ctx.RemoveColumn(inputColumnName, false);
+                        continue;
+                    }
+
+                    if (!SaveAsOnnxCore(ctx, iinfo, ctx.GetVariableName(inputColumnName), ctx.AddIntermediateVariable(_types[iinfo], inputColumnName)))
+                    {
+                        ctx.RemoveColumn(inputColumnName, true);
+                    }
+                }
+            }
+
+            bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
         }
 
         private abstract class InvertHashHelper
