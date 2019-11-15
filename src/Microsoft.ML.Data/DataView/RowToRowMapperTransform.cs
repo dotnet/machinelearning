@@ -210,9 +210,7 @@ namespace Microsoft.ML.Data
 
             var cursors = new DataViewRowCursor[inputs.Length];
             for (int i = 0; i < inputs.Length; i++)
-            {
                 cursors[i] = new Cursor(Host, inputs[i], this, active);
-            }
             return cursors;
         }
 
