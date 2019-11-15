@@ -74,11 +74,7 @@ namespace Microsoft.ML.Trainers
         /// Derived class can overload this function.
         /// For example, it could take an additional dataset to train with a separate validation set.
         /// </remarks>
-//        public TTransformer Fit(IDataView input) => TrainTransformer(input);
-        public TTransformer Fit(IDataView input)
-        {
-            return TrainTransformer(input);
-        }
+        public TTransformer Fit(IDataView input) => TrainTransformer(input);
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
