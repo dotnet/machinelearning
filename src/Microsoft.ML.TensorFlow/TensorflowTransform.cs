@@ -513,7 +513,17 @@ namespace Microsoft.ML.Transforms
 
                     var colTypeDims = vecType.Dimensions.Select(dim => (int)dim).ToArray();
                     if (shape == null || (shape.Length == 0))
+                    {
                         _fullySpecifiedShapes[i] = new TensorShape(colTypeDims);
+                        if (_parent._addBatchDimensionInput)
+                        {
+                            var l = new int[_fullySpecifiedShapes[i].ndim + 1];
+                            l[0] = 1;
+                            for (int ishape = 1; ishape < l.Length; ishape++)
+                                l[ishape] = _fullySpecifiedShapes[i].dims[ishape - 1];
+                            _fullySpecifiedShapes[i] = new TensorShape(l);
+                        }
+                    }
                     else
                     {
                         // If the column is one dimension we make sure that the total size of the TF shape matches.
@@ -532,28 +542,39 @@ namespace Microsoft.ML.Transforms
                         if (typeValueCount % valCount != 0)
                             throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {typeValueCount}.");
 
-                        // If the shape is multi-dimensional, we should be able to create the length of the vector by plugging
-                        // in a single value for the unknown shapes. For example, if the shape is [?,?,3], then there should exist a value
-                        // d such that d*d*3 is equal to the length of the input column.
-                        var d = numOfUnkDim > 0 ? Math.Pow(typeValueCount / valCount, 1.0 / numOfUnkDim) : 0;
-                        if (d - (int)d != 0)
-                            throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {typeValueCount}.");
-
-                        // Fill in the unknown dimensions.
                         var originalShapeNdim = originalShape.ndim;
                         var originalShapeDims = originalShape.dims;
-                        var l = new int[originalShapeNdim];
-                        for (int ishape = 0; ishape < originalShapeNdim; ishape++)
-                            l[ishape] = originalShapeDims[ishape] == -1 ? (int)d : originalShapeDims[ishape];
-                        _fullySpecifiedShapes[i] = new TensorShape(l);
-                    }
+                        var inputDataShapeNdim = colTypeDims.Length;
+                        int[] l = new int[originalShapeNdim];
+                        int inputDataIndex = 0;
+                        int tensorShapeIndex = 0;
 
-                    if (_parent._addBatchDimensionInput)
-                    {
-                        var l = new int[_fullySpecifiedShapes[i].ndim + 1];
-                        l[0] = 1;
-                        for (int ishape = 1; ishape < l.Length; ishape++)
-                            l[ishape] = _fullySpecifiedShapes[i].dims[ishape - 1];
+                        //If the input data passed has one dimension less than the expected input tensor shape
+                        // and _addBatchDimensionInput option is set to true, set the batch size as 1.
+                        if (originalShapeNdim - inputDataShapeNdim == 1 && _parent._addBatchDimensionInput)
+                        {
+                            l[0] = 1;
+                            tensorShapeIndex = 1;
+                        }
+                        // If the number of input data dimensions do not match with that of tensor dimensions, throw.
+                        else if(originalShapeNdim != inputDataShapeNdim)
+                          throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of shape {colTypeDims.ToString()}.");
+
+                        for (; tensorShapeIndex < originalShapeNdim; tensorShapeIndex++)
+                        {
+                            //Fill in tensor shape for unknown dims with input data shape.
+                            if (originalShapeDims[tensorShapeIndex] == -1)
+                            {
+                                l[tensorShapeIndex] = colTypeDims[inputDataIndex];
+                                inputDataIndex++;
+                            }
+                            // If the tensor shape dim is known, assert that input data dim matches with
+                            // expected tensor shape dim.
+                            else if(originalShapeDims[tensorShapeIndex] == colTypeDims[inputDataIndex])
+                                l[tensorShapeIndex] = originalShapeDims[tensorShapeIndex];
+                            else
+                                throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of shape {colTypeDims.ToString()}.");
+                        }
                         _fullySpecifiedShapes[i] = new TensorShape(l);
                     }
                 }
