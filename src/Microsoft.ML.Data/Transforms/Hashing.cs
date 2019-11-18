@@ -255,7 +255,7 @@ namespace Microsoft.ML.Transforms
             }
             if (!(srcType is VectorDataViewType vectorType2))
                 return ComposeGetterOneV2(input, iinfo, srcCol, srcType);
-            return ComposeGetterVec(input, iinfo, srcCol, vectorType2);
+            return ComposeGetterVecV2(input, iinfo, srcCol, vectorType2);
         }
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
@@ -483,6 +483,53 @@ namespace Microsoft.ML.Transforms
 
             Host.Assert(srcType.ItemType == TextDataViewType.Instance);
             return ComposeGetterVecCore<ReadOnlyMemory<char>, HashText>(input, iinfo, srcCol, srcType);
+        }
+
+        private ValueGetter<VBuffer<uint>> ComposeGetterVecV2(DataViewRow input, int iinfo, int srcCol, VectorDataViewType srcType)
+        {
+            Host.Assert(HashingEstimator.IsColumnTypeValid(srcType.ItemType));
+
+            Type rawType = srcType.ItemType.RawType;
+            if (srcType.ItemType is KeyDataViewType)
+            {
+                if (rawType == typeof(byte))
+                    return ComposeGetterVecCore<byte, HashKey1V2>(input, iinfo, srcCol, srcType);
+                else if (rawType == typeof(ushort))
+                    return ComposeGetterVecCore<ushort, HashKey2V2>(input, iinfo, srcCol, srcType);
+                else if (rawType == typeof(uint))
+                    return ComposeGetterVecCore<uint, HashKey4V2>(input, iinfo, srcCol, srcType);
+
+                Host.Assert(rawType == typeof(ulong));
+                return ComposeGetterVecCore<ulong, HashKey8V2>(input, iinfo, srcCol, srcType);
+            }
+
+            if (rawType == typeof(byte))
+                return ComposeGetterVecCore<byte, HashU1V2>(input, iinfo, srcCol, srcType);
+            else if (rawType == typeof(ushort))
+                return ComposeGetterVecCore<ushort, HashU2V2>(input, iinfo, srcCol, srcType);
+            else if (rawType == typeof(uint))
+                return ComposeGetterVecCore<uint, HashU4>(input, iinfo, srcCol, srcType);
+            else if (rawType == typeof(ulong))
+                return ComposeGetterVecCore<ulong, HashU8V2>(input, iinfo, srcCol, srcType);
+            else if (rawType == typeof(DataViewRowId))
+                return ComposeGetterVecCore<DataViewRowId, HashU16>(input, iinfo, srcCol, srcType);
+            else if (rawType == typeof(sbyte))
+                return ComposeGetterVecCore<sbyte, HashI1V2>(input, iinfo, srcCol, srcType);
+            else if (rawType == typeof(short))
+                return ComposeGetterVecCore<short, HashI2V2>(input, iinfo, srcCol, srcType);
+            else if (rawType == typeof(int))
+                return ComposeGetterVecCore<int, HashI4V2>(input, iinfo, srcCol, srcType);
+            else if (rawType == typeof(long))
+                return ComposeGetterVecCore<long, HashI8V2>(input, iinfo, srcCol, srcType);
+            else if (rawType == typeof(float))
+                return ComposeGetterVecCore<float, HashFloatV2>(input, iinfo, srcCol, srcType);
+            else if (rawType == typeof(double))
+                return ComposeGetterVecCore<double, HashDoubleV2>(input, iinfo, srcCol, srcType);
+            else if (rawType == typeof(bool))
+                return ComposeGetterVecCore<bool, HashBoolV2>(input, iinfo, srcCol, srcType);
+
+            Host.Assert(srcType.ItemType == TextDataViewType.Instance);
+            return ComposeGetterVecCore<ReadOnlyMemory<char>, HashTextV2>(input, iinfo, srcCol, srcType);
         }
 
         private ValueGetter<VBuffer<uint>> ComposeGetterVecCore<T, THash>(DataViewRow input, int iinfo, int srcCol, VectorDataViewType srcType)
