@@ -4,7 +4,7 @@
 
 using System;
 using System.IO;
-using System.Threading.Tasks;
+using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -48,10 +48,8 @@ namespace Microsoft.Extensions.ML
             Assert.True(prediction.Sentiment);
         }
 
-        //TODO: This is a quick test to give coverage of the main scenarios. Refactoring and re-implementing of tests should happen.
-        //Right now this screams of probably flakeyness
         [Fact]
-        public async Task can_reload_model()
+        public void can_reload_model()
         {
             var services = new ServiceCollection()
                 .AddOptions()
@@ -61,16 +59,14 @@ namespace Microsoft.Extensions.ML
             var loaderUnderTest = ActivatorUtilities.CreateInstance<FileLoaderMock>(sp);
             loaderUnderTest.Start("testdata.txt", true);
 
-            var changed = false;
-            var changeTokenRegistration = ChangeToken.OnChange(
+            using AutoResetEvent changed = new AutoResetEvent(false);
+            using IDisposable changeTokenRegistration = ChangeToken.OnChange(
                         () => loaderUnderTest.GetReloadToken(),
-                        () => changed = true);
+                        () => changed.Set());
 
             File.WriteAllText("testdata.txt", "test");
 
-            await Task.Delay(1000);
-
-            Assert.True(changed);
+            Assert.True(changed.WaitOne(1000), "FileLoader ChangeToken didn't fire before the allotted time.");
         }
 
 
