@@ -169,12 +169,11 @@ namespace Microsoft.ML.Internal.Utilities
             }
         }
 
-        public static uint MurmurRoundText(uint hash, string chunk)
+        public static uint MurmurRoundText(uint hash, ReadOnlyMemory<char> chunk)
         {
             unsafe
             {
-                byte[] utf16Bytes = Encoding.Unicode.GetBytes(chunk);
-                byte[] utf8Bytes = Encoding.Convert(Encoding.Unicode, Encoding.UTF8, utf16Bytes);
+                byte[] utf8Bytes = Encoding.UTF8.GetBytes(chunk.ToArray());
                 fixed (byte* key = utf8Bytes)
                 return MurmurRoundV2(hash, key, chunk.Length);
             }
