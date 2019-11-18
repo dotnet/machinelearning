@@ -5,9 +5,8 @@
 using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
-using Microsoft.ML.RunTests;
-using Microsoft.ML.TestFramework;
-using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Xunit;
@@ -15,7 +14,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Functional.Tests
 {
-    public class ONNX : BaseTestClass
+    public class ONNX : FunctionalTestBaseClass
     {
         public ONNX(ITestOutputHelper output) : base(output)
         {
@@ -30,7 +29,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1);
 
             // Get the dataset.
-            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(TestCommon.GetDataPath(DataDir, TestDatasets.housing.trainFilename), hasHeader: true);
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
@@ -44,7 +43,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Serialize the pipeline to a file.
             var modelFileName = "SaveOnnxLoadAndScoreFastTreeModel.onnx";
-            var modelPath = DeleteOutputPath(modelFileName);
+            var modelPath = TestCommon.DeleteOutputPath(OutDir, modelFileName);
             using (var file = File.Create(modelPath))
                 mlContext.Model.ConvertToOnnx(model, data, file);
 
@@ -85,7 +84,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1);
 
             // Get the dataset.
-            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(TestCommon.GetDataPath(DataDir, TestDatasets.housing.trainFilename), hasHeader: true);
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
@@ -99,7 +98,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Serialize the pipeline to a file.
             var modelFileName = "SaveOnnxLoadAndScoreKMeansModel.onnx";
-            var modelPath = DeleteOutputPath(modelFileName);
+            var modelPath = TestCommon.DeleteOutputPath(OutDir, modelFileName);
             using (var file = File.Create(modelPath))
                 mlContext.Model.ConvertToOnnx(model, data, file);
 
@@ -137,7 +136,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1);
 
             // Get the dataset.
-            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(TestCommon.GetDataPath(DataDir, TestDatasets.housing.trainFilename), hasHeader: true);
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
@@ -151,7 +150,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Serialize the pipeline to a file.
             var modelFileName = "SaveOnnxLoadAndScoreSdcaModel.onnx";
-            var modelPath = DeleteOutputPath(modelFileName);
+            var modelPath = TestCommon.DeleteOutputPath(OutDir, modelFileName);
             using (var file = File.Create(modelPath))
                 mlContext.Model.ConvertToOnnx(model, data, file);
 

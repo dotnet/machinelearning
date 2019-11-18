@@ -56,6 +56,11 @@ namespace Microsoft.ML.AutoML
                 return ColumnPurpose.ItemId;
             }
 
+            if (columnInfo.ImagePathColumnNames.Contains(columnName))
+            {
+                return ColumnPurpose.ImagePath;
+            }
+
             return null;
         }
 
@@ -94,6 +99,9 @@ namespace Microsoft.ML.AutoML
                     case ColumnPurpose.TextFeature:
                         columnInfo.TextColumnNames.Add(column.name);
                         break;
+                    case ColumnPurpose.ImagePath:
+                        columnInfo.ImagePathColumnNames.Add(column.name);
+                        break;
                 }
             }
 
@@ -121,6 +129,7 @@ namespace Microsoft.ML.AutoML
             AddStringsToListIfNotNull(columnNames, columnInformation.IgnoredColumnNames);
             AddStringsToListIfNotNull(columnNames, columnInformation.NumericColumnNames);
             AddStringsToListIfNotNull(columnNames, columnInformation.TextColumnNames);
+            AddStringsToListIfNotNull(columnNames, columnInformation.ImagePathColumnNames);
             return columnNames;
         }
 

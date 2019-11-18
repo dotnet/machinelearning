@@ -10,17 +10,18 @@ using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
-using Microsoft.ML.Dnn;
+using Microsoft.ML.Vision;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Image;
-using Microsoft.ML.Transforms.TensorFlow;
-using Tensorflow;
+using Microsoft.ML.TensorFlow;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.DataOperationsCatalog;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Scenarios
 {
@@ -1273,8 +1274,8 @@ namespace Microsoft.ML.Scenarios
             if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
                 (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))))
             {
-                Assert.InRange(metrics.MicroAccuracy, 0.3, 1);
-                Assert.InRange(metrics.MacroAccuracy, 0.3, 1);
+                Assert.InRange(metrics.MicroAccuracy, 0.2, 1);
+                Assert.InRange(metrics.MacroAccuracy, 0.2, 1);
             }
             else
             {
@@ -1288,6 +1289,7 @@ namespace Microsoft.ML.Scenarios
         [InlineData(ImageClassificationTrainer.Architecture.ResnetV2101)]
         [InlineData(ImageClassificationTrainer.Architecture.MobilenetV2)]
         [InlineData(ImageClassificationTrainer.Architecture.ResnetV250)]
+        [InlineData(ImageClassificationTrainer.Architecture.InceptionV3)]
         public void TensorFlowImageClassification(ImageClassificationTrainer.Architecture arch)
         {
             string assetsRelativePath = @"assets";
@@ -1337,7 +1339,7 @@ namespace Microsoft.ML.Scenarios
                 Epoch = 50,
                 BatchSize = 10,
                 LearningRate = 0.01f,
-                MetricsCallback = (metrics) => Console.WriteLine(metrics),
+                MetricsCallback = (metric) => Console.WriteLine(metric),
                 TestOnTrainSet = false,
                 ValidationSet = validationSet
             };
@@ -1368,8 +1370,8 @@ namespace Microsoft.ML.Scenarios
             if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
                 (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))))
             {
-                Assert.InRange(metrics.MicroAccuracy, 0.3, 1);
-                Assert.InRange(metrics.MacroAccuracy, 0.3, 1);
+                Assert.InRange(metrics.MicroAccuracy, 0.2, 1);
+                Assert.InRange(metrics.MacroAccuracy, 0.2, 1);
             }
             else
             {
@@ -1425,7 +1427,25 @@ namespace Microsoft.ML.Scenarios
         }
 
         [TensorFlowFact]
-        public void TensorFlowImageClassificationWithLRScheduling()
+        public void TensorFlowImageClassificationWithExponentialLRScheduling()
+        {
+            TensorFlowImageClassificationWithLRScheduling(new ExponentialLRDecay(), 50);
+        }
+
+        [TensorFlowFact]
+        public void TensorFlowImageClassificationWithPolynomialLRScheduling()
+        {
+
+            /*
+             * Due to an issue with Nix based os performance is not as good,
+             * as such increase the number of epochs to produce a better model.
+             */
+            bool isNix = (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
+                (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))));
+            TensorFlowImageClassificationWithLRScheduling(new PolynomialLRDecay(), isNix ? 75: 50);
+        }
+
+        internal void TensorFlowImageClassificationWithLRScheduling(LearningRateScheduler  learningRateScheduler, int epoch)
         {
             string assetsRelativePath = @"assets";
             string assetsPath = GetAbsolutePath(assetsRelativePath);
@@ -1471,22 +1491,20 @@ namespace Microsoft.ML.Scenarios
                 // ResnetV2101 you can try a different architecture/
                 // pre-trained model. 
                 Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
-                Epoch = 50,
+                Epoch = epoch,
                 BatchSize = 10,
                 LearningRate = 0.01f,
-                MetricsCallback = (metrics) => Console.WriteLine(metrics),
+                MetricsCallback = (metric) => Console.WriteLine(metric),
                 ValidationSet = validationSet,
                 ReuseValidationSetBottleneckCachedValues = false,
                 ReuseTrainSetBottleneckCachedValues = false,
                 EarlyStoppingCriteria = null,
-                // Using Exponential Decay for learning rate scheduling
-                // You can also try other types of Learning rate scheduling methods
-                // available in LearningRateScheduler.cs  
-                LearningRateScheduler = new ExponentialLRDecay()
+                LearningRateScheduler = learningRateScheduler,
+                WorkspacePath = GetTemporaryDirectory()
             };
 
             var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
-                .Append(mlContext.MulticlassClassification.Trainers.ImageClassification(options))
+                    .Append(mlContext.MulticlassClassification.Trainers.ImageClassification(options))
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(
                         outputColumnName: "PredictedLabel",
                         inputColumnName: "PredictedLabel"));
@@ -1512,8 +1530,8 @@ namespace Microsoft.ML.Scenarios
             if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
                 (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))))
             {
-                Assert.InRange(metrics.MicroAccuracy, 0.3, 1);
-                Assert.InRange(metrics.MacroAccuracy, 0.3, 1);
+                Assert.InRange(metrics.MicroAccuracy, 0.2, 1);
+                Assert.InRange(metrics.MacroAccuracy, 0.2, 1);
             }
             else
             {
@@ -1566,6 +1584,12 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal("roses", predictionSecond.PredictedLabel);
             Assert.True(Array.IndexOf(labels, predictionFirst.PredictedLabel) > -1);
             Assert.True(Array.IndexOf(labels, predictionSecond.PredictedLabel) > -1);
+
+            Assert.True(File.Exists(Path.Combine(options.WorkspacePath, options.TrainSetBottleneckCachedValuesFileName)));
+            Assert.True(File.Exists(Path.Combine(options.WorkspacePath, options.ValidationSetBottleneckCachedValuesFileName)));
+            Assert.True(File.Exists(Path.Combine(options.WorkspacePath, "TrainingSetSize.txt")));
+            Directory.Delete(options.WorkspacePath, true);
+            Assert.True(File.Exists(Path.Combine(Path.GetTempPath(), "MLNET", ImageClassificationTrainer.ModelFileName[options.Arch])));
         }
 
         [TensorFlowFact]
@@ -1617,10 +1641,11 @@ namespace Microsoft.ML.Scenarios
                 // ResnetV2101 you can try a different architecture/
                 // pre-trained model. 
                 Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
+                EarlyStoppingCriteria = new ImageClassificationTrainer.EarlyStopping(),
                 Epoch = 100,
                 BatchSize = 5,
                 LearningRate = 0.01f,
-                MetricsCallback = (metrics) => { Console.WriteLine(metrics); lastEpoch = metrics.Train != null ? metrics.Train.Epoch : 0; },
+                MetricsCallback = (metric) => { Console.WriteLine(metric); lastEpoch = metric.Train != null ? metric.Train.Epoch : 0; },
                 TestOnTrainSet = false,
                 ValidationSet = validationSet
             };
@@ -1648,8 +1673,8 @@ namespace Microsoft.ML.Scenarios
             if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
                 (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))))
             {
-                Assert.InRange(metrics.MicroAccuracy, 0.3, 1);
-                Assert.InRange(metrics.MacroAccuracy, 0.3, 1);
+                Assert.InRange(metrics.MicroAccuracy, 0.2, 1);
+                Assert.InRange(metrics.MacroAccuracy, 0.2, 1);
             }
             else
             {
@@ -1714,7 +1739,7 @@ namespace Microsoft.ML.Scenarios
                 BatchSize = 5,
                 LearningRate = 0.01f,
                 EarlyStoppingCriteria = new ImageClassificationTrainer.EarlyStopping(metric: ImageClassificationTrainer.EarlyStoppingMetric.Loss),
-                MetricsCallback = (metrics) => { Console.WriteLine(metrics); lastEpoch = metrics.Train != null ? metrics.Train.Epoch : 0; },
+                MetricsCallback = (metric) => { Console.WriteLine(metric); lastEpoch = metric.Train != null ? metric.Train.Epoch : 0; },
                 TestOnTrainSet = false,
                 ValidationSet = validationSet,
             };
@@ -1742,8 +1767,8 @@ namespace Microsoft.ML.Scenarios
             if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
                 (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))))
             {
-                Assert.InRange(metrics.MicroAccuracy, 0.3, 1);
-                Assert.InRange(metrics.MacroAccuracy, 0.3, 1);
+                Assert.InRange(metrics.MicroAccuracy, 0.2, 1);
+                Assert.InRange(metrics.MacroAccuracy, 0.2, 1);
             }
             else
             {
@@ -1753,6 +1778,78 @@ namespace Microsoft.ML.Scenarios
 
             //Assert that the training ran and stopped within half epochs due to EarlyStopping
             Assert.InRange(lastEpoch, 1, 49);
+        }
+
+        [TensorFlowFact]
+        public void TensorFlowImageClassificationBadImages()
+        {
+            string assetsRelativePath = @"assets";
+            string assetsPath = GetAbsolutePath(assetsRelativePath);
+            string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
+                "images");
+
+            //Download the image set and unzip
+            string finalImagesFolderName = DownloadBadImageSet(
+                imagesDownloadFolderPath);
+
+            string fullImagesetFolderPath = Path.Combine(
+                imagesDownloadFolderPath, finalImagesFolderName);
+
+            MLContext mlContext = new MLContext(seed: 1);
+
+            //Load all the original images info
+            IEnumerable<ImageData> images = LoadImagesFromDirectory(
+                folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
+
+            IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
+                mlContext.Data.LoadFromEnumerable(images), seed: 1);
+
+            shuffledFullImagesDataset = mlContext.Transforms.Conversion
+                .MapValueToKey("Label")
+                .Append(mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath"))
+                .Fit(shuffledFullImagesDataset)
+                .Transform(shuffledFullImagesDataset);
+
+            // Split the data 90:10 into train and test sets, train and evaluate.
+            TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
+                shuffledFullImagesDataset, testFraction: 0.1, seed: 1);
+
+            IDataView trainDataset = trainTestData.TrainSet;
+            IDataView testDataset = trainTestData.TestSet;
+
+            var options = new ImageClassificationTrainer.Options()
+            {
+                FeatureColumnName = "Image",
+                LabelColumnName = "Label",
+                // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
+                // ResnetV2101 you can try a different architecture/
+                // pre-trained model. 
+                Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
+                Epoch = 5,
+                BatchSize = 32,
+                LearningRate = 0.0001f,
+                ValidationSet = testDataset,
+                EarlyStoppingCriteria = null
+            };
+
+            var pipeline = mlContext.MulticlassClassification.Trainers.ImageClassification(options);
+
+            var trainedModel = pipeline.Fit(trainDataset);
+            mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
+                "model.zip");
+
+            ITransformer loadedModel;
+            DataViewSchema schema;
+            using (var file = File.OpenRead("model.zip"))
+                loadedModel = mlContext.Model.Load(file, out schema);
+
+            IDataView predictions = trainedModel.Transform(testDataset);
+            var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
+
+            // Assert accuracy was returned meaning training completed
+            // by skipping bad images.
+            Assert.InRange(metrics.MicroAccuracy, 0.3, 1);
+            Assert.InRange(metrics.MacroAccuracy, 0.3, 1);
         }
 
         public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,
@@ -1796,6 +1893,18 @@ namespace Microsoft.ML.Scenarios
                 $"/flower_images/flower_photos_tiny_set_for_unit_tests.zip?st=2019" +
                 $"-08-29T00%3A07%3A21Z&se=2030-08-30T00%3A07%3A00Z&sp=rl&sv=2018" +
                 $"-03-28&sr=f&sig=N8HbLziTcT61kstprNLmn%2BDC0JoMrNwo6yRWb3hLLag%3D";
+
+            Download(url, imagesDownloadFolder, fileName);
+            UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);
+
+            return Path.GetFileNameWithoutExtension(fileName);
+        }
+
+        public static string DownloadBadImageSet(string imagesDownloadFolder)
+        {
+            string fileName = "CatsVsDogs_tiny_for_unit_tests.zip";
+            string url = $"https://tlcresources.blob.core.windows.net/datasets/" +
+                $"CatsVsDogs_tiny_for_unit_tests.zip"; 
 
             Download(url, imagesDownloadFolder, fileName);
             UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);
@@ -1856,5 +1965,11 @@ namespace Microsoft.ML.Scenarios
             public string PredictedLabel;
         }
 
+        private static string GetTemporaryDirectory()
+        {
+            string tempDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(tempDirectory);
+            return tempDirectory;
+        }
     }
 }

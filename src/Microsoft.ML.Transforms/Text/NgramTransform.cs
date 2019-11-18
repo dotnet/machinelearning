@@ -12,6 +12,7 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Text;
 
@@ -124,6 +125,7 @@ namespace Microsoft.ML.Transforms.Text
             public readonly bool[] NonEmptyLevels;
             public readonly int NgramLength;
             public readonly int SkipLength;
+            public readonly bool UseAllLengths;
             public readonly NgramExtractingEstimator.WeightingCriteria Weighting;
 
             public bool RequireIdf => Weighting == NgramExtractingEstimator.WeightingCriteria.Idf || Weighting == NgramExtractingEstimator.WeightingCriteria.TfIdf;
@@ -133,6 +135,7 @@ namespace Microsoft.ML.Transforms.Text
                 NgramLength = info.NgramLength;
                 SkipLength = info.SkipLength;
                 Weighting = info.Weighting;
+                UseAllLengths = info.UseAllLengths;
                 NonEmptyLevels = new bool[NgramLength];
             }
 
@@ -469,7 +472,7 @@ namespace Microsoft.ML.Transforms.Text
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
-        private sealed class Mapper : OneToOneMapperBase
+        private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
         {
             private readonly DataViewType[] _srcTypes;
             private readonly int[] _srcCols;
@@ -549,6 +552,81 @@ namespace Microsoft.ML.Transforms.Text
                 }
 
                 dst = dstEditor.Commit();
+            }
+
+            private IEnumerable<long> GetNgramData(int iinfo, out long[] ngramCounts, out double[] weights, out List<long> indexes)
+            {
+                var transformInfo = _parent._transformInfos[iinfo];
+                var itemType = _srcTypes[iinfo].GetItemType();
+
+                Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
+                Host.Assert(InputSchema[_srcCols[iinfo]].HasKeyValues());
+
+                // Get the key values of the unigrams.
+                var keyCount = itemType.GetKeyCountAsInt32(Host);
+
+                var maxNGramLength = transformInfo.NgramLength;
+
+                var pool = _parent._ngramMaps[iinfo];
+
+                // the ngrams in ML.NET are sequentially organized. e.g. {a, a|b, b, b|c...}
+                // in onnx, they need to be separated by type. e.g. {a, b, c, a|b, b|c...}
+                // since the resulting vectors need to match, we need to create a mapping
+                // between the two and store it in the node attributes
+
+                // create seprate lists to track the ids of 1-grams, 2-grams etc
+                // because they need to be in adjacent regions in the same list
+                // when supplied to onnx
+                // We later concatenate all these separate n-gram lists
+                var ngramIds = new List<long>[maxNGramLength];
+                var ngramIndexes = new List<long>[maxNGramLength];
+                for (int i = 0; i < ngramIds.Length; i++)
+                {
+                    ngramIds[i] = new List<long>();
+                    ngramIndexes[i] = new List<long>();
+                    //ngramWeights[i] = new List<float>();
+                }
+
+                weights = new double[pool.Count];
+
+                uint[] ngram = new uint[maxNGramLength];
+                for (int i = 0; i < pool.Count; i++)
+                {
+                    var n = pool.GetById(i, ref ngram);
+                    Host.Assert(n >= 0);
+
+                    // add the id of each gram to the corresponding ids list
+                    for (int j = 0; j < n; j++)
+                        ngramIds[n - 1].Add(ngram[j]);
+
+                    // add the indexes to the corresponding list
+                    ngramIndexes[n - 1].Add(i);
+
+                    if (transformInfo.RequireIdf)
+                        weights[i] = _parent._invDocFreqs[iinfo][i];
+                    else
+                        weights[i] = 1.0f;
+                }
+
+                // initialize the ngramCounts array with start-index of each n-gram
+                int start = 0;
+                ngramCounts = new long[maxNGramLength];
+                for (int i = 0; i < maxNGramLength; i++)
+                {
+                    ngramCounts[i] = start;
+                    start += ngramIds[i].Count;
+                }
+
+                // concatenate all the lists and return
+                IEnumerable<long> allNGramIds = ngramIds[0];
+                indexes = ngramIndexes[0];
+                for (int i = 1; i < maxNGramLength; i++)
+                {
+                    allNGramIds = Enumerable.Concat(allNGramIds, ngramIds[i]);
+                    indexes = indexes.Concat(ngramIndexes[i]).ToList();
+                }
+
+                return allNGramIds;
             }
 
             private void ComposeNgramString(uint[] ngram, int count, StringBuilder sb, int keyCount, in VBuffer<ReadOnlyMemory<char>> terms)
@@ -660,6 +738,84 @@ namespace Microsoft.ML.Transforms.Text
                 }
                 return del;
             }
+
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
+
+            public void SaveAsOnnx(OnnxContext ctx)
+            {
+                Host.CheckValue(ctx, nameof(ctx));
+
+                int numColumns = _parent.ColumnPairs.Length;
+                for (int iinfo = 0; iinfo < numColumns; ++iinfo)
+                {
+                    string inputColumnName = _parent.ColumnPairs[iinfo].inputColumnName;
+                    if (!ctx.ContainsColumn(inputColumnName))
+                        continue;
+
+                    string outputColumnName = _parent.ColumnPairs[iinfo].outputColumnName;
+                    string dstVariableName = ctx.AddIntermediateVariable(_srcTypes[iinfo], outputColumnName, true);
+                    SaveAsOnnxCore(ctx, iinfo, ctx.GetVariableName(inputColumnName), dstVariableName);
+                }
+            }
+
+            private void SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName )
+            {
+                VBuffer<ReadOnlyMemory<char>> slotNames = default;
+                GetSlotNames(iinfo, 0, ref slotNames);
+
+                var transformInfo = _parent._transformInfos[iinfo];
+
+                // TfIdfVectorizer accepts strings, int32 and int64 tensors.
+                // But in the ML.NET implementation of the NGramTransform, it only accepts keys as inputs
+                // That are the result of ValueToKeyMapping transformer, which outputs UInt32 values
+                // So, if it is UInt32 or UInt64, cast the output here to Int32/Int64
+                string opType;
+                var vectorType = _srcTypes[iinfo] as VectorDataViewType;
+
+                if ((vectorType != null) &&
+                    ((vectorType.RawType == typeof(VBuffer<UInt32>)) || (vectorType.RawType == typeof(VBuffer<UInt64>))))
+                {
+                    var dataKind = _srcTypes[iinfo] == NumberDataViewType.UInt32 ? DataKind.Int32 : DataKind.Int64;
+
+                    opType = "Cast";
+                    string castOutput = ctx.AddIntermediateVariable(_srcTypes[iinfo], "CastOutput", true);
+
+                    var castNode = ctx.CreateNode(opType, srcVariableName, castOutput, ctx.GetNodeName(opType), "");
+                    var t = InternalDataKindExtensions.ToInternalDataKind(dataKind).ToType();
+                    castNode.AddAttribute("to", t);
+
+                    srcVariableName = castOutput;
+                }
+
+                opType = "TfIdfVectorizer";
+                var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType), "");
+                node.AddAttribute("max_gram_length", transformInfo.NgramLength);
+                node.AddAttribute("max_skip_count", transformInfo.SkipLength);
+                node.AddAttribute("min_gram_length", transformInfo.UseAllLengths ? 1 : transformInfo.NgramLength);
+
+                string mode;
+                if (transformInfo.RequireIdf)
+                {
+                    mode = transformInfo.Weighting == NgramExtractingEstimator.WeightingCriteria.Idf ? "IDF" : "TFIDF";
+                }
+                else
+                {
+                    mode = "TF";
+                }
+                node.AddAttribute("mode", mode);
+
+                long[] ngramCounts;
+                double[] ngramWeights;
+                List<long> ngramIndexes;
+
+                var ngramIds = GetNgramData(iinfo, out ngramCounts, out ngramWeights, out ngramIndexes);
+
+                node.AddAttribute("ngram_counts", ngramCounts);
+                node.AddAttribute("pool_int64s", ngramIds);
+                node.AddAttribute("ngram_indexes", ngramIndexes);
+                node.AddAttribute("weights", ngramWeights);
+            }
+
         }
     }
 

@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.TestFrameworkCommon;
 
 namespace Microsoft.ML.RunTests
 {

@@ -32,7 +32,7 @@ MB_Annotation();
  } 
             this.Write("\r\nusing System;\r\nusing Microsoft.ML.Data;\r\n\r\nnamespace  ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model.DataModels\r\n{\r\n    public class ModelOutput\r\n    {\r\n");
+            this.Write(".Model\r\n{\r\n    public class ModelOutput\r\n    {\r\n");
 if("BinaryClassification".Equals(TaskType)){ 
             this.Write("        // ColumnName attribute is used to change the column name from\r\n        /" +
                     "/ its default value, which is the name of the field.\r\n        [ColumnName(\"Predi" +

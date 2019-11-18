@@ -273,6 +273,39 @@ namespace mlnet.Tests
         }
 
         [Fact]
+        public void MatrixFactorizationBasicTest()
+        {
+            var context = new MLContext();
+            var elementProperties = new Dictionary<string, object>();
+            PipelineNode node = new PipelineNode("MatrixFactorization", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
+            Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
+            var actual = codeGenerator.GenerateTrainerAndUsings();
+            string expectedTrainerString = "MatrixFactorization(labelColumnName:\"Label\")";
+            Assert.Equal(expectedTrainerString, actual.Item1);
+            Assert.Null(actual.Item2);
+        }
+
+        [Fact]
+        public void MatrixFactorizationAdvancedTest()
+        {
+            var context = new MLContext();
+            var elementProperties = new Dictionary<string, object>()
+            {
+                {"MatrixColumnIndexColumnName","userId" },
+                {"MatrixRowIndexColumnName","movieId" },
+                {"LabelColumnName","rating" },
+            };
+            PipelineNode node = new PipelineNode("MatrixFactorization", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
+            Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
+            var actual = codeGenerator.GenerateTrainerAndUsings();
+            string expectedTrainerString = "MatrixFactorization(matrixColumnIndexColumnName:\"userId\",matrixRowIndexColumnName:\"movieId\",labelColumnName:\"rating\")";
+            Assert.Equal(expectedTrainerString, actual.Item1);
+            Assert.Null(actual.Item2);
+        }
+
+        [Fact]
         public void LbfgsPoissonRegressionBasicTest()
         {
             var context = new MLContext();
@@ -719,6 +752,19 @@ namespace mlnet.Tests
             Assert.Equal(expectedTrainerString, actual.Item1);
             Assert.Equal(expectedUsings, actual.Item2[0]);
 
+        }
+
+        [Fact]
+        public void ImageClassificationTrainerBasicTest()
+        {
+            var elementProperties = new Dictionary<string, object>();
+            PipelineNode node = new PipelineNode("ImageClassification", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
+            Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
+            var actual = codeGenerator.GenerateTrainerAndUsings();
+            string expectedTrainerString = "ImageClassification(LabelColumnName:\"Label\",FeatureColumnName:\"Features\")";
+            Assert.Equal(expectedTrainerString, actual.Item1);
+            Assert.Null(actual.Item2);
         }
     }
 }

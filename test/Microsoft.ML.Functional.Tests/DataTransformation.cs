@@ -4,8 +4,7 @@
 
 using System;
 using Microsoft.ML.Functional.Tests.Datasets;
-using Microsoft.ML.RunTests;
-using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
@@ -13,7 +12,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Functional.Tests
 {
-    public class DataTransformation : BaseTestClass
+    public class DataTransformation : FunctionalTestBaseClass
     {
         public DataTransformation(ITestOutputHelper output) : base(output)
         {
@@ -30,7 +29,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Load the Iris dataset
             var data = mlContext.Data.LoadFromTextFile<Iris>(
-                GetDataPath(TestDatasets.iris.trainFilename),
+                TestCommon.GetDataPath(DataDir, TestDatasets.iris.trainFilename),
                 hasHeader: TestDatasets.iris.fileHasHeader,
                 separatorChar: TestDatasets.iris.fileSeparator);
 
@@ -83,7 +82,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Load the Iris dataset
             var data = mlContext.Data.LoadFromTextFile<Iris>(
-                GetDataPath(TestDatasets.iris.trainFilename),
+                TestCommon.GetDataPath(DataDir, TestDatasets.iris.trainFilename),
                 hasHeader: TestDatasets.iris.fileHasHeader,
                 separatorChar: TestDatasets.iris.fileSeparator);
 
@@ -129,7 +128,7 @@ namespace Microsoft.ML.Functional.Tests
             // Concurrency must be 1 to assure that the mapping is done sequentially.
             var mlContext = new MLContext(seed: 1);
 
-            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
+            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(TestCommon.GetDataPath(DataDir, TestDatasets.Sentiment.trainFilename),
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 separatorChar: TestDatasets.Sentiment.fileSeparator);
 
@@ -167,7 +166,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Load the Iris dataset.
             var data = mlContext.Data.LoadFromTextFile<Iris>(
-                GetDataPath(TestDatasets.iris.trainFilename),
+                TestCommon.GetDataPath(DataDir, TestDatasets.iris.trainFilename),
                 hasHeader: TestDatasets.iris.fileHasHeader,
                 separatorChar: TestDatasets.iris.fileSeparator);
 

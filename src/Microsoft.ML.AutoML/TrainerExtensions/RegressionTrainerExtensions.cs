@@ -20,7 +20,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             var options = TrainerExtensionUtil.CreateOptions<FastForestRegressionTrainer.Options>(sweepParams, columnInfo.LabelColumnName);
             options.ExampleWeightColumnName = columnInfo.ExampleWeightColumnName;
@@ -42,7 +42,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             var options = TrainerExtensionUtil.CreateOptions<FastTreeRegressionTrainer.Options>(sweepParams, columnInfo.LabelColumnName);
             options.ExampleWeightColumnName = columnInfo.ExampleWeightColumnName;
@@ -64,7 +64,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             var options = TrainerExtensionUtil.CreateOptions<FastTreeTweedieTrainer.Options>(sweepParams, columnInfo.LabelColumnName);
             options.ExampleWeightColumnName = columnInfo.ExampleWeightColumnName;
@@ -86,7 +86,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             LightGbmRegressionTrainer.Options options = TrainerExtensionUtil.CreateLightGbmOptions<LightGbmRegressionTrainer.Options, float, RegressionPredictionTransformer<LightGbmRegressionModelParameters>, LightGbmRegressionModelParameters>(sweepParams, columnInfo);
             return mlContext.Regression.Trainers.LightGbm(options);
@@ -107,7 +107,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             var options = TrainerExtensionUtil.CreateOptions<OnlineGradientDescentTrainer.Options>(sweepParams, columnInfo.LabelColumnName);
             return mlContext.Regression.Trainers.OnlineGradientDescent(options);
@@ -128,7 +128,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             var options = TrainerExtensionUtil.CreateOptions<OlsTrainer.Options>(sweepParams, columnInfo.LabelColumnName);
             options.ExampleWeightColumnName = columnInfo.ExampleWeightColumnName;
@@ -150,7 +150,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             var options = TrainerExtensionUtil.CreateOptions<LbfgsPoissonRegressionTrainer.Options>(sweepParams, columnInfo.LabelColumnName);
             options.ExampleWeightColumnName = columnInfo.ExampleWeightColumnName;
@@ -172,7 +172,7 @@ namespace Microsoft.ML.AutoML
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
-            ColumnInformation columnInfo)
+            ColumnInformation columnInfo, IDataView validationSet)
         {
             var options = TrainerExtensionUtil.CreateOptions<SdcaRegressionTrainer.Options>(sweepParams, columnInfo.LabelColumnName);
             return mlContext.Regression.Trainers.Sdca(options);
