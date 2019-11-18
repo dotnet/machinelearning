@@ -29,7 +29,7 @@ namespace Microsoft.Extensions.ML
             where TPrediction : class, new()
         {
             return services.AddPredictionEnginePool<TData, TPrediction>(() =>
-                services.AddSingleton<PredictionEnginePool<TData, TPrediction>, PredictionEnginePool<TData, TPrediction>>());
+                services.AddSingleton<PredictionEnginePool<TData, TPrediction>>());
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Microsoft.Extensions.ML
             where TPrediction : class, new()
         {
             return services.AddPredictionEnginePool<TData, TPrediction>(() =>
-                services.AddSingleton<PredictionEnginePool<TData, TPrediction>, PredictionEnginePool<TData, TPrediction>>(implementationFactory));
+                services.AddSingleton(implementationFactory));
         }
 
         private static PredictionEnginePoolBuilder<TData, TPrediction> AddPredictionEnginePool<TData, TPrediction>(
@@ -60,7 +60,7 @@ namespace Microsoft.Extensions.ML
             where TData : class
             where TPrediction : class, new()
         {
-            services.AddPredictionEnginePoolConfigOnly();
+            services.AddRequiredPredictionEnginePoolServices();
             callback();
 
             return new PredictionEnginePoolBuilder<TData, TPrediction>(services);
@@ -75,7 +75,7 @@ namespace Microsoft.Extensions.ML
         /// <returns>
         /// A reference to this instance after the operation has completed.
         /// </returns>
-        public static IServiceCollection AddPredictionEnginePoolConfigOnly(this IServiceCollection services)
+        public static IServiceCollection AddRequiredPredictionEnginePoolServices(this IServiceCollection services)
         {
             services
                 .AddLogging()
