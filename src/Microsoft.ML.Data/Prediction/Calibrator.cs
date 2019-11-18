@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
@@ -396,6 +397,7 @@ namespace Microsoft.ML.Calibrators
     }
 
     [BestFriend]
+    [PredictionTransformerLoadType(typeof(CalibratedModelParametersBase<,>))]
     internal sealed class ValueMapperCalibratedModelParameters<TSubModel, TCalibrator> :
         ValueMapperCalibratedModelParametersBase<TSubModel, TCalibrator>, ICanSaveModel
         where TSubModel : class
@@ -430,8 +432,8 @@ namespace Microsoft.ML.Calibrators
                 loaderAssemblyName: typeof(ValueMapperCalibratedModelParameters<TSubModel, TCalibrator>).Assembly.FullName);
         }
 
-        private ValueMapperCalibratedModelParameters(IHostEnvironment env, ModelLoadContext ctx)
-            : base(env, RegistrationName, GetPredictor(env, ctx), GetCalibrator(env, ctx))
+        private ValueMapperCalibratedModelParameters(IHostEnvironment env, ModelLoadContext ctx, TSubModel predictor, TCalibrator calibrator)
+            : base(env, RegistrationName, predictor, calibrator)
         {
         }
 
@@ -443,7 +445,16 @@ namespace Microsoft.ML.Calibrators
             var ver2 = GetVersionInfoBulk();
             var ver = ctx.Header.ModelSignature == ver2.ModelSignature ? ver2 : ver1;
             ctx.CheckAtModel(ver);
-            return new ValueMapperCalibratedModelParameters<TSubModel, TCalibrator>(env, ctx);
+
+            // Load first the predictor and calibrator
+            var predictor = GetPredictor(env, ctx);
+            var calibrator = GetCalibrator(env, ctx);
+
+            // Create a generic type using the correct parameter types of predictor and calibrator
+            Type genericType = typeof(ValueMapperCalibratedModelParameters<,>);
+            var genericInstance = CreateCalibratedModelParameters.Create(env, ctx, predictor, calibrator, genericType);
+
+            return (CalibratedModelParametersBase)genericInstance;
         }
 
         void ICanSaveModel.Save(ModelSaveContext ctx)
@@ -456,6 +467,7 @@ namespace Microsoft.ML.Calibrators
     }
 
     [BestFriend]
+    [PredictionTransformerLoadType(typeof(CalibratedModelParametersBase<,>))]
     internal sealed class FeatureWeightsCalibratedModelParameters<TSubModel, TCalibrator> :
         ValueMapperCalibratedModelParametersBase<TSubModel, TCalibrator>,
         IPredictorWithFeatureWeights<float>,
@@ -487,8 +499,9 @@ namespace Microsoft.ML.Calibrators
                 loaderAssemblyName: typeof(FeatureWeightsCalibratedModelParameters<TSubModel, TCalibrator>).Assembly.FullName);
         }
 
-        private FeatureWeightsCalibratedModelParameters(IHostEnvironment env, ModelLoadContext ctx)
-            : base(env, RegistrationName, GetPredictor(env, ctx), GetCalibrator(env, ctx))
+        private FeatureWeightsCalibratedModelParameters(IHostEnvironment env, ModelLoadContext ctx,
+            TSubModel predictor, TCalibrator calibrator)
+            : base(env, RegistrationName, predictor, calibrator)
         {
             Host.Check(SubModel is IPredictorWithFeatureWeights<float>, "Predictor does not implement " + nameof(IPredictorWithFeatureWeights<float>));
             _featureWeights = (IPredictorWithFeatureWeights<float>)SubModel;
@@ -499,7 +512,16 @@ namespace Microsoft.ML.Calibrators
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new FeatureWeightsCalibratedModelParameters<TSubModel, TCalibrator>(env, ctx);
+
+            // Load first the predictor and calibrator
+            var predictor = GetPredictor(env, ctx);
+            var calibrator = GetCalibrator(env, ctx);
+
+            // Create a generic type using the correct parameter types of predictor and calibrator
+            Type genericType = typeof(FeatureWeightsCalibratedModelParameters<,>);
+            var genericInstance = CreateCalibratedModelParameters.Create(env, ctx, predictor, calibrator, genericType);
+
+            return (CalibratedModelParametersBase) genericInstance;
         }
 
         void ICanSaveModel.Save(ModelSaveContext ctx)
@@ -520,6 +542,7 @@ namespace Microsoft.ML.Calibrators
     /// Encapsulates a predictor and a calibrator that implement <see cref="IParameterMixer"/>.
     /// Its implementation of <see cref="IParameterMixer.CombineParameters"/> combines both the predictors and the calibrators.
     /// </summary>
+    [PredictionTransformerLoadType(typeof(CalibratedModelParametersBase <,>))]
     internal sealed class ParameterMixingCalibratedModelParameters<TSubModel, TCalibrator> :
         ValueMapperCalibratedModelParametersBase<TSubModel, TCalibrator>,
         IParameterMixer<float>,
@@ -553,8 +576,8 @@ namespace Microsoft.ML.Calibrators
                 loaderAssemblyName: typeof(ParameterMixingCalibratedModelParameters<TSubModel, TCalibrator>).Assembly.FullName);
         }
 
-        private ParameterMixingCalibratedModelParameters(IHostEnvironment env, ModelLoadContext ctx)
-            : base(env, RegistrationName, GetPredictor(env, ctx), GetCalibrator(env, ctx))
+        private ParameterMixingCalibratedModelParameters(IHostEnvironment env, ModelLoadContext ctx, TSubModel predictor, TCalibrator calibrator)
+            : base(env, RegistrationName, predictor, calibrator)
         {
             Host.Check(SubModel is IParameterMixer<float>, "Predictor does not implement " + nameof(IParameterMixer));
             Host.Check(SubModel is IPredictorWithFeatureWeights<float>, "Predictor does not implement " + nameof(IPredictorWithFeatureWeights<float>));
@@ -566,7 +589,16 @@ namespace Microsoft.ML.Calibrators
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new ParameterMixingCalibratedModelParameters<TSubModel, TCalibrator>(env, ctx);
+
+            // Load first the predictor and calibrator
+            var predictor = GetPredictor(env, ctx);
+            var calibrator = GetCalibrator(env, ctx);
+
+            // Create a generic type using the correct parameter types of predictor and calibrator
+            Type genericType = typeof(ParameterMixingCalibratedModelParameters<,>);
+            object genericInstance = CreateCalibratedModelParameters.Create(env, ctx, predictor, calibrator, genericType);
+
+            return (CalibratedModelParametersBase) genericInstance;
         }
 
         void ICanSaveModel.Save(ModelSaveContext ctx)
@@ -774,6 +806,28 @@ namespace Microsoft.ML.Calibrators
             // REVIEW: checking this a bit too late.
             Host.Check(_featureContribution != null, "Predictor does not implement " + nameof(IFeatureContributionMapper));
             return _featureContribution.GetFeatureContributionMapper<TSrc, TDst>(top, bottom, normalize);
+        }
+    }
+
+    internal static class CreateCalibratedModelParameters
+    {
+        internal static object Create(IHostEnvironment env, ModelLoadContext ctx, object predictor, ICalibrator calibrator, Type calibratedModelParametersType)
+        {
+            Type[] genericTypeArgs = { predictor.GetType(), calibrator.GetType() };
+            Type constructed = calibratedModelParametersType.MakeGenericType(genericTypeArgs);
+
+            Type[] constructorArgs = {
+                typeof(IHostEnvironment),
+                typeof(ModelLoadContext),
+                predictor.GetType(),
+                calibrator.GetType()
+            };
+
+            // Call the appropiate constructor of the created generic type passing on the previously loaded predictor and calibrator
+            var genericCtor = constructed.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, constructorArgs, null);
+            object genericInstance = genericCtor.Invoke(new object[] { env, ctx, predictor, calibrator });
+
+            return genericInstance;
         }
     }
 

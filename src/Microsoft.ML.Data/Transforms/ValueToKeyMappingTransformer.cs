@@ -768,22 +768,70 @@ namespace Microsoft.ML.Transforms
 
             private Delegate MakeGetter<T>(DataViewRow row, int src) => _termMap[src].GetMappingGetter(row);
 
+            private IEnumerable<T> GetTermsAndIds<T>(int iinfo, out long[] termIds)
+            {
+                var terms = default(VBuffer<T>);
+                var map = (TermMap<T>)_termMap[iinfo].Map;
+                map.GetTerms(ref terms);
+
+                var termValues = terms.DenseValues();
+                var keyMapper = map.GetKeyMapper();
+
+                int i = 0;
+                termIds = new long[map.Count];
+                foreach (var term in termValues)
+                {
+                    uint id = 0;
+                    keyMapper(term, ref id);
+                    termIds[i++] = id;
+                }
+                return termValues;
+            }
+
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
-                if (!(info.TypeSrc.GetItemType() is TextDataViewType))
-                    return false;
-
-                var terms = default(VBuffer<ReadOnlyMemory<char>>);
-                TermMap<ReadOnlyMemory<char>> map = (TermMap<ReadOnlyMemory<char>>)_termMap[iinfo].Map;
-                map.GetTerms(ref terms);
+                OnnxNode node;
+                long[] termIds;
                 string opType = "LabelEncoder";
-                var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
-                node.AddAttribute("classes_strings", terms.DenseValues());
+                var labelEncoderOutput = ctx.AddIntermediateVariable(_types[iinfo], "LabelEncoderOutput", true);
+
+                if (info.TypeSrc.GetItemType().Equals(TextDataViewType.Instance))
+                {
+                    node = ctx.CreateNode(opType, srcVariableName, labelEncoderOutput, ctx.GetNodeName(opType));
+                    var terms = GetTermsAndIds<ReadOnlyMemory<char>>(iinfo, out termIds);
+                    node.AddAttribute("keys_strings", terms);
+                }
+                else if (info.TypeSrc.GetItemType().Equals(NumberDataViewType.Single))
+                {
+                    node = ctx.CreateNode(opType, srcVariableName, labelEncoderOutput, ctx.GetNodeName(opType));
+                    var terms = GetTermsAndIds<float>(iinfo, out termIds);
+                    node.AddAttribute("keys_floats", terms);
+                }
+                else
+                {
+                    // LabelEncoder-2 in ORT v1 only supports the following mappings
+                    // int64-> float
+                    // int64-> string
+                    // float -> int64
+                    // float -> string
+                    // string -> int64
+                    // string -> float
+                    // In ML.NET the output of ValueToKeyMappingTransformer is always an integer type.
+                    // Therefore the only input types we can accept for Onnx conversion are strings and floats handled above.
+                    return false;
+                }
+
                 node.AddAttribute("default_int64", -1);
-                //default_string needs to be an empty string but there is a BUG in Lotus that
-                //throws a validation error when default_string is empty. As a work around, set
-                //default_string to a space.
-                node.AddAttribute("default_string", " ");
+                node.AddAttribute("values_int64s", termIds);
+
+                // Onnx outputs an Int64, but ML.NET outputs a keytype. So cast it here
+                InternalDataKind dataKind;
+                InternalDataKindExtensions.TryGetDataKind(_parent._unboundMaps[iinfo].OutputType.RawType, out dataKind);
+
+                opType = "Cast";
+                var castNode = ctx.CreateNode(opType, labelEncoderOutput, dstVariableName, ctx.GetNodeName(opType), "");
+                castNode.AddAttribute("to", dataKind.ToType());
+
                 return true;
             }
 

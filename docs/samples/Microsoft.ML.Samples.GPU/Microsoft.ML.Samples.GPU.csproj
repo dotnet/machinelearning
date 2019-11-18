@@ -10,7 +10,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\Microsoft.ML.Samples\Program.cs" Link="Program.cs" />
     <Compile Include="..\Microsoft.ML.Samples\Dynamic\Trainers\MulticlassClassification\ImageClassification\*.cs">
       <Link>Dynamic\ImageClassification\%(FileName)</Link>
     </Compile>

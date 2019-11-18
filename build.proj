@@ -97,6 +97,11 @@
              Targets="RunTests" />
   </Target>
 
+  <Target Name="RunNightlyBuildTests">
+    <MSBuild Projects="test\run-night-build-tests.proj"
+             Targets="RunNightlyBuildTests" />
+  </Target>
+
   <!-- Override CleanAllProjects from dir.traversal.targets and just remove the full BinDir -->
   <Target Name="CleanAllProjects">
     <RemoveDir Directories="$(BinDir)" />

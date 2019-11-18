@@ -4,8 +4,8 @@
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
@@ -199,13 +199,29 @@ namespace Microsoft.ML.Tests
         /// <summary>
         /// Test PFI Binary Classification for Dense Features
         /// </summary>
-        [Fact]
-        public void TestPfiBinaryClassificationOnDenseFeatures()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestPfiBinaryClassificationOnDenseFeatures(bool saveModel)
         {
             var data = GetDenseDataset(TaskType.BinaryClassification);
             var model = ML.BinaryClassification.Trainers.LbfgsLogisticRegression(
                 new LbfgsLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 }).Fit(data);
-            var pfi = ML.BinaryClassification.PermutationFeatureImportance(model, data);
+
+            ImmutableArray<BinaryClassificationMetricsStatistics> pfi;
+            if (saveModel)
+            {
+                var modelAndSchemaPath = GetOutputPath("TestPfiBinaryClassificationOnDenseFeatures.zip");
+                ML.Model.Save(model, data.Schema, modelAndSchemaPath);
+
+                var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
+                var castedModel = loadedModel as BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>;
+                pfi = ML.BinaryClassification.PermutationFeatureImportance(castedModel, data);
+            }
+            else
+            {
+                pfi = ML.BinaryClassification.PermutationFeatureImportance(model, data);
+            }
 
             // Pfi Indices:
             // X1: 0
@@ -237,13 +253,29 @@ namespace Microsoft.ML.Tests
         /// <summary>
         /// Test PFI Binary Classification for Sparse Features
         /// </summary>
-        [Fact]
-        public void TestPfiBinaryClassificationOnSparseFeatures()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestPfiBinaryClassificationOnSparseFeatures(bool saveModel)
         {
             var data = GetSparseDataset(TaskType.BinaryClassification);
             var model = ML.BinaryClassification.Trainers.LbfgsLogisticRegression(
                 new LbfgsLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 }).Fit(data);
-            var pfi = ML.BinaryClassification.PermutationFeatureImportance(model, data);
+
+            ImmutableArray<BinaryClassificationMetricsStatistics> pfi;
+            if (saveModel)
+            {
+                var modelAndSchemaPath = GetOutputPath("TestPfiBinaryClassificationOnSparseFeatures.zip");
+                ML.Model.Save(model, data.Schema, modelAndSchemaPath);
+
+                var loadedModel = ML.Model.Load(modelAndSchemaPath, out var schema);
+                var castedModel = loadedModel as BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>;
+                pfi = ML.BinaryClassification.PermutationFeatureImportance(castedModel, data);
+            }
+            else
+            {
+                pfi = ML.BinaryClassification.PermutationFeatureImportance(model, data);
+            }
 
             // Pfi Indices:
             // X1: 0
@@ -437,7 +469,7 @@ namespace Microsoft.ML.Tests
 
 
         /// <summary>
-        /// Test PFI Multiclass Classification for Sparse Features
+        /// Test PFI Ranking Classification for Sparse Features
         /// </summary>
         [Theory]
         [InlineData(true)]
