@@ -440,35 +440,38 @@ namespace Microsoft.ML.Runtime
                     requireEnvironmentCreate = true;
             }
 
+            // If both 'ctor' and 'create' methods were found
+            // Choose the public one, or the internal one, and at last the private one
+            // if they have the same visibility, then throw an exception, since this
+            // shouldn't happen.
             if(ctor != null && create != null)
             {
                 if (ctor.IsPublic == create.IsPublic)
                 {
-                    var myPublicLogPath = @"C:\Users\anvelazq\Desktop\mylogIsPublic.txt";
-                    var myNonPublicLogPath = @"C:\Users\anvelazq\Desktop\mylogIsNotPublic.txt";
-                    var myLogPath = ctor.IsPublic ? myPublicLogPath : myNonPublicLogPath;
-
-                    MyLogLabel: // to retry in case some other process is logging to that file
-                    try
+                    if(ctor.IsPublic || ctor.IsPrivate == create.IsPrivate)
                     {
-                        using(var file = new System.IO.StreamWriter(myLogPath, true))
-                        {
-                            var parmsString = string.Join<Type>(", ", parmTypes);
-                            file.WriteLine($"{loaderType.ToString()}\t\t- parmTypes: {parmsString}\t\t- reqEnvCtor: {requireEnvironmentCtor} - reqEnvCreate: {requireEnvironmentCreate}");
-
-                        }
-                    }
-                    catch(System.IO.IOException)
-                    {
-                        goto MyLogLabel;
+                        var myPublicLogPath = @"C:\Users\anvelazq\Desktop\mylogIsPublic.txt";
+                        var myNonPublicLogPath = @"C:\Users\anvelazq\Desktop\mylogIsNotPublic.txt";
+                        var myLogPath = ctor.IsPublic ? myPublicLogPath : myNonPublicLogPath;
+                        MyLog(myLogPath, loaderType, parmTypes, requireEnvironmentCtor, requireEnvironmentCreate);
+                        // For this experiment simply continue with the constructor:
+                        requireEnvironment = requireEnvironmentCtor;
+                        create = null;
+                        return true;
+                        // throw Contracts.Except($"Can't load type {instType}, because it has both create and constructor methods with the same visibility. Please open an issue for this to be fixed.");
                     }
 
-                    // For this experiment simply continue with the constructor:
-                    requireEnvironment = requireEnvironmentCtor;
-                    create = null;
+                    if(!ctor.IsPrivate)
+                    {
+                        create = null;
+                        requireEnvironment = requireEnvironmentCtor;
+                        return true;
+                    }
+
+                    ctor = null;
+                    requireEnvironment = requireEnvironmentCreate;
                     return true;
 
-                    // throw Contracts.Except($"Can't load type {instType}, because it has both create and constructor methods with the same visibility. Please open an issue for this to be fixed.");
                 }
                 else if (ctor.IsPublic)
                 {
@@ -495,6 +498,24 @@ namespace Microsoft.ML.Runtime
             }
 
             return false;
+        }
+
+        private static void MyLog(string path, Type loaderType, Type[] parmTypes, bool reqCtor, bool reqCreate)
+        {
+            MyLogLabel: // to retry in case some other process is logging to that file
+            try
+            {
+                using (var file = new System.IO.StreamWriter(path, true))
+                {
+                    var parmsString = string.Join<Type>(", ", parmTypes);
+                    file.WriteLine($"{loaderType.ToString()}\t\t- parmTypes: {parmsString}\t\t- reqEnvCtor: {reqCtor} - reqEnvCreate: {reqCreate}");
+
+                }
+            }
+            catch (System.IO.IOException)
+            {
+                goto MyLogLabel;
+            }
         }
 
         private void AddClass(LoadableClassInfo info, string[] loadNames, bool throwOnError)
