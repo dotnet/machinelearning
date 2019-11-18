@@ -465,11 +465,13 @@ namespace Microsoft.ML.Runtime
                     {
                         create = null;
                         requireEnvironment = requireEnvironmentCtor;
+                        MyLog(@"C:\Users\anvelazq\Desktop\mylogPrivate.txt", loaderType, parmTypes, requireEnvironmentCtor, requireEnvironmentCreate);
                         return true;
                     }
 
                     ctor = null;
                     requireEnvironment = requireEnvironmentCreate;
+                    MyLog(@"C:\Users\anvelazq\Desktop\mylogNonPublicNonPrivate.txt", loaderType, parmTypes, requireEnvironmentCtor, requireEnvironmentCreate);
                     return true;
 
                 }
