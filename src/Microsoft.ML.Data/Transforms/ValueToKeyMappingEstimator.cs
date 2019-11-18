@@ -143,7 +143,6 @@ namespace Microsoft.ML.Transforms
         /// <param name="keyOrdinality">The order in which keys are assigned.
         /// If set to <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByOccurrence"/>, keys are assigned in the order encountered.
         /// If set to <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByValue"/>, values are sorted, and keys are assigned based on the sort order.</param>
-        /// If <see cref="KeyOrdinality.ByValue"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
         internal ValueToKeyMappingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int maximumNumberOfKeys = Defaults.MaximumNumberOfKeys, KeyOrdinality keyOrdinality = Defaults.Ordinality) :
            this(env, new [] { new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName, maximumNumberOfKeys, keyOrdinality) })
         {
