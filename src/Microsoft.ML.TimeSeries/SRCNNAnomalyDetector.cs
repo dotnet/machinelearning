@@ -127,7 +127,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             return new SrCnnAnomalyDetector(env, ctx).MakeDataTransform(input);
         }
 
-        private static SrCnnAnomalyDetector Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static SrCnnAnomalyDetector Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -152,7 +152,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         {
         }
 
-        internal SrCnnAnomalyDetector(IHostEnvironment env, ModelLoadContext ctx)
+        private SrCnnAnomalyDetector(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, ctx, LoaderSignature)
         {
         }

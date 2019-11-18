@@ -230,7 +230,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 loaderAssemblyName: typeof(GamBinaryModelParameters).Assembly.FullName);
         }
 
-        private static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));

@@ -741,7 +741,7 @@ namespace Microsoft.ML.Trainers
             Contracts.CheckDecode(0 <= p && p <= 1);
         }
 
-        private static OlsModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static OlsModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));

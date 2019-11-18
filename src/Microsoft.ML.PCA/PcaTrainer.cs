@@ -540,7 +540,7 @@ namespace Microsoft.ML.Trainers
                 writer.WriteSinglesNoCount(_eigenVectors[i].GetValues().Slice(0, _dimension));
         }
 
-        private static PcaModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static PcaModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
