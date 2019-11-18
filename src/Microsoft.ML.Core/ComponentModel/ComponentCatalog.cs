@@ -421,6 +421,7 @@ namespace Microsoft.ML.Runtime
             if (Utils.Size(parmTypes) == 0 && (getter = FindInstanceGetter(instType, loaderType)) != null)
                 return true;
 
+            // Find both 'ctor' and 'create' methods if available
             if (instType.IsAssignableFrom(loaderType))
             {
                 ctor = loaderType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, parmTypes ?? Type.EmptyTypes, null);
@@ -441,37 +442,26 @@ namespace Microsoft.ML.Runtime
             }
 
             // If both 'ctor' and 'create' methods were found
-            // Choose the public one, or the internal one, and at last the private one
-            // if they have the same visibility, then throw an exception, since this
-            // shouldn't happen.
+            // Choose the one that is public, if both are non-public choose the one that isn't private
+            // if they have the same visibility, then throw an exception, since this shouldn't happen.
             if(ctor != null && create != null)
             {
                 if (ctor.IsPublic == create.IsPublic)
                 {
                     if(ctor.IsPublic || ctor.IsPrivate == create.IsPrivate)
                     {
-                        var myPublicLogPath = @"C:\Users\anvelazq\Desktop\mylogIsPublic.txt";
-                        var myNonPublicLogPath = @"C:\Users\anvelazq\Desktop\mylogIsNotPublic.txt";
-                        var myLogPath = ctor.IsPublic ? myPublicLogPath : myNonPublicLogPath;
-                        MyLog(myLogPath, loaderType, parmTypes, requireEnvironmentCtor, requireEnvironmentCreate);
-                        // For this experiment simply continue with the constructor:
-                        requireEnvironment = requireEnvironmentCtor;
-                        create = null;
-                        return true;
-                        // throw Contracts.Except($"Can't load type {instType}, because it has both create and constructor methods with the same visibility. Please open an issue for this to be fixed.");
+                        throw Contracts.Except($"Can't load type {instType}, because it has both create and constructor methods with the same visibility. Please open an issue for this to be fixed.");
                     }
 
                     if(!ctor.IsPrivate)
                     {
                         create = null;
                         requireEnvironment = requireEnvironmentCtor;
-                        MyLog(@"C:\Users\anvelazq\Desktop\mylogPrivate.txt", loaderType, parmTypes, requireEnvironmentCtor, requireEnvironmentCreate);
                         return true;
                     }
 
                     ctor = null;
                     requireEnvironment = requireEnvironmentCreate;
-                    MyLog(@"C:\Users\anvelazq\Desktop\mylogNonPublicNonPrivate.txt", loaderType, parmTypes, requireEnvironmentCtor, requireEnvironmentCreate);
                     return true;
 
                 }
@@ -500,24 +490,6 @@ namespace Microsoft.ML.Runtime
             }
 
             return false;
-        }
-
-        private static void MyLog(string path, Type loaderType, Type[] parmTypes, bool reqCtor, bool reqCreate)
-        {
-            MyLogLabel: // to retry in case some other process is logging to that file
-            try
-            {
-                using (var file = new System.IO.StreamWriter(path, true))
-                {
-                    var parmsString = string.Join<Type>(", ", parmTypes);
-                    file.WriteLine($"{loaderType.ToString()}\t\t- parmTypes: {parmsString}\t\t- reqEnvCtor: {reqCtor} - reqEnvCreate: {reqCreate}");
-
-                }
-            }
-            catch (System.IO.IOException)
-            {
-                goto MyLogLabel;
-            }
         }
 
         private void AddClass(LoadableClassInfo info, string[] loadNames, bool throwOnError)
