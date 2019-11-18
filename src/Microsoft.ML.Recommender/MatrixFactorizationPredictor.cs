@@ -152,7 +152,7 @@ namespace Microsoft.ML.Trainers.Recommender
         /// <summary>
         /// Load model from the given context
         /// </summary>
-        private static MatrixFactorizationModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static MatrixFactorizationModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -556,7 +556,7 @@ namespace Microsoft.ML.Trainers.Recommender
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(MatrixFactorizationPredictionTransformer).Assembly.FullName);
         }
-        private static MatrixFactorizationPredictionTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static MatrixFactorizationPredictionTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
             => new MatrixFactorizationPredictionTransformer(env, ctx);
 
     }

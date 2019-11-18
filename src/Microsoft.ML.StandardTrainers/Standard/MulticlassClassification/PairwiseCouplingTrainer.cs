@@ -341,7 +341,7 @@ namespace Microsoft.ML.Trainers
             return true;
         }
 
-        private static PairwiseCouplingModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static PairwiseCouplingModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));

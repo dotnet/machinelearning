@@ -1148,7 +1148,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        private static LinearMulticlassModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static LinearMulticlassModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));

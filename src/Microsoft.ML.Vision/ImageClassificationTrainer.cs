@@ -1448,7 +1448,7 @@ namespace Microsoft.ML.Vision
             _outputType = new VectorDataViewType(NumberDataViewType.Single, _classCount);
         }
 
-        private static ImageClassificationModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static ImageClassificationModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
