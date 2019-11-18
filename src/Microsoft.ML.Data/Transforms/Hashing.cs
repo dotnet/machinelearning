@@ -577,8 +577,8 @@ namespace Microsoft.ML.Transforms
             public uint HashCore(uint seed, uint mask, in ReadOnlyMemory<char> value)
             {
                 var len = value.Length;
-                string valueString = value.ToString();
-                return Hashing.MixHashV2(Hashing.MurmurRoundText(seed, valueString), len);
+                //string valueString = value.ToString();
+                return Hashing.MixHashV2(Hashing.MurmurRoundText(seed, value), len);
             }
         }
 
