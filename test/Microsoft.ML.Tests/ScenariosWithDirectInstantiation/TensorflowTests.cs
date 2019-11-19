@@ -1839,7 +1839,7 @@ namespace Microsoft.ML.Scenarios
         public static string DownloadImageSet(string imagesDownloadFolder)
         {
             string fileName = "flower_photos_tiny_set_for_unit_tests.zip";
-            string url = "https://tlcresources.blob.core.windows.net/datasets/flower_photos_tiny_set_for_unit_test.zip";
+            string url = "https://aka.ms/mlnet-resources/flower_photos_tiny_set_for_unit_test.zip";
 
             Download(url, imagesDownloadFolder, fileName);
             UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);
