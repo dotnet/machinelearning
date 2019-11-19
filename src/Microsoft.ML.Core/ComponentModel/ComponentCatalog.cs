@@ -18,6 +18,8 @@ namespace Microsoft.ML.Runtime
     {
         internal static AccessModifier Accessmodifier(this MethodInfo methodInfo)
         {
+            if (methodInfo.IsFamilyAndAssembly)
+                return AccessModifier.PrivateProtected;
             if (methodInfo.IsPrivate)
                 return AccessModifier.Private;
             if (methodInfo.IsFamily)
@@ -33,6 +35,8 @@ namespace Microsoft.ML.Runtime
 
         internal static AccessModifier Accessmodifier(this ConstructorInfo constructorInfo)
         {
+            if (constructorInfo.IsFamilyAndAssembly)
+                return AccessModifier.PrivateProtected;
             if (constructorInfo.IsPrivate)
                 return AccessModifier.Private;
             if (constructorInfo.IsFamily)
@@ -43,11 +47,12 @@ namespace Microsoft.ML.Runtime
                 return AccessModifier.Internal;
             if (constructorInfo.IsPublic)
                 return AccessModifier.Public;
-            throw new ArgumentException("Did not find access modifier", "methodInfo");
+            throw new ArgumentException("Did not find access modifier", "constructorInfo");
         }
 
         internal enum AccessModifier
         {
+            PrivateProtected,
             Private,
             Protected,
             ProtectedInternal,
@@ -484,12 +489,12 @@ namespace Microsoft.ML.Runtime
                     requireEnvironmentCreate = true;
             }
 
-            // If both 'ctor' and 'create' methods were found
-            // Choose the one that is 'more' public
-            // If they have the same visibility, then throw an exception, since this shouldn't happen.
-
             if (ctor != null && create != null)
             {
+                // If both 'ctor' and 'create' methods were found
+                // Choose the one that is 'more' public
+                // If they have the same visibility, then throw an exception, since this shouldn't happen.
+
                 if (ctor.Accessmodifier() == create.Accessmodifier())
                 {
                     throw Contracts.Except($"Can't load type {instType}, because it has both create and constructor methods with the same visibility. Please open an issue for this to be fixed.");
