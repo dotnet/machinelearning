@@ -13,6 +13,49 @@ using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime
 {
+
+    internal static class Extension
+    {
+        internal static AccessModifier Accessmodifier(this MethodInfo methodInfo)
+        {
+            if (methodInfo.IsPrivate)
+                return AccessModifier.Private;
+            if (methodInfo.IsFamily)
+                return AccessModifier.Protected;
+            if (methodInfo.IsFamilyOrAssembly)
+                return AccessModifier.ProtectedInternal;
+            if (methodInfo.IsAssembly)
+                return AccessModifier.Internal;
+            if (methodInfo.IsPublic)
+                return AccessModifier.Public;
+            throw new ArgumentException("Did not find access modifier", "methodInfo");
+        }
+
+        internal static AccessModifier Accessmodifier(this ConstructorInfo constructorInfo)
+        {
+            if (constructorInfo.IsPrivate)
+                return AccessModifier.Private;
+            if (constructorInfo.IsFamily)
+                return AccessModifier.Protected;
+            if (constructorInfo.IsFamilyOrAssembly)
+                return AccessModifier.ProtectedInternal;
+            if (constructorInfo.IsAssembly)
+                return AccessModifier.Internal;
+            if (constructorInfo.IsPublic)
+                return AccessModifier.Public;
+            throw new ArgumentException("Did not find access modifier", "methodInfo");
+        }
+
+        internal enum AccessModifier
+        {
+            Private,
+            Protected,
+            ProtectedInternal,
+            Internal,
+            Public
+        }
+    }
+
     /// <summary>
     /// This catalogs instantiatable components (aka, loadable classes). Components are registered via
     /// a descendant of <see cref="LoadableClassAttributeBase"/>, identifying the names and signature types under which the component
@@ -442,30 +485,16 @@ namespace Microsoft.ML.Runtime
             }
 
             // If both 'ctor' and 'create' methods were found
-            // Choose the one that is public, if both are non-public choose the one that isn't private
-            // if they have the same visibility, then throw an exception, since this shouldn't happen.
-            if(ctor != null && create != null)
+            // Choose the one that is 'more' public
+            // If they have the same visibility, then throw an exception, since this shouldn't happen.
+
+            if (ctor != null && create != null)
             {
-                if (ctor.IsPublic == create.IsPublic)
+                if (ctor.Accessmodifier() == create.Accessmodifier())
                 {
-                    if(ctor.IsPublic || ctor.IsPrivate == create.IsPrivate)
-                    {
-                        throw Contracts.Except($"Can't load type {instType}, because it has both create and constructor methods with the same visibility. Please open an issue for this to be fixed.");
-                    }
-
-                    if(!ctor.IsPrivate)
-                    {
-                        create = null;
-                        requireEnvironment = requireEnvironmentCtor;
-                        return true;
-                    }
-
-                    ctor = null;
-                    requireEnvironment = requireEnvironmentCreate;
-                    return true;
-
+                    throw Contracts.Except($"Can't load type {instType}, because it has both create and constructor methods with the same visibility. Please open an issue for this to be fixed.");
                 }
-                else if (ctor.IsPublic)
+                else if (ctor.Accessmodifier() > create.Accessmodifier())
                 {
                     create = null;
                     requireEnvironment = requireEnvironmentCtor;
