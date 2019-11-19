@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageDescription>Additional ML.NET featurizers</PackageDescription>
+    <PackageDescription>ML.NET featurizers with native code implementation</PackageDescription>
   </PropertyGroup>
 
   <ItemGroup>

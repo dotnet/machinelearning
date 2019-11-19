@@ -966,9 +966,9 @@ namespace Microsoft.ML.Internal.Utilities
             return meth;
         }
 
-        private static MethodInfo MarshalInvokeCheckAndCreate<TRet>(Delegate func, Type[] genArgs)
+        private static MethodInfo MarshalInvokeCheckAndCreate<TRet>(Type[] genArgs, Delegate func)
         {
-            var meth = MarshalActionInvokeCheckAndCreate(func, genArgs);
+            var meth = MarshalActionInvokeCheckAndCreate(genArgs, func);
             if (meth.ReturnType != typeof(TRet))
                 throw Contracts.ExceptParam(nameof(func), "Cannot be generic on return type");
             return meth;
@@ -1107,7 +1107,7 @@ namespace Microsoft.ML.Internal.Utilities
             Func<TArg1, TRet> func,
             Type[] genArgs, TArg1 arg1)
         {
-            var meth = MarshalInvokeCheckAndCreate<TRet>(func, genArgs);
+            var meth = MarshalInvokeCheckAndCreate<TRet>(genArgs, func);
             return (TRet)meth.Invoke(func.Target, new object[] { arg1});
         }
 
@@ -1118,7 +1118,7 @@ namespace Microsoft.ML.Internal.Utilities
             Func<TArg1, TArg2, TRet> func,
             Type[] genArgs, TArg1 arg1, TArg2 arg2)
         {
-            var meth = MarshalInvokeCheckAndCreate<TRet>(func, genArgs);
+            var meth = MarshalInvokeCheckAndCreate<TRet>(genArgs, func);
             return (TRet)meth.Invoke(func.Target, new object[] { arg1, arg2});
         }
 
@@ -1134,7 +1134,7 @@ namespace Microsoft.ML.Internal.Utilities
             return meth;
         }
 
-        private static MethodInfo MarshalActionInvokeCheckAndCreate(Delegate func, params Type[] typeArguments)
+        private static MethodInfo MarshalActionInvokeCheckAndCreate(Type[] typeArguments, Delegate func)
         {
             Contracts.CheckValue(typeArguments, nameof(typeArguments));
             Contracts.CheckValue(func, nameof(func));

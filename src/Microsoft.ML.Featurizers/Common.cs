@@ -7,46 +7,57 @@ using Microsoft.Win32.SafeHandles;
 
 namespace Microsoft.ML.Featurizers
 {
-    #region Native Function Declarations
-
-    #endregion
-
     internal enum FitResult : byte
     {
-        Complete = 1, Continue, ResetAndContinue
+        Complete = 1,
+        Continue = 2,
+        ResetAndContinue = 3
     }
 
-    // Not all these types are currently supported. This is so the ordering will allign with the native code.
+    // Not all these types are currently supported. These are taken directly from the Native code implementation.
     internal enum TypeId : uint
     {
+        // Enumeration values are in the following format:
+        //
+        //      0xVTTTXXXX
+        //        ^^^^^^^^
+        //        ||  |- Id
+        //        ||- Number of trailing types
+        //        |- Has trailing types
+        //
         String = 1,
-        SByte,
-        Short,
-        Int,
-        Long,
-        Byte,
-        UShort,
-        UInt,
-        ULong,
-        Float16,
-        Float32,
-        Double,
-        Complex64,
-        Complex128,
-        BFloat16,
-        Bool,
-        Timepoint,
-        Duration,
+        SByte = 2,
+        Short = 3,
+        Int = 4,
+        Long = 5,
+        Byte = 6,
+        UShort = 7,
+        UInt = 8,
+        ULong = 9,
+        Float16 = 10,
+        Float32 = 11,
+        Double = 12,
+        Complex64 = 13,
+        Complex128 = 14,
+        BFloat16 = 15,
+        Bool = 16,
+        Timepoint = 17,
+        Duration = 18,
 
-        LastStaticValue,
+        LastStaticValue = 19,
+
+        // The following values have N number of trailing types
         Tensor = 0x1001 | LastStaticValue + 1,
         SparseTensor = 0x1001 | LastStaticValue + 2,
         Tabular = 0x1001 | LastStaticValue + 3,
+
         Nullable = 0x1001 | LastStaticValue + 4,
         Vector = 0x1001 | LastStaticValue + 5,
         MapId = 0x1002 | LastStaticValue + 6
     };
 
+    // Is a struct mirroring the native struct.
+    // I used to pass binary data between ML.NET and the native code.
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     internal unsafe struct NativeBinaryArchiveData
     {
@@ -56,6 +67,7 @@ namespace Microsoft.ML.Featurizers
 
     #region SafeHandles
 
+    // Safe handle that frees the memory for a native error returned to ML.NET.
     internal class ErrorInfoSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [DllImport("Featurizers", EntryPoint = "DestroyErrorInfo", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
@@ -72,6 +84,7 @@ namespace Microsoft.ML.Featurizers
         }
     }
 
+    // Safe handle that frees the memory for errors strings return from the native code to ML.NET.
     internal class ErrorInfoStringSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [DllImport("Featurizers", EntryPoint = "DestroyErrorInfoString", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
@@ -90,6 +103,8 @@ namespace Microsoft.ML.Featurizers
         }
     }
 
+    // Safe handle that frees the memory for the transformed data.
+    // Is called automatically after each call to transform.
     internal delegate bool DestroyTransformedDataNative(IntPtr output, IntPtr outputSize, out IntPtr errorHandle);
     internal class TransformedDataSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
@@ -110,26 +125,28 @@ namespace Microsoft.ML.Featurizers
         }
     }
 
-    internal delegate bool DestroyCppTransformerEstimator(IntPtr estimator, out IntPtr errorHandle);
+    // Safe handle that frees the memory for a native estimator or transformer.
+    // Is called automatically at the end of life for a transformer or estimator.
+    internal delegate bool DestroyNativeTransformerEstimator(IntPtr estimator, out IntPtr errorHandle);
     internal class TransformerEstimatorSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
-        private DestroyCppTransformerEstimator _destroyCppTransformerEstimator;
-        public TransformerEstimatorSafeHandle(IntPtr handle, DestroyCppTransformerEstimator destroyCppTransformerEstimator) : base(true)
+        private DestroyNativeTransformerEstimator _destroyNativeTransformerEstimator;
+        public TransformerEstimatorSafeHandle(IntPtr handle, DestroyNativeTransformerEstimator destroyNativeTransformerEstimator) : base(true)
         {
             SetHandle(handle);
-            _destroyCppTransformerEstimator = destroyCppTransformerEstimator;
+            _destroyNativeTransformerEstimator = destroyNativeTransformerEstimator;
         }
 
         protected override bool ReleaseHandle()
         {
             // Not sure what to do with error stuff here. There shouldn't ever be one though.
-            return _destroyCppTransformerEstimator(handle, out IntPtr errorHandle);
+            return _destroyNativeTransformerEstimator(handle, out IntPtr errorHandle);
         }
     }
 
-    // Destroying saved data is always the same.
+    // Safe handle that frees the memory for the internal state of a native transformer.
+    // Is called automatically after we save the model.
     internal delegate bool DestroyTransformerSaveData(IntPtr buffer, IntPtr bufferSize, out IntPtr errorHandle);
-
     internal class SaveDataSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         private readonly IntPtr _dataSize;
@@ -152,6 +169,7 @@ namespace Microsoft.ML.Featurizers
 
     #endregion
 
+    // Static extension classes with Common methods used in multiple featurizers
     internal static class CommonExtensions
     {
         [DllImport("Featurizers", EntryPoint = "GetErrorInfoString", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
@@ -171,10 +189,11 @@ namespace Microsoft.ML.Featurizers
                 }
             }
         }
+
         internal static TypeId GetNativeTypeIdFromType(this Type type)
         {
-            if (type == typeof(byte))
-                return TypeId.Byte;
+            if (type == typeof(sbyte))
+                return TypeId.SByte;
             else if (type == typeof(short))
                 return TypeId.Short;
             else if (type == typeof(int))
