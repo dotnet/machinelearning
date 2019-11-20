@@ -183,7 +183,7 @@ namespace Microsoft.ML.AutoML
 
             const string schemaMismatchError = "Training data and validation data schemas do not match.";
 
-            if (trainData.Schema.Count != validationData.Schema.Count)
+            if (trainData.Schema.Count(c => !c.IsHidden) != validationData.Schema.Count(c => !c.IsHidden))
             {
                 throw new ArgumentException($"{schemaMismatchError} Train data has '{trainData.Schema.Count}' columns," +
                     $"and validation data has '{validationData.Schema.Count}' columns.", nameof(validationData));
@@ -191,6 +191,11 @@ namespace Microsoft.ML.AutoML
 
             foreach (var trainCol in trainData.Schema)
             {
+                if (trainCol.IsHidden)
+                {
+                    continue;
+                }
+
                 var validCol = validationData.Schema.GetColumnOrNull(trainCol.Name);
                 if (validCol == null)
                 {
