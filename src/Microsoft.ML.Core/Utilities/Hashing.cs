@@ -105,15 +105,14 @@ namespace Microsoft.ML.Internal.Utilities
             return hash;
         }
 
-        private static unsafe uint MurmurRoundV2(uint hash, byte* key, int len)
+        private static uint MurmurRoundSpanV2(uint hash, Span<byte> key, int len)
         {
             int nblocks = len / 4;
-            byte* data = key;
-            uint* blocks = (uint*)(data + nblocks * 4);
+            byte[] data = key.ToArray();
 
-            for (int i = -nblocks; i!=0; i++)
+            for (int i = nblocks; i >0; i--)
             {
-                uint chunk = blocks[i];
+                uint chunk = BitConverter.ToUInt32(data, (nblocks * 4 - i*4));
                 chunk *= 0xCC9E2D51;
                 chunk = Rotate(chunk, 15);
                 chunk *= 0x1B873593;
@@ -124,7 +123,7 @@ namespace Microsoft.ML.Internal.Utilities
                 hash += 0xE6546B64;
             }
 
-            byte* tail = (byte*)(data + nblocks * 4);
+            byte[] tail = new byte[3]{data[len-3], data[len-2], data[len-1]};
 
             uint k1 = 0;
 
@@ -149,120 +148,78 @@ namespace Microsoft.ML.Internal.Utilities
 
         public static uint MurmurRoundFloat(uint hash, float chunk)
         {
-            unsafe
-            {
-                float* keys = &chunk;
-                byte* key;
-                key = (byte*)keys;
-                return MurmurRoundV2(hash, key, 4);
-            }
+            var floatBytes = BitConverter.GetBytes(chunk);
+            Span<byte> key = new Span<byte>(floatBytes);
+            return MurmurRoundSpanV2(hash, key, 4);
         }
 
         public static uint MurmurRoundDouble(uint hash, double chunk)
         {
-            unsafe
-            {
-                double* keys = &chunk;
-                byte* key;
-                key = (byte*)keys;
-                return MurmurRoundV2(hash, key, 4);
-            }
+            var doubleBytes = BitConverter.GetBytes(chunk);
+            Span<byte> key = new Span<byte>(doubleBytes);
+            return MurmurRoundSpanV2(hash, key, 8);
         }
 
         public static uint MurmurRoundText(uint hash, ReadOnlyMemory<char> chunk)
         {
-            unsafe
-            {
-                byte[] utf8Bytes = Encoding.UTF8.GetBytes(chunk.ToArray());
-                fixed (byte* key = utf8Bytes)
-                return MurmurRoundV2(hash, key, chunk.Length);
-            }
+            byte[] utf8Bytes = Encoding.UTF8.GetBytes(chunk.ToArray());
+            var key = new Span<byte>(utf8Bytes);
+            return MurmurRoundSpanV2(hash, key, chunk.Length);
         }
 
         public static uint MurmurRoundU1(uint hash, byte chunk)
         {
-            unsafe
-            {
-                byte* key = &chunk;
-                return MurmurRoundV2(hash, key, 1);
-            }
+            Span<byte> key = new Span<byte>(new byte[] { chunk });
+            return MurmurRoundSpanV2(hash, key, 1);
         }
 
         public static uint MurmurRoundU2(uint hash, ushort chunk)
         {
-            unsafe
-            {
-                ushort* keys = &chunk;
-                byte* key;
-                key = (byte*)keys;
-                return MurmurRoundV2(hash, key, 2);
-            }
+            var ushortBytes = BitConverter.GetBytes(chunk);
+            Span<byte> key = new Span<byte>(ushortBytes);
+            return MurmurRoundSpanV2(hash, key, 2);
         }
 
         public static uint MurmurRoundU4(uint hash, uint chunk)
         {
-            unsafe
-            {
-                uint* keys = &chunk;
-                byte* key;
-                key = (byte*)keys;
-                return MurmurRoundV2(hash, key, 4);
-            }
+            var uintBytes = BitConverter.GetBytes(chunk);
+            Span<byte> key = new Span<byte>(uintBytes);
+            return MurmurRoundSpanV2(hash, key, 4);
         }
 
         public static uint MurmurRoundU8(uint hash, ulong chunk)
         {
-            unsafe
-            {
-                ulong* keys = &chunk;
-                byte* key;
-                key = (byte*)keys;
-                return MurmurRoundV2(hash, key, 8);
-            }
+            var ulongBytes = BitConverter.GetBytes(chunk);
+            Span<byte> key = new Span<byte>(ulongBytes);
+            return MurmurRoundSpanV2(hash, key, 8);
         }
 
         public static uint MurmurRoundI1(uint hash, sbyte chunk)
         {
-            unsafe
-            {
-                sbyte* keys = &chunk;
-                byte* key;
-                key = (byte*)keys;
-                return MurmurRoundV2(hash, key, 1);
-            }
+            var sbyteBytes = BitConverter.GetBytes(chunk);
+            Span<byte> key = new Span<byte>(sbyteBytes);
+            return MurmurRoundSpanV2(hash, key, 1);
         }
 
         public static uint MurmurRoundI2(uint hash, short chunk)
         {
-            unsafe
-            {
-                short* keys = &chunk;
-                byte* key;
-                key = (byte*)keys;
-                return MurmurRoundV2(hash, key, 1);
-            }
+            var shortBytes = BitConverter.GetBytes(chunk);
+            Span<byte> key = new Span<byte>(shortBytes);
+            return MurmurRoundSpanV2(hash, key, 2);
         }
 
         public static uint MurmurRoundI4(uint hash, int chunk)
         {
-            unsafe
-            {
-                int* keys = &chunk;
-                byte* key;
-                key = (byte*)keys;
-                return MurmurRoundV2(hash, key, 1);
-            }
+            var intBytes = BitConverter.GetBytes(chunk);
+            Span<byte> key = new Span<byte>(intBytes);
+            return MurmurRoundSpanV2(hash, key, 4);
         }
 
         public static uint MurmurRoundI8(uint hash, long chunk)
         {
-            unsafe
-            {
-                long* keys = &chunk;
-                byte* key;
-                key = (byte*)keys;
-                return MurmurRoundV2(hash, key, 1);
-            }
+            var longBytes = BitConverter.GetBytes(chunk);
+            Span<byte> key = new Span<byte>(longBytes);
+            return MurmurRoundSpanV2(hash, key, 8);
         }
 
         /// <summary>
