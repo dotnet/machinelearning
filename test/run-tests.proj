@@ -2,7 +2,7 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.props))\Directory.Build.props" />
 
   <ItemGroup>
-    <Project Include="$(MSBuildThisFileDirectory)Microsoft.ML.OnnxTransformerTest\Microsoft.ML.Onnx.TransformerTest.csproj" />
+    <Project Include="$(MSBuildThisFileDirectory)Microsoft.ML.OnnxTransformerTest\Microsoft.ML.OnnxTransformerTest.csproj" />
   </ItemGroup>
 
   <Target Name="RunTests">
