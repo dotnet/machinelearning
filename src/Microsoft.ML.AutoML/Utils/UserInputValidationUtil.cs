@@ -189,6 +189,9 @@ namespace Microsoft.ML.AutoML
                     $"and validation data has '{validationData.Schema.Count}' columns.", nameof(validationData));
             }
 
+            // Validate that every active column in the train data corresponds to an active column in the validation data.
+            // (Indirectly, since we asserted above that the train and validation data have the same number of active columns, this also
+            // esnures the reverse -- that every active column in the validation data corresponds to an active column in the train data.)
             foreach (var trainCol in trainData.Schema)
             {
                 if (trainCol.IsHidden)
