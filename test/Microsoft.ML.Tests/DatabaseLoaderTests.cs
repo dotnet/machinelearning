@@ -80,6 +80,63 @@ namespace Microsoft.ML.Tests
         }
 
         [LightGBMFact]
+        public void IrisLightGbmConnectionTimeout()
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // https://github.com/dotnet/machinelearning/issues/4156
+                return;
+            }
+
+            var mlContext = new MLContext(seed: 1);
+
+            var connectionString = GetConnectionString(TestDatasets.irisDb.name);
+            var commandText = $@"SELECT * FROM ""{TestDatasets.irisDb.trainFilename}""";
+            var commandTimeout = 1;
+
+            var loaderColumns = new DatabaseLoader.Column[]
+            {
+                new DatabaseLoader.Column() { Name = "Label", Type = DbType.Int32 },
+                new DatabaseLoader.Column() { Name = "SepalLength", Type = DbType.Single },
+                new DatabaseLoader.Column() { Name = "SepalWidth", Type = DbType.Single },
+                new DatabaseLoader.Column() { Name = "PetalLength", Type = DbType.Single },
+                new DatabaseLoader.Column() { Name = "PetalWidth", Type = DbType.Single }
+            };
+
+            var loader = mlContext.Data.CreateDatabaseLoader(loaderColumns);
+
+            var databaseSource = new DatabaseSource(SqlClientFactory.Instance, connectionString, commandText, commandTimeout);
+
+            var trainingData = loader.Load(databaseSource);
+
+            IEstimator<ITransformer> pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
+                .Append(mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
+                .AppendCacheCheckpoint(mlContext)
+                .Append(mlContext.MulticlassClassification.Trainers.LightGbm())
+                .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
+
+            var model = pipeline.Fit(trainingData);
+
+            var engine = mlContext.Model.CreatePredictionEngine<IrisData, IrisPrediction>(model);
+
+            Assert.Equal(0, engine.Predict(new IrisData()
+            {
+                SepalLength = 4.5f,
+                SepalWidth = 5.6f,
+                PetalLength = 0.5f,
+                PetalWidth = 0.5f,
+            }).PredictedLabel);
+
+            Assert.Equal(1, engine.Predict(new IrisData()
+            {
+                SepalLength = 4.9f,
+                SepalWidth = 2.4f,
+                PetalLength = 3.3f,
+                PetalWidth = 1.0f,
+            }).PredictedLabel);
+        }
+
+        [LightGBMFact]
         public void IrisLightGbmWithLoadColumnName()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

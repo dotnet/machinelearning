@@ -14,7 +14,8 @@ namespace Microsoft.ML.Data
         /// <param name="providerFactory">The factory used to create the <see cref="DbConnection"/>..</param>
         /// <param name="connectionString">The string used to open the connection.</param>
         /// <param name="commandText">The text command to run against the data source.</param>
-        public DatabaseSource(DbProviderFactory providerFactory, string connectionString, string commandText)
+        /// <param name="commandTimeout">The time in seconds to wait for the command to execute. Default is 30 sec.</param>
+        public DatabaseSource(DbProviderFactory providerFactory, string connectionString, string commandText, int commandTimeout = 30)
         {
             Contracts.CheckValue(providerFactory, nameof(providerFactory));
             Contracts.CheckValue(connectionString, nameof(connectionString));
@@ -23,10 +24,14 @@ namespace Microsoft.ML.Data
             ProviderFactory = providerFactory;
             ConnectionString = connectionString;
             CommandText = commandText;
+            CommandTimeout = commandTimeout;
         }
 
         /// <summary>Gets the text command to run against the data source.</summary>
         public string CommandText { get; }
+
+        /// <summary>Gets the command timeout.</summary>
+        public int CommandTimeout { get; }
 
         /// <summary>Gets the string used to open the connection.</summary>
         public string ConnectionString { get; }
