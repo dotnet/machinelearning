@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 using System.Runtime.CompilerServices;
 using Microsoft.ML;
+using Xunit;
 
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Predictor.Tests" + PublicKey.TestValue)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.TimeSeries.Tests" + PublicKey.TestValue)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Tests" + PublicKey.TestValue)]
