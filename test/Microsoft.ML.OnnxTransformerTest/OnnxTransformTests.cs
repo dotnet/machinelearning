@@ -18,7 +18,6 @@ using Xunit;
 using Xunit.Abstractions;
 using Microsoft.ML.Transforms.Onnx;
 using Microsoft.ML.TestFrameworkCommon.Attributes;
-using System.Runtime.InteropServices;
 
 namespace Microsoft.ML.Tests
 {
@@ -202,11 +201,6 @@ namespace Microsoft.ML.Tests
         [OnnxFact]
         public void OnnxWorkout()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return;
-            }
-
             var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "squeezenet", "00000001", "model.onnx");
 
             var env = new MLContext();
@@ -397,11 +391,6 @@ namespace Microsoft.ML.Tests
         [OnnxFact]
         public void OnnxModelInMemoryImage()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return;
-            }
-
             // Path of ONNX model. It's a multiclass classifier. It consumes an input "data_0" and produces an output "softmaxout_1".
             var modelFile = "squeezenet/00000001/model.onnx";
 
