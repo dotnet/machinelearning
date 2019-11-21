@@ -10,13 +10,13 @@
           "F2"
         ],
         "output": [
-          "F20"
+          "LabelEncoderOutput"
         ],
         "name": "LabelEncoder",
         "opType": "LabelEncoder",
         "attribute": [
           {
-            "name": "classes_strings",
+            "name": "keys_strings",
             "strings": [
               "MQ==",
               "NQ==",
@@ -36,16 +36,60 @@
             "type": "INT"
           },
           {
-            "name": "default_string",
-            "s": "IA==",
-            "type": "STRING"
+            "name": "values_int64s",
+            "ints": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8",
+              "9"
+            ],
+            "type": "INTS"
           }
         ],
         "domain": "ai.onnx.ml"
       },
       {
         "input": [
+          "LabelEncoderOutput"
+        ],
+        "output": [
           "F20"
+        ],
+        "name": "Cast",
+        "opType": "Cast",
+        "attribute": [
+          {
+            "name": "to",
+            "i": "12",
+            "type": "INT"
+          }
+        ]
+      },
+      {
+        "input": [
+          "F20"
+        ],
+        "output": [
+          "Cast"
+        ],
+        "name": "Cast0",
+        "opType": "Cast",
+        "attribute": [
+          {
+            "name": "to",
+            "i": "7",
+            "type": "INT"
+          }
+        ]
+      },
+      {
+        "input": [
+          "Cast"
         ],
         "output": [
           "F21"
