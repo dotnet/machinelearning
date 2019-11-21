@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
@@ -89,6 +90,11 @@ namespace Microsoft.ML.Tests
         [OnnxFact]
         public void OnnxFeaturizerWorkout()
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return;
+            }
+
             var env = new MLContext(null);
             var imageHeight = 224;
             var imageWidth = 224;
@@ -197,6 +203,11 @@ namespace Microsoft.ML.Tests
         [OnnxFact]
         public void TestLoadFromDiskAndPredictionEngine()
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return;
+            }
+
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 
