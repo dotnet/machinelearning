@@ -3,6 +3,7 @@
 
   <ItemGroup>
     <Project Include="$(MSBuildThisFileDirectory)Microsoft.ML.OnnxTransformerTest\Microsoft.ML.OnnxTransformerTest.csproj" />
+    <Project Include="$(MSBuildThisFileDirectory)Microsoft.ML.Tests\Microsoft.ML.Tests.csproj" />
   </ItemGroup>
 
   <Target Name="RunTests">
