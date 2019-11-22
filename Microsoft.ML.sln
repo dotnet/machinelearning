@@ -300,6 +300,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mlnet", "src\mlnet\mlnet.cs
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mlnet.Tests", "test\mlnet.Tests\mlnet.Tests.csproj", "{ED9F2605-52E3-46AF-AA1C-D0B98D387E65}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mlnet", "mlnet", "{B69EAEAB-5269-4175-9494-4AF34F2E476A}"
+	ProjectSection(SolutionItems) = preProject
+		pkg\mlnet\mlnet.nupkgproj = pkg\mlnet\mlnet.nupkgproj
+		pkg\mlnet\mlnet.symbols.nupkgproj = pkg\mlnet\mlnet.symbols.nupkgproj
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1911,6 +1917,7 @@ Global
 		{027DBA48-85B6-46F1-9487-0B49B5057FC0} = {C91F81E3-B900-4968-A6DF-F53B515E97E1}
 		{ACC3E9F6-1CAA-4D6F-8EFC-122F7DA00268} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 		{ED9F2605-52E3-46AF-AA1C-D0B98D387E65} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
+		{B69EAEAB-5269-4175-9494-4AF34F2E476A} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {41165AF1-35BB-4832-A189-73060F82B01D}
