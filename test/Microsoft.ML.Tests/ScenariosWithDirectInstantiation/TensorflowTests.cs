@@ -28,18 +28,27 @@ namespace Microsoft.ML.Scenarios
 
     internal sealed class TensorFlowScenariosTestsFixture : IDisposable
     {
-        public TensorFlowScenariosTestsFixture()
+        public static string parentWorkspacePath;
+        public static string assetsPath;
+        internal void CreateParentWorkspacePathForImageClassification()
         {
             string assetsRelativePath = @"assets";
-            string assetsPath = GetAbsolutePath(assetsRelativePath);
+            assetsPath = GetAbsolutePath(assetsRelativePath);
             string workspacePath = Path.Combine(assetsPath, "cached");
             // Delete if the workspace path already exists
             if (Directory.Exists(workspacePath))
             {
                 Directory.Delete(workspacePath, true);
             }
+
             // Create a new empty workspace path
             Directory.CreateDirectory(workspacePath);
+            parentWorkspacePath = workspacePath;
+        }
+
+        public TensorFlowScenariosTestsFixture()
+        {
+            CreateParentWorkspacePathForImageClassification();
         }
 
         public void Dispose()
@@ -1239,9 +1248,7 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowImageClassificationDefault()
         {
-            string assetsRelativePath = @"assets";
-            string assetsPath = GetAbsolutePath(assetsRelativePath);
-            string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
+            string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
 
             //Download the image set and unzip
@@ -1312,6 +1319,21 @@ namespace Microsoft.ML.Scenarios
 
         }
 
+        internal bool ShouldReuse(string workspacePath, string trainSetBottleneckCachedValuesFileName, string validationSetBottleneckCachedValuesFileName)
+        {
+            bool isReuse = false;
+            if (Directory.Exists(workspacePath) && File.Exists(Path.Combine(workspacePath, trainSetBottleneckCachedValuesFileName))
+                && File.Exists(Path.Combine(workspacePath, validationSetBottleneckCachedValuesFileName)))
+            {
+                isReuse = true;
+            }
+            else
+            {
+                Directory.CreateDirectory(workspacePath);
+            }
+            return isReuse;
+        }
+
         [TensorFlowTheory]
         [InlineData(ImageClassificationTrainer.Architecture.ResnetV2101)]
         [InlineData(ImageClassificationTrainer.Architecture.MobilenetV2)]
@@ -1319,9 +1341,7 @@ namespace Microsoft.ML.Scenarios
         [InlineData(ImageClassificationTrainer.Architecture.InceptionV3)]
         public void TensorFlowImageClassification(ImageClassificationTrainer.Architecture arch)
         {
-            string assetsRelativePath = @"assets";
-            string assetsPath = GetAbsolutePath(assetsRelativePath);
-            string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
+            string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
 
             //Download the image set and unzip
@@ -1358,17 +1378,8 @@ namespace Microsoft.ML.Scenarios
             // Check if the bottleneck cached values already exist
             string trainSetBottleneckCachedValuesFileName = "TrainsetCached_" + finalImagesFolderName + "_" + (int)arch;
             string validationSetBottleneckCachedValuesFileName = "validationsetCached_" + finalImagesFolderName + "_" + (int)arch;
-            string workspacePath = Path.Combine(assetsPath, "cached", finalImagesFolderName + "_" + (int)arch);
-            bool isReuse = false;
-            if (Directory.Exists(workspacePath) && File.Exists(Path.Combine(workspacePath, trainSetBottleneckCachedValuesFileName))
-                && File.Exists(Path.Combine(workspacePath, validationSetBottleneckCachedValuesFileName)))
-            {
-                isReuse = true;
-            }
-            else
-            {
-                Directory.CreateDirectory(workspacePath);
-            }
+            string workspacePath = Path.Combine(TensorFlowScenariosTestsFixture.parentWorkspacePath, finalImagesFolderName + "_" + (int)arch);
+            bool isReuse = ShouldReuse(workspacePath, trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName);
 
             var options = new ImageClassificationTrainer.Options()
             {
@@ -1494,9 +1505,7 @@ namespace Microsoft.ML.Scenarios
 
         internal void TensorFlowImageClassificationWithLRScheduling(LearningRateScheduler  learningRateScheduler, int epoch)
         {
-            string assetsRelativePath = @"assets";
-            string assetsPath = GetAbsolutePath(assetsRelativePath);
-            string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
+            string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
 
             //Download the image set and unzip
@@ -1534,18 +1543,8 @@ namespace Microsoft.ML.Scenarios
             int arch = (int) ImageClassificationTrainer.Architecture.ResnetV2101;
             string trainSetBottleneckCachedValuesFileName = "TrainsetCached_" + finalImagesFolderName + "_" + arch;
             string validationSetBottleneckCachedValuesFileName = "validationsetCached_" + finalImagesFolderName + "_" + arch;
-            string workspacePath = Path.Combine(assetsPath, "cached", finalImagesFolderName + "_" + arch);
-            bool isReuse = false;
-
-            if (Directory.Exists(workspacePath) && File.Exists(Path.Combine(workspacePath, trainSetBottleneckCachedValuesFileName))
-                && File.Exists(Path.Combine(workspacePath, validationSetBottleneckCachedValuesFileName)))
-            {
-                isReuse = true;
-            }
-            else
-            {
-                Directory.CreateDirectory(workspacePath);
-            }
+            string workspacePath = Path.Combine(TensorFlowScenariosTestsFixture.parentWorkspacePath, finalImagesFolderName + "_" + arch);
+            bool isReuse = ShouldReuse(workspacePath, trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName);
 
                 var options = new ImageClassificationTrainer.Options()
             {
@@ -1671,9 +1670,7 @@ namespace Microsoft.ML.Scenarios
 
         internal void TensorFlowImageClassificationEarlyStopping(ImageClassificationTrainer.EarlyStoppingMetric earlyStoppingMetric)
         {
-            string assetsRelativePath = @"assets";
-            string assetsPath = GetAbsolutePath(assetsRelativePath);
-            string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
+            string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
 
             //Download the image set and unzip
@@ -1713,18 +1710,8 @@ namespace Microsoft.ML.Scenarios
             int arch = (int) ImageClassificationTrainer.Architecture.ResnetV2101;
             string trainSetBottleneckCachedValuesFileName = "TrainsetCached_" + finalImagesFolderName + "_" + arch;
             string validationSetBottleneckCachedValuesFileName = "validationsetCached_" + finalImagesFolderName + "_" + arch;
-            string workspacePath = Path.Combine(assetsPath, "cached", finalImagesFolderName + "_" + arch);
-            bool isReuse = false;
-
-            if (Directory.Exists(workspacePath) && File.Exists(Path.Combine(workspacePath, trainSetBottleneckCachedValuesFileName))
-                && File.Exists(Path.Combine(workspacePath, validationSetBottleneckCachedValuesFileName)))
-            {
-                isReuse = true;
-            }
-            else
-            {
-                Directory.CreateDirectory(workspacePath);
-            }
+            string workspacePath = Path.Combine(TensorFlowScenariosTestsFixture.parentWorkspacePath, finalImagesFolderName + "_" + arch);
+            bool isReuse = ShouldReuse(workspacePath, trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName);
 
             var options = new ImageClassificationTrainer.Options()
             {
@@ -1787,9 +1774,7 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowImageClassificationBadImages()
         {
-            string assetsRelativePath = @"assets";
-            string assetsPath = GetAbsolutePath(assetsRelativePath);
-            string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
+            string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
 
             //Download the image set and unzip
@@ -1893,7 +1878,7 @@ namespace Microsoft.ML.Scenarios
         public static string DownloadImageSet(string imagesDownloadFolder)
         {
             string fileName = "flower_photos_tiny_set_for_unit_tests.zip";
-            string filenameAlias = "FPTSUT";
+            string filenameAlias = "FPTSUT"; // FPTSUT = flower photos tiny set for unit tests
             string url = $"https://mlnetfilestorage.file.core.windows.net/imagesets" +
                 $"/flower_images/flower_photos_tiny_set_for_unit_tests.zip?st=2019" +
                 $"-08-29T00%3A07%3A21Z&se=2030-08-30T00%3A07%3A00Z&sp=rl&sv=2018" +
