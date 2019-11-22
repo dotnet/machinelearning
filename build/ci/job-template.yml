@@ -47,7 +47,7 @@ jobs:
         displayName: Install build dependencies
       - script: mv ./mylibgdiplus.rb /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core/Formula/mylibgdiplus.rb && brew install mylibgdiplus && brew link --overwrite mylibgdiplus && ls -la /usr/local/lib
         displayName: Install libgdiplus with custom brew formula
-      - script: brew gettext && brew link gettext --force && brew link libomp --force
+      - script: brew install gettext && brew link gettext --force && brew link libomp --force
         displayName: Install build dependencies2
     - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.name, 'Ubuntu_x64_NetCoreApp21')) }}:
       - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"
