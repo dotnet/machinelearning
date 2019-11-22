@@ -14,6 +14,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         string[] GenerateUsings();
     }
 
+    // For orphan Transformer ( transformer that doesn't exist in AutoML )
     internal enum SpecialTransformer
     {
         ApplyOnnxModel = 0,
@@ -72,6 +73,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 }
             }
 
+            // For AzureAttach
             if (Enum.TryParse(node.Name, out SpecialTransformer transformer))
             {
                 switch (transformer)
