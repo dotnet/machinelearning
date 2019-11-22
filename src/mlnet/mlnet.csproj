@@ -1,0 +1,55 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <RootNamespace>Microsoft.ML.CLI</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="2.10.0" />
+    <PackageReference Include="NLog" Version="4.5.11" />
+    <PackageReference Include="System.CodeDom" Version="4.5.0" />
+    <PackageReference Include="System.CommandLine.Experimental" Version="0.2.0-alpha.19174.3" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.5.1" />
+    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.9.1" />
+    <PackageReference Include="Microsoft.DotNet.PlatformAbstractions" Version="2.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.CodeGenerator\Microsoft.ML.CodeGenerator.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Update="strings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Strings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="NLog.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <Import Project="mlnet.Build.props" />
+  <Target Name="PrepareMlNetCLIPackageAssets" BeforeTargets="PreparePackageAssets">
+    <ItemGroup>
+      <PackageAsset Include="$(TargetPath)" RelativePath="$(MlNetPackagePath)" />
+      <PackageAsset Include="$(ProjectDepsFilePath)" RelativePath="$(MlNetPackagePath)" />
+      <PackageAsset Include="$(ProjectRuntimeConfigFilePath)" RelativePath="$(MlNetPackagePath)" />
+      <PackageAsset Include="$(TargetDir)\NLog.config" RelativePath="$(MlNetPackagePath)" />
+      <PackageAsset Include="$(TargetDir)\mlnet.pdb" RelativePath="$(MlNetPackagePath)" />
+    </ItemGroup>
+  </Target>
+</Project>
