@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
@@ -91,7 +92,7 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 1);
 
             var connectionString = GetConnectionString(TestDatasets.irisDb.name);
-            var commandText = $@"SELECT * FROM ""{TestDatasets.irisDb.trainFilename}""";
+            var commandText = $@"WAITFOR DELAY '00:00:02'; SELECT * FROM ""{TestDatasets.irisDb.trainFilename}""";
             var commandTimeout = 1;
 
             var loaderColumns = new DatabaseLoader.Column[]
@@ -107,33 +108,29 @@ namespace Microsoft.ML.Tests
 
             var databaseSource = new DatabaseSource(SqlClientFactory.Instance, connectionString, commandText, commandTimeout);
 
-            var trainingData = loader.Load(databaseSource);
+            bool passed=false;
 
-            IEstimator<ITransformer> pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
+            try
+            {
+                var trainingData = loader.Load(databaseSource);
+
+                IEstimator<ITransformer> pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.MulticlassClassification.Trainers.LightGbm())
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
-            var model = pipeline.Fit(trainingData);
-
-            var engine = mlContext.Model.CreatePredictionEngine<IrisData, IrisPrediction>(model);
-
-            Assert.Equal(0, engine.Predict(new IrisData()
+                var model = pipeline.Fit(trainingData);
+            }
+            catch(Exception e)
             {
-                SepalLength = 4.5f,
-                SepalWidth = 5.6f,
-                PetalLength = 0.5f,
-                PetalWidth = 0.5f,
-            }).PredictedLabel);
+                if (e.InnerException.Message.Contains("Timeout"))
+                    passed = true;
+                else
+                    throw;
+            }
 
-            Assert.Equal(1, engine.Predict(new IrisData()
-            {
-                SepalLength = 4.9f,
-                SepalWidth = 2.4f,
-                PetalLength = 3.3f,
-                PetalWidth = 1.0f,
-            }).PredictedLabel);
+            Assert.True(passed);
         }
 
         [LightGBMFact]
