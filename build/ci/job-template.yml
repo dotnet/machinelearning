@@ -43,10 +43,12 @@ jobs:
 
     steps:
     - ${{ if eq(parameters.pool.name, 'Hosted macOS High Sierra') }}:
-      - script: brew update && brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/f5b1ac99a7fba27c19cee0bc4f036775c889b359/Formula/libomp.rb && brew install mono-libgdiplus gettext && brew link gettext --force && brew link libomp --force
+      - script: brew update && brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/f5b1ac99a7fba27c19cee0bc4f036775c889b359/Formula/libomp.rb
         displayName: Install build dependencies
-      - script: brew info mono-libgdiplus && brew config
-        displayName: Check mono-libgdiplus
+      - script: mv ./mylibgdiplus.rb /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core/Formula/mylibgdiplus.rb && brew install mylibgdiplus && brew link --overwrite mylibgdiplus && ls -la /usr/local/lib
+        displayName: Install libgdiplus with custom brew formula
+      - script: brew gettext && brew link gettext --force && brew link libomp --force
+        displayName: Install build dependencies2
     - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.name, 'Ubuntu_x64_NetCoreApp21')) }}:
       - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"
         displayName: Set LD_LIBRARY_PATH for Ubuntu to locate Native shared library in current running path
