@@ -15,10 +15,15 @@
   <PropertyGroup>
     <GoogleProtobufPackageVersion>3.10.1</GoogleProtobufPackageVersion>
     <LightGBMPackageVersion>2.2.3</LightGBMPackageVersion>
+    <MicrosoftApplicationInsightsVersion>2.9.1</MicrosoftApplicationInsightsVersion>
+    <MicrosoftDotNetPlatformAbstractionsVersion>2.1.0</MicrosoftDotNetPlatformAbstractionsVersion>
     <MicrosoftExtensionsPackageVersion>2.1.0</MicrosoftExtensionsPackageVersion>
     <MicrosoftMLOnnxRuntimePackageVersion>1.0.0</MicrosoftMLOnnxRuntimePackageVersion>
     <MlNetMklDepsPackageVersion>0.0.0.9</MlNetMklDepsPackageVersion>
+    <NLogVersion>4.5.11</NLogVersion>
     <ParquetDotNetPackageVersion>2.1.3</ParquetDotNetPackageVersion>
+    <SystemCommandLineExperimentalVersion>0.2.0-alpha.19174.3</SystemCommandLineExperimentalVersion>
+    <SystemTextEncodingCodePagesVersion>4.5.1</SystemTextEncodingCodePagesVersion>
     <SystemDrawingCommonPackageVersion>4.5.0</SystemDrawingCommonPackageVersion>
     <SystemIOFileSystemAccessControl>4.5.0</SystemIOFileSystemAccessControl>
     <SystemSecurityPrincipalWindows>4.5.0</SystemSecurityPrincipalWindows>
