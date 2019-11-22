@@ -47,7 +47,7 @@ jobs:
         displayName: Print current libs
       - script: brew update && brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/f5b1ac99a7fba27c19cee0bc4f036775c889b359/Formula/libomp.rb
         displayName: Install build dependencies
-      - script: mv ./mylibgdiplus.rb /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core/Formula/mylibgdiplus.rb && brew install mylibgdiplus && brew link --overwrite mylibgdiplus && ls -la /usr/local/lib
+      - script: mv ./mylibgdiplus.rb /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core/Formula/mylibgdiplus.rb && brew install mylibgdiplus && ls -la /usr/local/lib
         displayName: Install libgdiplus with custom brew formula
       - script: brew install gettext && brew link gettext --force && brew link libomp --force
         displayName: Install build dependencies2
