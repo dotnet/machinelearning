@@ -79,6 +79,24 @@ namespace Microsoft.Data {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to DataType.
+        /// </summary>
+        internal static string DataType {
+            get {
+                return ResourceManager.GetString("DataType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Length (excluding null values).
+        /// </summary>
+        internal static string DescriptionMethodLength {
+            get {
+                return ResourceManager.GetString("DescriptionMethodLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to DataFrame already contains a column called {0}.
         /// </summary>
         internal static string DuplicateColumnName {

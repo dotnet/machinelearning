@@ -1661,14 +1661,23 @@ namespace Microsoft.Data.Analysis.Tests
         public void TestDescription()
         {
             DataFrame df = MakeDataFrameWithAllMutableColumnTypes(10);
+
+            // Add a column manually here until we fix https://github.com/dotnet/corefxlab/issues/2784
+            PrimitiveDataFrameColumn<DateTime> dateTimes = new PrimitiveDataFrameColumn<DateTime>("DateTimes");
+            for (int i = 0; i < 10; i++)
+            {
+                dateTimes.Append(DateTime.Parse("2019/01/01"));
+            }
+            df.Columns.Add(dateTimes);
+
             DataFrame description = df.Description();
             DataFrameColumn descriptionColumn = description.Columns[0];
             Assert.Equal("Description", descriptionColumn.Name);
-            Assert.Equal("Length", descriptionColumn[0]);
+            Assert.Equal("Length (excluding null values)", descriptionColumn[0]);
             Assert.Equal("Max", descriptionColumn[1]);
             Assert.Equal("Min", descriptionColumn[2]);
             Assert.Equal("Mean", descriptionColumn[3]);
-            for (int i = 1; i < description.Columns.Count; i++)
+            for (int i = 1; i < description.Columns.Count - 1; i++)
             {
                 DataFrameColumn column = description.Columns[i];
                 Assert.Equal(df.Columns[i - 1].Name, column.Name);
@@ -1677,6 +1686,42 @@ namespace Microsoft.Data.Analysis.Tests
                 Assert.Equal((float)9, column[1]);
                 Assert.Equal((float)0, column[2]);
                 Assert.Equal((float)4, column[3]);
+            }
+
+            // Explicitly check the dateTimes column
+            DataFrameColumn dateTimeColumn = description.Columns[description.Columns.Count - 1];
+            Assert.Equal(dateTimeColumn.Name, dateTimes.Name);
+            Assert.Equal(4, dateTimeColumn.Length);
+            Assert.Equal((float)10, dateTimeColumn[0]);
+            Assert.Null(dateTimeColumn[1]);
+            Assert.Null(dateTimeColumn[2]);
+            Assert.Null(dateTimeColumn[3]);
+        }
+
+        [Fact]
+        public void TestInfo()
+        {
+            DataFrame df = MakeDataFrameWithAllMutableColumnTypes(10);
+
+            // Add a column manually here until we fix https://github.com/dotnet/corefxlab/issues/2784
+            PrimitiveDataFrameColumn<DateTime> dateTimes = new PrimitiveDataFrameColumn<DateTime>("DateTimes");
+            for (int i = 0; i < 10; i++)
+            {
+                dateTimes.Append(DateTime.Parse("2019/01/01"));
+            }
+            df.Columns.Add(dateTimes);
+
+            DataFrame Info = df.Info();
+            DataFrameColumn infoColumn = Info.Columns[0];
+            Assert.Equal("Info", infoColumn.Name);
+            Assert.Equal("Length (excluding null values)", infoColumn[1]);
+            Assert.Equal("DataType", infoColumn[0]);
+
+            for (int i = 1; i < Info.Columns.Count; i++)
+            {
+                DataFrameColumn column = Info.Columns[i];
+                Assert.Equal(df.Columns[i - 1].DataType.ToString(), column[0].ToString());
+                Assert.Equal(2, column.Length);
             }
         }
 

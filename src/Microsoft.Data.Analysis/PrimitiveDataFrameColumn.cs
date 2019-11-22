@@ -551,25 +551,41 @@ namespace Microsoft.Data.Analysis
                 throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(U));
         }
 
-        public override DataFrame Description()
+        public override DataFrameColumn Description()
         {
-            DataFrame ret = new DataFrame();
-            StringDataFrameColumn stringColumn = new StringDataFrameColumn("Description", 0);
-            stringColumn.Append("Length");
-            stringColumn.Append("Max");
-            stringColumn.Append("Min");
-            stringColumn.Append("Mean");
-            float max = (float)Convert.ChangeType(Max(), typeof(float));
-            float min = (float)Convert.ChangeType(Min(), typeof(float));
-            float mean = (float)Convert.ChangeType(Sum(), typeof(float)) / Length;
+            float? max;
+            float? min;
+            float? mean;
+            try
+            {
+                max = (float)Convert.ChangeType(Max(), typeof(float));
+            }
+            catch (Exception)
+            {
+                max = null;
+            }
+            try
+            {
+                min = (float)Convert.ChangeType(Min(), typeof(float));
+            }
+            catch (Exception)
+            {
+                min = null;
+            }
+            try
+            {
+                mean = (float)Convert.ChangeType(Sum(), typeof(float)) / Length;
+            }
+            catch (Exception)
+            {
+                mean = null;
+            }
             PrimitiveDataFrameColumn<float> column = new PrimitiveDataFrameColumn<float>(Name);
             column.Append(Length - NullCount);
             column.Append(max);
             column.Append(min);
             column.Append(mean);
-            ret.Columns.Insert(0, stringColumn);
-            ret.Columns.Insert(1, column);
-            return ret;
+            return column;
         }
 
         protected internal override void AddDataViewColumn(DataViewSchema.Builder builder)

@@ -123,6 +123,12 @@
   <data name="ColumnIndexOutOfRange" xml:space="preserve">
     <value>Index cannot be greater than the Column's Length</value>
   </data>
+  <data name="DataType" xml:space="preserve">
+    <value>DataType</value>
+  </data>
+  <data name="DescriptionMethodLength" xml:space="preserve">
+    <value>Length (excluding null values)</value>
+  </data>
   <data name="DuplicateColumnName" xml:space="preserve">
     <value>DataFrame already contains a column called {0}</value>
   </data>

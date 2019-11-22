@@ -205,40 +205,56 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
+        /// Generates a concise summary of each column in the DataFrame
+        /// </summary>
+        public DataFrame Info()
+        {
+            DataFrame ret = new DataFrame();
+
+            bool firstColumn = true;
+            foreach (DataFrameColumn column in Columns)
+            {
+                if (firstColumn)
+                {
+                    firstColumn = false;
+                    StringDataFrameColumn strColumn = new StringDataFrameColumn("Info", 2);
+                    strColumn[0] = Strings.DataType;
+                    strColumn[1] = Strings.DescriptionMethodLength;
+                    ret.Columns.Add(strColumn);
+                }
+                ret.Columns.Add(column.Info());
+            }
+            return ret;
+        }
+
+        /// <summary>
         /// Generates descriptive statistics that summarize each numeric column
         /// </summary>
         public DataFrame Description()
         {
             DataFrame ret = new DataFrame();
-            if (Columns.Count == 0)
-                return ret;
-            int i = 0;
-            while (!Columns[i].HasDescription())
+
+            bool firstDescriptionColumn = true;
+            foreach (DataFrameColumn column in Columns)
             {
-                i++;
-            }
-            ret = Columns[i].Description();
-            i++;
-            for (; i < Columns.Count; i++)
-            {
-                DataFrameColumn column = Columns[i];
                 if (!column.HasDescription())
                 {
                     continue;
                 }
-                DataFrame columnDescription = column.Description();
-                ret = ret.Merge<string>(columnDescription, "Description", "Description", "_left", "_right", JoinAlgorithm.Inner);
-                int leftMergeColumn = ret._columnCollection.IndexOf("Description" + "_left");
-                int rightMergeColumn = ret._columnCollection.IndexOf("Description" + "_right");
-                if (leftMergeColumn != -1 && rightMergeColumn != -1)
+                if (firstDescriptionColumn)
                 {
-                    ret.Columns.Remove("Description" + "_right");
-                    ret._columnCollection.SetColumnName(ret["Description_left"], "Description");
+                    firstDescriptionColumn = false;
+                    StringDataFrameColumn stringColumn = new StringDataFrameColumn("Description", 0);
+                    stringColumn.Append(Strings.DescriptionMethodLength);
+                    stringColumn.Append("Max");
+                    stringColumn.Append("Min");
+                    stringColumn.Append("Mean");
+                    ret.Columns.Add(stringColumn);
                 }
+                ret.Columns.Add(column.Description());
             }
             return ret;
         }
-
 
         public DataFrame Sort(string columnName, bool ascending = true)
         {

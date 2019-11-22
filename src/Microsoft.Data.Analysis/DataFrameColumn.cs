@@ -185,9 +185,20 @@ namespace Microsoft.Data.Analysis
         public virtual bool HasDescription() => false;
 
         /// <summary>
-        /// Returns a DataFrame with statistics that describe the column
+        /// Returns a <seealso cref="StringDataFrameColumn"/> containing the DataType and Length of this column
         /// </summary>
-        public virtual DataFrame Description() => throw new NotImplementedException();
+        public virtual StringDataFrameColumn Info()
+        {
+            StringDataFrameColumn dataColumn = new StringDataFrameColumn(Name, 2);
+            dataColumn[0] = DataType.ToString();
+            dataColumn[1] = (Length - NullCount).ToString();
+            return dataColumn;
+        }
+
+        /// <summary>
+        /// Returns a <see cref= "DataFrameColumn"/> with statistics that describe the column
+        /// </summary>
+        public virtual DataFrameColumn Description() => throw new NotImplementedException();
 
         internal virtual PrimitiveDataFrameColumn<long> GetAscendingSortIndices() => throw new NotImplementedException();
 
