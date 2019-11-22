@@ -321,6 +321,12 @@ namespace Microsoft.ML.Tests
             public string Features { get; set; }
         }
 
+        public class HashDataNum
+        {
+            public bool Label { get; set; }
+            public uint Features { get; set; }
+        }
+
         [Fact]
         public void KeyToVectorWithBagHashConversionTest()
         {
@@ -330,6 +336,27 @@ namespace Microsoft.ML.Tests
             for (int i = 0; i < n; i++)
             {
                 samples.Add(new HashData2 { Label = true, Features = RandomString(5) });
+            }
+            var data = mlContext.Data.LoadFromEnumerable(samples);
+
+            var pipeline = mlContext.Transforms.Categorical.OneHotHashEncoding("Features", null, OneHotEncodingEstimator.OutputKind.Bag)
+            .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numberOfLeaves: 2, numberOfTrees: 1, minimumExampleCountPerLeaf: 2));
+
+            var model = pipeline.Fit(data);
+            //var cvResults = mlContext.MulticlassClassification.CrossValidate(data, pipeline, numberOfFolds: 5);
+
+            Done();
+        }
+
+        [Fact]
+        public void KeyToVectorWithBagHashNumConversionTest()
+        {
+            var mlContext = new MLContext(seed: 1);
+            int n = 100000000;
+            var samples = new List<HashDataNum>();
+            for (int i = 0; i < n; i++)
+            {
+                samples.Add(new HashDataNum { Label = true, Features = (uint)i });
             }
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
