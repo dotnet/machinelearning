@@ -18,16 +18,15 @@ namespace Samples.Dynamic
     {
         public static void Example()
         {
+            // Set the path for input images.
             string assetsRelativePath = @"../../../assets";
             string assetsPath = GetAbsolutePath(assetsRelativePath);
-
-            var outputMlNetModelFilePath = Path.Combine(assetsPath, "outputs",
-                "imageClassifier.zip");
 
             string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
                 "images");
 
-            // Download Cifar Dataset. 
+            // Download Cifar Dataset and set train and test dataset
+            // paths.
             string finalImagesFolderName = DownloadImageSet(
                    imagesDownloadFolderPath);
             string finalImagesFolderNameTrain = "cifar\\train";
@@ -38,150 +37,160 @@ namespace Samples.Dynamic
             string fullImagesetFolderPathTest = Path.Combine(
                 imagesDownloadFolderPath, finalImagesFolderNameTest);
 
-            try
+            MLContext mlContext = new MLContext(seed: 1);
+
+            //Load all the original train images info.
+            IEnumerable<ImageData> train_images = LoadImagesFromDirectory(
+                folder: fullImagesetFolderPathTrain, useFolderNameAsLabel: true);
+
+            IDataView trainDataset = mlContext.Data.
+                LoadFromEnumerable(train_images);
+
+            // Apply transforms to the input dataset:
+            // MapValueToKey : map 'string' type labels to keys
+            // LoadImages : load raw images to "Image" column
+            trainDataset = mlContext.Transforms.Conversion
+                    .MapValueToKey("Label", keyOrdinality:Microsoft.ML.Transforms
+                    .ValueToKeyMappingEstimator.KeyOrdinality.ByValue)
+                .Append(mlContext.Transforms.LoadRawImageBytes("Image",
+                            fullImagesetFolderPathTrain, "ImagePath"))
+                .Fit(trainDataset)
+                .Transform(trainDataset);
+
+            // Load all the original test images info and apply
+            // the same transforms as above.
+            IEnumerable<ImageData> test_images = LoadImagesFromDirectory(
+                folder: fullImagesetFolderPathTest, useFolderNameAsLabel: true);
+
+            IDataView testDataset = mlContext.Data.
+                LoadFromEnumerable(test_images);
+
+            testDataset = mlContext.Transforms.Conversion
+                    .MapValueToKey("Label", keyOrdinality: Microsoft.ML.Transforms
+                    .ValueToKeyMappingEstimator.KeyOrdinality.ByValue)
+                .Append(mlContext.Transforms.LoadRawImageBytes("Image",
+                            fullImagesetFolderPathTest, "ImagePath"))
+                .Fit(testDataset)
+                .Transform(testDataset);
+
+            // Set the options for ImageClassification.
+            var options = new ImageClassificationTrainer.Options()
             {
+                FeatureColumnName = "Image",
+                LabelColumnName = "Label",
+                // Just by changing/selecting InceptionV3/MobilenetV2 
+                // here instead of 
+                // ResnetV2101 you can try a different architecture/
+                // pre-trained model. 
+                Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
+                Epoch = 182,
+                BatchSize = 128,
+                LearningRate = 0.01f,
+                MetricsCallback = (metrics) => Console.WriteLine(metrics),
+                ValidationSet = testDataset,
+                ReuseValidationSetBottleneckCachedValues = false,
+                ReuseTrainSetBottleneckCachedValues = false,
+                // Use linear scaling rule and Learning rate decay as an option
+                // This is known to do well for Cifar dataset and Resnet models
+                // You can also try other types of Learning rate scheduling 
+                // methods available in LearningRateScheduler.cs  
+                LearningRateScheduler = new LsrDecay()
+            };
 
-                MLContext mlContext = new MLContext(seed: 1);
-
-                //Load all the original train images info
-                IEnumerable<ImageData> train_images = LoadImagesFromDirectory(
-                    folder: fullImagesetFolderPathTrain, useFolderNameAsLabel: true);
-                IDataView trainDataset = mlContext.Data.LoadFromEnumerable(train_images);
-                trainDataset = mlContext.Transforms.Conversion
-                        .MapValueToKey("Label")
-                    .Append(mlContext.Transforms.LoadRawImageBytes("Image",
-                                fullImagesetFolderPathTrain, "ImagePath"))
-                    .Fit(trainDataset)
-                    .Transform(trainDataset);
-
-                //Load all the original test images info
-                IEnumerable<ImageData> test_images = LoadImagesFromDirectory(
-                    folder: fullImagesetFolderPathTest, useFolderNameAsLabel: true);
-                IDataView testDataset = mlContext.Data.LoadFromEnumerable(test_images);
-                testDataset = mlContext.Transforms.Conversion
-                        .MapValueToKey("Label")
-                    .Append(mlContext.Transforms.LoadRawImageBytes("Image",
-                                fullImagesetFolderPathTest, "ImagePath"))
-                    .Fit(testDataset)
-                    .Transform(testDataset);
-
-                var options = new ImageClassificationTrainer.Options()
-                {
-                    FeatureColumnName = "Image",
-                    LabelColumnName = "Label",
-                    // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
-                    // ResnetV2101 you can try a different architecture/
-                    // pre-trained model. 
-                    Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
-                    Epoch = 182,
-                    BatchSize = 128,
-                    LearningRate = 0.01f,
-                    MetricsCallback = (metrics) => Console.WriteLine(metrics),
-                    ValidationSet = testDataset,
-                    ReuseValidationSetBottleneckCachedValues = false,
-                    ReuseTrainSetBottleneckCachedValues = false,
-                    // Use linear scaling rule and Learning rate decay as an option
-                    // This is known to do well for Cifar dataset and Resnet models
-                    // You can also try other types of Learning rate scheduling methods
-                    // available in LearningRateScheduler.cs  
-                    LearningRateScheduler = new LsrDecay()
-                };
-
-                var pipeline = mlContext.MulticlassClassification.Trainers.ImageClassification(options)
-                    .Append(mlContext.Transforms.Conversion.MapKeyToValue(
-                        outputColumnName: "PredictedLabel",
-                        inputColumnName: "PredictedLabel"));
+            // Create the ImageClassification pipeline.
+            var pipeline = mlContext.MulticlassClassification.Trainers.
+                ImageClassification(options)
+                .Append(mlContext.Transforms.Conversion.MapKeyToValue(
+                    outputColumnName: "PredictedLabel",
+                    inputColumnName: "PredictedLabel"));
 
 
-                Console.WriteLine("*** Training the image classification model " +
-                    "with DNN Transfer Learning on top of the selected " +
-                    "pre-trained model/architecture ***");
+            Console.WriteLine("*** Training the image classification model " +
+                "with DNN Transfer Learning on top of the selected " +
+                "pre-trained model/architecture ***");
 
-                // Measuring training time
-                var watch = System.Diagnostics.Stopwatch.StartNew();
+            // Train the model.
+            // This involves calculating the bottleneck values, and then
+            // training the final layer. Sample output is: 
+            // Phase: Bottleneck Computation, Dataset used: Train, Image Index:   1
+            // Phase: Bottleneck Computation, Dataset used: Train, Image Index:   2
+            // ...
+            // Phase: Training, Dataset used: Train, Batch Processed Count:  18, Learning Rate: 0.01 Epoch: 0, Accuracy: 0.9166667,Cross-Entropy:  0.4866541
+            // ...
+            var trainedModel = pipeline.Fit(trainDataset);
 
-                var trainedModel = pipeline.Fit(trainDataset);
+            Console.WriteLine("Training with transfer learning finished.");
 
-                watch.Stop();
-                long elapsedMs = watch.ElapsedMilliseconds;
+            // Save the trained model.
+            mlContext.Model.Save(trainedModel, testDataset.Schema,
+                "model.zip");
 
-                Console.WriteLine("Training with transfer learning took: " +
-                    (elapsedMs / 1000).ToString() + " seconds");
+            // Load the trained and saved model for prediction.
+            ITransformer loadedModel;
+            DataViewSchema schema;
+            using (var file = File.OpenRead("model.zip"))
+                loadedModel = mlContext.Model.Load(file, out schema);
 
-                mlContext.Model.Save(trainedModel, testDataset.Schema,
-                    "model.zip");
+            // Evaluate the model on the test dataset.
+            // Sample output:
+            // Making bulk predictions and evaluating model's quality...
+            // Micro - accuracy: ...,macro - accuracy = ...
+            EvaluateModel(mlContext, testDataset, loadedModel);
 
-                ITransformer loadedModel;
-                DataViewSchema schema;
-                using (var file = File.OpenRead("model.zip"))
-                    loadedModel = mlContext.Model.Load(file, out schema);
+            // Predict image class using a single in-memory image.
+            TrySinglePrediction(fullImagesetFolderPathTest, mlContext,
+                loadedModel);
 
-                EvaluateModel(mlContext, testDataset, loadedModel);
-
-                watch = System.Diagnostics.Stopwatch.StartNew();
-
-                // Predict image class using an in-memory image.
-                TrySinglePrediction(fullImagesetFolderPathTest, mlContext, loadedModel);
-
-                watch.Stop();
-                elapsedMs = watch.ElapsedMilliseconds;
-
-                Console.WriteLine("Prediction engine took: " +
-                    (elapsedMs / 1000).ToString() + " seconds");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
+            Console.WriteLine("Prediction on a single image finished.");
 
             Console.WriteLine("Press any key to finish");
             Console.ReadKey();
         }
 
+        // Predict on a single image.
         private static void TrySinglePrediction(string imagesForPredictions,
             MLContext mlContext, ITransformer trainedModel)
         {
-            // Create prediction function to try one prediction
+            // Create prediction function to try one prediction.
             var predictionEngine = mlContext.Model
-                .CreatePredictionEngine<InMemoryImageData, ImagePrediction>(trainedModel);
+                .CreatePredictionEngine<InMemoryImageData,
+                ImagePrediction>(trainedModel);
 
-            IEnumerable<InMemoryImageData> testImages = LoadInMemoryImagesFromDirectory(
-                imagesForPredictions, false);
+            // Load test images.
+            IEnumerable<InMemoryImageData> testImages =
+                LoadInMemoryImagesFromDirectory(imagesForPredictions, false);
 
+            // Create an in-memory image object from the first image in the test data.
             InMemoryImageData imageToPredict = new InMemoryImageData
             {
                 Image = testImages.First().Image
             };
-
+            
+            // Predict on the single image.
             var prediction = predictionEngine.Predict(imageToPredict);
 
             Console.WriteLine($"Scores : [{string.Join(",", prediction.Score)}], " +
                 $"Predicted Label : {prediction.PredictedLabel}");
         }
 
-
+        // Evaluate the trained model on the passed test dataset.
         private static void EvaluateModel(MLContext mlContext,
             IDataView testDataset, ITransformer trainedModel)
         {
             Console.WriteLine("Making bulk predictions and evaluating model's " +
                 "quality...");
 
-            // Measuring time
-            var watch2 = System.Diagnostics.Stopwatch.StartNew();
-
+            // Evaluate the model on the test data and get the evaluation metrics.
             IDataView predictions = trainedModel.Transform(testDataset);
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
 
             Console.WriteLine($"Micro-accuracy: {metrics.MicroAccuracy}," +
                               $"macro-accuracy = {metrics.MacroAccuracy}");
 
-            watch2.Stop();
-            long elapsed2Ms = watch2.ElapsedMilliseconds;
-
-            Console.WriteLine("Predicting and Evaluation took: " +
-                (elapsed2Ms / 1000).ToString() + " seconds");
+            Console.WriteLine("Predicting and Evaluation complete.");
         }
 
+        //Load the Image Data from input directory.
         public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,
             bool useFolderNameAsLabel = true)
         {
@@ -218,6 +227,7 @@ namespace Samples.Dynamic
             }
         }
 
+        // Load In memory raw images from directory.
         public static IEnumerable<InMemoryImageData>
             LoadInMemoryImagesFromDirectory(string folder,
                 bool useFolderNameAsLabel = true)
@@ -255,19 +265,23 @@ namespace Samples.Dynamic
             }
         }
 
+        // Download and unzip the image dataset.
         public static string DownloadImageSet(string imagesDownloadFolder)
         {
             // get a set of images to teach the network about the new classes
             // CIFAR dataset ( 50000 train images and 10000 test images )
             string fileName = "cifar10.zip";
-            string url = $"https://tlcresources.blob.core.windows.net/datasets/cifar10.zip";
+            string url = $"https://tlcresources.blob.core.windows.net/" +
+                "datasets/cifar10.zip";
 
             Download(url, imagesDownloadFolder, fileName);
-            UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);
+            UnZip(Path.Combine(imagesDownloadFolder, fileName),
+                imagesDownloadFolder);
 
             return Path.GetFileNameWithoutExtension(fileName);
         }
 
+        // Download file to destination directory from input URL.
         public static bool Download(string url, string destDir, string destFileName)
         {
             if (destFileName == null)
@@ -297,6 +311,7 @@ namespace Samples.Dynamic
             return true;
         }
 
+        // Unzip the file to destination folder.
         public static void UnZip(String gzArchiveName, String destFolder)
         {
             var flag = gzArchiveName.Split(Path.DirectorySeparatorChar)
@@ -323,10 +338,11 @@ namespace Samples.Dynamic
             Console.WriteLine("Extracting is completed.");
         }
 
+        // Get absolute path from relative path.
         public static string GetAbsolutePath(string relativePath)
         {
             FileInfo _dataRoot = new FileInfo(typeof(
-                ResnetV2101TransferLearningTrainTestSplit).Assembly.Location);
+                LearningRateSchedulingCifarResnetTransferLearning).Assembly.Location);
 
             string assemblyFolderPath = _dataRoot.Directory.FullName;
 
@@ -335,6 +351,7 @@ namespace Samples.Dynamic
             return fullPath;
         }
 
+        // InMemoryImageData class holding the raw image byte array and label.
         public class InMemoryImageData
         {
             [LoadColumn(0)]
@@ -344,6 +361,7 @@ namespace Samples.Dynamic
             public string Label;
         }
 
+        // ImageData class holding the imagepath and label.
         public class ImageData
         {
             [LoadColumn(0)]
@@ -353,6 +371,7 @@ namespace Samples.Dynamic
             public string Label;
         }
 
+        // ImagePrediction class holding the score and predicted label metrics.
         public class ImagePrediction
         {
             [ColumnName("Score")]

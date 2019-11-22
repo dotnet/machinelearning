@@ -52,7 +52,7 @@ namespace Microsoft.ML.AutoML.Test
         [TensorFlowFact]
         public void AutoFitImageClassificationTrainTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(seed: 1);
             var datasetPath = DatasetUtil.GetFlowersDataset();
             var columnInference = context.Auto().InferColumns(datasetPath, "Label");
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
