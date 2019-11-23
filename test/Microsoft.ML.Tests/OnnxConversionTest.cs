@@ -189,7 +189,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        public void regressionTrainersOnnxConversionTest()
+        public void RegressionTrainersOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
             string dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
