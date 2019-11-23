@@ -10,6 +10,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 
@@ -482,7 +483,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <summary>
     /// Model parameters for <see cref="FastTreeTweedieTrainer"/>.
     /// </summary>
-    public sealed class FastTreeTweedieModelParameters : TreeEnsembleModelParametersBasedOnRegressionTree
+    public sealed class FastTreeTweedieModelParameters : TreeEnsembleModelParametersBasedOnRegressionTree, ISingleCanSaveOnnx
     {
         internal const string LoaderSignature = "FastTreeTweedieExec";
         internal const string RegistrationName = "FastTreeTweediePredictor";
@@ -528,6 +529,16 @@ namespace Microsoft.ML.Trainers.FastTree
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
             return new FastTreeTweedieModelParameters(env, ctx);
+        }
+
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
+        {
+            // Mapping score to prediction
+            var fastTreeOutput = ctx.AddIntermediateVariable(null, "FastTreeOutput", true);
+            base.SaveAsOnnx(ctx, new[] { fastTreeOutput }, featureColumn);
+            var opType = "Exp";
+            ctx.CreateNode(opType, new[] { fastTreeOutput }, outputNames, ctx.GetNodeName(opType), "");
+            return true;
         }
 
         private protected override void Map(in VBuffer<float> src, ref float dst)

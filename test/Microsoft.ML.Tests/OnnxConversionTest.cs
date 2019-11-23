@@ -188,6 +188,61 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
+        [Fact]
+        public void RegressionTrainersOnnxConversionTest()
+        {
+            var mlContext = new MLContext(seed: 1);
+            string dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
+
+            // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
+            var dataView = mlContext.Data.LoadFromTextFile<AdultData>(dataPath,
+                separatorChar: ';',
+                hasHeader: true);
+            List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
+            {
+                mlContext.Regression.Trainers.Sdca("Target","FeatureVector"),
+                mlContext.Regression.Trainers.Ols("Target","FeatureVector"), 
+                mlContext.Regression.Trainers.OnlineGradientDescent("Target","FeatureVector"),
+                mlContext.Regression.Trainers.FastForest("Target", "FeatureVector"),
+                mlContext.Regression.Trainers.FastTree("Target", "FeatureVector"),
+                mlContext.Regression.Trainers.FastTreeTweedie("Target", "FeatureVector"),
+                mlContext.Regression.Trainers.LbfgsPoissonRegression("Target", "FeatureVector"),
+            };
+            if (Environment.Is64BitProcess) {
+                estimators.Add(mlContext.Regression.Trainers.LightGbm("Target", "FeatureVector"));
+            }
+            foreach (var estimator in estimators)
+            {
+                var model = estimator.Fit(dataView);
+                var transformedData = model.Transform(dataView);
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+                // Compare model scores produced by ML.NET and ONNX's runtime
+                if (IsOnnxRuntimeSupported())
+                {
+                    var onnxFileName = $"{estimator.ToString()}.onnx";
+                    var onnxModelPath = GetOutputPath(onnxFileName);
+                    SaveOnnxModel(onnxModel, onnxModelPath, null);
+                    // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                    string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                    string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                    var onnxTransformer = onnxEstimator.Fit(dataView);
+                    var onnxResult = onnxTransformer.Transform(dataView);
+                    CompareSelectedR4ScalarColumns(transformedData.Schema[2].Name, outputNames[2], transformedData, onnxResult, 3); // compare score results 
+                }
+                // Compare the Onnx graph to a baseline if OnnxRuntime is not supported
+                else 
+                {
+                    var onnxFileName = $"{estimator.ToString()}.txt";
+                    var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "Regression", "Adult");
+                    var onnxTextModelPath = GetOutputPath(subDir, onnxFileName);
+                    SaveOnnxModel(onnxModel, null, onnxTextModelPath);
+                    CheckEquality(subDir, onnxFileName, digitsOfPrecision: 1);
+                }
+            }
+            Done();
+        }
+
         private class DataPoint
         {
             [VectorType(3)]
@@ -1243,7 +1298,7 @@ namespace Microsoft.ML.Tests
 
                     // Scalar such as R4 (float) is converted to [1, 1]-tensor in ONNX format for consitency of making batch prediction.
                     Assert.Equal(1, actual.Length);
-                    Assert.Equal(expected, actual.GetItemOrDefault(0), precision);
+                    CompareNumbersWithTolerance(expected, actual.GetItemOrDefault(0), null, precision);
                 }
             }
         }
