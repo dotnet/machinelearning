@@ -14,6 +14,7 @@ using Microsoft.ML.Transforms;
 using Microsoft.ML.TensorFlow;
 using Xunit;
 using Xunit.Abstractions;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.ML.Tests
 {
@@ -143,6 +144,11 @@ namespace Microsoft.ML.Tests
         [TensorFlowFact]
         public void TestTensorFlow()
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return;
+            }
+
             var modelLocation = "cifar_model/frozen_model.pb";
 
             var mlContext = new MLContext(seed: 1);
@@ -184,6 +190,11 @@ namespace Microsoft.ML.Tests
         [TensorFlowFact]
         public void TestTensorFlowWithSchema()
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return;
+            }
+
             const string modelLocation = "cifar_model/frozen_model.pb";
 
             var mlContext = new MLContext(seed: 1);

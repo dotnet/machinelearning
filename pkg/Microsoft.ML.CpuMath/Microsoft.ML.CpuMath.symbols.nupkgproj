@@ -2,4 +2,12 @@
 
   <Import Project="Microsoft.ML.CpuMath.nupkgproj" />
 
+  <PropertyGroup>
+    <!--
+      NU5129 is getting raised because the Microsoft.ML.CpuMath package contains a Microsoft.ML.CpuMath.props file.
+      But this package is named Microsoft.ML.CpuMath.symbols, so NuGet complains. However, we can ignore the warning.
+    -->
+    <NoWarn>$(NoWarn);NU5129</NoWarn>
+  </PropertyGroup>
+
 </Project>

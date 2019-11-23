@@ -109,6 +109,11 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowTransforCifarEndToEndTest2()
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return;
+            }
+
             var imageHeight = 32;
             var imageWidth = 32;
             var model_location = "cifar_model/frozen_model.pb";
@@ -970,6 +975,11 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowTransformCifar()
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return;
+            }
+
             var modelLocation = "cifar_model/frozen_model.pb";
             var mlContext = new MLContext(seed: 1);
             List<string> logMessages = new List<string>();
@@ -1059,6 +1069,11 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowTransformCifarSavedModel()
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return;
+            }
+
             var modelLocation = "cifar_saved_model";
             var mlContext = new MLContext(seed: 1);
             var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
@@ -1113,6 +1128,11 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowTransformCifarInvalidShape()
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return;
+            }
+
             var modelLocation = "cifar_model/frozen_model.pb";
 
             var mlContext = new MLContext(seed: 1);
@@ -1300,22 +1320,8 @@ namespace Microsoft.ML.Scenarios
             IDataView predictions = trainedModel.Transform(testDataset);
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
 
-            // On Ubuntu the results seem to vary quite a bit but they can probably be 
-            // controlled by training more epochs, however that will slow the 
-            // build down. Accuracy values seen were 0.33, 0.66, 0.70+. The model
-            // seems to be unstable, there could be many reasons, will need to 
-            // investigate this further.
-            if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
-                (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))))
-            {
-                Assert.InRange(metrics.MicroAccuracy, 0.2, 1);
-                Assert.InRange(metrics.MacroAccuracy, 0.2, 1);
-            }
-            else
-            {
-                Assert.InRange(metrics.MicroAccuracy, 0.8, 1);
-                Assert.InRange(metrics.MacroAccuracy, 0.8, 1);
-            }
+            Assert.InRange(metrics.MicroAccuracy, 0.8, 1);
+            Assert.InRange(metrics.MacroAccuracy, 0.8, 1);
 
         }
 
@@ -1420,22 +1426,8 @@ namespace Microsoft.ML.Scenarios
             IDataView predictions = trainedModel.Transform(testDataset);
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
 
-            // On Ubuntu the results seem to vary quite a bit but they can probably be 
-            // controlled by training more epochs, however that will slow the 
-            // build down. Accuracy values seen were 0.33, 0.66, 0.70+. The model
-            // seems to be unstable, there could be many reasons, will need to 
-            // investigate this further.
-            if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
-                (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))))
-            {
-                Assert.InRange(metrics.MicroAccuracy, 0.2, 1);
-                Assert.InRange(metrics.MacroAccuracy, 0.2, 1);
-            }
-            else
-            {
-                Assert.InRange(metrics.MicroAccuracy, 0.8, 1);
-                Assert.InRange(metrics.MacroAccuracy, 0.8, 1);
-            }
+            Assert.InRange(metrics.MicroAccuracy, 0.8, 1);
+            Assert.InRange(metrics.MacroAccuracy, 0.8, 1);
 
             // Testing TrySinglePrediction: Utilizing PredictionEngine for single
             // predictions. Here, two pre-selected images are utilized in testing
@@ -1494,13 +1486,7 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowImageClassificationWithPolynomialLRScheduling()
         {
 
-            /*
-             * Due to an issue with Nix based os performance is not as good,
-             * as such increase the number of epochs to produce a better model.
-             */
-            bool isNix = (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
-                (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))));
-            TensorFlowImageClassificationWithLRScheduling(new PolynomialLRDecay(), isNix ? 75: 50);
+            TensorFlowImageClassificationWithLRScheduling(new PolynomialLRDecay(), 50);
         }
 
         internal void TensorFlowImageClassificationWithLRScheduling(LearningRateScheduler  learningRateScheduler, int epoch)
@@ -1529,7 +1515,7 @@ namespace Microsoft.ML.Scenarios
                 .Fit(shuffledFullImagesDataset)
                 .Transform(shuffledFullImagesDataset);
 
-            // Split the data 80:10 into train and test sets, train and evaluate.
+            // Split the data 80:20 into train and test sets, train and evaluate.
             TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
                 shuffledFullImagesDataset, testFraction: 0.2, seed: 1);
 
@@ -1587,22 +1573,8 @@ namespace Microsoft.ML.Scenarios
             IDataView predictions = trainedModel.Transform(testDataset);
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
 
-            // On Ubuntu the results seem to vary quite a bit but they can probably be 
-            // controlled by training more epochs, however that will slow the 
-            // build down. Accuracy values seen were 0.33, 0.66, 0.70+. The model
-            // seems to be unstable, there could be many reasons, will need to 
-            // investigate this further.
-            if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
-                (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))))
-            {
-                Assert.InRange(metrics.MicroAccuracy, 0.2, 1);
-                Assert.InRange(metrics.MacroAccuracy, 0.2, 1);
-            }
-            else
-            {
-                Assert.InRange(metrics.MicroAccuracy, 0.8, 1);
-                Assert.InRange(metrics.MacroAccuracy, 0.8, 1);
-            }
+            Assert.InRange(metrics.MicroAccuracy, 0.8, 1);
+            Assert.InRange(metrics.MacroAccuracy, 0.8, 1);
 
             // Testing TrySinglePrediction: Utilizing PredictionEngine for single
             // predictions. Here, two pre-selected images are utilized in testing
@@ -1750,22 +1722,8 @@ namespace Microsoft.ML.Scenarios
             IDataView predictions = trainedModel.Transform(testDataset);
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
 
-            // On Ubuntu the results seem to vary quite a bit but they can probably be 
-            // controlled by training more epochs, however that will slow the 
-            // build down. Accuracy values seen were 0.33, 0.66, 0.70+. The model
-            // seems to be unstable, there could be many reasons, will need to 
-            // investigate this further.
-            if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
-                (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))))
-            {
-                Assert.InRange(metrics.MicroAccuracy, 0.2, 1);
-                Assert.InRange(metrics.MacroAccuracy, 0.2, 1);
-            }
-            else
-            {
-                Assert.InRange(metrics.MicroAccuracy, 0.8, 1);
-                Assert.InRange(metrics.MacroAccuracy, 0.8, 1);
-            }
+            Assert.InRange(metrics.MicroAccuracy, 0.8, 1);
+            Assert.InRange(metrics.MacroAccuracy, 0.8, 1);
 
             //Assert that the training ran and stopped within half epochs due to EarlyStopping
             Assert.InRange(lastEpoch, 1, 49);
@@ -1846,6 +1804,12 @@ namespace Microsoft.ML.Scenarios
         {
             var files = Directory.GetFiles(folder, "*",
                 searchOption: SearchOption.AllDirectories);
+            /*
+             * This is only needed as Linux can produce files in a different 
+             * order than other OSes. As this is a test case we want to maintain
+             * consistent accuracy across all OSes, so we sort to remove this discrepency.
+             */
+            Array.Sort(files);
             foreach (var file in files)
             {
                 if (Path.GetExtension(file) != ".jpg")
@@ -1879,10 +1843,7 @@ namespace Microsoft.ML.Scenarios
         {
             string fileName = "flower_photos_tiny_set_for_unit_tests.zip";
             string filenameAlias = "FPTSUT"; // FPTSUT = flower photos tiny set for unit tests
-            string url = $"https://mlnetfilestorage.file.core.windows.net/imagesets" +
-                $"/flower_images/flower_photos_tiny_set_for_unit_tests.zip?st=2019" +
-                $"-08-29T00%3A07%3A21Z&se=2030-08-30T00%3A07%3A00Z&sp=rl&sv=2018" +
-                $"-03-28&sr=f&sig=N8HbLziTcT61kstprNLmn%2BDC0JoMrNwo6yRWb3hLLag%3D";
+            string url = "https://aka.ms/mlnet-resources/flower_photos_tiny_set_for_unit_test.zip";
 
             Download(url, imagesDownloadFolder, fileName);
             UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);

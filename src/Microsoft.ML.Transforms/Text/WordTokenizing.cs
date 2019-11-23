@@ -11,6 +11,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Text;
@@ -196,7 +197,7 @@ namespace Microsoft.ML.Transforms.Text
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
-        private sealed class Mapper : OneToOneMapperBase, ISaveAsPfa
+        private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx, ISaveAsPfa
         {
             private readonly DataViewType _type;
             private readonly WordTokenizingTransformer _parent;
@@ -390,6 +391,35 @@ namespace Microsoft.ML.Transforms.Text
                 var hasCharsRef = PfaUtils.FuncRef(ctx.Pfa.EnsureHasChars());
                 srcToken = PfaUtils.Call("a.filter", srcToken, hasCharsRef);
                 return srcToken;
+            }
+
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
+
+            private const string DefaultPadValue = "#"; // TODO: This is not supported in the API. What should be this value?
+            public void SaveAsOnnx(OnnxContext ctx)
+            {
+                var columns = _parent.Columns.GetEnumerator();
+                columns.Reset();
+
+                string opType;
+                while (columns.MoveNext())
+                {
+                    opType = "Tokenizer";
+                    var column = columns.Current;
+                    var intermediateVar = ctx.AddIntermediateVariable(_type, "TokenizerOutput", true);
+                    var tokenizerNode = ctx.CreateNode(opType, ctx.GetVariableName(column.InputColumnName),
+                                                intermediateVar, ctx.GetNodeName(opType), "com.microsoft");
+                    tokenizerNode.AddAttribute("mark", 0);
+                    tokenizerNode.AddAttribute("mincharnum", 1);
+                    tokenizerNode.AddAttribute("pad_value", DefaultPadValue);
+                    string[] separators = column.SeparatorsArray.Select(c => c.ToString()).ToArray();
+                    tokenizerNode.AddAttribute("separators", separators);
+
+                    opType = "Squeeze";
+                    var squeezeOutput = ctx.AddIntermediateVariable(_type, column.Name, true);
+                    var squeezeNode = ctx.CreateNode(opType, intermediateVar, squeezeOutput, ctx.GetNodeName(opType), "");
+                    squeezeNode.AddAttribute("axes", new long[] { 0 });
+                }
             }
         }
 
