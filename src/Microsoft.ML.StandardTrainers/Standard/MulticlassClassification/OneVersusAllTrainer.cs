@@ -16,6 +16,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
@@ -244,7 +245,8 @@ namespace Microsoft.ML.Trainers
         IValueMapper,
         ICanSaveInSourceCode,
         ICanSaveInTextFormat,
-        ISingleCanSavePfa
+        ISingleCanSavePfa,
+        ISingleCanSaveOnnx
     {
         internal const string LoaderSignature = "OVAExec";
         internal const string RegistrationName = "OVAPredictor";
@@ -490,7 +492,11 @@ namespace Microsoft.ML.Trainers
             }
         }
 
-        private abstract class ImplBase : ISingleCanSavePfa
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => _impl.CanSaveOnnx(ctx);
+
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn) => _impl.SaveAsOnnx(ctx, outputNames, featureColumn);
+
+        private abstract class ImplBase : ISingleCanSavePfa, ISingleCanSaveOnnx
         {
             public OutputFormula OutputFormula;
             public abstract DataViewType InputType { get; }
@@ -498,6 +504,10 @@ namespace Microsoft.ML.Trainers
             public abstract bool CanSavePfa { get; }
             public abstract ValueMapper<VBuffer<float>, VBuffer<float>> GetMapper();
             public abstract JToken SaveAsPfa(BoundPfaContext ctx, JToken input);
+
+            public bool CanSaveOnnx(OnnxContext ctx) => Predictors.All(pred => (pred as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true);
+
+            public abstract bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn);
 
             protected bool IsValid(IValueMapper mapper, ref VectorDataViewType inputType)
             {
@@ -520,6 +530,65 @@ namespace Microsoft.ML.Trainers
                         return false;
                 }
                 return true;
+            }
+
+            public string[] SaveAsOnnxPreProcess(OnnxContext ctx, string featureColumn, bool clipToZero)
+            {
+                string[] outputs = new string[Predictors.Length];
+
+                string[] localOutputNames = { DefaultColumnNames.PredictedLabel, DefaultColumnNames.Score, DefaultColumnNames.Probability };
+
+                for (int i = 0; i < Predictors.Length; i++)
+                {
+                    var predictorOutputNames = new string[localOutputNames.Length];
+
+                    predictorOutputNames[0] = ctx.AddIntermediateVariable(NumberDataViewType.UInt32, $"{DefaultColumnNames.PredictedLabel}_{i}", true);
+                    predictorOutputNames[1] = ctx.AddIntermediateVariable(NumberDataViewType.Single, $"{DefaultColumnNames.Score}_{i}", true);
+                    predictorOutputNames[2] = ctx.AddIntermediateVariable(NumberDataViewType.Single, $"{DefaultColumnNames.Probability}_{i}", true);
+
+                    string clipInput = predictorOutputNames[2];
+
+                    var pred = Predictors[i] as ISingleCanSaveOnnx;
+                    Contracts.AssertValue(pred);
+                    pred.SaveAsOnnx(ctx, predictorOutputNames, featureColumn);
+
+                    if (clipToZero)
+                    {
+                        var clipOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, $"ClipOutput_{i}", true);
+                        outputs[i] = clipOutput;
+
+                        string opType = "Clip";
+                        var clipNode = ctx.CreateNode(opType, clipInput, outputs[i], ctx.GetNodeName(opType), "");
+                        clipNode.AddAttribute("min", 0.0);
+                    }
+                    else
+                        outputs[i] = predictorOutputNames[2];
+                }
+                return outputs;
+            }
+
+            public void SaveAsOnnxPostProcess(OnnxContext ctx, string inputName, string[] outputNames)
+            {
+                Contracts.Assert(outputNames.Length >= 2);
+
+                string opType;
+                opType = "ArgMax";
+                var argMaxOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "ArgMaxOutput", true);
+                var argMaxNode = ctx.CreateNode(opType, inputName, argMaxOutput, ctx.GetNodeName(opType), "");
+                argMaxNode.AddAttribute("keepdims", 0);
+
+                opType = "Add";
+                var one = ctx.AddInitializer(1);
+                var addOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "AddOutput", true);
+                var addNode = ctx.CreateNode(opType, new[] { argMaxOutput, one }, new[] { addOutput }, ctx.GetNodeName(opType), "");
+
+                opType = "Cast";
+                var castToUint32Node = ctx.CreateNode(opType, addOutput, outputNames[0], ctx.GetNodeName(opType), "");
+                var t2 = InternalDataKindExtensions.ToInternalDataKind(DataKind.UInt32).ToType();
+                castToUint32Node.AddAttribute("to", t2);
+
+                opType = "Max";
+                ctx.CreateNode(opType, inputName, outputNames[1], ctx.GetNodeName(opType), "");
             }
         }
 
@@ -585,6 +654,21 @@ namespace Microsoft.ML.Trainers
                 }
                 JObject jobj = null;
                 return jobj.AddReturn("type", PfaUtils.Type.Array(PfaUtils.Type.Double)).AddReturn("new", rootObjects);
+            }
+
+            public override bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
+            {
+                var probabilityOutputs = base.SaveAsOnnxPreProcess(ctx, featureColumn, true);
+
+                string opType = "Concat";
+                var concatOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "ConcatOutput", true);
+                var concatNode = ctx.CreateNode(opType, probabilityOutputs, new[] { concatOutput }, ctx.GetNodeName(opType), "");
+                concatNode.AddAttribute("axis", 0);
+
+                base.SaveAsOnnxPostProcess(ctx, concatOutput, outputNames);
+
+                return true;
+
             }
         }
 
@@ -699,6 +783,51 @@ namespace Microsoft.ML.Trainers
                 var factorVar = ctx.DeclareVar(null, PfaUtils.Call("/", 1.0, PfaUtils.Call("a.sum", resultVar)));
                 return PfaUtils.Call("la.scale", resultVar, factorVar);
             }
+
+            public override bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
+            {
+                Contracts.Assert(outputNames.Length >= 2);
+
+                string opType;
+                var probabilityOutputs = base.SaveAsOnnxPreProcess(ctx, featureColumn, true);
+
+                opType = "Sum";
+                var sumOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "SumOfScores", true);
+                var sumNode = ctx.CreateNode(opType, probabilityOutputs, new[] { sumOutput }, ctx.GetNodeName(opType), "");
+
+                opType = "Cast";
+                var castOutput = ctx.AddIntermediateVariable(BooleanDataViewType.Instance, "IsSumZero", true);
+                var castNode = ctx.CreateNode(opType, sumOutput, castOutput, ctx.GetNodeName(opType), "");
+                var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Boolean).ToType();
+                castNode.AddAttribute("to", t);
+
+                var castIsZeroSumToFloat = ctx.AddIntermediateVariable(BooleanDataViewType.Instance, "IsSumZeroAsFloat", true);
+                var castIsZeroSumToFloatNode = ctx.CreateNode(opType, castOutput, castIsZeroSumToFloat, ctx.GetNodeName(opType), "");
+                var t1 = InternalDataKindExtensions.ToInternalDataKind(DataKind.Single).ToType();
+                castIsZeroSumToFloatNode.AddAttribute("to", t1);
+
+                opType = "Sum";
+                var sumOutputNonZero = ctx.AddIntermediateVariable(NumberDataViewType.Single, "SumOfScoresNonZero", true);
+                var sumOutputNonZeroNode = ctx.CreateNode(opType, new[] { sumOutput, castIsZeroSumToFloat },
+                    new[] { sumOutputNonZero }, ctx.GetNodeName(opType), "");
+
+                string[] divOutputs = new string[Predictors.Length];
+                for (int i = 0; i < Predictors.Length; i++)
+                {
+                    opType = "Div";
+                    divOutputs[i] = ctx.AddIntermediateVariable(NumberDataViewType.Single, $"DivOutput_{i}", true);
+                    ctx.CreateNode(opType, new[] { probabilityOutputs[i], sumOutputNonZero }, new[] { divOutputs[i] }, ctx.GetNodeName(opType), "");
+                }
+
+                opType = "Concat";
+                var concatOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "ConcatOutput", true);
+                var concatNode = ctx.CreateNode(opType, divOutputs, new[] { concatOutput }, ctx.GetNodeName(opType), "");
+                concatNode.AddAttribute("axis", 0);
+
+                base.SaveAsOnnxPostProcess(ctx, concatOutput, outputNames);
+
+                return true;
+            }
         }
 
         private sealed class ImplSoftmax : ImplBase
@@ -767,6 +896,36 @@ namespace Microsoft.ML.Trainers
             public override JToken SaveAsPfa(BoundPfaContext ctx, JToken input)
             {
                 throw new NotImplementedException("Softmax's PFA exporter is not implemented yet.");
+            }
+
+            public override bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
+            {
+                Contracts.Assert(outputNames.Length >= 2);
+
+                var probabilityOutputs = base.SaveAsOnnxPreProcess(ctx, featureColumn, false);
+
+                string opType;
+                opType = "Concat";
+                var concatOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "ConcatOutput", true);
+                var concatNode = ctx.CreateNode(opType, probabilityOutputs, new[] { concatOutput }, ctx.GetNodeName(opType), "");
+                concatNode.AddAttribute("axis", 0);
+
+                opType = "Exp";
+                var expOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "ExpOutput", true);
+                var expNode = ctx.CreateNode(opType, concatOutput, expOutput, ctx.GetNodeName(opType), "");
+
+                opType = "ReduceSum";
+                var sumOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "SumOutput", true);
+                var sumNode = ctx.CreateNode(opType, expOutput, sumOutput, ctx.GetNodeName(opType), "");
+                sumNode.AddAttribute("keepdims", 0);
+
+                opType = "Div";
+                var divOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "DivOutput", true);
+                var divNode = ctx.CreateNode(opType, new[] { expOutput, sumOutput }, new[] { divOutput }, ctx.GetNodeName(opType), "");
+
+                base.SaveAsOnnxPostProcess(ctx, divOutput, outputNames);
+
+                return true;
             }
         }
     }
