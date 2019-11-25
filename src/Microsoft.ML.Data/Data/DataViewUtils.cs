@@ -385,9 +385,9 @@ namespace Microsoft.ML.Data
 
                                 long oldBatch = 0;
                                 int count = 0;
-                                    // This event is used to synchronize ourselves using a MinWaiter
-                                    // so that we add batches to the consumer queue at the appropriate time.
-                                    ManualResetEventSlim waiterEvent = null;
+                                // This event is used to synchronize ourselves using a MinWaiter
+                                // so that we add batches to the consumer queue at the appropriate time.
+                                ManualResetEventSlim waiterEvent = null;
 
                                 Action pushBatch = () =>
                                 {
@@ -402,20 +402,20 @@ namespace Microsoft.ML.Data
                                             // The waiter event should never be null since this is only
                                             // called after a point where waiter.Register has been called.
                                             ch.AssertValue(waiterEvent);
-                                        waiterEvent.Wait();
+                                        waiterEvent.Wait(3*60*1000);
                                         waiterEvent = null;
                                         toConsume.Add(batch);
                                     }
                                 };
-                                    // Handle the first one separately, then go into the main loop.
-                                    if (localCursor.MoveNext() && !done)
+                                // Handle the first one separately, then go into the main loop.
+                                if (localCursor.MoveNext() && !done)
                                 {
                                     oldBatch = localCursor.Batch;
                                     foreach (var pipe in inPipes)
                                         pipe.Fill();
                                     count++;
-                                        // Register with the min waiter that we want to wait on this batch number.
-                                        waiterEvent = waiter.Register(oldBatch);
+                                    // Register with the min waiter that we want to wait on this batch number.
+                                    waiterEvent = waiter.Register(oldBatch);
 
                                     while (localCursor.MoveNext() && !done)
                                     {
