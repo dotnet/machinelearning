@@ -519,6 +519,21 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
             return modelBuilder.TransformText();
         }
+
+        public IProjectFile ToProjectFile()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IProjectGenerator ToProjectFiles()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void WriteToDisk(string folder)
+        {
+            throw new NotImplementedException();
+        }
         #endregion
     }
 }

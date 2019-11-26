@@ -3,11 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.ML.AutoML;
+using Microsoft.ML.CodeGenerator.CSharp;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.CodeGenerator.Utilities
@@ -125,6 +129,65 @@ namespace Microsoft.ML.CodeGenerator.Utilities
             {
                 proc.Close();
             }
+        }
+
+        internal static IList<string> GenerateClassLabels(ColumnInferenceResults columnInferenceResults)
+        {
+            IList<string> result = new List<string>();
+            foreach (var column in columnInferenceResults.TextLoaderOptions.Columns)
+            {
+                StringBuilder sb = new StringBuilder();
+                int range = (column.Source[0].Max - column.Source[0].Min).Value;
+                bool isArray = range > 0;
+                sb.Append(Symbols.PublicSymbol);
+                sb.Append(Symbols.Space);
+                switch (column.DataKind)
+                {
+                    case Microsoft.ML.Data.DataKind.String:
+                        sb.Append(Symbols.StringSymbol);
+                        break;
+                    case Microsoft.ML.Data.DataKind.Boolean:
+                        sb.Append(Symbols.BoolSymbol);
+                        break;
+                    case Microsoft.ML.Data.DataKind.Single:
+                        sb.Append(Symbols.FloatSymbol);
+                        break;
+                    case Microsoft.ML.Data.DataKind.Double:
+                        sb.Append(Symbols.DoubleSymbol);
+                        break;
+                    case Microsoft.ML.Data.DataKind.Int32:
+                        sb.Append(Symbols.IntSymbol);
+                        break;
+                    case Microsoft.ML.Data.DataKind.UInt32:
+                        sb.Append(Symbols.UIntSymbol);
+                        break;
+                    case Microsoft.ML.Data.DataKind.Int64:
+                        sb.Append(Symbols.LongSymbol);
+                        break;
+                    case Microsoft.ML.Data.DataKind.UInt64:
+                        sb.Append(Symbols.UlongSymbol);
+                        break;
+                    default:
+                        throw new ArgumentException($"The data type '{column.DataKind}' is not handled currently.");
+
+                }
+
+                if (range > 0)
+                {
+                    result.Add($"[ColumnName(\"{column.Name}\"),LoadColumn({column.Source[0].Min}, {column.Source[0].Max}) VectorType({(range + 1)})]");
+                    sb.Append("[]");
+                }
+                else
+                {
+                    result.Add($"[ColumnName(\"{column.Name}\"), LoadColumn({column.Source[0].Min})]");
+                }
+                sb.Append(" ");
+                sb.Append(Utils.Normalize(column.Name));
+                sb.Append("{get; set;}");
+                result.Add(sb.ToString());
+                result.Add("\r\n");
+            }
+            return result;
         }
     }
 }

@@ -17,54 +17,21 @@ namespace Microsoft.ML.CodeGenerator.Templates.AzureImageClassification.Model
     /// <summary>
     /// Class to produce the template output
     /// </summary>
-    
-    #line 1 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\AzureAttachImageModelOutputClass.tt"
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "16.0.0.0")]
-    public partial class AzureAttachImageModelOutputClass : AzureAttachImageModelOutputClassBase
+    internal partial class AzureAttachImageModelOutputClass : AzureAttachImageModelOutputClassBase
     {
-#line hidden
         /// <summary>
         /// Create the template output
         /// </summary>
         public virtual string TransformText()
         {
-            
-            #line 6 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\AzureAttachImageModelOutputClass.tt"
 if(Target == CSharp.GenerateTarget.Cli){ 
-            
-            #line default
-            #line hidden
-            
-            #line 7 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\AzureAttachImageModelOutputClass.tt"
 CLI_Annotation();
-            
-            #line default
-            #line hidden
-            
-            #line 8 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\AzureAttachImageModelOutputClass.tt"
  } else if(Target == CSharp.GenerateTarget.ModelBuilder){ 
-            
-            #line default
-            #line hidden
-            
-            #line 9 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\AzureAttachImageModelOutputClass.tt"
 MB_Annotation();
-            
-            #line default
-            #line hidden
-            
-            #line 10 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\AzureAttachImageModelOutputClass.tt"
  } 
-            
-            #line default
-            #line hidden
             this.Write("using System;\r\nusing Microsoft.ML.Data;\r\n\r\nnamespace ");
-            
-            #line 14 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\AzureAttachImageModelOutputClass.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            
-            #line default
-            #line hidden
             this.Write(@".Model
 {
     public class ModelOutput
@@ -79,25 +46,13 @@ MB_Annotation();
 ");
             return this.GenerationEnvironment.ToString();
         }
-        
-        #line 25 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\AzureAttachImageModelOutputClass.tt"
 
 public string Namespace {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
 
-        
-        #line default
-        #line hidden
-        
-        #line 1 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\..\..\Console\Annotation.ttinclude"
 
 void CLI_Annotation()
 {
-        
-        #line default
-        #line hidden
-        
-        #line 3 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\..\..\Console\Annotation.ttinclude"
 this.Write(@"//*****************************************************************************************
 //*                                                                                       *
 //* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *
@@ -105,50 +60,24 @@ this.Write(@"//*****************************************************************
 //*****************************************************************************************
 ");
 
-        
-        #line default
-        #line hidden
-        
-        #line 9 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\..\..\Console\Annotation.ttinclude"
 
 }
 
-        
-        #line default
-        #line hidden
-        
-        #line 12 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\..\..\Console\Annotation.ttinclude"
 
 void MB_Annotation()
 {
-        
-        #line default
-        #line hidden
-        
-        #line 14 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\..\..\Console\Annotation.ttinclude"
 this.Write("// This file was auto-generated by ML.NET Model Builder. \r\n");
 
-        
-        #line default
-        #line hidden
-        
-        #line 16 "C:\Users\xiaoyuz\source\repos\image\machinelearning\src\Microsoft.ML.CodeGenerator\Templates\AzureImageClassification\Model\..\..\Console\Annotation.ttinclude"
 
 }
 
-        
-        #line default
-        #line hidden
     }
-    
-    #line default
-    #line hidden
     #region Base class
     /// <summary>
     /// Base class for this transformation
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "16.0.0.0")]
-    public class AzureAttachImageModelOutputClassBase
+    internal class AzureAttachImageModelOutputClassBase
     {
         #region Fields
         private global::System.Text.StringBuilder generationEnvironmentField;

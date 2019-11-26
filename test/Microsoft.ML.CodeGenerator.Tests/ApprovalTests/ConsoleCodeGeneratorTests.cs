@@ -9,6 +9,7 @@ using ApprovalTests;
 using ApprovalTests.Reporters;
 using Microsoft.ML;
 using Microsoft.ML.AutoML;
+using Microsoft.ML.CodeGenerator.CodeGenerator.CSharp;
 using Microsoft.ML.CodeGenerator.CSharp;
 using Microsoft.ML.Data;
 using Xunit;
@@ -46,54 +47,7 @@ namespace mlnet.Tests
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void IgniteDemoTest()
         {
-            // construct pipeline
-            var onnxPipeLineNode = new PipelineNode(nameof(SpecialTransformer.ApplyOnnxModel), PipelineNodeType.Transform, new[] { "input.1" }, new[] { "output.1" },
-                new Dictionary<string, object>()
-                {
-                    { "outputColumnNames", "output1" },
-                    { "inputColumnNames", "input1"},
-                    { "modelFile" , "awesomeModel.onnx"},
-                });
-            var loadImageNode = new PipelineNode(EstimatorName.ImageLoading.ToString(), PipelineNodeType.Transform, "ImageSource", "ImageSource_featurized");
-            var resizeImageNode = new PipelineNode(
-                nameof(SpecialTransformer.ResizeImage),
-                PipelineNodeType.Transform,
-                "ImageSource_featurized",
-                "ImageSource_featurized",
-                new Dictionary<string, object>()
-                {
-                    { "imageWidth", 224 },
-                    { "imageHeight", 224 },
-                });
-            var extractPixelsNode = new PipelineNode(nameof(SpecialTransformer.ExtractPixel), PipelineNodeType.Transform, "ImageSource_featurized", "ImageSource_featurized");
-            var customePipeline = new PipelineNode(nameof(SpecialTransformer.NormalizeMapping), PipelineNodeType.Transform, string.Empty, string.Empty);
-            var bestPipeLine = new Pipeline(new PipelineNode[]
-            {
-                loadImageNode,
-                resizeImageNode,
-                extractPixelsNode,
-                customePipeline,
-                onnxPipeLineNode,
-            });
-
-            // construct column inference
-            var textLoaderArgs = new TextLoader.Options()
-            {
-                Columns = new[] {
-                        new TextLoader.Column("Label", DataKind.String, 0),
-                        new TextLoader.Column("ImageSource", DataKind.String, 1), // 0?
-                    },
-                AllowQuoting = true,
-                AllowSparse = true,
-                HasHeader = true,
-                Separators = new[] { '\t' }
-            };
-
-            var columnInference = new ColumnInferenceResults()
-            {
-                TextLoaderOptions = textLoaderArgs,
-                ColumnInformation = new ColumnInformation() { LabelColumnName = "Label" }
-            };
+            (var bestPipeLine, var columnInference) = GetMockedAzureImagePipelineAndInference();
 
             // construct CodeGen option
             var setting = new CodeGeneratorSettings()
@@ -102,7 +56,7 @@ namespace mlnet.Tests
                 ModelPath = @"C:\Users\xiaoyuz\Desktop\flower_photos_tiny_set_for_unit_tests\CodeGenTest\MLModel.zip",
                 MlTask = TaskKind.MulticlassClassification,
                 OutputName = @"CodeGenTest",
-                OutputBaseDir = @"C:\Users\xiaoyuz\Desktop\flower_photos_tiny_set_for_unit_tests\CodeGenTest",
+                OutputBaseDir = @"C:\Users\xiaoyuz\Desktop\CodeGenTest",
                 LabelName = "Label",
                 Target = GenerateTarget.ModelBuilder,
                 StablePackageVersion = "1.3.1",
@@ -111,8 +65,8 @@ namespace mlnet.Tests
             };
 
             // generate project
-            var codeGen = new CodeGenerator(bestPipeLine, columnInference, setting);
-            codeGen.GenerateAzureRemoteImageOutput();
+            var codeGen = new AzureAttachImageCodeGenerator(bestPipeLine, columnInference, setting);
+            codeGen.ToProjectFiles().WriteToDisk(setting.OutputBaseDir);
         }
 
         [Fact]
@@ -144,6 +98,8 @@ namespace mlnet.Tests
 
             Approvals.Verify(result.modelBuilderCSFileContent);
         }
+
+
 
         [Fact]
         [UseReporter(typeof(DiffReporter))]
@@ -254,6 +210,16 @@ namespace mlnet.Tests
         [Fact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
+        public void AzureImage_GenerateConsoleAppProjectConsoles_VerifyModelBuilder()
+        {
+            (var pipeline, var columnInference) = GetMockedAzureImagePipelineAndInference();
+
+
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void Recommendation_GenerateModelProjectContents_VerifyModelInput()
         {
             (string ModelInputCSFileContent, string ModelOutputCSFileContent, string ConsumeModelCSFileContent, string ModelProjectFileContent) codeGenResult
@@ -332,7 +298,7 @@ namespace mlnet.Tests
         {
             CodeGenerator consoleCodeGen = PrepareForRecommendationTask();
             return consoleCodeGen.GenerateModelProjectContents(
-                namespaceValue, 
+                namespaceValue,
                 labelTypeCsharp: typeof(float),
                 includeLightGbmPackage: false,
                 includeMklComponentsPackage: false,
@@ -478,6 +444,60 @@ namespace mlnet.Tests
                 };
             }
             return (mockedPipeline, columnInference);
+        }
+
+        private (Pipeline, ColumnInferenceResults) GetMockedAzureImagePipelineAndInference()
+        {
+            // construct pipeline
+            var onnxPipeLineNode = new PipelineNode(nameof(SpecialTransformer.ApplyOnnxModel), PipelineNodeType.Transform, new[] { "input.1" }, new[] { "output.1" },
+                new Dictionary<string, object>()
+                {
+                    { "outputColumnNames", "output1" },
+                    { "inputColumnNames", "input1"},
+                    { "modelFile" , "awesomeModel.onnx"},
+                });
+            var loadImageNode = new PipelineNode(EstimatorName.ImageLoading.ToString(), PipelineNodeType.Transform, "ImageSource", "ImageSource_featurized");
+            var resizeImageNode = new PipelineNode(
+                nameof(SpecialTransformer.ResizeImage),
+                PipelineNodeType.Transform,
+                "ImageSource_featurized",
+                "ImageSource_featurized",
+                new Dictionary<string, object>()
+                {
+                    { "imageWidth", 224 },
+                    { "imageHeight", 224 },
+                });
+            var extractPixelsNode = new PipelineNode(nameof(SpecialTransformer.ExtractPixel), PipelineNodeType.Transform, "ImageSource_featurized", "ImageSource_featurized");
+            var customePipeline = new PipelineNode(nameof(SpecialTransformer.NormalizeMapping), PipelineNodeType.Transform, string.Empty, string.Empty);
+            var bestPipeLine = new Pipeline(new PipelineNode[]
+            {
+                loadImageNode,
+                resizeImageNode,
+                extractPixelsNode,
+                customePipeline,
+                onnxPipeLineNode,
+            });
+
+            // construct column inference
+            var textLoaderArgs = new TextLoader.Options()
+            {
+                Columns = new[] {
+                        new TextLoader.Column("Label", DataKind.String, 0),
+                        new TextLoader.Column("ImageSource", DataKind.String, 1), // 0?
+                    },
+                AllowQuoting = true,
+                AllowSparse = true,
+                HasHeader = true,
+                Separators = new[] { '\t' }
+            };
+
+            var columnInference = new ColumnInferenceResults()
+            {
+                TextLoaderOptions = textLoaderArgs,
+                ColumnInformation = new ColumnInformation() { LabelColumnName = "Label" }
+            };
+
+            return (bestPipeLine, columnInference);
         }
 
         private (Pipeline, ColumnInferenceResults) GetMockedOvaPipelineAndInference()
