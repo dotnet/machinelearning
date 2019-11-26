@@ -497,7 +497,7 @@ namespace Microsoft.ML.Runtime
 
                 if (ctor.Accessmodifier() == create.Accessmodifier())
                 {
-                    throw Contracts.Except($"Can't load type {instType}, because it has both create and constructor methods with the same visibility. Please open an issue for this to be fixed.");
+                    throw Contracts.Except($"Can't load type {instType}, because it has both create and constructor methods with the same visibility. Please indicate which one should be used by changing either the signature or the visibility of one of them.");
                 }
                 else if (ctor.Accessmodifier() > create.Accessmodifier())
                 {
