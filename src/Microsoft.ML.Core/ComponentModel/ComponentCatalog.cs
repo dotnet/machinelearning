@@ -472,20 +472,16 @@ namespace Microsoft.ML.Runtime
             // Find both 'ctor' and 'create' methods if available
             if (instType.IsAssignableFrom(loaderType))
             {
-                ctor = loaderType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, parmTypes ?? Type.EmptyTypes, null);
-                if (ctor == null)
+                if ((ctor = loaderType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, parmTypes ?? Type.EmptyTypes, null)) == null)
                 {
-                    ctor = loaderType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, parmTypesWithEnv ?? Type.EmptyTypes, null);
-                    if (ctor != null)
+                    if ((ctor = loaderType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, parmTypesWithEnv ?? Type.EmptyTypes, null)) != null)
                         requireEnvironmentCtor = true;
                 }
             }
 
-            create = FindCreateMethod(instType, loaderType, parmTypes ?? Type.EmptyTypes);
-            if (create == null)
+            if ((create = FindCreateMethod(instType, loaderType, parmTypes ?? Type.EmptyTypes)) == null)
             {
-                create = FindCreateMethod(instType, loaderType, parmTypesWithEnv ?? Type.EmptyTypes);
-                if (create != null)
+                if ((create = FindCreateMethod(instType, loaderType, parmTypesWithEnv ?? Type.EmptyTypes)) != null)
                     requireEnvironmentCreate = true;
             }
 
