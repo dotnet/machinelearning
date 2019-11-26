@@ -725,10 +725,18 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         internal override void InitState()
         {
+            Console.WriteLine($"Start InitState.");
+            Console.WriteLine(new System.Diagnostics.StackTrace().ToString());
+            PrintQueue(_buffer, "_buffer");
+
             for (int i = 0; i < _windowSize - 2; ++i)
                 _state[i] = 0;
 
             _buffer.Clear();
+
+            PrintQueue(_buffer, "_buffer");
+
+            Console.WriteLine($"Finish InitState.");
         }
 
         private static int DetermineSignalRankFast(Single[] series, TrajectoryMatrix tMat, Single[] singularVectors, Single[] singularValues, int maxRank)
@@ -1098,15 +1106,20 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="updateModel">Determines whether the model parameters also need to be updated upon consuming the new observation (default = false).</param>
         internal override void Consume(ref Single input, bool updateModel = false)
         {
+            Console.WriteLine($"Start Consume.");
+            Console.WriteLine(new System.Diagnostics.StackTrace().ToString());
+
             if (Single.IsNaN(input))
                 return;
 
             int i;
 
             Console.WriteLine($"_rank is : {_rank}.");
-            Console.WriteLine($"_buffer count is : {_buffer.Count}.");
+            PrintQueue(_buffer, "_buffer");
             Console.WriteLine($"_windowSize is : {_windowSize}.");
             PrintArray(_state, "_state");
+            PrintArray(_alpha, "_alpha");
+            Console.WriteLine($"_wTrans == null is : {_wTrans == null}.");
 
             if (_wTrans == null)
             {
@@ -1122,6 +1135,12 @@ namespace Microsoft.ML.Transforms.TimeSeries
             }
 
             // Forming vector x
+
+            PrintVector(_x, "_x");
+            PrintVector(_y, "_y");
+
+            Console.WriteLine("In Consume, check _buffer");
+            PrintQueue(_buffer, "_buffer");
 
             if (_buffer.Count == 0)
             {
@@ -1142,7 +1161,16 @@ namespace Microsoft.ML.Transforms.TimeSeries
             // Updating the state vector
             CpuAligenedMathUtils<CpuAlignedMatrixRow>.MatTranTimesSrc(_wTrans, _y, _xSmooth);
 
+            Console.WriteLine($"_autoregressionNoiseMean is : {_autoregressionNoiseMean}.");
+            Console.WriteLine($"_observationNoiseMean is : {_observationNoiseMean}.");
+            PrintVector(_xSmooth, "_xSmooth");
+            PrintVector(_x, "_x");
+            PrintVector(_y, "_y");
+
             _nextPrediction = _autoregressionNoiseMean + _observationNoiseMean;
+
+            Console.WriteLine($"_nextPrediction is : {_nextPrediction}.");
+
             for (i = 0; i < _windowSize - 2; ++i)
             {
                 _state[i] = ((_windowSize - 2 - i) * _state[i + 1] + _xSmooth[i + 1]) / (_windowSize - 1 - i);
@@ -1151,6 +1179,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
             _state[_windowSize - 2] = _xSmooth[_windowSize - 1];
             _nextPrediction += _state[_windowSize - 2] * _alpha[_windowSize - 2];
 
+            Console.WriteLine($"_nextPrediction is : {_nextPrediction}.");
+
             if (updateModel)
             {
                 // REVIEW: to be implemented in the next version based on the FAPI algorithm
@@ -1158,6 +1188,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
             }
 
             _buffer.AddLast(input);
+
+            PrintQueue(_buffer, "_buffer");
+
+            Console.WriteLine($"Finish Consume.");
         }
 
         /// <summary>
@@ -1261,8 +1295,35 @@ namespace Microsoft.ML.Transforms.TimeSeries
             Console.WriteLine($"{name} items: {arrayItem}.");
         }
 
+        private void PrintVector(CpuAlignedVector vector, string name)
+        {
+            Console.WriteLine($"{name} length: {vector.Items.Size}.");
+            string arrayItem = "";
+            for (int i = 0; i < vector.Items.Size; ++i)
+            {
+                arrayItem += vector[i] + ";";
+            }
+
+            Console.WriteLine($"{name} items: {arrayItem}.");
+        }
+
+        private void PrintQueue(FixedSizeQueue<Single> queue, string name)
+        {
+            Console.WriteLine($"{name} length: {queue.Count}.");
+            string arrayItem = "";
+            for (int i=0; i<queue.Count; ++i)
+            {
+                arrayItem += queue[i] + ";";
+            }
+
+            Console.WriteLine($"{name} items: {arrayItem}.");
+        }
+
         private void TrainCore(Single[] dataArray, int originalSeriesLength)
         {
+            Console.WriteLine($"Start TrainCore.");
+            Console.WriteLine(new System.Diagnostics.StackTrace().ToString());
+
             Console.WriteLine($"originalSeriesLength: {originalSeriesLength}.");
             PrintArray(dataArray, "dataArray");
 
@@ -1394,6 +1455,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
             // Setting the state
             _nextPrediction = _autoregressionNoiseMean + _observationNoiseMean;
 
+            Console.WriteLine("In TrainCore, check _buffer");
+            PrintQueue(_buffer, "_buffer");
+
             if (_buffer.Count > 0) // Use the buffer to set the state when there are data points pushed into the buffer using the Consume() method
             {
                 int len = _buffer.Count;
@@ -1427,6 +1491,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 _info.IsNaiveModelTrained = learnNaiveModel;
                 _info.Spectrum = singularVals;
             }
+
+            PrintQueue(_buffer, "_buffer");
+
+            Console.WriteLine($"Finish TrainCore.");
         }
 
         /// <summary>
@@ -1436,6 +1504,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="horizon">The forecast horizon.</param>
         internal override void Forecast(ref ForecastResultBase<Single> result, int horizon = 1)
         {
+            //Console.WriteLine($"Start Forecast.");
+            //Console.WriteLine(new System.Diagnostics.StackTrace().ToString());
+
             _host.CheckParam(horizon >= 1, nameof(horizon), "The horizon parameter should be greater than 0.");
             if (result == null)
                 result = new SsaForecastResult();
@@ -1451,11 +1522,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
             int j;
             int k;
 
-            Console.WriteLine($"_nextPrediction is : {_nextPrediction}.");
-            Console.WriteLine($"_autoregressionNoiseVariance is : {_autoregressionNoiseVariance}.");
-            Console.WriteLine($"_observationNoiseVariance is : {_observationNoiseVariance}.");
-            PrintArray(_state, "_state");
-            PrintArray(_alpha, "_alpha");
+            //Console.WriteLine($"_nextPrediction is : {_nextPrediction}.");
+            //Console.WriteLine($"_autoregressionNoiseVariance is : {_autoregressionNoiseVariance}.");
+            //Console.WriteLine($"_observationNoiseVariance is : {_observationNoiseVariance}.");
+            //PrintArray(_state, "_state");
+            //PrintArray(_alpha, "_alpha");
 
             // Computing the point forecasts
             resEditor.Values[0] = _nextPrediction;
@@ -1470,7 +1541,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     resEditor.Values[i] += resEditor.Values[j] * _alpha[k];
             }
 
-            Console.WriteLine($"ShouldComputeForecastIntervals is : {ShouldComputeForecastIntervals}.");
+            //Console.WriteLine($"ShouldComputeForecastIntervals is : {ShouldComputeForecastIntervals}.");
 
             // Computing the forecast variances
             if (ShouldComputeForecastIntervals)
@@ -1503,6 +1574,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
             result.PointForecast = resEditor.Commit();
             output.CanComputeForecastIntervals = ShouldComputeForecastIntervals;
             output.BoundOffset = 0;
+
+            Console.WriteLine($"Finish Forecast.");
         }
 
         /// <summary>

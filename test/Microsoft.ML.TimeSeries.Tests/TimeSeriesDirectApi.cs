@@ -326,6 +326,8 @@ namespace Microsoft.ML.Tests
         [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         public void SsaForecast()
         {
+            Console.WriteLine("Start SsaForecast...");
+
             var env = new MLContext();
             const int ChangeHistorySize = 10;
             const int SeasonalitySize = 10;
@@ -382,6 +384,7 @@ namespace Microsoft.ML.Tests
                 Assert.Equal(maxCnf[localIndex], row.MaxCnf[localIndex], precision: 7);
             }
 
+            Console.WriteLine("Finish SsaForecast...");
         }
 
         [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]

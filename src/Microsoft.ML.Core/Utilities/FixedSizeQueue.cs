@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Internal.Utilities
@@ -128,14 +129,33 @@ namespace Microsoft.ML.Internal.Utilities
             return item;
         }
 
+        private void PrintQueue(T[] queue, string name)
+        {
+            Console.WriteLine($"{name} length: {queue.Length}.");
+            string arrayItem = "";
+            for (int i = 0; i < queue.Length; ++i)
+            {
+                arrayItem += queue[i] + ";";
+            }
+
+            Console.WriteLine($"{name} items: {arrayItem}.");
+        }
+
         public void Clear()
         {
+            Console.WriteLine($"Start Clear FixedSizeQueue.");
+            Console.WriteLine(new System.Diagnostics.StackTrace().ToString());
+            PrintQueue(_array, "_array");
+
             AssertValid();
             for (int i = 0; i < _count; i++)
                 _array[(_startIndex + i) % _array.Length] = default(T);
             _startIndex = 0;
             _count = 0;
             AssertValid();
+
+            PrintQueue(_array, "_array");
+            Console.WriteLine($"Finish InitState.");
         }
 
         public FixedSizeQueue<T> Clone()
