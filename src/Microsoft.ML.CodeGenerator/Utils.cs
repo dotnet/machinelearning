@@ -84,13 +84,34 @@ namespace Microsoft.ML.CodeGenerator.Utilities
             return trainProgramCSFileContent;
         }
 
+        internal static int AddProjectsToSolution(string solutionPath, string[] projects)
+        {
+            var proc = new System.Diagnostics.Process();
+            var projectPaths = projects.Select((name) => $"\"{Path.Combine(solutionPath, name).ToString()}\"");
+            try
+            {
+                proc.StartInfo.FileName = @"dotnet";
+                proc.StartInfo.Arguments = $"sln \"{solutionPath}\" add {string.Join(" ", projectPaths)}";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+                proc.Start();
+                string outPut = proc.StandardOutput.ReadToEnd();
+                proc.WaitForExit();
+                var exitCode = proc.ExitCode;
+                return exitCode;
+            }
+            finally
+            {
+                proc.Close();
+            }
+        }
+
         internal static int AddProjectsToSolution(string modelprojectDir,
             string modelProjectName,
             string consoleAppProjectDir,
             string consoleAppProjectName,
             string solutionPath)
         {
-            // TODO make this method generic : (string solutionpath, string[] projects)
             var proc = new System.Diagnostics.Process();
             try
             {

@@ -1,23 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.ML.CodeGenerator.CodeGenerator;
 using Microsoft.ML.CodeGenerator.CodeGenerator.CSharp;
 
 namespace Microsoft.ML.CodeGenerator.Templates.Console
 {
-    internal partial class PredictProject : IProjectFile
+    internal partial class PredictProject : IProjectFileGenerator
     {
+        public string OutputName { get; set; }
+
         public IProjectFile ToProjectFile()
         {
             return new ProjectFile()
             {
                 Data = TransformText(),
+                Name = $"{OutputName}.ConsoleApp.csproj",
             };
-        }
-
-        public void WriteToDisk(string location)
-        {
-            throw new NotImplementedException();
         }
     }
 }

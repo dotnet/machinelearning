@@ -66,7 +66,7 @@ namespace mlnet.Tests
 
             // generate project
             var codeGen = new AzureAttachImageCodeGenerator(bestPipeLine, columnInference, setting);
-            codeGen.ToProjectFiles().WriteToDisk(setting.OutputBaseDir);
+            codeGen.ToSolution().WriteToDisk(setting.OutputBaseDir);
         }
 
         [Fact]

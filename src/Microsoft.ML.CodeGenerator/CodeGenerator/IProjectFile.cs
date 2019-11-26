@@ -8,6 +8,6 @@ namespace Microsoft.ML.CodeGenerator
 {
     public interface IProjectFile: IWritable
     {
-        IProjectFile ToProjectFile();
+        public string Name { get; set; }
     }
 }

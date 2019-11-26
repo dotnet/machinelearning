@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.ML.AutoML;
+using Microsoft.ML.CodeGenerator.CodeGenerator;
 using Microsoft.ML.CodeGenerator.Templates.AzureImageClassification.Model;
 using Microsoft.ML.CodeGenerator.Templates.Console;
 using Microsoft.ML.CodeGenerator.Utilities;
@@ -531,6 +532,11 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         }
 
         public void WriteToDisk(string folder)
+        {
+            throw new NotImplementedException();
+        }
+
+        IProject IProjectGenerator.ToProject()
         {
             throw new NotImplementedException();
         }

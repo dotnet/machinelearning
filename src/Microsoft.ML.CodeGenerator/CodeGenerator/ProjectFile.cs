@@ -6,10 +6,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
     {
         public string Data { get; set; }
 
-        public IProjectFile ToProjectFile()
-        {
-            throw new System.NotImplementedException();
-        }
+        public string Name { get; set; }
 
         public void WriteToDisk(string location)
         {

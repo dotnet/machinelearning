@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.CodeGenerator.CSharp;
 using Microsoft.ML.CodeGenerator.Templates.Console;
+using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
 {
@@ -16,9 +19,10 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
         private readonly ColumnInferenceResults _columnInferenceResult;
         private readonly string _nameSpaceValue;
 
-        public IProjectFile ModelBuilder { get; private set; }
-        public IProjectFile PredictProject { get; private set; }
-        public IProjectFile PredictProgram { get; private set; }
+        public IProjectFileGenerator ModelBuilder { get; private set; }
+        public IProjectFileGenerator PredictProject { get; private set; }
+        public IProjectFileGenerator PredictProgram { get; private set; }
+        public string Name { get; set; }
 
         public AzureAttachImageConsoleAppCodeGenerator(Pipeline pipeline, ColumnInferenceResults columnInferenceResults, CodeGeneratorSettings options, string namespaceValue)
         {
@@ -26,16 +30,8 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
             _settings = options;
             _columnInferenceResult = columnInferenceResults;
             _nameSpaceValue = namespaceValue;
-        }
+            Name = $"{_settings.OutputName}.ConsoleApp";
 
-        public void GenerateOutput()
-        {
-            var consoleAppProjectDir = Path.Combine(_settings.OutputBaseDir, $"{_settings.OutputName}.ConsoleApp");
-            ToProjectFiles().WriteToDisk(consoleAppProjectDir);
-        }
-
-        public IProjectGenerator ToProjectFiles()
-        {
             var (Usings, TrainerMethod, PreTrainerTransforms, PostTrainerTransforms) = _pipeline.GenerateTransformsAndTrainers();
 
             ModelBuilder = new ModelBuilder()
@@ -55,7 +51,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
                 CacheBeforeTrainer = _pipeline.CacheBeforeTrainer,
                 Target = _settings.Target,
                 HasOnnxModel = true,
-            }.ToProjectFile();
+            };
 
             PredictProject = new PredictProject()
             {
@@ -69,8 +65,9 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
                 IncludeResNet18Package = true,
                 IncludeRecommenderPackage = false,
                 StablePackageVersion = _settings.StablePackageVersion,
-                UnstablePackageVersion = _settings.UnstablePackageVersion
-            }.ToProjectFile();
+                UnstablePackageVersion = _settings.UnstablePackageVersion,
+                OutputName = _settings.OutputName,
+            };
 
             var columns = _columnInferenceResult.TextLoaderOptions.Columns;
             var featuresList = columns.Where((str) => str.Name != _settings.LabelName).Select((str) => str.Name).ToList();
@@ -88,19 +85,25 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
                 Target = _settings.Target,
                 IsAzureAttach = true,
                 Features = featuresList,
-            }.ToProjectFile();
-            return this;
+            };
         }
 
-        public void WriteToDisk(string folder)
+        public IProject ToProject()
         {
-            if(ModelBuilder == null)
+            var project = new Project()
             {
-                throw new Exception($"{nameof(AzureAttachImageConsoleAppCodeGenerator)}: Call ToProjectFiles First");
-            }
-            ModelBuilder.WriteToDisk(Path.Combine(folder, "ModelBuilder.cs"));
-            PredictProject.WriteToDisk(Path.Combine(folder, $"{_settings.OutputName}.ConsoleApp.csproj"));
-            PredictProgram.WriteToDisk(Path.Combine(folder, "Program.cs"));
+                ModelBuilder.ToProjectFile(),
+                PredictProject.ToProjectFile(),
+                PredictProgram.ToProjectFile(),
+            };
+
+            project.Name = Name;
+            return project;
+        }
+
+        public void GenerateOutput()
+        {
+            throw new NotImplementedException();
         }
     }
 }

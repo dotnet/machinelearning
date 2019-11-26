@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -16,11 +17,12 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
         private readonly ColumnInferenceResults _columnInferenceResult;
         private readonly string _nameSpaceValue;
 
-        public IProjectFile ModelInputClass { get; private set; }
-        public IProjectFile ModelOutputClass { get; private set; }
-        public IProjectFile NormalizeMapping { get; private set; }
-        public IProjectFile ModelProject { get; private set; }
-        public IProjectFile ConsumeModel { get; private set; }
+        public IProjectFileGenerator ModelInputClass { get; private set; }
+        public IProjectFileGenerator ModelOutputClass { get; private set; }
+        public IProjectFileGenerator NormalizeMapping { get; private set; }
+        public IProjectFileGenerator ModelProject { get; private set; }
+        public IProjectFileGenerator ConsumeModel { get; private set; }
+        public string Name { get; set; }
 
         public AzureAttachImageModelCodeGenerator(Pipeline pipeline, ColumnInferenceResults columnInferenceResults, CodeGeneratorSettings options, string namespaceValue)
         {
@@ -28,34 +30,26 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
             _settings = options;
             _columnInferenceResult = columnInferenceResults;
             _nameSpaceValue = namespaceValue;
-        }
+            Name = $"{_settings.OutputName}.Model";
 
-        public void GenerateOutput()
-        {
-            var modelProjectDir = Path.Combine(_settings.OutputBaseDir, $"{_settings.OutputName}.Model");
-            ToProjectFiles().WriteToDisk(modelProjectDir);
-        }
-
-        public IProjectGenerator ToProjectFiles()
-        {
             ModelInputClass = new ModelInputClass()
             {
                 Namespace = _nameSpaceValue,
                 ClassLabels = Utilities.Utils.GenerateClassLabels(_columnInferenceResult),
                 Target = _settings.Target
-            }.ToProjectFile();
+            };
 
             ModelOutputClass = new AzureAttachImageModelOutputClass()
             {
                 Namespace = _nameSpaceValue,
                 Target = _settings.Target
-            }.ToProjectFile();
+            };
 
             NormalizeMapping = new NormalizeMapping()
             {
                 Target = _settings.Target,
                 Namespace = _nameSpaceValue,
-            }.ToProjectFile();
+            };
 
             ModelProject = new ModelProject()
             {
@@ -68,27 +62,34 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                 IncludeRecommenderPackage = false,
                 StablePackageVersion = _settings.StablePackageVersion,
                 UnstablePackageVersion = _settings.UnstablePackageVersion,
-            }.ToProjectFile();
+                OutputName = _settings.OutputName,
+            };
 
             ConsumeModel = new AzureAttachImageConsumeModel()
             {
                 Namespace = _nameSpaceValue,
                 Target = _settings.Target
-            }.ToProjectFile();
-            return this;
+            };
         }
 
-        public void WriteToDisk(string folder)
+        public IProject ToProject()
         {
-            if (ModelInputClass == null)
+            var project = new Project()
             {
-                throw new Exception($"{nameof(AzureAttachImageModelCodeGenerator)}: Call ToProjectFiles First");
-            }
-            ModelInputClass.WriteToDisk(Path.Combine(folder, "ModelInput.cs"));
-            ModelOutputClass.WriteToDisk(Path.Combine(folder, "ModelOutput.cs"));
-            ConsumeModel.WriteToDisk(Path.Combine(folder, "ConsumeModel.cs"));
-            ModelProject.WriteToDisk(Path.Combine(folder, $"{_settings.OutputName}.Model.csproj"));
-            NormalizeMapping.WriteToDisk(Path.Combine(folder, "NormalizeMapping.cs"));
+                ModelInputClass.ToProjectFile(),
+                ModelOutputClass.ToProjectFile(),
+                ConsumeModel.ToProjectFile(),
+                ModelProject.ToProjectFile(),
+                NormalizeMapping.ToProjectFile(),
+            };
+
+            project.Name = Name;
+            return project;
+        }
+
+        public void GenerateOutput()
+        {
+            throw new NotImplementedException();
         }
     }
 }
