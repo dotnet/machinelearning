@@ -1299,7 +1299,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         {
             Console.WriteLine($"{name} length: {vector.Items.Size}.");
             string arrayItem = "";
-            for (int i = 0; i < vector.Items.Size; ++i)
+            for (int i = 0; i < vector.ValueCount; ++i)
             {
                 arrayItem += vector[i] + ";";
             }
