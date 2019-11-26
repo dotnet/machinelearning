@@ -6,6 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Templates\AzureImageClassification\ConsoleApp\**" />
+    <EmbeddedResource Remove="Templates\AzureImageClassification\ConsoleApp\**" />
+    <None Remove="Templates\AzureImageClassification\ConsoleApp\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="System.CodeDom" Version="$(SystemCodeDomPackageVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisCSharpVersion)" />
   </ItemGroup>
@@ -114,9 +120,5 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>PredictProject.tt</DependentUpon>
     </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Templates\AzureImageClassification\ConsoleApp\" />
   </ItemGroup>
 </Project>
