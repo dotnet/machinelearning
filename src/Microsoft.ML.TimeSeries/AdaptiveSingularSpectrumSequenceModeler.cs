@@ -1103,6 +1103,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             int i;
 
+            Console.WriteLine($"_rank is : {_rank}.");
+            Console.WriteLine($"_buffer count is : {_buffer.Count}.");
+            Console.WriteLine($"_windowSize is : {_windowSize}.");
+            PrintArray(_state, "_state");
+
             if (_wTrans == null)
             {
                 _y = new CpuAlignedVector(_rank, CpuMathUtils.GetVectorAlignment());
@@ -1244,8 +1249,23 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
 #endif
 
+        private void PrintArray(Single[] array, string name)
+        {
+            Console.WriteLine($"{name} length: {array.Length}.");
+            string arrayItem = "";
+            foreach (var item in array)
+            {
+                arrayItem += item.ToString() + ";";
+            }
+
+            Console.WriteLine($"{name} items: {arrayItem}.");
+        }
+
         private void TrainCore(Single[] dataArray, int originalSeriesLength)
         {
+            Console.WriteLine($"originalSeriesLength: {originalSeriesLength}.");
+            PrintArray(dataArray, "dataArray");
+
             _host.Assert(Utils.Size(dataArray) > 0);
             Single[] singularVals;
             Single[] leftSingularVecs;
@@ -1272,6 +1292,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     }
                 }
             }
+
+            PrintArray(singularVals, "singularVals");
+            PrintArray(leftSingularVecs, "leftSingularVecs");
 
             // Checking for standard eigenvectors, if found reduce the window size and reset training.
             if (!learnNaiveModel)
@@ -1428,6 +1451,12 @@ namespace Microsoft.ML.Transforms.TimeSeries
             int j;
             int k;
 
+            Console.WriteLine($"_nextPrediction is : {_nextPrediction}.");
+            Console.WriteLine($"_autoregressionNoiseVariance is : {_autoregressionNoiseVariance}.");
+            Console.WriteLine($"_observationNoiseVariance is : {_observationNoiseVariance}.");
+            PrintArray(_state, "_state");
+            PrintArray(_alpha, "_alpha");
+
             // Computing the point forecasts
             resEditor.Values[0] = _nextPrediction;
             for (i = 1; i < horizon; ++i)
@@ -1440,6 +1469,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 for (j = Math.Max(0, i - _windowSize + 1); j < i; ++j, ++k)
                     resEditor.Values[i] += resEditor.Values[j] * _alpha[k];
             }
+
+            Console.WriteLine($"ShouldComputeForecastIntervals is : {ShouldComputeForecastIntervals}.");
 
             // Computing the forecast variances
             if (ShouldComputeForecastIntervals)

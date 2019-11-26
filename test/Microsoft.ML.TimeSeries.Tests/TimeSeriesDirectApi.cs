@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
@@ -366,6 +367,13 @@ namespace Microsoft.ML.Tests
             List<float> maxCnf = new List<float>() { 4.3571825f, 7.448609f, 10.435009f, 12.5572853f };
             enumerator.MoveNext();
             row = enumerator.Current;
+
+            for (int localIndex = 0; localIndex < 4; localIndex++)
+            {
+                Console.WriteLine($"{localIndex}-th forecast value is {row.Forecast[localIndex]}");
+                Console.WriteLine($"{localIndex}-th mincnf value is {row.MinCnf[localIndex]}");
+                Console.WriteLine($"{localIndex}-th maxcnf value is {row.MaxCnf[localIndex]}");
+            }
 
             for (int localIndex = 0; localIndex < 4; localIndex++)
             {
