@@ -495,25 +495,24 @@ namespace Microsoft.ML.Runtime
                 {
                     throw Contracts.Except($"Can't load type {instType}, because it has both create and constructor methods with the same visibility. Please indicate which one should be used by changing either the signature or the visibility of one of them.");
                 }
-                else if (ctor.Accessmodifier() > create.Accessmodifier())
+                if (ctor.Accessmodifier() > create.Accessmodifier())
                 {
                     create = null;
                     requireEnvironment = requireEnvironmentCtor;
                     return true;
                 }
-                else
-                {
-                    ctor = null;
-                    requireEnvironment = requireEnvironmentCreate;
-                    return true;
-                }
+                ctor = null;
+                requireEnvironment = requireEnvironmentCreate;
+                return true;
             }
-            else if (ctor != null && create == null)
+
+            if (ctor != null && create == null)
             {
                 requireEnvironment = requireEnvironmentCtor;
                 return true;
             }
-            else if (ctor == null && create != null)
+
+            if (ctor == null && create != null)
             {
                 requireEnvironment = requireEnvironmentCreate;
                 return true;
