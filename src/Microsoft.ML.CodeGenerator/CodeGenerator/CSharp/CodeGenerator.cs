@@ -235,7 +235,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             modelInputCSFileContent = Utils.FormatCode(modelInputCSFileContent);
 
             // generate ModelOutput.cs
-            var modelOutputCSFileContent = new AzureAttachImageModelOutputClass()
+            var modelOutputCSFileContent = new OnnxModelOutputClass()
             {
                 Namespace = namespaceValue,
                 Target = _settings.Target,

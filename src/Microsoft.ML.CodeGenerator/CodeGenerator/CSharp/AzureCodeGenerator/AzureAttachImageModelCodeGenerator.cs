@@ -39,7 +39,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                 Target = _settings.Target
             };
 
-            ModelOutputClass = new AzureAttachImageModelOutputClass()
+            ModelOutputClass = new OnnxModelOutputClass()
             {
                 Namespace = _nameSpaceValue,
                 Target = _settings.Target

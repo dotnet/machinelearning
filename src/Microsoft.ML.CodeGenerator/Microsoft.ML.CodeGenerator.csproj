@@ -25,9 +25,9 @@
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>AzureAttachImageConsumeModel.cs</LastGenOutput>
     </None>
-    <None Update="Templates\AzureImageClassification\Model\AzureAttachImageModelOutputClass.tt">
+    <None Update="Templates\AzureImageClassification\Model\OnnxModelOutputClass.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>AzureAttachImageModelOutputClass.cs</LastGenOutput>
+      <LastGenOutput>OnnxModelOutputClass.cs</LastGenOutput>
     </None>
     <None Update="Templates\AzureImageClassification\Model\NormalizeMapping.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
@@ -75,10 +75,10 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>AzureAttachImageConsumeModel.tt</DependentUpon>
     </Compile>
-    <Compile Update="Templates\AzureImageClassification\Model\AzureAttachImageModelOutputClass.cs">
+    <Compile Update="Templates\AzureImageClassification\Model\OnnxModelOutputClass.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>AzureAttachImageModelOutputClass.tt</DependentUpon>
+      <DependentUpon>OnnxModelOutputClass.tt</DependentUpon>
     </Compile>
     <Compile Update="Templates\AzureImageClassification\Model\NormalizeMapping.cs">
       <DesignTime>True</DesignTime>

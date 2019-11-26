@@ -6,7 +6,7 @@ using Microsoft.ML.CodeGenerator.CodeGenerator.CSharp;
 
 namespace Microsoft.ML.CodeGenerator.Templates.AzureImageClassification.Model
 {
-    internal partial class AzureAttachImageModelOutputClass : IProjectFileGenerator
+    internal partial class OnnxModelOutputClass : IProjectFileGenerator
     {
         public IProjectFile ToProjectFile()
         {
