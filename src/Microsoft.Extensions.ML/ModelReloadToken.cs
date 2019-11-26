@@ -44,6 +44,12 @@ namespace Microsoft.Extensions.ML
         /// <summary>
         /// Used to trigger the change token when a reload occurs.
         /// </summary>
-        public void OnReload() => _cts.Cancel();
+        public void OnReload()
+        {
+            if (!_cts.IsCancellationRequested)
+                _cts.Cancel();
+            else
+                Console.WriteLine("ModelReloadToken has already been Canceled.");
+        }
     }
 }

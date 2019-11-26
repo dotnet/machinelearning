@@ -402,7 +402,7 @@ namespace Microsoft.ML.Data
                                             // The waiter event should never be null since this is only
                                             // called after a point where waiter.Register has been called.
                                             ch.AssertValue(waiterEvent);
-                                        waiterEvent.Wait();
+                                        waiterEvent.Wait(5*60*1000);
                                         waiterEvent = null;
                                         toConsume.Add(batch);
                                     }
