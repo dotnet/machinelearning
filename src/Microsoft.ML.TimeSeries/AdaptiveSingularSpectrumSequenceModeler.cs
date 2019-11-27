@@ -725,18 +725,18 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         internal override void InitState()
         {
-            Console.WriteLine($"Start InitState.");
-            Console.WriteLine(new System.Diagnostics.StackTrace().ToString());
-            PrintQueue(_buffer, "_buffer");
+            //Console.WriteLine($"Start InitState.");
+            //Console.WriteLine(new System.Diagnostics.StackTrace().ToString());
+            //PrintQueue(_buffer, "_buffer");
 
             for (int i = 0; i < _windowSize - 2; ++i)
                 _state[i] = 0;
 
             _buffer.Clear();
 
-            PrintQueue(_buffer, "_buffer");
+            //PrintQueue(_buffer, "_buffer");
 
-            Console.WriteLine($"Finish InitState.");
+            //Console.WriteLine($"Finish InitState.");
         }
 
         private static int DetermineSignalRankFast(Single[] series, TrajectoryMatrix tMat, Single[] singularVectors, Single[] singularValues, int maxRank)
