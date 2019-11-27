@@ -90,7 +90,7 @@ namespace Microsoft.ML.Internal.Utilities
                 ev = new WaitStats(position);
                 _waiters.Add(ev);
             }
-            ev.Event.Wait(180000, token);
+            ev.Event.Wait(5*60*1000, token);
             if (_ex != null)
                 throw Contracts.Except(_ex, "Event we were waiting on was subject to an exception");
         }

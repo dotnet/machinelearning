@@ -1106,20 +1106,27 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="updateModel">Determines whether the model parameters also need to be updated upon consuming the new observation (default = false).</param>
         internal override void Consume(ref Single input, bool updateModel = false)
         {
-            Console.WriteLine($"Start Consume.");
-            Console.WriteLine(new System.Diagnostics.StackTrace().ToString());
+            var callStack = new System.Diagnostics.StackTrace().ToString();
+            if (callStack.Contains("SsaForecast"))
+            {
+                Console.WriteLine($"Start Consume.");
+                Console.WriteLine(callStack);
+            }
 
             if (Single.IsNaN(input))
                 return;
 
             int i;
 
-            Console.WriteLine($"_rank is : {_rank}.");
-            PrintQueue(_buffer, "_buffer");
-            Console.WriteLine($"_windowSize is : {_windowSize}.");
-            PrintArray(_state, "_state");
-            PrintArray(_alpha, "_alpha");
-            Console.WriteLine($"_wTrans == null is : {_wTrans == null}.");
+            if (callStack.Contains("SsaForecast"))
+            {
+                Console.WriteLine($"_rank is : {_rank}.");
+                PrintQueue(_buffer, "_buffer");
+                Console.WriteLine($"_windowSize is : {_windowSize}.");
+                PrintArray(_state, "_state");
+                PrintArray(_alpha, "_alpha");
+                Console.WriteLine($"_wTrans == null is : {_wTrans == null}.");
+            }
 
             if (_wTrans == null)
             {
@@ -1136,11 +1143,14 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             // Forming vector x
 
-            PrintVector(_x, "_x");
-            PrintVector(_y, "_y");
+            if (callStack.Contains("SsaForecast"))
+            {
+                PrintVector(_x, "_x");
+                PrintVector(_y, "_y");
 
-            Console.WriteLine("In Consume, check _buffer");
-            PrintQueue(_buffer, "_buffer");
+                Console.WriteLine("In Consume, check _buffer");
+                PrintQueue(_buffer, "_buffer");
+            }
 
             if (_buffer.Count == 0)
             {
@@ -1161,15 +1171,19 @@ namespace Microsoft.ML.Transforms.TimeSeries
             // Updating the state vector
             CpuAligenedMathUtils<CpuAlignedMatrixRow>.MatTranTimesSrc(_wTrans, _y, _xSmooth);
 
-            Console.WriteLine($"_autoregressionNoiseMean is : {_autoregressionNoiseMean}.");
-            Console.WriteLine($"_observationNoiseMean is : {_observationNoiseMean}.");
-            PrintVector(_xSmooth, "_xSmooth");
-            PrintVector(_x, "_x");
-            PrintVector(_y, "_y");
+            if (callStack.Contains("SsaForecast"))
+            {
+                Console.WriteLine($"_autoregressionNoiseMean is : {_autoregressionNoiseMean}.");
+                Console.WriteLine($"_observationNoiseMean is : {_observationNoiseMean}.");
+                PrintVector(_xSmooth, "_xSmooth");
+                PrintVector(_x, "_x");
+                PrintVector(_y, "_y");
+            }
 
             _nextPrediction = _autoregressionNoiseMean + _observationNoiseMean;
 
-            Console.WriteLine($"_nextPrediction is : {_nextPrediction}.");
+            if (callStack.Contains("SsaForecast"))
+                Console.WriteLine($"_nextPrediction is : {_nextPrediction}.");
 
             for (i = 0; i < _windowSize - 2; ++i)
             {
@@ -1179,7 +1193,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
             _state[_windowSize - 2] = _xSmooth[_windowSize - 1];
             _nextPrediction += _state[_windowSize - 2] * _alpha[_windowSize - 2];
 
-            Console.WriteLine($"_nextPrediction is : {_nextPrediction}.");
+            if (callStack.Contains("SsaForecast"))
+                Console.WriteLine($"_nextPrediction is : {_nextPrediction}.");
 
             if (updateModel)
             {
@@ -1189,9 +1204,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             _buffer.AddLast(input);
 
-            PrintQueue(_buffer, "_buffer");
-
-            Console.WriteLine($"Finish Consume.");
+            if (callStack.Contains("SsaForecast"))
+            {
+                PrintQueue(_buffer, "_buffer");
+                Console.WriteLine($"Finish Consume.");
+            }
         }
 
         /// <summary>
@@ -1321,11 +1338,16 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         private void TrainCore(Single[] dataArray, int originalSeriesLength)
         {
-            Console.WriteLine($"Start TrainCore.");
-            Console.WriteLine(new System.Diagnostics.StackTrace().ToString());
+            var callStack = new System.Diagnostics.StackTrace().ToString();
 
-            Console.WriteLine($"originalSeriesLength: {originalSeriesLength}.");
-            PrintArray(dataArray, "dataArray");
+            if (callStack.Contains("SsaForecast"))
+            {
+                Console.WriteLine($"Start TrainCore.");
+                Console.WriteLine(callStack);
+
+                Console.WriteLine($"originalSeriesLength: {originalSeriesLength}.");
+                PrintArray(dataArray, "dataArray");
+            }
 
             _host.Assert(Utils.Size(dataArray) > 0);
             Single[] singularVals;
@@ -1354,8 +1376,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 }
             }
 
-            PrintArray(singularVals, "singularVals");
-            PrintArray(leftSingularVecs, "leftSingularVecs");
+            if (callStack.Contains("SsaForecast"))
+            {
+                PrintArray(singularVals, "singularVals");
+                PrintArray(leftSingularVecs, "leftSingularVecs");
+            }
 
             // Checking for standard eigenvectors, if found reduce the window size and reset training.
             if (!learnNaiveModel)
@@ -1455,8 +1480,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
             // Setting the state
             _nextPrediction = _autoregressionNoiseMean + _observationNoiseMean;
 
-            Console.WriteLine("In TrainCore, check _buffer");
-            PrintQueue(_buffer, "_buffer");
+            if (callStack.Contains("SsaForecast"))
+                PrintQueue(_buffer, "_buffer");
 
             if (_buffer.Count > 0) // Use the buffer to set the state when there are data points pushed into the buffer using the Consume() method
             {
@@ -1492,9 +1517,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 _info.Spectrum = singularVals;
             }
 
-            PrintQueue(_buffer, "_buffer");
+            if (callStack.Contains("SsaForecast"))
+                PrintQueue(_buffer, "_buffer");
 
-            Console.WriteLine($"Finish TrainCore.");
+            if (callStack.Contains("SsaForecast"))
+                Console.WriteLine($"Finish TrainCore.");
         }
 
         /// <summary>
