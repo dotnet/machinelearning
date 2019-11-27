@@ -133,6 +133,20 @@ namespace Microsoft.ML.Trainers
                 _weightsDenseLock = new object();
         }
 
+        private protected virtual bool SaveAsOnnx(OnnxContext ctx, string[] outputs, string featureColumn)
+        {
+            Host.CheckValue(ctx, nameof(ctx));
+            Host.Check(Utils.Size(outputs) == 1);
+            string opType = "LinearRegressor";
+            var node = ctx.CreateNode(opType, new[] { featureColumn }, outputs, ctx.GetNodeName(opType));
+            // Selection of logit or probit output transform. enum {'NONE', 'LOGIT', 'PROBIT}
+            node.AddAttribute("post_transform", "NONE");
+            node.AddAttribute("targets", 1);
+            node.AddAttribute("coefficients", Weight.DenseValues());
+            node.AddAttribute("intercepts", new float[] { Bias });
+            return true;
+        }
+
         private protected LinearModelParameters(IHostEnvironment env, string name, ModelLoadContext ctx)
             : base(env, name, ctx)
         {
@@ -188,7 +202,6 @@ namespace Microsoft.ML.Trainers
             else
                 _weightsDenseLock = new object();
         }
-
         [BestFriend]
         private protected override void SaveCore(ModelSaveContext ctx)
         {
@@ -239,17 +252,7 @@ namespace Microsoft.ML.Trainers
 
         bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputs, string featureColumn)
         {
-            Host.CheckValue(ctx, nameof(ctx));
-            Host.Check(Utils.Size(outputs) == 1);
-
-            string opType = "LinearRegressor";
-            var node = ctx.CreateNode(opType, new[] { featureColumn }, outputs, ctx.GetNodeName(opType));
-            // Selection of logit or probit output transform. enum {'NONE', 'LOGIT', 'PROBIT}
-            node.AddAttribute("post_transform", "NONE");
-            node.AddAttribute("targets", 1);
-            node.AddAttribute("coefficients", Weight.DenseValues());
-            node.AddAttribute("intercepts", new float[] { Bias });
-            return true;
+            return SaveAsOnnx(ctx, outputs, featureColumn);
         }
 
         // Generate the score from the given values, assuming they have already been normalized.
@@ -685,7 +688,7 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// Model parameters for Poisson Regression.
     /// </summary>
-    public sealed class PoissonRegressionModelParameters : RegressionModelParameters, IParameterMixer<float>
+    public sealed class PoissonRegressionModelParameters : RegressionModelParameters, IParameterMixer<float>, ISingleCanSaveOnnx
     {
         internal const string LoaderSignature = "PoissonRegressionExec";
         internal const string RegistrationName = "PoissonRegressionPredictor";
@@ -725,6 +728,16 @@ namespace Microsoft.ML.Trainers
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
             return new PoissonRegressionModelParameters(env, ctx);
+        }
+
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputs, string featureColumn)
+        {
+            // Mapping score to prediction
+            var linearRegressorOutput = ctx.AddIntermediateVariable(null,"LinearRegressorOutput",true);
+            base.SaveAsOnnx(ctx, new[] { linearRegressorOutput }, featureColumn);
+            var opType = "Exp";
+            ctx.CreateNode(opType, new[] { linearRegressorOutput }, outputs, ctx.GetNodeName(opType), "");
+            return true;
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)

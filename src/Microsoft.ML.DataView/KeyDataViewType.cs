@@ -9,24 +9,27 @@ using Microsoft.ML.Internal.DataView;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// This type is for data representing some enumerated value. This is an enumeration over a defined, known
-    /// cardinality set, as expressed through <see cref="Count"/>. The underlying .NET type is one of the unsigned
-    /// integer types. Most commonly this will be <see cref="uint"/>, but could alternately be <see cref="byte"/>,
-    /// <see cref="ushort"/>, or <see cref="ulong"/>. Despite this, the information is not inherently numeric, so,
-    /// typically, arithmetic is not meaningful. For example, in multi-class classification, the label is typically a
-    /// class number which is naturally a <see cref="KeyDataViewType"/>.
-    ///
-    /// Note that for data of this type, a value of 0, being the default value of the representation type, indicates
-    /// the missing value since it would not be sensible for the default value to correspond to any one particular specific
-    /// value of the set. The first non-missing value for the enumeration of the set is always <c>1</c>.
-    ///
-    /// For instance, if you had a key value with a <see cref="Count"/> of 3, then the <see cref="uint"/> value <c>0</c>
-    /// would correspond to the missing key value, and one of the values of <c>1</c>, <c>2</c>, or <c>3</c> would be one
-    /// of the valid values, and no other values should in principle be used.
-    ///
-    /// Note that in usage and structure, this is quite close in intended usage and structure to so-called "factor
-    /// variables" in R.
+    /// Type representing categorical or enumerated values, most commonly used for
+    /// the values of labels in multiclass classification models.
     /// </summary>
+    /// <remarks>
+    /// The underlying .NET type is one of the unsigned integer types. The default is
+    /// <see cref="uint"/>, but it can also be <see cref="byte"/>,
+    /// <see cref="ushort"/>, or <see cref="ulong"/>.
+    /// Despite keys being numerical types, the information is not inherently numeric,
+    /// so typically, arithmetic is not meaningful.
+    ///
+    /// Missing values are mapped to 0.
+    ///
+    /// The first non-missing value of the set is always <c>1</c>.
+    ///
+    /// The other values range up to the value of <see cref="Count"/>.
+    ///
+    /// For example, if you have a key value with a <see cref="Count"/> of 3, then
+    /// the <see cref="uint"/> value <c>0</c> corresponds to missing key values, and
+    /// one of the values of <c>1</c>, <c>2</c>, or <c>3</c> is of the valid values,
+    /// and no other values are used.
+    /// </remarks>
     public sealed class KeyDataViewType : PrimitiveDataViewType
     {
         /// <summary>

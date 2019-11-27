@@ -978,13 +978,35 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckValue(ctx, nameof(ctx));
 
+            string predictedLabelInt64 = null;
+            string predictedLabelUint32 = null;
+            // REVIEW: What is the right way to get the name of the predicted column?
+            for (int i = 0; i < outputs.Length; i++)
+            {
+                if (outputs[i] != DefaultColumnNames.PredictedLabel)
+                    continue;
+                predictedLabelUint32 = DefaultColumnNames.PredictedLabel;
+                predictedLabelInt64 = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "PredictedLabelInt64", true);
+                outputs[i] = predictedLabelInt64;
+                break;
+            }
+
+            Host.CheckValue(predictedLabelInt64, nameof(predictedLabelInt64));
+
             string opType = "LinearClassifier";
             var node = ctx.CreateNode(opType, new[] { featureColumn }, outputs, ctx.GetNodeName(opType));
             node.AddAttribute("post_transform", GetOnnxPostTransform());
             node.AddAttribute("multi_class", true);
             node.AddAttribute("coefficients", Weights.SelectMany(w => w.DenseValues()));
             node.AddAttribute("intercepts", Biases);
-            node.AddAttribute("classlabels_ints", Enumerable.Range(0, NumberOfClasses).Select(x => (long)x));
+            node.AddAttribute("classlabels_ints", Enumerable.Range(1, NumberOfClasses).Select(x => (long)x));
+
+            // Onnx outputs an Int64, but ML.NET outputs UInt32. So cast the Onnx output here
+            opType = "Cast";
+            var castNode = ctx.CreateNode(opType, predictedLabelInt64, predictedLabelUint32, ctx.GetNodeName(opType), "");
+            var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.UInt32).ToType();
+            castNode.AddAttribute("to", t);
+
             return true;
         }
 

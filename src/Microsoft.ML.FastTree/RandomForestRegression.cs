@@ -9,6 +9,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 
@@ -30,7 +31,8 @@ namespace Microsoft.ML.Trainers.FastTree
     public sealed class FastForestRegressionModelParameters :
         TreeEnsembleModelParametersBasedOnQuantileRegressionTree,
         IQuantileValueMapper,
-        IQuantileRegressionPredictor
+        IQuantileRegressionPredictor,
+        ISingleCanSaveOnnx
     {
         private sealed class QuantileStatistics
         {
@@ -208,6 +210,17 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         private protected override PredictionKind PredictionKind => PredictionKind.Regression;
+
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
+        {
+            // Mapping score to prediction
+            var fastTreeOutput = ctx.AddIntermediateVariable(null, "FastTreeOutput", true);
+            var numTrees = ctx.AddInitializer((float)TrainedEnsemble.NumTrees, "NumTrees");
+            base.SaveAsOnnx(ctx, new[] { fastTreeOutput }, featureColumn);
+            var opType = "Div";
+            ctx.CreateNode(opType, new[] { fastTreeOutput, numTrees }, outputNames, ctx.GetNodeName(opType), "");
+            return true;
+        }
 
         private protected override void Map(in VBuffer<float> src, ref float dst)
         {
