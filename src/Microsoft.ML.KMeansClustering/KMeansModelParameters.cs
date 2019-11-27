@@ -253,7 +253,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// This method is called by reflection to instantiate a predictor.
         /// </summary>
-        private static KMeansModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static KMeansModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));

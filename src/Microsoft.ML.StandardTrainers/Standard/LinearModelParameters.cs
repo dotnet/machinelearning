@@ -473,7 +473,7 @@ namespace Microsoft.ML.Trainers
             }
         }
 
-        private static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -636,7 +636,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        private static LinearRegressionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static LinearRegressionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -722,7 +722,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        private static PoissonRegressionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static PoissonRegressionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));

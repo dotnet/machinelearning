@@ -146,7 +146,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
 
         // Factory method for SignatureLoadModel.
-        private static IidChangePointDetector Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static IidChangePointDetector Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -155,7 +155,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             return new IidChangePointDetector(env, ctx);
         }
 
-        internal IidChangePointDetector(IHostEnvironment env, ModelLoadContext ctx)
+        private IidChangePointDetector(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, ctx, LoaderSignature)
         {
             // *** Binary format ***

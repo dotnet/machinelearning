@@ -394,7 +394,7 @@ namespace Microsoft.ML.Trainers
             DistType = new VectorDataViewType(NumberDataViewType.Single, _impl.Predictors.Length);
         }
 
-        private static OneVersusAllModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static OneVersusAllModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));

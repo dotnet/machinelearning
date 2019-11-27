@@ -1170,7 +1170,7 @@ namespace Microsoft.ML.Trainers.FastTree
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        private static FastTreeRankingModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static FastTreeRankingModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             return new FastTreeRankingModelParameters(env, ctx);
         }

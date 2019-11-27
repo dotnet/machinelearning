@@ -302,7 +302,7 @@ namespace Microsoft.ML.Transforms
         }
 
         // Factory method for SignatureLoadModel.
-        private static SlotsDroppingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static SlotsDroppingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             ctx.CheckAtModel(GetVersionInfo());

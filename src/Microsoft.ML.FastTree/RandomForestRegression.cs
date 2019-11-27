@@ -201,7 +201,7 @@ namespace Microsoft.ML.Trainers.FastTree
             ctx.Writer.Write(_quantileSampleCount);
         }
 
-        private static FastForestRegressionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static FastForestRegressionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
