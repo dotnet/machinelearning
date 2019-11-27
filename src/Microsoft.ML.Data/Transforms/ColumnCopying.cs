@@ -197,7 +197,7 @@ namespace Microsoft.ML.Transforms
             private readonly DataViewSchema _schema;
             private readonly (string outputColumnName, string inputColumnName)[] _columns;
 
-            public bool CanSaveOnnx(OnnxContext ctx) => ctx.GetOnnxVersion() == OnnxVersion.Experimental;
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
 
             internal Mapper(ColumnCopyingTransformer parent, DataViewSchema inputSchema, (string outputColumnName, string inputColumnName)[] columns)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
@@ -233,15 +233,16 @@ namespace Microsoft.ML.Transforms
 
             public void SaveAsOnnx(OnnxContext ctx)
             {
-                var opType = "CSharp";
+                var opType = "Identity";
 
                 foreach (var column in _columns)
                 {
                     var srcVariableName = ctx.GetVariableName(column.inputColumnName);
+                    if (!ctx.ContainsColumn(srcVariableName))
+                        continue;
                     _schema.TryGetColumnIndex(column.inputColumnName, out int colIndex);
                     var dstVariableName = ctx.AddIntermediateVariable(_schema[colIndex].Type, column.outputColumnName);
-                    var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
-                    node.AddAttribute("type", LoaderSignature);
+                    var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType), "");
                 }
             }
         }
