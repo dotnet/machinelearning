@@ -143,9 +143,9 @@ namespace Microsoft.ML.Internal.Utilities
 
         public void Clear()
         {
-            Console.WriteLine($"Start Clear FixedSizeQueue.");
-            Console.WriteLine(new System.Diagnostics.StackTrace().ToString());
-            PrintQueue(_array, "_array");
+            //Console.WriteLine($"Start Clear FixedSizeQueue.");
+            //Console.WriteLine(new System.Diagnostics.StackTrace().ToString());
+            //PrintQueue(_array, "_array");
 
             AssertValid();
             for (int i = 0; i < _count; i++)
@@ -154,8 +154,8 @@ namespace Microsoft.ML.Internal.Utilities
             _count = 0;
             AssertValid();
 
-            PrintQueue(_array, "_array");
-            Console.WriteLine($"Finish InitState.");
+            //PrintQueue(_array, "_array");
+            //Console.WriteLine($"Finish InitState.");
         }
 
         public FixedSizeQueue<T> Clone()
