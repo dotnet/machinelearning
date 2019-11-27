@@ -187,7 +187,7 @@ namespace Microsoft.ML.Scenarios
 
             // Data will be passed as flat vector.
             // Intended data shape [1, 2, 2, 3], model shape [1, None, None, 3]
-            [VectorType(12)]
+            [VectorType(1, 2, 2, 3)]
             public float[] FourDim;
 
             // Data will be passed as 4-D vector.
