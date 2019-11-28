@@ -11,6 +11,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Transforms.Image;
 using Xunit;
 using Xunit.Abstractions;
@@ -23,7 +24,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [Fact]
+        [RetryFact]
         public void TestEstimatorChain()
         {
             var env = new MLContext();
@@ -54,7 +55,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestEstimatorSaveLoad()
         {
             IHostEnvironment env = new MLContext();
@@ -98,7 +99,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestSaveImages()
         {
             var env = new MLContext();
@@ -133,7 +134,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestGreyscaleTransformImages()
         {
             IHostEnvironment env = new MLContext();
@@ -184,7 +185,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestGrayScaleInMemory()
         {
             // Create an image list.
@@ -267,7 +268,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Fact]
+        [RetryFact]
         public void TestBackAndForthConversionWithAlphaInterleave()
         {
             IHostEnvironment env = new MLContext();
@@ -324,7 +325,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestBackAndForthConversionWithoutAlphaInterleave()
         {
             IHostEnvironment env = new MLContext();
@@ -381,7 +382,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestBackAndForthConversionWithDifferentOrder()
         {
             IHostEnvironment env = new MLContext();
@@ -440,7 +441,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestBackAndForthConversionWithAlphaNoInterleave()
         {
             IHostEnvironment env = new MLContext();
@@ -497,7 +498,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestBackAndForthConversionWithoutAlphaNoInterleave()
         {
             IHostEnvironment env = new MLContext();
@@ -554,7 +555,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestBackAndForthConversionWithAlphaInterleaveNoOffset()
         {
             IHostEnvironment env = new MLContext();
@@ -612,7 +613,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestBackAndForthConversionWithoutAlphaInterleaveNoOffset()
         {
             IHostEnvironment env = new MLContext();
@@ -669,7 +670,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestBackAndForthConversionWithAlphaNoInterleaveNoOffset()
         {
             IHostEnvironment env = new MLContext();
@@ -727,7 +728,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestBackAndForthConversionWithoutAlphaNoInterleaveNoOffset()
         {
             IHostEnvironment env = new MLContext();
@@ -783,7 +784,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Fact]
+        [RetryFact]
         public void ImageResizerTransformResizingModeFill()
         {
             var env = new MLContext();
@@ -839,7 +840,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestConvertToImage()
         {
             var mlContext = new MLContext(0);

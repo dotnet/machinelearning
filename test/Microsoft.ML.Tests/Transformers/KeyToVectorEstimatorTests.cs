@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -44,7 +45,7 @@ namespace Microsoft.ML.Tests.Transformers
             public string H;
         }
 
-        [Fact]
+        [RetryFact]
         public void KeyToVectorWorkout()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
@@ -64,7 +65,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void KeyToVector()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
@@ -87,7 +88,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestMetadataPropagation()
         {
             var data = new[] {
@@ -191,13 +192,13 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(column.IsNormalized());
         }
 
-        [Fact]
+        [RetryFact]
         public void TestCommandLine()
         {
             Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=Term{col=B:A} xf=KeyToVector{col=C:B col={name=D source=B bag+}} in=f:\2.txt" }));
         }
 
-        [Fact]
+        [RetryFact]
         public void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };

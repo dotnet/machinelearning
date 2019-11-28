@@ -10,13 +10,14 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 
 namespace Microsoft.Extensions.ML
 {
     public class FileLoaderTests
     {
-        [Fact]
+        [RetryFact]
         public void throw_until_started()
         {
             var services = new ServiceCollection()
@@ -29,7 +30,7 @@ namespace Microsoft.Extensions.ML
             Assert.Throws<InvalidOperationException>(() => loaderUnderTest.GetReloadToken());
         }
 
-        [Fact]
+        [RetryFact]
         public void can_load_model()
         {
             var services = new ServiceCollection()
@@ -48,7 +49,7 @@ namespace Microsoft.Extensions.ML
             Assert.True(prediction.Sentiment);
         }
 
-        [Fact]
+        [RetryFact]
         public void can_reload_model()
         {
             var services = new ServiceCollection()

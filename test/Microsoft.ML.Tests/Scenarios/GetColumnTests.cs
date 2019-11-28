@@ -10,6 +10,7 @@ using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,7 +22,7 @@ namespace Microsoft.ML.Tests.Scenarios
         {
         }
 
-        [Fact]
+        [RetryFact]
         public void TestGetColumn()
         {
             var path = GetDataPath(TestDatasets.breastCancer.trainFilename);
@@ -63,7 +64,7 @@ namespace Microsoft.ML.Tests.Scenarios
             mustFail(() => data.GetColumn<string[]>(data1.Schema["stringVector"]).ToArray());
         }
 
-        [Fact]
+        [RetryFact]
         public void TestGetColumnSelectedByString()
         {
             var path = GetDataPath(TestDatasets.breastCancer.trainFilename);

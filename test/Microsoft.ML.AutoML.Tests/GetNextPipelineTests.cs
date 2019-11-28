@@ -7,13 +7,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using Newtonsoft.Json;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
     public class GetNextPipelineTests
     {
-        [Fact]
+        [RetryFact]
         public void GetNextPipeline()
         {
             var context = new MLContext();
@@ -37,7 +38,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.NotNull(result);
         }
 
-        [Fact]
+        [RetryFact]
         public void GetNextPipelineMock()
         {
             var context = new MLContext();

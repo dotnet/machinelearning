@@ -7,6 +7,7 @@ using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -511,7 +512,7 @@ namespace Microsoft.ML.RunTests
         {
         }
 
-        [Fact]
+        [RetryFact]
         public void TestGamRegressionIni()
         {
             var mlContext = new MLContext(seed: 0);
@@ -550,7 +551,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(0.88620288753853549, results.RSquared);
         }
 
-        [Fact]
+        [RetryFact]
         public void TestGamBinaryClassificationIni()
         {
             var mlContext = new MLContext(seed: 0);

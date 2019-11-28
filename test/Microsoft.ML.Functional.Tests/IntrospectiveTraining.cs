@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms;
@@ -26,7 +27,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Introspective Training: Tree ensembles learned from FastForest can be inspected.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void InspectFastForestRegresionTrees()
         {
             var mlContext = new MLContext(seed: 1);
@@ -67,7 +68,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Introspective Training: Tree ensembles learned from FastTree can be inspected.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void InspectFastTreeModelParameters()
         {
             var mlContext = new MLContext(seed: 1);
@@ -127,7 +128,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Introspective Training: GAM Shape Functions are easily accessed.
         /// </summary>
-        [Fact]
+        [RetryFact]
         void IntrospectGamShapeFunctions()
         {
             // Concurrency must be 1 to assure that the mapping is done sequentially.
@@ -166,7 +167,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Introspective Training: LDA models can be easily inspected.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void InspectLdaModelParameters()
         {
             // Test Parameters
@@ -202,7 +203,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Introspective Training: Linear model parameters may be inspected.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void InpsectLinearModelParameters()
         {
             var mlContext = new MLContext(seed: 1);
@@ -239,7 +240,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Introspectable Training: Parameters of a trained Normalizer are easily accessed.
         /// </summary>
-        [Fact]
+        [RetryFact]
         void IntrospectNormalization()
         {
             // Concurrency must be 1 to assure that the mapping is done sequentially.
@@ -271,7 +272,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Introspective Training: I can inspect a pipeline to determine which transformers were included. 	 
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void InspectPipelineContents()
         {
             var mlContext = new MLContext(seed: 1);
@@ -314,7 +315,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Introspective Training: Hashed values can be mapped back to the original column and value.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void InspectSlotNamesForReversibleHash()
         {
             var mlContext = new MLContext(seed: 1);
@@ -372,7 +373,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Introspective Training: I can create nested pipelines, and extract individual components.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void InspectNestedPipeline()
         {
             var mlContext = new MLContext(seed: 1);

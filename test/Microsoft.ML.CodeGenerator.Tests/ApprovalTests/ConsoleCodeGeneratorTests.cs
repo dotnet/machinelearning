@@ -10,6 +10,7 @@ using Microsoft.ML;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.CodeGenerator.CSharp;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 
 namespace mlnet.Tests
@@ -25,7 +26,7 @@ namespace mlnet.Tests
         private const string UnstablePackageVersion = "0.16.0-preview3-28229-2";
 
 
-        [Fact]
+        [RetryFact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void ConsoleAppModelBuilderCSFileContentOvaTest()
@@ -40,7 +41,7 @@ namespace mlnet.Tests
             Approvals.Verify(result.modelBuilderCSFileContent);
         }
 
-        [Fact]
+        [RetryFact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void ConsoleAppModelBuilderCSFileContentBinaryTest()
@@ -55,7 +56,7 @@ namespace mlnet.Tests
             Approvals.Verify(result.modelBuilderCSFileContent);
         }
 
-        [Fact]
+        [RetryFact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void ConsoleAppModelBuilderCSFileContentRegressionTest()
@@ -70,7 +71,7 @@ namespace mlnet.Tests
             Approvals.Verify(result.modelBuilderCSFileContent);
         }
 
-        [Fact]
+        [RetryFact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void ModelProjectFileContentTestOnlyStableProjects()
@@ -85,7 +86,7 @@ namespace mlnet.Tests
             Approvals.Verify(result.ModelProjectFileContent);
         }
 
-        [Fact]
+        [RetryFact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void ConsumeModelContentTest()
@@ -100,7 +101,7 @@ namespace mlnet.Tests
             Approvals.Verify(result.ConsumeModelCSFileContent);
         }
 
-        [Fact]
+        [RetryFact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void ObservationCSFileContentTest()
@@ -115,7 +116,7 @@ namespace mlnet.Tests
             Approvals.Verify(result.ModelInputCSFileContent);
         }
 
-        [Fact]
+        [RetryFact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void PredictionCSFileContentTest()
@@ -130,7 +131,7 @@ namespace mlnet.Tests
             Approvals.Verify(result.ModelOutputCSFileContent);
         }
 
-        [Fact]
+        [RetryFact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void PredictionProgramCSFileContentTest()
@@ -145,7 +146,7 @@ namespace mlnet.Tests
             Approvals.Verify(result.ConsoleAppProgramCSFileContent);
         }
 
-        [Fact]
+        [RetryFact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
 
@@ -161,7 +162,7 @@ namespace mlnet.Tests
             Approvals.Verify(result.ConsoleAppProgramCSFileContent);
         }
 
-        [Fact]
+        [RetryFact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void ConsoleAppProjectFileContentTest()
@@ -176,7 +177,7 @@ namespace mlnet.Tests
             Approvals.Verify(result.ConsoleAppProjectFileContent);
         }
 
-        [Fact]
+        [RetryFact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void Recommendation_GenerateModelProjectContents_VerifyModelInput()
@@ -187,7 +188,7 @@ namespace mlnet.Tests
             Approvals.Verify(codeGenResult.ModelInputCSFileContent);
         }
 
-        [Fact]
+        [RetryFact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void Recommendation_GenerateModelProjectContents_VerifyModelOutput()
@@ -198,7 +199,7 @@ namespace mlnet.Tests
             Approvals.Verify(codeGenResult.ModelOutputCSFileContent);
         }
 
-        [Fact]
+        [RetryFact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void Recommendation_GenerateModelProjectContents_VerifyConsumeModel()
@@ -209,7 +210,7 @@ namespace mlnet.Tests
             Approvals.Verify(codeGenResult.ConsumeModelCSFileContent);
         }
 
-        [Fact]
+        [RetryFact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void Recommendation_GenerateModelProjectContents_VerifyModelProject()
@@ -220,7 +221,7 @@ namespace mlnet.Tests
             Approvals.Verify(codeGenResult.ModelProjectFileContent);
         }
 
-        [Fact]
+        [RetryFact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void Recommendation_GenerateConsoleAppProjectContents_VerifyPredictProgram()
@@ -231,7 +232,7 @@ namespace mlnet.Tests
             Approvals.Verify(codeGenResult.ConsoleAppProgramCSFileContent);
         }
 
-        [Fact]
+        [RetryFact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void Recommendation_GenerateConsoleAppProjectContents_VerifyPredictProject()
@@ -242,7 +243,7 @@ namespace mlnet.Tests
             Approvals.Verify(codeGenResult.ConsoleAppProjectFileContent);
         }
 
-        [Fact]
+        [RetryFact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void Recommendation_GenerateConsoleAppProjectContents_VerifyModelBuilder()

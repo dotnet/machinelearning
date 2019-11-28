@@ -5,6 +5,7 @@
 using System.Threading.Tasks;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Xunit;
 
@@ -21,7 +22,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// to enable multi-threaded scenarios (for example, a web server servicing requests) should be possible
         /// and performant in the new API.
         /// </summary>
-        [Fact]
+        [RetryFact]
         void MultithreadedPrediction()
         {
             var ml = new MLContext(seed: 1);

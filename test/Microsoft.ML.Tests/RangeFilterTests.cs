@@ -5,6 +5,7 @@
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -16,7 +17,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [Fact]
+        [RetryFact]
         public void RangeFilterTest()
         {
             var builder = new ArrayDataViewBuilder(ML);

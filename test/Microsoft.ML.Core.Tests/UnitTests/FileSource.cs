@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.RunTests
@@ -12,7 +13,7 @@ namespace Microsoft.ML.RunTests
     public sealed class FileSource
     {
 
-        [Fact]
+        [RetryFact]
         public void MultiFileSourceUnitTest()
         {
             var fileSource = new MultiFileSource("adult.txt");

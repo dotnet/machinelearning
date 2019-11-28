@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -38,7 +39,7 @@ namespace Microsoft.ML.Tests.Transformers
             public int A;
         }
 
-        [Fact]
+        [RetryFact]
         public void RffWorkout()
         {
             Random rand = new Random();
@@ -59,7 +60,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void ApproximateKernelMap()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
@@ -80,13 +81,13 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestCommandLine()
         {
             Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-100} xf=Rff{col=B:A dim=4 useSin+ kernel=LaplacianRandom}  in=f:\2.txt" }));
         }
 
-        [Fact]
+        [RetryFact]
         public void TestOldSavingAndLoading()
         {
             Random rand = new Random();

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.ML.CodeAnalyzer.Tests.Helpers;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using VerifyCS = Microsoft.ML.CodeAnalyzer.Tests.Helpers.CSharpCodeFixVerifier<
     Microsoft.ML.InternalCodeAnalyzer.ContractsCheckAnalyzer,
@@ -21,7 +22,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
         private readonly Lazy<string> SourceContracts = TestUtils.LazySource("Contracts.cs");
         private readonly Lazy<string> SourceFriend = TestUtils.LazySource("BestFriendAttribute.cs");
 
-        [Fact]
+        [RetryFact]
         public async Task ContractsCheck()
         {
             const int basis = 11;
@@ -62,7 +63,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
             await test.RunAsync();
         }
 
-        [Fact]
+        [RetryFact]
         public async Task ContractsCheckDecoy()
         {
             // Run a test with a "decoy" Contacts that has the same signature on the method,
@@ -95,7 +96,7 @@ namespace TestNamespace
         private readonly Lazy<string> SourceBestAttr = TestUtils.LazySource("BestFriendAttribute.cs");
         private readonly Lazy<string> SourceDefArgAttr = TestUtils.LazySource("DefaultArgumentAttribute.cs");
 
-        [Fact]
+        [RetryFact]
         public async Task ContractsCheckFix()
         {
             var test = new VerifyCS.Test

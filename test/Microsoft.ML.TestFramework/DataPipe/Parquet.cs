@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.RunTests
@@ -16,7 +17,7 @@ namespace Microsoft.ML.RunTests
             Env.ComponentCatalog.RegisterAssembly(typeof(ParquetLoader).Assembly);
         }
 
-        [Fact]
+        [RetryFact]
         public void TestParquetPrimitiveDataTypes()
         {
             string pathData = GetDataPath(@"Parquet", "alltypes.parquet");
@@ -24,7 +25,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestParquetNull()
         {
             string pathData = GetDataPath(@"Parquet", "test-null.parquet");

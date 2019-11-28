@@ -6,6 +6,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Xunit;
 using Xunit.Abstractions;
@@ -14,7 +15,7 @@ namespace Microsoft.ML.Scenarios
 {
     public partial class ScenariosTests : BaseTestClass
     {
-        [Fact]
+        [RetryFact]
         public void TrainAndPredictIrisModelTest()
         {
             var mlContext = new MLContext(seed: 1);

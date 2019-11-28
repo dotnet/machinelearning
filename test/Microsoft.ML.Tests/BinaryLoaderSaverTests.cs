@@ -4,6 +4,7 @@
 
 using System.IO;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,7 +16,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [Fact]
+        [RetryFact]
         public void OldKeyTypeCodecTest()
         {
             // Checks that we can load IDataViews defined with unknown cardinality KeyType.

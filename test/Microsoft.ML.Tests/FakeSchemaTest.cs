@@ -5,6 +5,7 @@
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.DataLoadSave;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -17,7 +18,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [Fact]
+        [RetryFact]
         void SimpleTest()
         {
             var metadataBuilder = new DataViewSchema.Annotations.Builder();

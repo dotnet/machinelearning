@@ -6,12 +6,13 @@ using Microsoft.ML;
 using Microsoft.ML.Trainers;
 using Xunit;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
 {
     public partial class TrainerEstimators
     {
-        [Fact]
+        [RetryFact]
         public void OnlineLinearWorkout()
         {
             var dataPath = GetDataPath("breast-cancer.txt");

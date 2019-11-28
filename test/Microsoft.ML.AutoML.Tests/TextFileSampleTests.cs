@@ -4,6 +4,7 @@
 
 using System.IO;
 using System.Text;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
@@ -11,7 +12,7 @@ namespace Microsoft.ML.AutoML.Test
     
     public class TextFileSampleTests
     {
-        [Fact]
+        [RetryFact]
         public void CanParseLargeRandomStream()
         {
             using (var stream = new MemoryStream())

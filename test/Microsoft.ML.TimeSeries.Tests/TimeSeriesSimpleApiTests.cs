@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -34,7 +35,7 @@ namespace Microsoft.ML.Tests
             public Data(float value) => Value = value;
         }
 
-        [Fact]
+        [RetryFact]
         public void ChangeDetection()
         {
             var env = new MLContext();
@@ -72,7 +73,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Fact]
+        [RetryFact]
         public void ChangePointDetectionWithSeasonality()
         {
             var env = new MLContext();
@@ -116,7 +117,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Fact]
+        [RetryFact]
         public void SpikeDetection()
         {
             var env = new MLContext();
@@ -166,7 +167,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Fact]
+        [RetryFact]
         public void SsaSpikeDetection()
         {
             var env = new MLContext();

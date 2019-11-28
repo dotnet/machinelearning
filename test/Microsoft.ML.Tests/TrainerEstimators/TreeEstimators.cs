@@ -13,6 +13,7 @@ using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.LightGbm;
 using Microsoft.ML.Transforms;
@@ -25,7 +26,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// FastTreeBinaryClassification TrainerEstimator test
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void FastTreeBinaryEstimator()
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
@@ -114,7 +115,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
 
-        [Fact]
+        [RetryFact]
         public void GAMClassificationEstimator()
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
@@ -133,7 +134,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
 
-        [Fact]
+        [RetryFact]
         public void FastForestClassificationEstimator()
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
@@ -156,7 +157,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// FastTreeRankingTrainer TrainerEstimator test
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void FastTreeRankerEstimator()
         {
             var (pipe, dataView) = GetRankingPipeline();
@@ -198,7 +199,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// FastTreeRegressor TrainerEstimator test
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void FastTreeRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
@@ -233,7 +234,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// RegressionGamTrainer TrainerEstimator test
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void GAMRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
@@ -251,7 +252,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// FastTreeTweedieTrainer TrainerEstimator test
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void TweedieRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
@@ -270,7 +271,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// FastForestRegression TrainerEstimator test
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void FastForestRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
@@ -808,7 +809,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             }
         }
 
-        [Fact]
+        [RetryFact]
         public void FastTreeRegressorTestSummary()
         {
             var dataView = GetRegressionPipeline();
@@ -826,7 +827,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void FastForestRegressorTestSummary()
         {
             var dataView = GetRegressionPipeline();
@@ -844,7 +845,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void FastTreeTweedieRegressorTestSummary()
         {
             var dataView = GetRegressionPipeline();
@@ -880,7 +881,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void FastTreeBinaryClassificationTestSummary()
         {
             var (pipeline, dataView) = GetBinaryClassificationPipeline();
@@ -898,7 +899,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void FastForestBinaryClassificationTestSummary()
         {
             var (pipeline, dataView) = GetOneHotBinaryClassificationPipeline();

@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
@@ -44,7 +45,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        [Fact]
+        [RetryFact]
         public void TestCustomTransformer()
         {
             string dataPath = GetDataPath("adult.tiny.with-schema.txt");
@@ -84,7 +85,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestSchemaPropagation()
         {
             string dataPath = GetDataPath("adult.test");

@@ -8,6 +8,7 @@ using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Xunit;
 using Xunit.Abstractions;
@@ -31,7 +32,7 @@ namespace Microsoft.ML.Functional.Tests
         /// and configures the scorer (or more precisely instantiates a new scorer over the same model parameters)
         /// with some threshold derived from that.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void ReconfigurablePrediction()
         {
             var mlContext = new MLContext(seed: 1);
@@ -69,7 +70,7 @@ namespace Microsoft.ML.Functional.Tests
             Assert.False(pr.Score > 0.7);
         }
 
-        [Fact]
+        [RetryFact]
         public void ReconfigurablePredictionNoPipeline()
         {
             var mlContext = new MLContext(seed: 1);

@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.Sweeper.Tests
 {
     public class SweeperTest
     {
-        [Fact]
+        [RetryFact]
         public void UniformRandomSweeperReturnsDistinctValuesWhenProposeSweep()
         {
             DiscreteValueGenerator valueGenerator = CreateDiscreteValueGenerator();
@@ -25,7 +26,7 @@ namespace Microsoft.ML.Sweeper.Tests
             Assert.Equal(2, length);
         }
 
-        [Fact]
+        [RetryFact]
         public void RandomGridSweeperReturnsDistinctValuesWhenProposeSweep()
         {
             DiscreteValueGenerator valueGenerator = CreateDiscreteValueGenerator();

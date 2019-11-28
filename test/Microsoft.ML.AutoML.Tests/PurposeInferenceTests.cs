@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -7,7 +8,7 @@ namespace Microsoft.ML.AutoML.Test
 {
     public class PurposeInferenceTests
     {
-        [Fact]
+        [RetryFact]
         public void PurposeInferenceHiddenColumnsTest()
         {
             var context = new MLContext();

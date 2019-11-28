@@ -4,13 +4,14 @@
 
 using System.Collections.Generic;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Transforms.Image;
 using Xunit;
 namespace Microsoft.ML.RunTests
 {
     public sealed class ColumnTypeTests
     {
-        [Fact]
+        [RetryFact]
         public void TestEqualAndGetHashCode()
         {
             var dict = new Dictionary<DataViewType, string>();

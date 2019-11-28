@@ -9,6 +9,7 @@ using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Tools;
 using Xunit;
 using Xunit.Abstractions;
@@ -31,7 +32,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
         }
 
-        [Fact]
+        [RetryFact]
         public void NAIndicatorWorkout()
         {
             var data = new[] {
@@ -53,13 +54,13 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestCommandLine()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0}  xf=NAIndicator{col=B:A} in=f:\2.txt" }), (int)0);
         }
 
-        [Fact]
+        [RetryFact]
         public void TestOldSavingAndLoading()
         {
             var data = new[] {
@@ -87,7 +88,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        [Fact]
+        [RetryFact]
         public void NAIndicatorFileOutput()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
@@ -122,7 +123,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void NAIndicatorMetadataTest()
         {
             var data = new[] {

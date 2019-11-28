@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
@@ -11,7 +12,7 @@ namespace Microsoft.ML.AutoML.Test
     
     public class InferredPipelineTests
     {
-        [Fact]
+        [RetryFact]
         public void InferredPipelinesHashTest()
         {
             var context = new MLContext();

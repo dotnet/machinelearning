@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
@@ -12,7 +13,7 @@ namespace Microsoft.ML.AutoML.Test
     
     public class EstimatorExtensionTests
     {
-        [Fact]
+        [RetryFact]
         public void EstimatorExtensionInstanceTests()
         {
             var context = new MLContext();
@@ -32,7 +33,7 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        [Fact]
+        [RetryFact]
         public void EstimatorExtensionStaticTests()
         {
             var context = new MLContext();

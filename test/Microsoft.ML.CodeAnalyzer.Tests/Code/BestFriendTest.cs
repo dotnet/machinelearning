@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.ML.CodeAnalyzer.Tests.Helpers;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using VerifyCS = Microsoft.ML.CodeAnalyzer.Tests.Helpers.CSharpCodeFixVerifier<
     Microsoft.ML.InternalCodeAnalyzer.BestFriendAnalyzer,
@@ -28,7 +29,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
         private readonly Lazy<string> SourceDeclaration = TestUtils.LazySource("BestFriendDeclaration.cs");
         private readonly Lazy<string> SourceUser = TestUtils.LazySource("BestFriendUser.cs");
 
-        [Fact]
+        [RetryFact]
         public async Task BestFriend()
         {
             // The setup to this one is a bit more involved than many of the analyzer tests,

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -103,7 +104,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             return true;
         }
 
-        [Fact]
+        [RetryFact]
         public void RoundTripConversionWithBasicTypes()
         {
             var data = new List<ConversionSimpleClass>
@@ -175,7 +176,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             public sbyte fSByte;
         }
 
-        [Fact]
+        [RetryFact]
         public void ConversionExceptionsBehavior()
         {
             var env = new MLContext();
@@ -221,7 +222,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             public int fInt;
         }
 
-        [Fact]
+        [RetryFact]
         public void ClassWithConstFieldsConversion()
         {
             var data = new List<ClassWithConstField>()
@@ -247,7 +248,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             public int IntProp { get { return _fInt; } set { _fInt = value; } }
         }
 
-        [Fact]
+        [RetryFact]
         public void ClassWithMixOfFieldsAndPropertiesConversion()
         {
             var data = new List<ClassWithMixOfFieldsAndProperties>()
@@ -301,7 +302,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             public string StringProp { get { return _fString; } set { _fString = value; } }
         }
 
-        [Fact]
+        [RetryFact]
         public void ClassWithPrivateFieldsAndPropertiesConversion()
         {
             var data = new List<ClassWithPrivateFieldsAndProperties>()
@@ -331,7 +332,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             public override byte ByteProp { get => _fByte2; set => _fByte2 = value; }
         }
 
-        [Fact]
+        [RetryFact]
         public void ClassWithInheritedPropertiesConversion()
         {
             var data = new List<ClassWithInheritedProperties>()
@@ -365,7 +366,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             public bool[] fBool;
         }
 
-        [Fact]
+        [RetryFact]
         public void RoundTripConversionWithArrays()
         {
 
@@ -417,7 +418,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             public bool[] BoolProp { get; set; }
         }
 
-        [Fact]
+        [RetryFact]
         public void RoundTripConversionWithArrayPropertiess()
         {
 
@@ -469,7 +470,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             public int GetHour => Hour;
         }
 
-        [Fact]
+        [RetryFact]
         public void PrivateGetSetProperties()
         {
             var data = new List<ClassWithGetter>()

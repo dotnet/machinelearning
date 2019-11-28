@@ -5,6 +5,7 @@
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
@@ -22,7 +23,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// FastTreeBinaryClassification TrainerEstimator test 
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void PCATrainerEstimator()
         {
             string featureColumn = "NumericFeatures";
@@ -50,7 +51,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// KMeans TrainerEstimator test 
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void KMeansEstimator()
         {
             string featureColumn = "NumericFeatures";
@@ -86,7 +87,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// HogwildSGD TrainerEstimator test (logistic regression).
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void TestEstimatorHogwildSGD()
         {
             var trainers = new[] { ML.BinaryClassification.Trainers.SgdCalibrated(l2Regularization: 0, numberOfIterations: 80),
@@ -118,7 +119,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// HogwildSGD TrainerEstimator test (support vector machine)
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void TestEstimatorHogwildSGDNonCalibrated()
         {
             var trainers = new[] { ML.BinaryClassification.Trainers.SgdNonCalibrated(lossFunction : new SmoothedHingeLoss()),
@@ -148,7 +149,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// MulticlassNaiveBayes TrainerEstimator test 
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void TestEstimatorMulticlassNaiveBayesTrainer()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetMulticlassPipeline();

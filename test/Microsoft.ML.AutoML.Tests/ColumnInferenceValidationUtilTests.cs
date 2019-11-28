@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
@@ -12,7 +13,7 @@ namespace Microsoft.ML.AutoML.Test
     
     public class ColumnInferenceValidationUtilTests
     {
-        [Fact]
+        [RetryFact]
         public void ValidateColumnNotContainedInData()
         {
             var schemaBuilder = new DataViewSchema.Builder();

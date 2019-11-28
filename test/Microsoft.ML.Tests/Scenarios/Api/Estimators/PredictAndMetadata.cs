@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Xunit;
 
@@ -20,7 +21,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// In case if you don't apply KeyToValue estimator on top of predictor label we won't convert
         /// key value to original label value. This example also shows how to convert key value to original label.
         /// </summary>
-        [Fact]
+        [RetryFact]
         void PredictAndMetadata()
         {
             var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
@@ -69,7 +70,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             }
         }
 
-        [Fact]
+        [RetryFact]
         void MulticlassConfusionMatrixSlotNames()
         {
             var mlContext = new MLContext(seed: 1);

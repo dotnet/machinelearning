@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -19,7 +20,7 @@ namespace Microsoft.ML.AutoML.Test
             this.output = output;
         }
 
-        [Fact]
+        [RetryFact]
         public void ConvertFloatMissingValues()
         {
             var missingValues = new string[]
@@ -40,7 +41,7 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        [Fact]
+        [RetryFact]
         public void ConvertFloatParseFailure()
         {
             var values = new string[]
@@ -55,7 +56,7 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        [Fact]
+        [RetryFact]
         public void ConvertBoolMissingValues()
         {
             var missingValues = new string[]
@@ -74,7 +75,7 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        [Fact]
+        [RetryFact]
         public void ConvertBoolParseFailure()
         {
             var values = new string[]

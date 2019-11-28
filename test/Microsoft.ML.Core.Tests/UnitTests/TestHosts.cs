@@ -9,13 +9,14 @@ using System.Linq;
 using System.Threading;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.RunTests
 {
     public class TestHosts
     {
-        [Fact]
+        [RetryFact]
         public void TestCancellation()
         {
             IHostEnvironment env = new MLContext(seed: 42);
@@ -72,7 +73,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [Fact]
+        [RetryFact]
         public void TestCancellationApi()
         {
             IHostEnvironment env = new MLContext(seed: 42);
@@ -105,7 +106,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Tests that MLContext's Log event intercepts messages properly.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void LogEventProcessesMessages()
         {
             var messages = new List<string>();

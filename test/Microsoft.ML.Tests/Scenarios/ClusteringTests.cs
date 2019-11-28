@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.Scenarios
@@ -26,7 +27,7 @@ namespace Microsoft.ML.Scenarios
             public float[] Points;
         }
 
-        [Fact]
+        [RetryFact]
         public void PredictClusters()
         {
             int n = 1000;

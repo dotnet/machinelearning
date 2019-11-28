@@ -7,6 +7,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
@@ -19,7 +20,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
         }
 
-        [Fact]
+        [RetryFact]
         public void KeyToValueWorkout()
         {
             string dataPath = GetDataPath("iris.txt");
@@ -61,7 +62,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void KeyToValue()
         {
             string dataPath = GetDataPath("breast-cancer.txt");

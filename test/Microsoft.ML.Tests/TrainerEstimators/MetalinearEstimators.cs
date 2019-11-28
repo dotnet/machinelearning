@@ -7,6 +7,7 @@ using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -18,7 +19,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// OVA with all constructor args.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void OVAWithAllConstructorArgs()
         {
             var (pipeline, data) = GetMulticlassPipeline();
@@ -39,7 +40,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// OVA un-calibrated
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void OVAUncalibrated()
         {
             var (pipeline, data) = GetMulticlassPipeline();
@@ -56,7 +57,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// Pairwise Coupling trainer
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void PairwiseCouplingTrainer()
         {
             var (pipeline, data) = GetMulticlassPipeline();
@@ -71,7 +72,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void MetacomponentsFeaturesRenamed()
         {
             // Create text loader.

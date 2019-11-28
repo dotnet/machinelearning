@@ -12,12 +12,13 @@ using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 using static Microsoft.ML.DataOperationsCatalog;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.AutoML.Test
 {
     public class AutoFitTests
     {
-        [Fact]
+        [RetryFact]
         public void AutoFitBinaryTest()
         {
             var context = new MLContext();
@@ -34,7 +35,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.NotNull(result.BestRun.TrainerName);
         }
 
-        [Fact]
+        [RetryFact]
         public void AutoFitMultiTest()
         {
             var context = new MLContext();
@@ -97,7 +98,7 @@ namespace Microsoft.ML.AutoML.Test
             //throw new NotImplementedException();
         }
 
-        [Fact]
+        [RetryFact]
         public void AutoFitRegressionTest()
         {
             var context = new MLContext();
@@ -115,7 +116,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.True(result.RunDetails.Max(i => i.ValidationMetrics.RSquared > 0.9));
         }
 
-        [Fact]
+        [RetryFact]
         public void AutoFitRecommendationTest()
         {
             // Specific column names of the considered data set

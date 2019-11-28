@@ -4,6 +4,7 @@
 
 using System.IO;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -23,7 +24,7 @@ namespace Microsoft.ML.RunTests
 
         }
 
-        [Fact]
+        [RetryFact]
         public void PartitionedNamedDirectories()
         {
             string basePath = GetDataPath("Partitioned", "Named");
@@ -37,7 +38,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void PartitionedUnnamedDirectories()
         {
             string basePath = GetDataPath("Partitioned", "Unnamed"); ;

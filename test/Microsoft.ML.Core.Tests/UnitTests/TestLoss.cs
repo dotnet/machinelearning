@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Xunit;
 
@@ -46,7 +47,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [Fact]
+        [RetryFact]
         public void LossHinge()
         {
             var loss = new HingeLoss();
@@ -62,7 +63,7 @@ namespace Microsoft.ML.RunTests
             TestHelper(loss, 0, -2, 0, 0);
         }
 
-        [Fact]
+        [RetryFact]
         public void LossExponential()
         {
             ExpLoss.Options options = new ExpLoss.Options();
@@ -72,7 +73,7 @@ namespace Microsoft.ML.RunTests
             TestHelper(loss, 0, -3, Math.Exp(-3), -Math.Exp(-3));
         }
 
-        [Fact]
+        [RetryFact]
         public void LossSquared()
         {
             SquaredLoss loss = new SquaredLoss();

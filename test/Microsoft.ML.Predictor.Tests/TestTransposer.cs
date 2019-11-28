@@ -10,6 +10,7 @@ using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -147,7 +148,7 @@ namespace Microsoft.ML.RunTests
             return values;
         }
 
-        [Fact]
+        [RetryFact]
         [TestCategory("Transposer")]
         public void TransposerTest()
         {
@@ -213,7 +214,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [Fact]
+        [RetryFact]
         [TestCategory("Transposer")]
         public void TransposerSaverLoaderTest()
         {

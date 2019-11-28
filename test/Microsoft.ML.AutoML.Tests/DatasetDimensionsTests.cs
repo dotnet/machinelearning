@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
@@ -12,7 +13,7 @@ namespace Microsoft.ML.AutoML.Test
     {
         public object DatasetDimensionUtil { get; private set; }
 
-        [Fact]
+        [RetryFact]
         public void TextColumnDimensionsTest()
         {
             var context = new MLContext();
@@ -32,7 +33,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Null(dimensions[1].HasMissing);
         }
 
-        [Fact]
+        [RetryFact]
         public void FloatColumnDimensionsTest()
         {
             var context = new MLContext();
@@ -52,7 +53,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.True(dimensions[1].HasMissing);
         }
 
-        [Fact]
+        [RetryFact]
         public void FloatVectorColumnHasNanTest()
         {
             var context = new MLContext();

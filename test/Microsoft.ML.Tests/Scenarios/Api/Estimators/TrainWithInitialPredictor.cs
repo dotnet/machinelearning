@@ -5,6 +5,7 @@
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Xunit;
 
@@ -16,7 +17,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// Train with initial predictor: Similar to the simple train scenario, but also accept a pre-trained initial model.
         /// The scenario might be one of the online linear learners that can take advantage of this, for example, averaged perceptron.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void TrainWithInitialPredictor()
         {
 

@@ -11,6 +11,7 @@ using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -212,7 +213,7 @@ namespace Microsoft.ML.Tests
             }).PredictedLabel);
         }
 
-        [Fact]
+        [RetryFact]
         public void IrisSdcaMaximumEntropy()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

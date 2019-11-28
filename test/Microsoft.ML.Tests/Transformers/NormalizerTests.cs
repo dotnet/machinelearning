@@ -19,6 +19,7 @@ using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.Transforms.NormalizingTransformer;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.Tests.Transformers
 {
@@ -28,7 +29,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
         }
 
-        [Fact]
+        [RetryFact]
         public void NormalizerWorkout()
         {
             string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
@@ -93,7 +94,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void NormalizerParameters()
         {
             string dataPath = GetDataPath("iris.txt");
@@ -210,7 +211,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void NormalizerParametersMultiColumnApi()
         {
             string dataPath = GetDataPath("iris.txt");
@@ -385,7 +386,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void SimpleConstructorsAndExtensions()
         {
             string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
@@ -476,7 +477,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void NormalizerExperimentalExtensions()
         {
             string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
@@ -534,7 +535,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void NormalizerExperimentalExtensionGetColumnPairs()
         {
             string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
@@ -558,7 +559,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void LpGcNormAndWhiteningWorkout()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
@@ -592,7 +593,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void WhiteningWorkout()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
@@ -626,7 +627,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestWhiteningCommandLine()
         {
             // typeof helps to load the VectorWhiteningTransformer type.
@@ -634,7 +635,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=whitening{col=B:A} in=f:\2.txt" }), (int)0);
         }
 
-        [Fact]
+        [RetryFact]
         public void TestWhiteningOldSavingAndLoading()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
@@ -656,7 +657,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void LpNormWorkout()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
@@ -689,13 +690,13 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestLpNormCommandLine()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=LpNormNormalizer{col=B:A} in=f:\2.txt" }), (int)0);
         }
 
-        [Fact]
+        [RetryFact]
         public void TestLpNormOldSavingAndLoading()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
@@ -749,13 +750,13 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestGcnNormCommandLine()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=GcnTransform{col=B:A} in=f:\2.txt" }), (int)0);
         }
 
-        [Fact]
+        [RetryFact]
         public void TestGcnNormOldSavingAndLoading()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
@@ -776,7 +777,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        [Fact]
+        [RetryFact]
         void TestNormalizeBackCompatibility()
         {
             var dataFile = GetDataPath("breast-cancer.txt");
@@ -800,7 +801,7 @@ namespace Microsoft.ML.Tests.Transformers
             public float Features { get; set; }
         }
 
-        [Fact]
+        [RetryFact]
         void TestNormalizeLogMeanVarianceFixZeroOne()
         {
             var samples = new List<DataPointOne>()
@@ -841,7 +842,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(0f, transformedDataArray[2].Features);
         }
 
-        [Fact]
+        [RetryFact]
         void TestNormalizeLogMeanVarianceFixZeroVec()
         {
             var samples = new List<DataPointVec>()
@@ -889,7 +890,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(0f, transformedDataArray[2].Features[4]);
         }
 
-        [Fact]
+        [RetryFact]
         public void TestNormalizeBackCompatibility2()
         {
             // Tests backward compatibility with a normalizing transformer
@@ -956,7 +957,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        [Fact]
+        [RetryFact]
         void TestSavingNormalizerWithMultidimensionalVectorInput()
         {
             var samples = TensorData.GetTensorData();

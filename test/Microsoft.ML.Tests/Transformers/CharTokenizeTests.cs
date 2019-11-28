@@ -6,6 +6,7 @@ using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
@@ -34,7 +35,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
 
-        [Fact]
+        [RetryFact]
         public void CharTokenizeWorkout()
         {
             var data = new[] { new TestClass() { A = "This is a good sentence.", B = new string[2] { "Much words", "Wow So Cool" } } };
@@ -47,13 +48,13 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestCommandLine()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:TX:0} xf=CharToken{col=B:A} in=f:\2.txt" }), (int)0);
         }
 
-        [Fact]
+        [RetryFact]
         public void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = "This is a good sentence.", B = new string[2] { "Much words", "Wow So Cool" } } };

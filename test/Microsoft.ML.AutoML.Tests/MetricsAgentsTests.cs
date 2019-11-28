@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -11,7 +12,7 @@ namespace Microsoft.ML.AutoML.Test
 {
     public class MetricsAgentsTests
     {
-        [Fact]
+        [RetryFact]
         public void BinaryMetricsGetScoreTest()
         {
             var metrics = MetricsUtil.CreateBinaryClassificationMetrics(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8);
@@ -25,7 +26,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(0.8, GetScore(metrics, BinaryClassificationMetric.AreaUnderPrecisionRecallCurve));
         }
 
-        [Fact]
+        [RetryFact]
         public void BinaryMetricsNonPerfectTest()
         {
             var metrics = MetricsUtil.CreateBinaryClassificationMetrics(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8);
@@ -39,7 +40,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.False(IsPerfectModel(metrics, BinaryClassificationMetric.PositiveRecall));
         }
 
-        [Fact]
+        [RetryFact]
         public void BinaryMetricsPerfectTest()
         {
             var metrics = MetricsUtil.CreateBinaryClassificationMetrics(1, 1, 1, 1, 1, 1, 1, 1);
@@ -53,7 +54,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.True(IsPerfectModel(metrics, BinaryClassificationMetric.PositiveRecall));
         }
 
-        [Fact]
+        [RetryFact]
         public void MulticlassMetricsGetScoreTest()
         {
             var metrics = MetricsUtil.CreateMulticlassClassificationMetrics(0.1, 0.2, 0.3, 0.4, 0, 0.5, new double[] {});
@@ -64,7 +65,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(0.5, GetScore(metrics, MulticlassClassificationMetric.TopKAccuracy));
         }
 
-        [Fact]
+        [RetryFact]
         public void MulticlassMetricsNonPerfectTest()
         {
             var metrics = MetricsUtil.CreateMulticlassClassificationMetrics(0.1, 0.2, 0.3, 0.4, 0, 0.5, new double[] { });
@@ -75,7 +76,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.False(IsPerfectModel(metrics, MulticlassClassificationMetric.TopKAccuracy));
         }
 
-        [Fact]
+        [RetryFact]
         public void MulticlassMetricsPerfectTest()
         {
             var metrics = MetricsUtil.CreateMulticlassClassificationMetrics(1, 1, 0, 1, 0, 1, new double[] { });
@@ -86,7 +87,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.True(IsPerfectModel(metrics, MulticlassClassificationMetric.TopKAccuracy));
         }
 
-        [Fact]
+        [RetryFact]
         public void RegressionMetricsGetScoreTest()
         {
             var metrics = MetricsUtil.CreateRegressionMetrics(0.2, 0.3, 0.4, 0.5, 0.6);
@@ -96,7 +97,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(0.6, GetScore(metrics, RegressionMetric.RSquared));
         }
 
-        [Fact]
+        [RetryFact]
         public void RegressionMetricsNonPerfectTest()
         {
             var metrics = MetricsUtil.CreateRegressionMetrics(0.2, 0.3, 0.4, 0.5, 0.6);
@@ -106,7 +107,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.False(IsPerfectModel(metrics, RegressionMetric.RSquared));
         }
 
-        [Fact]
+        [RetryFact]
         public void RegressionMetricsPerfectTest()
         {
             var metrics = MetricsUtil.CreateRegressionMetrics(0, 0, 0, 0, 1);
@@ -116,7 +117,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.True(IsPerfectModel(metrics, RegressionMetric.RSquared));
         }
 
-        [Fact]
+        [RetryFact]
         public void ThrowNotSupportedMetricException()
         {
             var ex = MetricsAgentUtil.BuildMetricNotSupportedException(BinaryClassificationMetric.Accuracy);

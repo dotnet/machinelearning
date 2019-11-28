@@ -8,6 +8,7 @@ using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Xunit;
 
@@ -15,7 +16,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 {
     public partial class TrainerEstimators
     {
-        [Fact]
+        [RetryFact]
         public void TestEstimatorLogisticRegression()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
@@ -29,7 +30,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestEstimatorMulticlassLogisticRegression()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetMulticlassPipeline();
@@ -43,7 +44,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestEstimatorPoissonRegression()
         {
             var dataView = GetRegressionPipeline();
@@ -55,7 +56,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestLRNoStats()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
@@ -75,7 +76,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
 
-        [Fact]
+        [RetryFact]
         public void TestLRWithStats()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
@@ -137,7 +138,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
 
-        [Fact]
+        [RetryFact]
         public void TestLRWithStatsBackCompatibility()
         {
             string dropModelPath = GetDataPath("backcompat/LrWithStats.zip");
@@ -159,7 +160,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestMLRNoStats()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetMulticlassPipeline();
@@ -223,7 +224,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestMLRWithStatsBackCompatibility()
         {
             string dropModelPath = GetDataPath("backcompat/MlrWithStats.zip");

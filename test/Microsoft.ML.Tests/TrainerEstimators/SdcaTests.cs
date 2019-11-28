@@ -4,6 +4,7 @@
 
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Xunit;
 
@@ -11,7 +12,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 {
     public partial class TrainerEstimators
     {
-        [Fact]
+        [RetryFact]
         public void SdcaWorkout()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
@@ -51,7 +52,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void SdcaLogisticRegression()
         {
             // Generate C# objects as training examples.
@@ -95,7 +96,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.InRange(first.Probability, 0.8, 1);
         }
 
-        [Fact]
+        [RetryFact]
         public void SdcaLogisticRegressionWithWeight()
         {
             // Generate C# objects as training examples.
@@ -149,7 +150,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.False(sameScores);
         }
 
-        [Fact]
+        [RetryFact]
         public void SdcaMaximumEntropyWithWeight()
         {
             // Generate C# objects as training examples.
@@ -206,7 +207,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.False(sameScores);
         }
 
-        [Fact]
+        [RetryFact]
         public void SdcaSupportVectorMachine()
         {
             // Generate C# objects as training examples.
@@ -248,7 +249,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.True(first.Score > 0);
         }
 
-        [Fact]
+        [RetryFact]
         public void SdcaMulticlassLogisticRegression()
         {
             // Generate C# objects as training examples.
@@ -283,7 +284,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.InRange(metrics.LogLoss, 0, 0.5);
         }
 
-        [Fact]
+        [RetryFact]
         public void SdcaMulticlassSupportVectorMachine()
         {
             // Generate C# objects as training examples.

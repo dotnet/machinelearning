@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -26,7 +27,7 @@ namespace Microsoft.ML.RunTests
             return bufferEditor.Commit();
         }
 
-        [Fact]
+        [RetryFact]
         public void SequencePredictorSchemaTest()
         {
             int keyCount = 10;
@@ -83,7 +84,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(AnnotationUtils.Const.ScoreValueKind.PredictedLabel, scoreValueKindValue.ToString());
         }
 
-        [Fact]
+        [RetryFact]
         public void SequencePredictorSchemaWithoutKeyNamesMetadataTest()
         {
             int keyCount = 10;

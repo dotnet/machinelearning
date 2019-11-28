@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
 using Xunit.Abstractions;
@@ -40,7 +41,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [Fact]
+        [RetryFact]
         void TestSsaChangePointEstimator()
         {
             int Confidence = 95;
@@ -74,7 +75,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         void TestSsaForecastingEstimator()
         {
             const int ChangeHistorySize = 10;
@@ -110,7 +111,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         void TestSsaSpikeEstimator()
         {
             int Confidence = 95;
@@ -144,7 +145,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         void TestIidChangePointEstimator()
         {
             int Confidence = 95;
@@ -171,7 +172,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         void TestIidSpikeEstimator()
         {
             int Confidence = 95;

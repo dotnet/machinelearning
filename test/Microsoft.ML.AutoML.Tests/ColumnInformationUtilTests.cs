@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
@@ -10,7 +11,7 @@ namespace Microsoft.ML.AutoML.Test
     
     public class ColumnInformationUtilTests
     {
-        [Fact]
+        [RetryFact]
         public void GetColumnPurpose()
         {
             var columnInfo = new ColumnInformation()
@@ -38,7 +39,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Null(ColumnInformationUtil.GetColumnPurpose(columnInfo, "NonExistent"));
         }
 
-        [Fact]
+        [RetryFact]
         public void GetColumnNamesTest()
         {
             var columnInfo = new ColumnInformation()

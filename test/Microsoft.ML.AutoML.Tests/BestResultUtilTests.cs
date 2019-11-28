@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
@@ -11,7 +12,7 @@ namespace Microsoft.ML.AutoML.Test
     
     public class BestResultUtilTests
     {
-        [Fact]
+        [RetryFact]
         public void FindBestResultWithSomeNullMetrics()
         {
             var metrics1 = MetricsUtil.CreateRegressionMetrics(0.2, 0.2, 0.2, 0.2, 0.2);
@@ -31,7 +32,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(0.3, bestResult.ValidationMetrics.RSquared);
         }
 
-        [Fact]
+        [RetryFact]
         public void FindBestResultWithAllNullMetrics()
         {
             var runResults = new List<RunDetail<RegressionMetrics>>()
@@ -44,7 +45,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Null(bestResult);
         }
 
-        [Fact]
+        [RetryFact]
         public void GetIndexOfBestScoreMaximizingUtil()
         {
             var scores = new double[] { 0, 2, 5, 100, -100, -70 };
@@ -52,7 +53,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(3, indexOfMaxScore);
         }
 
-        [Fact]
+        [RetryFact]
         public void GetIndexOfBestScoreMinimizingUtil()
         {
             var scores = new double[] { 0, 2, 5, 100, -100, -70 };

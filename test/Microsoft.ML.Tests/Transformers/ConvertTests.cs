@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -121,7 +122,7 @@ namespace Microsoft.ML.Tests.Transformers
             public string A;
         }
 
-        [Fact]
+        [RetryFact]
         public void TestConvertWorkout()
         {
             var data = new[] { new TestClass() { A = 1, B = new int[2] { 1,4 } },
@@ -254,7 +255,7 @@ namespace Microsoft.ML.Tests.Transformers
         /// <summary>
         /// Apply <see cref="KeyToValueMappingEstimator"/> with side data.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void ValueToKeyFromSideData()
         {
             // In this case, whatever the value of the input, the term mapping should come from the optional side data if specified.
@@ -285,13 +286,13 @@ namespace Microsoft.ML.Tests.Transformers
 
 
 
-        [Fact]
+        [RetryFact]
         public void TestCommandLine()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:TX:0} xf=Convert{col=B:A type=R4} in=f:\2.txt" }), (int)0);
         }
 
-        [Fact]
+        [RetryFact]
         public void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = new int[2] { 1,4 } },
@@ -310,7 +311,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        [Fact]
+        [RetryFact]
         public void TestMetadata()
         {
             var data = new[] { new MetaClass() { A = 1, B = "A" },
@@ -350,7 +351,7 @@ namespace Microsoft.ML.Tests.Transformers
             public uint key;
         }
 
-        [Fact]
+        [RetryFact]
         public void TypeConvertKeyBackCompatTest()
         {
             // Model generated using the following command before the change removing Min and Count from KeyType.

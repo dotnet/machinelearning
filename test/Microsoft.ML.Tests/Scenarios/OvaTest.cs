@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Xunit;
@@ -11,7 +12,7 @@ namespace Microsoft.ML.Scenarios
 {
     public partial class ScenariosTests
     {
-        [Fact]
+        [RetryFact]
         public void OvaLogisticRegression()
         {
             string dataPath = GetDataPath("iris.txt");
@@ -44,7 +45,7 @@ namespace Microsoft.ML.Scenarios
             Assert.True(metrics.MicroAccuracy > 0.94);
         }
 
-        [Fact]
+        [RetryFact]
         public void OvaAveragedPerceptron()
         {
             string dataPath = GetDataPath("iris.txt");
@@ -80,7 +81,7 @@ namespace Microsoft.ML.Scenarios
             Assert.True(metrics.MicroAccuracy > 0.66);
         }
 
-        [Fact]
+        [RetryFact]
         public void OvaFastTree()
         {
             string dataPath = GetDataPath("iris.txt");
@@ -115,7 +116,7 @@ namespace Microsoft.ML.Scenarios
             Assert.True(metrics.MicroAccuracy > 0.99);
         }
 
-        [Fact]
+        [RetryFact]
         public void OvaLinearSvm()
         {
             string dataPath = GetDataPath("iris.txt");

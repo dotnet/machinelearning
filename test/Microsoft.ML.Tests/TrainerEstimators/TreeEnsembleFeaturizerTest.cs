@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers.FastTree;
 using Xunit;
 
@@ -14,7 +15,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 {
     public partial class TrainerEstimators
     {
-        [Fact]
+        [RetryFact]
         public void TreeEnsembleFeaturizerOutputSchemaTest()
         {
             // Create data set
@@ -116,7 +117,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         }
 
-        [Fact]
+        [RetryFact]
         public void TreeEnsembleFeaturizerTransformerFastTreeBinary()
         {
             // Create data set
@@ -168,7 +169,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             }
         }
 
-        [Fact]
+        [RetryFact]
         public void TreeEnsembleFeaturizerTransformerFastForestBinary()
         {
             // Create data set
@@ -222,7 +223,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// A test of <see cref="PretrainedTreeFeaturizationEstimator"/>.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void TestPretrainedTreeFeaturizationEstimator()
         {
             // Create data set
@@ -290,7 +291,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         ///   3. The feature produced in step 2 would be fed into <see cref="SdcaLogisticRegression"/> to enhance the training accuracy of that linear model.
         ///   4. We train another <see cref="SdcaLogisticRegression"/> without features from trees and finally compare their scores.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void TreeEnsembleFeaturizingPipeline()
         {
             // Create data set
@@ -342,7 +343,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.True(metrics.AreaUnderPrecisionRecallCurve > naiveMetrics.AreaUnderPrecisionRecallCurve);
         }
 
-        [Fact]
+        [RetryFact]
         public void TestFastTreeBinaryFeaturizationInPipeline()
         {
             int dataPointCount = 200;
@@ -381,7 +382,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.True(metrics.AreaUnderPrecisionRecallCurve > 0.98);
         }
 
-        [Fact]
+        [RetryFact]
         public void TestFastForestBinaryFeaturizationInPipeline()
         {
             int dataPointCount = 200;
@@ -420,7 +421,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.True(metrics.AreaUnderPrecisionRecallCurve > 0.98);
         }
 
-        [Fact]
+        [RetryFact]
         public void TestFastTreeRegressionFeaturizationInPipeline()
         {
             int dataPointCount = 200;
@@ -458,7 +459,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.True(metrics.MeanSquaredError < 0.05);
         }
 
-        [Fact]
+        [RetryFact]
         public void TestFastForestRegressionFeaturizationInPipeline()
         {
             int dataPointCount = 200;
@@ -496,7 +497,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.True(metrics.MeanSquaredError < 0.1);
         }
 
-        [Fact]
+        [RetryFact]
         public void TestFastTreeTweedieFeaturizationInPipeline()
         {
             int dataPointCount = 200;
@@ -534,7 +535,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.True(metrics.MeanSquaredError < 0.1);
         }
 
-        [Fact]
+        [RetryFact]
         public void TestFastTreeRankingFeaturizationInPipeline()
         {
             int dataPointCount = 200;
@@ -572,7 +573,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.True(metrics.MeanSquaredError < 0.1);
         }
 
-        [Fact]
+        [RetryFact]
         public void TestSaveAndLoadTreeFeaturizer()
         {
             int dataPointCount = 200;
@@ -627,7 +628,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.Equal(metrics.MeanSquaredError, loadedMetrics.MeanSquaredError);
         }
 
-        [Fact]
+        [RetryFact]
         public void TestSaveAndLoadDoubleTreeFeaturizer()
         {
             int dataPointCount = 200;
@@ -701,7 +702,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.NotEqual(metrics.MeanSquaredError, secondMetrics.MeanSquaredError);
         }
 
-        [Fact]
+        [RetryFact]
         public void TestFastTreeBinaryFeaturizationInPipelineWithOptionalOutputs()
         {
             int dataPointCount = 200;
@@ -759,7 +760,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// Apply tree-based featurization on multiclass classification by converting key-typed labels to floats and training
         /// a regression tree model for featurization.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void TreeEnsembleFeaturizingPipelineMulticlass()
         {
             int dataPointCount = 1000;

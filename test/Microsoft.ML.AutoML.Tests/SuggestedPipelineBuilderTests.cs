@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
@@ -12,7 +13,7 @@ namespace Microsoft.ML.AutoML.Test
     {
         private static MLContext _context = new MLContext();
 
-        [Fact]
+        [RetryFact]
         public void TrainerWantsCaching()
         {
             TestPipelineBuilderCaching(BuildAveragedPerceptronTrainer(),
@@ -20,7 +21,7 @@ namespace Microsoft.ML.AutoML.Test
                 new[] { true, false, true });
         }
 
-        [Fact]
+        [RetryFact]
         public void TrainerDoesntWantCaching()
         {
             TestPipelineBuilderCaching(BuildLightGbmTrainer(),
@@ -28,7 +29,7 @@ namespace Microsoft.ML.AutoML.Test
                 new[] { true, false, false });
         }
 
-        [Fact]
+        [RetryFact]
         public void TrainerNeedsNormalization()
         {
             var pipeline = BuildSuggestedPipeline(BuildAveragedPerceptronTrainer());
@@ -36,7 +37,7 @@ namespace Microsoft.ML.AutoML.Test
                 pipeline.Transforms[0].PipelineNode.Name);
         }
 
-        [Fact]
+        [RetryFact]
         public void TrainerNotNeedNormalization()
         {
             var pipeline = BuildSuggestedPipeline(BuildLightGbmTrainer());

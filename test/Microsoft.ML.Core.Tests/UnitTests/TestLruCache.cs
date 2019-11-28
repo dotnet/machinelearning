@@ -4,13 +4,14 @@
 
 using System.Linq;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.RunTests
 {
     public class TestLruCache
     {
-        [Fact]
+        [RetryFact]
         public void EntryLruCache()
         {
             var cache = new LruCache<string, int>(2);

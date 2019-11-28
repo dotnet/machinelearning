@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
@@ -171,7 +172,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [Fact]
+        [RetryFact]
         public void RegisterTypeWithAttribute()
         {
             // Build in-memory data.
@@ -204,7 +205,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(superAlien.Merged.HandCount, alien.One.HandCount + alien.Two.HandCount);
         }
 
-        [Fact]
+        [RetryFact]
         public void TestTypeManager()
         {
             // Semantically identical DataViewTypes should produce the same hash code.
@@ -277,7 +278,7 @@ namespace Microsoft.ML.RunTests
             Assert.NotEqual(a, DataViewTypeManager.GetDataViewType(typeof(AlienBody), new[] { f }));
         }
 
-        [Fact]
+        [RetryFact]
         public void GetTypeWithAdditionalDataViewTypeAttributes()
         {
             var a = new DataViewAlienBodyType(7788);

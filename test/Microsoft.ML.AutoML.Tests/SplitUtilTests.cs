@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
@@ -17,7 +18,7 @@ namespace Microsoft.ML.AutoML.Test
         /// attempted cross validation throws (all splits should have empty
         /// train or test set).
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void CrossValSplitThrowsWhenNotEnoughData()
         {
             var mlContext = new MLContext();
@@ -33,7 +34,7 @@ namespace Microsoft.ML.AutoML.Test
         /// cross validation succeeds, but # of splits is less than 10
         /// (splits with empty train or test sets should not be returned from this API).
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void CrossValSplitSmallDataView()
         {
             var mlContext = new MLContext(seed: 0);
@@ -52,7 +53,7 @@ namespace Microsoft.ML.AutoML.Test
         /// Assert that with many rows of data, cross validation produces the requested
         /// # of splits.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void CrossValSplitLargeDataView()
         {
             var mlContext = new MLContext(seed: 0);

@@ -4,6 +4,7 @@
 
 using System.Linq;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers.FastTree;
 using Xunit;
 
@@ -11,7 +12,7 @@ namespace Microsoft.ML.RunTests
 {
     public class TestGamPublicInterfaces
     {
-        [Fact]
+        [RetryFact]
         [TestCategory("FastTree")]
         public void TestGamDirectInstatiation()
         {

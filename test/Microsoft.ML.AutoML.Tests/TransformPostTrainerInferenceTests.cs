@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
@@ -12,7 +13,7 @@ namespace Microsoft.ML.AutoML.Test
     
     public class TransformPostTrainerInferenceTests
     {
-        [Fact]
+        [RetryFact]
         public void TransformPostTrainerMulticlassNonKeyLabel()
         {
             TransformPostTrainerInferenceTestCore(TaskKind.MulticlassClassification,
@@ -35,7 +36,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [Fact]
+        [RetryFact]
         public void TransformPostTrainerBinaryLabel()
         {
             TransformPostTrainerInferenceTestCore(TaskKind.BinaryClassification,
@@ -46,7 +47,7 @@ namespace Microsoft.ML.AutoML.Test
                 }, @"[]");
         }
 
-        [Fact]
+        [RetryFact]
         public void TransformPostTrainerMulticlassKeyLabel()
         {
             TransformPostTrainerInferenceTestCore(TaskKind.MulticlassClassification,

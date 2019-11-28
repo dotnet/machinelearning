@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -36,7 +37,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Fact]
+        [RetryFact]
         public void CacheCheckpointTest()
         {
             var trainData = Enumerable.Range(0, 100).Select(c => new MyData()).ToArray();
@@ -60,7 +61,7 @@ namespace Microsoft.ML.Tests
             Assert.True(trainData.All(x => x.AccessCount == 1));
         }
 
-        [Fact]
+        [RetryFact]
         public void CacheTest()
         {
             var src = Enumerable.Range(0, 100).Select(c => new MyData()).ToArray();

@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -22,7 +23,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// have the class labels as slot names, etc. This should be do-able without ugly compromises like,
         /// say, injecting a dummy label.
         /// </summary>
-        [Fact]
+        [RetryFact]
         void DecomposableTrainAndPredict()
         {
             var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);

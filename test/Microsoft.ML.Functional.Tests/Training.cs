@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Xunit;
@@ -22,7 +23,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Training: It is easy to compare trainer evaluations on the same dataset.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void CompareTrainerEvaluations()
         {
             var mlContext = new MLContext(seed: 1);
@@ -76,7 +77,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Training: Models can be trained starting from an existing model.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void ContinueTrainingAveragePerceptron()
         {
             var mlContext = new MLContext(seed: 1);
@@ -120,7 +121,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Training: Models can be trained starting from an existing model.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void ContinueTrainingFieldAwareFactorizationMachine()
         {
             var mlContext = new MLContext(seed: 1);
@@ -164,7 +165,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Training: Models can be trained starting from an existing model.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void ContinueTrainingLinearSupportVectorMachine()
         {
             var mlContext = new MLContext(seed: 1);
@@ -208,7 +209,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Training: Models can be trained starting from an existing model.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void ContinueTrainingLogisticRegression()
         {
             var mlContext = new MLContext(seed: 1);
@@ -252,7 +253,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Training: Models can be trained starting from an existing model.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void ContinueTrainingLogisticRegressionMulticlass()
         {
             var mlContext = new MLContext(seed: 1);
@@ -302,7 +303,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Training: Models can be trained starting from an existing model.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void ContinueTrainingOnlineGradientDescent()
         {
             var mlContext = new MLContext(seed: 1);
@@ -346,7 +347,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Training: Models can be trained starting from an existing model.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void ContinueTrainingPoissonRegression()
         {
             var mlContext = new MLContext(seed: 1);
@@ -390,7 +391,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Training: Models can be trained starting from an existing model.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void ContinueTrainingSymbolicStochasticGradientDescent()
         {
             var mlContext = new MLContext(seed: 1);
@@ -439,7 +440,7 @@ namespace Microsoft.ML.Functional.Tests
         /// Training: Meta-components function as expected. For OVA (one-versus-all), a user will be able to specify only
         /// binary classifier trainers. If they specify a different model class there should be a compile error.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void MetacomponentsFunctionAsExpectedOva()
         {
             var mlContext = new MLContext(seed: 1);
@@ -470,7 +471,7 @@ namespace Microsoft.ML.Functional.Tests
         /// Training: Meta-components function as expected. For OVA (one-versus-all), a user will be able to specify only
         /// binary classifier trainers. If they specify a different model class there should be a compile error.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void MetacomponentsFunctionWithKeyHandling()
         {
             var mlContext = new MLContext(seed: 1);

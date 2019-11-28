@@ -9,6 +9,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
@@ -62,7 +63,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 .Take(20).ToArray();
         }
 
-        [Fact]
+        [RetryFact]
         public void InspectIntermediateDataGetColumn()
             => IntermediateData(GetDataPath("adult.tiny.with-schema.txt"));
 
@@ -129,7 +130,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             ITransformer loadedModel = mlContext.Model.Load(modelPath, out var schema);
         }
 
-        [Fact]
+        [RetryFact]
         public void TrainRegressionModel()
             => TrainRegression(GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename), GetDataPath(TestDatasets.generatedRegressionDataset.testFilename),
                 DeleteOutputPath("cook_model.zip"));
@@ -216,7 +217,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             });
         }
 
-        [Fact]
+        [RetryFact]
         public void TrainAndPredictOnIris()
             => PredictOnIris(TrainOnIris(GetDataPath("iris.data")));
 
@@ -246,11 +247,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var meanVarValues = normalizedData.GetColumn<float[]>(normalizedData.Schema["MeanVarNormalized"]).ToArray();
         }
 
-        [Fact]
+        [RetryFact]
         public void Normalization()
             => NormalizationWorkout(GetDataPath("iris.data"));
 
-        [Fact]
+        [RetryFact]
         public void GlobalFeatureImportance()
         {
             var dataPath = GetDataPath("housing.txt");
@@ -290,7 +291,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             }
         }
 
-        [Fact]
+        [RetryFact]
         public void GetLinearModelWeights()
         {
             var dataPath = GetDataPath("housing.txt");
@@ -325,7 +326,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var weights = linearModel.Weights; 
         }
 
-        [Fact]
+        [RetryFact]
         public void GetFastTreeModelWeights()
         {
             var dataPath = GetDataPath("housing.txt");
@@ -361,7 +362,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             linearModel.GetFeatureWeights(ref weights);
         }
 
-        [Fact]
+        [RetryFact]
         public void FeatureImportanceForEachRow()
         {
             var dataPath = GetDataPath("housing.txt");
@@ -477,15 +478,15 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var unigrams = transformedData.GetColumn<float[]>(transformedData.Schema["BagOfWords"]).Take(10).ToArray();
         }
 
-        [Fact]
+        [RetryFact]
         public void TextFeaturization()
             => TextFeaturizationOn(GetDataPath("wikipedia-detox-250-line-data.tsv"));
 
-        [Fact]
+        [RetryFact]
         public void CategoricalFeaturization()
             => CategoricalFeaturizationOn(GetDataPath("adult.tiny.with-schema.txt"));
 
-        [Fact]
+        [RetryFact]
         public void ReadMultipleFiles()
             => CategoricalFeaturizationOn(GetDataPath("adult.tiny.with-schema.txt"), GetDataPath("adult.tiny.with-schema.txt"));
 
@@ -548,7 +549,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var model = fullLearningPipeline.Fit(data);
         }
 
-        [Fact]
+        [RetryFact]
         public void CrossValidationIris()
             => CrossValidationOn(GetDataPath("iris.data"));
 
@@ -595,7 +596,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             Console.WriteLine(microAccuracies.Average());
         }
 
-        [Fact]
+        [RetryFact]
         public void ReadData()
         {
             ReadDataDynamic(GetDataPath("generated_regression_dataset.csv"));
@@ -625,7 +626,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             public bool Label { get; set; }
         }
 
-        [Fact]
+        [RetryFact]
         public void CustomTransformer()
         {
             var mlContext = new MLContext();

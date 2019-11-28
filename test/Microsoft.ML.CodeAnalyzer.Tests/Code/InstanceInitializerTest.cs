@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using VerifyCS = Microsoft.ML.CodeAnalyzer.Tests.Helpers.CSharpCodeFixVerifier<
     Microsoft.ML.InternalCodeAnalyzer.InstanceInitializerAnalyzer,
@@ -13,7 +14,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
     public sealed class InstanceInitializerTest
     {
-        [Fact]
+        [RetryFact]
         public async Task InstanceInitializer()
         {
             const string test = @"

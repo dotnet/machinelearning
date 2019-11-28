@@ -6,13 +6,14 @@ using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.CodeGenerator.CSharp;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 
 namespace mlnet.Tests
 {
     public class TransformGeneratorTests
     {
-        [Fact]
+        [RetryFact]
         public void MissingValueReplacingTest()
         {
             var context = new MLContext();
@@ -26,7 +27,7 @@ namespace mlnet.Tests
             Assert.Null(actual[0].Item2);
         }
 
-        [Fact]
+        [RetryFact]
         public void OneHotEncodingTest()
         {
             var context = new MLContext();
@@ -40,7 +41,7 @@ namespace mlnet.Tests
             Assert.Null(actual[0].Item2);
         }
 
-        [Fact]
+        [RetryFact]
         public void NormalizingTest()
         {
             var context = new MLContext();
@@ -54,7 +55,7 @@ namespace mlnet.Tests
             Assert.Null(actual[0].Item2);
         }
 
-        [Fact]
+        [RetryFact]
         public void ColumnConcatenatingTest()
         {
             var context = new MLContext();
@@ -68,7 +69,7 @@ namespace mlnet.Tests
             Assert.Null(actual[0].Item2);
         }
 
-        [Fact]
+        [RetryFact]
         public void ColumnCopyingTest()
         {
             var context = new MLContext();
@@ -82,7 +83,7 @@ namespace mlnet.Tests
             Assert.Null(actual[0].Item2);
         }
 
-        [Fact]
+        [RetryFact]
         public void KeyToValueMappingTest()
         {
             var context = new MLContext();
@@ -96,7 +97,7 @@ namespace mlnet.Tests
             Assert.Null(actual[0].Item2);
         }
 
-        [Fact]
+        [RetryFact]
         public void MissingValueIndicatingTest()
         {
             var context = new MLContext();
@@ -110,7 +111,7 @@ namespace mlnet.Tests
             Assert.Null(actual[0].Item2);
         }
 
-        [Fact]
+        [RetryFact]
         public void OneHotHashEncodingTest()
         {
             var context = new MLContext();
@@ -124,7 +125,7 @@ namespace mlnet.Tests
             Assert.Null(actual[0].Item2);
         }
 
-        [Fact]
+        [RetryFact]
         public void TextFeaturizingTest()
         {
             var context = new MLContext();
@@ -138,7 +139,7 @@ namespace mlnet.Tests
             Assert.Null(actual[0].Item2);
         }
 
-        [Fact]
+        [RetryFact]
         public void TypeConvertingTest()
         {
             var context = new MLContext();
@@ -152,7 +153,7 @@ namespace mlnet.Tests
             Assert.Null(actual[0].Item2);
         }
 
-        [Fact]
+        [RetryFact]
         public void ValueToKeyMappingTest()
         {
             var context = new MLContext();
@@ -166,7 +167,7 @@ namespace mlnet.Tests
             Assert.Null(actual[0].Item2);
         }
 
-        [Fact]
+        [RetryFact]
         public void ImageLoadingTest()
         {
             PipelineNode node = new PipelineNode("ImageLoading", PipelineNodeType.Transform,

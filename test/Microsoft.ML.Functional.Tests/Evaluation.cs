@@ -22,7 +22,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Train and Evaluate: Anomaly Detection.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void TrainAndEvaluateAnomalyDetection()
         {
             var mlContext = new MLContext(seed: 1);
@@ -52,7 +52,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Train and Evaluate: Binary Classification with no calibration.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void TrainAndEvaluateBinaryClassification()
         {
             var mlContext = new MLContext(seed: 1);
@@ -81,7 +81,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Train and Evaluate: Binary Classification with a calibrated predictor.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void TrainAndEvaluateBinaryClassificationWithCalibration()
         {
             var mlContext = new MLContext(seed: 1);
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Train and Evaluate: Clustering.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void TrainAndEvaluateClustering()
         {
             var mlContext = new MLContext(seed: 1);
@@ -138,7 +138,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Train and Evaluate: Multiclass Classification.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void TrainAndEvaluateMulticlassClassification()
         {
             var mlContext = new MLContext(seed: 1);
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Train and Evaluate: Ranking.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void TrainAndEvaluateRanking()
         {
             var mlContext = new MLContext(seed: 1);
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Train and Evaluate: Ranking with options.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void TrainAndEvaluateRankingWithOptions()
         {
             var mlContext = new MLContext(seed: 1);
@@ -258,7 +258,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Train and Evaluate: Regression.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void TrainAndEvaluateRegression()
         {
             var mlContext = new MLContext(seed: 1);
@@ -286,7 +286,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <remarks>
         /// This is currently not possible using the APIs.
         /// </remarks>
-        [Fact]
+        [RetryFact]
         public void TrainAndEvaluateWithPrecisionRecallCurves()
         {
             var mlContext = new MLContext(seed: 1);

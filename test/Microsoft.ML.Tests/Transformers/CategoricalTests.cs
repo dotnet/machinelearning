@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -58,7 +59,7 @@ namespace Microsoft.ML.Tests.Transformers
             public string A;
         }
 
-        [Fact]
+        [RetryFact]
         public void CategoricalWorkout()
         {
             var data = new[] {
@@ -92,7 +93,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void CategoricalOneHotEncodingVector()
         {
             var data = new[] {
@@ -120,7 +121,7 @@ namespace Microsoft.ML.Tests.Transformers
         /// In which we take a categorical value and map it to a vector, but we get the mapping from a side data view
         /// rather than the data we are fitting.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void CategoricalOneHotEncodingFromSideData()
         {
             // In this case, whatever the value of the input, the term mapping should come from the optional side data if specified.
@@ -149,7 +150,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void Categorical()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
@@ -179,7 +180,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestMetadataPropagation()
         {
             var data = new[] {
@@ -301,13 +302,13 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(column.IsNormalized());
         }
 
-        [Fact]
+        [RetryFact]
         public void TestCommandLine()
         {
             Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=Cat{col=B:A} in=f:\2.txt" }));
         }
 
-        [Fact]
+        [RetryFact]
         public void TestOldSavingAndLoading()
         {
             var data = new[] {

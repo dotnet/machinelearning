@@ -7,6 +7,7 @@ using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -18,7 +19,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
         }
 
-        [Fact]
+        [RetryFact]
         void TestConcatNoInputColumns()
         {
             var thrown = false;
@@ -37,7 +38,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         void TestConcat()
         {
             string dataPath = GetDataPath("adult.tiny.with-schema.txt");
@@ -95,7 +96,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void ConcatWithAliases()
         {
             string dataPath = GetDataPath("adult.tiny.with-schema.txt");

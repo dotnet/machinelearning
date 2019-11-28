@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -21,7 +22,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// This might have a much steeper learning curve than the other usages (which merely involve
         /// usage of already established components), but should still be possible.
         /// </summary>
-        [Fact]
+        [RetryFact]
         void Extensibility()
         {
             var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);

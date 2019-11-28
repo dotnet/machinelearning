@@ -4,7 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
-using Xunit;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using VerifyCS = Microsoft.ML.CodeAnalyzer.Tests.Helpers.CSharpCodeFixVerifier<
     Microsoft.ML.InternalCodeAnalyzer.ParameterVariableNameAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
@@ -13,7 +13,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
     public sealed class ParameterVariableNameTest
     {
-        [Fact]
+        [RetryFact]
         public async Task ParameterVariableName()
         {
             const string test = @"

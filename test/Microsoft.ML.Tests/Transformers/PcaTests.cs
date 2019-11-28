@@ -6,6 +6,7 @@ using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -23,7 +24,7 @@ namespace Microsoft.ML.Tests.Transformers
             _saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
         }
 
-        [Fact]
+        [RetryFact]
         public void PcaWorkout()
         {
             var data = ML.Data.LoadFromTextFile(_dataSource, new[] {
@@ -47,7 +48,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestPcaEstimator()
         {
             var data = ML.Data.LoadFromTextFile(_dataSource, new[] {

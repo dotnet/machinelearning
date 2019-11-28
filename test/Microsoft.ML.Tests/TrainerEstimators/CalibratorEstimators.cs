@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Xunit;
 
@@ -14,7 +15,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// OVA and calibrators
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void PlattCalibratorEstimator()
         {
             var calibratorTestData = GetCalibratorTestData();
@@ -35,7 +36,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// OVA and calibrators
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void FixedPlattCalibratorEstimator()
         {
             var calibratorTestData = GetCalibratorTestData();
@@ -55,7 +56,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// OVA and calibrators
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void NaiveCalibratorEstimator()
         {
             var calibratorTestData = GetCalibratorTestData();
@@ -75,7 +76,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// OVA and calibrators
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void PavCalibratorEstimator()
         {
             var calibratorTestData = GetCalibratorTestData();

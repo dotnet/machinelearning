@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using VerifyCS = Microsoft.ML.CodeAnalyzer.Tests.Helpers.CSharpCodeFixVerifier<
     Microsoft.ML.InternalCodeAnalyzer.NameAnalyzer,
@@ -13,7 +14,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
     public sealed class NameTest
     {
-        [Fact]
+        [RetryFact]
         public async Task PrivateFieldName()
         {
             var expected = new DiagnosticResult[] {
@@ -53,7 +54,7 @@ namespace TestNamespace
     }
 }";
 
-        [Fact]
+        [RetryFact]
         public async Task MoreNameTests()
         {
             var expected = new DiagnosticResult[] {
@@ -128,7 +129,7 @@ namespace foo.bar.Biz
 
     struct marco { public int polo; }
 }";
-        [Fact]
+        [RetryFact]
         public async Task ExternName()
         {
             const string source = @"

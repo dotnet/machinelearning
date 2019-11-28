@@ -8,6 +8,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.RunTests
@@ -17,7 +18,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// This tests CmdParser.GetSettings
         /// </summary>
-        [Fact]
+        [RetryFact]
         [TestCategory("Cmd Parsing")]
         public void ArgumentParseTest()
         {
@@ -76,7 +77,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(innerArg3, testArg);
         }
 
-        [Fact]
+        [RetryFact]
         [TestCategory("Cmd Parsing")]
         public void NewTest()
         {

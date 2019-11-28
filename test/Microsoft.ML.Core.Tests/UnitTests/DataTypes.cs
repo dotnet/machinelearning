@@ -6,6 +6,7 @@ using System;
 using System.Text;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -20,7 +21,7 @@ namespace Microsoft.ML.RunTests
 
         private readonly static Conversions _conv = Conversions.Instance;
 
-        [Fact]
+        [RetryFact]
         public void R4ToSBtoR4()
         {
             var r4ToSB = Conversions.Instance.GetStringConversion<float>(NumberDataViewType.Single);
@@ -44,7 +45,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(fVal, float.NaN);
         }
 
-        [Fact]
+        [RetryFact]
         public void R8ToSBtoR8()
         {
             var r8ToSB = Conversions.Instance.GetStringConversion<double>(NumberDataViewType.Double);
@@ -68,7 +69,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(dVal, double.NaN);
         }
 
-        [Fact]
+        [RetryFact]
         public void TXToSByte()
         {
             var mapper = GetMapper<ReadOnlyMemory<char>, sbyte>(NumberDataViewType.SByte);
@@ -108,7 +109,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(default, dst);
         }
 
-        [Fact]
+        [RetryFact]
         public void TXToShort()
         {
             var mapper = GetMapper<ReadOnlyMemory<char>, short>(NumberDataViewType.Int16);
@@ -148,7 +149,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(default, dst);
         }
 
-        [Fact]
+        [RetryFact]
         public void TXToInt()
         {
             var mapper = GetMapper<ReadOnlyMemory<char>, int>(NumberDataViewType.Int32);
@@ -188,7 +189,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(default, dst);
         }
 
-        [Fact]
+        [RetryFact]
         public void TXToLong()
         {
             var mapper = GetMapper<ReadOnlyMemory<char>, long>(NumberDataViewType.Int64);
@@ -228,7 +229,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(default, dst);
         }
 
-        [Fact]
+        [RetryFact]
         public void DTToDT()
         {
             bool identity;

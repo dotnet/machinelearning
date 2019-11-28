@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
@@ -38,7 +39,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
         }
 
-        [Fact]
+        [RetryFact]
         public void GroupTest()
         {
             var data = new List<GroupExample> {
@@ -77,7 +78,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal("Mermaid", grouped[1].Gender[1]);
         }
 
-        [Fact]
+        [RetryFact]
         public void UgroupTest()
         {
             var data = new List<UngroupExample> {

@@ -17,6 +17,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Tools;
 using Xunit;
 using Xunit.Abstractions;
@@ -677,7 +678,7 @@ namespace Microsoft.ML.RunTests
         // are explicit in favor of the more generic tests where appropriate.
 
         [TestCategory(Cat)]
-        [Fact]
+        [RetryFact]
         public void EvaluateRankingWithMaml()
         {
             RunMTAThread(() =>
@@ -703,7 +704,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [TestCategory(Cat)]
-        [Fact]
+        [RetryFact]
         public void CommandShowSchemaModel()
         {
             string trainDataPath = GetDataPath("adult.tiny.with-schema.txt");
@@ -952,7 +953,7 @@ namespace Microsoft.ML.RunTests
         // multiple different FastTree (Ranking and Classification for example) instances in different threads.
         // FastTree internally fails if we try to run it simultaneously and if this happens we wouldn't get model file for training.
         [TestCategory(Cat)]
-        [Fact]
+        [RetryFact]
         public void CommandTrainFastTreeInDifferentThreads()
         {
             var dataPath = GetDataPath(TestDatasets.adult.testFilename);
@@ -1103,7 +1104,7 @@ namespace Microsoft.ML.RunTests
         public void CommandTrainingOgdWithInitialization() => CommandTrainingLinearLearnerTest("ogd{}");
 
         [TestCategory(Cat), TestCategory("Logistic Regression")]
-        [Fact]
+        [RetryFact]
         public void CommandTrainingLrWithStats()
         {
             const string loaderArgs = "loader=text{header+ col=Lab:0 col=Num:9-14}";
@@ -1620,7 +1621,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void CommandTrainTestFCCAdult()
         {
             string trainData = GetDataPath("adult.tiny.with-schema.txt");
@@ -1707,7 +1708,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [TestCategory(Cat), TestCategory("FastForest")]
-        [Fact]
+        [RetryFact]
         public void CommandTrainScoreEvaluateQuantileRegression()
         {
             RunMTAThread(() =>
@@ -1848,7 +1849,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [TestCategory(Cat), TestCategory("Ranking"), TestCategory("FastTree")]
-        [Fact]
+        [RetryFact]
         public void CommandTrainRanking()
         {
             // First run a training.
@@ -1968,7 +1969,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [TestCategory(Cat), TestCategory("FieldAwareFactorizationMachine"), TestCategory("Continued Training")]
-        [Fact]
+        [RetryFact]
         public void CommandTrainingBinaryFactorizationMachineWithInitialization()
         {
             const string loaderArgs = "loader=text{col=Label:0 col=Features:1-*}";
@@ -1984,7 +1985,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [TestCategory(Cat), TestCategory("FieldAwareFactorizationMachine"), TestCategory("Continued Training")]
-        [Fact]
+        [RetryFact]
         public void CommandTrainingBinaryFieldAwareFactorizationMachineWithInitialization()
         {
             const string loaderArgs = "loader=text{col=Label:0 col=FieldA:1-2 col=FieldB:3-4 col=FieldC:5-6 col=FieldD:7-9}";
@@ -2053,7 +2054,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [TestCategory(Cat), TestCategory("FieldAwareFactorizationMachine"), TestCategory("Continued Training")]
-        [Fact]
+        [RetryFact]
         public void CommandTrainingBinaryFactorizationMachineWithValidationAndInitialization()
         {
             const string loaderArgs = "loader=text{col=Label:0 col=Features:1-*}";
@@ -2083,7 +2084,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [TestCategory(Cat), TestCategory("FieldAwareFactorizationMachine"), TestCategory("Continued Training")]
-        [Fact]
+        [RetryFact]
         public void CommandTrainingBinaryFieldAwareFactorizationMachineWithValidationAndInitialization()
         {
             const string loaderArgs = "loader=text{col=Label:0 col=FieldA:1-2 col=FieldB:3-4 col=FieldC:5-6 col=FieldD:7-9}";
@@ -2109,7 +2110,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void Datatypes()
         {
             string idvPath = GetDataPath("datatypes.idv");

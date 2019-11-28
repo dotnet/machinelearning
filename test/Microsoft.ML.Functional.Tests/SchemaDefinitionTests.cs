@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -26,7 +27,7 @@ namespace Microsoft.ML.Functional.Tests
             _ml = new MLContext(42);
         }
 
-        [Fact]
+        [RetryFact]
         public void SchemaDefinitionForPredictionEngine()
         {
             var fileName = TestCommon.GetDataPath(DataDir, TestDatasets.adult.trainFilename);
@@ -56,7 +57,7 @@ namespace Microsoft.ML.Functional.Tests
             Assert.True(prediction.Features.Select((x, i) => i == 3 && x == 1 || x == 0).All(b => b));
         }
 
-        [Fact]
+        [RetryFact]
         public void SchemaDefinitionForCustomMapping()
         {
             var fileName = TestCommon.GetDataPath(DataDir, TestDatasets.adult.trainFilename);

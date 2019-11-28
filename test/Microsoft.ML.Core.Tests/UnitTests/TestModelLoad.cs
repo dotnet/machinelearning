@@ -6,6 +6,7 @@ using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.RunTests
@@ -15,7 +16,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Tests loading a model file that was saved using an older version still loads correctly.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void LoadOriginalBinaryLoaderModel()
         {
             var env = new MLContext().AddStandardComponents();
@@ -33,7 +34,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Tests loading a model file containing a ConcatTransform that was saved using an older version.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void LoadOldConcatTransformModel()
         {
             var env = new MLContext().AddStandardComponents();

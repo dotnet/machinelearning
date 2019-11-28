@@ -7,6 +7,7 @@ using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Xunit;
@@ -20,7 +21,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [Fact]
+        [RetryFact]
         public void TestParameterMixingCalibratedModelParametersLoading()
         {
             var data = GetDenseDataset();
@@ -41,7 +42,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestValueMapperCalibratedModelParametersLoading()
         {
             var data = GetDenseDataset();
@@ -64,7 +65,7 @@ namespace Microsoft.ML.Tests
         }
 
 
-        [Fact]
+        [RetryFact]
         public void TestFeatureWeightsCalibratedModelParametersLoading()
         {
             var data = GetDenseDataset();

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers.FastTree;
 using Xunit;
 
@@ -18,7 +19,7 @@ namespace Microsoft.ML.RunTests
             return sub.CreateInstance(env, lowerIsBetter);
         }
 
-        [Fact]
+        [RetryFact]
         public void TolerantEarlyStoppingCriterionTest()
         {
             EarlyStoppingRuleBase cr = CreateEarlyStoppingCriterion("tr", "th=0.01", false);
@@ -43,7 +44,7 @@ namespace Microsoft.ML.RunTests
             Assert.False(isBestCandidate);
         }
 
-        [Fact]
+        [RetryFact]
         public void GLEarlyStoppingCriterionTest()
         {
             EarlyStoppingRuleBase cr = CreateEarlyStoppingCriterion("gl", "th=0.01", false);
@@ -68,7 +69,7 @@ namespace Microsoft.ML.RunTests
             Assert.True(shouldStop);
         }
 
-        [Fact]
+        [RetryFact]
         public void LPEarlyStoppingCriterionTest()
         {
             EarlyStoppingRuleBase cr = CreateEarlyStoppingCriterion("lp", "th=0.01 w=5", false);
@@ -104,7 +105,7 @@ namespace Microsoft.ML.RunTests
             Assert.True(shouldStop);
         }
 
-        [Fact]
+        [RetryFact]
         public void PQEarlyStoppingCriterionTest()
         {
             EarlyStoppingRuleBase cr = CreateEarlyStoppingCriterion("pq", "th=0.01 w=5", false);
@@ -140,7 +141,7 @@ namespace Microsoft.ML.RunTests
             Assert.True(shouldStop);
         }
 
-        [Fact]
+        [RetryFact]
         public void UPEarlyStoppingCriterionTest()
         {
             const int windowSize = 8;

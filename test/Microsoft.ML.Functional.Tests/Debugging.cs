@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
@@ -31,7 +32,7 @@ namespace Microsoft.ML.Functional.Tests
         /// mapped into term numbers [203, 25, 3, 511] then projected into the sparse
         /// float vector {3:1, 25:1, 203:1, 511:1}, etc. etc.
         /// </remarks>
-        [Fact]
+        [RetryFact]
         void InspectIntermediatePipelineSteps()
         {
             var mlContext = new MLContext(seed: 1);
@@ -94,7 +95,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Debugging: The schema of the pipeline can be inspected.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void InspectPipelineSchema()
         {
             var mlContext = new MLContext(seed: 1);
@@ -123,7 +124,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Debugging: The schema read in can be verified by inspecting the data.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void InspectSchemaUponLoadingData()
         {
             var mlContext = new MLContext(seed: 1);
@@ -157,7 +158,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Debugging: The progress of training can be accessed.
         /// </summary>
-        [Fact]
+        [RetryFact]
         public void ViewTrainingOutput()
         {
             var mlContext = new MLContext(seed: 1);

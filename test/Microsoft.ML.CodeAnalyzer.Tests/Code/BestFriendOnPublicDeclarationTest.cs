@@ -6,6 +6,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.ML.CodeAnalyzer.Tests.Helpers;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using VerifyCS = Microsoft.ML.CodeAnalyzer.Tests.Helpers.CSharpCodeFixVerifier<
     Microsoft.ML.InternalCodeAnalyzer.BestFriendOnPublicDeclarationsAnalyzer,
@@ -18,7 +19,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
         private readonly Lazy<string> SourceAttribute = TestUtils.LazySource("BestFriendAttribute.cs");
         private readonly Lazy<string> SourceDeclaration = TestUtils.LazySource("BestFriendOnPublicDeclaration.cs");
 
-        [Fact]
+        [RetryFact]
         public async Task BestFriendOnPublicDeclaration()
         {
             var expected = new DiagnosticResult[] {

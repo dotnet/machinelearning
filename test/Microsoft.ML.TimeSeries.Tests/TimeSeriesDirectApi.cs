@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
 
@@ -85,7 +86,7 @@ namespace Microsoft.ML.Tests
             public double[] Prediction { get; set; }
         }
 
-        [Fact]
+        [RetryFact]
         public void ChangeDetection()
         {
             var env = new MLContext();
@@ -466,7 +467,7 @@ namespace Microsoft.ML.Tests
             
         }
 
-        [Fact]
+        [RetryFact]
         public void AnomalyDetectionWithSrCnn()
         {
             var ml = new MLContext();

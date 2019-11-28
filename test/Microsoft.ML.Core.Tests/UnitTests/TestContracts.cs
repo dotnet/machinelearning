@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 namespace Microsoft.ML.RunTests
 {
@@ -38,7 +39,7 @@ namespace Microsoft.ML.RunTests
             Assert.True(caught, "Exception was not caught at all");
         }
 
-        [Fact]
+        [RetryFact]
         public void ExceptionSensitivity()
         {
             var env = new MLContext();

@@ -5,6 +5,7 @@
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
@@ -27,7 +28,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     }).Load(GetDataPath(TestDatasets.breastCancer.trainFilename));
         }
 
-        [Fact]
+        [RetryFact]
         public void TestEstimatorPrior()
         {
             var dataView = GetBreastCancerDataviewWithTextColumns();

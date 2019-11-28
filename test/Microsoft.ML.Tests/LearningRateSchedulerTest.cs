@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Xunit;
 using Xunit.Abstractions;
@@ -15,7 +16,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [Fact]
+        [RetryFact]
         public void TestPolynomialDecayNoCycle()
         {
             //Values obtained by running tf.compat.v1.train.polynomial_decay on TF 1.14
@@ -25,7 +26,7 @@ namespace Microsoft.ML.Tests
             TestPolynomialDecay(expectedValues, false);
         }
 
-        [Fact]
+        [RetryFact]
         public void TestPolynomialDecayCycle()
         {
             //Values obtained by running tf.compat.v1.train.polynomial_decay on TF 1.14

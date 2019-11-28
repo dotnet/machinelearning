@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -29,7 +30,7 @@ namespace Microsoft.ML.RunTests
             public VBuffer<T> X;
         }
 
-        [Fact]
+        [RetryFact]
         [TestCategory(Cat)]
         public void SparseDataView()
         {
@@ -69,7 +70,7 @@ namespace Microsoft.ML.RunTests
             Assert.True(n == 2);
         }
 
-        [Fact]
+        [RetryFact]
         [TestCategory(Cat)]
         public void DenseDataView()
         {

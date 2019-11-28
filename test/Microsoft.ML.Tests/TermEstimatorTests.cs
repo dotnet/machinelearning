@@ -8,6 +8,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -48,7 +49,7 @@ namespace Microsoft.ML.Tests
             public string Term;
         }
 
-        [Fact]
+        [RetryFact]
         void TestDifferentTypes()
         {
             string dataPath = GetDataPath("adult.tiny.with-schema.txt");
@@ -91,7 +92,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         void TestSimpleCase()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
@@ -109,7 +110,7 @@ namespace Microsoft.ML.Tests
             TestEstimatorCore(pipe, dataView, null, invalidData, validFitNotValidTransformData);
         }
 
-        [Fact]
+        [RetryFact]
         void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
@@ -131,7 +132,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Fact]
+        [RetryFact]
         void TestMetadataCopy()
         {
             var data = new[] { new TestMetaClass() { Term = "A", NotUsed = 1 }, new TestMetaClass() { Term = "B" }, new TestMetaClass() { Term = "C" } };
@@ -149,7 +150,7 @@ namespace Microsoft.ML.Tests
             Assert.True(names1.GetValues().Length > 0);
         }
 
-        [Fact]
+        [RetryFact]
         void TestCommandLine()
         {
             Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=Term{col=B:A} in=f:\2.txt" }));

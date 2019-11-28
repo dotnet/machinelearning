@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Transformers
@@ -42,7 +43,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.False(LineParser.ParseKeyThenNumbers(input, true).isSuccess);
         }
 
-        [Fact]
+        [RetryFact]
         public void LineParserAndCulture()
         {
             var currentCulture = Thread.CurrentThread.CurrentCulture;
