@@ -43,8 +43,18 @@ namespace Microsoft.ML.TestFrameworkCommon
                 // This is really the only tricky bit: we need to capture and delay messages (since those will
                 // contain run status) until we know we've decided to accept the final result;
                 var delayedMessageBus = new DelayedMessageBus(messageBus);
+                RunSummary summary = null;
 
-                var summary = await base.RunAsync(diagnosticMessageSink, delayedMessageBus, constructorArguments, aggregator, cancellationTokenSource);
+                try
+                {
+                    summary = await base.RunAsync(diagnosticMessageSink, delayedMessageBus, constructorArguments, aggregator, cancellationTokenSource);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Test {DisplayName} has unhandled exception {ex.StackTrace}.");
+                    Console.WriteLine($"Call stack is : {new System.Diagnostics.StackTrace().ToString()}");
+                }
+
                 if (aggregator.HasExceptions || summary.Failed == 0 || ++runCount >= maxRetries)
                 {
                     delayedMessageBus.Dispose();  // Sends all the delayed messages
@@ -52,6 +62,7 @@ namespace Microsoft.ML.TestFrameworkCommon
                 }
 
                 diagnosticMessageSink.OnMessage(new DiagnosticMessage("Execution of '{0}' failed (attempt #{1}), retrying...", DisplayName, runCount));
+                Console.WriteLine("Execution of '{0}' failed (attempt #{1}), retrying...", DisplayName, runCount);
             }
         }
 
