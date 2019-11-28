@@ -47,6 +47,9 @@ namespace Microsoft.ML.TestFrameworkCommon
 
                 try
                 {
+                    //default timeout for every test case
+                    Timeout = 5 * 60 * 1000;
+
                     summary = await base.RunAsync(diagnosticMessageSink, delayedMessageBus, constructorArguments, aggregator, cancellationTokenSource);
                 }
                 catch (Exception ex)
