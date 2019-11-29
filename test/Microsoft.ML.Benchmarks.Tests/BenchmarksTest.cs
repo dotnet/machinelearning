@@ -43,7 +43,7 @@ namespace Microsoft.ML.Benchmarks.Tests
             return benchmarks;
         }
 
-        [BenchmarkTheory]
+        [BenchmarkTheory(Timeout = 10*60*1000)]
         [MemberData(nameof(GetBenchmarks))]
         public void BenchmarksProjectIsNotBroken(Type type)
         {
