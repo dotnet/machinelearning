@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
+using System.Reflection;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 
@@ -305,10 +307,10 @@ namespace Microsoft.ML
             Contracts.CheckValueOrNull(ectx);
             ectx.CheckValue(stream, nameof(stream));
             var rep = new RepositoryWriter(stream, ectx, useFileSystem);
-            var versionInfo = FileVersionInfo.GetVersionInfo(typeof(RepositoryWriter).Assembly.Location);
+
             using (var ent = rep.CreateEntry(DirTrainingInfo, "Version.txt"))
             using (var writer = Utils.OpenWriter(ent.Stream))
-                writer.WriteLine(versionInfo.ProductVersion);
+                writer.WriteLine(GetProductVersion());
             return rep;
         }
 
@@ -431,6 +433,24 @@ namespace Microsoft.ML
             DisposeAllEntries();
             Flush();
             Dispose(true);
+        }
+
+        private static string GetProductVersion()
+        {
+            var assembly = typeof(RepositoryWriter).Assembly;
+
+            var assemblyInternationalVersionAttribute = assembly.CustomAttributes.FirstOrDefault(a =>
+                    a.AttributeType == typeof(AssemblyInformationalVersionAttribute));
+
+            if (assemblyInternationalVersionAttribute == null)
+            {
+                throw new ApplicationException($"Cannot determine product version from assembly {assembly.FullName}.");
+            }
+
+            return assemblyInternationalVersionAttribute.ConstructorArguments
+                .First()
+                .Value
+                .ToString();
         }
     }
 
