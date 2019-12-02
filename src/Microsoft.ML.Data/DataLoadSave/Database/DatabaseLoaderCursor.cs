@@ -71,7 +71,7 @@ namespace Microsoft.ML.Data
                     {
                         _command = Connection.CreateCommand();
                         _command.CommandText = _source.CommandText;
-                        _command.CommandTimeout = _source.CommandTimeout;
+                        _command.CommandTimeout = _source.CommandTimeoutInSeconds;
                     }
                     return _command;
                 }

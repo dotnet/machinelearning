@@ -81,7 +81,7 @@ namespace Microsoft.ML.Tests
         }
 
         [LightGBMFact]
-        public void IrisLightGbmConnectionTimeout()
+        public void IrisLightGbmCommandTimeout()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
