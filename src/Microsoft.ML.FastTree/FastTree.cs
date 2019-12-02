@@ -3049,6 +3049,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected virtual bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
         {
             Host.CheckValue(ctx, nameof(ctx));
+            Host.Check(Utils.Size(outputNames) >= 1);
 
             //Nodes.
             var nodesTreeids = new List<long>();
@@ -3111,7 +3112,8 @@ namespace Microsoft.ML.Trainers.FastTree
             }
 
             string opType = "TreeEnsembleRegressor";
-            var node = ctx.CreateNode(opType, new[] { featureColumn }, outputNames, ctx.GetNodeName(opType));
+            string scoreVarName = (Utils.Size(outputNames) == 2) ? outputNames[1] : outputNames[0]; // Get Score from PredictedLabel and/or Score columns
+            var node = ctx.CreateNode(opType, new[] { featureColumn }, new[] { scoreVarName }, ctx.GetNodeName(opType));
 
             node.AddAttribute("post_transform", PostTransform.None.GetDescription());
             node.AddAttribute("n_targets", 1);

@@ -134,6 +134,15 @@ namespace Microsoft.ML.Tests
             public float[] Features;
         }
 
+        private class BreastCancerBinaryClassification
+        {
+            [LoadColumn(0)]
+            public bool Label;
+
+            [LoadColumn(2, 9), VectorType(8)]
+            public float[] Features;
+        }
+
         [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline. Tracked by https://github.com/dotnet/machinelearning/issues/2087")]
         public void KmeansOnnxConversionTest()
         {
@@ -202,14 +211,15 @@ namespace Microsoft.ML.Tests
             List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
             {
                 mlContext.Regression.Trainers.Sdca("Target","FeatureVector"),
-                mlContext.Regression.Trainers.Ols("Target","FeatureVector"), 
+                mlContext.Regression.Trainers.Ols("Target","FeatureVector"),
                 mlContext.Regression.Trainers.OnlineGradientDescent("Target","FeatureVector"),
                 mlContext.Regression.Trainers.FastForest("Target", "FeatureVector"),
                 mlContext.Regression.Trainers.FastTree("Target", "FeatureVector"),
                 mlContext.Regression.Trainers.FastTreeTweedie("Target", "FeatureVector"),
                 mlContext.Regression.Trainers.LbfgsPoissonRegression("Target", "FeatureVector"),
             };
-            if (Environment.Is64BitProcess) {
+            if (Environment.Is64BitProcess)
+            {
                 estimators.Add(mlContext.Regression.Trainers.LightGbm("Target", "FeatureVector"));
             }
             foreach (var estimator in estimators)
@@ -232,13 +242,65 @@ namespace Microsoft.ML.Tests
                     CompareSelectedR4ScalarColumns(transformedData.Schema[2].Name, outputNames[2], transformedData, onnxResult, 3); // compare score results 
                 }
                 // Compare the Onnx graph to a baseline if OnnxRuntime is not supported
-                else 
+                else
                 {
                     var onnxFileName = $"{estimator.ToString()}.txt";
                     var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "Regression", "Adult");
                     var onnxTextModelPath = GetOutputPath(subDir, onnxFileName);
                     SaveOnnxModel(onnxModel, null, onnxTextModelPath);
                     CheckEquality(subDir, onnxFileName, digitsOfPrecision: 1);
+                }
+            }
+            Done();
+        }
+
+        [Fact]
+        public void BinaryClassificationTrainersOnnxConversionTest()
+        {
+            var mlContext = new MLContext(seed: 1);
+            string dataPath = GetDataPath("breast-cancer.txt");
+            // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
+            var dataView = mlContext.Data.LoadFromTextFile<BreastCancerBinaryClassification>(dataPath, separatorChar: '\t', hasHeader: true);
+            List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
+            {
+                mlContext.BinaryClassification.Trainers.AveragedPerceptron(),
+                mlContext.BinaryClassification.Trainers.FastForest(),
+                mlContext.BinaryClassification.Trainers.FastTree(),
+                mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(),
+                mlContext.BinaryClassification.Trainers.LinearSvm(),
+                mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(),
+                mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(),
+                mlContext.BinaryClassification.Trainers.SgdCalibrated(),
+                mlContext.BinaryClassification.Trainers.SgdNonCalibrated(),
+                mlContext.BinaryClassification.Trainers.SymbolicSgdLogisticRegression(),
+            };
+            if (Environment.Is64BitProcess)
+            {
+                estimators.Add(mlContext.BinaryClassification.Trainers.LightGbm());
+            }
+
+            var initialPipeline = mlContext.Transforms.ReplaceMissingValues("Features").
+                Append(mlContext.Transforms.NormalizeMinMax("Features"));
+            foreach (var estimator in estimators)
+            {
+                var pipeline = initialPipeline.Append(estimator);
+                var model = pipeline.Fit(dataView);
+                var transformedData = model.Transform(dataView);
+                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+                // Compare model scores produced by ML.NET and ONNX's runtime.
+                if (IsOnnxRuntimeSupported())
+                {
+                    var onnxFileName = $"{estimator.ToString()}.onnx";
+                    var onnxModelPath = GetOutputPath(onnxFileName);
+                    SaveOnnxModel(onnxModel, onnxModelPath, null);
+                    // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                    string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                    string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                    var onnxTransformer = onnxEstimator.Fit(dataView);
+                    var onnxResult = onnxTransformer.Transform(dataView);
+                    CompareSelectedR4ScalarColumns(transformedData.Schema[5].Name, outputNames[3], transformedData, onnxResult, 3);
+                    CompareSelectedScalarColumns<Boolean>(transformedData.Schema[4].Name, outputNames[2], transformedData, onnxResult);
                 }
             }
             Done();
@@ -1225,7 +1287,8 @@ namespace Microsoft.ML.Tests
             var dummyExample = new BreastCancerFeatureVector() { Features = null };
             var dummyExample1 = new BreastCancerCatFeatureExample() { Label = false, F1 = 0, F2 = "Amy" };
             var dummyExample2 = new BreastCancerMulticlassExample() { Label = "Amy", Features = null };
-            var dummyExample3 = new SmallSentimentExample() { Tokens = null };
+            var dummyExample3 = new BreastCancerBinaryClassification() { Label = false, Features = null };
+            var dummyExample4 = new SmallSentimentExample() { Tokens = null };
         }
 
         private void CompareResults(string leftColumnName, string rightColumnName, IDataView left, IDataView right)
