@@ -184,6 +184,7 @@ namespace Microsoft.ML.Data
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Assert(Bindable is IBindableCanSaveOnnx);
+            Host.Assert(Bindings.InfoCount >= 2);
 
             if (!ctx.ContainsColumn(DefaultColumnNames.Features))
                 return;
@@ -199,31 +200,26 @@ namespace Microsoft.ML.Data
 
             /* If the probability column was generated, then the classification threshold is set to 0.5. Otherwise,
                the predicted label is based on the sign of the score.
-               REVIEW: Binarizer should always have at least two output columns?
              */
             string opType = "Binarizer";
+            OnnxNode node;
             var binarizerOutput = ctx.AddIntermediateVariable(null, "BinarizerOutput", true);
 
-            if (Bindings.InfoCount >= 3 && ctx.ContainsColumn(outColumnNames[2]))
+            if (Bindings.InfoCount >= 3)
             {
-                var node = ctx.CreateNode(opType, ctx.GetVariableName(outColumnNames[2]), binarizerOutput, ctx.GetNodeName(opType));
+                Host.Assert(ctx.ContainsColumn(outColumnNames[2]));
+                node = ctx.CreateNode(opType, ctx.GetVariableName(outColumnNames[2]), binarizerOutput, ctx.GetNodeName(opType));
                 node.AddAttribute("threshold", 0.5);
-
-                opType = "Cast";
-                node = ctx.CreateNode(opType, binarizerOutput, ctx.GetVariableName(outColumnNames[0]), ctx.GetNodeName(opType), "");
-                var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Boolean).ToType();
-                node.AddAttribute("to", t);
             }
-            else if (Bindings.InfoCount == 2)
+            else
             {
-                var node = ctx.CreateNode(opType, ctx.GetVariableName(outColumnNames[1]), binarizerOutput, ctx.GetNodeName(opType));
+                node = ctx.CreateNode(opType, ctx.GetVariableName(outColumnNames[1]), binarizerOutput, ctx.GetNodeName(opType));
                 node.AddAttribute("threshold", 0.0);
-
-                opType = "Cast";
-                node = ctx.CreateNode(opType, binarizerOutput, ctx.GetVariableName(outColumnNames[0]), ctx.GetNodeName(opType), "");
-                var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Boolean).ToType();
-                node.AddAttribute("to", t);
             }
+            opType = "Cast";
+            node = ctx.CreateNode(opType, binarizerOutput, ctx.GetVariableName(outColumnNames[0]), ctx.GetNodeName(opType), "");
+            var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Boolean).ToType();
+            node.AddAttribute("to", t);
         }
 
         private protected override IDataTransform ApplyToDataCore(IHostEnvironment env, IDataView newSource)
