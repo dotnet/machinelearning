@@ -1,0 +1,6 @@
+---- BoundLoader ----
+4 columns:
+  A: Int32
+  N: String
+  VI: Vector<String, 29>
+  VR: Vector<String, 29>

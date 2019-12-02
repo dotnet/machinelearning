@@ -1,0 +1,714 @@
+===== Start Script 1, lines 1 to 4 =====
+Binding succeeded. Output type: Boolean
+Compiling succeeded.
+1
+===== End Script 1, lines 1 to 4 =====
+===== Start Script 2, lines 5 to 8 =====
+Binding succeeded. Output type: Boolean
+Compiling succeeded.
+1
+===== End Script 2, lines 5 to 8 =====
+===== Start Script 3, lines 9 to 15 =====
+Binding succeeded. Output type: Int32
+Compiling succeeded.
+-1
+0
+1
+*** Parsing ? Failed *** 0
+===== End Script 3, lines 9 to 15 =====
+===== Start Script 4, lines 16 to 22 =====
+Binding succeeded. Output type: Int64
+Compiling succeeded.
+-1
+0
+1
+*** Parsing ? Failed *** 0
+===== End Script 4, lines 16 to 22 =====
+===== Start Script 5, lines 23 to 30 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+-1
+0
+0
+1
+?
+===== End Script 5, lines 23 to 30 =====
+===== Start Script 6, lines 31 to 38 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+-1
+0
+0
+1
+?
+===== End Script 6, lines 31 to 38 =====
+===== Start Script 7, lines 39 to 45 =====
+Binding succeeded. Output type: Int32
+Compiling succeeded.
+1
+0
+-1
+*** Parsing ? Failed *** 0
+===== End Script 7, lines 39 to 45 =====
+===== Start Script 8, lines 46 to 52 =====
+Binding succeeded. Output type: Int64
+Compiling succeeded.
+1
+0
+-1
+*** Parsing ? Failed *** 0
+===== End Script 8, lines 46 to 52 =====
+===== Start Script 9, lines 53 to 60 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+1
+0
+0
+-1
+?
+===== End Script 9, lines 53 to 60 =====
+===== Start Script 10, lines 61 to 68 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+1
+0
+0
+-1
+?
+===== End Script 10, lines 61 to 68 =====
+===== Start Script 11, lines 69 to 76 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+-1
+1
+-1
+1
+?
+===== End Script 11, lines 69 to 76 =====
+===== Start Script 12, lines 77 to 84 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+-1
+1
+-1
+1
+?
+===== End Script 12, lines 77 to 84 =====
+===== Start Script 13, lines 85 to 88 =====
+Binding succeeded. Output type: Int32
+Compiling succeeded.
+*** Parsing ? Failed *** -1
+===== End Script 13, lines 85 to 88 =====
+===== Start Script 14, lines 89 to 92 =====
+Binding succeeded. Output type: Int64
+Compiling succeeded.
+*** Parsing ? Failed *** 1
+===== End Script 14, lines 89 to 92 =====
+===== Start Script 15, lines 93 to 96 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+0
+===== End Script 15, lines 93 to 96 =====
+===== Start Script 16, lines 97 to 100 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+0
+===== End Script 16, lines 97 to 100 =====
+===== Start Script 17, lines 101 to 104 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+1
+===== End Script 17, lines 101 to 104 =====
+===== Start Script 18, lines 105 to 108 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+-1
+===== End Script 18, lines 105 to 108 =====
+===== Start Script 19, lines 109 to 112 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+?
+===== End Script 19, lines 109 to 112 =====
+===== Start Script 20, lines 113 to 114 =====
+  ExprBindExInput.txt(113,10)-(113,11): error: at 'OpenParen': The best overload of 'min' has some invalid arguments
+  ExprBindExInput.txt(113,11)-(113,12): error: at 'Ident: x': Invalid integer operand
+  ExprBindExInput.txt(113,14)-(113,19): error: at '"hey"': Invalid integer operand
+  ExprBindExInput.txt(113,26)-(113,27): error: at 'OpenParen': The best overload of 'max' has some invalid arguments
+  ExprBindExInput.txt(113,27)-(113,28): error: at 'Ident: x': Invalid integer operand
+  ExprBindExInput.txt(113,30)-(113,35): error: at '"hey"': Invalid integer operand
+===== End Script 20, lines 113 to 114 =====
+===== Start Script 21, lines 115 to 125 =====
+Binding succeeded. Output type: Int32
+Compiling succeeded.
+-3
+2
+2
+17
+0
+2
+*** Parsing ? Failed *** 0
+*** Parsing ? Failed *** 2
+===== End Script 21, lines 115 to 125 =====
+===== Start Script 22, lines 126 to 138 =====
+Binding succeeded. Output type: Int32
+Compiling succeeded.
+-3
+15
+12
+15
+15
+17
+0
+15
+*** Parsing ? Failed *** 0
+*** Parsing ? Failed *** 15
+===== End Script 22, lines 126 to 138 =====
+===== Start Script 23, lines 139 to 140 =====
+  ExprBindExInput.txt(139,10)-(139,11): error: at 'OpenParen': Expected 2 arguments to function 'min'
+  ExprBindExInput.txt(139,19)-(139,20): error: at 'OpenParen': Expected 2 arguments to function 'min'
+  ExprBindExInput.txt(139,35)-(139,36): error: at 'OpenParen': The best overload of 'min' has some invalid arguments
+  ExprBindExInput.txt(139,39)-(139,43): error: at 'True': Invalid integer operand
+  ExprBindExInput.txt(139,50)-(139,51): error: at 'OpenParen': The best overload of 'min' has some invalid arguments
+  ExprBindExInput.txt(139,51)-(139,55): error: at '"hi"': Invalid integer operand
+  ExprBindExInput.txt(139,65)-(139,66): error: at 'OpenParen': Expected 2 arguments to function 'max'
+  ExprBindExInput.txt(139,74)-(139,75): error: at 'OpenParen': Expected 2 arguments to function 'max'
+  ExprBindExInput.txt(139,90)-(139,91): error: at 'OpenParen': The best overload of 'max' has some invalid arguments
+  ExprBindExInput.txt(139,94)-(139,98): error: at 'True': Invalid integer operand
+  ExprBindExInput.txt(139,105)-(139,106): error: at 'OpenParen': The best overload of 'max' has some invalid arguments
+  ExprBindExInput.txt(139,106)-(139,110): error: at '"hi"': Invalid integer operand
+===== End Script 23, lines 139 to 140 =====
+===== Start Script 24, lines 141 to 145 =====
+Binding succeeded. Output type: Int32
+Compiling succeeded.
+*** Parsing ? Failed *** 35
+*** Parsing ? Failed *** 67
+===== End Script 24, lines 141 to 145 =====
+===== Start Script 25, lines 146 to 149 =====
+Binding succeeded. Output type: Boolean
+Compiling succeeded.
+1
+===== End Script 25, lines 146 to 149 =====
+===== Start Script 26, lines 150 to 160 =====
+Binding succeeded. Output type: Int64
+Compiling succeeded.
+-3
+2
+2
+17
+0
+2
+*** Parsing ? Failed *** 0
+*** Parsing ? Failed *** 2
+===== End Script 26, lines 150 to 160 =====
+===== Start Script 27, lines 161 to 173 =====
+Binding succeeded. Output type: Int64
+Compiling succeeded.
+-3
+15
+12
+15
+15
+17
+0
+15
+*** Parsing ? Failed *** 0
+*** Parsing ? Failed *** 15
+===== End Script 27, lines 161 to 173 =====
+===== Start Script 28, lines 174 to 175 =====
+  ExprBindExInput.txt(174,10)-(174,11): error: at 'OpenParen': Expected 2 arguments to function 'min'
+  ExprBindExInput.txt(174,19)-(174,20): error: at 'OpenParen': Expected 2 arguments to function 'min'
+  ExprBindExInput.txt(174,35)-(174,36): error: at 'OpenParen': The best overload of 'min' has some invalid arguments
+  ExprBindExInput.txt(174,39)-(174,43): error: at 'True': Invalid integer operand
+  ExprBindExInput.txt(174,50)-(174,51): error: at 'OpenParen': The best overload of 'min' has some invalid arguments
+  ExprBindExInput.txt(174,51)-(174,55): error: at '"hi"': Invalid integer operand
+  ExprBindExInput.txt(174,65)-(174,66): error: at 'OpenParen': Expected 2 arguments to function 'max'
+  ExprBindExInput.txt(174,74)-(174,75): error: at 'OpenParen': Expected 2 arguments to function 'max'
+  ExprBindExInput.txt(174,90)-(174,91): error: at 'OpenParen': The best overload of 'max' has some invalid arguments
+  ExprBindExInput.txt(174,94)-(174,98): error: at 'True': Invalid integer operand
+  ExprBindExInput.txt(174,105)-(174,106): error: at 'OpenParen': The best overload of 'max' has some invalid arguments
+  ExprBindExInput.txt(174,106)-(174,110): error: at '"hi"': Invalid integer operand
+===== End Script 28, lines 174 to 175 =====
+===== Start Script 29, lines 176 to 180 =====
+Binding succeeded. Output type: Int64
+Compiling succeeded.
+*** Parsing ? Failed *** 35
+*** Parsing ? Failed *** 67
+===== End Script 29, lines 176 to 180 =====
+===== Start Script 30, lines 181 to 184 =====
+Binding succeeded. Output type: Boolean
+Compiling succeeded.
+1
+===== End Script 30, lines 181 to 184 =====
+===== Start Script 31, lines 185 to 195 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+-3
+2
+2
+17
+0
+2
+?
+?
+===== End Script 31, lines 185 to 195 =====
+===== Start Script 32, lines 196 to 208 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+-3
+15
+12
+15
+15
+17
+0
+15
+?
+?
+===== End Script 32, lines 196 to 208 =====
+===== Start Script 33, lines 209 to 210 =====
+  ExprBindExInput.txt(209,10)-(209,11): error: at 'OpenParen': Expected 2 arguments to function 'min'
+  ExprBindExInput.txt(209,19)-(209,20): error: at 'OpenParen': Expected 2 arguments to function 'min'
+  ExprBindExInput.txt(209,35)-(209,36): error: at 'OpenParen': The best overload of 'min' has some invalid arguments
+  ExprBindExInput.txt(209,39)-(209,43): error: at 'True': Invalid numeric operand
+  ExprBindExInput.txt(209,50)-(209,51): error: at 'OpenParen': The best overload of 'min' has some invalid arguments
+  ExprBindExInput.txt(209,51)-(209,55): error: at '"hi"': Invalid numeric operand
+  ExprBindExInput.txt(209,65)-(209,66): error: at 'OpenParen': Expected 2 arguments to function 'max'
+  ExprBindExInput.txt(209,74)-(209,75): error: at 'OpenParen': Expected 2 arguments to function 'max'
+  ExprBindExInput.txt(209,90)-(209,91): error: at 'OpenParen': The best overload of 'max' has some invalid arguments
+  ExprBindExInput.txt(209,94)-(209,98): error: at 'True': Invalid numeric operand
+  ExprBindExInput.txt(209,105)-(209,106): error: at 'OpenParen': The best overload of 'max' has some invalid arguments
+  ExprBindExInput.txt(209,106)-(209,110): error: at '"hi"': Invalid numeric operand
+===== End Script 33, lines 209 to 210 =====
+===== Start Script 34, lines 211 to 215 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+35
+67
+===== End Script 34, lines 211 to 215 =====
+===== Start Script 35, lines 216 to 219 =====
+Binding succeeded. Output type: Boolean
+Compiling succeeded.
+1
+===== End Script 35, lines 216 to 219 =====
+===== Start Script 36, lines 220 to 230 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+-3
+2
+2
+17
+0
+2
+?
+?
+===== End Script 36, lines 220 to 230 =====
+===== Start Script 37, lines 231 to 243 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+-3
+15
+12
+15
+15
+17
+0
+15
+?
+?
+===== End Script 37, lines 231 to 243 =====
+===== Start Script 38, lines 244 to 245 =====
+  ExprBindExInput.txt(244,10)-(244,11): error: at 'OpenParen': Expected 2 arguments to function 'min'
+  ExprBindExInput.txt(244,19)-(244,20): error: at 'OpenParen': Expected 2 arguments to function 'min'
+  ExprBindExInput.txt(244,35)-(244,36): error: at 'OpenParen': The best overload of 'min' has some invalid arguments
+  ExprBindExInput.txt(244,39)-(244,43): error: at 'True': Invalid numeric operand
+  ExprBindExInput.txt(244,50)-(244,51): error: at 'OpenParen': The best overload of 'min' has some invalid arguments
+  ExprBindExInput.txt(244,51)-(244,55): error: at '"hi"': Invalid numeric operand
+  ExprBindExInput.txt(244,65)-(244,66): error: at 'OpenParen': Expected 2 arguments to function 'max'
+  ExprBindExInput.txt(244,74)-(244,75): error: at 'OpenParen': Expected 2 arguments to function 'max'
+  ExprBindExInput.txt(244,90)-(244,91): error: at 'OpenParen': The best overload of 'max' has some invalid arguments
+  ExprBindExInput.txt(244,94)-(244,98): error: at 'True': Invalid numeric operand
+  ExprBindExInput.txt(244,105)-(244,106): error: at 'OpenParen': The best overload of 'max' has some invalid arguments
+  ExprBindExInput.txt(244,106)-(244,110): error: at '"hi"': Invalid numeric operand
+===== End Script 38, lines 244 to 245 =====
+===== Start Script 39, lines 246 to 250 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+35
+67
+===== End Script 39, lines 246 to 250 =====
+===== Start Script 40, lines 251 to 254 =====
+Binding succeeded. Output type: Boolean
+Compiling succeeded.
+1
+===== End Script 40, lines 251 to 254 =====
+===== Start Script 41, lines 255 to 256 =====
+  ExprBindExInput.txt(255,16)-(255,17): error: at 'OpenParen': Expected 2 arguments to function 'atan2'
+  ExprBindExInput.txt(255,27)-(255,28): error: at 'OpenParen': Expected 2 arguments to function 'atan2'
+  ExprBindExInput.txt(255,45)-(255,46): error: at 'OpenParen': The best overload of 'atanyx' has some invalid arguments
+  ExprBindExInput.txt(255,51)-(255,53): error: at 'EquEqu': Invalid numeric operand
+  ExprBindExInput.txt(255,65)-(255,66): error: at 'OpenParen': The best overload of 'atanyx' has some invalid arguments
+  ExprBindExInput.txt(255,66)-(255,70): error: at '"hi"': Invalid numeric operand
+===== End Script 41, lines 255 to 256 =====
+===== Start Script 42, lines 257 to 258 =====
+  ExprBindExInput.txt(257,16)-(257,17): error: at 'OpenParen': Expected 2 arguments to function 'atan2'
+  ExprBindExInput.txt(257,27)-(257,28): error: at 'OpenParen': Expected 2 arguments to function 'atan2'
+  ExprBindExInput.txt(257,45)-(257,46): error: at 'OpenParen': The best overload of 'atanyx' has some invalid arguments
+  ExprBindExInput.txt(257,51)-(257,53): error: at 'EquEqu': Invalid numeric operand
+  ExprBindExInput.txt(257,65)-(257,66): error: at 'OpenParen': The best overload of 'atanyx' has some invalid arguments
+  ExprBindExInput.txt(257,66)-(257,70): error: at '"hi"': Invalid numeric operand
+===== End Script 42, lines 257 to 258 =====
+===== Start Script 43, lines 259 to 289 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+0
+180
+-180
+0
+0
+45
+90
+135
+180
+-135
+-90
+-45
+0
+?
+?
+?
+0
+90
+90
+180
+-180
+-90
+-90
+0
+?
+?
+?
+?
+===== End Script 43, lines 259 to 289 =====
+===== Start Script 44, lines 290 to 320 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+0
+180
+-180
+0
+0
+45
+90
+135
+180
+-135
+-90
+-45
+0
+?
+?
+?
+0
+90
+90
+180
+-180
+-90
+-90
+0
+?
+?
+?
+?
+===== End Script 44, lines 290 to 320 =====
+===== Start Script 45, lines 321 to 345 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+0
+45
+90
+135
+180
+-135
+-90
+?
+?
+?
+1234567
+===== End Script 45, lines 321 to 345 =====
+===== Start Script 46, lines 346 to 349 =====
+Binding succeeded. Output type: Boolean
+Compiling succeeded.
+1
+===== End Script 46, lines 346 to 349 =====
+===== Start Script 47, lines 350 to 374 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+0
+45
+90
+135
+180
+-135
+-90
+?
+?
+?
+1234567
+===== End Script 47, lines 350 to 374 =====
+===== Start Script 48, lines 375 to 378 =====
+Binding succeeded. Output type: Boolean
+Compiling succeeded.
+1
+===== End Script 48, lines 375 to 378 =====
+===== Start Script 49, lines 379 to 380 =====
+  ExprBindExInput.txt(379,10)-(379,11): error: at 'OpenParen': Expected one argument to function 'deg'
+  ExprBindExInput.txt(379,18)-(379,19): error: at 'OpenParen': Expected one argument to function 'deg'
+  ExprBindExInput.txt(379,29)-(379,30): error: at 'OpenParen': Expected one argument to function 'rad'
+  ExprBindExInput.txt(379,37)-(379,38): error: at 'OpenParen': Expected one argument to function 'rad'
+  ExprBindExInput.txt(379,48)-(379,49): error: at 'OpenParen': The best overload of 'rad' has some invalid arguments
+  ExprBindExInput.txt(379,53)-(379,54): error: at 'OpenParen': Invalid numeric operand
+===== End Script 49, lines 379 to 380 =====
+===== Start Script 50, lines 381 to 394 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+0
+90
+30
+-45
+?
+===== End Script 50, lines 381 to 394 =====
+===== Start Script 51, lines 395 to 408 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+0
+90
+29.999999999999996
+-45
+?
+===== End Script 51, lines 395 to 408 =====
+===== Start Script 52, lines 409 to 422 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+0
+1.57079637
+0.5235988
+-0.7853982
+?
+===== End Script 52, lines 409 to 422 =====
+===== Start Script 53, lines 423 to 436 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+0
+1.5707963267948966
+0.52359877559829882
+-0.78539816339744828
+?
+===== End Script 53, lines 423 to 436 =====
+===== Start Script 54, lines 437 to 445 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+0
+30
+45
+-60
+90
+?
+===== End Script 54, lines 437 to 445 =====
+===== Start Script 55, lines 446 to 454 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+0
+29.999999999999996
+45
+-59.999999999999993
+90
+?
+===== End Script 55, lines 446 to 454 =====
+===== Start Script 56, lines 455 to 463 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+0
+0
+0
+0
+0
+?
+===== End Script 56, lines 455 to 463 =====
+===== Start Script 57, lines 464 to 472 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+0
+0
+0
+0
+0
+?
+===== End Script 57, lines 464 to 472 =====
+===== Start Script 58, lines 473 to 478 =====
+  ExprBindExInput.txt(477,43)-(477,44): error: at 'Semi': Expected end of input
+===== End Script 58, lines 473 to 478 =====
+===== Start Script 59, lines 479 to 484 =====
+  ExprBindExInput.txt(480,14)-(480,15): error: at 'OpenParen': Expected one argument to function 'trunc'
+  ExprBindExInput.txt(480,24)-(480,25): error: at 'OpenParen': Expected one argument to function 'trunc'
+  ExprBindExInput.txt(480,37)-(480,38): error: at 'OpenParen': The best overload of 'trunc' has some invalid arguments
+  ExprBindExInput.txt(480,38)-(480,42): error: at 'True': Invalid numeric operand
+  ExprBindExInput.txt(481,14)-(481,15): error: at 'OpenParen': Expected one argument to function 'ceil'
+  ExprBindExInput.txt(481,24)-(481,25): error: at 'OpenParen': Expected one argument to function 'ceil'
+  ExprBindExInput.txt(481,37)-(481,38): error: at 'OpenParen': The best overload of 'ceil' has some invalid arguments
+  ExprBindExInput.txt(481,38)-(481,42): error: at 'True': Invalid numeric operand
+  ExprBindExInput.txt(482,14)-(482,15): error: at 'OpenParen': Expected one argument to function 'floor'
+  ExprBindExInput.txt(482,24)-(482,25): error: at 'OpenParen': Expected one argument to function 'floor'
+  ExprBindExInput.txt(482,37)-(482,38): error: at 'OpenParen': The best overload of 'floor' has some invalid arguments
+  ExprBindExInput.txt(482,38)-(482,42): error: at 'True': Invalid numeric operand
+  ExprBindExInput.txt(483,14)-(483,15): error: at 'OpenParen': Expected one argument to function 'round'
+  ExprBindExInput.txt(483,24)-(483,25): error: at 'OpenParen': Expected one argument to function 'round'
+  ExprBindExInput.txt(483,37)-(483,38): error: at 'OpenParen': The best overload of 'round' has some invalid arguments
+  ExprBindExInput.txt(483,38)-(483,42): error: at 'True': Invalid numeric operand
+===== End Script 59, lines 479 to 484 =====
+===== Start Script 60, lines 485 to 494 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+-1
+-1
+3
+3
+Infinity
+-Infinity
+?
+===== End Script 60, lines 485 to 494 =====
+===== Start Script 61, lines 495 to 504 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+-2
+-2
+3
+3
+Infinity
+-Infinity
+?
+===== End Script 61, lines 495 to 504 =====
+===== Start Script 62, lines 505 to 514 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+-1
+-1
+4
+4
+Infinity
+-Infinity
+?
+===== End Script 62, lines 505 to 514 =====
+===== Start Script 63, lines 515 to 530 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+-1
+-2
+-2
+-2
+-4
+3
+4
+4
+2
+2
+Infinity
+-Infinity
+?
+===== End Script 63, lines 515 to 530 =====
+===== Start Script 64, lines 531 to 532 =====
+  ExprBindExInput.txt(531,10)-(531,11): error: at 'OpenParen': Ambiguous invocation of function '_aa'
+===== End Script 64, lines 531 to 532 =====
+===== Start Script 65, lines 533 to 538 =====
+Binding succeeded. Output type: Int64
+Compiling succeeded.
+34
+-24
+*** Parsing ? Failed *** 0
+===== End Script 65, lines 533 to 538 =====
+===== Start Script 66, lines 539 to 544 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+-17
+12
+*** Parsing ? Failed *** 0
+===== End Script 66, lines 539 to 544 =====
+===== Start Script 67, lines 545 to 546 =====
+  ExprBindExInput.txt(545,10)-(545,11): error: at 'OpenParen': Ambiguous invocation of function '_ab'
+===== End Script 67, lines 545 to 546 =====
+===== Start Script 68, lines 547 to 552 =====
+Binding succeeded. Output type: Int64
+Compiling succeeded.
+34
+-24
+*** Parsing ? Failed *** 0
+===== End Script 68, lines 547 to 552 =====
+===== Start Script 69, lines 553 to 558 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+-170
+120
+*** Parsing ? Failed *** 0
+===== End Script 69, lines 553 to 558 =====
+===== Start Script 70, lines 559 to 560 =====
+  ExprBindExInput.txt(559,10)-(559,11): error: at 'OpenParen': Duplicate candidate functions in namespaces '__test1' and '__test2'
+===== End Script 70, lines 559 to 560 =====
+===== Start Script 71, lines 561 to 566 =====
+Binding succeeded. Output type: Int64
+Compiling succeeded.
+34
+-24
+*** Parsing ? Failed *** 0
+===== End Script 71, lines 561 to 566 =====
+===== Start Script 72, lines 567 to 572 =====
+Binding succeeded. Output type: Int32
+Compiling succeeded.
+510
+-360
+*** Parsing ? Failed *** 0
+===== End Script 72, lines 567 to 572 =====
+===== Start Script 73, lines 573 to 578 =====
+Binding succeeded. Output type: Int64
+Compiling succeeded.
+34
+-24
+*** Parsing ? Failed *** 0
+===== End Script 73, lines 573 to 578 =====
+===== Start Script 74, lines 579 to 592 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+1
+-1
+2
+-3
+4
+?
+?
+*** Parsing ? Failed *** 3
+*** Parsing ? Failed *** 1
+*** Parsing ? Failed *** *** Parsing ? Failed *** 1
+===== End Script 74, lines 579 to 592 =====
+===== Start Script 75, lines 593 to 598 =====
+Binding succeeded. Output type: Int32
+Compiling succeeded.
+321
+*** Parsing ? Failed *** 321
+===== End Script 75, lines 593 to 598 =====
+===== Start Script 76, lines 599 to 601 =====
+  ExprBindExInput.txt(600,9)-(600,10): error: at 'OpenParen': No overload of function '_ba' takes 3 arguments
+===== End Script 76, lines 599 to 601 =====
+===== Start Script 77, lines 602 to 609 =====
+Error in ExprTransform: Function '_bad' in namespace '__test1' has invalid return type 'System.Object'
+Error in ExprTransform: Function '_bad' in namespace '__test1' has invalid parameter type 'System.String'
+Error in ExprTransform: Function '_bad' in namespace '__test1' must be static and public
+Error in ExprTransform: Function '_bad' in namespace '__test1' must be static and public
+Binding succeeded. Output type: Int32
+Compiling succeeded.
+3
+3
+3
+*** Parsing ? Failed *** 3
+===== End Script 77, lines 602 to 609 =====
+===== Start Script 78, lines 610 to 613 =====
+  ExprBindExInput.txt(610,11)-(610,15): error: at 'Ident: blah': Unknown function
+===== End Script 78, lines 610 to 613 =====

@@ -1299,6 +1299,128 @@ namespace Microsoft.ML.RunTests
 
             Done();
         }
+
+        [Fact]
+        public void SavePipeExpr()
+        {
+            TestCore(null, false,
+                new[] {
+                    "loader=Text{col=A:BL:0 col=B:BL:0 col=C:I4:1 col=D:I4:5}",
+                    "xf=Expr{col=C col=D expr={x=>x-1}}",
+                    "xf=Expr{col={name=M1 src=A src=B expr={(a,b)=>!a && b}} col={name=N1 src=A src=B expr={(a,b)=>!a || b}}}",
+                    "xf=Expr{col={name=M2 src=A src=B expr={(a,b)=>a && !b}} col={name=N2 src=A src=B expr={(a,b)=>a || !b}}}",
+                    "xf=Expr{col=U:C,D expr={(c,d):10*c+d}}",
+                    "xf=Expr{col=V:C expr={(c):log(c + 1)}}",
+                    "xf=Expr{col=W:C,D expr={(c,d):log(abs(c-d) + 1, 2)}}",
+                    "xf=Expr{col=X1:C col=Y1:D expr={c=>(c+1)/10}}",
+                    "xf=Expr{col=X2:C col=Y2:D expr={c=>(c+1)/10.0}}",
+                    "xf=Expr{col=Z:M1,C,D expr={(m,c,d)=>m ? c + 10 : d + 100}}",
+                }, logCurs: true);
+
+            TestCore(null, false,
+                new[] {
+                    "loader=Text{col=A:BL:0 col=B:BL:0 col=C:I4:5 col=D:Num:6}",
+                    "xf=Expr{col=ID:D expr={x:isna(x)}}",
+                    "xf=Expr{col=JD:D expr={x:x ?? -1}}",
+                    "xf=Expr{col=KA:A col=KB:B col=KC:C col=KD:D expr={x:float(x) / 2}}",
+                    "xf=Expr{col=LA:A,B,KA,KB col=LC:C,D,KC,KD expr={(a,b,x,y): isna(x) && isna(y) && isna(float(a)) == isna(x)}}",
+                },
+                null, "-Extra", forceDense: true);
+
+            // Handle all supported non-vector types, with NA.
+            TestCore(null, false,
+                new[] {
+                    "loader=Text{col=I4:I4:5 col=I8:I8:5 col=R4:R4:4 col=R8:R8:4 col=BL:BL:0 col=T1:TX:6}",
+                    "xf=Expr{col=I4:I4 col=I8:I8 col=R4:R4 col=R8:R8 col=BL:BL col=T1:T1 expr={x => x}}", // Identity lambda.
+                    "xf=Expr{col=IR4:R4 col=IR8:R8 expr={x => -int(isna(x)) - 2 * int(isna(int(x)))}}", // NA testing and conversion.
+                    "xf=Expr{col=JR4:R4 col=JR8:R8 expr={x => x ?? -1}}", // Coalesce.
+                    "xf=Expr{col=KI4:I4 col=KI8:I8 col=KR4:R4 col=KR8:R8 col=KBL:BL col=KT1:T1 expr={x => single(x) ?? -1}}", // Convert and coalesce.
+                },
+                null, "-All", forceDense: true);
+
+            // These two should produce the same output.
+            string pathData = GetDataPath("MNIST.Test.tiny.txt");
+
+            // Text vector spare preservation when mapping to text.
+            TestCore(pathData, false,
+                new[] {
+                    "loader=Text{sparse+ rows=100 col=A:I4:0 col=N:I4:378 col=VI:I4:364-392 col=VR:Num:364-392}",
+                    "xf=Expr{col=N col=VI col=VR expr={x => x == default(x) ? \"\" : text(x)}}",
+                },
+                null, "TextDef");
+            TestCore(pathData, false,
+                new[] {
+                    "loader=Text{sparse+ rows=100 col=A:I4:0 col=N:TX:378 col=VI:TX:364-392 col=VR:TX:364-392}",
+                },
+                null, "TextDef-b", "TextDef");
+
+            // Text vector non-spare preservation when mapping to text.
+            // These two should produce the same output.
+            TestCore(pathData, false,
+                new[] {
+                    "loader=Text{sparse+ rows=100 col=A:I4:0 col=N:I4:378 col=VI:I4:364-392 col=VR:Num:364-392}",
+                    "xf=Expr{col=N col=VI col=VR expr={x => text(x)}}",
+                },
+                null, "TextFull", "TextFull");
+            TestCore(pathData, false,
+                new[] {
+                    "loader=Text{sparse+ rows=100 col=A:I4:0 col=N:TX:378 col=VI:TX:364-392 col=VR:TX:364-392}",
+                    "xf=Expr{col=N col=VI col=VR expr={x => x == \"\" ? text(0) : x}}",
+                },
+                null, "TextFull-b", "TextFull");
+
+            // These two should produce the same output.
+            TestCore(pathData, false,
+                new[] {
+                    "loader=Text{sparse+ rows=100 col=A:I4:0 col=M:I4:378 col=N:I4:378 col=VI:I4:364-392 col=VR:Num:364-392}",
+                    "xf=Expr{col=N col=VI col=VR expr={x=>x / 10}}",
+                    "xf=Expr{col=N col=VI expr={x=>x + 1}}",
+                },
+                null, "Vec1", "Vec1");
+
+            TestCore(pathData, false,
+                new[] {
+                    "loader=Text{sparse+ rows=100 col=A:I4:0 col=M:I4:378 col=N:I4:378 col=VI:I4:364-392 col=VR:Num:364-392}",
+                    "xf=Expr{col={name=N expr={x=>int(floor(x / 10.0)) + 1}} col={name=VR expr={x=>x / 10}}}",
+                    "xf=Expr{col=VI:VR expr={(x)=>int(floor(x)) + 1}}",
+                },
+                null, "Vec1-b", "Vec1");
+
+            // These should have the same output. The only line that varies is the third one.
+            // The primary purpose of this is for code coverage of ExprTransform.
+            // Make A, B, C, D be a linear progression with step size 2.
+            const string line0 = "loader=Text{sparse+ rows=100 col=A:I4:0 col=B:I4:0 col=C:I4:0 col=D:I4:0 col=M:I4:378 col=N:I4:378 col=VR:Num:364-392}";
+            const string line1 = "xf=Expr{col={name=B expr={x:x+2}} col={name=C expr={x:x+4}} col={name=D expr={x:x+6}}}";
+            TestCore(pathData, false,
+                new[] {
+                    line0, line1,
+                    "xf=Expr{col=N:A,N col=VR:A,VR expr={(a,x)=>x+(a-8)*(a-6)*(a-4)*(a-2)}}",
+                },
+                null, "Vec2", "Vec2");
+
+            TestCore(pathData, false,
+                new[] {
+                    line0, line1,
+                    "xf=Expr{col=N:A,N,B col=VR:A,VR,B expr={(a,x,b)=>x+(a-8)*(b-8)*(a-4)*(b-4)}}",
+                },
+                null, "Vec2-b", "Vec2");
+
+            TestCore(pathData, false,
+                new[] {
+                    line0, line1,
+                    "xf=Expr{col=N:N,B,C,A col=VR:VR,B,C,A expr={(x,b,c,a)=>x+(a-8)*(b-8)*(c-8)*(b-4)}}",
+                },
+                null, "Vec2-c", "Vec2");
+
+            TestCore(pathData, false,
+                new[] {
+                    line0, line1,
+                    "xf=Expr{col=N:D,A,C,B,N col=VR:D,A,C,B,VR expr={(d,a,c,b,x)=>x+(a-8)*(b-8)*(c-8)*(d-8)}}",
+                },
+                null, "Vec2-d", "Vec2");
+
+            Done();
+        }
     }
     /// <summary>
     /// A class for non-baseline data pipe tests.
