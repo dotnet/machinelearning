@@ -28,8 +28,8 @@ The table below explains how each of the elements in our versioning schema would
 | Release type | Change in `A` | Change in `B` | Change in `C` | Change in `D` |
 | -------------|-------------|-------------|-------------|-------------|
 | Daily build | No change   | No change   | No change   | A date-like stamp is added, i.e. `Microsoft.Extensions.ML 1.5.0-preview-28327-2`   |
-| Monthly preview| No change | No change   | No change   | `preview` tag added to the most recent GA release, if this is the first preview, or preview index incremented (i.e. `A.B.C-preview` -> `A.B.C-preview2`) |
-| GA | Incremented only for non-WIP NuGets. WIP NuGets maintain an `A` value of `0` | Incremented | Reset to 0 | `preview` tag is removed |
+| Monthly preview | No change | No change   | No change   | `preview` tag added to the most recent GA release, if this is the first preview, or preview index is incremented (i.e. `A.B.C-preview` -> `A.B.C-preview2`) |
+| GA | Incremented for major releases, only for non-WIP NuGets. WIP NuGets maintain an `A` value of `0` | Incremented, or reset to 0 if `A` was incremented | Reset to 0 | `preview` tag is removed |
 | Fix | No change | No change | Incremented | No change
 
 > Note: to install the preview packages via the NuGet Package Manager in Visual Studio, you must make sure to check the "Include prerelease" checkbox:
