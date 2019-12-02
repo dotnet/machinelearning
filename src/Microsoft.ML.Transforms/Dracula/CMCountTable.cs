@@ -3,16 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(CMCountTableBuilder),
-    typeof(CMCountTableBuilder.Arguments), typeof(SignatureCountTableBuilder),
+    typeof(CMCountTableBuilder.Options), typeof(SignatureCountTableBuilder),
     "Count Min Table Builder",
     "CMSketch",
     "CMTable")]
@@ -21,7 +23,7 @@ using Microsoft.ML.Transforms;
     "Count Min Table Executor",
     CMCountTable.LoaderSignature)]
 
-[assembly: EntryPointModule(typeof(CMCountTableBuilder.Arguments))]
+[assembly: EntryPointModule(typeof(CMCountTableBuilder.Options))]
 
 namespace Microsoft.ML.Transforms
 {
@@ -44,19 +46,19 @@ namespace Microsoft.ML.Transforms
         private readonly int _width; // Hash space. May be any number, typically a power of 2
         private readonly float[][][] _tables; // dimensions: label cardinality * depth * width
 
-        public CMCountTable(IHostEnvironment env, float[][][] tables, float[] priorCounts)
-            : base(env, LoaderSignature, Utils.Size(tables), priorCounts, 0, null)
+        public CMCountTable(float[][][] tables, float[] priorCounts)
+            : base(Utils.Size(tables), priorCounts, 0, null)
         {
-            Host.CheckValue(tables, nameof(tables));
-            Host.Assert(LabelCardinality > 0);
+            Contracts.CheckValue(tables, nameof(tables));
+            Contracts.Assert(LabelCardinality > 0);
 
             _depth = Utils.Size(tables[0]);
-            Host.Check(_depth > 0, "depth must be positive");
-            Host.Check(tables.All(x => Utils.Size(x) == _depth), "Depth must be the same for all labels");
+            Contracts.Check(_depth > 0, "depth must be positive");
+            Contracts.Check(tables.All(x => Utils.Size(x) == _depth), "Depth must be the same for all labels");
 
             _width = Utils.Size(tables[0][0]);
-            Host.Check(_width > 0, "width must be positive");
-            Host.Check(tables.All(t => t.All(t2 => Utils.Size(t2) == _width)), "Width must be the same for all depths");
+            Contracts.Check(_width > 0, "width must be positive");
+            Contracts.Check(tables.All(t => t.All(t2 => Utils.Size(t2) == _width)), "Width must be the same for all depths");
 
             _tables = tables;
         }
@@ -84,9 +86,9 @@ namespace Microsoft.ML.Transforms
             //          Single[][]: the count-min-sketch of dimensions _depth * _width.
 
             _depth = ctx.Reader.ReadInt32();
-            Host.CheckDecode(_depth > 0);
+            env.CheckDecode(_depth > 0);
             _width = ctx.Reader.ReadInt32();
-            Host.CheckDecode(_width > 0);
+            env.CheckDecode(_width > 0);
 
             _tables = new float[LabelCardinality][][];
             for (int i = 0; i < LabelCardinality; i++)
@@ -100,19 +102,19 @@ namespace Microsoft.ML.Transforms
                         _tables[i][j] = ctx.Reader.ReadSingleArray(_width);
                     else
                     {
-                        Single[] table;
-                        _tables[i][j] = table = new Single[_width];
+                        float[] table;
+                        _tables[i][j] = table = new float[_width];
                         int pos = -1;
                         for (; ; )
                         {
                             int oldPos = pos;
                             pos = ctx.Reader.ReadInt32();
-                            Host.CheckDecode(pos >= -1 && pos < _width);
+                            env.CheckDecode(pos >= -1 && pos < _width);
                             if (pos < 0)
                                 break;
 
-                            Host.CheckDecode(pos > oldPos);
-                            Single v = ctx.Reader.ReadSingle();
+                            env.CheckDecode(pos > oldPos);
+                            var v = ctx.Reader.ReadSingle();
                             Contracts.CheckDecode(v >= 0);
                             table[pos] = v;
                         }
@@ -123,7 +125,7 @@ namespace Microsoft.ML.Transforms
 
         public override void Save(ModelSaveContext ctx)
         {
-            Host.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(ctx, nameof(ctx));
             ctx.SetVersionInfo(GetVersionInfo());
             base.Save(ctx);
 
@@ -161,7 +163,7 @@ namespace Microsoft.ML.Transforms
                             }
                         }
                         // end of sequence
-                        ctx.Writer.Write((int)-1);
+                        ctx.Writer.Write(-1);
                     }
                 }
             }
@@ -174,7 +176,7 @@ namespace Microsoft.ML.Transforms
         private bool IsTableSparse(float[][] table)
         {
             const int sampleSize = 10000;
-            const Double sparseThreshold = 0.3;
+            const double sparseThreshold = 0.3;
 
             var widthSample = Math.Min(sampleSize, _width);
             int nonZero = 0;
@@ -192,17 +194,17 @@ namespace Microsoft.ML.Transforms
 
         public override void GetCounts(long key, Span<float> counts)
         {
-            Host.Assert(counts.Length == LabelCardinality);
+            Contracts.Assert(counts.Length == LabelCardinality);
             uint hash = Hashing.MurmurRound((uint)(key >> 32), (uint)key);
             for (int ilabel = 0; ilabel < LabelCardinality; ilabel++)
             {
-                Single minValue = -1;
+                float minValue = -1;
                 var table = _tables[ilabel];
                 for (int idepth = 0; idepth < _depth; idepth++)
                 {
                     int iwidth = (int)(Hashing.MixHash(Hashing.MurmurRound(hash, (uint)idepth)) % _width);
                     var count = table[idepth][iwidth];
-                    Host.Assert(count >= 0);
+                    Contracts.Assert(count >= 0);
                     if (minValue > count || minValue < 0)
                         minValue = count;
                 }
@@ -210,35 +212,25 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        //public override void GetRawCounts(RawCountKey key, Single[] counts)
-        //{
-        //    Host.AssertValue(counts);
-        //    Host.Assert(Utils.Size(counts) == LabelCardinality);
-        //    Host.Assert(key.HashId >= 0 && key.HashId < _depth);
-        //    Host.Assert(key.HashValue >= 0 && key.HashValue < _width);
-        //    int n = _tables.Length;
-        //    for (int iLabel = 0; iLabel < n; iLabel++)
-        //        counts[iLabel] = _tables[iLabel][key.HashId][key.HashValue];
-        //}
-
-        //public override IEnumerable<RawCountKey> AllRawCountKeys()
-        //{
-        //    for (int hashId = 0; hashId < _depth; hashId++)
-        //    {
-        //        for (long hashValue = 0; hashValue < _width; hashValue++)
-        //        {
-        //            bool allZero = true;
-        //            for (int iLabel = 0; iLabel < _tables.Length; iLabel++)
-        //                allZero = allZero && _tables[iLabel][hashId][hashValue] == 0;
-
-        //            if (!allZero)
-        //                yield return new RawCountKey(hashId, hashValue);
-        //        }
-        //    }
-        //}
+        public override int AppendRows(List<int> hashIds, List<ulong> hashValues, List<float[]> counts)
+        {
+            for (int i = 0; i < _depth; i++)
+            {
+                for (int j = 0; j < _width; j++)
+                {
+                    var countsCur = new float[LabelCardinality];
+                    hashIds.Add(i);
+                    hashValues.Add((ulong)j);
+                    for (int label = 0; label < LabelCardinality; label++)
+                        countsCur[label] = _tables[label][i][j];
+                    counts.Add(countsCur);
+                }
+            }
+            return _depth * _width;
+        }
     }
 
-    public sealed class CMCountTableBuilder : CountTableBuilderBase // ICountTableBuilder
+    internal sealed class CMCountTableBuilder : CountTableBuilderBase
     {
         private const int DepthLim = 100 + 1;
         public const string LoaderSignature = "CMCountTableBuilder";
@@ -246,7 +238,7 @@ namespace Microsoft.ML.Transforms
         [TlcModule.Component(Name = "CMSketch", FriendlyName = "Count Min Table Builder", Alias = "CMTable",
             Desc = "Create the count table using the count-min sketch structure, which has a smaller memory footprint, at the expense of" +
             " some overcounting due to collisions.")]
-        internal class Arguments : IComponentFactory<CountTableBuilderBase>
+        internal class Options : ICountTableBuilderFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Count-Min Sketch table depth", ShortName = "d")]
             public int Depth = 4;
@@ -260,40 +252,37 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private readonly IHost _host;
         private readonly int _depth;
         private readonly int _width;
 
-        internal CMCountTableBuilder(IHostEnvironment env, Arguments args)
-            : base()
+        public CMCountTableBuilder(int depth = 4, int width = 1 << 23)
         {
-            Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(LoaderSignature);
-
-            _host.CheckValue(args, nameof(args));
-
-            _host.Check(0 < args.Depth && args.Depth < DepthLim, "Depth out of range");
-            _depth = args.Depth;
-
-            _host.Check(0 < args.Width, "Width out of range");
-            _width = args.Width;
+            Contracts.Check(0 < depth && depth < DepthLim, "Depth out of range");
+            Contracts.Check(0 < width, "Width out of range");
+            _depth = depth;
+            _width = width;
         }
 
-        internal override CountTableBuilderHelperBase GetBuilderHelper(long labelCardinality) => new Helper(_host, labelCardinality, _depth, _width);
+        internal CMCountTableBuilder(IHostEnvironment env, Options options)
+            : this(Contracts.CheckRef(options, nameof(options)).Depth, options.Width)
+        {
+        }
 
-        private sealed class Helper : CountTableBuilderHelperBase
+        internal override InternalCountTableBuilderBase GetBuilderHelper(long labelCardinality) => new Builder(labelCardinality, _depth, _width);
+
+        private sealed class Builder : InternalCountTableBuilderBase
         {
             private readonly int _depth;
             private readonly double[][][] _tables; // label cardinality * depth * width
             private readonly int _width;
 
-            public Helper(IHostEnvironment env, long labelCardinality, int depth, int width)
-                : base(env, nameof(CMCountTableBuilder), labelCardinality)
+            public Builder(long labelCardinality, int depth, int width)
+                : base(labelCardinality)
             {
-                Host.Assert(0 < depth && depth < DepthLim);
+                Contracts.Assert(0 < depth && depth < DepthLim);
                 _depth = depth;
 
-                Host.Assert(0 < width);
+                Contracts.Assert(0 < width);
                 _width = width;
 
                 _tables = new double[LabelCardinality][][];
@@ -320,36 +309,30 @@ namespace Microsoft.ML.Transforms
                     }
                 }
 
-                return new CMCountTable(Host, tables, priorCounts);
+                return new CMCountTable(tables, priorCounts);
             }
 
-            internal override double Increment(long key, long labelKey, double amount)
+            protected override void IncrementCore(long key, long labelKey)
             {
-                Host.Check(0 <= labelKey && labelKey < LabelCardinality);
-                PriorCounts[labelKey] += amount;
-
                 uint hash = Hashing.MurmurRound((uint)(key >> 32), (uint)key);
-                double old = double.MaxValue;
                 for (int i = 0; i < _depth; i++)
                 {
                     int idx = (int)(Hashing.MixHash(Hashing.MurmurRound(hash, (uint)i)) % _width);
-                    var cur = _tables[labelKey][i][idx];
-                    if (old > cur)
-                        old = cur;
-                    _tables[labelKey][i][idx] += amount;
+                    _tables[labelKey][i][idx]++;
                 }
-                return old;
             }
 
-            internal override void InsertOrUpdateRawCounts(int hashId, long hashValue, float[] counts)
+            internal override void InsertOrUpdateRawCounts(int hashId, long hashValue, in VBuffer<float> counts)
             {
-                Host.Check(Utils.Size(counts) == LabelCardinality);
-                Host.Check(hashId >= 0 && hashId < _depth);
-                Host.Check(hashValue >= 0 && hashValue < _width);
-                for (int iLabel = 0; iLabel < LabelCardinality; iLabel++)
+                Contracts.Check(counts.Length == LabelCardinality);
+                Contracts.Check(hashId >= 0 && hashId < _depth);
+                Contracts.Check(hashValue >= 0 && hashValue < _width);
+                int label = 0;
+                foreach (var count in counts.DenseValues())
                 {
-                    if (counts[iLabel] >= 0)
-                        _tables[iLabel][hashId][hashValue] = counts[iLabel];
+                    if (count >= 0)
+                        _tables[label][hashId][hashValue] = count;
+                    label++;
                 }
             }
         }

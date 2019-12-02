@@ -3,40 +3,29 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms
 {
-    public interface ICountTable
+    internal interface ICountTable
     {
         /// <summary>
         /// Populate the <paramref name="counts"/> array with the counts for the input key
         /// </summary>
         void GetCounts(long key, Span<float> counts);
 
-        ///// <summary>
-        ///// Populates the <paramref name="counts"/> array with the raw counts for the specified hash id and hash value.
-        ///// </summary>
-        //void GetRawCounts(RawCountKey key, float[] counts);
-
-        ///// <summary>
-        ///// Gets the raw count keys from the count table.
-        ///// </summary>
-        //IEnumerable<RawCountKey> AllRawCountKeys();
-
         /// <summary>
         /// Garbage threshold the table is using
         /// </summary>
         float GarbageThreshold { get; }
 
-        /// <summary>
-        /// Populate the <paramref name="priorCounts"/> and <paramref name="garbageCounts"/> with
-        /// respective priors. If the <see cref="GarbageThreshold"/> is zero, the second argument is not
-        /// affected, and can be null
-        /// </summary>
-        void GetPriors(float[] priorCounts, float[] garbageCounts);
+        IReadOnlyCollection<float> GarbageCounts { get; }
+        ReadOnlySpan<double> PriorFrequencies { get; }
+
+        int AppendRows(List<int> hashIds, List<ulong> hashValues, List<float[]> counts);
     }
 
     /// <summary>
@@ -44,109 +33,90 @@ namespace Microsoft.ML.Transforms
     /// </summary>
     public delegate void SignatureCountTableBuilder();
 
-    /// <summary>
-    /// The key for a single entry in the raw count file.
-    /// </summary>
-    public struct RawCountKey
-    {
-        public readonly int HashId;
-        public readonly long HashValue;
-
-        public RawCountKey(int hashId, long hashValue)
-        {
-            HashId = hashId;
-            HashValue = hashValue;
-        }
-    }
-
     internal abstract class CountTableBase : ICountTable, ICanSaveModel
     {
         public const int LabelCardinalityLim = 100;
 
-        protected readonly IHost Host;
         protected readonly int LabelCardinality; // number of values the label can assume
-        protected readonly float[] PriorCounts; // overall counts of labels. Size = labelCardinality
+        private readonly double[] _priorFrequencies;
 
         public float GarbageThreshold { get; private set; } // garbage bin threshold
-        protected readonly float[] GarbageCounts; // counts of garbage labels. Size = labelCardinality
+        private readonly float[] _garbageCounts; // counts of garbage labels. Size = labelCardinality
+        public IReadOnlyCollection<float> GarbageCounts => _garbageCounts;
 
-        protected CountTableBase(IHostEnvironment env, string name, int labelCardinality, float[] priorCounts, float garbageThreshold, float[] garbageCounts)
+        public ReadOnlySpan<double> PriorFrequencies => _priorFrequencies;
+
+        protected CountTableBase(int labelCardinality, float[] priorCounts, float garbageThreshold, float[] garbageCounts)
         {
-            Contracts.AssertValue(env, "env");
-            env.AssertNonWhiteSpace(name);
-            Host = env.Register(name);
-            Host.Check(0 < labelCardinality && labelCardinality < LabelCardinalityLim, "Label cardinality out of bounds");
-            Host.CheckValue(priorCounts, nameof(priorCounts));
-            Host.Check(priorCounts.All(x => x >= 0));
-            Host.Check(priorCounts.Length == labelCardinality);
-            Host.Check(garbageThreshold >= 0, "Garbage threshold must be non-negative");
+            Contracts.Check(0 < labelCardinality && labelCardinality < LabelCardinalityLim, "Label cardinality out of bounds");
+            Contracts.CheckValue(priorCounts, nameof(priorCounts));
+            Contracts.Check(priorCounts.All(x => x >= 0));
+            Contracts.Check(priorCounts.Length == labelCardinality);
+            Contracts.Check(garbageThreshold >= 0, "Garbage threshold must be non-negative");
 
             if (garbageThreshold > 0)
             {
-                Host.CheckValue(garbageCounts, nameof(garbageCounts));
-                Host.Check(garbageCounts.Length == labelCardinality);
-                Host.Check(garbageCounts.All(x => x >= 0));
+                Contracts.CheckValue(garbageCounts, nameof(garbageCounts));
+                Contracts.Check(garbageCounts.Length == labelCardinality);
+                Contracts.Check(garbageCounts.All(x => x >= 0));
             }
 
             LabelCardinality = labelCardinality;
-            PriorCounts = priorCounts;
-            GarbageCounts = garbageCounts;
+            _garbageCounts = garbageCounts;
             GarbageThreshold = garbageThreshold;
+
+            var priorSum = priorCounts.Sum();
+            _priorFrequencies = new double[priorCounts.Length];
+            if (priorSum > 0)
+            {
+                for (int i = 0; i < priorCounts.Length; i++)
+                    _priorFrequencies[i] = priorCounts[i] / priorSum;
+            }
+            else
+            {
+                // if there is no prior computed, defer to 1/N
+                var d = 1.0 / LabelCardinality;
+                for (int i = 0; i < LabelCardinality; i++)
+                    _priorFrequencies[i] = d;
+            }
         }
 
         protected CountTableBase(IHostEnvironment env, string name, ModelLoadContext ctx)
         {
-            Contracts.AssertValue(env, "env");
             env.AssertNonWhiteSpace(name);
-            Host = env.Register(name);
-            Host.AssertValue(ctx);
+            env.AssertValue(ctx);
 
             // *** Binary format ***
             // int: label cardinality
-            // Single[]: prior counts
-            // Single: garbage threshold
-            // Single[]: garbage counts
+            // double[]: prior frequencies
+            // float: garbage threshold
+            // float[]: garbage counts
 
             LabelCardinality = ctx.Reader.ReadInt32();
-            Host.CheckDecode(0 < LabelCardinality && LabelCardinality < LabelCardinalityLim);
+            env.CheckDecode(0 < LabelCardinality && LabelCardinality < LabelCardinalityLim);
 
-            PriorCounts = ctx.Reader.ReadSingleArray();
-            Host.CheckDecode(Utils.Size(PriorCounts) == LabelCardinality);
-            Host.CheckDecode(PriorCounts.All(x => x >= 0));
+            _priorFrequencies = ctx.Reader.ReadDoubleArray();
+            env.CheckDecode(Utils.Size(_priorFrequencies) == LabelCardinality);
+            env.CheckDecode(_priorFrequencies.All(x => x >= 0));
 
             GarbageThreshold = ctx.Reader.ReadSingle();
-            Host.CheckDecode(GarbageThreshold >= 0);
+            env.CheckDecode(GarbageThreshold >= 0);
 
-            GarbageCounts = ctx.Reader.ReadSingleArray();
+            _garbageCounts = ctx.Reader.ReadSingleArray();
             if (GarbageThreshold == 0)
-                Host.CheckDecode(Utils.Size(GarbageCounts) == 0);
+                env.CheckDecode(Utils.Size(_garbageCounts) == 0);
             else
             {
-                Host.CheckDecode(Utils.Size(GarbageCounts) == LabelCardinality);
-                Host.CheckDecode(GarbageCounts.All(x => x >= 0));
+                env.CheckDecode(Utils.Size(_garbageCounts) == LabelCardinality);
+                env.CheckDecode(_garbageCounts.All(x => x >= 0));
             }
         }
 
         public abstract void GetCounts(long key, Span<float> counts);
 
-        public void GetPriors(float[] priorCounts, float[] garbageCounts)
-        {
-            Host.CheckValue(priorCounts, nameof(priorCounts));
-            Host.Check(priorCounts.Length == LabelCardinality);
-            if (GarbageThreshold > 0)
-            {
-                Host.CheckValue(garbageCounts, nameof(garbageCounts));
-                Host.Check(garbageCounts.Length == LabelCardinality);
-            }
-
-            Array.Copy(PriorCounts, priorCounts, LabelCardinality);
-            if (GarbageThreshold > 0)
-                Array.Copy(GarbageCounts, garbageCounts, LabelCardinality);
-        }
-
         public virtual void Save(ModelSaveContext ctx)
         {
-            Host.AssertValue(ctx);
+            Contracts.AssertValue(ctx);
 
             // *** Binary format ***
             // int: label cardinality
@@ -154,25 +124,27 @@ namespace Microsoft.ML.Transforms
             // Single: garbage threshold
             // Single[]: garbage counts
 
-            Host.Assert(0 < LabelCardinality && LabelCardinality < LabelCardinalityLim);
+            Contracts.Assert(0 < LabelCardinality && LabelCardinality < LabelCardinalityLim);
             ctx.Writer.Write(LabelCardinality);
 
-            Host.Assert(Utils.Size(PriorCounts) == LabelCardinality);
-            Host.Assert(PriorCounts.All(x => x >= 0));
-            ctx.Writer.WriteSingleArray(PriorCounts);
+            Contracts.Assert(Utils.Size(_priorFrequencies) == LabelCardinality);
+            Contracts.Assert(_priorFrequencies.All(x => x >= 0));
+            ctx.Writer.WriteDoubleArray(_priorFrequencies);
 
-            Host.Assert(GarbageThreshold >= 0);
+            Contracts.Assert(GarbageThreshold >= 0);
             ctx.Writer.Write(GarbageThreshold);
 
             if (GarbageThreshold == 0)
-                Host.Assert(Utils.Size(GarbageCounts) == 0);
+                Contracts.Assert(Utils.Size(_garbageCounts) == 0);
             else
             {
-                Host.Assert(Utils.Size(GarbageCounts) == LabelCardinality);
-                Host.Assert(GarbageCounts.All(x => x >= 0));
+                Contracts.Assert(Utils.Size(_garbageCounts) == LabelCardinality);
+                Contracts.Assert(_garbageCounts.All(x => x >= 0));
             }
 
-            ctx.Writer.WriteSingleArray(GarbageCounts);
+            ctx.Writer.WriteSingleArray(_garbageCounts);
         }
+
+        public abstract int AppendRows(List<int> hashIds, List<ulong> hashValues, List<float[]> counts);
     }
 }

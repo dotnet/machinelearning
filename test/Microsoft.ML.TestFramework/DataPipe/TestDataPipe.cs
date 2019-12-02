@@ -1434,6 +1434,59 @@ namespace Microsoft.ML.RunTests
 
             Done();
         }
+
+        [Fact]
+        public void SavePipeCountTableShared()
+        {
+            TestCore(null, true,
+                new[] {
+                    "loader=Text{col=Text:TX:1-9 col=OneText:TX:1 col=Label:0}",
+                    "xf=HashJoin{col=Hash1:Text col=Hash2:OneText bits=14 ord-}",
+                    "xf=CountTable{col=Hash1c:Hash1 col=Hash2c:Hash2 label=Label table=Dict prior=60 shared+}"
+                });
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeDracula()
+        {
+            TestCore(null, false,
+                new[] {
+                    "loader=Text{col=Text:TX:1-9 col=OneText:TX:1 col=Label:0}",
+                    "xf=Dracula{lab=Label col=D1:Text col=D2:OneText col={name=DT src=Text customSlotMap=0,1;2;3,4,5;6,2,0;7 table=CMSketch} bits=14 table=Dict{gb=2}}",
+                    "xf=Dracula{lab=Label col=D1s:Text col={name=OneText2 src=OneText} bits=14 table=Dict shared=+}"
+                }, checkTranspose: true);
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeDraculaKeyLabel()
+        {
+            TestCore(null, false,
+                new[] {
+                    "loader=Text{col=Text:TX:1-9 col=OneText:TX:1 col=Label:TX:0}",
+                    "xf=Term{col=Label}",
+                    "xf=Dracula{lab=Label col=D1:Text col=D2:OneText col={name=DT src=Text customSlotMap=0,1;2;3,4,5;6,2,0;7 table=CMSketch} bits=14 table=Dict{gb=2}}",
+                    "xf=Dracula{lab=Label col=D1s:Text col={name=OneText2 src=OneText} bits=14 table=Dict shared=+}"
+                }, checkTranspose: true);
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeDraculaExternalCounts()
+        {
+            var countsFile = GetDataPath("Dracula", "ext-count-table.tsv");
+            TestCore(null, false,
+                new[] {
+                    "loader=Text{col=Text:TX:1-9 col=OneText:TX:1 col=Label:0}",
+                    "xf=Dracula{lab=Label col={name=DT src=Text customSlotMap=0,1;2,3,4,5} table=Dict extfile=" + countsFile + "}"
+                });
+
+            Done();
+        }
     }
     /// <summary>
     /// A class for non-baseline data pipe tests.

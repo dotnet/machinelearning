@@ -4659,25 +4659,55 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void EntryPointHashJoinCountTable()
         {
-            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Text:Text:1-9 col=Label:0",
+            var countsFile = GetDataPath(@"Dracula/ext-count-table.tsv");
+            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Text:TX:1-9 col=OneText:TX:1 col=Label:0",
                 new[]
                 {
                     "Transforms.HashConverter",
+                    "Transforms.CountTableBuilder"
                 },
                 new[]
                 {
                     @"'Column': [
                       {
                         'Name': 'Temp',
-                        'Src': 'Text'
-                      },
-                      {
-                        'Name': 'Temp2',
                         'Src': 'Text',
                         'CustomSlotMap': '0,1;2,3,4,5'
                       }
+                      ]",
+                    $@"'Columns': [
+                      {{
+                        'Name': 'DT',
+                        'Src': 'Temp'
+                      }}
+                      ],
+                     'Lab': 'Label',
+                     'Table': {{ 'Name': 'Dict' }},
+                     'ExtFile': '{EscapePath(countsFile)}'"
+                });
+        }
 
-                      ]"
+        [Fact]
+        public void EntryPointDracula()
+        {
+            var countsFile = GetDataPath(@"Dracula/ext-count-table.tsv");
+            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Text:TX:1-9 col=OneText:TX:1 col=Label:0",
+                new[]
+                {
+                    "Transforms.Dracula",
+                },
+                new[]
+                {
+                    $@"'Columns': [
+                      {{
+                        'Name': 'DT',
+                        'Src': 'Text',
+                        'CustomSlotMap': '0,1;2,3,4,5'
+                      }}
+                      ],
+                     'Lab': 'Label',
+                     'Table': {{ 'Name': 'Dict' }},
+                     'ExtFile': '{EscapePath(countsFile)}'"
                 });
         }
 

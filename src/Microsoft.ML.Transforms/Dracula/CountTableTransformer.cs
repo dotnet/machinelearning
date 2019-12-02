@@ -4,12 +4,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
@@ -79,33 +80,32 @@ namespace Microsoft.ML.Transforms
         private readonly CountTableBuilderBase _sharedBuilder;
         private readonly string _labelColumnName;
         private readonly string _externalCountsFile;
-        private readonly string _externalCountsSchema;
 
         internal CountTableEstimator(IHostEnvironment env, string labelColumnName, CountTableBuilderBase countTableBuilder, params SharedColumnOptions[] columns)
+            : this(env, labelColumnName, columns)
         {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckNonWhiteSpace(labelColumnName, nameof(labelColumnName));
-            env.CheckNonEmpty(columns, nameof(columns));
-            _host = env.Register(nameof(CountTableEstimator));
-
-            _columns = columns;
-            _labelColumnName = labelColumnName;
             _sharedBuilder = countTableBuilder;
         }
 
         internal CountTableEstimator(IHostEnvironment env, string labelColumnName, string externalCountsFile = null,
-                string externalCountsSchema = null, params ColumnOptions[] columns)
+                params ColumnOptions[] columns)
+            : this(env, labelColumnName, columns)
+        {
+            _externalCountsFile = externalCountsFile;
+            _builders = columns.Select(c => c.CountTableBuilder).ToArray();
+        }
+
+        private CountTableEstimator(IHostEnvironment env, string labelColumnName, ColumnOptionsBase[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonWhiteSpace(labelColumnName, nameof(labelColumnName));
             env.CheckNonEmpty(columns, nameof(columns));
             _host = env.Register(nameof(CountTableEstimator));
+            _host.CheckParam(columns.All(col => col.PriorCoefficient > 0), nameof(ColumnOptionsBase.PriorCoefficient), "Must be greater than zero");
+            _host.CheckParam(columns.All(col => col.LaplaceScale >= 0), nameof(ColumnOptionsBase.LaplaceScale), "Must be greater than or equal to zero.");
 
             _columns = columns;
             _labelColumnName = labelColumnName;
-            _externalCountsFile = externalCountsFile;
-            _externalCountsSchema = externalCountsSchema;
-            _builders = columns.Select(c => c.CountTableBuilder).ToArray();
         }
 
         public CountTableTransformer Fit(IDataView input)
@@ -121,7 +121,6 @@ namespace Microsoft.ML.Transforms
 
             var n = _columns.Length;
 
-            //var builderArgs = _columns.Select(c => c.CountTableBuilder).ToArray();
             var inputColumns = new DataViewSchema.Column[_columns.Length];
             for (int i = 0; i < inputColumns.Length; i++)
             {
@@ -132,11 +131,11 @@ namespace Microsoft.ML.Transforms
             }
 
             _host.Assert((_sharedBuilder == null) != (_builders == null));
-            IMultiCountTableBuilder multiBuilder;
+            MultiCountTableBuilderBase multiBuilder;
             if (_builders != null)
-                multiBuilder = new ParallelMultiCountTableBuilder(_host, inputColumns, _builders, labelCardinality, _externalCountsFile, _externalCountsSchema);
+                multiBuilder = new ParallelMultiCountTableBuilder(_host, inputColumns, _builders, labelCardinality, _externalCountsFile);
             else
-                multiBuilder = new BagMultiCountTableBuilder(_host, _sharedBuilder, labelCardinality);
+                multiBuilder = new BagMultiCountTableBuilder(_host, inputColumns, _sharedBuilder, labelCardinality);
 
             var cols = new List<DataViewSchema.Column>();
             foreach (var c in _columns)
@@ -150,33 +149,15 @@ namespace Microsoft.ML.Transforms
 
             var multiCountTable = multiBuilder.CreateMultiCountTable();
 
-            // create featurizers
-            var featurizers = new DraculaFeaturizer[n][];
-            for (int i = 0; i < n; i++)
-            {
-                int size = cols[i].Type.GetValueCount();
-                _host.Assert(size > 0);
-                featurizers[i] = new DraculaFeaturizer[size];
-                for (int j = 0; j < size; j++)
-                {
-                    featurizers[i][j] = new DraculaFeaturizer(_host, new DraculaFeaturizer.Options()
-                    { LaplaceScale = _columns[i].LaplaceScale, PriorCoefficient = _columns[i].PriorCoefficient },
-                    labelCardinality, multiCountTable.GetCountTable(i, j));
-                }
-            }
+            var featurizer = new DraculaFeaturizer(_host, _columns.Select(col => col.PriorCoefficient).ToArray(), _columns.Select(col => col.LaplaceScale).ToArray(), labelCardinality, multiCountTable);
 
-            return new CountTableTransformer(_host, featurizers, labelClassNames,
+            return new CountTableTransformer(_host, featurizer, labelClassNames,
                 _columns.Select(col => col.Seed).ToArray(), _columns.Select(col => (col.Name, col.InputColumnName)).ToArray());
         }
 
-        private void TrainTables(IDataView trainingData, List<DataViewSchema.Column> cols, IMultiCountTableBuilder builder, DataViewSchema.Column labelColumn)
+        private void TrainTables(IDataView trainingData, List<DataViewSchema.Column> cols, MultiCountTableBuilderBase builder, DataViewSchema.Column labelColumn)
         {
             var colCount = _columns.Length;
-            //// creating a cursor over columns we need
-            //bool[] activeInput = new bool[Source.Schema.ColumnCount];
-            //foreach (var colInfo in Infos)
-            //    activeInput[colInfo.Source] = true;
-            //activeInput[labelColumnIndex] = true;
 
             using (var cursor = trainingData.GetRowCursor(cols.Prepend(labelColumn)))
             {
@@ -211,7 +192,7 @@ namespace Microsoft.ML.Transforms
                         else
                         {
                             singleGetters[i](ref srcSingleValue);
-                            builder.IncrementOne(i, srcSingleValue, (uint)labelKey, 1);
+                            builder.IncrementSlot(i, 0, srcSingleValue, (uint)labelKey);
                         }
                     }
                 }
@@ -263,7 +244,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private void IncrementVec(IMultiCountTableBuilder builder, int iCol, ref VBuffer<uint> srcBuffer, uint labelKey)
+        private void IncrementVec(MultiCountTableBuilderBase builder, int iCol, ref VBuffer<uint> srcBuffer, uint labelKey)
         {
             var n = srcBuffer.Length;
             var values = srcBuffer.GetValues();
@@ -271,12 +252,12 @@ namespace Microsoft.ML.Transforms
             if (srcBuffer.IsDense)
             {
                 for (int i = 0; i < n; i++)
-                    builder.IncrementSlot(iCol, i, values[i], labelKey, 1);
+                    builder.IncrementSlot(iCol, i, values[i], labelKey);
             }
             else
             {
                 for (int i = 0; i < indices.Length; i++)
-                    builder.IncrementSlot(iCol, indices[i], values[i], labelKey, 1);
+                    builder.IncrementSlot(iCol, indices[i], values[i], labelKey);
             }
         }
 
@@ -306,7 +287,33 @@ namespace Microsoft.ML.Transforms
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
-            throw new NotImplementedException();
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            var result = inputSchema.ToDictionary(x => x.Name);
+
+            if (!inputSchema.TryFindColumn(_labelColumnName, out var labelCol))
+                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "label", _labelColumnName);
+
+            foreach (var colInfo in _columns)
+            {
+                if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
+                if (col.Kind == SchemaShape.Column.VectorKind.VariableVector)
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "known-size vector or scalar", col.GetTypeString());
+
+                if (!col.IsKey || !col.ItemType.Equals(NumberDataViewType.UInt32))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "vector or scalar of U4 key type", col.GetTypeString());
+
+                // We supply slot names if the source is a single-value column, or if it has slot names.
+                var newMetadataKinds = new List<SchemaShape.Column>();
+                if (col.Kind == SchemaShape.Column.VectorKind.Scalar)
+                    newMetadataKinds.Add(new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
+                else if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotMeta))
+                    newMetadataKinds.Add(slotMeta);
+                var meta = new SchemaShape(newMetadataKinds);
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, meta);
+            }
+
+            return new SchemaShape(result.Values);
         }
     }
 
@@ -318,7 +325,7 @@ namespace Microsoft.ML.Transforms
             public Column[] Columns;
 
             [Argument(ArgumentType.Multiple, HelpText = "Count table settings", ShortName = "table", SignatureType = typeof(SignatureCountTableBuilder))]
-            public IComponentFactory<CountTableBuilderBase> CountTable = new CMCountTableBuilder.Arguments();
+            public ICountTableBuilderFactory CountTable = new CMCountTableBuilder.Options();
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The coefficient with which to apply the prior smoothing to the features", ShortName = "prior")]
             public float PriorCoefficient = 1;
@@ -335,9 +342,6 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.AtMostOnce, HelpText = "Optional text file to load counts from", ShortName = "extfile")]
             public string ExternalCountsFile;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Comma-separated list of column IDs in the external count file", ShortName = "extschema")]
-            public string ExternalCountsSchema;
-
             [Argument(ArgumentType.AtMostOnce, HelpText = "Keep counts for all columns in one shared count table", ShortName = "shared")]
             public bool SharedTable = false;
         }
@@ -345,7 +349,7 @@ namespace Microsoft.ML.Transforms
         internal sealed class Column : OneToOneColumn
         {
             [Argument(ArgumentType.Multiple, HelpText = "Count table settings", ShortName = "table", SignatureType = typeof(SignatureCountTableBuilder))]
-            public IComponentFactory<CountTableBuilderBase> CountTable;
+            public ICountTableBuilderFactory CountTable;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The coefficient with which to apply the prior smoothing to the features", ShortName = "prior")]
             public float? PriorCoefficient;
@@ -373,7 +377,16 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private readonly DraculaFeaturizer[][] _featurizers; // parallel to count tables
+        internal static class Defaults
+        {
+            public const float PriorCoefficient = 1;
+            public const float LaplaceScale = 0;
+            public const int Seed = 314489979;
+            public const bool SharedTable = false;
+        }
+
+        //private readonly DraculaFeaturizer[][] _featurizers; // parallel to count tables
+        private readonly DraculaFeaturizer _featurizer;
         private readonly string[] _labelClassNames;
         private readonly int[] _seeds;
 
@@ -393,18 +406,19 @@ namespace Microsoft.ML.Transforms
                 loaderAssemblyName: typeof(CountTableTransformer).Assembly.FullName);
         }
 
-        internal CountTableTransformer(IHostEnvironment env, DraculaFeaturizer[][] featurizers, string[] labelClassNames,
+        internal CountTableTransformer(IHostEnvironment env, DraculaFeaturizer featurizer, string[] labelClassNames,
             int[] seeds, (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(CountTableTransformer)), columns)
         {
-            Host.AssertNonEmpty(featurizers);
+            Host.AssertValue(featurizer);
             Host.AssertValueOrNull(labelClassNames);
-            Host.Assert(Utils.Size(seeds) == featurizers.Length);
+            Host.Assert(Utils.Size(seeds) == featurizer.ColCount);
 
-            _featurizers = featurizers;
+            _featurizer = featurizer;
             _labelClassNames = labelClassNames;
             _seeds = seeds;
         }
+
         // Factory method for SignatureLoadDataTransform.
         private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
             => Create(env, ctx).MakeDataTransform(input);
@@ -437,7 +451,7 @@ namespace Microsoft.ML.Transforms
                         c.LaplaceScale ?? options.LaplaceScale,
                         c.Seed ?? options.Seed);
                 }
-                estimator = new CountTableEstimator(env, options.LabelColumn, options.ExternalCountsFile, options.ExternalCountsSchema, columnOptions);
+                estimator = new CountTableEstimator(env, options.LabelColumn, options.ExternalCountsFile, columnOptions);
             }
             else
             {
@@ -462,7 +476,7 @@ namespace Microsoft.ML.Transforms
         }
 
         // Factory method for SignatureLoadModel.
-        private static CountTableTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static CountTableTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(LoaderSignature);
@@ -481,10 +495,10 @@ namespace Microsoft.ML.Transforms
             // int: number of label class names
             // int[]: ids of label class names
             // for each added column:
-            //   int: # of slots
+            //   int: seed
 
             // Sub-models:
-            // featurizers (each in a separate folder)
+            // featurizer
 
             var lc = ctx.Reader.ReadInt32();
             Host.CheckDecode(lc >= 0);
@@ -497,18 +511,8 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            _featurizers = new DraculaFeaturizer[ColumnPairs.Length][];
-            for (int i = 0; i < ColumnPairs.Length; i++)
-            {
-                var size = ctx.Reader.ReadInt32();
-                Host.CheckDecode(size > 0);
-                _featurizers[i] = new DraculaFeaturizer[size];
-                for (int j = 0; j < size; j++)
-                {
-                    var featurizerName = string.Format("Feat_{0:000}_{1:000}", i, j);
-                    ctx.LoadModel<DraculaFeaturizer, SignatureLoadModel>(Host, out _featurizers[i][j], featurizerName);
-                }
-            }
+            _seeds = ctx.Reader.ReadIntArray(ColumnPairs.Length);
+            ctx.LoadModel<DraculaFeaturizer, SignatureLoadModel>(host, out _featurizer, "DraculaFeaturizer");
         }
 
         private protected override void SaveModel(ModelSaveContext ctx)
@@ -521,11 +525,10 @@ namespace Microsoft.ML.Transforms
             // <base>
             // int: number of label class names
             // int[]: ids of label class names
-            // for each added column:
-            //   int: # of slots
+            // int[]: _seeds
 
             // Sub-models:
-            // featurizers (each in a separate folder)
+            // featurizer
 
             SaveColumns(ctx);
 
@@ -539,21 +542,19 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            for (int i = 0; i < _featurizers.Length; i++)
-            {
-                var size = _featurizers[i].Length;
-                Host.Assert(size > 0);
-                ctx.Writer.Write(size);
-                for (int j = 0; j < size; j++)
-                {
-                    var featurizerName = string.Format("Feat_{0:000}_{1:000}", i, j);
-                    ctx.SaveSubModel(featurizerName, context => _featurizers[i][j].Save(context));
-                    //ctx.SaveModel(_featurizers[i][j], featurizerName);
-                }
-            }
+            ctx.Writer.WriteIntsNoCount(_seeds);
+            ctx.SaveModel(_featurizer, "DraculaFeaturizer");
         }
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
+
+        public void SaveCountTables(string path)
+        {
+            var saver = new TextSaver(Host, new TextSaver.Arguments() { OutputHeader = false, OutputSchema = false, Dense = true });
+            using (var stream = new FileStream(path, FileMode.Create))
+            using (var ch = Host.Start("Saving Count Tables"))
+                DataSaverUtils.SaveDataView(ch, saver, _featurizer.ToDataView(), stream);
+        }
 
         private sealed class Mapper : OneToOneMapperBase
         {
@@ -569,11 +570,10 @@ namespace Microsoft.ML.Transforms
                 var outputCols = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    var featurizer = _parent._featurizers[i][0];
                     var inputCol = InputSchema[_parent.ColumnPairs[i].inputColumnName];
                     var valueCount = inputCol.Type.GetValueCount();
-                    Host.Check((long)valueCount * featurizer.NumFeatures < int.MaxValue, "Too large output size");
-                    var type = new VectorDataViewType(NumberDataViewType.Single, valueCount, featurizer.NumFeatures);
+                    Host.Check((long)valueCount * _parent._featurizer.NumFeatures < int.MaxValue, "Too large output size");
+                    var type = new VectorDataViewType(NumberDataViewType.Single, valueCount, _parent._featurizer.NumFeatures);
 
                     // We supply slot names if the source is a single-value column, or if it has slot names.
                     if (!(inputCol.Type is VectorDataViewType) || inputCol.HasSlotNames())
@@ -608,7 +608,7 @@ namespace Microsoft.ML.Transforms
                 ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter =
                     (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                     {
-                        _parent._featurizers[iinfo][0].GetFeatureNames(_parent._labelClassNames, ref featureNames);
+                        _parent._featurizer.GetFeatureNames(_parent._labelClassNames, ref featureNames);
                         int nFeatures = featureNames.Length;
 
                         var editor = VBufferEditor.Create(ref dst, nFeatures * inputSlotNames.Length);
@@ -638,16 +638,17 @@ namespace Microsoft.ML.Transforms
 
             private ValueGetter<VBuffer<float>> ConstructSingleGetter(DataViewRow input, int iinfo)
             {
-                Host.Assert(Utils.Size(_parent._featurizers[iinfo]) == 1);
+                Host.Assert(_parent._featurizer.SlotCount[iinfo] == 1);
                 uint src = 0;
                 var srcGetter = input.GetGetter<uint>(input.Schema[_parent.ColumnPairs[iinfo].inputColumnName]);
-                var outputLength = _parent._featurizers[iinfo][0].NumFeatures;
+                var outputLength = _parent._featurizer.NumFeatures;
                 var rand = new Random(_parent._seeds[iinfo]);
+                var featurizer = _parent._featurizer;
                 return (ref VBuffer<float> dst) =>
                 {
                     srcGetter(ref src);
                     var editor = VBufferEditor.Create(ref dst, outputLength);
-                    _parent._featurizers[iinfo][0].GetFeatures(rand, src, editor.Values);
+                    featurizer.GetFeatures(iinfo, 0, rand, src, editor.Values);
                     dst = editor.Commit();
                 };
             }
@@ -656,10 +657,10 @@ namespace Microsoft.ML.Transforms
             {
                 var inputCol = input.Schema[_parent.ColumnPairs[iinfo].inputColumnName];
                 int n = inputCol.Type.GetValueCount();
-                Host.Assert(Utils.Size(_parent._featurizers[iinfo]) == n);
+                Host.Assert(_parent._featurizer.SlotCount[iinfo] == n);
                 VBuffer<uint> src = default;
 
-                var outputLength = _parent._featurizers[iinfo][0].NumFeatures;
+                var outputLength = _parent._featurizer.NumFeatures;
                 var srcGetter = input.GetGetter<VBuffer<uint>>(inputCol);
                 var rand = new Random(_parent._seeds[iinfo]);
                 return (ref VBuffer<float> dst) =>
@@ -670,7 +671,7 @@ namespace Microsoft.ML.Transforms
                     {
                         var srcValues = src.GetValues();
                         for (int i = 0; i < n; i++)
-                            _parent._featurizers[iinfo][i].GetFeatures(rand, srcValues[i], editor.Values.Slice(i * outputLength, outputLength));
+                            _parent._featurizer.GetFeatures(iinfo, i, rand, srcValues[i], editor.Values.Slice(i * outputLength, outputLength));
                     }
                     else
                     {
@@ -680,7 +681,7 @@ namespace Microsoft.ML.Transforms
                         for (int i = 0; i < srcIndices.Length; i++)
                         {
                             var index = srcIndices[i];
-                            _parent._featurizers[iinfo][index].GetFeatures(rand, srcValues[i], editor.Values.Slice(index * outputLength, outputLength));
+                            _parent._featurizer.GetFeatures(iinfo, index, rand, srcValues[i], editor.Values.Slice(index * outputLength, outputLength));
                         }
                     }
 
@@ -690,681 +691,9 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    //public class CountTableTransform : OneToOneTransformBase, ITransformTemplate
-    //{
-    //    public sealed class Column : OneToOneColumn
-    //    {
-    //        [Argument(ArgumentType.Multiple, HelpText = "Count table settings", ShortName = "table")]
-    //        public ICountTableBuilderFactory CountTable;
-
-    //        [Argument(ArgumentType.AtMostOnce, HelpText = "The coefficient with which to apply the prior smoothing to the features", ShortName = "prior")]
-    //        public float? PriorCoefficient;
-
-    //        [Argument(ArgumentType.AtMostOnce, HelpText = "Laplacian noise diversity/scale-parameter. Suggest keeping it less than 1.", ShortName = "laplace")]
-    //        public float? LaplaceScale;
-
-    //        [Argument(ArgumentType.AtMostOnce, HelpText = "Seed for the random generator for the laplacian noise.", ShortName = "seed")]
-    //        public int? Seed;
-
-    //        public static Column Parse(string str)
-    //        {
-    //            var res = new Column();
-    //            if (res.TryParse(str))
-    //                return res;
-    //            return null;
-    //        }
-
-    //        public bool TryUnparse(StringBuilder sb)
-    //        {
-    //            Contracts.AssertValue(sb);
-    //            if (CountTable != null || PriorCoefficient != null || LaplaceScale != null || Seed != null)
-    //                return false;
-    //            return TryUnparseCore(sb);
-    //        }
-    //    }
-
-    //    public sealed class Arguments : TransformInputBase
-    //    {
-    //        [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-    //        public Column[] Column;
-
-    //        [Argument(ArgumentType.Multiple, HelpText = "Count table settings", ShortName = "table")]
-    //        public ICountTableBuilderFactory CountTable = new CMCountTableBuilder.Arguments();
-
-    //        [Argument(ArgumentType.AtMostOnce, HelpText = "The coefficient with which to apply the prior smoothing to the features", ShortName = "prior")]
-    //        public float PriorCoefficient = 1;
-
-    //        [Argument(ArgumentType.AtMostOnce, HelpText = "Laplacian noise diversity/scale-parameter. Suggest keeping it less than 1.", ShortName = "laplace")]
-    //        public float LaplaceScale = 0;
-
-    //        [Argument(ArgumentType.AtMostOnce, HelpText = "Seed for the random generator for the laplacian noise.", ShortName = "seed")]
-    //        public int Seed = 314489979;
-
-    //        [Argument(ArgumentType.Required, HelpText = "Label column", ShortName = "label,lab", Purpose = SpecialPurpose.ColumnName)]
-    //        public string LabelColumn;
-
-    //        [Argument(ArgumentType.AtMostOnce, HelpText = "Optional text file to load counts from", ShortName = "extfile")]
-    //        public string ExternalCountsFile;
-
-    //        [Argument(ArgumentType.AtMostOnce, HelpText = "Comma-separated list of column IDs in the external count file", ShortName = "extschema")]
-    //        public string ExternalCountsSchema;
-
-    //        [Argument(ArgumentType.AtMostOnce, HelpText = "Keep counts for all columns in one shared count table", ShortName = "shared")]
-    //        public bool SharedTable = false;
-    //    }
-
-    //    internal const string Summary = "Transforms the categorical column into the set of features: count of each label class, "
-    //        + "log-odds for each label class, back-off indicator. The input columns must be keys. This is a part of the Dracula transform.";
-
-    //    internal const string UserName = "Count Table Transform";
-    //    internal const string ShortName = "count";
-
-    //    private readonly ColumnType[] _columnTypes;
-    //    private readonly string[] _labelClassNames;
-    //    private readonly string[][] _savedColumnFeatureNames; // the cached feature names for columns, provided by featurizers
-
-    //    private readonly ICountFeaturizer[][] _featurizers; // parallel to count tables
-    //    private readonly int _labelCardinality; // number of different values label column can have
-    //    private readonly IMultiCountTable _multiCountTable;
-
-    //    private const string RegistrationName = "CountTable";
-
-    //    public CountTableTransform(IHostEnvironment env, Arguments args, IDataView input)
-    //        : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Column,
-    //            input, TestColumnType)
-    //    {
-    //        Host.AssertNonEmpty(Infos);
-    //        Host.Assert(Utils.Size(Infos) == Utils.Size(args.Column));
-    //        Host.CheckUserArg(!string.IsNullOrWhiteSpace(args.LabelColumn), nameof(args.LabelColumn), "Must specify the label column name");
-
-    //        int labelColumnIndex;
-    //        if (!input.Schema.TryGetColumnIndex(args.LabelColumn, out labelColumnIndex))
-    //            throw Host.ExceptUserArg(nameof(args.LabelColumn), "Label column '{0}' not found", args.LabelColumn);
-
-    //        var labelColumnType = input.Schema.GetColumnType(labelColumnIndex);
-    //        CheckLabelType(labelColumnType, out _labelCardinality);
-
-    //        InitLabelClassNames(Host, Source.Schema, args.LabelColumn, _labelCardinality, out _labelClassNames);
-
-    //        var n = Infos.Length;
-
-    //        var builderArgs = args.Column.Select(c => c.CountTable).ToArray();
-    //        IMultiCountTableBuilder multiBuilder;
-    //        if (!args.SharedTable)
-    //        {
-    //            multiBuilder = new ParallelMultiCountTableBuilder(Host, Infos, builderArgs, args.CountTable,
-    //                _labelCardinality);
-    //            if (!string.IsNullOrEmpty(args.ExternalCountsFile))
-    //                ((ParallelMultiCountTableBuilder)multiBuilder).LoadExternalCounts(args.ExternalCountsFile,
-    //                    args.ExternalCountsSchema, _labelCardinality);
-    //        }
-    //        else
-    //        {
-    //            Host.CheckUserArg(args.Column.All(c => c.CountTable == null), nameof(args.Column), "Can't have non-default count tables if the tables are shared");
-    //            multiBuilder = new BagMultiCountTableBuilder(Host, args.CountTable, _labelCardinality);
-    //        }
-
-    //        using (var ch = Host.Start("Training count tables"))
-    //        {
-    //            TrainTables(ch, input, multiBuilder, labelColumnIndex);
-    //            ch.Done();
-    //        }
-
-    //        _multiCountTable = multiBuilder.CreateMultiCountTable();
-
-    //        // create featurizers
-    //        _featurizers = new ICountFeaturizer[n][];
-    //        for (int i = 0; i < n; i++)
-    //        {
-    //            int size = Infos[i].TypeSrc.ValueCount;
-    //            Host.Assert(size > 0);
-    //            _featurizers[i] = new ICountFeaturizer[size];
-    //            for (int j = 0; j < size; j++)
-    //                _featurizers[i][j] = CreateFeaturizer(Host, args.Column[i].Featurizer ?? args.Featurizer, _multiCountTable.GetCountTable(i, j));
-    //        }
-
-    //        _columnTypes = GenerateColumnTypesAndMetadata();
-    //        _savedColumnFeatureNames = new string[Infos.Length][];
-    //    }
-
-    //    #region Serialization
-    //    public const string LoaderSignature = "CountTableTransform";
-    //    internal const string LoaderSignatureOld = "CountTableFunction";
-
-    //    private static VersionInfo GetVersionInfo()
-    //    {
-    //        return new VersionInfo(
-    //            modelSignature: "CNTTBL F",
-    //            // verWrittenCur: 0x00010001, // Initial
-    //            // verWrittenCur: 0x00010002, // Added slot names and multinomial support
-    //            // verWrittenCur: 0x00010003, // label cardinality
-    //            // verWrittenCur: 0x00010004, // Single-only tables
-    //            verWrittenCur: 0x00010005, // Multi-tables
-    //            verReadableCur: 0x00010005,
-    //            verWeCanReadBack: 0x00010005,
-    //            loaderSignature: LoaderSignature,
-    //            loaderSignatureAlt: LoaderSignatureOld);
-    //    }
-
-    //    public static CountTableTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
-    //    {
-    //        Contracts.CheckValue(env, nameof(env));
-    //        var h = env.Register(RegistrationName);
-    //        h.CheckValue(ctx, nameof(ctx));
-    //        h.CheckValue(input, nameof(input));
-    //        ctx.CheckAtModel(GetVersionInfo());
-    //        return h.Apply("Loading Model",
-    //            ch =>
-    //            {
-    //            // *** Binary format ***
-    //            // int: label cardinality
-    //            // <remainder handled in ctors>
-    //            int labelCardinality = ctx.Reader.ReadInt32();
-    //                ch.CheckDecode(labelCardinality > 1);
-    //                return new CountTableTransform(h, ctx, input, labelCardinality);
-    //            });
-    //    }
-
-    //    private CountTableTransform(IHostEnvironment env, CountTableTransform transform, IDataView newSource)
-    //        : base(env, RegistrationName, transform, newSource, TestColumnType)
-    //    {
-    //        Host.AssertValue(transform, "transform");
-
-    //        // REVIEW petelu(nihejazi): compute label class names for the new source (here and when deserializing).
-    //        _labelClassNames = transform._labelClassNames;
-    //        _labelCardinality = transform._labelCardinality;
-    //        _multiCountTable = transform._multiCountTable;
-    //        _featurizers = transform._featurizers;
-
-    //        _columnTypes = GenerateColumnTypesAndMetadata();
-    //        _savedColumnFeatureNames = new string[Infos.Length][];
-    //    }
-
-    //    private CountTableTransform(IHost host, ModelLoadContext ctx, IDataView input, int labelCardinality)
-    //        : base(host, ctx, input, TestColumnType)
-    //    {
-    //        Host.AssertValue(ctx);
-    //        Host.AssertNonEmpty(Infos);
-    //        Host.Assert(labelCardinality > 1);
-
-    //        // *** Binary format ***
-    //        // <prefix handled in static Create method>
-    //        // <base>
-    //        // int: number of label class names (0 or the same as label cardinality)
-    //        // int[]: ids of label class names
-    //        // for each added column:
-    //        //   int: # of slots
-
-    //        // Sub-models:
-    //        // multi-count-table (it saves one or more sub-models for count tables)
-    //        // featurizers (each in a separate folder)
-    //        _labelCardinality = labelCardinality;
-
-    //        var lc = ctx.Reader.ReadInt32();
-    //        Host.CheckDecode(lc == 0 || lc == _labelCardinality);
-    //        if (lc > 0)
-    //        {
-    //            _labelClassNames = new string[lc];
-    //            for (int i = 0; i < lc; i++)
-    //            {
-    //                _labelClassNames[i] = ctx.LoadString();
-    //                Host.Assert(_labelClassNames[i] != null);
-    //            }
-    //        }
-    //        ctx.LoadModel<IMultiCountTable, SignatureLoadModel>(Host, out _multiCountTable, "CountTable");
-
-    //        _featurizers = new ICountFeaturizer[Infos.Length][];
-    //        for (int i = 0; i < Infos.Length; i++)
-    //        {
-    //            var size = ctx.Reader.ReadInt32();
-    //            Host.CheckDecode(size > 0);
-    //            Host.CheckDecode(size == Infos[i].TypeSrc.ValueCount);
-    //            _featurizers[i] = new ICountFeaturizer[size];
-    //            for (int j = 0; j < size; j++)
-    //            {
-    //                var featurizerName = string.Format("Feat_{0:000}_{1:000}", i, j);
-    //                ctx.LoadModel<ICountFeaturizer, SignatureLoadCountFeaturizer>(Host, out _featurizers[i][j], featurizerName, _multiCountTable.GetCountTable(i, j));
-    //            }
-    //        }
-
-    //        _columnTypes = GenerateColumnTypesAndMetadata();
-    //        _savedColumnFeatureNames = new string[Infos.Length][];
-    //    }
-
-    //    public override void Save(ModelSaveContext ctx)
-    //    {
-    //        Host.CheckValue(ctx, nameof(ctx));
-    //        ctx.CheckAtModel();
-    //        ctx.SetVersionInfo(GetVersionInfo());
-
-    //        // *** Binary format ***
-    //        // int: label cardinality
-    //        // <base>
-    //        // int: number of label class names (0 or the same as label cardinality)
-    //        // int[]: ids of label class names
-    //        // for each added column:
-    //        //   int: # of slots
-
-    //        // Sub-models:
-    //        // multi-count-table (it saves one or more sub-models for count tables)
-    //        // featurizers (each in a separate folder)
-
-    //        Host.Assert(_labelCardinality > 1);
-    //        ctx.Writer.Write(_labelCardinality);
-    //        SaveBase(ctx);
-
-    //        ctx.Writer.Write(Utils.Size(_labelClassNames));
-    //        if (_labelClassNames != null)
-    //        {
-    //            Host.Assert(_labelClassNames.Length == _labelCardinality);
-    //            for (int i = 0; i < _labelClassNames.Length; i++)
-    //            {
-    //                Host.Assert(_labelClassNames[i] != null);
-    //                ctx.SaveString(_labelClassNames[i]);
-    //            }
-    //        }
-
-    //        ctx.SaveModel(_multiCountTable, "CountTable");
-
-    //        for (int i = 0; i < _featurizers.Length; i++)
-    //        {
-    //            var size = _featurizers[i].Length;
-    //            Host.Assert(size > 0);
-    //            Host.Assert(size == Infos[i].TypeSrc.ValueCount);
-    //            ctx.Writer.Write(size);
-    //            for (int j = 0; j < size; j++)
-    //            {
-    //                var featurizerName = string.Format("Feat_{0:000}_{1:000}", i, j);
-    //                ctx.SaveModel(_featurizers[i][j], featurizerName);
-    //            }
-    //        }
-    //    }
-
-    //    public IDataTransform ApplyToData(IHostEnvironment env, IDataView newSource)
-    //    {
-    //        Host.CheckValue(env, nameof(env));
-    //        Host.CheckValue(newSource, nameof(newSource));
-
-    //        return new CountTableTransform(env, this, newSource);
-    //    }
-
-    //    #endregion Serialization
-
-    //    private void CheckLabelType(ColumnType labelColumnType, out int labelCardinality)
-    //    {
-    //        if (labelColumnType.IsNumber)
-    //        {
-    //            labelCardinality = 2;
-    //        }
-    //        else if (labelColumnType.IsKey)
-    //        {
-    //            labelCardinality = labelColumnType.KeyCount;
-    //            Host.CheckUserArg(labelCardinality > 1, nameof(Arguments.LabelColumn), "Label column type must have known cardinality more than 1");
-    //        }
-    //        else
-    //        {
-    //            throw Host.ExceptUserArg(nameof(Arguments.LabelColumn), "Incorrect label column type: expected numeric or key type");
-    //        }
-    //    }
-
-    //    private ICountFeaturizer CreateFeaturizer(IHostEnvironment env, ICountFeaturizerFactory featurizerArgs, ICountTable countTable)
-    //    {
-    //        return featurizerArgs.CreateComponent(env,
-    //            _labelCardinality, // extra arg1: # of label bins
-    //            countTable);  // extra arg2: count table
-    //    }
-
-    //    private void TrainTables(IChannel ch, IDataView trainingData, IMultiCountTableBuilder builder, int labelColumnIndex)
-    //    {
-    //        var colCount = Infos.Length;
-
-    //        // creating a cursor over columns we need
-    //        bool[] activeInput = new bool[Source.Schema.ColumnCount];
-    //        foreach (var colInfo in Infos)
-    //            activeInput[colInfo.Source] = true;
-    //        activeInput[labelColumnIndex] = true;
-
-    //        double rowCount = trainingData.GetRowCount(true) ?? double.NaN;
-    //        long rowCur = 0;
-    //        using (var pch = Host.StartProgressChannel("Training tables"))
-    //        using (var cursor = trainingData.GetRowCursor(col => activeInput[col]))
-    //        {
-    //            var header = new ProgressHeader(new[] { "rows" });
-    //            pch.SetHeader(header, e => { e.SetProgress(0, rowCur, rowCount); });
-    //            // populate getters
-    //            var singleGetters = new ValueGetter<uint>[colCount];
-    //            var vectorGetters = new ValueGetter<VBuffer<uint>>[colCount];
-    //            for (int i = 0; i < colCount; i++)
-    //            {
-    //                if (Infos[i].TypeSrc.IsVector)
-    //                    vectorGetters[i] = cursor.GetGetter<VBuffer<uint>>(Infos[i].Source);
-    //                else
-    //                    singleGetters[i] = cursor.GetGetter<uint>(Infos[i].Source);
-    //            }
-
-    //            var labelGetter = GetLabelGetter(cursor, labelColumnIndex);
-    //            long labelKey = 0;
-    //            uint srcSingleValue = 0;
-    //            var srcBuffer = default(VBuffer<uint>);
-    //            while (cursor.MoveNext())
-    //            {
-    //                labelGetter(ref labelKey);
-    //                if (labelKey < 0) // Invalid label, skip the data
-    //                    continue;
-    //                for (int i = 0; i < colCount; i++)
-    //                {
-    //                    var colInfo = Infos[i];
-    //                    if (colInfo.TypeSrc.IsVector)
-    //                    {
-    //                        vectorGetters[i](ref srcBuffer);
-    //                        Host.Check(srcBuffer.Length == colInfo.TypeSrc.VectorSize, "value count mismatch");
-    //                        IncrementVec(builder, i, ref srcBuffer, (uint)labelKey);
-    //                    }
-    //                    else
-    //                    {
-    //                        singleGetters[i](ref srcSingleValue);
-    //                        builder.IncrementOne(i, srcSingleValue, (uint)labelKey, 1);
-    //                    }
-    //                }
-    //                rowCur++;
-    //            }
-    //            pch.Checkpoint(rowCur);
-    //        }
-    //    }
-
-    //    private static void InitLabelClassNames(IExceptionContext ectx, ISchema schema, string labelColumn, int labelCardinality, out string[] labelClassNames)
-    //    {
-    //        int labelColId;
-    //        const string defaultClassNameTemplate = "Class{0:000}";
-    //        Contracts.Check(schema.TryGetColumnIndex(labelColumn, out labelColId));
-    //        var mType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, labelColId);
-
-    //        if (mType != null && mType.IsVector && mType.VectorSize == labelCardinality)
-    //        {
-    //            VBuffer<DvText> keyNames = default(VBuffer<DvText>);
-    //            schema.GetMetadata(MetadataUtils.Kinds.KeyValues, labelColId, ref keyNames);
-    //            ectx.Check(keyNames.Length == labelCardinality);
-    //            labelClassNames = keyNames.Items(true)
-    //                .Select(
-    //                    pair => !pair.Value.HasChars
-    //                        ? string.Format(defaultClassNameTemplate, pair.Key)
-    //                        : pair.Value.ToString())
-    //                .ToArray();
-    //            ectx.Assert(labelClassNames.Length == labelCardinality);
-    //        }
-    //        else
-    //            labelClassNames = null;
-    //    }
-
-    //    /// <summary>
-    //    /// This method is called once all the featurizers are created, and therefore we know the # and names of individual columns
-    //    /// </summary>
-    //    public ColumnType[] GenerateColumnTypesAndMetadata()
-    //    {
-    //        Host.AssertNonEmpty(Infos);
-
-    //        var md = Metadata;
-    //        var types = new ColumnType[Infos.Length];
-    //        for (int i = 0; i < Infos.Length; i++)
-    //        {
-    //            var featurizer = GetFeaturizerForColumn(i);
-    //            var valueCount = Infos[i].TypeSrc.ValueCount;
-    //            Host.Check((long)valueCount * featurizer.NumFeatures < int.MaxValue, "Too large output size");
-    //            types[i] = new VectorType(NumberType.R4, valueCount, featurizer.NumFeatures);
-
-    //            // We supply slot names if the source is a single-value column, or if it has slot names.
-    //            if (!Infos[i].TypeSrc.IsVector || IsValidSlotNameType(i))
-    //            {
-    //                using (var bldr = md.BuildMetadata(i))
-    //                {
-    //                    bldr.AddGetter<VBuffer<DvText>>(MetadataUtils.Kinds.SlotNames,
-    //                        MetadataUtils.GetNamesType(types[i].VectorSize), GetSlotNames);
-    //                }
-    //            }
-    //        }
-    //        md.Seal();
-    //        return types;
-    //    }
-
-    //    private static string TestColumnType(ColumnType type)
-    //    {
-    //        // we accept V<Key<U4>, KnownSize> and Key<U4>
-    //        if (type.ValueCount > 0 && type.ItemType.IsKey && type.ItemType.RawKind == DataKind.U4)
-    //            return null;
-    //        return "Expected U4 Key type or vector of U4 Key type";
-    //    }
-
-    //    protected override ColumnType GetColumnTypeCore(int iinfo)
-    //    {
-    //        Host.Assert(iinfo >= 0 && iinfo < Infos.Length);
-    //        Host.Assert(Utils.Size(_columnTypes) == Infos.Length);
-    //        return _columnTypes[iinfo];
-    //    }
-
-    //    #region Metadata
-    //    private void GetSlotNames(int iinfo, ref VBuffer<DvText> dst)
-    //    {
-    //        Host.Assert(0 <= iinfo && iinfo < Infos.Length);
-
-    //        VBuffer<DvText> inputSlotNames = default(VBuffer<DvText>);
-    //        if (Infos[iinfo].TypeSrc.IsVector)
-    //            Source.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, Infos[iinfo].Source, ref inputSlotNames);
-    //        else
-    //            inputSlotNames = new VBuffer<DvText>(1, new[] { new DvText(Source.Schema.GetColumnName(Infos[iinfo].Source)) });
-
-    //        Host.Check(inputSlotNames.Length == Infos[iinfo].TypeSrc.ValueCount, "unexpected number of slot names");
-
-    //        string[] featureNames;
-    //        GetColumnFeatureNames(iinfo, out featureNames);
-    //        int nFeatures = featureNames.Length;
-
-    //        DvText[] outputSlotNames;
-    //        if (dst.Count >= nFeatures * inputSlotNames.Length)
-    //            outputSlotNames = dst.Values;
-    //        else
-    //            outputSlotNames = new DvText[nFeatures * inputSlotNames.Length];
-
-    //        foreach (var pair in inputSlotNames.Items(true))
-    //        {
-    //            int i = pair.Key;
-    //            var slotName = pair.Value.ToString();
-    //            for (int j = 0; j < nFeatures; j++)
-    //            {
-    //                outputSlotNames[i * nFeatures + j] = new DvText(string.Format("{0}_{1}", slotName, featureNames[j]));
-    //            }
-    //        }
-
-    //        dst = new VBuffer<DvText>(nFeatures * inputSlotNames.Length, outputSlotNames, dst.Indices);
-    //    }
-
-    //    private ICountFeaturizer GetFeaturizerForColumn(int iinfo)
-    //    {
-    //        Host.Assert(0 <= iinfo && iinfo < Infos.Length);
-    //        Host.Assert(iinfo < _featurizers.Length);
-    //        Host.Assert(_featurizers[iinfo].Length >= 1);
-    //        Host.AssertValue(_featurizers[iinfo][0]);
-    //        return _featurizers[iinfo][0];
-    //    }
-
-    //    private void GetColumnFeatureNames(int iinfo, out string[] featureNames)
-    //    {
-    //        Host.Assert(0 <= iinfo && iinfo < _savedColumnFeatureNames.Length);
-    //        if (_savedColumnFeatureNames[iinfo] == null)
-    //        {
-    //            var featurizer = GetFeaturizerForColumn(iinfo);
-    //            var nFeatures = featurizer.NumFeatures;
-    //            Interlocked.CompareExchange(
-    //                ref _savedColumnFeatureNames[iinfo],
-    //                featurizer.GetFeatureNames(_labelClassNames).ToArray(),
-    //                null);
-    //            Host.Check(Utils.Size(_savedColumnFeatureNames[iinfo]) == nFeatures,
-    //                "unexpected # of feature names");
-    //        }
-
-    //        featureNames = _savedColumnFeatureNames[iinfo];
-    //    }
-
-    //    /// <summary>
-    //    /// Determines if the given column pair has acceptable slot names metadata:
-    //    /// it must exist and have the expected type and cardinality
-    //    /// </summary>
-    //    /// <param name="iinfo">Index of the column pair</param>
-    //    /// <returns>True if this type is acceptable as slot names</returns>
-    //    private bool IsValidSlotNameType(int iinfo)
-    //    {
-    //        var metadataType = Source.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, Infos[iinfo].Source);
-    //        return metadataType != null
-    //            && metadataType.IsKnownSizeVector
-    //            && metadataType.VectorSize == Infos[iinfo].TypeSrc.VectorSize
-    //            && metadataType.ItemType.IsText;
-    //    }
-    //    #endregion Metadata
-
-    //    private ValueGetter<long> GetLabelGetter(IRow row, int col)
-    //    {
-    //        // The label column type is checked as part of args validation.
-    //        var type = row.Schema.GetColumnType(col);
-    //        Host.Assert(type.IsKey || type.IsNumber);
-
-    //        if (type.IsKey)
-    //        {
-    //            Host.Assert(type.KeyCount > 0);
-
-    //            int size = type.KeyCount;
-    //            ulong src = 0;
-    //            var getSrc = RowCursorUtils.GetGetterAs<ulong>(NumberType.U8, row, col);
-    //            return
-    //                (ref long dst) =>
-    //                {
-    //                    getSrc(ref src);
-    //                // The value should fall between 0 and size inclusive, where 0 is considered
-    //                // missing/invalid (this is the contract of the KeyType). However, we still handle the
-    //                // cases of too large values correctly (by treating them as invalid).
-    //                if (src <= (ulong)size)
-    //                        dst = (long)src - 1;
-    //                    else
-    //                        dst = -1;
-    //                };
-    //        }
-    //        else
-    //        {
-    //            Double src = 0;
-    //            var getSrc = RowCursorUtils.GetGetterAs<Double>(NumberType.R8, row, col);
-    //            return
-    //                (ref long dst) =>
-    //                {
-    //                    getSrc(ref src);
-    //                // NaN maps to -1.
-    //                if (src > 0)
-    //                        dst = 1;
-    //                    else if (src <= 0)
-    //                        dst = 0;
-    //                    else
-    //                        dst = -1;
-    //                };
-    //        }
-    //    }
-
-    //    /// <summary>
-    //    /// Iterate over all count tables for the given column and increment the corresponding counts
-    //    /// </summary>
-    //    /// <param name="builder">Count tables to iterate over</param>
-    //    /// <param name="iCol">Column index</param>
-    //    /// <param name="srcBuffer">Source values to use as keys</param>
-    //    /// <param name="labelKey">Label key</param>
-    //    private void IncrementVec(IMultiCountTableBuilder builder, int iCol, ref VBuffer<uint> srcBuffer, uint labelKey)
-    //    {
-    //        var n = srcBuffer.Length;
-    //        if (srcBuffer.IsDense)
-    //        {
-    //            for (int i = 0; i < n; i++)
-    //                builder.IncrementSlot(iCol, i, srcBuffer.Values[i], labelKey, 1);
-    //        }
-    //        else
-    //        {
-    //            for (int i = 0; i < srcBuffer.Count; i++)
-    //                builder.IncrementSlot(iCol, srcBuffer.Indices[i], srcBuffer.Values[i], labelKey, 1);
-    //        }
-    //    }
-
-    //    public ICountTable GetCountTable(int columnIndex, int slotIndex)
-    //    {
-    //        Host.AssertValue(_multiCountTable);
-    //        return _multiCountTable.GetCountTable(columnIndex, slotIndex);
-    //    }
-
-    //    public int GetLabelCardinality()
-    //    {
-    //        return _labelCardinality;
-    //    }
-
-    //    protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
-    //    {
-    //        Host.AssertValueOrNull(ch);
-    //        Host.AssertValue(input);
-    //        Host.Assert(0 <= iinfo && iinfo < Infos.Length);
-    //        disposer = null;
-
-    //        if (Infos[iinfo].TypeSrc.IsVector)
-    //            return ConstructVectorGetter(input, iinfo);
-    //        return ConstructSingleGetter(input, iinfo);
-    //    }
-
-    //    private ValueGetter<VBuffer<Single>> ConstructSingleGetter(IRow input, int bindingIndex)
-    //    {
-    //        Host.Assert(Utils.Size(_featurizers[bindingIndex]) == 1);
-    //        uint src = 0;
-    //        var srcGetter = GetSrcGetter<uint>(input, bindingIndex);
-    //        var numFeatureColumns = _featurizers[bindingIndex][0].NumFeatures;
-    //        return (ref VBuffer<Single> dst) =>
-    //        {
-    //            srcGetter(ref src);
-    //            var values = dst.Values;
-    //            if (Utils.Size(values) < numFeatureColumns)
-    //                values = new Single[numFeatureColumns];
-    //            _featurizers[bindingIndex][0].GetFeatures(src, values, 0);
-    //            dst = new VBuffer<Single>(numFeatureColumns, values, dst.Indices);
-    //        };
-    //    }
-
-    //    private ValueGetter<VBuffer<Single>> ConstructVectorGetter(IRow input, int bindingIndex)
-    //    {
-    //        int n = Infos[bindingIndex].TypeSrc.ValueCount;
-    //        Host.Assert(Utils.Size(_featurizers[bindingIndex]) == n);
-    //        VBuffer<uint> src = default(VBuffer<uint>);
-
-    //        var numFeatureColumns = _featurizers[bindingIndex][0].NumFeatures;
-    //        var srcGetter = GetSrcGetter<VBuffer<uint>>(input, bindingIndex);
-    //        return (ref VBuffer<Single> dst) =>
-    //        {
-    //            srcGetter(ref src);
-    //            var values = dst.Values;
-    //            if (Utils.Size(values) < n * numFeatureColumns)
-    //                values = new Single[n * numFeatureColumns];
-    //            if (src.IsDense)
-    //            {
-    //                for (int i = 0; i < n; i++)
-    //                    _featurizers[bindingIndex][i].GetFeatures(src.Values[i], values, i * numFeatureColumns);
-    //            }
-    //            else
-    //            {
-    //                for (int i = 0; i < numFeatureColumns * n; i++)
-    //                    values[i] = 0;
-
-    //                for (int i = 0; i < src.Count; i++)
-    //                {
-    //                    var index = src.Indices[i];
-    //                    _featurizers[bindingIndex][index].GetFeatures(src.Values[i], values, index * numFeatureColumns);
-    //                }
-    //            }
-
-    //            dst = new VBuffer<Single>(n * numFeatureColumns, values, dst.Indices);
-    //        };
-    //    }
-
     public static class CountTable
     {
-        [TlcModule.EntryPoint(Desc = CountTableTransformer.Summary, UserName = CountTableTransformer.UserName, ShortName = "Count")]
+        [TlcModule.EntryPoint(Name = "Transforms.CountTableBuilder", Desc = CountTableTransformer.Summary, UserName = CountTableTransformer.UserName, ShortName = "Count")]
         internal static CommonOutputs.TransformOutput Create(IHostEnvironment env, CountTableTransformer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
