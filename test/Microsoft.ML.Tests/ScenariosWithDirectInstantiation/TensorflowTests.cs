@@ -1319,6 +1319,15 @@ namespace Microsoft.ML.Scenarios
             }
             return isReuse;
         }
+        
+        internal (string, string, string, bool) getInitialParameters(ImageClassificationTrainer.Architecture arch, string finalImagesFolderName)
+        {
+            string trainSetBottleneckCachedValuesFileName = "TrainsetCached_" + finalImagesFolderName + "_" + (int) arch;
+            string validationSetBottleneckCachedValuesFileName = "validationsetCached_" + finalImagesFolderName + "_" + (int) arch;
+            string workspacePath = Path.Combine(TensorFlowScenariosTestsFixture.parentWorkspacePath, finalImagesFolderName + "_" + (int) arch);
+            bool isReuse = ShouldReuse(workspacePath, trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName);
+            return (trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName, workspacePath, isReuse);
+        }
 
         [TensorFlowTheory]
         [InlineData(ImageClassificationTrainer.Architecture.ResnetV2101)]
@@ -1362,11 +1371,9 @@ namespace Microsoft.ML.Scenarios
                     .Transform(testDataset);
 
             // Check if the bottleneck cached values already exist
-            string trainSetBottleneckCachedValuesFileName = "TrainsetCached_" + finalImagesFolderName + "_" + (int)arch;
-            string validationSetBottleneckCachedValuesFileName = "validationsetCached_" + finalImagesFolderName + "_" + (int)arch;
-            string workspacePath = Path.Combine(TensorFlowScenariosTestsFixture.parentWorkspacePath, finalImagesFolderName + "_" + (int)arch);
-            bool isReuse = ShouldReuse(workspacePath, trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName);
-
+            var (trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName, 
+                workspacePath, isReuse)  = getInitialParameters(arch, finalImagesFolderName);
+            
             var options = new ImageClassificationTrainer.Options()
             {
                 FeatureColumnName = "Image",
@@ -1506,13 +1513,10 @@ namespace Microsoft.ML.Scenarios
                     .Transform(testDataset);
 
             // Check if the bottleneck cached values already exist
-            int arch = (int) ImageClassificationTrainer.Architecture.ResnetV2101;
-            string trainSetBottleneckCachedValuesFileName = "TrainsetCached_" + finalImagesFolderName + "_" + arch;
-            string validationSetBottleneckCachedValuesFileName = "validationsetCached_" + finalImagesFolderName + "_" + arch;
-            string workspacePath = Path.Combine(TensorFlowScenariosTestsFixture.parentWorkspacePath, finalImagesFolderName + "_" + arch);
-            bool isReuse = ShouldReuse(workspacePath, trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName);
+            var (trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName,
+                workspacePath, isReuse) = getInitialParameters(ImageClassificationTrainer.Architecture.ResnetV2101, finalImagesFolderName);
 
-                var options = new ImageClassificationTrainer.Options()
+            var options = new ImageClassificationTrainer.Options()
             {
                 FeatureColumnName = "Image",
                 LabelColumnName = "Label",
@@ -1608,19 +1612,10 @@ namespace Microsoft.ML.Scenarios
             Assert.True(File.Exists(Path.Combine(Path.GetTempPath(), "MLNET", ImageClassificationTrainer.ModelFileName[options.Arch])));
         }
 
-        [TensorFlowFact]
-        public void TensorFlowImageClassificationEarlyStoppingIncreasing()
-        {
-            TensorFlowImageClassificationEarlyStopping(ImageClassificationTrainer.EarlyStoppingMetric.Accuracy);
-        }
-
-        [TensorFlowFact]
-        public void TensorFlowImageClassificationEarlyStoppingDecreasing()
-        {
-            TensorFlowImageClassificationEarlyStopping(ImageClassificationTrainer.EarlyStoppingMetric.Loss);
-        }
-
-        internal void TensorFlowImageClassificationEarlyStopping(ImageClassificationTrainer.EarlyStoppingMetric earlyStoppingMetric)
+        [TensorFlowTheory]
+        [InlineData(ImageClassificationTrainer.EarlyStoppingMetric.Accuracy)]
+        [InlineData(ImageClassificationTrainer.EarlyStoppingMetric.Loss)]
+        public void TensorFlowImageClassificationEarlyStopping(ImageClassificationTrainer.EarlyStoppingMetric earlyStoppingMetric)
         {
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
@@ -1659,11 +1654,10 @@ namespace Microsoft.ML.Scenarios
                     .Transform(testDataset);
 
             // Check if the bottleneck cached values already exist
-            int arch = (int) ImageClassificationTrainer.Architecture.ResnetV2101;
-            string trainSetBottleneckCachedValuesFileName = "TrainsetCached_" + finalImagesFolderName + "_" + arch;
-            string validationSetBottleneckCachedValuesFileName = "validationsetCached_" + finalImagesFolderName + "_" + arch;
-            string workspacePath = Path.Combine(TensorFlowScenariosTestsFixture.parentWorkspacePath, finalImagesFolderName + "_" + arch);
-            bool isReuse = ShouldReuse(workspacePath, trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName);
+            var (trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName,
+                workspacePath, isReuse) = getInitialParameters(ImageClassificationTrainer.Architecture.ResnetV2101, finalImagesFolderName);
+
+
 
             var options = new ImageClassificationTrainer.Options()
             {
