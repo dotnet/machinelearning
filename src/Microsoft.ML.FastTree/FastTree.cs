@@ -3046,7 +3046,7 @@ namespace Microsoft.ML.Trainers.FastTree
             Max
         }
 
-        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
+        private protected virtual bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
         {
             Host.CheckValue(ctx, nameof(ctx));
 
@@ -3131,6 +3131,10 @@ namespace Microsoft.ML.Trainers.FastTree
             node.AddAttribute("target_weights", classWeights);
 
             return true;
+        }
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
+        {
+            return SaveAsOnnx(ctx,outputNames,featureColumn);
         }
 
         void ICanSaveSummary.SaveSummary(TextWriter writer, RoleMappedSchema schema)

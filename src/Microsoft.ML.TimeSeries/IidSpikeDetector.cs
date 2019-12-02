@@ -128,7 +128,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
 
         // Factory method for SignatureLoadModel.
-        private static IidSpikeDetector Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static IidSpikeDetector Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             return new IidSpikeDetector(env, ctx);
         }
 
-        internal IidSpikeDetector(IHostEnvironment env, ModelLoadContext ctx)
+        private IidSpikeDetector(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, ctx, LoaderSignature)
         {
             // *** Binary format ***
