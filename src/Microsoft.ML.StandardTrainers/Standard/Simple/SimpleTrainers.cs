@@ -97,7 +97,7 @@ namespace Microsoft.ML.Trainers
             _inputType = new VectorDataViewType(NumberDataViewType.Single);
         }
 
-        private static RandomModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static RandomModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -377,7 +377,7 @@ namespace Microsoft.ML.Trainers
             _inputType = new VectorDataViewType(NumberDataViewType.Single);
         }
 
-        private static PriorModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static PriorModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));

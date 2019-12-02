@@ -760,7 +760,7 @@ namespace Microsoft.ML.Calibrators
             _featureContribution = SubModel as IFeatureContributionMapper;
         }
 
-        private static CalibratedModelParametersBase Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static CalibratedModelParametersBase Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
@@ -1224,7 +1224,7 @@ namespace Microsoft.ML.Calibrators
             _host.CheckDecode(_binProbs.All(x => (0 <= x && x <= 1)));
         }
 
-        private static NaiveCalibrator Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static NaiveCalibrator Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -1675,7 +1675,7 @@ namespace Microsoft.ML.Calibrators
             _host.CheckDecode(FloatUtils.IsFinite(Offset));
         }
 
-        private static PlattCalibrator Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static PlattCalibrator Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -1972,7 +1972,7 @@ namespace Microsoft.ML.Calibrators
             _host.CheckDecode(valuePrev <= 1);
         }
 
-        private static IsotonicCalibrator Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static IsotonicCalibrator Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));

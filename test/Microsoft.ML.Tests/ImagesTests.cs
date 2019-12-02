@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
@@ -27,11 +26,6 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestEstimatorChain()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return;
-            }
-
             var env = new MLContext();
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
@@ -107,11 +101,6 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestSaveImages()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return;
-            }
-
             var env = new MLContext();
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
@@ -147,11 +136,6 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestGreyscaleTransformImages()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return;
-            }
-
             IHostEnvironment env = new MLContext();
             var imageHeight = 150;
             var imageWidth = 100;
@@ -203,11 +187,6 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestGrayScaleInMemory()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return;
-            }
-
             // Create an image list.
             var images = new List<ImageDataPoint>(){ new ImageDataPoint(10, 10, Color.Blue), new ImageDataPoint(10, 10, Color.Red) };
 
@@ -291,11 +270,6 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithAlphaInterleave()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return;
-            }
-
             IHostEnvironment env = new MLContext();
             const int imageHeight = 100;
             const int imageWidth = 130;
@@ -353,11 +327,6 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithoutAlphaInterleave()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return;
-            }
-
             IHostEnvironment env = new MLContext();
             const int imageHeight = 100;
             const int imageWidth = 130;
@@ -415,11 +384,6 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithDifferentOrder()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return;
-            }
-
             IHostEnvironment env = new MLContext();
             const int imageHeight = 100;
             const int imageWidth = 130;
@@ -479,11 +443,6 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithAlphaNoInterleave()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return;
-            }
-
             IHostEnvironment env = new MLContext();
             const int imageHeight = 100;
             const int imageWidth = 130;
@@ -541,11 +500,6 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithoutAlphaNoInterleave()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return;
-            }
-
             IHostEnvironment env = new MLContext();
             const int imageHeight = 100;
             const int imageWidth = 130;
@@ -603,11 +557,6 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithAlphaInterleaveNoOffset()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return;
-            }
-
             IHostEnvironment env = new MLContext();
             const int imageHeight = 100;
             const int imageWidth = 130;
@@ -666,11 +615,6 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithoutAlphaInterleaveNoOffset()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return;
-            }
-
             IHostEnvironment env = new MLContext();
             const int imageHeight = 100;
             const int imageWidth = 130;
@@ -728,11 +672,6 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithAlphaNoInterleaveNoOffset()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return;
-            }
-
             IHostEnvironment env = new MLContext();
             const int imageHeight = 100;
             var imageWidth = 130;
@@ -791,11 +730,6 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithoutAlphaNoInterleaveNoOffset()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return;
-            }
-
             IHostEnvironment env = new MLContext();
             const int imageHeight = 100;
             const int imageWidth = 130;
@@ -852,11 +786,6 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void ImageResizerTransformResizingModeFill()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return;
-            }
-
             var env = new MLContext();
             var dataFile = GetDataPath("images/fillmode.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
