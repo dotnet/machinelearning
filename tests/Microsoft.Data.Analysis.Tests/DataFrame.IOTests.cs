@@ -4,7 +4,6 @@
 
 using System;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Text;
 using Xunit;
 
@@ -57,6 +56,53 @@ CMT,1,1,181,0.6,CSH,4.5";
             Assert.Equal(3, reducedRows.RowCount);
             Assert.Equal(7, reducedRows.Columns.Count);
             Assert.Equal("CMT", reducedRows["Column0"][2]);
+        }
+
+        [Fact]
+        public void TestReadCsvWithTypes()
+        {
+            string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs,trip_distance,payment_type,fare_amount
+CMT,1,1,1271,3.8,CRD,17.5
+CMT,1,1,474,1.5,CRD,8
+CMT,1,1,637,1.4,CRD,8.5
+,,,,,,
+CMT,1,1,181,0.6,CSH,4.5";
+
+            Stream GetStream(string streamData)
+            {
+                return new MemoryStream(Encoding.Default.GetBytes(streamData));
+            }
+            DataFrame df = DataFrame.LoadCsv(GetStream(data), dataTypes: new Type[] { typeof(string), typeof(short), typeof(int), typeof(long), typeof(float), typeof(string), typeof(double) });
+            Assert.Equal(5, df.RowCount);
+            Assert.Equal(7, df.Columns.Count);
+
+            Assert.True(typeof(string) == df.Columns[0].DataType);
+            Assert.True(typeof(short) == df.Columns[1].DataType);
+            Assert.True(typeof(int) == df.Columns[2].DataType);
+            Assert.True(typeof(long) == df.Columns[3].DataType);
+            Assert.True(typeof(float) == df.Columns[4].DataType);
+            Assert.True(typeof(string) == df.Columns[5].DataType);
+            Assert.True(typeof(double) == df.Columns[6].DataType);
+
+            foreach (var column in df.Columns)
+            {
+                if (column.DataType != typeof(string))
+                {
+                    Assert.Equal(1, column.NullCount);
+                }
+                else
+                {
+                    Assert.Equal(0, column.NullCount);
+                }
+            }
+            var nullRow = df[3];
+            Assert.Equal("", nullRow[0]);
+            Assert.Null(nullRow[1]);
+            Assert.Null(nullRow[2]);
+            Assert.Null(nullRow[3]);
+            Assert.Null(nullRow[4]);
+            Assert.Equal("", nullRow[5]);
+            Assert.Null(nullRow[6]);
         }
     }
 }

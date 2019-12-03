@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace Microsoft.Data.Analysis
 {
@@ -104,6 +103,77 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        private static DataFrameColumn CreateColumn(Type kind, string[] columnNames, int columnIndex)
+        {
+            PrimitiveDataFrameColumn<T> CreatePrimitiveDataFrameColumn<T>()
+                where T : unmanaged
+            {
+                return new PrimitiveDataFrameColumn<T>(columnNames == null ? "Column" + columnIndex.ToString() : columnNames[columnIndex]);
+            }
+            DataFrameColumn ret;
+            if (kind == typeof(bool))
+            {
+                ret = CreatePrimitiveDataFrameColumn<bool>();
+            }
+            else if (kind == typeof(int))
+            {
+                ret = CreatePrimitiveDataFrameColumn<int>();
+            }
+            else if (kind == typeof(float))
+            {
+                ret = CreatePrimitiveDataFrameColumn<float>();
+            }
+            else if (kind == typeof(string))
+            {
+                ret = new StringDataFrameColumn(columnNames == null ? "Column" + columnIndex.ToString() : columnNames[columnIndex], 0);
+            }
+            else if (kind == typeof(long))
+            {
+                ret = CreatePrimitiveDataFrameColumn<long>();
+            }
+            else if (kind == typeof(decimal))
+            {
+                ret = CreatePrimitiveDataFrameColumn<decimal>();
+            }
+            else if (kind == typeof(byte))
+            {
+                ret = CreatePrimitiveDataFrameColumn<byte>();
+            }
+            else if (kind == typeof(char))
+            {
+                ret = CreatePrimitiveDataFrameColumn<char>();
+            }
+            else if (kind == typeof(double))
+            {
+                ret = CreatePrimitiveDataFrameColumn<double>();
+            }
+            else if (kind == typeof(sbyte))
+            {
+                ret = CreatePrimitiveDataFrameColumn<sbyte>();
+            }
+            else if (kind == typeof(short))
+            {
+                ret = CreatePrimitiveDataFrameColumn<short>();
+            }
+            else if (kind == typeof(uint))
+            {
+                ret = CreatePrimitiveDataFrameColumn<uint>();
+            }
+            else if (kind == typeof(ulong))
+            {
+                ret = CreatePrimitiveDataFrameColumn<ulong>();
+            }
+            else if (kind == typeof(ushort))
+            {
+                ret = CreatePrimitiveDataFrameColumn<ushort>();
+            }
+            else
+            {
+                throw new NotSupportedException(nameof(kind));
+            }
+            return ret;
+        }
+
         /// <summary>
         /// Reads a seekable stream of CSV data into a DataFrame.
         /// Follows pandas API.
@@ -116,7 +186,7 @@ namespace Microsoft.Data.Analysis
         /// <param name="numberOfRowsToRead">number of rows to read not including the header(if present)</param>
         /// <param name="guessRows">number of rows used to guess types</param>
         /// <param name="addIndexColumn">add one column with the row index</param>
-        /// <returns>DataFrame</returns>
+        /// <returns><see cref="DataFrame"/></returns>
         public static DataFrame LoadCsv(Stream csvStream,
                                 char separator = ',', bool header = true,
                                 string[] columnNames = null, Type[] dataTypes = null,
@@ -127,7 +197,7 @@ namespace Microsoft.Data.Analysis
 
             var linesForGuessType = new List<string[]>();
             long rowline = 0;
-            int numberOfColumns = 0;
+            int numberOfColumns = dataTypes?.Length ?? 0;
 
             if (header == true && numberOfRowsToRead != -1)
                 numberOfRowsToRead++;
@@ -137,60 +207,52 @@ namespace Microsoft.Data.Analysis
             // First pass: schema and number of rows.
             using (var streamReader = new StreamReader(csvStream, encoding: null, detectEncodingFromByteOrderMarks: true, bufferSize: -1, leaveOpen: true))
             {
-                string line = streamReader.ReadLine();
-                while (line != null)
+                string line = null;
+                if (dataTypes == null)
                 {
-                    if ((numberOfRowsToRead == -1) || rowline < numberOfRowsToRead)
+                    line = streamReader.ReadLine();
+                    while (line != null)
                     {
-                        if (linesForGuessType.Count < guessRows)
+                        if ((numberOfRowsToRead == -1) || rowline < numberOfRowsToRead)
                         {
-                            var spl = line.Split(separator);
-                            if (header && rowline == 0)
+                            if (linesForGuessType.Count < guessRows)
                             {
-                                if (columnNames == null)
-                                    columnNames = spl;
-                            }
-                            else
-                            {
-                                linesForGuessType.Add(spl);
-                                numberOfColumns = Math.Max(numberOfColumns, spl.Length);
+                                var spl = line.Split(separator);
+                                if (header && rowline == 0)
+                                {
+                                    if (columnNames == null)
+                                        columnNames = spl;
+                                }
+                                else
+                                {
+                                    linesForGuessType.Add(spl);
+                                    numberOfColumns = Math.Max(numberOfColumns, spl.Length);
+                                }
                             }
                         }
+                        ++rowline;
+                        if (rowline == guessRows)
+                        {
+                            break;
+                        }
+                        line = streamReader.ReadLine();
                     }
-                    ++rowline;
-                    if (rowline == numberOfRowsToRead)
-                        break;
-                    line = streamReader.ReadLine();
-                }
 
-                if (linesForGuessType.Count == 0)
-                    throw new FormatException(Strings.EmptyFile);
+                    if (linesForGuessType.Count == 0)
+                    {
+                        throw new FormatException(Strings.EmptyFile);
+                    }
+                }
 
                 columns = new List<DataFrameColumn>(numberOfColumns);
-
-                // Guesses types and adds columns.
+                // Guesses types or looks up dataTypes and adds columns.
                 for (int i = 0; i < numberOfColumns; ++i)
                 {
-                    Type kind = GuessKind(i, linesForGuessType);
-                    if (kind == typeof(bool))
-                    {
-                        DataFrameColumn boolColumn = new PrimitiveDataFrameColumn<bool>(columnNames == null ? "Column" + i.ToString() : columnNames[i], header == true ? rowline - 1 : rowline);
-                        columns.Add(boolColumn);
-                    }
-                    else if (kind == typeof(float))
-                    {
-                        DataFrameColumn floatColumn = new PrimitiveDataFrameColumn<float>(columnNames == null ? "Column" + i.ToString() : columnNames[i], header == true ? rowline - 1 : rowline);
-                        columns.Add(floatColumn);
-                    }
-                    else if (kind == typeof(string))
-                    {
-                        DataFrameColumn stringColumn = new StringDataFrameColumn(columnNames == null ? "Column" + i.ToString() : columnNames[i], header == true ? rowline - 1 : rowline);
-                        columns.Add(stringColumn);
-                    }
-                    else
-                        throw new NotSupportedException(nameof(kind));
+                    Type kind = dataTypes == null ? GuessKind(i, linesForGuessType) : dataTypes[i];
+                    columns.Add(CreateColumn(kind, columnNames, i));
                 }
 
+                DataFrame ret = new DataFrame(columns);
                 line = null;
                 streamReader.DiscardBufferedData();
                 streamReader.BaseStream.Seek(streamStart, SeekOrigin.Begin);
@@ -207,7 +269,7 @@ namespace Microsoft.Data.Analysis
                     }
                     else
                     {
-                        AppendRow(columns, header == true ? rowline - 1 : rowline, spl);
+                        ret.Append(spl);
                     }
                     ++rowline;
                     line = streamReader.ReadLine();
@@ -222,61 +284,7 @@ namespace Microsoft.Data.Analysis
                     }
                     columns.Insert(0, indexColumn);
                 }
-            }
-            return new DataFrame(columns);
-        }
-
-        private static void AppendRow(List<DataFrameColumn> columns, long rowIndex, string[] values)
-        {
-            for (int i = 0; i < columns.Count; i++)
-            {
-                DataFrameColumn column = columns[i];
-                string val = values[i];
-                Type dType = column.DataType;
-                if (dType == typeof(bool))
-                {
-                    bool boolParse = bool.TryParse(val, out bool boolResult);
-                    if (boolParse)
-                    {
-                        column[rowIndex] = boolResult;
-                        continue;
-                    }
-                    else
-                    {
-                        if (string.IsNullOrEmpty(val))
-                        {
-                            column[rowIndex] = null;
-                            continue;
-                        }
-                        throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(bool)), nameof(val));
-                    }
-                }
-                else if (dType == typeof(float))
-                {
-                    bool floatParse = float.TryParse(val, out float floatResult);
-                    if (floatParse)
-                    {
-                        column[rowIndex] = floatResult;
-                        continue;
-                    }
-                    else
-                    {
-                        if (string.IsNullOrEmpty(val))
-                        {
-                            column[rowIndex] = null;
-                            continue;
-                        }
-                        throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(float)), nameof(val));
-                    }
-                }
-                else if (dType == typeof(string))
-                {
-                    column[rowIndex] = values[i];
-                }
-                else
-                {
-                    throw new NotImplementedException();
-                }
+                return ret;
             }
         }
     }

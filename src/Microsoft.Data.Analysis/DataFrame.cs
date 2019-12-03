@@ -445,6 +445,11 @@ namespace Microsoft.Data.Analysis
                 {
                     DataFrameColumn column = columnEnumerator.Current;
                     object value = rowEnumerator.Current;
+                    // StringDataFrameColumn can accept empty strings. The other columns interpret empty values as nulls
+                    if (value is string stringValue && string.IsNullOrEmpty(stringValue) && column.DataType != typeof(string))
+                    {
+                        value = null;
+                    }
                     if (value != null)
                     {
                         value = Convert.ChangeType(value, column.DataType);
