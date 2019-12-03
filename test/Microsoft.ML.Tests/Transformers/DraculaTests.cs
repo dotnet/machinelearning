@@ -10,14 +10,14 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests.Transformers
 {
-    public class DraculaTests : TestDataPipeBase
+    public class CountTargetEncodingTests : TestDataPipeBase
     {
-        public DraculaTests(ITestOutputHelper output) : base(output)
+        public CountTargetEncodingTests(ITestOutputHelper output) : base(output)
         {
         }
 
         [Fact]
-        public void TestDraculaEstimator()
+        public void TestCountTargetEncodingEstimator()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
             var data = ML.Data.LoadFromTextFile(dataPath, new[] {
@@ -26,7 +26,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new TextLoader.Column("Label", DataKind.Single, 0)
             });
 
-            var estimator = ML.Transforms.Dracula(new[] {
+            var estimator = ML.Transforms.CountTargetEncode(new[] {
                 new InputOutputColumnPair("ScalarString"), new InputOutputColumnPair("VectorString") }, "Label");
             TestEstimatorCore(estimator, data);
         }
@@ -37,12 +37,12 @@ namespace Microsoft.ML.Tests.Transformers
             var dataPath = GetDataPath("breast-cancer.txt");
             var data = ML.Data.LoadFromTextFile(dataPath, new[] { new TextLoader.Column("Label", DataKind.Single, 0),
                 new TextLoader.Column("Text", DataKind.String, 1,9)});
-            var estimator = ML.Transforms.Dracula("Text", builder: CountTableBuilderBase.CreateCMCountTableBuilder(2, 1 << 6));
+            var estimator = ML.Transforms.CountTargetEncode("Text", builder: CountTableBuilderBase.CreateCMCountTableBuilder(2, 1 << 6));
             var transformer = estimator.Fit(data);
             var countsPath = DeleteOutputPath("external-counts.txt");
             transformer.SaveCountTables(countsPath);
 
-            estimator = ML.Transforms.Dracula("Text", countsPath: countsPath, builder: CountTableBuilderBase.CreateCMCountTableBuilder(2, 1 << 6));
+            estimator = ML.Transforms.CountTargetEncode("Text", countsPath: countsPath, builder: CountTableBuilderBase.CreateCMCountTableBuilder(2, 1 << 6));
             var transformer1 = estimator.Fit(new EmptyDataView(Env, data.Schema));
 
             CheckSameCounts(data, transformer, transformer1, 3);
@@ -58,20 +58,20 @@ namespace Microsoft.ML.Tests.Transformers
                 new TextLoader.Column("Label", DataKind.Single, 0)
             });
 
-            var estimator = ML.Transforms.Dracula(new[] {
+            var estimator = ML.Transforms.CountTargetEncode(new[] {
                 new InputOutputColumnPair("ScalarString"), new InputOutputColumnPair("VectorString") }, "Label", CountTableBuilderBase.CreateCMCountTableBuilder(2, 1 << 6));
             var transformer = estimator.Fit(data);
             var countsPath = DeleteOutputPath("external-counts.txt");
             transformer.SaveCountTables(countsPath);
 
-            estimator = ML.Transforms.DraculaWithExternalCounts(new[] {
+            estimator = ML.Transforms.CountTargetEncodeWithExternalCounts(new[] {
                 new InputOutputColumnPair("ScalarString"), new InputOutputColumnPair("VectorString") }, "Label", countsPath, CountTableBuilderBase.CreateCMCountTableBuilder(2, 1 << 6));
             var transformer1 = estimator.Fit(new EmptyDataView(Env, data.Schema));
 
             CheckSameCounts(data, transformer, transformer1, 2, 5);
         }
 
-        private static void CheckSameCounts(IDataView data, DraculaTransformer transformer, DraculaTransformer transformer1, params int[] countCols)
+        private static void CheckSameCounts(IDataView data, CountTargetEncodingTransformer transformer, CountTargetEncodingTransformer transformer1, params int[] countCols)
         {
             var transformedData = transformer.Transform(data);
             var transformedData1 = transformer1.Transform(data);
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        public void TestDraculaEstimatorWithBuilders()
+        public void TestCountTargetEncodingEstimatorWithBuilders()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
             var data = ML.Data.LoadFromTextFile(dataPath, new[] {
@@ -115,11 +115,11 @@ namespace Microsoft.ML.Tests.Transformers
                 new TextLoader.Column("Label", DataKind.Single, 0)
             });
 
-            var estimator = ML.Transforms.Dracula("VectorString1", "VectorString", builder: CountTableBuilderBase.CreateCMCountTableBuilder(3, 1 << 10),
+            var estimator = ML.Transforms.CountTargetEncode("VectorString1", "VectorString", builder: CountTableBuilderBase.CreateCMCountTableBuilder(3, 1 << 10),
                 priorCoefficient: 0.5f, laplaceScale: 0.1f, numberOfBits: 25).Append(
-                ML.Transforms.Dracula(new[] { new InputOutputColumnPair("ScalarString1", "ScalarString"), new InputOutputColumnPair("VectorString2", "VectorString") },
+                ML.Transforms.CountTargetEncode(new[] { new InputOutputColumnPair("ScalarString1", "ScalarString"), new InputOutputColumnPair("VectorString2", "VectorString") },
                 "Label", sharedTable: true)).Append(
-                ML.Transforms.Dracula("ScalarString2", "ScalarString", builder: CountTableBuilderBase.CreateDictionaryCountTableBuilder(1)));
+                ML.Transforms.CountTargetEncode("ScalarString2", "ScalarString", builder: CountTableBuilderBase.CreateDictionaryCountTableBuilder(1)));
 
             TestEstimatorCore(estimator, data);
         }

@@ -181,15 +181,15 @@ namespace Microsoft.ML.Transforms
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
-        /// <param name="join">Whether the values need to be combined for a single hash.</param>
+        /// <param name="combine">Whether the values need to be combined for a single hash.</param>
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
         public HashJoiningTransform(IHostEnvironment env,
             IDataView input,
             string name,
             string source = null,
-             bool join = Defaults.Combine,
+             bool combine = Defaults.Combine,
             int numberOfBits = Defaults.NumberOfBits)
-            : this(env, new Arguments() { Columns = new[] { new Column() { Source = source ?? name, Name = name } }, Combine = join, NumberOfBits = numberOfBits }, input)
+            : this(env, new Arguments() { Columns = new[] { new Column() { Source = source ?? name, Name = name } }, Combine = combine, NumberOfBits = numberOfBits }, input)
         {
         }
 

@@ -691,7 +691,7 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    public static class CountTable
+    internal static class CountTable
     {
         [TlcModule.EntryPoint(Name = "Transforms.CountTableBuilder", Desc = CountTableTransformer.Summary, UserName = CountTableTransformer.UserName, ShortName = "Count")]
         internal static CommonOutputs.TransformOutput Create(IHostEnvironment env, CountTableTransformer.Options input)

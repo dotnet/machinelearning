@@ -34,7 +34,7 @@ namespace Microsoft.ML.Transforms
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
-                modelSignature: "CM    CT",
+                modelSignature: "COUNTMIN",
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,

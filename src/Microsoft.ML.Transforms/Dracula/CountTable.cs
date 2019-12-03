@@ -31,7 +31,7 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// Signature for CountTableBuilder.
     /// </summary>
-    public delegate void SignatureCountTableBuilder();
+    internal delegate void SignatureCountTableBuilder();
 
     internal abstract class CountTableBase : ICountTable, ICanSaveModel
     {

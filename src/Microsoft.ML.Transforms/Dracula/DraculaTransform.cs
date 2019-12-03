@@ -14,17 +14,17 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(DraculaTransformer.Summary, typeof(IDataTransform), typeof(DraculaEstimator), typeof(DraculaEstimator.Options), typeof(SignatureDataTransform),
-    DraculaTransformer.UserName, DraculaTransformer.LoaderSignature, "Dracula")]
+[assembly: LoadableClass(CountTargetEncodingTransformer.Summary, typeof(IDataTransform), typeof(CountTargetEncodingEstimator), typeof(CountTargetEncodingEstimator.Options), typeof(SignatureDataTransform),
+    CountTargetEncodingTransformer.UserName, CountTargetEncodingTransformer.LoaderSignature, "Dracula")]
 
-[assembly: LoadableClass(DraculaTransformer.Summary, typeof(DraculaTransformer), typeof(DraculaEstimator), null, typeof(SignatureLoadModel),
-    DraculaTransformer.UserName, DraculaTransformer.LoaderSignature)]
+[assembly: LoadableClass(CountTargetEncodingTransformer.Summary, typeof(CountTargetEncodingTransformer), typeof(CountTargetEncodingEstimator), null, typeof(SignatureLoadModel),
+    CountTargetEncodingTransformer.UserName, CountTargetEncodingTransformer.LoaderSignature)]
 
-[assembly: EntryPointModule(typeof(Dracula))]
+[assembly: EntryPointModule(typeof(CountTargetEncoder))]
 
 namespace Microsoft.ML.Transforms
 {
-    public class DraculaEstimator : IEstimator<DraculaTransformer>
+    public class CountTargetEncodingEstimator : IEstimator<CountTargetEncodingTransformer>
     {
         /// <summary>
         /// This is a merger of arguments for <see cref="CountTableTransformer"/> and <see cref="HashJoiningTransform"/>
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Transforms
         private readonly CountTableEstimator _estimator;
         private readonly HashJoiningTransform.Column[] _hashJoinCols;
 
-        internal DraculaEstimator(IHostEnvironment env, string labelColumnName, CountTableEstimator.ColumnOptions[] columnOptions,
+        internal CountTargetEncodingEstimator(IHostEnvironment env, string labelColumnName, CountTableEstimator.ColumnOptions[] columnOptions,
             string externalCountsFile = null, int numberOfBits = HashJoiningTransform.Defaults.NumberOfBits,
             bool combine = HashJoiningTransform.Defaults.Combine, uint hashingSeed = HashJoiningTransform.Defaults.Seed)
             : this(env, new CountTableEstimator(env, labelColumnName, externalCountsFile,
@@ -112,7 +112,7 @@ namespace Microsoft.ML.Transforms
         {
         }
 
-        internal DraculaEstimator(IHostEnvironment env, string labelColumnName, CountTableEstimator.SharedColumnOptions[] columnOptions,
+        internal CountTargetEncodingEstimator(IHostEnvironment env, string labelColumnName, CountTableEstimator.SharedColumnOptions[] columnOptions,
             CountTableBuilderBase countTableBuilder, int numberOfBits = HashJoiningTransform.Defaults.NumberOfBits,
             bool combine = HashJoiningTransform.Defaults.Combine, uint hashingSeed = HashJoiningTransform.Defaults.Seed)
             : this(env, new CountTableEstimator(env, labelColumnName, countTableBuilder,
@@ -121,11 +121,11 @@ namespace Microsoft.ML.Transforms
         {
         }
 
-        private DraculaEstimator(IHostEnvironment env, CountTableEstimator estimator, CountTableEstimator.ColumnOptionsBase[] columns,
+        private CountTargetEncodingEstimator(IHostEnvironment env, CountTableEstimator estimator, CountTableEstimator.ColumnOptionsBase[] columns,
             int numberOfBits, bool combine, uint hashingSeed)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(DraculaEstimator));
+            _host = env.Register(nameof(CountTargetEncodingEstimator));
 
             _estimator = estimator;
             _numberOfBits = numberOfBits;
@@ -135,10 +135,10 @@ namespace Microsoft.ML.Transforms
             _hashJoinCols = InitializeHashJoinColumns(columns);
         }
 
-        internal DraculaEstimator(IHostEnvironment env, Options options)
+        internal CountTargetEncodingEstimator(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(DraculaEstimator));
+            _host = env.Register(nameof(CountTargetEncodingEstimator));
             _host.CheckValue(options, nameof(options));
             _host.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns), "Columns must be specified");
             _host.CheckUserArg(!string.IsNullOrWhiteSpace(options.LabelColumn), nameof(options.LabelColumn), "Must specify the label column name");
@@ -229,17 +229,17 @@ namespace Microsoft.ML.Transforms
             env.CheckValue(options, nameof(options));
             env.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns));
 
-            var estimator = new DraculaEstimator(env, options);
+            var estimator = new CountTargetEncodingEstimator(env, options);
             return estimator.Fit(input).Transform(input) as IDataTransform;
         }
 
-        private static DraculaTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
-            => DraculaTransformer.Create(env, ctx);
+        private static CountTargetEncodingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+            => CountTargetEncodingTransformer.Create(env, ctx);
 
-        public DraculaTransformer Fit(IDataView input)
+        public CountTargetEncodingTransformer Fit(IDataView input)
         {
             var hashJoinTransform = CreateHashJoiningTransform(input);
-            return new DraculaTransformer(_host, hashJoinTransform, _estimator.Fit(hashJoinTransform));
+            return new CountTargetEncodingTransformer(_host, hashJoinTransform, _estimator.Fit(hashJoinTransform));
         }
 
         private HashJoiningTransform CreateHashJoiningTransform(IDataView input)
@@ -293,7 +293,7 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    public sealed class DraculaTransformer : ITransformer
+    public sealed class CountTargetEncodingTransformer : ITransformer
     {
         private readonly IHost _host;
         private readonly HashJoiningTransform _hashJoin;
@@ -315,21 +315,21 @@ namespace Microsoft.ML.Transforms
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(DraculaTransformer).Assembly.FullName);
+                loaderAssemblyName: typeof(CountTargetEncodingTransformer).Assembly.FullName);
         }
 
-        internal DraculaTransformer(IHostEnvironment env, HashJoiningTransform hashJoin, CountTableTransformer countTable)
+        internal CountTargetEncodingTransformer(IHostEnvironment env, HashJoiningTransform hashJoin, CountTableTransformer countTable)
         {
             Contracts.AssertValue(env);
             env.AssertValue(hashJoin);
             env.AssertValue(countTable);
-            _host = env.Register(nameof(DraculaTransformer));
+            _host = env.Register(nameof(CountTargetEncodingTransformer));
             _hashJoin = hashJoin;
             _countTable = countTable;
             _chain = new TransformerChain<ITransformer>(new TransformWrapper(_host, _hashJoin), _countTable);
         }
 
-        private DraculaTransformer(IHost host, ModelLoadContext ctx)
+        private CountTargetEncodingTransformer(IHost host, ModelLoadContext ctx)
         {
             _host = host;
 
@@ -377,7 +377,7 @@ namespace Microsoft.ML.Transforms
             ctx.SaveModel(_countTable, "CountTable");
         }
 
-        internal static DraculaTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static CountTargetEncodingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(LoaderSignature);
@@ -385,7 +385,7 @@ namespace Microsoft.ML.Transforms
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
 
-            return new DraculaTransformer(host, ctx);
+            return new CountTargetEncodingTransformer(host, ctx);
         }
 
         public DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
@@ -412,9 +412,9 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    public static class DraculaCatalog
+    public static class CountTargetEncodingCatalog
     {
-        public static DraculaEstimator Dracula(this TransformsCatalog catalog,
+        public static CountTargetEncodingEstimator CountTargetEncode(this TransformsCatalog catalog,
             InputOutputColumnPair[] columns, string labelColumn, CountTableBuilderBase builder = null,
             float priorCoefficient = CountTableTransformer.Defaults.PriorCoefficient,
             float laplaceScale = CountTableTransformer.Defaults.LaplaceScale,
@@ -428,7 +428,7 @@ namespace Microsoft.ML.Transforms
 
             builder = builder ?? new CMCountTableBuilder();
 
-            DraculaEstimator estimator;
+            CountTargetEncodingEstimator estimator;
             if (sharedTable)
             {
                 var columnOptions = new CountTableEstimator.SharedColumnOptions[columns.Length];
@@ -437,7 +437,7 @@ namespace Microsoft.ML.Transforms
                     columnOptions[i] = new CountTableEstimator.SharedColumnOptions(
                         columns[i].OutputColumnName, columns[i].InputColumnName, priorCoefficient, laplaceScale);
                 }
-                estimator = new DraculaEstimator(env, labelColumn, columnOptions, builder, numberOfBits, combine, hashingSeed);
+                estimator = new CountTargetEncodingEstimator(env, labelColumn, columnOptions, builder, numberOfBits, combine, hashingSeed);
             }
             else
             {
@@ -447,12 +447,12 @@ namespace Microsoft.ML.Transforms
                     columnOptions[i] = new CountTableEstimator.ColumnOptions(
                         columns[i].OutputColumnName, columns[i].InputColumnName, builder, priorCoefficient, laplaceScale);
                 }
-                estimator = new DraculaEstimator(env, labelColumn, columnOptions, numberOfBits: numberOfBits, combine: combine, hashingSeed: hashingSeed);
+                estimator = new CountTargetEncodingEstimator(env, labelColumn, columnOptions, numberOfBits: numberOfBits, combine: combine, hashingSeed: hashingSeed);
             }
             return estimator;
         }
 
-        public static DraculaEstimator DraculaWithExternalCounts(this TransformsCatalog catalog,
+        public static CountTargetEncodingEstimator CountTargetEncodeWithExternalCounts(this TransformsCatalog catalog,
             InputOutputColumnPair[] columns, string labelColumn, string countsPath,
             CountTableBuilderBase builder = null,
             float priorCoefficient = CountTableTransformer.Defaults.PriorCoefficient,
@@ -473,10 +473,10 @@ namespace Microsoft.ML.Transforms
                     columns[i].OutputColumnName, columns[i].InputColumnName, builder, priorCoefficient, laplaceScale);
             }
 
-            return new DraculaEstimator(env, labelColumn, columnOptions, countsPath, numberOfBits, combine, hashingSeed);
+            return new CountTargetEncodingEstimator(env, labelColumn, columnOptions, countsPath, numberOfBits, combine, hashingSeed);
         }
 
-        public static DraculaEstimator Dracula(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null,
+        public static CountTargetEncodingEstimator CountTargetEncode(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null,
             string labelColumn = DefaultColumnNames.Label,
             string countsPath = null,
             CountTableBuilderBase builder = null,
@@ -492,22 +492,22 @@ namespace Microsoft.ML.Transforms
             inputColumnName = string.IsNullOrEmpty(inputColumnName) ? outputColumnName : inputColumnName;
             builder = builder ?? new CMCountTableBuilder();
 
-            return new DraculaEstimator(env, labelColumn,
+            return new CountTargetEncodingEstimator(env, labelColumn,
                 new[] { new CountTableEstimator.ColumnOptions(outputColumnName, inputColumnName, builder, priorCoefficient, laplaceScale) },
                 countsPath, numberOfBits, combine, hashingSeed);
         }
     }
 
-    public static class Dracula
+    internal static class CountTargetEncoder
     {
-        [TlcModule.EntryPoint(Name = "Transforms.Dracula", Desc = DraculaTransformer.Summary, UserName = CountTableTransformer.UserName, ShortName = "Count")]
-        internal static CommonOutputs.TransformOutput Create(IHostEnvironment env, DraculaEstimator.Options input)
+        [TlcModule.EntryPoint(Name = "Transforms.CountTargetEncoder", Desc = CountTargetEncodingTransformer.Summary, UserName = CountTableTransformer.UserName, ShortName = "Count")]
+        internal static CommonOutputs.TransformOutput Create(IHostEnvironment env, CountTargetEncodingEstimator.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
 
-            var h = EntryPointUtils.CheckArgsAndCreateHost(env, "Dracula", input);
-            var view = DraculaEstimator.Create(h, input, input.Data);
+            var h = EntryPointUtils.CheckArgsAndCreateHost(env, nameof(CountTargetEncoder), input);
+            var view = CountTargetEncodingEstimator.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModelImpl(h, view, input.Data),

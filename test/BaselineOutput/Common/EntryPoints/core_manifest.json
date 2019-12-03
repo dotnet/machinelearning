@@ -19030,7 +19030,7 @@
       ]
     },
     {
-      "Name": "Transforms.Dracula",
+      "Name": "Transforms.CountTargetEncoder",
       "Desc": "Transforms the categorical column into the set of features: count of each label class, log-odds for each label class, back-off indicator. The columns can be of arbitrary type.",
       "FriendlyName": "Count Table Transform",
       "ShortName": "Count",
@@ -19272,6 +19272,266 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": 314489979
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
+      "Name": "Transforms.DatasetScorer",
+      "Desc": "Score a dataset with a predictor model",
+      "FriendlyName": null,
+      "ShortName": null,
+      "Inputs": [
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "The dataset to be scored",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "PredictorModel",
+          "Type": "PredictorModel",
+          "Desc": "The predictor model to apply to data",
+          "Required": true,
+          "SortOrder": 2.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Suffix",
+          "Type": "String",
+          "Desc": "Suffix to append to the score columns",
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": null
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "ScoredData",
+          "Type": "DataView",
+          "Desc": "The scored dataset"
+        },
+        {
+          "Name": "ScoringTransform",
+          "Type": "TransformModel",
+          "Desc": "The scoring transform"
+        }
+      ]
+    },
+    {
+      "Name": "Transforms.DatasetTransformScorer",
+      "Desc": "Score a dataset with a transform model",
+      "FriendlyName": null,
+      "ShortName": null,
+      "Inputs": [
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "The dataset to be scored",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "TransformModel",
+          "Type": "TransformModel",
+          "Desc": "The transform model to apply to data",
+          "Required": true,
+          "SortOrder": 2.0,
+          "IsNullable": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "ScoredData",
+          "Type": "DataView",
+          "Desc": "The scored dataset"
+        },
+        {
+          "Name": "ScoringTransform",
+          "Type": "TransformModel",
+          "Desc": "The scoring transform"
+        }
+      ]
+    },
+    {
+      "Name": "Transforms.Dictionarizer",
+      "Desc": "Converts input values (words, numbers, etc.) to index in a dictionary.",
+      "FriendlyName": "Term Transform",
+      "ShortName": "TermTransform",
+      "Inputs": [
+        {
+          "Name": "Column",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": {
+              "Kind": "Struct",
+              "Fields": [
+                {
+                  "Name": "MaxNumTerms",
+                  "Type": "Int",
+                  "Desc": "Maximum number of terms to keep when auto-training",
+                  "Aliases": [
+                    "max"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "Term",
+                  "Type": {
+                    "Kind": "Array",
+                    "ItemType": "String"
+                  },
+                  "Desc": "List of terms",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                },
+                {
+                  "Name": "Sort",
+                  "Type": {
+                    "Kind": "Enum",
+                    "Values": [
+                      "ByOccurrence",
+                      "ByValue"
+                    ]
+                  },
+                  "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "TextKeyValues",
+                  "Type": "Bool",
+                  "Desc": "Whether key value metadata should be text, regardless of the actual input type",
+                  "Aliases": [
+                    "textkv"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "Name",
+                  "Type": "String",
+                  "Desc": "Name of the new column",
+                  "Aliases": [
+                    "name"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                },
+                {
+                  "Name": "Source",
+                  "Type": "String",
+                  "Desc": "Name of the source column",
+                  "Aliases": [
+                    "src"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                }
+              ]
+            }
+          },
+          "Desc": "New column definition(s) (optional form: name:src)",
+          "Aliases": [
+            "col"
+          ],
+          "Required": false,
+          "SortOrder": 1.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "MaxNumTerms",
+          "Type": "Int",
+          "Desc": "Maximum number of keys to keep per column when auto-training",
+          "Aliases": [
+            "max"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": 1000000
+        },
+        {
+          "Name": "Term",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "List of terms",
+          "Required": false,
+          "SortOrder": 106.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "Sort",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "ByOccurrence",
+              "ByValue"
+            ]
+          },
+          "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
+          "Required": false,
+          "SortOrder": 113.0,
+          "IsNullable": false,
+          "Default": "ByOccurrence"
+        },
+        {
+          "Name": "TextKeyValues",
+          "Type": "Bool",
+          "Desc": "Whether key value metadata should be text, regardless of the actual input type",
+          "Aliases": [
+            "textkv"
+          ],
+          "Required": false,
+          "SortOrder": 114.0,
+          "IsNullable": false,
+          "Default": false
         }
       ],
       "Outputs": [

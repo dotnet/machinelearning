@@ -4694,7 +4694,7 @@ namespace Microsoft.ML.RunTests
             TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Text:TX:1-9 col=OneText:TX:1 col=Label:0",
                 new[]
                 {
-                    "Transforms.Dracula",
+                    "Transforms.CountTargetEncoder",
                 },
                 new[]
                 {
