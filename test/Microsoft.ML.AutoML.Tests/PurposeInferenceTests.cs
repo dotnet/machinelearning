@@ -8,7 +8,7 @@ namespace Microsoft.ML.AutoML.Test
 {
     public class PurposeInferenceTests
     {
-        [RetryFact]
+        [MLNETFact]
         public void PurposeInferenceHiddenColumnsTest()
         {
             var context = new MLContext();

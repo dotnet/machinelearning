@@ -15,7 +15,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 {
     public partial class TrainerEstimators : TestDataPipeBase
     {
-        [RetryFact]
+        [MLNETFact]
         public void FfmBinaryClassificationWithoutArguments()
         {
             var mlContext = new MLContext(seed: 0);
@@ -36,7 +36,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.65, 1);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void FfmBinaryClassificationWithAdvancedArguments()
         {
             var mlContext = new MLContext(seed: 0);
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.9, 1);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void FieldAwareFactorizationMachine_Estimator()
         {
             var data = new TextLoader(Env, GetFafmBCLoaderArgs())

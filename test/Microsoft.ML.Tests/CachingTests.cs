@@ -37,7 +37,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void CacheCheckpointTest()
         {
             var trainData = Enumerable.Range(0, 100).Select(c => new MyData()).ToArray();
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Tests
             Assert.True(trainData.All(x => x.AccessCount == 1));
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void CacheTest()
         {
             var src = Enumerable.Range(0, 100).Select(c => new MyData()).ToArray();

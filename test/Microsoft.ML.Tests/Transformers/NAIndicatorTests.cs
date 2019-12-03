@@ -32,7 +32,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void NAIndicatorWorkout()
         {
             var data = new[] {
@@ -54,13 +54,13 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestCommandLine()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0}  xf=NAIndicator{col=B:A} in=f:\2.txt" }), (int)0);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestOldSavingAndLoading()
         {
             var data = new[] {
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void NAIndicatorFileOutput()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
@@ -123,7 +123,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void NAIndicatorMetadataTest()
         {
             var data = new[] {

@@ -16,7 +16,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestPolynomialDecayNoCycle()
         {
             //Values obtained by running tf.compat.v1.train.polynomial_decay on TF 1.14
@@ -26,7 +26,7 @@ namespace Microsoft.ML.Tests
             TestPolynomialDecay(expectedValues, false);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestPolynomialDecayCycle()
         {
             //Values obtained by running tf.compat.v1.train.polynomial_decay on TF 1.14

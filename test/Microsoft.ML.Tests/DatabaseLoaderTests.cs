@@ -213,7 +213,7 @@ namespace Microsoft.ML.Tests
             }).PredictedLabel);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void IrisSdcaMaximumEntropy()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

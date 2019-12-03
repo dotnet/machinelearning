@@ -19,7 +19,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// OVA with all constructor args.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void OVAWithAllConstructorArgs()
         {
             var (pipeline, data) = GetMulticlassPipeline();
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// OVA un-calibrated
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void OVAUncalibrated()
         {
             var (pipeline, data) = GetMulticlassPipeline();
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// Pairwise Coupling trainer
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void PairwiseCouplingTrainer()
         {
             var (pipeline, data) = GetMulticlassPipeline();
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void MetacomponentsFeaturesRenamed()
         {
             // Create text loader.

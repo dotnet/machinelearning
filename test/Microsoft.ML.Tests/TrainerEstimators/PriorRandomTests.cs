@@ -28,7 +28,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     }).Load(GetDataPath(TestDatasets.breastCancer.trainFilename));
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestEstimatorPrior()
         {
             var dataView = GetBreastCancerDataviewWithTextColumns();

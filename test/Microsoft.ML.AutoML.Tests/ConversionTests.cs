@@ -20,7 +20,7 @@ namespace Microsoft.ML.AutoML.Test
             this.output = output;
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ConvertFloatMissingValues()
         {
             var missingValues = new string[]
@@ -41,7 +41,7 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ConvertFloatParseFailure()
         {
             var values = new string[]
@@ -56,7 +56,7 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ConvertBoolMissingValues()
         {
             var missingValues = new string[]
@@ -75,7 +75,7 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ConvertBoolParseFailure()
         {
             var values = new string[]

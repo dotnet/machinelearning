@@ -28,7 +28,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Read from Enumerable: In-Memory objects can be read as enumerables into an IDatView.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void ReadFromIEnumerable()
         {
             var mlContext = new MLContext(seed: 1);
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Export to Enumerable: IDatViews can be exported as enumerables of a class.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void ExportToIEnumerable()
         {
             var mlContext = new MLContext(seed: 1);
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <remarks>
         /// Tests the roundtrip through a file using explicit schematization.
         /// </remarks>
-        [RetryFact]
+        [MLNETFact]
         public void WriteToAndReadFromADelimetedFile()
         {
             var mlContext = new MLContext(seed: 1);
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <remarks>
         /// Tests the roundtrip through a file using schema inference.
         /// </remarks>
-        [RetryFact]
+        [MLNETFact]
         public void WriteToAndReadASchemaFromADelimitedFile()
         {
             var mlContext = new MLContext(seed: 1);
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Wrie to and read from a delimited file: Schematized data of any DataKind can be read from a delimited file.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void WriteAndReadAFromABinaryFile()
         {
             var mlContext = new MLContext(seed: 1);

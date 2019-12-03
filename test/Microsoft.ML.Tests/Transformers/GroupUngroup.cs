@@ -39,7 +39,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void GroupTest()
         {
             var data = new List<GroupExample> {
@@ -78,7 +78,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal("Mermaid", grouped[1].Gender[1]);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void UgroupTest()
         {
             var data = new List<UngroupExample> {

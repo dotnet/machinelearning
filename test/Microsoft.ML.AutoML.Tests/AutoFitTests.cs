@@ -18,7 +18,7 @@ namespace Microsoft.ML.AutoML.Test
 {
     public class AutoFitTests
     {
-        [RetryFact]
+        [MLNETFact]
         public void AutoFitBinaryTest()
         {
             var context = new MLContext();
@@ -35,7 +35,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.NotNull(result.BestRun.TrainerName);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void AutoFitMultiTest()
         {
             var context = new MLContext();
@@ -98,7 +98,7 @@ namespace Microsoft.ML.AutoML.Test
             //throw new NotImplementedException();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void AutoFitRegressionTest()
         {
             var context = new MLContext();
@@ -116,7 +116,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.True(result.RunDetails.Max(i => i.ValidationMetrics.RSquared > 0.9));
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void AutoFitRecommendationTest()
         {
             // Specific column names of the considered data set

@@ -15,7 +15,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// OVA and calibrators
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void PlattCalibratorEstimator()
         {
             var calibratorTestData = GetCalibratorTestData();
@@ -36,7 +36,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// OVA and calibrators
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void FixedPlattCalibratorEstimator()
         {
             var calibratorTestData = GetCalibratorTestData();
@@ -56,7 +56,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// OVA and calibrators
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void NaiveCalibratorEstimator()
         {
             var calibratorTestData = GetCalibratorTestData();
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// OVA and calibrators
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void PavCalibratorEstimator()
         {
             var calibratorTestData = GetCalibratorTestData();

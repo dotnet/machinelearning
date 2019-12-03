@@ -10,7 +10,7 @@ namespace Microsoft.ML.AutoML.Test
     
     public class ColumnInferenceTests
     {
-        [RetryFact]
+        [MLNETFact]
         public void UnGroupReturnsMoreColumnsThanGroup()
         {
             var dataPath = DatasetUtil.DownloadUciAdultDataset();
@@ -25,7 +25,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.True(columnInferenceWithGrouping.TextLoaderOptions.Columns.Count() < columnInferenceWithoutGrouping.TextLoaderOptions.Columns.Count());
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void IncorrectLabelColumnThrows()
         {
             var dataPath = DatasetUtil.DownloadUciAdultDataset();
@@ -33,13 +33,13 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Throws<ArgumentException>(new System.Action(() => context.Auto().InferColumns(dataPath, "Junk", groupColumns: false)));
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void LabelIndexOutOfBoundsThrows()
         {
             Assert.Throws<ArgumentOutOfRangeException>(() => new MLContext().Auto().InferColumns(DatasetUtil.DownloadUciAdultDataset(), 100));
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void IdentifyLabelColumnThroughIndexWithHeader()
         {
             var result = new MLContext().Auto().InferColumns(DatasetUtil.DownloadUciAdultDataset(), 14, hasHeader: true);
@@ -49,7 +49,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal("hours-per-week", result.ColumnInformation.LabelColumnName);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void IdentifyLabelColumnThroughIndexWithoutHeader()
         {
             var result = new MLContext().Auto().InferColumns(DatasetUtil.DownloadIrisDataset(), DatasetUtil.IrisDatasetLabelColIndex);
@@ -60,7 +60,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(DefaultColumnNames.Label, result.ColumnInformation.LabelColumnName);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void DatasetWithEmptyColumn()
         {
             var result = new MLContext().Auto().InferColumns(Path.Combine("TestData", "DatasetWithEmptyColumn.txt"), DefaultColumnNames.Label, groupColumns: false);
@@ -68,7 +68,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(DataKind.Single, emptyColumn.DataKind);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void DatasetWithBoolColumn()
         {
             var result = new MLContext().Auto().InferColumns(Path.Combine("TestData", "BinaryDatasetWithBoolColumn.txt"), DefaultColumnNames.Label);
@@ -86,7 +86,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(DefaultColumnNames.Label, result.ColumnInformation.LabelColumnName);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void WhereNameColumnIsOnlyFeature()
         {
             var result = new MLContext().Auto().InferColumns(Path.Combine("TestData", "NameColumnIsOnlyFeatureDataset.txt"), DefaultColumnNames.Label);
@@ -102,7 +102,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(DefaultColumnNames.Label, result.ColumnInformation.LabelColumnName);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void DefaultColumnNamesInferredCorrectly()
         {
             var result = new MLContext().Auto().InferColumns(Path.Combine("TestData", "DatasetWithDefaultColumnNames.txt"),
@@ -122,7 +122,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(3, result.ColumnInformation.NumericColumnNames.Count());
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void DefaultColumnNamesNoGrouping()
         {
             var result = new MLContext().Auto().InferColumns(Path.Combine("TestData", "DatasetWithDefaultColumnNames.txt"),
@@ -138,7 +138,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(DefaultColumnNames.Features, result.ColumnInformation.NumericColumnNames.First());
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void InferColumnsColumnInfoParam()
         {
             var columnInfo = new ColumnInformation() { LabelColumnName = DatasetUtil.MlNetGeneratedRegressionLabel };

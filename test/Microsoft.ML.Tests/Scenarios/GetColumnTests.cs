@@ -22,7 +22,7 @@ namespace Microsoft.ML.Tests.Scenarios
         {
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestGetColumn()
         {
             var path = GetDataPath(TestDatasets.breastCancer.trainFilename);
@@ -64,7 +64,7 @@ namespace Microsoft.ML.Tests.Scenarios
             mustFail(() => data.GetColumn<string[]>(data1.Schema["stringVector"]).ToArray());
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestGetColumnSelectedByString()
         {
             var path = GetDataPath(TestDatasets.breastCancer.trainFilename);

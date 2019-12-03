@@ -11,7 +11,7 @@ namespace Microsoft.ML.AutoML.Test
     
     public class ColumnInformationUtilTests
     {
-        [RetryFact]
+        [MLNETFact]
         public void GetColumnPurpose()
         {
             var columnInfo = new ColumnInformation()
@@ -39,7 +39,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Null(ColumnInformationUtil.GetColumnPurpose(columnInfo, "NonExistent"));
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void GetColumnNamesTest()
         {
             var columnInfo = new ColumnInformation()

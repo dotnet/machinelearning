@@ -13,7 +13,7 @@ namespace mlnet.Tests
 {
     public class TransformGeneratorTests
     {
-        [RetryFact]
+        [MLNETFact]
         public void MissingValueReplacingTest()
         {
             var context = new MLContext();
@@ -27,7 +27,7 @@ namespace mlnet.Tests
             Assert.Null(actual[0].Item2);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void OneHotEncodingTest()
         {
             var context = new MLContext();
@@ -41,7 +41,7 @@ namespace mlnet.Tests
             Assert.Null(actual[0].Item2);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void NormalizingTest()
         {
             var context = new MLContext();
@@ -55,7 +55,7 @@ namespace mlnet.Tests
             Assert.Null(actual[0].Item2);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ColumnConcatenatingTest()
         {
             var context = new MLContext();
@@ -69,7 +69,7 @@ namespace mlnet.Tests
             Assert.Null(actual[0].Item2);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ColumnCopyingTest()
         {
             var context = new MLContext();
@@ -83,7 +83,7 @@ namespace mlnet.Tests
             Assert.Null(actual[0].Item2);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void KeyToValueMappingTest()
         {
             var context = new MLContext();
@@ -97,7 +97,7 @@ namespace mlnet.Tests
             Assert.Null(actual[0].Item2);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void MissingValueIndicatingTest()
         {
             var context = new MLContext();
@@ -111,7 +111,7 @@ namespace mlnet.Tests
             Assert.Null(actual[0].Item2);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void OneHotHashEncodingTest()
         {
             var context = new MLContext();
@@ -125,7 +125,7 @@ namespace mlnet.Tests
             Assert.Null(actual[0].Item2);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TextFeaturizingTest()
         {
             var context = new MLContext();
@@ -139,7 +139,7 @@ namespace mlnet.Tests
             Assert.Null(actual[0].Item2);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TypeConvertingTest()
         {
             var context = new MLContext();
@@ -153,7 +153,7 @@ namespace mlnet.Tests
             Assert.Null(actual[0].Item2);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValueToKeyMappingTest()
         {
             var context = new MLContext();
@@ -167,7 +167,7 @@ namespace mlnet.Tests
             Assert.Null(actual[0].Item2);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ImageLoadingTest()
         {
             PipelineNode node = new PipelineNode("ImageLoading", PipelineNodeType.Transform,

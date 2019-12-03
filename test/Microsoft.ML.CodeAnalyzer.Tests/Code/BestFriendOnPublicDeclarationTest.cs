@@ -19,7 +19,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
         private readonly Lazy<string> SourceAttribute = TestUtils.LazySource("BestFriendAttribute.cs");
         private readonly Lazy<string> SourceDeclaration = TestUtils.LazySource("BestFriendOnPublicDeclaration.cs");
 
-        [RetryFact]
+        [MLNETFact]
         public async Task BestFriendOnPublicDeclaration()
         {
             var expected = new DiagnosticResult[] {

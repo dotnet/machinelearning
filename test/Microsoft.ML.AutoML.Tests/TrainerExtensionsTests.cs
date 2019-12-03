@@ -14,7 +14,7 @@ namespace Microsoft.ML.AutoML.Test
     
     public class TrainerExtensionsTests
     {
-        [RetryFact]
+        [MLNETFact]
         public void TrainerExtensionInstanceTests()
         {
             var context = new MLContext();
@@ -55,7 +55,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.NotNull(pipelineNode);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void BuildMatrixFactorizationPipelineNode()
         {
             var sweepParams = SweepableParams.BuildMatrixFactorizationParams();
@@ -91,7 +91,7 @@ namespace Microsoft.ML.AutoML.Test
             Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void BuildLightGbmPipelineNode()
         {
             var sweepParams = SweepableParams.BuildLightGbmParams();
@@ -135,7 +135,7 @@ namespace Microsoft.ML.AutoML.Test
             Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void BuildSdcaPipelineNode()
         {
             var sweepParams = SweepableParams.BuildSdcaParams();
@@ -167,7 +167,7 @@ namespace Microsoft.ML.AutoML.Test
             Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void BuildLightGbmPipelineNodeDefaultParams()
         {
             var pipelineNode = new LightGbmBinaryExtension().CreatePipelineNode(
@@ -189,7 +189,7 @@ namespace Microsoft.ML.AutoML.Test
             Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void BuildPipelineNodeWithCustomColumns()
         {
             var columnInfo = new ColumnInformation()
@@ -224,7 +224,7 @@ namespace Microsoft.ML.AutoML.Test
             Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void BuildDefaultAveragedPerceptronPipelineNode()
         {
             var pipelineNode = new AveragedPerceptronBinaryExtension().CreatePipelineNode(null, new ColumnInformation() { LabelColumnName = "L" });
@@ -245,7 +245,7 @@ namespace Microsoft.ML.AutoML.Test
             Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void BuildOvaPipelineNode()
         {
             var pipelineNode = new FastForestOvaExtension().CreatePipelineNode(null, new ColumnInformation());
@@ -274,7 +274,7 @@ namespace Microsoft.ML.AutoML.Test
             Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void BuildParameterSetLightGbm()
         {
             var props = new Dictionary<string, object>()
@@ -304,7 +304,7 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void BuildParameterSetSdca()
         {
             var props = new Dictionary<string, object>()
@@ -318,7 +318,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal("1", sdcaParams["LearningRate"].ValueText);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void PublicToPrivateTrainerNamesBinaryTest()
         {
             var publicNames = Enum.GetValues(typeof(BinaryClassificationTrainer)).Cast<BinaryClassificationTrainer>();
@@ -326,7 +326,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(publicNames.Distinct().Count(), internalNames.Distinct().Count());
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void PublicToPrivateTrainerNamesMultiTest()
         {
             var publicNames = Enum.GetValues(typeof(MulticlassClassificationTrainer)).Cast<MulticlassClassificationTrainer>();
@@ -334,7 +334,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(publicNames.Distinct().Count(), internalNames.Distinct().Count());
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void PublicToPrivateTrainerNamesRegressionTest()
         {
             var publicNames = Enum.GetValues(typeof(RegressionTrainer)).Cast<RegressionTrainer>();
@@ -342,7 +342,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(publicNames.Distinct().Count(), internalNames.Distinct().Count());
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void PublicToPrivateTrainerNamesRecommendationTest()
         {
             var publicNames = Enum.GetValues(typeof(RecommendationTrainer)).Cast<RecommendationTrainer>();
@@ -350,21 +350,21 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(publicNames.Distinct().Count(), internalNames.Distinct().Count());
         }
 
-       [RetryFact]
+       [MLNETFact]
         public void PublicToPrivateTrainerNamesNullTest()
         {
             var internalNames = TrainerExtensionUtil.GetTrainerNames(null as IEnumerable<BinaryClassificationTrainer>);
             Assert.Null(internalNames);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void AllowedTrainersWhitelistNullTest()
         {
             var trainers = RecipeInference.AllowedTrainers(new MLContext(), TaskKind.BinaryClassification, new ColumnInformation(), null);
             Assert.True(trainers.Any());
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void AllowedTrainersWhitelistTest()
         {
             var whitelist = new[] { TrainerName.AveragedPerceptronBinary, TrainerName.FastForestBinary };

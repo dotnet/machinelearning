@@ -17,7 +17,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void RangeFilterTest()
         {
             var builder = new ArrayDataViewBuilder(ML);

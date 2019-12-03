@@ -14,7 +14,7 @@ namespace Microsoft.ML.AutoML.Test
     
     public class GetNextPipelineTests
     {
-        [RetryFact]
+        [MLNETFact]
         public void GetNextPipeline()
         {
             var context = new MLContext();
@@ -38,7 +38,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.NotNull(result);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void GetNextPipelineMock()
         {
             var context = new MLContext();

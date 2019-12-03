@@ -13,7 +13,7 @@ namespace Microsoft.ML.AutoML.Test
     {
         public object DatasetDimensionUtil { get; private set; }
 
-        [RetryFact]
+        [MLNETFact]
         public void TextColumnDimensionsTest()
         {
             var context = new MLContext();
@@ -33,7 +33,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Null(dimensions[1].HasMissing);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void FloatColumnDimensionsTest()
         {
             var context = new MLContext();
@@ -53,7 +53,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.True(dimensions[1].HasMissing);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void FloatVectorColumnHasNanTest()
         {
             var context = new MLContext();

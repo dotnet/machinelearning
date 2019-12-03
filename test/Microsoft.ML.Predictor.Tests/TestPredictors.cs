@@ -105,7 +105,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [RetryFact]
+        [MLNETFact]
         [TestCategory("Binary")]
         public void BinaryClassifierPerceptronTest()
         {
@@ -115,7 +115,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         [TestCategory("Binary")]
         [TestCategory("SimpleLearners")]
         public void BinaryPriorTest()
@@ -218,7 +218,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         [TestCategory("Multiclass")]
         public void MulticlassReductionTest()
         {
@@ -296,7 +296,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [RetryFact]
+        [MLNETFact]
         [TestCategory("Binary")]
         public void BinaryClassifierLogisticRegressionNormTest()
         {
@@ -348,7 +348,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [RetryFact]
+        [MLNETFact]
         [TestCategory("Binary")]
         [TestCategory("FastRank")]
         public void BinaryClassifierFastRankClassificationTest()
@@ -389,7 +389,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for regressors
         ///</summary>
-        [RetryFact]
+        [MLNETFact]
         [TestCategory("Regressor")]
         [TestCategory("FastForest")]
         public void FastForestRegressionTest()
@@ -1066,7 +1066,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         [TestCategory("FastTree")]
         public void GamBinaryClassificationTest()
         {
@@ -1159,7 +1159,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// A test for ordinary least squares regression.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         [TestCategory("Regressor")]
         public void RegressorOlsTestOne()
         {
@@ -1602,7 +1602,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for default calibrators
         ///</summary>
-        [RetryFact]
+        [MLNETFact]
         [TestCategory("Calibrator")]
         public void NoCalibratorLinearSvmTest()
         {
@@ -1614,7 +1614,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for PAV calibrators
         ///</summary>
-        [RetryFact]
+        [MLNETFact]
         [TestCategory("Calibrator")]
         public void PAVCalibratorLinearSvmTest()
         {
@@ -1745,7 +1745,7 @@ output Out [3] from H all;
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         [TestCategory("Anomaly")]
         public void PcaAnomalyTest()
         {
@@ -2159,7 +2159,7 @@ output Out [3] from H all;
         /// <summary>
         /// A test for field-aware factorization machine.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         [TestCategory("Binary")]
         [TestCategory("FieldAwareFactorizationMachine")]
         public void BinaryClassifierFieldAwareFactorizationMachineTest()
@@ -2175,7 +2175,7 @@ output Out [3] from H all;
         /// <summary>
         /// Multiclass Naive Bayes test.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         [TestCategory("Multiclass")]
         [TestCategory("Multi Class Naive Bayes Classifier")]
         public void MulticlassNaiveBayes()
@@ -2192,7 +2192,7 @@ output Out [3] from H all;
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EnsemblesDefaultTest()
         {
             // This one does CV as well as TrainTest.
@@ -2201,7 +2201,7 @@ output Out [3] from H all;
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EnsemblesBaseLearnerTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "bp=AvgPer nm=3 tp=-"), "WE-AvgPer");
@@ -2209,7 +2209,7 @@ output Out [3] from H all;
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EnsemblesHeterogeneousTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "bp=svm bp=ap nm=20 tp=-"), "WE-Hetero");
@@ -2217,7 +2217,7 @@ output Out [3] from H all;
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EnsemblesVotingCombinerTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=20 oc=Voting tp=-"), "WE-Voting");
@@ -2225,7 +2225,7 @@ output Out [3] from H all;
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EnsemblesStackingCombinerTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=5 oc=Stacking{bp=ap} tp=-"), "WE-StackingAP");
@@ -2233,7 +2233,7 @@ output Out [3] from H all;
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EnsemblesAveragerCombinerTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=20 oc=Average tp=-"), "WE-Average");
@@ -2241,7 +2241,7 @@ output Out [3] from H all;
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EnsemblesBestPerformanceSelectorTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=20 pt=BestPerformanceSelector tp=-"), "WE-BestPerf");
@@ -2249,7 +2249,7 @@ output Out [3] from H all;
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EnsemblesBestDiverseSelectorTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=20 pt=BestDiverseSelector tp=-"), "WE-Diverse");
@@ -2257,7 +2257,7 @@ output Out [3] from H all;
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EnsemblesRandomPartitionInstanceSelectorTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=5 st=RandomPartitionSelector tp=-"), "WE-RandomPartition");
@@ -2265,7 +2265,7 @@ output Out [3] from H all;
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EnsemblesAllDataSetSelectorTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=20 st=AllInstanceSelector tp=-"), "WE-All");
@@ -2273,7 +2273,7 @@ output Out [3] from H all;
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EnsemblesRandomSubSpaceSelectorTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=20 st=AllInstanceSelector{fs=RandomFeatureSelector} tp=-"), "WE-RandomFeature");
@@ -2305,7 +2305,7 @@ output Out [3] from H all;
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EnsemblesMultiAveragerSDCATest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsembleMulticlass", "bp=SDCAMC{nt=1} nm=5 oc=MultiAverage tp=-"), "WE-SDCA-Average");

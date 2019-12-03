@@ -11,7 +11,7 @@ namespace Microsoft.ML.Scenarios
 {
     public partial class ScenariosTests
     {
-        [RetryFact]
+        [MLNETFact]
         public static void WordBags()
         {
             var mlContext = new MLContext();
@@ -48,7 +48,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(prediction.Text2, new float[] {2, 2, 2, 2, 2, 2, 1, 1});
         }
 
-        [RetryFact]
+        [MLNETFact]
         public static void WordBagsHash()
         {
             var mlContext = new MLContext();

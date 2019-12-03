@@ -39,7 +39,7 @@ namespace Microsoft.ML.Tests.Transformers
             public int D;
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void KeyToBinaryVectorWorkout()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
@@ -56,7 +56,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void KeyToBinaryVector()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
@@ -79,7 +79,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestMetadataPropagation()
         {
             var data = new[] {
@@ -134,13 +134,13 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(column.IsNormalized());
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestCommandLine()
         {
             Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=Term{col=B:A} xf=KeyToBinary{col=C:B} in=f:\2.txt" }));
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };

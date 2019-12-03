@@ -12,7 +12,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 {
     public partial class TrainerEstimators
     {
-        [RetryFact]
+        [MLNETFact]
         public void SdcaWorkout()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
@@ -52,7 +52,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SdcaLogisticRegression()
         {
             // Generate C# objects as training examples.
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.InRange(first.Probability, 0.8, 1);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SdcaLogisticRegressionWithWeight()
         {
             // Generate C# objects as training examples.
@@ -150,7 +150,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.False(sameScores);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SdcaMaximumEntropyWithWeight()
         {
             // Generate C# objects as training examples.
@@ -207,7 +207,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.False(sameScores);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SdcaSupportVectorMachine()
         {
             // Generate C# objects as training examples.
@@ -249,7 +249,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.True(first.Score > 0);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SdcaMulticlassLogisticRegression()
         {
             // Generate C# objects as training examples.
@@ -284,7 +284,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.InRange(metrics.LogLoss, 0, 0.5);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SdcaMulticlassSupportVectorMachine()
         {
             // Generate C# objects as training examples.

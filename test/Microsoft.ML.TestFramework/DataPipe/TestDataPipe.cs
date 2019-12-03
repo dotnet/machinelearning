@@ -161,7 +161,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeWithHeader()
         {
             string pathTerms = DeleteOutputPath("SavePipe", "Terms.txt");
@@ -184,7 +184,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeKeyToVec()
         {
             string pathTerms = DeleteOutputPath("SavePipe", "Terms.txt");
@@ -242,7 +242,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeConcatUnknownLength()
         {
             string pathData = DeleteOutputPath("SavePipe", "ConcatUnknownLength.txt");
@@ -269,7 +269,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeNgram()
         {
             TestCore(null, true,
@@ -288,7 +288,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeNgramSparse()
         {
             string pathData = DeleteOutputPath("SavePipe", "NgramSparse.txt");
@@ -309,7 +309,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeConcatWithAliases()
         {
             string pathData = GetDataPath("breast-cancer-withheader.txt");
@@ -407,7 +407,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeCat()
         {
             TestCore(null, false,
@@ -450,7 +450,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeCountSelect()
         {
             TestCore(null, false,
@@ -509,7 +509,7 @@ namespace Microsoft.ML.RunTests
             return false;
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeNgramHash()
         {
             string pathData = GetDataPath("lm.sample.txt");
@@ -539,7 +539,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeWordTokenize()
         {
             TestCore(GetDataPath("lm.sample.txt"), false,
@@ -553,7 +553,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeWordHash()
         {
             string pathData = GetDataPath(@"lm.sample.txt");
@@ -601,7 +601,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeWordHashUnordered()
         {
             string pathData = GetDataPath(@"lm.sample.txt");
@@ -643,7 +643,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeInvertHash()
         {
             string pathData = DeleteOutputPath("SavePipe","InvertHash-Data.txt");
@@ -710,7 +710,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeWordBag()
         {
             string pathData = GetDataPath(@"lm.sample.txt");
@@ -728,7 +728,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeWordBagTfIdf()
         {
             string pathData = DeleteOutputPath("SavePipe", "Sample-Data.txt");
@@ -753,7 +753,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeWordBagManyToOne()
         {
             string pathData = GetDataPath(@"lm.sample.txt");
@@ -795,7 +795,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeWithKey()
         {
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
@@ -865,7 +865,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeDropColumns()
         {
             string pathData = GetDataPath("adult.tiny.with-schema.txt");
@@ -881,7 +881,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeCustomStopwordsRemover()
         {
             string dataFile = DeleteOutputPath("SavePipe", "CustomStopwordsRemover-dataFile.txt");
@@ -952,7 +952,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeTokenizerAndStopWords()
         {
             string dataFile = DeleteOutputPath("SavePipe", "Multi-Languages.txt");
@@ -976,7 +976,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeDropNAs()
         {
             string pathData = DeleteOutputPath("SavePipe", "DropNAs.txt");
@@ -1006,7 +1006,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [TestCategory("DataPipeSerialization")]
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeTrainAndScoreFccFastTree()
         {
             RunMTAThread(() => TestCore(null, false,
@@ -1022,7 +1022,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [TestCategory("DataPipeSerialization")]
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeTrainAndScoreFccTransformStr()
         {
             TestCore(null, false,
@@ -1034,7 +1034,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeLda()
         {
             string pathData = DeleteOutputPath("SavePipe", "Lda.txt");
@@ -1051,13 +1051,13 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestHashTransformFloat()
         {
             TestHashTransformHelper(dataFloat, resultsFloat, NumberDataViewType.Single);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestHashTransformFloatVector()
         {
             var data = new[] { dataFloat };
@@ -1065,27 +1065,27 @@ namespace Microsoft.ML.RunTests
             TestHashTransformVectorHelper(data, results, NumberDataViewType.Single);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestHashTransformFloatSparseVector()
         {
             var results = new[] { resultsFloatSparse };
             TestHashTransformVectorHelper(dataFloatSparse, results, NumberDataViewType.Single);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestHashTransformDoubleSparseVector()
         {
             var results = new[] { resultsDoubleSparse };
             TestHashTransformVectorHelper(dataDoubleSparse, results, NumberDataViewType.Double);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestHashTransformDouble()
         {
             TestHashTransformHelper(dataDouble, resultsDouble, NumberDataViewType.Double);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestHashTransformDoubleVector()
         {
             var data = new[] { dataDouble };
@@ -1148,7 +1148,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ArrayDataViewBuilder()
         {
             ArrayDataViewBuilder builder = new ArrayDataViewBuilder(Env);
@@ -1240,7 +1240,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ArrayDataViewBuilderNoRows()
         {
             ArrayDataViewBuilder builder = new ArrayDataViewBuilder(Env);
@@ -1255,7 +1255,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ArrayDataViewBuilderNoRowsNoCols()
         {
             ArrayDataViewBuilder builder = new ArrayDataViewBuilder(Env);
@@ -1278,7 +1278,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ArrayDataViewBuilderNoCols()
         {
             ArrayDataViewBuilder builder = new ArrayDataViewBuilder(Env);
@@ -1306,7 +1306,7 @@ namespace Microsoft.ML.RunTests
     /// </summary>
     public sealed partial class TestDataPipeNoBaseline : TestDataViewBase
     {
-        [RetryFact]
+        [MLNETFact]
         public void TestLDATransform()
         {
             var builder = new ArrayDataViewBuilder(Env);
@@ -1356,7 +1356,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestLdaTransformerEmptyDocumentException()
         {
             var builder = new ArrayDataViewBuilder(Env);

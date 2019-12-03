@@ -20,7 +20,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
         {
         }
 
-        [RetryFact]
+        [MLNETFact]
         [TestCategory("Utilities")]
         public void CheckIsMonotonicallyIncreasingInt()
         {
@@ -47,7 +47,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             Assert.True(Utils.IsMonotonicallyIncreasing(nullX));
         }
         
-        [RetryFact]
+        [MLNETFact]
         [TestCategory("Utilities")]
         public void CheckIsMonotonicallyIncreasingFloat()
         {
@@ -81,7 +81,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             Assert.True(Utils.IsMonotonicallyIncreasing(nullX));
         }
 
-        [RetryFact]
+        [MLNETFact]
         [TestCategory("Utilities")]
         public void CheckIsMonotonicallyIncreasingDouble()
         {
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             Assert.True(Utils.IsMonotonicallyIncreasing(nullX));
         }
 
-        [RetryFact]
+        [MLNETFact]
         [TestCategory("Utilities")]
         public void CheckIsIncreasing()
         {
@@ -157,7 +157,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             Assert.Throws<InvalidOperationException>(() => Utils.IsIncreasing(0, nullX, 7, 10));
         }
 
-        [RetryFact]
+        [MLNETFact]
         [TestCategory("Utilities")]
         public void CheckAreEqualInt()
         {
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             Assert.False(Utils.AreEqual(x, null));
         }
 
-        [RetryFact]
+        [MLNETFact]
         [TestCategory("Utilities")]
         public void CheckAreEqualBool()
         {
@@ -229,7 +229,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             Assert.False(Utils.AreEqual(x, null));
         }
 
-        [RetryFact]
+        [MLNETFact]
         [TestCategory("Utilities")]
         public void CheckAreEqualFloat()
         {
@@ -265,7 +265,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             Assert.False(Utils.AreEqual(x, null));
         }
 
-        [RetryFact]
+        [MLNETFact]
         [TestCategory("Utilities")]
         public void CheckAreEqualDouble()
         {

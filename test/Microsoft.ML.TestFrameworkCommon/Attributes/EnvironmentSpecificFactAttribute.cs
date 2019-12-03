@@ -11,7 +11,7 @@ namespace Microsoft.ML.TestFrameworkCommon.Attributes
     /// A base class for environment-specific fact attributes.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-    public abstract class EnvironmentSpecificFactAttribute : RetryFactAttribute
+    public abstract class EnvironmentSpecificFactAttribute : MLNETFactAttribute
     {
         private readonly string _skipMessage;
 

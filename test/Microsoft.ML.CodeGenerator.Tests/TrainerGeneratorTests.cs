@@ -15,7 +15,7 @@ namespace mlnet.Tests
 {
     public class TrainerGeneratorTests
     {
-        [RetryFact]
+        [MLNETFact]
         public void CultureInvariantTest()
         {
 
@@ -43,7 +43,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void LightGbmBinaryBasicTest()
         {
 
@@ -64,7 +64,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void LightGbmBinaryAdvancedParameterTest()
         {
 
@@ -87,7 +87,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SymbolicSgdLogisticRegressionBinaryBasicTest()
         {
 
@@ -104,7 +104,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SymbolicSgdLogisticRegressionBinaryAdvancedParameterTest()
         {
 
@@ -125,7 +125,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SgdCalibratedBinaryBasicTest()
         {
             var context = new MLContext();
@@ -141,7 +141,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SgdCalibratedBinaryAdvancedParameterTest()
         {
 
@@ -162,7 +162,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SdcaLogisticRegressionBinaryBasicTest()
         {
             var context = new MLContext();
@@ -178,7 +178,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SdcaLogisticRegressionBinaryAdvancedParameterTest()
         {
 
@@ -199,7 +199,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SdcaMaximumEntropyMultiBasicTest()
         {
             var context = new MLContext();
@@ -215,7 +215,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SdcaMaximumEntropyMultiAdvancedParameterTest()
         {
 
@@ -236,7 +236,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SdcaRegressionBasicTest()
         {
             var context = new MLContext();
@@ -252,7 +252,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SdcaRegressionAdvancedParameterTest()
         {
 
@@ -273,7 +273,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void MatrixFactorizationBasicTest()
         {
             var context = new MLContext();
@@ -287,7 +287,7 @@ namespace mlnet.Tests
             Assert.Null(actual.Item2);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void MatrixFactorizationAdvancedTest()
         {
             var context = new MLContext();
@@ -306,7 +306,7 @@ namespace mlnet.Tests
             Assert.Null(actual.Item2);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void LbfgsPoissonRegressionBasicTest()
         {
             var context = new MLContext();
@@ -322,7 +322,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void LbfgsPoissonRegressionAdvancedParameterTest()
         {
 
@@ -343,7 +343,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void OlsRegressionBasicTest()
         {
             var context = new MLContext();
@@ -359,7 +359,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void OlsRegressionAdvancedParameterTest()
         {
 
@@ -380,7 +380,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void OnlineGradientDescentRegressionBasicTest()
         {
             var context = new MLContext();
@@ -396,7 +396,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void OnlineGradientDescentRegressionAdvancedParameterTest()
         {
 
@@ -417,7 +417,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void LbfgsLogisticRegressionBinaryBasicTest()
         {
             var context = new MLContext();
@@ -433,7 +433,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void LbfgsLogisticRegressionBinaryAdvancedParameterTest()
         {
 
@@ -454,7 +454,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void LbfgsMaximumEntropyMultiMultiBasicTest()
         {
             var context = new MLContext();
@@ -470,7 +470,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void LbfgsMaximumEntropyMultiAdvancedParameterTest()
         {
 
@@ -491,7 +491,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void LinearSvmBinaryBasicTest()
         {
             var context = new MLContext();
@@ -507,7 +507,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void LinearSvmBinaryParameterTest()
         {
 
@@ -529,7 +529,7 @@ namespace mlnet.Tests
         }
 
 
-        [RetryFact]
+        [MLNETFact]
         public void FastTreeTweedieRegressionBasicTest()
         {
             var context = new MLContext();
@@ -545,7 +545,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void FastTreeTweedieRegressionAdvancedParameterTest()
         {
 
@@ -567,7 +567,7 @@ namespace mlnet.Tests
         }
 
 
-        [RetryFact]
+        [MLNETFact]
         public void FastTreeRegressionBasicTest()
         {
             var context = new MLContext();
@@ -583,7 +583,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void FastTreeRegressionAdvancedParameterTest()
         {
 
@@ -605,7 +605,7 @@ namespace mlnet.Tests
         }
 
 
-        [RetryFact]
+        [MLNETFact]
         public void FastTreeBinaryBasicTest()
         {
             var context = new MLContext();
@@ -621,7 +621,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void FastTreeBinaryAdvancedParameterTest()
         {
 
@@ -643,7 +643,7 @@ namespace mlnet.Tests
         }
 
 
-        [RetryFact]
+        [MLNETFact]
         public void FastForestRegressionBasicTest()
         {
             var context = new MLContext();
@@ -659,7 +659,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void FastForestRegressionAdvancedParameterTest()
         {
             var context = new MLContext();
@@ -680,7 +680,7 @@ namespace mlnet.Tests
         }
 
 
-        [RetryFact]
+        [MLNETFact]
         public void FastForestBinaryBasicTest()
         {
             var context = new MLContext();
@@ -696,7 +696,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void FastForestBinaryAdvancedParameterTest()
         {
 
@@ -718,7 +718,7 @@ namespace mlnet.Tests
         }
 
 
-        [RetryFact]
+        [MLNETFact]
         public void AveragedPerceptronBinaryBasicTest()
         {
             var context = new MLContext();
@@ -734,7 +734,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void AveragedPerceptronBinaryAdvancedParameterTest()
         {
 
@@ -755,7 +755,7 @@ namespace mlnet.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ImageClassificationTrainerBasicTest()
         {
             var elementProperties = new Dictionary<string, object>();

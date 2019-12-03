@@ -35,7 +35,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
 
-        [RetryFact]
+        [MLNETFact]
         public void CharTokenizeWorkout()
         {
             var data = new[] { new TestClass() { A = "This is a good sentence.", B = new string[2] { "Much words", "Wow So Cool" } } };
@@ -48,13 +48,13 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestCommandLine()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:TX:0} xf=CharToken{col=B:A} in=f:\2.txt" }), (int)0);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = "This is a good sentence.", B = new string[2] { "Much words", "Wow So Cool" } } };

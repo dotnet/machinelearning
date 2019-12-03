@@ -30,7 +30,7 @@ namespace Microsoft.ML.RunTests
             public VBuffer<T> X;
         }
 
-        [RetryFact]
+        [MLNETFact]
         [TestCategory(Cat)]
         public void SparseDataView()
         {
@@ -70,7 +70,7 @@ namespace Microsoft.ML.RunTests
             Assert.True(n == 2);
         }
 
-        [RetryFact]
+        [MLNETFact]
         [TestCategory(Cat)]
         public void DenseDataView()
         {

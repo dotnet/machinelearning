@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestSsaChangePointEstimator()
         {
             int Confidence = 95;
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestSsaForecastingEstimator()
         {
             const int ChangeHistorySize = 10;
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestSsaSpikeEstimator()
         {
             int Confidence = 95;
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestIidChangePointEstimator()
         {
             int Confidence = 95;
@@ -172,7 +172,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestIidSpikeEstimator()
         {
             int Confidence = 95;

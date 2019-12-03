@@ -86,7 +86,7 @@ namespace Microsoft.ML.Tests
             public double[] Prediction { get; set; }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ChangeDetection()
         {
             var env = new MLContext();
@@ -467,7 +467,7 @@ namespace Microsoft.ML.Tests
             
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void AnomalyDetectionWithSrCnn()
         {
             var ml = new MLContext();

@@ -31,7 +31,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
         {
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestApplyAt()
         {
             var buffer = new VBuffer<float>(10, 3, new[] { 0.5f, 1.2f, -3.8f }, new[] { 1, 5, 8 });
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             Assert.Equal(1, buffer.GetValues()[2]);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void VBufferOpScaleBy()
         {
             var rgen = RandomUtils.Create(9);
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void VBufferOpScaleByCopy()
         {
             var rgen = RandomUtils.Create(9);
@@ -81,7 +81,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void VBufferOpMath()
         {
             const int tol = 4;
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void VBufferOpMathMul()
         {
             VBuffer<float> a;
@@ -153,7 +153,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             TestSame(ref vbufMultExpected, ref a2DenseVbuff, 1e-5);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void VBufferOpMathMul2()
         {
             VBuffer<float> a;
@@ -176,7 +176,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             TestSame(ref vbufMultExpected, ref a, 1e-5);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SparsifyNormalize()
         {
             var a = new VBuffer<float>(5, new float[5] { 1, 2, 3, 4, 5 });
@@ -195,7 +195,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             TestSame(ref vbufMultExpected, ref a2, 1e-5);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SparsifyNormalizeTop2()
         {
             var a = new VBuffer<float>(5, new float[5] { 1, 2, 3, 4, 5 });
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             TestSame(ref vbufMultExpected, ref a2, 1e-5);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SparsifyNormalizeTopSparse()
         {
             for (var i = 0; i < 2; i++)
@@ -244,7 +244,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SparsifyNormalizeTopSparse2()
         {
             for (var i = 0; i < 2; i++)
@@ -341,7 +341,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             b = new VBuffer<T2>(a.Length, indices.Length, values, indices);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void VBufferOpApplyWith()
         {
             var rgen = RandomUtils.Create(1);
@@ -383,7 +383,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             b = new VBuffer<T2>(a.Length, indices.Length, values, indices);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void VBufferOpApplyWithEither()
         {
             var rgen = RandomUtils.Create(2);
@@ -455,13 +455,13 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void VBufferOpForEachEither()
         {
             VBufferOpForEachHelper(union: true);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void VBufferOpForEachBoth()
         {
             VBufferOpForEachHelper(union: false);
@@ -479,7 +479,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             dst = new VBuffer<TDst>(a.Length, indices.Count, values, indices.ToArray());
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void VBufferOpApplyIntoSingle()
         {
             var rgen = RandomUtils.Create(5);
@@ -515,7 +515,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             dst = new VBuffer<TDst>(a.Length, indices.Length, values, indices);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void VBufferOpApplyIntoPair()
         {
             var rgen = RandomUtils.Create(6);
@@ -568,7 +568,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             NaiveApplyWith(ref aa, ref b, manip);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void VBufferOpAddMult()
         {
             var rgen = RandomUtils.Create(7);
@@ -599,7 +599,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void VBufferOpAddMultCopy()
         {
             var rgen = RandomUtils.Create(7);
@@ -621,7 +621,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void VBufferOpAddMultWithOffset()
         {
             var rgen = RandomUtils.Create(8);
@@ -646,7 +646,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void VBufferOpScaleInto()
         {
             var rgen = RandomUtils.Create(10);
@@ -673,7 +673,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void VBufferOpAddMultInto()
         {
             var rgen = RandomUtils.Create(11);
@@ -695,7 +695,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void VBufferOpApplySlot()
         {
             var rgen = RandomUtils.Create(12);
@@ -720,7 +720,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void VBufferOpCopyRange()
         {
             var rgen = RandomUtils.Create(13);
@@ -746,7 +746,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void VBufferOpDensify()
         {
             var rgen = RandomUtils.Create(14);
@@ -776,7 +776,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void VBufferOpDensifyFirst()
         {
             var rgen = RandomUtils.Create(15);
@@ -815,7 +815,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void VBufferOpPairwiseMath()
         {
             var rgen = RandomUtils.Create(16);
@@ -841,7 +841,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void VBufferDropSlots()
         {
             var rgen = RandomUtils.Create(16);

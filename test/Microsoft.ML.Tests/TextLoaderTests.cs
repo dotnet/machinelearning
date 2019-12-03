@@ -26,7 +26,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         {
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestTextLoaderDataTypes()
         {
             string pathData = DeleteOutputPath("SavePipe", "TextInput.txt");
@@ -84,7 +84,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestTextLoaderInvalidLongMin()
         {
             string pathData = DeleteOutputPath("SavePipe", "TextInput.txt");
@@ -109,7 +109,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.True(false, "Test failed.");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestTextLoaderInvalidLongMax()
         {
             string pathData = DeleteOutputPath("SavePipe", "TextInput.txt");
@@ -143,7 +143,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             env = new ConsoleEnvironment(42).AddStandardComponents();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ConstructorDoesntThrow()
         {
             var mlContext = new MLContext(seed: 1);
@@ -157,7 +157,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.NotNull(mlContext.Data.LoadFromTextFile<InputWithUnderscore>("fakeFile.txt"));
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void CanSuccessfullyApplyATransform()
         {
             string inputGraph = @"
@@ -226,7 +226,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.NotNull(data);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void CanSuccessfullyRetrieveQuotedData()
         {
             string dataPath = GetDataPath("QuotingData.csv");
@@ -337,7 +337,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void CanSuccessfullyRetrieveSparseData()
         {
             string dataPath = GetDataPath("SparseData.txt");
@@ -491,7 +491,7 @@ namespace Microsoft.ML.EntryPoints.Tests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void CanSuccessfullyTrimSpaces()
         {
             string dataPath = GetDataPath("TrimData.csv");
@@ -588,7 +588,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ThrowsExceptionWithPropertyName()
         {
             var mlContext = new MLContext(seed: 1);
@@ -596,7 +596,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.StartsWith($"Field 'String1' is missing the {nameof(LoadColumnAttribute)} attribute", ex.Message);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ParseSchemaFromTextFile()
         {
             var mlContext = new MLContext(seed: 1);
@@ -717,7 +717,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             public string Type;
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void LoaderColumnsFromIrisData()
         {
             var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
@@ -781,7 +781,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.Equal(vals4[1], irisFirstRowValues.Current);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestTextLoaderKeyTypeBackCompat()
         {
             // Model generated with the following command on a version of the code previous to the KeyType change that removed Min and Contiguous:
@@ -852,7 +852,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             public float SepalWidth { get; set; }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestTextLoaderNoFields()
         {
             var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);

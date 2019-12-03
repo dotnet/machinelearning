@@ -25,7 +25,7 @@ namespace Microsoft.ML.RunTests
         {
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeIidSpike()
         {
             TestCore(GetDataPath(Path.Combine("Timeseries", "real_1.csv")),
@@ -41,7 +41,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeIidChangePoint()
         {
             TestCore(GetDataPath(Path.Combine("Timeseries", "real_11.csv")),
@@ -89,7 +89,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeExponentialAverage()
         {
             TestCore(null, true,
@@ -99,7 +99,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeSlidingWindow()
         {
             TestCore(null, true,
@@ -109,7 +109,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeSlidingWindowW1L1()
         {
             TestCore(null, true,
@@ -119,7 +119,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeSlidingWindowW2L1()
         {
             TestCore(null, true,
@@ -129,7 +129,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeSlidingWindowW1L2()
         {
             TestCore(null, true,
@@ -140,7 +140,7 @@ namespace Microsoft.ML.RunTests
         }
 
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipePValue()
         {
             TestCore(null, true,
@@ -150,7 +150,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipePercentileThreshold()
         {
             TestCore(null, true,
@@ -160,7 +160,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeMovingAverageUniform()
         {
             TestCore(null, true,
@@ -170,7 +170,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SavePipeMovingAverageNonUniform()
         {
             TestCore(null, true,

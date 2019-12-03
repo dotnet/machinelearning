@@ -13,7 +13,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
     public sealed class ParameterVariableNameTest
     {
-        [RetryFact]
+        [MLNETFact]
         public async Task ParameterVariableName()
         {
             const string test = @"

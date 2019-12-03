@@ -16,7 +16,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Tests loading a model file that was saved using an older version still loads correctly.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void LoadOriginalBinaryLoaderModel()
         {
             var env = new MLContext().AddStandardComponents();
@@ -34,7 +34,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Tests loading a model file containing a ConcatTransform that was saved using an older version.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void LoadOldConcatTransformModel()
         {
             var env = new MLContext().AddStandardComponents();

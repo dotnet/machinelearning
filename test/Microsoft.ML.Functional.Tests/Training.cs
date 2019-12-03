@@ -23,7 +23,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Training: It is easy to compare trainer evaluations on the same dataset.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void CompareTrainerEvaluations()
         {
             var mlContext = new MLContext(seed: 1);
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Training: Models can be trained starting from an existing model.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void ContinueTrainingAveragePerceptron()
         {
             var mlContext = new MLContext(seed: 1);
@@ -121,7 +121,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Training: Models can be trained starting from an existing model.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void ContinueTrainingFieldAwareFactorizationMachine()
         {
             var mlContext = new MLContext(seed: 1);
@@ -165,7 +165,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Training: Models can be trained starting from an existing model.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void ContinueTrainingLinearSupportVectorMachine()
         {
             var mlContext = new MLContext(seed: 1);
@@ -209,7 +209,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Training: Models can be trained starting from an existing model.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void ContinueTrainingLogisticRegression()
         {
             var mlContext = new MLContext(seed: 1);
@@ -253,7 +253,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Training: Models can be trained starting from an existing model.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void ContinueTrainingLogisticRegressionMulticlass()
         {
             var mlContext = new MLContext(seed: 1);
@@ -303,7 +303,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Training: Models can be trained starting from an existing model.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void ContinueTrainingOnlineGradientDescent()
         {
             var mlContext = new MLContext(seed: 1);
@@ -347,7 +347,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Training: Models can be trained starting from an existing model.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void ContinueTrainingPoissonRegression()
         {
             var mlContext = new MLContext(seed: 1);
@@ -391,7 +391,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Training: Models can be trained starting from an existing model.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void ContinueTrainingSymbolicStochasticGradientDescent()
         {
             var mlContext = new MLContext(seed: 1);
@@ -440,7 +440,7 @@ namespace Microsoft.ML.Functional.Tests
         /// Training: Meta-components function as expected. For OVA (one-versus-all), a user will be able to specify only
         /// binary classifier trainers. If they specify a different model class there should be a compile error.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void MetacomponentsFunctionAsExpectedOva()
         {
             var mlContext = new MLContext(seed: 1);
@@ -471,7 +471,7 @@ namespace Microsoft.ML.Functional.Tests
         /// Training: Meta-components function as expected. For OVA (one-versus-all), a user will be able to specify only
         /// binary classifier trainers. If they specify a different model class there should be a compile error.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void MetacomponentsFunctionWithKeyHandling()
         {
             var mlContext = new MLContext(seed: 1);

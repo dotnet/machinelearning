@@ -11,7 +11,7 @@ namespace Microsoft.ML.Scenarios
 {
     public partial class ScenariosTests
     {
-        [RetryFact]
+        [MLNETFact]
         public void TrainAndPredictIrisModelWithStringLabelTest()
         {
             var mlContext = new MLContext(seed: 1);

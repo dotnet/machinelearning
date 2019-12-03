@@ -48,15 +48,12 @@ namespace Microsoft.ML.TestFramework
             FullTestName = test.TestCase.TestMethod.TestClass.Class.Name + "." + test.TestCase.TestMethod.Method.Name;
             TestName = test.TestCase.TestMethod.Method.Name;
 
-            // write to the console when a test starts and stops so we can identify any test hangs/deadlocks in CI
-            Console.WriteLine($"Starting test: {FullTestName}");
             Initialize();
         }
 
         void IDisposable.Dispose()
         {
             Cleanup();
-            Console.WriteLine($"Finished test: {FullTestName}");
         }
 
         protected virtual void Initialize()

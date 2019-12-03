@@ -12,7 +12,7 @@ namespace Microsoft.ML.RunTests
 {
     public class TestGamPublicInterfaces
     {
-        [RetryFact]
+        [MLNETFact]
         [TestCategory("FastTree")]
         public void TestGamDirectInstatiation()
         {

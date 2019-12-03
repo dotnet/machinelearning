@@ -12,7 +12,7 @@ namespace Microsoft.ML.AutoML.Test
     
     public class BestResultUtilTests
     {
-        [RetryFact]
+        [MLNETFact]
         public void FindBestResultWithSomeNullMetrics()
         {
             var metrics1 = MetricsUtil.CreateRegressionMetrics(0.2, 0.2, 0.2, 0.2, 0.2);
@@ -32,7 +32,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(0.3, bestResult.ValidationMetrics.RSquared);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void FindBestResultWithAllNullMetrics()
         {
             var runResults = new List<RunDetail<RegressionMetrics>>()
@@ -45,7 +45,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Null(bestResult);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void GetIndexOfBestScoreMaximizingUtil()
         {
             var scores = new double[] { 0, 2, 5, 100, -100, -70 };
@@ -53,7 +53,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(3, indexOfMaxScore);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void GetIndexOfBestScoreMinimizingUtil()
         {
             var scores = new double[] { 0, 2, 5, 100, -100, -70 };

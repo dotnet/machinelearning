@@ -43,7 +43,7 @@ namespace Microsoft.ML.Tests.Transformers
             public string F;
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void CategoricalHashWorkout()
         {
             var data = new[] { new TestClass() { A = "1", B = new[] { "2", "3" }, C = new[] { "2", "3", "4" } }, new TestClass() { A = "4", B = new[] { "4", "5" }, C = new[] { "3", "4", "5" } } };
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void CategoricalHash()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestMetadataPropagation()
         {
             var data = new[] {
@@ -209,13 +209,13 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(column.IsNormalized());
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestCommandLine()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=CatHash{col=B:A} in=f:\2.txt" }), (int)0);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = "1", B = new[] { "2", "3" }, C = new[] { "2", "3", "4" } }, new TestClass() { A = "4", B = new[] { "4", "5" }, C = new[] { "3", "4", "5" } } };

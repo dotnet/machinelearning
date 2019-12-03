@@ -15,7 +15,7 @@ namespace mlnet.Tests
 {
     public class CodeGeneratorTests
     {
-        [RetryFact]
+        [MLNETFact]
         public void TrainerGeneratorBasicNamedParameterTest()
         {
             var context = new MLContext();
@@ -35,7 +35,7 @@ namespace mlnet.Tests
             Assert.Equal("using Microsoft.ML.Trainers.LightGbm;\r\n", actual.Item2.First());
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TrainerGeneratorBasicAdvancedParameterTest()
         {
             var context = new MLContext();
@@ -56,7 +56,7 @@ namespace mlnet.Tests
             Assert.Equal(expectedUsing, actual.Item2[0]);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TransformGeneratorBasicTest()
         {
             var context = new MLContext();
@@ -70,7 +70,7 @@ namespace mlnet.Tests
             Assert.Null(actual[0].Item2);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TransformGeneratorUsingTest()
         {
             var context = new MLContext();
@@ -84,7 +84,7 @@ namespace mlnet.Tests
             Assert.Null(actual[0].Item2);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ClassLabelGenerationBasicTest()
         {
             var columns = new TextLoader.Column[]
@@ -115,7 +115,7 @@ namespace mlnet.Tests
             Assert.Equal(expected2, actual[1]);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TrainerComplexParameterTest()
         {
             var context = new MLContext();
@@ -134,7 +134,7 @@ namespace mlnet.Tests
             Assert.Equal(expectedUsings, actual.Item2[0]);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void NormalizeTest()
         {
             var testStrArray = new string[] { "Abc Abc", "abc ABC" };

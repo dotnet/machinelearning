@@ -11,7 +11,7 @@ namespace Microsoft.ML.RunTests
 {
     public sealed class ColumnTypeTests
     {
-        [RetryFact]
+        [MLNETFact]
         public void TestEqualAndGetHashCode()
         {
             var dict = new Dictionary<DataViewType, string>();

@@ -18,7 +18,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// This tests CmdParser.GetSettings
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         [TestCategory("Cmd Parsing")]
         public void ArgumentParseTest()
         {
@@ -77,7 +77,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(innerArg3, testArg);
         }
 
-        [RetryFact]
+        [MLNETFact]
         [TestCategory("Cmd Parsing")]
         public void NewTest()
         {

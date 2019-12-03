@@ -32,7 +32,7 @@ namespace Microsoft.ML.Functional.Tests
         /// and configures the scorer (or more precisely instantiates a new scorer over the same model parameters)
         /// with some threshold derived from that.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void ReconfigurablePrediction()
         {
             var mlContext = new MLContext(seed: 1);
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Functional.Tests
             Assert.False(pr.Score > 0.7);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ReconfigurablePredictionNoPipeline()
         {
             var mlContext = new MLContext(seed: 1);

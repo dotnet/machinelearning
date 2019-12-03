@@ -12,7 +12,7 @@ namespace Microsoft.ML.AutoML.Test
     
     public class InferredPipelineTests
     {
-        [RetryFact]
+        [MLNETFact]
         public void InferredPipelinesHashTest()
         {
             var context = new MLContext();

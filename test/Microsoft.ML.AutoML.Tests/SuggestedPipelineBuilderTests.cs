@@ -13,7 +13,7 @@ namespace Microsoft.ML.AutoML.Test
     {
         private static MLContext _context = new MLContext();
 
-        [RetryFact]
+        [MLNETFact]
         public void TrainerWantsCaching()
         {
             TestPipelineBuilderCaching(BuildAveragedPerceptronTrainer(),
@@ -21,7 +21,7 @@ namespace Microsoft.ML.AutoML.Test
                 new[] { true, false, true });
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TrainerDoesntWantCaching()
         {
             TestPipelineBuilderCaching(BuildLightGbmTrainer(),
@@ -29,7 +29,7 @@ namespace Microsoft.ML.AutoML.Test
                 new[] { true, false, false });
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TrainerNeedsNormalization()
         {
             var pipeline = BuildSuggestedPipeline(BuildAveragedPerceptronTrainer());
@@ -37,7 +37,7 @@ namespace Microsoft.ML.AutoML.Test
                 pipeline.Transforms[0].PipelineNode.Name);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TrainerNotNeedNormalization()
         {
             var pipeline = BuildSuggestedPipeline(BuildLightGbmTrainer());

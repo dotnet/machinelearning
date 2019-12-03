@@ -20,7 +20,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void KeyToValueWorkout()
         {
             string dataPath = GetDataPath("iris.txt");
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void KeyToValue()
         {
             string dataPath = GetDataPath("breast-cancer.txt");

@@ -16,7 +16,7 @@ namespace Microsoft.ML.RunTests
 {
     public class TestHosts
     {
-        [RetryFact]
+        [MLNETFact]
         public void TestCancellation()
         {
             IHostEnvironment env = new MLContext(seed: 42);
@@ -73,7 +73,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestCancellationApi()
         {
             IHostEnvironment env = new MLContext(seed: 42);
@@ -106,7 +106,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Tests that MLContext's Log event intercepts messages properly.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void LogEventProcessesMessages()
         {
             var messages = new List<string>();

@@ -55,7 +55,7 @@ namespace Microsoft.ML.Tests
         /// call <see cref="OnnxScoringEstimator"/> to evaluate that file. The outputs of <see cref="OnnxScoringEstimator"/> are checked against the original
         /// ML.NET model's outputs.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void SimpleEndToEndOnnxConversionTest()
         {
             // Step 1: Create and train a ML.NET pipeline.
@@ -189,7 +189,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void RegressionTrainersOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -250,7 +250,7 @@ namespace Microsoft.ML.Tests
             public float[] Features { get; set; }
         }
 
-        [RetryFact]
+        [MLNETFact]
         void LpNormOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -306,7 +306,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         void CommandLineOnnxConversionTest()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
@@ -331,7 +331,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void KeyToVectorWithBagOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -363,7 +363,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void InitializerCreationTest()
         {
             var env = new MLContext();
@@ -430,7 +430,7 @@ namespace Microsoft.ML.Tests
             Assert.True(stringsTensor.StringData[2].ToStringUtf8() == "36");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void LogisticRegressionOnnxConversionTest()
         {
             // Step 1: Create and train a ML.NET pipeline.
@@ -500,7 +500,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void MulticlassLogisticRegressionOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -530,7 +530,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void LoadingPredictorModelAndOnnxConversionTest()
         {
             string dataPath = GetDataPath("iris.txt");
@@ -651,7 +651,7 @@ namespace Microsoft.ML.Tests
         }
 
 
-        [RetryFact]
+        [MLNETFact]
         public void RemoveVariablesInPipelineTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -703,7 +703,7 @@ namespace Microsoft.ML.Tests
             public string[] Tokens;
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void WordEmbeddingsTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -727,7 +727,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void OnnxTypeConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -805,7 +805,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void PcaOnnxConversionTest()
         {
             var dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
@@ -855,7 +855,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         void IndicateMissingValuesOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -905,7 +905,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         void ValueToKeyMappingOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -955,7 +955,7 @@ namespace Microsoft.ML.Tests
             public string Text { get; set; }
         }
 
-        [RetryFact]
+        [MLNETFact]
         void WordTokenizerOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -993,7 +993,7 @@ namespace Microsoft.ML.Tests
         }
 
 
-        [RetryFact]
+        [MLNETFact]
         void NgramOnnxConnversionTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -1053,7 +1053,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void OptionalColumnOnnxTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -1096,7 +1096,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         private void KeyToValueOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -1132,7 +1132,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         void MulticlassTrainersOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -1187,7 +1187,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         void CopyColumnsOnnxTest()
         {
             var mlContext = new MLContext(seed: 1);

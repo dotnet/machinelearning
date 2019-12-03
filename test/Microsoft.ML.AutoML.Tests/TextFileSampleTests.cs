@@ -12,7 +12,7 @@ namespace Microsoft.ML.AutoML.Test
     
     public class TextFileSampleTests
     {
-        [RetryFact]
+        [MLNETFact]
         public void CanParseLargeRandomStream()
         {
             using (var stream = new MemoryStream())

@@ -22,7 +22,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Extensibility: Add a new column that is a function of other columns.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         void ExtensibilityAddAColumnAsAFunctionOfMultipleColumns()
         {
             // Concurrency must be 1 to assure that the mapping is done sequentially.
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Extensibility: Add multiple new columns.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         void ExtensibilityAddingTwoColumns()
         {
             // Concurrency must be 1 to assure that the mapping is done sequentially.
@@ -123,7 +123,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Extensibility: Featurize text using custom word-grams, char-grams, and normalization.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         void ExtensibilityModifyTextFeaturization()
         {
             // Concurrency must be 1 to assure that the mapping is done sequentially.
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Extensibility: Apply a normalizer to columns in the dataset.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         void ExtensibilityNormalizeColumns()
         {
             // Concurrency must be 1 to assure that the mapping is done sequentially.

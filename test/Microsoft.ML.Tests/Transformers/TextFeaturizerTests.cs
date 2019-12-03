@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests.Transformers
             public string[] OutputTokens;
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TextFeaturizerWithPredefinedStopWordRemoverTest()
         {
             var data = new[] { new TestClass() { A = "This is some text with english stop words", OutputTokens=null},
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal("stop words", string.Join(" ", prediction.OutputTokens));
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TextFeaturizerWithWordFeatureExtractorTest()
         {
             var data = new[] { new TestClass() { A = "This is some text in english", OutputTokens=null},
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(expected, prediction.Features);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TextFeaturizerWithWordFeatureExtractorWithNullInputNamesTest()
         {
             var data = new[] { new TestClass2() { Features = "This is some text in english", OutputTokens=null},
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(expected[1], transformed[1]);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TextFeaturizerWithWordFeatureExtractorTestWithNoInputNames()
         {
             var data = new[] { new TestClass2() { Features = "This is some text in english", OutputTokens=null},
@@ -172,7 +172,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(expected[1], transformed[1]);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TextFeaturizerWithCharFeatureExtractorTest()
         {
             var data = new[] { new TestClass() { A = "abc efg", OutputTokens=null},
@@ -201,7 +201,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(expected, prediction.Features);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TextFeaturizerWithL2NormTest()
         {
             var data = new[] { new TestClass() { A = "abc xyz", OutputTokens=null},
@@ -232,7 +232,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(expected, prediction.Features);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TextFeaturizerWithCustomStopWordRemoverTest()
         {
             var data = new[] { new TestClass() { A = "This is some text with english stop words", OutputTokens=null},
@@ -293,7 +293,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(expected2, string.Join(" ", prediction2.OutputTokens));
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TextFeaturizerWithUpperCaseTest()
         {
             var data = new[] { new TestClass() { A = "This is some text with english stop words", OutputTokens=null},
@@ -332,7 +332,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TextFeaturizerWithKeepNumbersTest()
         {
             var data = new[] { new TestClass() { A = "This is some text with numbers 123 $425 25.23", OutputTokens=null},
@@ -370,7 +370,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TextFeaturizerWithKeepPunctuationsTest()
         {
             var data = new[] { new TestClass() { A = "This, is; some_ ,text 'with\" punctuations.", OutputTokens=null},
@@ -407,7 +407,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TextFeaturizerWithKeepDiacriticsTest()
         {
             var data = new[] { new TestClass() { A = "Thîs îs sóme text with diácrîtîcs", OutputTokens=null},
@@ -419,7 +419,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
 
-        [RetryFact]
+        [MLNETFact]
         public void TextFeaturizerWorkout()
         {
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
@@ -452,7 +452,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TextTokenizationWorkout()
         {
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
@@ -482,7 +482,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TokenizeWithSeparators()
         {
             string dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
@@ -506,7 +506,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TokenizeWithSeparatorCommandLine()
         {
             string dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
@@ -519,7 +519,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TextNormalizationAndStopwordRemoverWorkout()
         {
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
@@ -550,7 +550,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void StopWordsRemoverFromFactory()
         {
             var factory = new PredefinedStopWordsRemoverFactory();
@@ -582,7 +582,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void WordBagWorkout()
         {
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
@@ -614,7 +614,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void NgramWorkout()
         {
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
@@ -649,7 +649,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestNgramCompatColumns()
         {
             string dropModelPath = GetDataPath("backcompat/ngram.zip");
@@ -667,7 +667,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void LdaWorkout()
         {
             IHostEnvironment env = new MLContext(seed: 42);
@@ -714,7 +714,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void LdaWorkoutEstimatorCore()
         {
             var ml = new MLContext();
@@ -733,13 +733,13 @@ namespace Microsoft.ML.Tests.Transformers
             TestEstimatorCore(est, srcView);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestLdaCommandLine()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=lda{col=B:A} in=f:\2.txt" }), (int)0);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestTextFeaturizerBackCompat()
         {
             var modelPath = Path.Combine("TestModels", "SentimentModel.zip");

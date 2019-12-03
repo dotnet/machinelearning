@@ -27,7 +27,7 @@ namespace Microsoft.ML.Functional.Tests
             _ml = new MLContext(42);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SchemaDefinitionForPredictionEngine()
         {
             var fileName = TestCommon.GetDataPath(DataDir, TestDatasets.adult.trainFilename);
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Functional.Tests
             Assert.True(prediction.Features.Select((x, i) => i == 3 && x == 1 || x == 0).All(b => b));
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SchemaDefinitionForCustomMapping()
         {
             var fileName = TestCommon.GetDataPath(DataDir, TestDatasets.adult.trainFilename);

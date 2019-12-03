@@ -21,7 +21,7 @@ namespace Microsoft.ML.RunTests
 
         private readonly static Conversions _conv = Conversions.Instance;
 
-        [RetryFact]
+        [MLNETFact]
         public void R4ToSBtoR4()
         {
             var r4ToSB = Conversions.Instance.GetStringConversion<float>(NumberDataViewType.Single);
@@ -45,7 +45,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(fVal, float.NaN);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void R8ToSBtoR8()
         {
             var r8ToSB = Conversions.Instance.GetStringConversion<double>(NumberDataViewType.Double);
@@ -69,7 +69,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(dVal, double.NaN);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TXToSByte()
         {
             var mapper = GetMapper<ReadOnlyMemory<char>, sbyte>(NumberDataViewType.SByte);
@@ -109,7 +109,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(default, dst);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TXToShort()
         {
             var mapper = GetMapper<ReadOnlyMemory<char>, short>(NumberDataViewType.Int16);
@@ -149,7 +149,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(default, dst);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TXToInt()
         {
             var mapper = GetMapper<ReadOnlyMemory<char>, int>(NumberDataViewType.Int32);
@@ -189,7 +189,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(default, dst);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TXToLong()
         {
             var mapper = GetMapper<ReadOnlyMemory<char>, long>(NumberDataViewType.Int64);
@@ -229,7 +229,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(default, dst);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void DTToDT()
         {
             bool identity;

@@ -6,24 +6,27 @@ using System;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace Microsoft.ML.TestFrameworkCommon
 {
     [Serializable]
-    public class RetryTestCase : XunitTestCase
+    public class MLNETTestCase : XunitTestCase
     {
         private int maxRetries;
 
         [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("Called by the de-serializer", true)]
-        public RetryTestCase() { }
+        public MLNETTestCase() { }
 
-        public RetryTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay testMethodDisplay, ITestMethod testMethod, int maxRetries)
+        public MLNETTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay testMethodDisplay, ITestMethod testMethod, 
+            int maxRetries, int timeOut)
             : base(diagnosticMessageSink, testMethodDisplay, TestMethodDisplayOptions.None, testMethod, testMethodArguments: null)
         {
             this.maxRetries = maxRetries;
+            Timeout = timeOut;
         }
 
         // This method is called by the xUnit test framework classes to run the test case. We will do the
@@ -47,10 +50,10 @@ namespace Microsoft.ML.TestFrameworkCommon
 
                 try
                 {
-                    //default timeout for every test case
-                    Timeout = 5 * 60 * 1000;
-
+                    // write to the console when a test starts and stops so we can identify any test hangs/deadlocks in CI
+                    Console.WriteLine($"[{DateTime.Now}] Starting test: {DisplayName}.");
                     summary = await base.RunAsync(diagnosticMessageSink, delayedMessageBus, constructorArguments, aggregator, cancellationTokenSource);
+                    Console.WriteLine($"[{DateTime.Now}] Finished test: {DisplayName}.");
                 }
                 catch (Exception ex)
                 {
@@ -58,14 +61,35 @@ namespace Microsoft.ML.TestFrameworkCommon
                     Console.WriteLine($"Call stack is : {new System.Diagnostics.StackTrace().ToString()}");
                 }
 
+                if (aggregator.HasExceptions || summary.Failed > 0)
+                {
+                    string os = Environment.OSVersion.ToString();
+                    string architecture = Environment.Is64BitProcess ? "x64" : "x86";
+                    string framework = "";
+                    string configuration = "";
+
+#if DEBUG
+                    configuration = "Debug";
+#else
+                    configuration = "Release";
+#endif
+
+#if NETFRAMEWORK
+                    framework = "NetFx461";
+#else
+                    framework = AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") == null ? "NetCoreApp21" : "NetCoreApp30";
+#endif
+
+                    var errorMessage = $"Execution of '{DisplayName}' at {os}_{architecture}_{framework}_{configuration} failed (attempt #{runCount}).";
+                    diagnosticMessageSink.OnMessage(new DiagnosticMessage(errorMessage));
+                    Console.WriteLine(errorMessage);
+                }
+
                 if (aggregator.HasExceptions || summary.Failed == 0 || ++runCount >= maxRetries)
                 {
                     delayedMessageBus.Dispose();  // Sends all the delayed messages
                     return summary;
                 }
-
-                diagnosticMessageSink.OnMessage(new DiagnosticMessage("Execution of '{0}' failed (attempt #{1}), retrying...", DisplayName, runCount));
-                Console.WriteLine("Execution of '{0}' failed (attempt #{1}), retrying...", DisplayName, runCount);
             }
         }
 

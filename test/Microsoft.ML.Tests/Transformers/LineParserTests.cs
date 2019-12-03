@@ -43,7 +43,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.False(LineParser.ParseKeyThenNumbers(input, true).isSuccess);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void LineParserAndCulture()
         {
             var currentCulture = Thread.CurrentThread.CurrentCulture;

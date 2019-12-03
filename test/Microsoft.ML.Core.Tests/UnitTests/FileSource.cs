@@ -13,7 +13,7 @@ namespace Microsoft.ML.RunTests
     public sealed class FileSource
     {
 
-        [RetryFact]
+        [MLNETFact]
         public void MultiFileSourceUnitTest()
         {
             var fileSource = new MultiFileSource("adult.txt");

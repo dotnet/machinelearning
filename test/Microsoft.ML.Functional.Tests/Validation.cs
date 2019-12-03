@@ -26,7 +26,7 @@ namespace Microsoft.ML.Functional.Tests
         /// pipelines on in-fold data, (3) scoring on the out-fold data, (4) returning the set of
         /// metrics, trained pipelines, and scored test data for each fold.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         void CrossValidation()
         {
             var mlContext = new MLContext(seed: 1);
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Train with validation set.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void TrainWithValidationSet()
         {
             var mlContext = new MLContext(seed: 1);

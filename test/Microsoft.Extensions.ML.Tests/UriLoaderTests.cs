@@ -17,7 +17,7 @@ namespace Microsoft.Extensions.ML
 {
     public class UriLoaderTests
     {
-        [RetryFact]
+        [MLNETFact]
         public void throw_until_started()
         {
             var services = new ServiceCollection()
@@ -30,7 +30,7 @@ namespace Microsoft.Extensions.ML
             Assert.Throws<InvalidOperationException>(() => loaderUnderTest.GetReloadToken());
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void can_reload_model()
         {
             var services = new ServiceCollection()
@@ -49,7 +49,7 @@ namespace Microsoft.Extensions.ML
             Assert.True(changed.WaitOne(1000), "UriLoader ChangeToken didn't fire before the allotted time.");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void no_reload_no_change()
         {
             var services = new ServiceCollection()

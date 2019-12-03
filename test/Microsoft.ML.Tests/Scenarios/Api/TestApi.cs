@@ -60,7 +60,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             public IChannel ChannelTwo = null;
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void CursorChannelExposedInMapTransform()
         {
             var env = new MLContext(seed: 0);
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             public float[] Features;
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void LambdaTransformCreate()
         {
             var env = new MLContext(seed: 42);
@@ -167,7 +167,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 saver.SaveData(fs, applied, label);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TrainAveragedPerceptronWithCache()
         {
             var mlContext = new MLContext(0);
@@ -191,7 +191,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             Assert.Equal(1, globalCounter);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void MetadataSupportInDataViewConstruction()
         {
             var data = ReadBreastCancerExamples();
@@ -291,7 +291,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             return data;
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestTrainTestSplit()
         {
             var mlContext = new MLContext(0);

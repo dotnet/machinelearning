@@ -14,7 +14,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
     public sealed class TypeParamNameTest
     {
-        [RetryFact]
+        [MLNETFact]
         public async Task TypeParamName()
         {
             const string test = @"

@@ -22,7 +22,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// This might have a much steeper learning curve than the other usages (which merely involve
         /// usage of already established components), but should still be possible.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         void Extensibility()
         {
             var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);

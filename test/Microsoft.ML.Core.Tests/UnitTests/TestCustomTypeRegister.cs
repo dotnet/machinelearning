@@ -172,7 +172,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void RegisterTypeWithAttribute()
         {
             // Build in-memory data.
@@ -205,7 +205,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(superAlien.Merged.HandCount, alien.One.HandCount + alien.Two.HandCount);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestTypeManager()
         {
             // Semantically identical DataViewTypes should produce the same hash code.
@@ -278,7 +278,7 @@ namespace Microsoft.ML.RunTests
             Assert.NotEqual(a, DataViewTypeManager.GetDataViewType(typeof(AlienBody), new[] { f }));
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void GetTypeWithAdditionalDataViewTypeAttributes()
         {
             var a = new DataViewAlienBodyType(7788);

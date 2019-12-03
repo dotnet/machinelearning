@@ -18,7 +18,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [RetryFact]
+        [MLNETFact]
         void SimpleTest()
         {
             var metadataBuilder = new DataViewSchema.Annotations.Builder();

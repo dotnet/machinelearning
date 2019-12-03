@@ -18,7 +18,7 @@ namespace Microsoft.ML.AutoML.Test
         /// attempted cross validation throws (all splits should have empty
         /// train or test set).
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void CrossValSplitThrowsWhenNotEnoughData()
         {
             var mlContext = new MLContext();
@@ -34,7 +34,7 @@ namespace Microsoft.ML.AutoML.Test
         /// cross validation succeeds, but # of splits is less than 10
         /// (splits with empty train or test sets should not be returned from this API).
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void CrossValSplitSmallDataView()
         {
             var mlContext = new MLContext(seed: 0);
@@ -53,7 +53,7 @@ namespace Microsoft.ML.AutoML.Test
         /// Assert that with many rows of data, cross validation produces the requested
         /// # of splits.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void CrossValSplitLargeDataView()
         {
             var mlContext = new MLContext(seed: 0);

@@ -20,7 +20,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestWordEmbeddings()
         {
             var dataPath = GetDataPath(TestDatasets.Sentiment.trainFilename);
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestCustomWordEmbeddings()
         {
             var dataPath = GetDataPath(TestDatasets.Sentiment.trainFilename);

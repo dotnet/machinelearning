@@ -39,7 +39,7 @@ namespace Microsoft.ML.RunTests
             Assert.True(caught, "Exception was not caught at all");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ExceptionSensitivity()
         {
             var env = new MLContext();

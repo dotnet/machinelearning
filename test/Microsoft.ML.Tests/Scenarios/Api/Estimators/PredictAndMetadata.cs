@@ -21,7 +21,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// In case if you don't apply KeyToValue estimator on top of predictor label we won't convert
         /// key value to original label value. This example also shows how to convert key value to original label.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         void PredictAndMetadata()
         {
             var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         void MulticlassConfusionMatrixSlotNames()
         {
             var mlContext = new MLContext(seed: 1);

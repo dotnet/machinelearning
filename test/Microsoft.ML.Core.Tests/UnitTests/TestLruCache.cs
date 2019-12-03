@@ -11,7 +11,7 @@ namespace Microsoft.ML.RunTests
 {
     public class TestLruCache
     {
-        [RetryFact]
+        [MLNETFact]
         public void EntryLruCache()
         {
             var cache = new LruCache<string, int>(2);

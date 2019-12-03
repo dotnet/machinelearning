@@ -13,7 +13,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
     public sealed class SingleVariableDeclarationTest
     {
-        [RetryFact]
+        [MLNETFact]
         public async Task SingleVariableDeclaration()
         {
             const string test = @"

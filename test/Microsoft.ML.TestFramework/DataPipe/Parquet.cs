@@ -17,7 +17,7 @@ namespace Microsoft.ML.RunTests
             Env.ComponentCatalog.RegisterAssembly(typeof(ParquetLoader).Assembly);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestParquetPrimitiveDataTypes()
         {
             string pathData = GetDataPath(@"Parquet", "alltypes.parquet");
@@ -25,7 +25,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestParquetNull()
         {
             string pathData = GetDataPath(@"Parquet", "test-null.parquet");

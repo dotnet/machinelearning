@@ -23,7 +23,7 @@ namespace Microsoft.ML.Tests
         /// <summary>
         /// RandomizedPcaTrainer test.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void RandomizedPcaTrainerBaselineTest()
         {
             var trainPath = GetDataPath(TestDatasets.mnistOneClass.trainFilename);
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests
         /// <summary>
         /// Test anomaly detection when the test data has no anomalies.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void NoAnomalyTest()
         {
             var trainPath = GetDataPath(TestDatasets.mnistOneClass.trainFilename);
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Tests
             Assert.Throws<ArgumentOutOfRangeException>(() => ML.AnomalyDetection.Evaluate(transformedData));
         }
 
-        [RetryFact]
+        [MLNETFact]
         public static void RandomizedPcaInMemory()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging,
@@ -81,7 +81,7 @@ namespace Microsoft.ML.Tests
             ExecutePipelineWithGivenRandomizedPcaTrainer(mlContext, trainer2);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public static void RandomizedPcaChangeThreshold()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging,

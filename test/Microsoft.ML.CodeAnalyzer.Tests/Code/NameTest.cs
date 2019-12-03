@@ -14,7 +14,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
     public sealed class NameTest
     {
-        [RetryFact]
+        [MLNETFact]
         public async Task PrivateFieldName()
         {
             var expected = new DiagnosticResult[] {
@@ -54,7 +54,7 @@ namespace TestNamespace
     }
 }";
 
-        [RetryFact]
+        [MLNETFact]
         public async Task MoreNameTests()
         {
             var expected = new DiagnosticResult[] {
@@ -129,7 +129,7 @@ namespace foo.bar.Biz
 
     struct marco { public int polo; }
 }";
-        [RetryFact]
+        [MLNETFact]
         public async Task ExternName()
         {
             const string source = @"

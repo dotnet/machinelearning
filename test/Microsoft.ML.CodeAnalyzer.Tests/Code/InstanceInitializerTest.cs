@@ -14,7 +14,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
     public sealed class InstanceInitializerTest
     {
-        [RetryFact]
+        [MLNETFact]
         public async Task InstanceInitializer()
         {
             const string test = @"

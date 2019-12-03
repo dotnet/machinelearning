@@ -11,7 +11,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 {
     public partial class TrainerEstimators
     {
-        [RetryFact]
+        [MLNETFact]
         public void TestEstimatorOlsLinearRegression()
         {
             var dataView = GetRegressionPipeline();

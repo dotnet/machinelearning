@@ -45,7 +45,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestCustomTransformer()
         {
             string dataPath = GetDataPath("adult.tiny.with-schema.txt");
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestSchemaPropagation()
         {
             string dataPath = GetDataPath("adult.test");

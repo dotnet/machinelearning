@@ -16,7 +16,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void OldKeyTypeCodecTest()
         {
             // Checks that we can load IDataViews defined with unknown cardinality KeyType.

@@ -63,7 +63,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 .Take(20).ToArray();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void InspectIntermediateDataGetColumn()
             => IntermediateData(GetDataPath("adult.tiny.with-schema.txt"));
 
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             ITransformer loadedModel = mlContext.Model.Load(modelPath, out var schema);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TrainRegressionModel()
             => TrainRegression(GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename), GetDataPath(TestDatasets.generatedRegressionDataset.testFilename),
                 DeleteOutputPath("cook_model.zip"));
@@ -217,7 +217,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             });
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TrainAndPredictOnIris()
             => PredictOnIris(TrainOnIris(GetDataPath("iris.data")));
 
@@ -247,11 +247,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var meanVarValues = normalizedData.GetColumn<float[]>(normalizedData.Schema["MeanVarNormalized"]).ToArray();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void Normalization()
             => NormalizationWorkout(GetDataPath("iris.data"));
 
-        [RetryFact]
+        [MLNETFact]
         public void GlobalFeatureImportance()
         {
             var dataPath = GetDataPath("housing.txt");
@@ -291,7 +291,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void GetLinearModelWeights()
         {
             var dataPath = GetDataPath("housing.txt");
@@ -326,7 +326,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var weights = linearModel.Weights; 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void GetFastTreeModelWeights()
         {
             var dataPath = GetDataPath("housing.txt");
@@ -362,7 +362,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             linearModel.GetFeatureWeights(ref weights);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void FeatureImportanceForEachRow()
         {
             var dataPath = GetDataPath("housing.txt");
@@ -478,15 +478,15 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var unigrams = transformedData.GetColumn<float[]>(transformedData.Schema["BagOfWords"]).Take(10).ToArray();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TextFeaturization()
             => TextFeaturizationOn(GetDataPath("wikipedia-detox-250-line-data.tsv"));
 
-        [RetryFact]
+        [MLNETFact]
         public void CategoricalFeaturization()
             => CategoricalFeaturizationOn(GetDataPath("adult.tiny.with-schema.txt"));
 
-        [RetryFact]
+        [MLNETFact]
         public void ReadMultipleFiles()
             => CategoricalFeaturizationOn(GetDataPath("adult.tiny.with-schema.txt"), GetDataPath("adult.tiny.with-schema.txt"));
 
@@ -549,7 +549,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var model = fullLearningPipeline.Fit(data);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void CrossValidationIris()
             => CrossValidationOn(GetDataPath("iris.data"));
 
@@ -596,7 +596,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             Console.WriteLine(microAccuracies.Average());
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ReadData()
         {
             ReadDataDynamic(GetDataPath("generated_regression_dataset.csv"));
@@ -626,7 +626,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             public bool Label { get; set; }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void CustomTransformer()
         {
             var mlContext = new MLContext();

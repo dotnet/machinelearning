@@ -19,7 +19,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestConcatNoInputColumns()
         {
             var thrown = false;
@@ -38,7 +38,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestConcat()
         {
             string dataPath = GetDataPath("adult.tiny.with-schema.txt");
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ConcatWithAliases()
         {
             string dataPath = GetDataPath("adult.tiny.with-schema.txt");

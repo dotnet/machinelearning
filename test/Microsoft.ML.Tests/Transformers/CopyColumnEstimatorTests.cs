@@ -36,7 +36,7 @@ namespace Microsoft.ML.Tests
             public string Term;
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestWorking()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
@@ -48,7 +48,7 @@ namespace Microsoft.ML.Tests
             ValidateCopyColumnTransformer(result);
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestBadOriginalSchema()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestBadTransformSchema()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestMetadataCopy()
         {
             var data = new[] { new TestMetaClass() { Term = "A", NotUsed = 1 }, new TestMetaClass() { Term = "B" }, new TestMetaClass() { Term = "C" } };
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Tests
             Assert.True(TestCommon.CompareVec(in names1, in names2, size, (a, b) => a.Span.SequenceEqual(b.Span)));
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestCommandLine()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=copy{col=B:A} in=f:\1.txt" }), (int)0);

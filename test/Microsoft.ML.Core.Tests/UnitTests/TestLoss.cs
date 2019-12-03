@@ -47,7 +47,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void LossHinge()
         {
             var loss = new HingeLoss();
@@ -63,7 +63,7 @@ namespace Microsoft.ML.RunTests
             TestHelper(loss, 0, -2, 0, 0);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void LossExponential()
         {
             ExpLoss.Options options = new ExpLoss.Options();
@@ -73,7 +73,7 @@ namespace Microsoft.ML.RunTests
             TestHelper(loss, 0, -3, Math.Exp(-3), -Math.Exp(-3));
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void LossSquared()
         {
             SquaredLoss loss = new SquaredLoss();

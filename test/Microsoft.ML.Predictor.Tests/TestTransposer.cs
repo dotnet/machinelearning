@@ -148,7 +148,7 @@ namespace Microsoft.ML.RunTests
             return values;
         }
 
-        [RetryFact]
+        [MLNETFact]
         [TestCategory("Transposer")]
         public void TransposerTest()
         {
@@ -214,7 +214,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         [TestCategory("Transposer")]
         public void TransposerSaverLoaderTest()
         {

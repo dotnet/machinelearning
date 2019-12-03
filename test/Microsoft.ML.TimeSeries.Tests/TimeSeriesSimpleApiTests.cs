@@ -35,7 +35,7 @@ namespace Microsoft.ML.Tests
             public Data(float value) => Value = value;
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ChangeDetection()
         {
             var env = new MLContext();
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ChangePointDetectionWithSeasonality()
         {
             var env = new MLContext();
@@ -117,7 +117,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SpikeDetection()
         {
             var env = new MLContext();
@@ -167,7 +167,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SsaSpikeDetection()
         {
             var env = new MLContext();

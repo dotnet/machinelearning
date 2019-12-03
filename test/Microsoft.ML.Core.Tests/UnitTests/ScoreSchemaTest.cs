@@ -27,7 +27,7 @@ namespace Microsoft.ML.RunTests
             return bufferEditor.Commit();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SequencePredictorSchemaTest()
         {
             int keyCount = 10;
@@ -84,7 +84,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(AnnotationUtils.Const.ScoreValueKind.PredictedLabel, scoreValueKindValue.ToString());
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SequencePredictorSchemaWithoutKeyNamesMetadataTest()
         {
             int keyCount = 10;

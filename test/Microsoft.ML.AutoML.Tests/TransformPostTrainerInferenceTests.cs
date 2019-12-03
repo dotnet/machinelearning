@@ -13,7 +13,7 @@ namespace Microsoft.ML.AutoML.Test
     
     public class TransformPostTrainerInferenceTests
     {
-        [RetryFact]
+        [MLNETFact]
         public void TransformPostTrainerMulticlassNonKeyLabel()
         {
             TransformPostTrainerInferenceTestCore(TaskKind.MulticlassClassification,
@@ -36,7 +36,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TransformPostTrainerBinaryLabel()
         {
             TransformPostTrainerInferenceTestCore(TaskKind.BinaryClassification,
@@ -47,7 +47,7 @@ namespace Microsoft.ML.AutoML.Test
                 }, @"[]");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TransformPostTrainerMulticlassKeyLabel()
         {
             TransformPostTrainerInferenceTestCore(TaskKind.MulticlassClassification,

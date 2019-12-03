@@ -24,7 +24,7 @@ namespace Microsoft.ML.RunTests
 
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void PartitionedNamedDirectories()
         {
             string basePath = GetDataPath("Partitioned", "Named");
@@ -38,7 +38,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void PartitionedUnnamedDirectories()
         {
             string basePath = GetDataPath("Partitioned", "Unnamed"); ;

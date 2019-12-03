@@ -21,7 +21,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestParameterMixingCalibratedModelParametersLoading()
         {
             var data = GetDenseDataset();
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestValueMapperCalibratedModelParametersLoading()
         {
             var data = GetDenseDataset();
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Tests
         }
 
 
-        [RetryFact]
+        [MLNETFact]
         public void TestFeatureWeightsCalibratedModelParametersLoading()
         {
             var data = GetDenseDataset();

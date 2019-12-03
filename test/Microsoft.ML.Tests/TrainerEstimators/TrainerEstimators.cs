@@ -23,7 +23,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// FastTreeBinaryClassification TrainerEstimator test 
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void PCATrainerEstimator()
         {
             string featureColumn = "NumericFeatures";
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// KMeans TrainerEstimator test 
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void KMeansEstimator()
         {
             string featureColumn = "NumericFeatures";
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// HogwildSGD TrainerEstimator test (logistic regression).
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void TestEstimatorHogwildSGD()
         {
             var trainers = new[] { ML.BinaryClassification.Trainers.SgdCalibrated(l2Regularization: 0, numberOfIterations: 80),
@@ -119,7 +119,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// HogwildSGD TrainerEstimator test (support vector machine)
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void TestEstimatorHogwildSGDNonCalibrated()
         {
             var trainers = new[] { ML.BinaryClassification.Trainers.SgdNonCalibrated(lossFunction : new SmoothedHingeLoss()),
@@ -149,7 +149,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// MulticlassNaiveBayes TrainerEstimator test 
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void TestEstimatorMulticlassNaiveBayesTrainer()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetMulticlassPipeline();

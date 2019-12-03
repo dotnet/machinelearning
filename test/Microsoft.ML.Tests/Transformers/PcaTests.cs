@@ -24,7 +24,7 @@ namespace Microsoft.ML.Tests.Transformers
             _saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void PcaWorkout()
         {
             var data = ML.Data.LoadFromTextFile(_dataSource, new[] {
@@ -48,7 +48,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestPcaEstimator()
         {
             var data = ML.Data.LoadFromTextFile(_dataSource, new[] {

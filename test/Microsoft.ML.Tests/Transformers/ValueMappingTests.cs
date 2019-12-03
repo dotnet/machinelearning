@@ -47,7 +47,7 @@ namespace Microsoft.ML.Tests.Transformers
         };
 
 
-        [RetryFact]
+        [MLNETFact]
         public void ValueMapOneValueTest()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(1, fValue);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValueMapInputIsVectorTest()
         {
             var data = new[] { new TestClass() { A = "bar test foo", B = "test", C = "foo" } };
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(1, fValue);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValueMapInputIsVectorAndValueAsStringKeyTypeTest()
         {
             var data = new[] { new TestClass() { A = "bar test foo", B = "test", C = "foo" } };
@@ -166,7 +166,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(1u, fValue);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValueMapVectorValueTest()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
@@ -221,7 +221,7 @@ namespace Microsoft.ML.Tests.Transformers
             public int Value;
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValueMapDataViewAsMapTest()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
@@ -255,7 +255,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(1, fValue);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValueMapVectorStringValueTest()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
@@ -299,7 +299,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(2, fValue.Length);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValueMappingMissingKey()
         {
             var data = new[] { new TestClass() { A = "barTest", B = "test", C = "foo" } };
@@ -337,7 +337,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(1, fValue);
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestDuplicateKeys()
         {
             var data = new[] { new TestClass() { A = "barTest", B = "test", C = "foo" } };
@@ -356,7 +356,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new[] { ("D", "A"), ("E", "B"), ("F", "C") }));
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValueMappingOutputSchema()
         {
             var data = new[] { new TestClass() { A = "barTest", B = "test", C = "foo" } };
@@ -388,7 +388,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.False(fColumn.IsKey);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValueMappingWithValuesAsKeyTypesOutputSchema()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
@@ -421,7 +421,7 @@ namespace Microsoft.ML.Tests.Transformers
             var t = estimator.Fit(dataView);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValueMappingValuesAsUintKeyTypes()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test2", C = "wahoo" } };
@@ -463,7 +463,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
 
-        [RetryFact]
+        [MLNETFact]
         public void ValueMappingValuesAsUlongKeyTypes()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test2", C = "wahoo" } };
@@ -503,7 +503,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal<ulong>(61, fValue);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValueMappingValuesAsStringKeyTypes()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "notfound" } };
@@ -544,7 +544,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal<uint>(0, fValue);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValueMappingValuesAsKeyTypesReverseLookup()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "notfound" } };
@@ -584,7 +584,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Contains("foo3".AsMemory(), allowedKeyPool);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValueMappingWorkout()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
@@ -603,7 +603,7 @@ namespace Microsoft.ML.Tests.Transformers
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValueMappingValueTypeIsVectorWorkout()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
@@ -622,7 +622,7 @@ namespace Microsoft.ML.Tests.Transformers
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValueMappingInputIsVectorWorkout()
         {
             var data = new[] { new TestClass() { B = "bar test foo" } };
@@ -643,7 +643,7 @@ namespace Microsoft.ML.Tests.Transformers
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestCommandLine()
         {
             var dataFile = GetDataPath("QuotingData.csv");
@@ -652,7 +652,7 @@ namespace Microsoft.ML.Tests.Transformers
                                     + @" col=A:B loader=Text{col=ID:U8:0 col=Text:TX:1 sep=, header=+} } in=f:\1.txt" }), (int)0);
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestCommandLineNoLoader()
         {
             var dataFile = GetDataPath("lm.labels.txt");
@@ -661,7 +661,7 @@ namespace Microsoft.ML.Tests.Transformers
                                     + @" col=A:B } in=f:\1.txt" }), (int)0);
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestCommandLineNoLoaderWithColumnNames()
         {
             var dataFile = GetDataPath("lm.labels.txt");
@@ -670,7 +670,7 @@ namespace Microsoft.ML.Tests.Transformers
                                     + @" col=A:B keyCol=foo valueCol=bar} in=f:\1.txt" }), (int)0);
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestCommandLineNoLoaderWithoutTreatValuesAsKeys()
         {
             var dataFile = GetDataPath("lm.labels.txt");
@@ -679,7 +679,7 @@ namespace Microsoft.ML.Tests.Transformers
                                     + @" col=A:B valuesAsKeyType=-} in=f:\1.txt" }), (int)0);
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = "bar", B = "foo", C = "test", } };
@@ -707,7 +707,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
 
-        [RetryFact]
+        [MLNETFact]
         void TestValueMapBackCompatTermLookup()
         {
             // Model generated with: xf=drop{col=A} 
@@ -724,7 +724,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestValueMapBackCompatTermLookupKeyTypeValue()
         {
             // Model generated with: xf=drop{col=A} 
@@ -748,7 +748,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestValueMapWithNonDefaultColumnOrder()
         {
             // Get a small dataset as an IEnumerable.

@@ -22,7 +22,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// to enable multi-threaded scenarios (for example, a web server servicing requests) should be possible
         /// and performant in the new API.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         void MultithreadedPrediction()
         {
             var ml = new MLContext(seed: 1);

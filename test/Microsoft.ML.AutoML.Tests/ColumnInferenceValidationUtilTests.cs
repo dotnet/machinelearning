@@ -13,7 +13,7 @@ namespace Microsoft.ML.AutoML.Test
     
     public class ColumnInferenceValidationUtilTests
     {
-        [RetryFact]
+        [MLNETFact]
         public void ValidateColumnNotContainedInData()
         {
             var schemaBuilder = new DataViewSchema.Builder();

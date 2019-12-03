@@ -16,7 +16,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 {
     public partial class TrainerEstimators
     {
-        [RetryFact]
+        [MLNETFact]
         public void TestEstimatorLogisticRegression()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
@@ -30,7 +30,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestEstimatorMulticlassLogisticRegression()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetMulticlassPipeline();
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestEstimatorPoissonRegression()
         {
             var dataView = GetRegressionPipeline();
@@ -56,7 +56,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestLRNoStats()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
 
-        [RetryFact]
+        [MLNETFact]
         public void TestLRWithStats()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
@@ -138,7 +138,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
 
-        [RetryFact]
+        [MLNETFact]
         public void TestLRWithStatsBackCompatibility()
         {
             string dropModelPath = GetDataPath("backcompat/LrWithStats.zip");
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestMLRNoStats()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetMulticlassPipeline();
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestMLRWithStatsBackCompatibility()
         {
             string dropModelPath = GetDataPath("backcompat/MlrWithStats.zip");

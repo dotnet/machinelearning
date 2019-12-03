@@ -12,7 +12,7 @@ namespace Microsoft.ML.AutoML.Test
     
     public class SweeperTests
     {
-        [RetryFact]
+        [MLNETFact]
         public void SmacQuickRunTest()
         {
             var numInitialPopulation = 10;

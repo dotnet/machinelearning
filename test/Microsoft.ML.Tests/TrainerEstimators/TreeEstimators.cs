@@ -26,7 +26,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// FastTreeBinaryClassification TrainerEstimator test
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void FastTreeBinaryEstimator()
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
 
-        [RetryFact]
+        [MLNETFact]
         public void GAMClassificationEstimator()
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
@@ -134,7 +134,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
 
-        [RetryFact]
+        [MLNETFact]
         public void FastForestClassificationEstimator()
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
@@ -157,7 +157,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// FastTreeRankingTrainer TrainerEstimator test
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void FastTreeRankerEstimator()
         {
             var (pipe, dataView) = GetRankingPipeline();
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// FastTreeRegressor TrainerEstimator test
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void FastTreeRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
@@ -234,7 +234,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// RegressionGamTrainer TrainerEstimator test
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void GAMRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
@@ -252,7 +252,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// FastTreeTweedieTrainer TrainerEstimator test
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void TweedieRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
@@ -271,7 +271,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// FastForestRegression TrainerEstimator test
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void FastForestRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
@@ -809,7 +809,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void FastTreeRegressorTestSummary()
         {
             var dataView = GetRegressionPipeline();
@@ -827,7 +827,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void FastForestRegressorTestSummary()
         {
             var dataView = GetRegressionPipeline();
@@ -845,7 +845,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void FastTreeTweedieRegressorTestSummary()
         {
             var dataView = GetRegressionPipeline();
@@ -881,7 +881,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void FastTreeBinaryClassificationTestSummary()
         {
             var (pipeline, dataView) = GetBinaryClassificationPipeline();
@@ -899,7 +899,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void FastForestBinaryClassificationTestSummary()
         {
             var (pipeline, dataView) = GetOneHotBinaryClassificationPipeline();

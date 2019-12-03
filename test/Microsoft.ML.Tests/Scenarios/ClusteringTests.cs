@@ -27,7 +27,7 @@ namespace Microsoft.ML.Scenarios
             public float[] Points;
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void PredictClusters()
         {
             int n = 1000;

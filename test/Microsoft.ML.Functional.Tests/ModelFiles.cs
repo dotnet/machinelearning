@@ -37,7 +37,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Model Files: The (minimum) nuget version can be found in the model file.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void DetermineNugetVersionFromModel()
         {
             var mlContext = new MLContext(seed: 1);
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Functional.Tests
         ///     The actual test will not run in different processes, but will simulate the idea that the 
         ///     "communication pipe" is just a serialized model of some form.
         /// </remarks>
-        [RetryFact]
+        [MLNETFact]
         public void FitPipelineSaveModelAndPredict()
         {
             var mlContext = new MLContext(seed: 1);
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Functional.Tests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void LoadModelAndExtractPredictor()
         {
             var mlContext = new MLContext();
@@ -228,7 +228,7 @@ namespace Microsoft.ML.Functional.Tests
         }
 
 
-        [RetryFact]
+        [MLNETFact]
         public void LoadModelWithOptionalColumnTransform()
         {
             SchemaDefinition inputSchemaDefinition = SchemaDefinition.Create(typeof(ModelInput));
@@ -244,7 +244,7 @@ namespace Microsoft.ML.Functional.Tests
             Assert.Equal(1, prediction.Score[0]);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SaveAndLoadModelWithLoader()
         {
             var mlContext = new MLContext();
@@ -301,7 +301,7 @@ namespace Microsoft.ML.Functional.Tests
             var ageBinEffects = gamModel.GetBinEffects(ageIndex);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void LoadSchemaAndCreateNewData()
         {
             var mlContext = new MLContext();
@@ -334,7 +334,7 @@ namespace Microsoft.ML.Functional.Tests
             Assert.True(data.Schema["Features"].HasSlotNames());
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SaveTextLoaderAndLoad()
         {
             var mlContext = new MLContext();
@@ -363,7 +363,7 @@ namespace Microsoft.ML.Functional.Tests
                 && schema["Features"].HasSlotNames());
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SaveCompositeLoaderAndLoad()
         {
             var mlContext = new MLContext();
@@ -401,7 +401,7 @@ namespace Microsoft.ML.Functional.Tests
             Assert.IsType<NormalizingTransformer>(Assert.Single(compositeLoader.Transformer));
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SaveLoaderAndTransformerAndLoad()
         {
             var mlContext = new MLContext();
@@ -434,7 +434,7 @@ namespace Microsoft.ML.Functional.Tests
             TestCommon.CheckSameSchemas(expectedInputSchema, reloadedLoaderInputSchema);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SaveTransformerAndSchemaAndLoad()
         {
             var mlContext = new MLContext();

@@ -512,7 +512,7 @@ namespace Microsoft.ML.RunTests
         {
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestGamRegressionIni()
         {
             var mlContext = new MLContext(seed: 0);
@@ -551,7 +551,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(0.88620288753853549, results.RSquared);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestGamBinaryClassificationIni()
         {
             var mlContext = new MLContext(seed: 0);

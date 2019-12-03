@@ -85,7 +85,7 @@ namespace Microsoft.ML.Functional.Tests
         /// Note that this isn't recommended, as there are quite a few statistical issues with interpreting coefficients
         /// as weights, but it's common practice, so it's a supported scenario.
         /// </remarks>
-        [RetryFact]
+        [MLNETFact]
         public void GlobalFeatureImportanceForLinearModelThroughWeights()
         {
             var mlContext = new MLContext(seed: 1);
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// GlobalFeatureImportance: A FastTree model can give back global feature importance through feature gain.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void GlobalFeatureImportanceForFastTreeThroughFeatureGain()
         {
             var mlContext = new MLContext(seed: 1);
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// GlobalFeatureImportance: A FastForest model can give back global feature importance through feature gain.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void GlobalFeatureImportanceForFastForestThroughFeatureGain()
         {
             var mlContext = new MLContext(seed: 1);
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// LocalFeatureImportance: Per-row feature importance can be computed through FeatureContributionCalculator for a linear model.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void LocalFeatureImportanceForLinearModel()
         {
             var mlContext = new MLContext(seed: 1);
@@ -200,7 +200,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// LocalFeatureImportance: Per-row feature importance can be computed through FeatureContributionCalculator for a <see cref="FastTree"/> model.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void LocalFeatureImportanceForFastTreeModel()
         {
             var mlContext = new MLContext(seed: 1);
@@ -237,7 +237,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// LocalFeatureImportance: Per-row feature importance can be computed through FeatureContributionCalculator for a <see cref="FastForest"/>model.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void LocalFeatureImportanceForFastForestModel()
         {
             var mlContext = new MLContext(seed: 1);
@@ -275,7 +275,7 @@ namespace Microsoft.ML.Functional.Tests
         /// LocalFeatureImportance: Per-row feature importance can be computed through FeatureContributionCalculator for a <see cref="GamModelParametersBase" />
         /// (Generalized Additive Model) model.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void LocalFeatureImportanceForGamModel()
         {
             var mlContext = new MLContext(seed: 1);

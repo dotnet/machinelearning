@@ -42,7 +42,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestSelectKeep()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(1, cIdx);
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestSelectKeepWithOrder()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(0, cIdx);
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestSelectDrop()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.False(foundColumnC);
         }
         
-        [RetryFact]
+        [MLNETFact]
         void TestSelectWorkout()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
@@ -117,7 +117,7 @@ namespace Microsoft.ML.Tests.Transformers
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: invalidDataView);
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestSelectColumnsWithMissing()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
@@ -126,7 +126,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Throws<ArgumentOutOfRangeException>(() => est.Fit(dataView));
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestSelectColumnsWithSameName()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
@@ -149,7 +149,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(0, cIdx);
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestSelectColumnsWithKeepHidden()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
@@ -172,7 +172,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.False(foundColumnC);
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestSelectSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
@@ -191,7 +191,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestSelectSavingAndLoadingWithNoKeepHidden()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
@@ -211,7 +211,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestSelectBackCompatDropColumns()
         {
             // Model generated with: xf=drop{col=A} 
@@ -239,7 +239,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestSelectBackCompatKeepColumns()
         {
             // Model generated with: xf=keep{col=Label col=Features col=A col=B}
@@ -267,7 +267,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
         
-        [RetryFact]
+        [MLNETFact]
         void TestSelectBackCompatChooseColumns()
         {
             // Model generated with: xf=choose{col=Label col=Features col=A col=B}
@@ -295,7 +295,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestSelectBackCompatChooseColumnsWithKeep()
         {
             // Model generated with: xf=copy{col=A:A col=B:B} xf=choose{col=Label col=Features col=A col=B hidden=keep}
@@ -324,25 +324,25 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestCommandLineWithKeep()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=select{keepcol=A keepcol=B} in=f:\1.txt" }), (int)0);
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestCommandLineWithDrop()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=select{dropcol=A dropcol=B} in=f:\1.txt" }), (int)0);
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestCommandLineKeepWithoutHidden()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=select{keepcol=A keepcol=B hidden=-} in=f:\1.txt" }), (int)0);
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestCommandLineKeepWithIgnoreMismatch()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=select{keepcol=A keepcol=B ignore=-} in=f:\1.txt" }), (int)0);

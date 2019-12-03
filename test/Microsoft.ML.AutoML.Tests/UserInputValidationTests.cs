@@ -16,14 +16,14 @@ namespace Microsoft.ML.AutoML.Test
     {
         private static readonly IDataView Data = DatasetUtil.GetUciAdultDataView();
 
-        [RetryFact]
+        [MLNETFact]
         public void ValidateExperimentExecuteNullTrainData()
         {
             var ex = Assert.Throws<ArgumentNullException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(null, new ColumnInformation(), null, TaskKind.Regression));
             Assert.StartsWith("Training data cannot be null", ex.Message);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValidateExperimentExecuteNullLabel()
         {
             var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(Data,
@@ -32,7 +32,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal("Provided label column cannot be null", ex.Message);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValidateExperimentExecuteLabelNotInTrain()
         {
             foreach (var task in new[] { TaskKind.Recommendation, TaskKind.Regression })
@@ -44,7 +44,7 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValidateExperimentExecuteNumericColNotInTrain()
         {
             var columnInfo = new ColumnInformation();
@@ -57,7 +57,7 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValidateExperimentExecuteNullNumericCol()
         {
             var columnInfo = new ColumnInformation();
@@ -67,7 +67,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal("Null column string was specified as numeric in column information", ex.Message);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValidateExperimentExecuteDuplicateCol()
         {
             var columnInfo = new ColumnInformation();
@@ -76,7 +76,7 @@ namespace Microsoft.ML.AutoML.Test
             var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, columnInfo, null, TaskKind.Regression));
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValidateExperimentExecuteArgsTrainValidColCountMismatch()
         {
             var context = new MLContext();
@@ -98,7 +98,7 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValidateExperimentExecuteArgsTrainValidColNamesMismatch()
         {
             var context = new MLContext();
@@ -121,7 +121,7 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValidateExperimentExecuteArgsTrainValidColTypeMismatch()
         {
             var context = new MLContext();
@@ -144,21 +144,21 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValidateInferColumnsArgsNullPath()
         {
             var ex = Assert.Throws<ArgumentNullException>(() => UserInputValidationUtil.ValidateInferColumnsArgs(null, "Label"));
             Assert.StartsWith("Provided path cannot be null", ex.Message);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValidateInferColumnsArgsPathNotExist()
         {
             var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateInferColumnsArgs("idontexist", "Label"));
             Assert.StartsWith("File 'idontexist' does not exist", ex.Message);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValidateInferColumnsArgsEmptyFile()
         {
             const string emptyFilePath = "empty";
@@ -167,13 +167,13 @@ namespace Microsoft.ML.AutoML.Test
             Assert.StartsWith("File at path 'empty' cannot be empty", ex.Message);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValidateInferColsPath()
         {
             UserInputValidationUtil.ValidateInferColumnsArgs(DatasetUtil.DownloadUciAdultDataset());
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValidateFeaturesColInvalidType()
         {
             var schemaBuilder = new DataViewSchema.Builder();
@@ -186,7 +186,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.StartsWith("Features column must be of data type Single", ex.Message);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValidateTextColumnNotText()
         {
             const string TextPurposeColName = "TextColumn";
@@ -207,7 +207,7 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValidateRegressionLabelTypes()
         {
             ValidateLabelTypeTestCore<float>(TaskKind.Regression, NumberDataViewType.Single, true);
@@ -216,7 +216,7 @@ namespace Microsoft.ML.AutoML.Test
             ValidateLabelTypeTestCore<string>(TaskKind.Regression, TextDataViewType.Instance, false);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValidateRecommendationLabelTypes()
         {
             ValidateLabelTypeTestCore<float>(TaskKind.Recommendation, NumberDataViewType.Single, true);
@@ -225,14 +225,14 @@ namespace Microsoft.ML.AutoML.Test
             ValidateLabelTypeTestCore<string>(TaskKind.Recommendation, TextDataViewType.Instance, false);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValidateBinaryClassificationLabelTypes()
         {
             ValidateLabelTypeTestCore<float>(TaskKind.BinaryClassification, NumberDataViewType.Single, false);
             ValidateLabelTypeTestCore<bool>(TaskKind.BinaryClassification, BooleanDataViewType.Instance, true);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValidateMulticlassLabelTypes()
         {
             ValidateLabelTypeTestCore<float>(TaskKind.MulticlassClassification, NumberDataViewType.Single, true);
@@ -241,7 +241,7 @@ namespace Microsoft.ML.AutoML.Test
             ValidateLabelTypeTestCore<string>(TaskKind.MulticlassClassification, TextDataViewType.Instance, true);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValidateAllowedFeatureColumnTypes()
         {
             var dataViewBuilder = new ArrayDataViewBuilder(new MLContext());
@@ -258,7 +258,7 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValidateProhibitedFeatureColumnType()
         {
             var schemaBuilder = new DataViewSchema.Builder();
@@ -272,7 +272,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.StartsWith("Only supported feature column types are Boolean, Single, and String. Please change the feature column UInt64 of type UInt64 to one of the supported types.", ex.Message);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValidateEmptyTrainingDataThrows()
         {
             var schemaBuilder = new DataViewSchema.Builder();
@@ -285,7 +285,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.StartsWith("Training data has 0 rows", ex.Message);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ValidateEmptyValidationDataThrows()
         {
             // Training data
@@ -310,7 +310,7 @@ namespace Microsoft.ML.AutoML.Test
         }
 
 
-        [RetryFact]
+        [MLNETFact]
         public void TestValidationDataSchemaChecksIgnoreHiddenColumns()
         {
             var mlContext = new MLContext();

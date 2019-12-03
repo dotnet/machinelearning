@@ -19,7 +19,7 @@ namespace Microsoft.ML.RunTests
             return sub.CreateInstance(env, lowerIsBetter);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TolerantEarlyStoppingCriterionTest()
         {
             EarlyStoppingRuleBase cr = CreateEarlyStoppingCriterion("tr", "th=0.01", false);
@@ -44,7 +44,7 @@ namespace Microsoft.ML.RunTests
             Assert.False(isBestCandidate);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void GLEarlyStoppingCriterionTest()
         {
             EarlyStoppingRuleBase cr = CreateEarlyStoppingCriterion("gl", "th=0.01", false);
@@ -69,7 +69,7 @@ namespace Microsoft.ML.RunTests
             Assert.True(shouldStop);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void LPEarlyStoppingCriterionTest()
         {
             EarlyStoppingRuleBase cr = CreateEarlyStoppingCriterion("lp", "th=0.01 w=5", false);
@@ -105,7 +105,7 @@ namespace Microsoft.ML.RunTests
             Assert.True(shouldStop);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void PQEarlyStoppingCriterionTest()
         {
             EarlyStoppingRuleBase cr = CreateEarlyStoppingCriterion("pq", "th=0.01 w=5", false);
@@ -141,7 +141,7 @@ namespace Microsoft.ML.RunTests
             Assert.True(shouldStop);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void UPEarlyStoppingCriterionTest()
         {
             const int windowSize = 8;

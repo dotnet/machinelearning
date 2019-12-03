@@ -49,7 +49,7 @@ namespace Microsoft.ML.Tests
             public string Term;
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestDifferentTypes()
         {
             string dataPath = GetDataPath("adult.tiny.with-schema.txt");
@@ -92,7 +92,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestSimpleCase()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Tests
             TestEstimatorCore(pipe, dataView, null, invalidData, validFitNotValidTransformData);
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestMetadataCopy()
         {
             var data = new[] { new TestMetaClass() { Term = "A", NotUsed = 1 }, new TestMetaClass() { Term = "B" }, new TestMetaClass() { Term = "C" } };
@@ -150,7 +150,7 @@ namespace Microsoft.ML.Tests
             Assert.True(names1.GetValues().Length > 0);
         }
 
-        [RetryFact]
+        [MLNETFact]
         void TestCommandLine()
         {
             Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=Term{col=B:A} in=f:\2.txt" }));

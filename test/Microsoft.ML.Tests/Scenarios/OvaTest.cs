@@ -12,7 +12,7 @@ namespace Microsoft.ML.Scenarios
 {
     public partial class ScenariosTests
     {
-        [RetryFact]
+        [MLNETFact]
         public void OvaLogisticRegression()
         {
             string dataPath = GetDataPath("iris.txt");
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Scenarios
             Assert.True(metrics.MicroAccuracy > 0.94);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void OvaAveragedPerceptron()
         {
             string dataPath = GetDataPath("iris.txt");
@@ -81,7 +81,7 @@ namespace Microsoft.ML.Scenarios
             Assert.True(metrics.MicroAccuracy > 0.66);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void OvaFastTree()
         {
             string dataPath = GetDataPath("iris.txt");
@@ -116,7 +116,7 @@ namespace Microsoft.ML.Scenarios
             Assert.True(metrics.MicroAccuracy > 0.99);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void OvaLinearSvm()
         {
             string dataPath = GetDataPath("iris.txt");

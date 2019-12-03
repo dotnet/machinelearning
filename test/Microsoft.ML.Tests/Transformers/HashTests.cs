@@ -40,7 +40,7 @@ namespace Microsoft.ML.Tests.Transformers
             public double D;
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void HashWorkout()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestMetadata()
         {
 
@@ -97,13 +97,13 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(keys.Items().Select(x => x.Value.ToString()), new string[2] { "0:3.5", "1:2.5" });
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestCommandLine()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=Hash{col=B:A} in=f:\2.txt" }), (int)0);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Tests.Transformers
                 HashTestCore((long)value, NumberDataViewType.Int64, expected, expectedOrdered, expectedOrdered3);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestHashIntegerNumbers()
         {
             HashTestPositiveIntegerCore(0, 848, 567, 518);
@@ -253,14 +253,14 @@ namespace Microsoft.ML.Tests.Transformers
             HashTestPositiveIntegerCore(2, 676, 512, 863);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestHashString()
         {
             HashTestCore("".AsMemory(), TextDataViewType.Instance, 0, 0, 0);
             HashTestCore("hello".AsMemory(), TextDataViewType.Instance, 326, 636, 307);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestHashFloatingPointNumbers()
         {
             HashTestCore(1f, NumberDataViewType.Single, 933, 67, 270);
@@ -272,7 +272,7 @@ namespace Microsoft.ML.Tests.Transformers
             HashTestCore(0d, NumberDataViewType.Double, 848, 567, 518);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestHashBool()
         {
             // These are the same for the hashes of 0 and 1.

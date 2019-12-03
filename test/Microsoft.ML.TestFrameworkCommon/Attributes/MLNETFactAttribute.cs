@@ -8,10 +8,10 @@ using Xunit.Sdk;
 namespace Microsoft.ML.TestFrameworkCommon.Attributes
 {
     /// <summary>
-    /// Works just like Fact Attribute except that failures are retried (by default, 3 times).
+    /// ML.NET facts that will retry several flaky test cases, use default timeout settings
     /// </summary>
-    [XunitTestCaseDiscoverer("Microsoft.ML.TestFrameworkCommon.RetryFactDiscoverer", "Microsoft.ML.TestFrameworkCommon")]
-    public class RetryFactAttribute : FactAttribute
+    [XunitTestCaseDiscoverer("Microsoft.ML.TestFrameworkCommon.MLNETFactDiscoverer", "Microsoft.ML.TestFrameworkCommon")]
+    public class MLNETFactAttribute : FactAttribute
     {
         /// <summary>
         /// Number of retries allowed for a failed test. If unset (or set less than 1), will

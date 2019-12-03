@@ -23,7 +23,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void FeatureContributionEstimatorWorkout()
         {
             var data = GetSparseDataset();
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Tests
         }
 
         // Tests for regression trainers that implement IFeatureContributionMapper interface.
-        [RetryFact]
+        [MLNETFact]
         public void TestOrdinaryLeastSquaresRegression()
         {
             TestFeatureContribution(ML.Regression.Trainers.Ols(), GetSparseDataset(numberOfInstances: 100), "LeastSquaresRegression");
@@ -52,52 +52,52 @@ namespace Microsoft.ML.Tests
             TestFeatureContribution(ML.Regression.Trainers.LightGbm(), GetSparseDataset(numberOfInstances: 100), "LightGbmRegression");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestFastTreeRegression()
         {
             TestFeatureContribution(ML.Regression.Trainers.FastTree(), GetSparseDataset(numberOfInstances: 100), "FastTreeRegression");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestFastForestRegression()
         {
             TestFeatureContribution(ML.Regression.Trainers.FastForest(), GetSparseDataset(numberOfInstances: 100), "FastForestRegression");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestFastTreeTweedieRegression()
         {
             TestFeatureContribution(ML.Regression.Trainers.FastTreeTweedie(), GetSparseDataset(numberOfInstances: 100), "FastTreeTweedieRegression");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestSDCARegression()
         {
             TestFeatureContribution(ML.Regression.Trainers.Sdca(
                 new SdcaRegressionTrainer.Options { NumberOfThreads = 1, }), GetSparseDataset(numberOfInstances: 100), "SDCARegression");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestOnlineGradientDescentRegression()
         {
             TestFeatureContribution(ML.Regression.Trainers.OnlineGradientDescent(), GetSparseDataset(numberOfInstances: 100), "OnlineGradientDescentRegression");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestPoissonRegression()
         {
             TestFeatureContribution(ML.Regression.Trainers.LbfgsPoissonRegression(
                 new LbfgsPoissonRegressionTrainer.Options { NumberOfThreads = 1 }), GetSparseDataset(numberOfInstances: 100), "PoissonRegression");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestGAMRegression()
         {
             TestFeatureContribution(ML.Regression.Trainers.Gam(), GetSparseDataset(numberOfInstances: 100), "GAMRegression");
         }
 
         // Tests for ranking trainers that implement IFeatureContributionMapper interface.
-        [RetryFact]
+        [MLNETFact]
         public void TestFastTreeRanking()
         {
             TestFeatureContribution(ML.Ranking.Trainers.FastTree(), GetSparseDataset(TaskType.Ranking, 100), "FastTreeRanking");
@@ -110,31 +110,31 @@ namespace Microsoft.ML.Tests
         }
 
         // Tests for binary classification trainers that implement IFeatureContributionMapper interface.
-        [RetryFact]
+        [MLNETFact]
         public void TestAveragePerceptronBinary()
         {
             TestFeatureContribution(ML.BinaryClassification.Trainers.AveragedPerceptron(), GetSparseDataset(TaskType.BinaryClassification, 100), "AveragePerceptronBinary");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestSVMBinary()
         {
             TestFeatureContribution(ML.BinaryClassification.Trainers.LinearSvm(), GetSparseDataset(TaskType.BinaryClassification, 100), "SVMBinary");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestLogisticRegressionBinary()
         {
             TestFeatureContribution(ML.BinaryClassification.Trainers.LbfgsLogisticRegression(), GetSparseDataset(TaskType.BinaryClassification, 100), "LogisticRegressionBinary", 3);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestFastForestBinary()
         {
             TestFeatureContribution(ML.BinaryClassification.Trainers.FastForest(), GetSparseDataset(TaskType.BinaryClassification, 100), "FastForestBinary");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestFastTreeBinary()
         {
             TestFeatureContribution(ML.BinaryClassification.Trainers.FastTree(), GetSparseDataset(TaskType.BinaryClassification, 100), "FastTreeBinary");
@@ -146,14 +146,14 @@ namespace Microsoft.ML.Tests
             TestFeatureContribution(ML.BinaryClassification.Trainers.LightGbm(), GetSparseDataset(TaskType.BinaryClassification, 100), "LightGbmBinary");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestSDCABinary()
         {
             TestFeatureContribution(ML.BinaryClassification.Trainers.SdcaNonCalibrated(
                 new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1, }), GetSparseDataset(TaskType.BinaryClassification, 100), "SDCABinary", precision: 5);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestSGDBinary()
         {
             TestFeatureContribution(ML.BinaryClassification.Trainers.SgdCalibrated(
@@ -164,7 +164,7 @@ namespace Microsoft.ML.Tests
                 GetSparseDataset(TaskType.BinaryClassification, 100), "SGDBinary");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestSSGDBinary()
         {
             TestFeatureContribution(ML.BinaryClassification.Trainers.SymbolicSgdLogisticRegression(
@@ -175,7 +175,7 @@ namespace Microsoft.ML.Tests
                 GetSparseDataset(TaskType.BinaryClassification, 100), "SSGDBinary", 4);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestGAMBinary()
         {
             TestFeatureContribution(ML.BinaryClassification.Trainers.Gam(), GetSparseDataset(TaskType.BinaryClassification, 100), "GAMBinary");

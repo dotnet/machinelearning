@@ -13,7 +13,7 @@ namespace Microsoft.ML.AutoML.Test
     
     public class TransformInferenceTests
     {
-        [RetryFact]
+        [MLNETFact]
         public void TransformInferenceNumAndCatCols()
         {
             TransformInferenceTestCore(new[]
@@ -68,7 +68,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TransformInferenceNumCatAndFeatCols()
         {
             TransformInferenceTestCore(new[]
@@ -125,7 +125,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TransformInferenceCatAndFeatCols()
         {
             TransformInferenceTestCore(new[]
@@ -172,7 +172,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TransformInferenceNumericCol()
         {
             TransformInferenceTestCore(new[]
@@ -194,7 +194,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TransformInferenceNumericCols()
         {
             TransformInferenceTestCore(new[]
@@ -217,7 +217,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TransformInferenceFeatColScalar()
         {
             TransformInferenceTestCore(new[]
@@ -238,7 +238,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TransformInferenceFeatColVector()
         {
             TransformInferenceTestCore(new[]
@@ -247,7 +247,7 @@ namespace Microsoft.ML.AutoML.Test
                 }, @"[]");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void NumericAndFeatCol()
         {
             TransformInferenceTestCore(new[]
@@ -270,7 +270,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void NumericScalarCol()
         {
             TransformInferenceTestCore(new[]
@@ -291,7 +291,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void NumericVectorCol()
         {
             TransformInferenceTestCore(new[]
@@ -312,7 +312,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TransformInferenceTextCol()
         {
             TransformInferenceTestCore(new[]
@@ -344,7 +344,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TransformInferenceTextAndFeatCol()
         {
             TransformInferenceTestCore(new[]
@@ -379,7 +379,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TransformInferenceBoolCol()
         {
             TransformInferenceTestCore(new[]
@@ -411,7 +411,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TransformInferenceBoolAndNumCols()
         {
             TransformInferenceTestCore(new[]
@@ -445,7 +445,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TransformInferenceBoolAndFeatCol()
         {
             TransformInferenceTestCore(new[]
@@ -479,7 +479,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TransformInferenceNumericMissingCol()
         {
             TransformInferenceTestCore(new[]
@@ -536,7 +536,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TransformInferenceNumericMissingCols()
         {
             TransformInferenceTestCore(new[]
@@ -602,7 +602,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TransformInferenceIgnoreCol()
         {
             TransformInferenceTestCore(new[]
@@ -624,7 +624,7 @@ namespace Microsoft.ML.AutoML.Test
 ]");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TransformInferenceDefaultLabelCol()
         {
             TransformInferenceTestCore(new[]
@@ -634,7 +634,7 @@ namespace Microsoft.ML.AutoML.Test
                 }, @"[]");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TransformInferenceCustomLabelCol()
         {
             TransformInferenceTestCore(new[]
@@ -671,7 +671,7 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TransformInferenceCustomTextLabelColMulticlass()
         {
             TransformInferenceTestCore(new[]
@@ -693,7 +693,7 @@ namespace Microsoft.ML.AutoML.Test
 ]", TaskKind.MulticlassClassification);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TransformInferenceMissingNameCollision()
         {
             TransformInferenceTestCore(new[]

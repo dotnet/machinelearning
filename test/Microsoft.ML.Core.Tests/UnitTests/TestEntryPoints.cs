@@ -83,7 +83,7 @@ namespace Microsoft.ML.RunTests
         }
 
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointTrainTestSplit()
         {
             var dataView = GetBreastCancerDataView();
@@ -128,7 +128,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointScoring()
         {
             var dataView = GetBreastCancerDataviewWithTextColumns();
@@ -148,7 +148,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointApplyModel()
         {
             var dataView = GetBreastCancerDataviewWithTextColumns();
@@ -254,7 +254,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointCatalog()
         {
             var (epListContents, jObj) = BuildManifests();
@@ -284,7 +284,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointCatalogCheckDuplicateParams()
         {
             // Run this test to prevent introducing duplicate param names in entrypoints
@@ -359,7 +359,7 @@ namespace Microsoft.ML.RunTests
             return (epListContents, manifest);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointInputBuilderOptionals()
         {
             var catalog = Env.ComponentCatalog;
@@ -380,7 +380,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal("AnotherWeight", instance.ExampleWeightColumnName);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointInputRangeChecks()
         {
             TlcModule.RangeAttribute range = null;
@@ -411,7 +411,7 @@ namespace Microsoft.ML.RunTests
             Assert.True(EntryPointUtils.IsValueWithinRange(range, 0.0));
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointCreateEnsemble()
         {
             var dataView = GetBreastCancerDataView();
@@ -523,7 +523,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointOptionalParams()
         {
             string inputGraph = @"
@@ -569,7 +569,7 @@ namespace Microsoft.ML.RunTests
             return path.Replace("\\", "\\\\");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointExecGraphCommand()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
@@ -614,7 +614,7 @@ namespace Microsoft.ML.RunTests
             cmd.Run();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void BinaryPermutationFeatureImportance()
         {
             var inputDataPath = GetDataPath("adult.tiny.with-schema.txt");
@@ -762,7 +762,7 @@ namespace Microsoft.ML.RunTests
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("AreaUnderPrecisionRecallCurveStdErr"));
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void MulticlassPermutationFeatureImportance()
         {
             var inputDataPath = GetDataPath("adult.tiny.with-schema.txt");
@@ -906,7 +906,7 @@ namespace Microsoft.ML.RunTests
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("PerClassLogLossStdErr"));
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void MulticlassPermutationFeatureImportanceWithKeyToValue()
         {
             var inputData = GetDataPath("adult.tiny.with-schema.txt");
@@ -1067,7 +1067,7 @@ namespace Microsoft.ML.RunTests
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("PerClassLogLossStdErr"));
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void RegressionPermutationFeatureImportance()
         {
             var inputDataPath = GetDataPath("adult.tiny.with-schema.txt");
@@ -1208,7 +1208,7 @@ namespace Microsoft.ML.RunTests
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("RSquaredStdErr"));
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void RankingPermutationFeatureImportance()
         {
             var inputData = GetDataPath("adult.tiny.with-schema.txt");
@@ -1349,7 +1349,7 @@ namespace Microsoft.ML.RunTests
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("NormalizedDiscountedCumulativeGainsStdErr"));
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void ScoreTransformerChainModel()
         {
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
@@ -1500,7 +1500,7 @@ namespace Microsoft.ML.RunTests
         //    Assert.NotNull(model);
         //}
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointCalibrate()
         {
             var dataView = GetBreastCancerDataView();
@@ -1536,7 +1536,7 @@ namespace Microsoft.ML.RunTests
             var scoredFf = ScoreModel.Score(Env, new ScoreModel.Input() { Data = splitOutput.TestData[2], PredictorModel = twiceCalibratedFfModel }).ScoredData;
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointPipelineEnsemble()
         {
             var dataView = GetBreastCancerDataView();
@@ -1761,7 +1761,7 @@ namespace Microsoft.ML.RunTests
         }
 
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointPipelineEnsembleText()
         {
             var dataPath = GetDataPath("lm.sample.txt");
@@ -1977,7 +1977,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointMulticlassPipelineEnsemble()
         {
             var dataPath = GetDataPath("iris.txt");
@@ -2275,7 +2275,7 @@ namespace Microsoft.ML.RunTests
             return true;
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointParseColumns()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
@@ -2326,7 +2326,7 @@ namespace Microsoft.ML.RunTests
             cmd.Run();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointCountFeatures()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
@@ -2371,7 +2371,7 @@ namespace Microsoft.ML.RunTests
             cmd.Run();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointMutualSelectFeatures()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
@@ -2417,7 +2417,7 @@ namespace Microsoft.ML.RunTests
             cmd.Run();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointTextToKeyToText()
         {
             var dataPath = GetDataPath("iris.data");
@@ -2587,7 +2587,7 @@ namespace Microsoft.ML.RunTests
             cmd.Run();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointEvaluateBinary()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
@@ -2611,7 +2611,7 @@ namespace Microsoft.ML.RunTests
                 Assert.Equal(2, CountRows(loader));
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointEvaluateMulticlass()
         {
             var dataPath = GetDataPath("iris.txt");
@@ -2635,7 +2635,7 @@ namespace Microsoft.ML.RunTests
                 Assert.Equal(3, CountRows(loader));
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointEvaluateRegression()
         {
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename);
@@ -2656,7 +2656,7 @@ namespace Microsoft.ML.RunTests
                 Assert.Equal(103, CountRows(loader));
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointEvaluateRanking()
         {
             var dataPath = GetDataPath(@"adult.tiny.with-schema.txt");
@@ -2745,13 +2745,13 @@ namespace Microsoft.ML.RunTests
             TestEntryPointRoutine(GetDataPath(@"iris.txt"), "Trainers.LightGbmClassifier");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointSdcaBinary()
         {
             TestEntryPointRoutine("breast-cancer.txt", "Trainers.StochasticDualCoordinateAscentBinaryClassifier");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointSDCAMulticlass()
         {
             TestEntryPointRoutine("iris.txt", "Trainers.StochasticDualCoordinateAscentClassifier");
@@ -2763,19 +2763,19 @@ namespace Microsoft.ML.RunTests
             TestEntryPointRoutine(TestDatasets.generatedRegressionDatasetmacro.trainFilename, "Trainers.StochasticDualCoordinateAscentRegressor", loader: TestDatasets.generatedRegressionDatasetmacro.loaderSettings);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointLogisticRegressionMulticlass()
         {
             TestEntryPointRoutine("iris.txt", "Trainers.LogisticRegressionClassifier");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointPcaAnomaly()
         {
             TestEntryPointRoutine("MNIST.Train.0-class.tiny.txt", "Trainers.PcaAnomalyDetector", "col=Features:R4:1-784");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointPcaTransform()
         {
             TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Label:0 col=Features:1-9",
@@ -2801,7 +2801,7 @@ namespace Microsoft.ML.RunTests
                 });
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointLightLdaTransformer()
         {
             string dataFile = DeleteOutputPath("SavePipe", "SavePipeTextLightLda-SampleText.txt");
@@ -2834,25 +2834,25 @@ namespace Microsoft.ML.RunTests
                 });
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointAveragePerceptron()
         {
             TestEntryPointRoutine("iris.txt", "Trainers.AveragedPerceptronBinaryClassifier");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointOnlineGradientDescent()
         {
             TestEntryPointRoutine("iris.txt", "Trainers.OnlineGradientDescentRegressor");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointLinearSVM()
         {
             TestEntryPointRoutine("iris.txt", "Trainers.LinearSvmBinaryClassifier");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointBinaryEnsemble()
         {
             TestEntryPointRoutine("iris.txt", "Trainers.EnsembleBinaryClassifier", xfNames:
@@ -2863,7 +2863,7 @@ namespace Microsoft.ML.RunTests
                 });
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointClassificationEnsemble()
         {
             TestEntryPointRoutine("iris.txt", "Trainers.EnsembleClassification", xfNames:
@@ -2874,31 +2874,31 @@ namespace Microsoft.ML.RunTests
                 });
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointRegressionEnsemble()
         {
             TestEntryPointRoutine(TestDatasets.generatedRegressionDatasetmacro.trainFilename, "Trainers.EnsembleRegression", loader: TestDatasets.generatedRegressionDatasetmacro.loaderSettings);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointNaiveBayesMulticlass()
         {
             TestEntryPointRoutine("iris.txt", "Trainers.NaiveBayesClassifier");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointHogwildSGD()
         {
             TestEntryPointRoutine("breast-cancer.txt", "Trainers.StochasticGradientDescentBinaryClassifier");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointPoissonRegression()
         {
             TestEntryPointRoutine(TestDatasets.generatedRegressionDatasetmacro.trainFilename, "Trainers.PoissonRegressor", loader: TestDatasets.generatedRegressionDatasetmacro.loaderSettings);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointBootstrap()
         {
             TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Label:R4:0 col=Features:R4:1-9",
@@ -2912,7 +2912,7 @@ namespace Microsoft.ML.RunTests
                 });
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointConvert()
         {
             TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=LT:TX:0 col=LB:BL:0 col=FT:TX:1-9 col=LN:0 col=FN:1-9 col=Key:U2[0-9]:2",
@@ -2953,7 +2953,7 @@ namespace Microsoft.ML.RunTests
                 });
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointGroupingOperations()
         {
             TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=G1:TX:0 col=G2:R4:0 col=G3:U4[0-100]:1 col=V1:R4:2 col=V2:TX:3 col=V3:U2[0-10]:4 col=V4:I4:5",
@@ -2970,7 +2970,7 @@ namespace Microsoft.ML.RunTests
                 });
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointNAFilter()
         {
             TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Features:R4:1-9 header+",
@@ -2995,7 +2995,7 @@ namespace Microsoft.ML.RunTests
                 });
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointGcnTransform()
         {
             TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=FV1:2-3 col=FV2:3-4 col=FV3:4-5 col=FV4:7-9 col=Label:0",
@@ -3043,7 +3043,7 @@ namespace Microsoft.ML.RunTests
                 });
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointGenerateNumber()
         {
             TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Label:0",
@@ -3073,7 +3073,7 @@ namespace Microsoft.ML.RunTests
                 });
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointRangeFilter()
         {
             TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Filter:R4:3",
@@ -3095,7 +3095,7 @@ namespace Microsoft.ML.RunTests
                 });
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointSkipTakeFilter()
         {
             TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Filter:R4:3",
@@ -3271,7 +3271,7 @@ namespace Microsoft.ML.RunTests
             cmd.Run();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestInputBuilderBasicArgs()
         {
             var catalog = Env.ComponentCatalog;
@@ -3328,7 +3328,7 @@ namespace Microsoft.ML.RunTests
                 .Replace("\n\n", "\n");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestInputBuilderComponentFactories()
         {
             var catalog = Env.ComponentCatalog;
@@ -3397,7 +3397,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(expected, json);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointNormalizeIfNeeded()
         {
             string inputGraph = @"
@@ -3459,7 +3459,7 @@ namespace Microsoft.ML.RunTests
             Assert.NotNull(model);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointTrainTestMacroNoTransformInput()
         {
             string inputGraph = @"
@@ -3567,13 +3567,13 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointKMeans()
         {
             TestEntryPointRoutine("Train-Tiny-28x28.txt", "Trainers.KMeansPlusPlusClusterer", "col=Weight:R4:0 col=Features:R4:1-784", ",'InitializationAlgorithm':'KMeansPlusPlus'");
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointTrainTestMacro()
         {
             string inputGraph = @"
@@ -3672,7 +3672,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointChainedTrainTestMacros()
         {
             string inputGraph = @"
@@ -3844,7 +3844,7 @@ namespace Microsoft.ML.RunTests
             validateAuc(metrics);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointChainedCrossValMacros()
         {
             string inputGraph = @"
@@ -4036,7 +4036,7 @@ namespace Microsoft.ML.RunTests
             aucValidate(metrics);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointSerialization()
         {
             string inputGraph = @"
@@ -4101,7 +4101,7 @@ namespace Microsoft.ML.RunTests
             Assert.NotNull(model);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointNodeSchedulingFields()
         {
             string inputGraph = @"
@@ -4167,7 +4167,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointLinearPredictorSummary()
         {
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
@@ -4241,7 +4241,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointPcaPredictorSummary()
         {
             var dataPath = GetDataPath("MNIST.Train.0-class.tiny.txt");
@@ -4285,7 +4285,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointPrepareLabelConvertPredictedLabel()
         {
             var dataPath = GetDataPath("iris.data");
@@ -4379,7 +4379,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointTreeLeafFeaturizer()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
@@ -4453,7 +4453,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointWordEmbeddings()
         {
             string dataFile = DeleteOutputPath("SavePipe", "SavePipeTextWordEmbeddings-SampleText.txt");
@@ -4526,7 +4526,7 @@ namespace Microsoft.ML.RunTests
                 });
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointIidSpikeDetector()
         {
             TestEntryPointPipelineRoutine(GetDataPath(Path.Combine("Timeseries", "real_1.csv")), "sep=, col=Features:R4:1 header=+",
@@ -4588,7 +4588,7 @@ namespace Microsoft.ML.RunTests
                 });
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointPercentileThreshold()
         {
             TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Input:R4:1",
@@ -4605,7 +4605,7 @@ namespace Microsoft.ML.RunTests
                 });
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointPValue()
         {
             TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Input:R4:1",
@@ -4621,7 +4621,7 @@ namespace Microsoft.ML.RunTests
                 });
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointSlidingWindow()
         {
             TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Input:R4:1",
@@ -4653,7 +4653,7 @@ namespace Microsoft.ML.RunTests
                 });
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EntryPointHashJoinCountTable()
         {
             TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Text:Text:1-9 col=Label:0",
@@ -4678,7 +4678,7 @@ namespace Microsoft.ML.RunTests
                 });
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestSimpleExperiment()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
@@ -4740,7 +4740,7 @@ namespace Microsoft.ML.RunTests
                 Assert.Equal(expected[i], schema[i].Name);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestSimpleTrainExperiment()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
@@ -5132,7 +5132,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestCrossValidationMacroWithMulticlass()
         {
             var dataPath = GetDataPath(@"Train-Tiny-28x28.txt");
@@ -5331,7 +5331,7 @@ namespace Microsoft.ML.RunTests
                 Assert.False(cursor.MoveNext());
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestCrossValidationMacroMulticlassWithWarnings()
         {
             var dataPath = GetDataPath(@"Train-Tiny-28x28.txt");
@@ -5493,7 +5493,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestCrossValidationMacroWithStratification()
         {
             var dataPath = GetDataPath(@"breast-cancer.txt");
@@ -5698,7 +5698,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestCrossValidationMacroWithNonDefaultNames()
         {
             string dataPath = GetDataPath(@"adult.tiny.with-schema.txt");
@@ -6024,7 +6024,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestOvaMacro()
         {
             var dataPath = GetDataPath(@"iris.txt");
@@ -6188,7 +6188,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void TestOvaMacroWithUncalibratedLearner()
         {
             var dataPath = GetDataPath(@"iris.txt");
@@ -6466,7 +6466,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(10, (schema[2].Type as VectorDataViewType)?.Size);
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void LoadEntryPointModel()
         {
             var ml = new MLContext();
@@ -6481,7 +6481,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void SummarizeEntryPointTest()
         {
             var dataPath = GetDataPath(@"breast-cancer.txt");

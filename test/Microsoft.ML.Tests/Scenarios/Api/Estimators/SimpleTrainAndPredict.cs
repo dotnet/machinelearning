@@ -19,7 +19,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// Out of the result, produce some structure over which you can get predictions programmatically 
         /// (for example, the prediction does not happen over a file as it did during training).
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void SimpleTrainAndPredict()
         {
             var ml = new MLContext(seed: 1);
@@ -56,7 +56,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// (for example, the prediction does not happen over a file as it did during training).
         /// Uses Symbolic SGD Trainer.
         /// </summary>
-        [RetryFact]
+        [MLNETFact]
         public void SimpleTrainAndPredictSymSGD()
         {
             var ml = new MLContext(seed: 1);

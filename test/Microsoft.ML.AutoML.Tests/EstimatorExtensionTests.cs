@@ -13,7 +13,7 @@ namespace Microsoft.ML.AutoML.Test
     
     public class EstimatorExtensionTests
     {
-        [RetryFact]
+        [MLNETFact]
         public void EstimatorExtensionInstanceTests()
         {
             var context = new MLContext();
@@ -33,7 +33,7 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        [RetryFact]
+        [MLNETFact]
         public void EstimatorExtensionStaticTests()
         {
             var context = new MLContext();
