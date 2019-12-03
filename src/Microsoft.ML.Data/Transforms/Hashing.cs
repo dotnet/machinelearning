@@ -625,7 +625,7 @@ namespace Microsoft.ML.Transforms
             {
                 var len = value.Length;
                 //string valueString = value.ToString();
-                return Hashing.MixHashV2(Hashing.MurmurRoundText(seed, value), len);
+                return (Hashing.MixHashV2(Hashing.MurmurRoundText(seed, value), len) & mask);
             }
         }
 

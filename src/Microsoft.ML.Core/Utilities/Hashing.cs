@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.ML.Runtime;
@@ -108,11 +109,11 @@ namespace Microsoft.ML.Internal.Utilities
         private static uint MurmurRoundSpanV2(uint hash, Span<byte> key, int len)
         {
             int nblocks = len / 4;
-            byte[] data = key.ToArray();
+            var data = key;
 
             for (int i = nblocks; i >0; i--)
             {
-                uint chunk = BitConverter.ToUInt32(data, (nblocks * 4 - i*4));
+                uint chunk = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(nblocks * 4 - i*4, 4));
                 chunk *= 0xCC9E2D51;
                 chunk = Rotate(chunk, 15);
                 chunk *= 0x1B873593;
@@ -123,20 +124,18 @@ namespace Microsoft.ML.Internal.Utilities
                 hash += 0xE6546B64;
             }
 
-            byte[] tail = new byte[3]{data[len-3], data[len-2], data[len-1]};
-
             uint k1 = 0;
 
             switch (len & 3)
             {
                 case 3:
-                    k1 ^= (uint)tail[2] << 16;
+                    k1 ^= (uint)data[len-1] << 16;
                     goto case 2;
                 case 2:
-                    k1 ^= (uint)tail[1] << 8;
+                    k1 ^= (uint)data[len-2] << 8;
                     goto case 1;
                 case 1:
-                    k1 ^= tail[0];
+                    k1 ^= data[len-3];
                     k1 *= 0xCC9E2D51; k1 = Rotate(k1, 15);
                     k1 *= 0x1B873593;
                     hash ^= k1;
