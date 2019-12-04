@@ -45,14 +45,14 @@ namespace Samples.Dynamic
             var pipeline = mlContext.Transforms.Conversion.Hash(
                     new[]
                     {
-                            new HashingEstimator.Options(
+                            new HashingEstimator.ColumnOptions(
                                 "CategoryHashed",
                                 "Category",
                                 16,
                                 useOrderedHashing: false,
                                 maximumNumberOfInverts: -1),
 
-                            new HashingEstimator.Options(
+                            new HashingEstimator.ColumnOptions(
                                 "AgeHashed",
                                 "Age",
                                 8,

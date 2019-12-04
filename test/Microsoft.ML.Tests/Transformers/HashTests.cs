@@ -46,10 +46,10 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.Conversion.Hash(new[]{
-                    new HashingEstimator.Options("HashA", "A", numberOfBits:4, maximumNumberOfInverts:-1),
-                    new HashingEstimator.Options("HashB", "B", numberOfBits:3, useOrderedHashing:true),
-                    new HashingEstimator.Options("HashC", "C", seed:42),
-                    new HashingEstimator.Options("HashD", "A"),
+                    new HashingEstimator.ColumnOptions("HashA", "A", numberOfBits:4, maximumNumberOfInverts:-1),
+                    new HashingEstimator.ColumnOptions("HashB", "B", numberOfBits:3, useOrderedHashing:true),
+                    new HashingEstimator.ColumnOptions("HashC", "C", seed:42),
+                    new HashingEstimator.ColumnOptions("HashD", "A"),
                 });
 
             TestEstimatorCore(pipe, dataView);
@@ -68,9 +68,9 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.Conversion.Hash(new[] {
-                new HashingEstimator.Options("HashA", "A", maximumNumberOfInverts:1, numberOfBits:10),
-                new HashingEstimator.Options("HashAUnlim", "A", maximumNumberOfInverts:-1, numberOfBits:10),
-                new HashingEstimator.Options("HashAUnlimOrdered", "A", maximumNumberOfInverts:-1, numberOfBits:10, useOrderedHashing:true)
+                new HashingEstimator.ColumnOptions("HashA", "A", maximumNumberOfInverts:1, numberOfBits:10),
+                new HashingEstimator.ColumnOptions("HashAUnlim", "A", maximumNumberOfInverts:-1, numberOfBits:10),
+                new HashingEstimator.ColumnOptions("HashAUnlimOrdered", "A", maximumNumberOfInverts:-1, numberOfBits:10, useOrderedHashing:true)
             });
             var result = pipe.Fit(dataView).Transform(dataView);
             ValidateMetadata(result);
@@ -108,10 +108,10 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.Conversion.Hash(new[]{
-                    new HashingEstimator.Options("HashA", "A", numberOfBits:4, maximumNumberOfInverts:-1),
-                    new HashingEstimator.Options("HashB", "B", numberOfBits:3, useOrderedHashing:true),
-                    new HashingEstimator.Options("HashC", "C", seed:42),
-                    new HashingEstimator.Options("HashD" ,"A"),
+                    new HashingEstimator.ColumnOptions("HashA", "A", numberOfBits:4, maximumNumberOfInverts:-1),
+                    new HashingEstimator.ColumnOptions("HashB", "B", numberOfBits:3, useOrderedHashing:true),
+                    new HashingEstimator.ColumnOptions("HashC", "C", seed:42),
+                    new HashingEstimator.ColumnOptions("HashD" ,"A"),
             });
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Tests.Transformers
             var inRow = AnnotationUtils.AnnotationsAsRow(builder.ToAnnotations());
 
             //helper
-            ValueGetter<TType> hashGetter<TType>(HashingEstimator.Options colInfo)
+            ValueGetter<TType> hashGetter<TType>(HashingEstimator.ColumnOptionsInternal colInfo)
             {
                 var xf = new HashingTransformer(Env, new[] { colInfo });
                 var mapper = ((ITransformer)xf).GetRowToRowMapper(inRow.Schema);
@@ -143,14 +143,14 @@ namespace Microsoft.ML.Tests.Transformers
             };
 
             // First do an unordered hash.
-            var info = new HashingEstimator.Options("Bar", "Foo", numberOfBits: bits);
+            var info = new HashingEstimator.ColumnOptionsInternal("Bar", "Foo", numberOfBits: bits);
             var getter = hashGetter<uint>(info);
             uint result = 0;
             getter(ref result);
             Assert.Equal(expected, result);
 
             // Next do an ordered hash.
-            info = new HashingEstimator.Options("Bar", "Foo", numberOfBits: bits, useOrderedHashing: true);
+            info = new HashingEstimator.ColumnOptionsInternal("Bar", "Foo", numberOfBits: bits, useOrderedHashing: true);
             getter = hashGetter<uint>(info);
             getter(ref result);
             Assert.Equal(expectedOrdered, result);
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Tests.Transformers
             builder.Add("Foo", new VectorDataViewType(type, vecLen), (ref VBuffer<T> dst) => denseVec.CopyTo(ref dst));
             inRow = AnnotationUtils.AnnotationsAsRow(builder.ToAnnotations());
 
-            info = new HashingEstimator.Options("Bar", "Foo", numberOfBits: bits, useOrderedHashing: false);
+            info = new HashingEstimator.ColumnOptionsInternal("Bar", "Foo", numberOfBits: bits, useOrderedHashing: false);
             var vecGetter = hashGetter<VBuffer<uint>>(info);
             VBuffer<uint> vecResult = default;
             vecGetter(ref vecResult);
@@ -173,7 +173,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.All(vecResult.DenseValues(), v => Assert.Equal(expected, v));
 
             // Now do ordered with the dense vector.
-            info = new HashingEstimator.Options("Bar", "Foo", numberOfBits: bits, useOrderedHashing: true);
+            info = new HashingEstimator.ColumnOptionsInternal("Bar", "Foo", numberOfBits: bits, useOrderedHashing: true);
             vecGetter = hashGetter<VBuffer<uint>>(info);
             vecGetter(ref vecResult);
 
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Tests.Transformers
             builder.Add("Foo", new VectorDataViewType(type, vecLen), (ref VBuffer<T> dst) => sparseVec.CopyTo(ref dst));
             inRow = AnnotationUtils.AnnotationsAsRow(builder.ToAnnotations());
 
-            info = new HashingEstimator.Options("Bar", "Foo", numberOfBits: bits, useOrderedHashing: false);
+            info = new HashingEstimator.ColumnOptionsInternal("Bar", "Foo", numberOfBits: bits, useOrderedHashing: false);
             vecGetter = hashGetter<VBuffer<uint>>(info);
             vecGetter(ref vecResult);
 
@@ -197,7 +197,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(expected, vecResult.GetItemOrDefault(3));
             Assert.Equal(expected, vecResult.GetItemOrDefault(7));
 
-            info = new HashingEstimator.Options("Bar", "Foo", numberOfBits: bits, useOrderedHashing: true);
+            info = new HashingEstimator.ColumnOptionsInternal("Bar", "Foo", numberOfBits: bits, useOrderedHashing: true);
             vecGetter = hashGetter<VBuffer<uint>>(info);
             vecGetter(ref vecResult);
 

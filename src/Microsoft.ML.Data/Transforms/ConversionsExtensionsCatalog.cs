@@ -10,6 +10,7 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
 {
+    using static Microsoft.ML.Transforms.HashingEstimator;
     using ConvertDefaults = TypeConvertingEstimator.Defaults;
     using HashDefaults = HashingEstimator.Defaults;
 
@@ -51,7 +52,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <remarks>This transform can operate over several columns.</remarks>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="options">Advanced options for the estimator that also contain the input and output column names.
+        /// <param name="columns">Advanced options for the estimator that also contain the input and output column names.
         /// This estimator operates over text, numeric, boolean, key and <see cref="DataViewRowId"/> data types.
         /// The new column's data type will be a vector of <see cref="System.UInt32"/>, or a <see cref="System.UInt32"/> based on whether the input column data types
         /// are vectors or scalars.</param>
@@ -61,8 +62,10 @@ namespace Microsoft.ML
         ///  [!code-csharp[Hash](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/HashWithOptions.cs)]
         /// ]]></format>
         /// </example>
-        public static HashingEstimator Hash(this TransformsCatalog.ConversionTransforms catalog, params HashingEstimator.Options[] options)
-            => new HashingEstimator(CatalogUtils.GetEnvironment(catalog), options);
+        public static HashingEstimator Hash(this TransformsCatalog.ConversionTransforms catalog, params ColumnOptions[] columns)
+            => new HashingEstimator(CatalogUtils.GetEnvironment(catalog),
+                columns.Select(x => new ColumnOptionsInternal(x.Name, x.InputColumnName, x.NumberOfBits, x.Seed,
+                    x.UseOrderedHashing, x.MaximumNumberOfInverts)).ToArray());
 
         /// <summary>
         /// Create a <see cref="TypeConvertingEstimator"/>, which converts the type of the data to the type specified in <paramref name="outputKind"/>.
