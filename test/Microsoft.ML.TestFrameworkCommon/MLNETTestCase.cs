@@ -4,8 +4,10 @@
 
 using System;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
@@ -47,28 +49,13 @@ namespace Microsoft.ML.TestFrameworkCommon
                 var delayedMessageBus = new DelayedMessageBus(messageBus);
                 RunSummary summary = null;
 
-                try
-                {
-                    // write to the console when a test starts and stops so we can identify any test hangs/deadlocks in CI
-                    Console.WriteLine($"[{DateTime.Now}] Starting test: {DisplayName}.");
-                    summary = await base.RunAsync(diagnosticMessageSink, delayedMessageBus, constructorArguments, aggregator, cancellationTokenSource);
-                    Console.WriteLine($"[{DateTime.Now}] Finished test: {DisplayName}.");
-                }
-                catch
-                {
-                    Console.WriteLine($"Test {DisplayName} has unhandled exception.");
-                    Console.WriteLine($"Call stack is : {new System.Diagnostics.StackTrace().ToString()}");
-                }
-
-                if (aggregator.HasExceptions || summary.Failed > 0)
-                {
-                    string os = Environment.OSVersion.ToString();
-                    string architecture = Environment.Is64BitProcess ? "x64" : "x86";
-                    string framework = "";
-                    string configuration = "";
+                string os = Environment.OSVersion.ToString();
+                string architecture = Environment.Is64BitProcess ? "x64" : "x86";
+                string framework = "";
+                string configuration = "";
 
 #if DEBUG
-                    configuration = "Debug";
+                configuration = "Debug";
 #else
                     configuration = "Release";
 #endif
@@ -76,19 +63,37 @@ namespace Microsoft.ML.TestFrameworkCommon
 #if NETFRAMEWORK
                     framework = "NetFx461";
 #else
-                    framework = AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") == null ? "NetCoreApp21" : "NetCoreApp30";
+                framework = AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") == null ? "NetCoreApp21" : "NetCoreApp30";
 #endif
 
+                try
+                {
+                    // write to the console when a test starts and stops so we can identify any test hangs/deadlocks in CI
+                    Console.WriteLine($"[{DateTime.Now}] Starting test: {DisplayName}.");
+                    summary = await base.RunAsync(diagnosticMessageSink, delayedMessageBus, constructorArguments, aggregator, cancellationTokenSource);
+                    Console.WriteLine($"[{DateTime.Now}] Finished test: {DisplayName}.");
+                }
+                catch (RuntimeWrappedException ex)
+                {
+                    Console.WriteLine($"Test {DisplayName} has unhandled exception {ex.WrappedException} with call stack {ex.StackTrace}.");
+                    Centrallizedlogger.LogUnhandleExceptions(DisplayName, os, architecture, framework,
+                        configuration, ex.WrappedException == null ? "" : ex.WrappedException.ToString(),
+                        ex.StackTrace, "", DateTime.Now);
+                }
+
+                if (aggregator.HasExceptions || summary.Failed > 0)
+                {
                     var now = DateTime.Now;
                     var errorMessage = $"[{now}] Execution of '{DisplayName}' at {os}_{architecture}_{framework}_{configuration} failed (attempt #{runCount+1}).";
                     diagnosticMessageSink.OnMessage(new DiagnosticMessage(errorMessage));
                     Console.WriteLine(errorMessage);
 
-                    //a centralized place to log all flaky tests
-                    Flakytestlogger.LogFlakyTests(DisplayName, os, architecture, framework, configuration, runCount + 1, now);
+                    //centralized place to log all flaky tests
+                    Centrallizedlogger.LogFlakyTests(DisplayName, os, architecture, framework, configuration, 
+                        runCount + 1, "", now);
                 }
 
-                if (aggregator.HasExceptions || summary.Failed == 0 || ++runCount >= maxRetries)
+                if (summary.Failed == 0 || ++runCount >= maxRetries)
                 {
                     delayedMessageBus.Dispose();  // Sends all the delayed messages
                     return summary;
