@@ -5,7 +5,7 @@ namespace Microsoft.ML.TestFrameworkCommon
 {
     public static class Flakytestlogger
     {
-        public static void WriteFailedTestToDB(string displayName, string os, string architecture, string framework,
+        public static void LogFlakyTests(string displayName, string os, string architecture, string framework,
             string configuration, int failCount, DateTime failTime)
         {
             string connetionString = "Server=tcp:mldotnet.database.windows.net,1433;Initial Catalog=flakytests;Persist Security Info=False;User ID=mldotnet;Password=Password2019^^;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";

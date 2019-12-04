@@ -54,9 +54,9 @@ namespace Microsoft.ML.TestFrameworkCommon
                     summary = await base.RunAsync(diagnosticMessageSink, delayedMessageBus, constructorArguments, aggregator, cancellationTokenSource);
                     Console.WriteLine($"[{DateTime.Now}] Finished test: {DisplayName}.");
                 }
-                catch (Exception ex)
+                catch
                 {
-                    Console.WriteLine($"Test {DisplayName} has unhandled exception {ex.StackTrace}.");
+                    Console.WriteLine($"Test {DisplayName} has unhandled exception.");
                     Console.WriteLine($"Call stack is : {new System.Diagnostics.StackTrace().ToString()}");
                 }
 
@@ -83,7 +83,9 @@ namespace Microsoft.ML.TestFrameworkCommon
                     var errorMessage = $"[{now}] Execution of '{DisplayName}' at {os}_{architecture}_{framework}_{configuration} failed (attempt #{runCount+1}).";
                     diagnosticMessageSink.OnMessage(new DiagnosticMessage(errorMessage));
                     Console.WriteLine(errorMessage);
-                    Flakytestlogger.WriteFailedTestToDB(DisplayName, os, architecture, framework, configuration, runCount + 1, now);
+
+                    //a centralized place to log all flaky tests
+                    Flakytestlogger.LogFlakyTests(DisplayName, os, architecture, framework, configuration, runCount + 1, now);
                 }
 
                 if (aggregator.HasExceptions || summary.Failed == 0 || ++runCount >= maxRetries)
