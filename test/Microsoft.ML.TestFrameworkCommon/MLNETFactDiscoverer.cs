@@ -25,18 +25,7 @@ namespace Microsoft.ML.TestFrameworkCommon
                 "Microsoft.ML.RunTests.TestPredictors.MulticlassLRTest",
                 "Microsoft.ML.RunTests.TestDataPipe.SavePipeDraculaKeyLabel",
                 "Microsoft.ML.RunTests.TestEntryPoints.EntryPointLogisticRegressionMulticlass",
-                "Microsoft.ML.RunTests.TestEntryPoints.TestCrossValidationMacroWithStratification",
-                "Microsoft.ML.Scenarios.TensorFlowScenariosTests.TensorFlowTransformCifar",
-                "Microsoft.ML.RunTests.TestDataPipeNoBaseline.TestLDATransform",
-                "Microsoft.ML.RunTests.TestPredictors.LightGBMClassificationTest",
-                "Microsoft.ML.RunTests.TestEntryPoints.EntryPointPipelineEnsembleGetSummary",
-                "Microsoft.ML.RunTests.TestEntryPoints.RegressionPermutationFeatureImportance",
-                "Microsoft.ML.RunTests.TestEntryPoints.TestOvaMacro",
-                "Microsoft.ML.RunTests.TestTimeSeries.SavePipeSlidingWindowW2L1",
-                "Microsoft.ML.Scenarios.ScenariosTests.TrainAndPredictIrisModelUsingDirectInstantiationTest",
-                "Microsoft.ML.Tests.OnnxConversionTest.LogisticRegressionOnnxConversionTest",
-                "Microsoft.ML.Benchmarks.Tests.BenchmarksTest.BenchmarksProjectIsNotBroken",
-                "Microsoft.ML.Tests.Transformers.DraculaTests.TestDraculaEstimator"
+                "Microsoft.ML.RunTests.TestEntryPoints.TestCrossValidationMacroWithStratification"
             };
         }
 

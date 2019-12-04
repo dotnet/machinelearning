@@ -79,9 +79,11 @@ namespace Microsoft.ML.TestFrameworkCommon
                     framework = AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") == null ? "NetCoreApp21" : "NetCoreApp30";
 #endif
 
-                    var errorMessage = $"Execution of '{DisplayName}' at {os}_{architecture}_{framework}_{configuration} failed (attempt #{runCount}).";
+                    var now = DateTime.Now;
+                    var errorMessage = $"[{now}] Execution of '{DisplayName}' at {os}_{architecture}_{framework}_{configuration} failed (attempt #{runCount+1}).";
                     diagnosticMessageSink.OnMessage(new DiagnosticMessage(errorMessage));
                     Console.WriteLine(errorMessage);
+                    Flakytestlogger.WriteFailedTestToDB(DisplayName, os, architecture, framework, configuration, runCount + 1, now);
                 }
 
                 if (aggregator.HasExceptions || summary.Failed == 0 || ++runCount >= maxRetries)
