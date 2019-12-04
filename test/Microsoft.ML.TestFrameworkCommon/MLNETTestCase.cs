@@ -73,12 +73,11 @@ namespace Microsoft.ML.TestFrameworkCommon
                     summary = await base.RunAsync(diagnosticMessageSink, delayedMessageBus, constructorArguments, aggregator, cancellationTokenSource);
                     Console.WriteLine($"[{DateTime.Now}] Finished test: {DisplayName}.");
                 }
-                catch (RuntimeWrappedException ex)
+                catch
                 {
-                    Console.WriteLine($"Test {DisplayName} has unhandled exception {ex.WrappedException} with call stack {ex.StackTrace}.");
+                    Console.WriteLine($"Test {DisplayName} has unhandled exception.");
                     Centrallizedlogger.LogUnhandleExceptions(DisplayName, os, architecture, framework,
-                        configuration, ex.WrappedException == null ? "" : ex.WrappedException.ToString(),
-                        ex.StackTrace, "", DateTime.Now);
+                        configuration, "", "", "", DateTime.Now);
                 }
 
                 if (aggregator.HasExceptions || summary.Failed > 0)
