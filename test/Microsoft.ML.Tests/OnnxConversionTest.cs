@@ -1054,7 +1054,6 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-
         [Fact]
         void NgramOnnxConnversionTest()
         {
@@ -1076,6 +1075,7 @@ namespace Microsoft.ML.Tests
                 NgramExtractingEstimator.WeightingCriteria.TfIdf 
             };
 
+
             var paramCombinations = from ngramLength in ngramLengths
                                     from useAllLength in useAllLengths
                                     from weighting in weightingCriteria
@@ -1087,29 +1087,41 @@ namespace Microsoft.ML.Tests
                 // Convert training data to IDataView.
                 var dataView = mlContext.Data.LoadFromEnumerable(samples);
 
-                var pipe = mlContext.Transforms.Text.TokenizeIntoWords("Tokens", "Text", new[] { ' ' }) 
-                                .Append(mlContext.Transforms.Conversion.MapValueToKey("Tokens"))
-                                .Append(mlContext.Transforms.Text.ProduceNgrams("NGrams", "Tokens",
-                                            ngramLength: combination.ngramLength,
-                                            useAllLengths:combination.useAllLength,
-                                            weighting: combination.weighting));
-
-                var model = pipe.Fit(dataView);
-                var transformedData = model.Transform(dataView);
-
-                var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
-                var onnxFilename = "Ngram.onnx";
-                var onnxFilePath = GetOutputPath(onnxFilename);
-                SaveOnnxModel(onnxModel, onnxFilePath, null);
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
+                IEstimator<ITransformer>[] pipelines =
                 {
-                    // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-                    string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                    string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxFilePath);
-                    var onnxTransformer = onnxEstimator.Fit(dataView);
-                    var onnxResult = onnxTransformer.Transform(dataView);
-                    CompareSelectedR4VectorColumns(transformedData.Schema[3].Name, outputNames[2], transformedData, onnxResult, 3);
+                    mlContext.Transforms.Text.TokenizeIntoWords("Tokens", "Text", new[] { ' ' })
+                                    .Append(mlContext.Transforms.Conversion.MapValueToKey("Tokens"))
+                                    .Append(mlContext.Transforms.Text.ProduceNgrams("NGrams", "Tokens",
+                                                ngramLength: combination.ngramLength,
+                                                useAllLengths:combination.useAllLength,
+                                                weighting: combination.weighting)),
+
+                    mlContext.Transforms.Text.ProduceWordBags("Tokens", "Text",
+                                            ngramLength: combination.ngramLength,
+                                            useAllLengths: combination.useAllLength,
+                                            weighting: combination.weighting)
+                };
+
+                for (int i = 0; i < pipelines.Length; i++)
+                {
+                    var pipe = pipelines[i];
+                    var model = pipe.Fit(dataView);
+                    var transformedData = model.Transform(dataView);
+
+                    var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+                    var onnxFilename = $"Ngram-{i}-{combination.ngramLength}-{combination.useAllLength}-{combination.weighting}.onnx";
+                    var onnxFilePath = GetOutputPath(onnxFilename);
+                    SaveOnnxModel(onnxModel, onnxFilePath, null);
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
+                    {
+                        // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                        string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                        string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                        var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxFilePath);
+                        var onnxTransformer = onnxEstimator.Fit(dataView);
+                        var onnxResult = onnxTransformer.Transform(dataView);
+                        CompareSelectedR4VectorColumns(transformedData.Schema[3].Name, outputNames[outputNames.Length-1], transformedData, onnxResult, 3);
+                    }
                 }
             }
             Done();
