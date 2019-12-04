@@ -12,7 +12,7 @@ namespace Microsoft.ML.TestFrameworkCommon
     public class MLNETFactDiscoverer : IXunitTestCaseDiscoverer
     {
         readonly IMessageSink diagnosticMessageSink;
-        readonly IList<string> flakyTestLists;
+        //readonly IList<string> flakyTestLists;
 
         public MLNETFactDiscoverer(IMessageSink diagnosticMessageSink)
         {
