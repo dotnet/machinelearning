@@ -1830,7 +1830,7 @@ namespace Microsoft.ML.Scenarios
         public static string DownloadBadImageSet(string imagesDownloadFolder)
         {
             string fileName = "CatsVsDogs_tiny_for_unit_tests.zip";
-            string url = $"https://tlcresources.blob.core.windows.net/datasets/" +
+            string url = $"https://aka.ms/mlnet-resources/datasets/" +
                 $"CatsVsDogs_tiny_for_unit_tests.zip"; 
 
             Download(url, imagesDownloadFolder, fileName);
