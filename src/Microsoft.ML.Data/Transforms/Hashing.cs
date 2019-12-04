@@ -1133,6 +1133,9 @@ namespace Microsoft.ML.Transforms
             public const int MaximumNumberOfInverts = 0;
         }
 
+        /// <summary>
+        /// Describes how the transformer handles one column pair.
+        /// </summary>
         public sealed class ColumnOptions
         {
             /// <summary>
