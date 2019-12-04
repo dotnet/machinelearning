@@ -106,45 +106,22 @@ namespace Microsoft.ML.Internal.Utilities
             return hash;
         }
 
-        private static uint MurmurRoundSpanV2(uint hash, Span<byte> key, int len)
+        public static uint MurmurRoundV2(uint hash, uint key)
         {
-            int nblocks = len / 4;
-            var data = key;
+            var chunk = key;
 
-            for (int i = nblocks; i >0; i--)
-            {
-                uint chunk = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(nblocks * 4 - i*4, 4));
-                chunk *= 0xCC9E2D51;
-                chunk = Rotate(chunk, 15);
-                chunk *= 0x1B873593;
+            chunk *= 0xCC9E2D51;
+            chunk = Rotate(chunk, 15);
+            chunk *= 0x1B873593;
 
-                hash ^= chunk;
-                hash = Rotate(hash, 13);
-                hash *= 5;
-                hash += 0xE6546B64;
-            }
-
-            uint k1 = 0;
-
-            switch (len & 3)
-            {
-                case 3:
-                    k1 ^= (uint)data[len-1] << 16;
-                    goto case 2;
-                case 2:
-                    k1 ^= (uint)data[len-2] << 8;
-                    goto case 1;
-                case 1:
-                    k1 ^= data[len-3];
-                    k1 *= 0xCC9E2D51; k1 = Rotate(k1, 15);
-                    k1 *= 0x1B873593;
-                    hash ^= k1;
-                    break;
-            }
+            hash ^= chunk;
+            hash = Rotate(hash, 13);
+            hash *= 5;
+            hash += 0xE6546B64;
 
             return hash;
         }
-
+        /*
         public static uint MurmurRoundFloat(uint hash, float chunk)
         {
             var floatBytes = BitConverter.GetBytes(chunk);
@@ -220,7 +197,7 @@ namespace Microsoft.ML.Internal.Utilities
             Span<byte> key = new Span<byte>(longBytes);
             return MurmurRoundSpanV2(hash, key, 8);
         }
-
+        */
         /// <summary>
         /// Implements the murmur hash 3 algorithm, using a mock UTF-8 encoding.
         /// The UTF-8 conversion ignores the possibilities of unicode planes other than the 0th.
