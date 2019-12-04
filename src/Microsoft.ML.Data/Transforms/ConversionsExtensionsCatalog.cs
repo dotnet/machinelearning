@@ -47,8 +47,8 @@ namespace Microsoft.ML
             => new HashingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, numberOfBits, maximumNumberOfInverts);
 
         /// <summary>
-        /// Create a <see cref="HashingEstimator"/>, which hashes the input column's data type <see cref="InputOutputColumnPair.InputColumnName" />
-        /// to a new column: <see cref="InputOutputColumnPair.OutputColumnName" />.
+        /// Create a <see cref="HashingEstimator"/>, which hashes the input column's data type <see cref="ColumnOptions.InputColumnName" />
+        /// to a new column: <see cref="ColumnOptions.Name" />.
         /// </summary>
         /// <remarks>This transform can operate over several columns.</remarks>
         /// <param name="catalog">The transform's catalog.</param>
