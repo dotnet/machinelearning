@@ -36,7 +36,7 @@ namespace Microsoft.ML.Featurizers
     public static class DateTimeTransformerExtensionClass
     {
         /// <summary>
-        /// Create a <see cref="DateTimeTransformerEstimator"/>, which splits up the input column specified by <paramref name="inputColumnName"/>
+        /// Create a <see cref="DateTimeEstimator"/>, which splits up the input column specified by <paramref name="inputColumnName"/>
         /// into all its individual datetime components. Input column must be of type Int64 representing the number of seconds since the unix epoc.
         /// This transformer will append the <paramref name="columnPrefix"/> to all the output columns. If <paramref name="columnsToDrop"/> is empty,
         /// then all the columns are returned. Otherwise, the columns listed in the array will be dropped from the return value.
@@ -45,12 +45,12 @@ namespace Microsoft.ML.Featurizers
         /// <param name="inputColumnName">Input column name</param>
         /// <param name="columnPrefix">Prefix to add to the generated columns</param>
         /// <param name="columnsToDrop">List of columns to drop, if any</param>
-        /// <returns><see cref="DateTimeTransformerEstimator"/></returns>
-        public static DateTimeTransformerEstimator DateTimeTransformer(this TransformsCatalog catalog, string inputColumnName, string columnPrefix, params DateTimeTransformerEstimator.ColumnsProduced[] columnsToDrop)
-            => new DateTimeTransformerEstimator(CatalogUtils.GetEnvironment(catalog), inputColumnName, columnPrefix, columnsToDrop);
+        /// <returns><see cref="DateTimeEstimator"/></returns>
+        public static DateTimeEstimator DateTimeTransformer(this TransformsCatalog catalog, string inputColumnName, string columnPrefix, params DateTimeEstimator.ColumnsProduced[] columnsToDrop)
+            => new DateTimeEstimator(CatalogUtils.GetEnvironment(catalog), inputColumnName, columnPrefix, columnsToDrop);
 
         /// <summary>
-        /// Create a <see cref="DateTimeTransformerEstimator"/>, which splits up the input column specified by <paramref name="inputColumnName"/>
+        /// Create a <see cref="DateTimeEstimator"/>, which splits up the input column specified by <paramref name="inputColumnName"/>
         /// into all its individual datetime components. Input column must be of type Int64 representing the number of seconds since the unix epoc.
         /// This transformer will append the <paramref name="columnPrefix"/> to all the output columns. If <paramref name="columnsToDrop"/> is empty,
         /// then all the columns are returned. Otherwise, the columns listed in the array will be dropped from the return value. If you specify a country,
@@ -61,26 +61,26 @@ namespace Microsoft.ML.Featurizers
         /// <param name="columnPrefix">Prefix to add to the generated columns</param>
         /// <param name="columnsToDrop">List of columns to drop, if any</param>
         /// <param name="country">Country name to get holiday details for</param>
-        /// <returns><see cref="DateTimeTransformerEstimator"/></returns>
-        public static DateTimeTransformerEstimator DateTimeTransformer(this TransformsCatalog catalog, string inputColumnName, string columnPrefix, DateTimeTransformerEstimator.ColumnsProduced[] columnsToDrop = null, DateTimeTransformerEstimator.Countries country = DateTimeTransformerEstimator.Countries.None)
-            => new DateTimeTransformerEstimator(CatalogUtils.GetEnvironment(catalog), inputColumnName, columnPrefix, columnsToDrop, country);
+        /// <returns><see cref="DateTimeEstimator"/></returns>
+        public static DateTimeEstimator DateTimeTransformer(this TransformsCatalog catalog, string inputColumnName, string columnPrefix, DateTimeEstimator.ColumnsProduced[] columnsToDrop = null, DateTimeEstimator.HolidayList country = DateTimeEstimator.HolidayList.None)
+            => new DateTimeEstimator(CatalogUtils.GetEnvironment(catalog), inputColumnName, columnPrefix, columnsToDrop, country);
 
         #region ColumnsProduced static extentions
 
-        internal static Type GetRawColumnType(this DateTimeTransformerEstimator.ColumnsProduced column)
+        internal static Type GetRawColumnType(this DateTimeEstimator.ColumnsProduced column)
         {
             switch (column)
             {
-                case DateTimeTransformerEstimator.ColumnsProduced.Year:
-                case DateTimeTransformerEstimator.ColumnsProduced.YearIso:
+                case DateTimeEstimator.ColumnsProduced.Year:
+                case DateTimeEstimator.ColumnsProduced.YearIso:
                     return typeof(int);
-                case DateTimeTransformerEstimator.ColumnsProduced.DayOfYear:
-                case DateTimeTransformerEstimator.ColumnsProduced.WeekOfMonth:
+                case DateTimeEstimator.ColumnsProduced.DayOfYear:
+                case DateTimeEstimator.ColumnsProduced.WeekOfMonth:
                     return typeof(ushort);
-                case DateTimeTransformerEstimator.ColumnsProduced.MonthLabel:
-                case DateTimeTransformerEstimator.ColumnsProduced.AmPmLabel:
-                case DateTimeTransformerEstimator.ColumnsProduced.DayOfWeekLabel:
-                case DateTimeTransformerEstimator.ColumnsProduced.HolidayName:
+                case DateTimeEstimator.ColumnsProduced.MonthLabel:
+                case DateTimeEstimator.ColumnsProduced.AmPmLabel:
+                case DateTimeEstimator.ColumnsProduced.DayOfWeekLabel:
+                case DateTimeEstimator.ColumnsProduced.HolidayName:
                     return typeof(ReadOnlyMemory<char>);
                 default:
                     return typeof(byte);
@@ -114,9 +114,9 @@ namespace Microsoft.ML.Featurizers
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="DateTimeTransformerExtensionClass.DateTimeTransformer(TransformsCatalog, string, string, DateTimeTransformerEstimator.ColumnsProduced[])"/>
-    /// <seealso cref="DateTimeTransformerExtensionClass.DateTimeTransformer(TransformsCatalog, string, string, DateTimeTransformerEstimator.ColumnsProduced[], DateTimeTransformerEstimator.Countries)"/>
-    public sealed class DateTimeTransformerEstimator : IEstimator<DateTimeTransformer>
+    /// <seealso cref="DateTimeTransformerExtensionClass.DateTimeTransformer(TransformsCatalog, string, string, DateTimeEstimator.ColumnsProduced[])"/>
+    /// <seealso cref="DateTimeTransformerExtensionClass.DateTimeTransformer(TransformsCatalog, string, string, DateTimeEstimator.ColumnsProduced[], DateTimeEstimator.HolidayList)"/>
+    public sealed class DateTimeEstimator : IEstimator<DateTimeTransformer>
     {
         private readonly Options _options;
 
@@ -136,12 +136,12 @@ namespace Microsoft.ML.Featurizers
             public ColumnsProduced[] ColumnsToDrop;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Country to get holidays for. Defaults to none if not passed", Name = "Country", ShortName = "ctry", SortOrder = 4)]
-            public Countries Country = Countries.None;
+            public HolidayList Country = HolidayList.None;
         }
 
         #endregion
 
-        public DateTimeTransformerEstimator(IHostEnvironment env, string inputColumnName, string columnPrefix, ColumnsProduced[] columnsToDrop, Countries country = Countries.None)
+        internal DateTimeEstimator(IHostEnvironment env, string inputColumnName, string columnPrefix, ColumnsProduced[] columnsToDrop, HolidayList country = HolidayList.None)
         {
 
             Contracts.CheckValue(env, nameof(env));
@@ -157,7 +157,7 @@ namespace Microsoft.ML.Featurizers
             };
         }
 
-        internal DateTimeTransformerEstimator(IHostEnvironment env, Options options)
+        internal DateTimeEstimator(IHostEnvironment env, Options options)
         {
 
             Contracts.CheckValue(env, nameof(env));
@@ -189,18 +189,70 @@ namespace Microsoft.ML.Featurizers
         #region Enums
         public enum ColumnsProduced : byte
         {
-            Year = 1, Month, Day, Hour, Minute, Second, AmPm, Hour12, DayOfWeek, DayOfQuarter, DayOfYear,
-            WeekOfMonth, QuarterOfYear, HalfOfYear, WeekIso, YearIso, MonthLabel, AmPmLabel, DayOfWeekLabel,
-            HolidayName, IsPaidTimeOff
+            Year = 1,
+            Month = 2,
+            Day = 3,
+            Hour = 4,
+            Minute = 5,
+            Second = 6,
+            AmPm = 7,
+            Hour12 = 8,
+            DayOfWeek = 9,
+            DayOfQuarter = 10,
+            DayOfYear = 11,
+            WeekOfMonth = 12,
+            QuarterOfYear = 13,
+            HalfOfYear = 14,
+            WeekIso = 15,
+            YearIso = 16,
+            MonthLabel = 17,
+            AmPmLabel = 18,
+            DayOfWeekLabel = 19,
+            HolidayName = 20,
+            IsPaidTimeOff = 21
         };
 
-        public enum Countries : byte
+        public enum HolidayList : uint
         {
             None = 1,
-            Argentina, Australia, Austria, Belarus, Belgium, Brazil, Canada, Colombia, Croatia, Czech, Denmark,
-            England, Finland, France, Germany, Hungary, India, Ireland, IsleofMan, Italy, Japan, Mexico, Netherlands,
-            NewZealand, NorthernIreland, Norway, Poland, Portugal, Scotland, Slovenia, SouthAfrica, Spain, Sweden, Switzerland,
-            Ukraine, UnitedKingdom, UnitedStates, Wales
+            Argentina = 2,
+            Australia = 3,
+            Austria = 4,
+            Belarus = 5,
+            Belgium = 6,
+            Brazil = 7,
+            Canada = 8,
+            Colombia = 9,
+            Croatia = 10,
+            Czech = 11,
+            Denmark = 12,
+            England = 13,
+            Finland = 14,
+            France = 15,
+            Germany = 16,
+            Hungary = 17,
+            India = 18,
+            Ireland = 19,
+            IsleofMan = 20,
+            Italy = 21,
+            Japan = 22,
+            Mexico = 23,
+            Netherlands = 24,
+            NewZealand = 25,
+            NorthernIreland = 26,
+            Norway = 27,
+            Poland = 28,
+            Portugal = 29,
+            Scotland = 30,
+            Slovenia = 31,
+            SouthAfrica = 32,
+            Spain = 33,
+            Sweden = 34,
+            Switzerland = 35,
+            Ukraine = 36,
+            UnitedKingdom = 37,
+            UnitedStates = 38,
+            Wales = 39
         }
 
         #endregion
@@ -215,22 +267,22 @@ namespace Microsoft.ML.Featurizers
         internal const string ShortName = "DateTimeTransform";
         internal const string LoadName = "DateTimeTransform";
         internal const string LoaderSignature = "DateTimeTransform";
-        private DateTimeTypedColumn _column;
+        private LongTypedColumn _column;
 
-        private DateTimeTransformerEstimator.ColumnsProduced[] _columnsToDrop;
+        private DateTimeEstimator.ColumnsProduced[] _columnsToDrop;
         private byte[] _activeColumnMapping;
 
         #endregion
 
-        public DateTimeTransformer(IHostEnvironment env, string inputColumnName, string columnPrefix, DateTimeTransformerEstimator.ColumnsProduced[] columnsToDrop, DateTimeTransformerEstimator.Countries country) :
+        internal DateTimeTransformer(IHostEnvironment env, string inputColumnName, string columnPrefix, DateTimeEstimator.ColumnsProduced[] columnsToDrop, DateTimeEstimator.HolidayList country) :
             base(env.Register(nameof(DateTimeTransformer)))
         {
 
             _columnsToDrop = columnsToDrop;
-            var activeColumnLength = Enum.GetValues(typeof(DateTimeTransformerEstimator.ColumnsProduced)).Length - (_columnsToDrop == null ? 0 : _columnsToDrop.Length);
+            var activeColumnLength = Enum.GetValues(typeof(DateTimeEstimator.ColumnsProduced)).Length - (_columnsToDrop == null ? 0 : _columnsToDrop.Length);
             _activeColumnMapping = new byte[activeColumnLength];
             var index = 0;
-            foreach (DateTimeTransformerEstimator.ColumnsProduced column in Enum.GetValues(typeof(DateTimeTransformerEstimator.ColumnsProduced)))
+            foreach (DateTimeEstimator.ColumnsProduced column in Enum.GetValues(typeof(DateTimeEstimator.ColumnsProduced)))
             {
                 if (_columnsToDrop == null || !_columnsToDrop.Contains(column))
                 {
@@ -238,7 +290,7 @@ namespace Microsoft.ML.Featurizers
                 }
             }
 
-            _column = new DateTimeTypedColumn(inputColumnName, columnPrefix);
+            _column = new LongTypedColumn(inputColumnName, columnPrefix);
             _column.CreateTransformerFromEstimator(country);
         }
 
@@ -257,20 +309,20 @@ namespace Microsoft.ML.Featurizers
             // length of C++ state array
             // C++ byte state array
 
-            _column = new DateTimeTypedColumn(ctx.Reader.ReadString(), ctx.Reader.ReadString());
+            _column = new LongTypedColumn(ctx.Reader.ReadString(), ctx.Reader.ReadString());
 
             var dropColumnsLength = ctx.Reader.ReadInt32();
             if (dropColumnsLength > 0)
             {
-                _columnsToDrop = new DateTimeTransformerEstimator.ColumnsProduced[dropColumnsLength];
+                _columnsToDrop = new DateTimeEstimator.ColumnsProduced[dropColumnsLength];
                 //read in enum bytes
                 for (int i = 0; i < dropColumnsLength; i++)
-                    _columnsToDrop[i] = (DateTimeTransformerEstimator.ColumnsProduced)ctx.Reader.ReadByte();
+                    _columnsToDrop[i] = (DateTimeEstimator.ColumnsProduced)ctx.Reader.ReadByte();
             }
 
-            _activeColumnMapping = new byte[Enum.GetValues(typeof(DateTimeTransformerEstimator.ColumnsProduced)).Length - dropColumnsLength];
+            _activeColumnMapping = new byte[Enum.GetValues(typeof(DateTimeEstimator.ColumnsProduced)).Length - dropColumnsLength];
             var index = 0;
-            foreach (DateTimeTransformerEstimator.ColumnsProduced column in Enum.GetValues(typeof(DateTimeTransformerEstimator.ColumnsProduced)))
+            foreach (DateTimeEstimator.ColumnsProduced column in Enum.GetValues(typeof(DateTimeEstimator.ColumnsProduced)))
             {
                 if (_columnsToDrop == null || !_columnsToDrop.Contains(column))
                 {
@@ -462,7 +514,7 @@ namespace Microsoft.ML.Featurizers
                 Prefix = prefix;
             }
 
-            internal abstract void CreateTransformerFromEstimator(DateTimeTransformerEstimator.Countries country);
+            internal abstract void CreateTransformerFromEstimator(DateTimeEstimator.HolidayList country);
             private protected abstract unsafe void CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize);
             private protected unsafe abstract bool CreateEstimatorHelper(byte* countryName, byte* dataRootDir, out IntPtr estimator, out IntPtr errorHandle);
             private protected abstract bool CreateTransformerFromEstimatorHelper(TransformerEstimatorSafeHandle estimator, out IntPtr transformer, out IntPtr errorHandle);
@@ -471,19 +523,19 @@ namespace Microsoft.ML.Featurizers
             private protected abstract bool CreateTransformerSaveDataHelper(out IntPtr buffer, out IntPtr bufferSize, out IntPtr errorHandle);
             public abstract void Dispose();
 
-            private protected unsafe TransformerEstimatorSafeHandle CreateTransformerFromEstimatorBase(DateTimeTransformerEstimator.Countries country)
+            private protected unsafe TransformerEstimatorSafeHandle CreateTransformerFromEstimatorBase(DateTimeEstimator.HolidayList country)
             {
                 bool success;
                 IntPtr errorHandle;
                 IntPtr estimator;
-                if (country == DateTimeTransformerEstimator.Countries.None)
+                if (country == DateTimeEstimator.HolidayList.None)
                 {
                     success = CreateEstimatorHelper(null, null, out estimator, out errorHandle);
                 }
                 else
                 {
                     fixed (byte* dataRootDir = Encoding.UTF8.GetBytes(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + char.MinValue))
-                    fixed (byte* countryPointer = Encoding.UTF8.GetBytes(Enum.GetName(typeof(DateTimeTransformerEstimator.Countries), country) + char.MinValue))
+                    fixed (byte* countryPointer = Encoding.UTF8.GetBytes(Enum.GetName(typeof(DateTimeEstimator.HolidayList), country) + char.MinValue))
                     {
                         success = CreateEstimatorHelper(countryPointer, dataRootDir, out estimator, out errorHandle);
                     }
@@ -546,10 +598,10 @@ namespace Microsoft.ML.Featurizers
 
         #region DateTimeTypedColumn
 
-        internal sealed class DateTimeTypedColumn : TypedColumn<long>
+        internal sealed class LongTypedColumn : TypedColumn<long>
         {
             private TransformerEstimatorSafeHandle _transformerHandler;
-            internal DateTimeTypedColumn(string source, string prefix) :
+            internal LongTypedColumn(string source, string prefix) :
                 base(source, prefix)
             {
             }
@@ -564,7 +616,7 @@ namespace Microsoft.ML.Featurizers
             private static extern bool CreateTransformerFromEstimatorNative(TransformerEstimatorSafeHandle estimator, out IntPtr transformer, out IntPtr errorHandle);
             [DllImport("Featurizers", EntryPoint = "DateTimeFeaturizer_DestroyTransformer"), SuppressUnmanagedCodeSecurity]
             private static extern bool DestroyTransformerNative(IntPtr transformer, out IntPtr errorHandle);
-            internal override unsafe void CreateTransformerFromEstimator(DateTimeTransformerEstimator.Countries country)
+            internal override unsafe void CreateTransformerFromEstimator(DateTimeEstimator.HolidayList country)
             {
                 _transformerHandler = CreateTransformerFromEstimatorBase(country);
             }
@@ -651,7 +703,7 @@ namespace Microsoft.ML.Featurizers
             {
                 var columns = new List<DataViewSchema.DetachedColumn>();
 
-                foreach (DateTimeTransformerEstimator.ColumnsProduced column in Enum.GetValues(typeof(DateTimeTransformerEstimator.ColumnsProduced)))
+                foreach (DateTimeEstimator.ColumnsProduced column in Enum.GetValues(typeof(DateTimeEstimator.ColumnsProduced)))
                     if (_parent._columnsToDrop == null || !_parent._columnsToDrop.Contains(column))
                     {
                         columns.Add(new DataViewSchema.DetachedColumn(_parent._column.Prefix + column.ToString(),
@@ -741,7 +793,7 @@ namespace Microsoft.ML.Featurizers
                 var outputColumn = (int)_parent._activeColumnMapping[iinfo];
 
                 // Have to subtract 1 from the output column since the enum starts and 1 and not 0.
-                return Utils.MarshalInvoke(MakeGetter<int>, ((DateTimeTransformerEstimator.ColumnsProduced)outputColumn).GetRawColumnType(), input, outputColumn - 1);
+                return Utils.MarshalInvoke(MakeGetter<int>, ((DateTimeEstimator.ColumnsProduced)outputColumn).GetRawColumnType(), input, outputColumn - 1);
             }
 
             private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
@@ -768,10 +820,10 @@ namespace Microsoft.ML.Featurizers
             Desc = DateTimeTransformer.Summary,
             UserName = DateTimeTransformer.UserName,
             ShortName = DateTimeTransformer.ShortName)]
-        public static CommonOutputs.TransformOutput DateTimeSplit(IHostEnvironment env, DateTimeTransformerEstimator.Options input)
+        public static CommonOutputs.TransformOutput DateTimeSplit(IHostEnvironment env, DateTimeEstimator.Options input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, DateTimeTransformer.ShortName, input);
-            var xf = new DateTimeTransformerEstimator(h, input).Fit(input.Data).Transform(input.Data);
+            var xf = new DateTimeEstimator(h, input).Fit(input.Data).Transform(input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModelImpl(h, xf, input.Data),

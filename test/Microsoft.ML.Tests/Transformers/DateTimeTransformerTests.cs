@@ -100,7 +100,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             // Build the pipeline, fit, and transform it.
             var columnPrefix = "DTC_";
-            var pipeline = mlContext.Transforms.DateTimeTransformer("date", columnPrefix, DateTimeTransformerEstimator.ColumnsProduced.IsPaidTimeOff);
+            var pipeline = mlContext.Transforms.DateTimeTransformer("date", columnPrefix, DateTimeEstimator.ColumnsProduced.IsPaidTimeOff);
             var model = pipeline.Fit(data);
             var output = model.Transform(data);
             var schema = output.Schema;
@@ -143,8 +143,8 @@ namespace Microsoft.ML.Tests.Transformers
 
             // Build the pipeline, fit, and transform it.
             var columnPrefix = "DTC_";
-            var pipeline = mlContext.Transforms.DateTimeTransformer("date", columnPrefix, DateTimeTransformerEstimator.ColumnsProduced.IsPaidTimeOff,
-                DateTimeTransformerEstimator.ColumnsProduced.Day, DateTimeTransformerEstimator.ColumnsProduced.QuarterOfYear, DateTimeTransformerEstimator.ColumnsProduced.AmPm);
+            var pipeline = mlContext.Transforms.DateTimeTransformer("date", columnPrefix, DateTimeEstimator.ColumnsProduced.IsPaidTimeOff,
+                DateTimeEstimator.ColumnsProduced.Day, DateTimeEstimator.ColumnsProduced.QuarterOfYear, DateTimeEstimator.ColumnsProduced.AmPm);
             var model = pipeline.Fit(data);
             var output = model.Transform(data);
             var schema = output.Schema;
@@ -246,7 +246,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = mlContext.Data.LoadFromEnumerable(dataList);
 
             // Build the pipeline, fit, and transform it.
-            var pipeline = mlContext.Transforms.DateTimeTransformer("date", "DTC", country: DateTimeTransformerEstimator.Countries.Canada);
+            var pipeline = mlContext.Transforms.DateTimeTransformer("date", "DTC", country: DateTimeEstimator.HolidayList.Canada);
             var model = pipeline.Fit(data);
             var output = model.Transform(data);
 
@@ -317,7 +317,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = mlContext.Data.LoadFromEnumerable(dataList);
 
             // Build the pipeline, fit, and transform it.
-            var options = new DateTimeTransformerEstimator.Options
+            var options = new DateTimeEstimator.Options
             {
                 ColumnsToDrop = null,
                 Source = "date",

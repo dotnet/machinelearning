@@ -28,9 +28,9 @@ namespace Samples.Dynamic
 
             // A pipeline for splitting the time features into individual columns
             // All the columns listed here will be dropped.
-            var pipeline = mlContext.Transforms.DateTimeTransformer("Date", "DTC", DateTimeTransformerEstimator.ColumnsProduced.IsPaidTimeOff,
-                DateTimeTransformerEstimator.ColumnsProduced.Day, DateTimeTransformerEstimator.ColumnsProduced.QuarterOfYear,
-                DateTimeTransformerEstimator.ColumnsProduced.AmPm, DateTimeTransformerEstimator.ColumnsProduced.HolidayName);
+            var pipeline = mlContext.Transforms.DateTimeTransformer("Date", "DTC", DateTimeEstimator.ColumnsProduced.IsPaidTimeOff,
+                DateTimeEstimator.ColumnsProduced.Day, DateTimeEstimator.ColumnsProduced.QuarterOfYear,
+                DateTimeEstimator.ColumnsProduced.AmPm, DateTimeEstimator.ColumnsProduced.HolidayName);
 
             // The transformed data.
             var transformedData = pipeline.Fit(dataview).Transform(dataview);
