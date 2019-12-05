@@ -7,6 +7,7 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.CodeGenerator.CSharp;
+using Microsoft.ML.CodeGenerator.Templates.Azure.Console;
 using Microsoft.ML.CodeGenerator.Templates.Console;
 using Microsoft.ML.Transforms;
 
@@ -32,25 +33,19 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
             _nameSpaceValue = namespaceValue;
             Name = $"{_settings.OutputName}.ConsoleApp";
 
-            var (Usings, TrainerMethod, PreTrainerTransforms, PostTrainerTransforms) = _pipeline.GenerateTransformsAndTrainers();
+            var (_, _, PreTrainerTransforms, _) = _pipeline.GenerateTransformsAndTrainers();
 
-            ModelBuilder = new ModelBuilder()
+            ModelBuilder = new AzureModelBuilder()
             {
                 Path = _settings.TrainDataset,
-                TestPath = _settings.TestDataset,
                 HasHeader = _columnInferenceResult.TextLoaderOptions.HasHeader,
                 Separator = _columnInferenceResult.TextLoaderOptions.Separators.FirstOrDefault(),
                 PreTrainerTransforms = PreTrainerTransforms,
-                Trainer = TrainerMethod,
-                TaskType = _settings.MlTask.ToString(),
-                GeneratedUsings = Usings,
                 AllowQuoting = _columnInferenceResult.TextLoaderOptions.AllowQuoting,
                 AllowSparse = _columnInferenceResult.TextLoaderOptions.AllowSparse,
                 Namespace = _nameSpaceValue,
-                LabelName = _settings.LabelName,
-                CacheBeforeTrainer = _pipeline.CacheBeforeTrainer,
                 Target = _settings.Target,
-                HasOnnxModel = true,
+                OnnxModelPath = _settings.OnnxModelPath,
             };
 
             PredictProject = new PredictProject()
@@ -59,10 +54,10 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
                 IncludeMklComponentsPackage = false,
                 IncludeLightGBMPackage = false,
                 IncludeFastTreePackage = false,
-                IncludeImageTransformerPackage = true,
-                IncludeImageClassificationPackage = true,
+                IncludeImageTransformerPackage = _settings.IsImage,
+                IncludeImageClassificationPackage = false,
                 IncludeOnnxPackage = true,
-                IncludeResNet18Package = true,
+                IncludeResNet18Package = false,
                 IncludeRecommenderPackage = false,
                 StablePackageVersion = _settings.StablePackageVersion,
                 UnstablePackageVersion = _settings.UnstablePackageVersion,
@@ -83,7 +78,6 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
                 HasHeader = _columnInferenceResult.TextLoaderOptions.HasHeader,
                 Separator = _columnInferenceResult.TextLoaderOptions.Separators.FirstOrDefault(),
                 Target = _settings.Target,
-                IsAzureAttach = true,
                 Features = featuresList,
             };
         }

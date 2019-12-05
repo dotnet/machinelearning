@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.CodeGenerator.CSharp;
-using Microsoft.ML.CodeGenerator.Templates.AzureImageClassification.Model;
+using Microsoft.ML.CodeGenerator.Templates.Azure.Model;
 using Microsoft.ML.CodeGenerator.Templates.Console;
 using Microsoft.ML.CodeGenerator.Utilities;
 
@@ -39,7 +39,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
             ModelInputClass = new ModelInputClass()
             {
                 Namespace = _nameSpaceValue,
-                ClassLabels = Utilities.Utils.GenerateClassLabels(_columnInferenceResult),
+                ClassLabels = Utilities.Utils.GenerateClassLabels(_columnInferenceResult, _settings.OnnxInputMapping),
                 Target = _settings.Target
             };
 
@@ -63,8 +63,8 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
             ModelProject = new ModelProject()
             {
                 IncludeFastTreePackage = false,
-                IncludeImageClassificationPackage = true,
-                IncludeImageTransformerPackage = true,
+                IncludeImageClassificationPackage = false,
+                IncludeImageTransformerPackage = _settings.IsImage,
                 IncludeLightGBMPackage = false,
                 IncludeMklComponentsPackage = false,
                 IncludeOnnxModel = true,

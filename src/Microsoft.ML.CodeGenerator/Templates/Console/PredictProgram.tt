@@ -40,15 +40,13 @@ namespace <#= Namespace #>.ConsoleApp
 <#foreach(var label in Features){#>
 			Console.WriteLine($"<#= label #>: {sampleData.<#= Utils.Normalize(label) #>}");
 <#}#>
-<#if("BinaryClassification".Equals(TaskType) && !IsAzureAttach ){ #>
+<#if("BinaryClassification".Equals(TaskType) ){ #>
 			Console.WriteLine($"\n\nActual <#= Utils.Normalize(LabelName) #>: {sampleData.<#= Utils.Normalize(LabelName) #>} \nPredicted <#= Utils.Normalize(LabelName) #>: {predictionResult.Prediction}\n\n");
-<#} else if("Regression".Equals(TaskType) || "Recommendation".Equals(TaskType) && !IsAzureAttach){#>
+<#} else if("Regression".Equals(TaskType) || "Recommendation".Equals(TaskType)){#>
 			Console.WriteLine($"\n\nActual <#= Utils.Normalize(LabelName) #>: {sampleData.<#= Utils.Normalize(LabelName) #>} \nPredicted <#= Utils.Normalize(LabelName) #>: {predictionResult.Score}\n\n");
-<#} else if("MulticlassClassification".Equals(TaskType) && !IsAzureAttach){#>
+<#} else if("MulticlassClassification".Equals(TaskType)){#>
 			Console.WriteLine($"\n\nActual <#= Utils.Normalize(LabelName) #>: {sampleData.<#= Utils.Normalize(LabelName) #>} \nPredicted <#= Utils.Normalize(LabelName) #> value {predictionResult.Prediction} \nPredicted <#= Utils.Normalize(LabelName) #> scores: [{String.Join(",", predictionResult.Score)}]\n\n");
-<#} else if(IsAzureAttach){#>
-			Console.WriteLine($"\n\nActual <#= Utils.Normalize(LabelName) #>: {sampleData.<#= Utils.Normalize(LabelName) #>} \nPredicted <#= Utils.Normalize(LabelName) #> value {predictionResult.First().Key} \nPredicted <#= Utils.Normalize(LabelName) #> scores: [{String.Join(",", predictionResult.Select((kv,i) =>kv.Value))}]\n\n");
-<#}#>
+<#} #>
             Console.WriteLine("=============== End of process, hit any key to finish ===============");
             Console.ReadKey();
         }
@@ -89,6 +87,5 @@ public bool AllowQuoting {get;set;}
 public bool AllowSparse {get;set;}
 public bool HasHeader {get;set;}
 public IList<string> Features {get;set;}
-public bool IsAzureAttach {get; set;}
 internal CSharp.GenerateTarget Target {get;set;}
 #>

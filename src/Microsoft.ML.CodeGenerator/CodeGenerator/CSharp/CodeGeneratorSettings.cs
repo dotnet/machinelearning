@@ -20,6 +20,8 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         public string ModelPath { get; set; }
 
+        public string OnnxModelPath { get; set; }
+
         public string OutputName { get; set; }
 
         public string OutputBaseDir { get; set; }

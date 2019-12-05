@@ -4,7 +4,7 @@ using System.Text;
 using Microsoft.ML.CodeGenerator.CodeGenerator;
 using Microsoft.ML.CodeGenerator.CodeGenerator.CSharp;
 
-namespace Microsoft.ML.CodeGenerator.Templates.AzureImageClassification.Model
+namespace Microsoft.ML.CodeGenerator.Templates.Azure.Model
 {
     internal partial class OnnxModelOutputClass : IProjectFileGenerator
     {

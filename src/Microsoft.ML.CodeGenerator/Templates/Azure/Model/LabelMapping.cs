@@ -83,7 +83,7 @@ if("MulticlassClassification".Equals(TaskType)){
 }else{ 
             this.Write("        public float Score { get; set; }\r\n");
 }
-            this.Write("    }\r\n}\r\n\r\n");
+            this.Write("    }\r\n}\r\n");
             return this.GenerationEnvironment.ToString();
         }
 

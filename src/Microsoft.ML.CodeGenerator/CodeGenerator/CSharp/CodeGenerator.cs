@@ -11,7 +11,7 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.CodeGenerator.CodeGenerator;
-using Microsoft.ML.CodeGenerator.Templates.AzureImageClassification.Model;
+using Microsoft.ML.CodeGenerator.Templates.Azure.Model;
 using Microsoft.ML.CodeGenerator.Templates.Console;
 using Microsoft.ML.CodeGenerator.Utilities;
 using Microsoft.ML.Data;
@@ -500,7 +500,6 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 AllowSparse = _columnInferenceResult.TextLoaderOptions.AllowSparse,
                 Features = featuresList,
                 Target = _settings.Target,
-                IsAzureAttach = _settings.IsAzureAttach,
             };
             return predictProgram.TransformText();
         }

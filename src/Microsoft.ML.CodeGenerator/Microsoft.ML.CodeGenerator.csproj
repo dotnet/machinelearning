@@ -21,6 +21,10 @@
   </ItemGroup>
   
   <ItemGroup>
+    <None Update="Templates\Azure\Console\AzureModelBuilder.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>AzureModelBuilder.cs</LastGenOutput>
+    </None>
     <None Update="Templates\Azure\Model\AzureAttachImageConsumeModel.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>AzureAttachImageConsumeModel.cs</LastGenOutput>
@@ -78,6 +82,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Templates\Azure\Console\AzureModelBuilder.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AzureModelBuilder.tt</DependentUpon>
+    </Compile>
     <Compile Update="Templates\Azure\Model\AzureAttachImageConsumeModel.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

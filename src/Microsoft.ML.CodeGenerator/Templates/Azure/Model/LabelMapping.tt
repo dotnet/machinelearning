@@ -68,7 +68,6 @@ namespace <#= Namespace #>.Model
 <#}#>
     }
 }
-
 <#+
 public string Namespace {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}

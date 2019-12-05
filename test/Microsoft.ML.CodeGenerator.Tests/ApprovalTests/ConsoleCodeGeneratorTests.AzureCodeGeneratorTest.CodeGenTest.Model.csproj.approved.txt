@@ -5,7 +5,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.ML" Version="stableversion" />
-    <PackageReference Include="Microsoft.ML.ImageAnalytics" Version="stableversion" />
   </ItemGroup>
 
   <ItemGroup>

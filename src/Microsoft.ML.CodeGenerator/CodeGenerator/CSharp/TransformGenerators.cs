@@ -382,6 +382,20 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                                           contractName: nameof(NormalizeMapping))";
         }
     }
+
+    internal class CustomLabelMapping : TransformGeneratorBase
+    {
+        public CustomLabelMapping(PipelineNode node) : base(node) { }
+        internal override string MethodName => "LabelMapping";
+
+        public override string GenerateTransformer()
+        {
+            return @"CustomMapping<LabelMappingInput, LabelMappingOutput>(
+                                          (input, output) => LabelMapping.Mapping(input, output),
+                                          contractName: nameof(LabelMapping))";
+        }
+    }
+
     internal class ApplyOnnxModel : TransformGeneratorBase
     {
         public ApplyOnnxModel(PipelineNode node) : base(node) { }
@@ -389,7 +403,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         public override string GenerateTransformer()
         {
-            var modelPath = Properties["modelFile"];
+            // TODO ONNX_MODEL is fixed in this transformer, maybe update it to accept a real onnx model path.
             var outputColumnName = Properties["outputColumnNames"];
             var inputColumnName = Properties["inputColumnNames"];
             return $"ApplyOnnxModel(modelFile: ONNX_MODEL, outputColumnNames: new[] {{ \"{outputColumnName}\" }}, inputColumnNames: new[] {{ \"{inputColumnName}\" }})";

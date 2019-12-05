@@ -65,9 +65,7 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
                     "tputDirectory>PreserveNewest</CopyToOutputDirectory>\r\n    </None>\r\n");
  if (IncludeOnnxModel){ 
             this.Write("    <None Update=\"bestModel.onnx\">\r\n      <CopyToOutputDirectory>PreserveNewest</" +
-                    "CopyToOutputDirectory>\r\n    </None>\r\n    <None Update = \"bestModelMap.json\">\r\n  " +
-                    "    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>\r\n    </None>\r\n" +
-                    "");
+                    "CopyToOutputDirectory>\r\n    </None>\r\n");
 }
             this.Write("  </ItemGroup>\r\n  \r\n</Project>\r\n");
             return this.GenerationEnvironment.ToString();
