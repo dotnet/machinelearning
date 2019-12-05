@@ -56,7 +56,6 @@ namespace Microsoft.ML.Functional.Tests
         void IDisposable.Dispose()
         {
             Cleanup();
-            Console.WriteLine($"Finished test: {FullTestName}");
         }
 
         protected virtual void Initialize()

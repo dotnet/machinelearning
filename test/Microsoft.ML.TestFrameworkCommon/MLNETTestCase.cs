@@ -4,10 +4,8 @@
 
 using System;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
@@ -76,20 +74,21 @@ namespace Microsoft.ML.TestFrameworkCommon
                 catch
                 {
                     Console.WriteLine($"Test {DisplayName} has unhandled exception.");
-                    Centrallizedlogger.LogUnhandleExceptions(DisplayName, os, architecture, framework,
-                        configuration, "", "", "", DateTime.Now);
                 }
 
                 if (aggregator.HasExceptions || summary.Failed > 0)
                 {
                     var now = DateTime.Now;
-                    var errorMessage = $"[{now}] Execution of '{DisplayName}' at {os}_{architecture}_{framework}_{configuration} failed (attempt #{runCount+1}).";
+                    var details = "";
+                    details = ExtractTestFailDetailsFromMessageBus(delayedMessageBus, details);
+
+                    var errorMessage = $"[{now}] Execution of '{DisplayName}' at {os}_{architecture}_{framework}_{configuration} failed (attempt #{runCount + 1}) with details {details}.";
                     diagnosticMessageSink.OnMessage(new DiagnosticMessage(errorMessage));
                     Console.WriteLine(errorMessage);
 
                     //centralized place to log all flaky tests
-                    Centrallizedlogger.LogFlakyTests(DisplayName, os, architecture, framework, configuration, 
-                        runCount + 1, "", now);
+                    Centrallizedlogger.LogFlakyTests(DisplayName, os, architecture, framework, configuration,
+                        runCount + 1, details, now);
                 }
 
                 if (summary.Failed == 0 || ++runCount >= maxRetries)
@@ -98,6 +97,43 @@ namespace Microsoft.ML.TestFrameworkCommon
                     return summary;
                 }
             }
+        }
+
+        private static string ExtractTestFailDetailsFromMessageBus(DelayedMessageBus delayedMessageBus, string details)
+        {
+            foreach (var message in delayedMessageBus.messages)
+            {
+                if (message.ToString() == "Xunit.Sdk.TestFailed")
+                {
+                    try
+                    {
+                        var messages = (string[])message.GetType().GetProperty("Messages").GetValue(message);
+                        var exceptionTypes = (string[])message.GetType().GetProperty("ExceptionTypes").GetValue(message);
+                        var stackTraces = (string[])message.GetType().GetProperty("StackTraces").GetValue(message);
+
+                        if (messages != null && messages.Length > 0)
+                        {
+                            details += "Messages: " + string.Join(";", messages) + ". ";
+                        }
+
+                        if (exceptionTypes != null && exceptionTypes.Length > 0)
+                        {
+                            details += "ExceptionTypes: " + string.Join(";", exceptionTypes) + ". ";
+                        }
+
+                        if (stackTraces != null && stackTraces.Length > 0)
+                        {
+                            details += "StackTraces: " + string.Join(";", stackTraces) + ".";
+                        }
+                    }
+                    catch
+                    {
+                        Console.WriteLine($"Fail to read test fail message from message bus.");
+                    }
+                }
+            }
+
+            return details;
         }
 
         public override void Serialize(IXunitSerializationInfo data)

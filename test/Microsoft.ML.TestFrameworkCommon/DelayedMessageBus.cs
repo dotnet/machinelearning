@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Reflection;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
@@ -15,7 +16,7 @@ namespace Microsoft.ML.TestFrameworkCommon
     public class DelayedMessageBus : IMessageBus
     {
         private readonly IMessageBus innerBus;
-        private readonly List<IMessageSinkMessage> messages = new List<IMessageSinkMessage>();
+        public readonly List<IMessageSinkMessage> messages = new List<IMessageSinkMessage>();
 
         public DelayedMessageBus(IMessageBus innerBus)
         {

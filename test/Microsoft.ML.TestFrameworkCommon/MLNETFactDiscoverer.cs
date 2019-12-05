@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.ComponentModel;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
@@ -17,15 +16,11 @@ namespace Microsoft.ML.TestFrameworkCommon
         public MLNETFactDiscoverer(IMessageSink diagnosticMessageSink)
         {
             this.diagnosticMessageSink = diagnosticMessageSink;
+
+            //disbale only retry test in flakyTestLists for now, we need to run some time to collect the flakyTestLists
             //flakyTestLists = new List<string> {
             //    "Microsoft.ML.Tests.TimeSeries.SsaForecast",
-            //    "Microsoft.ML.RunTests.TestPredictors.MulticlassTreeFeaturizedLRTest",
-            //    "Microsoft.ML.Tests.Scenarios.Api.CookbookSamples.CookbookSamplesDynamicApi.CrossValidationIris",
-            //    "Microsoft.ML.Scenarios.TensorFlowScenariosTests.TensorFlowImageClassification",
-            //    "Microsoft.ML.RunTests.TestPredictors.MulticlassLRTest",
-            //    "Microsoft.ML.RunTests.TestDataPipe.SavePipeDraculaKeyLabel",
-            //    "Microsoft.ML.RunTests.TestEntryPoints.EntryPointLogisticRegressionMulticlass",
-            //    "Microsoft.ML.RunTests.TestEntryPoints.TestCrossValidationMacroWithStratification"
+            //    "Microsoft.ML.RunTests.TestPredictors.MulticlassTreeFeaturizedLRTest"
             //};
         }
 
