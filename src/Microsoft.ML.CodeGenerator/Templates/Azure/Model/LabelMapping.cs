@@ -42,16 +42,16 @@ MB_Annotation();
         public static void Mapping(LabelMappingInput input, LabelMappingOutput output)
         {
 ");
-if("BinaryClassification".Equals(TaskType)){ 
+if("Boolean".Equals(PredictionLabelType)){ 
             this.Write("\t\t\toutput.Prediction = input.label.GetValues().ToArray().First() == 1;\r\n");
- } if("MulticlassClassification".Equals(TaskType)){ 
-            this.Write("            output.label = input.label.GetValues().ToArray().First();\r\n");
+ } else{ 
+            this.Write("            output.Prediction = input.label.GetValues().ToArray().First();\r\n");
  }
             this.Write("\r\n");
 if("MulticlassClassification".Equals(TaskType)){ 
-            this.Write("            output.score = input.probabilities.GetValues().ToArray();\r\n");
+            this.Write("            output.Score = input.probabilities.GetValues().ToArray();\r\n");
  } else {
-            this.Write("            output.score = input.probabilities.GetValues().ToArray().First();\r\n");
+            this.Write("            output.Score = input.probabilities.GetValues().ToArray().First();\r\n");
  }
             this.Write(@"        }
         // This factory method will be called when loading the model to get the mapping operation.
@@ -63,10 +63,14 @@ if("MulticlassClassification".Equals(TaskType)){
     public class LabelMappingInput
     {
         [ColumnName(""label"")]
-        public VBuffer<");
-            this.Write(this.ToStringHelper.ToStringWithCulture(PredictionLabelType));
-            this.Write("> label;\r\n\r\n        [ColumnName(\"probabilities\")]\r\n        public VBuffer<float> " +
-                    "probabilities;\r\n    }\r\n    public class LabelMappingOutput\r\n    {\r\n");
+        public VBuffer<Int64> label;
+
+        [ColumnName(""probabilities"")]
+        public VBuffer<float> probabilities;
+    }
+    public class LabelMappingOutput
+    {
+");
 if("BinaryClassification".Equals(TaskType)){ 
             this.Write("        // ColumnName attribute is used to change the column name from\r\n        /" +
                     "/ its default value, which is the name of the field.\r\n        [ColumnName(\"Predi" +

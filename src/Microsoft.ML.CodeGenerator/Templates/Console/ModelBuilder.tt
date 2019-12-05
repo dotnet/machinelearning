@@ -27,7 +27,7 @@ namespace <#= Namespace #>.ConsoleApp
 <#if(!string.IsNullOrEmpty(TestPath)){ #>
         private static string TEST_DATA_FILEPATH = @"<#= TestPath #>";
 <# } #>
-        private static string MODEL_FILEPATH = @"../../../../<#= Namespace #>.Model/MLModel.zip";
+        private static string MODEL_FILEPATH = @"<#= MLNetModelpath #>";
 <# if(HasOnnxModel) {#>
 		private static string ONNX_MODEL = @"../../../../<#= Namespace #>.Model/bestModel.onnx";
 <# } #>
@@ -337,4 +337,5 @@ public bool CacheBeforeTrainer {get;set;}
 public IList<string> PostTrainerTransforms {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
 public bool HasOnnxModel {get;set;} = false;
+public string MLNetModelpath {get; set;}
 #>

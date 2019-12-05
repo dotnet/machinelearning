@@ -22,16 +22,16 @@ namespace <#= Namespace #>.Model
         // This is the custom mapping. We now separate it into a method, so that we can use it both in training and in loading.
         public static void Mapping(LabelMappingInput input, LabelMappingOutput output)
         {
-<#if("BinaryClassification".Equals(TaskType)){ #>
+<#if("Boolean".Equals(PredictionLabelType)){ #>
 			output.Prediction = input.label.GetValues().ToArray().First() == 1;
-<# } if("MulticlassClassification".Equals(TaskType)){ #>
-            output.label = input.label.GetValues().ToArray().First();
+<# } else{ #>
+            output.Prediction = input.label.GetValues().ToArray().First();
 <# }#>
 
 <#if("MulticlassClassification".Equals(TaskType)){ #>
-            output.score = input.probabilities.GetValues().ToArray();
+            output.Score = input.probabilities.GetValues().ToArray();
 <# } else {#>
-            output.score = input.probabilities.GetValues().ToArray().First();
+            output.Score = input.probabilities.GetValues().ToArray().First();
 <# }#>
         }
         // This factory method will be called when loading the model to get the mapping operation.
@@ -43,7 +43,7 @@ namespace <#= Namespace #>.Model
     public class LabelMappingInput
     {
         [ColumnName("label")]
-        public VBuffer<<#= PredictionLabelType#>> label;
+        public VBuffer<Int64> label;
 
         [ColumnName("probabilities")]
         public VBuffer<float> probabilities;

@@ -39,9 +39,9 @@ MB_Annotation();
             this.Write(".ConsoleApp\r\n{\r\n    public static class ModelBuilder\r\n    {\r\n        private stat" +
                     "ic string TRAIN_DATA_FILEPATH = @\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(Path));
-            this.Write("\";\r\n        private static string MLNET_MODEL = @\"../../../../");
-            this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".ConsoleApp/MLNetModel.zip\";\r\n\t\tprivate static string ONNX_MODEL = @\"");
+            this.Write("\";\r\n        private static string MLNET_MODEL = @\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(MLNetModelpath));
+            this.Write("\";\r\n\t\tprivate static string ONNX_MODEL = @\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(OnnxModelPath));
             this.Write(@""";
        
@@ -128,6 +128,7 @@ public bool AllowQuoting {get;set;}
 public bool AllowSparse {get;set;}
 public string Namespace {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
+public string MLNetModelpath {get; set;}
 
 
 void CLI_Annotation()

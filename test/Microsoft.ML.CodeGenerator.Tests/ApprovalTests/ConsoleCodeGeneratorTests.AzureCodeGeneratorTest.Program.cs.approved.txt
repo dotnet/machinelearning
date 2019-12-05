@@ -4,14 +4,14 @@ using System;
 using System.IO;
 using System.Linq;
 using Microsoft.ML;
-using CodeGenTest.Model;
+using Test.Model;
 
-namespace CodeGenTest.ConsoleApp
+namespace Test.ConsoleApp
 {
     class Program
     {
         //Dataset to use for predictions 
-        private const string DATA_FILEPATH = @"/path/to/dataset";
+        private const string DATA_FILEPATH = @"\path\to\file";
 
         static void Main(string[] args)
         {
@@ -22,12 +22,20 @@ namespace CodeGenTest.ConsoleApp
             var predictionResult = ConsumeModel.Predict(sampleData);
 
             Console.WriteLine("Using model to make single prediction -- Comparing actual Label with predicted Label from sample data...\n\n");
-            Console.WriteLine($"col0: {sampleData.Col0}");
-            Console.WriteLine($"col1: {sampleData.Col1}");
-            Console.WriteLine($"col2: {sampleData.Col2}");
-            Console.WriteLine($"col3: {sampleData.Col3}");
-            Console.WriteLine($"col4: {sampleData.Col4}");
-            Console.WriteLine($"col5: {sampleData.Col5}");
+            Console.WriteLine($"Age: {sampleData.Age}");
+            Console.WriteLine($"Workclass: {sampleData.Workclass}");
+            Console.WriteLine($"Fnlwgt: {sampleData.Fnlwgt}");
+            Console.WriteLine($"Education: {sampleData.Education}");
+            Console.WriteLine($"Education_num: {sampleData.Education_num}");
+            Console.WriteLine($"Marital_status: {sampleData.Marital_status}");
+            Console.WriteLine($"Occupation: {sampleData.Occupation}");
+            Console.WriteLine($"Relationship: {sampleData.Relationship}");
+            Console.WriteLine($"Race: {sampleData.Race}");
+            Console.WriteLine($"Sex: {sampleData.Sex}");
+            Console.WriteLine($"Capital_gain: {sampleData.Capital_gain}");
+            Console.WriteLine($"Capital_loss: {sampleData.Capital_loss}");
+            Console.WriteLine($"Hours_per_week: {sampleData.Hours_per_week}");
+            Console.WriteLine($"Native_country: {sampleData.Native_country}");
             Console.WriteLine($"\n\nActual Label: {sampleData.Label} \nPredicted Label value {predictionResult.Prediction} \nPredicted Label scores: [{String.Join(",", predictionResult.Score)}]\n\n");
             Console.WriteLine("=============== End of process, hit any key to finish ===============");
             Console.ReadKey();
@@ -45,7 +53,7 @@ namespace CodeGenTest.ConsoleApp
             IDataView dataView = mlContext.Data.LoadFromTextFile<ModelInput>(
                                             path: dataFilePath,
                                             hasHeader: true,
-                                            separatorChar: '\t',
+                                            separatorChar: ',',
                                             allowQuoting: true,
                                             allowSparse: true);
 

@@ -87,7 +87,7 @@ namespace Microsoft.ML.CodeGenerator.Utilities
         internal static int AddProjectsToSolution(string solutionPath, string[] projects)
         {
             var proc = new System.Diagnostics.Process();
-            var projectPaths = projects.Select((name) => $"\"{Path.Combine(solutionPath, name).ToString()}\"");
+            var projectPaths = projects.Select((name) => $"\"{Path.Combine(Path.GetDirectoryName(solutionPath), name).ToString()}\"");
             try
             {
                 proc.StartInfo.FileName = @"dotnet";

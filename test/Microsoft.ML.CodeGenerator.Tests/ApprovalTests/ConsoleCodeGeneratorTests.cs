@@ -221,25 +221,26 @@ namespace mlnet.Tests
             }
         }
 
+
+
         [Fact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void AzureCodeGeneratorTest()
         {
-            // That's the hammer I want
             (var pipeline, var columnInference, var mapping) = GetMockedAzurePipelineAndInference();
             var setting = new CodeGeneratorSettings()
             {
-                TrainDataset = @"/path/to/dataset",
-                ModelPath = @"/path/to/model",
+                TrainDataset = @"\path\to\file",
+                ModelPath = @"\path\to\model",
                 MlTask = TaskKind.MulticlassClassification,
-                OutputName = @"CodeGenTest",
-                OutputBaseDir = @"/path/to/codegen",
-                LabelName = "Label",
+                OutputName = @"test",
+                OutputBaseDir = @"\path\to\test",
+                LabelName = "label",
                 Target = GenerateTarget.ModelBuilder,
-                StablePackageVersion = "stableversion",
-                UnstablePackageVersion = "unstableversion",
-                OnnxModelPath = @"/path/to/onnxModel",
+                StablePackageVersion = "StablePackageVersion",
+                UnstablePackageVersion = "UnstablePackageVersion",
+                OnnxModelPath = @"\path\to\onnx",
                 IsAzureAttach = true,
                 IsImage = false,
                 OnnxInputMapping = mapping,
@@ -305,6 +306,7 @@ namespace mlnet.Tests
                 Namespace = "test",
                 Target = GenerateTarget.ModelBuilder,
                 OnnxModelPath = "/path/to/onnxModel",
+                MLNetModelpath = "/path/to/MLNet",
             }.ToProjectFile() as ProjectFile;
             NamerFactory.AdditionalInformation = "Image";
             Approvals.Verify(azureModelBuilder.Data);
@@ -323,6 +325,7 @@ namespace mlnet.Tests
                 Namespace = "test",
                 Target = GenerateTarget.ModelBuilder,
                 OnnxModelPath = "/path/to/onnxModel",
+                MLNetModelpath = "/path/to/MLNet",
             }.ToProjectFile() as ProjectFile;
             NamerFactory.AdditionalInformation = "NonImage";
             Approvals.Verify(azureModelBuilder.Data);
@@ -632,18 +635,26 @@ namespace mlnet.Tests
             var textLoaderArgs = new TextLoader.Options()
             {
                 Columns = new[] {
-                        new TextLoader.Column("Label", DataKind.String, 0),
-                        new TextLoader.Column("col0", DataKind.String, 1), // 0?
-                        new TextLoader.Column("col1", DataKind.Single, 2),
-                        new TextLoader.Column("col2", DataKind.Single, 3),
-                        new TextLoader.Column("col3", DataKind.String, 4),
-                        new TextLoader.Column("col4", DataKind.Int32, 5),
-                        new TextLoader.Column("col5", DataKind.UInt32, 6),
+                        new TextLoader.Column("Age", DataKind.Double, 0),
+                        new TextLoader.Column("Workclass", DataKind.String, 1), // 0?
+                        new TextLoader.Column("Fnlwgt", DataKind.Double, 2),
+                        new TextLoader.Column("Education", DataKind.String, 3),
+                        new TextLoader.Column("Education_num", DataKind.Double, 4),
+                        new TextLoader.Column("Marital_status", DataKind.String, 5),
+                        new TextLoader.Column("Occupation", DataKind.String, 6),
+                        new TextLoader.Column("Relationship", DataKind.String, 7),
+                        new TextLoader.Column("Race", DataKind.String, 8),
+                        new TextLoader.Column("Sex", DataKind.String, 9),
+                        new TextLoader.Column("Capital_gain", DataKind.Double, 10),
+                        new TextLoader.Column("Capital_loss", DataKind.Double, 11),
+                        new TextLoader.Column("Hours_per_week", DataKind.Double, 12),
+                        new TextLoader.Column("Native_country", DataKind.String, 13),
+                        new TextLoader.Column("label", DataKind.Boolean, 14),
                     },
                 AllowQuoting = true,
                 AllowSparse = true,
                 HasHeader = true,
-                Separators = new[] { '\t' }
+                Separators = new[] { ',' }
             };
 
             var columnInference = new ColumnInferenceResults()
@@ -657,27 +668,123 @@ namespace mlnet.Tests
             var mapping = new Dictionary<string, CodeGeneratorSettings.ColumnMapping>()
             {
                 {
-                    "col1",
+                    "Age",
                     new CodeGeneratorSettings.ColumnMapping()
                     {
-                        ColumnName = "col1_map",
+                        ColumnName = "input_0",
                         ColumnType = DataKind.Int64,
                     }
                 },
                 {
-                    "col2",
+                    "Workclass",
                     new CodeGeneratorSettings.ColumnMapping()
                     {
-                        ColumnName = "col2_map",
-                        ColumnType = DataKind.UInt32,
+                        ColumnName = "input_1",
+                        ColumnType = DataKind.String,
                     }
                 },
                 {
-                    "col3",
+                    "Fnlwgt",
                     new CodeGeneratorSettings.ColumnMapping()
                     {
-                        ColumnName = "col3_map",
-                        ColumnType = DataKind.Double,
+                        ColumnName = "input_2",
+                        ColumnType = DataKind.Int64,
+                    }
+                },
+                {
+                    "Education",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_3",
+                        ColumnType = DataKind.String,
+                    }
+                },
+                {
+                    "Education_num",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_4",
+                        ColumnType = DataKind.Int64,
+                    }
+                },
+                {
+                    "Marital_status",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_5",
+                        ColumnType = DataKind.String,
+                    }
+                },
+                {
+                    "Occupation",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_6",
+                        ColumnType = DataKind.String,
+                    }
+                },
+                {
+                    "Relationship",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_7",
+                        ColumnType = DataKind.String,
+                    }
+                },
+                {
+                    "Race",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_8",
+                        ColumnType = DataKind.String,
+                    }
+                },
+                {
+                    "Sex",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_9",
+                        ColumnType = DataKind.String,
+                    }
+                },
+                {
+                    "Capital_gain",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_10",
+                        ColumnType = DataKind.Int64,
+                    }
+                },
+                {
+                    "Capital_loss",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_11",
+                        ColumnType = DataKind.Int64,
+                    }
+                },
+                {
+                    "Hours_per_week",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_12",
+                        ColumnType = DataKind.Int64,
+                    }
+                },
+                {
+                    "Native_country",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "input_13",
+                        ColumnType = DataKind.String,
+                    }
+                },
+                {
+                    "label",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "label(IsOver50K)",
+                        ColumnType = DataKind.Boolean,
                     }
                 }
             };

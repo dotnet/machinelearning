@@ -21,7 +21,7 @@ namespace <#= Namespace #>.ConsoleApp
     public static class ModelBuilder
     {
         private static string TRAIN_DATA_FILEPATH = @"<#= Path #>";
-        private static string MLNET_MODEL = @"../../../../<#= Namespace #>.ConsoleApp/MLNetModel.zip";
+        private static string MLNET_MODEL = @"<#= MLNetModelpath #>";
 		private static string ONNX_MODEL = @"<#= OnnxModelPath #>";
        
 	   // Create MLContext to be shared across the model creation workflow objects 
@@ -96,4 +96,5 @@ public bool AllowQuoting {get;set;}
 public bool AllowSparse {get;set;}
 public string Namespace {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
+public string MLNetModelpath {get; set;}
 #>

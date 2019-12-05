@@ -10,32 +10,64 @@ namespace test.Model
 {
     public class ModelInput
     {
-        [ColumnName("Label"), LoadColumn(0)]
-        public string Label { get; set; }
+        [ColumnName("Age"), LoadColumn(0)]
+        public double Age { get; set; }
 
 
-        [ColumnName("col0"), LoadColumn(1)]
-        public string Col0 { get; set; }
+        [ColumnName("Workclass"), LoadColumn(1)]
+        public string Workclass { get; set; }
 
 
-        [ColumnName("col1"), LoadColumn(2)]
-        public float Col1 { get; set; }
+        [ColumnName("Fnlwgt"), LoadColumn(2)]
+        public double Fnlwgt { get; set; }
 
 
-        [ColumnName("col2"), LoadColumn(3)]
-        public float Col2 { get; set; }
+        [ColumnName("Education"), LoadColumn(3)]
+        public string Education { get; set; }
 
 
-        [ColumnName("col3"), LoadColumn(4)]
-        public string Col3 { get; set; }
+        [ColumnName("Education_num"), LoadColumn(4)]
+        public double Education_num { get; set; }
 
 
-        [ColumnName("col4"), LoadColumn(5)]
-        public int Col4 { get; set; }
+        [ColumnName("Marital_status"), LoadColumn(5)]
+        public string Marital_status { get; set; }
 
 
-        [ColumnName("col5"), LoadColumn(6)]
-        public uint Col5 { get; set; }
+        [ColumnName("Occupation"), LoadColumn(6)]
+        public string Occupation { get; set; }
+
+
+        [ColumnName("Relationship"), LoadColumn(7)]
+        public string Relationship { get; set; }
+
+
+        [ColumnName("Race"), LoadColumn(8)]
+        public string Race { get; set; }
+
+
+        [ColumnName("Sex"), LoadColumn(9)]
+        public string Sex { get; set; }
+
+
+        [ColumnName("Capital_gain"), LoadColumn(10)]
+        public double Capital_gain { get; set; }
+
+
+        [ColumnName("Capital_loss"), LoadColumn(11)]
+        public double Capital_loss { get; set; }
+
+
+        [ColumnName("Hours_per_week"), LoadColumn(12)]
+        public double Hours_per_week { get; set; }
+
+
+        [ColumnName("Native_country"), LoadColumn(13)]
+        public string Native_country { get; set; }
+
+
+        [ColumnName("Label_IsOver50K_"), LoadColumn(14)]
+        public bool Label_IsOver50K_ { get; set; }
 
 
     }

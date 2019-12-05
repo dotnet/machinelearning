@@ -48,9 +48,9 @@ if(!string.IsNullOrEmpty(TestPath)){
             this.Write(this.ToStringHelper.ToStringWithCulture(TestPath));
             this.Write("\";\r\n");
  } 
-            this.Write("        private static string MODEL_FILEPATH = @\"../../../../");
-            this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model/MLModel.zip\";\r\n");
+            this.Write("        private static string MODEL_FILEPATH = @\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(MLNetModelpath));
+            this.Write("\";\r\n");
  if(HasOnnxModel) {
             this.Write("\t\tprivate static string ONNX_MODEL = @\"../../../../");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
@@ -406,6 +406,7 @@ public bool CacheBeforeTrainer {get;set;}
 public IList<string> PostTrainerTransforms {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
 public bool HasOnnxModel {get;set;} = false;
+public string MLNetModelpath {get; set;}
 
 
 void CLI_Annotation()

@@ -5,7 +5,7 @@ using Microsoft.ML.Transforms;
 using System;
 using System.Linq;
 
-namespace CodeGenTest.Model
+namespace Test.Model
 {
     [CustomMappingFactoryAttribute(nameof(LabelMapping))]
     public class LabelMapping : CustomMappingFactory<LabelMappingInput, LabelMappingOutput>
@@ -13,9 +13,9 @@ namespace CodeGenTest.Model
         // This is the custom mapping. We now separate it into a method, so that we can use it both in training and in loading.
         public static void Mapping(LabelMappingInput input, LabelMappingOutput output)
         {
-            output.label = input.label.GetValues().ToArray().First();
+            output.Prediction = input.label.GetValues().ToArray().First() == 1;
 
-            output.score = input.probabilities.GetValues().ToArray();
+            output.Score = input.probabilities.GetValues().ToArray();
         }
         // This factory method will be called when loading the model to get the mapping operation.
         public override Action<LabelMappingInput, LabelMappingOutput> GetMapping()
@@ -26,7 +26,7 @@ namespace CodeGenTest.Model
     public class LabelMappingInput
     {
         [ColumnName("label")]
-        public VBuffer<String> label;
+        public VBuffer<Int64> label;
 
         [ColumnName("probabilities")]
         public VBuffer<float> probabilities;
@@ -36,7 +36,7 @@ namespace CodeGenTest.Model
         // ColumnName attribute is used to change the column name from
         // its default value, which is the name of the field.
         [ColumnName("PredictedLabel")]
-        public String Prediction { get; set; }
+        public Boolean Prediction { get; set; }
         public float[] Score { get; set; }
     }
 }

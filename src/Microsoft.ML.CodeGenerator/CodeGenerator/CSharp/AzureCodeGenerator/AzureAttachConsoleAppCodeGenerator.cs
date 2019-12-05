@@ -46,6 +46,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
                 Namespace = _nameSpaceValue,
                 Target = _settings.Target,
                 OnnxModelPath = _settings.OnnxModelPath,
+                MLNetModelpath = _settings.ModelPath,
             };
 
             PredictProject = new PredictProject()

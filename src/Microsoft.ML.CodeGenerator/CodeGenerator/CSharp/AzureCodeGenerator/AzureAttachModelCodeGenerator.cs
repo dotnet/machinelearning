@@ -96,6 +96,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                 Target = _settings.Target,
                 HasLabelMapping = true,
                 HasNormalizeMapping = _settings.IsImage,
+                MLNetModelpath = _settings.ModelPath,
             };
         }
 

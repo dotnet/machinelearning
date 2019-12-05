@@ -404,9 +404,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         public override string GenerateTransformer()
         {
             // TODO ONNX_MODEL is fixed in this transformer, maybe update it to accept a real onnx model path.
-            var outputColumnName = Properties["outputColumnNames"];
-            var inputColumnName = Properties["inputColumnNames"];
-            return $"ApplyOnnxModel(modelFile: ONNX_MODEL, outputColumnNames: new[] {{ \"{outputColumnName}\" }}, inputColumnNames: new[] {{ \"{inputColumnName}\" }})";
+            return $"ApplyOnnxModel(modelFile: ONNX_MODEL)";
         }
     }
 }

@@ -11,7 +11,7 @@ namespace CodeGenTest.ConsoleApp
     public static class ModelBuilder
     {
         private static string TRAIN_DATA_FILEPATH = @"/path/to/dataset";
-        private static string MLNET_MODEL = @"../../../../CodeGenTest.ConsoleApp/MLNetModel.zip";
+        private static string MLNET_MODEL = @"/path/to/model";
         private static string ONNX_MODEL = @"/path/to/onnxModel";
 
         // Create MLContext to be shared across the model creation workflow objects 
@@ -48,7 +48,7 @@ namespace CodeGenTest.ConsoleApp
                                       .Append(mlContext.Transforms.CustomMapping<NormalizeInput, NormalizeOutput>(
                                           (input, output) => NormalizeMapping.Mapping(input, output),
                                           contractName: nameof(NormalizeMapping)))
-                                      .Append(mlContext.Transforms.ApplyOnnxModel(modelFile: ONNX_MODEL, outputColumnNames: new[] { "output1" }, inputColumnNames: new[] { "input1" }))
+                                      .Append(mlContext.Transforms.ApplyOnnxModel(modelFile: ONNX_MODEL))
                                       .Append(mlContext.Transforms.CustomMapping<LabelMappingInput, LabelMappingOutput>(
                                           (input, output) => LabelMapping.Mapping(input, output),
                                           contractName: nameof(LabelMapping)));

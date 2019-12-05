@@ -37,7 +37,7 @@ namespace <#= Namespace #>.Model
 <#} #>
 
             // Load model & create prediction engine
-            string modelPath = AppDomain.CurrentDomain.BaseDirectory + "MLModel.zip";
+            string modelPath = @"<#= MLNetModelpath #>";
             ITransformer mlModel = mlContext.Model.Load(modelPath, out var modelInputSchema);
             var predEngine = mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(mlModel);
 
@@ -52,4 +52,5 @@ public string Namespace {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
 public bool HasNormalizeMapping {get; set;}=false;
 public bool HasLabelMapping {get; set;}=false;
+public string MLNetModelpath {get; set;}
 #>
