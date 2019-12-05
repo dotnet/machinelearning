@@ -51,6 +51,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                 Namespace = _nameSpaceValue,
                 Target = _settings.Target,
                 TaskType = _settings.MlTask.ToString(),
+                PredictionLabelType = labelTypeCsharp.Name,
             };
 
             NormalizeMapping = new NormalizeMapping()

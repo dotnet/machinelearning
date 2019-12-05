@@ -6,10 +6,13 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using ApprovalTests;
+using ApprovalTests.Namers;
 using ApprovalTests.Reporters;
 using Microsoft.ML;
 using Microsoft.ML.AutoML;
+using Microsoft.ML.CodeGenerator.CodeGenerator;
 using Microsoft.ML.CodeGenerator.CodeGenerator.CSharp;
+using Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator;
 using Microsoft.ML.CodeGenerator.CSharp;
 using Microsoft.ML.Data;
 using Xunit;
@@ -212,9 +215,31 @@ namespace mlnet.Tests
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void AzureImage_GenerateConsoleAppProjectConsoles_VerifyModelBuilder()
         {
+            // That's the hammer I want
             (var pipeline, var columnInference) = GetMockedAzureImagePipelineAndInference();
-
-
+            var setting = new CodeGeneratorSettings()
+            {
+                TrainDataset = @"C:\Users\xiaoyuz\Desktop\flower_photos_tiny_set_for_unit_tests\data.tsv",
+                ModelPath = @"C:\Users\xiaoyuz\Desktop\flower_photos_tiny_set_for_unit_tests\CodeGenTest\MLModel.zip",
+                MlTask = TaskKind.MulticlassClassification,
+                OutputName = @"CodeGenTest",
+                OutputBaseDir = @"C:\Users\xiaoyuz\Desktop\CodeGenTest",
+                LabelName = "Label",
+                Target = GenerateTarget.ModelBuilder,
+                StablePackageVersion = "1.3.1",
+                UnstablePackageVersion = "0.16.0-preview3-28231-2",
+                IsAzureAttach = true,
+                IsImage = true,
+            };
+            var codeGen = new AzureAttachCodeGenenrator(pipeline, columnInference, setting);
+            foreach (var project in codeGen.ToSolution())
+            {
+                foreach(var projectFile in project)
+                {
+                    NamerFactory.AdditionalInformation = projectFile.Name;
+                    Approvals.Verify(((ProjectFile)projectFile).Data);
+                }
+            }
         }
 
         [Fact]
