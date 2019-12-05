@@ -13,6 +13,8 @@ namespace Microsoft.ML.Samples
             int samples = 0;
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
             {
+                if (type.Name != "ResnetV2101TransferLearningTrainTestSplit")
+                    continue;
                 var sample = type.GetMethod("Example", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
 
                 if (sample != null)
