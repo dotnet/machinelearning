@@ -11,26 +11,30 @@ namespace test.Model
     public class ModelInput
     {
         [ColumnName("Label"), LoadColumn(0)]
-        public bool Label { get; set; }
+        public string Label { get; set; }
 
 
-        [ColumnName("col1_map"), LoadColumn(1)]
+        [ColumnName("col0"), LoadColumn(1)]
+        public string Col0 { get; set; }
+
+
+        [ColumnName("col1_map"), LoadColumn(2)]
         public long Col1 { get; set; }
 
 
-        [ColumnName("col2_map"), LoadColumn(2)]
+        [ColumnName("col2_map"), LoadColumn(3)]
         public uint Col2 { get; set; }
 
 
-        [ColumnName("col3"), LoadColumn(3)]
-        public string Col3 { get; set; }
+        [ColumnName("col3_map"), LoadColumn(4)]
+        public double Col3 { get; set; }
 
 
-        [ColumnName("col4"), LoadColumn(4)]
+        [ColumnName("col4"), LoadColumn(5)]
         public int Col4 { get; set; }
 
 
-        [ColumnName("col5"), LoadColumn(5)]
+        [ColumnName("col5"), LoadColumn(6)]
         public uint Col5 { get; set; }
 
 
