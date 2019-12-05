@@ -96,7 +96,7 @@ namespace Microsoft.Data.Analysis.Tests
             schema = dataView.Schema;
             Assert.Equal(13, schema.Count);
 
-            DataFrameColumn boolColumn = new PrimitiveDataFrameColumn<bool>("Bool", Enumerable.Range(0, (int)df.RowCount).Select(x => x % 2 == 1));
+            DataFrameColumn boolColumn = new PrimitiveDataFrameColumn<bool>("Bool", Enumerable.Range(0, (int)df.Rows.Count).Select(x => x % 2 == 1));
             df.Columns.Insert(0, boolColumn);
             schema = dataView.Schema;
             Assert.Equal(14, schema.Count);

@@ -44,7 +44,7 @@ namespace Microsoft.Data.Analysis
                     DataFrameColumn newColumn = Columns[i].Clone();
                     ret.Columns.Insert(ret.Columns.Count, newColumn);
                 }
-                long minLength = Math.Min(RowCount, other.RowCount);
+                long minLength = Math.Min(Rows.Count, other.Rows.Count);
                 PrimitiveDataFrameColumn<long> mapIndices = new PrimitiveDataFrameColumn<long>("mapIndices", minLength);
                 for (long i = 0; i < minLength; i++)
                 {
@@ -53,9 +53,9 @@ namespace Microsoft.Data.Analysis
                 for (int i = 0; i < other.Columns.Count; i++)
                 {
                     DataFrameColumn newColumn;
-                    if (other.RowCount < RowCount)
+                    if (other.Rows.Count < Rows.Count)
                     {
-                        newColumn = other.Columns[i].Clone(numberOfNullsToAppend: RowCount - other.RowCount);
+                        newColumn = other.Columns[i].Clone(numberOfNullsToAppend: Rows.Count - other.Rows.Count);
                     }
                     else
                     {
@@ -67,7 +67,7 @@ namespace Microsoft.Data.Analysis
             }
             else if (joinAlgorithm == JoinAlgorithm.Right)
             {
-                long minLength = Math.Min(RowCount, other.RowCount);
+                long minLength = Math.Min(Rows.Count, other.Rows.Count);
                 PrimitiveDataFrameColumn<long> mapIndices = new PrimitiveDataFrameColumn<long>("mapIndices", minLength);
                 for (long i = 0; i < minLength; i++)
                 {
@@ -76,9 +76,9 @@ namespace Microsoft.Data.Analysis
                 for (int i = 0; i < Columns.Count; i++)
                 {
                     DataFrameColumn newColumn;
-                    if (RowCount < other.RowCount)
+                    if (Rows.Count < other.Rows.Count)
                     {
-                        newColumn = Columns[i].Clone(numberOfNullsToAppend: other.RowCount - RowCount);
+                        newColumn = Columns[i].Clone(numberOfNullsToAppend: other.Rows.Count - Rows.Count);
                     }
                     else
                     {
@@ -95,14 +95,14 @@ namespace Microsoft.Data.Analysis
             }
             else if (joinAlgorithm == JoinAlgorithm.FullOuter)
             {
-                long newRowCount = Math.Max(RowCount, other.RowCount);
-                long numberOfNulls = newRowCount - RowCount;
+                long newRowCount = Math.Max(Rows.Count, other.Rows.Count);
+                long numberOfNulls = newRowCount - Rows.Count;
                 for (int i = 0; i < Columns.Count; i++)
                 {
                     DataFrameColumn newColumn = Columns[i].Clone(numberOfNullsToAppend: numberOfNulls);
                     ret.Columns.Insert(ret.Columns.Count, newColumn);
                 }
-                numberOfNulls = newRowCount - other.RowCount;
+                numberOfNulls = newRowCount - other.Rows.Count;
                 for (int i = 0; i < other.Columns.Count; i++)
                 {
                     DataFrameColumn newColumn = other.Columns[i].Clone(numberOfNullsToAppend: numberOfNulls);
@@ -112,7 +112,7 @@ namespace Microsoft.Data.Analysis
             }
             else if (joinAlgorithm == JoinAlgorithm.Inner)
             {
-                long newRowCount = Math.Min(RowCount, other.RowCount);
+                long newRowCount = Math.Min(Rows.Count, other.Rows.Count);
                 PrimitiveDataFrameColumn<long> mapIndices = new PrimitiveDataFrameColumn<long>("mapIndices", newRowCount);
                 for (long i = 0; i < newRowCount; i++)
                 {
@@ -242,8 +242,8 @@ namespace Microsoft.Data.Analysis
             else if (joinAlgorithm == JoinAlgorithm.Inner)
             {
                 // Hash the column with the smaller RowCount 
-                long leftRowCount = RowCount;
-                long rightRowCount = other.RowCount;
+                long leftRowCount = Rows.Count;
+                long rightRowCount = other.Rows.Count;
                 DataFrame longerDataFrame = leftRowCount <= rightRowCount ? other : this;
                 DataFrame shorterDataFrame = ReferenceEquals(longerDataFrame, this) ? other : this;
                 DataFrameColumn hashColumn = (leftRowCount <= rightRowCount) ? this[leftJoinColumn] : other[rightJoinColumn];

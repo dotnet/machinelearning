@@ -38,7 +38,7 @@ namespace Microsoft.Data.Analysis
 
         DataViewSchema IDataView.Schema => DataViewSchema;
 
-        long? IDataView.GetRowCount() => RowCount;
+        long? IDataView.GetRowCount() => Rows.Count;
 
         private DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded)
         {
@@ -133,7 +133,7 @@ namespace Microsoft.Data.Analysis
                 if (_disposed)
                     return false;
                 _position++;
-                return _position < _dataFrame.RowCount;
+                return _position < _dataFrame.Rows.Count;
             }
         }
     }

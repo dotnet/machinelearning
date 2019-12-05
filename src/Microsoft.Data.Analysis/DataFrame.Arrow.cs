@@ -148,7 +148,7 @@ namespace Microsoft.Data.Analysis
             List<Apache.Arrow.Array> arrays = new List<Apache.Arrow.Array>();
 
             int recordBatchLength = Int32.MaxValue;
-            int numberOfRowsInThisRecordBatch = (int)Math.Min(recordBatchLength, RowCount);
+            int numberOfRowsInThisRecordBatch = (int)Math.Min(recordBatchLength, Rows.Count);
             long numberOfRowsProcessed = 0;
 
             // Sometimes .NET for Spark passes in DataFrames with no rows. In those cases, we just return a RecordBatch with the right Schema and no rows
@@ -166,7 +166,7 @@ namespace Microsoft.Data.Analysis
                 }
                 numberOfRowsProcessed += numberOfRowsInThisRecordBatch;
                 yield return new RecordBatch(schema, arrays, numberOfRowsInThisRecordBatch);
-            } while (numberOfRowsProcessed < RowCount);
+            } while (numberOfRowsProcessed < Rows.Count);
         }
 
     }

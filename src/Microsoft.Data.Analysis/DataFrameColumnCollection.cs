@@ -46,16 +46,6 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        internal IList<object> GetRow(long rowIndex)
-        {
-            var ret = new List<object>();
-            for (int i = 0; i < Count; i++)
-            {
-                ret.Add(this[i][rowIndex]);
-            }
-            return ret;
-        }
-
         public void SetColumnName(DataFrameColumn column, string newName)
         {
             string currentName = column.Name;

@@ -134,7 +134,7 @@ namespace Microsoft.Data.Analysis.Tests
             RecordBatch batch1 = new RecordBatch.Builder()
                 .Append("EmptyDataAndNullColumns", false, col => col.Int32(array => array.Clear())).Build();
             DataFrame emptyDataFrame = DataFrame.FromArrowRecordBatch(batch1);
-            Assert.Equal(0, emptyDataFrame.RowCount);
+            Assert.Equal(0, emptyDataFrame.Rows.Count);
             Assert.Equal(0, emptyDataFrame["EmptyDataAndNullColumns"].Length);
             Assert.Equal(0, emptyDataFrame["EmptyDataAndNullColumns"].NullCount);
         }
