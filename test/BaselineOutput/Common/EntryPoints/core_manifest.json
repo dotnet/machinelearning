@@ -18114,46 +18114,6 @@
           "IsNullable": false
         },
         {
-          "Name": "ColumnsToDrop",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": {
-              "Kind": "Enum",
-              "Values": [
-                "Year",
-                "Month",
-                "Day",
-                "Hour",
-                "Minute",
-                "Second",
-                "AmPm",
-                "Hour12",
-                "DayOfWeek",
-                "DayOfQuarter",
-                "DayOfYear",
-                "WeekOfMonth",
-                "QuarterOfYear",
-                "HalfOfYear",
-                "WeekIso",
-                "YearIso",
-                "MonthLabel",
-                "AmPmLabel",
-                "DayOfWeekLabel",
-                "HolidayName",
-                "IsPaidTimeOff"
-              ]
-            }
-          },
-          "Desc": "Columns to drop after the DateTime Expansion",
-          "Aliases": [
-            "drop"
-          ],
-          "Required": false,
-          "SortOrder": 3.0,
-          "IsNullable": false,
-          "Default": null
-        },
-        {
           "Name": "Country",
           "Type": {
             "Kind": "Enum",

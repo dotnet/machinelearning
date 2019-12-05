@@ -379,62 +379,71 @@ namespace Microsoft.ML.Featurizers
             public string HolidayName;
             public byte IsPaidTimeOff;
 
-            internal unsafe TimePoint(byte* rawData)
+            internal TimePoint(ReadOnlySpan<byte> rawData, int intPtrSize)
             {
-                int intPtrSize = sizeof(IntPtr);
 
-                Year = *(int*)rawData;
-                rawData += 4;
+                int index = 0;
 
-                Month = *rawData++;
-                Day = *rawData++;
-                Hour = *rawData++;
-                Minute = *rawData++;
-                Second = *rawData++;
-                AmPm = *rawData++;
-                Hour12 = *rawData++;
-                DayOfWeek = *rawData++;
-                DayOfQuarter = *rawData++;
-                DayOfYear = *(ushort*)rawData;
-                rawData += 2;
+                Year = MemoryMarshal.Read<int>(rawData);
+                index += 4;
 
-                WeekOfMonth = *(ushort*)rawData;
-                rawData += 2;
+                Month = rawData[index++];
+                Day = rawData[index++];
+                Hour = rawData[index++];
+                Minute = rawData[index++];
+                Second = rawData[index++];
+                AmPm = rawData[index++];
+                Hour12 = rawData[index++];
+                DayOfWeek = rawData[index++];
+                DayOfQuarter = rawData[index++];
+                DayOfYear = MemoryMarshal.Read<ushort>(rawData.Slice(index));
+                index += 2;
 
-                QuarterOfYear = *rawData++;
-                HalfOfYear = *rawData++;
-                WeekIso = *rawData++;
-                YearIso = *(int*)rawData;
-                rawData += 4;
+                WeekOfMonth = MemoryMarshal.Read<ushort>(rawData.Slice(index));
+                index += 2;
+
+                QuarterOfYear = rawData[index++];
+                HalfOfYear = rawData[index++];
+                WeekIso = rawData[index++];
+                YearIso = MemoryMarshal.Read<int>(rawData.Slice(index));
+                index += 4;
 
                 // Convert char * to string
-                MonthLabel = GetStringFromPointer(ref rawData, intPtrSize);
-                AmPmLabel = GetStringFromPointer(ref rawData, intPtrSize);
-                DayOfWeekLabel = GetStringFromPointer(ref rawData, intPtrSize);
-                HolidayName = GetStringFromPointer(ref rawData, intPtrSize);
-                IsPaidTimeOff = *rawData;
+                MonthLabel = GetStringFromPointer(ref rawData, ref index, intPtrSize);
+                AmPmLabel = GetStringFromPointer(ref rawData, ref index, intPtrSize);
+                DayOfWeekLabel = GetStringFromPointer(ref rawData, ref index, intPtrSize);
+                HolidayName = GetStringFromPointer(ref rawData, ref index, intPtrSize);
+                IsPaidTimeOff = rawData[index];
             }
 
             // Converts a pointer to a native char* to a string and increments pointer by to the next value.
             // The length of the string is stored at byte* + sizeof(IntPtr).
-            private static unsafe string GetStringFromPointer(ref byte* rawData, int intPtrSize)
+            private static unsafe string GetStringFromPointer(ref ReadOnlySpan<byte> rawData, ref int index, int intPtrSize)
             {
-                byte[] buffer;
-                if (intPtrSize == 4) // 32 bit machine
-                    buffer = new byte[*(uint*)(rawData + intPtrSize)];
-                else // 64 bit machine
-                    buffer = new byte[*(ulong*)(rawData + intPtrSize)];
-
-                if (buffer.Length == 0)
+                ulong stringLength;
+                ReadOnlySpan<byte> buffer;
+                if (intPtrSize == 4)  // 32 bit machine
                 {
-                    rawData += intPtrSize * 2;
+                    stringLength = MemoryMarshal.Read<uint>(rawData.Slice(index + intPtrSize));
+                    IntPtr stringData = new IntPtr(MemoryMarshal.Read<int>(rawData.Slice(index)));
+                    buffer = new ReadOnlySpan<byte>(stringData.ToPointer(), (int)stringLength);
+                }
+                else // 64 bit machine
+                {
+                    stringLength = MemoryMarshal.Read<ulong>(rawData.Slice(index + intPtrSize));
+                    IntPtr stringData = new IntPtr(MemoryMarshal.Read<long>(rawData.Slice(index)));
+                    buffer = new ReadOnlySpan<byte>(stringData.ToPointer(), (int)stringLength);
+                }
+
+                if (stringLength == 0)
+                {
+                    index += intPtrSize * 2;
                     return string.Empty;
                 }
 
-                Marshal.Copy(new IntPtr(*(int**)rawData), buffer, 0, buffer.Length);
-                rawData += intPtrSize * 2;
+                index += intPtrSize * 2;
 
-                return Encoding.UTF8.GetString(buffer);
+                return Encoding.UTF8.GetString(buffer.ToArray());
             }
 
         };
@@ -545,9 +554,15 @@ namespace Microsoft.ML.Featurizers
         internal sealed class LongTypedColumn : TypedColumn<long>
         {
             private TransformerEstimatorSafeHandle _transformerHandler;
+            private readonly int _intPtrSize;
+            private readonly int _structSize;
             internal LongTypedColumn(string source, string prefix) :
                 base(source, prefix)
             {
+                 _intPtrSize = IntPtr.Size;
+
+                // The native struct is 25 bytes + 8 size_t.
+                _structSize = 25 + (_intPtrSize * 8);
             }
 
             [DllImport("Featurizers", EntryPoint = "DateTimeFeaturizer_CreateEstimator"), SuppressUnmanagedCodeSecurity]
@@ -591,9 +606,10 @@ namespace Microsoft.ML.Featurizers
 
                 using (var handler = new TransformedDataSafeHandle(output, DestroyTransformedDataNative))
                 {
+                    // 29 plus size.
                     unsafe
                     {
-                        return new TimePoint((byte*)output.ToPointer());
+                        return new TimePoint(new ReadOnlySpan<byte>(output.ToPointer(), _structSize), _intPtrSize);
                     }
                 }
             }
