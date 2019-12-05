@@ -50,32 +50,6 @@ namespace mlnet.Tests
         }
 
         [Fact]
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public void IgniteDemoTest()
-        {
-            (var bestPipeLine, var columnInference) = GetMockedAzureImagePipelineAndInference();
-
-            // construct CodeGen option
-            var setting = new CodeGeneratorSettings()
-            {
-                TrainDataset = @"C:\Users\xiaoyuz\Desktop\flower_photos_tiny_set_for_unit_tests\data.tsv",
-                ModelPath = @"C:\Users\xiaoyuz\Desktop\flower_photos_tiny_set_for_unit_tests\CodeGenTest\MLModel.zip",
-                MlTask = TaskKind.MulticlassClassification,
-                OutputName = @"CodeGenTest",
-                OutputBaseDir = @"C:\Users\xiaoyuz\Desktop\CodeGenTest",
-                LabelName = "Label",
-                Target = GenerateTarget.ModelBuilder,
-                StablePackageVersion = "1.3.1",
-                UnstablePackageVersion = "0.16.0-preview3-28231-2",
-                IsAzureAttach = true,
-            };
-
-            // generate project
-            var codeGen = new AzureAttachImageCodeGenerator(bestPipeLine, columnInference, setting);
-            codeGen.ToSolution().WriteToDisk(setting.OutputBaseDir);
-        }
-
-        [Fact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void ConsoleAppModelBuilderCSFileContentBinaryTest()
