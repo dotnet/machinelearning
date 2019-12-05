@@ -1,0 +1,78 @@
+﻿<#@ template language="C#" linePragmas = "false" visibility = "internal" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ include file="..\..\Console\Annotation.ttinclude" #><#if(Target == CSharp.GenerateTarget.Cli){ #>
+<#CLI_Annotation();#>
+<# } else if(Target == CSharp.GenerateTarget.ModelBuilder){ #>
+<#MB_Annotation();#>
+<# } #>
+
+using Microsoft.ML.Data;
+using Microsoft.ML.Transforms;
+using System;
+using System.Linq;
+
+namespace <#= Namespace #>.Model
+{
+    [CustomMappingFactoryAttribute(nameof(LabelMapping))]
+    public class LabelMapping : CustomMappingFactory<LabelMappingInput, LabelMappingOutput>
+    {
+        // This is the custom mapping. We now separate it into a method, so that we can use it both in training and in loading.
+        public static void Mapping(LabelMappingInput input, LabelMappingOutput output)
+        {
+<#if("BinaryClassification".Equals(TaskType)){ #>
+			output.Prediction = input.label.GetValues().ToArray().First() == 1;
+<# } if("MulticlassClassification".Equals(TaskType)){ #>
+            output.label = input.label.GetValues().ToArray().First();
+<# }#>
+
+<#if("MulticlassClassification".Equals(TaskType)){ #>
+            output.score = input.probabilities.GetValues().ToArray();
+<# } else {#>
+            output.score = input.probabilities.GetValues().ToArray().First();
+<# }#>
+        }
+        // This factory method will be called when loading the model to get the mapping operation.
+        public override Action<LabelMappingInput, LabelMappingOutput> GetMapping()
+        {
+            return Mapping;
+        }
+    }
+    public class LabelMappingInput
+    {
+        [ColumnName("label")]
+        public VBuffer<<#= PredictionLabelType#>> label;
+
+        [ColumnName("probabilities")]
+        public VBuffer<float> probabilities;
+    }
+    public class LabelMappingOutput
+    {
+<#if("BinaryClassification".Equals(TaskType)){ #>
+        // ColumnName attribute is used to change the column name from
+        // its default value, which is the name of the field.
+        [ColumnName("PredictedLabel")]
+        public bool Prediction { get; set; }
+<# } if("MulticlassClassification".Equals(TaskType)){ #>
+        // ColumnName attribute is used to change the column name from
+        // its default value, which is the name of the field.
+        [ColumnName("PredictedLabel")]
+        public <#= PredictionLabelType#> Prediction { get; set; }
+<# }#>
+<#if("MulticlassClassification".Equals(TaskType)){ #>
+        public float[] Score { get; set; }
+<#}else{ #>
+        public float Score { get; set; }
+<#}#>
+    }
+}
+
+<#+
+public string Namespace {get;set;}
+internal CSharp.GenerateTarget Target {get;set;}
+public string TaskType {get;set;}
+public string PredictionLabelType {get;set;}
+public string LabelMappingInputLabelType {get;set;}
+#>

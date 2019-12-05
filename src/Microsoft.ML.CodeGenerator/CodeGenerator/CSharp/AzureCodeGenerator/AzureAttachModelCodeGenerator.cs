@@ -7,10 +7,11 @@ using Microsoft.ML.AutoML;
 using Microsoft.ML.CodeGenerator.CSharp;
 using Microsoft.ML.CodeGenerator.Templates.AzureImageClassification.Model;
 using Microsoft.ML.CodeGenerator.Templates.Console;
+using Microsoft.ML.CodeGenerator.Utilities;
 
 namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
 {
-    internal class AzureAttachImageModelCodeGenerator : IProjectGenerator
+    internal class AzureAttachModelCodeGenerator : IProjectGenerator
     {
         private readonly Pipeline _pipeline;
         private readonly CodeGeneratorSettings _settings;
@@ -22,9 +23,11 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
         public IProjectFileGenerator NormalizeMapping { get; private set; }
         public IProjectFileGenerator ModelProject { get; private set; }
         public IProjectFileGenerator ConsumeModel { get; private set; }
+        public IProjectFileGenerator LabelMapping { get; private set; }
+        public IProjectFileGenerator ImageLabelMapping { get; private set; }
         public string Name { get; set; }
 
-        public AzureAttachImageModelCodeGenerator(Pipeline pipeline, ColumnInferenceResults columnInferenceResults, CodeGeneratorSettings options, string namespaceValue)
+        public AzureAttachModelCodeGenerator(Pipeline pipeline, ColumnInferenceResults columnInferenceResults, CodeGeneratorSettings options, string namespaceValue)
         {
             _pipeline = pipeline;
             _settings = options;
@@ -65,6 +68,18 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                 OutputName = _settings.OutputName,
             };
 
+            var labelType = _columnInferenceResult.TextLoaderOptions.Columns.Where(t => t.Name == _settings.LabelName).First().DataKind;
+            Type labelTypeCsharp = Utils.GetCSharpType(labelType);
+
+            LabelMapping = new LabelMapping()
+            {
+                Target = _settings.Target,
+                Namespace = _nameSpaceValue,
+                LabelMappingInputLabelType = typeof(Int64).Name,
+                PredictionLabelType = labelTypeCsharp.Name,
+                TaskType = _settings.MlTask.ToString(),
+            };
+
             ConsumeModel = new AzureAttachImageConsumeModel()
             {
                 Namespace = _nameSpaceValue,
@@ -74,15 +89,30 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
 
         public IProject ToProject()
         {
-            var project = new Project()
-            {
-                ModelInputClass.ToProjectFile(),
-                ModelOutputClass.ToProjectFile(),
-                ConsumeModel.ToProjectFile(),
-                ModelProject.ToProjectFile(),
-                NormalizeMapping.ToProjectFile(),
-            };
+            Project project = default;
 
+            if (_settings.IsImage)
+            {
+                project = new Project()
+                {
+                    ModelInputClass.ToProjectFile(),
+                    ModelOutputClass.ToProjectFile(),
+                    ConsumeModel.ToProjectFile(),
+                    ModelProject.ToProjectFile(),
+                    NormalizeMapping.ToProjectFile(),
+                };
+            }
+            else
+            {
+                project = new Project()
+                {
+                    ModelInputClass.ToProjectFile(),
+                    ModelOutputClass.ToProjectFile(),
+                    ConsumeModel.ToProjectFile(),
+                    ModelProject.ToProjectFile(),
+                    LabelMapping.ToProjectFile(),
+                };
+            }
             project.Name = Name;
             return project;
         }

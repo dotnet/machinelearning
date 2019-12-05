@@ -12,7 +12,7 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
 {
-    internal class AzureAttachImageConsoleAppCodeGenerator : IProjectGenerator
+    internal class AzureAttachConsoleAppCodeGenerator : IProjectGenerator
     {
         private readonly Pipeline _pipeline;
         private readonly CodeGeneratorSettings _settings;
@@ -24,7 +24,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
         public IProjectFileGenerator PredictProgram { get; private set; }
         public string Name { get; set; }
 
-        public AzureAttachImageConsoleAppCodeGenerator(Pipeline pipeline, ColumnInferenceResults columnInferenceResults, CodeGeneratorSettings options, string namespaceValue)
+        public AzureAttachConsoleAppCodeGenerator(Pipeline pipeline, ColumnInferenceResults columnInferenceResults, CodeGeneratorSettings options, string namespaceValue)
         {
             _pipeline = pipeline;
             _settings = options;

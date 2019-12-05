@@ -33,6 +33,10 @@
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>NormalizeMapping.cs</LastGenOutput>
     </None>
+    <None Update="Templates\AzureImageClassification\Model\LabelMapping.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>LabelMapping.cs</LastGenOutput>
+    </None>
     <None Update="Templates\Console\Annotation.ttinclude">
     </None>
     <None Update="Templates\Console\ConsumeModel.tt">
@@ -84,6 +88,11 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>NormalizeMapping.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\AzureImageClassification\Model\LabelMapping.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LabelMapping.tt</DependentUpon>
     </Compile>
     <Compile Update="Templates\Console\ConsumeModel.cs">
       <DesignTime>True</DesignTime>

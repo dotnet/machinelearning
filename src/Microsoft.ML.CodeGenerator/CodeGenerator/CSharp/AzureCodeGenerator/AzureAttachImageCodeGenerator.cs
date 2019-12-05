@@ -22,7 +22,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
             _columnInferenceResult = columnInferenceResults;
             Name = _settings.OutputName;
             var namespaceValue = Utilities.Utils.Normalize(_settings.OutputName);
-            AzureAttachImageConsoleApp = new AzureAttachImageConsoleAppCodeGenerator(_pipeline, _columnInferenceResult, _settings, namespaceValue);
+            AzureAttachImageConsoleApp = new AzureAttachConsoleAppCodeGenerator(_pipeline, _columnInferenceResult, _settings, namespaceValue);
             AzureAttachImageModel = new AzureAttachImageModelCodeGenerator(_pipeline, _columnInferenceResult, _settings, namespaceValue);
         }
 

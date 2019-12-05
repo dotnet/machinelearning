@@ -33,6 +33,8 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         public bool IsAzureAttach { get; set; }
 
+        public bool IsImage { get; set; }
+
         internal TaskKind MlTask { get; set; }
 
     }
