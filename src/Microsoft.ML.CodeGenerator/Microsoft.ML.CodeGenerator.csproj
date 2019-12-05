@@ -25,6 +25,10 @@
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>AzureAttachImageConsumeModel.cs</LastGenOutput>
     </None>
+    <None Update="Templates\AzureImageClassification\Model\ImageLabelMapping.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>ImageLabelMapping.cs</LastGenOutput>
+    </None>
     <None Update="Templates\AzureImageClassification\Model\OnnxModelOutputClass.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>OnnxModelOutputClass.cs</LastGenOutput>
@@ -78,6 +82,11 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>AzureAttachImageConsumeModel.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\AzureImageClassification\Model\ImageLabelMapping.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ImageLabelMapping.tt</DependentUpon>
     </Compile>
     <Compile Update="Templates\AzureImageClassification\Model\OnnxModelOutputClass.cs">
       <DesignTime>True</DesignTime>

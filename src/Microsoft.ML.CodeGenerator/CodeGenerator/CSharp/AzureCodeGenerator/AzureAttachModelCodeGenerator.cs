@@ -80,7 +80,13 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                 TaskType = _settings.MlTask.ToString(),
             };
 
-            ConsumeModel = new AzureAttachImageConsumeModel()
+            ImageLabelMapping = new ImageLabelMapping()
+            {
+                Target = _settings.Target,
+                Namespace = _nameSpaceValue,
+            };
+
+            ConsumeModel = new ConsumeModel()
             {
                 Namespace = _nameSpaceValue,
                 Target = _settings.Target
@@ -89,8 +95,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
 
         public IProject ToProject()
         {
-            Project project = default;
-
+            Project project;
             if (_settings.IsImage)
             {
                 project = new Project()
@@ -100,6 +105,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                     ConsumeModel.ToProjectFile(),
                     ModelProject.ToProjectFile(),
                     NormalizeMapping.ToProjectFile(),
+                    ImageLabelMapping.ToProjectFile(),
                 };
             }
             else
