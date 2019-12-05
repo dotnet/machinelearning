@@ -5,12 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 namespace Microsoft.Data.Analysis
 {
-
     public partial class DataFrame
     {
+        private const int DefaultStreamReaderBufferSize = 1024;
+
         private static Type GuessKind(int col, List<string[]> read)
         {
             Type res = typeof(string);
@@ -205,7 +207,7 @@ namespace Microsoft.Data.Analysis
             List<DataFrameColumn> columns;
             long streamStart = csvStream.Position;
             // First pass: schema and number of rows.
-            using (var streamReader = new StreamReader(csvStream, encoding: null, detectEncodingFromByteOrderMarks: true, bufferSize: -1, leaveOpen: true))
+            using (var streamReader = new StreamReader(csvStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, DefaultStreamReaderBufferSize, leaveOpen: true))
             {
                 string line = null;
                 if (dataTypes == null)

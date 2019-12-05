@@ -169,7 +169,7 @@ namespace Microsoft.Data.Analysis.Tests
         {
             IEnumerable<int> randomIndices = Enumerable.Range(0, (int)input.Rows.Count);
             IEnumerable<int> trainIndices = randomIndices.Take((int)(input.Rows.Count * testRatio));
-            IEnumerable<int> testIndices = randomIndices.TakeLast((int)(input.Rows.Count * (1 - testRatio)));
+            IEnumerable<int> testIndices = randomIndices.Skip((int)(input.Rows.Count * testRatio));
             Test = input[testIndices];
             return input[trainIndices];
         }
@@ -1540,11 +1540,11 @@ namespace Microsoft.Data.Analysis.Tests
 
             DataFrame prefix = df.AddPrefix("Prefix_");
             IEnumerable<DataViewSchema.Column> prefixNames = ((IDataView)prefix).Schema;
-            foreach ((DataViewSchema.Column First, DataViewSchema.Column Second) in columnNames.Zip(((IDataView)df).Schema))
+            foreach ((DataViewSchema.Column First, DataViewSchema.Column Second) in columnNames.Zip(((IDataView)df).Schema, (e1, e2) => (e1, e2)))
             {
                 Assert.Equal(First.Name, Second.Name);
             }
-            foreach ((DataViewSchema.Column First, DataViewSchema.Column Second) in prefixNames.Zip(columnNames))
+            foreach ((DataViewSchema.Column First, DataViewSchema.Column Second) in prefixNames.Zip(columnNames, (e1, e2) => (e1, e2)))
             {
                 Assert.Equal(First.Name, "Prefix_" + Second.Name);
             }
@@ -1552,18 +1552,18 @@ namespace Microsoft.Data.Analysis.Tests
             // Inplace
             df.AddPrefix("Prefix_", true);
             prefixNames = ((IDataView)df).Schema;
-            foreach ((DataViewSchema.Column First, DataViewSchema.Column Second) in columnNames.Zip(prefixNames))
+            foreach ((DataViewSchema.Column First, DataViewSchema.Column Second) in columnNames.Zip(prefixNames, (e1, e2) => (e1, e2)))
             {
                 Assert.Equal("Prefix_" + First.Name, Second.Name);
             }
 
             DataFrame suffix = df.AddSuffix("_Suffix");
             IEnumerable<DataViewSchema.Column> suffixNames = ((IDataView)suffix).Schema;
-            foreach ((DataViewSchema.Column First, DataViewSchema.Column Second) in ((IDataView)df).Schema.Zip(columnNames))
+            foreach ((DataViewSchema.Column First, DataViewSchema.Column Second) in ((IDataView)df).Schema.Zip(columnNames, (e1, e2) => (e1, e2)))
             {
                 Assert.Equal(First.Name, "Prefix_" + Second.Name);
             }
-            foreach ((DataViewSchema.Column First, DataViewSchema.Column Second) in columnNames.Zip(suffixNames))
+            foreach ((DataViewSchema.Column First, DataViewSchema.Column Second) in columnNames.Zip(suffixNames, (e1, e2) => (e1, e2)))
             {
                 Assert.Equal("Prefix_" + First.Name + "_Suffix", Second.Name);
             }
@@ -1571,7 +1571,7 @@ namespace Microsoft.Data.Analysis.Tests
             // InPlace
             df.AddSuffix("_Suffix", true);
             suffixNames = ((IDataView)df).Schema;
-            foreach ((DataViewSchema.Column First, DataViewSchema.Column Second) in columnNames.Zip(suffixNames))
+            foreach ((DataViewSchema.Column First, DataViewSchema.Column Second) in columnNames.Zip(suffixNames, (e1, e2) => (e1, e2)))
             {
                 Assert.Equal("Prefix_" + First.Name + "_Suffix", Second.Name);
             }
@@ -1942,19 +1942,20 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(2, df.Columns[0].NullCount);
             Assert.Equal(3, df.Columns[1].NullCount);
 
-            df.Append(new List<KeyValuePair<string, object>> { KeyValuePair.Create("Column1", (object)5), KeyValuePair.Create("Column2", (object)false) });
+            df.Append(new Dictionary<string, object> { { "Column1", (object)5 } ,  { "Column2", false } });
             Assert.Equal(14, df.Rows.Count);
             Assert.Equal(2, df.Columns[0].NullCount);
             Assert.Equal(3, df.Columns[1].NullCount);
 
-            df.Append(new List<KeyValuePair<string, object>> { KeyValuePair.Create("Column1", (object)5) });
+            df.Append(new Dictionary<string, object> { { "Column1", 5 } });
             Assert.Equal(15, df.Rows.Count);
+
             Assert.Equal(15, df["Column1"].Length);
             Assert.Equal(15, df["Column2"].Length);
             Assert.Equal(2, df.Columns[0].NullCount);
             Assert.Equal(4, df.Columns[1].NullCount);
 
-            df.Append(new List<KeyValuePair<string, object>> { KeyValuePair.Create("Column2", (object)false) });
+            df.Append(new Dictionary<string, object> { { "Column2", false } });
             Assert.Equal(16, df.Rows.Count);
             Assert.Equal(16, df["Column1"].Length);
             Assert.Equal(16, df["Column2"].Length);
@@ -1970,7 +1971,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             // DataFrame must remain usable even if Append throws
             Assert.Throws<FormatException>(() => df.Append(new List<object> { 5, "str" }));
-            Assert.Throws<FormatException>(() => df.Append(new List<KeyValuePair<string, object>> { KeyValuePair.Create("Column2", (object)"str") }));
+            Assert.Throws<FormatException>(() => df.Append(new Dictionary<string, object> { { "Column2", "str" } }));
             Assert.Throws<ArgumentException>(() => df.Append(new List<object> { 5, true, true }));
 
             df.Append();

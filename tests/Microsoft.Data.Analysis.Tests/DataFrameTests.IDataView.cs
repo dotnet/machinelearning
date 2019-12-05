@@ -66,8 +66,8 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal((ushort)1, preview.ColumnView[10].Values[1]);
 
             Assert.Equal("String", preview.ColumnView[11].Column.Name);
-            Assert.Equal("0".AsMemory(), preview.ColumnView[11].Values[0]);
-            Assert.Equal("1".AsMemory(), preview.ColumnView[11].Values[1]);
+            Assert.Equal("0".ToString(), preview.ColumnView[11].Values[0].ToString());
+            Assert.Equal("1".ToString(), preview.ColumnView[11].Values[1].ToString());
 
             Assert.Equal("Char", preview.ColumnView[12].Column.Name);
             Assert.Equal((ushort)65, preview.ColumnView[12].Values[0]);

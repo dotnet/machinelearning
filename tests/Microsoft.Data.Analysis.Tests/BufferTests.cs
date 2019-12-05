@@ -188,6 +188,7 @@ namespace Microsoft.Data.Analysis.Tests
                 Assert.Null(clone[i]);
         }
 
+#if !NETFRAMEWORK // https://github.com/dotnet/corefxlab/issues/2796
         [Fact]
         public void TestPrimitiveColumnGetReadOnlyBuffers()
         {
@@ -275,5 +276,6 @@ namespace Microsoft.Data.Analysis.Tests
                 }
             }
         }
+#endif //!NETFRAMEWORK
     }
 }
