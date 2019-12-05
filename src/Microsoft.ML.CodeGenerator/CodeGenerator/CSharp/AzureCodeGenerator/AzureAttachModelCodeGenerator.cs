@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.CodeGenerator.CSharp;
@@ -42,10 +43,14 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                 Target = _settings.Target
             };
 
-            ModelOutputClass = new OnnxModelOutputClass()
+            var labelType = _columnInferenceResult.TextLoaderOptions.Columns.Where(t => t.Name == _settings.LabelName).First().DataKind;
+            Type labelTypeCsharp = Utils.GetCSharpType(labelType);
+
+            ModelOutputClass = new ModelOutputClass()
             {
                 Namespace = _nameSpaceValue,
-                Target = _settings.Target
+                Target = _settings.Target,
+                TaskType = _settings.MlTask.ToString(),
             };
 
             NormalizeMapping = new NormalizeMapping()
@@ -67,9 +72,6 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                 UnstablePackageVersion = _settings.UnstablePackageVersion,
                 OutputName = _settings.OutputName,
             };
-
-            var labelType = _columnInferenceResult.TextLoaderOptions.Columns.Where(t => t.Name == _settings.LabelName).First().DataKind;
-            Type labelTypeCsharp = Utils.GetCSharpType(labelType);
 
             LabelMapping = new LabelMapping()
             {
