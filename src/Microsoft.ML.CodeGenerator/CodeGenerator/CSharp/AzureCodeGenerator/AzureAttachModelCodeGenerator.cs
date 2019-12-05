@@ -89,7 +89,9 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
             ConsumeModel = new ConsumeModel()
             {
                 Namespace = _nameSpaceValue,
-                Target = _settings.Target
+                Target = _settings.Target,
+                HasLabelMapping = true,
+                HasNormalizeMapping = _settings.IsImage,
             };
         }
 
