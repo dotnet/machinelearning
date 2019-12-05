@@ -234,6 +234,7 @@ namespace mlnet.Tests
                 OnnxModelPath = @"/path/to/onnxModel",
                 IsAzureAttach = true,
                 IsImage = true,
+                ClassificationLabel = new string[] {"label1", "label2", "label3"},
             };
             var codeGen = new AzureAttachCodeGenenrator(pipeline, columnInference, setting);
             foreach (var project in codeGen.ToSolution())

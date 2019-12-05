@@ -87,6 +87,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
             {
                 Target = _settings.Target,
                 Namespace = _nameSpaceValue,
+                Labels = _settings.ClassificationLabel,
             };
 
             ConsumeModel = new ConsumeModel()

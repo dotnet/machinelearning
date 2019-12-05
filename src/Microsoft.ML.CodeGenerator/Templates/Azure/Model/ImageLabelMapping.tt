@@ -18,11 +18,10 @@ namespace <#= Namespace #>.Model
     [CustomMappingFactoryAttribute(nameof(LabelMapping))]
     public class LabelMapping : CustomMappingFactory<LabelMappingInput, LabelMappingOutput>
     {
+		public string Label {get; set;} = new string[]{<#foreach(var label in Labels){#>"<#=label#>",<#}#>};
         // This is the custom mapping. We now separate it into a method, so that we can use it both in training and in loading.
         public static void Mapping(LabelMappingInput input, LabelMappingOutput output)
         {
-            string[] label = new string[] { "cloudy", "raining", "sunny", "sunrise" };
-
             var values = input.output1.GetValues().ToArray();
             var maxVal = values.Max();
             var exp = values.Select(v => Math.Exp(v - maxVal));
@@ -33,7 +32,7 @@ namespace <#= Namespace #>.Model
 
             var maxValue = output.score.Max();
             var maxValueIndex = Array.IndexOf(output.score, maxValue);
-            output.label = label[maxValueIndex];
+            output.label = Label[maxValueIndex];
         }
         // This factory method will be called when loading the model to get the mapping operation.
         public override Action<LabelMappingInput, LabelMappingOutput> GetMapping()
@@ -59,4 +58,5 @@ namespace <#= Namespace #>.Model
 <#+
 public string Namespace {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
+public string[] Labels {get; set;} = new string[0];
 #>

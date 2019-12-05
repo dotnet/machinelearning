@@ -35,29 +35,56 @@ MB_Annotation();
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             this.Write(".Model\r\n{\r\n    [CustomMappingFactoryAttribute(nameof(LabelMapping))]\r\n    public " +
                     "class LabelMapping : CustomMappingFactory<LabelMappingInput, LabelMappingOutput>" +
-                    "\r\n    {\r\n        // This is the custom mapping. We now separate it into a method" +
-                    ", so that we can use it both in training and in loading.\r\n        public static " +
-                    "void Mapping(LabelMappingInput input, LabelMappingOutput output)\r\n        {\r\n   " +
-                    "         string[] label = new string[] { \"cloudy\", \"raining\", \"sunny\", \"sunrise\"" +
-                    " };\r\n\r\n            var values = input.output1.GetValues().ToArray();\r\n          " +
-                    "  var maxVal = values.Max();\r\n            var exp = values.Select(v => Math.Exp(" +
-                    "v - maxVal));\r\n            var sumExp = exp.Sum();\r\n\r\n            exp.Select(v =" +
-                    "> (float)(v / sumExp)).ToArray();\r\n            output.score = exp.Select(v => (f" +
-                    "loat)(v / sumExp)).ToArray();\r\n\r\n            var maxValue = output.score.Max();\r" +
-                    "\n            var maxValueIndex = Array.IndexOf(output.score, maxValue);\r\n       " +
-                    "     output.label = label[maxValueIndex];\r\n        }\r\n        // This factory me" +
-                    "thod will be called when loading the model to get the mapping operation.\r\n      " +
-                    "  public override Action<LabelMappingInput, LabelMappingOutput> GetMapping()\r\n  " +
-                    "      {\r\n            return Mapping;\r\n        }\r\n    }\r\n    public class LabelMa" +
-                    "ppingInput\r\n    {\r\n        [ColumnName(\"output1\")]\r\n        public VBuffer<float" +
-                    "> output1;\r\n    }\r\n    public class LabelMappingOutput\r\n    {\r\n\r\n        [Column" +
-                    "Name(\"PredictedLabel\")]\r\n        public string label { get; set; }\r\n\r\n        [C" +
-                    "olumnName(\"Score\")]\r\n        public float[] score { get; set; }\r\n    }\r\n}\r\n");
+                    "\r\n    {\r\n\t\tpublic string Label {get; set;} = new string[]{");
+foreach(var label in Labels){
+            this.Write("\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(label));
+            this.Write("\",");
+}
+            this.Write(@"};
+        // This is the custom mapping. We now separate it into a method, so that we can use it both in training and in loading.
+        public static void Mapping(LabelMappingInput input, LabelMappingOutput output)
+        {
+            var values = input.output1.GetValues().ToArray();
+            var maxVal = values.Max();
+            var exp = values.Select(v => Math.Exp(v - maxVal));
+            var sumExp = exp.Sum();
+
+            exp.Select(v => (float)(v / sumExp)).ToArray();
+            output.score = exp.Select(v => (float)(v / sumExp)).ToArray();
+
+            var maxValue = output.score.Max();
+            var maxValueIndex = Array.IndexOf(output.score, maxValue);
+            output.label = Label[maxValueIndex];
+        }
+        // This factory method will be called when loading the model to get the mapping operation.
+        public override Action<LabelMappingInput, LabelMappingOutput> GetMapping()
+        {
+            return Mapping;
+        }
+    }
+    public class LabelMappingInput
+    {
+        [ColumnName(""output1"")]
+        public VBuffer<float> output1;
+    }
+    public class LabelMappingOutput
+    {
+
+        [ColumnName(""PredictedLabel"")]
+        public string label { get; set; }
+
+        [ColumnName(""Score"")]
+        public float[] score { get; set; }
+    }
+}
+");
             return this.GenerationEnvironment.ToString();
         }
 
 public string Namespace {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
+public string[] Labels {get; set;} = new string[0];
 
 
 void CLI_Annotation()

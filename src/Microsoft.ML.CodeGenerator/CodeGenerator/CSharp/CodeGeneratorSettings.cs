@@ -40,6 +40,12 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         public bool IsImage { get; set; }
 
+        /// <summary>
+        /// classification label
+        /// for Azure image only
+        /// </summary>
+        public string[] ClassificationLabel { get; set; }
+
         public IDictionary<string, ColumnMapping> OnnxInputMapping { get; set; }
 
         internal TaskKind MlTask { get; set; }
