@@ -91,7 +91,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                 inputType = new VectorDataViewType(NumberDataViewType.Single);
         }
 
-        private static EnsembleMulticlassModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static EnsembleMulticlassModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Pack">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageDescription>ML.NET featurizers with native code implementation</PackageDescription>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
+
+    <PackageReference Include="Microsoft.MLFeaturizers" Version="0.3.5" />
+  </ItemGroup>
+  
+</Project>

@@ -25,8 +25,44 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Scenarios
 {
+
+    internal sealed class TensorFlowScenariosTestsFixture : IDisposable
+    {
+        public static string parentWorkspacePath;
+        public static string assetsPath;
+        internal void CreateParentWorkspacePathForImageClassification()
+        {
+            string assetsRelativePath = @"assets";
+            assetsPath = GetAbsolutePath(assetsRelativePath);
+            string workspacePath = Path.Combine(assetsPath, "cached");
+            // Delete if the workspace path already exists
+            if (Directory.Exists(workspacePath))
+            {
+                Directory.Delete(workspacePath, true);
+            }
+
+            // Create a new empty workspace path
+            Directory.CreateDirectory(workspacePath);
+            parentWorkspacePath = workspacePath;
+        }
+
+        public TensorFlowScenariosTestsFixture()
+        {
+            CreateParentWorkspacePathForImageClassification();
+        }
+
+        public void Dispose()
+        {
+            // clean up test data
+        }
+
+        public static string GetAbsolutePath(string relativePath) =>
+            Path.Combine(new FileInfo(typeof(
+                TensorFlowScenariosTestsFixture).Assembly.Location).Directory.FullName, relativePath);
+    }
+
     [Collection("NoParallelization")]
-    public sealed class TensorFlowScenariosTests : BaseTestClass
+    public sealed class TensorFlowScenariosTests : BaseTestClass, IClassFixture<TensorFlowScenariosTestsFixture>
     {
         public TensorFlowScenariosTests(ITestOutputHelper output) : base(output)
         {
@@ -1212,9 +1248,7 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowImageClassificationDefault()
         {
-            string assetsRelativePath = @"assets";
-            string assetsPath = GetAbsolutePath(assetsRelativePath);
-            string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
+            string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
 
             //Download the image set and unzip
@@ -1271,6 +1305,30 @@ namespace Microsoft.ML.Scenarios
 
         }
 
+        internal bool ShouldReuse(string workspacePath, string trainSetBottleneckCachedValuesFileName, string validationSetBottleneckCachedValuesFileName)
+        {
+            bool isReuse = false;
+            if (Directory.Exists(workspacePath) && File.Exists(Path.Combine(workspacePath, trainSetBottleneckCachedValuesFileName))
+                && File.Exists(Path.Combine(workspacePath, validationSetBottleneckCachedValuesFileName)))
+            {
+                isReuse = true;
+            }
+            else
+            {
+                Directory.CreateDirectory(workspacePath);
+            }
+            return isReuse;
+        }
+        
+        internal (string, string, string, bool) getInitialParameters(ImageClassificationTrainer.Architecture arch, string finalImagesFolderName)
+        {
+            string trainSetBottleneckCachedValuesFileName = "TrainsetCached_" + finalImagesFolderName + "_" + (int) arch;
+            string validationSetBottleneckCachedValuesFileName = "validationsetCached_" + finalImagesFolderName + "_" + (int) arch;
+            string workspacePath = Path.Combine(TensorFlowScenariosTestsFixture.parentWorkspacePath, finalImagesFolderName + "_" + (int) arch);
+            bool isReuse = ShouldReuse(workspacePath, trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName);
+            return (trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName, workspacePath, isReuse);
+        }
+
         [TensorFlowTheory]
         [InlineData(ImageClassificationTrainer.Architecture.ResnetV2101)]
         [InlineData(ImageClassificationTrainer.Architecture.MobilenetV2)]
@@ -1278,9 +1336,7 @@ namespace Microsoft.ML.Scenarios
         [InlineData(ImageClassificationTrainer.Architecture.InceptionV3)]
         public void TensorFlowImageClassification(ImageClassificationTrainer.Architecture arch)
         {
-            string assetsRelativePath = @"assets";
-            string assetsPath = GetAbsolutePath(assetsRelativePath);
-            string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
+            string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
 
             //Download the image set and unzip
@@ -1314,6 +1370,10 @@ namespace Microsoft.ML.Scenarios
                     .Fit(testDataset)
                     .Transform(testDataset);
 
+            // Check if the bottleneck cached values already exist
+            var (trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName, 
+                workspacePath, isReuse)  = getInitialParameters(arch, finalImagesFolderName);
+            
             var options = new ImageClassificationTrainer.Options()
             {
                 FeatureColumnName = "Image",
@@ -1327,6 +1387,11 @@ namespace Microsoft.ML.Scenarios
                 LearningRate = 0.01f,
                 MetricsCallback = (metric) => Console.WriteLine(metric),
                 TestOnTrainSet = false,
+                WorkspacePath = workspacePath,
+                ReuseTrainSetBottleneckCachedValues = isReuse,
+                ReuseValidationSetBottleneckCachedValues = isReuse,
+                TrainSetBottleneckCachedValuesFileName = trainSetBottleneckCachedValuesFileName,
+                ValidationSetBottleneckCachedValuesFileName = validationSetBottleneckCachedValuesFileName,
                 ValidationSet = validationSet
             };
 
@@ -1413,9 +1478,7 @@ namespace Microsoft.ML.Scenarios
 
         internal void TensorFlowImageClassificationWithLRScheduling(LearningRateScheduler  learningRateScheduler, int epoch)
         {
-            string assetsRelativePath = @"assets";
-            string assetsPath = GetAbsolutePath(assetsRelativePath);
-            string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
+            string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
 
             //Download the image set and unzip
@@ -1449,6 +1512,10 @@ namespace Microsoft.ML.Scenarios
                     .Fit(testDataset)
                     .Transform(testDataset);
 
+            // Check if the bottleneck cached values already exist
+            var (trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName,
+                workspacePath, isReuse) = getInitialParameters(ImageClassificationTrainer.Architecture.ResnetV2101, finalImagesFolderName);
+
             var options = new ImageClassificationTrainer.Options()
             {
                 FeatureColumnName = "Image",
@@ -1462,11 +1529,13 @@ namespace Microsoft.ML.Scenarios
                 LearningRate = 0.01f,
                 MetricsCallback = (metric) => Console.WriteLine(metric),
                 ValidationSet = validationSet,
-                ReuseValidationSetBottleneckCachedValues = false,
-                ReuseTrainSetBottleneckCachedValues = false,
+                WorkspacePath = workspacePath,
+                TrainSetBottleneckCachedValuesFileName = trainSetBottleneckCachedValuesFileName,
+                ValidationSetBottleneckCachedValuesFileName = validationSetBottleneckCachedValuesFileName,
+                ReuseValidationSetBottleneckCachedValues = isReuse,
+                ReuseTrainSetBottleneckCachedValues = isReuse,
                 EarlyStoppingCriteria = null,
-                LearningRateScheduler = learningRateScheduler,
-                WorkspacePath = GetTemporaryDirectory()
+                LearningRateScheduler = learningRateScheduler
             };
 
             var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
@@ -1540,16 +1609,15 @@ namespace Microsoft.ML.Scenarios
             Assert.True(File.Exists(Path.Combine(options.WorkspacePath, options.TrainSetBottleneckCachedValuesFileName)));
             Assert.True(File.Exists(Path.Combine(options.WorkspacePath, options.ValidationSetBottleneckCachedValuesFileName)));
             Assert.True(File.Exists(Path.Combine(options.WorkspacePath, "TrainingSetSize.txt")));
-            Directory.Delete(options.WorkspacePath, true);
             Assert.True(File.Exists(Path.Combine(Path.GetTempPath(), "MLNET", ImageClassificationTrainer.ModelFileName[options.Arch])));
         }
 
-        [TensorFlowFact]
-        public void TensorFlowImageClassificationEarlyStoppingIncreasing()
+        [TensorFlowTheory]
+        [InlineData(ImageClassificationTrainer.EarlyStoppingMetric.Accuracy)]
+        [InlineData(ImageClassificationTrainer.EarlyStoppingMetric.Loss)]
+        public void TensorFlowImageClassificationEarlyStopping(ImageClassificationTrainer.EarlyStoppingMetric earlyStoppingMetric)
         {
-            string assetsRelativePath = @"assets";
-            string assetsPath = GetAbsolutePath(assetsRelativePath);
-            string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
+            string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
 
             //Download the image set and unzip
@@ -1585,6 +1653,12 @@ namespace Microsoft.ML.Scenarios
                     .Fit(testDataset)
                     .Transform(testDataset);
 
+            // Check if the bottleneck cached values already exist
+            var (trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName,
+                workspacePath, isReuse) = getInitialParameters(ImageClassificationTrainer.Architecture.ResnetV2101, finalImagesFolderName);
+
+
+
             var options = new ImageClassificationTrainer.Options()
             {
                 FeatureColumnName = "Image",
@@ -1593,93 +1667,18 @@ namespace Microsoft.ML.Scenarios
                 // ResnetV2101 you can try a different architecture/
                 // pre-trained model. 
                 Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
-                EarlyStoppingCriteria = new ImageClassificationTrainer.EarlyStopping(),
+                EarlyStoppingCriteria = new ImageClassificationTrainer.EarlyStopping(metric: earlyStoppingMetric),
                 Epoch = 100,
                 BatchSize = 5,
                 LearningRate = 0.01f,
                 MetricsCallback = (metric) => { Console.WriteLine(metric); lastEpoch = metric.Train != null ? metric.Train.Epoch : 0; },
                 TestOnTrainSet = false,
+                WorkspacePath = workspacePath,
+                ReuseTrainSetBottleneckCachedValues = isReuse,
+                ReuseValidationSetBottleneckCachedValues = isReuse,
+                TrainSetBottleneckCachedValuesFileName = trainSetBottleneckCachedValuesFileName,
+                ValidationSetBottleneckCachedValuesFileName = validationSetBottleneckCachedValuesFileName,
                 ValidationSet = validationSet
-            };
-
-            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath") 
-                .Append(mlContext.MulticlassClassification.Trainers.ImageClassification(options));
-
-            var trainedModel = pipeline.Fit(trainDataset);
-            mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
-                "model.zip");
-
-            ITransformer loadedModel;
-            DataViewSchema schema;
-            using (var file = File.OpenRead("model.zip"))
-                loadedModel = mlContext.Model.Load(file, out schema);
-
-            IDataView predictions = trainedModel.Transform(testDataset);
-            var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
-            
-            Assert.InRange(metrics.MicroAccuracy, 0.8, 1);
-            Assert.InRange(metrics.MacroAccuracy, 0.8, 1);
-
-            //Assert that the training ran and stopped within half epochs due to EarlyStopping
-            Assert.InRange(lastEpoch, 1, 49);
-        }
-
-        [TensorFlowFact]
-        public void TensorFlowImageClassificationEarlyStoppingDecreasing()
-        {
-            string assetsRelativePath = @"assets";
-            string assetsPath = GetAbsolutePath(assetsRelativePath);
-            string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
-                "images");
-
-            //Download the image set and unzip
-            string finalImagesFolderName = DownloadImageSet(
-                imagesDownloadFolderPath);
-
-            string fullImagesetFolderPath = Path.Combine(
-                imagesDownloadFolderPath, finalImagesFolderName);
-
-            MLContext mlContext = new MLContext(seed: 1);
-
-            //Load all the original images info
-            IEnumerable<ImageData> images = LoadImagesFromDirectory(
-                folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
-
-            IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
-                mlContext.Data.LoadFromEnumerable(images), seed: 1);
-
-            shuffledFullImagesDataset = mlContext.Transforms.Conversion
-                .MapValueToKey("Label")
-                .Fit(shuffledFullImagesDataset)
-                .Transform(shuffledFullImagesDataset);
-
-            // Split the data 80:10 into train and test sets, train and evaluate.
-            TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
-                shuffledFullImagesDataset, testFraction: 0.2, seed: 1);
-
-            IDataView trainDataset = trainTestData.TrainSet;
-            IDataView testDataset = trainTestData.TestSet;
-
-            int lastEpoch = 0;
-            var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
-                     .Fit(testDataset)
-                     .Transform(testDataset);
-
-            var options = new ImageClassificationTrainer.Options()
-            {
-                FeatureColumnName = "Image",
-                LabelColumnName = "Label",
-                // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
-                // ResnetV2101 you can try a different architecture/
-                // pre-trained model. 
-                Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
-                Epoch = 100,
-                BatchSize = 5,
-                LearningRate = 0.01f,
-                EarlyStoppingCriteria = new ImageClassificationTrainer.EarlyStopping(metric: ImageClassificationTrainer.EarlyStoppingMetric.Loss),
-                MetricsCallback = (metric) => { Console.WriteLine(metric); lastEpoch = metric.Train != null ? metric.Train.Epoch : 0; },
-                TestOnTrainSet = false,
-                ValidationSet = validationSet,
             };
 
             var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
@@ -1707,9 +1706,7 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowImageClassificationBadImages()
         {
-            string assetsRelativePath = @"assets";
-            string assetsPath = GetAbsolutePath(assetsRelativePath);
-            string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
+            string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
 
             //Download the image set and unzip
@@ -1819,12 +1816,15 @@ namespace Microsoft.ML.Scenarios
         public static string DownloadImageSet(string imagesDownloadFolder)
         {
             string fileName = "flower_photos_tiny_set_for_unit_tests.zip";
+            string filenameAlias = "FPTSUT"; // FPTSUT = flower photos tiny set for unit tests
             string url = "https://aka.ms/mlnet-resources/flower_photos_tiny_set_for_unit_test.zip";
 
             Download(url, imagesDownloadFolder, fileName);
             UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);
-
-            return Path.GetFileNameWithoutExtension(fileName);
+            // Sometimes tests fail because the path is too long. So rename the dataset folder to a shorter directory.
+            if(!Directory.Exists(Path.Combine(imagesDownloadFolder, filenameAlias)))
+                Directory.Move(Path.Combine(imagesDownloadFolder, Path.GetFileNameWithoutExtension(fileName)), Path.Combine(imagesDownloadFolder,"FPTSUT"));
+            return filenameAlias;
         }
 
         public static string DownloadBadImageSet(string imagesDownloadFolder)

@@ -139,7 +139,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
 
         // Factory method for SignatureLoadModel.
-        private static SsaSpikeDetector Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static SsaSpikeDetector Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -148,7 +148,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             return new SsaSpikeDetector(env, ctx);
         }
 
-        internal SsaSpikeDetector(IHostEnvironment env, ModelLoadContext ctx)
+        private SsaSpikeDetector(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, ctx, LoaderSignature)
         {
             // *** Binary format ***

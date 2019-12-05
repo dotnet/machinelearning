@@ -136,9 +136,10 @@ namespace Microsoft.ML.Trainers
         private protected virtual bool SaveAsOnnx(OnnxContext ctx, string[] outputs, string featureColumn)
         {
             Host.CheckValue(ctx, nameof(ctx));
-            Host.Check(Utils.Size(outputs) == 1);
+            Host.Check(Utils.Size(outputs) >= 1);
             string opType = "LinearRegressor";
-            var node = ctx.CreateNode(opType, new[] { featureColumn }, outputs, ctx.GetNodeName(opType));
+            string scoreVarName = (Utils.Size(outputs) == 2) ? outputs[1] : outputs[0]; // Get Score from PredictedLabel and/or Score columns
+            var node = ctx.CreateNode(opType, new[] { featureColumn }, new[] { scoreVarName }, ctx.GetNodeName(opType));
             // Selection of logit or probit output transform. enum {'NONE', 'LOGIT', 'PROBIT}
             node.AddAttribute("post_transform", "NONE");
             node.AddAttribute("targets", 1);
@@ -473,7 +474,7 @@ namespace Microsoft.ML.Trainers
             }
         }
 
-        private static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -636,7 +637,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        private static LinearRegressionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static LinearRegressionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -722,7 +723,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        private static PoissonRegressionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static PoissonRegressionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));

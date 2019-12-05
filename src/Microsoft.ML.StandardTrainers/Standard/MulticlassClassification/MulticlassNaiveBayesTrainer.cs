@@ -319,7 +319,7 @@ namespace Microsoft.ML.Trainers
             _outputType = new VectorDataViewType(NumberDataViewType.Single, _labelCount);
         }
 
-        private static NaiveBayesMulticlassModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static NaiveBayesMulticlassModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
