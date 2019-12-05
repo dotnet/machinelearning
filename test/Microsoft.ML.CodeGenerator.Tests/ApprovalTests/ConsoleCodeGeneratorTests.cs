@@ -213,7 +213,7 @@ namespace mlnet.Tests
         [Fact]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void AzureImage_GenerateConsoleAppProjectConsoles_VerifyModelBuilder()
+        public void AzureImageCodeGeneratorTest()
         {
             // That's the hammer I want
             (var pipeline, var columnInference) = GetMockedAzureImagePipelineAndInference();
