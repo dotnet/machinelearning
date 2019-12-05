@@ -14,6 +14,8 @@ using Microsoft.ML.CodeGenerator.CodeGenerator;
 using Microsoft.ML.CodeGenerator.CodeGenerator.CSharp;
 using Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator;
 using Microsoft.ML.CodeGenerator.CSharp;
+using Microsoft.ML.CodeGenerator.Templates.Console;
+using Microsoft.ML.CodeGenerator.Utilities;
 using Microsoft.ML.Data;
 using Xunit;
 using CodeGenerator = Microsoft.ML.CodeGenerator.CSharp.CodeGenerator;
@@ -219,15 +221,15 @@ namespace mlnet.Tests
             (var pipeline, var columnInference) = GetMockedAzureImagePipelineAndInference();
             var setting = new CodeGeneratorSettings()
             {
-                TrainDataset = @"C:\Users\xiaoyuz\Desktop\flower_photos_tiny_set_for_unit_tests\data.tsv",
-                ModelPath = @"C:\Users\xiaoyuz\Desktop\flower_photos_tiny_set_for_unit_tests\CodeGenTest\MLModel.zip",
+                TrainDataset = @"/path/to/dataset",
+                ModelPath = @"/path/to/model",
                 MlTask = TaskKind.MulticlassClassification,
                 OutputName = @"CodeGenTest",
-                OutputBaseDir = @"C:\Users\xiaoyuz\Desktop\CodeGenTest",
+                OutputBaseDir = @"/path/to/codegen",
                 LabelName = "Label",
                 Target = GenerateTarget.ModelBuilder,
-                StablePackageVersion = "1.3.1",
-                UnstablePackageVersion = "0.16.0-preview3-28231-2",
+                StablePackageVersion = "stableversion",
+                UnstablePackageVersion = "unstableversion",
                 IsAzureAttach = true,
                 IsImage = true,
             };
@@ -240,6 +242,78 @@ namespace mlnet.Tests
                     Approvals.Verify(((ProjectFile)projectFile).Data);
                 }
             }
+        }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void ModelInputClassTest()
+        {
+            // mock ColumnInferenceResults
+            var textLoaderArgs = new TextLoader.Options()
+            {
+                Columns = new[] {
+                        new TextLoader.Column("Label", DataKind.Boolean, 0),
+                        new TextLoader.Column("col1", DataKind.Single, 1),
+                        new TextLoader.Column("col2", DataKind.Single, 2),
+                        new TextLoader.Column("col3", DataKind.String, 3),
+                        new TextLoader.Column("col4", DataKind.Int32, 4),
+                        new TextLoader.Column("col5", DataKind.UInt32, 5),
+                    },
+                AllowQuoting = true,
+                AllowSparse = true,
+                HasHeader = true,
+                Separators = new[] { ',' }
+            };
+
+            var columnInference = new ColumnInferenceResults()
+            {
+                TextLoaderOptions = textLoaderArgs,
+                ColumnInformation = new ColumnInformation() { LabelColumnName = "Label" }
+            };
+
+            // mock columnMapping
+            var mapping = new Dictionary<string, CodeGeneratorSettings.ColumnMapping>()
+            {
+                {
+                    "col1",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "col1_map",
+                        ColumnType = DataKind.Int64,
+                    }
+                },
+                {
+                    "col2",
+                    new CodeGeneratorSettings.ColumnMapping()
+                    {
+                        ColumnName = "col2_map",
+                        ColumnType = DataKind.UInt32,
+                    }
+                }
+            };
+
+            // test with null map case
+            var columnMappingStringList = Utils.GenerateClassLabels(columnInference);
+            var modelInputProject = new ModelInputClass()
+            {
+                Namespace = "test",
+                ClassLabels = columnMappingStringList,
+                Target = GenerateTarget.Cli,
+            }.ToProjectFile() as ProjectFile;
+            NamerFactory.AdditionalInformation = "null_map";
+            Approvals.Verify(modelInputProject.Data);
+
+            // test with map case
+            columnMappingStringList = Utils.GenerateClassLabels(columnInference, mapping);
+            modelInputProject = new ModelInputClass()
+            {
+                Namespace = "test",
+                ClassLabels = columnMappingStringList,
+                Target = GenerateTarget.Cli,
+            }.ToProjectFile() as ProjectFile;
+            NamerFactory.AdditionalInformation = "map";
+            Approvals.Verify(modelInputProject.Data);
         }
 
         [Fact]

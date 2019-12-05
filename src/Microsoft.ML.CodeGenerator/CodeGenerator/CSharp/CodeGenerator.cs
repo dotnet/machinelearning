@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,7 @@ using Microsoft.ML.CodeGenerator.CodeGenerator;
 using Microsoft.ML.CodeGenerator.Templates.AzureImageClassification.Model;
 using Microsoft.ML.CodeGenerator.Templates.Console;
 using Microsoft.ML.CodeGenerator.Utilities;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.CodeGenerator.CSharp
 {
@@ -340,7 +342,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             }
         }
 
-        internal IList<string> GenerateClassLabels()
+        internal IList<string> GenerateClassLabels(IDictionary<string, CodeGeneratorSettings.ColumnMapping> columnMapping = default)
         {
             IList<string> result = new List<string>();
             foreach (var column in _columnInferenceResult.TextLoaderOptions.Columns)
@@ -350,7 +352,22 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 bool isArray = range > 0;
                 sb.Append(Symbols.PublicSymbol);
                 sb.Append(Symbols.Space);
-                switch (column.DataKind)
+
+                // if column is in columnMapping, use the type and name in that
+                DataKind dataKind;
+                string columnName;
+
+                if (columnMapping != null && columnMapping.ContainsKey(column.Name))
+                {
+                    dataKind = columnMapping[column.Name].ColumnType;
+                    columnName = columnMapping[column.Name].ColumnName;
+                }
+                else
+                {
+                    dataKind = column.DataKind;
+                    columnName = column.Name;
+                }
+                switch (dataKind)
                 {
                     case Microsoft.ML.Data.DataKind.String:
                         sb.Append(Symbols.StringSymbol);
@@ -378,17 +395,16 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                         break;
                     default:
                         throw new ArgumentException($"The data type '{column.DataKind}' is not handled currently.");
-
                 }
 
                 if (range > 0)
                 {
-                    result.Add($"[ColumnName(\"{column.Name}\"),LoadColumn({column.Source[0].Min}, {column.Source[0].Max}) VectorType({(range + 1)})]");
+                    result.Add($"[ColumnName(\"{columnName}\"),LoadColumn({column.Source[0].Min}, {column.Source[0].Max}) VectorType({(range + 1)})]");
                     sb.Append("[]");
                 }
                 else
                 {
-                    result.Add($"[ColumnName(\"{column.Name}\"), LoadColumn({column.Source[0].Min})]");
+                    result.Add($"[ColumnName(\"{columnName}\"), LoadColumn({column.Source[0].Min})]");
                 }
                 sb.Append(" ");
                 sb.Append(Utils.Normalize(column.Name));

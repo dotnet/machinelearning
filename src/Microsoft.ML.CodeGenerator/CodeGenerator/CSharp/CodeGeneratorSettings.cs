@@ -1,7 +1,10 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+using System.Collections;
+using System.Collections.Generic;
 using Microsoft.ML.AutoML;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.CodeGenerator.CSharp
 {
@@ -35,8 +38,25 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         public bool IsImage { get; set; }
 
+        public IDictionary<string, ColumnMapping> OnnxInputMapping { get; set; }
+
         internal TaskKind MlTask { get; set; }
 
+        /// <summary>
+        /// For onnx model only
+        /// </summary>
+        public struct ColumnMapping
+        {
+            /// <summary>
+            /// Mapping Column Name
+            /// </summary>
+            public string ColumnName;
+
+            /// <summary>
+            /// Mapping Column Type
+            /// </summary>
+            public DataKind ColumnType;
+        }
     }
 
     internal enum GenerateTarget

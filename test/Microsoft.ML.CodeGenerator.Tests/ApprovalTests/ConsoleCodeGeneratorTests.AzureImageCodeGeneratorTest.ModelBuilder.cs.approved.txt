@@ -12,7 +12,7 @@ namespace CodeGenTest.ConsoleApp
 {
     public static class ModelBuilder
     {
-        private static string TRAIN_DATA_FILEPATH = @"C:\Users\xiaoyuz\Desktop\flower_photos_tiny_set_for_unit_tests\data.tsv";
+        private static string TRAIN_DATA_FILEPATH = @"/path/to/dataset";
         private static string MODEL_FILEPATH = @"../../../../CodeGenTest.Model/MLModel.zip";
         private static string ONNX_MODEL = @"../../../../CodeGenTest.Model/bestModel.onnx";
         // Create MLContext to be shared across the model creation workflow objects 

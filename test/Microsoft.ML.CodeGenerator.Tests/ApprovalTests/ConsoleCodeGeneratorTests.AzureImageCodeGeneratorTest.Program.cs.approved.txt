@@ -11,7 +11,7 @@ namespace CodeGenTest.ConsoleApp
     class Program
     {
         //Dataset to use for predictions 
-        private const string DATA_FILEPATH = @"C:\Users\xiaoyuz\Desktop\flower_photos_tiny_set_for_unit_tests\data.tsv";
+        private const string DATA_FILEPATH = @"/path/to/dataset";
 
         static void Main(string[] args)
         {

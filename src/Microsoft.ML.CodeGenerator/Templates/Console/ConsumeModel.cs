@@ -46,18 +46,17 @@ MB_Annotation();
 		
             // Create new MLContext
             MLContext mlContext = new MLContext();
-
 ");
 if(HasNormalizeMapping){ 
             this.Write(" \r\n\t\t\t// Register NormalizeMapping\r\n            mlContext.ComponentCatalog.Regist" +
                     "erAssembly(typeof(NormalizeMapping).Assembly);\r\n");
 } 
-            this.Write("\r\n");
 if(HasLabelMapping){ 
             this.Write(" \r\n\t\t\t// Register LabelMapping\r\n            mlContext.ComponentCatalog.RegisterAs" +
                     "sembly(typeof(LabelMapping).Assembly);\r\n");
 } 
-            this.Write(@"            // Load model & create prediction engine
+            this.Write(@"
+            // Load model & create prediction engine
             string modelPath = AppDomain.CurrentDomain.BaseDirectory + ""MLModel.zip"";
             ITransformer mlModel = mlContext.Model.Load(modelPath, out var modelInputSchema);
             var predEngine = mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(mlModel);

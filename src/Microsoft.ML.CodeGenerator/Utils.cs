@@ -152,7 +152,7 @@ namespace Microsoft.ML.CodeGenerator.Utilities
             }
         }
 
-        internal static IList<string> GenerateClassLabels(ColumnInferenceResults columnInferenceResults)
+        internal static IList<string> GenerateClassLabels(ColumnInferenceResults columnInferenceResults, IDictionary<string, CodeGeneratorSettings.ColumnMapping> columnMapping = default)
         {
             IList<string> result = new List<string>();
             foreach (var column in columnInferenceResults.TextLoaderOptions.Columns)
@@ -162,7 +162,22 @@ namespace Microsoft.ML.CodeGenerator.Utilities
                 bool isArray = range > 0;
                 sb.Append(Symbols.PublicSymbol);
                 sb.Append(Symbols.Space);
-                switch (column.DataKind)
+
+                // if column is in columnMapping, use the type and name in that
+                DataKind dataKind;
+                string columnName;
+
+                if (columnMapping != null && columnMapping.ContainsKey(column.Name))
+                {
+                    dataKind = columnMapping[column.Name].ColumnType;
+                    columnName = columnMapping[column.Name].ColumnName;
+                }
+                else
+                {
+                    dataKind = column.DataKind;
+                    columnName = column.Name;
+                }
+                switch (dataKind)
                 {
                     case Microsoft.ML.Data.DataKind.String:
                         sb.Append(Symbols.StringSymbol);
@@ -195,12 +210,12 @@ namespace Microsoft.ML.CodeGenerator.Utilities
 
                 if (range > 0)
                 {
-                    result.Add($"[ColumnName(\"{column.Name}\"),LoadColumn({column.Source[0].Min}, {column.Source[0].Max}) VectorType({(range + 1)})]");
+                    result.Add($"[ColumnName(\"{columnName}\"),LoadColumn({column.Source[0].Min}, {column.Source[0].Max}) VectorType({(range + 1)})]");
                     sb.Append("[]");
                 }
                 else
                 {
-                    result.Add($"[ColumnName(\"{column.Name}\"), LoadColumn({column.Source[0].Min})]");
+                    result.Add($"[ColumnName(\"{columnName}\"), LoadColumn({column.Source[0].Min})]");
                 }
                 sb.Append(" ");
                 sb.Append(Utils.Normalize(column.Name));
