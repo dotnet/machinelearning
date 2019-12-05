@@ -7,7 +7,7 @@
 //     the code is regenerated.
 // </auto-generated>
 // ------------------------------------------------------------------------------
-namespace Microsoft.ML.CodeGenerator.Templates.AzureImageClassification.Model
+namespace Microsoft.ML.CodeGenerator.Templates.Azure.Model
 {
     using System.Linq;
     using System.Text;
@@ -18,7 +18,7 @@ namespace Microsoft.ML.CodeGenerator.Templates.AzureImageClassification.Model
     /// Class to produce the template output
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "16.0.0.0")]
-    internal partial class LabelMapping : LabelMappingBase
+    internal partial class ImageLabelMapping : ImageLabelMappingBase
     {
         /// <summary>
         /// Create the template output
@@ -30,68 +30,34 @@ CLI_Annotation();
  } else if(Target == CSharp.GenerateTarget.ModelBuilder){ 
 MB_Annotation();
  } 
-            this.Write("\r\nusing Microsoft.ML.Data;\r\nusing Microsoft.ML.Transforms;\r\nusing System;\r\nusing " +
-                    "System.Linq;\r\n\r\nnamespace ");
+            this.Write("using Microsoft.ML.Data;\r\nusing Microsoft.ML.Transforms;\r\nusing System;\r\nusing Sy" +
+                    "stem.Linq;\r\n\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(@".Model
-{
-    [CustomMappingFactoryAttribute(nameof(LabelMapping))]
-    public class LabelMapping : CustomMappingFactory<LabelMappingInput, LabelMappingOutput>
-    {
-        // This is the custom mapping. We now separate it into a method, so that we can use it both in training and in loading.
-        public static void Mapping(LabelMappingInput input, LabelMappingOutput output)
-        {
-");
-if("BinaryClassification".Equals(TaskType)){ 
-            this.Write("\t\t\toutput.Prediction = input.label.GetValues().ToArray().First() == 1;\r\n");
- } if("MulticlassClassification".Equals(TaskType)){ 
-            this.Write("            output.label = input.label.GetValues().ToArray().First();\r\n");
- }
-            this.Write("\r\n");
-if("MulticlassClassification".Equals(TaskType)){ 
-            this.Write("            output.score = input.probabilities.GetValues().ToArray();\r\n");
- } else {
-            this.Write("            output.score = input.probabilities.GetValues().ToArray().First();\r\n");
- }
-            this.Write(@"        }
-        // This factory method will be called when loading the model to get the mapping operation.
-        public override Action<LabelMappingInput, LabelMappingOutput> GetMapping()
-        {
-            return Mapping;
-        }
-    }
-    public class LabelMappingInput
-    {
-        [ColumnName(""label"")]
-        public VBuffer<");
-            this.Write(this.ToStringHelper.ToStringWithCulture(PredictionLabelType));
-            this.Write("> label;\r\n\r\n        [ColumnName(\"probabilities\")]\r\n        public VBuffer<float> " +
-                    "probabilities;\r\n    }\r\n    public class LabelMappingOutput\r\n    {\r\n");
-if("BinaryClassification".Equals(TaskType)){ 
-            this.Write("        // ColumnName attribute is used to change the column name from\r\n        /" +
-                    "/ its default value, which is the name of the field.\r\n        [ColumnName(\"Predi" +
-                    "ctedLabel\")]\r\n        public bool Prediction { get; set; }\r\n");
- } if("MulticlassClassification".Equals(TaskType)){ 
-            this.Write("        // ColumnName attribute is used to change the column name from\r\n        /" +
-                    "/ its default value, which is the name of the field.\r\n        [ColumnName(\"Predi" +
-                    "ctedLabel\")]\r\n        public ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(PredictionLabelType));
-            this.Write(" Prediction { get; set; }\r\n");
- }
-if("MulticlassClassification".Equals(TaskType)){ 
-            this.Write("        public float[] Score { get; set; }\r\n");
-}else{ 
-            this.Write("        public float Score { get; set; }\r\n");
-}
-            this.Write("    }\r\n}\r\n\r\n");
+            this.Write(".Model\r\n{\r\n    [CustomMappingFactoryAttribute(nameof(LabelMapping))]\r\n    public " +
+                    "class LabelMapping : CustomMappingFactory<LabelMappingInput, LabelMappingOutput>" +
+                    "\r\n    {\r\n        // This is the custom mapping. We now separate it into a method" +
+                    ", so that we can use it both in training and in loading.\r\n        public static " +
+                    "void Mapping(LabelMappingInput input, LabelMappingOutput output)\r\n        {\r\n   " +
+                    "         string[] label = new string[] { \"cloudy\", \"raining\", \"sunny\", \"sunrise\"" +
+                    " };\r\n\r\n            var values = input.output1.GetValues().ToArray();\r\n          " +
+                    "  var maxVal = values.Max();\r\n            var exp = values.Select(v => Math.Exp(" +
+                    "v - maxVal));\r\n            var sumExp = exp.Sum();\r\n\r\n            exp.Select(v =" +
+                    "> (float)(v / sumExp)).ToArray();\r\n            output.score = exp.Select(v => (f" +
+                    "loat)(v / sumExp)).ToArray();\r\n\r\n            var maxValue = output.score.Max();\r" +
+                    "\n            var maxValueIndex = Array.IndexOf(output.score, maxValue);\r\n       " +
+                    "     output.label = label[maxValueIndex];\r\n        }\r\n        // This factory me" +
+                    "thod will be called when loading the model to get the mapping operation.\r\n      " +
+                    "  public override Action<LabelMappingInput, LabelMappingOutput> GetMapping()\r\n  " +
+                    "      {\r\n            return Mapping;\r\n        }\r\n    }\r\n    public class LabelMa" +
+                    "ppingInput\r\n    {\r\n        [ColumnName(\"output1\")]\r\n        public VBuffer<float" +
+                    "> output1;\r\n    }\r\n    public class LabelMappingOutput\r\n    {\r\n\r\n        [Column" +
+                    "Name(\"PredictedLabel\")]\r\n        public string label { get; set; }\r\n\r\n        [C" +
+                    "olumnName(\"Score\")]\r\n        public float[] score { get; set; }\r\n    }\r\n}\r\n");
             return this.GenerationEnvironment.ToString();
         }
 
 public string Namespace {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
-public string TaskType {get;set;}
-public string PredictionLabelType {get;set;}
-public string LabelMappingInputLabelType {get;set;}
 
 
 void CLI_Annotation()
@@ -120,7 +86,7 @@ this.Write("// This file was auto-generated by ML.NET Model Builder. \r\n");
     /// Base class for this transformation
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "16.0.0.0")]
-    internal class LabelMappingBase
+    internal class ImageLabelMappingBase
     {
         #region Fields
         private global::System.Text.StringBuilder generationEnvironmentField;

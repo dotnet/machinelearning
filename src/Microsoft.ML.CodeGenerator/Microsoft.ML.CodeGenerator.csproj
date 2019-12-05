@@ -6,9 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Templates\AzureImageClassification\ConsoleApp\**" />
-    <EmbeddedResource Remove="Templates\AzureImageClassification\ConsoleApp\**" />
-    <None Remove="Templates\AzureImageClassification\ConsoleApp\**" />
+    <Compile Remove="Templates\Azure\ConsoleApp\**" />
+    <EmbeddedResource Remove="Templates\Azure\ConsoleApp\**" />
+    <None Remove="Templates\Azure\ConsoleApp\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,23 +21,23 @@
   </ItemGroup>
   
   <ItemGroup>
-    <None Update="Templates\AzureImageClassification\Model\AzureAttachImageConsumeModel.tt">
+    <None Update="Templates\Azure\Model\AzureAttachImageConsumeModel.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>AzureAttachImageConsumeModel.cs</LastGenOutput>
     </None>
-    <None Update="Templates\AzureImageClassification\Model\ImageLabelMapping.tt">
+    <None Update="Templates\Azure\Model\ImageLabelMapping.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>ImageLabelMapping.cs</LastGenOutput>
     </None>
-    <None Update="Templates\AzureImageClassification\Model\OnnxModelOutputClass.tt">
+    <None Update="Templates\Azure\Model\OnnxModelOutputClass.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>OnnxModelOutputClass.cs</LastGenOutput>
     </None>
-    <None Update="Templates\AzureImageClassification\Model\NormalizeMapping.tt">
+    <None Update="Templates\Azure\Model\NormalizeMapping.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>NormalizeMapping.cs</LastGenOutput>
     </None>
-    <None Update="Templates\AzureImageClassification\Model\LabelMapping.tt">
+    <None Update="Templates\Azure\Model\LabelMapping.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>LabelMapping.cs</LastGenOutput>
     </None>
@@ -78,27 +78,27 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Templates\AzureImageClassification\Model\AzureAttachImageConsumeModel.cs">
+    <Compile Update="Templates\Azure\Model\AzureAttachImageConsumeModel.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>AzureAttachImageConsumeModel.tt</DependentUpon>
     </Compile>
-    <Compile Update="Templates\AzureImageClassification\Model\ImageLabelMapping.cs">
+    <Compile Update="Templates\Azure\Model\ImageLabelMapping.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>ImageLabelMapping.tt</DependentUpon>
     </Compile>
-    <Compile Update="Templates\AzureImageClassification\Model\OnnxModelOutputClass.cs">
+    <Compile Update="Templates\Azure\Model\OnnxModelOutputClass.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>OnnxModelOutputClass.tt</DependentUpon>
     </Compile>
-    <Compile Update="Templates\AzureImageClassification\Model\NormalizeMapping.cs">
+    <Compile Update="Templates\Azure\Model\NormalizeMapping.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>NormalizeMapping.tt</DependentUpon>
     </Compile>
-    <Compile Update="Templates\AzureImageClassification\Model\LabelMapping.cs">
+    <Compile Update="Templates\Azure\Model\LabelMapping.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>LabelMapping.tt</DependentUpon>

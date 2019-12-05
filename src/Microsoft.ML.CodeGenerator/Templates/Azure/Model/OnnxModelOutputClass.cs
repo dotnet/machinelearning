@@ -7,7 +7,7 @@
 //     the code is regenerated.
 // </auto-generated>
 // ------------------------------------------------------------------------------
-namespace Microsoft.ML.CodeGenerator.Templates.AzureImageClassification.Model
+namespace Microsoft.ML.CodeGenerator.Templates.Azure.Model
 {
     using System.Linq;
     using System.Text;
@@ -18,7 +18,7 @@ namespace Microsoft.ML.CodeGenerator.Templates.AzureImageClassification.Model
     /// Class to produce the template output
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "16.0.0.0")]
-    internal partial class NormalizeMapping : NormalizeMappingBase
+    internal partial class OnnxModelOutputClass : OnnxModelOutputClassBase
     {
         /// <summary>
         /// Create the template output
@@ -30,34 +30,42 @@ CLI_Annotation();
  } else if(Target == CSharp.GenerateTarget.ModelBuilder){ 
 MB_Annotation();
  } 
-            this.Write("\r\nusing Microsoft.ML.Data;\r\nusing Microsoft.ML.Transforms;\r\nusing System;\r\nusing " +
-                    "System.Linq;\r\n\r\nnamespace ");
+            this.Write("using System;\r\nusing Microsoft.ML.Data;\r\n\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model\r\n{\r\n    [CustomMappingFactoryAttribute(nameof(NormalizeMapping))]\r\n    pub" +
-                    "lic class NormalizeMapping : CustomMappingFactory<NormalizeInput, NormalizeOutpu" +
-                    "t>\r\n    {\r\n        // This is the custom mapping. We now separate it into a meth" +
-                    "od, so that we can use it both in training and in loading.\r\n        public stati" +
-                    "c void Mapping(NormalizeInput input, NormalizeOutput output)\r\n        {\r\n       " +
-                    "     var values = input.Reshape.GetValues().ToArray();\r\n\r\n            var image_" +
-                    "mean = new float[] { 0.485f, 0.456f, 0.406f }; \r\n            var image_std = new" +
-                    " float[] { 0.229f, 0.224f, 0.225f };\r\n\r\n            for (int x = 0; x<values.Cou" +
-                    "nt(); x++)\r\n            {\r\n                var y = x % 3;\r\n                // No" +
-                    "rmalize by 255 first\r\n                values[x] /= 255;\r\n                values[" +
-                    "x] = (values[x] - image_mean[y]) / image_std[y];\r\n            };\r\n\r\n            " +
-                    "output.Reshape = new VBuffer<float>(values.Count(), values);\r\n        }\r\n       " +
-                    " // This factory method will be called when loading the model to get the mapping" +
-                    " operation.\r\n        public override Action<NormalizeInput, NormalizeOutput> Get" +
-                    "Mapping()\r\n        {\r\n            return Mapping;\r\n        }\r\n    }\r\n    public " +
-                    "class NormalizeInput\r\n    {\r\n        [ColumnName(\"ImageSource_featurized\")]\r\n   " +
-                    "     [VectorType(3, 224, 224)]\r\n        public VBuffer<float> Reshape;\r\n    }\r\n " +
-                    "   public class NormalizeOutput\r\n    {\r\n        [ColumnName(\"input1\")]\r\n        " +
-                    "[VectorType(3 * 224 * 224)]\r\n        public VBuffer<float> Reshape;\r\n    }\r\n}\r\n\r" +
-                    "\n");
+            this.Write(".Model\r\n{\r\n    public class ModelOutput\r\n    {\r\n");
+if("BinaryClassification".Equals(TaskType)){ 
+            this.Write("        // ColumnName attribute is used to change the column name from\r\n        /" +
+                    "/ its default value, which is the name of the field.\r\n        [ColumnName(\"label" +
+                    "\")]\r\n        public ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(PredictionLabelType));
+            this.Write("[] Prediction { get; set; }\r\n\r\n");
+ } if("MulticlassClassification".Equals(TaskType)){ 
+            this.Write("        // ColumnName attribute is used to change the column name from\r\n        /" +
+                    "/ its default value, which is the name of the field.\r\n        [ColumnName(\"label" +
+                    "\")]\r\n        public ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(PredictionLabelType));
+            this.Write("[] Prediction { get; set; }\r\n");
+ } if("AzureImageClassification".Equals(TaskType)){ 
+            this.Write("        // ColumnName attribute is used to change the column name from\r\n        /" +
+                    "/ its default value, which is the name of the field.\r\n        [ColumnName(\"outpu" +
+                    "t1\")]\r\n        public float[] Score { get; set; }\r\n");
+ }
+
+if("MulticlassClassification".Equals(TaskType)){ 
+            this.Write("        [ColumnName(\"probabilities\")]\r\n        public float[] Score { get; set; }" +
+                    "\r\n");
+}else if (!"AzureImageClassification".Equals(TaskType)){ 
+            this.Write("        [ColumnName(\"probabilities\")]\r\n        public float[] Score { get; set; }" +
+                    "\r\n");
+}
+            this.Write("\r\n    }\r\n}\r\n\r\n");
             return this.GenerationEnvironment.ToString();
         }
 
 public string Namespace {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
+public string TaskType {get;set;}
+public string PredictionLabelType {get;set;}
 
 
 void CLI_Annotation()
@@ -86,7 +94,7 @@ this.Write("// This file was auto-generated by ML.NET Model Builder. \r\n");
     /// Base class for this transformation
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "16.0.0.0")]
-    internal class NormalizeMappingBase
+    internal class OnnxModelOutputClassBase
     {
         #region Fields
         private global::System.Text.StringBuilder generationEnvironmentField;

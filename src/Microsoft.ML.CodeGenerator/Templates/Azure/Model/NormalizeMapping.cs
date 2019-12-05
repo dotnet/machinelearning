@@ -7,7 +7,7 @@
 //     the code is regenerated.
 // </auto-generated>
 // ------------------------------------------------------------------------------
-namespace Microsoft.ML.CodeGenerator.Templates.AzureImageClassification.Model
+namespace Microsoft.ML.CodeGenerator.Templates.Azure.Model
 {
     using System.Linq;
     using System.Text;
@@ -18,7 +18,7 @@ namespace Microsoft.ML.CodeGenerator.Templates.AzureImageClassification.Model
     /// Class to produce the template output
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "16.0.0.0")]
-    internal partial class AzureAttachImageConsumeModel : AzureAttachImageConsumeModelBase
+    internal partial class NormalizeMapping : NormalizeMappingBase
     {
         /// <summary>
         /// Create the template output
@@ -30,39 +30,29 @@ CLI_Annotation();
  } else if(Target == CSharp.GenerateTarget.ModelBuilder){ 
 MB_Annotation();
  } 
-            this.Write("using System;\r\nusing System.Collections.Generic;\r\nusing System.Linq;\r\nusing Syste" +
-                    "m.Text;\r\nusing Microsoft.ML;\r\nusing System.Runtime.Serialization.Json;\r\nusing Sy" +
-                    "stem.IO;\r\n\r\nnamespace ");
+            this.Write("\r\nusing Microsoft.ML.Data;\r\nusing Microsoft.ML.Transforms;\r\nusing System;\r\nusing " +
+                    "System.Linq;\r\n\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model\r\n{\r\n    public class ConsumeModel\r\n    {\r\n        private static string LA" +
-                    "BEL_MAP = @\"bestModelMap.json\";\r\n\r\n        // For more info on consuming ML.NET " +
-                    "models, visit https://aka.ms/model-builder-consume\r\n        // Method for consum" +
-                    "ing model in your app\r\n        public static IEnumerable<KeyValuePair<string, fl" +
-                    "oat>> Predict(ModelInput input)\r\n        {\r\n            // Create new MLContext\r" +
-                    "\n            MLContext mlContext = new MLContext();\r\n\r\n            // Register N" +
-                    "ormalizeMapping\r\n            mlContext.ComponentCatalog.RegisterAssembly(typeof(" +
-                    "NormalizeMapping).Assembly);\r\n\r\n            // Load model & create prediction en" +
-                    "gine\r\n            string modelPath = AppDomain.CurrentDomain.BaseDirectory + \"ML" +
-                    "Model.zip\";\r\n            ITransformer mlModel = mlContext.Model.Load(modelPath, " +
-                    "out var modelInputSchema);\r\n            var predEngine = mlContext.Model.CreateP" +
-                    "redictionEngine<ModelInput, ModelOutput>(mlModel);\r\n\r\n            // Use model t" +
-                    "o make prediction on input data\r\n            ModelOutput result = predEngine.Pre" +
-                    "dict(input);\r\n\r\n            // SoftMax the score\r\n            var predictScore =" +
-                    " ConsumeModel.SoftMax(result.Score);\r\n            // Load LabelMap\r\n            " +
-                    "List<string> map = default;\r\n            Dictionary<int, string> labelMap = new " +
-                    "Dictionary<int, string>();\r\n\r\n            using (StreamReader sr = new StreamRea" +
-                    "der(ConsumeModel.LABEL_MAP))\r\n            {\r\n                var json = sr.ReadL" +
-                    "ine();\r\n                var ms = new MemoryStream(Encoding.UTF8.GetBytes(json));" +
-                    "\r\n                var ser = new DataContractJsonSerializer(typeof(List<string>))" +
-                    ";\r\n                map = ser.ReadObject(ms) as List<string>;\r\n                ms" +
-                    ".Close();\r\n            }\r\n\r\n            for (int i = 0; i != map.Count(); ++i)\r\n" +
-                    "            {\r\n                labelMap.Add(i, map[i]);\r\n            }\r\n\r\n      " +
-                    "      return predictScore.Select((score, keyIndex) => new KeyValuePair<string, f" +
-                    "loat>(labelMap[keyIndex], score)).OrderByDescending(x => x.Value);\r\n        }\r\n\r" +
-                    "\n        private static float[] SoftMax(float[] values)\r\n        {\r\n            " +
-                    "var maxVal = values.Max();\r\n            var exp = values.Select(v => Math.Exp(v " +
-                    "- maxVal));\r\n            var sumExp = exp.Sum();\r\n\r\n            return exp.Selec" +
-                    "t(v => (float)(v / sumExp)).ToArray();\r\n        }\r\n    }\r\n}\r\n");
+            this.Write(".Model\r\n{\r\n    [CustomMappingFactoryAttribute(nameof(NormalizeMapping))]\r\n    pub" +
+                    "lic class NormalizeMapping : CustomMappingFactory<NormalizeInput, NormalizeOutpu" +
+                    "t>\r\n    {\r\n        // This is the custom mapping. We now separate it into a meth" +
+                    "od, so that we can use it both in training and in loading.\r\n        public stati" +
+                    "c void Mapping(NormalizeInput input, NormalizeOutput output)\r\n        {\r\n       " +
+                    "     var values = input.Reshape.GetValues().ToArray();\r\n\r\n            var image_" +
+                    "mean = new float[] { 0.485f, 0.456f, 0.406f }; \r\n            var image_std = new" +
+                    " float[] { 0.229f, 0.224f, 0.225f };\r\n\r\n            for (int x = 0; x<values.Cou" +
+                    "nt(); x++)\r\n            {\r\n                var y = x % 3;\r\n                // No" +
+                    "rmalize by 255 first\r\n                values[x] /= 255;\r\n                values[" +
+                    "x] = (values[x] - image_mean[y]) / image_std[y];\r\n            };\r\n\r\n            " +
+                    "output.Reshape = new VBuffer<float>(values.Count(), values);\r\n        }\r\n       " +
+                    " // This factory method will be called when loading the model to get the mapping" +
+                    " operation.\r\n        public override Action<NormalizeInput, NormalizeOutput> Get" +
+                    "Mapping()\r\n        {\r\n            return Mapping;\r\n        }\r\n    }\r\n    public " +
+                    "class NormalizeInput\r\n    {\r\n        [ColumnName(\"ImageSource_featurized\")]\r\n   " +
+                    "     [VectorType(3, 224, 224)]\r\n        public VBuffer<float> Reshape;\r\n    }\r\n " +
+                    "   public class NormalizeOutput\r\n    {\r\n        [ColumnName(\"input1\")]\r\n        " +
+                    "[VectorType(3 * 224 * 224)]\r\n        public VBuffer<float> Reshape;\r\n    }\r\n}\r\n\r" +
+                    "\n");
             return this.GenerationEnvironment.ToString();
         }
 
@@ -96,7 +86,7 @@ this.Write("// This file was auto-generated by ML.NET Model Builder. \r\n");
     /// Base class for this transformation
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "16.0.0.0")]
-    internal class AzureAttachImageConsumeModelBase
+    internal class NormalizeMappingBase
     {
         #region Fields
         private global::System.Text.StringBuilder generationEnvironmentField;
