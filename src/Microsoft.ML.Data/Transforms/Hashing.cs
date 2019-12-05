@@ -632,7 +632,7 @@ namespace Microsoft.ML.Transforms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in ReadOnlyMemory<char> value)
-                => value.IsEmpty ? 0 : (Hashing.MurmurHash(seed, value.Span.Trim(' ')) & mask) + 1;
+                => value.IsEmpty ? 0 : (Hashing.MurmurHashV2(seed, value.Span) & mask);
         }
 
         private readonly struct HashKey1 : IHasher<byte>
