@@ -1819,8 +1819,10 @@ output Out [3] from H all;
         }
 #endif
 
+#if !CORECLR
         private const float Epsilon = 0.0004f; // Do not use Single.Epsilon as it is not commonly-accepted machine epsilon.
         private const float MaxRelError = 0.000005f;
+#endif
 
         public TestPredictors(ITestOutputHelper helper) : base(helper)
         {
@@ -1898,6 +1900,8 @@ output Out [3] from H all;
             }
         }
 #endif
+
+#if !CORECLR
         private bool IsLessThanOrEqual(float a, float b, float maxRelError, float maxAbsError)
         {
             if (a <= b)
@@ -1916,6 +1920,7 @@ output Out [3] from H all;
             float largest = Math.Max(Math.Abs(a), Math.Abs(b));
             return diff < largest * maxRelError;
         }
+#endif
     }
 
 #if OLD_TESTS // REVIEW: Some of this should be ported to the new world.
