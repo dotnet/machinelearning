@@ -128,7 +128,7 @@ namespace Microsoft.ML.Functional.Tests
         /// Introspective Training: GAM Shape Functions are easily accessed.
         /// </summary>
         [Fact]
-        void IntrospectGamShapeFunctions()
+        public void IntrospectGamShapeFunctions()
         {
             // Concurrency must be 1 to assure that the mapping is done sequentially.
             var mlContext = new MLContext(seed: 1);
@@ -240,7 +240,7 @@ namespace Microsoft.ML.Functional.Tests
         /// Introspectable Training: Parameters of a trained Normalizer are easily accessed.
         /// </summary>
         [Fact]
-        void IntrospectNormalization()
+        public void IntrospectNormalization()
         {
             // Concurrency must be 1 to assure that the mapping is done sequentially.
             var mlContext = new MLContext(seed: 1);

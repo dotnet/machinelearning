@@ -23,7 +23,7 @@ namespace Microsoft.ML.Functional.Tests
         /// Extensibility: Add a new column that is a function of other columns.
         /// </summary>
         [Fact]
-        void ExtensibilityAddAColumnAsAFunctionOfMultipleColumns()
+        public void ExtensibilityAddAColumnAsAFunctionOfMultipleColumns()
         {
             // Concurrency must be 1 to assure that the mapping is done sequentially.
             var mlContext = new MLContext(seed: 1);
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Functional.Tests
         /// Extensibility: Add multiple new columns.
         /// </summary>
         [Fact]
-        void ExtensibilityAddingTwoColumns()
+        public void ExtensibilityAddingTwoColumns()
         {
             // Concurrency must be 1 to assure that the mapping is done sequentially.
             var mlContext = new MLContext(seed: 1);
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Functional.Tests
         /// Extensibility: Featurize text using custom word-grams, char-grams, and normalization.
         /// </summary>
         [Fact]
-        void ExtensibilityModifyTextFeaturization()
+        public void ExtensibilityModifyTextFeaturization()
         {
             // Concurrency must be 1 to assure that the mapping is done sequentially.
             var mlContext = new MLContext(seed: 1);
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Functional.Tests
         /// Extensibility: Apply a normalizer to columns in the dataset.
         /// </summary>
         [Fact]
-        void ExtensibilityNormalizeColumns()
+        public void ExtensibilityNormalizeColumns()
         {
             // Concurrency must be 1 to assure that the mapping is done sequentially.
             var mlContext = new MLContext(seed: 1);

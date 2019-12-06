@@ -22,7 +22,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// and performant in the new API.
         /// </summary>
         [Fact]
-        void MultithreadedPrediction()
+        public void MultithreadedPrediction()
         {
             var ml = new MLContext(seed: 1);
             var data = ml.Data.LoadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);

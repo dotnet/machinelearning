@@ -313,7 +313,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void LpNormOnnxConversionTest()
+        public void LpNormOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
 
@@ -369,7 +369,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void CommandLineOnnxConversionTest()
+        public void CommandLineOnnxConversionTest()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
             string modelPath = GetOutputPath("ModelWithLessIO.zip");
@@ -918,7 +918,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void IndicateMissingValuesOnnxConversionTest()
+        public void IndicateMissingValuesOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
 
@@ -968,7 +968,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void ValueToKeyMappingOnnxConversionTest()
+        public void ValueToKeyMappingOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
             string filePath = GetDataPath("type-conversion.txt");
@@ -1018,7 +1018,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void WordTokenizerOnnxConversionTest()
+        public void WordTokenizerOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
 
@@ -1055,7 +1055,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void NgramOnnxConnversionTest()
+        public void NgramOnnxConnversionTest()
         {
             var mlContext = new MLContext(seed: 1);
 
@@ -1171,7 +1171,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        private void KeyToValueOnnxConversionTest()
+        public void KeyToValueOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
 
@@ -1207,7 +1207,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void MulticlassTrainersOnnxConversionTest()
+        public void MulticlassTrainersOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
 
@@ -1262,7 +1262,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void CopyColumnsOnnxTest()
+        public void CopyColumnsOnnxTest()
         {
             var mlContext = new MLContext(seed: 1);
 
