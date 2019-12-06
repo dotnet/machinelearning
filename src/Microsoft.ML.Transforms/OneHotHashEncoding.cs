@@ -265,7 +265,7 @@ namespace Microsoft.ML.Transforms
         [BestFriend]
         internal sealed class ColumnOptions
         {
-            public readonly HashingEstimator.ColumnOptions HashingOptions;
+            public readonly HashingEstimator.ColumnOptionsInternal HashingOptions;
             public readonly OneHotEncodingEstimator.OutputKind OutputKind;
 
             /// <summary>
@@ -288,7 +288,7 @@ namespace Microsoft.ML.Transforms
                 bool useOrderedHashing = Defaults.UseOrderedHashing,
                 int maximumNumberOfInverts = Defaults.MaximumNumberOfInverts)
             {
-                HashingOptions = new HashingEstimator.ColumnOptions(name, inputColumnName ?? name, numberOfBits, seed, useOrderedHashing, maximumNumberOfInverts);
+                HashingOptions = new HashingEstimator.ColumnOptionsInternal(name, inputColumnName ?? name, numberOfBits, seed, useOrderedHashing, maximumNumberOfInverts);
                 OutputKind = outputKind;
             }
         }

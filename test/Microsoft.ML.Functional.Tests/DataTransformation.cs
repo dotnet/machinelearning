@@ -9,6 +9,7 @@ using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
+using static Microsoft.ML.Transforms.HashingEstimator;
 
 namespace Microsoft.ML.Functional.Tests
 {
@@ -183,6 +184,35 @@ namespace Microsoft.ML.Functional.Tests
                 // Verify per-slot normalization.
                 for (int i = 0; i < row.Features.Length; i++)
                     Assert.InRange(row.Features[i], -1, 1);
+        }
+
+        [Fact]
+        void HashColumns()
+        {
+            // Concurrency must be 1 to assure that the mapping is done sequentially.
+            var mlContext = new MLContext(seed: 1);
+
+            // Load the Iris dataset.
+            var data = mlContext.Data.LoadFromTextFile<Iris>(
+                TestCommon.GetDataPath(DataDir, TestDatasets.iris.trainFilename),
+                hasHeader: TestDatasets.iris.fileHasHeader,
+                separatorChar: TestDatasets.iris.fileSeparator);
+
+            // Compose the transformation.
+            var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
+                .Append(mlContext.Transforms.Conversion.Hash(new[] {
+                    new ColumnOptions() {
+                        Name = "Features", InputColumnName = "Features", NumberOfBits =  31, UseOrderedHashing = true } }));
+
+            // Transform the data.
+            var transformedData = pipeline.Fit(data).Transform(data);
+
+            // Validate that the data was normalized to between -1 and 1.
+            var dataEnumerator = mlContext.Data.CreateEnumerable<HashedFeatureColumn>(transformedData, true);
+            foreach (var row in dataEnumerator)
+                // Verify per-slot normalization.
+                for (int i = 0; i < row.Features.Length; i++)
+                    Assert.InRange(row.Features[i], (uint)0, (uint)Math.Pow(2, 31));
         }
 
         private float GetRandomNumber(float number)
