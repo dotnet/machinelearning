@@ -28,6 +28,8 @@ using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper;
 
+#pragma warning disable CS0649 // Field 'fieldName' is never assigned to, and will always have its default value null
+
 namespace Microsoft.ML.Tests
 {
     public class OnnxConversionTest : BaseTestBaseline
@@ -1292,15 +1294,6 @@ namespace Microsoft.ML.Tests
                 CompareSelectedR4ScalarColumns(model.ColumnPairs[0].outputColumnName, outputNames[2], transformedData, onnxResult);
             }
             Done();
-        }
-
-        private void CreateDummyExamplesToMakeComplierHappy()
-        {
-            var dummyExample = new BreastCancerFeatureVector() { Features = null };
-            var dummyExample1 = new BreastCancerCatFeatureExample() { Label = false, F1 = 0, F2 = "Amy" };
-            var dummyExample2 = new BreastCancerMulticlassExample() { Label = "Amy", Features = null };
-            var dummyExample3 = new BreastCancerBinaryClassification() { Label = false, Features = null };
-            var dummyExample4 = new SmallSentimentExample() { Tokens = null };
         }
 
         private void CompareResults(string leftColumnName, string rightColumnName, IDataView left, IDataView right)
