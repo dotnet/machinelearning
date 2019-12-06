@@ -5,14 +5,19 @@
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
+using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests
 {
-    public sealed class TimeSeries
+    public sealed class TimeSeries : BaseTestBaseline
     {
+        public TimeSeries(ITestOutputHelper output) : base(output)
+        {
+        }
 
         private sealed class Prediction
         {
@@ -325,13 +330,13 @@ namespace Microsoft.ML.Tests
         [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         public void SsaForecast()
         {
-            var env = new MLContext();
+            //var env = new MLContext();
             const int ChangeHistorySize = 10;
             const int SeasonalitySize = 10;
             const int NumberOfSeasonsInTraining = 5;
 
             List<Data> data = new List<Data>();
-            var dataView = env.Data.LoadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
 
             var args = new SsaForecastingTransformer.Options()
             {
@@ -355,11 +360,11 @@ namespace Microsoft.ML.Tests
                 data.Add(new Data(i * 100));
 
             // Train
-            var detector = new SsaForecastingEstimator(env, args).Fit(dataView);
+            var detector = new SsaForecastingEstimator(Env, args).Fit(dataView);
             // Transform
             var output = detector.Transform(dataView);
             // Get predictions
-            var enumerator = env.Data.CreateEnumerable<ForecastPrediction>(output, true).GetEnumerator();
+            var enumerator = ML.Data.CreateEnumerable<ForecastPrediction>(output, true).GetEnumerator();
             ForecastPrediction row = null;
             List<float> expectedForecast = new List<float>() { 0.191491723f, 2.53994083f, 5.26454258f, 7.37313938f };
             List<float> minCnf = new List<float>() { -3.9741993f, -2.36872721f, 0.09407653f, 2.18899345f };
