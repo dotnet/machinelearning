@@ -1134,7 +1134,7 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Describes how the transformer handles one column pair.
+        /// Initializes a new instance of the ColumnOptions class.
         /// </summary>
         public sealed class ColumnOptions
         {
@@ -1163,9 +1163,6 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             public int MaximumNumberOfInverts { get; set; }
 
-            /// <summary>
-            /// Describes how the transformer handles one column pair.
-            /// </summary>
             /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
@@ -1188,6 +1185,10 @@ namespace Microsoft.ML.Transforms
                 Seed = seed;
                 UseOrderedHashing = useOrderedHashing;
                 MaximumNumberOfInverts = maximumNumberOfInverts;
+            }
+
+            public ColumnOptions()
+            {
             }
         }
 
