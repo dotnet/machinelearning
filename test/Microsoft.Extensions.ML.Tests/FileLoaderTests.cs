@@ -59,17 +59,13 @@ namespace Microsoft.Extensions.ML
             var loaderUnderTest = ActivatorUtilities.CreateInstance<FileLoaderMock>(sp);
             loaderUnderTest.Start("testdata.txt", true);
 
-            using (AutoResetEvent changed = new AutoResetEvent(false))
-            {
-                using (IDisposable changeTokenRegistration = ChangeToken.OnChange(
-                            () => loaderUnderTest.GetReloadToken(),
-                            () => changed.Set()))
-                {
-                    File.WriteAllText("testdata.txt", "test");
+            using AutoResetEvent changed = new AutoResetEvent(false);
+            using IDisposable changeTokenRegistration = ChangeToken.OnChange(
+                        () => loaderUnderTest.GetReloadToken(),
+                        () => changed.Set());
+            File.WriteAllText("testdata.txt", "test");
 
-                    Assert.True(changed.WaitOne(1000), "FileLoader ChangeToken didn't fire before the allotted time.");
-                }
-            }
+            Assert.True(changed.WaitOne(1000), "FileLoader ChangeToken didn't fire before the allotted time.");
         }
 
 
