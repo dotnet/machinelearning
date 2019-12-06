@@ -235,6 +235,12 @@ namespace Microsoft.Data.Analysis.Tests
             dataFrame.Columns.RemoveAt(1);
             Assert.Single(dataFrame.Columns);
             Assert.True(ReferenceEquals(intColumn, dataFrame.Columns[0]));
+
+            // Test the params constructor
+            DataFrame dataFrame1 = new DataFrame(intColumn, floatColumn);
+            Assert.Equal(2, dataFrame1.Columns.Count);
+            Assert.Equal(intColumn, dataFrame1.Columns[0]);
+            Assert.Equal(floatColumn, dataFrame1.Columns[1]);
         }
 
         [Fact]

@@ -33,13 +33,14 @@ namespace Microsoft.Data.Analysis
     {
         private readonly DataFrameColumnCollection _columnCollection;
         private readonly DataFrameRowCollection _rowCollection;
-        public DataFrame()
+
+        public DataFrame(IEnumerable<DataFrameColumn> columns)
         {
-            _columnCollection = new DataFrameColumnCollection(OnColumnsChanged);
+            _columnCollection = new DataFrameColumnCollection(columns, OnColumnsChanged);
             _rowCollection = new DataFrameRowCollection(this);
         }
 
-        public DataFrame(IList<DataFrameColumn> columns)
+        public DataFrame(params DataFrameColumn[] columns)
         {
             _columnCollection = new DataFrameColumnCollection(columns, OnColumnsChanged);
             _rowCollection = new DataFrameRowCollection(this);
