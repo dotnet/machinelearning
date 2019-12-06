@@ -66,7 +66,7 @@ namespace Microsoft.ML.Internal.Utilities
                 // Return the task.
                 return tcs.Task;
 
-                void CreateThread()
+                static void CreateThread()
                 {
                     // Create a new background thread to run the work.
                     var t = new Thread(() =>
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Internal.Utilities
                     t.Start();
                 }
 
-                void Enqueue((Delegate, object, TaskCompletionSource<bool>) item)
+                static void Enqueue((Delegate, object, TaskCompletionSource<bool>) item)
                 {
                     // Enqueue the work. If there are currently fewer threads waiting
                     // for work than there are work items in the queue, create another
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Internal.Utilities
                     CreateThread();
                 }
 
-                bool TryDequeue(out (Delegate action, object state, TaskCompletionSource<bool> tcs) item)
+                static bool TryDequeue(out (Delegate action, object state, TaskCompletionSource<bool> tcs) item)
                 {
                     // Dequeues the next item if one is available. Before checking,
                     // the available thread count is increased, so that enqueuers can
