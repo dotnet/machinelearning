@@ -63,6 +63,7 @@ namespace Microsoft.Extensions.ML
             using IDisposable changeTokenRegistration = ChangeToken.OnChange(
                         () => loaderUnderTest.GetReloadToken(),
                         () => changed.Set());
+
             File.WriteAllText("testdata.txt", "test");
 
             Assert.True(changed.WaitOne(1000), "FileLoader ChangeToken didn't fire before the allotted time.");
