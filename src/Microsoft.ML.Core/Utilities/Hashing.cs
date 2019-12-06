@@ -106,98 +106,6 @@ namespace Microsoft.ML.Internal.Utilities
             return hash;
         }
 
-        public static uint MurmurRoundV2(uint hash, uint key)
-        {
-            var chunk = key;
-
-            chunk *= 0xCC9E2D51;
-            chunk = Rotate(chunk, 15);
-            chunk *= 0x1B873593;
-
-            hash ^= chunk;
-            hash = Rotate(hash, 13);
-            hash *= 5;
-            hash += 0xE6546B64;
-
-            return hash;
-        }
-        /*
-        public static uint MurmurRoundFloat(uint hash, float chunk)
-        {
-            var floatBytes = BitConverter.GetBytes(chunk);
-            Span<byte> key = new Span<byte>(floatBytes);
-            return MurmurRoundSpanV2(hash, key, 4);
-        }
-
-        public static uint MurmurRoundDouble(uint hash, double chunk)
-        {
-            var doubleBytes = BitConverter.GetBytes(chunk);
-            Span<byte> key = new Span<byte>(doubleBytes);
-            return MurmurRoundSpanV2(hash, key, 8);
-        }
-
-        public static uint MurmurRoundText(uint hash, ReadOnlyMemory<char> chunk)
-        {
-            byte[] utf8Bytes = Encoding.UTF8.GetBytes(chunk.ToArray());
-            var key = new Span<byte>(utf8Bytes);
-            return MurmurRoundSpanV2(hash, key, chunk.Length);
-        }
-
-        public static uint MurmurRoundU1(uint hash, byte chunk)
-        {
-            Span<byte> key = new Span<byte>(new byte[] { chunk });
-            return MurmurRoundSpanV2(hash, key, 1);
-        }
-
-        public static uint MurmurRoundU2(uint hash, ushort chunk)
-        {
-            var ushortBytes = BitConverter.GetBytes(chunk);
-            Span<byte> key = new Span<byte>(ushortBytes);
-            return MurmurRoundSpanV2(hash, key, 2);
-        }
-
-        public static uint MurmurRoundU4(uint hash, uint chunk)
-        {
-            var uintBytes = BitConverter.GetBytes(chunk);
-            Span<byte> key = new Span<byte>(uintBytes);
-            return MurmurRoundSpanV2(hash, key, 4);
-        }
-
-        public static uint MurmurRoundU8(uint hash, ulong chunk)
-        {
-            var ulongBytes = BitConverter.GetBytes(chunk);
-            Span<byte> key = new Span<byte>(ulongBytes);
-            return MurmurRoundSpanV2(hash, key, 8);
-        }
-
-        public static uint MurmurRoundI1(uint hash, sbyte chunk)
-        {
-            var sbyteBytes = BitConverter.GetBytes(chunk);
-            Span<byte> key = new Span<byte>(sbyteBytes);
-            return MurmurRoundSpanV2(hash, key, 1);
-        }
-
-        public static uint MurmurRoundI2(uint hash, short chunk)
-        {
-            var shortBytes = BitConverter.GetBytes(chunk);
-            Span<byte> key = new Span<byte>(shortBytes);
-            return MurmurRoundSpanV2(hash, key, 2);
-        }
-
-        public static uint MurmurRoundI4(uint hash, int chunk)
-        {
-            var intBytes = BitConverter.GetBytes(chunk);
-            Span<byte> key = new Span<byte>(intBytes);
-            return MurmurRoundSpanV2(hash, key, 4);
-        }
-
-        public static uint MurmurRoundI8(uint hash, long chunk)
-        {
-            var longBytes = BitConverter.GetBytes(chunk);
-            Span<byte> key = new Span<byte>(longBytes);
-            return MurmurRoundSpanV2(hash, key, 8);
-        }
-        */
         /// <summary>
         /// Implements the murmur hash 3 algorithm, using a mock UTF-8 encoding.
         /// The UTF-8 conversion ignores the possibilities of unicode planes other than the 0th.
@@ -294,7 +202,6 @@ namespace Microsoft.ML.Internal.Utilities
                 }
                 else if (ch <= 0xFFFF)
                 {
-                    //Contracts.Assert(ch <= 0xFFFF);
                     cur |= (ulong)((ch & 0x003F) | ((ch << 2) & 0x3F00) | ((ch << 4) & 0x0F0000) | 0xE08080) << bits;
                     bits += 24;
                 }
@@ -319,12 +226,8 @@ namespace Microsoft.ML.Internal.Utilities
 
             if (bits > 0)
             {
-                //hash = MurmurRound(hash, (uint)cur);
                 len += bits / 8;
             }
-
-            // Encode the length.
-            //hash = MurmurRound(hash, (uint)len);
 
             // tail processing
             uint k1 = 0;
@@ -343,9 +246,9 @@ namespace Microsoft.ML.Internal.Utilities
                     hash ^= k1;
                     break;
             }
+
             // Final mixing ritual for the hash.
-            hash ^= (uint)len;
-            hash = MixHash(hash);
+            hash = MixHashV2(hash, len);
 
             return hash;
         }

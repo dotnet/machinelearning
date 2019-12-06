@@ -583,7 +583,7 @@ namespace Microsoft.ML.Transforms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in float value)
-                => float.IsNaN(value) ? 0 : (Hashing.MixHashV2(Hashing.MurmurRoundV2(seed, FloatUtils.GetBits(value == 0 ? 0 : value)), 4) & mask);
+                => float.IsNaN(value) ? 0 : (Hashing.MixHashV2(Hashing.MurmurRound(seed, FloatUtils.GetBits(value == 0 ? 0 : value)), 4) & mask);
         }
 
         private readonly struct HashDouble : IHasher<double>
@@ -613,11 +613,11 @@ namespace Microsoft.ML.Transforms
                     return 0;
 
                 ulong v = FloatUtils.GetBits(value == 0 ? 0 : value);
-                var hash = Hashing.MurmurRoundV2(seed, Utils.GetLo(v));
+                var hash = Hashing.MurmurRound(seed, Utils.GetLo(v));
                 var hi = Utils.GetHi(v);
                 if (hi != 0)
-                    hash = Hashing.MurmurRoundV2(hash, hi);
-                return (Hashing.MixHashV2(hash, 8) & mask);
+                    hash = Hashing.MurmurRound(hash, hi);
+                return (Hashing.MixHashV2(hash, 4) & mask);
             }
         }
 
@@ -646,7 +646,7 @@ namespace Microsoft.ML.Transforms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in byte value)
-                => value == 0 ? 0 : (Hashing.MixHashV2(Hashing.MurmurRoundV2(seed, value), 1) & mask) + 1;
+                => value == 0 ? 0 : (Hashing.MixHashV2(Hashing.MurmurRound(seed, value), 4) & mask) + 1;
         }
 
         private readonly struct HashKey2 : IHasher<ushort>
@@ -660,7 +660,7 @@ namespace Microsoft.ML.Transforms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in ushort value)
-                => value == 0 ? 0 : (Hashing.MixHashV2(Hashing.MurmurRoundV2(seed, value), 4) & mask) + 1;
+                => value == 0 ? 0 : (Hashing.MixHashV2(Hashing.MurmurRound(seed, value), 4) & mask) + 1;
         }
 
         private readonly struct HashKey4 : IHasher<uint>
@@ -674,7 +674,7 @@ namespace Microsoft.ML.Transforms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in uint value)
-                => value == 0 ? 0 : (Hashing.MixHashV2(Hashing.MurmurRoundV2(seed, value), 4) & mask) + 1;
+                => value == 0 ? 0 : (Hashing.MixHashV2(Hashing.MurmurRound(seed, value), 4) & mask) + 1;
         }
 
         private readonly struct HashKey8 : IHasher<ulong>
@@ -699,10 +699,10 @@ namespace Microsoft.ML.Transforms
             {
                 if (value == 0)
                     return 0;
-                var hash = Hashing.MurmurRoundV2(seed, Utils.GetLo(value));
+                var hash = Hashing.MurmurRound(seed, Utils.GetLo(value));
                 var hi = Utils.GetHi(value);
                 if (hi != 0)
-                    hash = Hashing.MurmurRoundV2(hash, hi);
+                    hash = Hashing.MurmurRound(hash, hi);
                 return (Hashing.MixHashV2(hash, 4) & mask) + 1;
             }
         }
@@ -718,7 +718,7 @@ namespace Microsoft.ML.Transforms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in byte value)
-                => (Hashing.MixHashV2(Hashing.MurmurRoundV2(seed, value), 4) & mask);
+                => (Hashing.MixHashV2(Hashing.MurmurRound(seed, value), 4) & mask);
         }
 
         private readonly struct HashU2 : IHasher<ushort>
@@ -732,7 +732,7 @@ namespace Microsoft.ML.Transforms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in ushort value)
-                => (Hashing.MixHashV2(Hashing.MurmurRoundV2(seed, value), 4) & mask);
+                => (Hashing.MixHashV2(Hashing.MurmurRound(seed, value), 4) & mask);
         }
 
         private readonly struct HashU4 : IHasher<uint>
@@ -746,7 +746,7 @@ namespace Microsoft.ML.Transforms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in uint value)
-                => (Hashing.MixHashV2(Hashing.MurmurRoundV2(seed, value), 4)) & mask;
+                => (Hashing.MixHashV2(Hashing.MurmurRound(seed, value), 4)) & mask;
         }
 
         private readonly struct HashU8 : IHasher<ulong>
@@ -767,10 +767,10 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in ulong value)
             {
-                var hash = Hashing.MurmurRoundV2(seed, Utils.GetLo(value));
+                var hash = Hashing.MurmurRound(seed, Utils.GetLo(value));
                 var hi = Utils.GetHi(value);
                 if (hi != 0)
-                    hash = Hashing.MurmurRoundV2(hash, hi);
+                    hash = Hashing.MurmurRound(hash, hi);
                 return (Hashing.MixHashV2(hash, 4) & mask) + 1;
             }
         }
@@ -806,7 +806,7 @@ namespace Microsoft.ML.Transforms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in bool value)
-                => (Hashing.MixHashV2(Hashing.MurmurRoundV2(seed, value ? 1u : 0u), 4) & mask);
+                => (Hashing.MixHashV2(Hashing.MurmurRound(seed, value ? 1u : 0u), 4) & mask);
         }
 
         private readonly struct HashI1 : IHasher<sbyte>
@@ -820,7 +820,7 @@ namespace Microsoft.ML.Transforms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in sbyte value)
-                => (Hashing.MixHashV2(Hashing.MurmurRoundV2(seed, (uint)value),  4) & mask);
+                => (Hashing.MixHashV2(Hashing.MurmurRound(seed, (uint)value),  4) & mask);
         }
 
         private readonly struct HashI2 : IHasher<short>
@@ -834,7 +834,7 @@ namespace Microsoft.ML.Transforms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in short value)
-                => (Hashing.MixHashV2(Hashing.MurmurRoundV2(seed, (uint)value), 4) & mask);
+                => (Hashing.MixHashV2(Hashing.MurmurRound(seed, (uint)value), 4) & mask);
         }
 
         private readonly struct HashI4 : IHasher<int>
@@ -848,7 +848,7 @@ namespace Microsoft.ML.Transforms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in int value)
-                => (Hashing.MixHashV2(Hashing.MurmurRoundV2(seed, (uint)value), 4) & mask);
+                => (Hashing.MixHashV2(Hashing.MurmurRound(seed, (uint)value), 4) & mask);
         }
 
         private readonly struct HashI8 : IHasher<long>
@@ -869,10 +869,10 @@ namespace Microsoft.ML.Transforms
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in long value)
             {
-                var hash = Hashing.MurmurRoundV2(seed, Utils.GetLo((ulong)value));
+                var hash = Hashing.MurmurRound(seed, Utils.GetLo((ulong)value));
                 var hi = Utils.GetHi((ulong)value);
                 if (hi != 0)
-                    hash = Hashing.MurmurRoundV2(hash, hi);
+                    hash = Hashing.MurmurRound(hash, hi);
                 return (Hashing.MixHashV2(hash, 4) & mask);
             }
         }
