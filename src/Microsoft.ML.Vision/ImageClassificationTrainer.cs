@@ -655,8 +655,29 @@ namespace Microsoft.ML.Vision
             CheckTrainingParameters(_options);
             var validationSet = trainContext.ValidationSet?.Data ?? _options.ValidationSet;
             var imageProcessor = new ImageProcessor(_session, _jpegDataTensorName, _resizedImageTensorName);
-            string trainSetBottleneckCachedValuesFilePath = Path.Combine(_options.WorkspacePath, _options.TrainSetBottleneckCachedValuesFileName);
-            string validationSetBottleneckCachedValuesFilePath = Path.Combine(_options.WorkspacePath, _options.ValidationSetBottleneckCachedValuesFileName);
+            string trainSetBottleneckCachedValuesFilePath = Path.Combine(_options.WorkspacePath,
+                _options.TrainSetBottleneckCachedValuesFileName);
+
+            string validationSetBottleneckCachedValuesFilePath = Path.Combine(_options.WorkspacePath,
+                _options.ValidationSetBottleneckCachedValuesFileName);
+
+            bool needValidationSet = _options.EarlyStoppingCriteria != null || _options.MetricsCallback != null;
+            bool validationSetPresent = _options.ReuseValidationSetBottleneckCachedValues &&
+                File.Exists(validationSetBottleneckCachedValuesFilePath + "_features.bin") &&
+                    File.Exists(validationSetBottleneckCachedValuesFilePath + "_labels.bin");
+
+            bool generateValidationSet = needValidationSet && !validationSetPresent;
+
+            if (generateValidationSet && _options.ValidationSet != null)
+            {
+                CacheFeaturizedImagesToDisk(validationSet, _options.LabelColumnName,
+                    _options.FeatureColumnName, imageProcessor, _inputTensorName, _bottleneckTensor.name,
+                    validationSetBottleneckCachedValuesFilePath,
+                    ImageClassificationMetrics.Dataset.Validation, _options.MetricsCallback);
+
+                generateValidationSet = false;
+                validationSetPresent = true;
+            }
 
             if (!_options.ReuseTrainSetBottleneckCachedValues ||
                 !(File.Exists(trainSetBottleneckCachedValuesFilePath + "_features.bin") &&
@@ -666,23 +687,25 @@ namespace Microsoft.ML.Vision
                     _options.FeatureColumnName, imageProcessor,
                     _inputTensorName, _bottleneckTensor.name, trainSetBottleneckCachedValuesFilePath,
                     ImageClassificationMetrics.Dataset.Train, _options.MetricsCallback,
-                    _options.ValidationSet == null && _options.ValidationSetFraction.HasValue ?
-                        _options.ValidationSetFraction.Value : (float?)null);
+                    generateValidationSet ? _options.ValidationSetFraction : null);
+
+                validationSetPresent = validationSetPresent ||
+                    (generateValidationSet && _options.ValidationSetFraction.HasValue);
+
+                generateValidationSet = needValidationSet && !validationSetPresent;
             }
 
-            if (_options.ValidationSet != null &&
-                (!_options.ReuseTrainSetBottleneckCachedValues ||
-                    !(File.Exists(validationSetBottleneckCachedValuesFilePath + "_features.bin") &&
-                        File.Exists(validationSetBottleneckCachedValuesFilePath + "_labels.bin"))))
+            if(generateValidationSet && _options.ReuseTrainSetBottleneckCachedValues &&
+                !_options.ReuseValidationSetBottleneckCachedValues)
             {
-                CacheFeaturizedImagesToDisk(validationSet, _options.LabelColumnName,
-                    _options.FeatureColumnName, imageProcessor, _inputTensorName, _bottleneckTensor.name,
-                    validationSetBottleneckCachedValuesFilePath,
-                    ImageClassificationMetrics.Dataset.Validation, _options.MetricsCallback);
+                // Not sure if it makes sense to support this scenario.
             }
 
-            TrainAndEvaluateClassificationLayer(trainSetBottleneckCachedValuesFilePath, _options,
-                validationSetBottleneckCachedValuesFilePath);
+            Contracts.Assert(!generateValidationSet, "Validation set needed but cannot generate.");
+
+            TrainAndEvaluateClassificationLayer(trainSetBottleneckCachedValuesFilePath,
+                validationSetPresent && (_options.EarlyStoppingCriteria != null || _options.MetricsCallback != null) ?
+                    validationSetBottleneckCachedValuesFilePath : null);
 
             // Leave the ownership of _session so that it is not disposed/closed when this object goes out of scope
             // since it will be used by ImageClassificationModelParameters class (new owner that will take care of
@@ -826,20 +849,21 @@ namespace Microsoft.ML.Vision
                     }
                 }
 
-                var shuffledFeaturizedImages = featurizedImages.OrderBy(x => Host.Rand.Next(0, metrics.Bottleneck.Index));
-                int featureLength = featurizedImages.Count() > 0 ? featurizedImages[0].Item2.Length : 0;
+                featurizedImages = featurizedImages.OrderBy(x => Host.Rand.Next(0, metrics.Bottleneck.Index)).ToList();
+                int featureLength = featurizedImages.Count > 0 ? featurizedImages[0].Item2.Length : 0;
                 int validationSetCount = 0;
                 if (validationFraction.HasValue)
                 {
                     Contracts.Assert(validationFraction >= 0 && validationFraction <= 1);
 
                     validationSetCount = (int)(metrics.Bottleneck.Index * validationFraction);
-                    CreateFeaturizedCacheFile(_options.ValidationSetBottleneckCachedValuesFileName, validationSetCount,
-                        featureLength, shuffledFeaturizedImages.Take(validationSetCount));
+                    CreateFeaturizedCacheFile(
+                        Path.Combine(_options.WorkspacePath, _options.ValidationSetBottleneckCachedValuesFileName),
+                        validationSetCount, featureLength, featurizedImages.Take(validationSetCount));
                 }
 
                 CreateFeaturizedCacheFile(cacheFilePath, metrics.Bottleneck.Index - validationSetCount, featureLength,
-                    shuffledFeaturizedImages.Skip(validationSetCount));
+                    featurizedImages.Skip(validationSetCount));
             }
         }
 
@@ -863,21 +887,33 @@ namespace Microsoft.ML.Vision
             }
         }
 
-        private void TrainAndEvaluateClassificationLayer(string trainBottleneckFilePath, Options options,
+        private void TrainAndEvaluateClassificationLayer(string trainBottleneckFilePath,
             string validationSetBottleneckFilePath)
         {
+            Contracts.Assert(validationSetBottleneckFilePath == null ||
+                (File.Exists(validationSetBottleneckFilePath + "_labels.bin") &&
+                    File.Exists(validationSetBottleneckFilePath + "_features.bin")));
+
+            Contracts.Assert(trainBottleneckFilePath != null &&
+                File.Exists(trainBottleneckFilePath + "_labels.bin") &&
+                    File.Exists(trainBottleneckFilePath + "_features.bin"));
+
+            bool validationNeeded = validationSetBottleneckFilePath != null;
+
+            Contracts.Assert(_options.EarlyStoppingCriteria == null || validationNeeded);
+
             using (Stream trainSetLabelReader = File.Open(trainBottleneckFilePath + "_labels.bin", FileMode.Open))
             using (Stream trainSetFeatureReader = File.Open(trainBottleneckFilePath + "_features.bin", FileMode.Open))
             {
-                Stream validationSetLabelReader = validationSetBottleneckFilePath != null ?
+                Stream validationSetLabelReader = validationNeeded ?
                     File.Open(validationSetBottleneckFilePath + "_labels.bin", FileMode.Open) : null;
 
-                Stream validationSetFeatureReader = validationSetBottleneckFilePath != null ?
+                Stream validationSetFeatureReader = validationNeeded ?
                     File.Open(validationSetBottleneckFilePath + "_features.bin", FileMode.Open) : null;
 
-                int batchSize = options.BatchSize;
-                int epochs = options.Epoch;
-                float learningRate = options.LearningRate;
+                int batchSize = _options.BatchSize;
+                int epochs = _options.Epoch;
+                float learningRate = _options.LearningRate;
                 Action<ImageClassificationMetrics> statisticsCallback = _options.MetricsCallback;
                 Runner runner = null;
                 Runner validationEvalRunner = null;
@@ -885,16 +921,16 @@ namespace Microsoft.ML.Vision
                 List<string> runnerOutputTensorNames = new List<string>();
                 runnerInputTensorNames.Add(_bottleneckInput.name);
                 runnerInputTensorNames.Add(_labelTensor.name);
-                if (options.LearningRateScheduler != null)
+                if (_options.LearningRateScheduler != null)
                     runnerInputTensorNames.Add(_learningRateInput.name);
 
-                if (statisticsCallback != null && options.TestOnTrainSet)
+                if (statisticsCallback != null && _options.TestOnTrainSet)
                 {
                     runnerOutputTensorNames.Add(_evaluationStep.name);
                     runnerOutputTensorNames.Add(_crossEntropy.name);
                 }
 
-                if (options.ValidationSet != null || options.EarlyStoppingCriteria != null)
+                if (validationNeeded)
                 {
                     validationEvalRunner = new Runner(_session, new[] { _bottleneckInput.name, _labelTensor.name },
                         new[] { _evaluationStep.name });
@@ -937,8 +973,8 @@ namespace Microsoft.ML.Vision
                 IntPtr labelBufferPtr = labelBufferHandle.AddrOfPinnedObject();
                 DnnTrainState trainState = new DnnTrainState
                 {
-                    BatchSize = options.BatchSize,
-                    BatchesPerEpoch = trainingExamples / options.BatchSize
+                    BatchSize = _options.BatchSize,
+                    BatchesPerEpoch = trainingExamples / _options.BatchSize
                 };
 
                 for (int epoch = 0; epoch < epochs; epoch += 1)
@@ -948,10 +984,10 @@ namespace Microsoft.ML.Vision
                         metrics, labelTensorShape, featureTensorShape, batchSize,
                         trainSetLabelReader, trainSetFeatureReader, labelBufferBytes, featuresBufferBytes,
                         labelBufferSizeInBytes, featureBufferSizeInBytes, featureFileRecordSize, featuresBuffer,
-                        labelBuffer, featureLength, options.LearningRateScheduler, trainState, runner, featureBufferPtr,
+                        labelBuffer, featureLength, _options.LearningRateScheduler, trainState, runner, featureBufferPtr,
                         labelBufferPtr, (outputTensors, metrics) =>
                         {
-                            if (options.TestOnTrainSet && statisticsCallback != null)
+                            if (_options.TestOnTrainSet && statisticsCallback != null)
                             {
                                 outputTensors[0].ToScalar(ref accuracy);
                                 outputTensors[1].ToScalar(ref crossentropy);
@@ -962,7 +998,7 @@ namespace Microsoft.ML.Vision
                             }
                         });
 
-                    if (options.TestOnTrainSet && statisticsCallback != null)
+                    if (_options.TestOnTrainSet && statisticsCallback != null)
                     {
                         metrics.Train.Epoch = epoch;
                         metrics.Train.Accuracy /= metrics.Train.BatchProcessedCount;
@@ -970,6 +1006,9 @@ namespace Microsoft.ML.Vision
                         metrics.Train.DatasetUsed = ImageClassificationMetrics.Dataset.Train;
                         statisticsCallback(metrics);
                     }
+
+                    if (!validationNeeded)
+                        continue;
 
                     // Evaluate.
                     TrainAndEvaluateClassificationLayerCore(epoch, learningRate, featureFileStartOffset,
@@ -993,9 +1032,9 @@ namespace Microsoft.ML.Vision
                     }
 
                     //Early stopping check
-                    if (options.EarlyStoppingCriteria != null)
+                    if (_options.EarlyStoppingCriteria != null)
                     {
-                        if (options.EarlyStoppingCriteria.ShouldStop(metrics.Train))
+                        if (_options.EarlyStoppingCriteria.ShouldStop(metrics.Train))
                             break;
                     }
                 }

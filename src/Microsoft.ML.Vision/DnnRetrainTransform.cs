@@ -380,13 +380,17 @@ namespace Microsoft.ML.Transforms
 
             Tensor[] tensor = runner.Run();
             if (tensor.Length > 0 && tensor[0] != IntPtr.Zero)
+            {
                 tensor[0].ToScalar<float>(ref loss);
+                tensor[0].Dispose();
+            }
 
             if (tensor.Length > 1 && tensor[1] != IntPtr.Zero)
+            {
                 tensor[1].ToScalar<float>(ref metric);
+                tensor[1].Dispose();
+            }
 
-            tensor[0].Dispose();
-            tensor[1].Dispose();
             return (loss, metric);
         }
 
