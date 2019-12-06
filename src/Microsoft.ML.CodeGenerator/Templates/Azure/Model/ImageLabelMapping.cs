@@ -35,7 +35,7 @@ MB_Annotation();
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             this.Write(".Model\r\n{\r\n    [CustomMappingFactoryAttribute(nameof(LabelMapping))]\r\n    public " +
                     "class LabelMapping : CustomMappingFactory<LabelMappingInput, LabelMappingOutput>" +
-                    "\r\n    {\r\n\t\tpublic string Label {get; set;} = new string[]{");
+                    "\r\n    {\r\n\t\tpublic static string[] Label {get; set;} = new string[]{");
 foreach(var label in Labels){
             this.Write("\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(label));

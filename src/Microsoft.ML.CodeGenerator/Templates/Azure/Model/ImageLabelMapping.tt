@@ -18,7 +18,7 @@ namespace <#= Namespace #>.Model
     [CustomMappingFactoryAttribute(nameof(LabelMapping))]
     public class LabelMapping : CustomMappingFactory<LabelMappingInput, LabelMappingOutput>
     {
-		public string Label {get; set;} = new string[]{<#foreach(var label in Labels){#>"<#=label#>",<#}#>};
+		public static string[] Label {get; set;} = new string[]{<#foreach(var label in Labels){#>"<#=label#>",<#}#>};
         // This is the custom mapping. We now separate it into a method, so that we can use it both in training and in loading.
         public static void Mapping(LabelMappingInput input, LabelMappingOutput output)
         {

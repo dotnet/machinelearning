@@ -67,7 +67,7 @@ namespace test.Model
 
 
         [ColumnName("label(IsOver50K)"), LoadColumn(14)]
-        public bool Label_IsOver50K_ { get; set; }
+        public bool Label { get; set; }
 
 
     }

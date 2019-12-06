@@ -66,8 +66,8 @@ namespace test.Model
         public string Native_country { get; set; }
 
 
-        [ColumnName("Label_IsOver50K_"), LoadColumn(14)]
-        public bool Label_IsOver50K_ { get; set; }
+        [ColumnName("label"), LoadColumn(14)]
+        public bool Label { get; set; }
 
 
     }

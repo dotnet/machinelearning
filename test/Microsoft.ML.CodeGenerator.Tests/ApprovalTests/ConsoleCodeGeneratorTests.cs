@@ -192,7 +192,6 @@ namespace mlnet.Tests
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void AzureImageCodeGeneratorTest()
         {
-            // That's the hammer I want
             (var pipeline, var columnInference) = GetMockedAzureImagePipelineAndInference();
             var setting = new CodeGeneratorSettings()
             {
