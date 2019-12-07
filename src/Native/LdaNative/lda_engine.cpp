@@ -167,7 +167,7 @@ namespace lda {
         CTimer tmDebug(true);
         CheckFunction(0, tmDebug, "enter initializeBeforeTrain", false);
         //allocate model memory from the data preloaded
-        AllocateModelMemory(data_block_);
+        AllocateModelMemory(*data_block_);
         CheckFunction(0, tmDebug, "allocate model memory", false);
 
         double alloc_start = lda::get_time();
@@ -676,7 +676,7 @@ namespace lda {
         data_block_->Allocate(num_document, corpus_size);
     }
 
-    void LdaEngine::AllocateModelMemory(const LDADataBlock* data_block)
+    void LdaEngine::AllocateModelMemory(const LDADataBlock& data_block)
     {
         model_block_->InitFromDataBlock(data_block, V_, K_);
 

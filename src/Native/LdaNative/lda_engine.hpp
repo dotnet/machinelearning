@@ -52,7 +52,7 @@ namespace lda {
         void InitializeBeforeTest();
         bool InitializeBeforeTrain();
         void AllocateDataMemory(int num_document, int64_t corpus_size);
-        void AllocateModelMemory(const LDADataBlock* data_block); //in this case, model memory is allocated according to the datablock;
+        void AllocateModelMemory(const LDADataBlock& data_block); //in this case, model memory is allocated according to the datablock;
         void AllocateModelMemory(int num_vocabs, int num_topics, int64_t nonzero_num);
         void AllocateModelMemory(int num_vocabs, int num_topics, int64_t mem_block_size, int64_t alias_mem_block_size);
         void SetAlphaSum(float avgDocLength); //alphasum parameter is set by avgdoclength * alpha
