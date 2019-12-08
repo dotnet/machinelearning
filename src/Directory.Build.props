@@ -23,6 +23,7 @@
 
 <!-- API Compat -->
   <PropertyGroup>
+    <RunApiCompat Condition="'$(DesignTimeBuild)' == 'true'">false</RunApiCompat>
     <RunApiCompat Condition="'$(RunApiCompat)' == ''">$(IsStableProject)</RunApiCompat>
     <ToolHostCmd>$(ToolsDir)dotnetcli/dotnet</ToolHostCmd>
 
