@@ -1056,7 +1056,7 @@ namespace Microsoft.ML.Transforms
             /// If dup is true, this leaves the element on the stack (duplicates before comparing).
             /// If rev is true, this branches when NOT NA.
             /// </summary>
-            private void GenBrNaCore(ExprNode node, ExprTypeKind kind, Label labNa, bool dup, bool rev)
+            private void GenBrNaCore(ExprNode node, ExprTypeKind kind, Label labNa, bool dup)
             {
                 if (dup)
                     _gen.Dup();
@@ -1067,10 +1067,7 @@ namespace Microsoft.ML.Transforms
                     case ExprTypeKind.R8:
                         // Any value that is not equal to itself is an NA.
                         _gen.Dup();
-                        if (rev)
-                            _gen.Beq(labNa);
-                        else
-                            _gen.Bne_Un(labNa);
+                        _gen.Beq(labNa);
                         break;
                     case ExprTypeKind.Error:
                     case ExprTypeKind.None:

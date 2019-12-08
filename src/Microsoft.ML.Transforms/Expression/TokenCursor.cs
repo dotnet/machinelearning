@@ -177,14 +177,6 @@ namespace Microsoft.ML.Transforms
             return _tidCur;
         }
 
-        public Token TokPeek()
-        {
-            AssertValid();
-            if (_itokCur + 1 >= _itokLim)
-                FetchToken();
-            return _buffer[_itokCur + 1];
-        }
-
         /// <summary>
         /// This expects that ItokCur + ditok is either within the buffered token range or just
         /// at the end of it. In other words, it does not support skipping tokens.

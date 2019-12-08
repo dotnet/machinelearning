@@ -57,6 +57,7 @@ namespace Microsoft.ML.Transforms
             _host.Check(columns.All(col => !string.IsNullOrWhiteSpace(col.Expression)));
             _host.Check(columns.All(col => !string.IsNullOrWhiteSpace(col.Name)));
             _host.Check(columns.All(col => Utils.Size(col.InputColumnNames) > 0));
+            _host.CheckParam(columns.All(col => Utils.Size(col.InputColumnNames) <= 5), nameof(ColumnOptions.InputColumnNames), "maximum number of inputs exceeded");
 
             _columns = columns;
         }
@@ -149,6 +150,12 @@ namespace Microsoft.ML.Transforms
             var columnDictionary = inputSchema.ToDictionary(x => x.Name);
             for (int i = 0; i < _columns.Length; i++)
             {
+                for (int j=0;j<_columns[i].InputColumnNames.Length;j++)
+                {
+                    if (!inputSchema.TryFindColumn(_columns[i].InputColumnNames[j], out var inputCol))
+                        throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _columns[i].InputColumnNames[j]);
+                }
+
                 // Make sure there is at most one vector valued source column.
                 var inputTypes = new DataViewType[_columns[i].InputColumnNames.Length];
                 var ivec = FindVectorInputColumn(_host, _columns[i].InputColumnNames, inputSchema, inputTypes);
@@ -164,10 +171,11 @@ namespace Microsoft.ML.Transforms
                     outputVectorKind = SchemaShape.Column.VectorKind.Scalar;
                 else
                 {
-                    outputVectorKind = inputSchema[ivec].Kind;
-                    if (inputSchema[ivec].HasSlotNames())
+                    inputSchema.TryFindColumn(_columns[i].InputColumnNames[ivec], out var vectorCol);
+                    outputVectorKind = vectorCol.Kind;
+                    if (vectorCol.HasSlotNames())
                     {
-                        var b = inputSchema[ivec].Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotNames);
+                        var b = vectorCol.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotNames);
                         _host.Assert(b);
                         metadata.Add(slotNames);
                     }

@@ -305,15 +305,6 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        private TX? GetTextOp(ExprNode arg)
-        {
-            _host.AssertValue(arg);
-            if (arg.IsTX)
-                return (TX?)arg.ExprValue;
-            BadArg(arg, ExprTypeKind.TX);
-            return null;
-        }
-
         public override void PostVisit(BinaryOpNode node)
         {
             _host.AssertValue(node);
@@ -524,9 +515,6 @@ namespace Microsoft.ML.Transforms
                 var v = a.Value;
                 switch (node.Op)
                 {
-                    case BinaryOp.Coalesce:
-                        node.SetValue(v);
-                        break;
                     case BinaryOp.Add:
                         if (v == 0)
                             node.ReduceToRight = true;
@@ -565,9 +553,6 @@ namespace Microsoft.ML.Transforms
                 var v = a.Value;
                 switch (node.Op)
                 {
-                    case BinaryOp.Coalesce:
-                        node.SetValue(v);
-                        break;
                     case BinaryOp.Add:
                         if (v == 0)
                             node.ReduceToRight = true;
@@ -740,8 +725,6 @@ namespace Microsoft.ML.Transforms
         {
             switch (node.Op)
             {
-                case BinaryOp.Coalesce:
-                    return v1;
                 case BinaryOp.Add:
                     return v1 + v2;
                 case BinaryOp.Sub:
@@ -764,8 +747,6 @@ namespace Microsoft.ML.Transforms
         {
             switch (node.Op)
             {
-                case BinaryOp.Coalesce:
-                    return v1;
                 case BinaryOp.Add:
                     return v1 + v2;
                 case BinaryOp.Sub:
