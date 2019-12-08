@@ -10,7 +10,7 @@
     <Message Importance="High" Text="Running tests ..." />
     <MSBuild Targets="VSTest"
              Projects="@(Project)"
-             Properties="VSTestNoBuild=true" />
+             Properties="VSTestNoBuild=true;VSTestBlame=true" />
   </Target>
 
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.targets))\Directory.Build.targets" />
