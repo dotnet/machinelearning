@@ -1337,7 +1337,15 @@ namespace Microsoft.ML.Vision
 
         ~ImageClassificationTrainer()
         {
-            Dispose(false);
+            try
+            {
+                Dispose(false);
+            }
+            catch (Exception ex) when (!Environment.HasShutdownStarted)
+            {
+                Console.WriteLine($"Exception thrown in call to {GetType()}.Finalize:{Environment.NewLine}{ex}");
+                throw;
+            }
         }
 
         private void Dispose(bool disposing)
@@ -1528,7 +1536,15 @@ namespace Microsoft.ML.Vision
 
         ~ImageClassificationModelParameters()
         {
-            Dispose(false);
+            try
+            {
+                Dispose(false);
+            }
+            catch (Exception ex) when (!Environment.HasShutdownStarted)
+            {
+                Console.WriteLine($"Exception thrown in call to {GetType()}.Finalize:{Environment.NewLine}{ex}");
+                throw;
+            }
         }
 
         private void Dispose(bool disposing)

@@ -201,7 +201,15 @@ namespace Microsoft.ML.Trainers.FastTree
         // the IDisposable.Dispose method wasn't already called.
         ~IniFileParserInterface()
         {
-            Dispose(false);
+            try
+            {
+                Dispose(false);
+            }
+            catch (Exception ex) when (!Environment.HasShutdownStarted)
+            {
+                Console.WriteLine($"Exception thrown in call to {GetType()}.Finalize:{Environment.NewLine}{ex}");
+                throw;
+            }
         }
 
         #endregion

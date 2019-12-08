@@ -711,7 +711,15 @@ namespace Microsoft.ML.Transforms.Text
 
         ~LatentDirichletAllocationTransformer()
         {
-            Dispose(false);
+            try
+            {
+                Dispose(false);
+            }
+            catch (Exception ex) when (!Environment.HasShutdownStarted)
+            {
+                Console.WriteLine($"Exception thrown in call to {GetType()}.Finalize:{Environment.NewLine}{ex}");
+                throw;
+            }
         }
 
         // Factory method for SignatureLoadDataTransform.

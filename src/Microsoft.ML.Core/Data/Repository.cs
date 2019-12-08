@@ -145,8 +145,16 @@ namespace Microsoft.ML
 
         ~Repository()
         {
-            if (!Disposed)
-                Dispose(false);
+            try
+            {
+                if (!Disposed)
+                    Dispose(false);
+            }
+            catch (Exception ex) when (!Environment.HasShutdownStarted)
+            {
+                Console.WriteLine($"Exception thrown in call to {GetType()}.Finalize:{Environment.NewLine}{ex}");
+                throw;
+            }
         }
 
         public void Dispose()

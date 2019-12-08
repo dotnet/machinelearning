@@ -375,7 +375,15 @@ namespace Microsoft.ML.Transforms.Onnx
 
         ~OnnxModel()
         {
-            Dispose(false);
+            try
+            {
+                Dispose(false);
+            }
+            catch (Exception ex) when (!Environment.HasShutdownStarted)
+            {
+                Console.WriteLine($"Exception thrown in call to {GetType()}.Finalize:{Environment.NewLine}{ex}");
+                throw;
+            }
         }
     }
 

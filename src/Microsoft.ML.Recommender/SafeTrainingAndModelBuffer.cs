@@ -236,7 +236,15 @@ namespace Microsoft.ML.Recommender.Internal
 
         ~SafeTrainingAndModelBuffer()
         {
-            Dispose(false);
+            try
+            {
+                Dispose(false);
+            }
+            catch (Exception ex) when (!Environment.HasShutdownStarted)
+            {
+                Console.WriteLine($"Exception thrown in call to {GetType()}.Finalize:{Environment.NewLine}{ex}");
+                throw;
+            }
         }
 
         public void Dispose()
