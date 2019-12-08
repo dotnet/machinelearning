@@ -166,5 +166,74 @@ namespace Microsoft.ML.AutoML.Test
                 }
             }
         }
+
+        [Fact]
+        public void TestLongParameterValue()
+        {
+            LongParameterValue value1 = new LongParameterValue(nameof(value1), 1);
+            LongParameterValue value2 = new LongParameterValue(nameof(value2), 2);
+            LongParameterValue duplicateValue1 = new LongParameterValue(nameof(value1), 1);
+
+            Assert.False(value1.Equals(value2));
+            Assert.True(value1.Equals(value1));
+            Assert.True(value1.Equals(duplicateValue1));
+            Assert.False(value1.Equals((object)value2));
+            Assert.True(value1.Equals((object)value1));
+            Assert.True(value1.Equals((object)duplicateValue1));
+
+            Assert.False(value1.Equals(new FloatParameterValue(nameof(value1), 1.0f)));
+            Assert.False(value1.Equals((IParameterValue)null));
+            Assert.False(value1.Equals((object)null));
+            Assert.False(value1.Equals(new object()));
+
+            Assert.Equal(value1.GetHashCode(), value1.GetHashCode());
+            Assert.Equal(value1.GetHashCode(), duplicateValue1.GetHashCode());
+        }
+
+        [Fact]
+        public void TestFloatParameterValue()
+        {
+            FloatParameterValue value1 = new FloatParameterValue(nameof(value1), 1.0f);
+            FloatParameterValue value2 = new FloatParameterValue(nameof(value2), 2.0f);
+            FloatParameterValue duplicateValue1 = new FloatParameterValue(nameof(value1), 1.0f);
+
+            Assert.False(value1.Equals(value2));
+            Assert.True(value1.Equals(value1));
+            Assert.True(value1.Equals(duplicateValue1));
+            Assert.False(value1.Equals((object)value2));
+            Assert.True(value1.Equals((object)value1));
+            Assert.True(value1.Equals((object)duplicateValue1));
+
+            Assert.False(value1.Equals(new LongParameterValue(nameof(value1), 1)));
+            Assert.False(value1.Equals((IParameterValue)null));
+            Assert.False(value1.Equals((object)null));
+            Assert.False(value1.Equals(new object()));
+
+            Assert.Equal(value1.GetHashCode(), value1.GetHashCode());
+            Assert.Equal(value1.GetHashCode(), duplicateValue1.GetHashCode());
+        }
+
+        [Fact]
+        public void TestStringParameterValue()
+        {
+            StringParameterValue value1 = new StringParameterValue(nameof(value1), "1");
+            StringParameterValue value2 = new StringParameterValue(nameof(value2), "2");
+            StringParameterValue duplicateValue1 = new StringParameterValue(nameof(value1), "1");
+
+            Assert.False(value1.Equals(value2));
+            Assert.True(value1.Equals(value1));
+            Assert.True(value1.Equals(duplicateValue1));
+            Assert.False(value1.Equals((object)value2));
+            Assert.True(value1.Equals((object)value1));
+            Assert.True(value1.Equals((object)duplicateValue1));
+
+            Assert.False(value1.Equals(new LongParameterValue(nameof(value1), 1)));
+            Assert.False(value1.Equals((IParameterValue)null));
+            Assert.False(value1.Equals((object)null));
+            Assert.False(value1.Equals(new object()));
+
+            Assert.Equal(value1.GetHashCode(), value1.GetHashCode());
+            Assert.Equal(value1.GetHashCode(), duplicateValue1.GetHashCode());
+        }
     }
 }
