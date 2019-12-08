@@ -56,7 +56,7 @@ namespace Microsoft.ML.Tests.Transformers
             }, new MultiFileSource(dataPath));
             var data = loader.Load(source);
 
-            DataViewType GetType(DataViewSchema schema, string name)
+            static DataViewType GetType(DataViewSchema schema, string name)
             {
                 Assert.True(schema.TryGetColumnIndex(name, out int cIdx), $"Could not find '{name}'");
                 return schema[cIdx].Type;
@@ -113,7 +113,7 @@ namespace Microsoft.ML.Tests.Transformers
             }, new MultiFileSource(dataPath));
             var data = loader.Load(source);
 
-            DataViewType GetType(DataViewSchema schema, string name)
+            static DataViewType GetType(DataViewSchema schema, string name)
             {
                 Assert.True(schema.TryGetColumnIndex(name, out int cIdx), $"Could not find '{name}'");
                 return schema[cIdx].Type;

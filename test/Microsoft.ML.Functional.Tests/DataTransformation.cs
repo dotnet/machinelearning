@@ -39,7 +39,7 @@ namespace Microsoft.ML.Functional.Tests
             data = mlContext.Data.TakeRows(data, numSamples);
 
             // Create a stand-alone function to produce a random number.
-            float angiospermCosine(float petalWidth, float petalLength, float sepalWidth, float sepalLength)
+            static float angiospermCosine(float petalWidth, float petalLength, float sepalWidth, float sepalLength)
             {
                 var petalMagnitude = Math.Sqrt(petalWidth * petalWidth + petalLength * petalLength);
                 var sepalMagnitude = Math.Sqrt(sepalWidth * sepalWidth + sepalLength * sepalLength);
