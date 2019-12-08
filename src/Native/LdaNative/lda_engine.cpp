@@ -68,11 +68,11 @@ namespace lda {
         printf("using %d thread(s) to do train/test\n", num_threads_);
 
         bAlphaSumMultiplied = false;
-        atomic_stats_ = new LDAEngineAtomics();
-        model_block_ = new LDAModelBlock();
-        data_block_ = new LDADataBlock(num_threads_);
-        process_barrier_ = new SimpleBarrier(num_threads_);
-        samplerQueue_ = new CBlockedIntQueue();
+        atomic_stats_.reset(new LDAEngineAtomics());
+        model_block_.reset(new LDAModelBlock());
+        data_block_.reset(new LDADataBlock(num_threads_));
+        process_barrier_.reset(new SimpleBarrier(num_threads_));
+        samplerQueue_.reset(new CBlockedIntQueue());
 
         document_buffer_ = new int32_t*[num_threads_];
         for (int i = 0; i < num_threads_; i++)
@@ -105,11 +105,11 @@ namespace lda {
             num_threads_ = std::max(1, (int)(uNumCPU - 2));
         }
         bAlphaSumMultiplied = false;
-        process_barrier_ = new SimpleBarrier(num_threads_);
-        atomic_stats_ = new LDAEngineAtomics();
-        data_block_ = new LDADataBlock(num_threads_);
-        model_block_ = new LDAModelBlock();
-        samplerQueue_ = new CBlockedIntQueue();
+        process_barrier_.reset(new SimpleBarrier(num_threads_));
+        atomic_stats_.reset(new LDAEngineAtomics());
+        data_block_.reset(new LDADataBlock(num_threads_));
+        model_block_.reset(new LDAModelBlock());
+        samplerQueue_.reset(new CBlockedIntQueue());
 
         document_buffer_ = new int32_t*[num_threads_];
         for (int i = 0; i < num_threads_; i++)
@@ -123,20 +123,11 @@ namespace lda {
     LdaEngine::~LdaEngine()
     {
         //delete memory space
-        delete process_barrier_;
-        process_barrier_ = nullptr;
-
-        delete data_block_;
-        data_block_ = nullptr;
-
-        delete atomic_stats_;
-        atomic_stats_ = nullptr;
-
-        delete model_block_;
-        model_block_ = nullptr;
-
-        delete samplerQueue_;
-        samplerQueue_ = nullptr;
+        process_barrier_.reset(nullptr);
+        data_block_.reset(nullptr);
+        atomic_stats_.reset(nullptr);
+        model_block_.reset(nullptr);
+        samplerQueue_.reset(nullptr);
 
         for (int i = 0; i < num_threads_; ++i)
         {
