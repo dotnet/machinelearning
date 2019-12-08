@@ -432,7 +432,7 @@ namespace Microsoft.ML.Transforms
 
             var res = new ParamNode(tok, name, index, type);
 
-            if (res.ExprType.Kind == ExprTypeKind.None)
+            if (res.ExprType == ExprTypeKind.None)
                 PostError(tok, "Unsupported type");
 
             return res;

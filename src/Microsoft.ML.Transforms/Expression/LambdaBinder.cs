@@ -61,7 +61,7 @@ namespace Microsoft.ML.Transforms
             env.Assert(binder._rgwith.Count == 0);
 
             var expr = node.Expr;
-            switch (expr.ExprType.Kind)
+            switch (expr.ExprType)
             {
                 case ExprTypeKind.BL:
                     node.ResultType = BooleanDataViewType.Instance;
@@ -141,7 +141,7 @@ namespace Microsoft.ML.Transforms
             if (node.IsMissing)
             {
                 _host.Assert(HasErrors);
-                node.SetType(ExprType.Error);
+                node.SetType(ExprTypeKind.Error);
                 return;
             }
 
@@ -171,13 +171,13 @@ namespace Microsoft.ML.Transforms
             }
 
             PostError(node, "Unresolved identifier '{0}'", node.Value);
-            node.SetType(ExprType.Error);
+            node.SetType(ExprTypeKind.Error);
         }
 
         public override void Visit(ParamNode node)
         {
             _host.AssertValue(node);
-            _host.Assert(node.ExprType.IsValid);
+            _host.Assert(node.ExprType != 0);
         }
 
         public override bool PreVisit(LambdaNode node)
@@ -230,7 +230,7 @@ namespace Microsoft.ML.Transforms
         {
             BadNum(arg);
             _host.Assert(HasErrors);
-            node.SetType(ExprType.Error);
+            node.SetType(ExprTypeKind.Error);
         }
 
         private void BadText(ExprNode arg)
@@ -260,7 +260,7 @@ namespace Microsoft.ML.Transforms
             switch (node.Op)
             {
                 case UnaryOp.Minus:
-                    switch (arg.ExprType.Kind)
+                    switch (arg.ExprType)
                     {
                         default:
                             BadNum(node, arg);
@@ -291,7 +291,7 @@ namespace Microsoft.ML.Transforms
                 default:
                     _host.Assert(false);
                     PostError(node, "Unknown unary operator");
-                    node.SetType(ExprType.Error);
+                    node.SetType(ExprTypeKind.Error);
                     break;
             }
         }
@@ -317,8 +317,8 @@ namespace Microsoft.ML.Transforms
                 case BinaryOp.Coalesce:
                     if (!node.Left.IsRx)
                     {
-                        BadArg(node, node.Left.ExprType.Kind);
-                        node.SetType(ExprType.Error);
+                        BadArg(node, node.Left.ExprType);
+                        node.SetType(ExprTypeKind.Error);
                     }
                     else // Default to numeric.
                         ApplyNumericBinOp(node);
@@ -340,13 +340,13 @@ namespace Microsoft.ML.Transforms
 
                 case BinaryOp.Error:
                     _host.Assert(HasErrors);
-                    node.SetType(ExprType.Error);
+                    node.SetType(ExprTypeKind.Error);
                     break;
 
                 default:
                     _host.Assert(false);
                     PostError(node, "Unknown binary operator");
-                    node.SetType(ExprType.Error);
+                    node.SetType(ExprTypeKind.Error);
                     break;
             }
         }
@@ -356,7 +356,7 @@ namespace Microsoft.ML.Transforms
             _host.AssertValue(node);
             _host.Assert(node.Op == BinaryOp.And || node.Op == BinaryOp.Or || node.Op == BinaryOp.Coalesce);
 
-            node.SetType(ExprType.BL);
+            node.SetType(ExprTypeKind.BL);
 
             BL? v1 = GetBoolOp(node.Left);
             BL? v2 = GetBoolOp(node.Right);
@@ -406,13 +406,13 @@ namespace Microsoft.ML.Transforms
 
             // REVIEW: Consider converting I4 + R4 to R8, unless the I4
             // is a constant known to not lose precision when converted to R4.
-            if (!CanPromote(false, a.ExprType.Kind, b.ExprType.Kind, out kind))
+            if (!CanPromote(false, a.ExprType, b.ExprType, out kind))
             {
                 // If either is numeric, use that numeric type.
                 if (a.IsNumber)
-                    kind = a.ExprType.Kind;
+                    kind = a.ExprType;
                 else if (b.IsNumber)
-                    kind = b.ExprType.Kind;
+                    kind = b.ExprType;
                 else // Default to Float (for error reporting).
                     kind = ExprTypeKind.Float;
                 _host.Assert(MapKindToIndex(kind) >= 0);
@@ -437,7 +437,7 @@ namespace Microsoft.ML.Transforms
 
                 case ExprTypeKind.I4:
                     {
-                        node.SetType(ExprType.I4);
+                        node.SetType(ExprTypeKind.I4);
                         I4? v1;
                         I4? v2;
                         // Boiler plate below here...
@@ -453,7 +453,7 @@ namespace Microsoft.ML.Transforms
                     break;
                 case ExprTypeKind.I8:
                     {
-                        node.SetType(ExprType.I8);
+                        node.SetType(ExprTypeKind.I8);
                         I8? v1;
                         I8? v2;
                         // Boiler plate below here...
@@ -469,7 +469,7 @@ namespace Microsoft.ML.Transforms
                     break;
                 case ExprTypeKind.R4:
                     {
-                        node.SetType(ExprType.R4);
+                        node.SetType(ExprTypeKind.R4);
                         R4? v1;
                         R4? v2;
                         // Boiler plate below here...
@@ -485,7 +485,7 @@ namespace Microsoft.ML.Transforms
                     break;
                 case ExprTypeKind.R8:
                     {
-                        node.SetType(ExprType.R8);
+                        node.SetType(ExprTypeKind.R8);
                         R8? v1;
                         R8? v2;
                         // Boiler plate below here...
@@ -823,18 +823,18 @@ namespace Microsoft.ML.Transforms
             var left = node.Left;
             var right = node.Right;
             ExprTypeKind kind;
-            if (!CanPromote(false, left.ExprType.Kind, right.ExprType.Kind, out kind))
+            if (!CanPromote(false, left.ExprType, right.ExprType, out kind))
             {
                 // If either is numeric, use that numeric type. Otherwise, use the first
                 // that isn't error or none.
                 if (left.IsNumber)
-                    kind = left.ExprType.Kind;
+                    kind = left.ExprType;
                 else if (right.IsNumber)
-                    kind = right.ExprType.Kind;
+                    kind = right.ExprType;
                 else if (!left.IsError && !left.IsNone)
-                    kind = left.ExprType.Kind;
+                    kind = left.ExprType;
                 else if (!right.IsError && !right.IsNone)
-                    kind = right.ExprType.Kind;
+                    kind = right.ExprType;
                 else
                     kind = ExprTypeKind.None;
             }
@@ -843,12 +843,12 @@ namespace Microsoft.ML.Transforms
             {
                 default:
                     PostError(node, "Invalid conditional expression");
-                    node.SetType(ExprType.Error);
+                    node.SetType(ExprTypeKind.Error);
                     break;
 
                 case ExprTypeKind.BL:
                     {
-                        node.SetType(ExprType.BL);
+                        node.SetType(ExprTypeKind.BL);
                         BL? v1 = GetBoolOp(node.Left);
                         BL? v2 = GetBoolOp(node.Right);
                         if (cond != null)
@@ -862,7 +862,7 @@ namespace Microsoft.ML.Transforms
                     break;
                 case ExprTypeKind.I4:
                     {
-                        node.SetType(ExprType.I4);
+                        node.SetType(ExprTypeKind.I4);
                         I4? v1;
                         I4? v2;
                         bool f1 = left.TryGet(out v1);
@@ -882,7 +882,7 @@ namespace Microsoft.ML.Transforms
                     break;
                 case ExprTypeKind.I8:
                     {
-                        node.SetType(ExprType.I8);
+                        node.SetType(ExprTypeKind.I8);
                         I8? v1;
                         I8? v2;
                         bool f1 = left.TryGet(out v1);
@@ -902,7 +902,7 @@ namespace Microsoft.ML.Transforms
                     break;
                 case ExprTypeKind.R4:
                     {
-                        node.SetType(ExprType.R4);
+                        node.SetType(ExprTypeKind.R4);
                         R4? v1;
                         R4? v2;
                         bool f1 = left.TryGet(out v1);
@@ -922,7 +922,7 @@ namespace Microsoft.ML.Transforms
                     break;
                 case ExprTypeKind.R8:
                     {
-                        node.SetType(ExprType.R8);
+                        node.SetType(ExprTypeKind.R8);
                         R8? v1;
                         R8? v2;
                         bool f1 = left.TryGet(out v1);
@@ -942,7 +942,7 @@ namespace Microsoft.ML.Transforms
                     break;
                 case ExprTypeKind.TX:
                     {
-                        node.SetType(ExprType.TX);
+                        node.SetType(ExprTypeKind.TX);
                         TX? v1;
                         TX? v2;
                         bool f1 = left.TryGet(out v1);
@@ -987,7 +987,7 @@ namespace Microsoft.ML.Transforms
 
             // Set the arg type and the type of this node.
             node.ArgTypeKind = kind;
-            node.SetType(ExprType.BL);
+            node.SetType(ExprTypeKind.BL);
 
             if (hasErrors)
             {
@@ -1065,7 +1065,7 @@ namespace Microsoft.ML.Transforms
                     // so != is handled separately below.
                     bool isStrict = false;
                     arg = items[0].AsExpr;
-                    _host.Assert(arg.ExprType.Kind == kind);
+                    _host.Assert(arg.ExprType == kind);
                     var valuePrev = arg.ExprValue;
                     _host.Assert(valuePrev != null);
                     for (int i = 1; i < lim; i++)
@@ -1077,7 +1077,7 @@ namespace Microsoft.ML.Transforms
                             isStrict = true;
 
                         arg = items[i].AsExpr;
-                        _host.Assert(arg.ExprType.Kind == kind);
+                        _host.Assert(arg.ExprType == kind);
 
                         value = arg.ExprValue;
                         _host.Assert(value != null);
@@ -1098,14 +1098,14 @@ namespace Microsoft.ML.Transforms
                     for (int i = 1; i < lim; i++)
                     {
                         arg = items[i].AsExpr;
-                        _host.Assert(arg.ExprType.Kind == kind);
+                        _host.Assert(arg.ExprType == kind);
 
                         value = arg.ExprValue;
                         _host.Assert(value != null);
                         for (int j = 0; j < i; j++)
                         {
                             var arg2 = items[j].AsExpr;
-                            _host.Assert(arg2.ExprType.Kind == kind);
+                            _host.Assert(arg2.ExprType == kind);
 
                             var value2 = arg2.ExprValue;
                             _host.Assert(value2 != null);
@@ -1181,15 +1181,15 @@ namespace Microsoft.ML.Transforms
                         isVar = true;
                         type = type.GetElementType();
                     }
-                    var extCur = ExprType.ToExprType(type);
-                    if (extCur.Kind <= ExprTypeKind.Error || extCur.Kind >= ExprTypeKind._Lim)
+                    var extCur = ExprNode.ToExprTypeKind(type);
+                    if (extCur <= ExprTypeKind.Error || extCur >= ExprTypeKind._Lim)
                     {
                         printError(string.Format(
                             "Error in ExprTransform: Function '{0}' in namespace '{1}' has invalid parameter type '{2}'",
                             node.Head.Value, provider.NameSpace, type));
                         return false;
                     }
-                    kinds[i] = extCur.Kind;
+                    kinds[i] = extCur;
                 }
 
                 // Verify the return type.
@@ -1201,8 +1201,8 @@ namespace Microsoft.ML.Transforms
                 }
                 else
                 {
-                    var extRet = ExprType.ToExprType(meth.ReturnType);
-                    kindRet = extRet.Kind;
+                    var extRet = ExprNode.ToExprTypeKind(meth.ReturnType);
+                    kindRet = extRet;
                     if (kindRet <= ExprTypeKind.Error || kindRet >= ExprTypeKind._Lim)
                     {
                         printError(string.Format(
@@ -1297,7 +1297,7 @@ namespace Microsoft.ML.Transforms
             _host.AssertValue(node);
 
             // Get the argument types and number of arguments.
-            var kinds = node.Args.Items.Select(item => item.AsExpr.ExprType.Kind).ToArray();
+            var kinds = node.Args.Items.Select(item => item.AsExpr.ExprType).ToArray();
             var arity = kinds.Length;
 
             // Find the candidates.
@@ -1340,7 +1340,7 @@ namespace Microsoft.ML.Transforms
             {
                 // Unknown function.
                 PostError(node.Head, "Unknown function");
-                node.SetType(ExprType.Error);
+                node.SetType(ExprTypeKind.Error);
                 return;
             }
 
@@ -1364,9 +1364,9 @@ namespace Microsoft.ML.Transforms
                 // Set the type of the node. If there is only one possible type, use that, otherwise, use Error.
                 var kindsRet = candidates.Select(c => c.ReturnKind).Distinct().ToArray();
                 if (kindsRet.Length == 1)
-                    node.SetType(new ExprType(kindsRet[0]));
+                    node.SetType(kindsRet[0]);
                 else
-                    node.SetType(ExprType.Error);
+                    node.SetType(ExprTypeKind.Error);
                 return;
             }
 
@@ -1456,7 +1456,7 @@ namespace Microsoft.ML.Transforms
                 _host.Assert(res.GetType() == best.Method.ReturnType);
             }
 
-            node.SetType(new ExprType(best.ReturnKind), res);
+            node.SetType(best.ReturnKind, res);
             node.SetMethod(best.Method);
         }
 
@@ -1644,9 +1644,9 @@ namespace Microsoft.ML.Transforms
         private bool ValidateType(ExprNode expr, ref ExprTypeKind itemKind)
         {
             _host.AssertValue(expr);
-            _host.Assert(expr.ExprType.IsValid);
+            _host.Assert(expr.ExprType != 0);
 
-            ExprTypeKind kind = expr.ExprType.Kind;
+            ExprTypeKind kind = expr.ExprType;
             switch (kind)
             {
                 case ExprTypeKind.Error:

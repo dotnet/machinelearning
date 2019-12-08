@@ -56,31 +56,8 @@ namespace Microsoft.ML.Transforms
                     { typeFn = typeof(Func<,,,,>); break; }
                 case 5:
                     { typeFn = typeof(Func<,,,,,>); break; }
-                case 6:
-                    { typeFn = typeof(Func<,,,,,,>); break; }
-                case 7:
-                    { typeFn = typeof(Func<,,,,,,,>); break; }
-                case 8:
-                    { typeFn = typeof(Func<,,,,,,,,>); break; }
-                case 9:
-                    { typeFn = typeof(Func<,,,,,,,,,>); break; }
-                case 10:
-                    { typeFn = typeof(Func<,,,,,,,,,,>); break; }
-                case 11:
-                    { typeFn = typeof(Func<,,,,,,,,,,,>); break; }
-                case 12:
-                    { typeFn = typeof(Func<,,,,,,,,,,,,>); break; }
-                case 13:
-                    { typeFn = typeof(Func<,,,,,,,,,,,,,>); break; }
-                case 14:
-                    { typeFn = typeof(Func<,,,,,,,,,,,,,,>); break; }
-                case 15:
-                    { typeFn = typeof(Func<,,,,,,,,,,,,,,,>); break; }
-                case 16:
-                    { typeFn = typeof(Func<,,,,,,,,,,,,,,,,>); break; }
                 default:
-                    Contracts.Assert(false, "invalid number of variables");
-                    throw Contracts.Except("Internal error in LambdaCompiler");
+                    throw Contracts.Except("Internal error in LambdaCompiler: Maximum number of inputs exceeded.");
             }
 
             var types = new Type[node.Vars.Length + 1];
@@ -211,7 +188,7 @@ namespace Microsoft.ML.Transforms
                         break;
                     case ExprTypeKind.I4:
                         // I4 can convert to I8, R4, or R8.
-                        switch (node.ExprType.Kind)
+                        switch (node.ExprType)
                         {
                             case ExprTypeKind.I8:
                                 _gen.Conv_I8();
@@ -259,7 +236,7 @@ namespace Microsoft.ML.Transforms
                 if (value == null)
                     return false;
 
-                switch (node.ExprType.Kind)
+                switch (node.ExprType)
                 {
                     case ExprTypeKind.BL:
                         Contracts.Assert(value is BL);
@@ -324,7 +301,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.Assert(node.IsNumber);
                 var value = node.ExprValue;
                 Contracts.Assert(value != null);
-                switch (node.ExprType.Kind)
+                switch (node.ExprType)
                 {
                     case ExprTypeKind.I4:
                         Contracts.Assert(value is I4);
@@ -444,7 +421,7 @@ namespace Microsoft.ML.Transforms
 
                     case UnaryOp.Minus:
                         Contracts.Assert(node.IsNumber);
-                        Contracts.Assert(node.Arg.ExprType.Kind == node.SrcKind);
+                        Contracts.Assert(node.Arg.ExprType == node.SrcKind);
                         switch (node.SrcKind)
                         {
                             case ExprTypeKind.I4:
@@ -731,7 +708,7 @@ namespace Microsoft.ML.Transforms
 
                 // Branch to end if the left operand is NOT NA.
                 node.Left.Accept(this);
-                GenBrNa(node.Left, labEnd, rev: true);
+                GenBrNa(node.Left, labEnd);
 
                 _gen.Pop();
                 node.Right.Accept(this);
@@ -826,9 +803,9 @@ namespace Microsoft.ML.Transforms
 
                     ExprNode arg;
                     GenRaw(arg = items[0].AsExpr);
-                    Contracts.Assert(arg.ExprType.Kind == kind);
+                    Contracts.Assert(arg.ExprType == kind);
                     GenRaw(arg = items[1].AsExpr);
-                    Contracts.Assert(arg.ExprType.Kind == kind);
+                    Contracts.Assert(arg.ExprType == kind);
 
                     TokKind tid = node.Operands.Delimiters[0].Kind;
                     Contracts.Assert(tid == node.TidLax || tid == node.TidStrict);
@@ -897,10 +874,10 @@ namespace Microsoft.ML.Transforms
                     {
                         // Note: this loop doesn't work for != so it is handled separately below.
                         ExprNode arg = items[0].AsExpr;
-                        Contracts.Assert(arg.ExprType.Kind == kind);
+                        Contracts.Assert(arg.ExprType == kind);
 
                         GenRaw(arg = items[0].AsExpr);
-                        Contracts.Assert(arg.ExprType.Kind == kind);
+                        Contracts.Assert(arg.ExprType == kind);
 
                         for (int i = 1; ; i++)
                         {
@@ -909,7 +886,7 @@ namespace Microsoft.ML.Transforms
                             var isStrict = tid == node.TidStrict;
 
                             arg = items[i].AsExpr;
-                            Contracts.Assert(arg.ExprType.Kind == kind);
+                            Contracts.Assert(arg.ExprType == kind);
                             GenRaw(arg);
 
                             if (i == items.Length - 1)
@@ -942,7 +919,7 @@ namespace Microsoft.ML.Transforms
                         try
                         {
                             ExprNode arg = items[0].AsExpr;
-                            Contracts.Assert(arg.ExprType.Kind == kind);
+                            Contracts.Assert(arg.ExprType == kind);
 
                             GenRaw(arg);
                             _gen.Stloc(locals[0].Local);
@@ -951,7 +928,7 @@ namespace Microsoft.ML.Transforms
                             {
                                 // Need to evaluate the expression and store it in the local.
                                 arg = items[i].AsExpr;
-                                Contracts.Assert(arg.ExprType.Kind == kind);
+                                Contracts.Assert(arg.ExprType == kind);
                                 GenRaw(arg);
                                 _gen.Stloc(locals[i].Local);
 
@@ -996,7 +973,7 @@ namespace Microsoft.ML.Transforms
                 var val = node.ExprValue;
                 if (val != null)
                 {
-                    switch (node.ExprType.Kind)
+                    switch (node.ExprType)
                     {
                         case ExprTypeKind.BL:
                             {
@@ -1046,9 +1023,9 @@ namespace Microsoft.ML.Transforms
             /// Note that this leaves the element on the stack (duplicates before comparing).
             /// If rev is true, this branches when NOT NA.
             /// </summary>
-            private void GenBrNa(ExprNode node, Label labNa, bool dup = true, bool rev = false)
+            private void GenBrNa(ExprNode node, Label labNa, bool dup = true)
             {
-                GenBrNaCore(node, node.ExprType.Kind, labNa, dup, rev);
+                GenBrNaCore(node, node.ExprType, labNa, dup);
             }
 
             /// <summary>
@@ -1395,7 +1372,7 @@ namespace Microsoft.ML.Transforms
                     // bloat but avoids unnecessary computation. Perhaps we should determine whether the
                     // value is always needed. However, this can be quite complicated, requiring flow
                     // analysis through all expression kinds.
-                    using (var value = _meth.AcquireTemporary(local.Value.ExprType.GetSysType()))
+                    using (var value = _meth.AcquireTemporary(ExprNode.ToSysType(local.Value.ExprType)))
                     using (var flag = lazy ? _meth.AcquireTemporary(typeof(bool)) : default(MethodGenerator.Temporary))
                     {
                         LocalBuilder flagBldr = flag.Local;

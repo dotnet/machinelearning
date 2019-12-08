@@ -215,7 +215,7 @@ namespace Microsoft.ML.Transforms
             Contracts.AssertValue(node.ExprValue);
 
             var value = node.ExprValue;
-            switch (node.ExprType.Kind)
+            switch (node.ExprType)
             {
                 case ExprTypeKind.I4:
                     Show((I4)value);
@@ -311,7 +311,7 @@ namespace Microsoft.ML.Transforms
         {
             if (!_showTypes)
                 return;
-            if (node.ExprType.Kind == ExprTypeKind.None)
+            if (node.ExprType == ExprTypeKind.None)
                 return;
 
             _wrt.Write(':');

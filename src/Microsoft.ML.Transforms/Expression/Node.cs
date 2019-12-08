@@ -111,75 +111,6 @@ namespace Microsoft.ML.Transforms
         Float = R4
     }
 
-    // REVIEW: Consider making ExprType an enum (the equivalent of ExprTypeKind),
-    // and getting rid of ExprTypeKind. Net# needs the split, since it supports tuples,
-    // but ExprTransform doesn't need the split.
-    internal struct ExprType
-    {
-        public static readonly ExprType None = new ExprType(ExprTypeKind.None);
-        public static readonly ExprType Error = new ExprType(ExprTypeKind.Error);
-        public static readonly ExprType I4 = new ExprType(ExprTypeKind.I4);
-        public static readonly ExprType I8 = new ExprType(ExprTypeKind.I8);
-        public static readonly ExprType R4 = new ExprType(ExprTypeKind.R4);
-        public static readonly ExprType R8 = new ExprType(ExprTypeKind.R8);
-        public static readonly ExprType Float = new ExprType(ExprTypeKind.Float);
-        public static readonly ExprType BL = new ExprType(ExprTypeKind.BL);
-        public static readonly ExprType TX = new ExprType(ExprTypeKind.TX);
-
-        public readonly ExprTypeKind Kind;
-
-        public ExprType(ExprTypeKind kind)
-        {
-            Contracts.Assert(0 <= kind && kind < ExprTypeKind._Lim);
-            Kind = kind;
-        }
-
-        public bool IsValid { get { return Kind != 0; } }
-
-        public Type GetSysType()
-        {
-            switch (Kind)
-            {
-                case ExprTypeKind.BL:
-                    return typeof(BL);
-                case ExprTypeKind.I4:
-                    return typeof(I4);
-                case ExprTypeKind.I8:
-                    return typeof(I8);
-                case ExprTypeKind.R4:
-                    return typeof(R4);
-                case ExprTypeKind.R8:
-                    return typeof(R8);
-                case ExprTypeKind.TX:
-                    return typeof(TX);
-                default:
-                    return null;
-            }
-        }
-
-        public static ExprType ToExprType(Type type)
-        {
-            if (type == typeof(BL))
-                return ExprType.BL;
-            if (type == typeof(I4))
-                return ExprType.I4;
-            if (type == typeof(I8))
-                return ExprType.I8;
-            if (type == typeof(R4))
-                return ExprType.R4;
-            if (type == typeof(R8))
-                return ExprType.R8;
-            if (type == typeof(TX))
-                return ExprType.TX;
-            return ExprType.Error;
-        }
-
-        public override string ToString()
-        {
-            return Kind.ToString();
-        }
-    }
-
     internal abstract class NodeVisitor
     {
         // Visit methods for leaf node types.
@@ -340,18 +271,18 @@ namespace Microsoft.ML.Transforms
         public override ExprNode AsExpr { get { return this; } }
         public override ExprNode TestExpr { get { return this; } }
 
-        public ExprType ExprType { get; private set; }
+        public ExprTypeKind ExprType { get; private set; }
         public object ExprValue { get; private set; }
 
         private bool IsSimple(ExprTypeKind kind)
         {
-            Contracts.Assert(ExprType.IsValid);
-            return ExprType.Kind == kind;
+            Contracts.Assert(ExprType != 0);
+            return ExprType == kind;
         }
 
-        public bool HasType { get { return ExprTypeKind.Error < ExprType.Kind && ExprType.Kind < ExprTypeKind._Lim; } }
-        public bool IsNone { get { return ExprType.Kind == ExprTypeKind.None; } }
-        public bool IsError { get { return ExprType.Kind == ExprTypeKind.Error; } }
+        public bool HasType { get { return ExprTypeKind.Error < ExprType && ExprType < ExprTypeKind._Lim; } }
+        public bool IsNone { get { return ExprType == ExprTypeKind.None; } }
+        public bool IsError { get { return ExprType == ExprTypeKind.Error; } }
 
         public bool IsBool { get { return IsSimple(ExprTypeKind.BL); } }
         public bool IsNumber
@@ -377,116 +308,154 @@ namespace Microsoft.ML.Transforms
             {
 #if DEBUG
                 // Assert that the conversion is valid.
-                if (SrcKind != ExprType.Kind)
+                if (SrcKind != ExprType)
                 {
                     ExprTypeKind kind;
-                    bool tmp = LambdaBinder.CanPromote(false, SrcKind, ExprType.Kind, out kind);
-                    Contracts.Assert(tmp && kind == ExprType.Kind);
+                    bool tmp = LambdaBinder.CanPromote(false, SrcKind, ExprType, out kind);
+                    Contracts.Assert(tmp && kind == ExprType);
                 }
 #endif
-                return SrcKind != ExprType.Kind;
+                return SrcKind != ExprType;
             }
         }
 
-        public void SetType(ExprType type)
+        public void SetType(ExprTypeKind kind)
         {
-            Contracts.Assert(type.IsValid);
+            Contracts.Assert(kind != 0);
             Contracts.Assert(ExprValue == null);
-            Contracts.Assert(!ExprType.IsValid || ExprType.Kind == type.Kind);
-            Contracts.Assert(SrcKind == ExprType.Kind);
-            ExprType = type;
-            SrcKind = type.Kind;
+            Contracts.Assert(ExprType == 0 || ExprType == kind);
+            Contracts.Assert(SrcKind == ExprType);
+            ExprType = kind;
+            SrcKind = kind;
         }
 
-        public void SetType(ExprType type, object value)
+        public void SetType(ExprTypeKind kind, object value)
         {
-            Contracts.Assert(type.IsValid);
-            Contracts.Assert(value == null || value.GetType() == type.GetSysType());
+            Contracts.Assert(kind != 0);
+            Contracts.Assert(value == null || value.GetType() == ToSysType(kind));
             Contracts.Assert(ExprValue == null);
-            Contracts.Assert(!ExprType.IsValid || ExprType.Kind == type.Kind);
-            Contracts.Assert(SrcKind == ExprType.Kind);
-            ExprType = type;
-            SrcKind = type.Kind;
+            Contracts.Assert(ExprType == 0 || ExprType == kind);
+            Contracts.Assert(SrcKind == ExprType);
+            ExprType = kind;
+            SrcKind = kind;
             ExprValue = value;
+        }
+
+        internal static Type ToSysType(ExprTypeKind kind)
+        {
+            switch (kind)
+            {
+                case ExprTypeKind.BL:
+                    return typeof(BL);
+                case ExprTypeKind.I4:
+                    return typeof(I4);
+                case ExprTypeKind.I8:
+                    return typeof(I8);
+                case ExprTypeKind.R4:
+                    return typeof(R4);
+                case ExprTypeKind.R8:
+                    return typeof(R8);
+                case ExprTypeKind.TX:
+                    return typeof(TX);
+                default:
+                    return null;
+            }
+        }
+
+        internal static ExprTypeKind ToExprTypeKind(Type type)
+        {
+            if (type == typeof(BL))
+                return ExprTypeKind.BL;
+            if (type == typeof(I4))
+                return ExprTypeKind.I4;
+            if (type == typeof(I8))
+                return ExprTypeKind.I8;
+            if (type == typeof(R4))
+                return ExprTypeKind.R4;
+            if (type == typeof(R8))
+                return ExprTypeKind.R8;
+            if (type == typeof(TX))
+                return ExprTypeKind.TX;
+            return ExprTypeKind.Error;
         }
 
         public void SetValue(ExprNode expr)
         {
             Contracts.AssertValue(expr);
-            Contracts.Assert(expr.ExprType.IsValid);
+            Contracts.Assert(expr.ExprType != 0);
             SetType(expr.ExprType);
             ExprValue = expr.ExprValue;
         }
 
         public void SetValue(BL value)
         {
-            SetType(ExprType.BL);
+            SetType(ExprTypeKind.BL);
             ExprValue = value;
         }
 
         public void SetValue(BL? value)
         {
-            SetType(ExprType.BL);
+            SetType(ExprTypeKind.BL);
             ExprValue = value;
         }
 
         public void SetValue(I4 value)
         {
-            SetType(ExprType.I4);
+            SetType(ExprTypeKind.I4);
             ExprValue = value;
         }
 
         public void SetValue(I4? value)
         {
-            SetType(ExprType.I4);
+            SetType(ExprTypeKind.I4);
             ExprValue = value;
         }
 
         public void SetValue(I8 value)
         {
-            SetType(ExprType.I8);
+            SetType(ExprTypeKind.I8);
             ExprValue = value;
         }
 
         public void SetValue(I8? value)
         {
-            SetType(ExprType.I8);
+            SetType(ExprTypeKind.I8);
             ExprValue = value;
         }
 
         public void SetValue(R4 value)
         {
-            SetType(ExprType.R4);
+            SetType(ExprTypeKind.R4);
             ExprValue = value;
         }
 
         public void SetValue(R4? value)
         {
-            SetType(ExprType.R4);
+            SetType(ExprTypeKind.R4);
             ExprValue = value;
         }
 
         public void SetValue(R8 value)
         {
-            SetType(ExprType.R8);
+            SetType(ExprTypeKind.R8);
             ExprValue = value;
         }
 
         public void SetValue(R8? value)
         {
-            SetType(ExprType.R8);
+            SetType(ExprTypeKind.R8);
             ExprValue = value;
         }
 
         public void SetValue(TX value)
         {
-            SetType(ExprType.TX);
+            SetType(ExprTypeKind.TX);
             ExprValue = value;
         }
 
         public void SetValue(TX? value)
         {
-            SetType(ExprType.TX);
+            SetType(ExprTypeKind.TX);
             ExprValue = value;
         }
 
@@ -494,14 +463,14 @@ namespace Microsoft.ML.Transforms
         {
             Contracts.Assert(HasType);
 
-            if (kind == ExprType.Kind)
+            if (kind == ExprType)
                 return;
 
-            Contracts.Assert(SrcKind == ExprType.Kind);
+            Contracts.Assert(SrcKind == ExprType);
             switch (kind)
             {
                 case ExprTypeKind.I8:
-                    Contracts.Assert(ExprType.Kind == ExprTypeKind.I4);
+                    Contracts.Assert(ExprType == ExprTypeKind.I4);
                     if (ExprValue != null)
                     {
                         Contracts.Assert(ExprValue is I4);
@@ -509,7 +478,7 @@ namespace Microsoft.ML.Transforms
                     }
                     break;
                 case ExprTypeKind.R4:
-                    Contracts.Assert(ExprType.Kind == ExprTypeKind.I4);
+                    Contracts.Assert(ExprType == ExprTypeKind.I4);
                     if (ExprValue != null)
                     {
                         Contracts.Assert(ExprValue is I4);
@@ -517,16 +486,16 @@ namespace Microsoft.ML.Transforms
                     }
                     break;
                 case ExprTypeKind.R8:
-                    Contracts.Assert(ExprType.Kind == ExprTypeKind.I4 || ExprType.Kind == ExprTypeKind.I8 ||
-                        ExprType.Kind == ExprTypeKind.R4);
+                    Contracts.Assert(ExprType == ExprTypeKind.I4 || ExprType == ExprTypeKind.I8 ||
+                        ExprType == ExprTypeKind.R4);
                     if (ExprValue != null)
                     {
-                        if (ExprType.Kind == ExprTypeKind.I4)
+                        if (ExprType == ExprTypeKind.I4)
                         {
                             Contracts.Assert(ExprValue is I4);
                             ExprValue = (R8)(I4)ExprValue;
                         }
-                        else if (ExprType.Kind == ExprTypeKind.I8)
+                        else if (ExprType == ExprTypeKind.I8)
                         {
                             Contracts.Assert(ExprValue is I8);
                             ExprValue = (R8)(I8)ExprValue;
@@ -541,7 +510,7 @@ namespace Microsoft.ML.Transforms
             }
 
             // Set the new type.
-            ExprType = new ExprType(kind);
+            ExprType = kind;
         }
 
         public bool TryGet(out BL? value)
@@ -568,7 +537,7 @@ namespace Microsoft.ML.Transforms
 
         public bool TryGet(out I8? value)
         {
-            switch (ExprType.Kind)
+            switch (ExprType)
             {
                 default:
                     value = null;
@@ -584,7 +553,7 @@ namespace Microsoft.ML.Transforms
 
         public bool TryGet(out R4? value)
         {
-            switch (ExprType.Kind)
+            switch (ExprType)
             {
                 default:
                     value = null;
@@ -600,7 +569,7 @@ namespace Microsoft.ML.Transforms
 
         public bool TryGet(out R8? value)
         {
-            switch (ExprType.Kind)
+            switch (ExprType)
             {
                 default:
                     value = null;
@@ -676,7 +645,7 @@ namespace Microsoft.ML.Transforms
         public readonly string Name;
         public readonly int Index;
         public readonly DataViewType Type;
-        public ExprType ExprType;
+        public ExprTypeKind ExprType;
 
         public ParamNode(Token tok, string name, int index, DataViewType type)
             : base(tok)
@@ -689,19 +658,19 @@ namespace Microsoft.ML.Transforms
             Type = type;
 
             if (type == null)
-                ExprType = ExprType.Error;
+                ExprType = ExprTypeKind.Error;
             else if (type is TextDataViewType)
-                ExprType = ExprType.TX;
+                ExprType = ExprTypeKind.TX;
             else if (type is BooleanDataViewType)
-                ExprType = ExprType.BL;
+                ExprType = ExprTypeKind.BL;
             else if (type == NumberDataViewType.Int32)
-                ExprType = ExprType.I4;
+                ExprType = ExprTypeKind.I4;
             else if (type == NumberDataViewType.Int64)
-                ExprType = ExprType.I8;
+                ExprType = ExprTypeKind.I8;
             else if (type == NumberDataViewType.Single)
-                ExprType = ExprType.R4;
+                ExprType = ExprTypeKind.R4;
             else if (type == NumberDataViewType.Double)
-                ExprType = ExprType.R8;
+                ExprType = ExprTypeKind.R8;
         }
 
         public override NodeKind Kind { get { return NodeKind.Param; } }
@@ -783,7 +752,7 @@ namespace Microsoft.ML.Transforms
             {
                 default:
                     Contracts.Assert(false);
-                    SetType(ExprType.Error);
+                    SetType(ExprTypeKind.Error);
                     return;
 
                 case TokKind.FltLit:
@@ -818,7 +787,7 @@ namespace Microsoft.ML.Transforms
             else if (uu <= I8.MaxValue || ilt.IsHex && !uns)
                 SetValue((I8)uu);
             else
-                SetType(ExprType.Error);
+                SetType(ExprTypeKind.Error);
         }
 
         public NumLitToken Value

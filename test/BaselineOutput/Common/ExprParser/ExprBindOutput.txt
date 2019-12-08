@@ -921,64 +921,53 @@ Binding succeeded. Output type: String
 Compiling succeeded.
 1|-3|17|2.5|-3.25|end
 ===== End Script 106, lines 1128 to 1131 =====
-===== Start Script 107, lines 1132 to 1142 =====
-Binding succeeded. Output type: String
-Compiling succeeded.
-1|3|-17|-2.5|3.25|done
-*** Parsing ? Failed *** 0|3|-17|-2.5|3.25|done
-*** Parsing ? Failed *** 1|0|-17|-2.5|3.25|done
-*** Parsing ? Failed *** 1|3|0|-2.5|3.25|done
-1|3|-17|NaN|3.25|done
-1|3|-17|-2.5|NaN|done
-1|3|-17|-2.5|3.25|
-===== End Script 107, lines 1132 to 1142 =====
-===== Start Script 108, lines 1143 to 1147 =====
+===== Start Script 107, lines 1132 to 1136 =====
 Binding succeeded. Output type: Int32
 Compiling succeeded.
 ExprDump: 17
 17
 *** Parsing ? Failed *** ExprDump: 0
 0
-===== End Script 108, lines 1143 to 1147 =====
-===== Start Script 109, lines 1148 to 1152 =====
+===== End Script 107, lines 1132 to 1136 =====
+===== Start Script 108, lines 1137 to 1141 =====
 Binding succeeded. Output type: Int32
 Compiling succeeded.
 Hello from _dump: 17
 17
 *** Parsing ? Failed *** Hello from _dump: 0
 0
-===== End Script 109, lines 1148 to 1152 =====
-===== Start Script 110, lines 1153 to 1154 =====
-  ExprBindInput.txt(1153,12)-(1153,13): error: at 'OpenParen': Expected 1 or 2 arguments to function '_dump'
-===== End Script 110, lines 1153 to 1154 =====
-===== Start Script 111, lines 1155 to 1156 =====
-  ExprBindInput.txt(1155,12)-(1155,13): error: at 'OpenParen': Expected 1 or 2 arguments to function '_dump'
-===== End Script 111, lines 1155 to 1156 =====
-===== Start Script 112, lines 1157 to 1158 =====
+===== End Script 108, lines 1137 to 1141 =====
+===== Start Script 109, lines 1142 to 1143 =====
+  ExprBindInput.txt(1142,12)-(1142,13): error: at 'OpenParen': Expected 1 or 2 arguments to function '_dump'
+===== End Script 109, lines 1142 to 1143 =====
+===== Start Script 110, lines 1144 to 1145 =====
+  ExprBindInput.txt(1144,12)-(1144,13): error: at 'OpenParen': Expected 1 or 2 arguments to function '_dump'
+===== End Script 110, lines 1144 to 1145 =====
+===== Start Script 111, lines 1146 to 1147 =====
 Binding succeeded. Output type: Int32
 Compiling succeeded.
-===== End Script 112, lines 1157 to 1158 =====
-===== Start Script 113, lines 1159 to 1160 =====
-  ExprBindInput.txt(1159,16)-(1159,17): error: at 'OpenParen': The best overload of '_dump' has some invalid arguments
-  ExprBindInput.txt(1159,17)-(1159,18): error: at 'Ident: x': Invalid text operand
-===== End Script 113, lines 1159 to 1160 =====
-===== Start Script 114, lines 1161 to 1162 =====
-  ExprBindInput.txt(1161,12)-(1161,13): error: at 'OpenParen': The best overload of '_dump' has some invalid arguments
-  ExprBindInput.txt(1161,13)-(1161,14): error: at '1': Invalid text operand
-===== End Script 114, lines 1161 to 1162 =====
-===== Start Script 115, lines 1163 to 1164 =====
-  ExprBindInput.txt(1163,24)-(1163,25): error: at 'OpenParen': The best overload of '_dump' has some invalid arguments
-  ExprBindInput.txt(1163,25)-(1163,26): error: at 'Ident: x': Invalid text operand
-===== End Script 115, lines 1163 to 1164 =====
-===== Start Script 116, lines 1165 to 1169 =====
+===== End Script 111, lines 1146 to 1147 =====
+===== Start Script 112, lines 1148 to 1149 =====
+  ExprBindInput.txt(1148,16)-(1148,17): error: at 'OpenParen': The best overload of '_dump' has some invalid arguments
+  ExprBindInput.txt(1148,17)-(1148,18): error: at 'Ident: x': Invalid text operand
+===== End Script 112, lines 1148 to 1149 =====
+===== Start Script 113, lines 1150 to 1151 =====
+  ExprBindInput.txt(1150,12)-(1150,13): error: at 'OpenParen': The best overload of '_dump' has some invalid arguments
+  ExprBindInput.txt(1150,13)-(1150,14): error: at '1': Invalid text operand
+===== End Script 113, lines 1150 to 1151 =====
+===== Start Script 114, lines 1152 to 1153 =====
+  ExprBindInput.txt(1152,24)-(1152,25): error: at 'OpenParen': The best overload of '_dump' has some invalid arguments
+  ExprBindInput.txt(1152,25)-(1152,26): error: at 'Ident: x': Invalid text operand
+===== End Script 114, lines 1152 to 1153 =====
+===== Start Script 115, lines 1154 to 1158 =====
 Binding succeeded. Output type: Int32
 Compiling succeeded.
 Hello from _dump: -17
 -17
 *** Parsing ? Failed *** Hello from _dump: 0
 0
-===== End Script 116, lines 1165 to 1169 =====
-===== Start Script 117, lines 1170 to 1176 =====
+===== End Script 115, lines 1154 to 1158 =====
+===== Start Script 116, lines 1159 to 1165 =====
 Binding succeeded. Output type: Int32
 Compiling succeeded.
   Eval[y]: 1
@@ -993,8 +982,8 @@ Compiling succeeded.
 *** Parsing ? Failed ***   Eval[y]: 1
   Eval[z]: 2
 2
-===== End Script 117, lines 1170 to 1176 =====
-===== Start Script 118, lines 1177 to 1185 =====
+===== End Script 116, lines 1159 to 1165 =====
+===== Start Script 117, lines 1166 to 1174 =====
 Binding succeeded. Output type: Int32
 Compiling succeeded.
 ExprDump: 1
@@ -1007,478 +996,478 @@ ExprDump: 3
 9
 *** Parsing ? Failed *** ExprDump: 1
 1
-===== End Script 118, lines 1177 to 1185 =====
-===== Start Script 119, lines 1186 to 1205 =====
-  ExprBindInput.txt(1193,18)-(1193,20): error: at 'QueQue': Invalid text operand
-  ExprBindInput.txt(1193,37)-(1193,39): error: at 'QueQue': Invalid text operand
-  ExprBindInput.txt(1193,56)-(1193,58): error: at 'QueQue': Invalid text operand
-  ExprBindInput.txt(1193,75)-(1193,77): error: at 'QueQue': Invalid text operand
-===== End Script 119, lines 1186 to 1205 =====
-===== Start Script 120, lines 1206 to 1219 =====
-  ExprBindInput.txt(1207,60)-(1207,62): error: at 'QueQue': Invalid text operand
-  ExprBindInput.txt(1207,119)-(1207,121): error: at 'QueQue': Invalid text operand
-===== End Script 120, lines 1206 to 1219 =====
-===== Start Script 121, lines 1220 to 1223 =====
+===== End Script 117, lines 1166 to 1174 =====
+===== Start Script 118, lines 1175 to 1194 =====
+  ExprBindInput.txt(1182,18)-(1182,20): error: at 'QueQue': Invalid text operand
+  ExprBindInput.txt(1182,37)-(1182,39): error: at 'QueQue': Invalid text operand
+  ExprBindInput.txt(1182,56)-(1182,58): error: at 'QueQue': Invalid text operand
+  ExprBindInput.txt(1182,75)-(1182,77): error: at 'QueQue': Invalid text operand
+===== End Script 118, lines 1175 to 1194 =====
+===== Start Script 119, lines 1195 to 1208 =====
+  ExprBindInput.txt(1196,60)-(1196,62): error: at 'QueQue': Invalid text operand
+  ExprBindInput.txt(1196,119)-(1196,121): error: at 'QueQue': Invalid text operand
+===== End Script 119, lines 1195 to 1208 =====
+===== Start Script 120, lines 1209 to 1212 =====
 Binding succeeded. Output type: Int32
 Compiling succeeded.
 2
-===== End Script 121, lines 1220 to 1223 =====
-===== Start Script 122, lines 1224 to 1227 =====
-  ExprBindInput.txt(1224,13)-(1224,14): error: at 'OpenParen': The best overload of 'na' has some invalid arguments
-  ExprBindInput.txt(1224,14)-(1224,16): error: at '""': Invalid numeric operand
-  ExprBindInput.txt(1224,10)-(1224,11): error: at 'OpenParen': The best overload of 'len' has some invalid arguments
-  ExprBindInput.txt(1224,13)-(1224,14): error: at 'OpenParen': Invalid text operand
-  ExprBindInput.txt(1224,19)-(1224,21): error: at 'QueQue': Invalid integer operand
-===== End Script 122, lines 1224 to 1227 =====
-===== Start Script 123, lines 1228 to 1233 =====
+===== End Script 120, lines 1209 to 1212 =====
+===== Start Script 121, lines 1213 to 1216 =====
+  ExprBindInput.txt(1213,13)-(1213,14): error: at 'OpenParen': The best overload of 'na' has some invalid arguments
+  ExprBindInput.txt(1213,14)-(1213,16): error: at '""': Invalid numeric operand
+  ExprBindInput.txt(1213,10)-(1213,11): error: at 'OpenParen': The best overload of 'len' has some invalid arguments
+  ExprBindInput.txt(1213,13)-(1213,14): error: at 'OpenParen': Invalid text operand
+  ExprBindInput.txt(1213,19)-(1213,21): error: at 'QueQue': Invalid integer operand
+===== End Script 121, lines 1213 to 1216 =====
+===== Start Script 122, lines 1217 to 1222 =====
 Binding succeeded. Output type: Int32
 Compiling succeeded.
 5
 0
 0
-===== End Script 123, lines 1228 to 1233 =====
-===== Start Script 124, lines 1234 to 1237 =====
+===== End Script 122, lines 1217 to 1222 =====
+===== Start Script 123, lines 1223 to 1226 =====
 Binding succeeded. Output type: String
 Compiling succeeded.
 llo|he|el
-===== End Script 124, lines 1234 to 1237 =====
-===== Start Script 125, lines 1238 to 1243 =====
+===== End Script 123, lines 1223 to 1226 =====
+===== Start Script 124, lines 1227 to 1232 =====
 Binding succeeded. Output type: String
 Compiling succeeded.
 ello|h|el
 *** Parsing ? Failed *** hello||hel
 lo|hel|
-===== End Script 125, lines 1238 to 1243 =====
-===== Start Script 126, lines 1244 to 1247 =====
-  ExprBindInput.txt(1244,22)-(1244,23): error: at 'OpenParen': The best overload of 'na' has some invalid arguments
-  ExprBindInput.txt(1244,23)-(1244,25): error: at '""': Invalid numeric operand
-  ExprBindInput.txt(1244,19)-(1244,20): error: at 'OpenParen': The best overload of 'right' has some invalid arguments
-  ExprBindInput.txt(1244,22)-(1244,23): error: at 'OpenParen': Invalid text operand
-  ExprBindInput.txt(1244,31)-(1244,33): error: at 'QueQue': Invalid text operand
-  ExprBindInput.txt(1244,51)-(1244,52): error: at 'OpenParen': The best overload of 'na' has some invalid arguments
-  ExprBindInput.txt(1244,52)-(1244,54): error: at '""': Invalid numeric operand
-  ExprBindInput.txt(1244,48)-(1244,49): error: at 'OpenParen': The best overload of 'left' has some invalid arguments
-  ExprBindInput.txt(1244,51)-(1244,52): error: at 'OpenParen': Invalid text operand
-  ExprBindInput.txt(1244,60)-(1244,62): error: at 'QueQue': Invalid text operand
-  ExprBindInput.txt(1244,79)-(1244,80): error: at 'OpenParen': The best overload of 'na' has some invalid arguments
-  ExprBindInput.txt(1244,80)-(1244,82): error: at '""': Invalid numeric operand
-  ExprBindInput.txt(1244,76)-(1244,77): error: at 'OpenParen': The best overload of 'mid' has some invalid arguments
-  ExprBindInput.txt(1244,79)-(1244,80): error: at 'OpenParen': Invalid text operand
-  ExprBindInput.txt(1244,91)-(1244,93): error: at 'QueQue': Invalid text operand
-===== End Script 126, lines 1244 to 1247 =====
-===== Start Script 127, lines 1248 to 1251 =====
-  ExprBindInput.txt(1248,19)-(1248,20): error: at 'OpenParen': The best overload of 'right' has some invalid arguments
-  ExprBindInput.txt(1248,25)-(1248,26): error: at 'OpenParen': Invalid integer operand
-  ExprBindInput.txt(1248,30)-(1248,32): error: at 'QueQue': Invalid text operand
-  ExprBindInput.txt(1248,47)-(1248,48): error: at 'OpenParen': The best overload of 'left' has some invalid arguments
-  ExprBindInput.txt(1248,53)-(1248,54): error: at 'OpenParen': Invalid integer operand
-  ExprBindInput.txt(1248,58)-(1248,60): error: at 'QueQue': Invalid text operand
-  ExprBindInput.txt(1248,74)-(1248,75): error: at 'OpenParen': The best overload of 'mid' has some invalid arguments
-  ExprBindInput.txt(1248,80)-(1248,81): error: at 'OpenParen': Invalid integer operand
-  ExprBindInput.txt(1248,88)-(1248,90): error: at 'QueQue': Invalid text operand
-  ExprBindInput.txt(1248,104)-(1248,105): error: at 'OpenParen': The best overload of 'mid' has some invalid arguments
-  ExprBindInput.txt(1248,113)-(1248,114): error: at 'OpenParen': Invalid integer operand
-  ExprBindInput.txt(1248,118)-(1248,120): error: at 'QueQue': Invalid text operand
-===== End Script 127, lines 1248 to 1251 =====
-===== Start Script 128, lines 1252 to 1253 =====
-  ExprBindInput.txt(1252,14)-(1252,15): error: at 'OpenParen': Expected one argument to function 'len'
-  ExprBindInput.txt(1252,26)-(1252,27): error: at 'OpenParen': The best overload of 'len' has some invalid arguments
-  ExprBindInput.txt(1252,27)-(1252,28): error: at 'Ident: i': Invalid text operand
-  ExprBindInput.txt(1252,39)-(1252,40): error: at 'OpenParen': Expected one argument to function 'len'
-===== End Script 128, lines 1252 to 1253 =====
-===== Start Script 129, lines 1254 to 1255 =====
-  ExprBindInput.txt(1254,23)-(1254,24): error: at 'OpenParen': Expected 2 arguments to function 'right'
-  ExprBindInput.txt(1254,32)-(1254,33): error: at 'OpenParen': Expected 2 arguments to function 'right'
-  ExprBindInput.txt(1254,42)-(1254,43): error: at 'OpenParen': The best overload of 'right' has some invalid arguments
-  ExprBindInput.txt(1254,43)-(1254,44): error: at 'Ident: i': Invalid text operand
-  ExprBindInput.txt(1254,45)-(1254,46): error: at 'Ident: t': Invalid integer operand
-  ExprBindInput.txt(1254,54)-(1254,55): error: at 'OpenParen': The best overload of 'right' has some invalid arguments
-  ExprBindInput.txt(1254,57)-(1254,58): error: at 'Ident: t': Invalid integer operand
-  ExprBindInput.txt(1254,66)-(1254,67): error: at 'OpenParen': Expected 2 arguments to function 'right'
-===== End Script 129, lines 1254 to 1255 =====
-===== Start Script 130, lines 1256 to 1257 =====
-  ExprBindInput.txt(1256,22)-(1256,23): error: at 'OpenParen': Expected 2 arguments to function 'left'
-  ExprBindInput.txt(1256,30)-(1256,31): error: at 'OpenParen': Expected 2 arguments to function 'left'
-  ExprBindInput.txt(1256,39)-(1256,40): error: at 'OpenParen': The best overload of 'left' has some invalid arguments
-  ExprBindInput.txt(1256,40)-(1256,41): error: at 'Ident: i': Invalid text operand
-  ExprBindInput.txt(1256,42)-(1256,43): error: at 'Ident: t': Invalid integer operand
-  ExprBindInput.txt(1256,50)-(1256,51): error: at 'OpenParen': The best overload of 'left' has some invalid arguments
-  ExprBindInput.txt(1256,53)-(1256,54): error: at 'Ident: t': Invalid integer operand
-  ExprBindInput.txt(1256,61)-(1256,62): error: at 'OpenParen': Expected 2 arguments to function 'left'
-===== End Script 130, lines 1256 to 1257 =====
-===== Start Script 131, lines 1258 to 1259 =====
-  ExprBindInput.txt(1258,21)-(1258,22): error: at 'OpenParen': Expected 3 arguments to function 'mid'
-  ExprBindInput.txt(1258,28)-(1258,29): error: at 'OpenParen': Expected 3 arguments to function 'mid'
-  ExprBindInput.txt(1258,36)-(1258,37): error: at 'OpenParen': The best overload of 'mid' has some invalid arguments
-  ExprBindInput.txt(1258,37)-(1258,38): error: at 'Ident: i': Invalid text operand
-  ExprBindInput.txt(1258,39)-(1258,40): error: at 'Ident: t': Invalid integer operand
-  ExprBindInput.txt(1258,48)-(1258,49): error: at 'OpenParen': The best overload of 'mid' has some invalid arguments
-  ExprBindInput.txt(1258,51)-(1258,52): error: at 'Ident: t': Invalid integer operand
-  ExprBindInput.txt(1258,60)-(1258,61): error: at 'OpenParen': The best overload of 'mid' has some invalid arguments
-  ExprBindInput.txt(1258,65)-(1258,66): error: at 'Ident: t': Invalid integer operand
-  ExprBindInput.txt(1258,72)-(1258,73): error: at 'OpenParen': Expected 3 arguments to function 'mid'
-  ExprBindInput.txt(1258,82)-(1258,83): error: at 'OpenParen': Expected 3 arguments to function 'mid'
-===== End Script 131, lines 1258 to 1259 =====
-===== Start Script 132, lines 1260 to 1265 =====
+===== End Script 124, lines 1227 to 1232 =====
+===== Start Script 125, lines 1233 to 1236 =====
+  ExprBindInput.txt(1233,22)-(1233,23): error: at 'OpenParen': The best overload of 'na' has some invalid arguments
+  ExprBindInput.txt(1233,23)-(1233,25): error: at '""': Invalid numeric operand
+  ExprBindInput.txt(1233,19)-(1233,20): error: at 'OpenParen': The best overload of 'right' has some invalid arguments
+  ExprBindInput.txt(1233,22)-(1233,23): error: at 'OpenParen': Invalid text operand
+  ExprBindInput.txt(1233,31)-(1233,33): error: at 'QueQue': Invalid text operand
+  ExprBindInput.txt(1233,51)-(1233,52): error: at 'OpenParen': The best overload of 'na' has some invalid arguments
+  ExprBindInput.txt(1233,52)-(1233,54): error: at '""': Invalid numeric operand
+  ExprBindInput.txt(1233,48)-(1233,49): error: at 'OpenParen': The best overload of 'left' has some invalid arguments
+  ExprBindInput.txt(1233,51)-(1233,52): error: at 'OpenParen': Invalid text operand
+  ExprBindInput.txt(1233,60)-(1233,62): error: at 'QueQue': Invalid text operand
+  ExprBindInput.txt(1233,79)-(1233,80): error: at 'OpenParen': The best overload of 'na' has some invalid arguments
+  ExprBindInput.txt(1233,80)-(1233,82): error: at '""': Invalid numeric operand
+  ExprBindInput.txt(1233,76)-(1233,77): error: at 'OpenParen': The best overload of 'mid' has some invalid arguments
+  ExprBindInput.txt(1233,79)-(1233,80): error: at 'OpenParen': Invalid text operand
+  ExprBindInput.txt(1233,91)-(1233,93): error: at 'QueQue': Invalid text operand
+===== End Script 125, lines 1233 to 1236 =====
+===== Start Script 126, lines 1237 to 1240 =====
+  ExprBindInput.txt(1237,19)-(1237,20): error: at 'OpenParen': The best overload of 'right' has some invalid arguments
+  ExprBindInput.txt(1237,25)-(1237,26): error: at 'OpenParen': Invalid integer operand
+  ExprBindInput.txt(1237,30)-(1237,32): error: at 'QueQue': Invalid text operand
+  ExprBindInput.txt(1237,47)-(1237,48): error: at 'OpenParen': The best overload of 'left' has some invalid arguments
+  ExprBindInput.txt(1237,53)-(1237,54): error: at 'OpenParen': Invalid integer operand
+  ExprBindInput.txt(1237,58)-(1237,60): error: at 'QueQue': Invalid text operand
+  ExprBindInput.txt(1237,74)-(1237,75): error: at 'OpenParen': The best overload of 'mid' has some invalid arguments
+  ExprBindInput.txt(1237,80)-(1237,81): error: at 'OpenParen': Invalid integer operand
+  ExprBindInput.txt(1237,88)-(1237,90): error: at 'QueQue': Invalid text operand
+  ExprBindInput.txt(1237,104)-(1237,105): error: at 'OpenParen': The best overload of 'mid' has some invalid arguments
+  ExprBindInput.txt(1237,113)-(1237,114): error: at 'OpenParen': Invalid integer operand
+  ExprBindInput.txt(1237,118)-(1237,120): error: at 'QueQue': Invalid text operand
+===== End Script 126, lines 1237 to 1240 =====
+===== Start Script 127, lines 1241 to 1242 =====
+  ExprBindInput.txt(1241,14)-(1241,15): error: at 'OpenParen': Expected one argument to function 'len'
+  ExprBindInput.txt(1241,26)-(1241,27): error: at 'OpenParen': The best overload of 'len' has some invalid arguments
+  ExprBindInput.txt(1241,27)-(1241,28): error: at 'Ident: i': Invalid text operand
+  ExprBindInput.txt(1241,39)-(1241,40): error: at 'OpenParen': Expected one argument to function 'len'
+===== End Script 127, lines 1241 to 1242 =====
+===== Start Script 128, lines 1243 to 1244 =====
+  ExprBindInput.txt(1243,23)-(1243,24): error: at 'OpenParen': Expected 2 arguments to function 'right'
+  ExprBindInput.txt(1243,32)-(1243,33): error: at 'OpenParen': Expected 2 arguments to function 'right'
+  ExprBindInput.txt(1243,42)-(1243,43): error: at 'OpenParen': The best overload of 'right' has some invalid arguments
+  ExprBindInput.txt(1243,43)-(1243,44): error: at 'Ident: i': Invalid text operand
+  ExprBindInput.txt(1243,45)-(1243,46): error: at 'Ident: t': Invalid integer operand
+  ExprBindInput.txt(1243,54)-(1243,55): error: at 'OpenParen': The best overload of 'right' has some invalid arguments
+  ExprBindInput.txt(1243,57)-(1243,58): error: at 'Ident: t': Invalid integer operand
+  ExprBindInput.txt(1243,66)-(1243,67): error: at 'OpenParen': Expected 2 arguments to function 'right'
+===== End Script 128, lines 1243 to 1244 =====
+===== Start Script 129, lines 1245 to 1246 =====
+  ExprBindInput.txt(1245,22)-(1245,23): error: at 'OpenParen': Expected 2 arguments to function 'left'
+  ExprBindInput.txt(1245,30)-(1245,31): error: at 'OpenParen': Expected 2 arguments to function 'left'
+  ExprBindInput.txt(1245,39)-(1245,40): error: at 'OpenParen': The best overload of 'left' has some invalid arguments
+  ExprBindInput.txt(1245,40)-(1245,41): error: at 'Ident: i': Invalid text operand
+  ExprBindInput.txt(1245,42)-(1245,43): error: at 'Ident: t': Invalid integer operand
+  ExprBindInput.txt(1245,50)-(1245,51): error: at 'OpenParen': The best overload of 'left' has some invalid arguments
+  ExprBindInput.txt(1245,53)-(1245,54): error: at 'Ident: t': Invalid integer operand
+  ExprBindInput.txt(1245,61)-(1245,62): error: at 'OpenParen': Expected 2 arguments to function 'left'
+===== End Script 129, lines 1245 to 1246 =====
+===== Start Script 130, lines 1247 to 1248 =====
+  ExprBindInput.txt(1247,21)-(1247,22): error: at 'OpenParen': Expected 3 arguments to function 'mid'
+  ExprBindInput.txt(1247,28)-(1247,29): error: at 'OpenParen': Expected 3 arguments to function 'mid'
+  ExprBindInput.txt(1247,36)-(1247,37): error: at 'OpenParen': The best overload of 'mid' has some invalid arguments
+  ExprBindInput.txt(1247,37)-(1247,38): error: at 'Ident: i': Invalid text operand
+  ExprBindInput.txt(1247,39)-(1247,40): error: at 'Ident: t': Invalid integer operand
+  ExprBindInput.txt(1247,48)-(1247,49): error: at 'OpenParen': The best overload of 'mid' has some invalid arguments
+  ExprBindInput.txt(1247,51)-(1247,52): error: at 'Ident: t': Invalid integer operand
+  ExprBindInput.txt(1247,60)-(1247,61): error: at 'OpenParen': The best overload of 'mid' has some invalid arguments
+  ExprBindInput.txt(1247,65)-(1247,66): error: at 'Ident: t': Invalid integer operand
+  ExprBindInput.txt(1247,72)-(1247,73): error: at 'OpenParen': Expected 3 arguments to function 'mid'
+  ExprBindInput.txt(1247,82)-(1247,83): error: at 'OpenParen': Expected 3 arguments to function 'mid'
+===== End Script 130, lines 1247 to 1248 =====
+===== Start Script 131, lines 1249 to 1254 =====
 Binding succeeded. Output type: Boolean
 Compiling succeeded.
 0
 1
 *** Parsing ? Failed *** 0
-===== End Script 132, lines 1260 to 1265 =====
-===== Start Script 133, lines 1266 to 1271 =====
+===== End Script 131, lines 1249 to 1254 =====
+===== Start Script 132, lines 1255 to 1260 =====
 Binding succeeded. Output type: Boolean
 Compiling succeeded.
 0
 1
 *** Parsing ? Failed *** 0
-===== End Script 133, lines 1266 to 1271 =====
-===== Start Script 134, lines 1272 to 1277 =====
+===== End Script 132, lines 1255 to 1260 =====
+===== Start Script 133, lines 1261 to 1266 =====
 Binding succeeded. Output type: Boolean
 Compiling succeeded.
 0
 1
 *** Parsing ? Failed *** 0
-===== End Script 134, lines 1272 to 1277 =====
-===== Start Script 135, lines 1278 to 1283 =====
+===== End Script 133, lines 1261 to 1266 =====
+===== Start Script 134, lines 1267 to 1272 =====
 Binding succeeded. Output type: Single
 Compiling succeeded.
 0
 0
 *** Parsing ? Failed *** 0
-===== End Script 135, lines 1278 to 1283 =====
-===== Start Script 136, lines 1284 to 1289 =====
+===== End Script 134, lines 1267 to 1272 =====
+===== Start Script 135, lines 1273 to 1278 =====
 Binding succeeded. Output type: Single
 Compiling succeeded.
 0
 0
 *** Parsing ? Failed *** 0
-===== End Script 136, lines 1284 to 1289 =====
-===== Start Script 137, lines 1290 to 1295 =====
+===== End Script 135, lines 1273 to 1278 =====
+===== Start Script 136, lines 1279 to 1284 =====
 Binding succeeded. Output type: String
 Compiling succeeded.
 hello
 hello
 hello
-===== End Script 137, lines 1290 to 1295 =====
-===== Start Script 138, lines 1296 to 1301 =====
-  ExprBindInput.txt(1296,14)-(1296,15): error: at 'OpenParen': The best overload of 'na' has some invalid arguments
-  ExprBindInput.txt(1296,15)-(1296,22): error: at '"hello"': Invalid numeric operand
-  ExprBindInput.txt(1296,9)-(1296,11): error: at 'QueQue': Invalid text operand
-===== End Script 138, lines 1296 to 1301 =====
-===== Start Script 139, lines 1302 to 1307 =====
+===== End Script 136, lines 1279 to 1284 =====
+===== Start Script 137, lines 1285 to 1290 =====
+  ExprBindInput.txt(1285,14)-(1285,15): error: at 'OpenParen': The best overload of 'na' has some invalid arguments
+  ExprBindInput.txt(1285,15)-(1285,22): error: at '"hello"': Invalid numeric operand
+  ExprBindInput.txt(1285,9)-(1285,11): error: at 'QueQue': Invalid text operand
+===== End Script 137, lines 1285 to 1290 =====
+===== Start Script 138, lines 1291 to 1296 =====
 Binding succeeded. Output type: Single
 Compiling succeeded.
 ?
 ?
 *** Parsing ? Failed *** ?
-===== End Script 139, lines 1302 to 1307 =====
-===== Start Script 140, lines 1308 to 1313 =====
+===== End Script 138, lines 1291 to 1296 =====
+===== Start Script 139, lines 1297 to 1302 =====
 Binding succeeded. Output type: Single
 Compiling succeeded.
 ?
 ?
 *** Parsing ? Failed *** ?
-===== End Script 140, lines 1308 to 1313 =====
-===== Start Script 141, lines 1314 to 1319 =====
+===== End Script 139, lines 1297 to 1302 =====
+===== Start Script 140, lines 1303 to 1308 =====
 Binding succeeded. Output type: Int32
 Compiling succeeded.
 2
 -2
 *** Parsing ? Failed *** 0
-===== End Script 141, lines 1314 to 1319 =====
-===== Start Script 142, lines 1320 to 1325 =====
+===== End Script 140, lines 1303 to 1308 =====
+===== Start Script 141, lines 1309 to 1314 =====
 Binding succeeded. Output type: Int32
 Compiling succeeded.
 2
 -2
 *** Parsing ? Failed *** 0
-===== End Script 142, lines 1320 to 1325 =====
-===== Start Script 143, lines 1326 to 1331 =====
+===== End Script 141, lines 1309 to 1314 =====
+===== Start Script 142, lines 1315 to 1320 =====
 Binding succeeded. Output type: Single
 Compiling succeeded.
 ?
 ?
 *** Parsing ? Failed *** ?
-===== End Script 143, lines 1326 to 1331 =====
-===== Start Script 144, lines 1332 to 1337 =====
+===== End Script 142, lines 1315 to 1320 =====
+===== Start Script 143, lines 1321 to 1326 =====
 Binding succeeded. Output type: Single
 Compiling succeeded.
 ?
 ?
 *** Parsing ? Failed *** ?
-===== End Script 144, lines 1332 to 1337 =====
-===== Start Script 145, lines 1338 to 1343 =====
+===== End Script 143, lines 1321 to 1326 =====
+===== Start Script 144, lines 1327 to 1332 =====
 Binding succeeded. Output type: Int32
 Compiling succeeded.
 2
 -2
 *** Parsing ? Failed *** 0
-===== End Script 145, lines 1338 to 1343 =====
-===== Start Script 146, lines 1344 to 1349 =====
+===== End Script 144, lines 1327 to 1332 =====
+===== Start Script 145, lines 1333 to 1338 =====
 Binding succeeded. Output type: Single
 Compiling succeeded.
 ?
 ?
 *** Parsing ? Failed *** ?
-===== End Script 146, lines 1344 to 1349 =====
-===== Start Script 147, lines 1350 to 1355 =====
+===== End Script 145, lines 1333 to 1338 =====
+===== Start Script 146, lines 1339 to 1344 =====
 Binding succeeded. Output type: Single
 Compiling succeeded.
 ?
 ?
 *** Parsing ? Failed *** ?
-===== End Script 147, lines 1350 to 1355 =====
-===== Start Script 148, lines 1356 to 1361 =====
+===== End Script 146, lines 1339 to 1344 =====
+===== Start Script 147, lines 1345 to 1350 =====
 Binding succeeded. Output type: Single
 Compiling succeeded.
 2
 -2
 ?
-===== End Script 148, lines 1356 to 1361 =====
-===== Start Script 149, lines 1362 to 1367 =====
+===== End Script 147, lines 1345 to 1350 =====
+===== Start Script 148, lines 1351 to 1356 =====
 Binding succeeded. Output type: Double
 Compiling succeeded.
 ?
 ?
 *** Parsing ? Failed *** ?
-===== End Script 149, lines 1362 to 1367 =====
-===== Start Script 150, lines 1368 to 1373 =====
+===== End Script 148, lines 1351 to 1356 =====
+===== Start Script 149, lines 1357 to 1362 =====
 Binding succeeded. Output type: Double
 Compiling succeeded.
 ?
 ?
 *** Parsing ? Failed *** ?
-===== End Script 150, lines 1368 to 1373 =====
-===== Start Script 151, lines 1374 to 1379 =====
+===== End Script 149, lines 1357 to 1362 =====
+===== Start Script 150, lines 1363 to 1368 =====
 Binding succeeded. Output type: Int64
 Compiling succeeded.
 2
 -2
 *** Parsing ? Failed *** 0
-===== End Script 151, lines 1374 to 1379 =====
-===== Start Script 152, lines 1380 to 1385 =====
+===== End Script 150, lines 1363 to 1368 =====
+===== Start Script 151, lines 1369 to 1374 =====
 Binding succeeded. Output type: Int64
 Compiling succeeded.
 2
 -2
 *** Parsing ? Failed *** 0
-===== End Script 152, lines 1380 to 1385 =====
-===== Start Script 153, lines 1386 to 1391 =====
+===== End Script 151, lines 1369 to 1374 =====
+===== Start Script 152, lines 1375 to 1380 =====
 Binding succeeded. Output type: Double
 Compiling succeeded.
 ?
 ?
 *** Parsing ? Failed *** ?
-===== End Script 153, lines 1386 to 1391 =====
-===== Start Script 154, lines 1392 to 1397 =====
+===== End Script 152, lines 1375 to 1380 =====
+===== Start Script 153, lines 1381 to 1386 =====
 Binding succeeded. Output type: Double
 Compiling succeeded.
 ?
 ?
 *** Parsing ? Failed *** ?
-===== End Script 154, lines 1392 to 1397 =====
-===== Start Script 155, lines 1398 to 1403 =====
+===== End Script 153, lines 1381 to 1386 =====
+===== Start Script 154, lines 1387 to 1392 =====
 Binding succeeded. Output type: Int64
 Compiling succeeded.
 2
 -2
 *** Parsing ? Failed *** 0
-===== End Script 155, lines 1398 to 1403 =====
-===== Start Script 156, lines 1404 to 1409 =====
+===== End Script 154, lines 1387 to 1392 =====
+===== Start Script 155, lines 1393 to 1398 =====
 Binding succeeded. Output type: Double
 Compiling succeeded.
 ?
 ?
 *** Parsing ? Failed *** ?
-===== End Script 156, lines 1404 to 1409 =====
-===== Start Script 157, lines 1410 to 1415 =====
+===== End Script 155, lines 1393 to 1398 =====
+===== Start Script 156, lines 1399 to 1404 =====
 Binding succeeded. Output type: Double
 Compiling succeeded.
 ?
 ?
 *** Parsing ? Failed *** ?
-===== End Script 157, lines 1410 to 1415 =====
-===== Start Script 158, lines 1416 to 1421 =====
+===== End Script 156, lines 1399 to 1404 =====
+===== Start Script 157, lines 1405 to 1410 =====
 Binding succeeded. Output type: Double
 Compiling succeeded.
 2
 -2
 ?
-===== End Script 158, lines 1416 to 1421 =====
-===== Start Script 159, lines 1422 to 1427 =====
+===== End Script 157, lines 1405 to 1410 =====
+===== Start Script 158, lines 1411 to 1416 =====
 Binding succeeded. Output type: Single
 Compiling succeeded.
 ?
 ?
 ?
-===== End Script 159, lines 1422 to 1427 =====
-===== Start Script 160, lines 1428 to 1433 =====
+===== End Script 158, lines 1411 to 1416 =====
+===== Start Script 159, lines 1417 to 1422 =====
 Binding succeeded. Output type: Single
 Compiling succeeded.
 ?
 ?
 ?
-===== End Script 160, lines 1428 to 1433 =====
-===== Start Script 161, lines 1434 to 1439 =====
-Binding succeeded. Output type: Single
-Compiling succeeded.
-2
--2
-?
-===== End Script 161, lines 1434 to 1439 =====
-===== Start Script 162, lines 1440 to 1445 =====
+===== End Script 159, lines 1417 to 1422 =====
+===== Start Script 160, lines 1423 to 1428 =====
 Binding succeeded. Output type: Single
 Compiling succeeded.
 2
 -2
 ?
-===== End Script 162, lines 1440 to 1445 =====
-===== Start Script 163, lines 1446 to 1451 =====
-Binding succeeded. Output type: Single
-Compiling succeeded.
-?
-?
-?
-===== End Script 163, lines 1446 to 1451 =====
-===== Start Script 164, lines 1452 to 1457 =====
-Binding succeeded. Output type: Single
-Compiling succeeded.
-?
-?
-?
-===== End Script 164, lines 1452 to 1457 =====
-===== Start Script 165, lines 1458 to 1463 =====
+===== End Script 160, lines 1423 to 1428 =====
+===== Start Script 161, lines 1429 to 1434 =====
 Binding succeeded. Output type: Single
 Compiling succeeded.
 2
 -2
 ?
-===== End Script 165, lines 1458 to 1463 =====
-===== Start Script 166, lines 1464 to 1469 =====
+===== End Script 161, lines 1429 to 1434 =====
+===== Start Script 162, lines 1435 to 1440 =====
 Binding succeeded. Output type: Single
 Compiling succeeded.
 ?
 ?
 ?
-===== End Script 166, lines 1464 to 1469 =====
-===== Start Script 167, lines 1470 to 1475 =====
+===== End Script 162, lines 1435 to 1440 =====
+===== Start Script 163, lines 1441 to 1446 =====
 Binding succeeded. Output type: Single
 Compiling succeeded.
 ?
 ?
 ?
-===== End Script 167, lines 1470 to 1475 =====
-===== Start Script 168, lines 1476 to 1481 =====
+===== End Script 163, lines 1441 to 1446 =====
+===== Start Script 164, lines 1447 to 1452 =====
 Binding succeeded. Output type: Single
 Compiling succeeded.
 2
 -2
 ?
-===== End Script 168, lines 1476 to 1481 =====
-===== Start Script 169, lines 1482 to 1487 =====
+===== End Script 164, lines 1447 to 1452 =====
+===== Start Script 165, lines 1453 to 1458 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+?
+?
+?
+===== End Script 165, lines 1453 to 1458 =====
+===== Start Script 166, lines 1459 to 1464 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+?
+?
+?
+===== End Script 166, lines 1459 to 1464 =====
+===== Start Script 167, lines 1465 to 1470 =====
+Binding succeeded. Output type: Single
+Compiling succeeded.
+2
+-2
+?
+===== End Script 167, lines 1465 to 1470 =====
+===== Start Script 168, lines 1471 to 1476 =====
 Binding succeeded. Output type: Double
 Compiling succeeded.
 ?
 ?
 ?
-===== End Script 169, lines 1482 to 1487 =====
-===== Start Script 170, lines 1488 to 1493 =====
+===== End Script 168, lines 1471 to 1476 =====
+===== Start Script 169, lines 1477 to 1482 =====
 Binding succeeded. Output type: Double
 Compiling succeeded.
 ?
 ?
 ?
-===== End Script 170, lines 1488 to 1493 =====
-===== Start Script 171, lines 1494 to 1499 =====
+===== End Script 169, lines 1477 to 1482 =====
+===== Start Script 170, lines 1483 to 1488 =====
 Binding succeeded. Output type: Double
 Compiling succeeded.
 2
 -2
 ?
-===== End Script 171, lines 1494 to 1499 =====
-===== Start Script 172, lines 1500 to 1505 =====
+===== End Script 170, lines 1483 to 1488 =====
+===== Start Script 171, lines 1489 to 1494 =====
 Binding succeeded. Output type: Double
 Compiling succeeded.
 2
 -2
 ?
-===== End Script 172, lines 1500 to 1505 =====
-===== Start Script 173, lines 1506 to 1511 =====
+===== End Script 171, lines 1489 to 1494 =====
+===== Start Script 172, lines 1495 to 1500 =====
 Binding succeeded. Output type: Double
 Compiling succeeded.
 ?
 ?
 ?
-===== End Script 173, lines 1506 to 1511 =====
-===== Start Script 174, lines 1512 to 1517 =====
+===== End Script 172, lines 1495 to 1500 =====
+===== Start Script 173, lines 1501 to 1506 =====
 Binding succeeded. Output type: Double
 Compiling succeeded.
 ?
 ?
 ?
-===== End Script 174, lines 1512 to 1517 =====
-===== Start Script 175, lines 1518 to 1523 =====
-Binding succeeded. Output type: Double
-Compiling succeeded.
-2
--2
-?
-===== End Script 175, lines 1518 to 1523 =====
-===== Start Script 176, lines 1524 to 1529 =====
-Binding succeeded. Output type: Double
-Compiling succeeded.
-?
-?
-?
-===== End Script 176, lines 1524 to 1529 =====
-===== Start Script 177, lines 1530 to 1535 =====
-Binding succeeded. Output type: Double
-Compiling succeeded.
-?
-?
-?
-===== End Script 177, lines 1530 to 1535 =====
-===== Start Script 178, lines 1536 to 1541 =====
+===== End Script 173, lines 1501 to 1506 =====
+===== Start Script 174, lines 1507 to 1512 =====
 Binding succeeded. Output type: Double
 Compiling succeeded.
 2
 -2
 ?
-===== End Script 178, lines 1536 to 1541 =====
-===== Start Script 179, lines 1542 to 1545 =====
-  ExprBindInput.txt(1542,10)-(1542,12): error: at 'QueQue': Invalid integer operand
-===== End Script 179, lines 1542 to 1545 =====
-===== Start Script 180, lines 1546 to 1549 =====
+===== End Script 174, lines 1507 to 1512 =====
+===== Start Script 175, lines 1513 to 1518 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+?
+?
+?
+===== End Script 175, lines 1513 to 1518 =====
+===== Start Script 176, lines 1519 to 1524 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+?
+?
+?
+===== End Script 176, lines 1519 to 1524 =====
+===== Start Script 177, lines 1525 to 1530 =====
+Binding succeeded. Output type: Double
+Compiling succeeded.
+2
+-2
+?
+===== End Script 177, lines 1525 to 1530 =====
+===== Start Script 178, lines 1531 to 1534 =====
+  ExprBindInput.txt(1531,10)-(1531,12): error: at 'QueQue': Invalid integer operand
+===== End Script 178, lines 1531 to 1534 =====
+===== Start Script 179, lines 1535 to 1538 =====
 Binding succeeded. Output type: Double
 Compiling succeeded.
 *** Parsing ? Failed *** 2
-===== End Script 180, lines 1546 to 1549 =====
-===== Start Script 181, lines 1550 to 1553 =====
+===== End Script 179, lines 1535 to 1538 =====
+===== Start Script 180, lines 1539 to 1542 =====
 Binding succeeded. Output type: Single
 Compiling succeeded.
 1
-===== End Script 181, lines 1550 to 1553 =====
-===== Start Script 182, lines 1554 to 1557 =====
+===== End Script 180, lines 1539 to 1542 =====
+===== Start Script 181, lines 1543 to 1546 =====
 Binding succeeded. Output type: Single
 Compiling succeeded.
 2
-===== End Script 182, lines 1554 to 1557 =====
-===== Start Script 183, lines 1558 to 1561 =====
+===== End Script 181, lines 1543 to 1546 =====
+===== Start Script 182, lines 1547 to 1550 =====
 Binding succeeded. Output type: Double
 Compiling succeeded.
 1
-===== End Script 183, lines 1558 to 1561 =====
-===== Start Script 184, lines 1562 to 1565 =====
+===== End Script 182, lines 1547 to 1550 =====
+===== Start Script 183, lines 1551 to 1554 =====
 Binding succeeded. Output type: Double
 Compiling succeeded.
 2
-===== End Script 184, lines 1562 to 1565 =====
-===== Start Script 185, lines 1566 to 1569 =====
+===== End Script 183, lines 1551 to 1554 =====
+===== Start Script 184, lines 1555 to 1558 =====
 Binding succeeded. Output type: Boolean
 Compiling succeeded.
 0
-===== End Script 185, lines 1566 to 1569 =====
-===== Start Script 186, lines 1570 to 1571 =====
-  ExprBindInput.txt(1570,9)-(1570,10): error: at 'OpenParen': Expected one argument to function 'na'
-===== End Script 186, lines 1570 to 1571 =====
+===== End Script 184, lines 1555 to 1558 =====
+===== Start Script 185, lines 1559 to 1560 =====
+  ExprBindInput.txt(1559,9)-(1559,10): error: at 'OpenParen': Expected one argument to function 'na'
+===== End Script 185, lines 1559 to 1560 =====

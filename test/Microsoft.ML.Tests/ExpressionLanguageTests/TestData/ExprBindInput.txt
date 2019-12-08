@@ -1129,17 +1129,6 @@ BL: x => concat(text(true), "|", text(-3), "|", text(17L), "|", text(2.5f), "|",
 #
     0
 $
-BL,I4,I8,R4,R8,TX:
-(a,b,c,d,e,f) => concat(text(a), "|", text(b), "|", text(c), "|", text(d), "|", text(e), "|", text(f))
-#
-    true,3,-17,-2.5,3.25,done
-    ?,3,-17,-2.5,3.25,done
-    true,?,-17,-2.5,3.25,done
-    true,3,?,-2.5,3.25,done
-    true,3,-17,?,3.25,done
-    true,3,-17,-2.5,?,done
-    true,3,-17,-2.5,3.25,_
-$
 I4: x => _dump(x)
 #
     17
