@@ -110,11 +110,11 @@ namespace lda {
         bool bAlphaSumMultiplied; //used to check whether alpha_sum_ is real alpha sum but not alpha
         std::vector<int32_t> word_range_for_each_thread_;
 
-        LDAEngineAtomics* atomic_stats_;
-        SimpleBarrier* process_barrier_;         // Local barrier across threads.
+        std::unique_ptr<LDAEngineAtomics> atomic_stats_;
+        std::unique_ptr<SimpleBarrier> process_barrier_;         // Local barrier across threads.
 
-        LDADataBlock* data_block_;
-        LDAModelBlock* model_block_;
+        std::unique_ptr<LDADataBlock> data_block_;
+        std::unique_ptr<LDAModelBlock> model_block_;
 
         std::vector<lda::hybrid_map> global_word_topic_table_;
         std::vector<lda::hybrid_alias_map> global_alias_k_v_;
@@ -133,6 +133,6 @@ namespace lda {
         int32_t **document_buffer_;
 
         wood::xorshift_rng rng_;
-        CBlockedIntQueue *samplerQueue_;
+        std::unique_ptr<CBlockedIntQueue> samplerQueue_;
     };
 }   // namespace lda
