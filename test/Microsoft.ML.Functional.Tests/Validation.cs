@@ -26,7 +26,7 @@ namespace Microsoft.ML.Functional.Tests
         /// metrics, trained pipelines, and scored test data for each fold.
         /// </summary>
         [Fact]
-        void CrossValidation()
+        public void CrossValidation()
         {
             var mlContext = new MLContext(seed: 1);
 

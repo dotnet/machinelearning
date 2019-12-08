@@ -54,7 +54,7 @@ namespace Microsoft.ML.Tests
         }
 
         [OnnxFact]
-        void TestDnnImageFeaturizer()
+        public void TestDnnImageFeaturizer()
         {
             var samplevector = GetSampleArrayData();
 

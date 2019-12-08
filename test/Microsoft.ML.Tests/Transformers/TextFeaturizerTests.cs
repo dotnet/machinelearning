@@ -649,7 +649,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestNgramCompatColumns()
+        public void TestNgramCompatColumns()
         {
             string dropModelPath = GetDataPath("backcompat/ngram.zip");
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");

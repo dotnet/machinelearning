@@ -19,7 +19,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestConcatNoInputColumns()
+        public void TestConcatNoInputColumns()
         {
             var thrown = false;
 
@@ -38,7 +38,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestConcat()
+        public void TestConcat()
         {
             string dataPath = GetDataPath("adult.tiny.with-schema.txt");
 

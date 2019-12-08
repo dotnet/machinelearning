@@ -57,7 +57,7 @@ namespace Microsoft.ML.Tests
         }
 
         [TensorFlowFact]
-        void TestSimpleCase()
+        public void TestSimpleCase()
         {
             var modelFile = "model_matmul/frozen_saved_model.pb";
 
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Tests
         }
 
         [TensorFlowFact]
-        void TestOldSavingAndLoading()
+        public void TestOldSavingAndLoading()
         {
             var modelFile = "model_matmul/frozen_saved_model.pb";
 
@@ -133,7 +133,7 @@ namespace Microsoft.ML.Tests
         }
 
         [TensorFlowFact]
-        void TestCommandLine()
+        public void TestCommandLine()
         {
             // typeof helps to load the TensorFlowTransformer type.
             Type type = typeof(TensorFlowTransformer);
