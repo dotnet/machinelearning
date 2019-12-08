@@ -114,7 +114,7 @@ namespace Microsoft.ML.Tests
 
         private void Run(string name)
         {
-            const string outDir = @"..\Common\ExprParser";
+            string outDir = Path.Combine("..", "Common", "ExprParser");
 
             string text = GetResText(InResName(name));
             string inName = name + "Input.txt";
