@@ -20,6 +20,12 @@ namespace Microsoft.ML.TestFramework
 
         static BaseTestClass()
         {
+            AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+            {
+                // Write to stdout because stderr does not show up in the test output
+                Console.WriteLine($"Unhandled exception: {e.ExceptionObject}");
+            };
+
             GlobalBase.AssemblyInit();
             RootDir = TestCommon.GetRepoRoot();
             DataDir = Path.Combine(RootDir, "test", "data");
