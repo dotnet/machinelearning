@@ -442,15 +442,18 @@ namespace Microsoft.ML.Featurizers
                 }
 
                 index += intPtrSize * 2;
-
+#if NETSTANDARD2_0
                 return Encoding.UTF8.GetString(buffer.ToArray());
+#else
+                return Encoding.UTF8.GetString(buffer);
+#endif
             }
 
         };
 
-        #endregion
+#endregion
 
-        #region BaseClass
+#region BaseClass
 
         internal delegate bool DestroyCppTransformerEstimator(IntPtr estimator, out IntPtr errorHandle);
         internal delegate bool DestroyTransformerSaveData(IntPtr buffer, IntPtr bufferSize, out IntPtr errorHandle);
@@ -547,9 +550,9 @@ namespace Microsoft.ML.Featurizers
 
         }
 
-        #endregion
+#endregion
 
-        #region DateTimeTypedColumn
+#region DateTimeTypedColumn
 
         internal sealed class LongTypedColumn : TypedColumn<long>
         {
@@ -638,18 +641,18 @@ namespace Microsoft.ML.Featurizers
                 CreateTransformerSaveDataNative(_transformerHandler, out buffer, out bufferSize, out errorHandle);
         }
 
-        #endregion
+#endregion
 
         private sealed class Mapper : MapperBase
         {
 
-            #region Class data members
+#region Class data members
 
             private readonly DateTimeTransformer _parent;
             private ConcurrentDictionary<long, TimePoint> _cache;
             private ConcurrentQueue<long> _oldestKeys;
 
-            #endregion
+#endregion
 
             public Mapper(DateTimeTransformer parent, DataViewSchema inputSchema) :
                 base(parent.Host.Register(nameof(Mapper)), inputSchema, parent)
@@ -674,10 +677,10 @@ namespace Microsoft.ML.Featurizers
 
             private Delegate MakeGetter<T>(DataViewRow input, int iinfo)
             {
+                var getter = input.GetGetter<long>(input.Schema[_parent._column.Source]);
                 ValueGetter<T> result = (ref T dst) =>
                 {
                     long dateTime = default;
-                    var getter = input.GetGetter<long>(input.Schema[_parent._column.Source]);
                     getter(ref dateTime);
 
                     if (!_cache.TryGetValue(dateTime, out TimePoint timePoint))
