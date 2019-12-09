@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
 
@@ -322,10 +323,11 @@ namespace Microsoft.ML.Tests
             Assert.Equal(1.5292508189989167E-07, prediction.Change[3], precision: 5); // Martingale score
         }
 
-        [Fact]
-        public void SsaForecast()
+        [Theory]
+        [IterationData]
+        public void SsaForecast(int iteration)
         {
-            var env = new MLContext();
+            var env = new MLContext(iteration);
             const int ChangeHistorySize = 10;
             const int SeasonalitySize = 10;
             const int NumberOfSeasonsInTraining = 5;
