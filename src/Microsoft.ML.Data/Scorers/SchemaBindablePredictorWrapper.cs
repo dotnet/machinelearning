@@ -429,8 +429,9 @@ namespace Microsoft.ML.Data
             Contracts.Assert(Utils.Size(outputNames) == 3); // Predicted Label, Score and Probablity.
 
             // Prior doesn't have a feature column and uses the training label column to determine predicted labels
-            if (mapper.ToString().EndsWith("PriorModelParameters")) {
-                var labelColumnName = schema.Schema[0].Name;
+            if (!schema.Feature.HasValue) {
+                Contracts.Assert(schema.Label.HasValue);
+                var labelColumnName = schema.Label.Value.Name;
                 return mapper.SaveAsOnnx(ctx, outputNames, ctx.GetVariableName(labelColumnName));
             }
 
@@ -517,7 +518,7 @@ namespace Microsoft.ML.Data
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
             {
-                yield return RoleMappedSchema.ColumnRole.Feature.Bind(InputRoleMappedSchema.Feature?.Name);
+                yield return (InputRoleMappedSchema.Feature.HasValue) ? RoleMappedSchema.ColumnRole.Feature.Bind(InputRoleMappedSchema.Feature?.Name) : RoleMappedSchema.ColumnRole.Label.Bind(InputRoleMappedSchema.Label?.Name);
             }
 
             private Delegate[] CreateGetters(DataViewRow input, bool[] active)
