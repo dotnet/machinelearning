@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.ML;
@@ -23,6 +24,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Tests;
+using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -57,12 +59,15 @@ namespace Microsoft.ML.Tests
             Run("ExprParse");
         }
 
-        [Fact, TestCategory("Expr Language")]
+#if !NETFRAMEWORK
+        // Bug in sin(x) in .Net Framework: sin(1e+30) returns 1e+30.
+        [X64Fact("sin(1e+30) gives different value on x86."), TestCategory("Expr Language")]
         public void ExprBind()
         {
             // Code coverage test for the binder.
             Run("ExprBind");
         }
+#endif
 
         [Fact, TestCategory("Expr Language")]
         public void ExprBindEx()
@@ -90,16 +95,6 @@ namespace Microsoft.ML.Tests
             return ResourcePrefix + name + "Input.txt";
         }
 
-        private string InFileName(string name)
-        {
-            return name + "Input.txt";
-        }
-
-        private string OutFileName(string name)
-        {
-            return name + "Output.txt";
-        }
-
         private string GetResText(string resName)
         {
             var stream = typeof(ExprLanguageTests).Assembly.GetManifestResourceStream(resName);
@@ -114,7 +109,7 @@ namespace Microsoft.ML.Tests
 
         private void Run(string name)
         {
-            string outDir = Path.Combine("..", "Common", "ExprParser");
+            string outDir = "ExprParser";
 
             string text = GetResText(InResName(name));
             string inName = name + "Input.txt";
@@ -217,13 +212,13 @@ namespace Microsoft.ML.Tests
                             TestFuncs1.Writer = null;
                         }
 
-                    LDone:
+                        LDone:
                         wrt.WriteLine("===== End {0} =====", scriptName);
                     }
                 }
             }
 
-            CheckEquality(outDir, outName);
+            CheckEquality(outDir, outName, digitsOfPrecision: 6);
 
             Done();
         }
@@ -261,7 +256,11 @@ namespace Microsoft.ML.Tests
             ReadOnlyMemory<char> chars = text.AsMemory().Slice(ichMin, ichLim - ichMin);
             for (bool more = true; more;)
             {
-                more = ReadOnlyMemoryUtils.SplitOne(chars, '\x0D', out var line, out chars);
+                ReadOnlyMemory<char> line;
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    more = ReadOnlyMemoryUtils.SplitOne(chars, '\x0D', out line, out chars);
+                else
+                    more = ReadOnlyMemoryUtils.SplitOne(chars, '\x0A', out line, out chars);
                 line = ReadOnlyMemoryUtils.TrimWhiteSpace(line);
                 if (line.IsEmpty)
                     continue;
@@ -295,7 +294,7 @@ namespace Microsoft.ML.Tests
                         {
                             bool v;
                             bool tmp = Conversions.Instance.TryParse(in src, out v);
-                            args[i] = (object)v;
+                            args[i] = v;
                             return tmp;
                         };
                 case InternalDataKind.I4:
@@ -304,7 +303,7 @@ namespace Microsoft.ML.Tests
                         {
                             int v;
                             bool tmp = Conversions.Instance.TryParse(in src, out v);
-                            args[i] = (object)v;
+                            args[i] = v;
                             return tmp;
                         };
                 case InternalDataKind.I8:
@@ -313,32 +312,32 @@ namespace Microsoft.ML.Tests
                         {
                             long v;
                             bool tmp = Conversions.Instance.TryParse(in src, out v);
-                            args[i] = (object)v;
+                            args[i] = v;
                             return tmp;
                         };
                 case InternalDataKind.R4:
                     return
                         src =>
                         {
-                            Single v;
+                            float v;
                             bool tmp = Conversions.Instance.TryParse(in src, out v);
-                            args[i] = (object)v;
+                            args[i] = v;
                             return tmp;
                         };
                 case InternalDataKind.R8:
                     return
                         src =>
                         {
-                            Double v;
+                            double v;
                             bool tmp = Conversions.Instance.TryParse(in src, out v);
-                            args[i] = (object)v;
+                            args[i] = v;
                             return tmp;
                         };
                 case InternalDataKind.TX:
                     return
                         src =>
                         {
-                            args[i] = (object)src;
+                            args[i] = src;
                             return true;
                         };
             }
