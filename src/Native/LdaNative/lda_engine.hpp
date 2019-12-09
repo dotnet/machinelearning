@@ -126,8 +126,8 @@ namespace lda {
         float beta_mass_;
         std::vector<wood::alias_k_v> beta_k_v_;
 
-        LightDocSampler **samplers_;
-        float* likelihood_in_iter_;
+        std::unique_ptr<std::unique_ptr<LightDocSampler>[]> samplers_;
+        std::unique_ptr<float[]> likelihood_in_iter_;
 
         // For TestDocSafe purpose
         int32_t **document_buffer_;
