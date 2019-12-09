@@ -230,6 +230,9 @@ phases:
     inputs:
       nuGetServiceConnections: machinelearning-dnceng-public-feed # To allow publishing to a feed of another organization
 
+  - script: Tools\dotnetcli\dotnet msbuild build\publish.proj /t:PublishPackages /p:NuGetFeedUrl=$(_AzureDevopsFeedUrl) /p:NuGetApiKey=AzureArtifacts
+    displayName: Publish Packages to AzureDevOps Feed
+
   - task: MSBuild@1
     displayName: Publish Symbols to SymWeb Symbol Server
     inputs:
@@ -245,14 +248,6 @@ phases:
       msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_MsdlSymbolServerPath) /p:SymbolServerPAT=$(MsdlSymbolServerPAT)
       msbuildVersion: 15.0
     continueOnError: true
-
-  - task: NuGetCommand@2 
-    displayName: Publish Packages to private VSTS Feed 
-    inputs:
-      command: push 
-      packagesToPush: $(Build.SourcesDirectory)/bin/packages/**/*.nupkg;!$(Build.SourcesDirectory)/bin/packages/**/*.symbols.nupkg 
-      nuGetFeedType: internal 
-      feedPublish: ModelBuilder
 
   # Terminate all dotnet build processes.
   - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet.exe build-server shutdown

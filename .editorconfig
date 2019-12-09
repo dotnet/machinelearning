@@ -3,6 +3,3 @@ root = true
 [*.cs]
 # Sort using directives with System.* appearing first
 dotnet_sort_system_directives_first = true
-
-# MSML_GeneralName: This name should be PascalCased
-dotnet_diagnostic.MSML_GeneralName.severity = none
