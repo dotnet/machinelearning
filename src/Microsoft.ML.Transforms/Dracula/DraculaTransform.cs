@@ -97,11 +97,9 @@ namespace Microsoft.ML.Transforms
         }
 
         private readonly IHost _host;
-        private readonly int _numberOfBits;
-        private readonly bool _combine;
-        private readonly uint _hashingSeed;
         private readonly CountTableEstimator _estimator;
-        private readonly HashJoiningTransform.Column[] _hashJoinCols;
+        private readonly HashJoiningTransform.Arguments _hashJoinArgs;
+        private readonly HashJoiningTransform _hashJoin;
 
         internal CountTargetEncodingEstimator(IHostEnvironment env, string labelColumnName, CountTableEstimator.ColumnOptions[] columnOptions,
             string externalCountsFile = null, int numberOfBits = HashJoiningTransform.Defaults.NumberOfBits,
@@ -121,6 +119,15 @@ namespace Microsoft.ML.Transforms
         {
         }
 
+        internal CountTargetEncodingEstimator(IHostEnvironment env, string labelColumnName, CountTargetEncodingTransformer initialCounts, params InputOutputColumnPair[] columns)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(nameof(CountTargetEncodingEstimator));
+
+            _estimator = new CountTableEstimator(_host, labelColumnName, initialCounts.CountTable, columns);
+            _hashJoin = initialCounts.HashJoin;
+        }
+
         private CountTargetEncodingEstimator(IHostEnvironment env, CountTableEstimator estimator, CountTableEstimator.ColumnOptionsBase[] columns,
             int numberOfBits, bool combine, uint hashingSeed)
         {
@@ -128,11 +135,7 @@ namespace Microsoft.ML.Transforms
             _host = env.Register(nameof(CountTargetEncodingEstimator));
 
             _estimator = estimator;
-            _numberOfBits = numberOfBits;
-            _combine = combine;
-            _hashingSeed = hashingSeed;
-
-            _hashJoinCols = InitializeHashJoinColumns(columns);
+            _hashJoinArgs = InitializeHashJoinArguments(columns, numberOfBits, combine, hashingSeed);
         }
 
         internal CountTargetEncodingEstimator(IHostEnvironment env, Options options)
@@ -143,9 +146,6 @@ namespace Microsoft.ML.Transforms
             _host.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns), "Columns must be specified");
             _host.CheckUserArg(!string.IsNullOrWhiteSpace(options.LabelColumn), nameof(options.LabelColumn), "Must specify the label column name");
 
-            _numberOfBits = options.NumberOfBits;
-            _combine = options.Combine;
-            _hashingSeed = options.HashingSeed;
             if (options.SharedTable)
             {
                 var columns = new CountTableEstimator.SharedColumnOptions[options.Columns.Length];
@@ -182,10 +182,10 @@ namespace Microsoft.ML.Transforms
                 _estimator = new CountTableEstimator(_host, options.LabelColumn, options.ExternalCountsFile, columns);
             }
 
-            _hashJoinCols = InitializeHashJoinColumns(options.Columns);
+            _hashJoinArgs = InitializeHashJoinArguments(options);
         }
 
-        private HashJoiningTransform.Column[] InitializeHashJoinColumns(CountTableEstimator.ColumnOptionsBase[] columns)
+        private HashJoiningTransform.Arguments InitializeHashJoinArguments(CountTableEstimator.ColumnOptionsBase[] columns, int numberOfBits, bool combine, uint hashingSeed)
         {
             var cols = new HashJoiningTransform.Column[columns.Length];
             for (int i = 0; i < cols.Length; i++)
@@ -194,16 +194,24 @@ namespace Microsoft.ML.Transforms
                 cols[i] =
                     new HashJoiningTransform.Column
                     {
-                        Combine = _combine,
                         Name = column.Name,
                         Source = column.InputColumnName,
                     };
             }
-            return cols;
+
+            return new HashJoiningTransform.Arguments
+            {
+                Columns = cols,
+                NumberOfBits = numberOfBits,
+                Combine = combine,
+                Seed = hashingSeed,
+                Ordered = false,
+            };
         }
 
-        private HashJoiningTransform.Column[] InitializeHashJoinColumns(Column[] columns)
+        private HashJoiningTransform.Arguments InitializeHashJoinArguments(Options options)
         {
+            var columns = options.Columns;
             var cols = new HashJoiningTransform.Column[columns.Length];
             for (int i = 0; i < cols.Length; i++)
             {
@@ -211,15 +219,23 @@ namespace Microsoft.ML.Transforms
                 cols[i] =
                     new HashJoiningTransform.Column
                     {
-                        Combine = column.Combine ?? _combine,
+                        Combine = column.Combine ?? options.Combine,
                         CustomSlotMap = column.CustomSlotMap,
-                        Seed = _hashingSeed,
-                        NumberOfBits = _numberOfBits,
+                        Seed = options.HashingSeed,
+                        NumberOfBits = options.NumberOfBits,
                         Name = column.Name,
                         Source = column.Source,
                     };
             }
-            return cols;
+
+            return new HashJoiningTransform.Arguments
+            {
+                Columns = cols,
+                NumberOfBits = options.NumberOfBits,
+                Combine = options.Combine,
+                Seed = options.HashingSeed,
+                Ordered = false,
+            };
         }
 
         // Factory method for SignatureDataTransform.
@@ -244,16 +260,10 @@ namespace Microsoft.ML.Transforms
 
         private HashJoiningTransform CreateHashJoiningTransform(IDataView input)
         {
-            var hashJoinArgs = new HashJoiningTransform.Arguments
-            {
-                Columns = _hashJoinCols,
-                NumberOfBits = _numberOfBits,
-                Combine = _combine,
-                Seed = _hashingSeed,
-                Ordered = false,
-            };
-
-            var hashJoinTransform = new HashJoiningTransform(_host, hashJoinArgs, input);
+            _host.Assert(_hashJoinArgs != null || _hashJoin != null);
+            var hashJoinTransform = _hashJoinArgs != null ?
+                new HashJoiningTransform(_host, _hashJoinArgs, input) :
+                new HashJoiningTransform(_host, _hashJoin, input);
             return hashJoinTransform;
         }
 
@@ -296,8 +306,8 @@ namespace Microsoft.ML.Transforms
     public sealed class CountTargetEncodingTransformer : ITransformer
     {
         private readonly IHost _host;
-        private readonly HashJoiningTransform _hashJoin;
-        private readonly CountTableTransformer _countTable;
+        internal readonly HashJoiningTransform HashJoin;
+        internal readonly CountTableTransformer CountTable;
         private readonly TransformerChain<ITransformer> _chain;
 
         internal const string Summary = "Transforms the categorical column into the set of features: count of each label class, "
@@ -324,9 +334,9 @@ namespace Microsoft.ML.Transforms
             env.AssertValue(hashJoin);
             env.AssertValue(countTable);
             _host = env.Register(nameof(CountTargetEncodingTransformer));
-            _hashJoin = hashJoin;
-            _countTable = countTable;
-            _chain = new TransformerChain<ITransformer>(new TransformWrapper(_host, _hashJoin), _countTable);
+            HashJoin = hashJoin;
+            CountTable = countTable;
+            _chain = new TransformerChain<ITransformer>(new TransformWrapper(_host, HashJoin), CountTable);
         }
 
         private CountTargetEncodingTransformer(IHost host, ModelLoadContext ctx)
@@ -348,9 +358,9 @@ namespace Microsoft.ML.Transforms
             var loader = new BinaryLoader(_host, new BinaryLoader.Arguments(), ms);
             var view = new EmptyDataView(_host, loader.Schema);
 
-            ctx.LoadModel<HashJoiningTransform, SignatureLoadDataTransform>(_host, out _hashJoin, "HashJoin", view);
-            ctx.LoadModel<CountTableTransformer, SignatureLoadModel>(_host, out _countTable, "CountTable");
-            _chain = new TransformerChain<ITransformer>(new TransformWrapper(_host, _hashJoin), _countTable);
+            ctx.LoadModel<HashJoiningTransform, SignatureLoadDataTransform>(_host, out HashJoin, "HashJoin", view);
+            ctx.LoadModel<CountTableTransformer, SignatureLoadModel>(_host, out CountTable, "CountTable");
+            _chain = new TransformerChain<ITransformer>(new TransformWrapper(_host, HashJoin), CountTable);
         }
 
         public void Save(ModelSaveContext ctx)
@@ -369,12 +379,12 @@ namespace Microsoft.ML.Transforms
                 using (var ch = _host.Start("Saving input schema"))
                 {
                     var saver = new BinarySaver(_host, new BinarySaver.Arguments { Silent = true });
-                    DataSaverUtils.SaveDataView(ch, saver, new EmptyDataView(_host, _hashJoin.Source.Schema), writer.BaseStream);
+                    DataSaverUtils.SaveDataView(ch, saver, new EmptyDataView(_host, HashJoin.Source.Schema), writer.BaseStream);
                 }
             });
 
-            ctx.SaveModel(_hashJoin, "HashJoin");
-            ctx.SaveModel(_countTable, "CountTable");
+            ctx.SaveModel(HashJoin, "HashJoin");
+            ctx.SaveModel(CountTable, "CountTable");
         }
 
         internal static CountTargetEncodingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -408,14 +418,15 @@ namespace Microsoft.ML.Transforms
 
         public void SaveCountTables(string path)
         {
-            _countTable.SaveCountTables(path);
+            CountTable.SaveCountTables(path);
         }
     }
 
     public static class CountTargetEncodingCatalog
     {
         public static CountTargetEncodingEstimator CountTargetEncode(this TransformsCatalog catalog,
-            InputOutputColumnPair[] columns, string labelColumn, CountTableBuilderBase builder = null,
+            InputOutputColumnPair[] columns, string labelColumn = DefaultColumnNames.Label,
+            CountTableBuilderBase builder = null,
             float priorCoefficient = CountTableTransformer.Defaults.PriorCoefficient,
             float laplaceScale = CountTableTransformer.Defaults.LaplaceScale,
             bool sharedTable = CountTableTransformer.Defaults.SharedTable,
@@ -452,28 +463,10 @@ namespace Microsoft.ML.Transforms
             return estimator;
         }
 
-        public static CountTargetEncodingEstimator CountTargetEncodeWithExternalCounts(this TransformsCatalog catalog,
-            InputOutputColumnPair[] columns, string labelColumn, string countsPath,
-            CountTableBuilderBase builder = null,
-            float priorCoefficient = CountTableTransformer.Defaults.PriorCoefficient,
-            float laplaceScale = CountTableTransformer.Defaults.LaplaceScale,
-            int numberOfBits = HashJoiningTransform.Defaults.NumberOfBits,
-            bool combine = HashJoiningTransform.Defaults.Combine,
-            uint hashingSeed = HashJoiningTransform.Defaults.Seed)
+        public static CountTargetEncodingEstimator CountTargetEncode(this TransformsCatalog catalog,
+            InputOutputColumnPair[] columns, CountTargetEncodingTransformer initialCounts, string labelColumn = "Label")
         {
-            var env = CatalogUtils.GetEnvironment(catalog);
-            env.CheckValue(columns, nameof(columns));
-
-            builder = builder ?? new CMCountTableBuilder();
-
-            var columnOptions = new CountTableEstimator.ColumnOptions[columns.Length];
-            for (int i = 0; i < columns.Length; i++)
-            {
-                columnOptions[i] = new CountTableEstimator.ColumnOptions(
-                    columns[i].OutputColumnName, columns[i].InputColumnName, builder, priorCoefficient, laplaceScale);
-            }
-
-            return new CountTargetEncodingEstimator(env, labelColumn, columnOptions, countsPath, numberOfBits, combine, hashingSeed);
+            return new CountTargetEncodingEstimator(CatalogUtils.GetEnvironment(catalog), labelColumn, initialCounts, columns);
         }
 
         public static CountTargetEncodingEstimator CountTargetEncode(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null,

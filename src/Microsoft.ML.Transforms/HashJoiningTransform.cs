@@ -220,6 +220,13 @@ namespace Microsoft.ML.Transforms
             SetMetadata();
         }
 
+        public HashJoiningTransform(IHostEnvironment env, HashJoiningTransform other, IDataView input)
+            : base(env, RegistrationName, other, input, TestColumnType)
+        {
+            _exes = other._exes;
+            SetMetadata();
+        }
+
         private HashJoiningTransform(IHost host, ModelLoadContext ctx, IDataView input)
             : base(host, ctx, input, TestColumnType)
         {

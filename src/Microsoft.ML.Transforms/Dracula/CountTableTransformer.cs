@@ -80,6 +80,7 @@ namespace Microsoft.ML.Transforms
         private readonly CountTableBuilderBase _sharedBuilder;
         private readonly string _labelColumnName;
         private readonly string _externalCountsFile;
+        private readonly CountTableTransformer _initialCounts;
 
         internal CountTableEstimator(IHostEnvironment env, string labelColumnName, CountTableBuilderBase countTableBuilder, params SharedColumnOptions[] columns)
             : this(env, labelColumnName, columns)
@@ -93,6 +94,26 @@ namespace Microsoft.ML.Transforms
         {
             _externalCountsFile = externalCountsFile;
             _builders = columns.Select(c => c.CountTableBuilder).ToArray();
+        }
+
+        internal CountTableEstimator(IHostEnvironment env, string labelColumnName, CountTableTransformer initial, params InputOutputColumnPair[] columns)
+            : this(env, labelColumnName, ExtractColumnOptions(initial, columns))
+        {
+            _initialCounts = initial;
+        }
+
+        private static ColumnOptionsBase[] ExtractColumnOptions(CountTableTransformer initial, InputOutputColumnPair[] columns)
+        {
+            Contracts.CheckValue(initial, nameof(initial));
+            if (columns.Length != initial.Featurizer.PriorCoef.Length)
+                throw Contracts.ExceptParam(nameof(columns), $"New estimator applied {columns.Length} columns, but old transformer applied to {initial.Featurizer.PriorCoef.Length} columns");
+            var cols = new ColumnOptionsBase[columns.Length];
+            for (int i=0; i<columns.Length;i++)
+            {
+                cols[i] = new SharedColumnOptions(columns[i].OutputColumnName, columns[i].InputColumnName,
+                    initial.Featurizer.PriorCoef[i], initial.Featurizer.LaplaceScale[i], initial.Seeds[i]);
+            }
+            return cols;
         }
 
         private CountTableEstimator(IHostEnvironment env, string labelColumnName, ColumnOptionsBase[] columns)
@@ -130,9 +151,11 @@ namespace Microsoft.ML.Transforms
                 inputColumns[i] = col.GetValueOrDefault();
             }
 
-            _host.Assert((_sharedBuilder == null) != (_builders == null));
+            _host.Assert(_initialCounts != null || _sharedBuilder != null || _builders != null);
             MultiCountTableBuilderBase multiBuilder;
-            if (_builders != null)
+            if (_initialCounts != null)
+                multiBuilder = _initialCounts.Featurizer.MultiCountTable.ToBuilder(_host);
+            else if (_builders != null)
                 multiBuilder = new ParallelMultiCountTableBuilder(_host, inputColumns, _builders, labelCardinality, _externalCountsFile);
             else
                 multiBuilder = new BagMultiCountTableBuilder(_host, inputColumns, _sharedBuilder, labelCardinality);
@@ -385,10 +408,10 @@ namespace Microsoft.ML.Transforms
             public const bool SharedTable = false;
         }
 
-        //private readonly DraculaFeaturizer[][] _featurizers; // parallel to count tables
-        private readonly DraculaFeaturizer _featurizer;
+        internal readonly DraculaFeaturizer Featurizer;
         private readonly string[] _labelClassNames;
-        private readonly int[] _seeds;
+
+        internal int[] Seeds { get; }
 
         internal const string Summary = "Transforms the categorical column into the set of features: count of each label class, "
             + "log-odds for each label class, back-off indicator. The input columns must be keys. This is a part of the Dracula transform.";
@@ -414,9 +437,9 @@ namespace Microsoft.ML.Transforms
             Host.AssertValueOrNull(labelClassNames);
             Host.Assert(Utils.Size(seeds) == featurizer.ColCount);
 
-            _featurizer = featurizer;
+            Featurizer = featurizer;
             _labelClassNames = labelClassNames;
-            _seeds = seeds;
+            Seeds = seeds;
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -511,8 +534,8 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            _seeds = ctx.Reader.ReadIntArray(ColumnPairs.Length);
-            ctx.LoadModel<DraculaFeaturizer, SignatureLoadModel>(host, out _featurizer, "DraculaFeaturizer");
+            Seeds = ctx.Reader.ReadIntArray(ColumnPairs.Length);
+            ctx.LoadModel<DraculaFeaturizer, SignatureLoadModel>(host, out Featurizer, "DraculaFeaturizer");
         }
 
         private protected override void SaveModel(ModelSaveContext ctx)
@@ -542,8 +565,8 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            ctx.Writer.WriteIntsNoCount(_seeds);
-            ctx.SaveModel(_featurizer, "DraculaFeaturizer");
+            ctx.Writer.WriteIntsNoCount(Seeds);
+            ctx.SaveModel(Featurizer, "DraculaFeaturizer");
         }
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
@@ -553,7 +576,7 @@ namespace Microsoft.ML.Transforms
             var saver = new TextSaver(Host, new TextSaver.Arguments() { OutputHeader = false, OutputSchema = false, Dense = true });
             using (var stream = new FileStream(path, FileMode.Create))
             using (var ch = Host.Start("Saving Count Tables"))
-                DataSaverUtils.SaveDataView(ch, saver, _featurizer.ToDataView(), stream);
+                DataSaverUtils.SaveDataView(ch, saver, Featurizer.ToDataView(), stream);
         }
 
         private sealed class Mapper : OneToOneMapperBase
@@ -572,8 +595,8 @@ namespace Microsoft.ML.Transforms
                 {
                     var inputCol = InputSchema[_parent.ColumnPairs[i].inputColumnName];
                     var valueCount = inputCol.Type.GetValueCount();
-                    Host.Check((long)valueCount * _parent._featurizer.NumFeatures < int.MaxValue, "Too large output size");
-                    var type = new VectorDataViewType(NumberDataViewType.Single, valueCount, _parent._featurizer.NumFeatures);
+                    Host.Check((long)valueCount * _parent.Featurizer.NumFeatures < int.MaxValue, "Too large output size");
+                    var type = new VectorDataViewType(NumberDataViewType.Single, valueCount, _parent.Featurizer.NumFeatures);
 
                     // We supply slot names if the source is a single-value column, or if it has slot names.
                     if (!(inputCol.Type is VectorDataViewType) || inputCol.HasSlotNames())
@@ -608,7 +631,7 @@ namespace Microsoft.ML.Transforms
                 ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter =
                     (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                     {
-                        _parent._featurizer.GetFeatureNames(_parent._labelClassNames, ref featureNames);
+                        _parent.Featurizer.GetFeatureNames(_parent._labelClassNames, ref featureNames);
                         int nFeatures = featureNames.Length;
 
                         var editor = VBufferEditor.Create(ref dst, nFeatures * inputSlotNames.Length);
@@ -638,12 +661,12 @@ namespace Microsoft.ML.Transforms
 
             private ValueGetter<VBuffer<float>> ConstructSingleGetter(DataViewRow input, int iinfo)
             {
-                Host.Assert(_parent._featurizer.SlotCount[iinfo] == 1);
+                Host.Assert(_parent.Featurizer.SlotCount[iinfo] == 1);
                 uint src = 0;
                 var srcGetter = input.GetGetter<uint>(input.Schema[_parent.ColumnPairs[iinfo].inputColumnName]);
-                var outputLength = _parent._featurizer.NumFeatures;
-                var rand = new Random(_parent._seeds[iinfo]);
-                var featurizer = _parent._featurizer;
+                var outputLength = _parent.Featurizer.NumFeatures;
+                var rand = new Random(_parent.Seeds[iinfo]);
+                var featurizer = _parent.Featurizer;
                 return (ref VBuffer<float> dst) =>
                 {
                     srcGetter(ref src);
@@ -657,12 +680,12 @@ namespace Microsoft.ML.Transforms
             {
                 var inputCol = input.Schema[_parent.ColumnPairs[iinfo].inputColumnName];
                 int n = inputCol.Type.GetValueCount();
-                Host.Assert(_parent._featurizer.SlotCount[iinfo] == n);
+                Host.Assert(_parent.Featurizer.SlotCount[iinfo] == n);
                 VBuffer<uint> src = default;
 
-                var outputLength = _parent._featurizer.NumFeatures;
+                var outputLength = _parent.Featurizer.NumFeatures;
                 var srcGetter = input.GetGetter<VBuffer<uint>>(inputCol);
-                var rand = new Random(_parent._seeds[iinfo]);
+                var rand = new Random(_parent.Seeds[iinfo]);
                 return (ref VBuffer<float> dst) =>
                 {
                     srcGetter(ref src);
@@ -671,7 +694,7 @@ namespace Microsoft.ML.Transforms
                     {
                         var srcValues = src.GetValues();
                         for (int i = 0; i < n; i++)
-                            _parent._featurizer.GetFeatures(iinfo, i, rand, srcValues[i], editor.Values.Slice(i * outputLength, outputLength));
+                            _parent.Featurizer.GetFeatures(iinfo, i, rand, srcValues[i], editor.Values.Slice(i * outputLength, outputLength));
                     }
                     else
                     {
@@ -681,7 +704,7 @@ namespace Microsoft.ML.Transforms
                         for (int i = 0; i < srcIndices.Length; i++)
                         {
                             var index = srcIndices[i];
-                            _parent._featurizer.GetFeatures(iinfo, index, rand, srcValues[i], editor.Values.Slice(index * outputLength, outputLength));
+                            _parent.Featurizer.GetFeatures(iinfo, index, rand, srcValues[i], editor.Values.Slice(index * outputLength, outputLength));
                         }
                     }
 

@@ -51,6 +51,8 @@ namespace Microsoft.ML.Transforms
         public abstract void Save(ModelSaveContext ctx);
 
         public abstract IDataView ToDataView();
+
+        public abstract MultiCountTableBuilderBase ToBuilder(IHostEnvironment env);
     }
 
     /// <summary>
@@ -83,11 +85,31 @@ namespace Microsoft.ML.Transforms
                 _countTableBuilders[i] = new InternalCountTableBuilderBase[size];
 
                 for (int j = 0; j < size; j++)
-                    _countTableBuilders[i][j] = builders[i].GetBuilderHelper(labelCardinality);
+                    _countTableBuilders[i][j] = builders[i].GetInternalBuilder(labelCardinality);
             }
 
             if (!string.IsNullOrEmpty(externalCountsFile))
                 LoadExternalCounts(externalCountsFile, (int)labelCardinality);
+        }
+
+        private ParallelMultiCountTableBuilder(IHostEnvironment env, MultiCountTable table)
+        {
+            Contracts.AssertValue(env, nameof(env));
+            env.AssertValue(table, nameof(table));
+            _host = env.Register(RegistrationName);
+
+            var n = table.ColCount;
+            _countTableBuilders = new InternalCountTableBuilderBase[n][];
+            var slotCounts = table.SlotCount;
+            for (int i = 0; i < _countTableBuilders.Length; i++)
+            {
+                var size = slotCounts[i];
+                _host.Assert(size > 0);
+                _countTableBuilders[i] = new InternalCountTableBuilderBase[size];
+
+                for (int j = 0; j < size; j++)
+                    _countTableBuilders[i][j] = ((CountTableBase)table[i, j]).ToBuilder();
+            }
         }
 
         public override void IncrementSlot(int iCol, int iSlot, uint key, uint labelKey)
@@ -100,12 +122,12 @@ namespace Microsoft.ML.Transforms
         public override MultiCountTableBase CreateMultiCountTable()
         {
             var n = _countTableBuilders.Length;
-            var countTables = new ICountTable[n][];
+            var countTables = new CountTableBase[n][];
 
             for (int i = 0; i < n; i++)
             {
                 int size = _countTableBuilders[i].Length;
-                countTables[i] = new ICountTable[size];
+                countTables[i] = new CountTableBase[size];
                 for (int j = 0; j < size; j++)
                     countTables[i][j] = _countTableBuilders[i][j].CreateCountTable();
             }
@@ -166,7 +188,7 @@ namespace Microsoft.ML.Transforms
 
         internal sealed class MultiCountTable : MultiCountTableBase
         {
-            private readonly ICountTable[][] _countTables;
+            private readonly CountTableBase[][] _countTables;
 
             public override int ColCount => _countTables.Length;
 
@@ -182,7 +204,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public MultiCountTable(IHostEnvironment env, ICountTable[][] countTables)
+            public MultiCountTable(IHostEnvironment env, CountTableBase[][] countTables)
                 : base(env, LoaderSignature)
             {
                 _countTables = countTables;
@@ -242,17 +264,17 @@ namespace Microsoft.ML.Transforms
 
                 int n = ctx.Reader.ReadInt32();
                 Host.CheckDecode(n > 0);
-                _countTables = new ICountTable[n][];
+                _countTables = new CountTableBase[n][];
                 for (int i = 0; i < n; i++)
                 {
                     var size = ctx.Reader.ReadInt32();
                     Host.CheckDecode(size > 0);
-                    _countTables[i] = new ICountTable[size];
+                    _countTables[i] = new CountTableBase[size];
 
                     for (int j = 0; j < size; j++)
                     {
                         var tableName = string.Format("Table_{0:000}_{1:000}", i, j);
-                        ctx.LoadModel<ICountTable, SignatureLoadModel>(Host, out _countTables[i][j], tableName);
+                        ctx.LoadModel<CountTableBase, SignatureLoadModel>(Host, out _countTables[i][j], tableName);
                     }
                 }
             }
@@ -281,6 +303,11 @@ namespace Microsoft.ML.Transforms
                 builder.AddColumn("Counts", NumberDataViewType.Single, counts.ToArray());
                 return builder.GetDataView();
             }
+
+            public override MultiCountTableBuilderBase ToBuilder(IHostEnvironment env)
+            {
+                return new ParallelMultiCountTableBuilder(env, this);
+            }
         }
     }
 
@@ -303,11 +330,23 @@ namespace Microsoft.ML.Transforms
             _host = env.Register(LoaderSignature);
 
             // REVIEW: how to disallow non-zero garbage bin for bag dict count table? Or maybe just ignore?
-            _builder = builder.GetBuilderHelper(labelCardinality);
+            _builder = builder.GetInternalBuilder(labelCardinality);
             _colCount = inputColumns.Length;
             _slotCount = new int[_colCount];
             for (int i = 0; i < _colCount; i++)
                 _slotCount[i] = inputColumns[i].Type.GetValueCount();
+        }
+
+        public BagMultiCountTableBuilder(IHostEnvironment env, MultiCountTable table)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(table, nameof(table));
+            _host = env.Register(LoaderSignature);
+
+            _builder = table.BaseTable.ToBuilder();
+            _colCount = table.ColCount;
+            _slotCount = new int[_colCount];
+            table.SlotCount.CopyTo(_slotCount, 0);
         }
 
         public override void IncrementSlot(int iCol, int iSlot, uint key, uint labelKey)
@@ -324,7 +363,8 @@ namespace Microsoft.ML.Transforms
 
         internal sealed class MultiCountTable : MultiCountTableBase
         {
-            private readonly ICountTable _baseTable;
+            private readonly CountTableBase _baseTable;
+            public CountTableBase BaseTable => _baseTable;
 
             public override int ColCount { get; }
             public override int[] SlotCount { get; }
@@ -339,10 +379,10 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public MultiCountTable(IHostEnvironment env, ICountTable baseBaseTable, int colCount, int[] slotCount)
+            public MultiCountTable(IHostEnvironment env, CountTableBase baseTable, int colCount, int[] slotCount)
                 : base(env, LoaderSignature)
             {
-                _baseTable = baseBaseTable;
+                _baseTable = baseTable;
 
                 ColCount = colCount;
                 SlotCount = slotCount;
@@ -391,7 +431,7 @@ namespace Microsoft.ML.Transforms
 
                 ColCount = ctx.Reader.ReadInt32();
                 SlotCount = ctx.Reader.ReadIntArray(ColCount);
-                ctx.LoadModel<ICountTable, SignatureLoadModel>(Host, out _baseTable, "BaseTable");
+                ctx.LoadModel<CountTableBase, SignatureLoadModel>(Host, out _baseTable, "BaseTable");
             }
 
             public override IDataView ToDataView()
@@ -408,6 +448,11 @@ namespace Microsoft.ML.Transforms
                 builder.AddColumn("HashValue", (ref VBuffer<ReadOnlyMemory<char>> dst) => { }, long.MaxValue, hashValues.ToArray());
                 builder.AddColumn("Counts", NumberDataViewType.Single, counts.ToArray());
                 return builder.GetDataView();
+            }
+
+            public override MultiCountTableBuilderBase ToBuilder(IHostEnvironment env)
+            {
+                return new BagMultiCountTableBuilder(env, this);
             }
 
             /// <summary>

@@ -19,7 +19,7 @@ namespace Microsoft.ML.Transforms
         {
         }
 
-        internal abstract InternalCountTableBuilderBase GetBuilderHelper(long labelCardinality);
+        internal abstract InternalCountTableBuilderBase GetInternalBuilder(long labelCardinality);
 
         public static CountTableBuilderBase CreateCMCountTableBuilder(int depth = 4, int width = 1 << 23)
             => new CMCountTableBuilder(depth, width);
@@ -53,6 +53,6 @@ namespace Microsoft.ML.Transforms
 
         internal abstract void InsertOrUpdateRawCounts(int hashId, long hashValue, in VBuffer<float> counts);
 
-        internal abstract ICountTable CreateCountTable();
+        internal abstract CountTableBase CreateCountTable();
     }
 }

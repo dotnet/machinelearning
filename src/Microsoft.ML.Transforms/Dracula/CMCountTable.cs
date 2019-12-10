@@ -44,7 +44,8 @@ namespace Microsoft.ML.Transforms
 
         private readonly int _depth; // Number of different hash functions
         private readonly int _width; // Hash space. May be any number, typically a power of 2
-        private readonly float[][][] _tables; // dimensions: label cardinality * depth * width
+
+        public float[][][] Tables { get; }
 
         public CMCountTable(float[][][] tables, float[] priorCounts)
             : base(Utils.Size(tables), priorCounts, 0, null)
@@ -60,7 +61,7 @@ namespace Microsoft.ML.Transforms
             Contracts.Check(_width > 0, "width must be positive");
             Contracts.Check(tables.All(t => t.All(t2 => Utils.Size(t2) == _width)), "Width must be the same for all depths");
 
-            _tables = tables;
+            Tables = tables;
         }
 
         public static CMCountTable Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -90,20 +91,20 @@ namespace Microsoft.ML.Transforms
             _width = ctx.Reader.ReadInt32();
             env.CheckDecode(_width > 0);
 
-            _tables = new float[LabelCardinality][][];
+            Tables = new float[LabelCardinality][][];
             for (int i = 0; i < LabelCardinality; i++)
             {
                 bool isSparse = ctx.Reader.ReadBoolByte();
 
-                _tables[i] = new float[_depth][];
+                Tables[i] = new float[_depth][];
                 for (int j = 0; j < _depth; j++)
                 {
                     if (!isSparse)
-                        _tables[i][j] = ctx.Reader.ReadSingleArray(_width);
+                        Tables[i][j] = ctx.Reader.ReadSingleArray(_width);
                     else
                     {
                         float[] table;
-                        _tables[i][j] = table = new float[_width];
+                        Tables[i][j] = table = new float[_width];
                         int pos = -1;
                         for (; ; )
                         {
@@ -145,7 +146,7 @@ namespace Microsoft.ML.Transforms
 
             for (int iLabel = 0; iLabel < LabelCardinality; iLabel++)
             {
-                var table = _tables[iLabel];
+                var table = Tables[iLabel];
                 bool isSparse = IsTableSparse(table);
                 ctx.Writer.WriteBoolByte(isSparse);
                 foreach (var array in table)
@@ -199,7 +200,7 @@ namespace Microsoft.ML.Transforms
             for (int ilabel = 0; ilabel < LabelCardinality; ilabel++)
             {
                 float minValue = -1;
-                var table = _tables[ilabel];
+                var table = Tables[ilabel];
                 for (int idepth = 0; idepth < _depth; idepth++)
                 {
                     int iwidth = (int)(Hashing.MixHash(Hashing.MurmurRound(hash, (uint)idepth)) % _width);
@@ -222,11 +223,16 @@ namespace Microsoft.ML.Transforms
                     hashIds.Add(i);
                     hashValues.Add((ulong)j);
                     for (int label = 0; label < LabelCardinality; label++)
-                        countsCur[label] = _tables[label][i][j];
+                        countsCur[label] = Tables[label][i][j];
                     counts.Add(countsCur);
                 }
             }
             return _depth * _width;
+        }
+
+        public override InternalCountTableBuilderBase ToBuilder()
+        {
+            return new CMCountTableBuilder.Builder(this);
         }
     }
 
@@ -268,9 +274,9 @@ namespace Microsoft.ML.Transforms
         {
         }
 
-        internal override InternalCountTableBuilderBase GetBuilderHelper(long labelCardinality) => new Builder(labelCardinality, _depth, _width);
+        internal override InternalCountTableBuilderBase GetInternalBuilder(long labelCardinality) => new Builder(labelCardinality, _depth, _width);
 
-        private sealed class Builder : InternalCountTableBuilderBase
+        internal sealed class Builder : InternalCountTableBuilderBase
         {
             private readonly int _depth;
             private readonly double[][][] _tables; // label cardinality * depth * width
@@ -294,7 +300,36 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            internal override ICountTable CreateCountTable()
+            public Builder(CMCountTable table)
+                : base(table.LabelCardinality)
+            {
+                Contracts.AssertValue(table);
+
+                _tables = new double[LabelCardinality][][];
+                for (int iLabel = 0; iLabel < LabelCardinality; iLabel++)
+                {
+                    var oldTables = table.Tables[iLabel];
+                    if (iLabel == 0)
+                        _depth = oldTables.Length;
+                    else
+                        Contracts.Assert(_depth == oldTables.Length);
+
+                    _tables[iLabel] = new double[_depth][];
+                    for (int iDepth = 0; iDepth < _depth; iDepth++)
+                    {
+                        var oldTable = oldTables[iDepth];
+                        if (iLabel == 0 && iDepth == 0)
+                            _width = oldTable.Length;
+                        else
+                            Contracts.Assert(_width == oldTable.Length);
+
+                        _tables[iLabel][iDepth] = new double[_width];
+                        oldTable.CopyTo(_tables[iLabel][iDepth], 0);
+                    }
+                }
+            }
+
+            internal override CountTableBase CreateCountTable()
             {
                 var priorCounts = PriorCounts.Select(x => (float)x).ToArray();
 

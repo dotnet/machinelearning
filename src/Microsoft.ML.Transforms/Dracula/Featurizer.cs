@@ -21,10 +21,11 @@ namespace Microsoft.ML.Transforms
         private readonly IHost _host;
         private readonly int _labelBinCount;
         private readonly int _logOddsCount;
-        private readonly float[] _priorCoef;
-        private readonly float[] _laplaceScale;
-
         private readonly MultiCountTableBase _countTables;
+        public MultiCountTableBase MultiCountTable => _countTables;
+
+        public float[] PriorCoef { get; }
+        public float[] LaplaceScale { get; }
 
         internal const string RegistrationName = "DraculaFeaturizer";
         private static VersionInfo GetVersionInfo()
@@ -52,9 +53,9 @@ namespace Microsoft.ML.Transforms
             _logOddsCount = _labelBinCount == 2 ? 1 : _labelBinCount;
             NumFeatures = _labelBinCount + _logOddsCount + 1;
 
-            _priorCoef = priorCoef;
+            PriorCoef = priorCoef;
 
-            _laplaceScale = laplaceScale;
+            LaplaceScale = laplaceScale;
 
             _host.AssertValue(countTable);
             _countTables = countTable;
@@ -86,11 +87,11 @@ namespace Microsoft.ML.Transforms
             ctx.LoadModelOrNull<MultiCountTableBase, SignatureLoadModel>(_host, out _countTables, "CountTables");
             _host.AssertValue(_countTables);
 
-            _priorCoef = ctx.Reader.ReadFloatArray(_countTables.ColCount);
-            _host.CheckDecode(_priorCoef.All(x => x > 0));
+            PriorCoef = ctx.Reader.ReadFloatArray(_countTables.ColCount);
+            _host.CheckDecode(PriorCoef.All(x => x > 0));
 
-            _laplaceScale = ctx.Reader.ReadFloatArray(_countTables.ColCount);
-            _host.CheckDecode(_laplaceScale.All(x => x >= 0));
+            LaplaceScale = ctx.Reader.ReadFloatArray(_countTables.ColCount);
+            _host.CheckDecode(LaplaceScale.All(x => x >= 0));
         }
 
         public void Save(ModelSaveContext ctx)
@@ -108,8 +109,8 @@ namespace Microsoft.ML.Transforms
 
             ctx.Writer.Write(_labelBinCount);
             ctx.Writer.Write(NumFeatures);
-            ctx.Writer.WriteSinglesNoCount(_priorCoef);
-            ctx.Writer.WriteSinglesNoCount(_laplaceScale);
+            ctx.Writer.WriteSinglesNoCount(PriorCoef);
+            ctx.Writer.WriteSinglesNoCount(LaplaceScale);
             ctx.SaveModel(_countTables, "CountTables");
         }
 
@@ -175,8 +176,8 @@ namespace Microsoft.ML.Transforms
             float sum = 0;
             for (int ifeat = 0; ifeat < _labelBinCount; ifeat++)
             {
-                if (_laplaceScale[iCol] > 0)
-                    counts[ifeat] += Stats.SampleFromLaplacian(rand, 0, _laplaceScale[iCol]);
+                if (LaplaceScale[iCol] > 0)
+                    counts[ifeat] += Stats.SampleFromLaplacian(rand, 0, LaplaceScale[iCol]);
 
                 // Clamp to zero when noise is too big and negative.
                 if (counts[ifeat] < 0)
@@ -202,8 +203,8 @@ namespace Microsoft.ML.Transforms
                 else
                 {
                     logOdds[i] = (float)Math.Log(
-                        (counts[i] + _priorCoef[iCol] * countTable.PriorFrequencies[i]) /
-                        (sum - counts[i] + _priorCoef[iCol] * (1 - countTable.PriorFrequencies[i])));
+                        (counts[i] + PriorCoef[iCol] * countTable.PriorFrequencies[i]) /
+                        (sum - counts[i] + PriorCoef[iCol] * (1 - countTable.PriorFrequencies[i])));
                 }
             }
         }

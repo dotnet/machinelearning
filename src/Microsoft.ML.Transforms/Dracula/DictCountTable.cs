@@ -42,7 +42,7 @@ namespace Microsoft.ML.Transforms
                 loaderAssemblyName: typeof(DictCountTable).Assembly.FullName);
         }
 
-        private readonly Dictionary<long, float>[] _tables;
+        public Dictionary<long, float>[] Tables { get; }
 
         public DictCountTable(Dictionary<long, float>[] counts, int labelCardinality, float[] priorCounts,
             float garbageThreshold, float[] garbageCounts)
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Transforms
             Contracts.CheckValue(counts, nameof(counts));
             Contracts.Check(counts.Length == labelCardinality, "Counts must be parallel to label cardinality");
             Contracts.Check(counts.All(x => x != null), "Count dictionaries must all exist");
-            _tables = counts;
+            Tables = counts;
         }
 
         public static DictCountTable Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -72,19 +72,19 @@ namespace Microsoft.ML.Transforms
             //         long: key
             //         Single: value
 
-            _tables = new Dictionary<long, float>[LabelCardinality];
+            Tables = new Dictionary<long, float>[LabelCardinality];
             for (int iTable = 0; iTable < LabelCardinality; iTable++)
             {
-                _tables[iTable] = new Dictionary<long, float>();
+                Tables[iTable] = new Dictionary<long, float>();
                 int cnt = ctx.Reader.ReadInt32();
                 env.CheckDecode(cnt >= 0);
                 for (int i = 0; i < cnt; i++)
                 {
                     long key = ctx.Reader.ReadInt64();
-                    env.CheckDecode(!_tables[iTable].ContainsKey(key));
+                    env.CheckDecode(!Tables[iTable].ContainsKey(key));
                     var value = ctx.Reader.ReadSingle();
                     env.CheckDecode(value >= 0);
-                    _tables[iTable].Add(key, value);
+                    Tables[iTable].Add(key, value);
                 }
             }
         }
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Transforms
             //         long: key
             //         Single: value
 
-            foreach (var table in _tables)
+            foreach (var table in Tables)
             {
                 ctx.Writer.Write(table.Count);
                 foreach (var pair in table)
@@ -119,7 +119,7 @@ namespace Microsoft.ML.Transforms
             Contracts.Check(counts.Length == LabelCardinality);
             for (int ilabel = 0; ilabel < LabelCardinality; ilabel++)
             {
-                if (!_tables[ilabel].TryGetValue(key, out var count))
+                if (!Tables[ilabel].TryGetValue(key, out var count))
                     count = 0;
 
                 counts[ilabel] = count;
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Transforms
             var countsDict = new Dictionary<long, float[]>();
             for (int label=0;label<LabelCardinality;label++)
             {
-                foreach (var kvp in _tables[label])
+                foreach (var kvp in Tables[label])
                 {
                     if (!countsDict.TryGetValue(kvp.Key, out var arr))
                     {
@@ -149,6 +149,11 @@ namespace Microsoft.ML.Transforms
                 counts.Add(kvp.Value);
             }
             return countsDict.Count;
+        }
+
+        public override InternalCountTableBuilderBase ToBuilder()
+        {
+            return new DictCountTableBuilder.Builder(this);
         }
     }
 
@@ -182,9 +187,9 @@ namespace Microsoft.ML.Transforms
             _garbageThreshold = garbageThreshold;
         }
 
-        internal override InternalCountTableBuilderBase GetBuilderHelper(long labelCardinality) => new Builder(labelCardinality, _garbageThreshold);
+        internal override InternalCountTableBuilderBase GetInternalBuilder(long labelCardinality) => new Builder(labelCardinality, _garbageThreshold);
 
-        private sealed class Builder : InternalCountTableBuilderBase
+        public sealed class Builder : InternalCountTableBuilderBase
         {
             private readonly Dictionary<long, double>[] _tables;
             private readonly float _garbageThreshold;
@@ -199,7 +204,21 @@ namespace Microsoft.ML.Transforms
                 _garbageThreshold = garbageThreshold;
             }
 
-            internal override ICountTable CreateCountTable()
+            public Builder(DictCountTable table)
+                : base(table.LabelCardinality)
+            {
+                _tables = new Dictionary<long, double>[LabelCardinality];
+                for (int i = 0; i < LabelCardinality; i++)
+                {
+                    _tables[i] = new Dictionary<long, double>();
+                    foreach (var kvp in table.Tables[i])
+                        _tables[i][kvp.Key] = kvp.Value;
+                }
+
+                _garbageThreshold = table.GarbageThreshold;
+            }
+
+            internal override CountTableBase CreateCountTable()
             {
                 var priorCounts = PriorCounts.Select(x => (float)x).ToArray();
 

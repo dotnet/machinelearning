@@ -64,8 +64,10 @@ namespace Microsoft.ML.Tests.Transformers
             var countsPath = DeleteOutputPath("external-counts.txt");
             transformer.SaveCountTables(countsPath);
 
-            estimator = ML.Transforms.CountTargetEncodeWithExternalCounts(new[] {
-                new InputOutputColumnPair("ScalarString"), new InputOutputColumnPair("VectorString") }, "Label", countsPath, CountTableBuilderBase.CreateCMCountTableBuilder(2, 1 << 6));
+            estimator = ML.Transforms.CountTargetEncode(new[] { new InputOutputColumnPair("ScalarString"), new InputOutputColumnPair("VectorString") }, transformer);
+
+            //estimator = ML.Transforms.CountTargetEncodeWithExternalCounts(new[] {
+            //    new InputOutputColumnPair("ScalarString"), new InputOutputColumnPair("VectorString") }, "Label", countsPath, CountTableBuilderBase.CreateCMCountTableBuilder(2, 1 << 6));
             var transformer1 = estimator.Fit(new EmptyDataView(Env, data.Schema));
 
             CheckSameCounts(data, transformer, transformer1, 2, 5);

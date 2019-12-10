@@ -37,7 +37,7 @@ namespace Microsoft.ML.Transforms
     {
         public const int LabelCardinalityLim = 100;
 
-        protected readonly int LabelCardinality; // number of values the label can assume
+        public readonly int LabelCardinality; // number of values the label can assume
         private readonly double[] _priorFrequencies;
 
         public float GarbageThreshold { get; private set; } // garbage bin threshold
@@ -146,5 +146,7 @@ namespace Microsoft.ML.Transforms
         }
 
         public abstract int AppendRows(List<int> hashIds, List<ulong> hashValues, List<float[]> counts);
+
+        public abstract InternalCountTableBuilderBase ToBuilder();
     }
 }
