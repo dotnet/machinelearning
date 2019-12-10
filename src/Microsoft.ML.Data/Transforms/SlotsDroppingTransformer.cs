@@ -12,6 +12,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
@@ -442,11 +443,12 @@ namespace Microsoft.ML.Transforms
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema)
             => new Mapper(this, schema);
 
-        private sealed class Mapper : OneToOneMapperBase
+        private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
         {
             private readonly SlotsDroppingTransformer _parent;
             private readonly int[] _cols;
             private readonly DataViewType[] _srcTypes;
+            private readonly DataViewType[] _rawTypes;
             private readonly DataViewType[] _dstTypes;
             private readonly SlotDropper[] _slotDropper;
             // Track if all the slots of the column are to be dropped.
@@ -459,6 +461,7 @@ namespace Microsoft.ML.Transforms
                 _parent = parent;
                 _cols = new int[_parent.ColumnPairs.Length];
                 _srcTypes = new DataViewType[_parent.ColumnPairs.Length];
+                _rawTypes = new DataViewType[_parent.ColumnPairs.Length];
                 _dstTypes = new DataViewType[_parent.ColumnPairs.Length];
                 _slotDropper = new SlotDropper[_parent.ColumnPairs.Length];
                 _suppressed = new bool[_parent.ColumnPairs.Length];
@@ -471,8 +474,8 @@ namespace Microsoft.ML.Transforms
                     _srcTypes[i] = inputSchema[_cols[i]].Type;
                     VectorDataViewType srcVectorType = _srcTypes[i] as VectorDataViewType;
 
-                    DataViewType itemType = srcVectorType?.ItemType ?? _srcTypes[i];
-                    if (!IsValidColumnType(itemType))
+                    _rawTypes[i] = srcVectorType?.ItemType ?? _srcTypes[i];
+                    if (!IsValidColumnType(_rawTypes[i]))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].inputColumnName);
 
                     int valueCount = srcVectorType?.Size ?? 1;
@@ -868,6 +871,54 @@ namespace Microsoft.ML.Transforms
                 }
                 return result;
             }
+
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
+
+            public void SaveAsOnnx(OnnxContext ctx)
+            {
+                Host.CheckValue(ctx, nameof(ctx));
+
+                for (int iinfo = 0; iinfo < _cols.Length; ++iinfo)
+                {
+                    string inputColumnName = _parent.ColumnPairs[iinfo].inputColumnName;
+                    if (!ctx.ContainsColumn(inputColumnName))
+                        continue;
+
+                    string srcVariableName = ctx.GetVariableName(inputColumnName);
+                    string dstVariableName = ctx.AddIntermediateVariable(_dstTypes[iinfo], _parent.ColumnPairs[iinfo].outputColumnName);
+                    if (!SaveAsOnnxCore(ctx, iinfo, srcVariableName, dstVariableName))
+                        ctx.RemoveColumn(dstVariableName);
+                }
+            }
+
+            public bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
+            {
+                string opType;
+                if (_srcTypes[iinfo] is VectorDataViewType)
+                {
+                    opType = "GatherElements";
+                    IEnumerable<long> slots = _slotDropper[iinfo].GetPreservedSlots();
+                    var slotsVar = ctx.AddInitializer(slots, new long[] { 1, slots.Count() }, "PreservedSlots");
+                    var node = ctx.CreateNode(opType, new[] { srcVariableName, slotsVar }, new[] { dstVariableName }, ctx.GetNodeName(opType), "");
+                    node.AddAttribute("axis", 1);
+                }
+                else
+                {
+                    // ConstantOfShape does not support strings as output yet
+                    if (_rawTypes[iinfo] is TextDataViewType)
+                        return false;
+
+                    opType = "ConstantOfShape";
+                    long[] outputShape = { 1, 1 };
+                    long[] valueShape = { 1 };
+                    float[] value = { 0.0f };
+                    var shapeVar = ctx.AddInitializer(outputShape, null, "Shape");
+                    var node = ctx.CreateNode(opType, shapeVar, dstVariableName, ctx.GetNodeName(opType), "");
+                    node.AddAttribute("value", value, valueShape);
+                }
+                return true;
+            }
+
         }
     }
 }

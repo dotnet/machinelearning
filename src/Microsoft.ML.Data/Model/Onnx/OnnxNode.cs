@@ -30,5 +30,6 @@ namespace Microsoft.ML.Model.OnnxConverter
         public abstract void AddAttribute(string argName, IEnumerable<string> value);
         public abstract void AddAttribute(string argName, IEnumerable<bool> value);
         public abstract void AddAttribute(string argName, Type t);
+        public abstract void AddAttribute(string argName, IEnumerable<float> value, IEnumerable<long> shape);
     }
 }
