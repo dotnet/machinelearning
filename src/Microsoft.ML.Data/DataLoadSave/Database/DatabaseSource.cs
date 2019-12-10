@@ -11,7 +11,7 @@ namespace Microsoft.ML.Data
     public sealed class DatabaseSource
     {
         /// <summary>Creates a new instance of the <see cref="DatabaseSource" /> class.</summary>
-        /// <param name="providerFactory">The factory used to create the <see cref="DbConnection"/>..</param>
+        /// <param name="providerFactory">The factory used to create the <see cref="DbConnection"/>.</param>
         /// <param name="connectionString">The string used to open the connection.</param>
         /// <param name="commandText">The text command to run against the data source.</param>
         public DatabaseSource(DbProviderFactory providerFactory, string connectionString, string commandText)
@@ -26,7 +26,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>Creates a new instance of the <see cref="DatabaseSource" /> class.</summary>
-        /// <param name="providerFactory">The factory used to create the <see cref="DbConnection"/>..</param>
+        /// <param name="providerFactory">The factory used to create the <see cref="DbConnection"/>.</param>
         /// <param name="connectionString">The string used to open the connection.</param>
         /// <param name="commandText">The text command to run against the data source.</param>
         /// <param name="commandTimeoutInSeconds">The time in seconds to wait for the command to execute.</param>

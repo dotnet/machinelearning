@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
@@ -108,29 +107,16 @@ namespace Microsoft.ML.Tests
 
             var databaseSource = new DatabaseSource(SqlClientFactory.Instance, connectionString, commandText, commandTimeout);
 
-            bool passed=false;
+            var trainingData = loader.Load(databaseSource);
 
-            try
-            {
-                var trainingData = loader.Load(databaseSource);
+            IEstimator<ITransformer> pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
+            .Append(mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
+            .AppendCacheCheckpoint(mlContext)
+            .Append(mlContext.MulticlassClassification.Trainers.LightGbm())
+            .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
-                IEstimator<ITransformer> pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
-                .Append(mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
-                .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.MulticlassClassification.Trainers.LightGbm())
-                .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
-
-                var model = pipeline.Fit(trainingData);
-            }
-            catch(Exception e)
-            {
-                if (e.InnerException.Message.Contains("Timeout"))
-                    passed = true;
-                else
-                    throw;
-            }
-
-            Assert.True(passed);
+            var ex = Assert.Throws<System.Reflection.TargetInvocationException>(() => pipeline.Fit(trainingData));
+            Assert.Contains("Timeout expired.", ex.InnerException.Message);
         }
 
         [LightGBMFact]
