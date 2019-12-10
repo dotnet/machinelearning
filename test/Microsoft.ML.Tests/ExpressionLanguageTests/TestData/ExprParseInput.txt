@@ -238,8 +238,3 @@ TX: x => left(_chars(concat(x, "A\r\nB", x)), 2)
 #
     X
 $
-TX: x => right(_chars(concat(x, @"A
-B", x)), -2)
-#
-    X
-$

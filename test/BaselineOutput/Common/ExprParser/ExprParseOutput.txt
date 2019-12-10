@@ -253,9 +253,3 @@ Compiling succeeded.
 ExprDumpChars: 0058 0041 000D 000A 0042 0058 
 XA
 ===== End Script 50, lines 237 to 240 =====
-===== Start Script 51, lines 241 to 245 =====
-Binding succeeded. Output type: String
-Compiling succeeded.
-ExprDumpChars: 0058 0041 000D 000A 0042 0058 
-BX
-===== End Script 51, lines 241 to 245 =====
