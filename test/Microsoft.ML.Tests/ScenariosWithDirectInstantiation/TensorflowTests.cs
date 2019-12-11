@@ -1484,9 +1484,7 @@ namespace Microsoft.ML.Scenarios
 
         internal void TensorFlowImageClassificationWithLRScheduling(LearningRateScheduler  learningRateScheduler, int epoch)
         {
-            string assetsRelativePath = @"assets";
-            string assetsPath = GetAbsolutePath(assetsRelativePath);
-            string imagesDownloadFolderPath = Path.Combine(assetsPath, "inputs",
+            string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
 
             //Download the image set and unzip
