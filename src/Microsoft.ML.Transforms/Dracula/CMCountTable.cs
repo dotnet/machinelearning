@@ -42,24 +42,25 @@ namespace Microsoft.ML.Transforms
                 loaderAssemblyName: typeof(CMCountTable).Assembly.FullName);
         }
 
-        private readonly int _depth; // Number of different hash functions
-        private readonly int _width; // Hash space. May be any number, typically a power of 2
+        public readonly int Depth; // Number of different hash functions
+        public readonly int Width; // Hash space. May be any number, typically a power of 2
 
-        public float[][][] Tables { get; }
+        public Dictionary<int, float>[][] Tables { get; }
 
-        public CMCountTable(float[][][] tables, float[] priorCounts)
+        public CMCountTable(Dictionary<int, float>[][] tables, float[] priorCounts, int depth, int width)
             : base(Utils.Size(tables), priorCounts, 0, null)
         {
             Contracts.CheckValue(tables, nameof(tables));
             Contracts.Assert(LabelCardinality > 0);
+            Contracts.Assert(Utils.Size(tables[0]) == depth);
 
-            _depth = Utils.Size(tables[0]);
-            Contracts.Check(_depth > 0, "depth must be positive");
-            Contracts.Check(tables.All(x => Utils.Size(x) == _depth), "Depth must be the same for all labels");
+            Depth = depth;
+            Contracts.Check(Depth > 0, "depth must be positive");
+            Contracts.Check(tables.All(x => Utils.Size(x) == Depth), "Depth must be the same for all labels");
 
-            _width = Utils.Size(tables[0][0]);
-            Contracts.Check(_width > 0, "width must be positive");
-            Contracts.Check(tables.All(t => t.All(t2 => Utils.Size(t2) == _width)), "Width must be the same for all depths");
+            Width = width;
+            Contracts.Check(Width > 0, "width must be positive");
+            Contracts.Check(tables.All(t => t.All(t2 => t2.Max(kvp => kvp.Key) < Width)), "Keys must be between 0 and Width - 1");
 
             Tables = tables;
         }
@@ -79,46 +80,30 @@ namespace Microsoft.ML.Transforms
             // int: depth
             // int: width
             // for each of the _labelCardinality tables:
-            //     bool: true iff table is saved in sparse format
-            //     if sparse:
-            //          for each of the _depth arrays, a sequence of (index, value) for non-zero values,
-            //          with an index of -1 indicating the end of the array
-            //     if dense:
-            //          Single[][]: the count-min-sketch of dimensions _depth * _width.
+            //   for each of the _depth dictionaries
+            //     int: the number of pairs in the dictionary
+            //     for each pair:
+            //       int: index
+            //       float: value
 
-            _depth = ctx.Reader.ReadInt32();
-            env.CheckDecode(_depth > 0);
-            _width = ctx.Reader.ReadInt32();
-            env.CheckDecode(_width > 0);
+            Depth = ctx.Reader.ReadInt32();
+            env.CheckDecode(Depth > 0);
+            Width = ctx.Reader.ReadInt32();
+            env.CheckDecode(Width > 0);
 
-            Tables = new float[LabelCardinality][][];
+            Tables = new Dictionary<int, float>[LabelCardinality][];
             for (int i = 0; i < LabelCardinality; i++)
             {
-                bool isSparse = ctx.Reader.ReadBoolByte();
-
-                Tables[i] = new float[_depth][];
-                for (int j = 0; j < _depth; j++)
+                Tables[i] = new Dictionary<int, float>[Depth];
+                for (int j = 0; j < Depth; j++)
                 {
-                    if (!isSparse)
-                        Tables[i][j] = ctx.Reader.ReadSingleArray(_width);
-                    else
+                    var count = ctx.Reader.ReadInt32();
+                    Tables[i][j] = new Dictionary<int, float>(count);
+                    for (int k = 0; k < count; k++)
                     {
-                        float[] table;
-                        Tables[i][j] = table = new float[_width];
-                        int pos = -1;
-                        for (; ; )
-                        {
-                            int oldPos = pos;
-                            pos = ctx.Reader.ReadInt32();
-                            env.CheckDecode(pos >= -1 && pos < _width);
-                            if (pos < 0)
-                                break;
-
-                            env.CheckDecode(pos > oldPos);
-                            var v = ctx.Reader.ReadSingle();
-                            Contracts.CheckDecode(v >= 0);
-                            table[pos] = v;
-                        }
+                        int index = ctx.Reader.ReadInt32();
+                        float value = ctx.Reader.ReadSingle();
+                        Tables[i][j].Add(index, value);
                     }
                 }
             }
@@ -134,63 +119,28 @@ namespace Microsoft.ML.Transforms
             // int: depth
             // int: width
             // for each of the _labelCardinality tables:
-            //     bool: true iff table is saved in sparse format
-            //     if sparse:
-            //          for each of the _depth arrays, a sequence of (index, value) for non-zero values,
-            //          with an index of -1 indicating the end of the array
-            //     if dense:
-            //          Single[][]: the count-min-sketch of dimensions _depth * _width.
+            //   for each of the _depth dictionaries
+            //     int: the number of pairs in the dictionary
+            //     for each pair:
+            //       int: index
+            //       float: value
 
-            ctx.Writer.Write(_depth);
-            ctx.Writer.Write(_width);
+            ctx.Writer.Write(Depth);
+            ctx.Writer.Write(Width);
 
             for (int iLabel = 0; iLabel < LabelCardinality; iLabel++)
             {
-                var table = Tables[iLabel];
-                bool isSparse = IsTableSparse(table);
-                ctx.Writer.WriteBoolByte(isSparse);
-                foreach (var array in table)
+                for (int iDepth=0;iDepth<Depth;iDepth++)
                 {
-                    if (!isSparse)
-                        ctx.Writer.WriteSinglesNoCount(array);
-                    else
+                    var dict = Tables[iLabel][iDepth];
+                    ctx.Writer.Write(dict.Count);
+                    foreach (var kvp in dict)
                     {
-                        for (int i = 0; i < _width; i++)
-                        {
-                            if (array[i] > 0)
-                            {
-                                ctx.Writer.Write(i);
-                                ctx.Writer.Write(array[i]);
-                            }
-                        }
-                        // end of sequence
-                        ctx.Writer.Write(-1);
+                        ctx.Writer.Write(kvp.Key);
+                        ctx.Writer.Write(kvp.Value);
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Inspects a portion of the count table for one label value and determines whether the
-        /// tables can be saved in a sparse vs. dense format
-        /// </summary>
-        private bool IsTableSparse(float[][] table)
-        {
-            const int sampleSize = 10000;
-            const double sparseThreshold = 0.3;
-
-            var widthSample = Math.Min(sampleSize, _width);
-            int nonZero = 0;
-            for (int iWidth = 0; iWidth < widthSample; iWidth++)
-            {
-                for (int iDepth = 0; iDepth < _depth; iDepth++)
-                {
-                    if (table[iDepth][iWidth] != 0)
-                        nonZero++;
-                }
-            }
-
-            return nonZero < sparseThreshold * widthSample * _depth;
         }
 
         public override void GetCounts(long key, Span<float> counts)
@@ -201,10 +151,11 @@ namespace Microsoft.ML.Transforms
             {
                 float minValue = -1;
                 var table = Tables[ilabel];
-                for (int idepth = 0; idepth < _depth; idepth++)
+                for (int idepth = 0; idepth < Depth; idepth++)
                 {
-                    int iwidth = (int)(Hashing.MixHash(Hashing.MurmurRound(hash, (uint)idepth)) % _width);
-                    var count = table[idepth][iwidth];
+                    int iwidth = (int)(Hashing.MixHash(Hashing.MurmurRound(hash, (uint)idepth)) % Width);
+                    if (!table[idepth].TryGetValue(iwidth, out var count))
+                        count = 0;
                     Contracts.Assert(count >= 0);
                     if (minValue > count || minValue < 0)
                         minValue = count;
@@ -215,9 +166,9 @@ namespace Microsoft.ML.Transforms
 
         public override int AppendRows(List<int> hashIds, List<ulong> hashValues, List<float[]> counts)
         {
-            for (int i = 0; i < _depth; i++)
+            for (int i = 0; i < Depth; i++)
             {
-                for (int j = 0; j < _width; j++)
+                for (int j = 0; j < Width; j++)
                 {
                     var countsCur = new float[LabelCardinality];
                     hashIds.Add(i);
@@ -227,7 +178,7 @@ namespace Microsoft.ML.Transforms
                     counts.Add(countsCur);
                 }
             }
-            return _depth * _width;
+            return Depth * Width;
         }
 
         public override InternalCountTableBuilderBase ToBuilder()
@@ -279,7 +230,7 @@ namespace Microsoft.ML.Transforms
         internal sealed class Builder : InternalCountTableBuilderBase
         {
             private readonly int _depth;
-            private readonly double[][][] _tables; // label cardinality * depth * width
+            private readonly Dictionary<int, double>[][] _tables; // for each label and 0<=i<depth we keep a dictionary.
             private readonly int _width;
 
             public Builder(long labelCardinality, int depth, int width)
@@ -291,12 +242,12 @@ namespace Microsoft.ML.Transforms
                 Contracts.Assert(0 < width);
                 _width = width;
 
-                _tables = new double[LabelCardinality][][];
+                _tables = new Dictionary<int, double>[LabelCardinality][];
                 for (int iLabel = 0; iLabel < LabelCardinality; iLabel++)
                 {
-                    _tables[iLabel] = new double[_depth][];
+                    _tables[iLabel] = new Dictionary<int, double>[_depth];
                     for (int iDepth = 0; iDepth < _depth; iDepth++)
-                        _tables[iLabel][iDepth] = new double[_width];
+                        _tables[iLabel][iDepth] = new Dictionary<int, double>();
                 }
             }
 
@@ -305,26 +256,18 @@ namespace Microsoft.ML.Transforms
             {
                 Contracts.AssertValue(table);
 
-                _tables = new double[LabelCardinality][][];
+                _tables = new Dictionary<int, double>[LabelCardinality][];
+                _depth = table.Depth;
+                _width = table.Width;
                 for (int iLabel = 0; iLabel < LabelCardinality; iLabel++)
                 {
-                    var oldTables = table.Tables[iLabel];
-                    if (iLabel == 0)
-                        _depth = oldTables.Length;
-                    else
-                        Contracts.Assert(_depth == oldTables.Length);
-
-                    _tables[iLabel] = new double[_depth][];
+                    _tables[iLabel] = new Dictionary<int, double>[_depth];
                     for (int iDepth = 0; iDepth < _depth; iDepth++)
                     {
-                        var oldTable = oldTables[iDepth];
-                        if (iLabel == 0 && iDepth == 0)
-                            _width = oldTable.Length;
-                        else
-                            Contracts.Assert(_width == oldTable.Length);
-
-                        _tables[iLabel][iDepth] = new double[_width];
-                        oldTable.CopyTo(_tables[iLabel][iDepth], 0);
+                        var oldDict = table.Tables[iLabel][iDepth];
+                        _tables[iLabel][iDepth] = new Dictionary<int, double>();
+                        foreach (var kvp in oldDict)
+                            _tables[iLabel][iDepth].Add(kvp.Key, kvp.Value);
                     }
                 }
             }
@@ -334,17 +277,19 @@ namespace Microsoft.ML.Transforms
                 var priorCounts = PriorCounts.Select(x => (float)x).ToArray();
 
                 // copying / converting tables
-                var tables = new float[LabelCardinality][][];
+                var tables = new Dictionary<int, float>[LabelCardinality][];
                 for (int iLabel = 0; iLabel < LabelCardinality; iLabel++)
                 {
-                    tables[iLabel] = new float[_depth][];
+                    tables[iLabel] = new Dictionary<int, float>[_depth];
                     for (int iDepth = 0; iDepth < _depth; iDepth++)
                     {
-                        tables[iLabel][iDepth] = _tables[iLabel][iDepth].Select(input => (float)input).ToArray();
+                        tables[iLabel][iDepth] = new Dictionary<int, float>();
+                        foreach (var kvp in _tables[iLabel][iDepth])
+                            tables[iLabel][iDepth].Add(kvp.Key, (float)kvp.Value);
                     }
                 }
 
-                return new CMCountTable(tables, priorCounts);
+                return new CMCountTable(tables, priorCounts, _depth, _width);
             }
 
             protected override void IncrementCore(long key, long labelKey)
@@ -353,6 +298,8 @@ namespace Microsoft.ML.Transforms
                 for (int i = 0; i < _depth; i++)
                 {
                     int idx = (int)(Hashing.MixHash(Hashing.MurmurRound(hash, (uint)i)) % _width);
+                    if (!_tables[labelKey][i].ContainsKey(idx))
+                        _tables[labelKey][i].Add(idx, 0);
                     _tables[labelKey][i][idx]++;
                 }
             }
@@ -366,7 +313,7 @@ namespace Microsoft.ML.Transforms
                 foreach (var count in counts.DenseValues())
                 {
                     if (count >= 0)
-                        _tables[label][hashId][hashValue] = count;
+                        _tables[label][hashId][(int)hashValue] = count;
                     label++;
                 }
             }
