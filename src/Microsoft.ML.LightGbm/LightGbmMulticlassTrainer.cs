@@ -218,7 +218,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         private protected override void ConvertNaNLabels(IChannel ch, RoleMappedData data, float[] labels)
         {
             // Only initialize one time.
-            if (_numClass < 0)
+            if (_numClass != 0)
             {
                 float minLabel = float.MaxValue;
                 float maxLabel = float.MinValue;
