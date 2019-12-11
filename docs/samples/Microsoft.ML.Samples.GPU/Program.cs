@@ -12,7 +12,7 @@ namespace Microsoft.ML.Samples
         {
             int samples = 0;
             var types = Assembly.GetExecutingAssembly().GetTypes();
-            /*foreach (var type in types)
+            foreach (var type in types)
             {
                 var sample = type.GetMethod("Example", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
 
@@ -22,8 +22,8 @@ namespace Microsoft.ML.Samples
                     sample.Invoke(null, null);
                     samples++;
                 }
-            }*/
-            ResnetV2101TransferLearningTrainTestSplit.Example();
+            }
+
             Console.WriteLine("Number of samples that ran without any exception: " + samples);
         }
     }

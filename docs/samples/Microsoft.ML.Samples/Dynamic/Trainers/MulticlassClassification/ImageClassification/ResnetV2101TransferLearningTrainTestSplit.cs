@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Trainers;
 using Microsoft.ML.Vision;
 using static Microsoft.ML.DataOperationsCatalog;
 
@@ -75,8 +74,7 @@ namespace Samples.Dynamic
                 MetricsCallback = (metrics) => Console.WriteLine(metrics),
                 ValidationSet = testDataset,
                 // Disable EarlyStopping to run to specified number of epochs.
-                EarlyStoppingCriteria =null,
-                LearningRateScheduler = new CyclicLR()
+                EarlyStoppingCriteria =null
             };
 
             // Create the ImageClassification pipeline.
