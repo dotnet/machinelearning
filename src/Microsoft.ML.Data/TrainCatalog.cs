@@ -258,6 +258,13 @@ namespace Microsoft.ML
                 Evaluate(x.Scores, labelColumnName), x.Scores, x.Fold)).ToArray();
         }
 
+        /// <summary>
+        /// Method to modify the threshold to existing model and return modified model.
+        /// </summary>
+        /// <typeparam name="TModel">The type of the model parameters.</typeparam>
+        /// <param name="model">Existing model to modify threshold.</param>
+        /// <param name="threshold">New threshold.</param>
+        /// <returns>New model with modified threashold.</returns>
         public BinaryPredictionTransformer<TModel> ChangeModelThreshold<TModel>(BinaryPredictionTransformer<TModel> model, float threshold)
              where TModel : class
         {
