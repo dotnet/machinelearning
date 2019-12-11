@@ -89,14 +89,14 @@ namespace Microsoft.ML.Data
     /// </summary>
     public sealed class SvmLightLoader : IDataLoader<IMultiStreamSource>
     {
-        public enum FeatureIndices
+        internal enum FeatureIndices
         {
             ZeroBased,
             OneBased,
             Names
         }
 
-        public sealed class Options
+        internal sealed class Options
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The size of the feature vectors.", ShortName = "size")]
             public int InputSize;
@@ -108,7 +108,6 @@ namespace Microsoft.ML.Data
             public long? NumberOfRows;
         }
 
-#pragma warning disable 0649 // Disable warnings about unused members. They are used through reflection.
         /// <summary>
         /// This class is used as input for the <see cref="CustomMappingTransformer{TSrc, TDst}"/> mapping the input as a line of text.
         /// It is used by two custom mappers: one that maps the text to a float value indicating whether the line of text is a comment
@@ -116,7 +115,9 @@ namespace Microsoft.ML.Data
         /// </summary>
         private sealed class Input
         {
+#pragma warning disable 0649 // Disable warnings about unused members. They are used through reflection.
             public ReadOnlyMemory<char> Text;
+#pragma warning restore 0649
 
             public static void MapComment(Input input, CommentIndicator output)
             {
@@ -347,7 +348,6 @@ namespace Microsoft.ML.Data
         {
             public VBuffer<float> Features;
         }
-#pragma warning restore 0649
 
         /// <summary>
         /// This class contains the mapper that maps an an <see cref="IntermediateOut"/>
