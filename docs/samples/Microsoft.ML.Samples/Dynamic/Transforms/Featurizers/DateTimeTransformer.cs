@@ -27,7 +27,7 @@ namespace Samples.Dynamic
             var dataview = mlContext.Data.LoadFromEnumerable(samples);
 
             // A pipeline for splitting the time features into individual columns
-            var pipeline = mlContext.Transforms.DateTimeTransformer("Date", "DTC");
+            var pipeline = mlContext.Transforms.FeaturizeDateTime("Date", "DTC");
 
             // The transformed data.
             var transformedData = pipeline.Fit(dataview).Transform(dataview);

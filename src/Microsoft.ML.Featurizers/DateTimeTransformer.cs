@@ -38,18 +38,6 @@ namespace Microsoft.ML.Featurizers
         /// <summary>
         /// Create a <see cref="DateTimeEstimator"/>, which splits up the input column specified by <paramref name="inputColumnName"/>
         /// into all its individual datetime components. Input column must be of type Int64 representing the number of seconds since the unix epoc.
-        /// This transformer will append the <paramref name="columnPrefix"/> to all the output columns.
-        /// </summary>
-        /// <param name="catalog">Transform catalog</param>
-        /// <param name="inputColumnName">Input column name</param>
-        /// <param name="columnPrefix">Prefix to add to the generated columns</param>
-        /// <returns><see cref="DateTimeEstimator"/></returns>
-        public static DateTimeEstimator DateTimeTransformer(this TransformsCatalog catalog, string inputColumnName, string columnPrefix)
-            => new DateTimeEstimator(CatalogUtils.GetEnvironment(catalog), inputColumnName, columnPrefix);
-
-        /// <summary>
-        /// Create a <see cref="DateTimeEstimator"/>, which splits up the input column specified by <paramref name="inputColumnName"/>
-        /// into all its individual datetime components. Input column must be of type Int64 representing the number of seconds since the unix epoc.
         /// This transformer will append the <paramref name="columnPrefix"/> to all the output columns. If you specify a country,
         /// Holiday details will be looked up for that country as well.
         /// </summary>
@@ -58,7 +46,7 @@ namespace Microsoft.ML.Featurizers
         /// <param name="columnPrefix">Prefix to add to the generated columns</param>
         /// <param name="country">Country name to get holiday details for</param>
         /// <returns><see cref="DateTimeEstimator"/></returns>
-        public static DateTimeEstimator DateTimeTransformer(this TransformsCatalog catalog, string inputColumnName, string columnPrefix, DateTimeEstimator.HolidayList country = DateTimeEstimator.HolidayList.None)
+        public static DateTimeEstimator FeaturizeDateTime(this TransformsCatalog catalog, string inputColumnName, string columnPrefix, DateTimeEstimator.HolidayList country = DateTimeEstimator.HolidayList.None)
             => new DateTimeEstimator(CatalogUtils.GetEnvironment(catalog), inputColumnName, columnPrefix, country);
 
         #region ColumnsProduced static extentions
@@ -104,14 +92,13 @@ namespace Microsoft.ML.Featurizers
     /// | Input column data type | Int64 |
     /// | Output column data type | Columns and types listed in the summary |
     ///
-    /// The <xref:Microsoft.ML.Transforms.CategoryImputerEstimator> is a trivial estimator and does not need training.
+    /// The <xref:Microsoft.ML.Transforms.DateTimeEstimator> is a trivial estimator and does not need training.
     ///
     ///
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="DateTimeTransformerExtensionClass.DateTimeTransformer(TransformsCatalog, string, string)"/>
-    /// <seealso cref="DateTimeTransformerExtensionClass.DateTimeTransformer(TransformsCatalog, string, string, DateTimeEstimator.HolidayList)"/>
+    /// <seealso cref="DateTimeTransformerExtensionClass.FeaturizeDateTime(TransformsCatalog, string, string, DateTimeEstimator.HolidayList)"/>
     public sealed class DateTimeEstimator : IEstimator<DateTimeTransformer>
     {
         private readonly Options _options;

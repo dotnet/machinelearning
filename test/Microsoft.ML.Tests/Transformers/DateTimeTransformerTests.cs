@@ -8,6 +8,7 @@ using Microsoft.ML.Featurizers;
 using System;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.ML.TestFramework.Attributes;
 
 namespace Microsoft.ML.Tests.Transformers
 {
@@ -22,7 +23,7 @@ namespace Microsoft.ML.Tests.Transformers
             public long date;
         }
 
-        [Fact]
+        [NotCentOS7FactAttribute]
         public void CorrectNumberOfColumnsAndSchema()
         {
             MLContext mlContext = new MLContext(1);
@@ -31,7 +32,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             // Build the pipeline, fit, and transform it.
             var columnPrefix = "DTC_";
-            var pipeline = mlContext.Transforms.DateTimeTransformer("date", columnPrefix);
+            var pipeline = mlContext.Transforms.FeaturizeDateTime("date", columnPrefix);
             var model = pipeline.Fit(data);
             var output = model.Transform(data);
             var schema = output.Schema;
@@ -89,7 +90,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [NotCentOS7FactAttribute]
         public void CanUseDateFromColumn()
         {
             // Future Date - 2025 June 30
@@ -98,7 +99,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = mlContext.Data.LoadFromEnumerable(dataList);
 
             // Build the pipeline, fit, and transform it.
-            var pipeline = mlContext.Transforms.DateTimeTransformer("date", "DTC");
+            var pipeline = mlContext.Transforms.FeaturizeDateTime("date", "DTC");
             var model = pipeline.Fit(data);
             var output = model.Transform(data);
 
@@ -132,7 +133,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [NotCentOS7FactAttribute]
         public void HolidayTest()
         {
             // Future Date - 2025 June 30
@@ -141,7 +142,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = mlContext.Data.LoadFromEnumerable(dataList);
 
             // Build the pipeline, fit, and transform it.
-            var pipeline = mlContext.Transforms.DateTimeTransformer("date", "DTC", country: DateTimeEstimator.HolidayList.Canada);
+            var pipeline = mlContext.Transforms.FeaturizeDateTime("date", "DTC", country: DateTimeEstimator.HolidayList.Canada);
             var model = pipeline.Fit(data);
             var output = model.Transform(data);
 
@@ -156,7 +157,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [NotCentOS7FactAttribute]
         public void ManyRowsTest()
         {
             // Future Date - 2025 June 30
@@ -169,7 +170,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = mlContext.Data.LoadFromEnumerable(dataList);
 
             // Build the pipeline, fit, and transform it.
-            var pipeline = mlContext.Transforms.DateTimeTransformer("date", "DTC");
+            var pipeline = mlContext.Transforms.FeaturizeDateTime("date", "DTC");
             var model = pipeline.Fit(data);
             var output = model.Transform(data);
 
@@ -203,7 +204,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [NotCentOS7FactAttribute]
         public void EntryPointTest()
         {
             // Future Date - 2025 June 30
