@@ -13,6 +13,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.Data.Analysis
 {
@@ -52,9 +53,8 @@ namespace Microsoft.Data.Analysis
                     if (typeof(U) == typeof(T))
                     {
                         // No conversions
-                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<U> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.Reverse<#=method.MethodName#>(value);
+                        PrimitiveDataFrameColumn<T> newColumn = inPlace ? this : Clone();
+                        newColumn._columnContainer.Reverse<#=method.MethodName#>(Unsafe.As<U, T>(ref value));
                         return newColumn;
                     }
                     else
@@ -81,9 +81,8 @@ namespace Microsoft.Data.Analysis
                     if (typeof(U) == typeof(T))
                     {
                         // No conversions
-                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<U> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.Reverse<#=method.MethodName#>(value);
+                        PrimitiveDataFrameColumn<T> newColumn = inPlace ? this : Clone();
+                        newColumn._columnContainer.Reverse<#=method.MethodName#>(Unsafe.As<U, T>(ref value));
                         return newColumn;
                     }
                     else

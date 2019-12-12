@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.Data.Analysis
 {
@@ -28,9 +29,8 @@ namespace Microsoft.Data.Analysis
                     if (typeof(U) == typeof(T))
                     {
                         // No conversions
-                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<U> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.ReverseAdd(value);
+                        PrimitiveDataFrameColumn<T> newColumn = inPlace ? this : Clone();
+                        newColumn._columnContainer.ReverseAdd(Unsafe.As<U, T>(ref value));
                         return newColumn;
                     }
                     else
@@ -61,9 +61,8 @@ namespace Microsoft.Data.Analysis
                     if (typeof(U) == typeof(T))
                     {
                         // No conversions
-                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<U> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.ReverseAdd(value);
+                        PrimitiveDataFrameColumn<T> newColumn = inPlace ? this : Clone();
+                        newColumn._columnContainer.ReverseAdd(Unsafe.As<U, T>(ref value));
                         return newColumn;
                     }
                     else
@@ -103,9 +102,8 @@ namespace Microsoft.Data.Analysis
                     if (typeof(U) == typeof(T))
                     {
                         // No conversions
-                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<U> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.ReverseSubtract(value);
+                        PrimitiveDataFrameColumn<T> newColumn = inPlace ? this : Clone();
+                        newColumn._columnContainer.ReverseSubtract(Unsafe.As<U, T>(ref value));
                         return newColumn;
                     }
                     else
@@ -136,9 +134,8 @@ namespace Microsoft.Data.Analysis
                     if (typeof(U) == typeof(T))
                     {
                         // No conversions
-                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<U> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.ReverseSubtract(value);
+                        PrimitiveDataFrameColumn<T> newColumn = inPlace ? this : Clone();
+                        newColumn._columnContainer.ReverseSubtract(Unsafe.As<U, T>(ref value));
                         return newColumn;
                     }
                     else
@@ -178,9 +175,8 @@ namespace Microsoft.Data.Analysis
                     if (typeof(U) == typeof(T))
                     {
                         // No conversions
-                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<U> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.ReverseMultiply(value);
+                        PrimitiveDataFrameColumn<T> newColumn = inPlace ? this : Clone();
+                        newColumn._columnContainer.ReverseMultiply(Unsafe.As<U, T>(ref value));
                         return newColumn;
                     }
                     else
@@ -211,9 +207,8 @@ namespace Microsoft.Data.Analysis
                     if (typeof(U) == typeof(T))
                     {
                         // No conversions
-                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<U> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.ReverseMultiply(value);
+                        PrimitiveDataFrameColumn<T> newColumn = inPlace ? this : Clone();
+                        newColumn._columnContainer.ReverseMultiply(Unsafe.As<U, T>(ref value));
                         return newColumn;
                     }
                     else
@@ -253,9 +248,8 @@ namespace Microsoft.Data.Analysis
                     if (typeof(U) == typeof(T))
                     {
                         // No conversions
-                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<U> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.ReverseDivide(value);
+                        PrimitiveDataFrameColumn<T> newColumn = inPlace ? this : Clone();
+                        newColumn._columnContainer.ReverseDivide(Unsafe.As<U, T>(ref value));
                         return newColumn;
                     }
                     else
@@ -286,9 +280,8 @@ namespace Microsoft.Data.Analysis
                     if (typeof(U) == typeof(T))
                     {
                         // No conversions
-                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<U> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.ReverseDivide(value);
+                        PrimitiveDataFrameColumn<T> newColumn = inPlace ? this : Clone();
+                        newColumn._columnContainer.ReverseDivide(Unsafe.As<U, T>(ref value));
                         return newColumn;
                     }
                     else
@@ -328,9 +321,8 @@ namespace Microsoft.Data.Analysis
                     if (typeof(U) == typeof(T))
                     {
                         // No conversions
-                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<U> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.ReverseModulo(value);
+                        PrimitiveDataFrameColumn<T> newColumn = inPlace ? this : Clone();
+                        newColumn._columnContainer.ReverseModulo(Unsafe.As<U, T>(ref value));
                         return newColumn;
                     }
                     else
@@ -361,9 +353,8 @@ namespace Microsoft.Data.Analysis
                     if (typeof(U) == typeof(T))
                     {
                         // No conversions
-                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<U> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.ReverseModulo(value);
+                        PrimitiveDataFrameColumn<T> newColumn = inPlace ? this : Clone();
+                        newColumn._columnContainer.ReverseModulo(Unsafe.As<U, T>(ref value));
                         return newColumn;
                     }
                     else

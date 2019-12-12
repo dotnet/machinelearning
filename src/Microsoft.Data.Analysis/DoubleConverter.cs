@@ -5,19 +5,16 @@ using System.Text;
 namespace Microsoft.Data.Analysis
 {
     internal interface IDoubleConverter<T>
-        where T : struct
     {
         double GetDouble(T value);
     }
     internal static class DoubleConverter<T>
-        where T : struct
     {
         public static IDoubleConverter<T> Instance { get; } = DoubleConverter.GetDoubleConverter<T>();
     }
     internal static class DoubleConverter
     {
         public static IDoubleConverter<T> GetDoubleConverter<T>()
-            where T : struct
         {
             if (typeof(T) == typeof(bool))
             {

@@ -5,19 +5,16 @@ using System.Text;
 namespace Microsoft.Data.Analysis
 {
     internal interface IDecimalConverter<T>
-        where T : struct
     {
         decimal GetDecimal(T value);
     }
     internal static class DecimalConverter<T>
-        where T : struct
     {
         public static IDecimalConverter<T> Instance { get; } = DecimalConverter.GetDecimalConverter<T>();
     }
     internal static class DecimalConverter
     {
         public static IDecimalConverter<T> GetDecimalConverter<T>()
-            where T : struct
         {
             if (typeof(T) == typeof(bool))
             {
