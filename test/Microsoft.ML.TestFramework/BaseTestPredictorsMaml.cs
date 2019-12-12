@@ -166,7 +166,7 @@ namespace Microsoft.ML.RunTests
             }
             var consOutPath = ctx.StdoutPath();
             TestCore(ctx, ctx.Command.ToString(), runcmd, digitsOfPrecision: digitsOfPrecision, parseOption: parseOption);
-            bool matched = consOutPath.CheckEqualityNormalized(digitsOfPrecision, parseOption: parseOption);
+            consOutPath.CheckEqualityNormalized(digitsOfPrecision, parseOption: parseOption);
 
             if (modelPath != null && (ctx.Summary || ctx.SaveAsIni))
             {
@@ -262,7 +262,7 @@ namespace Microsoft.ML.RunTests
 
                 if (CheckTestOutputMatchesTrainTest(consOutPath.Path, consOutPath2.Path, 1))
                     File.Delete(consOutPath2.Path);
-                else if (matched)
+                else
                 {
                     // The TrainTest output matched the baseline, but the SaveLoadTest output did not, so
                     // append some stuff to the .txt output so comparing output to baselines in BeyondCompare

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using Microsoft.ML.Data;
 using Xunit;
@@ -228,8 +229,8 @@ namespace Microsoft.ML.TestFrameworkCommon
 
             if (t1 == null)
             {
-                Assert.True(CheckMetadataCallFailure(kind, sch1, col, ref names1));
-                Assert.True(CheckMetadataCallFailure(kind, sch2, col, ref names2));
+                CheckMetadataCallFailure(kind, sch1, col, ref names1);
+                CheckMetadataCallFailure(kind, sch2, col, ref names2);
 
                 return true;
             }
@@ -254,22 +255,18 @@ namespace Microsoft.ML.TestFrameworkCommon
             return true;
         }
 
-        private static bool CheckMetadataCallFailure(string kind, DataViewSchema sch, int col, ref VBuffer<ReadOnlyMemory<char>> names)
+        private static void CheckMetadataCallFailure(string kind, DataViewSchema sch, int col, ref VBuffer<ReadOnlyMemory<char>> names)
         {
+            var localNames = names;
             try
             {
-                sch[col].Annotations.GetValue(kind, ref names);
-                
-                return false;
+                var ex = Assert.ThrowsAny<InvalidOperationException>(() => sch[col].Annotations.GetValue(kind, ref localNames));
+                Assert.Equal("Invalid call to 'GetValue'", ex.Message);
             }
-            catch (InvalidOperationException ex)
+            finally
             {
-                if (ex.Message != "Invalid call to 'GetValue'")
-                {
-                    return false;
-                }
+                names = localNames;
             }
-            return true;
         }
 
         private static DataViewType GetItemType(this DataViewType columnType) => (columnType as VectorDataViewType)?.ItemType ?? columnType;

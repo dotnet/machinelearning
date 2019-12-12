@@ -285,20 +285,18 @@ namespace Microsoft.ML.RunTests
                         new ShowSchemaCommand.Arguments() { ShowMetadataValues = true, ShowSteps = true },
                         pipe1);
                 }
-                if (!CheckEquality("SavePipe", name, digitsOfPrecision: digitsOfPrecision, parseOption: parseOption))
-                    Log("*** ShowSchema failed on pipe1");
-                else
+
+                CheckEquality("SavePipe", name, digitsOfPrecision: digitsOfPrecision, parseOption: parseOption);
+
+                path = DeleteOutputPath("SavePipe", name);
+                using (var writer = OpenWriter(path))
                 {
-                    path = DeleteOutputPath("SavePipe", name);
-                    using (var writer = OpenWriter(path))
-                    {
-                        ShowSchemaCommand.RunOnData(writer,
-                            new ShowSchemaCommand.Arguments() { ShowMetadataValues = true, ShowSteps = true },
-                            pipe2);
-                    }
-                    if (!CheckEquality("SavePipe", name, digitsOfPrecision: digitsOfPrecision, parseOption: parseOption))
-                        Log("*** ShowSchema failed on pipe2");
+                    ShowSchemaCommand.RunOnData(writer,
+                        new ShowSchemaCommand.Arguments() { ShowMetadataValues = true, ShowSteps = true },
+                        pipe2);
                 }
+
+                CheckEquality("SavePipe", name, digitsOfPrecision: digitsOfPrecision, parseOption: parseOption);
             }
 
             // REVIEW: What about tests for ensuring that shuffling produces an actual shuffled version?

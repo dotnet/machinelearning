@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -330,23 +331,22 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Compare the contents of an output file with its baseline.
         /// </summary>
-        protected bool CheckEquality(string dir, string name, string nameBase = null,
+        protected void CheckEquality(string dir, string name, string nameBase = null,
             int digitsOfPrecision = DigitsOfPrecision, NumberParseOption parseOption = NumberParseOption.Default)
         {
-            return CheckEqualityCore(dir, name, nameBase ?? name, false, digitsOfPrecision, parseOption);
+            CheckEqualityCore(dir, name, nameBase ?? name, false, digitsOfPrecision, parseOption);
         }
 
         /// <summary>
         /// Check whether two files are same ignoring volatile differences (path, dates, times, etc).
-        /// Returns true if the check passes.
         /// </summary>
-        protected bool CheckEqualityNormalized(string dir, string name, string nameBase = null,
+        protected void CheckEqualityNormalized(string dir, string name, string nameBase = null,
             int digitsOfPrecision = DigitsOfPrecision, NumberParseOption parseOption = NumberParseOption.Default)
         {
-            return CheckEqualityCore(dir, name, nameBase ?? name, true, digitsOfPrecision, parseOption);
+            CheckEqualityCore(dir, name, nameBase ?? name, true, digitsOfPrecision, parseOption);
         }
 
-        protected bool CheckEqualityCore(string dir, string name, string nameBase, bool normalize,
+        protected void CheckEqualityCore(string dir, string name, string nameBase, bool normalize,
             int digitsOfPrecision = DigitsOfPrecision, NumberParseOption parseOption = NumberParseOption.Default)
         {
             Contracts.Assert(IsActive);
@@ -364,23 +364,18 @@ namespace Microsoft.ML.RunTests
             string basePath = GetBaselinePath(dir, nameBase);
             string outPath = GetOutputPath(dir, name);
 
-            if (!CheckOutFile(outPath))
-                return false;
+            Assert.True(File.Exists(outPath), $"Output file not found: {outPath}");
+            Assert.True(File.Exists(basePath), $"Baseline file not found: {basePath}");
 
             // Normalize the output file.
             if (normalize)
                 Normalize(outPath);
 
-            if (!CheckBaseFile(basePath))
-                return false;
-
-            bool res = CheckEqualityFromPathsCore(relPath, basePath, outPath, digitsOfPrecision: digitsOfPrecision, parseOption: parseOption);
+            CheckEqualityFromPathsCore(relPath, basePath, outPath, digitsOfPrecision: digitsOfPrecision, parseOption: parseOption);
 
             // No need to keep the raw (unnormalized) output file.
-            if (normalize && res)
+            if (normalize)
                 File.Delete(outPath + RawSuffix);
-
-            return res;
         }
 
         private bool FirstIsSuffix<T>(IEnumerator<T> suffix, IEnumerator<T> seq, Func<T, T, bool> equalFunc = null)
@@ -451,122 +446,51 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        protected bool CheckEqualityFromPathsCore(string relPath, string basePath, string outPath, int skip = 0,
+        protected void CheckEqualityFromPathsCore(string relPath, string basePath, string outPath, int skip = 0,
             int digitsOfPrecision = DigitsOfPrecision, NumberParseOption parseOption = NumberParseOption.Default)
         {
             Contracts.Assert(skip >= 0);
 
-            using (StreamReader baseline = OpenReader(basePath))
-            using (StreamReader result = OpenReader(outPath))
-            {
-                int count = 0;
-                if (skip > 0)
-                {
-                    string line2;
-                    do
-                    {
-                        line2 = result.ReadLine();
-                        if (line2 == null)
-                        {
-                            Fail("Output is shorter than the skip value of {0}!", skip);
-                            return false;
-                        }
-                        count++;
-                    } while (count <= skip);
-
-                    string line1;
-                    do
-                    {
-                        line1 = baseline.ReadLine();
-                        if (line1 == null)
-                        {
-                            Fail("Couldn't match output file line to a line in the baseline!");
-                            return false;
-                        }
-                    } while (line1 != line2);
-                }
-
-                for (; ; )
-                {
-                    // read lines while we can
-                    string line1 = baseline.ReadLine();
-                    string line2 = result.ReadLine();
-
-                    if (line1 == null && line2 == null)
-                    {
-                        Log("Output matches baseline: '{0}'", relPath);
-                        return true;
-                    }
-
-                    count++;
-                    var inRange = GetNumbersFromFile(ref line1, ref line2, digitsOfPrecision, parseOption);
-
-                    if (!inRange || line1 != line2)
-                    {
-                        if (line1 == null || line2 == null)
-                            Fail("Output and baseline different lengths: '{0}'", relPath);
-                        else
-                            Fail(_allowMismatch, "Output and baseline mismatch at line {1}, expected '{2}' but got '{3}' : '{0}'", relPath, count, line1, line2);
-                        return false;
-                    }
-                }
-            }
+            var baseline = ReadFileWithNumericPrecision(basePath, skip, digitsOfPrecision, parseOption);
+            var result = ReadFileWithNumericPrecision(outPath, skip, digitsOfPrecision, parseOption);
+            AssertEx.EqualOrDiff(baseline, result, $"Actual and expected values differ for '{relPath}'. Expected shown in baseline of diff:");
         }
 
-        private bool GetNumbersFromFile(ref string firstString, ref string secondString,
-            int digitsOfPrecision, NumberParseOption parseOption)
+        protected string ReadFileWithNumericPrecision(string basePath, int skipLines = 0, int digitsOfPrecision = DigitsOfPrecision, NumberParseOption parseOption = NumberParseOption.Default)
         {
-            MatchCollection firstCollection = MatchNumbers.Matches(firstString);
-            MatchCollection secondCollection = MatchNumbers.Matches(secondString);
+            string[] lines = File.ReadAllLines(basePath);
+            Assert.True(lines.Length >= skipLines);
+            lines = lines.Skip(skipLines).ToArray();
 
-            if (firstCollection.Count == secondCollection.Count)
+            for (int i = 0; i < lines.Length; i++)
             {
-                if (!MatchNumberWithTolerance(firstCollection, secondCollection, digitsOfPrecision, parseOption))
-                {
-                    return false;
-                }
+                lines[i] = RewriteLineWithNumericPrecision(lines[i], digitsOfPrecision, parseOption);
             }
 
-            firstString = MatchNumbers.Replace(firstString, "%Number%");
-            secondString = MatchNumbers.Replace(secondString, "%Number%");
-            return true;
+            return string.Join(Environment.NewLine, lines);
         }
 
-        private bool MatchNumberWithTolerance(MatchCollection firstCollection, MatchCollection secondCollection,
-            int digitsOfPrecision, NumberParseOption parseOption)
+        private string RewriteLineWithNumericPrecision(string line, int digitsOfPrecision, NumberParseOption parseOption)
         {
-            if (parseOption == NumberParseOption.UseSingle)
-            {
-                for (int i = 0; i < firstCollection.Count; i++)
+            return MatchNumbers.Replace(
+                line,
+                match =>
                 {
-                    float f1 = float.Parse(firstCollection[i].ToString());
-                    float f2 = float.Parse(secondCollection[i].ToString());
-
-                    if (!CompareNumbersWithTolerance(f1, f2, i, digitsOfPrecision))
+                    if (parseOption == NumberParseOption.UseSingle)
                     {
-                        return false;
+                        var value = float.Parse(match.ToString());
+                        return value.ToString("G" + digitsOfPrecision);
                     }
-                }
-            }
-            else if (parseOption == NumberParseOption.UseDouble)
-            {
-                for (int i = 0; i < firstCollection.Count; i++)
-                {
-                    double f1 = double.Parse(firstCollection[i].ToString());
-                    double f2 = double.Parse(secondCollection[i].ToString());
-
-                    if (!CompareNumbersWithTolerance(f1, f2, i, digitsOfPrecision))
+                    else if (parseOption == NumberParseOption.UseDouble)
                     {
-                        return false;
+                        var value = double.Parse(match.ToString());
+                        return value.ToString("G" + digitsOfPrecision);
                     }
-                }
-            }
-            else
-            {
-                throw new ArgumentException($"Invalid {nameof(NumberParseOption)}", nameof(parseOption));
-            }
-
-            return true;
+                    else
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(parseOption));
+                    }
+                });
         }
 
         public bool CompareNumbersWithTolerance(double expected, double actual, int? iterationOnCollection = null, int digitsOfPrecision = DigitsOfPrecision)
@@ -748,33 +672,6 @@ namespace Microsoft.ML.RunTests
             return stepSizeMultiplier * RelativeToleranceStepSize;
         }
 #endif
-        /// <summary>
-        /// Make sure the baseline and output files exists. Optionally creates the baseline if it is missing.
-        /// </summary>
-        private bool CheckOutFile(string outPath)
-        {
-            if (!File.Exists(outPath))
-            {
-                Fail("Output file not found: {0}", outPath);
-                return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Make sure the baseline and output files exists. Optionally creates the baseline if it is missing.
-        /// </summary>
-        private bool CheckBaseFile(string basePath)
-        {
-            if (!File.Exists(basePath))
-            {
-                Fail("Baseline file not found: {0}", basePath);
-                return false;
-            }
-
-            return true;
-        }
 
         public void RunMTAThread(ThreadStart fn)
         {
