@@ -15,6 +15,7 @@ using Google.Protobuf;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TensorFlow;
@@ -871,19 +872,31 @@ namespace Microsoft.ML.Vision
             IEnumerable<(long, float[])> featurizedImages)
         {
             Contracts.Assert(examples == featurizedImages.Count());
+            Contracts.Assert(featurizedImages.All(x => x.Item2.Length == featureLength));
 
-            using BinaryWriter featuresWriter = new BinaryWriter(File.Open(cacheFilePath + "_features.bin", FileMode.Create));
-            using BinaryWriter labelWriter = new BinaryWriter(File.Open(cacheFilePath + "_labels.bin", FileMode.Create));
+            using Stream featuresWriter = File.Open(cacheFilePath + "_features.bin", FileMode.Create);
+            using Stream labelWriter = File.Open(cacheFilePath + "_labels.bin", FileMode.Create);
             using TextWriter writer = File.CreateText(cacheFilePath);
-            featuresWriter.Write(examples);
-            featuresWriter.Write(featureLength);
+
+            featuresWriter.Write(BitConverter.GetBytes(examples), 0, sizeof(int));
+            featuresWriter.Write(BitConverter.GetBytes(featureLength), 0, sizeof(int));
+            long[] labels = new long[1];
+            var labelsSpan = MemoryMarshal.Cast<long, byte>(labels);
 
             foreach (var row in featurizedImages)
             {
-                labelWriter.Write(row.Item1);
                 writer.WriteLine(row.Item1 + "," + string.Join(",", row.Item2));
-                foreach (var feature in row.Item2)
-                    featuresWriter.Write(feature);
+                labels[0] = row.Item1;
+                for (int index = 0; index < sizeof(long); index++)
+                {
+                    labelWriter.WriteByte(labelsSpan[index]);
+                }
+
+                var featureSpan = MemoryMarshal.Cast<float, byte>(row.Item2);
+                for (int index = 0; index < featureLength * sizeof(float); index++)
+                {
+                    featuresWriter.WriteByte(featureSpan[index]);
+                }
             }
         }
 
@@ -958,15 +971,12 @@ namespace Microsoft.ML.Vision
                 trainSetFeatureReader.Read(buffer, 0, 4);
                 int trainingExamples = BitConverter.ToInt32(buffer, 0);
                 trainSetFeatureReader.Read(buffer, 0, 4);
-                int featureLength = BitConverter.ToInt32(buffer, 0);
+                int featureFileRecordSize = sizeof(float) * BitConverter.ToInt32(buffer, 0);
                 const int featureFileStartOffset = sizeof(int) * 2;
-                int featureFileRecordSize = sizeof(float) * featureLength;
                 var labelBufferSizeInBytes = sizeof(long) * batchSize;
-                var featureBufferSizeInBytes = sizeof(float) * featureLength * batchSize;
-                float[] featuresBuffer = new float[featureLength * batchSize];
-                byte[] featuresBufferBytes = new byte[featureBufferSizeInBytes];
-                long[] labelBuffer = new long[batchSize];
-                byte[] labelBufferBytes = new byte[labelBufferSizeInBytes];
+                var featureBufferSizeInBytes = featureFileRecordSize * batchSize;
+                byte[] featuresBuffer = new byte[featureBufferSizeInBytes];
+                byte[] labelBuffer = new byte[labelBufferSizeInBytes];
                 var featureBufferHandle = GCHandle.Alloc(featuresBuffer, GCHandleType.Pinned);
                 IntPtr featureBufferPtr = featureBufferHandle.AddrOfPinnedObject();
                 var labelBufferHandle = GCHandle.Alloc(labelBuffer, GCHandleType.Pinned);
@@ -982,21 +992,21 @@ namespace Microsoft.ML.Vision
                     // Train.
                     TrainAndEvaluateClassificationLayerCore(epoch, learningRate, featureFileStartOffset,
                         metrics, labelTensorShape, featureTensorShape, batchSize,
-                        trainSetLabelReader, trainSetFeatureReader, labelBufferBytes, featuresBufferBytes,
-                        labelBufferSizeInBytes, featureBufferSizeInBytes, featureFileRecordSize, featuresBuffer,
-                        labelBuffer, featureLength, _options.LearningRateScheduler, trainState, runner, featureBufferPtr,
-                        labelBufferPtr, (outputTensors, metrics) =>
-                        {
-                            if (_options.TestOnTrainSet && statisticsCallback != null)
+                        trainSetLabelReader, trainSetFeatureReader, labelBuffer, featuresBuffer,
+                        labelBufferSizeInBytes, featureBufferSizeInBytes, featureFileRecordSize,
+                        _options.LearningRateScheduler, trainState, runner, featureBufferPtr, labelBufferPtr,
+                        (outputTensors, metrics) =>
                             {
-                                outputTensors[0].ToScalar(ref accuracy);
-                                outputTensors[1].ToScalar(ref crossentropy);
-                                metrics.Train.Accuracy += accuracy;
-                                metrics.Train.CrossEntropy += crossentropy;
-                                outputTensors[0].Dispose();
-                                outputTensors[1].Dispose();
-                            }
-                        });
+                                if (_options.TestOnTrainSet && statisticsCallback != null)
+                                {
+                                    outputTensors[0].ToScalar(ref accuracy);
+                                    outputTensors[1].ToScalar(ref crossentropy);
+                                    metrics.Train.Accuracy += accuracy;
+                                    metrics.Train.CrossEntropy += crossentropy;
+                                    outputTensors[0].Dispose();
+                                    outputTensors[1].Dispose();
+                                }
+                            });
 
                     if (_options.TestOnTrainSet && statisticsCallback != null)
                     {
@@ -1013,15 +1023,15 @@ namespace Microsoft.ML.Vision
                     // Evaluate.
                     TrainAndEvaluateClassificationLayerCore(epoch, learningRate, featureFileStartOffset,
                         metrics, labelTensorShape, featureTensorShape, batchSize,
-                        validationSetLabelReader, validationSetFeatureReader, labelBufferBytes, featuresBufferBytes,
-                        labelBufferSizeInBytes, featureBufferSizeInBytes, featureFileRecordSize, featuresBuffer,
-                        labelBuffer, featureLength, null, trainState, validationEvalRunner, featureBufferPtr,
-                        labelBufferPtr, (outputTensors, metrics) =>
-                        {
-                            outputTensors[0].ToScalar(ref accuracy);
-                            metrics.Train.Accuracy += accuracy;
-                            outputTensors[0].Dispose();
-                        });
+                        validationSetLabelReader, validationSetFeatureReader, labelBuffer, featuresBuffer,
+                        labelBufferSizeInBytes, featureBufferSizeInBytes, featureFileRecordSize, null,
+                        trainState, validationEvalRunner, featureBufferPtr, labelBufferPtr,
+                        (outputTensors, metrics) =>
+                            {
+                                outputTensors[0].ToScalar(ref accuracy);
+                                metrics.Train.Accuracy += accuracy;
+                                outputTensors[0].Dispose();
+                            });
 
                     if (statisticsCallback != null)
                     {
@@ -1039,9 +1049,11 @@ namespace Microsoft.ML.Vision
                     }
                 }
 
+                trainSaver.save(_session, _checkpointPath);
                 validationSetLabelReader?.Dispose();
                 validationSetFeatureReader?.Dispose();
-                trainSaver.save(_session, _checkpointPath);
+                featureBufferHandle.Free();
+                labelBufferHandle.Free();
             }
 
             UpdateTransferLearningModelOnDisk(_classCount);
@@ -1053,9 +1065,8 @@ namespace Microsoft.ML.Vision
             long[] labelTensorShape, long[] featureTensorShape, int batchSize, Stream trainSetLabelReader,
             Stream trainSetFeatureReader, byte[] labelBufferBytes, byte[] featuresBufferBytes,
             int labelBufferSizeInBytes, int featureBufferSizeInBytes, int featureFileRecordSize,
-            float[] featuresBuffer, long[] labelBuffer, int featureLength, LearningRateScheduler learningRateScheduler,
-            DnnTrainState trainState, Runner runner, IntPtr featureBufferPtr, IntPtr labelBufferPtr,
-            Action<Tensor[],ImageClassificationMetrics> metricsAggregator)
+            LearningRateScheduler learningRateScheduler, DnnTrainState trainState, Runner runner,
+            IntPtr featureBufferPtr, IntPtr labelBufferPtr, Action<Tensor[],ImageClassificationMetrics> metricsAggregator)
         {
             int labelFileBytesRead;
             int featuresFileBytesRead;
@@ -1069,6 +1080,7 @@ namespace Microsoft.ML.Vision
             trainSetLabelReader.Seek(0, SeekOrigin.Begin);
             trainSetFeatureReader.Seek(featureFileStartOffset, SeekOrigin.Begin);
             labelTensorShape[0] = featureTensorShape[0] = batchSize;
+
             while ((labelFileBytesRead = trainSetLabelReader.TryReadBlock(labelBufferBytes, 0, labelBufferSizeInBytes)) > 0 &&
                 (featuresFileBytesRead = trainSetFeatureReader.TryReadBlock(featuresBufferBytes, 0, featureBufferSizeInBytes)) > 0)
             {
@@ -1084,14 +1096,8 @@ namespace Microsoft.ML.Vision
                     labelTensorShape[0] = labelFileBytesRead / sizeof(long);
                 }
 
-                Contracts.Assert(featureTensorShape[0] <= featuresBuffer.Length / featureLength);
-                Contracts.Assert(labelTensorShape[0] <= labelBuffer.Length);
-
-                for (int indexLocal = 0; indexLocal < labelTensorShape[0]; indexLocal += 1)
-                    labelBuffer[indexLocal] = BitConverter.ToInt64(labelBufferBytes, indexLocal * sizeof(long));
-
-                for (int indexLocal = 0; indexLocal < featureTensorShape[0] * featureLength; indexLocal += 1)
-                    featuresBuffer[indexLocal] = BitConverter.ToSingle(featuresBufferBytes, indexLocal * sizeof(float));
+                Contracts.Assert(featureTensorShape[0] <= featuresBufferBytes.Length / featureFileRecordSize);
+                Contracts.Assert(labelTensorShape[0] <= labelBufferBytes.Length / sizeof(long));
 
                 if (learningRateScheduler != null)
                 {
