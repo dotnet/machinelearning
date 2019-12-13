@@ -18974,15 +18974,6 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": null
-        },
-        {
-          "Name": "LoadAsBytes",
-          "Type": "Bool",
-          "Desc": "Whether to load images as bytes or as image type.",
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": false
         }
       ],
       "Outputs": [

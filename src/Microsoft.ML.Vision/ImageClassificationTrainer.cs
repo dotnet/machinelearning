@@ -339,7 +339,7 @@ namespace Microsoft.ML.Vision
         /// <summary>
         /// Options class for <see cref="ImageClassificationTrainer"/>.
         /// </summary>
-        public sealed class Options : TrainerInputBaseWithLabel
+        public class Options : TrainerInputBaseWithLabel
         {
             /// <summary>
             /// Number of samples to use for mini-batch training. The default value for BatchSize is 10.
@@ -1373,16 +1373,24 @@ namespace Microsoft.ML.Vision
 
     internal static class ImageClassifier
     {
+        internal sealed class Options: ImageClassificationTrainer.Options
+        {
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Folder where to search for images", ShortName = "folder")]
+            public string ImageFolder;
+        }
+
         [TlcModule.EntryPoint(Name = "Trainers.ImageClassifier",
             Desc = "Train an ImageClassificationTrainer.",
             UserName = ImageClassificationTrainer.UserName,
             ShortName = ImageClassificationTrainer.ShortName)]
-        internal static CommonOutputs.MulticlassClassificationOutput TrainImageClassifier(IHostEnvironment env, ImageClassificationTrainer.Options input)
+        internal static CommonOutputs.MulticlassClassificationOutput TrainImageClassifier(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainImageClassifier");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
+
+            input.TrainingData = new ImageLoadingTransformer(host,input.ImageFolder,false,(input.FeatureColumnName, input.FeatureColumnName)).Transform(input.TrainingData);
 
             return TrainerEntryPointsUtils.Train<ImageClassificationTrainer.Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
                 () => new ImageClassificationTrainer(host, input),

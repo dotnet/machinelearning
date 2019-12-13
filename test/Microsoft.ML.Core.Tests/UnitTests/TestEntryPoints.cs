@@ -2896,12 +2896,9 @@ namespace Microsoft.ML.RunTests
             string dataFile = "images/images.tsv";
             string imageFolder = DataDir + "//images";
             string loader = "col=ImagePath:TX:0 col=Label:TX:0";
-            string trainerArgs = null;
-            string[] xfNames = { "Transforms.Dictionarizer", "Transforms.ImageLoader" };
-            string[] xfArgs = { "'Column': [{ 'Name': 'Label', 'Source': 'Label' }]",
-               String.Format(@"'Column': [{{ 'Name': 'Features', 'Source': 'ImagePath' }}]," +
-               "'LoadAsBytes': true," +
-               "'ImageFolder': '{0}'", EscapePath(imageFolder))};
+            string trainerArgs = String.Format(", 'FeatureColumnName': 'ImagePath','ImageFolder': '{0}'", EscapePath(imageFolder));
+            string[] xfNames = { "Transforms.Dictionarizer"};
+            string[] xfArgs = { "'Column': [{ 'Name': 'Label', 'Source': 'Label' }]"};
 
             TestEntryPointRoutine(dataFile,  "Trainers.ImageClassifier", loader, trainerArgs, xfNames, xfArgs);
         }
@@ -3263,7 +3260,7 @@ namespace Microsoft.ML.RunTests
                       'Name': '{2}',
                       'Inputs': {{
                         'TrainingData': '$data{6}'
-                         {4}
+                        {4}
                       }},
                       'Outputs': {{
                         'PredictorModel': '$model'
