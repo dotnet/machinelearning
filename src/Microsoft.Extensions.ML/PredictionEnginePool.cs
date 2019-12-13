@@ -80,9 +80,11 @@ namespace Microsoft.Extensions.ML
         /// </param>
         public PredictionEngine<TData, TPrediction> GetPredictionEngine(string modelName)
         {
-            if (_namedPools.ContainsKey(modelName))
+            PoolLoader<TData, TPrediction> existingPool = null;
+            _namedPools.TryGetValue(modelName, out existingPool);
+            if (_namedPools.TryGetValue(modelName, out existingPool))
             {
-                return _namedPools[modelName].PredictionEnginePool.Get();
+                return existingPool.PredictionEnginePool.Get();
             }
 
             //This is the case where someone has used string.Empty to get the default model.
@@ -101,7 +103,7 @@ namespace Microsoft.Extensions.ML
             //Here we are in the world of named models where the model hasn't been built yet.
             var options = _predictionEngineOptions.Create(modelName);
             var pool = new PoolLoader<TData, TPrediction>(_serviceProvider, options);
-            _namedPools.TryAdd(modelName, pool);
+            pool = _namedPools.GetOrAdd(modelName, pool);
             return pool.PredictionEnginePool.Get();
         }
 
