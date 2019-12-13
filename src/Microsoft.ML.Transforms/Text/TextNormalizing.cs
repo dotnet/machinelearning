@@ -398,7 +398,8 @@ namespace Microsoft.ML.Transforms.Text
                 if (min == 0)
                 {
                     Host.Assert(src.Length == len);
-                    dst = src;
+                    buffer.AppendSpan(span);
+                    dst = buffer.ToString().AsMemory();
                 }
                 else
                 {
