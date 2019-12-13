@@ -80,8 +80,7 @@ namespace Microsoft.Extensions.ML
         /// </param>
         public PredictionEngine<TData, TPrediction> GetPredictionEngine(string modelName)
         {
-            PoolLoader<TData, TPrediction> existingPool = null;
-            if (_namedPools.TryGetValue(modelName, out existingPool))
+            if (_namedPools.TryGetValue(modelName, out var existingPool))
             {
                 return existingPool.PredictionEnginePool.Get();
             }
