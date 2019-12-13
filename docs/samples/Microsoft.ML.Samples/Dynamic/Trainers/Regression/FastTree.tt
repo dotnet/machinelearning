@@ -7,7 +7,7 @@ string ClassHeader = @"// This example requires installation of additional NuGet
 
 string ClassName="FastTreeRegression";
 string ExtraUsing = null;
-string Trainer = @"FastForest(
+string Trainer = @"FastTree(
                 labelColumnName: nameof(DataPoint.Label),
                 featureColumnName: nameof(DataPoint.Features))";
 string TrainerOptions = null;
