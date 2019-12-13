@@ -19,7 +19,7 @@ namespace <#= Namespace #>.Model
     [CustomMappingFactoryAttribute(nameof(LabelMapping))]
     public class LabelMapping : CustomMappingFactory<LabelMappingInput, LabelMappingOutput>
     {
-        // This is the custom mapping. We now separate it into a method, so that we can use it both in training and in loading.
+		// Custom mapping to determine the label with the highest probability
         public static void Mapping(LabelMappingInput input, LabelMappingOutput output)
         {
 <#if("Boolean".Equals(PredictionLabelType)){ #>
@@ -34,7 +34,7 @@ namespace <#= Namespace #>.Model
             output.Score = input.probabilities.GetValues().ToArray().First();
 <# }#>
         }
-        // This factory method will be called when loading the model to get the mapping operation.
+		// Factory method called when loading the model to get the mapping operation
         public override Action<LabelMappingInput, LabelMappingOutput> GetMapping()
         {
             return Mapping;
@@ -52,12 +52,12 @@ namespace <#= Namespace #>.Model
     {
 <#if("BinaryClassification".Equals(TaskType)){ #>
         // ColumnName attribute is used to change the column name from
-        // its default value, which is the name of the field.
+		// its default value, which is the name of the field
         [ColumnName("PredictedLabel")]
         public bool Prediction { get; set; }
 <# } if("MulticlassClassification".Equals(TaskType)){ #>
         // ColumnName attribute is used to change the column name from
-        // its default value, which is the name of the field.
+		// its default value, which is the name of the field
         [ColumnName("PredictedLabel")]
         public <#= PredictionLabelType#> Prediction { get; set; }
 <# }#>

@@ -45,13 +45,14 @@ MB_Annotation();
             this.Write(this.ToStringHelper.ToStringWithCulture(OnnxModelPath));
             this.Write(@""";
        
-	   // Create MLContext to be shared across the model creation workflow objects 
+	    // Create MLContext to be shared across the model creation workflow objects 
         // Set a random seed for repeatable/deterministic results across multiple trainings.
         private static MLContext mlContext = new MLContext(seed: 1);
 
+		// Training in Azure produces an ONNX model; this method demonstrates creating an ML.NET model (MLModel.zip) from the ONNX model (bestModel.onnx), which you can then use with the ConsumeModel() method to make predictions
         public static void CreateMLNetModelFromOnnx()
         {
-            // Load Data
+            // Load data
             IDataView inputDataView = mlContext.Data.LoadFromTextFile<ModelInput>(
                                             path: TRAIN_DATA_FILEPATH,
                                             hasHeader : ");
@@ -64,11 +65,11 @@ MB_Annotation();
             this.Write(this.ToStringHelper.ToStringWithCulture(AllowSparse.ToString().ToLowerInvariant()));
             this.Write(@");
 
-            // Create pipeline
-			// Notice that this pipeline is not trainable, because it only contains transformers
+            // Create an ML.NET pipeline to score using the ONNX model
+			// Notice that this pipeline is not trainable because it only contains transformers
             IEstimator<ITransformer> pipeline = BuildPipeline(mlContext);
 
-			// Create MLNet model from pipeline
+			// Create ML.NET model from pipeline
 			ITransformer mlModel = pipeline.Fit(inputDataView);
 
             // Save model
@@ -79,8 +80,10 @@ MB_Annotation();
         {
 ");
  if(PreTrainerTransforms.Count >0 ) {
-            this.Write("            // Data process configuration with pipeline data transformations \r\n  " +
-                    "          var pipeline = ");
+            this.Write("            // Data process configuration with pipeline data transformations to:\r" +
+                    "\n            // 1. Score using provided onnx model\r\n            // 2. Map scores" +
+                    " to labels to make model output easier to understand and use\r\n            var pi" +
+                    "peline = ");
  for(int i=0;i<PreTrainerTransforms.Count;i++) 
                                          { 
                                              if(i>0)

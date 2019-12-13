@@ -38,7 +38,7 @@ MB_Annotation();
     [CustomMappingFactoryAttribute(nameof(LabelMapping))]
     public class LabelMapping : CustomMappingFactory<LabelMappingInput, LabelMappingOutput>
     {
-        // This is the custom mapping. We now separate it into a method, so that we can use it both in training and in loading.
+		// Custom mapping to determine the label with the highest probability
         public static void Mapping(LabelMappingInput input, LabelMappingOutput output)
         {
 ");
@@ -54,7 +54,7 @@ if("MulticlassClassification".Equals(TaskType)){
             this.Write("            output.Score = input.probabilities.GetValues().ToArray().First();\r\n");
  }
             this.Write(@"        }
-        // This factory method will be called when loading the model to get the mapping operation.
+		// Factory method called when loading the model to get the mapping operation
         public override Action<LabelMappingInput, LabelMappingOutput> GetMapping()
         {
             return Mapping;
@@ -72,13 +72,13 @@ if("MulticlassClassification".Equals(TaskType)){
     {
 ");
 if("BinaryClassification".Equals(TaskType)){ 
-            this.Write("        // ColumnName attribute is used to change the column name from\r\n        /" +
-                    "/ its default value, which is the name of the field.\r\n        [ColumnName(\"Predi" +
-                    "ctedLabel\")]\r\n        public bool Prediction { get; set; }\r\n");
+            this.Write("        // ColumnName attribute is used to change the column name from\r\n\t\t// its " +
+                    "default value, which is the name of the field\r\n        [ColumnName(\"PredictedLab" +
+                    "el\")]\r\n        public bool Prediction { get; set; }\r\n");
  } if("MulticlassClassification".Equals(TaskType)){ 
-            this.Write("        // ColumnName attribute is used to change the column name from\r\n        /" +
-                    "/ its default value, which is the name of the field.\r\n        [ColumnName(\"Predi" +
-                    "ctedLabel\")]\r\n        public ");
+            this.Write("        // ColumnName attribute is used to change the column name from\r\n\t\t// its " +
+                    "default value, which is the name of the field\r\n        [ColumnName(\"PredictedLab" +
+                    "el\")]\r\n        public ");
             this.Write(this.ToStringHelper.ToStringWithCulture(PredictionLabelType));
             this.Write(" Prediction { get; set; }\r\n");
  }
