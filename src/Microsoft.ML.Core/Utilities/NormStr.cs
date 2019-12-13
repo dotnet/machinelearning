@@ -136,7 +136,7 @@ namespace Microsoft.ML.Internal.Utilities
                 }
                 Contracts.Assert(ins == -1);
 
-                return add ? AddCore(str, hash) : null;
+                return add ? AddCore(str.ToString().AsMemory(), hash) : null;
             }
 
             /// <summary>
