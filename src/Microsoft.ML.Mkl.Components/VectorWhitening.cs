@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -13,6 +14,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
@@ -546,7 +548,7 @@ namespace Microsoft.ML.Transforms
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema)
             => new Mapper(this, schema);
 
-        private sealed class Mapper : OneToOneMapperBase
+        private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
         {
             private readonly VectorWhiteningTransformer _parent;
             private readonly int[] _cols;
@@ -607,6 +609,7 @@ namespace Microsoft.ML.Transforms
                 // Notice that here that the learned matrices in _models will have the same size for both PCA and ZCA,
                 // so we perform a truncation of the matrix in FillValues, that only keeps PcaNum columns.
                 int cslotDst = (ex.Kind == WhiteningKind.PrincipalComponentAnalysis && ex.Rank > 0) ? ex.Rank : cslotSrc;
+
                 var model = _parent._models[iinfo];
                 ValueGetter<VBuffer<float>> del =
                     (ref VBuffer<float> dst) =>
@@ -616,6 +619,57 @@ namespace Microsoft.ML.Transforms
                         FillValues(model, ref src, ref dst, cslotDst);
                     };
                 return del;
+            }
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
+
+            public void SaveAsOnnx(OnnxContext ctx)
+            {
+                Host.CheckValue(ctx, nameof(ctx));
+                int numColumns = _parent.ColumnPairs.Length; //why are the multiple columns
+                for (int iinfo = 0; iinfo < numColumns; ++iinfo)
+                {
+                    string inputColumnName = _parent.ColumnPairs[iinfo].inputColumnName;
+                    if (!ctx.ContainsColumn(inputColumnName))
+                        continue;
+
+                    string outputColumnName = _parent.ColumnPairs[iinfo].outputColumnName;
+                    string srcVariableName = ctx.GetVariableName(inputColumnName);
+                    string dstVariableName = ctx.AddIntermediateVariable(_srcTypes[iinfo], outputColumnName, true);
+                    SaveAsOnnxCore(ctx, iinfo, srcVariableName, dstVariableName);
+                }
+
+            }
+            private void SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
+            {
+                var model = _parent._models[iinfo];
+                int dimension = _srcTypes[iinfo].GetValueCount();
+                Host.Assert(model.Length == dimension * dimension);
+
+                var parameters = _parent._columns[iinfo];
+                Host.Assert(parameters.Kind == WhiteningKind.PrincipalComponentAnalysis || parameters.Kind == WhiteningKind.ZeroPhaseComponentAnalysis);
+
+                int rank = (parameters.Kind == WhiteningKind.PrincipalComponentAnalysis && parameters.Rank > 0) ? parameters.Rank : dimension;
+                long[] modelDimension = { rank, dimension };
+
+                if (rank != dimension)
+                {
+                    float[] principalComponents = new float[rank * dimension];
+                    for (int i = 0; i < parameters.Rank; i++)
+                    {
+                        if (i >= dimension)
+                            break;
+                        Array.Copy(model, i*dimension, principalComponents, i*dimension, dimension);
+                    }
+                    model = principalComponents;
+                }
+
+                var opType = "Gemm";
+                var modelName = ctx.AddInitializer(model, modelDimension ,"model");
+                var zeroValueName = ctx.AddInitializer((float) 0);
+
+                var node = ctx.CreateNode(opType, new[] { modelName, srcVariableName, zeroValueName }, new[] { dstVariableName }, ctx.GetNodeName(opType), "");
+                node.AddAttribute("transB",1);
+
             }
 
             private ValueGetter<T> GetSrcGetter<T>(DataViewRow input, int iinfo)
