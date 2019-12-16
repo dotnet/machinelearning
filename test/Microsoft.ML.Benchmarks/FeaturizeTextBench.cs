@@ -87,6 +87,9 @@ namespace Microsoft.ML.Benchmarks
 
         public static string CreateRandomFile(string path)
         {
+            // Create file with random strings
+            // to use as dataset of the benchmark
+
             Random random = new Random(1);
 
             using (StreamWriter file = new StreamWriter(path))
