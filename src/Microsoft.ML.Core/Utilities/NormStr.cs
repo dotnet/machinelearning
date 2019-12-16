@@ -116,7 +116,7 @@ namespace Microsoft.ML.Internal.Utilities
                 return add ? AddCore(str.AsMemory(), hash) : null;
             }
 
-            public NormStr Get(ReadOnlyMemory<char> str, bool add = false, bool createNewStr = true)
+            public NormStr Get(ReadOnlyMemory<char> str, bool add = false, bool duplicateStr = true)
             {
                 AssertValid();
 
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Internal.Utilities
                 }
                 Contracts.Assert(ins == -1);
 
-                if(createNewStr)
+                if(duplicateStr)
                 {
                     // To avoid the case where 'str' actually stores a string with the
                     // content of a whole row in the dataset, a new 'str' is created
