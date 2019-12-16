@@ -136,7 +136,7 @@ namespace Microsoft.ML.Internal.Utilities
                 }
                 Contracts.Assert(ins == -1);
 
-                if(duplicateStr)
+                if (duplicateStr)
                 {
                     // To avoid the case where 'str' actually stores a string with the
                     // content of a whole row in the dataset, a new 'str' is created
