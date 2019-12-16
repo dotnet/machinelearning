@@ -124,7 +124,7 @@ namespace Microsoft.ML.AutoML
                 new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.LearningRate), new object[] { 0.001f, 0.01f, 0.1f }),
                 new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.ApproximationRank), new object[] { 8, 16, 64, 128 }),
                 new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.Lambda), new object[] { 0.01f, 0.05f, 0.1f, 0.5f, 1f }),
-                new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.LossFunction), new object[] { MatrixFactorizationTrainer.LossFunctionType.SquareLossRegression, MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass }),
+                new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.LossFunction), new object[] { "MatrixFactorizationTrainer.LossFunctionType.SquareLossRegression", "MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass" }),
                 new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.Alpha), new object[] { 1f, 0.01f, 0.0001f, 0.000001f }),
                 new SweepableDiscreteParam(nameof(MatrixFactorizationTrainer.Options.C), new object[] { 0.000001f, 0.0001f, 0.01f }),
             };
