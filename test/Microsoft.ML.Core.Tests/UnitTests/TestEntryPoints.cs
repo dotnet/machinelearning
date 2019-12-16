@@ -4659,7 +4659,18 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void EntryPointHashJoinCountTable()
         {
-            var countsFile = GetDataPath(@"Dracula/ext-count-table.tsv");
+            var dataPath = GetDataPath("breast-cancer.txt");
+            var countsModel = DeleteOutputPath("CountTable-trained-counts.zip");
+
+            var data = ML.Data.LoadFromTextFile(dataPath, new[]
+                {
+                    new TextLoader.Column("Text", DataKind.String, 1, 2),
+                    new TextLoader.Column("Label", DataKind.Single, 0)
+                });
+            var estimator = ML.Transforms.CountTargetEncode("Text", builder: CountTableBuilderBase.CreateDictionaryCountTableBuilder(), combine: false);
+            var transformer = estimator.Fit(data);
+            ML.Model.Save(transformer, data.Schema, countsModel);
+
             TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Text:TX:1-9 col=OneText:TX:1 col=Label:0",
                 new[]
                 {
@@ -4683,15 +4694,27 @@ namespace Microsoft.ML.RunTests
                       ],
                      'Lab': 'Label',
                      'Table': {{ 'Name': 'Dict' }},
-                     'ExtFile': '{EscapePath(countsFile)}'"
+                     'InitialCountsModel': '{EscapePath(countsModel)}'"
                 });
         }
 
         [Fact]
         public void EntryPointDracula()
         {
-            var countsFile = GetDataPath(@"Dracula/ext-count-table.tsv");
-            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Text:TX:1-9 col=OneText:TX:1 col=Label:0",
+            var dataPath = GetDataPath("breast-cancer.txt");
+            var countsModel = DeleteOutputPath("Dracula-trained-counts.zip");
+
+            var data = ML.Data.LoadFromTextFile(dataPath, new[]
+                {
+                    new TextLoader.Column("Text", DataKind.String, 1, 2),
+                    new TextLoader.Column("Label", DataKind.Single, 0)
+                });
+            var estimator = ML.Transforms.CountTargetEncode("Text", builder: CountTableBuilderBase.CreateDictionaryCountTableBuilder(), combine: false);
+            var transformer = estimator.Fit(data);
+            ML.Model.Save(transformer, data.Schema, countsModel);
+
+            //var countsFile = GetDataPath(@"Dracula/ext-count-table.tsv");
+            TestEntryPointPipelineRoutine(dataPath, "col=Text:TX:1-9 col=OneText:TX:1 col=Label:0",
                 new[]
                 {
                     "Transforms.CountTargetEncoder",
@@ -4707,7 +4730,7 @@ namespace Microsoft.ML.RunTests
                       ],
                      'Lab': 'Label',
                      'Table': {{ 'Name': 'Dict' }},
-                     'ExtFile': '{EscapePath(countsFile)}'"
+                     'InitialCountsModel': '{EscapePath(countsModel)}'"
                 });
         }
 

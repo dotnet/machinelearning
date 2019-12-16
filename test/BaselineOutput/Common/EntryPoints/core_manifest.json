@@ -18615,10 +18615,11 @@
           "IsNullable": false
         },
         {
-          "Name": "ExternalCountsFile",
+          "Name": "InitialCountsModel",
           "Type": "String",
-          "Desc": "Optional text file to load counts from",
+          "Desc": "Optional model file to load counts from. If this is specified all other options are ignored.",
           "Aliases": [
+            "inmodel",
             "extfile"
           ],
           "Required": false,
@@ -19229,10 +19230,11 @@
           "IsNullable": false
         },
         {
-          "Name": "ExternalCountsFile",
+          "Name": "InitialCountsModel",
           "Type": "String",
-          "Desc": "Optional text file to load counts from",
+          "Desc": "Optional model file to load counts from. If this is specified all other options are ignored.",
           "Aliases": [
+            "inmodel",
             "extfile"
           ],
           "Required": false,

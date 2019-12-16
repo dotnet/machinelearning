@@ -645,7 +645,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void SavePipeInvertHash()
         {
-            string pathData = DeleteOutputPath("SavePipe","InvertHash-Data.txt");
+            string pathData = DeleteOutputPath("SavePipe", "InvertHash-Data.txt");
             // Four columns. First "A" with words starting with "a" (for easy identification), second
             // "K" with an explicit key type, third "E" a column that has all missing values, and fourth
             // "B" with words starting with "b".
@@ -1478,11 +1478,35 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void SavePipeDraculaExternalCounts()
         {
-            var countsFile = GetDataPath("Dracula", "ext-count-table.tsv");
+            //var countsFile = GetDataPath("Dracula", "ext-count-table.tsv");
+            var inputData = GetDataPath("breast-cancer.txt");
+            var initialCountsModel = DeleteOutputPath("Dracula", "initialCounts.zip");
+            var outputData = DeleteOutputPath("Dracula", "countsData.txt");
+            var loaderArg = "loader=Text{col=Text:TX:1-9 col=OneText:TX:1 col=Label:0}";
+            MainForTest($"SaveData data={inputData} {loaderArg} xf=Dracula{{lab=Label col={{name=DT src=Text customSlotMap=0,1;2,3,4,5}} table = Dict}} out={initialCountsModel} dout={outputData}");
+
             TestCore(null, false,
-                new[] {
-                    "loader=Text{col=Text:TX:1-9 col=OneText:TX:1 col=Label:0}",
-                    "xf=Dracula{lab=Label col={name=DT src=Text customSlotMap=0,1;2,3,4,5} table=Dict extfile=" + countsFile + "}"
+                new[]
+                {
+                    loaderArg,
+                    "xf=Dracula{lab=Label col={name=DT src=Text customSlotMap=0,1;2,3,4,5} table = Dict}",
+                    $"xf=Dracula{{lab=Label col={{name=DT1 src=Text customSlotMap=0,1;2,3,4,5}} inmodel={{{initialCountsModel}}}}}"
+                }, loader =>
+                {
+                    using (var cursor = loader.GetRowCursor(loader.Schema["DT"], loader.Schema["DT1"]))
+                    {
+                        var getter = cursor.GetGetter<VBuffer<float>>(loader.Schema["DT"]);
+                        var getter1 = cursor.GetGetter<VBuffer<float>>(loader.Schema["DT1"]);
+                        VBuffer<float> buffer = default;
+                        VBuffer<float> buffer1 = default;
+                        while (cursor.MoveNext())
+                        {
+                            getter(ref buffer);
+                            getter1(ref buffer1);
+                            Assert.Equal(2 * buffer.GetValues()[0], buffer1.GetValues()[0]);
+                            Assert.Equal(2 * buffer.GetValues()[1], buffer1.GetValues()[1]);
+                        }
+                    }
                 });
 
             Done();

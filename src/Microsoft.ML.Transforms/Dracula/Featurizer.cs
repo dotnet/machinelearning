@@ -215,10 +215,5 @@ namespace Microsoft.ML.Transforms
             foreach (var feature in features)
                 _host.Assert(FloatUtils.IsFinite(feature));
         }
-
-        internal IDataView ToDataView()
-        {
-            return _countTables.ToDataView();
-        }
     }
 }

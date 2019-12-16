@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
@@ -164,23 +163,6 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        public override int AppendRows(List<int> hashIds, List<ulong> hashValues, List<float[]> counts)
-        {
-            for (int i = 0; i < Depth; i++)
-            {
-                for (int j = 0; j < Width; j++)
-                {
-                    var countsCur = new float[LabelCardinality];
-                    hashIds.Add(i);
-                    hashValues.Add((ulong)j);
-                    for (int label = 0; label < LabelCardinality; label++)
-                        countsCur[label] = Tables[label][i][j];
-                    counts.Add(countsCur);
-                }
-            }
-            return Depth * Width;
-        }
-
         public override InternalCountTableBuilderBase ToBuilder()
         {
             return new CMCountTableBuilder.Builder(this);
@@ -301,20 +283,6 @@ namespace Microsoft.ML.Transforms
                     if (!_tables[labelKey][i].ContainsKey(idx))
                         _tables[labelKey][i].Add(idx, 0);
                     _tables[labelKey][i][idx]++;
-                }
-            }
-
-            internal override void InsertOrUpdateRawCounts(int hashId, long hashValue, in VBuffer<float> counts)
-            {
-                Contracts.Check(counts.Length == LabelCardinality);
-                Contracts.Check(hashId >= 0 && hashId < _depth);
-                Contracts.Check(hashValue >= 0 && hashValue < _width);
-                int label = 0;
-                foreach (var count in counts.DenseValues())
-                {
-                    if (count >= 0)
-                        _tables[label][hashId][(int)hashValue] = count;
-                    label++;
                 }
             }
         }

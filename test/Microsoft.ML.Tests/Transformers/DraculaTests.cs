@@ -39,10 +39,8 @@ namespace Microsoft.ML.Tests.Transformers
                 new TextLoader.Column("Text", DataKind.String, 1,9)});
             var estimator = ML.Transforms.CountTargetEncode("Text", builder: CountTableBuilderBase.CreateCMCountTableBuilder(2, 1 << 6));
             var transformer = estimator.Fit(data);
-            var countsPath = DeleteOutputPath("external-counts.txt");
-            transformer.SaveCountTables(countsPath);
 
-            estimator = ML.Transforms.CountTargetEncode("Text", countsPath: countsPath, builder: CountTableBuilderBase.CreateCMCountTableBuilder(2, 1 << 6));
+            estimator = ML.Transforms.CountTargetEncode("Text", transformer);
             var transformer1 = estimator.Fit(new EmptyDataView(Env, data.Schema));
 
             CheckSameCounts(data, transformer, transformer1, 3);
@@ -61,13 +59,8 @@ namespace Microsoft.ML.Tests.Transformers
             var estimator = ML.Transforms.CountTargetEncode(new[] {
                 new InputOutputColumnPair("ScalarString"), new InputOutputColumnPair("VectorString") }, "Label", CountTableBuilderBase.CreateCMCountTableBuilder(2, 1 << 6));
             var transformer = estimator.Fit(data);
-            var countsPath = DeleteOutputPath("external-counts.txt");
-            transformer.SaveCountTables(countsPath);
 
             estimator = ML.Transforms.CountTargetEncode(new[] { new InputOutputColumnPair("ScalarString"), new InputOutputColumnPair("VectorString") }, transformer);
-
-            //estimator = ML.Transforms.CountTargetEncodeWithExternalCounts(new[] {
-            //    new InputOutputColumnPair("ScalarString"), new InputOutputColumnPair("VectorString") }, "Label", countsPath, CountTableBuilderBase.CreateCMCountTableBuilder(2, 1 << 6));
             var transformer1 = estimator.Fit(new EmptyDataView(Env, data.Schema));
 
             CheckSameCounts(data, transformer, transformer1, 2, 5);

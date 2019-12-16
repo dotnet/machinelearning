@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
@@ -126,31 +125,6 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        public override int AppendRows(List<int> hashIds, List<ulong> hashValues, List<float[]> counts)
-        {
-            var countsDict = new Dictionary<long, float[]>();
-            for (int label=0;label<LabelCardinality;label++)
-            {
-                foreach (var kvp in Tables[label])
-                {
-                    if (!countsDict.TryGetValue(kvp.Key, out var arr))
-                    {
-                        arr = new float[LabelCardinality];
-                        countsDict[kvp.Key] = arr;
-                    }
-                    arr[label] = kvp.Value;
-                }
-            }
-
-            foreach (var kvp in countsDict)
-            {
-                hashIds.Add(0);
-                hashValues.Add((ulong)kvp.Key);
-                counts.Add(kvp.Value);
-            }
-            return countsDict.Count;
-        }
-
         public override InternalCountTableBuilderBase ToBuilder()
         {
             return new DictCountTableBuilder.Builder(this);
@@ -248,19 +222,6 @@ namespace Microsoft.ML.Transforms
                 if (!_tables[labelKey].TryGetValue(key, out var old))
                     old = 0;
                 _tables[labelKey][key] = old + 1;
-            }
-
-            internal override void InsertOrUpdateRawCounts(int hashId, long hashValue, in VBuffer<float> counts)
-            {
-                Contracts.Check(counts.Length == LabelCardinality);
-                Contracts.Check(hashId == 0, "Dict count table can only have zero as hash id");
-                int label = 0;
-                foreach (var count in counts.DenseValues())
-                {
-                    if (count > 0)
-                        _tables[label][hashValue] = count;
-                    label++;
-                }
             }
 
             private void ProcessGarbage(Dictionary<long, float>[] outputTables, out float[] outputGarbageCounts)

@@ -4,13 +4,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Data.IO;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
@@ -79,7 +77,6 @@ namespace Microsoft.ML.Transforms
         private readonly CountTableBuilderBase[] _builders;
         private readonly CountTableBuilderBase _sharedBuilder;
         private readonly string _labelColumnName;
-        private readonly string _externalCountsFile;
         private readonly CountTableTransformer _initialCounts;
 
         internal CountTableEstimator(IHostEnvironment env, string labelColumnName, CountTableBuilderBase countTableBuilder, params SharedColumnOptions[] columns)
@@ -88,11 +85,10 @@ namespace Microsoft.ML.Transforms
             _sharedBuilder = countTableBuilder;
         }
 
-        internal CountTableEstimator(IHostEnvironment env, string labelColumnName, string externalCountsFile = null,
+        internal CountTableEstimator(IHostEnvironment env, string labelColumnName,
                 params ColumnOptions[] columns)
-            : this(env, labelColumnName, columns)
+            : this(env, labelColumnName, columns.Cast<ColumnOptionsBase>().ToArray())
         {
-            _externalCountsFile = externalCountsFile;
             _builders = columns.Select(c => c.CountTableBuilder).ToArray();
         }
 
@@ -108,7 +104,7 @@ namespace Microsoft.ML.Transforms
             if (columns.Length != initial.Featurizer.PriorCoef.Length)
                 throw Contracts.ExceptParam(nameof(columns), $"New estimator applied {columns.Length} columns, but old transformer applied to {initial.Featurizer.PriorCoef.Length} columns");
             var cols = new ColumnOptionsBase[columns.Length];
-            for (int i=0; i<columns.Length;i++)
+            for (int i = 0; i < columns.Length; i++)
             {
                 cols[i] = new SharedColumnOptions(columns[i].OutputColumnName, columns[i].InputColumnName,
                     initial.Featurizer.PriorCoef[i], initial.Featurizer.LaplaceScale[i], initial.Seeds[i]);
@@ -154,9 +150,9 @@ namespace Microsoft.ML.Transforms
             _host.Assert(_initialCounts != null || _sharedBuilder != null || _builders != null);
             MultiCountTableBuilderBase multiBuilder;
             if (_initialCounts != null)
-                multiBuilder = _initialCounts.Featurizer.MultiCountTable.ToBuilder(_host);
+                multiBuilder = _initialCounts.Featurizer.MultiCountTable.ToBuilder(_host, inputColumns);
             else if (_builders != null)
-                multiBuilder = new ParallelMultiCountTableBuilder(_host, inputColumns, _builders, labelCardinality, _externalCountsFile);
+                multiBuilder = new ParallelMultiCountTableBuilder(_host, inputColumns, _builders, labelCardinality);
             else
                 multiBuilder = new BagMultiCountTableBuilder(_host, inputColumns, _sharedBuilder, labelCardinality);
 
@@ -362,8 +358,8 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.Required, HelpText = "Label column", ShortName = "label,lab", Purpose = SpecialPurpose.ColumnName)]
             public string LabelColumn;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Optional text file to load counts from", ShortName = "extfile")]
-            public string ExternalCountsFile;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Optional model file to load counts from. If this is specified all other options are ignored.", ShortName = "inmodel, extfile")]
+            public string InitialCountsModel;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Keep counts for all columns in one shared count table", ShortName = "shared")]
             public bool SharedTable = false;
@@ -458,7 +454,14 @@ namespace Microsoft.ML.Transforms
             env.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns));
 
             CountTableEstimator estimator;
-            if (!options.SharedTable)
+            if (!string.IsNullOrEmpty(options.InitialCountsModel))
+            {
+                estimator = CountTargetEncodingEstimator.LoadFromFile(env, options.InitialCountsModel, options.LabelColumn,
+                    options.Columns.Select(col => new InputOutputColumnPair(col.Name, col.Source)).ToArray());
+                if (estimator == null)
+                    throw env.Except($"The file {options.InitialCountsModel} does not contain a CountTableTransformer");
+            }
+            else if (!options.SharedTable)
             {
                 var columnOptions = new CountTableEstimator.ColumnOptions[options.Columns.Length];
                 for (int i = 0; i < options.Columns.Length; i++)
@@ -474,7 +477,7 @@ namespace Microsoft.ML.Transforms
                         c.LaplaceScale ?? options.LaplaceScale,
                         c.Seed ?? options.Seed);
                 }
-                estimator = new CountTableEstimator(env, options.LabelColumn, options.ExternalCountsFile, columnOptions);
+                estimator = new CountTableEstimator(env, options.LabelColumn, columnOptions);
             }
             else
             {
@@ -570,14 +573,6 @@ namespace Microsoft.ML.Transforms
         }
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
-
-        public void SaveCountTables(string path)
-        {
-            var saver = new TextSaver(Host, new TextSaver.Arguments() { OutputHeader = false, OutputSchema = false, Dense = true });
-            using (var stream = new FileStream(path, FileMode.Create))
-            using (var ch = Host.Start("Saving Count Tables"))
-                DataSaverUtils.SaveDataView(ch, saver, Featurizer.ToDataView(), stream);
-        }
 
         private sealed class Mapper : OneToOneMapperBase
         {

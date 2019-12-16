@@ -24,8 +24,6 @@ namespace Microsoft.ML.Transforms
 
         IReadOnlyCollection<float> GarbageCounts { get; }
         ReadOnlySpan<double> PriorFrequencies { get; }
-
-        int AppendRows(List<int> hashIds, List<ulong> hashValues, List<float[]> counts);
     }
 
     /// <summary>
@@ -144,8 +142,6 @@ namespace Microsoft.ML.Transforms
 
             ctx.Writer.WriteSingleArray(_garbageCounts);
         }
-
-        public abstract int AppendRows(List<int> hashIds, List<ulong> hashValues, List<float[]> counts);
 
         public abstract InternalCountTableBuilderBase ToBuilder();
     }

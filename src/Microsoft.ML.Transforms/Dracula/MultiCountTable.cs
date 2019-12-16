@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -50,9 +49,7 @@ namespace Microsoft.ML.Transforms
 
         public abstract void Save(ModelSaveContext ctx);
 
-        public abstract IDataView ToDataView();
-
-        public abstract MultiCountTableBuilderBase ToBuilder(IHostEnvironment env);
+        public abstract MultiCountTableBuilderBase ToBuilder(IHostEnvironment env, DataViewSchema.Column[] inputCols);
     }
 
     /// <summary>
@@ -68,8 +65,7 @@ namespace Microsoft.ML.Transforms
         public ParallelMultiCountTableBuilder(IHostEnvironment env,
             DataViewSchema.Column[] inputColumns,
             CountTableBuilderBase[] builders,
-            long labelCardinality,
-            string externalCountsFile = null)
+            long labelCardinality)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(inputColumns, nameof(inputColumns));
@@ -87,24 +83,23 @@ namespace Microsoft.ML.Transforms
                 for (int j = 0; j < size; j++)
                     _countTableBuilders[i][j] = builders[i].GetInternalBuilder(labelCardinality);
             }
-
-            if (!string.IsNullOrEmpty(externalCountsFile))
-                LoadExternalCounts(externalCountsFile, (int)labelCardinality);
         }
 
-        private ParallelMultiCountTableBuilder(IHostEnvironment env, MultiCountTable table)
+        private ParallelMultiCountTableBuilder(IHostEnvironment env, MultiCountTable table, DataViewSchema.Column[] inputCols)
         {
             Contracts.AssertValue(env, nameof(env));
             env.AssertValue(table, nameof(table));
             _host = env.Register(RegistrationName);
 
             var n = table.ColCount;
+            _host.Check(Utils.Size(inputCols) == n, "Inconsistent number of columns");
             _countTableBuilders = new InternalCountTableBuilderBase[n][];
             var slotCounts = table.SlotCount;
             for (int i = 0; i < _countTableBuilders.Length; i++)
             {
                 var size = slotCounts[i];
                 _host.Assert(size > 0);
+                _host.Check(size == inputCols[i].Type.GetValueCount(), "Inconsistent number of slots");
                 _countTableBuilders[i] = new InternalCountTableBuilderBase[size];
 
                 for (int j = 0; j < size; j++)
@@ -133,57 +128,6 @@ namespace Microsoft.ML.Transforms
             }
 
             return new MultiCountTable(_host, countTables);
-        }
-
-        private void LoadExternalCounts(string externalCountsFile, int labelCardinality)
-        {
-            _host.AssertNonWhiteSpace(externalCountsFile);
-            _host.CheckParam(File.Exists(externalCountsFile), nameof(externalCountsFile), "File does not exist");
-
-            var allBuilders = new List<InternalCountTableBuilderBase>();
-            for (int i = 0; i < _countTableBuilders.Length; i++)
-            {
-                for (int j = 0; j < _countTableBuilders[i].Length; j++)
-                    allBuilders.Add(_countTableBuilders[i][j]);
-            }
-
-            // Generate schema of externalCountsFile.
-            var cols = new[]
-            {
-                new TextLoader.Column("TableId", DataKind.String, 0),
-                new TextLoader.Column("HashId", DataKind.Int32, 1),
-                new TextLoader.Column("HashValue", DataKind.UInt64, new[] {new TextLoader.Range(2) }, keyCount: new KeyCount(long.MaxValue)),
-                new TextLoader.Column("Counts", DataKind.Single, 3, 3 + labelCardinality - 1)
-            };
-            var countsData = new TextLoader(_host, new TextLoader.Options() { Columns = cols }).Load(new MultiFileSource(externalCountsFile));
-            countsData = new ValueToKeyMappingEstimator(_host, "TableId").Fit(countsData).Transform(countsData);
-            using (var cursor = countsData.GetRowCursor(countsData.Schema))
-            {
-                var tableIdGetter = cursor.GetGetter<uint>(countsData.Schema["TableId"]);
-                var hashIdGetter = cursor.GetGetter<int>(countsData.Schema["HashId"]);
-                var hashValueGetter = cursor.GetGetter<ulong>(countsData.Schema["HashValue"]);
-                var countsGetter = cursor.GetGetter<VBuffer<float>>(countsData.Schema["Counts"]);
-                VBuffer<float> counts = default;
-                while (cursor.MoveNext())
-                {
-                    uint tableIndex = 0;
-                    tableIdGetter(ref tableIndex);
-                    if (tableIndex == 0 || tableIndex > labelCardinality)
-                        continue;
-
-                    int id = 0;
-                    hashIdGetter(ref id);
-                    _host.CheckDecode(id >= 0, "Invalid hash id.");
-
-                    ulong key = 0;
-                    hashValueGetter(ref key);
-                    _host.CheckDecode(key <= long.MaxValue, "Invalid hash value.");
-
-                    countsGetter(ref counts);
-
-                    allBuilders[(int)(tableIndex - 1)].InsertOrUpdateRawCounts(id, (long)key, counts);
-                }
-            }
         }
 
         internal sealed class MultiCountTable : MultiCountTableBase
@@ -279,34 +223,9 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public override IDataView ToDataView()
+            public override MultiCountTableBuilderBase ToBuilder(IHostEnvironment env, DataViewSchema.Column[] inputCols)
             {
-                int tableCount = 0;
-                var tableIds = new List<int>();
-                var hashIds = new List<int>();
-                var hashValues = new List<ulong>();
-                var counts = new List<float[]>();
-                for (int i = 0; i < _countTables.Length; i++)
-                {
-                    var countTables = _countTables[i];
-                    for (int j = 0; j < countTables.Length; j++)
-                    {
-                        var table = countTables[j];
-                        var rowsAdded = table.AppendRows(hashIds, hashValues, counts);
-                        tableIds.AddRange(Utils.CreateArray(rowsAdded, tableCount++));
-                    }
-                }
-                var builder = new ArrayDataViewBuilder(Host);
-                builder.AddColumn("TableId", NumberDataViewType.Int32, tableIds.ToArray());
-                builder.AddColumn("HashId", NumberDataViewType.Int32, hashIds.ToArray());
-                builder.AddColumn("HashValue", (ref VBuffer<ReadOnlyMemory<char>> dst) => { }, int.MaxValue, hashValues.ToArray());
-                builder.AddColumn("Counts", NumberDataViewType.Single, counts.ToArray());
-                return builder.GetDataView();
-            }
-
-            public override MultiCountTableBuilderBase ToBuilder(IHostEnvironment env)
-            {
-                return new ParallelMultiCountTableBuilder(env, this);
+                return new ParallelMultiCountTableBuilder(env, this, inputCols);
             }
         }
     }
@@ -337,11 +256,14 @@ namespace Microsoft.ML.Transforms
                 _slotCount[i] = inputColumns[i].Type.GetValueCount();
         }
 
-        public BagMultiCountTableBuilder(IHostEnvironment env, MultiCountTable table)
+        public BagMultiCountTableBuilder(IHostEnvironment env, MultiCountTable table, DataViewSchema.Column[] inputCols)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(table, nameof(table));
             _host = env.Register(LoaderSignature);
+            _host.Check(Utils.Size(inputCols) == table.ColCount, "Inconsistent number of columns");
+            _host.Check(table.SlotCount.Zip(inputCols, (count, col) => (count, col)).
+                All(pair => pair.col.Type.GetValueCount() == pair.count), "Inconsistent number of slots");
 
             _builder = table.BaseTable.ToBuilder();
             _colCount = table.ColCount;
@@ -434,25 +356,9 @@ namespace Microsoft.ML.Transforms
                 ctx.LoadModel<CountTableBase, SignatureLoadModel>(Host, out _baseTable, "BaseTable");
             }
 
-            public override IDataView ToDataView()
+            public override MultiCountTableBuilderBase ToBuilder(IHostEnvironment env, DataViewSchema.Column[] inputCols)
             {
-                var tableIds = new List<int>();
-                var hashIds = new List<int>();
-                var hashValues = new List<ulong>();
-                var counts = new List<float[]>();
-                var rowsAdded = _baseTable.AppendRows(hashIds, hashValues, counts);
-                tableIds.AddRange(Utils.CreateArray(rowsAdded, 0));
-                var builder = new ArrayDataViewBuilder(Host);
-                builder.AddColumn("TableId", NumberDataViewType.Int32, tableIds.ToArray());
-                builder.AddColumn("HashId", NumberDataViewType.Int32, hashIds.ToArray());
-                builder.AddColumn("HashValue", (ref VBuffer<ReadOnlyMemory<char>> dst) => { }, long.MaxValue, hashValues.ToArray());
-                builder.AddColumn("Counts", NumberDataViewType.Single, counts.ToArray());
-                return builder.GetDataView();
-            }
-
-            public override MultiCountTableBuilderBase ToBuilder(IHostEnvironment env)
-            {
-                return new BagMultiCountTableBuilder(env, this);
+                return new BagMultiCountTableBuilder(env, this, inputCols);
             }
 
             /// <summary>
@@ -485,8 +391,6 @@ namespace Microsoft.ML.Transforms
                 }
 
                 public float GarbageThreshold => 0;
-
-                public int AppendRows(List<int> hashIds, List<ulong> hashValues, List<float[]> counts) => _table.AppendRows(hashIds, hashValues, counts);
             }
         }
     }
