@@ -26,7 +26,6 @@ using Microsoft.ML.Transforms.Text;
 using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
-using System.Diagnostics;
 using static Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper;
 
 #pragma warning disable CS0649 // Field 'fieldName' is never assigned to, and will always have its default value null

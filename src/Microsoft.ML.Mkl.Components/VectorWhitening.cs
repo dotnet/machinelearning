@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -620,12 +619,13 @@ namespace Microsoft.ML.Transforms
                     };
                 return del;
             }
+
             public bool CanSaveOnnx(OnnxContext ctx) => true;
 
             public void SaveAsOnnx(OnnxContext ctx)
             {
                 Host.CheckValue(ctx, nameof(ctx));
-                int numColumns = _parent.ColumnPairs.Length; //why are the multiple columns
+                int numColumns = _parent.ColumnPairs.Length;
                 for (int iinfo = 0; iinfo < numColumns; ++iinfo)
                 {
                     string inputColumnName = _parent.ColumnPairs[iinfo].inputColumnName;
@@ -637,8 +637,8 @@ namespace Microsoft.ML.Transforms
                     string dstVariableName = ctx.AddIntermediateVariable(_srcTypes[iinfo], outputColumnName, true);
                     SaveAsOnnxCore(ctx, iinfo, srcVariableName, dstVariableName);
                 }
-
             }
+
             private void SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
             {
                 var model = _parent._models[iinfo];
@@ -658,18 +658,17 @@ namespace Microsoft.ML.Transforms
                     {
                         if (i >= dimension)
                             break;
-                        Array.Copy(model, i*dimension, principalComponents, i*dimension, dimension);
+                        Array.Copy(model, i * dimension, principalComponents, i * dimension, dimension);
                     }
                     model = principalComponents;
                 }
 
                 var opType = "Gemm";
-                var modelName = ctx.AddInitializer(model, modelDimension ,"model");
-                var zeroValueName = ctx.AddInitializer((float) 0);
+                var modelName = ctx.AddInitializer(model, modelDimension, "model");
+                var zeroValueName = ctx.AddInitializer((float)0);
 
                 var node = ctx.CreateNode(opType, new[] { modelName, srcVariableName, zeroValueName }, new[] { dstVariableName }, ctx.GetNodeName(opType), "");
-                node.AddAttribute("transB",1);
-
+                node.AddAttribute("transB", 1);
             }
 
             private ValueGetter<T> GetSrcGetter<T>(DataViewRow input, int iinfo)
