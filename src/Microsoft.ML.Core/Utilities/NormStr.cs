@@ -29,7 +29,7 @@ namespace Microsoft.ML.Internal.Utilities
         private NormStr(ReadOnlyMemory<char> str, int id, uint hash)
         {
             Contracts.Assert(id >= 0 || id == -1 && str.IsEmpty);
-            Value = new ReadOnlyMemory<char>(str.ToString().ToCharArray());
+            Value = str;
             Id = id;
             _hash = hash;
         }
