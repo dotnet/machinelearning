@@ -50,8 +50,8 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.Required, HelpText = "Label column", ShortName = "label,lab", Purpose = SpecialPurpose.ColumnName)]
             public string LabelColumn;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Optional text file to load counts from", ShortName = "extfile")]
-            public string ExternalCountsFile;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Optional model file to load counts from. If this is specified all other options are ignored.", ShortName = "inmodel, extfile")]
+            public string InitialCountsModel;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Keep counts for all columns in one shared count table", ShortName = "shared")]
             public bool SharedTable = false;
@@ -102,9 +102,9 @@ namespace Microsoft.ML.Transforms
         private readonly HashJoiningTransform _hashJoin;
 
         internal CountTargetEncodingEstimator(IHostEnvironment env, string labelColumnName, CountTableEstimator.ColumnOptions[] columnOptions,
-            string externalCountsFile = null, int numberOfBits = HashJoiningTransform.Defaults.NumberOfBits,
+            int numberOfBits = HashJoiningTransform.Defaults.NumberOfBits,
             bool combine = HashJoiningTransform.Defaults.Combine, uint hashingSeed = HashJoiningTransform.Defaults.Seed)
-            : this(env, new CountTableEstimator(env, labelColumnName, externalCountsFile,
+            : this(env, new CountTableEstimator(env, labelColumnName,
                 columnOptions.Select(col => new CountTableEstimator.ColumnOptions(col.Name, col.Name, col.CountTableBuilder, col.PriorCoefficient, col.LaplaceScale, col.Seed)).ToArray()),
                   columnOptions, numberOfBits, combine, hashingSeed)
         {
@@ -146,7 +146,14 @@ namespace Microsoft.ML.Transforms
             _host.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns), "Columns must be specified");
             _host.CheckUserArg(!string.IsNullOrWhiteSpace(options.LabelColumn), nameof(options.LabelColumn), "Must specify the label column name");
 
-            if (options.SharedTable)
+            if (!string.IsNullOrEmpty(options.InitialCountsModel))
+            {
+                _estimator = LoadFromFile(env, options.InitialCountsModel, options.LabelColumn,
+                    options.Columns.Select(col => new InputOutputColumnPair(col.Name)).ToArray());
+                if (_estimator == null)
+                    throw env.Except($"The file {options.InitialCountsModel} does not contain a CountTableTransformer");
+            }
+            else if (options.SharedTable)
             {
                 var columns = new CountTableEstimator.SharedColumnOptions[options.Columns.Length];
                 for (int i = 0; i < options.Columns.Length; i++)
@@ -179,10 +186,40 @@ namespace Microsoft.ML.Transforms
                         column.LaplaceScale ?? options.LaplaceScale,
                         column.Seed ?? options.Seed);
                 }
-                _estimator = new CountTableEstimator(_host, options.LabelColumn, options.ExternalCountsFile, columns);
+                _estimator = new CountTableEstimator(_host, options.LabelColumn, columns);
             }
 
             _hashJoinArgs = InitializeHashJoinArguments(options);
+        }
+
+        internal static CountTableEstimator LoadFromFile(IHostEnvironment env, string initialCountsModel, string labelColumn, InputOutputColumnPair[] columns)
+        {
+            var catalog = new ModelOperationsCatalog(env);
+            var transformer = catalog.Load(initialCountsModel, out _);
+            CountTableTransformer countTableTransformer;
+            if ((countTableTransformer = transformer as CountTableTransformer) == null)
+            {
+                if (transformer is CountTargetEncodingTransformer cte)
+                    countTableTransformer = cte.CountTable;
+                else if (transformer is TransformerChain<ITransformer> chain)
+                {
+                    var transformerChain = ((ITransformerChainAccessor)chain).Transformers;
+                    for (int i = transformerChain.Length - 1; i >= 0; i++)
+                    {
+                        countTableTransformer = transformerChain[i] as CountTableTransformer;
+                        if (countTableTransformer == null)
+                        {
+                            if ((cte = transformerChain[i] as CountTargetEncodingTransformer) != null)
+                                countTableTransformer = cte.CountTable;
+                        }
+                        if (countTableTransformer != null)
+                            break;
+                    }
+                }
+            }
+            if (countTableTransformer != null)
+                return new CountTableEstimator(env, labelColumn, countTableTransformer, columns);
+            return null;
         }
 
         private HashJoiningTransform.Arguments InitializeHashJoinArguments(CountTableEstimator.ColumnOptionsBase[] columns, int numberOfBits, bool combine, uint hashingSeed)
@@ -415,11 +452,6 @@ namespace Microsoft.ML.Transforms
             _host.CheckValue(input, nameof(input));
             return _chain.Transform(input);
         }
-
-        public void SaveCountTables(string path)
-        {
-            CountTable.SaveCountTables(path);
-        }
     }
 
     public static class CountTargetEncodingCatalog
@@ -471,7 +503,6 @@ namespace Microsoft.ML.Transforms
 
         public static CountTargetEncodingEstimator CountTargetEncode(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null,
             string labelColumn = DefaultColumnNames.Label,
-            string countsPath = null,
             CountTableBuilderBase builder = null,
             float priorCoefficient = CountTableTransformer.Defaults.PriorCoefficient,
             float laplaceScale = CountTableTransformer.Defaults.LaplaceScale,
@@ -487,7 +518,14 @@ namespace Microsoft.ML.Transforms
 
             return new CountTargetEncodingEstimator(env, labelColumn,
                 new[] { new CountTableEstimator.ColumnOptions(outputColumnName, inputColumnName, builder, priorCoefficient, laplaceScale) },
-                countsPath, numberOfBits, combine, hashingSeed);
+                numberOfBits, combine, hashingSeed);
+        }
+
+        public static CountTargetEncodingEstimator CountTargetEncode(this TransformsCatalog catalog, string outputColumnName,
+            CountTargetEncodingTransformer initialCounts,
+            string inputColumnName = null, string labelColumn = "Label")
+        {
+            return new CountTargetEncodingEstimator(CatalogUtils.GetEnvironment(catalog), labelColumn, initialCounts, new[] { new InputOutputColumnPair(outputColumnName, inputColumnName) });
         }
     }
 
