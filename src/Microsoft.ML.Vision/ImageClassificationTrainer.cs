@@ -7,11 +7,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using Google.Protobuf;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TensorFlow;
@@ -422,6 +426,14 @@ namespace Microsoft.ML.Vision
             public IDataView ValidationSet;
 
             /// <summary>
+            /// When validation set is not passed then a fraction of train set is used as validation. To disable this
+            /// behavior set <see cref="ValidationSetFraction"/> to null. Accepts value between 0 and 1.0, default
+            /// value is 0.1 or 10% of the trainset.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Validation fraction.", SortOrder = 15)]
+            public float? ValidationSetFraction = 0.1f;
+
+            /// <summary>
             /// Indicates the file name within the workspace to store trainset bottleneck values for caching, default file name is "trainSetBottleneckFile.csv".
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates the file name to store trainset bottleneck values for caching.", SortOrder = 15)]
@@ -601,7 +613,7 @@ namespace Microsoft.ML.Vision
                 _useLRScheduling, _classCount);
 
             // Initialize the variables.
-            new Runner(_session).AddOperation(tf.global_variables_initializer()).Run();
+            new Runner(_session, operations: new IntPtr[] { tf.global_variables_initializer() }).Run();
 
             // Add evaluation layer.
             (_evaluationStep, _) = AddEvaluationStep(_softMaxTensor, _labelTensor);
@@ -644,33 +656,57 @@ namespace Microsoft.ML.Vision
             CheckTrainingParameters(_options);
             var validationSet = trainContext.ValidationSet?.Data ?? _options.ValidationSet;
             var imageProcessor = new ImageProcessor(_session, _jpegDataTensorName, _resizedImageTensorName);
-            int trainingsetSize = -1;
-            string trainSetBottleneckCachedValuesFilePath = Path.Combine(_options.WorkspacePath, _options.TrainSetBottleneckCachedValuesFileName);
-            string validationSetBottleneckCachedValuesFilePath = Path.Combine(_options.WorkspacePath, _options.ValidationSetBottleneckCachedValuesFileName);
-            if (!_options.ReuseTrainSetBottleneckCachedValues ||
-                !File.Exists(trainSetBottleneckCachedValuesFilePath))
-            {
-                trainingsetSize = CacheFeaturizedImagesToDisk(trainContext.TrainingSet.Data, _options.LabelColumnName,
-                    _options.FeatureColumnName, imageProcessor,
-                    _inputTensorName, _bottleneckTensor.name, trainSetBottleneckCachedValuesFilePath,
-                    ImageClassificationMetrics.Dataset.Train, _options.MetricsCallback);
+            string trainSetBottleneckCachedValuesFilePath = Path.Combine(_options.WorkspacePath,
+                _options.TrainSetBottleneckCachedValuesFileName);
 
-                // Write training set size to a file for use during training
-                File.WriteAllText(_sizeFile, trainingsetSize.ToString());
-            }
+            string validationSetBottleneckCachedValuesFilePath = Path.Combine(_options.WorkspacePath,
+                _options.ValidationSetBottleneckCachedValuesFileName);
 
-            if (validationSet != null &&
-                    (!_options.ReuseTrainSetBottleneckCachedValues ||
-                    !File.Exists(validationSetBottleneckCachedValuesFilePath)))
+            bool needValidationSet = _options.EarlyStoppingCriteria != null || _options.MetricsCallback != null;
+            bool validationSetPresent = _options.ReuseValidationSetBottleneckCachedValues &&
+                File.Exists(validationSetBottleneckCachedValuesFilePath + "_features.bin") &&
+                    File.Exists(validationSetBottleneckCachedValuesFilePath + "_labels.bin");
+
+            bool generateValidationSet = needValidationSet && !validationSetPresent;
+
+            if (generateValidationSet && _options.ValidationSet != null)
             {
                 CacheFeaturizedImagesToDisk(validationSet, _options.LabelColumnName,
                     _options.FeatureColumnName, imageProcessor, _inputTensorName, _bottleneckTensor.name,
                     validationSetBottleneckCachedValuesFilePath,
                     ImageClassificationMetrics.Dataset.Validation, _options.MetricsCallback);
+
+                generateValidationSet = false;
+                validationSetPresent = true;
             }
 
-            TrainAndEvaluateClassificationLayer(trainSetBottleneckCachedValuesFilePath, _options,
-                validationSetBottleneckCachedValuesFilePath, trainingsetSize);
+            if (!_options.ReuseTrainSetBottleneckCachedValues ||
+                !(File.Exists(trainSetBottleneckCachedValuesFilePath + "_features.bin") &&
+                    File.Exists(trainSetBottleneckCachedValuesFilePath + "_labels.bin")))
+            {
+                CacheFeaturizedImagesToDisk(trainContext.TrainingSet.Data, _options.LabelColumnName,
+                    _options.FeatureColumnName, imageProcessor,
+                    _inputTensorName, _bottleneckTensor.name, trainSetBottleneckCachedValuesFilePath,
+                    ImageClassificationMetrics.Dataset.Train, _options.MetricsCallback,
+                    generateValidationSet ? _options.ValidationSetFraction : null);
+
+                validationSetPresent = validationSetPresent ||
+                    (generateValidationSet && _options.ValidationSetFraction.HasValue);
+
+                generateValidationSet = needValidationSet && !validationSetPresent;
+            }
+
+            if(generateValidationSet && _options.ReuseTrainSetBottleneckCachedValues &&
+                !_options.ReuseValidationSetBottleneckCachedValues)
+            {
+                // Not sure if it makes sense to support this scenario.
+            }
+
+            Contracts.Assert(!generateValidationSet, "Validation set needed but cannot generate.");
+
+            TrainAndEvaluateClassificationLayer(trainSetBottleneckCachedValuesFilePath,
+                validationSetPresent && (_options.EarlyStoppingCriteria != null || _options.MetricsCallback != null) ?
+                    validationSetBottleneckCachedValuesFilePath : null);
 
             // Leave the ownership of _session so that it is not disposed/closed when this object goes out of scope
             // since it will be used by ImageClassificationModelParameters class (new owner that will take care of
@@ -743,9 +779,8 @@ namespace Microsoft.ML.Vision
 
             public ImageProcessor(Session session, string jpegDataTensorName, string resizeImageTensorName)
             {
-                _imagePreprocessingRunner = new Runner(session);
-                _imagePreprocessingRunner.AddInput(jpegDataTensorName);
-                _imagePreprocessingRunner.AddOutputs(resizeImageTensorName);
+                _imagePreprocessingRunner = new Runner(session, new[] { jpegDataTensorName },
+                    new[] { resizeImageTensorName });
             }
 
             public Tensor ProcessImage(in VBuffer<byte> imageBuffer)
@@ -768,34 +803,33 @@ namespace Microsoft.ML.Vision
             }
         }
 
-        private int CacheFeaturizedImagesToDisk(IDataView input, string labelColumnName, string imageColumnName,
+        private void CacheFeaturizedImagesToDisk(IDataView input, string labelColumnName, string imageColumnName,
             ImageProcessor imageProcessor, string inputTensorName, string outputTensorName, string cacheFilePath,
-            ImageClassificationMetrics.Dataset dataset, Action<ImageClassificationMetrics> metricsCallback)
+            ImageClassificationMetrics.Dataset dataset, Action<ImageClassificationMetrics> metricsCallback,
+            float? validationFraction = null)
         {
             var labelColumn = input.Schema[labelColumnName];
 
-            if (labelColumn.Type.RawType != typeof(UInt32))
+            if (labelColumn.Type.RawType != typeof(uint))
+            {
                 throw Host.ExceptSchemaMismatch(nameof(labelColumn), "Label",
                     labelColumnName, typeof(uint).ToString(),
                     labelColumn.Type.RawType.ToString());
+            }
 
             var imageColumn = input.Schema[imageColumnName];
-            Runner runner = new Runner(_session);
-            runner.AddOutputs(outputTensorName);
-            int datasetsize = 0;
-            using (TextWriter writer = File.CreateText(cacheFilePath))
+            Runner runner = new Runner(_session, new[] { inputTensorName }, new[] { outputTensorName });
+            List<(long, float[])> featurizedImages = new List<(long, float[])>();
             using (var cursor = input.GetRowCursor(
                 input.Schema.Where(c => c.Index == labelColumn.Index || c.Index == imageColumn.Index)))
             {
                 var labelGetter = cursor.GetGetter<uint>(labelColumn);
                 var imageGetter = cursor.GetGetter<VBuffer<byte>>(imageColumn);
-                UInt32 label = UInt32.MaxValue;
+                uint label = uint.MaxValue;
                 VBuffer<byte> image = default;
-                runner.AddInput(inputTensorName);
                 ImageClassificationMetrics metrics = new ImageClassificationMetrics();
                 metrics.Bottleneck = new BottleneckMetrics();
                 metrics.Bottleneck.DatasetUsed = dataset;
-                float[] imageArray = null;
                 while (cursor.MoveNext())
                 {
                     labelGetter(ref label);
@@ -807,243 +841,174 @@ namespace Microsoft.ML.Vision
                     if (imageTensor != null)
                     {
                         runner.AddInput(imageTensor, 0);
-                        var featurizedImage = runner.Run()[0]; // Reuse memory
-                        featurizedImage.ToArray<float>(ref imageArray);
-                        Host.Assert((int)featurizedImage.size == imageArray.Length);
-                        writer.WriteLine(label - 1 + "," + string.Join(",", imageArray));
+                        var featurizedImage = runner.Run()[0];
+                        featurizedImages.Add((label - 1, featurizedImage.ToArray<float>()));
                         featurizedImage.Dispose();
                         imageTensor.Dispose();
                         metrics.Bottleneck.Index++;
                         metricsCallback?.Invoke(metrics);
                     }
                 }
-                datasetsize = metrics.Bottleneck.Index;
-            }
-            return datasetsize;
-        }
 
-        private IDataView GetShuffledData(string path)
-        {
-            return new RowShufflingTransformer(
-                Host,
-                new RowShufflingTransformer.Options
+                featurizedImages = featurizedImages.OrderBy(x => Host.Rand.Next(0, metrics.Bottleneck.Index)).ToList();
+                int featureLength = featurizedImages.Count > 0 ? featurizedImages[0].Item2.Length : 0;
+                int validationSetCount = 0;
+                if (validationFraction.HasValue)
                 {
-                    ForceShuffle = true,
-                    ForceShuffleSource = true
-                },
-                new TextLoader(
-                    Host,
-                    new TextLoader.Options
-                    {
-                        Separators = new[] { ',' },
-                        Columns = new[]
-                        {
-                                        new Column("Label", DataKind.Int64, 0),
-                                        new Column("Features", DataKind.Single, new [] { new Range(1, null) }),
-                        },
-                    },
-                    new MultiFileSource(path))
-                    .Load(new MultiFileSource(path)));
-        }
+                    Contracts.Assert(validationFraction >= 0 && validationFraction <= 1);
 
-        private int GetNumSamples(string path)
-        {
-            using (var reader = File.OpenText(path))
-                return int.Parse(reader.ReadLine());
-        }
+                    validationSetCount = (int)(metrics.Bottleneck.Index * validationFraction);
+                    CreateFeaturizedCacheFile(
+                        Path.Combine(_options.WorkspacePath, _options.ValidationSetBottleneckCachedValuesFileName),
+                        validationSetCount, featureLength, featurizedImages.Take(validationSetCount));
+                }
 
-        private void TrainAndEvaluateClassificationLayer(string trainBottleneckFilePath, Options options,
-            string validationSetBottleneckFilePath, int trainingsetSize)
-        {
-            int batchSize = options.BatchSize;
-            int epochs = options.Epoch;
-            float learningRate = options.LearningRate;
-            bool evaluateOnly = !string.IsNullOrEmpty(validationSetBottleneckFilePath);
-            Action<ImageClassificationMetrics> statisticsCallback = _options.MetricsCallback;
-            var trainingSet = GetShuffledData(trainBottleneckFilePath);
-            IDataView validationSet = null;
-            if (options.ValidationSet != null && !string.IsNullOrEmpty(validationSetBottleneckFilePath))
-                validationSet = GetShuffledData(validationSetBottleneckFilePath);
-
-            long label = long.MaxValue;
-            VBuffer<float> features = default;
-            ReadOnlySpan<float> featureValues = default;
-            var featureColumn = trainingSet.Schema[1];
-            int featureLength = featureColumn.Type.GetVectorSize();
-            float[] featureBatch = new float[featureLength * batchSize];
-            var featureBatchHandle = GCHandle.Alloc(featureBatch, GCHandleType.Pinned);
-            IntPtr featureBatchPtr = featureBatchHandle.AddrOfPinnedObject();
-            int featureBatchSizeInBytes = sizeof(float) * featureBatch.Length;
-            long[] labelBatch = new long[batchSize];
-            var labelBatchHandle = GCHandle.Alloc(labelBatch, GCHandleType.Pinned);
-            IntPtr labelBatchPtr = labelBatchHandle.AddrOfPinnedObject();
-            int labelBatchSizeInBytes = sizeof(long) * labelBatch.Length;
-            var labelTensorShape = _labelTensor.TensorShape.dims.Select(x => (long)x).ToArray();
-            labelTensorShape[0] = batchSize;
-            int batchIndex = 0;
-            var runner = new Runner(_session);
-            var testEvalRunner = new Runner(_session);
-            testEvalRunner.AddOutputs(_evaluationStep.name);
-            testEvalRunner.AddOutputs(_crossEntropy.name);
-
-            Runner validationEvalRunner = null;
-            if (validationSet != null)
-            {
-                validationEvalRunner = new Runner(_session);
-                validationEvalRunner.AddOutputs(_evaluationStep.name);
-                validationEvalRunner.AddInput(_bottleneckInput.name).AddInput(_labelTensor.name);
+                CreateFeaturizedCacheFile(cacheFilePath, metrics.Bottleneck.Index - validationSetCount, featureLength,
+                    featurizedImages.Skip(validationSetCount));
             }
+        }
 
-            runner.AddOperation(_trainStep);
-            var featureTensorShape = _bottleneckInput.TensorShape.dims.Select(x => (long)x).ToArray();
-            featureTensorShape[0] = batchSize;
+        private void CreateFeaturizedCacheFile(string cacheFilePath, int examples, int featureLength,
+            IEnumerable<(long, float[])> featurizedImages)
+        {
+            Contracts.Assert(examples == featurizedImages.Count());
+            Contracts.Assert(featurizedImages.All(x => x.Item2.Length == featureLength));
 
-            Saver trainSaver = null;
-            FileWriter trainWriter = null;
-            Tensor merged = tf.summary.merge_all();
-            trainWriter = tf.summary.FileWriter(Path.Combine(_options.WorkspacePath, "train"),
-                _session.graph);
+            using Stream featuresWriter = File.Open(cacheFilePath + "_features.bin", FileMode.Create);
+            using Stream labelWriter = File.Open(cacheFilePath + "_labels.bin", FileMode.Create);
+            using TextWriter writer = File.CreateText(cacheFilePath);
 
-            trainSaver = tf.train.Saver();
-            trainSaver.save(_session, _checkpointPath);
+            featuresWriter.Write(BitConverter.GetBytes(examples), 0, sizeof(int));
+            featuresWriter.Write(BitConverter.GetBytes(featureLength), 0, sizeof(int));
+            long[] labels = new long[1];
+            var labelsSpan = MemoryMarshal.Cast<long, byte>(labels);
 
-            runner.AddInput(_bottleneckInput.name).AddInput(_labelTensor.name);
-            if (options.LearningRateScheduler != null)
-                runner.AddInput(_learningRateInput.name);
-            testEvalRunner.AddInput(_bottleneckInput.name).AddInput(_labelTensor.name);
-            Dictionary<long, int> classStatsTrain = new Dictionary<long, int>();
-            Dictionary<long, int> classStatsValidate = new Dictionary<long, int>();
-            for (int index = 0; index < _classCount; index += 1)
-                classStatsTrain[index] = classStatsValidate[index] = 0;
-
-            ImageClassificationMetrics metrics = new ImageClassificationMetrics();
-            metrics.Train = new TrainMetrics();
-            float accuracy = 0;
-            float crossentropy = 0;
-            DnnTrainState trainstate = new DnnTrainState
+            foreach (var row in featurizedImages)
             {
-                BatchSize = options.BatchSize,
-                BatchesPerEpoch =
-                (trainingsetSize < 0 ? GetNumSamples(_sizeFile) : trainingsetSize) / options.BatchSize
-            };
-
-            for (int epoch = 0; epoch < epochs; epoch += 1)
-            {
-                batchIndex = 0;
-                metrics.Train.Accuracy = 0;
-                metrics.Train.CrossEntropy = 0;
-                metrics.Train.BatchProcessedCount = 0;
-                metrics.Train.LearningRate = learningRate;
-                // Update train state.
-                trainstate.CurrentEpoch = epoch;
-                using (var cursor = trainingSet.GetRowCursor(trainingSet.Schema.ToArray()))
+                writer.WriteLine(row.Item1 + "," + string.Join(",", row.Item2));
+                labels[0] = row.Item1;
+                for (int index = 0; index < sizeof(long); index++)
                 {
-                    var labelGetter = cursor.GetGetter<long>(trainingSet.Schema[0]);
-                    var featuresGetter = cursor.GetGetter<VBuffer<float>>(featureColumn);
-                    while (cursor.MoveNext())
-                    {
-                        labelGetter(ref label);
-                        featuresGetter(ref features);
-                        classStatsTrain[label]++;
+                    labelWriter.WriteByte(labelsSpan[index]);
+                }
 
-                        if (featureValues == default)
-                            featureValues = features.GetValues();
+                var featureSpan = MemoryMarshal.Cast<float, byte>(row.Item2);
+                for (int index = 0; index < featureLength * sizeof(float); index++)
+                {
+                    featuresWriter.WriteByte(featureSpan[index]);
+                }
+            }
+        }
 
-                        // Buffer the values.
-                        for (int index = 0; index < featureLength; index += 1)
-                            featureBatch[batchIndex * featureLength + index] = featureValues[index];
+        private void TrainAndEvaluateClassificationLayer(string trainBottleneckFilePath,
+            string validationSetBottleneckFilePath)
+        {
+            Contracts.Assert(validationSetBottleneckFilePath == null ||
+                (File.Exists(validationSetBottleneckFilePath + "_labels.bin") &&
+                    File.Exists(validationSetBottleneckFilePath + "_features.bin")));
 
-                        labelBatch[batchIndex] = label;
-                        batchIndex += 1;
-                        trainstate.CurrentBatchIndex = batchIndex;
-                        // Train.
-                        if (batchIndex == batchSize)
-                        {
-                            runner.AddInput(new Tensor(featureBatchPtr, featureTensorShape, TF_DataType.TF_FLOAT,
-                                                  featureBatchSizeInBytes), 0)
-                                .AddInput(new Tensor(labelBatchPtr, labelTensorShape, TF_DataType.TF_INT64,
-                                                  labelBatchSizeInBytes), 1);
+            Contracts.Assert(trainBottleneckFilePath != null &&
+                File.Exists(trainBottleneckFilePath + "_labels.bin") &&
+                    File.Exists(trainBottleneckFilePath + "_features.bin"));
 
-                            if (options.LearningRateScheduler != null)
+            bool validationNeeded = validationSetBottleneckFilePath != null;
+
+            Contracts.Assert(_options.EarlyStoppingCriteria == null || validationNeeded);
+
+            using (Stream trainSetLabelReader = File.Open(trainBottleneckFilePath + "_labels.bin", FileMode.Open))
+            using (Stream trainSetFeatureReader = File.Open(trainBottleneckFilePath + "_features.bin", FileMode.Open))
+            {
+                Stream validationSetLabelReader = validationNeeded ?
+                    File.Open(validationSetBottleneckFilePath + "_labels.bin", FileMode.Open) : null;
+
+                Stream validationSetFeatureReader = validationNeeded ?
+                    File.Open(validationSetBottleneckFilePath + "_features.bin", FileMode.Open) : null;
+
+                int batchSize = _options.BatchSize;
+                int epochs = _options.Epoch;
+                float learningRate = _options.LearningRate;
+                Action<ImageClassificationMetrics> statisticsCallback = _options.MetricsCallback;
+                Runner runner = null;
+                Runner validationEvalRunner = null;
+                List<string> runnerInputTensorNames = new List<string>();
+                List<string> runnerOutputTensorNames = new List<string>();
+                runnerInputTensorNames.Add(_bottleneckInput.name);
+                runnerInputTensorNames.Add(_labelTensor.name);
+                if (_options.LearningRateScheduler != null)
+                    runnerInputTensorNames.Add(_learningRateInput.name);
+
+                if (statisticsCallback != null && _options.TestOnTrainSet)
+                {
+                    runnerOutputTensorNames.Add(_evaluationStep.name);
+                    runnerOutputTensorNames.Add(_crossEntropy.name);
+                }
+
+                if (validationNeeded)
+                {
+                    validationEvalRunner = new Runner(_session, new[] { _bottleneckInput.name, _labelTensor.name },
+                        new[] { _evaluationStep.name });
+                }
+
+                runner = new Runner(_session, runnerInputTensorNames.ToArray(),
+                    runnerOutputTensorNames.Count() > 0 ? runnerOutputTensorNames.ToArray() : null,
+                    new[] { _trainStep.name });
+
+                Saver trainSaver = null;
+                FileWriter trainWriter = null;
+                Tensor merged = tf.summary.merge_all();
+                trainWriter = tf.summary.FileWriter(Path.Combine(_options.WorkspacePath, "train"),
+                    _session.graph);
+
+                trainSaver = tf.train.Saver();
+                trainSaver.save(_session, _checkpointPath);
+                ImageClassificationMetrics metrics = new ImageClassificationMetrics();
+                metrics.Train = new TrainMetrics();
+                float accuracy = 0;
+                float crossentropy = 0;
+                var labelTensorShape = _labelTensor.TensorShape.dims.Select(x => (long)x).ToArray();
+                var featureTensorShape = _bottleneckInput.TensorShape.dims.Select(x => (long)x).ToArray();
+                byte[] buffer = new byte[sizeof(int)];
+                trainSetFeatureReader.Read(buffer, 0, 4);
+                int trainingExamples = BitConverter.ToInt32(buffer, 0);
+                trainSetFeatureReader.Read(buffer, 0, 4);
+                int featureFileRecordSize = sizeof(float) * BitConverter.ToInt32(buffer, 0);
+                const int featureFileStartOffset = sizeof(int) * 2;
+                var labelBufferSizeInBytes = sizeof(long) * batchSize;
+                var featureBufferSizeInBytes = featureFileRecordSize * batchSize;
+                byte[] featuresBuffer = new byte[featureBufferSizeInBytes];
+                byte[] labelBuffer = new byte[labelBufferSizeInBytes];
+                var featureBufferHandle = GCHandle.Alloc(featuresBuffer, GCHandleType.Pinned);
+                IntPtr featureBufferPtr = featureBufferHandle.AddrOfPinnedObject();
+                var labelBufferHandle = GCHandle.Alloc(labelBuffer, GCHandleType.Pinned);
+                IntPtr labelBufferPtr = labelBufferHandle.AddrOfPinnedObject();
+                DnnTrainState trainState = new DnnTrainState
+                {
+                    BatchSize = _options.BatchSize,
+                    BatchesPerEpoch = trainingExamples / _options.BatchSize
+                };
+
+                for (int epoch = 0; epoch < epochs; epoch += 1)
+                {
+                    // Train.
+                    TrainAndEvaluateClassificationLayerCore(epoch, learningRate, featureFileStartOffset,
+                        metrics, labelTensorShape, featureTensorShape, batchSize,
+                        trainSetLabelReader, trainSetFeatureReader, labelBuffer, featuresBuffer,
+                        labelBufferSizeInBytes, featureBufferSizeInBytes, featureFileRecordSize,
+                        _options.LearningRateScheduler, trainState, runner, featureBufferPtr, labelBufferPtr,
+                        (outputTensors, metrics) =>
                             {
-                                // Add learning rate as a placeholder only when learning rate scheduling is used.
-                                learningRate = options.LearningRateScheduler.GetLearningRate(trainstate);
-                                metrics.Train.LearningRate = learningRate;
-                                runner.AddInput(new Tensor(learningRate, TF_DataType.TF_FLOAT), 2);
-                            }
-                            runner.Run();
+                                if (_options.TestOnTrainSet && statisticsCallback != null)
+                                {
+                                    outputTensors[0].ToScalar(ref accuracy);
+                                    outputTensors[1].ToScalar(ref crossentropy);
+                                    metrics.Train.Accuracy += accuracy;
+                                    metrics.Train.CrossEntropy += crossentropy;
+                                    outputTensors[0].Dispose();
+                                    outputTensors[1].Dispose();
+                                }
+                            });
 
-                            metrics.Train.BatchProcessedCount += 1;
-                            if (options.TestOnTrainSet && statisticsCallback != null)
-                            {
-                                var outputTensors = testEvalRunner
-                                    .AddInput(new Tensor(featureBatchPtr, featureTensorShape, TF_DataType.TF_FLOAT,
-                                                    featureBatchSizeInBytes), 0)
-                                    .AddInput(new Tensor(labelBatchPtr, labelTensorShape, TF_DataType.TF_INT64,
-                                                    labelBatchSizeInBytes), 1)
-                                    .Run();
-
-                                outputTensors[0].ToScalar<float>(ref accuracy);
-                                outputTensors[1].ToScalar<float>(ref crossentropy);
-                                metrics.Train.Accuracy += accuracy;
-                                metrics.Train.CrossEntropy += crossentropy;
-
-                                outputTensors[0].Dispose();
-                                outputTensors[1].Dispose();
-                            }
-
-                            batchIndex = 0;
-                        }
-                    }
-
-                    //Process last incomplete batch
-                    if (batchIndex > 0)
-                    {
-                        featureTensorShape[0] = batchIndex;
-                        featureBatchSizeInBytes = sizeof(float) * featureLength * batchIndex;
-                        labelTensorShape[0] = batchIndex;
-                        labelBatchSizeInBytes = sizeof(long) * batchIndex;
-                        runner.AddInput(new Tensor(featureBatchPtr, featureTensorShape, TF_DataType.TF_FLOAT,
-                                                featureBatchSizeInBytes), 0)
-                                .AddInput(new Tensor(labelBatchPtr, labelTensorShape, TF_DataType.TF_INT64,
-                                                labelBatchSizeInBytes), 1);
-                        if (options.LearningRateScheduler != null)
-                        {
-                            // Add learning rate as a placeholder only when learning rate scheduling is used.
-                            learningRate = options.LearningRateScheduler.GetLearningRate(trainstate);
-                            metrics.Train.LearningRate = learningRate;
-                            runner.AddInput(new Tensor(learningRate, TF_DataType.TF_FLOAT), 2);
-                        }
-                        runner.Run();
-
-                        metrics.Train.BatchProcessedCount += 1;
-
-                        if (options.TestOnTrainSet && statisticsCallback != null)
-                        {
-                            var outputTensors = testEvalRunner
-                                .AddInput(new Tensor(featureBatchPtr, featureTensorShape, TF_DataType.TF_FLOAT,
-                                                  featureBatchSizeInBytes), 0)
-                                .AddInput(new Tensor(labelBatchPtr, labelTensorShape, TF_DataType.TF_INT64,
-                                                  labelBatchSizeInBytes), 1)
-                                .Run();
-
-                            outputTensors[0].ToScalar<float>(ref accuracy);
-                            outputTensors[1].ToScalar<float>(ref crossentropy);
-                            metrics.Train.Accuracy += accuracy;
-                            metrics.Train.CrossEntropy += crossentropy;
-
-                            outputTensors[0].Dispose();
-                            outputTensors[1].Dispose();
-                        }
-
-                        batchIndex = 0;
-                        featureTensorShape[0] = batchSize;
-                        featureBatchSizeInBytes = sizeof(float) * featureBatch.Length;
-                        labelTensorShape[0] = batchSize;
-                        labelBatchSizeInBytes = sizeof(long) * batchSize;
-                    }
-
-                    if (options.TestOnTrainSet && statisticsCallback != null)
+                    if (_options.TestOnTrainSet && statisticsCallback != null)
                     {
                         metrics.Train.Epoch = epoch;
                         metrics.Train.Accuracy /= metrics.Train.BatchProcessedCount;
@@ -1051,83 +1016,22 @@ namespace Microsoft.ML.Vision
                         metrics.Train.DatasetUsed = ImageClassificationMetrics.Dataset.Train;
                         statisticsCallback(metrics);
                     }
-                }
 
-                if (validationSet == null)
-                {
-                    //Early stopping check
-                    if (options.EarlyStoppingCriteria != null)
-                    {
-                        if (options.EarlyStoppingCriteria.ShouldStop(metrics.Train))
-                            break;
-                    }
-                    continue;
-                }
+                    if (!validationNeeded)
+                        continue;
 
-                batchIndex = 0;
-                metrics.Train.BatchProcessedCount = 0;
-                metrics.Train.Accuracy = 0;
-                metrics.Train.CrossEntropy = 0;
-                using (var cursor = validationSet.GetRowCursor(validationSet.Schema.ToArray()))
-                {
-                    var labelGetter = cursor.GetGetter<long>(validationSet.Schema[0]);
-                    var featuresGetter = cursor.GetGetter<VBuffer<float>>(featureColumn);
-                    while (cursor.MoveNext())
-                    {
-                        labelGetter(ref label);
-                        featuresGetter(ref features);
-                        classStatsValidate[label]++;
-                        // Buffer the values.
-                        for (int index = 0; index < featureLength; index += 1)
-                            featureBatch[batchIndex * featureLength + index] = featureValues[index];
-
-                        labelBatch[batchIndex] = label;
-                        batchIndex += 1;
-                        // Evaluate.
-                        if (batchIndex == batchSize)
-                        {
-                            var outputTensors = validationEvalRunner
-                                .AddInput(new Tensor(featureBatchPtr, featureTensorShape, TF_DataType.TF_FLOAT,
-                                                  featureBatchSizeInBytes), 0)
-                                .AddInput(new Tensor(labelBatchPtr, labelTensorShape, TF_DataType.TF_INT64,
-                                                  labelBatchSizeInBytes), 1)
-                                .Run();
-
-                            outputTensors[0].ToScalar<float>(ref accuracy);
-                            metrics.Train.Accuracy += accuracy;
-                            metrics.Train.BatchProcessedCount += 1;
-                            batchIndex = 0;
-
-                            outputTensors[0].Dispose();
-                        }
-                    }
-
-                    //Process last incomplete batch
-                    if (batchIndex > 0)
-                    {
-                        featureTensorShape[0] = batchIndex;
-                        featureBatchSizeInBytes = sizeof(float) * featureLength * batchIndex;
-                        labelTensorShape[0] = batchIndex;
-                        labelBatchSizeInBytes = sizeof(long) * batchIndex;
-                        var outputTensors = validationEvalRunner
-                                .AddInput(new Tensor(featureBatchPtr, featureTensorShape, TF_DataType.TF_FLOAT,
-                                                  featureBatchSizeInBytes), 0)
-                                .AddInput(new Tensor(labelBatchPtr, labelTensorShape, TF_DataType.TF_INT64,
-                                                  labelBatchSizeInBytes), 1)
-                                .Run();
-
-                        outputTensors[0].ToScalar<float>(ref accuracy);
-                        metrics.Train.Accuracy += accuracy;
-                        metrics.Train.BatchProcessedCount += 1;
-                        batchIndex = 0;
-
-                        featureTensorShape[0] = batchSize;
-                        featureBatchSizeInBytes = sizeof(float) * featureBatch.Length;
-                        labelTensorShape[0] = batchSize;
-                        labelBatchSizeInBytes = sizeof(long) * batchSize;
-
-                        outputTensors[0].Dispose();
-                    }
+                    // Evaluate.
+                    TrainAndEvaluateClassificationLayerCore(epoch, learningRate, featureFileStartOffset,
+                        metrics, labelTensorShape, featureTensorShape, batchSize,
+                        validationSetLabelReader, validationSetFeatureReader, labelBuffer, featuresBuffer,
+                        labelBufferSizeInBytes, featureBufferSizeInBytes, featureFileRecordSize, null,
+                        trainState, validationEvalRunner, featureBufferPtr, labelBufferPtr,
+                        (outputTensors, metrics) =>
+                            {
+                                outputTensors[0].ToScalar(ref accuracy);
+                                metrics.Train.Accuracy += accuracy;
+                                outputTensors[0].Dispose();
+                            });
 
                     if (statisticsCallback != null)
                     {
@@ -1136,19 +1040,80 @@ namespace Microsoft.ML.Vision
                         metrics.Train.DatasetUsed = ImageClassificationMetrics.Dataset.Validation;
                         statisticsCallback(metrics);
                     }
+
+                    //Early stopping check
+                    if (_options.EarlyStoppingCriteria != null)
+                    {
+                        if (_options.EarlyStoppingCriteria.ShouldStop(metrics.Train))
+                            break;
+                    }
                 }
 
-                //Early stopping check
-                if (options.EarlyStoppingCriteria != null)
-                {
-                    if (options.EarlyStoppingCriteria.ShouldStop(metrics.Train))
-                        break;
-                }
+                trainSaver.save(_session, _checkpointPath);
+                validationSetLabelReader?.Dispose();
+                validationSetFeatureReader?.Dispose();
+                featureBufferHandle.Free();
+                labelBufferHandle.Free();
             }
 
-            trainSaver.save(_session, _checkpointPath);
             UpdateTransferLearningModelOnDisk(_classCount);
             TryCleanupTemporaryWorkspace();
+        }
+
+        private void TrainAndEvaluateClassificationLayerCore(int epoch, float learningRate,
+            int featureFileStartOffset, ImageClassificationMetrics metrics,
+            long[] labelTensorShape, long[] featureTensorShape, int batchSize, Stream trainSetLabelReader,
+            Stream trainSetFeatureReader, byte[] labelBufferBytes, byte[] featuresBufferBytes,
+            int labelBufferSizeInBytes, int featureBufferSizeInBytes, int featureFileRecordSize,
+            LearningRateScheduler learningRateScheduler, DnnTrainState trainState, Runner runner,
+            IntPtr featureBufferPtr, IntPtr labelBufferPtr, Action<Tensor[],ImageClassificationMetrics> metricsAggregator)
+        {
+            int labelFileBytesRead;
+            int featuresFileBytesRead;
+            labelTensorShape[0] = featureTensorShape[0] = batchSize;
+            metrics.Train.Accuracy = 0;
+            metrics.Train.CrossEntropy = 0;
+            metrics.Train.BatchProcessedCount = 0;
+            metrics.Train.LearningRate = learningRate;
+            trainState.CurrentBatchIndex = 0;
+            trainState.CurrentEpoch = epoch;
+            trainSetLabelReader.Seek(0, SeekOrigin.Begin);
+            trainSetFeatureReader.Seek(featureFileStartOffset, SeekOrigin.Begin);
+            labelTensorShape[0] = featureTensorShape[0] = batchSize;
+
+            while ((labelFileBytesRead = trainSetLabelReader.TryReadBlock(labelBufferBytes, 0, labelBufferSizeInBytes)) > 0 &&
+                (featuresFileBytesRead = trainSetFeatureReader.TryReadBlock(featuresBufferBytes, 0, featureBufferSizeInBytes)) > 0)
+            {
+                Contracts.Assert(labelFileBytesRead <= labelBufferSizeInBytes);
+                Contracts.Assert(featuresFileBytesRead <= featureBufferSizeInBytes);
+                Contracts.Assert(labelFileBytesRead % sizeof(long) == 0);
+                Contracts.Assert(featuresFileBytesRead % featureFileRecordSize == 0);
+                Contracts.Assert(labelFileBytesRead / sizeof(long) == featuresFileBytesRead / featureFileRecordSize);
+
+                if (labelFileBytesRead < labelBufferSizeInBytes)
+                {
+                    featureTensorShape[0] = featuresFileBytesRead / featureFileRecordSize;
+                    labelTensorShape[0] = labelFileBytesRead / sizeof(long);
+                }
+
+                Contracts.Assert(featureTensorShape[0] <= featuresBufferBytes.Length / featureFileRecordSize);
+                Contracts.Assert(labelTensorShape[0] <= labelBufferBytes.Length / sizeof(long));
+
+                if (learningRateScheduler != null)
+                {
+                    // Add learning rate as a placeholder only when learning rate scheduling is used.
+                    metrics.Train.LearningRate = learningRateScheduler.GetLearningRate(trainState);
+                    runner.AddInput(new Tensor(metrics.Train.LearningRate, TF_DataType.TF_FLOAT), 2);
+                }
+
+                var outputTensors = runner.AddInput(new Tensor(featureBufferPtr, featureTensorShape, TF_DataType.TF_FLOAT, featuresFileBytesRead), 0)
+                                    .AddInput(new Tensor(labelBufferPtr, labelTensorShape, TF_DataType.TF_INT64, labelFileBytesRead), 1)
+                                    .Run();
+
+                metrics.Train.BatchProcessedCount += 1;
+                metricsAggregator(outputTensors, metrics);
+                trainState.CurrentBatchIndex += 1;
+            }
         }
 
         private void TryCleanupTemporaryWorkspace()
@@ -1310,7 +1275,7 @@ namespace Microsoft.ML.Vision
                 var optimizer = useLearningRateScheduler ? tf.train.GradientDescentOptimizer(_learningRateInput) :
                                     tf.train.GradientDescentOptimizer(learningRate);
 
-               _trainStep = optimizer.minimize(crossEntropyMean);
+                _trainStep = optimizer.minimize(crossEntropyMean);
             });
 
             return (_trainStep, crossEntropyMean, _labelTensor, _softMaxTensor);
@@ -1490,9 +1455,7 @@ namespace Microsoft.ML.Vision
 
             public Classifier(ImageClassificationModelParameters model)
             {
-                _runner = new Runner(model._session);
-                _runner.AddInput(model._graphInputTensor);
-                _runner.AddOutputs(model._graphOutputTensor);
+                _runner = new Runner(model._session, new[] { model._graphInputTensor }, new[] { model._graphOutputTensor });
                 _imageProcessor = new ImageClassificationTrainer.ImageProcessor(model._session,
                     model._imagePreprocessorTensorInput, model._imagePreprocessorTensorOutput);
             }

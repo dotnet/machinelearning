@@ -643,27 +643,15 @@ namespace Microsoft.ML.Transforms
                 {
                     if (_parent.Graph.graph_key != tf.get_default_graph().graph_key)
                         _parent.Session.graph.as_default();
-                    Runner runner = new Runner(_parent.Session);
+                    Runner runner = new Runner(_parent.Session, _parent.Inputs.ToArray(), _parent.Outputs.ToArray());
 
                     // Feed inputs to the graph.
-                     for (int i = 0; i < _parent.Inputs.Length; i++)
-                    {
-                        var tensor = srcTensorGetters[i].GetTensor();
-                        runner.AddInput(_parent.Inputs[i], tensor);
-                    }
-
-                    // Add outputs.
-                    for (int i = 0; i < _parent.Outputs.Length; i++)
-                        runner.AddOutputs(_parent.Outputs[i]);
+                    for (int i = 0; i < _parent.Inputs.Length; i++)
+                        runner.AddInput(srcTensorGetters[i].GetTensor(), i);
 
                     // Execute the graph.
                     var tensors = runner.Run();
-
-                    List<Tensor> inputTensors = runner.GetInputValues();
-                    foreach (Tensor inputTensor in inputTensors)
-                    {
-                        inputTensor.Dispose();
-                    }
+                    runner.Dispose();
 
                     Contracts.Assert(tensors.Length > 0);
 
