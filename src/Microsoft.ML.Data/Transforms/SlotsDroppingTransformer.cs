@@ -904,17 +904,20 @@ namespace Microsoft.ML.Transforms
                 }
                 else
                 {
-                    // ConstantOfShape does not support strings as output yet
+                    string constVal;
+                    long[] dims = { 1, 1 };
+                    float[] floatVals = { 0.0f };
+                    long[] keyVals = { 0 };
+                    string[] stringVals = { "" };
                     if (_rawTypes[iinfo] is TextDataViewType)
-                        return false;
+                        constVal = ctx.AddInitializer(stringVals, dims);
+                    else if (_rawTypes[iinfo] is KeyDataViewType)
+                        constVal = ctx.AddInitializer(keyVals, dims);
+                    else
+                        constVal = ctx.AddInitializer(floatVals, dims);
 
-                    opType = "ConstantOfShape";
-                    long[] outputShape = { 1, 1 };
-                    long[] valueShape = { 1 };
-                    float[] value = { 0.0f };
-                    var shapeVar = ctx.AddInitializer(outputShape, null, "Shape");
-                    var node = ctx.CreateNode(opType, shapeVar, dstVariableName, ctx.GetNodeName(opType), "");
-                    node.AddAttribute("value", value, valueShape);
+                    opType = "Identity";
+                    ctx.CreateNode(opType, constVal, dstVariableName, ctx.GetNodeName(opType), "");
                 }
                 return true;
             }

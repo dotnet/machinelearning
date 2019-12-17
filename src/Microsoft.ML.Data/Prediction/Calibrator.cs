@@ -1742,12 +1742,17 @@ namespace Microsoft.ML.Calibrators
             _host.CheckValue(scoreProbablityColumnNames, nameof(scoreProbablityColumnNames));
             _host.Check(Utils.Size(scoreProbablityColumnNames) == 2);
 
-            string opType = "Affine";
-            string linearOutput = ctx.AddIntermediateVariable(null, "linearOutput", true);
-            var node = ctx.CreateNode(opType, new[] { scoreProbablityColumnNames[0] },
-                new[] { linearOutput }, ctx.GetNodeName(opType), "");
-            node.AddAttribute("alpha", Slope * -1);
-            node.AddAttribute("beta", -0.0000001);
+            // The Affine operator is no longer supported in the v11 opset.
+            // So we have to decompose it using Mul and Add
+            string opType = "Mul";
+            var slopVar = ctx.AddInitializer((float)(-Slope), "Slope");
+            var mulNodeOutput = ctx.AddIntermediateVariable(null, "MulNodeOutput", true);
+            var node = ctx.CreateNode(opType, new[] { scoreProbablityColumnNames[0], slopVar }, new[] { mulNodeOutput }, ctx.GetNodeName(opType), "");
+
+            opType = "Add";
+            var betaVar = ctx.AddInitializer(-0.0000001f, "Slope");
+            var linearOutput = ctx.AddIntermediateVariable(null, "linearOutput", true);
+            node = ctx.CreateNode(opType, new[] { mulNodeOutput, betaVar }, new[] { linearOutput }, ctx.GetNodeName(opType), "");
 
             opType = "Sigmoid";
             node = ctx.CreateNode(opType, new[] { linearOutput },

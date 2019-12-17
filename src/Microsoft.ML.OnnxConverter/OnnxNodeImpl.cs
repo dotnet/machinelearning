@@ -45,7 +45,5 @@ namespace Microsoft.ML.Model.OnnxConverter
             => OnnxUtils.NodeAddAttributes(_node, argName, value);
         public override void AddAttribute(string argName, Type value)
             => OnnxUtils.NodeAddAttributes(_node, argName, value);
-        public override void AddAttribute(string argName, IEnumerable<float> value, IEnumerable<long> shape)
-            => OnnxUtils.NodeAddAttributes(_node, argName, value, shape);
     }
 }

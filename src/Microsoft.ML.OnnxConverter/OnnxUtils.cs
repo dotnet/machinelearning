@@ -162,16 +162,6 @@ namespace Microsoft.ML.Model.OnnxConverter
 
         private static AttributeProto MakeAttribute(string key, bool value) => MakeAttribute(key, value ? 1 : 0);
 
-        private static AttributeProto MakeAttribute(string key, IEnumerable<float> value, IEnumerable<long> shape)
-        {
-            Contracts.CheckValue(value, nameof(value));
-
-            AttributeProto attribute = MakeAttribute(key);
-            attribute.Type = AttributeProto.Types.AttributeType.Tensor;
-            attribute.T = MakeFloats(key, value, shape);
-            return attribute;
-        }
-
         public static NodeProto MakeNode(string opType, IEnumerable<string> inputs, IEnumerable<string> outputs, string name, string domain = null)
         {
             Contracts.CheckNonEmpty(opType, nameof(opType));
@@ -231,9 +221,6 @@ namespace Microsoft.ML.Model.OnnxConverter
             => node.Attribute.Add(MakeAttribute(argName, value));
         public static void NodeAddAttributes(NodeProto node, string argName, Type value)
             => node.Attribute.Add(MakeAttribute(argName, ConvertToTensorProtoType(value)));
-
-        public static void NodeAddAttributes(NodeProto node, string argName, IEnumerable<float> value, IEnumerable<long> shape)
-            => node.Attribute.Add(MakeAttribute(argName, value, shape));
 
         private static TensorProto.Types.DataType ConvertToTensorProtoType(Type rawType)
         {
