@@ -878,7 +878,10 @@ namespace Microsoft.ML.Tests.Transformers
             var model = pipeline.Fit(dataset);
             var memoryUsage = GC.GetTotalMemory(true);
             Console.WriteLine($"Memory Used: {memoryUsage / 1000000:0,0.00}MB");
-            Assert.True(memoryUsage < 100000000, $"This benchmark should use less than 100MB of memory, but it's using {memoryUsage / 1000000:0,0.00}MB"); // Memory usage should be less than 1GB after PR https://github.com/dotnet/machinelearning/pull/4576
+
+            // Notice that without PR https://github.com/dotnet/machinelearning/pull/4576
+            // "memoryUsage" is over 2.5GB, with that PR, it becomes 50MB approx.
+            Assert.True(memoryUsage < 100000000, $"This benchmark should use less than 100MB of memory, but it's using {memoryUsage / 1000000:0,0.00}MB");
         }
     }
 }
