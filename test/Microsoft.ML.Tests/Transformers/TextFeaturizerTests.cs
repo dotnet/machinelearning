@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -762,6 +763,122 @@ namespace Microsoft.ML.Tests.Transformers
                 Assert.Equal(input.Sentiment, prediction.Sentiment);
                 Assert.True(input.Sentiment && prediction.Score > 1 || !input.Sentiment && prediction.Score < -1);
             }
+        }
+
+        private class RandomFile
+        {
+            public static int numColumns = 1000;
+            public static int numRows = 300;
+            public static int maxWordLength = 15;
+
+            public static string CreateRandomFile(string path)
+            {
+                // Create file with random strings
+                // to use as dataset of the benchmark
+
+                Random random = new Random(1);
+
+                using (StreamWriter file = new StreamWriter(path))
+                {
+                    for (int i = 0; i < numRows; i++)
+                        file.WriteLine(CreateRandomLine(numColumns, random));
+                }
+                return path;
+            }
+
+            public static string CreateRandomLine(int columns, Random random)
+            {
+                var lineSB = new System.Text.StringBuilder();
+                for (int i = 0; i < columns; i++)
+                {
+                    lineSB.Append(CreateRandomColumn(random, random.Next(100)));
+                    lineSB.Append(",");
+                }
+                return lineSB.ToString();
+            }
+
+            public static string CreateRandomColumn(Random random, int numwords)
+            {
+                const string characters =
+                    "01234567890" +
+                    "abcdefghijklmnopqrstuvwxyz" +
+                    "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+                var columnSB = new System.Text.StringBuilder();
+                int wordLength;
+
+                for (int i = 0; i < numwords; i++)
+                {
+                    wordLength = random.Next(1, maxWordLength);
+                    for (int j = 0; j < wordLength; j++)
+                        columnSB.Append(characters[random.Next(characters.Length)]);
+
+                    columnSB.Append(" ");
+                }
+
+                if (random.Next(2) == 0) // sometimes return the column as lowercase
+                    return columnSB.ToString().ToLower();
+
+                return columnSB.ToString();
+            }
+        }
+
+        [Fact]
+        public void TestTextFeaturizeMemoryUsage()
+        {
+            int numColumns = RandomFile.numColumns;
+
+            Path.GetTempFileName();
+            var path = Path.GetTempFileName();
+            Console.WriteLine($"Created dataset in temporary file:\n{path}\n");
+            path = RandomFile.CreateRandomFile(path);
+
+            var columns = new List<TextLoader.Column>();
+            for (int i = 0; i < numColumns; i++)
+            {
+                columns.Add(new TextLoader.Column($"Column{i}", DataKind.String, i));
+            }
+
+            var textLoader = ML.Data.CreateTextLoader(new TextLoader.Options()
+            {
+                Columns = columns.ToArray(),
+                HasHeader = false,
+                Separators = new char[] { ',' }
+            });
+
+            var dataset = textLoader.Load(path);
+
+            var textColumns = new List<string>();
+            for (int i = 0; i < 20; i++) // Only load first 20 columns
+            {
+                textColumns.Add($"Column{i}");
+            }
+
+            var featurizers = new List<TextFeaturizingEstimator>();
+            foreach (var textColumn in textColumns)
+            {
+                var featurizer = ML.Transforms.Text.FeaturizeText(textColumn, new TextFeaturizingEstimator.Options()
+                {
+                    CharFeatureExtractor = null,
+                    WordFeatureExtractor = new WordBagEstimator.Options()
+                    {
+                        NgramLength = 2,
+                        MaximumNgramsCount = new int[] { 200000 }
+                    }
+                });
+                featurizers.Add(featurizer);
+            }
+
+            IEstimator<ITransformer> pipeline = featurizers.First();
+            foreach (var featurizer in featurizers.Skip(1))
+            {
+                pipeline = pipeline.Append(featurizer);
+            }
+
+            var model = pipeline.Fit(dataset);
+            var memoryUsage = GC.GetTotalMemory(true);
+            Console.WriteLine($"Memory Used: {memoryUsage / 1000000:0,0.00}MB");
+            Assert.True(memoryUsage < 100000000, $"This benchmark should use less than 100MB of memory, but it's using {memoryUsage / 1000000:0,0.00}MB"); // Memory usage should be less than 1GB after PR https://github.com/dotnet/machinelearning/pull/4576
         }
     }
 }
