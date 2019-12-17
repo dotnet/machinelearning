@@ -429,13 +429,13 @@ namespace Microsoft.ML.Data
             Contracts.Assert(Utils.Size(outputNames) == 3); // Predicted Label, Score and Probablity.
 
             // Prior doesn't have a feature column and uses the training label column to determine predicted labels
-            if (!schema.Feature.HasValue) {
+            if (!schema.Feature.HasValue)
+            {
                 Contracts.Assert(schema.Label.HasValue);
                 var labelColumnName = schema.Label.Value.Name;
                 return mapper.SaveAsOnnx(ctx, outputNames, ctx.GetVariableName(labelColumnName));
             }
 
-            Contracts.Assert(schema.Feature.HasValue);
             var featName = schema.Feature.Value.Name;
             if (!ctx.ContainsColumn(featName))
                 return false;

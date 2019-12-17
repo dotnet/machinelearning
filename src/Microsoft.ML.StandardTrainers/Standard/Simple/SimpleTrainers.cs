@@ -398,6 +398,7 @@ namespace Microsoft.ML.Trainers
             Contracts.Assert(!float.IsNaN(_prob));
             ctx.Writer.Write(_prob);
         }
+
         bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputs, string labelColumn)
         {
             Host.CheckValue(ctx, nameof(ctx));
@@ -408,7 +409,7 @@ namespace Microsoft.ML.Trainers
             var prob = ctx.AddInitializer(_prob, "probability");
             var score = ctx.AddInitializer(_raw, "score");
 
-            var xorOutput = ctx.AddIntermediateVariable(null,"XorOutput", true);
+            var xorOutput = ctx.AddIntermediateVariable(null, "XorOutput", true);
             string opType = "Xor";
             ctx.CreateNode(opType, new[] { labelColumn, labelColumn }, new[] { xorOutput }, ctx.GetNodeName(opType), "");
 
