@@ -370,6 +370,7 @@ namespace Microsoft.ML.Data
     {
         internal readonly string ThresholdColumn;
         internal readonly float Threshold;
+        internal readonly string LabelColumnName;
 
         [BestFriend]
         internal BinaryPredictionTransformer(IHostEnvironment env, TModel model, DataViewSchema inputSchema, string featureColumn,
@@ -383,6 +384,17 @@ namespace Microsoft.ML.Data
             SetScorer();
         }
 
+        internal BinaryPredictionTransformer(IHostEnvironment env, TModel model, DataViewSchema inputSchema, string featureColumn, string labelColumn,
+            float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(BinaryPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
+        {
+            Host.CheckNonEmpty(thresholdColumn, nameof(thresholdColumn));
+            Threshold = threshold;
+            ThresholdColumn = thresholdColumn;
+            LabelColumnName = labelColumn;
+
+            SetScorer();
+        }
         internal BinaryPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(BinaryPredictionTransformer<TModel>)), ctx)
         {
@@ -409,7 +421,7 @@ namespace Microsoft.ML.Data
 
         private void SetScorer()
         {
-            var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumnName);
+            var schema = new RoleMappedSchema(TrainSchema, LabelColumnName, FeatureColumnName);
             var args = new BinaryClassifierScorer.Arguments { Threshold = Threshold, ThresholdColumn = ThresholdColumn };
             Scorer = new BinaryClassifierScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }

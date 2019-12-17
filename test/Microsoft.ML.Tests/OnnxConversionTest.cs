@@ -270,6 +270,7 @@ namespace Microsoft.ML.Tests
                 mlContext.BinaryClassification.Trainers.FastTree(),
                 mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(),
                 mlContext.BinaryClassification.Trainers.LinearSvm(),
+                mlContext.BinaryClassification.Trainers.Prior(),
                 mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(),
                 mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(),
                 mlContext.BinaryClassification.Trainers.SgdCalibrated(),
@@ -301,8 +302,8 @@ namespace Microsoft.ML.Tests
                     var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                     var onnxTransformer = onnxEstimator.Fit(dataView);
                     var onnxResult = onnxTransformer.Transform(dataView);
-                    CompareSelectedR4ScalarColumns(transformedData.Schema[5].Name, outputNames[3], transformedData, onnxResult, 3);
-                    CompareSelectedScalarColumns<Boolean>(transformedData.Schema[4].Name, outputNames[2], transformedData, onnxResult);
+                    CompareSelectedR4ScalarColumns(transformedData.Schema[5].Name, outputNames[3], transformedData, onnxResult, 3); //compare scores
+                    CompareSelectedScalarColumns<Boolean>(transformedData.Schema[4].Name, outputNames[2], transformedData, onnxResult); //compare predicted labels
                 }
             }
             Done();

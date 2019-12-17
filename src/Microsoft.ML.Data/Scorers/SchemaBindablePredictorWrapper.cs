@@ -426,8 +426,15 @@ namespace Microsoft.ML.Data
 
             var mapper = ValueMapper as ISingleCanSaveOnnx;
             Contracts.CheckValue(mapper, nameof(mapper));
-            Contracts.Assert(schema.Feature.HasValue);
             Contracts.Assert(Utils.Size(outputNames) == 3); // Predicted Label, Score and Probablity.
+
+            // Prior doesn't have a feature column and uses the training label column to determine predicted labels
+            if (!schema.Feature.HasValue)
+            {
+                Contracts.Assert(schema.Label.HasValue);
+                var labelColumnName = schema.Label.Value.Name;
+                return mapper.SaveAsOnnx(ctx, outputNames, ctx.GetVariableName(labelColumnName));
+            }
 
             var featName = schema.Feature.Value.Name;
             if (!ctx.ContainsColumn(featName))
@@ -511,7 +518,7 @@ namespace Microsoft.ML.Data
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
             {
-                yield return RoleMappedSchema.ColumnRole.Feature.Bind(InputRoleMappedSchema.Feature?.Name);
+                yield return (InputRoleMappedSchema.Feature.HasValue) ? RoleMappedSchema.ColumnRole.Feature.Bind(InputRoleMappedSchema.Feature?.Name) : RoleMappedSchema.ColumnRole.Label.Bind(InputRoleMappedSchema.Label?.Name);
             }
 
             private Delegate[] CreateGetters(DataViewRow input, bool[] active)
