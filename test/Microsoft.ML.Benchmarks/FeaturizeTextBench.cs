@@ -80,7 +80,7 @@ namespace Microsoft.ML.Benchmarks
             var model = pipeline.Fit(dataset);
             var memoryUsage = GC.GetTotalMemory(true);
             Console.WriteLine($"Memory Used: {memoryUsage/1000000:0,0.00}MB");
-            Assert.True(memoryUsage < 400000000, $"This benchmark should use less than 400MB of memory, but it's using {memoryUsage/1000000:0,0.00}MB"); // Memory usage should be less than 1GB after PR https://github.com/dotnet/machinelearning/pull/4576
+            Assert.True(memoryUsage < 240000000, $"This benchmark should use less than 240MB of memory, but it's using {memoryUsage/1000000:0,0.00}MB"); // Memory usage should be less than 1GB after PR https://github.com/dotnet/machinelearning/pull/4576
 
             return model;
         }
