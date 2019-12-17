@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
@@ -218,6 +219,32 @@ namespace Microsoft.ML.Featurizers
                 return TypeId.String;
 
             throw new InvalidOperationException($"Unsupported type {type}");
+        }
+
+        // The Native Featurizers do not currently support CentOS7, this method checks the OS and returns true if it is CentOS7.
+        internal static bool OsIsCentOS7()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                using (Process process = new Process())
+                {
+                    process.StartInfo.FileName = "/bin/bash";
+                    process.StartInfo.Arguments = "-c \"cat /etc/*-release\"";
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.RedirectStandardOutput = true;
+                    process.StartInfo.CreateNoWindow = true;
+                    process.Start();
+
+                    string distro = process.StandardOutput.ReadToEnd().Trim();
+
+                    process.WaitForExit();
+                    if (distro.Contains("CentOS Linux 7"))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
     }
 }
