@@ -82,6 +82,41 @@ namespace Microsoft.ML.Benchmarks
             Console.WriteLine($"Memory Used: {memoryUsage/1000000:0,0.00}MB");
             Assert.True(memoryUsage < 240000000, $"This benchmark should use less than 240MB of memory, but it's using {memoryUsage/1000000:0,0.00}MB"); // Memory usage should be less than 1GB after PR https://github.com/dotnet/machinelearning/pull/4576
 
+            // BENCHMARK OUTPUT
+            // * Summary *
+
+            //BenchmarkDotNet = v0.11.3, OS = Windows 10.0.18363
+            //Intel Xeon W - 2133 CPU 3.60GHz, 1 CPU, 12 logical and 6 physical cores
+            //.NET Core SDK = 3.0.100
+            //[Host]     : .NET Core 2.1.13(CoreCLR 4.6.28008.01, CoreFX 4.6.28008.01), 64bit RyuJIT
+            //Job - KDKCUJ : .NET Core 2.1.13(CoreCLR 4.6.28008.01, CoreFX 4.6.28008.01), 64bit RyuJIT
+
+            //Arguments =/ p:Configuration = Release  Toolchain = netcoreapp2.1  IterationCount = 1
+            //LaunchCount = 3  MaxIterationCount = 20  RunStrategy = ColdStart
+            //UnrollFactor = 1  WarmupCount = 1
+
+            //             Method | Mean     | Error    | StdDev    | Extra Metric  | Gen 0 / 1k Op | Gen 1 / 1k Op | Gen 2 / 1k Op | Allocated Memory / Op |
+            //------------------- | --------:| --------:| ---------:| -------------:| -------------:| ------------: | ------------: | --------------------: |
+            // TrainFeaturizeText | 17.00 s  | 6.337 s  | 0.3474 s  | -             | 1949000.0000  | 721000.0000   | 36000.0000    | 315.48 MB             |
+
+            //// * Legends *
+            //  Mean                : Arithmetic mean of all measurements
+            //  Error               : Half of 99.9 % confidence interval
+            //  StdDev              : Standard deviation of all measurements
+            //  Extra Metric: Value of the provided extra metric
+            //  Gen 0 / 1k Op         : GC Generation 0 collects per 1k Operations
+            //  Gen 1 / 1k Op         : GC Generation 1 collects per 1k Operations
+            //  Gen 2 / 1k Op         : GC Generation 2 collects per 1k Operations
+            //  Allocated Memory/ Op : Allocated memory per single operation(managed only, inclusive, 1KB = 1024B)
+            //  1 s: 1 Second(1 sec)
+
+            //// * Diagnostic Output - MemoryDiagnoser *
+            //// ***** BenchmarkRunner: End *****
+            //  Run time: 00:01:52(112.92 sec), executed benchmarks: 1
+
+            //// * Artifacts cleanup *
+            //  Global total time: 00:01:59(119.89 sec), executed benchmarks: 1
+
             return model;
         }
 
