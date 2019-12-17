@@ -140,7 +140,7 @@ namespace Microsoft.ML.Internal.Utilities
                 {
                     // To avoid the case where 'str' actually stores a string with the
                     // content of a whole row in the dataset, a new 'str' is created
-                    // See issue https://github.com/dotnet/machinelearning/issues/4571 
+                    // See issue https://github.com/dotnet/machinelearning/issues/4571
                     // and PR https://github.com/dotnet/machinelearning/pull/4576
                     return add ? AddCore(str.ToString().AsMemory(), hash) : null;
                 }
@@ -156,9 +156,9 @@ namespace Microsoft.ML.Internal.Utilities
                 return Get(str, true);
             }
 
-            public NormStr Add(ReadOnlyMemory<char> str)
+            public NormStr Add(ReadOnlyMemory<char> str, bool duplicateStr = true)
             {
-                return Get(str, true);
+                return Get(str, true, duplicateStr);
             }
 
             /// <summary>
