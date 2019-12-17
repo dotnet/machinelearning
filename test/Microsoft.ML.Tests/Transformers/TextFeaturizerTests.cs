@@ -877,7 +877,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var model = pipeline.Fit(dataset);
             var memoryUsage = GC.GetTotalMemory(true);
-            Console.WriteLine($"Memory Used: {memoryUsage / 1000000:0,0.00}MB");
+            // Console.WriteLine($"Memory Used: {memoryUsage / 1000000:0,0.00}MB");
 
             // Notice that without PR https://github.com/dotnet/machinelearning/pull/4576
             // "memoryUsage" is over 2.5GB, with that PR, it becomes 50MB approx.
