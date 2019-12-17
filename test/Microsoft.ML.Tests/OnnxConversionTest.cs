@@ -1254,7 +1254,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        public void CountFeatureSelectionOnnxTest()
+        public void FeatureSelectionOnnxTest()
         {
             var mlContext = new MLContext(seed: 1);
 
@@ -1264,6 +1264,7 @@ namespace Microsoft.ML.Tests
                 new TextLoader.Column("ScalarFloat", DataKind.Single, 6),
                 new TextLoader.Column("VectorFloat", DataKind.Single, 1, 4),
                 new TextLoader.Column("VectorDouble", DataKind.Double, 4, 8),
+                new TextLoader.Column("Label", DataKind.Boolean, 0)
             });
 
             var columns = new[] {
@@ -1274,7 +1275,9 @@ namespace Microsoft.ML.Tests
                 new CountFeatureSelectingEstimator.ColumnOptions("VecFeatureSelectMissing100", "VectorDouble", count: 100)
             };
             var pipeline = ML.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("FeatureSelect", "VectorFloat", count: 1)
-                .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnCount(columns));
+                .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnCount(columns))
+                .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("FeatureSelectMIScalarFloat", "ScalarFloat"))
+                .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("FeatureSelectMIVectorFloat", "VectorFloat"));
 
             var model = pipeline.Fit(dataView);
             var transformedData = model.Transform(dataView);
@@ -1293,6 +1296,8 @@ namespace Microsoft.ML.Tests
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
+                CompareSelectedR4ScalarColumns("FeatureSelectMIScalarFloat", "FeatureSelectMIScalarFloat0", transformedData, onnxResult);
+                CompareSelectedR4VectorColumns("FeatureSelectMIVectorFloat", "FeatureSelectMIVectorFloat0", transformedData, onnxResult);
                 CompareSelectedR4ScalarColumns("ScalFeatureSelectMissing690", "ScalFeatureSelectMissing6900", transformedData, onnxResult);
                 CompareSelectedR8VectorColumns("VecFeatureSelectMissing690", "VecFeatureSelectMissing6900", transformedData, onnxResult);
             }
