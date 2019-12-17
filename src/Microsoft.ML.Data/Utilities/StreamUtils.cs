@@ -174,5 +174,40 @@ namespace Microsoft.ML.Internal.Utilities
             return matchList.ToArray();
         }
 #endif
+
+        public static string ReadEntry(this TextReader sr)
+        {
+            string strReturn = string.Empty;
+
+            // get first bit
+            strReturn += sr.ReadLine();
+
+            // And get more lines until the number of quotes is even
+            while (strReturn.GetNumberOf("\"").IsOdd())
+            {
+                string strNow = sr.ReadLine();
+                strReturn += strNow;
+            }
+
+            // Then return what we've gotten
+            if (strReturn == string.Empty)
+            {
+                return null;
+            }
+            else
+            {
+                return strReturn;
+            }
+        }
+
+        public static int GetNumberOf(this string s, string strSearchString)
+        {
+            return s.Length - s.Replace(strSearchString, string.Empty).Length;
+        }
+
+        public static bool IsOdd(this int i)
+        {
+            return i % 2 != 0;
+        }
     }
 }
