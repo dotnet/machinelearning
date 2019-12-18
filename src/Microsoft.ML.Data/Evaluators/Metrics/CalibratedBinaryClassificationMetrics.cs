@@ -49,5 +49,15 @@ namespace Microsoft.ML.Data
             LogLossReduction = Fetch(BinaryClassifierEvaluator.LogLossReduction);
             Entropy = Fetch(BinaryClassifierEvaluator.Entropy);
         }
+
+        [BestFriend]
+        internal CalibratedBinaryClassificationMetrics(double auc, double accuracy, double positivePrecision, double positiveRecall,
+            double negativePrecision, double negativeRecall, double f1Score, double auprc, double logLoss, double logLossReduction, double entropy)
+            : base(auc, accuracy, positivePrecision, positiveRecall, negativePrecision, negativeRecall, f1Score, auprc)
+        {
+            LogLoss = logLoss;
+            LogLossReduction = logLossReduction;
+            Entropy = entropy;
+        }
     }
 }
