@@ -632,7 +632,7 @@ namespace Microsoft.ML.Transforms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in ReadOnlyMemory<char> value)
-                => value.IsEmpty ? 0 : (Hashing.MurmurHashV2(seed, value.Span) & mask);
+                => value.IsEmpty ? 0 : (Hashing.MurmurHashV2(seed, value.Span));
         }
 
         private readonly struct HashKey1 : IHasher<byte>
@@ -1087,12 +1087,6 @@ namespace Microsoft.ML.Transforms
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariable, string dstVariable)
             {
                 string opType;
-/*
-                opType = "Cast";
-                string castOutput = ctx.AddIntermediateVariable(_types[iinfo], "CastOutput", true);
-                var castNode = ctx.CreateNode(opType, srcVariable, castOutput, ctx.GetNodeName(opType), "");
-                var t = _types[iinfo].RawType;//OutputKind.ToInternalDataKind().ToType();
-                castNode.AddAttribute("to", t);*/
 
                 opType = "MurmurHash3";
                 string murmurOutput = ctx.AddIntermediateVariable(_types[iinfo], "MurmurOutput", true);
@@ -1100,17 +1094,6 @@ namespace Microsoft.ML.Transforms
                 murmurNode.AddAttribute("positive", 1);
                 var seed = _parent._columns[iinfo].Seed;
                 murmurNode.AddAttribute("seed", seed);
-
-                /*
-                opType = "And";
-                var mask = (1U << _parent._columns[iinfo].NumberOfBits) - 1;
-                string m = ctx.AddInitializer(mask);
-                string andOutput = ctx.AddIntermediateVariable(_types[iinfo], "andOutput", true);
-                var andNode = ctx.CreateNode(opType, new[] { murmurOutput, m}, new[] { andOutput}, ctx.GetNodeName(opType), "");
-
-                opType = "Add";
-                string one = ctx.AddInitializer(1);
-                var addNode = ctx.CreateNode(opType, new[] { andOutput, one }, new[] { dstVariable }, ctx.GetNodeName(opType), "");*/
 
                 return true;
             }
