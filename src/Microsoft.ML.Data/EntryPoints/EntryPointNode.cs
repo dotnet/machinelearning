@@ -293,9 +293,9 @@ namespace Microsoft.ML.EntryPoints
             _ectx.AssertValue(type);
 
             if (binding is ArrayIndexVariableBinding)
-                type = Utils.MarshalInvoke(MakeArray<int>, type);
+                type = type.MakeArrayType();
             else if (binding is DictionaryKeyVariableBinding)
-                type = Utils.MarshalInvoke(MakeDictionary<int>, type);
+                type = typeof(Dictionary<,>).MakeGenericType(typeof(string), type);
 
             EntryPointVariable v;
             if (!_vars.TryGetValue(binding.VariableName, out v))
@@ -306,16 +306,6 @@ namespace Microsoft.ML.EntryPoints
             else if (v.Type != type)
                 throw _ectx.Except($"Variable '{v.Name}' is used as {v.Type} and as {type}");
             v.MarkUsage(true);
-        }
-
-        private Type MakeArray<T>()
-        {
-            return typeof(T[]);
-        }
-
-        private Type MakeDictionary<T>()
-        {
-            return typeof(Dictionary<string, T>);
         }
 
         public void RemoveVariable(EntryPointVariable variable)

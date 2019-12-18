@@ -445,6 +445,12 @@ namespace Microsoft.ML.Transforms
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
         {
+            private static readonly FuncInstanceMethodInfo1<Mapper, Delegate> _makeOneTrivialGetterMethodInfo
+                = FuncInstanceMethodInfo1<Mapper, Delegate>.Create(target => target.MakeOneTrivialGetter<int>);
+
+            private static readonly FuncInstanceMethodInfo1<Mapper, Delegate> _makeVecTrivialGetterMethodInfo
+                = FuncInstanceMethodInfo1<Mapper, Delegate>.Create(target => target.MakeVecTrivialGetter<int>);
+
             private readonly SlotsDroppingTransformer _parent;
             private readonly int[] _cols;
             private readonly DataViewType[] _srcTypes;
@@ -732,9 +738,7 @@ namespace Microsoft.ML.Transforms
                 Host.Assert(!(_srcTypes[iinfo] is VectorDataViewType));
                 Host.Assert(_suppressed[iinfo]);
 
-                Func<ValueGetter<int>> del = MakeOneTrivialGetter<int>;
-                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_srcTypes[iinfo].RawType);
-                return (Delegate)methodInfo.Invoke(this, new object[0]);
+                return Utils.MarshalInvoke(_makeOneTrivialGetterMethodInfo, this, _srcTypes[iinfo].RawType);
             }
 
             private ValueGetter<TDst> MakeOneTrivialGetter<TDst>()
@@ -755,9 +759,7 @@ namespace Microsoft.ML.Transforms
                 VectorDataViewType vectorType = (VectorDataViewType)_srcTypes[iinfo];
                 Host.Assert(_suppressed[iinfo]);
 
-                Func<ValueGetter<VBuffer<int>>> del = MakeVecTrivialGetter<int>;
-                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(vectorType.ItemType.RawType);
-                return (Delegate)methodInfo.Invoke(this, new object[0]);
+                return Utils.MarshalInvoke(_makeVecTrivialGetterMethodInfo, this, vectorType.ItemType.RawType);
             }
 
             private ValueGetter<VBuffer<TDst>> MakeVecTrivialGetter<TDst>()

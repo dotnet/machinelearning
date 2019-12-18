@@ -99,11 +99,12 @@ namespace Microsoft.ML.Transforms
     {
         private sealed class Visitor : ExprVisitor
         {
+            private static readonly MethodInfo _methGetFalseBL = ((Func<BL>)BuiltinFunctions.False).GetMethodInfo();
+            private static readonly MethodInfo _methGetTrueBL = ((Func<BL>)BuiltinFunctions.True).GetMethodInfo();
+
             private MethodGenerator _meth;
             private ILGenerator _gen;
             private List<Error> _errors;
-            private readonly MethodInfo _methGetFalseBL;
-            private readonly MethodInfo _methGetTrueBL;
 
             private sealed class CachedWithLocal
             {
@@ -140,14 +141,6 @@ namespace Microsoft.ML.Transforms
             {
                 _meth = meth;
                 _gen = meth.Il;
-
-                Func<BL> f = BuiltinFunctions.False;
-                Contracts.Assert(f.Target == null);
-                _methGetFalseBL = f.GetMethodInfo();
-
-                Func<BL> t = BuiltinFunctions.True;
-                Contracts.Assert(t.Target == null);
-                _methGetTrueBL = t.GetMethodInfo();
 
                 _cacheWith = new List<CachedWithLocal>();
             }

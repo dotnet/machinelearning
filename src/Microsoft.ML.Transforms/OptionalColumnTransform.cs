@@ -245,6 +245,9 @@ namespace Microsoft.ML.Transforms
                 loaderAssemblyName: typeof(OptionalColumnTransform).Assembly.FullName);
         }
 
+        private static readonly FuncInstanceMethodInfo1<OptionalColumnTransform, Delegate> _makeGetterOneMethodInfo
+            = FuncInstanceMethodInfo1<OptionalColumnTransform, Delegate>.Create(target => target.MakeGetterOne<int>);
+
         private readonly Bindings _bindings;
 
         private const string RegistrationName = "OptionalColumn";
@@ -404,7 +407,7 @@ namespace Microsoft.ML.Transforms
             var columnType = _bindings.ColumnTypes[iinfo];
             if (columnType is VectorDataViewType vectorType)
                 return Utils.MarshalInvoke(MakeGetterVec<int>, vectorType.ItemType.RawType, vectorType.Size);
-            return Utils.MarshalInvoke(MakeGetterOne<int>, columnType.RawType);
+            return Utils.MarshalInvoke(_makeGetterOneMethodInfo, this, columnType.RawType);
         }
 
         private Delegate MakeGetterOne<T>()
@@ -420,6 +423,9 @@ namespace Microsoft.ML.Transforms
 
         private sealed class Cursor : SynchronizedCursorBase
         {
+            private static readonly FuncInstanceMethodInfo1<Cursor, Delegate> _makeGetterOneMethodInfo
+                = FuncInstanceMethodInfo1<Cursor, Delegate>.Create(target => target.MakeGetterOne<int>);
+
             private readonly Bindings _bindings;
             private readonly bool[] _active;
             private readonly Delegate[] _getters;
@@ -484,7 +490,7 @@ namespace Microsoft.ML.Transforms
                 var columnType = _bindings.ColumnTypes[iinfo];
                 if (columnType is VectorDataViewType vectorType)
                     return Utils.MarshalInvoke(MakeGetterVec<int>, vectorType.ItemType.RawType, vectorType.Size);
-                return Utils.MarshalInvoke(MakeGetterOne<int>, columnType.RawType);
+                return Utils.MarshalInvoke(_makeGetterOneMethodInfo, this, columnType.RawType);
             }
 
             private Delegate MakeGetterOne<T>()

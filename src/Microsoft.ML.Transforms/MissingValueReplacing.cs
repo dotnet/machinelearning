@@ -371,14 +371,11 @@ namespace Microsoft.ML.Transforms
 
         private object GetDefault(DataViewType type)
         {
-            Func<object> func = GetDefault<int>;
-            var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.GetItemType().RawType);
-            return meth.Invoke(this, null);
-        }
+            var rawType = type.GetItemType().RawType;
+            if (rawType.IsValueType)
+                return Activator.CreateInstance(rawType);
 
-        private object GetDefault<T>()
-        {
-            return default(T);
+            return null;
         }
 
         /// <summary>

@@ -15,6 +15,9 @@ namespace Microsoft.ML.Data.DataLoadSave
     [BestFriend]
     internal static class FakeSchemaFactory
     {
+        private static readonly FuncStaticMethodInfo1<Delegate> _getDefaultVectorGetterMethodInfo = new FuncStaticMethodInfo1<Delegate>(GetDefaultVectorGetter<int>);
+        private static readonly FuncStaticMethodInfo1<Delegate> _getDefaultGetterMethodInfo = new FuncStaticMethodInfo1<Delegate>(GetDefaultGetter<int>);
+
         private const int AllVectorSizes = 10;
         private const int AllKeySizes = 10;
 
@@ -31,9 +34,9 @@ namespace Microsoft.ML.Data.DataLoadSave
                     var metaColumnType = MakeColumnType(partialAnnotations[j]);
                     Delegate del;
                     if (metaColumnType is VectorDataViewType vectorType)
-                        del = Utils.MarshalInvoke(GetDefaultVectorGetter<int>, vectorType.ItemType.RawType);
+                        del = Utils.MarshalInvoke(_getDefaultVectorGetterMethodInfo, vectorType.ItemType.RawType);
                     else
-                        del = Utils.MarshalInvoke(GetDefaultGetter<int>, metaColumnType.RawType);
+                        del = Utils.MarshalInvoke(_getDefaultGetterMethodInfo, metaColumnType.RawType);
                     metaBuilder.Add(partialAnnotations[j].Name, metaColumnType, del);
                 }
                 builder.AddColumn(shape[i].Name, MakeColumnType(shape[i]), metaBuilder.ToAnnotations());

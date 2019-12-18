@@ -832,6 +832,15 @@ namespace Microsoft.ML.Data
     /// <typeparam name="T">Type of the annotation value.</typeparam>
     internal sealed class AnnotationInfo<T> : AnnotationInfo
     {
+        private static readonly FuncInstanceMethodInfo1<AnnotationInfo<T>, Delegate> _getArrayGetterMethodInfo
+            = FuncInstanceMethodInfo1<AnnotationInfo<T>, Delegate>.Create(target => target.GetArrayGetter<int>);
+
+        private static readonly FuncInstanceMethodInfo1<AnnotationInfo<T>, Delegate> _getGetterCoreMethodInfo
+            = FuncInstanceMethodInfo1<AnnotationInfo<T>, Delegate>.Create(target => target.GetGetterCore<int>);
+
+        private static readonly FuncInstanceMethodInfo1<AnnotationInfo<T>, Delegate> _getVBufferGetterMethodInfo
+            = FuncInstanceMethodInfo1<AnnotationInfo<T>, Delegate>.Create(target => target.GetVBufferGetter<int>);
+
         public readonly T Value;
 
         /// <summary>
@@ -900,10 +909,7 @@ namespace Microsoft.ML.Data
                 // T[] -> VBuffer<T>
                 Contracts.Check(itemType == dstItemType);
 
-                Func<ValueGetter<VBuffer<int>>> srcMethod = GetArrayGetter<int>;
-
-                return srcMethod.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(dstItemType)
-                    .Invoke(this, new object[] { }) as ValueGetter<TDst>;
+                return Utils.MarshalInvoke(_getArrayGetterMethodInfo, this, dstItemType) as ValueGetter<TDst>;
             }
             if (AnnotationType is VectorDataViewType annotationVectorType)
             {
@@ -919,10 +925,7 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(itemType == annotationVectorType.ItemType.RawType);
                 Contracts.Check(itemType == dstItemType);
 
-                Func<ValueGetter<VBuffer<int>>> srcMethod = GetVBufferGetter<int>;
-                return srcMethod.GetMethodInfo().GetGenericMethodDefinition()
-                    .MakeGenericMethod(annotationVectorType.ItemType.RawType)
-                    .Invoke(this, new object[] { }) as ValueGetter<TDst>;
+                return Utils.MarshalInvoke(_getVBufferGetterMethodInfo, this, annotationVectorType.ItemType.RawType) as ValueGetter<TDst>;
             }
             if (AnnotationType is PrimitiveDataViewType)
             {
@@ -948,7 +951,7 @@ namespace Microsoft.ML.Data
 
         internal override Delegate GetGetterDelegate()
         {
-            return Utils.MarshalInvoke(GetGetterCore<int>, AnnotationType.RawType);
+            return Utils.MarshalInvoke(_getGetterCoreMethodInfo, this, AnnotationType.RawType);
         }
 
         private void GetStringArray(ref VBuffer<ReadOnlyMemory<char>> dst)
