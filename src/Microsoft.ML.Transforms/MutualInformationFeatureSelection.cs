@@ -33,7 +33,7 @@ namespace Microsoft.ML.Transforms
     /// | Input column data type | Vector or scalar of numeric, [text](xref:Microsoft.ML.Data.TextDataViewType) or [key](xref:Microsoft.ML.Data.KeyDataViewType) data types|
     /// | Output column data type | Same as the input column|
     /// | Exportable to ONNX | Yes |
-    /// 
+    ///
     /// Formally, the mutual information can be written as:
     ///
     /// $\text{MI}(X,Y) = E_{x,y}[\log(P(x,y)) - \log(P(x)) - \log(P(y))]$ where $x$ and $y$ are observations of random variables $X$ and $Y$.
