@@ -1065,26 +1065,69 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        public void MurmurHashTest()
+        public void MurmurHashStringTest()
         {
             var mlContext = new MLContext();
 
             var samples = new[]
             {
                 new HashData {Education = "alibaba".AsMemory()},
-                //new DataP {Education = "0-5yrs"},
-                //new DataP {Education = "6-11yrs"},
-                //new DataP {Education = "6-11yrs"},
-                //new DataP {Education = "11-15yrs"}
+                new HashData {Education = "baba".AsMemory()},
+                new HashData {Education = "U+123".AsMemory()},
+                new HashData {Education = "djldaoiejffjauhglehdlgh".AsMemory()},
+                new HashData {Education = "~".AsMemory()},
             };
 
             IDataView data = mlContext.Data.LoadFromEnumerable(samples);
-            //ta.GetRowCursor.Schema[0].Type = KeyDataViewType;
 
             var hashEstimator = new HashingEstimator(Env, "Education");
-            //var modelPath = "MurmurHashModel.zip";
             var model = hashEstimator.Fit(data);
-            //mlContext.Model.Save(model, data.Schema, modelPath);
+            var hashTransformedData = model.Transform(data);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
+
+            var onnxFileName = "MurmurHashV2.onnx";
+            var onnxTextName = "MurmurHashV2.txt";
+            var onnxModelPath = GetOutputPath(onnxFileName);
+            var onnxTextPath = GetOutputPath(onnxTextName);
+
+            SaveOnnxModel(onnxModel, onnxModelPath, onnxTextPath);
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
+            {
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(data);
+                var onnxResult = onnxTransformer.Transform(data);
+                CompareSelectedScalarColumns<uint>("Education", outputNames[0], hashTransformedData, onnxResult);
+            }
+            Done();
+        }
+
+        private class HashNumData
+        {
+            public uint Education { get; set; }
+        }
+
+        [Fact]
+        public void MurmurHashUIntTest()
+        {
+            var mlContext = new MLContext();
+
+            var samples = new[]
+            {
+                new HashNumData {Education = 12},
+                new HashNumData {Education = 456},
+                new HashNumData {Education = 2},
+                new HashNumData {Education = 34556789},
+                new HashNumData {Education = 7896},
+            };
+
+            IDataView data = mlContext.Data.LoadFromEnumerable(samples);
+
+            var hashEstimator = new HashingEstimator(Env, "Education");
+            var model = hashEstimator.Fit(data);
             var hashTransformedData = model.Transform(data);
             var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
 
