@@ -212,6 +212,7 @@ namespace Microsoft.ML.Transforms
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Any |
     /// | Output column data type | Any |
+    /// | Exportable to ONNX | No |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.CustomMappingTransformer`2> applies a user defined mapping
     /// to one or more input columns and produces one or more output columns. This transformation doesn't change the number of rows,

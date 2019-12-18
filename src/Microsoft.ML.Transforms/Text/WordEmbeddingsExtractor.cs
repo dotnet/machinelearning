@@ -736,6 +736,7 @@ namespace Microsoft.ML.Transforms.Text
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Vector of [Text](xref:Microsoft.ML.Data.TextDataViewType)  |
     /// | Output column data type | Known-sized vector of <xref:System.Single> |
+    /// | Exportable to ONNX | No |
     ///
     /// The <xref:Microsoft.ML.Transforms.Text.WordEmbeddingTransformer> produces a new column,
     /// named as specified in the output column name parameters, where each input vector is mapped to a numerical vector

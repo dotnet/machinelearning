@@ -39,6 +39,7 @@ namespace Microsoft.ML.Transforms
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
     /// | Input column data type | <xref:System.Single> or <xref:System.Double> or a known-sized vector of those types. |
     /// | Output column data type | The same data type as the input column |
+    /// | Exportable to ONNX | Yes |
     ///
     /// The resulting NormalizingEstimator will normalize the data in one of the following ways based upon how it was created:
     /// * Min Max - A linear rescale that is based upon the minimum and maximum values for each row.

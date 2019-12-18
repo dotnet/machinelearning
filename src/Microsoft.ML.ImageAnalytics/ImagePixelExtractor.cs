@@ -493,6 +493,7 @@ namespace Microsoft.ML.Transforms.Image
     /// | Input column data type | <xref:System.Drawing.Bitmap> |
     /// | Output column data type | Known-sized vector of <xref:System.Single> or <xref:System.Byte> |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.ImageAnalytics |
+    /// | Exportable to ONNX | No |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.Image.ImagePixelExtractingTransformer> creates a new column, named as specified in the output column name parameters, and
     /// converts image into vector of known size of floats or bytes. Size and data type depends on specified paramaters.
