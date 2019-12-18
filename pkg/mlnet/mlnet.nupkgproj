@@ -18,40 +18,40 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include = "C:\CodeHub\ml2\machinelearning\bin\obj\packages\Microsoft.ML.CpuMath\runtimes\$(PackageRid)\nativeassets\netstandard2.0\CpuMathNative.dll"
+    <Content Include = "$(PackageOutputPath)Microsoft.ML.CpuMath\runtimes\$(PackageRid)\nativeassets\netstandard2.0\CpuMathNative.dll"
       PackagePath = "$(NativePackagePath)" />
-    <Content Include = "C:\CodeHub\ml2\machinelearning\bin\obj\packages\Microsoft.ML.FastTree\runtimes\$(PackageRid)\native\FastTreeNative.dll"
+    <Content Include = "$(PackageOutputPath)Microsoft.ML.FastTree\runtimes\$(PackageRid)\native\FastTreeNative.dll"
       PackagePath = "$(NativePackagePath)" />
-    <Content Include = "C:\CodeHub\ml2\machinelearning\bin\obj\packages\Microsoft.ML\runtimes\$(PackageRid)\native\LdaNative.dll"
+    <Content Include = "$(PackageOutputPath)Microsoft.ML\runtimes\$(PackageRid)\native\LdaNative.dll"
       PackagePath = "$(NativePackagePath)" />
-    <Content Include = "C:\CodeHub\ml2\machinelearning\bin\obj\packages\Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native\MklProxyNative.dll"
+    <Content Include = "$(PackageOutputPath)Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native\MklProxyNative.dll"
       PackagePath = "$(NativePackagePath)" />
-    <Content Include = "C:\CodeHub\ml2\machinelearning\bin\obj\packages\Microsoft.ML.Mkl.Components\runtimes\win-x64\native\SymSgdNative.dll"
+    <Content Include = "$(PackageOutputPath)Microsoft.ML.Mkl.Components\runtimes\win-x64\native\SymSgdNative.dll"
       PackagePath = "$(NativePackagePath)" />
 
-    <Content Include = "C:\CodeHub\ml2\machinelearning\bin\obj\packages\Microsoft.ML\lib\netstandard2.0\*.dll"
+    <Content Include = "$(PackageOutputPath)Microsoft.ML\lib\netstandard2.0\*.dll"
       PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "C:\CodeHub\ml2\machinelearning\bin\obj\packages\Microsoft.ML.AutoML\lib\netstandard2.0\*.dll"
+    <Content Include = "$(PackageOutputPath)Microsoft.ML.AutoML\lib\netstandard2.0\*.dll"
       PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "C:\CodeHub\ml2\machinelearning\bin\obj\packages\Microsoft.ML.CodeGenerator\lib\netstandard2.0\*.dll"
+    <Content Include = "$(PackageOutputPath)Microsoft.ML.CodeGenerator\lib\netstandard2.0\*.dll"
       PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "C:\CodeHub\ml2\machinelearning\bin\obj\packages\Microsoft.ML.CpuMath\lib\netstandard2.0\*.dll"
+    <Content Include = "$(PackageOutputPath)Microsoft.ML.CpuMath\lib\netstandard2.0\*.dll"
       PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "C:\CodeHub\ml2\machinelearning\bin\obj\packages\Microsoft.ML.DataView\lib\netstandard2.0\*.dll"
+    <Content Include = "$(PackageOutputPath)Microsoft.ML.DataView\lib\netstandard2.0\*.dll"
       PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "C:\CodeHub\ml2\machinelearning\bin\obj\packages\Microsoft.ML.FastTree\lib\netstandard2.0\*.dll"
+    <Content Include = "$(PackageOutputPath)Microsoft.ML.FastTree\lib\netstandard2.0\*.dll"
       PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "C:\CodeHub\ml2\machinelearning\bin\obj\packages\Microsoft.ML.ImageAnalytics\lib\netstandard2.0\*.dll"
+    <Content Include = "$(PackageOutputPath)Microsoft.ML.ImageAnalytics\lib\netstandard2.0\*.dll"
       PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "C:\CodeHub\ml2\machinelearning\bin\obj\packages\Microsoft.ML.LightGbm\lib\netstandard2.0\*.dll"
+    <Content Include = "$(PackageOutputPath)Microsoft.ML.LightGbm\lib\netstandard2.0\*.dll"
       PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "C:\CodeHub\ml2\machinelearning\bin\obj\packages\Microsoft.ML.Mkl.Components\lib\netstandard2.0\*.dll"
+    <Content Include = "$(PackageOutputPath)Microsoft.ML.Mkl.Components\lib\netstandard2.0\*.dll"
       PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "C:\CodeHub\ml2\machinelearning\bin\obj\packages\Microsoft.ML.Recommender\lib\netstandard2.0\*.dll"
+    <Content Include = "$(PackageOutputPath)Microsoft.ML.Recommender\lib\netstandard2.0\*.dll"
       PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "C:\CodeHub\ml2\machinelearning\bin\obj\packages\Microsoft.ML.TensorFlow\lib\netstandard2.0\*.dll"
+    <Content Include = "$(PackageOutputPath)Microsoft.ML.TensorFlow\lib\netstandard2.0\*.dll"
       PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "C:\CodeHub\ml2\machinelearning\bin\obj\packages\Microsoft.ML.Vision\lib\netstandard2.0\*.dll"
+    <Content Include = "$(PackageOutputPath)Microsoft.ML.Vision\lib\netstandard2.0\*.dll"
       PackagePath = "$(DefaultPackagePath)" />
 
     <Content Include = "C:\CodeHub\ml2\machinelearning\bin\AnyCPU.Debug\mlnet\netcoreapp2.1\mlnet.dll"
