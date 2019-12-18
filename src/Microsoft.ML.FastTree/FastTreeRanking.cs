@@ -56,7 +56,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.FastTree |
     /// | Exportable to ONNX | No |
-    /// 
+    ///
     /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-fasttree.md)]
     /// ]]>
     /// </format>
