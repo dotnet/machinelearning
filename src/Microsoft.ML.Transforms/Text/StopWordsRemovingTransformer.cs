@@ -691,7 +691,7 @@ namespace Microsoft.ML.Transforms.Text
         {
             public ITransformer CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] column)
             {
-                if (Utils.Size(Stopword) > 0)
+                if (Utils.Size(Stopwords) > 0)
                     return new CustomStopWordsRemovingTransformer(env, Stopwords, column.Select(x => (x.Name, x.Source)).ToArray());
                 else
                     return new CustomStopWordsRemovingTransformer(env, Stopword, DataFile, StopwordsColumn, Loader, column.Select(x => (x.Name, x.Source)).ToArray());
