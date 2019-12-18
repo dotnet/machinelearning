@@ -245,6 +245,9 @@ namespace Microsoft.ML.Transforms
                 loaderAssemblyName: typeof(OptionalColumnTransform).Assembly.FullName);
         }
 
+        private static readonly FuncInstanceMethodInfo1<OptionalColumnTransform, DataViewRow, int, Delegate> _getSrcGetterMethodInfo
+            = FuncInstanceMethodInfo1<OptionalColumnTransform, DataViewRow, int, Delegate>.Create(target => target.GetSrcGetter<int>);
+
         private static readonly FuncInstanceMethodInfo1<OptionalColumnTransform, Delegate> _makeGetterOneMethodInfo
             = FuncInstanceMethodInfo1<OptionalColumnTransform, Delegate>.Create(target => target.MakeGetterOne<int>);
 
@@ -391,9 +394,7 @@ namespace Microsoft.ML.Transforms
                         getters[iinfo] = MakeGetter(iinfo);
                     else
                     {
-                        Func<DataViewRow, int, ValueGetter<int>> srcDel = GetSrcGetter<int>;
-                        var meth = srcDel.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_bindings.ColumnTypes[iinfo].GetItemType().RawType);
-                        getters[iinfo] = (Delegate)meth.Invoke(this, new object[] { input, iinfo });
+                        getters[iinfo] = Utils.MarshalInvoke(_getSrcGetterMethodInfo, this, _bindings.ColumnTypes[iinfo].GetItemType().RawType, input, iinfo);
                     }
                 }
                 return getters;

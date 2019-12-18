@@ -966,14 +966,6 @@ namespace Microsoft.ML.Internal.Utilities
             return meth;
         }
 
-        private static MethodInfo MarshalInvokeCheckAndCreate<TRet>(Type[] genArgs, Delegate func)
-        {
-            var meth = MarshalActionInvokeCheckAndCreate(genArgs, func);
-            if (meth.ReturnType != typeof(TRet))
-                throw Contracts.ExceptParam(nameof(func), "Cannot be generic on return type");
-            return meth;
-        }
-
         // REVIEW: n-argument versions? The multi-column re-application problem?
         // Think about how to address these.
 
@@ -1053,10 +1045,58 @@ namespace Microsoft.ML.Internal.Utilities
         /// <summary>
         /// A two-argument version of <see cref="MarshalInvoke{TTarget, TResult}(FuncInstanceMethodInfo1{TTarget, TResult}, TTarget, Type)"/>.
         /// </summary>
-        public static TRet MarshalInvoke<TArg1, TArg2, TRet>(Func<TArg1, TArg2, TRet> func, Type genArg, TArg1 arg1, TArg2 arg2)
+        public static TResult MarshalInvoke<TTarget, TArg1, TArg2, TResult>(FuncInstanceMethodInfo1<TTarget, TArg1, TArg2, TResult> func, TTarget target, Type genArg, TArg1 arg1, TArg2 arg2)
+            where TTarget : class
         {
-            var meth = MarshalInvokeCheckAndCreate<TRet>(genArg, func);
-            return (TRet)meth.Invoke(func.Target, new object[] { arg1, arg2 });
+            var meth = func.MakeGenericMethod(genArg);
+            return (TResult)meth.Invoke(target, new object[] { arg1, arg2 });
+        }
+
+        /// <summary>
+        /// A two-argument version of <see cref="MarshalInvoke{TResult}(FuncStaticMethodInfo1{TResult}, Type)"/>.
+        /// </summary>
+        public static TResult MarshalInvoke<TArg1, TArg2, TResult>(FuncStaticMethodInfo1<TArg1, TArg2, TResult> func, Type genArg, TArg1 arg1, TArg2 arg2)
+        {
+            var meth = func.MakeGenericMethod(genArg);
+            return (TResult)meth.Invoke(null, new object[] { arg1, arg2 });
+        }
+
+        /// <summary>
+        /// A two-argument, two-type-parameter version of <see cref="MarshalInvoke{TTarget, TResult}(FuncInstanceMethodInfo1{TTarget, TResult}, TTarget, Type)"/>.
+        /// </summary>
+        public static TResult MarshalInvoke<TTarget, TArg1, TArg2, TResult>(FuncInstanceMethodInfo2<TTarget, TArg1, TArg2, TResult> func, TTarget target, Type genArg1, Type genArg2, TArg1 arg1, TArg2 arg2)
+            where TTarget : class
+        {
+            var meth = func.MakeGenericMethod(genArg1, genArg2);
+            return (TResult)meth.Invoke(target, new object[] { arg1, arg2 });
+        }
+
+        /// <summary>
+        /// A two-argument, two-type-parameter version of <see cref="MarshalInvoke{TResult}(FuncStaticMethodInfo1{TResult}, Type)"/>.
+        /// </summary>
+        public static TResult MarshalInvoke<TArg1, TArg2, TResult>(FuncStaticMethodInfo2<TArg1, TArg2, TResult> func, Type genArg1, Type genArg2, TArg1 arg1, TArg2 arg2)
+        {
+            var meth = func.MakeGenericMethod(genArg1, genArg2);
+            return (TResult)meth.Invoke(null, new object[] { arg1, arg2 });
+        }
+
+        /// <summary>
+        /// A two-argument, three-type-parameter version of <see cref="MarshalInvoke{TTarget, TResult}(FuncInstanceMethodInfo1{TTarget, TResult}, TTarget, Type)"/>.
+        /// </summary>
+        public static TResult MarshalInvoke<TTarget, TArg1, TArg2, TResult>(FuncInstanceMethodInfo3<TTarget, TArg1, TArg2, TResult> func, TTarget target, Type genArg1, Type genArg2, Type genArg3, TArg1 arg1, TArg2 arg2)
+            where TTarget : class
+        {
+            var meth = func.MakeGenericMethod(genArg1, genArg2, genArg3);
+            return (TResult)meth.Invoke(target, new object[] { arg1, arg2 });
+        }
+
+        /// <summary>
+        /// A two-argument, three-type-parameter version of <see cref="MarshalInvoke{TResult}(FuncStaticMethodInfo1{TResult}, Type)"/>.
+        /// </summary>
+        public static TResult MarshalInvoke<TArg1, TArg2, TResult>(FuncStaticMethodInfo3<TArg1, TArg2, TResult> func, Type genArg1, Type genArg2, Type genArg3, TArg1 arg1, TArg2 arg2)
+        {
+            var meth = func.MakeGenericMethod(genArg1, genArg2, genArg3);
+            return (TResult)meth.Invoke(null, new object[] { arg1, arg2 });
         }
 
         /// <summary>
@@ -1141,17 +1181,6 @@ namespace Microsoft.ML.Internal.Utilities
             return (TRet)meth.Invoke(func.Target, new object[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10 });
         }
 
-        /// <summary>
-        /// A 2 argument and n type version of <see cref="MarshalInvoke{TTarget, TResult}(FuncInstanceMethodInfo1{TTarget, TResult}, TTarget, Type)"/>.
-        /// </summary>
-        public static TRet MarshalInvoke<TArg1, TArg2, TRet>(
-            Func<TArg1, TArg2, TRet> func,
-            Type[] genArgs, TArg1 arg1, TArg2 arg2)
-        {
-            var meth = MarshalInvokeCheckAndCreate<TRet>(genArgs, func);
-            return (TRet)meth.Invoke(func.Target, new object[] { arg1, arg2});
-        }
-
         private static MethodInfo MarshalActionInvokeCheckAndCreate(Type genArg, Delegate func)
         {
             Contracts.CheckValue(genArg, nameof(genArg));
@@ -1161,18 +1190,6 @@ namespace Microsoft.ML.Internal.Utilities
             Contracts.CheckParam(meth.GetGenericArguments().Length == 1, nameof(func),
                 "Should have exactly one generic type parameter but does not");
             meth = meth.GetGenericMethodDefinition().MakeGenericMethod(genArg);
-            return meth;
-        }
-
-        private static MethodInfo MarshalActionInvokeCheckAndCreate(Type[] typeArguments, Delegate func)
-        {
-            Contracts.CheckValue(typeArguments, nameof(typeArguments));
-            Contracts.CheckValue(func, nameof(func));
-            var meth = func.GetMethodInfo();
-            Contracts.CheckParam(meth.IsGenericMethod, nameof(func), "Should be generic but is not");
-            Contracts.CheckParam(meth.GetGenericArguments().Length == typeArguments.Length, nameof(func),
-                "Method should have exactly the same number of generic type parameters as list passed in but it does not.");
-            meth = meth.GetGenericMethodDefinition().MakeGenericMethod(typeArguments);
             return meth;
         }
 
