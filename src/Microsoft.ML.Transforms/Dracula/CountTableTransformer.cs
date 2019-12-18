@@ -12,6 +12,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(CountTableTransformer.Summary, typeof(IDataTransform), typeof(CountTableTransformer), typeof(CountTableTransformer.Options), typeof(SignatureDataTransform),
@@ -131,9 +132,9 @@ namespace Microsoft.ML.Transforms
             if (labelCol == null)
                 throw _host.ExceptUserArg(nameof(_labelColumnName), "Label column '{0}' not found", _labelColumnName);
 
-            var labelColumnType = labelCol.GetValueOrDefault().Type;
-            CheckLabelType(labelColumnType, out var labelCardinality);
+            CheckLabelType(new RoleMappedData(input, roles: RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, _labelColumnName)), out var labelCardinality);
 
+            var labelColumnType = labelCol.GetValueOrDefault().Type;
             var labelClassNames = InitLabelClassNames(_host, labelCol.GetValueOrDefault(), labelCardinality);
 
             var n = _columns.Length;
@@ -150,7 +151,7 @@ namespace Microsoft.ML.Transforms
             _host.Assert(_initialCounts != null || _sharedBuilder != null || _builders != null);
             MultiCountTableBuilderBase multiBuilder;
             if (_initialCounts != null)
-                multiBuilder = _initialCounts.Featurizer.MultiCountTable.ToBuilder(_host, inputColumns);
+                multiBuilder = _initialCounts.Featurizer.MultiCountTable.ToBuilder(_host, inputColumns, labelCardinality);
             else if (_builders != null)
                 multiBuilder = new ParallelMultiCountTableBuilder(_host, inputColumns, _builders, labelCardinality);
             else
@@ -224,6 +225,20 @@ namespace Microsoft.ML.Transforms
             var type = col.Type;
             _host.Assert(type is KeyDataViewType || type is NumberDataViewType);
 
+            if (type is BooleanDataViewType)
+            {
+                bool src = default;
+                var getSrc = row.GetGetter<bool>(col);
+                return
+                    (ref long dst) =>
+                    {
+                        getSrc(ref src);
+                        if (src)
+                            dst = 1;
+                        else
+                            dst = 0;
+                    };
+            }
             if (type is KeyDataViewType)
             {
                 _host.Assert(type.GetKeyCount() > 0);
@@ -253,12 +268,10 @@ namespace Microsoft.ML.Transforms
                     {
                         getSrc(ref src);
                         // NaN maps to -1.
-                        if (src > 0)
-                            dst = 1;
-                        else if (src <= 0)
-                            dst = 0;
-                        else
+                        if (double.IsNaN(src))
                             dst = -1;
+                        else
+                            dst = (long)src;
                     };
             }
         }
@@ -280,17 +293,17 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private void CheckLabelType(DataViewType labelColumnType, out int labelCardinality)
+        private void CheckLabelType(RoleMappedData data, out int labelCardinality)
         {
-            if (labelColumnType is NumberDataViewType)
+            _host.Assert(data.Schema.Label.HasValue);
+
+            if (data.Schema.Label.Value.Type == BooleanDataViewType.Instance)
                 labelCardinality = 2;
-            else if (labelColumnType is KeyDataViewType)
+            else
             {
-                labelCardinality = labelColumnType.GetKeyCountAsInt32();
+                TrainerUtils.CheckMulticlassLabel(data, out labelCardinality);
                 _host.CheckUserArg(labelCardinality > 1, nameof(_labelColumnName), "Label column type must have known cardinality more than 1");
             }
-            else
-                throw _host.ExceptUserArg(nameof(labelColumnType), "Incorrect label column type: expected numeric or key type");
         }
 
         private static string[] InitLabelClassNames(IExceptionContext ectx, DataViewSchema.Column labelCol, int labelCardinality)

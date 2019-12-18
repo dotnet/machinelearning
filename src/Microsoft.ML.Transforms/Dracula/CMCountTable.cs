@@ -163,9 +163,9 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        public override InternalCountTableBuilderBase ToBuilder()
+        public override InternalCountTableBuilderBase ToBuilder(long labelCardinality)
         {
-            return new CMCountTableBuilder.Builder(this);
+            return new CMCountTableBuilder.Builder(this, labelCardinality);
         }
     }
 
@@ -233,8 +233,8 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public Builder(CMCountTable table)
-                : base(table.LabelCardinality)
+            public Builder(CMCountTable table, long labelCardinality)
+                : base(Math.Max(labelCardinality, table.LabelCardinality))
             {
                 Contracts.AssertValue(table);
 
@@ -246,10 +246,13 @@ namespace Microsoft.ML.Transforms
                     _tables[iLabel] = new Dictionary<int, double>[_depth];
                     for (int iDepth = 0; iDepth < _depth; iDepth++)
                     {
-                        var oldDict = table.Tables[iLabel][iDepth];
                         _tables[iLabel][iDepth] = new Dictionary<int, double>();
-                        foreach (var kvp in oldDict)
-                            _tables[iLabel][iDepth].Add(kvp.Key, kvp.Value);
+                        if (iLabel < table.LabelCardinality)
+                        {
+                            var oldDict = table.Tables[iLabel][iDepth];
+                            foreach (var kvp in oldDict)
+                                _tables[iLabel][iDepth].Add(kvp.Key, kvp.Value);
+                        }
                     }
                 }
             }

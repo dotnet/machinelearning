@@ -41,9 +41,9 @@ namespace Microsoft.ML.Tests.Transformers
             var transformer = estimator.Fit(data);
 
             estimator = ML.Transforms.CountTargetEncode("Text", transformer);
-            var transformer1 = estimator.Fit(new EmptyDataView(Env, data.Schema));
+            var transformer1 = estimator.Fit(data);
 
-            CheckSameCounts(data, transformer, transformer1, 3);
+            CheckDoubleCounts(data, transformer, transformer1, 3);
         }
 
         [Fact]
@@ -61,12 +61,12 @@ namespace Microsoft.ML.Tests.Transformers
             var transformer = estimator.Fit(data);
 
             estimator = ML.Transforms.CountTargetEncode(new[] { new InputOutputColumnPair("ScalarString"), new InputOutputColumnPair("VectorString") }, transformer);
-            var transformer1 = estimator.Fit(new EmptyDataView(Env, data.Schema));
+            var transformer1 = estimator.Fit(data);
 
-            CheckSameCounts(data, transformer, transformer1, 2, 5);
+            CheckDoubleCounts(data, transformer, transformer1, 2, 5);
         }
 
-        private static void CheckSameCounts(IDataView data, CountTargetEncodingTransformer transformer, CountTargetEncodingTransformer transformer1, params int[] countCols)
+        private static void CheckDoubleCounts(IDataView data, CountTargetEncodingTransformer transformer, CountTargetEncodingTransformer transformer1, params int[] countCols)
         {
             var transformedData = transformer.Transform(data);
             var transformedData1 = transformer1.Transform(data);
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Tests.Transformers
                         var values = buffer.GetValues();
                         var values1 = buffer1.GetValues();
                         for (int label = 0; label < 2; label++)
-                            Assert.Equal(values[label], values1[label]);
+                            Assert.Equal(2 * values[label], values1[label]);
                     }
                 }
             }

@@ -123,8 +123,12 @@ namespace Microsoft.ML.Transforms
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(CountTargetEncodingEstimator));
+            _host.CheckValue(initialCounts, nameof(initialCounts));
+            _host.CheckNonEmpty(columns, nameof(columns));
+            _host.Check(columns.All(c => initialCounts.HashJoin.InputSchema.GetColumnOrNull(c.InputColumnName) != null), nameof(columns));
+            _host.Check(columns.All(c => initialCounts.HashJoin.OutputSchema.GetColumnOrNull(c.OutputColumnName) != null), nameof(columns));
 
-            _estimator = new CountTableEstimator(_host, labelColumnName, initialCounts.CountTable, columns);
+            _estimator = new CountTableEstimator(_host, labelColumnName, initialCounts.CountTable, columns.Select(c => new InputOutputColumnPair(c.OutputColumnName, c.OutputColumnName)).ToArray());
             _hashJoin = initialCounts.HashJoin;
         }
 

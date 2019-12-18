@@ -49,7 +49,7 @@ namespace Microsoft.ML.Transforms
 
         public abstract void Save(ModelSaveContext ctx);
 
-        public abstract MultiCountTableBuilderBase ToBuilder(IHostEnvironment env, DataViewSchema.Column[] inputCols);
+        public abstract MultiCountTableBuilderBase ToBuilder(IHostEnvironment env, DataViewSchema.Column[] inputCols, long labelCardinality);
     }
 
     /// <summary>
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private ParallelMultiCountTableBuilder(IHostEnvironment env, MultiCountTable table, DataViewSchema.Column[] inputCols)
+        private ParallelMultiCountTableBuilder(IHostEnvironment env, MultiCountTable table, DataViewSchema.Column[] inputCols, long labelCardinality)
         {
             Contracts.AssertValue(env, nameof(env));
             env.AssertValue(table, nameof(table));
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Transforms
                 _countTableBuilders[i] = new InternalCountTableBuilderBase[size];
 
                 for (int j = 0; j < size; j++)
-                    _countTableBuilders[i][j] = ((CountTableBase)table[i, j]).ToBuilder();
+                    _countTableBuilders[i][j] = ((CountTableBase)table[i, j]).ToBuilder(labelCardinality);
             }
         }
 
@@ -223,9 +223,9 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public override MultiCountTableBuilderBase ToBuilder(IHostEnvironment env, DataViewSchema.Column[] inputCols)
+            public override MultiCountTableBuilderBase ToBuilder(IHostEnvironment env, DataViewSchema.Column[] inputCols, long labelCardinality)
             {
-                return new ParallelMultiCountTableBuilder(env, this, inputCols);
+                return new ParallelMultiCountTableBuilder(env, this, inputCols, labelCardinality);
             }
         }
     }
@@ -256,7 +256,7 @@ namespace Microsoft.ML.Transforms
                 _slotCount[i] = inputColumns[i].Type.GetValueCount();
         }
 
-        public BagMultiCountTableBuilder(IHostEnvironment env, MultiCountTable table, DataViewSchema.Column[] inputCols)
+        public BagMultiCountTableBuilder(IHostEnvironment env, MultiCountTable table, DataViewSchema.Column[] inputCols, long labelCardinality)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(table, nameof(table));
@@ -265,7 +265,7 @@ namespace Microsoft.ML.Transforms
             _host.Check(table.SlotCount.Zip(inputCols, (count, col) => (count, col)).
                 All(pair => pair.col.Type.GetValueCount() == pair.count), "Inconsistent number of slots");
 
-            _builder = table.BaseTable.ToBuilder();
+            _builder = table.BaseTable.ToBuilder(labelCardinality);
             _colCount = table.ColCount;
             _slotCount = new int[_colCount];
             table.SlotCount.CopyTo(_slotCount, 0);
@@ -356,9 +356,9 @@ namespace Microsoft.ML.Transforms
                 ctx.LoadModel<CountTableBase, SignatureLoadModel>(Host, out _baseTable, "BaseTable");
             }
 
-            public override MultiCountTableBuilderBase ToBuilder(IHostEnvironment env, DataViewSchema.Column[] inputCols)
+            public override MultiCountTableBuilderBase ToBuilder(IHostEnvironment env, DataViewSchema.Column[] inputCols, long labelCardinality)
             {
-                return new BagMultiCountTableBuilder(env, this, inputCols);
+                return new BagMultiCountTableBuilder(env, this, inputCols, labelCardinality);
             }
 
             /// <summary>

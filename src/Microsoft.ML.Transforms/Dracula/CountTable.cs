@@ -143,6 +143,6 @@ namespace Microsoft.ML.Transforms
             ctx.Writer.WriteSingleArray(_garbageCounts);
         }
 
-        public abstract InternalCountTableBuilderBase ToBuilder();
+        public abstract InternalCountTableBuilderBase ToBuilder(long labelCardinality);
     }
 }

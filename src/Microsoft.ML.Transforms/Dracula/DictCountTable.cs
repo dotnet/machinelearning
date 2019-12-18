@@ -125,9 +125,9 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        public override InternalCountTableBuilderBase ToBuilder()
+        public override InternalCountTableBuilderBase ToBuilder(long labelCardinality)
         {
-            return new DictCountTableBuilder.Builder(this);
+            return new DictCountTableBuilder.Builder(this, labelCardinality);
         }
     }
 
@@ -178,15 +178,18 @@ namespace Microsoft.ML.Transforms
                 _garbageThreshold = garbageThreshold;
             }
 
-            public Builder(DictCountTable table)
-                : base(table.LabelCardinality)
+            public Builder(DictCountTable table, long labelCardinality)
+                : base(Math.Max(labelCardinality, table.LabelCardinality))
             {
                 _tables = new Dictionary<long, double>[LabelCardinality];
                 for (int i = 0; i < LabelCardinality; i++)
                 {
                     _tables[i] = new Dictionary<long, double>();
-                    foreach (var kvp in table.Tables[i])
-                        _tables[i][kvp.Key] = kvp.Value;
+                    if (i < table.LabelCardinality)
+                    {
+                        foreach (var kvp in table.Tables[i])
+                            _tables[i][kvp.Key] = kvp.Value;
+                    }
                 }
 
                 _garbageThreshold = table.GarbageThreshold;
