@@ -414,109 +414,54 @@ namespace Microsoft.ML.TensorFlow
         /// <summary>
         /// Use the runner class to easily configure inputs, outputs and targets to be passed to the session runner.
         /// </summary>
-        /// <remarks>
-        /// <para>
-        /// The runner has a simple API that allows developers to call the AddTarget, AddInput, AddOutput and Fetch
-        /// to construct the parameters that will be passed to the TFSession.Run method.
-        /// </para>
-        /// <para>
-        /// Instances of this class are created by calling the GetRunner method on the TFSession.
-        /// </para>
-        /// <para>
-        /// The various methods in this class return an instance to the Runner itsel, to allow
-        /// to easily construct chains of execution like this:
-        /// </para>
-        /// <code>
-        /// var result = session.GetRunner ().AddINput (myInput).Fetch (MyOutput).Run ();
-        /// </code>
-        /// <para>
-        /// You do not need to chain the operations, this works just the same:
-        /// </para>
-        /// <code>
-        /// runner = session.GetRunner ();
-        /// runner.AddInput(myInput);
-        /// runner.Fetch(myOutput);
-        /// var results = runner.Run();
-        /// </code>
-        /// </remarks>
-        public class Runner
+        public class Runner : IDisposable
         {
-            private List<TF_Output> _inputs;
-            private List<TF_Output> _outputs;
-            private List<Tensor> _inputValues;
-            private List<Operation> _operations;
+            private TF_Output[] _inputs;
+            private TF_Output[] _outputs;
+            private IntPtr[] _outputValues;
+            private IntPtr[] _inputValues;
+            private Tensor[] _inputTensors;
+            private IntPtr[] _operations;
             private Session _session;
+            private Tensor[] _outputTensors;
+            private Status _status;
 
-            internal Runner(Session session)
+            internal Runner(Session session, TF_Output[] inputs = null, TF_Output[] outputs = null, IntPtr[] operations = null)
             {
                 _session = session;
-                _inputs = new List<TF_Output>();
-                _outputs = new List<TF_Output>();
-                _inputValues = new List<Tensor>();
-                _operations = new List<Operation>();
+                _inputs = inputs ?? new TF_Output[0];
+                _outputs = outputs ?? new TF_Output[0];
+                _operations = operations ?? new IntPtr[0];
+                _inputValues = new IntPtr[_inputs.Length];
+                _inputTensors = new Tensor[_inputs.Length];
+                _outputValues = new IntPtr[_outputs.Length];
+                _outputTensors = new Tensor[_outputs.Length];
+                _status = new Status();
             }
 
-            /// <summary>
-            /// Adds an input to the session specified by name, with an optional index in the operation (separated by a colon).
-            /// </summary>
-            /// <returns>An instance to the runner, so you can easily chain the operations together.</returns>
-            /// <param name="input">Incoming port, with an optional index separated by a colon.</param>
-            /// <param name="value">Value to assing to the incoming port.</param>
-            public Runner AddInput(string input, Tensor value)
+            internal Runner(Session session, string[] inputs = null, string[] outputs = null, string[] operations = null)
             {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
-
-                _inputs.Add(ParseOutput(input));
-                _inputValues.Add(value);
-
-                return this;
-            }
-
-            public Runner AddInput(string input)
-            {
-                _inputs.Add(ParseOutput(input));
-                return this;
+                _session = session;
+                _inputs = inputs?.Select(x => ParseOutput(session, x)).ToArray() ?? new TF_Output[0];
+                _outputs = outputs?.Select(x => ParseOutput(session, x)).ToArray() ?? new TF_Output[0];
+                _operations = operations?.Select(x => c_api.TF_GraphOperationByName(session.graph, x)).ToArray() ?? new IntPtr[0];
+                _inputValues = new IntPtr[_inputs.Length];
+                _inputTensors = new Tensor[_inputs.Length];
+                _outputValues = new IntPtr[_outputs.Length];
+                _outputTensors = new Tensor[_outputs.Length];
+                _status = new Status();
             }
 
             public Runner AddInput(Tensor value, int index)
             {
-                if (_inputValues.Count <= index)
-                    _inputValues.Add(value);
-                else
-                {
-                    _inputValues[index].Dispose();
-                    _inputValues[index] = value;
-                }
-
-                return this;
-            }
-
-            public List<Tensor> GetInputValues()
-            {
-                return _inputValues;
-            }
-
-            public Runner AddOutputs(string output)
-            {
-                _outputs.Add(ParseOutput(output));
-                return this;
-            }
-
-            public Runner AddOperation(string operationName)
-            {
-                _operations.Add(c_api.TF_GraphOperationByName(_session.graph, operationName));
-                return this;
-            }
-
-            public Runner AddOperation(Operation operation)
-            {
-                _operations.Add(operation);
+                _inputTensors[index]?.Dispose();
+                _inputTensors[index] = value;
+                _inputValues[index] = value;
                 return this;
             }
 
             // Parses user strings that contain both the operation name and an index.
-            private TF_Output ParseOutput(string operation)
+            public static TF_Output ParseOutput(Session session, string operation)
             {
                 var p = operation.IndexOf(':');
                 if (p != -1 && p != operation.Length - 1)
@@ -524,10 +469,10 @@ namespace Microsoft.ML.TensorFlow
                     var op = operation.Substring(0, p);
                     if (int.TryParse(operation.Substring(p + 1), out var idx))
                     {
-                        return new TF_Output(_session.graph.OperationByName(op), idx);
+                        return new TF_Output(session.graph.OperationByName(op), idx);
                     }
                 }
-                return new TF_Output(_session.graph.OperationByName(operation), 0);
+                return new TF_Output(session.graph.OperationByName(operation), 0);
             }
 
             /// <summary>
@@ -541,26 +486,33 @@ namespace Microsoft.ML.TensorFlow
                 if (_session == IntPtr.Zero)
                     new ObjectDisposedException(nameof(_session));
 
-                int oLen = _outputs != null ? _outputs.Count : 0;
-                var cstatus = new Status();
-                var ovals = _outputs != null ? new IntPtr[_outputs.Count] : null;
                 unsafe
                 {
-                    c_api.TF_SessionRun(_session, null, _inputs.ToArray(), _inputValues.Select(x => (IntPtr)x).ToArray(),
-                        _inputs != null ? _inputs.Count : 0, _outputs.ToArray(), ovals, oLen, _operations.Select(x => (IntPtr)x).ToArray(),
-                        _operations == null ? 0 : _operations.Count, IntPtr.Zero, cstatus);
+                    c_api.TF_SessionRun(_session, null, _inputs, _inputValues,
+                         _inputs.Length, _outputs, _outputValues, _outputValues.Length, _operations,
+                        _operations.Length, IntPtr.Zero, _status);
                 }
 
-                cstatus.Check(true);
+                _status.Check(true);
 
-                var result = new Tensor[oLen];
-                for (int i = 0; i < oLen; i++)
-                    result[i] = new Tensor(ovals[i]);
+                for (int i = 0; i < _outputs.Length; i++)
+                    _outputTensors[i] = new Tensor(_outputValues[i]);
 
-                return result;
+                return _outputTensors;
             }
 
+            public void Dispose()
+            {
+                foreach (var tensor in _inputTensors)
+                {
+                    if (!tensor.IsDisposed)
+                        tensor.Dispose();
+                }
+
+                _status.Dispose();
+            }
         }
+
         internal static string GetTemporaryDirectory()
         {
             string tempDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
