@@ -17,6 +17,11 @@
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj" />
     <ProjectReference Include="..\Microsoft.ML.CodeGenerator\Microsoft.ML.CodeGenerator.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.KMeansClustering\Microsoft.ML.KMeansClustering.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <NativeAssemblyReference Include="CpuMathNative" />
   </ItemGroup>
   
   <ItemGroup>
@@ -39,15 +44,4 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
-  <Import Project="mlnet.Build.props" />
-  <Target Name="PrepareMlNetCLIPackageAssets" BeforeTargets="PreparePackageAssets">
-    <ItemGroup>
-      <PackageAsset Include="$(TargetPath)" RelativePath="$(MlNetPackagePath)" />
-      <PackageAsset Include="$(ProjectDepsFilePath)" RelativePath="$(MlNetPackagePath)" />
-      <PackageAsset Include="$(ProjectRuntimeConfigFilePath)" RelativePath="$(MlNetPackagePath)" />
-      <PackageAsset Include="$(TargetDir)\NLog.config" RelativePath="$(MlNetPackagePath)" />
-      <PackageAsset Include="$(TargetDir)\mlnet.pdb" RelativePath="$(MlNetPackagePath)" />
-    </ItemGroup>
-  </Target>
 </Project>

@@ -37,6 +37,10 @@ namespace Microsoft.ML.CLI.Data
 
         public string LogFilePath { get; set; }
 
+        public string StablePackageVersion { get; set; }
+
+        public string UnstablePackageVersion { get; set; }
+
         public NewCommandSettings()
         {
             IgnoreColumns = new List<string>();

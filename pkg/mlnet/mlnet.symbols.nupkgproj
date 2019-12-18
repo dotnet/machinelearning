@@ -1,10 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Pack">
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <PackageDescription>ML.NET command line tool.</PackageDescription>
+    <PackageType>DotNetCliTool</PackageType>
+    <ToolCommandName>mlnet</ToolCommandName>
+    <PackAsTool>true</PackAsTool>
+    <CopyBuildOutputToPublishDirectory>false</CopyBuildOutputToPublishDirectory>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
+    <DefaultPackagePath>tools/netcoreapp2.1/any/</DefaultPackagePath>
   </PropertyGroup>
   <ItemGroup>
-    <Content Remove="$(PackageAssetsPath)$(PackageIdFolderName)\tools\**\*"/>
-    <Content Include="$(PackageAssetsPath)$(PackageIdFolderName)\tools\**\mlnet.dll" Pack="true" PackagePath="tools" />
-    <Content Include="$(PackageAssetsPath)$(PackageIdFolderName)\tools\**\mlnet.pdb" Pack="true" PackagePath="tools" />
+    <Content Include = "C:\CodeHub\ml2\machinelearning\bin\AnyCPU.Debug\mlnet\netcoreapp2.1\mlnet.dll"
+      PackagePath = "$(DefaultPackagePath)" />
+    <Content Include = "C:\CodeHub\ml2\machinelearning\bin\AnyCPU.Debug\mlnet\netcoreapp2.1\mlnet.pdb"
+      PackagePath = "$(DefaultPackagePath)" />
   </ItemGroup>
+  <Target Name="CreateManifestResourceNames" />
 </Project>

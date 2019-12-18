@@ -32,6 +32,8 @@ namespace Microsoft.ML.CLI.Commands
                 Verbosity(),
                 Name(),
                 OutputPath(),
+                StablePackageVersion(),
+                UnstablePackageVersion()
             };
 
             newCommand.Argument.AddValidator((sym) =>
@@ -43,6 +45,14 @@ namespace Microsoft.ML.CLI.Commands
                 if (!sym.Children.Contains("--ml-task"))
                 {
                     return "Option required : --ml-task";
+                }
+                if (!sym.Children.Contains("--stable-package-version"))
+                {
+                    return "Option required : --stable-package-version";
+                }
+                if (!sym.Children.Contains("--unstable-package-version"))
+                {
+                    return "Option required : --unstable-package-version";
                 }
                 if (!sym.Children.Contains("--label-column-name") && !sym.Children.Contains("--label-column-index"))
                 {
@@ -141,6 +151,12 @@ namespace Microsoft.ML.CLI.Commands
                 {
                     Arity = ArgumentArity.OneOrMore,
                 });
+
+            Option StablePackageVersion() =>
+                new Option(new List<string> { "--stable-package-version", "-S" }, "Version for stable ML.NET packages", new Argument<string>()) { };
+
+            Option UnstablePackageVersion() =>
+                new Option(new List<string> { "--unstable-package-version", "-U" }, "Version for unstable ML.NET packages", new Argument<string>()) { };
         }
 
         private static string[] GetMlTaskSuggestions()

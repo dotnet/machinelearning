@@ -353,7 +353,9 @@ namespace Microsoft.ML.CLI.CodeGenerator
                     OutputName = _settings.Name,
                     OutputBaseDir = _settings.OutputPath.FullName,
                     LabelName = labelName,
-                    ModelPath = modelPath.FullName
+                    ModelPath = modelPath.FullName,
+                    StablePackageVersion = _settings.StablePackageVersion,
+                    UnstablePackageVersion = _settings.UnstablePackageVersion
                 });
             codeGenerator.GenerateOutput();
         }
