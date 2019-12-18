@@ -158,6 +158,9 @@ namespace Microsoft.ML.Data
 
         private abstract class CursorBase : RootCursorBase
         {
+            private static readonly FuncInstanceMethodInfo1<CursorBase, int, Delegate> _createTypedGetterMethodInfo
+                = FuncInstanceMethodInfo1<CursorBase, int, Delegate>.Create(target => target.CreateTypedGetter<int>);
+
             protected readonly IDataView[] Sources;
             protected readonly Delegate[] Getters;
 
@@ -178,9 +181,7 @@ namespace Microsoft.ML.Data
             {
                 DataViewType colType = Schema[col].Type;
                 Ch.AssertValue(colType);
-                Func<int, Delegate> creator = CreateTypedGetter<int>;
-                var typedCreator = creator.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(colType.RawType);
-                return (Delegate)typedCreator.Invoke(this, new object[] { col });
+                return Utils.MarshalInvoke(_createTypedGetterMethodInfo, this, colType.RawType, col);
             }
 
             protected abstract ValueGetter<TValue> CreateTypedGetter<TValue>(int col);

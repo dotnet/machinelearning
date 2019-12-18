@@ -23,6 +23,9 @@ namespace Microsoft.ML.Data
     [BestFriend]
     internal sealed class Transposer : ITransposeDataView, IDisposable
     {
+        private static readonly FuncInstanceMethodInfo1<Transposer, int, SlotCursor> _getSlotCursorCoreMethodInfo
+            = FuncInstanceMethodInfo1<Transposer, int, SlotCursor>.Create(target => target.GetSlotCursorCore<int>);
+
         private readonly IHost _host;
         // The input view.
         private readonly IDataView _view;
@@ -244,7 +247,7 @@ namespace Microsoft.ML.Data
             _host.Assert(0 <= tcol && tcol < _cols.Length);
             _host.Assert(_cols[tcol].Index == col);
 
-            return Utils.MarshalInvoke(GetSlotCursorCore<int>, type, col);
+            return Utils.MarshalInvoke(_getSlotCursorCoreMethodInfo, this, type, col);
         }
 
         private SlotCursor GetSlotCursorCore<T>(int col)
@@ -1397,6 +1400,9 @@ namespace Microsoft.ML.Data
         /// </summary>
         public sealed class SlotDataView : IDataView
         {
+            private static readonly FuncInstanceMethodInfo1<SlotDataView, bool, DataViewRowCursor> _getRowCursorMethodInfo
+                = FuncInstanceMethodInfo1<SlotDataView, bool, DataViewRowCursor>.Create(target => target.GetRowCursor<int>);
+
             private readonly IHost _host;
             private readonly ITransposeDataView _data;
             private readonly int _col;
@@ -1434,7 +1440,7 @@ namespace Microsoft.ML.Data
             public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
             {
                 bool hasZero = columnsNeeded != null && columnsNeeded.Any(x => x.Index == 0);
-                return Utils.MarshalInvoke(GetRowCursor<int>, _type.GetItemType().RawType, hasZero);
+                return Utils.MarshalInvoke(_getRowCursorMethodInfo, this, _type.GetItemType().RawType, hasZero);
             }
 
             private DataViewRowCursor GetRowCursor<T>(bool active)

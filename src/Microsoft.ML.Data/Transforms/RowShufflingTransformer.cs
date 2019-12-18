@@ -453,6 +453,9 @@ namespace Microsoft.ML.Transforms
                 protected abstract void Copy(in T src, ref T dst);
             }
 
+            private static readonly FuncInstanceMethodInfo1<Cursor, int, Delegate> _createGetterDelegateMethodInfo
+                = FuncInstanceMethodInfo1<Cursor, int, Delegate>.Create(target => target.CreateGetterDelegate<int>);
+
             // The number of examples to have in each synchronization block. This should be >= 1.
             private const int _blockSize = 16;
             // The number of spare blocks to keep the filler worker busy on. This should be >= 1.
@@ -692,8 +695,7 @@ namespace Microsoft.ML.Transforms
             {
                 Ch.Assert(0 <= col && col < _colToActivesIndex.Length);
                 Ch.Assert(_colToActivesIndex[col] >= 0);
-                Func<int, Delegate> createDel = CreateGetterDelegate<int>;
-                return Utils.MarshalInvoke(createDel, Schema[col].Type.RawType, col);
+                return Utils.MarshalInvoke(_createGetterDelegateMethodInfo, this, Schema[col].Type.RawType, col);
             }
 
             private Delegate CreateGetterDelegate<TValue>(int col)

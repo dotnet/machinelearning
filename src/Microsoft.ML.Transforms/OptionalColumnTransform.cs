@@ -248,6 +248,9 @@ namespace Microsoft.ML.Transforms
         private static readonly FuncInstanceMethodInfo1<OptionalColumnTransform, Delegate> _makeGetterOneMethodInfo
             = FuncInstanceMethodInfo1<OptionalColumnTransform, Delegate>.Create(target => target.MakeGetterOne<int>);
 
+        private static readonly FuncInstanceMethodInfo1<OptionalColumnTransform, int, Delegate> _makeGetterVecMethodInfo
+            = FuncInstanceMethodInfo1<OptionalColumnTransform, int, Delegate>.Create(target => target.MakeGetterVec<int>);
+
         private readonly Bindings _bindings;
 
         private const string RegistrationName = "OptionalColumn";
@@ -406,7 +409,7 @@ namespace Microsoft.ML.Transforms
         {
             var columnType = _bindings.ColumnTypes[iinfo];
             if (columnType is VectorDataViewType vectorType)
-                return Utils.MarshalInvoke(MakeGetterVec<int>, vectorType.ItemType.RawType, vectorType.Size);
+                return Utils.MarshalInvoke(_makeGetterVecMethodInfo, this, vectorType.ItemType.RawType, vectorType.Size);
             return Utils.MarshalInvoke(_makeGetterOneMethodInfo, this, columnType.RawType);
         }
 
@@ -425,6 +428,9 @@ namespace Microsoft.ML.Transforms
         {
             private static readonly FuncInstanceMethodInfo1<Cursor, Delegate> _makeGetterOneMethodInfo
                 = FuncInstanceMethodInfo1<Cursor, Delegate>.Create(target => target.MakeGetterOne<int>);
+
+            private static readonly FuncInstanceMethodInfo1<Cursor, int, Delegate> _makeGetterVecMethodInfo
+                = FuncInstanceMethodInfo1<Cursor, int, Delegate>.Create(target => target.MakeGetterVec<int>);
 
             private readonly Bindings _bindings;
             private readonly bool[] _active;
@@ -489,7 +495,7 @@ namespace Microsoft.ML.Transforms
             {
                 var columnType = _bindings.ColumnTypes[iinfo];
                 if (columnType is VectorDataViewType vectorType)
-                    return Utils.MarshalInvoke(MakeGetterVec<int>, vectorType.ItemType.RawType, vectorType.Size);
+                    return Utils.MarshalInvoke(_makeGetterVecMethodInfo, this, vectorType.ItemType.RawType, vectorType.Size);
                 return Utils.MarshalInvoke(_makeGetterOneMethodInfo, this, columnType.RawType);
             }
 

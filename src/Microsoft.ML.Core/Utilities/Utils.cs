@@ -1015,10 +1015,39 @@ namespace Microsoft.ML.Internal.Utilities
         /// <summary>
         /// A one-argument version of <see cref="MarshalInvoke{TTarget, TResult}(FuncInstanceMethodInfo1{TTarget, TResult}, TTarget, Type)"/>.
         /// </summary>
-        public static TRet MarshalInvoke<TArg1, TRet>(Func<TArg1, TRet> func, Type genArg, TArg1 arg1)
+        public static TResult MarshalInvoke<TTarget, TArg1, TResult>(FuncInstanceMethodInfo1<TTarget, TArg1, TResult> func, TTarget target, Type genArg, TArg1 arg1)
+            where TTarget : class
         {
-            var meth = MarshalInvokeCheckAndCreate<TRet>(genArg, func);
-            return (TRet)meth.Invoke(func.Target, new object[] { arg1 });
+            var meth = func.MakeGenericMethod(genArg);
+            return (TResult)meth.Invoke(target, new object[] { arg1 });
+        }
+
+        /// <summary>
+        /// A one-argument version of <see cref="MarshalInvoke{TResult}(FuncStaticMethodInfo1{TResult}, Type)"/>.
+        /// </summary>
+        public static TResult MarshalInvoke<TArg1, TResult>(FuncStaticMethodInfo1<TArg1, TResult> func, Type genArg, TArg1 arg1)
+        {
+            var meth = func.MakeGenericMethod(genArg);
+            return (TResult)meth.Invoke(null, new object[] { arg1 });
+        }
+
+        /// <summary>
+        /// A one-argument, three-type-parameter version of <see cref="MarshalInvoke{TTarget, TResult}(FuncInstanceMethodInfo1{TTarget, TResult}, TTarget, Type)"/>.
+        /// </summary>
+        public static TResult MarshalInvoke<TTarget, TArg1, TResult>(FuncInstanceMethodInfo3<TTarget, TArg1, TResult> func, TTarget target, Type genArg1, Type genArg2, Type genArg3, TArg1 arg1)
+            where TTarget : class
+        {
+            var meth = func.MakeGenericMethod(genArg1, genArg2, genArg3);
+            return (TResult)meth.Invoke(target, new object[] { arg1 });
+        }
+
+        /// <summary>
+        /// A one-argument, three-type-parameter version of <see cref="MarshalInvoke{TResult}(FuncStaticMethodInfo1{TResult}, Type)"/>.
+        /// </summary>
+        public static TResult MarshalInvoke<TArg1, TResult>(FuncStaticMethodInfo3<TArg1, TResult> func, Type genArg1, Type genArg2, Type genArg3, TArg1 arg1)
+        {
+            var meth = func.MakeGenericMethod(genArg1, genArg2, genArg3);
+            return (TResult)meth.Invoke(null, new object[] { arg1 });
         }
 
         /// <summary>
@@ -1110,17 +1139,6 @@ namespace Microsoft.ML.Internal.Utilities
         {
             var meth = MarshalInvokeCheckAndCreate<TRet>(genArg, func);
             return (TRet)meth.Invoke(func.Target, new object[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10 });
-        }
-
-        /// <summary>
-        /// A 1 argument and n type version of <see cref="MarshalInvoke{TTarget, TResult}(FuncInstanceMethodInfo1{TTarget, TResult}, TTarget, Type)"/>.
-        /// </summary>
-        public static TRet MarshalInvoke<TArg1, TRet>(
-            Func<TArg1, TRet> func,
-            Type[] genArgs, TArg1 arg1)
-        {
-            var meth = MarshalInvokeCheckAndCreate<TRet>(genArgs, func);
-            return (TRet)meth.Invoke(func.Target, new object[] { arg1});
         }
 
         /// <summary>
