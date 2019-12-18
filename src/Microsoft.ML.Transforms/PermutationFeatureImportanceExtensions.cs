@@ -4,7 +4,9 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
@@ -144,17 +146,43 @@ namespace Microsoft.ML
                 int? numberOfExamplesToUse = null,
                 int permutationCount = 1) where TModel : class
         {
+            bool isCalibratedModel = false;
+            var type = predictionTransformer.Model.GetType();
+            if (type.IsGenericType)
+            {
+                var genArgs = type.GetGenericArguments();
+                if (Utils.Size(genArgs) == 2)
+                {
+                    var calibratedModelType = typeof(CalibratedModelParametersBase<,>).MakeGenericType(genArgs);
+                    if (calibratedModelType.IsAssignableFrom(type))
+                        isCalibratedModel = true;
+                }
+            }
+            if (isCalibratedModel)
+            {
+                return PermutationFeatureImportance<TModel, BinaryClassificationMetrics, BinaryClassificationMetricsStatistics>.GetImportanceMetricsMatrix(
+                    catalog.GetEnvironment(),
+                    predictionTransformer,
+                    data,
+                    () => new BinaryClassificationMetricsStatistics(),
+                    idv => catalog.Evaluate(idv, labelColumnName),
+                    BinaryClassifierDelta,
+                    predictionTransformer.FeatureColumnName,
+                    permutationCount,
+                    useFeatureWeightFilter,
+                    numberOfExamplesToUse);
+            }
             return PermutationFeatureImportance<TModel, BinaryClassificationMetrics, BinaryClassificationMetricsStatistics>.GetImportanceMetricsMatrix(
-                            catalog.GetEnvironment(),
-                            predictionTransformer,
-                            data,
-                            () => new BinaryClassificationMetricsStatistics(),
-                            idv => catalog.Evaluate(idv, labelColumnName),
-                            BinaryClassifierDelta,
-                            predictionTransformer.FeatureColumnName,
-                            permutationCount,
-                            useFeatureWeightFilter,
-                            numberOfExamplesToUse);
+                catalog.GetEnvironment(),
+                predictionTransformer,
+                data,
+                () => new BinaryClassificationMetricsStatistics(),
+                idv => catalog.EvaluateNonCalibrated(idv, labelColumnName),
+                BinaryClassifierDelta,
+                predictionTransformer.FeatureColumnName,
+                permutationCount,
+                useFeatureWeightFilter,
+                numberOfExamplesToUse);
         }
 
         private static BinaryClassificationMetrics BinaryClassifierDelta(
@@ -169,6 +197,23 @@ namespace Microsoft.ML
                 negativeRecall: a.NegativeRecall - b.NegativeRecall,
                 f1Score: a.F1Score - b.F1Score,
                 auprc: a.AreaUnderPrecisionRecallCurve - b.AreaUnderPrecisionRecallCurve);
+        }
+
+        private static CalibratedBinaryClassificationMetrics CalibratedBinaryClassifierDelta(
+            CalibratedBinaryClassificationMetrics a, CalibratedBinaryClassificationMetrics b)
+        {
+            return new CalibratedBinaryClassificationMetrics(
+                auc: a.AreaUnderRocCurve - b.AreaUnderRocCurve,
+                accuracy: a.Accuracy - b.Accuracy,
+                positivePrecision: a.PositivePrecision - b.PositivePrecision,
+                positiveRecall: a.PositiveRecall - b.PositiveRecall,
+                negativePrecision: a.NegativePrecision - b.NegativePrecision,
+                negativeRecall: a.NegativeRecall - b.NegativeRecall,
+                f1Score: a.F1Score - b.F1Score,
+                auprc: a.AreaUnderPrecisionRecallCurve - b.AreaUnderPrecisionRecallCurve,
+                logLoss: a.LogLoss - b.LogLoss,
+                logLossReduction: a.LogLossReduction - b.LogLossReduction,
+                entropy: a.Entropy - b.Entropy);
         }
 
         #endregion Binary Classification

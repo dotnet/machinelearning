@@ -305,6 +305,18 @@ namespace Microsoft.ML.Tests
 
             Done();
         }
+
+        [Fact]
+        public void TestBinaryClassificationWithoutCalibrator()
+        {
+            var dataPath = GetDataPath("breast-cancer.txt");
+            var ff = ML.BinaryClassification.Trainers.FastForest();
+            var data = ML.Data.LoadFromTextFile(dataPath,
+                            new[] { new TextLoader.Column("Label", DataKind.Boolean, 0),
+                            new TextLoader.Column("Features", DataKind.Single, 1, 9) });
+            var model = ff.Fit(data);
+            var pfi = ML.BinaryClassification.PermutationFeatureImportance(model, data);
+        }
         #endregion
 
         #region Multiclass Classification Tests
