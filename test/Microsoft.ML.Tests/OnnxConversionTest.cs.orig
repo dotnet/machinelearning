@@ -1255,6 +1255,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
+<<<<<<< HEAD
         [Fact]
         public void FeatureSelectionOnnxTest()
         {
@@ -1307,7 +1308,8 @@ namespace Microsoft.ML.Tests
         }
 
 
-
+||||||| constructed merge base
+=======
         [Fact]
         public void SelectColumnsOnnxTest()
         {
@@ -1362,6 +1364,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
+>>>>>>> Added onnx export support for SelectColumns
         private void CompareResults(string leftColumnName, string rightColumnName, IDataView left, IDataView right)
         {
             var leftColumn = left.Schema[leftColumnName];
