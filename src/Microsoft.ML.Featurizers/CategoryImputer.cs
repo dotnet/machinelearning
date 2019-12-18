@@ -125,6 +125,7 @@ namespace Microsoft.ML.Featurizers
         internal CategoryImputerEstimator(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
+            _host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
             _host = env.Register(nameof(CategoryImputerEstimator));
 
             foreach (var columnPair in options.Columns)
@@ -172,6 +173,7 @@ namespace Microsoft.ML.Featurizers
         internal CategoryImputerTransformer(IHostEnvironment host, IDataView input, CategoryImputerEstimator.Column[] columns) :
             base(host.Register(nameof(CategoryImputerEstimator)))
         {
+            host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
             var schema = input.Schema;
 
             _columns = columns.Select(x => TypedColumn.CreateTypedColumn(x.Name, x.Source, schema[x.Source].Type.RawType.ToString())).ToArray();
@@ -185,7 +187,8 @@ namespace Microsoft.ML.Featurizers
         internal CategoryImputerTransformer(IHostEnvironment host, ModelLoadContext ctx) :
             base(host.Register(nameof(CategoryImputerTransformer)))
         {
-            Host.CheckValue(ctx, nameof(ctx));
+            host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
+            host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
             // *** Binary format ***
             // int number of column pairs

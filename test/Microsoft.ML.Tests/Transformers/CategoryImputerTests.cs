@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using Xunit;
 using Xunit.Abstractions;
 using System.Linq;
+using Microsoft.ML.TestFramework.Attributes;
 
 namespace Microsoft.ML.Tests.Transformers
 {
@@ -88,7 +89,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(mostFrequentValue, transformedColData[11]);
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void TestAllTypes()
         {
             Test<float>("float_t", false, 1.5f);
