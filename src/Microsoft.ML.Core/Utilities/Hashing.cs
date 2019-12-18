@@ -198,17 +198,20 @@ namespace Microsoft.ML.Internal.Utilities
                 else if (ch <= 0x07FF)
                 {
                     cur |= (ulong)((ch & 0x003F) | ((ch << 2) & 0x1F00) | 0xC080) << bits;
+                    cur = (cur & 0xFF) << 8 | cur >> 8;
                     bits += 16;
                 }
                 else if (ch <= 0xFFFF)
                 {
                     cur |= (ulong)((ch & 0x003F) | ((ch << 2) & 0x3F00) | ((ch << 4) & 0x0F0000) | 0xE08080) << bits;
+                    cur = (cur & 0xFF) << 16 | ((cur >> 8) & 0xFF) << 8 | cur >> 16;
                     bits += 24;
                 }
                 else
                 {
                     Contracts.Assert(ch <= 0x10FFFF);
                     cur |= (ulong)((ch & 0x003F) | ((ch << 2) & 0x3F00) | ((ch << 4) & 0x3F0000) | ((ch << 6) & 0x07000000) | 0xF0808080) << bits;
+                    cur = (cur & 0xFF) << 24 | ((cur >> 8) & 0xFF) << 16 | ((cur >> 16) & 0xFF) << 8 | cur >> 24;
                     bits += 32;
                 }
 
@@ -234,13 +237,13 @@ namespace Microsoft.ML.Internal.Utilities
             switch (len & 3)
             {
                 case 3:
-                    k1 ^= (uint)((cur & 0xFF) << 16);
+                    k1 ^= (uint)(((cur >> 16) & 0xFF) << 16);
                     goto case 2;
                 case 2:
                     k1 ^= (uint)((cur >> 8) & 0xFF) << 8;
                     goto case 1;
                 case 1:
-                    k1 ^= (uint)(cur >> 16) & 0xFF;
+                    k1 ^= (uint)(cur & 0xFF);
                     k1 *= 0xCC9E2D51; k1 = Rotate(k1, 15);
                     k1 *= 0x1B873593;
                     hash ^= k1;
