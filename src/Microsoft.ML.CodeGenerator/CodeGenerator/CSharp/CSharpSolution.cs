@@ -8,7 +8,7 @@ using Microsoft.ML.CodeGenerator.Utilities;
 
 namespace Microsoft.ML.CodeGenerator.CodeGenerator
 {
-    internal class CSharpSolution : List<IProject>, ISolution
+    internal class CSharpSolution : List<ICSharpProject>, ICSharpSolution
     {
         public string Name { get; set; }
 

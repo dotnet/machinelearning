@@ -4,8 +4,8 @@ using System.Text;
 
 namespace Microsoft.ML.CodeGenerator.CodeGenerator
 {
-    internal interface ISolutionGenerator
+    internal interface ICSharpSolutionGenerator
     {
-        ISolution ToSolution();
+        ICSharpSolution ToSolution();
     }
 }

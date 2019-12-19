@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.ML.AutoML;
+using Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.Interface;
 using Microsoft.ML.CodeGenerator.CSharp;
 using Microsoft.ML.CodeGenerator.Templates.Azure.Console;
 using Microsoft.ML.CodeGenerator.Templates.Console;
@@ -13,7 +14,7 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
 {
-    internal class AzureAttachConsoleAppCodeGenerator : IProjectGenerator
+    internal class AzureAttachConsoleAppCodeGenerator : ICSharpProjectGenerator
     {
         private readonly Pipeline _pipeline;
         private readonly CodeGeneratorSettings _settings;
@@ -94,7 +95,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
             };
         }
 
-        public IProject ToProject()
+        public ICSharpProject ToProject()
         {
             var project = new CSharpProject()
             {
@@ -105,11 +106,6 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
 
             project.Name = Name;
             return project;
-        }
-
-        public void GenerateOutput()
-        {
-            throw new NotImplementedException();
         }
     }
 }

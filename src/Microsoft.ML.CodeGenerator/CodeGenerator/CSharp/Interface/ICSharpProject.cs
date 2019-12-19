@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Microsoft.ML.CodeGenerator.CodeGenerator
 {
-    internal interface IProject : IWritable, IEnumerable<ICSharpFile>
+    internal interface ICSharpProject : IWritable, IEnumerable<ICSharpFile>
     {
         public string Name { get; set; }
     }

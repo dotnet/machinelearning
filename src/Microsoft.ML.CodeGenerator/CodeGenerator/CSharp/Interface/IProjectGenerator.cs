@@ -9,7 +9,5 @@ namespace Microsoft.ML.CodeGenerator
     internal interface IProjectGenerator
     {
         void GenerateOutput();
-
-        IProject ToProject();
     }
 }

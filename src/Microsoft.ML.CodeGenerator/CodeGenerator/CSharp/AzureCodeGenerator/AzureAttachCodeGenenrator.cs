@@ -2,14 +2,15 @@
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.ML.AutoML;
+using Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.Interface;
 using Microsoft.ML.CodeGenerator.CSharp;
 
 namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
 {
-    internal class AzureAttachCodeGenenrator : ISolutionGenerator
+    internal class AzureAttachCodeGenenrator : ICSharpSolutionGenerator
     {
-        public IProjectGenerator AzureAttachConsoleApp { get; private set; }
-        public IProjectGenerator AzureAttachModel { get; private set; }
+        public ICSharpProjectGenerator AzureAttachConsoleApp { get; private set; }
+        public ICSharpProjectGenerator AzureAttachModel { get; private set; }
         public string Name { get; set; }
 
         private readonly Pipeline _pipeline;
@@ -27,7 +28,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
             AzureAttachModel = new AzureAttachModelCodeGenerator(_pipeline, _columnInferenceResult, _settings, namespaceValue);
         }
 
-        public ISolution ToSolution()
+        public ICSharpSolution ToSolution()
         {
             var solution = new CSharpSolution()
             {

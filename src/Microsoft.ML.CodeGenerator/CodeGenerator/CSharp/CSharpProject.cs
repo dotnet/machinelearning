@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Microsoft.ML.CodeGenerator.CodeGenerator
 {
-    internal class CSharpProject : List<ICSharpFile>, IProject
+    internal class CSharpProject : List<ICSharpFile>, ICSharpProject
     {
         public string Name { get; set; }
 

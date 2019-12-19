@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.AutoML;
+using Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.Interface;
 using Microsoft.ML.CodeGenerator.CSharp;
 using Microsoft.ML.CodeGenerator.Templates.Azure.Model;
 using Microsoft.ML.CodeGenerator.Templates.Console;
@@ -12,7 +13,7 @@ using Microsoft.ML.CodeGenerator.Utilities;
 
 namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
 {
-    internal class AzureAttachModelCodeGenerator : IProjectGenerator
+    internal class AzureAttachModelCodeGenerator : ICSharpProjectGenerator
     {
         private readonly Pipeline _pipeline;
         private readonly CodeGeneratorSettings _settings;
@@ -127,7 +128,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
             };
         }
 
-        public IProject ToProject()
+        public ICSharpProject ToProject()
         {
             CSharpProject project;
             if (_settings.IsImage)
@@ -155,11 +156,6 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
             }
             project.Name = Name;
             return project;
-        }
-
-        public void GenerateOutput()
-        {
-            throw new NotImplementedException();
         }
     }
 }
