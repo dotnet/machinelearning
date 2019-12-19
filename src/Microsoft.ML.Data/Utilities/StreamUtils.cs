@@ -177,26 +177,26 @@ namespace Microsoft.ML.Internal.Utilities
 
         public static string ReadEntry(this TextReader sr)
         {
-            string strReturn = string.Empty;
+            string entry = string.Empty;
 
             // get first bit
-            strReturn += sr.ReadLine();
+            entry += sr.ReadLine();
 
             // And get more lines until the number of quotes is even
-            while (GetNumberOf(strReturn, "\"") % 2 != 0 )
+            while (GetNumberOf(entry, "\"") % 2 != 0 )
             {
-                string strNow = sr.ReadLine();
-                strReturn += strNow;
+                string line = sr.ReadLine();
+                entry += line;
             }
 
             // Then return what we've gotten
-            if (strReturn == string.Empty)
+            if (entry == string.Empty)
             {
                 return null;
             }
             else
             {
-                return strReturn;
+                return entry;
             }
         }
 
