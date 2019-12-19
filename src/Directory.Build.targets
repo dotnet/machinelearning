@@ -21,6 +21,13 @@
                     RelativePath="$(IncludeAnalyzerInPackage)\analyzers\dotnet\cs" />
     </ItemGroup>
 
+    <ItemGroup Condition="'$(IncludeInGlobalToolPackage)' != ''">
+      <PackageAsset Include="@(DebugSymbolsProjectOutputGroupOutput)"
+                    RelativePath="$(IncludeInGlobalToolPackage)\tools\$(TargetFramework)\any" />
+      <PackageAsset Include="$(ProjectRuntimeConfigFilePath);$(ProjectDepsFilePath);$(TargetDir)mlnet.dll;$(TargetDir)NLog.config"
+                    RelativePath="$(IncludeInGlobalToolPackage)\tools\$(TargetFramework)\any" />
+    </ItemGroup>
+    
     <Copy SourceFiles="@(PackageAsset)"
           DestinationFolder="$(PackageAssetsPath)%(PackageAsset.RelativePath)" />
 

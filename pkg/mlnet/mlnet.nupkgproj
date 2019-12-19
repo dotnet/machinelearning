@@ -15,58 +15,47 @@
     <PackageRid>$(PackageRid)-$(TargetArchitecture)</PackageRid>
     <DefaultPackagePath>tools/netcoreapp2.1/any/</DefaultPackagePath>
     <NativePackagePath>tools/netcoreapp2.1/any/runtimes/win-x64/native</NativePackagePath>
+    <PkgPath>$(ObjDir)packages/</PkgPath>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include = "$(PackageOutputPath)Microsoft.ML.CpuMath\runtimes\$(PackageRid)\nativeassets\netstandard2.0\CpuMathNative.dll"
+    <Content Include = "$(PkgPath)Microsoft.ML.CpuMath\runtimes\$(PackageRid)\nativeassets\netstandard2.0\CpuMathNative.dll"
       PackagePath = "$(NativePackagePath)" />
-    <Content Include = "$(PackageOutputPath)Microsoft.ML.FastTree\runtimes\$(PackageRid)\native\FastTreeNative.dll"
+    <Content Include = "$(PkgPath)Microsoft.ML.FastTree\runtimes\$(PackageRid)\native\FastTreeNative.dll"
       PackagePath = "$(NativePackagePath)" />
-    <Content Include = "$(PackageOutputPath)Microsoft.ML\runtimes\$(PackageRid)\native\LdaNative.dll"
+    <Content Include = "$(PkgPath)Microsoft.ML\runtimes\$(PackageRid)\native\LdaNative.dll"
       PackagePath = "$(NativePackagePath)" />
-    <Content Include = "$(PackageOutputPath)Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native\MklProxyNative.dll"
+    <Content Include = "$(PkgPath)Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native\MklProxyNative.dll"
       PackagePath = "$(NativePackagePath)" />
-    <Content Include = "$(PackageOutputPath)Microsoft.ML.Mkl.Components\runtimes\win-x64\native\SymSgdNative.dll"
+    <Content Include = "$(PkgPath)Microsoft.ML.Mkl.Components\runtimes\$(PackageRid)\native\SymSgdNative.dll"
       PackagePath = "$(NativePackagePath)" />
 
-    <Content Include = "$(PackageOutputPath)Microsoft.ML\lib\netstandard2.0\*.dll"
+    <Content Include = "$(PkgPath)Microsoft.ML\lib\netstandard2.0\*.dll"
       PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "$(PackageOutputPath)Microsoft.ML.AutoML\lib\netstandard2.0\*.dll"
+    <Content Include = "$(PkgPath)Microsoft.ML.AutoML\lib\netstandard2.0\*.dll"
       PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "$(PackageOutputPath)Microsoft.ML.CodeGenerator\lib\netstandard2.0\*.dll"
+    <Content Include = "$(PkgPath)Microsoft.ML.CodeGenerator\lib\netstandard2.0\*.dll"
       PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "$(PackageOutputPath)Microsoft.ML.CpuMath\lib\netstandard2.0\*.dll"
+    <Content Include = "$(PkgPath)Microsoft.ML.CpuMath\lib\netstandard2.0\*.dll"
       PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "$(PackageOutputPath)Microsoft.ML.DataView\lib\netstandard2.0\*.dll"
+    <Content Include = "$(PkgPath)Microsoft.ML.DataView\lib\netstandard2.0\*.dll"
       PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "$(PackageOutputPath)Microsoft.ML.FastTree\lib\netstandard2.0\*.dll"
+    <Content Include = "$(PkgPath)Microsoft.ML.FastTree\lib\netstandard2.0\*.dll"
       PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "$(PackageOutputPath)Microsoft.ML.ImageAnalytics\lib\netstandard2.0\*.dll"
+    <Content Include = "$(PkgPath)Microsoft.ML.ImageAnalytics\lib\netstandard2.0\*.dll"
       PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "$(PackageOutputPath)Microsoft.ML.LightGbm\lib\netstandard2.0\*.dll"
+    <Content Include = "$(PkgPath)Microsoft.ML.LightGbm\lib\netstandard2.0\*.dll"
       PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "$(PackageOutputPath)Microsoft.ML.Mkl.Components\lib\netstandard2.0\*.dll"
+    <Content Include = "$(PkgPath)Microsoft.ML.Mkl.Components\lib\netstandard2.0\*.dll"
       PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "$(PackageOutputPath)Microsoft.ML.Recommender\lib\netstandard2.0\*.dll"
+    <Content Include = "$(PkgPath)Microsoft.ML.Recommender\lib\netstandard2.0\*.dll"
       PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "$(PackageOutputPath)Microsoft.ML.TensorFlow\lib\netstandard2.0\*.dll"
+    <Content Include = "$(PkgPath)Microsoft.ML.TensorFlow\lib\netstandard2.0\*.dll"
       PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "$(PackageOutputPath)Microsoft.ML.Vision\lib\netstandard2.0\*.dll"
-      PackagePath = "$(DefaultPackagePath)" />
-
-    <Content Include = "C:\CodeHub\ml2\machinelearning\bin\AnyCPU.Debug\mlnet\netcoreapp2.1\mlnet.dll"
-      PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "C:\CodeHub\ml2\machinelearning\bin\AnyCPU.Debug\mlnet\netcoreapp2.1\mlnet.deps.json"
-      PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "C:\CodeHub\ml2\machinelearning\bin\AnyCPU.Debug\mlnet\netcoreapp2.1\mlnet.runtimeconfig.json"
-      PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "C:\CodeHub\ml2\machinelearning\bin\AnyCPU.Debug\mlnet\netcoreapp2.1\NLog.config"
-      PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "C:\CodeHub\ml2\machinelearning\bin\AnyCPU.Debug\mlnet\netcoreapp2.1\mlnet.pdb"
+    <Content Include = "$(PkgPath)Microsoft.ML.Vision\lib\netstandard2.0\*.dll"
       PackagePath = "$(DefaultPackagePath)" />
 
-      <PackageReference Include="MlNetMklDeps" Version="$(MlNetMklDepsPackageVersion)" />
-
+    <PackageReference Include="MlNetMklDeps" Version="$(MlNetMklDepsPackageVersion)" />
     <PackageReference Include="LightGBM" Version="$(LightGBMPackageVersion)" />
     <PackageReference Include="Microsoft.ApplicationInsights" Version="$(MicrosoftApplicationInsightsVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisCSharpVersion)" />

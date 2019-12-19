@@ -13,6 +13,7 @@
       <LibExtension Condition="'$(OS)' == 'Windows_NT'">.dll</LibExtension>
       <LibExtension Condition="'$(OS)' != 'Windows_NT'">.so</LibExtension>
       <LibExtension Condition="$([MSBuild]::IsOSPlatform('osx'))">.dylib</LibExtension>
+      <NoBuild Condition="'$(IsGlobalTool)' == 'true'">true</NoBuild>
     </PropertyGroup>
 
     <ItemGroup>
@@ -32,6 +33,6 @@
     </Copy>
 
   </Target>
-  
+
   <Import Project="$(ToolsDir)/versioning.targets" Condition="Exists('$(ToolsDir)/versioning.targets')" />
 </Project>

@@ -11,10 +11,9 @@
     <DefaultPackagePath>tools/netcoreapp2.1/any/</DefaultPackagePath>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include = "C:\CodeHub\ml2\machinelearning\bin\AnyCPU.Debug\mlnet\netcoreapp2.1\mlnet.dll"
-      PackagePath = "$(DefaultPackagePath)" />
-    <Content Include = "C:\CodeHub\ml2\machinelearning\bin\AnyCPU.Debug\mlnet\netcoreapp2.1\mlnet.pdb"
-      PackagePath = "$(DefaultPackagePath)" />
+    <Content Remove = "$(ObjDir)packages\mlnet\tools\**\*"/>
+    <Content Include = "$(ObjDir)packages\mlnet\$(DefaultPackagePath)mlnet.dll" PackagePath = "$(DefaultPackagePath)" />
+    <Content Include = "$(ObjDir)packages\mlnet\$(DefaultPackagePath)mlnet.pdb" PackagePath = "$(DefaultPackagePath)" />
   </ItemGroup>
   <Target Name="CreateManifestResourceNames" />
 </Project>
