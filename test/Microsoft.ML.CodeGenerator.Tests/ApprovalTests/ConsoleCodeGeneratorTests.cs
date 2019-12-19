@@ -265,23 +265,31 @@ namespace mlnet.Tests
 
             // test with null map case
             var columnMappingStringList = Utils.GenerateClassLabels(columnInference);
-            var modelInputProject = new ModelInputClass()
+            var modelInputProject = new CSharpCodeFile()
             {
-                Namespace = "test",
-                ClassLabels = columnMappingStringList,
-                Target = GenerateTarget.Cli,
-            }.ToProjectFile() as CSharpCodeFile;
+                File = new ModelInputClass()
+                {
+                    Namespace = "test",
+                    ClassLabels = columnMappingStringList,
+                    Target = GenerateTarget.Cli,
+                }.TransformText(),
+                Name = "ModelInput.cs",
+            };
             NamerFactory.AdditionalInformation = "null_map";
             Approvals.Verify(modelInputProject.File);
 
             // test with map case
             columnMappingStringList = Utils.GenerateClassLabels(columnInference, mapping);
-            modelInputProject = new ModelInputClass()
+            modelInputProject = new CSharpCodeFile()
             {
-                Namespace = "test",
-                ClassLabels = columnMappingStringList,
-                Target = GenerateTarget.Cli,
-            }.ToProjectFile() as CSharpCodeFile;
+                File = new ModelInputClass()
+                {
+                    Namespace = "test",
+                    ClassLabels = columnMappingStringList,
+                    Target = GenerateTarget.Cli,
+                }.TransformText(),
+                Name = "ModelInput.cs",
+            };
             NamerFactory.AdditionalInformation = "map";
             Approvals.Verify(modelInputProject.File);
         }
@@ -295,38 +303,46 @@ namespace mlnet.Tests
             (var bestPipeLine, var columnInference) = GetMockedAzureImagePipelineAndInference();
             var (_, _, PreTrainerTransforms, _) = bestPipeLine.GenerateTransformsAndTrainers();
 
-            var azureModelBuilder = new AzureModelBuilder()
+            var azureModelBuilder = new CSharpCodeFile()
             {
-                Path = "/path/to/file",
-                HasHeader = true,
-                Separator = ',',
-                PreTrainerTransforms = PreTrainerTransforms,
-                AllowQuoting = true,
-                AllowSparse = true,
-                Namespace = "test",
-                Target = GenerateTarget.ModelBuilder,
-                OnnxModelPath = "/path/to/onnxModel",
-                MLNetModelpath = "/path/to/MLNet",
-            }.ToProjectFile() as CSharpCodeFile;
+                File = new AzureModelBuilder()
+                {
+                    Path = "/path/to/file",
+                    HasHeader = true,
+                    Separator = ',',
+                    PreTrainerTransforms = PreTrainerTransforms,
+                    AllowQuoting = true,
+                    AllowSparse = true,
+                    Namespace = "test",
+                    Target = GenerateTarget.ModelBuilder,
+                    OnnxModelPath = "/path/to/onnxModel",
+                    MLNetModelpath = "/path/to/MLNet",
+                }.TransformText(),
+                Name = "ModelBuilder.cs",
+            };
             NamerFactory.AdditionalInformation = "Image";
             Approvals.Verify(azureModelBuilder.File);
 
             // test Azure Non-Image Case
             (bestPipeLine, columnInference, _) = GetMockedAzurePipelineAndInference();
             (_, _, PreTrainerTransforms, _) = bestPipeLine.GenerateTransformsAndTrainers();
-            azureModelBuilder = new AzureModelBuilder()
+            azureModelBuilder = new CSharpCodeFile()
             {
-                Path = "/path/to/file",
-                HasHeader = true,
-                Separator = ',',
-                PreTrainerTransforms = PreTrainerTransforms,
-                AllowQuoting = true,
-                AllowSparse = true,
-                Namespace = "test",
-                Target = GenerateTarget.ModelBuilder,
-                OnnxModelPath = "/path/to/onnxModel",
-                MLNetModelpath = "/path/to/MLNet",
-            }.ToProjectFile() as CSharpCodeFile;
+                File = new AzureModelBuilder()
+                {
+                    Path = "/path/to/file",
+                    HasHeader = true,
+                    Separator = ',',
+                    PreTrainerTransforms = PreTrainerTransforms,
+                    AllowQuoting = true,
+                    AllowSparse = true,
+                    Namespace = "test",
+                    Target = GenerateTarget.ModelBuilder,
+                    OnnxModelPath = "/path/to/onnxModel",
+                    MLNetModelpath = "/path/to/MLNet",
+                }.TransformText(),
+                Name = "ModelBuilder.cs",
+            };
             NamerFactory.AdditionalInformation = "NonImage";
             Approvals.Verify(azureModelBuilder.File);
         }

@@ -85,7 +85,6 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                     IncludeRecommenderPackage = false,
                     StablePackageVersion = _settings.StablePackageVersion,
                     UnstablePackageVersion = _settings.UnstablePackageVersion,
-                    OutputName = _settings.OutputName,
                 }.TransformText(),
                 Name = $"{ _settings.OutputName }.Model.csproj",
             };
