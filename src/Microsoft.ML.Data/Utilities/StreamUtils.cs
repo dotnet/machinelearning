@@ -183,7 +183,7 @@ namespace Microsoft.ML.Internal.Utilities
             strReturn += sr.ReadLine();
 
             // And get more lines until the number of quotes is even
-            while (strReturn.GetNumberOf("\"").IsOdd())
+            while (GetNumberOf(strReturn, "\"") % 2 != 0 )
             {
                 string strNow = sr.ReadLine();
                 strReturn += strNow;
@@ -200,14 +200,13 @@ namespace Microsoft.ML.Internal.Utilities
             }
         }
 
-        public static int GetNumberOf(this string s, string strSearchString)
+        public static int GetNumberOf(string s, string strSearchString)
         {
-            return s.Length - s.Replace(strSearchString, string.Empty).Length;
-        }
-
-        public static bool IsOdd(this int i)
-        {
-            return i % 2 != 0;
+            if(strSearchString.Length == 0 || s.Length == 0)
+            {
+                return 0;
+            }
+            return (s.Length - s.Replace(strSearchString, string.Empty).Length) / strSearchString.Length;
         }
     }
 }
