@@ -1099,7 +1099,7 @@ namespace Microsoft.ML.RunTests
             builder.AddColumn("F1", type, data);
             var srcView = builder.GetDataView();
 
-            var hashTransform = new HashingTransformer(Env, new HashingEstimator.ColumnOptions("F1", "F1", 5, 42)).Transform(srcView);
+            var hashTransform = new HashingTransformer(Env, new HashingEstimator.ColumnOptionsInternal("F1", "F1", 5, 42)).Transform(srcView);
             using (var cursor = hashTransform.GetRowCursorForAllColumns())
             {
                 var resultGetter = cursor.GetGetter<uint>(cursor.Schema[1]);
@@ -1130,7 +1130,7 @@ namespace Microsoft.ML.RunTests
         private void TestHashTransformVectorHelper(ArrayDataViewBuilder builder, uint[][] results)
         {
             var srcView = builder.GetDataView();
-            var hashTransform = new HashingTransformer(Env, new HashingEstimator.ColumnOptions("F1V", "F1V", 5, 42)).Transform(srcView);
+            var hashTransform = new HashingTransformer(Env, new HashingEstimator.ColumnOptionsInternal("F1V", "F1V", 5, 42)).Transform(srcView);
             using (var cursor = hashTransform.GetRowCursorForAllColumns())
             {
                 var resultGetter = cursor.GetGetter<VBuffer<uint>>(cursor.Schema[1]);

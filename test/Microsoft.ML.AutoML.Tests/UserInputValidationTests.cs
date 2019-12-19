@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
 using Xunit;
@@ -306,6 +307,34 @@ namespace Microsoft.ML.AutoML.Test
                 Assert.StartsWith("Validation data has 0 rows", ex.Message);
             }
         }
+
+
+        [Fact]
+        public void TestValidationDataSchemaChecksIgnoreHiddenColumns()
+        {
+            var mlContext = new MLContext();
+
+            // Build training data where label column is a float.
+            var trainDataBuilder = new ArrayDataViewBuilder(mlContext);
+            trainDataBuilder.AddColumn("Number", NumberDataViewType.Single, 0f);
+            trainDataBuilder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single, 0f);
+            var trainingData = trainDataBuilder.GetDataView();
+
+            // In the training data, transform the label column from a float to a Boolean. This has the effect of
+            // creating a hidden column named 'Label' of type float and an additional column named 'Label' of type Boolean.
+            var convertLabelToBoolEstimator = mlContext.Transforms.Conversion.MapValue(DefaultColumnNames.Label,
+                new List<KeyValuePair<float, bool>>() { new KeyValuePair<float, bool>(1, true) });
+            trainingData = convertLabelToBoolEstimator.Fit(trainingData).Transform(trainingData);
+
+            // Build validaiton data where label column is a Boolean.
+            var validationDataBuilder = new ArrayDataViewBuilder(mlContext);
+            validationDataBuilder.AddColumn("Number", NumberDataViewType.Single, 0f);
+            validationDataBuilder.AddColumn(DefaultColumnNames.Label, BooleanDataViewType.Instance, false);
+            var validationData = validationDataBuilder.GetDataView();
+
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(trainingData, new ColumnInformation(), validationData, TaskKind.BinaryClassification);
+        }
+
 
         private static void ValidateLabelTypeTestCore<LabelRawType>(TaskKind task, PrimitiveDataViewType labelType, bool labelTypeShouldBeValid)
         {

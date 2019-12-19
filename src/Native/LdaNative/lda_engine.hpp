@@ -52,7 +52,7 @@ namespace lda {
         void InitializeBeforeTest();
         bool InitializeBeforeTrain();
         void AllocateDataMemory(int num_document, int64_t corpus_size);
-        void AllocateModelMemory(const LDADataBlock* data_block); //in this case, model memory is allocated according to the datablock;
+        void AllocateModelMemory(const LDADataBlock& data_block); //in this case, model memory is allocated according to the datablock;
         void AllocateModelMemory(int num_vocabs, int num_topics, int64_t nonzero_num);
         void AllocateModelMemory(int num_vocabs, int num_topics, int64_t mem_block_size, int64_t alias_mem_block_size);
         void SetAlphaSum(float avgDocLength); //alphasum parameter is set by avgdoclength * alpha
@@ -110,11 +110,11 @@ namespace lda {
         bool bAlphaSumMultiplied; //used to check whether alpha_sum_ is real alpha sum but not alpha
         std::vector<int32_t> word_range_for_each_thread_;
 
-        LDAEngineAtomics* atomic_stats_;
-        SimpleBarrier* process_barrier_;         // Local barrier across threads.
+        std::unique_ptr<LDAEngineAtomics> atomic_stats_;
+        std::unique_ptr<SimpleBarrier> process_barrier_;         // Local barrier across threads.
 
-        LDADataBlock* data_block_;
-        LDAModelBlock* model_block_;
+        std::unique_ptr<LDADataBlock> data_block_;
+        std::unique_ptr<LDAModelBlock> model_block_;
 
         std::vector<lda::hybrid_map> global_word_topic_table_;
         std::vector<lda::hybrid_alias_map> global_alias_k_v_;
@@ -126,13 +126,13 @@ namespace lda {
         float beta_mass_;
         std::vector<wood::alias_k_v> beta_k_v_;
 
-        LightDocSampler **samplers_;
-        float* likelihood_in_iter_;
+        std::unique_ptr<std::unique_ptr<LightDocSampler>[]> samplers_;
+        std::unique_ptr<float[]> likelihood_in_iter_;
 
         // For TestDocSafe purpose
         int32_t **document_buffer_;
 
         wood::xorshift_rng rng_;
-        CBlockedIntQueue *samplerQueue_;
+        std::unique_ptr<CBlockedIntQueue> samplerQueue_;
     };
 }   // namespace lda

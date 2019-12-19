@@ -101,7 +101,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">Host Environment.</param>
         /// <param name="options">Options for the skip operation.</param>
         /// <param name="input">Input <see cref="IDataView"/>.</param>
-        public SkipTakeFilter(IHostEnvironment env, SkipOptions options, IDataView input)
+        internal SkipTakeFilter(IHostEnvironment env, SkipOptions options, IDataView input)
             : this(options.Count, Options.DefaultTake, env, input)
         {
         }
@@ -112,7 +112,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">Host Environment.</param>
         /// <param name="options">Options for the take operation.</param>
         /// <param name="input">Input <see cref="IDataView"/>.</param>
-        public SkipTakeFilter(IHostEnvironment env, TakeOptions options, IDataView input)
+        internal SkipTakeFilter(IHostEnvironment env, TakeOptions options, IDataView input)
             : this(Options.DefaultSkip, options.Count, env, input)
         {
         }

@@ -67,7 +67,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        private static LightGbmRankingModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static LightGbmRankingModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             return new LightGbmRankingModelParameters(env, ctx);
         }

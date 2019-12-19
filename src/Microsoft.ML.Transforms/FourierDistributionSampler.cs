@@ -144,7 +144,7 @@ namespace Microsoft.ML.Transforms
                 _gamma = gamma / averageDistance;
             }
 
-            private static RandomNumberGenerator Create(IHostEnvironment env, ModelLoadContext ctx)
+            internal static RandomNumberGenerator Create(IHostEnvironment env, ModelLoadContext ctx)
             {
                 Contracts.CheckValue(env, nameof(env));
                 env.CheckValue(ctx, nameof(ctx));
@@ -266,7 +266,7 @@ namespace Microsoft.ML.Transforms
                 _a = a / averageDistance;
             }
 
-            private static RandomNumberGenerator Create(IHostEnvironment env, ModelLoadContext ctx)
+            internal static RandomNumberGenerator Create(IHostEnvironment env, ModelLoadContext ctx)
             {
                 Contracts.CheckValue(env, nameof(env));
                 env.CheckValue(ctx, nameof(ctx));

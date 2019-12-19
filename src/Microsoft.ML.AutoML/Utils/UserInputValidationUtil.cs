@@ -183,14 +183,22 @@ namespace Microsoft.ML.AutoML
 
             const string schemaMismatchError = "Training data and validation data schemas do not match.";
 
-            if (trainData.Schema.Count != validationData.Schema.Count)
+            if (trainData.Schema.Count(c => !c.IsHidden) != validationData.Schema.Count(c => !c.IsHidden))
             {
                 throw new ArgumentException($"{schemaMismatchError} Train data has '{trainData.Schema.Count}' columns," +
                     $"and validation data has '{validationData.Schema.Count}' columns.", nameof(validationData));
             }
 
+            // Validate that every active column in the train data corresponds to an active column in the validation data.
+            // (Indirectly, since we asserted above that the train and validation data have the same number of active columns, this also
+            // esnures the reverse -- that every active column in the validation data corresponds to an active column in the train data.)
             foreach (var trainCol in trainData.Schema)
             {
+                if (trainCol.IsHidden)
+                {
+                    continue;
+                }
+
                 var validCol = validationData.Schema.GetColumnOrNull(trainCol.Name);
                 if (validCol == null)
                 {

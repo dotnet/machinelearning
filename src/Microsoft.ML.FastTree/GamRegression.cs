@@ -180,7 +180,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 loaderAssemblyName: typeof(GamRegressionModelParameters).Assembly.FullName);
         }
 
-        private static GamRegressionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static GamRegressionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
