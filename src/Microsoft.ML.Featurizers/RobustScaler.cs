@@ -165,6 +165,7 @@ namespace Microsoft.ML.Featurizers
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(RobustScalerEstimator));
+            _host.Check(!CommonExtensions.OsIsCentOS7());
             Contracts.Check(options.QuantileMin >= 0.0f && options.QuantileMin < options.QuantileMax && options.QuantileMax <= 100.0f, "Invalid QuantileRange provided");
             Contracts.CheckNonEmpty(options.Columns, nameof(options.Columns));
 
@@ -221,6 +222,7 @@ namespace Microsoft.ML.Featurizers
         internal RobustScalerTransformer(IHostEnvironment host, IDataView input, RobustScalerEstimator.Options options) :
             base(host.Register(nameof(RobustScalerTransformer)))
         {
+            host.Check(!CommonExtensions.OsIsCentOS7());
             var schema = input.Schema;
             _options = options;
 
@@ -235,7 +237,8 @@ namespace Microsoft.ML.Featurizers
         internal RobustScalerTransformer(IHostEnvironment host, ModelLoadContext ctx) :
             base(host.Register(nameof(RobustScalerTransformer)))
         {
-            Host.CheckValue(ctx, nameof(ctx));
+            host.Check(!CommonExtensions.OsIsCentOS7());
+            host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
             // *** Binary format ***
             // int number of column pairs
