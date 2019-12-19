@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Microsoft.ML.CodeGenerator.CodeGenerator
 {
-    internal interface ICSharpSolutionGenerator
+    internal interface ICSharpSolutionGenerator : IProjectGenerator
     {
         ICSharpSolution ToSolution();
     }

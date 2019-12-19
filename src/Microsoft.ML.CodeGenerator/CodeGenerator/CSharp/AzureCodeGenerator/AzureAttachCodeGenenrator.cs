@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.Interface;
@@ -38,6 +39,12 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
 
             solution.Name = _settings.OutputName;
             return solution;
+        }
+
+        public void GenerateOutput()
+        {
+            var folder = Path.Combine(_settings.OutputBaseDir, _settings.OutputName);
+            ToSolution().WriteToDisk(folder);
         }
     }
 }
