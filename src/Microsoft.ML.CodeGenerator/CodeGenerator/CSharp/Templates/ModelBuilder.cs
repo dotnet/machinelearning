@@ -14,11 +14,11 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
             HasOnnxModel = false;
         }
 
-        public IProjectFile ToProjectFile()
+        public ICSharpFile ToProjectFile()
         {
-            return new ProjectFile()
+            return new CSharpCodeFile()
             {
-                Data = Utilities.Utils.FormatCode(TransformText()),
+                File = Utilities.Utils.FormatCode(TransformText()),
                 Name = "ModelBuilder.cs",
             };
         }

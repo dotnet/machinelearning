@@ -8,11 +8,11 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
 {
     internal partial class PredictProgram : IProjectFileGenerator
     {
-        public IProjectFile ToProjectFile()
+        public ICSharpFile ToProjectFile()
         {
-            return new ProjectFile()
+            return new CSharpCodeFile()
             {
-                Data = Utilities.Utils.FormatCode(TransformText()),
+                File = Utilities.Utils.FormatCode(TransformText()),
                 Name = "Program.cs",
             };
         }

@@ -10,11 +10,11 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
     {
         public string OutputName { get; set; }
 
-        public IProjectFile ToProjectFile()
+        public ICSharpFile ToProjectFile()
         {
-            return new ProjectFile()
+            return new CSharpCodeFile()
             {
-                Data = TransformText(),
+                File = TransformText(),
                 Name = $"{OutputName}.Model.csproj",
             };
         }

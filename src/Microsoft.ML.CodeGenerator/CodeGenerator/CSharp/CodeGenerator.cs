@@ -538,7 +538,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             return modelBuilder.TransformText();
         }
 
-        public IProjectFile ToProjectFile()
+        public ICSharpFile ToProjectFile()
         {
             throw new NotImplementedException();
         }

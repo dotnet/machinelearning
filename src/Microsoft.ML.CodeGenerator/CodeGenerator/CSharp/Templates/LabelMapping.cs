@@ -8,11 +8,11 @@ namespace Microsoft.ML.CodeGenerator.Templates.Azure.Model
 {
     internal partial class LabelMapping : IProjectFileGenerator
     {
-        public IProjectFile ToProjectFile()
+        public ICSharpFile ToProjectFile()
         {
-            return new ProjectFile()
+            return new CSharpCodeFile()
             {
-                Data = Utilities.Utils.FormatCode(TransformText()),
+                File = Utilities.Utils.FormatCode(TransformText()),
                 Name = "LabelMapping.cs",
             };
         }

@@ -10,6 +10,7 @@ using ApprovalTests.Namers;
 using ApprovalTests.Reporters;
 using Microsoft.ML;
 using Microsoft.ML.AutoML;
+using Microsoft.ML.CodeGenerator;
 using Microsoft.ML.CodeGenerator.CodeGenerator;
 using Microsoft.ML.CodeGenerator.CodeGenerator.CSharp;
 using Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator;
@@ -215,7 +216,7 @@ namespace mlnet.Tests
                 foreach(var projectFile in project)
                 {
                     NamerFactory.AdditionalInformation = projectFile.Name;
-                    Approvals.Verify(((ProjectFile)projectFile).Data);
+                    Approvals.Verify(((ICSharpFile)projectFile).File);
                 }
             }
         }
@@ -250,7 +251,7 @@ namespace mlnet.Tests
                 foreach (var projectFile in project)
                 {
                     NamerFactory.AdditionalInformation = projectFile.Name;
-                    Approvals.Verify(((ProjectFile)projectFile).Data);
+                    Approvals.Verify(((ICSharpFile)projectFile).File);
                 }
             }
         }
@@ -269,9 +270,9 @@ namespace mlnet.Tests
                 Namespace = "test",
                 ClassLabels = columnMappingStringList,
                 Target = GenerateTarget.Cli,
-            }.ToProjectFile() as ProjectFile;
+            }.ToProjectFile() as CSharpCodeFile;
             NamerFactory.AdditionalInformation = "null_map";
-            Approvals.Verify(modelInputProject.Data);
+            Approvals.Verify(modelInputProject.File);
 
             // test with map case
             columnMappingStringList = Utils.GenerateClassLabels(columnInference, mapping);
@@ -280,9 +281,9 @@ namespace mlnet.Tests
                 Namespace = "test",
                 ClassLabels = columnMappingStringList,
                 Target = GenerateTarget.Cli,
-            }.ToProjectFile() as ProjectFile;
+            }.ToProjectFile() as CSharpCodeFile;
             NamerFactory.AdditionalInformation = "map";
-            Approvals.Verify(modelInputProject.Data);
+            Approvals.Verify(modelInputProject.File);
         }
 
         [Fact]
@@ -306,9 +307,9 @@ namespace mlnet.Tests
                 Target = GenerateTarget.ModelBuilder,
                 OnnxModelPath = "/path/to/onnxModel",
                 MLNetModelpath = "/path/to/MLNet",
-            }.ToProjectFile() as ProjectFile;
+            }.ToProjectFile() as CSharpCodeFile;
             NamerFactory.AdditionalInformation = "Image";
-            Approvals.Verify(azureModelBuilder.Data);
+            Approvals.Verify(azureModelBuilder.File);
 
             // test Azure Non-Image Case
             (bestPipeLine, columnInference, _) = GetMockedAzurePipelineAndInference();
@@ -325,9 +326,9 @@ namespace mlnet.Tests
                 Target = GenerateTarget.ModelBuilder,
                 OnnxModelPath = "/path/to/onnxModel",
                 MLNetModelpath = "/path/to/MLNet",
-            }.ToProjectFile() as ProjectFile;
+            }.ToProjectFile() as CSharpCodeFile;
             NamerFactory.AdditionalInformation = "NonImage";
-            Approvals.Verify(azureModelBuilder.Data);
+            Approvals.Verify(azureModelBuilder.File);
         }
 
         [Fact]

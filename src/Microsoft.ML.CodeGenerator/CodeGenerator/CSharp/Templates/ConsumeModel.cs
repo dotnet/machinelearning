@@ -9,11 +9,11 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
     internal partial class ConsumeModel : IProjectFileGenerator
     {
         // TODO use Model Path from settings
-        public IProjectFile ToProjectFile()
+        public ICSharpFile ToProjectFile()
         {
-            return new ProjectFile()
+            return new CSharpCodeFile()
             {
-                Data = Utilities.Utils.FormatCode(TransformText()),
+                File = Utilities.Utils.FormatCode(TransformText()),
                 Name = "ConsumeModel.cs",
             };
         }

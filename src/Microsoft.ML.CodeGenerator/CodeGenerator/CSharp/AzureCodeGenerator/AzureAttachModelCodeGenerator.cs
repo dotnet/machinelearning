@@ -19,13 +19,13 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
         private readonly ColumnInferenceResults _columnInferenceResult;
         private readonly string _nameSpaceValue;
 
-        public IProjectFileGenerator ModelInputClass { get; private set; }
-        public IProjectFileGenerator ModelOutputClass { get; private set; }
-        public IProjectFileGenerator NormalizeMapping { get; private set; }
-        public IProjectFileGenerator ModelProject { get; private set; }
-        public IProjectFileGenerator ConsumeModel { get; private set; }
-        public IProjectFileGenerator LabelMapping { get; private set; }
-        public IProjectFileGenerator ImageLabelMapping { get; private set; }
+        public ICSharpFile ModelInputClass { get; private set; }
+        public ICSharpFile ModelOutputClass { get; private set; }
+        public ICSharpFile NormalizeMapping { get; private set; }
+        public ICSharpFile ModelProject { get; private set; }
+        public ICSharpFile ConsumeModel { get; private set; }
+        public ICSharpFile LabelMapping { get; private set; }
+        public ICSharpFile ImageLabelMapping { get; private set; }
         public string Name { get; set; }
 
         public AzureAttachModelCodeGenerator(Pipeline pipeline, ColumnInferenceResults columnInferenceResults, CodeGeneratorSettings options, string namespaceValue)
@@ -36,94 +36,122 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
             _nameSpaceValue = namespaceValue;
             Name = $"{_settings.OutputName}.Model";
 
-            ModelInputClass = new ModelInputClass()
+            ModelInputClass = new CSharpCodeFile()
             {
-                Namespace = _nameSpaceValue,
-                ClassLabels = Utilities.Utils.GenerateClassLabels(_columnInferenceResult, _settings.OnnxInputMapping),
-                Target = _settings.Target
+                File = new ModelInputClass()
+                {
+                    Namespace = _nameSpaceValue,
+                    ClassLabels = Utilities.Utils.GenerateClassLabels(_columnInferenceResult, _settings.OnnxInputMapping),
+                    Target = _settings.Target
+                }.TransformText(),
+                Name = "ModelInput.cs",
             };
 
             var labelType = _columnInferenceResult.TextLoaderOptions.Columns.Where(t => t.Name == _settings.LabelName).First().DataKind;
             Type labelTypeCsharp = Utils.GetCSharpType(labelType);
 
-            ModelOutputClass = new ModelOutputClass()
+            ModelOutputClass = new CSharpCodeFile()
             {
-                Namespace = _nameSpaceValue,
-                Target = _settings.Target,
-                TaskType = _settings.MlTask.ToString(),
-                PredictionLabelType = labelTypeCsharp.Name,
+                File = new ModelOutputClass()
+                {
+                    Namespace = _nameSpaceValue,
+                    Target = _settings.Target,
+                    TaskType = _settings.MlTask.ToString(),
+                    PredictionLabelType = labelTypeCsharp.Name,
+                }.TransformText(),
+                Name = "ModelOutput.cs",
             };
 
-            NormalizeMapping = new NormalizeMapping()
+            NormalizeMapping = new CSharpCodeFile()
             {
-                Target = _settings.Target,
-                Namespace = _nameSpaceValue,
+                File = new NormalizeMapping()
+                {
+                    Target = _settings.Target,
+                    Namespace = _nameSpaceValue,
+                }.TransformText(),
+                Name = "NormalizeMapping.cs",
             };
 
-            ModelProject = new ModelProject()
+            ModelProject = new CSharpProjectFile()
             {
-                IncludeFastTreePackage = false,
-                IncludeImageClassificationPackage = false,
-                IncludeImageTransformerPackage = _settings.IsImage,
-                IncludeLightGBMPackage = false,
-                IncludeMklComponentsPackage = false,
-                IncludeOnnxModel = true,
-                IncludeRecommenderPackage = false,
-                StablePackageVersion = _settings.StablePackageVersion,
-                UnstablePackageVersion = _settings.UnstablePackageVersion,
-                OutputName = _settings.OutputName,
+                File = new ModelProject()
+                {
+                    IncludeFastTreePackage = false,
+                    IncludeImageClassificationPackage = false,
+                    IncludeImageTransformerPackage = _settings.IsImage,
+                    IncludeLightGBMPackage = false,
+                    IncludeMklComponentsPackage = false,
+                    IncludeOnnxModel = true,
+                    IncludeRecommenderPackage = false,
+                    StablePackageVersion = _settings.StablePackageVersion,
+                    UnstablePackageVersion = _settings.UnstablePackageVersion,
+                    OutputName = _settings.OutputName,
+                }.TransformText(),
+                Name = $"{ _settings.OutputName }.Model.csproj",
             };
 
-            LabelMapping = new LabelMapping()
+            LabelMapping = new CSharpCodeFile()
             {
-                Target = _settings.Target,
-                Namespace = _nameSpaceValue,
-                LabelMappingInputLabelType = typeof(Int64).Name,
-                PredictionLabelType = labelTypeCsharp.Name,
-                TaskType = _settings.MlTask.ToString(),
+                File = new LabelMapping()
+                {
+                    Target = _settings.Target,
+                    Namespace = _nameSpaceValue,
+                    LabelMappingInputLabelType = typeof(Int64).Name,
+                    PredictionLabelType = labelTypeCsharp.Name,
+                    TaskType = _settings.MlTask.ToString(),
+                }.TransformText(),
+                Name = "LabelMapping.cs",
             };
 
-            ImageLabelMapping = new ImageLabelMapping()
+            ImageLabelMapping = new CSharpCodeFile()
             {
-                Target = _settings.Target,
-                Namespace = _nameSpaceValue,
-                Labels = _settings.ClassificationLabel,
+                File = new ImageLabelMapping()
+                {
+                    Target = _settings.Target,
+                    Namespace = _nameSpaceValue,
+                    Labels = _settings.ClassificationLabel,
+                }.TransformText(),
+                Name = "LabelMapping.cs",
             };
 
-            ConsumeModel = new ConsumeModel()
+            ConsumeModel = new CSharpCodeFile()
             {
-                Namespace = _nameSpaceValue,
-                Target = _settings.Target,
-                HasLabelMapping = true,
-                HasNormalizeMapping = _settings.IsImage,
-                MLNetModelpath = _settings.ModelPath,
+                File = new ConsumeModel()
+                {
+                    Namespace = _nameSpaceValue,
+                    Target = _settings.Target,
+                    HasLabelMapping = true,
+                    HasNormalizeMapping = _settings.IsImage,
+                    MLNetModelpath = _settings.ModelPath,
+                }.TransformText(),
+                Name = "ConsumeModel.cs",
             };
         }
 
         public IProject ToProject()
         {
-            Project project;
+            CSharpProject project;
             if (_settings.IsImage)
             {
-                project = new Project()
+                project = new CSharpProject()
                 {
-                    ModelInputClass.ToProjectFile(),
-                    ModelOutputClass.ToProjectFile(),
-                    ConsumeModel.ToProjectFile(),
-                    ModelProject.ToProjectFile(),
-                    NormalizeMapping.ToProjectFile(),
-                    ImageLabelMapping.ToProjectFile(),
+                    ModelInputClass,
+                    ModelOutputClass,
+                    ConsumeModel,
+                    ModelProject,
+                    NormalizeMapping,
+                    ImageLabelMapping,
                 };
             }
             else
             {
-                project = new Project()
+                project = new CSharpProject()
                 {
-                    ModelInputClass.ToProjectFile(),
-                    ModelOutputClass.ToProjectFile(),
-                    ConsumeModel.ToProjectFile(),
-                    ModelProject.ToProjectFile(),
-                    LabelMapping.ToProjectFile(),
+                    ModelInputClass,
+                    ModelOutputClass,
+                    ConsumeModel,
+                    ModelProject,
+                    LabelMapping,
                 };
             }
             project.Name = Name;

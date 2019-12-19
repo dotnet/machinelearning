@@ -29,7 +29,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
 
         public ISolution ToSolution()
         {
-            var solution = new Solution()
+            var solution = new CSharpSolution()
             {
                 AzureAttachConsoleApp.ToProject(),
                 AzureAttachModel.ToProject()

@@ -8,11 +8,11 @@ namespace Microsoft.ML.CodeGenerator.Templates.Azure.Console
 {
     internal partial class AzureModelBuilder : IProjectFileGenerator
     {
-        public IProjectFile ToProjectFile()
+        public ICSharpFile ToProjectFile()
         {
-            return new ProjectFile()
+            return new CSharpCodeFile()
             {
-                Data = Utilities.Utils.FormatCode(TransformText()),
+                File = Utilities.Utils.FormatCode(TransformText()),
                 Name = "ModelBuilder.cs",
             };
         }

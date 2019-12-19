@@ -6,6 +6,6 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator
 {
     internal interface IProjectFileGenerator
     {
-        IProjectFile ToProjectFile();
+        ICSharpFile ToProjectFile();
     }
 }

@@ -44,9 +44,11 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         /// classification label
         /// for Azure image only
         /// </summary>
-        public string[] ClassificationLabel { get; set; }
+#pragma warning disable MSML_NoInstanceInitializers // No initializers on instance fields or properties
+        public string[] ClassificationLabel { get; set; } = new string[] { };
 
-        public IDictionary<string, ColumnMapping> OnnxInputMapping { get; set; }
+        public IDictionary<string, ColumnMapping> OnnxInputMapping { get; set; } = new Dictionary<string, ColumnMapping>();
+#pragma warning restore MSML_NoInstanceInitializers // No initializers on instance fields or properties
 
         internal TaskKind MlTask { get; set; }
 
