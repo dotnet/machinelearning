@@ -508,7 +508,7 @@ namespace Microsoft.ML.Transforms
             else if (rawType == typeof(ushort))
                 return ComposeGetterVecCore<ushort, HashU2V2>(input, iinfo, srcCol, srcType);
             else if (rawType == typeof(uint))
-                return ComposeGetterVecCore<uint, HashU4>(input, iinfo, srcCol, srcType);
+                return ComposeGetterVecCore<uint, HashU4V2>(input, iinfo, srcCol, srcType);
             else if (rawType == typeof(ulong))
                 return ComposeGetterVecCore<ulong, HashU8V2>(input, iinfo, srcCol, srcType);
             else if (rawType == typeof(DataViewRowId))
@@ -1087,14 +1087,38 @@ namespace Microsoft.ML.Transforms
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariable, string dstVariable)
             {
                 string opType;
+                OnnxNode murmurNode;
 
                 opType = "MurmurHash3";
-                string murmurOutput = ctx.AddIntermediateVariable(_types[iinfo], "MurmurOutput", true);
-                var murmurNode = ctx.CreateNode(opType, srcVariable, dstVariable, ctx.GetNodeName(opType), "com.microsoft");
+                if (_types[iinfo].RawType == typeof(KeyDataViewType))
+                {
+                    string murmurOutput = ctx.AddIntermediateVariable(_types[iinfo], "MurmurOutput", true);
+                    murmurNode = ctx.CreateNode(opType, srcVariable, murmurOutput, ctx.GetNodeName(opType), "com.microsoft");
+
+                    opType = "Cast";
+                    string castOutput = ctx.AddIntermediateVariable(_types[iinfo], "CastOutput", true);
+                    var castNode = ctx.CreateNode(opType, murmurOutput, castOutput, ctx.GetNodeName(opType), "");
+                    var t = NumberDataViewType.Int64.RawType;
+                    castNode.AddAttribute("to", t);
+
+                    opType = "Add";
+                    string addOutput = ctx.AddIntermediateVariable(_types[iinfo], "AddOutput", true);
+                    string one = ctx.AddInitializer(1);
+                    var addNode = ctx.CreateNode(opType, new[] { castOutput, one }, new[] { addOutput }, ctx.GetNodeName(opType), "");
+
+                    opType = "Cast";
+                    var castNodeFinal = ctx.CreateNode(opType, addOutput, dstVariable, ctx.GetNodeName(opType), "");
+                    var tFinal = NumberDataViewType.UInt32.RawType;
+                    castNodeFinal.AddAttribute("to", tFinal);
+                }
+                else
+                {
+                    murmurNode = ctx.CreateNode(opType, srcVariable, dstVariable, ctx.GetNodeName(opType), "com.microsoft");
+                }
+
                 murmurNode.AddAttribute("positive", 1);
                 var seed = _parent._columns[iinfo].Seed;
                 murmurNode.AddAttribute("seed", seed);
-
                 return true;
             }
 
