@@ -18,7 +18,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
     internal enum SpecialTransformer
     {
         ApplyOnnxModel = 0,
-        ResizeImage =1,
+        ResizeImage = 1,
         ExtractPixel = 2,
         NormalizeMapping = 3,
         LabelMapping = 4,
