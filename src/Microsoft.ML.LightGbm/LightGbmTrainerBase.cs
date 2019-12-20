@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -340,6 +341,8 @@ namespace Microsoft.ML.Trainers.LightGbm
 
         private protected override TModel TrainModelCore(TrainContext context)
         {
+            InitializeBeforeTraining();
+
             Host.CheckValue(context, nameof(context));
 
             Dataset dtrain = null;
@@ -370,6 +373,9 @@ namespace Microsoft.ML.Trainers.LightGbm
             }
             return CreatePredictor();
         }
+
+        private protected virtual void InitializeBeforeTraining()
+        { return; }
 
         private void InitParallelTraining()
         {

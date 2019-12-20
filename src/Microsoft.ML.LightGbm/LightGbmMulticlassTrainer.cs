@@ -215,6 +215,12 @@ namespace Microsoft.ML.Trainers.LightGbm
             }
         }
 
+        private protected override void InitializeBeforeTraining()
+        {
+            _numClass = -1; //MYTODO: Include more initializations, of TrainedEnsemble, for example?
+            _tlcNumClass = 0;
+    }
+
         private protected override void ConvertNaNLabels(IChannel ch, RoleMappedData data, float[] labels)
         {
             // Only initialize one time.
