@@ -1,0 +1,6 @@
+steps:
+- template: /eng/common/templates/steps/send-to-helix.yml
+  displayName: Send to Helix
+  parameters:
+    ## more variables go here
+    Creator: mlnet
