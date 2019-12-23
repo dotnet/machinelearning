@@ -29,10 +29,14 @@ namespace Samples.Dynamic.Transforms
             var dataview = mlContext.Data.LoadFromEnumerable(samples);
 
             // A pipeline that applies various expressions to the input columns.
-            var pipeline = mlContext.Transforms.Expression("Expr1", "(x,y)=>log(y)+x", "Float", "FloatVector")
-                .Append(mlContext.Transforms.Expression("Expr2", "(b,s,i)=>b ? len(s) : i", "Boolean", "StringVector", "Int"))
-                .Append(mlContext.Transforms.Expression("Expr3", "(s,f1,f2,i)=>len(concat(s,\"a\"))+f1+f2+i", "String", "FloatVector", "Float", "Int"))
-                .Append(mlContext.Transforms.Expression("Expr4", "(x,y)=>cos(x+pi())*y", "Float", "Int"));
+            var pipeline = mlContext.Transforms.Expression("Expr1", "(x,y)=>log(y)+x",
+                    nameof(InputData.FloatColumn), nameof(InputData.FloatVectorColumn))
+                .Append(mlContext.Transforms.Expression("Expr2", "(b,s,i)=>b ? len(s) : i",
+                    nameof(InputData.BooleanColumn), nameof(InputData.StringVectorColumn), nameof(InputData.IntColumn)))
+                .Append(mlContext.Transforms.Expression("Expr3", "(s,f1,f2,i)=>len(concat(s,\"a\"))+f1+f2+i",
+                    nameof(InputData.StringColumn), nameof(InputData.FloatVectorColumn), nameof(InputData.FloatColumn), nameof(InputData.IntColumn)))
+                .Append(mlContext.Transforms.Expression("Expr4", "(x,y)=>cos(x+pi())*y",
+                    nameof(InputData.FloatColumn), nameof(InputData.IntColumn)));
 
             // The transformed data.
             var transformedData = pipeline.Fit(dataview).Transform(dataview);
@@ -69,23 +73,23 @@ namespace Samples.Dynamic.Transforms
 
         private class InputData
         {
-            public float Float;
+            public float FloatColumn;
             [VectorType(3)]
-            public float[] FloatVector;
-            public int Int;
-            public string String;
-            public bool Boolean;
+            public float[] FloatVectorColumn;
+            public int IntColumn;
+            public string StringColumn;
+            public bool BooleanColumn;
             [VectorType(2)]
-            public string[] StringVector;
+            public string[] StringVectorColumn;
 
             public InputData(float f, float[] fv, int i, string s, bool b, string[] sv)
             {
-                Float = f;
-                FloatVector = fv;
-                Int = i;
-                String = s;
-                Boolean = b;
-                StringVector = sv;
+                FloatColumn = f;
+                FloatVectorColumn = fv;
+                IntColumn = i;
+                StringColumn = s;
+                BooleanColumn = b;
+                StringVectorColumn = sv;
             }
         }
 
