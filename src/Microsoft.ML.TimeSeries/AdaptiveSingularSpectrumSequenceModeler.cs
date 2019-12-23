@@ -1098,61 +1098,104 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="updateModel">Determines whether the model parameters also need to be updated upon consuming the new observation (default = false).</param>
         internal override void Consume(ref Single input, bool updateModel = false)
         {
-            if (Single.IsNaN(input))
-                return;
-
-            int i;
-
-            if (_wTrans == null)
+            using (var channel = _host.Start("Consume"))
             {
-                _y = new CpuAlignedVector(_rank, CpuMathUtils.GetVectorAlignment());
-                _wTrans = new CpuAlignedMatrixRow(_rank, _windowSize, CpuMathUtils.GetVectorAlignment());
-                Single[] vecs = new Single[_rank * _windowSize];
+                var callStack = new System.Diagnostics.StackTrace().ToString();
+                //add log to trouble shoot flaky test SsaForecast
+                if (callStack.Contains("SsaForecast"))
+                {
+                    channel.Info($"Start Consume.");
+                    channel.Info($"_rank is : {_rank}.");
+                    PrintQueue(channel, _buffer, "_buffer");
+                    channel.Info($"_windowSize is : {_windowSize}.");
+                    PrintArray(channel, _state, "_state");
+                    PrintArray(channel, _alpha, "_alpha");
+                    channel.Info($"_wTrans == null is : {_wTrans == null}.");
+                }
 
-                for (i = 0; i < _rank; ++i)
-                    vecs[(_windowSize + 1) * i] = 1;
+                if (Single.IsNaN(input))
+                    return;
 
-                i = 0;
-                _wTrans.CopyFrom(vecs, ref i);
+                int i;
+
+                if (_wTrans == null)
+                {
+                    _y = new CpuAlignedVector(_rank, CpuMathUtils.GetVectorAlignment());
+                    _wTrans = new CpuAlignedMatrixRow(_rank, _windowSize, CpuMathUtils.GetVectorAlignment());
+                    Single[] vecs = new Single[_rank * _windowSize];
+
+                    for (i = 0; i < _rank; ++i)
+                        vecs[(_windowSize + 1) * i] = 1;
+
+                    i = 0;
+                    _wTrans.CopyFrom(vecs, ref i);
+                }
+
+                // Forming vector x
+
+                if (callStack.Contains("SsaForecast"))
+                {
+                    PrintVector(channel, _x, "_x");
+                    PrintVector(channel, _y, "_y");
+
+                    channel.Info("In Consume, check _buffer");
+                    PrintQueue(channel, _buffer, "_buffer");
+                }
+
+                if (_buffer.Count == 0)
+                {
+                    for (i = 0; i < _windowSize - 1; ++i)
+                        _buffer.AddLast(_state[i]);
+                }
+
+                int len = _buffer.Count;
+                for (i = 0; i < _windowSize - len - 1; ++i)
+                    _x[i] = 0;
+                for (i = Math.Max(0, len - _windowSize + 1); i < len; ++i)
+                    _x[i - len + _windowSize - 1] = _buffer[i];
+                _x[_windowSize - 1] = input;
+
+                // Computing y: Eq. (11) in https://hal-institut-mines-telecom.archives-ouvertes.fr/hal-00479772/file/twocolumns.pdf
+                CpuAligenedMathUtils<CpuAlignedMatrixRow>.MatTimesSrc(_wTrans, _x, _y);
+
+                // Updating the state vector
+                CpuAligenedMathUtils<CpuAlignedMatrixRow>.MatTranTimesSrc(_wTrans, _y, _xSmooth);
+
+                _nextPrediction = _autoregressionNoiseMean + _observationNoiseMean;
+
+                if (callStack.Contains("SsaForecast"))
+                {
+                    channel.Info($"_autoregressionNoiseMean is : {_autoregressionNoiseMean}.");
+                    channel.Info($"_observationNoiseMean is : {_observationNoiseMean}.");
+                    PrintVector(channel, _xSmooth, "_xSmooth");
+                    PrintVector(channel, _x, "_x");
+                    PrintVector(channel, _y, "_y");
+                    channel.Info($"_nextPrediction is : {_nextPrediction}.");
+                }
+
+                for (i = 0; i < _windowSize - 2; ++i)
+                {
+                    _state[i] = ((_windowSize - 2 - i) * _state[i + 1] + _xSmooth[i + 1]) / (_windowSize - 1 - i);
+                    _nextPrediction += _state[i] * _alpha[i];
+                }
+                _state[_windowSize - 2] = _xSmooth[_windowSize - 1];
+                _nextPrediction += _state[_windowSize - 2] * _alpha[_windowSize - 2];
+
+                if (updateModel)
+                {
+                    // REVIEW: to be implemented in the next version based on the FAPI algorithm
+                    // in https://hal-institut-mines-telecom.archives-ouvertes.fr/hal-00479772/file/twocolumns.pdf.
+                }
+
+                _buffer.AddLast(input);
+
+                if (callStack.Contains("SsaForecast"))
+                {
+                    channel.Info($"_nextPrediction is : {_nextPrediction}.");
+                    PrintQueue(channel, _buffer, "_buffer");
+                    channel.Info($"Finish Consume.");
+                }
             }
-
-            // Forming vector x
-
-            if (_buffer.Count == 0)
-            {
-                for (i = 0; i < _windowSize - 1; ++i)
-                    _buffer.AddLast(_state[i]);
-            }
-
-            int len = _buffer.Count;
-            for (i = 0; i < _windowSize - len - 1; ++i)
-                _x[i] = 0;
-            for (i = Math.Max(0, len - _windowSize + 1); i < len; ++i)
-                _x[i - len + _windowSize - 1] = _buffer[i];
-            _x[_windowSize - 1] = input;
-
-            // Computing y: Eq. (11) in https://hal-institut-mines-telecom.archives-ouvertes.fr/hal-00479772/file/twocolumns.pdf
-            CpuAligenedMathUtils<CpuAlignedMatrixRow>.MatTimesSrc(_wTrans, _x, _y);
-
-            // Updating the state vector
-            CpuAligenedMathUtils<CpuAlignedMatrixRow>.MatTranTimesSrc(_wTrans, _y, _xSmooth);
-
-            _nextPrediction = _autoregressionNoiseMean + _observationNoiseMean;
-            for (i = 0; i < _windowSize - 2; ++i)
-            {
-                _state[i] = ((_windowSize - 2 - i) * _state[i + 1] + _xSmooth[i + 1]) / (_windowSize - 1 - i);
-                _nextPrediction += _state[i] * _alpha[i];
-            }
-            _state[_windowSize - 2] = _xSmooth[_windowSize - 1];
-            _nextPrediction += _state[_windowSize - 2] * _alpha[_windowSize - 2];
-
-            if (updateModel)
-            {
-                // REVIEW: to be implemented in the next version based on the FAPI algorithm
-                // in https://hal-institut-mines-telecom.archives-ouvertes.fr/hal-00479772/file/twocolumns.pdf.
-            }
-
-            _buffer.AddLast(input);
         }
 
         /// <summary>
@@ -1246,163 +1289,188 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         private void TrainCore(Single[] dataArray, int originalSeriesLength)
         {
-            _host.Assert(Utils.Size(dataArray) > 0);
-            Single[] singularVals;
-            Single[] leftSingularVecs;
-            var learnNaiveModel = false;
-
-            var signalLength = _rankSelectionMethod == RankSelectionMethod.Exact ? originalSeriesLength : 2 * _windowSize - 1;//originalSeriesLength;
-            var signal = new Single[signalLength];
-
-            int i;
-            // Creating the trajectory matrix for the series
-            TrajectoryMatrix tMat = new TrajectoryMatrix(_host, dataArray, _windowSize, originalSeriesLength);
-
-            // Computing the SVD of the trajectory matrix
-            if (!tMat.ComputeSvd(out singularVals, out leftSingularVecs))
-                learnNaiveModel = true;
-            else
+            using (var channel = _host.Start("Train"))
             {
-                for (i = 0; i < _windowSize * _maxRank; ++i)
+                var callStack = new System.Diagnostics.StackTrace().ToString();
+
+                if (callStack.Contains("SsaForecast"))
                 {
-                    if (Single.IsNaN(leftSingularVecs[i]))
-                    {
-                        learnNaiveModel = true;
-                        break;
-                    }
+                    channel.Info($"Start TrainCore.");
+                    channel.Info($"originalSeriesLength: {originalSeriesLength}.");
+                    PrintArray(channel, dataArray, "dataArray");
                 }
-            }
 
-            // Checking for standard eigenvectors, if found reduce the window size and reset training.
-            if (!learnNaiveModel)
-            {
-                for (i = 0; i < _windowSize; ++i)
+                _host.Assert(Utils.Size(dataArray) > 0);
+                Single[] singularVals;
+                Single[] leftSingularVecs;
+                var learnNaiveModel = false;
+
+                var signalLength = _rankSelectionMethod == RankSelectionMethod.Exact ? originalSeriesLength : 2 * _windowSize - 1;//originalSeriesLength;
+                var signal = new Single[signalLength];
+
+                int i;
+                // Creating the trajectory matrix for the series
+                TrajectoryMatrix tMat = new TrajectoryMatrix(_host, dataArray, _windowSize, originalSeriesLength);
+
+                // Computing the SVD of the trajectory matrix
+                if (!tMat.ComputeSvd(out singularVals, out leftSingularVecs))
+                    learnNaiveModel = true;
+                else
                 {
-                    var v = leftSingularVecs[(i + 1) * _windowSize - 1];
-                    if (v * v == 1)
+                    for (i = 0; i < _windowSize * _maxRank; ++i)
                     {
-                        if (_windowSize > 2)
-                        {
-                            _windowSize--;
-                            _maxRank = _windowSize / 2;
-                            _alpha = new Single[_windowSize - 1];
-                            _state = new Single[_windowSize - 1];
-                            _x = new CpuAlignedVector(_windowSize, CpuMathUtils.GetVectorAlignment());
-                            _xSmooth = new CpuAlignedVector(_windowSize, CpuMathUtils.GetVectorAlignment());
-
-                            TrainCore(dataArray, originalSeriesLength);
-                            return;
-                        }
-                        else
+                        if (Single.IsNaN(leftSingularVecs[i]))
                         {
                             learnNaiveModel = true;
                             break;
                         }
                     }
                 }
-            }
 
-            // Learn the naive (averaging) model in case the eigen decomposition is not possible
-            if (learnNaiveModel)
-            {
-#if !TLCSSA
-                using (var ch = _host.Start("Train"))
-                    ch.Warning("The precise SSA model cannot be trained.");
-#endif
+                if (callStack.Contains("SsaForecast"))
+                {
+                    PrintArray(channel, singularVals, "singularVals");
+                    PrintArray(channel, leftSingularVecs, "leftSingularVecs");
+                }
 
-                _rank = 1;
-                var temp = (Single)(1f / Math.Sqrt(_windowSize));
-                for (i = 0; i < _windowSize; ++i)
-                    leftSingularVecs[i] = temp;
-            }
-            else
-            {
-                // Computing the signal rank
-                if (_rankSelectionMethod == RankSelectionMethod.Exact)
-                    _rank = DetermineSignalRank(dataArray, tMat, leftSingularVecs, singularVals, signal, _maxRank);
-                else if (_rankSelectionMethod == RankSelectionMethod.Fast)
-                    _rank = DetermineSignalRankFast(dataArray, tMat, leftSingularVecs, singularVals, _maxRank);
-            }
+                // Checking for standard eigenvectors, if found reduce the window size and reset training.
+                if (!learnNaiveModel)
+                {
+                    for (i = 0; i < _windowSize; ++i)
+                    {
+                        var v = leftSingularVecs[(i + 1) * _windowSize - 1];
+                        if (v * v == 1)
+                        {
+                            if (_windowSize > 2)
+                            {
+                                _windowSize--;
+                                _maxRank = _windowSize / 2;
+                                _alpha = new Single[_windowSize - 1];
+                                _state = new Single[_windowSize - 1];
+                                _x = new CpuAlignedVector(_windowSize, CpuMathUtils.GetVectorAlignment());
+                                _xSmooth = new CpuAlignedVector(_windowSize, CpuMathUtils.GetVectorAlignment());
 
-            // Setting the the y vector
-            _y = new CpuAlignedVector(_rank, CpuMathUtils.GetVectorAlignment());
+                                TrainCore(dataArray, originalSeriesLength);
+                                return;
+                            }
+                            else
+                            {
+                                learnNaiveModel = true;
+                                break;
+                            }
+                        }
+                    }
+                }
 
-            // Setting the weight matrix
-            _wTrans = new CpuAlignedMatrixRow(_rank, _windowSize, CpuMathUtils.GetVectorAlignment());
-            i = 0;
-            _wTrans.CopyFrom(leftSingularVecs, ref i);
-
-            // Setting alpha
-            Single nu = 0;
-            for (i = 0; i < _rank; ++i)
-            {
-                _y[i] = leftSingularVecs[_windowSize * (i + 1) - 1];
-                nu += _y[i] * _y[i];
-            }
-
-            CpuAligenedMathUtils<CpuAlignedMatrixRow>.MatTranTimesSrc(_wTrans, _y, _xSmooth);
-            for (i = 0; i < _windowSize - 1; ++i)
-                _alpha[i] = _xSmooth[i] / (1 - nu);
-
-            // Stabilizing the model
-            if (_shouldStablize && !learnNaiveModel)
-            {
-                if (!Stabilize())
+                // Learn the naive (averaging) model in case the eigen decomposition is not possible
+                if (learnNaiveModel)
                 {
 #if !TLCSSA
-                    using (var ch = _host.Start("Train"))
-                        ch.Warning("The trained model cannot be stablized.");
+                    channel.Warning("The precise SSA model cannot be trained.");
 #endif
+
+                    _rank = 1;
+                    var temp = (Single)(1f / Math.Sqrt(_windowSize));
+                    for (i = 0; i < _windowSize; ++i)
+                        leftSingularVecs[i] = temp;
                 }
-            }
+                else
+                {
+                    // Computing the signal rank
+                    if (_rankSelectionMethod == RankSelectionMethod.Exact)
+                        _rank = DetermineSignalRank(dataArray, tMat, leftSingularVecs, singularVals, signal, _maxRank);
+                    else if (_rankSelectionMethod == RankSelectionMethod.Fast)
+                        _rank = DetermineSignalRankFast(dataArray, tMat, leftSingularVecs, singularVals, _maxRank);
+                }
 
-            // Computing the noise moments
-            if (ShouldComputeForecastIntervals)
-            {
-                if (_rankSelectionMethod != RankSelectionMethod.Exact)
-                    ReconstructSignalTailFast(dataArray, tMat, leftSingularVecs, _rank, signal);
+                // Setting the the y vector
+                _y = new CpuAlignedVector(_rank, CpuMathUtils.GetVectorAlignment());
 
-                ComputeNoiseMoments(dataArray, signal, _alpha, out _observationNoiseVariance, out _autoregressionNoiseVariance,
-                    out _observationNoiseMean, out _autoregressionNoiseMean, originalSeriesLength - signalLength);
-                _observationNoiseMean = 0;
-                _autoregressionNoiseMean = 0;
-            }
+                // Setting the weight matrix
+                _wTrans = new CpuAlignedMatrixRow(_rank, _windowSize, CpuMathUtils.GetVectorAlignment());
+                i = 0;
+                _wTrans.CopyFrom(leftSingularVecs, ref i);
 
-            // Setting the state
-            _nextPrediction = _autoregressionNoiseMean + _observationNoiseMean;
+                // Setting alpha
+                Single nu = 0;
+                for (i = 0; i < _rank; ++i)
+                {
+                    _y[i] = leftSingularVecs[_windowSize * (i + 1) - 1];
+                    nu += _y[i] * _y[i];
+                }
 
-            if (_buffer.Count > 0) // Use the buffer to set the state when there are data points pushed into the buffer using the Consume() method
-            {
-                int len = _buffer.Count;
-                for (i = 0; i < _windowSize - len; ++i)
-                    _x[i] = 0;
-                for (i = Math.Max(0, len - _windowSize); i < len; ++i)
-                    _x[i - len + _windowSize] = _buffer[i];
-            }
-            else // use the training data points otherwise
-            {
-                for (i = originalSeriesLength - _windowSize; i < originalSeriesLength; ++i)
-                    _x[i - originalSeriesLength + _windowSize] = dataArray[i];
-            }
+                CpuAligenedMathUtils<CpuAlignedMatrixRow>.MatTranTimesSrc(_wTrans, _y, _xSmooth);
+                for (i = 0; i < _windowSize - 1; ++i)
+                    _alpha[i] = _xSmooth[i] / (1 - nu);
 
-            CpuAligenedMathUtils<CpuAlignedMatrixRow>.MatTimesSrc(_wTrans, _x, _y);
-            CpuAligenedMathUtils<CpuAlignedMatrixRow>.MatTranTimesSrc(_wTrans, _y, _xSmooth);
+                // Stabilizing the model
+                if (_shouldStablize && !learnNaiveModel)
+                {
+                    if (!Stabilize())
+                    {
+#if !TLCSSA
+                        channel.Warning("The trained model cannot be stablized.");
+#endif
+                    }
+                }
 
-            for (i = 1; i < _windowSize; ++i)
-            {
-                _state[i - 1] = _xSmooth[i];
-                _nextPrediction += _state[i - 1] * _alpha[i - 1];
-            }
+                // Computing the noise moments
+                if (ShouldComputeForecastIntervals)
+                {
+                    if (_rankSelectionMethod != RankSelectionMethod.Exact)
+                        ReconstructSignalTailFast(dataArray, tMat, leftSingularVecs, _rank, signal);
 
-            if (_shouldMaintainInfo)
-            {
-                _info.IsTrained = true;
-                _info.WindowSize = _windowSize;
-                _info.AutoRegressiveCoefficients = new Single[_windowSize - 1];
-                Array.Copy(_alpha, _info.AutoRegressiveCoefficients, _windowSize - 1);
-                _info.Rank = _rank;
-                _info.IsNaiveModelTrained = learnNaiveModel;
-                _info.Spectrum = singularVals;
+                    ComputeNoiseMoments(dataArray, signal, _alpha, out _observationNoiseVariance, out _autoregressionNoiseVariance,
+                        out _observationNoiseMean, out _autoregressionNoiseMean, originalSeriesLength - signalLength);
+                    _observationNoiseMean = 0;
+                    _autoregressionNoiseMean = 0;
+                }
+
+                // Setting the state
+                _nextPrediction = _autoregressionNoiseMean + _observationNoiseMean;
+
+                if (callStack.Contains("SsaForecast"))
+                    PrintQueue(channel, _buffer, "_buffer");
+
+                if (_buffer.Count > 0) // Use the buffer to set the state when there are data points pushed into the buffer using the Consume() method
+                {
+                    int len = _buffer.Count;
+                    for (i = 0; i < _windowSize - len; ++i)
+                        _x[i] = 0;
+                    for (i = Math.Max(0, len - _windowSize); i < len; ++i)
+                        _x[i - len + _windowSize] = _buffer[i];
+                }
+                else // use the training data points otherwise
+                {
+                    for (i = originalSeriesLength - _windowSize; i < originalSeriesLength; ++i)
+                        _x[i - originalSeriesLength + _windowSize] = dataArray[i];
+                }
+
+                CpuAligenedMathUtils<CpuAlignedMatrixRow>.MatTimesSrc(_wTrans, _x, _y);
+                CpuAligenedMathUtils<CpuAlignedMatrixRow>.MatTranTimesSrc(_wTrans, _y, _xSmooth);
+
+                for (i = 1; i < _windowSize; ++i)
+                {
+                    _state[i - 1] = _xSmooth[i];
+                    _nextPrediction += _state[i - 1] * _alpha[i - 1];
+                }
+
+                if (_shouldMaintainInfo)
+                {
+                    _info.IsTrained = true;
+                    _info.WindowSize = _windowSize;
+                    _info.AutoRegressiveCoefficients = new Single[_windowSize - 1];
+                    Array.Copy(_alpha, _info.AutoRegressiveCoefficients, _windowSize - 1);
+                    _info.Rank = _rank;
+                    _info.IsNaiveModelTrained = learnNaiveModel;
+                    _info.Spectrum = singularVals;
+                }
+
+                if (callStack.Contains("SsaForecast"))
+                {
+                    PrintQueue(channel, _buffer, "_buffer");
+                    channel.Info($"Finish TrainCore.");
+                }
             }
         }
 
@@ -1566,6 +1634,42 @@ namespace Microsoft.ML.Transforms.TimeSeries
                         Consume(ref val);
                 }
             }
+        }
+
+        private void PrintArray(IChannel ch, Single[] array, string name)
+        {
+            ch.Info($"{name} length: {array.Length}.");
+            string arrayItem = "";
+            foreach (var item in array)
+            {
+                arrayItem += item.ToString() + ";";
+            }
+
+            ch.Info($"{name} items: {arrayItem}.");
+        }
+
+        private void PrintVector(IChannel ch, CpuAlignedVector vector, string name)
+        {
+            ch.Info($"{name} length: {vector.Items.Size}.");
+            string arrayItem = "";
+            for (int i = 0; i < vector.ValueCount; ++i)
+            {
+                arrayItem += vector[i] + ";";
+            }
+
+            ch.Info($"{name} items: {arrayItem}.");
+        }
+
+        private void PrintQueue(IChannel ch, FixedSizeQueue<Single> queue, string name)
+        {
+            ch.Info($"{name} length: {queue.Count}.");
+            string arrayItem = "";
+            for (int i = 0; i < queue.Count; ++i)
+            {
+                arrayItem += queue[i] + ";";
+            }
+
+            ch.Info($"{name} items: {arrayItem}.");
         }
     }
 }

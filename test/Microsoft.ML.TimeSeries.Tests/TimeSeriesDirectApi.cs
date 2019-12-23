@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
 
@@ -322,9 +324,12 @@ namespace Microsoft.ML.Tests
             Assert.Equal(1.5292508189989167E-07, prediction.Change[3], precision: 5); // Martingale score
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
-        public void SsaForecast()
+        //[LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [Theory]
+        [IterationData]
+        public void SsaForecast(int iteration)
         {
+            Console.WriteLine($"{iteration}-th running...");
             var env = new MLContext();
             const int ChangeHistorySize = 10;
             const int SeasonalitySize = 10;
@@ -361,9 +366,15 @@ namespace Microsoft.ML.Tests
             // Get predictions
             var enumerator = env.Data.CreateEnumerable<ForecastPrediction>(output, true).GetEnumerator();
             ForecastPrediction row = null;
+#if NETCOREAPP3_0
+            List<float> expectedForecast = new List<float>() { 0.191492021f, 2.5399406f, 5.26454258f, 7.37313938f };
+            List<float> minCnf = new List<float>() { -3.97419858f, -2.36872721f, 0.0940769911f, 2.18899393f };
+            List<float> maxCnf = new List<float>() { 4.3571825f, 7.4486084f, 10.435008f, 12.5572853f };
+#else
             List<float> expectedForecast = new List<float>() { 0.191491723f, 2.53994083f, 5.26454258f, 7.37313938f };
             List<float> minCnf = new List<float>() { -3.9741993f, -2.36872721f, 0.09407653f, 2.18899345f };
             List<float> maxCnf = new List<float>() { 4.3571825f, 7.448609f, 10.435009f, 12.5572853f };
+#endif
             enumerator.MoveNext();
             row = enumerator.Current;
 
