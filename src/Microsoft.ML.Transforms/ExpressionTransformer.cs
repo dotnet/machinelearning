@@ -29,6 +29,28 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Transforms
 {
+    /// <summary>
+    /// This estimator applies a user provided expression (specified as a string) to input column values to produce new output column values.
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | float, double, int, long, bool or text.  |
+    /// | Output column data type | Can be float, double, int, long, bool or text, depending on the expression. |
+    ///
+    /// The resulting <xref:Microsoft.ML.Data.ExpressionTransformer> creates a new column,
+    /// named as specified in the output column name parameters, where the expression is applied to the input values.
+    /// At most one of the input columns can be of type <xref:Microsof.ML.Data.VectorDataViewType>, and when the input contains a vector column, the expression
+    /// is computed independently on each element of the vector, to create a vector output with the same length as that input.
+    ///
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/expression-estimator.md)]
+    /// ]]></format>
+    /// </remarks>
+    /// <seealso cref="ExpressionCatalog.Expression(TransformsCatalog, string, string, string[])"/>
+    /// </summary>
     public sealed class ExpressionEstimator : IEstimator<ExpressionTransformer>
     {
         internal sealed class ColumnOptions
