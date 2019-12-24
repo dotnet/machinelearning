@@ -10,6 +10,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
@@ -1305,9 +1306,13 @@ namespace Microsoft.ML.RunTests
     /// </summary>
     public sealed partial class TestDataPipeNoBaseline : TestDataViewBase
     {
-        [Fact]
-        public void TestLDATransform()
+        //[Fact]
+        [Theory]
+        [IterationData]
+        public void TestLDATransform(int iteration)
         {
+            Console.WriteLine($"{iteration}-th running...");
+
             var builder = new ArrayDataViewBuilder(Env);
             var data = new[]
             {

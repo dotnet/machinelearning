@@ -19,6 +19,7 @@ using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Ensemble;
 using Microsoft.ML.Trainers.FastTree;
@@ -2758,9 +2759,11 @@ namespace Microsoft.ML.RunTests
             TestEntryPointRoutine("iris.txt", "Trainers.StochasticDualCoordinateAscentClassifier");
         }
 
-        [Fact()]
-        public void EntryPointSDCARegression()
+        [Theory]
+        [IterationData]
+        public void EntryPointSDCARegression(int iteration)
         {
+            Console.WriteLine($"{iteration}-th running...");
             TestEntryPointRoutine(TestDatasets.generatedRegressionDatasetmacro.trainFilename, "Trainers.StochasticDualCoordinateAscentRegressor", loader: TestDatasets.generatedRegressionDatasetmacro.loaderSettings);
         }
 
@@ -3845,9 +3848,13 @@ namespace Microsoft.ML.RunTests
             validateAuc(metrics);
         }
 
-        [Fact]
-        public void EntryPointChainedCrossValMacros()
+        //[Fact]
+        [Theory]
+        [IterationData]
+        public void EntryPointChainedCrossValMacros(int iteration)
         {
+            Console.WriteLine($"{iteration}-th running...");
+
             string inputGraph = @"
                 {
                   'Nodes': [
