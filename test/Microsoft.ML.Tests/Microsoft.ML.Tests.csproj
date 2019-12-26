@@ -50,4 +50,12 @@
     <PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
     <PackageReference Include="System.Data.SqlClient" Version="$(SystemDataSqlClientVersion)" />
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprBindExInput.txt"/>
+    <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprBindInput.txt"/>
+    <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprCodeGenInput.txt"/>
+    <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprEvalInput.txt"/>
+    <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprParseInput.txt"/>
+  </ItemGroup>
 </Project>
