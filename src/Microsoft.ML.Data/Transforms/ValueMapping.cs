@@ -45,6 +45,7 @@ namespace Microsoft.ML.Transforms
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
     /// | Output column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
+    /// | Exportable to ONNX | No |
     ///
     /// Given two sets of values, one serving as the key, and the other as the value of a Dictionary, the ValueMappingEstimator builds up this dictionary so that when given a specific key it will return a
     /// specific value.The ValueMappingEstimator supports keys and values of different [System.Type](xref:System.Type) to support different data types.
@@ -143,6 +144,7 @@ namespace Microsoft.ML.Transforms
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) type.|
     /// | Output column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) type.|
+    /// | Exportable to ONNX | No |
     ///
     /// Given two sets of values, one serving as the key, and the other as the value of a Dictionary, the ValueMappingEstimator builds up this dictionary so that when given a specific key it will return a
     /// specific value.The ValueMappingEstimator supports keys and values of different [System.Type](xref:System.Type) to support different data types.

@@ -42,6 +42,7 @@ namespace Microsoft.ML.Trainers
     /// | Is normalization required? | Yes |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | None |
+    /// | Exportable to ONNX | No |
     ///
     /// ### Training Algorithm Details
     /// [Naive Bayes](https://en.wikipedia.org/wiki/Naive_Bayes_classifier)

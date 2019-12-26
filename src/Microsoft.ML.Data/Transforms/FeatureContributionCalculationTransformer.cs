@@ -238,6 +238,7 @@ namespace Microsoft.ML.Transforms
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Known-sized vector of <xref:System.Single> |
     /// | Output column data type | Known-sized vector of <xref:System.Single> |
+    /// | Exportable to ONNX | No |
     ///
     /// Scoring a dataset with a trained model produces a score, or prediction, for each example. To understand and explain these predictions
     /// it can be useful to inspect which features influenced them most significantly. This transformer computes a model-specific

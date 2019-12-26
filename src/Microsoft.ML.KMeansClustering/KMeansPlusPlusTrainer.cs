@@ -43,6 +43,7 @@ namespace Microsoft.ML.Trainers
     /// | Is normalization required? | Yes |
     /// | Is caching required? | Yes |
     /// | Required NuGet in addition to Microsoft.ML | None |
+    /// | Exportable to ONNX | Yes |
     ///
     /// ### Training Algorithm Details
     /// [K-means](https://en.wikipedia.org/wiki/K-means_clustering) is a popular clustering algorithm.

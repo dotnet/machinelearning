@@ -54,6 +54,7 @@ namespace Microsoft.ML.Trainers
     /// | Is normalization required? | Depends on the underlying binary classifier |
     /// | Is caching required? | Yes |
     /// | Required NuGet in addition to Microsoft.ML | None |
+    /// | Exportable to ONNX | Yes |
     ///
     /// ### Training Algorithm Details
     /// In one-versus-all (OVA) strategy, a binary classification algorithm is used to train one classifier for each class,

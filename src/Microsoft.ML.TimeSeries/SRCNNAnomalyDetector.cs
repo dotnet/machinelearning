@@ -187,6 +187,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | <xref:System.Single> |
     /// | Output column data type | 3-element vector of<xref:System.Double> |
+    /// | Exportable to ONNX | No |
+    ///
     /// ### Background
     /// At Microsoft, we develop a time-series anomaly detection service which helps customers to monitor the time-series continuously
     /// and alert for potential incidents on time. To tackle the problem of time-series anomaly detection,

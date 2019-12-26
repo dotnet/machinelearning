@@ -214,6 +214,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
     /// | Input column data type | <xref:System.Single> |
     /// | Output column data type | 4-element vector of<xref:System.Double> |
+    /// | Exportable to ONNX | No |
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/time-series-props.md)]
     ///
