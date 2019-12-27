@@ -169,7 +169,7 @@ namespace Microsoft.ML.Transforms
 
             var multiCountTable = multiBuilder.CreateMultiCountTable();
 
-            var featurizer = new DraculaFeaturizer(_host, _columns.Select(col => col.PriorCoefficient).ToArray(), _columns.Select(col => col.LaplaceScale).ToArray(), labelCardinality, multiCountTable);
+            var featurizer = new CountTargetEncodingFeaturizer(_host, _columns.Select(col => col.PriorCoefficient).ToArray(), _columns.Select(col => col.LaplaceScale).ToArray(), labelCardinality, multiCountTable);
 
             return new CountTableTransformer(_host, featurizer, labelClassNames,
                 _columns.Select(col => col.Seed).ToArray(), _columns.Select(col => (col.Name, col.InputColumnName)).ToArray());
@@ -417,13 +417,13 @@ namespace Microsoft.ML.Transforms
             public const bool SharedTable = false;
         }
 
-        internal readonly DraculaFeaturizer Featurizer;
+        internal readonly CountTargetEncodingFeaturizer Featurizer;
         private readonly string[] _labelClassNames;
 
         internal int[] Seeds { get; }
 
         internal const string Summary = "Transforms the categorical column into the set of features: count of each label class, "
-            + "log-odds for each label class, back-off indicator. The input columns must be keys. This is a part of the Dracula transform.";
+            + "log-odds for each label class, back-off indicator. The input columns must be keys.";
 
         internal const string LoaderSignature = "CountTableTransform";
         internal const string UserName = "Count Table Transform";
@@ -438,7 +438,7 @@ namespace Microsoft.ML.Transforms
                 loaderAssemblyName: typeof(CountTableTransformer).Assembly.FullName);
         }
 
-        internal CountTableTransformer(IHostEnvironment env, DraculaFeaturizer featurizer, string[] labelClassNames,
+        internal CountTableTransformer(IHostEnvironment env, CountTargetEncodingFeaturizer featurizer, string[] labelClassNames,
             int[] seeds, (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(CountTableTransformer)), columns)
         {
@@ -551,7 +551,7 @@ namespace Microsoft.ML.Transforms
             }
 
             Seeds = ctx.Reader.ReadIntArray(ColumnPairs.Length);
-            ctx.LoadModel<DraculaFeaturizer, SignatureLoadModel>(host, out Featurizer, "DraculaFeaturizer");
+            ctx.LoadModel<CountTargetEncodingFeaturizer, SignatureLoadModel>(host, out Featurizer, "Featurizer");
         }
 
         private protected override void SaveModel(ModelSaveContext ctx)
@@ -582,7 +582,7 @@ namespace Microsoft.ML.Transforms
             }
 
             ctx.Writer.WriteIntsNoCount(Seeds);
-            ctx.SaveModel(Featurizer, "DraculaFeaturizer");
+            ctx.SaveModel(Featurizer, "Featurizer");
         }
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);

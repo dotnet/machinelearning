@@ -11,12 +11,12 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(typeof(DraculaFeaturizer), null, typeof(SignatureLoadModel),
-    "Dracula Featurizer", DraculaFeaturizer.RegistrationName)]
+[assembly: LoadableClass(typeof(CountTargetEncodingFeaturizer), null, typeof(SignatureLoadModel),
+    "Count Target Encoding Featurizer", CountTargetEncodingFeaturizer.RegistrationName)]
 
 namespace Microsoft.ML.Transforms
 {
-    internal sealed class DraculaFeaturizer : ICanSaveModel
+    internal sealed class CountTargetEncodingFeaturizer : ICanSaveModel
     {
         private readonly IHost _host;
         private readonly int _labelBinCount;
@@ -27,7 +27,7 @@ namespace Microsoft.ML.Transforms
         public float[] PriorCoef { get; }
         public float[] LaplaceScale { get; }
 
-        internal const string RegistrationName = "DraculaFeaturizer";
+        internal const string RegistrationName = "CountTargetEncodingFeaturizer";
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -36,14 +36,14 @@ namespace Microsoft.ML.Transforms
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: RegistrationName,
-                loaderAssemblyName: typeof(DraculaFeaturizer).Assembly.FullName);
+                loaderAssemblyName: typeof(CountTargetEncodingFeaturizer).Assembly.FullName);
         }
 
         public int ColCount => _countTables.ColCount;
 
         public ReadOnlySpan<int> SlotCount => _countTables.SlotCount;
 
-        public DraculaFeaturizer(IHostEnvironment env, float[] priorCoef, float[] laplaceScale, long labelBinCount, MultiCountTableBase countTable)
+        public CountTargetEncodingFeaturizer(IHostEnvironment env, float[] priorCoef, float[] laplaceScale, long labelBinCount, MultiCountTableBase countTable)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Transforms
             _countTables = countTable;
         }
 
-        public DraculaFeaturizer(IHostEnvironment env, ModelLoadContext ctx)
+        public CountTargetEncodingFeaturizer(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);

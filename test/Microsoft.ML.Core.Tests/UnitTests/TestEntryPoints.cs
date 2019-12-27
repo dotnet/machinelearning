@@ -4699,10 +4699,10 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
-        public void EntryPointDracula()
+        public void EntryPointCountTargetEncoding()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
-            var countsModel = DeleteOutputPath("Dracula-trained-counts.zip");
+            var countsModel = DeleteOutputPath("cte-trained-counts.zip");
 
             var data = ML.Data.LoadFromTextFile(dataPath, new[]
                 {
@@ -4713,7 +4713,6 @@ namespace Microsoft.ML.RunTests
             var transformer = estimator.Fit(data);
             ML.Model.Save(transformer, data.Schema, countsModel);
 
-            //var countsFile = GetDataPath(@"Dracula/ext-count-table.tsv");
             TestEntryPointPipelineRoutine(dataPath, "col=Text:TX:1-9 col=OneText:TX:1 col=Label:0",
                 new[]
                 {

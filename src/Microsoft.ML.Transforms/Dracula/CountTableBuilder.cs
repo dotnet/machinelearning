@@ -12,6 +12,10 @@ namespace Microsoft.ML.Transforms
     {
     }
 
+    /// <summary>
+    /// Builds a table that provides counts to the <see cref="CountTargetEncodingTransformer"/>
+    /// by going over the training data.
+    /// </summary>
     public abstract class CountTableBuilderBase
     {
         private protected CountTableBuilderBase()
@@ -20,9 +24,20 @@ namespace Microsoft.ML.Transforms
 
         internal abstract InternalCountTableBuilderBase GetInternalBuilder(long labelCardinality);
 
+        /// <summary>
+        /// Create a builder that creates the count table using the count-min sketch structure, which has a smaller memory footprint,
+        /// at the expense of some possible overcounting due to collisions.
+        /// </summary>
+        /// <param name="depth">The depth of the count-min sketch table.</param>
+        /// <param name="width">The width of the count-min sketch table.</param>
         public static CountTableBuilderBase CreateCMCountTableBuilder(int depth = 4, int width = 1 << 23)
             => new CMCountTableBuilder(depth, width);
 
+        /// <summary>
+        /// Create a builder that creates the count table by building a dictionary containing the exact count of each
+        /// categorical feature value.
+        /// </summary>
+        /// <param name="garbageThreshold">The garbage threshold (counts below or equal to the threshold are assigned to the garbage bin).</param>
         public static CountTableBuilderBase CreateDictionaryCountTableBuilder(float garbageThreshold = 0)
             => new DictCountTableBuilder(garbageThreshold);
     }

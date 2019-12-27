@@ -1449,7 +1449,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
-        public void SavePipeDracula()
+        public void SavePipeCountTargetEncoding()
         {
             TestCore(null, false,
                 new[] {
@@ -1462,7 +1462,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
-        public void SavePipeDraculaKeyLabel()
+        public void SavePipeCountTargetEncodingKeyLabel()
         {
             TestCore(null, false,
                 new[] {
@@ -1476,12 +1476,11 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
-        public void SavePipeDraculaExternalCounts()
+        public void SavePipeCountTargetEncodingLoadModel()
         {
-            //var countsFile = GetDataPath("Dracula", "ext-count-table.tsv");
             var inputData = GetDataPath("breast-cancer.txt");
-            var initialCountsModel = DeleteOutputPath("Dracula", "initialCounts.zip");
-            var outputData = DeleteOutputPath("Dracula", "countsData.txt");
+            var initialCountsModel = DeleteOutputPath("CTE", "initialCounts.zip");
+            var outputData = DeleteOutputPath("CTE", "countsData.txt");
             var loaderArg = "loader=Text{col=Text:TX:1-9 col=OneText:TX:1 col=Label:0}";
             MainForTest($"SaveData data={inputData} {loaderArg} xf=Dracula{{lab=Label col={{name=DT src=Text customSlotMap=0,1;2,3,4,5}} table = Dict}} out={initialCountsModel} dout={outputData}");
 

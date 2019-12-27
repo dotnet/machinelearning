@@ -24,6 +24,30 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Transforms
 {
+    /// <summary>
+    /// Transforms a categorical column into a set of features that includes the count of each label class,
+    /// the log-odds for each label class and the back-off indicator.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | Yes |
+    /// | Input column data type | Any |
+    /// | Output column data type | Vector of <xref:System.Single>. |
+    ///
+    /// The resulting <xref:Microsoft.ML.Transforms.CountTargetEncodingTransformer> creates a new column, named as specified in the output column name parameters,
+    /// containing three parts: the count of each label class, the log-odds for each label class and the back-off indicator.
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="CountTargetEncodingCatalog.CountTargetEncode(TransformsCatalog, InputOutputColumnPair[], CountTargetEncodingTransformer, string)" />
+    /// <seealso cref="CountTargetEncodingCatalog.CountTargetEncode(TransformsCatalog, InputOutputColumnPair[], string, CountTableBuilderBase, float, float, bool, int, bool, uint)" />
+    /// <seealso cref="CountTargetEncodingCatalog.CountTargetEncode(TransformsCatalog, string, CountTargetEncodingTransformer, string, string)"/>
+    /// <seealso cref="CountTargetEncodingCatalog.CountTargetEncode(TransformsCatalog, string, string, string, CountTableBuilderBase, float, float, int, bool, uint)"/>
     public class CountTargetEncodingEstimator : IEstimator<CountTargetEncodingTransformer>
     {
         /// <summary>
@@ -344,6 +368,9 @@ namespace Microsoft.ML.Transforms
         }
     }
 
+    /// <summary>
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="LpNormNormalizingEstimator"/> or <see cref="CountTargetEncodingEstimator"/>.
+    /// </summary>
     public sealed class CountTargetEncodingTransformer : ITransformer
     {
         private readonly IHost _host;
@@ -353,8 +380,8 @@ namespace Microsoft.ML.Transforms
 
         internal const string Summary = "Transforms the categorical column into the set of features: count of each label class, "
             + "log-odds for each label class, back-off indicator. The columns can be of arbitrary type.";
-        internal const string LoaderSignature = "DraculaTransform";
-        internal const string UserName = "Dracula Transform";
+        internal const string LoaderSignature = "CountTargetEncode";
+        internal const string UserName = "Count Target Encoding Transform";
 
         bool ITransformer.IsRowToRowMapper => true;
 
