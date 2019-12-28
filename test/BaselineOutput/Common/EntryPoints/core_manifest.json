@@ -18444,7 +18444,7 @@
     },
     {
       "Name": "Transforms.CountTableBuilder",
-      "Desc": "Transforms the categorical column into the set of features: count of each label class, log-odds for each label class, back-off indicator. The input columns must be keys. This is a part of the Dracula transform.",
+      "Desc": "Transforms the categorical column into the set of features: count of each label class, log-odds for each label class, back-off indicator. The input columns must be keys.",
       "FriendlyName": "Count Table Transform",
       "ShortName": "Count",
       "Inputs": [

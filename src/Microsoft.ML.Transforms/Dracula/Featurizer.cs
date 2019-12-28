@@ -27,7 +27,7 @@ namespace Microsoft.ML.Transforms
         public float[] PriorCoef { get; }
         public float[] LaplaceScale { get; }
 
-        internal const string RegistrationName = "CountTargetEncodingFeaturizer";
+        internal const string RegistrationName = "CountTargetEncoder";
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
