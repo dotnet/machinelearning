@@ -2157,5 +2157,75 @@ namespace Microsoft.ML.RunTests
             TestCore("showdata", dataPath, string.Format("in={{{0}}}", modelPath.Path), "");
             Done();
         }
+
+        [Fact]
+        public void CommandShowDataSvmLight()
+        {
+            // Test with a specified size parameter. The "6" feature should be omitted.
+            // Also the blank and completely fully commented lines should be omitted,
+            // and the feature 2:3 that appears in the comment should not appear.
+            var path = CreateOutputPath("DataA.txt");
+            File.WriteAllLines(path.Path, new string[] {
+                "1\t1:3\t4:6",
+                "  -1 cost:5\t2:4 \t4:7\t6:-1   ",
+                "",
+                "1\t5:-2 # A comment! 2:3",
+                "# What a nice full line comment",
+                "1 cost:0.5\t2:3.14159",
+            });
+            var pathA = path.Path;
+            const string chooseXf = " xf=select{keepcol=Label keepcol=Weight keepcol=GroupId keepcol=Comment keepcol=Features}";
+            TestReloadedCore("showdata", path.Path, "loader=svm{size=5}" + chooseXf, "", "");
+
+            // Test with autodetermined sizes. The the "6" feature should be included,
+            // and the feature vector should have length 6.
+            _step++;
+            TestCore("showdata", path.Path, "loader=svm" + chooseXf, "");
+
+            // Test with a term mapping, instead of the actual SVM^light format that
+            // requires positive integers. ALso check that qid works here.
+            _step++;
+            var modelPath = ModelPath();
+            path = CreateOutputPath("DataB.txt");
+            File.WriteAllLines(path.Path, new string[] {
+                "1 qid:1 aurora:3.14159 beachwood:123",
+                "-1 qid:5 beachwood:345 chagrin:-21",
+            });
+            TestReloadedCore("showdata", path.Path, "loader=svm{indices=names}" + chooseXf, "", "");
+
+            // We reload the model, but on a new set of data. The "euclid" key should be
+            // ignored as it would not have been detected by the term transform.
+            _step++;
+            path = CreateOutputPath("DataC.txt");
+            File.WriteAllLines(path.Path, new string[] {
+                "-1 aurora:1 chagrin:2",
+                "1 chagrin:3 euclid:4"
+            });
+            TestInCore("showdata", path.Path, modelPath, "");
+
+            _step++;
+            path = CreateOutputPath("DataD.txt");
+            File.WriteAllLines(path.Path, new string[] { "1 aurora:2 :3" });
+            TestReloadedCore("showdata", path.Path, "loader=svm{indices=names}" + chooseXf, "", "");
+
+            _step++;
+
+            // If we specify the size parameter, and zero-based feature indices, both indices 5 and 6 should
+            // not appear.
+            TestReloadedCore("showdata", pathA, "loader=svm{size=5 indices=zerobased}" + chooseXf, "", "");
+
+            Done();
+        }
+
+        [Fact]
+        public void CommandSaveDataSvmLight()
+        {
+            string pathData = GetDataPath("breast-cancer-withheader.txt");
+            OutputPath dataPath = CreateOutputPath("data.txt");
+            TestReloadedCore("savedata", pathData, "loader=text{header+}", "saver=svmlight{b+}", null, dataPath.Arg("dout"));
+            dataPath = CreateOutputPath("data-0.txt");
+            TestReloadedCore("savedata", pathData, "loader=text{header+}", "saver=svmlight{zero+}", null, dataPath.Arg("dout"));
+            Done();
+        }
     }
 }

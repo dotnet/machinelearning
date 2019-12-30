@@ -950,6 +950,7 @@ namespace Microsoft.ML.Transforms.Text
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
     /// | Input column data type | Vector of <xref:System.Single> |
     /// | Output column data type | Vector of <xref:System.Single>|
+    /// | Exportable to ONNX | No |
     ///
     ///  Latent Dirichlet Allocation is a well-known [topic modeling](https://en.wikipedia.org/wiki/Topic_model) algorithm that infers semantic structure from text data,
     ///  and ultimately helps answer the question on "what is this document about?".

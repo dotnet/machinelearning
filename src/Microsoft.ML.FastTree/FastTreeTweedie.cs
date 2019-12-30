@@ -44,6 +44,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// | Is normalization required? | No |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.FastTree |
+    /// | Exportable to ONNX | Yes |
     ///
     /// ### Training Algorithm Details
     /// The Tweedie boosting model follows the mathematics established in

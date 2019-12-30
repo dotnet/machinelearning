@@ -41,6 +41,7 @@ namespace Microsoft.ML.Trainers
     /// | Is normalization required? | Yes |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | None |
+    /// | Exportable to ONNX | Yes |
     ///
     /// ### Training Algorithm Details
     /// [Poisson regression](https://en.wikipedia.org/wiki/Poisson_regression) is a parameterized regression method.

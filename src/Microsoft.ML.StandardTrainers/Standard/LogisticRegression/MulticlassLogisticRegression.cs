@@ -56,6 +56,7 @@ namespace Microsoft.ML.Trainers
     /// | Is normalization required? | Yes |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | None |
+    /// | Exportable to ONNX | Yes |
     ///
     /// ### Scoring Function
     /// [Maximum entropy model](https://en.wikipedia.org/wiki/Multinomial_logistic_regression) is a generalization of linear [logistic regression](https://en.wikipedia.org/wiki/Logistic_regression).

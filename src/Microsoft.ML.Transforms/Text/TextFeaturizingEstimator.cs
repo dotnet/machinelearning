@@ -44,6 +44,7 @@ namespace Microsoft.ML.Transforms.Text
     /// | Does this estimator need to look at the data to train its parameters? | Yes. |
     /// | Input column data type | [text](xref:Microsoft.ML.Data.TextDataViewType) |
     /// | Output column data type | Vector of <xref:System.Single> |
+    /// | Exportable to ONNX | No |
     ///
     /// This estimator gives the user one-stop solution for doing:
     /// * Language Detection
