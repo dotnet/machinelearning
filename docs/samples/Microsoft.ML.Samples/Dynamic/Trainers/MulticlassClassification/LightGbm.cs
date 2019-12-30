@@ -53,7 +53,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 
             // Look at 5 predictions
             foreach (var p in predictions.Take(5))
-                Console.WriteLine($"Label: {p.Label}, " + 
+                Console.WriteLine($"Label: {p.Label}, " +
                     $"Prediction: {p.PredictedLabel}");
 
             // Expected output:
@@ -84,21 +84,12 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             //           2 ||     1 |     0 |   162 | 0.9939
             //             ||========================
             //   Precision ||0.9936 |1.0000 |0.9701 |
-
-            var trainingData2 = mlContext.Data
-                .LoadFromEnumerable(GenerateRandomDataPoints2(500, seed: 123));
-
-            model = pipeline.Fit(trainingData2);
-            var transformedTestData2 = model.Transform(trainingData2);
-            var metrics2 = mlContext.MulticlassClassification
-                .Evaluate(transformedTestData2);
-            PrintMetrics(metrics2);
         }
 
         // Generates random uniform doubles in [-0.5, 0.5)
         // range with labels 1, 2 or 3.
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,
-            int seed=0)
+            int seed = 0)
 
         {
             var random = new Random(seed);
@@ -107,29 +98,6 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             {
                 // Generate Labels that are integers 1, 2 or 3
                 var label = random.Next(1, 4);
-                yield return new DataPoint
-                {
-                    Label = (uint)label,
-                    // Create random features that are correlated with the label.
-                    // The feature values are slightly increased by adding a
-                    // constant multiple of label.
-                    Features = Enumerable.Repeat(label, 20)
-                        .Select(x => randomFloat() + label * 0.2f).ToArray()
-
-                };
-            }
-        }
-
-        private static IEnumerable<DataPoint> GenerateRandomDataPoints2(int count,
-    int seed = 0)
-
-        {
-            var random = new Random(seed);
-            float randomFloat() => (float)(random.NextDouble() - 0.5);
-            for (int i = 0; i < count; i++)
-            {
-                // Generate Labels that are integers 1, 2 or 3
-                var label = random.Next(1, 5);
                 yield return new DataPoint
                 {
                     Label = (uint)label,
@@ -174,4 +142,3 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
         }
     }
 }
-
