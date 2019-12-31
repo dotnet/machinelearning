@@ -374,7 +374,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         }
 
         private protected virtual void InitializeBeforeTraining()
-        { return; }
+        { return; } // MYTODO: Is there a better way to avoid having to do this? An abstract method?
 
         private void InitParallelTraining()
         {

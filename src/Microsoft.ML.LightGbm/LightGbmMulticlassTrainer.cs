@@ -218,13 +218,18 @@ namespace Microsoft.ML.Trainers.LightGbm
 
         private protected override void InitializeBeforeTraining()
         {
-            _numClass = -1; //MYTODO: Include more initializations, of TrainedEnsemble, for example?
+            _numClass = -1;
             _tlcNumClass = 0;
-    }
+
+            //MYTODO: Include more initializations, of TrainedEnsemble, for example?
+            //For example:
+            //TrainedEnsemble = null;
+        }
 
         private protected override void ConvertNaNLabels(IChannel ch, RoleMappedData data, float[] labels)
         {
             // Only initialize one time.
+
             if (_numClass < 0)
             {
                 float minLabel = float.MaxValue;
@@ -261,6 +266,13 @@ namespace Microsoft.ML.Trainers.LightGbm
                     _tlcNumClass = (int)maxLabel + 1;
                 }
             }
+
+            // If there are NaN labels, they are converted to be equal to _tlcNumClass (i.e. _numClass - 1).
+            // This is done because NaN labels are going to be seen as
+            // an extra different class, and thus, when training the model in the WrappedLightGbmTraining class
+            // a total of _numClass classes are considered. But, when creating the Predictors, only _tlcNumClass number of
+            // classes are considered ignoring the extra class of NaN labels.
+
             float defaultLabel = _numClass - 1;
             for (int i = 0; i < labels.Length; ++i)
                 if (float.IsNaN(labels[i]))
