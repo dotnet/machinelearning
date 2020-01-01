@@ -42,6 +42,7 @@ namespace Microsoft.ML.Transforms
         private readonly string _savedModelPath;
         private readonly bool _isTemporarySavedModel;
         private readonly bool _addBatchDimensionInput;
+        private readonly IHostEnvironment _env;
         internal readonly Session Session;
         internal readonly Runner Runner;
         internal readonly DataViewType[] OutputTypes;
@@ -195,6 +196,8 @@ namespace Microsoft.ML.Transforms
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(options, nameof(options));
+
+            _env = env;
         }
 
         private static ITensorValueGetter CreateTensorValueGetter<T>(DataViewRow input, bool isVector, int colIndex, TensorShape tfShape)
@@ -272,6 +275,8 @@ namespace Microsoft.ML.Transforms
             Host.CheckValue(session, nameof(session));
             Host.CheckNonEmpty(inputColumnNames, nameof(inputColumnNames));
             Host.CheckNonEmpty(outputColumnNames, nameof(outputColumnNames));
+
+            _env = env;
 
             _savedModelPath = savedModelPath;
             _isTemporarySavedModel = isTemporarySavedModel;
@@ -457,9 +462,19 @@ namespace Microsoft.ML.Transforms
             // that the Session is closed before deleting our temporary directory.
             try
             {
-                if (Session != null && Session.graph != IntPtr.Zero)
+                try
                 {
-                    Session.graph.Dispose();
+                    if (Session != null && Session.graph != IntPtr.Zero)
+                    {
+                        Session.graph.Dispose();
+                    }
+                }
+                catch(ObjectDisposedException ex)
+                {
+                    using (var channel = _env.Start("TensorflowTransform"))
+                    {
+                        channel.Warning($"Caught: {ex.Message} during TensorflowTransform dispose.");
+                    }
                 }
 
                 if (Session != null && Session != IntPtr.Zero)
