@@ -1308,7 +1308,7 @@ namespace Microsoft.ML.Vision
 
         private void Dispose(bool disposing)
         {
-            // Ensure that the Session is not null and it's handle is not Zero, as it may have already been
+            // Ensure that the Session is not null and its handle is not Zero, as it may have already been
             // disposed/finalized. Technically we shouldn't be calling this if disposing == false,
             // since we're running in finalizer and the GC doesn't guarantee ordering of finalization of managed
             // objects, but we have to make sure that the Session is closed before deleting our temporary directory.
@@ -1497,7 +1497,7 @@ namespace Microsoft.ML.Vision
 
         private void Dispose(bool disposing)
         {
-            // Ensure that the Session is not null and it's handle is not Zero, as it may have already been
+            // Ensure that the Session is not null and its handle is not Zero, as it may have already been
             // disposed/finalized. Technically we shouldn't be calling this if disposing == false,
             // since we're running in finalizer and the GC doesn't guarantee ordering of finalization of managed
             // objects, but we have to make sure that the Session is closed before deleting our temporary directory.
