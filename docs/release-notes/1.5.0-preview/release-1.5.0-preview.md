@@ -65,7 +65,7 @@ None
   - None.
 
 ## **Remarks**
-- Thank you, [Sam Harwell](https://github.com/sharwell) for making a series of stability fixes that has substanitally increased the stability of our Build CI.
+- Thank you, [Sam Harwell](https://github.com/sharwell) for making a series of stability fixes that has substantially increased the stability of our Build CI.
 
 
 
