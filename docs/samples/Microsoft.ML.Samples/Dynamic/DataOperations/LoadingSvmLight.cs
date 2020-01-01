@@ -12,7 +12,7 @@ namespace Samples.Dynamic.DataOperations
 {
     public static class LoadingSvmLight
     {
-        // This examples shows all the ways to load data with TextLoader.
+        // This examples shows how to load data with SvmLightLoader.
         public static void Example()
         {
             // Create a random SVM light format file.

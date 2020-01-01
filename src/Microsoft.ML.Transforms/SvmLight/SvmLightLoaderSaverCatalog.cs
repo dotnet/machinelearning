@@ -20,6 +20,13 @@ namespace Microsoft.ML.Data
         /// <param name="zeroBased">If the file contains zero-based indices, this parameter should be set to true. If they are one-based
         /// it should be set to false.</param>
         /// <param name="dataSample">A data sample to be used for determining the number of features in the Features column.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[LoadingSvmLight](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/LoadingSvmLight.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static SvmLightLoader CreateSvmLightLoader(this DataOperationsCatalog catalog,
             long? numberOfRows = null,
             int inputSize = 0,

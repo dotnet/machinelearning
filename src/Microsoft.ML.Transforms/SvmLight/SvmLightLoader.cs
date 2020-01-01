@@ -26,14 +26,17 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// This attempts to reads data in a format close to the SVM-light format, the goal being
     /// that the majority of SVM-light formatted data should be interpretable by this loader.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
     /// The loader may also be different than SVM-light's parsing behavior, in the following
     /// general ways:
     ///
-    /// 1. As an <see cref="IDataView"/>, vectors are required to have a logical length,
+    /// 1. As an <xref:Microsoft.ML.IDataView>, vectors are required to have a logical length,
     ///    and for practical reasons it's helpful if the output of this loader has a fixed
-    ///    length vector type, since few transforms and no basic learners accept features
+    ///    length vector type, since few estimators and no basic trainer estimators accept features
     ///    of a variable length vector types. SVM-light had no such concept.
-    /// 2. The <see cref="IDataView"/> idiom has different behavior w.r.t. parse errors.
+    /// 2. The <xref:Microsoft.ML.IDataView> idiom has different behavior w.r.t. parse errors.
     /// 3. The SVM-light has some restrictions in its format that are unnatural to attempt
     ///    to restrict in the concept of this loader.
     /// 4. Some common "extensions" of this format that have happened over the years are
@@ -50,21 +53,7 @@ namespace Microsoft.ML.Data
     /// Unlike the text loader's format, for instance, there is no concept of a "blank" field
     /// having any status.
     ///
-    /// Labels are floating point values for regression, and for binary classification being one
-    /// of {-1, 0, 1/+1}. Negative class examples are -1, positive class examples are +1, and 0
-    /// indicates that the label is unknown and should be classified using semi-supervised
-    /// techniques.
-    ///
-    /// The "0 label" semi-supervised capability was rarely used and none of our learners
-    /// currently do anything like this, though it is possible we may introduce semi-supervised
-    /// learners in the future. For now this loader just parses this as a single floating point
-    /// value, period. (Which means, for our binary classifier learners, that 0 and -1 will both
-    /// be treated identically.) If we were to support this, the natural thing would be to have
-    /// an option to map 0 to NA, somehow. But practically, variants of the SVM-light format have
-    /// promulgated to the point where nearly every time 0 is used, it actually refers to a
-    /// negative example, so we may continue to accept this corruption as "correct" by default.
-    ///
-    /// The actual feature vector is specified through a series of key/value pairs. SVM-light
+    /// The feature vector is specified through a series of key/value pairs. SVM-light
     /// requires that the keys be positive, increasing integers, except for three special keys:
     /// cost (we interpret as Weight), qid (we interpret as GroupId) and sid (we ignore these,
     /// but might present them as a column in the future if any of our learners implement anything
@@ -72,21 +61,19 @@ namespace Microsoft.ML.Data
     /// that must be positive. If these keys are specified multiple times, the last one wins.
     ///
     /// SVM-light, if the tail of the value is not interpretable as a number, will ignore the tail.
-    /// E.g., "5:3.14hello" will be interpreted the same as "5:3.14". I am aware of one real dataset
-    /// that took advantage of this, and for now I do not support this type of thing.
+    /// E.g., "5:3.14hello" will be interpreted the same as "5:3.14". This loader does not support
+    /// this syntax.
     ///
     /// We do not retain the restriction on keys needing to be increasing values in our loader,
     /// due to the way we compose our feature vectors, but it will be most efficient if this policy
     /// is still followed. If it is followed a sort will not be required.
     ///
-    /// This loader has the special option through the <c>xf</c> option to specify a transform,
-    /// possibly trainable, to convert the raw text of the key values into the key value. The
-    /// transform, whatever it is, must in addition to user specified options accept an argument
-    /// of the form "column=Name" to identify a column to convert. Ideally there would be some
-    /// other way to specify this other than hacking arguments. The intent of this is to allow
-    /// things like string keys, a common variant of the format, but one emphatically not allowed
-    /// by the original format.
-    /// </summary>
+    /// This loader has the special option to read raw text for the keys and convert to feature
+    /// indices, retaining the text key values as feature names for the resulting feature vector.
+    /// The intent of this is to allow string keys, a common variant of the format, but one
+    /// emphatically not allowed by the original format.
+    /// ]]></format>
+    /// </remarks>
     public sealed class SvmLightLoader : IDataLoader<IMultiStreamSource>
     {
         internal enum FeatureIndices
