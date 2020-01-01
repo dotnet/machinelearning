@@ -17,9 +17,13 @@
 
 - **DateTime Transformer** ([#4521](https://github.com/dotnet/machinelearning/pull/4521))
 - **Loader and Saver for [SVMLight file format](http://svmlight.joachims.org/)** ([#4190](https://github.com/dotnet/machinelearning/pull/4190))
+  
+  [Sample](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/LoadingSvmLight.cs)
 - **Expression transformer** ([#4548](https://github.com/dotnet/machinelearning/pull/4548))  
   The expression transformer takes the expression in the form of text using syntax of a simple expression language, and performs the operation defined in the expression on the input columns in each row of the data. The transformer supports having a vector input column, in which case it applies the expression to each slot of the vector independently. The expression language is extendable to user defined operations.
-
+  
+  [Sample](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Expression.cs)
+  
 ## **Bug Fixes**
 - Fix using permutation feature importance with Binary Prediction Transformer and CalibratedModelParametersBase loaded from disk. ([#4306](https://github.com/dotnet/machinelearning/pull/4306))
 - Fixed model saving and loading of OneVersusAllTrainer to include SoftMax. ([#4472](https://github.com/dotnet/machinelearning/pull/4472))
