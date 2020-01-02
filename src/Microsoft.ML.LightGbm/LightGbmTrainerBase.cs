@@ -286,7 +286,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         /// the code is culture agnostic. When retrieving key value from this dictionary as string
         /// please convert to string invariant by string.Format(CultureInfo.InvariantCulture, "{0}", Option[key]).
         /// </summary>
-        private protected Dictionary<string, object> GbmOptions;
+        private protected readonly Dictionary<string, object> GbmOptions;
 
         private protected readonly IParallel ParallelTraining;
 
@@ -335,6 +335,8 @@ namespace Microsoft.ML.Trainers.LightGbm
             Contracts.CheckUserArg(options.L2CategoricalRegularization >= 0.0, nameof(options.L2CategoricalRegularization), "must be >= 0.");
 
             LightGbmTrainerOptions = options;
+            ParallelTraining = LightGbmTrainerOptions.ParallelTrainer != null ? LightGbmTrainerOptions.ParallelTrainer.CreateComponent(Host) : new SingleTrainer();
+            GbmOptions = LightGbmTrainerOptions.ToDictionary(Host);
             InitParallelTraining();
         }
 
@@ -377,9 +379,6 @@ namespace Microsoft.ML.Trainers.LightGbm
 
         private void InitParallelTraining()
         {
-            GbmOptions = LightGbmTrainerOptions.ToDictionary(Host);
-            ParallelTraining = LightGbmTrainerOptions.ParallelTrainer != null ? LightGbmTrainerOptions.ParallelTrainer.CreateComponent(Host) : new SingleTrainer();
-
             if (ParallelTraining.ParallelType() != "serial" && ParallelTraining.NumMachines() > 1)
             {
                 GbmOptions["tree_learner"] = ParallelTraining.ParallelType();
