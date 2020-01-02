@@ -492,21 +492,23 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             using (var pch = (mlContext as IProgressChannelProvider).StartProgressChannel("Training LightGBM..."))
             {
                 var host = (mlContext as IHostEnvironment).Register("Training LightGBM...");
-                var gbmNative = WrappedLightGbmTraining.Train(ch, pch, gbmParams, gbmDataSet, numIteration: numberOfTrainingIterations);
 
-                int nativeLength = 0;
-                unsafe
+                using (var gbmNative = WrappedLightGbmTraining.Train(ch, pch, gbmParams, gbmDataSet, numIteration: numberOfTrainingIterations))
                 {
-                    fixed (float* data = dataMatrix)
-                    fixed (double* result0 = lgbmProbabilities)
-                    fixed (double* result1 = lgbmRawScores)
+                    int nativeLength = 0;
+                    unsafe
                     {
-                        WrappedLightGbmInterface.BoosterPredictForMat(gbmNative.Handle, (IntPtr)data, WrappedLightGbmInterface.CApiDType.Float32,
-                            _rowNumber, _columnNumber, 1, (int)WrappedLightGbmInterface.CApiPredictType.Normal, numberOfTrainingIterations, "", ref nativeLength, result0);
-                        WrappedLightGbmInterface.BoosterPredictForMat(gbmNative.Handle, (IntPtr)data, WrappedLightGbmInterface.CApiDType.Float32,
-                            _rowNumber, _columnNumber, 1, (int)WrappedLightGbmInterface.CApiPredictType.Raw, numberOfTrainingIterations, "", ref nativeLength, result1);
+                        fixed (float* data = dataMatrix)
+                        fixed (double* result0 = lgbmProbabilities)
+                        fixed (double* result1 = lgbmRawScores)
+                        {
+                            WrappedLightGbmInterface.BoosterPredictForMat(gbmNative.Handle, (IntPtr)data, WrappedLightGbmInterface.CApiDType.Float32,
+                                _rowNumber, _columnNumber, 1, (int)WrappedLightGbmInterface.CApiPredictType.Normal, numberOfTrainingIterations, "", ref nativeLength, result0);
+                            WrappedLightGbmInterface.BoosterPredictForMat(gbmNative.Handle, (IntPtr)data, WrappedLightGbmInterface.CApiDType.Float32,
+                                _rowNumber, _columnNumber, 1, (int)WrappedLightGbmInterface.CApiPredictType.Raw, numberOfTrainingIterations, "", ref nativeLength, result1);
+                        }
+                        modelString = gbmNative.GetModelString();
                     }
-                    modelString = gbmNative.GetModelString();
                 }
             }
         }
