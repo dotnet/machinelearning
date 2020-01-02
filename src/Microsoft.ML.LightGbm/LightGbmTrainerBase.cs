@@ -373,8 +373,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             return CreatePredictor();
         }
 
-        private protected virtual void InitializeBeforeTraining()
-        { return; } // MYTODO: Is there a better way to avoid having to do this? An abstract method?
+        private protected virtual void InitializeBeforeTraining(){}
 
         private void InitParallelTraining()
         {
