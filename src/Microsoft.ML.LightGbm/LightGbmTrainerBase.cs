@@ -288,7 +288,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         /// </summary>
         private protected Dictionary<string, object> GbmOptions;
 
-        private protected IParallel ParallelTraining;
+        private protected readonly IParallel ParallelTraining;
 
         // Store _featureCount and _trainedEnsemble to construct predictor.
         private protected int FeatureCount;
