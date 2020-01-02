@@ -59,7 +59,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
         private const double _maxNumClass = 1e6;
 
-        // If there are NaN labels, they are converted to be equal to _numberOfClasses + 1.
+        // If there are NaN labels, they are converted to be equal to _numberOfClassesIncludingNan - 1.
         // This is done because NaN labels are going to be seen as an extra different class, when training the model in the WrappedLightGbmTraining class
         // But, when creating the Predictors, only _numberOfClasses is considered, ignoring the "extra class" of NaN labels.
         private int _numberOfClassesIncludingNan;
