@@ -693,25 +693,13 @@ namespace Microsoft.ML.Transforms.Text
             return new LatentDirichletAllocationTransformer(env, ldas, columnMappings, columns);
         }
 
-        private void Dispose(bool disposing)
+        public void Dispose()
         {
             if (_ldas != null)
             {
                 foreach (var state in _ldas)
                     state?.Dispose();
             }
-            if (disposing)
-                GC.SuppressFinalize(this);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-
-        ~LatentDirichletAllocationTransformer()
-        {
-            Dispose(false);
         }
 
         // Factory method for SignatureLoadDataTransform.
