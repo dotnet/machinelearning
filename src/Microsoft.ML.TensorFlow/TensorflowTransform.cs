@@ -37,8 +37,10 @@ using static Tensorflow.Binding;
 
 namespace Microsoft.ML.Transforms
 {
-    public sealed class TensorFlowTransformer : RowToRowTransformerBase
+    public sealed class TensorFlowTransformer : RowToRowTransformerBase, IDisposable
     {
+        private bool _isDisposed;
+
         private readonly string _savedModelPath;
         private readonly bool _isTemporarySavedModel;
         private readonly bool _addBatchDimensionInput;
@@ -52,7 +54,6 @@ namespace Microsoft.ML.Transforms
         internal readonly (Operation, int)[] TFOutputOperations;
         internal TF_Output[] TFInputNodes;
         internal TF_Output[] TFOutputNodes;
-        internal IntPtr[] TFOperations;
         internal Graph Graph => Session.graph;
 
         internal readonly string[] Inputs;
@@ -444,17 +445,11 @@ namespace Microsoft.ML.Transforms
                 ctx.SaveNonEmptyString(colName);
         }
 
-        ~TensorFlowTransformer()
+        public void Dispose()
         {
-            Dispose(false);
-        }
+            if (_isDisposed)
+                return;
 
-        private void Dispose(bool disposing)
-        {
-            // Ensure that the Session is not null and it's handle is not Zero, as it may have already been disposed/finalized.
-            // Technically we shouldn't be calling this if disposing == false, since we're running in finalizer
-            // and the GC doesn't guarantee ordering of finalization of managed objects, but we have to make sure
-            // that the Session is closed before deleting our temporary directory.
             try
             {
                 if (Session != null && Session.graph != IntPtr.Zero)
@@ -467,19 +462,14 @@ namespace Microsoft.ML.Transforms
                     Session.close(); // invoked Dispose()
                 }
             }
-            catch (ObjectDisposedException ex)
-            {
-                using (var channel = Host.Start("TensorflowTransform"))
-                {
-                    channel.Warning($"Caught: {ex.Message} during TensorflowTransform dispose.");
-                }
-            }
             finally
             {
                 if (!string.IsNullOrEmpty(_savedModelPath) && _isTemporarySavedModel)
                 {
                     DeleteFolderWithRetries(Host, _savedModelPath);
                 }
+
+                _isDisposed = true;
             }
         }
 
