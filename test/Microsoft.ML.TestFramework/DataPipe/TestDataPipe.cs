@@ -1445,10 +1445,12 @@ namespace Microsoft.ML.RunTests
                 numberOfSummaryTermsPerTopic: 3, alphaSum: 3, numberOfThreads: 1, resetRandomGenerator: true);
             var est = ML.Transforms.Text.LatentDirichletAllocation(opt);
             var ldaTransformer = est.Fit(srcView);
-            var transformedData = ldaTransformer.Transform(srcView);
-
-            using (var cursor = transformedData.GetRowCursorForAllColumns())
+            try
             {
+                var transformedData = ldaTransformer.Transform(srcView);
+
+                using var cursor = transformedData.GetRowCursorForAllColumns();
+
                 var resultGetter = cursor.GetGetter<VBuffer<float>>(cursor.Schema[1]);
                 VBuffer<float> resultFirstRow = new VBuffer<float>();
                 VBuffer<float> resultSecondRow = new VBuffer<float>();
@@ -1474,6 +1476,10 @@ namespace Microsoft.ML.RunTests
                 Assert.True(resultThirdRow.GetItemOrDefault(0) == 0);
                 Assert.True(resultThirdRow.GetItemOrDefault(1) == 0);
                 Assert.True(resultThirdRow.GetItemOrDefault(2) == 1.0);
+            }
+            finally
+            {
+                ldaTransformer.Dispose();
             }
         }
 
