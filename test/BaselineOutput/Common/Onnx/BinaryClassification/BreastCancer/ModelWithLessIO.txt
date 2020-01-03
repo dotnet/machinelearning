@@ -742,7 +742,7 @@
           "Probability"
         ],
         "output": [
-          "PredictedLabel"
+          "BinarizerOutput"
         ],
         "name": "Binarizer",
         "opType": "Binarizer",
@@ -754,6 +754,23 @@
           }
         ],
         "domain": "ai.onnx.ml"
+      },
+      {
+        "input": [
+          "BinarizerOutput"
+        ],
+        "output": [
+          "PredictedLabel"
+        ],
+        "name": "Cast1",
+        "opType": "Cast",
+        "attribute": [
+          {
+            "name": "to",
+            "i": "9",
+            "type": "INT"
+          }
+        ]
       },
       {
         "input": [

@@ -109,7 +109,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             }
         }
 
-        private static EnsembleModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static EnsembleModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));

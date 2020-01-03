@@ -777,7 +777,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestNormalizeBackCompatibility()
+        public void TestNormalizeBackCompatibility()
         {
             var dataFile = GetDataPath("breast-cancer.txt");
             var dataView = TextLoader.Create(ML, new TextLoader.Options(), new MultiFileSource(dataFile));
@@ -801,7 +801,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestNormalizeLogMeanVarianceFixZeroOne()
+        public void TestNormalizeLogMeanVarianceFixZeroOne()
         {
             var samples = new List<DataPointOne>()
             {
@@ -842,7 +842,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestNormalizeLogMeanVarianceFixZeroVec()
+        public void TestNormalizeLogMeanVarianceFixZeroVec()
         {
             var samples = new List<DataPointVec>()
             {
@@ -957,7 +957,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestSavingNormalizerWithMultidimensionalVectorInput()
+        public void TestSavingNormalizerWithMultidimensionalVectorInput()
         {
             var samples = TensorData.GetTensorData();
             var data = ML.Data.LoadFromEnumerable(samples);

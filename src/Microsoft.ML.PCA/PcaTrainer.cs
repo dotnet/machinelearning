@@ -49,6 +49,7 @@ namespace Microsoft.ML.Trainers
     /// | Is normalization required? | Yes |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | None |
+    /// | Exportable to ONNX | No |
     ///
     /// ### Training Algorithm Details
     /// This trainer uses the top eigenvectors to approximate the subspace containing the normal class.
@@ -540,7 +541,7 @@ namespace Microsoft.ML.Trainers
                 writer.WriteSinglesNoCount(_eigenVectors[i].GetValues().Slice(0, _dimension));
         }
 
-        private static PcaModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static PcaModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));

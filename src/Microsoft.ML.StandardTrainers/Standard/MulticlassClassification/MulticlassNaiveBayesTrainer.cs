@@ -42,6 +42,7 @@ namespace Microsoft.ML.Trainers
     /// | Is normalization required? | Yes |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | None |
+    /// | Exportable to ONNX | No |
     ///
     /// ### Training Algorithm Details
     /// [Naive Bayes](https://en.wikipedia.org/wiki/Naive_Bayes_classifier)
@@ -319,7 +320,7 @@ namespace Microsoft.ML.Trainers
             _outputType = new VectorDataViewType(NumberDataViewType.Single, _labelCount);
         }
 
-        private static NaiveBayesMulticlassModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static NaiveBayesMulticlassModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));

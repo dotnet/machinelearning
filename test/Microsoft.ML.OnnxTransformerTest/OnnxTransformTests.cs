@@ -18,7 +18,6 @@ using Xunit;
 using Xunit.Abstractions;
 using Microsoft.ML.Transforms.Onnx;
 using Microsoft.ML.TestFrameworkCommon.Attributes;
-using System.Runtime.InteropServices;
 
 namespace Microsoft.ML.Tests
 {
@@ -105,7 +104,7 @@ namespace Microsoft.ML.Tests
         }
 
         [OnnxFact]
-        void TestSimpleCase()
+        public void TestSimpleCase()
         {
             var modelFile = "squeezenet/00000001/model.onnx";
             var samplevector = GetSampleArrayData();
@@ -145,7 +144,7 @@ namespace Microsoft.ML.Tests
         [OnnxTheory]
         [InlineData(null, false)]
         [InlineData(null, true)]
-        void TestOldSavingAndLoading(int? gpuDeviceId, bool fallbackToCpu)
+        public void TestOldSavingAndLoading(int? gpuDeviceId, bool fallbackToCpu)
         {
             var modelFile = "squeezenet/00000001/model.onnx";
             var samplevector = GetSampleArrayData();
@@ -202,11 +201,6 @@ namespace Microsoft.ML.Tests
         [OnnxFact]
         public void OnnxWorkout()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return;
-            }
-
             var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "squeezenet", "00000001", "model.onnx");
 
             var env = new MLContext();
@@ -246,14 +240,14 @@ namespace Microsoft.ML.Tests
         }
 
         [OnnxFact]
-        void TestCommandLine()
+        public void TestCommandLine()
         {
             var x = Maml.Main(new[] { @"showschema loader=Text{col=data_0:R4:0-150527} xf=Onnx{InputColumns={data_0} OutputColumns={softmaxout_1} model={squeezenet/00000001/model.onnx}}" });
             Assert.Equal(0, x);
         }
 
         [OnnxFact]
-        void TestCommandLineWithCustomShape()
+        public void TestCommandLineWithCustomShape()
         {
             var x = Maml.Main(new[] { @"showschema loader=Text{col=data_0:R4:0-150527} xf=Onnx{customShapeInfos={Name=data_0 Shape=1 Shape=3 Shape=224 Shape=224} InputColumns={data_0} OutputColumns={softmaxout_1} model={squeezenet/00000001/model.onnx}}" });
             Assert.Equal(0, x);
@@ -397,11 +391,6 @@ namespace Microsoft.ML.Tests
         [OnnxFact]
         public void OnnxModelInMemoryImage()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return;
-            }
-
             // Path of ONNX model. It's a multiclass classifier. It consumes an input "data_0" and produces an output "softmaxout_1".
             var modelFile = "squeezenet/00000001/model.onnx";
 

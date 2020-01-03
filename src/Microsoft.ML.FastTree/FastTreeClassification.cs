@@ -84,7 +84,7 @@ namespace Microsoft.ML.Trainers.FastTree
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        private static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -117,6 +117,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// | Is normalization required? | No |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.FastTree |
+    /// | Exportable to ONNX | Yes |
     ///
     /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-fasttree.md)]
     /// ]]>

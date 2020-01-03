@@ -167,7 +167,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
 
         // Factory method for SignatureLoadModel.
-        private static SsaForecastingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static SsaForecastingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -176,7 +176,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             return new SsaForecastingTransformer(env, ctx);
         }
 
-        internal SsaForecastingTransformer(IHostEnvironment env, ModelLoadContext ctx)
+        private SsaForecastingTransformer(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, ctx, LoaderSignature)
         {
             // *** Binary format ***
@@ -218,12 +218,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
     /// | Input column data type | <xref:System.Single> |
     /// | Output column data type | Vector of <xref:System.Single> |
-    ///
-    /// |  |  |
-    /// | -- | -- |
-    /// | Does this estimator need to look at the data to train its parameters? | Yes |
-    /// | Input column data type | <xref:System.Single> |
-    /// | Output column data type | Three vectors of <xref:System.Single> |
+    /// | Exportable to ONNX | No |
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/time-series-props.md)]
     ///

@@ -48,6 +48,7 @@ namespace Microsoft.ML.Trainers
     /// | Is normalization required? | Yes |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML |Microsoft.ML.Mkl.Components |
+    /// | Exportable to ONNX | Yes |
     ///
     /// ### Training Algorithm Details
     /// The symbolic stochastic gradient descent is an algorithm that makes its predictions by finding a separating hyperplane.

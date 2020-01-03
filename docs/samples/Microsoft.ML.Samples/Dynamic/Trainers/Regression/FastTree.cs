@@ -27,7 +27,7 @@ namespace Samples.Dynamic.Trainers.Regression
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // Define the trainer.
-            var pipeline = mlContext.Regression.Trainers.FastForest(
+            var pipeline = mlContext.Regression.Trainers.FastTree(
                 labelColumnName: nameof(DataPoint.Label),
                 featureColumnName: nameof(DataPoint.Features));
 

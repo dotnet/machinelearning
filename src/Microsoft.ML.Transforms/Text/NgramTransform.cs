@@ -753,8 +753,18 @@ namespace Microsoft.ML.Transforms.Text
                         continue;
 
                     string outputColumnName = _parent.ColumnPairs[iinfo].outputColumnName;
+
+                    // NOTE:
+                    // There is a subtle side effect in how OnnxContextImpl works
+                    // AddIntermediateVariable picks a unique name for the variable being added
+                    // and overwrites any existing old name with the new name in its column map
+                    // If the pipeline consists of the same column name being transformed by more
+                    // than one transformer, then the srcVariableName used must be the old name
+                    // and the dstVariableName must be the newly chosen unique name
+                    // Therefore, GetVariableName must always be called before AddIntermediateVariable here
+                    string srcVariableName = ctx.GetVariableName(inputColumnName);
                     string dstVariableName = ctx.AddIntermediateVariable(_srcTypes[iinfo], outputColumnName, true);
-                    SaveAsOnnxCore(ctx, iinfo, ctx.GetVariableName(inputColumnName), dstVariableName);
+                    SaveAsOnnxCore(ctx, iinfo, srcVariableName, dstVariableName);
                 }
             }
 
@@ -831,6 +841,7 @@ namespace Microsoft.ML.Transforms.Text
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
     /// | Input column data type | Vector of [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
     /// | Output column data type | Known-sized vector of <xref:System.Single> |
+    /// | Exportable to ONNX | Yes |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.Text.NgramExtractingTransformer>
     /// creates a new column, named as specified in the output column name parameters, where each

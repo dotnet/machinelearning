@@ -14,7 +14,6 @@ using Microsoft.ML.Transforms;
 using Microsoft.ML.TensorFlow;
 using Xunit;
 using Xunit.Abstractions;
-using System.Runtime.InteropServices;
 
 namespace Microsoft.ML.Tests
 {
@@ -58,7 +57,7 @@ namespace Microsoft.ML.Tests
         }
 
         [TensorFlowFact]
-        void TestSimpleCase()
+        public void TestSimpleCase()
         {
             var modelFile = "model_matmul/frozen_saved_model.pb";
 
@@ -98,7 +97,7 @@ namespace Microsoft.ML.Tests
         }
 
         [TensorFlowFact]
-        void TestOldSavingAndLoading()
+        public void TestOldSavingAndLoading()
         {
             var modelFile = "model_matmul/frozen_saved_model.pb";
 
@@ -134,7 +133,7 @@ namespace Microsoft.ML.Tests
         }
 
         [TensorFlowFact]
-        void TestCommandLine()
+        public void TestCommandLine()
         {
             // typeof helps to load the TensorFlowTransformer type.
             Type type = typeof(TensorFlowTransformer);
@@ -144,11 +143,6 @@ namespace Microsoft.ML.Tests
         [TensorFlowFact]
         public void TestTensorFlow()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return;
-            }
-
             var modelLocation = "cifar_model/frozen_model.pb";
 
             var mlContext = new MLContext(seed: 1);
@@ -190,11 +184,6 @@ namespace Microsoft.ML.Tests
         [TensorFlowFact]
         public void TestTensorFlowWithSchema()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return;
-            }
-
             const string modelLocation = "cifar_model/frozen_model.pb";
 
             var mlContext = new MLContext(seed: 1);

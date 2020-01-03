@@ -66,7 +66,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        private static LightGbmRegressionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static LightGbmRegressionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -92,6 +92,7 @@ namespace Microsoft.ML.Trainers.LightGbm
     /// | Is normalization required? | No |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.LightGbm |
+    /// | Exportable to ONNX | Yes |
     ///
     /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-lightgbm.md)]
     /// ]]>

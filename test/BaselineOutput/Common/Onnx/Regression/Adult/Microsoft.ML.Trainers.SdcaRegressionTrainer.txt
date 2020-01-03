@@ -1,0 +1,211 @@
+{
+  "irVersion": "6",
+  "producerName": "ML.NET",
+  "producerVersion": "##VERSION##",
+  "domain": "machinelearning.dotnet",
+  "graph": {
+    "node": [
+      {
+        "input": [
+          "FeatureVector"
+        ],
+        "output": [
+          "Score"
+        ],
+        "name": "LinearRegressor",
+        "opType": "LinearRegressor",
+        "attribute": [
+          {
+            "name": "post_transform",
+            "s": "Tk9ORQ==",
+            "type": "STRING"
+          },
+          {
+            "name": "targets",
+            "i": "1",
+            "type": "INT"
+          },
+          {
+            "name": "coefficients",
+            "floats": [
+              77.0922546,
+              0.0301597714,
+              74.77238,
+              0.0247383546,
+              0.015633028,
+              -0.00285232812,
+              19.3064137,
+              3.93808079,
+              -0.04581693,
+              0.19576098,
+              82.69531
+            ],
+            "type": "FLOATS"
+          },
+          {
+            "name": "intercepts",
+            "floats": [
+              373.80426
+            ],
+            "type": "FLOATS"
+          }
+        ],
+        "domain": "ai.onnx.ml"
+      },
+      {
+        "input": [
+          "FeatureVector"
+        ],
+        "output": [
+          "FeatureVector0"
+        ],
+        "name": "Identity",
+        "opType": "Identity"
+      },
+      {
+        "input": [
+          "Target"
+        ],
+        "output": [
+          "Target0"
+        ],
+        "name": "Identity0",
+        "opType": "Identity"
+      },
+      {
+        "input": [
+          "Score"
+        ],
+        "output": [
+          "Score0"
+        ],
+        "name": "Identity1",
+        "opType": "Identity"
+      }
+    ],
+    "name": "model",
+    "input": [
+      {
+        "name": "FeatureVector",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "11"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Target",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "output": [
+      {
+        "name": "FeatureVector0",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "11"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Target0",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Score0",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "valueInfo": [
+      {
+        "name": "Score",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "opsetImport": [
+    {
+      "domain": "ai.onnx.ml",
+      "version": "2"
+    },
+    {
+      "version": "9"
+    }
+  ]
+}

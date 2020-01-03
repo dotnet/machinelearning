@@ -53,7 +53,6 @@ namespace lda {
         mh_step_(mhstep),
         alpha_sum_(alphaSum),
         maxDocToken_(maxDocToken),
-        samplers_(nullptr),
         document_buffer_(nullptr)
     {
         if (numThread > 0)
@@ -68,17 +67,15 @@ namespace lda {
         printf("using %d thread(s) to do train/test\n", num_threads_);
 
         bAlphaSumMultiplied = false;
-        atomic_stats_ = new LDAEngineAtomics();
-        model_block_ = new LDAModelBlock();
-        data_block_ = new LDADataBlock(num_threads_);
-        process_barrier_ = new SimpleBarrier(num_threads_);
-        samplerQueue_ = new CBlockedIntQueue();
+        atomic_stats_.reset(new LDAEngineAtomics());
+        model_block_.reset(new LDAModelBlock());
+        data_block_.reset(new LDADataBlock(num_threads_));
+        process_barrier_.reset(new SimpleBarrier(num_threads_));
+        samplerQueue_.reset(new CBlockedIntQueue());
 
         document_buffer_ = new int32_t*[num_threads_];
         for (int i = 0; i < num_threads_; i++)
             document_buffer_[i] = new int32_t[maxDocToken_ * 2 + 1];
-
-        likelihood_in_iter_ = nullptr;
 
         beta_sum_ = beta_ * V_;
     }
@@ -92,7 +89,6 @@ namespace lda {
         mh_step_(mh_step),
         alpha_sum_(alpha_sum),
         maxDocToken_(maxDocToken),
-        samplers_(nullptr),
         document_buffer_(nullptr)
     {
         if (num_threads > 0)
@@ -105,17 +101,16 @@ namespace lda {
             num_threads_ = std::max(1, (int)(uNumCPU - 2));
         }
         bAlphaSumMultiplied = false;
-        process_barrier_ = new SimpleBarrier(num_threads_);
-        atomic_stats_ = new LDAEngineAtomics();
-        data_block_ = new LDADataBlock(num_threads_);
-        model_block_ = new LDAModelBlock();
-        samplerQueue_ = new CBlockedIntQueue();
+        process_barrier_.reset(new SimpleBarrier(num_threads_));
+        atomic_stats_.reset(new LDAEngineAtomics());
+        data_block_.reset(new LDADataBlock(num_threads_));
+        model_block_.reset(new LDAModelBlock());
+        samplerQueue_.reset(new CBlockedIntQueue());
 
         document_buffer_ = new int32_t*[num_threads_];
         for (int i = 0; i < num_threads_; i++)
             document_buffer_[i] = new int32_t[maxDocToken_ * 2 + 1];
 
-        likelihood_in_iter_ = nullptr;
         beta_sum_ = beta_ * V_;
     }
 
@@ -123,26 +118,13 @@ namespace lda {
     LdaEngine::~LdaEngine()
     {
         //delete memory space
-        delete process_barrier_;
-        process_barrier_ = nullptr;
+        process_barrier_.reset(nullptr);
+        data_block_.reset(nullptr);
+        atomic_stats_.reset(nullptr);
+        model_block_.reset(nullptr);
+        samplerQueue_.reset(nullptr);
 
-        delete data_block_;
-        data_block_ = nullptr;
-
-        delete atomic_stats_;
-        atomic_stats_ = nullptr;
-
-        delete model_block_;
-        model_block_ = nullptr;
-
-        delete samplerQueue_;
-        samplerQueue_ = nullptr;
-
-        for (int i = 0; i < num_threads_; ++i)
-        {
-            delete samplers_[i];
-        }
-        delete[] samplers_;
+        samplers_.reset(nullptr);
 
         if (document_buffer_)
         {
@@ -155,11 +137,7 @@ namespace lda {
             document_buffer_ = nullptr;
         }
 
-        if (likelihood_in_iter_)
-        {
-            delete[] likelihood_in_iter_;
-            likelihood_in_iter_ = nullptr;
-        }
+        likelihood_in_iter_.reset(nullptr);
     }
 
     bool LdaEngine::InitializeBeforeTrain()
@@ -167,7 +145,7 @@ namespace lda {
         CTimer tmDebug(true);
         CheckFunction(0, tmDebug, "enter initializeBeforeTrain", false);
         //allocate model memory from the data preloaded
-        AllocateModelMemory(data_block_);
+        AllocateModelMemory(*data_block_);
         CheckFunction(0, tmDebug, "allocate model memory", false);
 
         double alloc_start = lda::get_time();
@@ -193,12 +171,12 @@ namespace lda {
         word_range_for_each_thread_[num_threads_] = V_;
 
         //setup sampler
-        samplers_ = new LightDocSampler*[num_threads_];
+        samplers_.reset(new std::unique_ptr<LightDocSampler>[num_threads_]);
         samplerQueue_->clear();
 
         for (int i = 0; i < num_threads_; ++i)
         {
-            samplers_[i] = new LightDocSampler(
+            samplers_[i].reset(new LightDocSampler(
                 K_,
                 V_,
                 num_threads_,
@@ -210,7 +188,7 @@ namespace lda {
                 global_alias_k_v_,
                 beta_height_,
                 beta_mass_,
-                beta_k_v_);
+                beta_k_v_));
 
             samplerQueue_->push(i);
         }
@@ -250,14 +228,7 @@ namespace lda {
         word_range_for_each_thread_[num_threads_] = V_;
 
         //setup sampler
-        if (samplers_)
-        {
-            for (int i = 0; i < num_threads_; ++i)
-            {
-                delete samplers_[i];
-            }
-            delete[] samplers_;
-        }
+        samplers_.reset(nullptr);
         if (document_buffer_)
         {
             for (int i = 0; i < num_threads_; ++i)
@@ -269,13 +240,13 @@ namespace lda {
             document_buffer_ = nullptr;
         }
 
-        samplers_ = new LightDocSampler*[num_threads_];
+        samplers_.reset(new std::unique_ptr<LightDocSampler>[num_threads_]);
         document_buffer_ = new int32_t*[num_threads_];
         samplerQueue_->clear();
 
         for (int i = 0; i < num_threads_; ++i)
         {
-            samplers_[i] = new LightDocSampler(
+            samplers_[i].reset(new LightDocSampler(
                 K_,
                 V_,
                 num_threads_,
@@ -287,7 +258,7 @@ namespace lda {
                 global_alias_k_v_,
                 beta_height_,
                 beta_mass_,
-                beta_k_v_);
+                beta_k_v_));
 
             samplers_[i]->AdaptAlphaSum(false);
             document_buffer_[i] = new int32_t[maxDocToken_ * 2 + 1];
@@ -342,7 +313,7 @@ namespace lda {
         atomic_stats_->thread_counter_ = 0;
         burnin_iterations_ = burnin_iter;
 
-        likelihood_in_iter_ = new float[burnin_iterations_];
+        likelihood_in_iter_.reset(new float[burnin_iterations_]);
         for (int i = 0; i < burnin_iterations_; i++)
         {
             likelihood_in_iter_[i] = 0.0;
@@ -676,7 +647,7 @@ namespace lda {
         data_block_->Allocate(num_document, corpus_size);
     }
 
-    void LdaEngine::AllocateModelMemory(const LDADataBlock* data_block)
+    void LdaEngine::AllocateModelMemory(const LDADataBlock& data_block)
     {
         model_block_->InitFromDataBlock(data_block, V_, K_);
 

@@ -1,0 +1,12 @@
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col=Label:R4:0
+#@   col=Weight:R4:1
+#@   col=GroupId:U8[18446744073709551614]:2
+#@   col=Comment:TX:3
+#@   col=Features:R4:4-4
+#@ }
+Label	Weight	GroupId	Comment	aurora
+1	1		""	2
+Wrote 1 rows of length 5

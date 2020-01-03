@@ -13,6 +13,54 @@ using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime
 {
+
+    internal static class Extension
+    {
+        internal static AccessModifier Accessmodifier(this MethodInfo methodInfo)
+        {
+            if (methodInfo.IsFamilyAndAssembly)
+                return AccessModifier.PrivateProtected;
+            if (methodInfo.IsPrivate)
+                return AccessModifier.Private;
+            if (methodInfo.IsFamily)
+                return AccessModifier.Protected;
+            if (methodInfo.IsFamilyOrAssembly)
+                return AccessModifier.ProtectedInternal;
+            if (methodInfo.IsAssembly)
+                return AccessModifier.Internal;
+            if (methodInfo.IsPublic)
+                return AccessModifier.Public;
+            throw new ArgumentException("Did not find access modifier", "methodInfo");
+        }
+
+        internal static AccessModifier Accessmodifier(this ConstructorInfo constructorInfo)
+        {
+            if (constructorInfo.IsFamilyAndAssembly)
+                return AccessModifier.PrivateProtected;
+            if (constructorInfo.IsPrivate)
+                return AccessModifier.Private;
+            if (constructorInfo.IsFamily)
+                return AccessModifier.Protected;
+            if (constructorInfo.IsFamilyOrAssembly)
+                return AccessModifier.ProtectedInternal;
+            if (constructorInfo.IsAssembly)
+                return AccessModifier.Internal;
+            if (constructorInfo.IsPublic)
+                return AccessModifier.Public;
+            throw new ArgumentException("Did not find access modifier", "constructorInfo");
+        }
+
+        internal enum AccessModifier
+        {
+            PrivateProtected,
+            Private,
+            Protected,
+            ProtectedInternal,
+            Internal,
+            Public
+        }
+    }
+
     /// <summary>
     /// This catalogs instantiatable components (aka, loadable classes). Components are registered via
     /// a descendant of <see cref="LoadableClassAttributeBase"/>, identifying the names and signature types under which the component
@@ -414,21 +462,59 @@ namespace Microsoft.ML.Runtime
             ctor = null;
             create = null;
             requireEnvironment = false;
+            bool requireEnvironmentCtor = false;
+            bool requireEnvironmentCreate = false;
             var parmTypesWithEnv = Utils.Concat(new Type[1] { typeof(IHostEnvironment) }, parmTypes);
+
             if (Utils.Size(parmTypes) == 0 && (getter = FindInstanceGetter(instType, loaderType)) != null)
                 return true;
-            if (instType.IsAssignableFrom(loaderType) && (ctor = loaderType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, parmTypes ?? Type.EmptyTypes, null)) != null)
-                return true;
-            if (instType.IsAssignableFrom(loaderType) && (ctor = loaderType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, parmTypesWithEnv ?? Type.EmptyTypes, null)) != null)
+
+            // Find both 'ctor' and 'create' methods if available
+            if (instType.IsAssignableFrom(loaderType))
             {
-                requireEnvironment = true;
+                if ((ctor = loaderType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, parmTypes ?? Type.EmptyTypes, null)) == null)
+                {
+                    if ((ctor = loaderType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, parmTypesWithEnv ?? Type.EmptyTypes, null)) != null)
+                        requireEnvironmentCtor = true;
+                }
+            }
+
+            if ((create = FindCreateMethod(instType, loaderType, parmTypes ?? Type.EmptyTypes)) == null)
+            {
+                if ((create = FindCreateMethod(instType, loaderType, parmTypesWithEnv ?? Type.EmptyTypes)) != null)
+                    requireEnvironmentCreate = true;
+            }
+
+            if (ctor != null && create != null)
+            {
+                // If both 'ctor' and 'create' methods were found
+                // Choose the one that is 'more' public
+                // If they have the same visibility, then throw an exception, since this shouldn't happen.
+
+                if (ctor.Accessmodifier() == create.Accessmodifier())
+                {
+                    throw Contracts.Except($"Can't load type {instType}, because it has both create and constructor methods with the same visibility. Please indicate which one should be used by changing either the signature or the visibility of one of them.");
+                }
+                if (ctor.Accessmodifier() > create.Accessmodifier())
+                {
+                    create = null;
+                    requireEnvironment = requireEnvironmentCtor;
+                    return true;
+                }
+                ctor = null;
+                requireEnvironment = requireEnvironmentCreate;
                 return true;
             }
-            if ((create = FindCreateMethod(instType, loaderType, parmTypes ?? Type.EmptyTypes)) != null)
-                return true;
-            if ((create = FindCreateMethod(instType, loaderType, parmTypesWithEnv ?? Type.EmptyTypes)) != null)
+
+            if (ctor != null && create == null)
             {
-                requireEnvironment = true;
+                requireEnvironment = requireEnvironmentCtor;
+                return true;
+            }
+
+            if (ctor == null && create != null)
+            {
+                requireEnvironment = requireEnvironmentCreate;
                 return true;
             }
 

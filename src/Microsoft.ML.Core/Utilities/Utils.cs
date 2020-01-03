@@ -966,6 +966,14 @@ namespace Microsoft.ML.Internal.Utilities
             return meth;
         }
 
+        private static MethodInfo MarshalInvokeCheckAndCreate<TRet>(Type[] genArgs, Delegate func)
+        {
+            var meth = MarshalActionInvokeCheckAndCreate(genArgs, func);
+            if (meth.ReturnType != typeof(TRet))
+                throw Contracts.ExceptParam(nameof(func), "Cannot be generic on return type");
+            return meth;
+        }
+
         // REVIEW: n-argument versions? The multi-column re-application problem?
         // Think about how to address these.
 
@@ -1092,6 +1100,28 @@ namespace Microsoft.ML.Internal.Utilities
             return (TRet)meth.Invoke(func.Target, new object[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10 });
         }
 
+        /// <summary>
+        /// A 1 argument and n type version of <see cref="MarshalInvoke{TRet}"/>.
+        /// </summary>
+        public static TRet MarshalInvoke<TArg1, TRet>(
+            Func<TArg1, TRet> func,
+            Type[] genArgs, TArg1 arg1)
+        {
+            var meth = MarshalInvokeCheckAndCreate<TRet>(genArgs, func);
+            return (TRet)meth.Invoke(func.Target, new object[] { arg1});
+        }
+
+        /// <summary>
+        /// A 2 argument and n type version of <see cref="MarshalInvoke{TRet}"/>.
+        /// </summary>
+        public static TRet MarshalInvoke<TArg1, TArg2, TRet>(
+            Func<TArg1, TArg2, TRet> func,
+            Type[] genArgs, TArg1 arg1, TArg2 arg2)
+        {
+            var meth = MarshalInvokeCheckAndCreate<TRet>(genArgs, func);
+            return (TRet)meth.Invoke(func.Target, new object[] { arg1, arg2});
+        }
+
         private static MethodInfo MarshalActionInvokeCheckAndCreate(Type genArg, Delegate func)
         {
             Contracts.CheckValue(genArg, nameof(genArg));
@@ -1101,6 +1131,18 @@ namespace Microsoft.ML.Internal.Utilities
             Contracts.CheckParam(meth.GetGenericArguments().Length == 1, nameof(func),
                 "Should have exactly one generic type parameter but does not");
             meth = meth.GetGenericMethodDefinition().MakeGenericMethod(genArg);
+            return meth;
+        }
+
+        private static MethodInfo MarshalActionInvokeCheckAndCreate(Type[] typeArguments, Delegate func)
+        {
+            Contracts.CheckValue(typeArguments, nameof(typeArguments));
+            Contracts.CheckValue(func, nameof(func));
+            var meth = func.GetMethodInfo();
+            Contracts.CheckParam(meth.IsGenericMethod, nameof(func), "Should be generic but is not");
+            Contracts.CheckParam(meth.GetGenericArguments().Length == typeArguments.Length, nameof(func),
+                "Method should have exactly the same number of generic type parameters as list passed in but it does not.");
+            meth = meth.GetGenericMethodDefinition().MakeGenericMethod(typeArguments);
             return meth;
         }
 

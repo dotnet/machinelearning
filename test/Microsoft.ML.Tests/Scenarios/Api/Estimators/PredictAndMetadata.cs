@@ -21,7 +21,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// key value to original label value. This example also shows how to convert key value to original label.
         /// </summary>
         [Fact]
-        void PredictAndMetadata()
+        public void PredictAndMetadata()
         {
             var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
             var ml = new MLContext();
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
 
         [Fact]
-        void MulticlassConfusionMatrixSlotNames()
+        public void MulticlassConfusionMatrixSlotNames()
         {
             var mlContext = new MLContext(seed: 1);
 
