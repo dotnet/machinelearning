@@ -308,7 +308,7 @@ namespace Microsoft.ML.Vision
         }
 
         /// <summary>
-        /// Metrics for image classification bottlenect phase and training.
+        /// Metrics for image classification bottleneck phase and training.
         /// Train metrics may be null when bottleneck phase is running, so have check!
         /// </summary>
         public sealed class ImageClassificationMetrics
