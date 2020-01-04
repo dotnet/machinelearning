@@ -19,6 +19,7 @@ using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Ensemble;
 using Microsoft.ML.Trainers.FastTree;
@@ -3845,9 +3846,11 @@ namespace Microsoft.ML.RunTests
             validateAuc(metrics);
         }
 
-        [Fact]
-        public void EntryPointChainedCrossValMacros()
+        [Theory]
+        [IterationData(iterations: 10)]
+        public void EntryPointChainedCrossValMacros(int iteration)
         {
+            Console.WriteLine($"{iteration}-th running...");
             string inputGraph = @"
                 {
                   'Nodes': [
@@ -6025,9 +6028,11 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [Fact]
-        public void TestOvaMacro()
+        [Theory]
+        [IterationData(iterations: 10)]
+        public void TestOvaMacro(int iteration)
         {
+            Console.WriteLine($"{iteration}-th running...");
             var dataPath = GetDataPath(@"iris.txt");
             string inputGraph = @"
             {

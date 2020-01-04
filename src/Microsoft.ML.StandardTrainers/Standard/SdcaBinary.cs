@@ -382,6 +382,7 @@ namespace Microsoft.ML.Trainers
                     DataViewRowId id = cursor.Id;
                     if (id.High > 0 || id.Low >= (ulong)maxTrainingExamples)
                     {
+                        Console.WriteLine($"Debug SdcaBinary: Count is {count}, id.High is {id.High}, id.Low is {id.Low}");
                         needLookup = true;
                         break;
                     }
@@ -407,6 +408,7 @@ namespace Microsoft.ML.Trainers
                     {
                         // The distribution of id.Low is sparse in [0, idLoMax].
                         // Building a lookup table is more memory efficient.
+                        Console.WriteLine($"Debug SdcaBinary: Count is {count}, idLoMax is {idLoMax}");
                         needLookup = true;
                     }
                 }

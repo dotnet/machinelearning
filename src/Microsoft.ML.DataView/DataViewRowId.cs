@@ -30,6 +30,15 @@ namespace Microsoft.ML.Data
         /// <param name="high">The high order <langword>ulong</langword>.</param>
         public DataViewRowId(ulong low, ulong high)
         {
+            var callStack = new StackTrace().ToString();
+
+            if(high > 0 && (callStack.Contains("CrossValidationIris") ||
+                            callStack.Contains("EntryPointChainedCrossValMacros") ||
+                            callStack.Contains("TestOvaMacro")))
+            {
+                Console.WriteLine($"call stack is {callStack}");
+            }
+
             Low = low;
             High = high;
         }

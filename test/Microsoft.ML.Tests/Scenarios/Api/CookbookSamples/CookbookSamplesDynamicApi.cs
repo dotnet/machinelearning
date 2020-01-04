@@ -9,6 +9,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
@@ -548,12 +549,14 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var model = fullLearningPipeline.Fit(data);
         }
 
-        [Fact]
-        public void CrossValidationIris()
-            => CrossValidationOn(GetDataPath("iris.data"));
+        [Theory]
+        [IterationData(iterations:10)]
+        public void CrossValidationIris(int iteration)
+            => CrossValidationOn(GetDataPath("iris.data"), iteration);
 
-        private void CrossValidationOn(string dataPath)
+        private void CrossValidationOn(string dataPath, int iteration)
         {
+            Console.WriteLine($"{iteration}-th running..."); 
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
