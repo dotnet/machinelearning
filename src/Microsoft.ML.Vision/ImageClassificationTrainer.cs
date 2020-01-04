@@ -64,7 +64,7 @@ namespace Microsoft.ML.Vision
     /// | Machine learning task | Multiclass classification |
     /// | Is normalization required? | No |
     /// | Is caching required? | No |
-    /// | Required NuGet in addition to Microsoft.ML | Micrsoft.ML.Vision and SciSharp.TensorFlow.Redist / SciSharp.TensorFlow.Redist-Windows-GPU / SciSharp.TensorFlow.Redist-Linux-GPU |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.Vision and SciSharp.TensorFlow.Redist / SciSharp.TensorFlow.Redist-Windows-GPU / SciSharp.TensorFlow.Redist-Linux-GPU |
     /// | Exportable to ONNX | No |
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/tensorflow-usage.md)]
