@@ -452,7 +452,7 @@ namespace Microsoft.ML.Transforms
 
             try
             {
-                if (Session != null && Session.graph != IntPtr.Zero)
+                if (Session?.graph != IntPtr.Zero)
                 {
                     Session.graph.Dispose();
                 }
