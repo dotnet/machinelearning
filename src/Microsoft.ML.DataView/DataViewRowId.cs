@@ -36,7 +36,7 @@ namespace Microsoft.ML.Data
                             callStack.Contains("EntryPointChainedCrossValMacros") ||
                             callStack.Contains("TestOvaMacro")))
             {
-                Console.WriteLine($"call stack is {callStack}");
+                Console.WriteLine($"Debug: high is {high}, low is {low}, call stack is {callStack}");
             }
 
             Low = low;
