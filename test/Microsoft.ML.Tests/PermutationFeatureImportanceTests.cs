@@ -316,6 +316,24 @@ namespace Microsoft.ML.Tests
                             new TextLoader.Column("Features", DataKind.Single, 1, 9) });
             var model = ff.Fit(data);
             var pfi = ML.BinaryClassification.PermutationFeatureImportance(model, data);
+
+            // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
+            Assert.Equal(7, MaxDeltaIndex(pfi, m => m.AreaUnderRocCurve.Mean));
+            Assert.Equal(1, MinDeltaIndex(pfi, m => m.AreaUnderRocCurve.Mean));
+            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.Accuracy.Mean));
+            Assert.Equal(1, MinDeltaIndex(pfi, m => m.Accuracy.Mean));
+            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.PositivePrecision.Mean));
+            Assert.Equal(1, MinDeltaIndex(pfi, m => m.PositivePrecision.Mean));
+            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.PositiveRecall.Mean));
+            Assert.Equal(1, MinDeltaIndex(pfi, m => m.PositiveRecall.Mean));
+            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.NegativePrecision.Mean));
+            Assert.Equal(1, MinDeltaIndex(pfi, m => m.NegativePrecision.Mean));
+            Assert.Equal(2, MaxDeltaIndex(pfi, m => m.NegativeRecall.Mean));
+            Assert.Equal(1, MinDeltaIndex(pfi, m => m.NegativeRecall.Mean));
+            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.F1Score.Mean));
+            Assert.Equal(1, MinDeltaIndex(pfi, m => m.F1Score.Mean));
+            Assert.Equal(7, MaxDeltaIndex(pfi, m => m.AreaUnderPrecisionRecallCurve.Mean));
+            Assert.Equal(1, MinDeltaIndex(pfi, m => m.AreaUnderPrecisionRecallCurve.Mean));
         }
         #endregion
 
