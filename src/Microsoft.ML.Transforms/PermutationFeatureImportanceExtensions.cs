@@ -4,9 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
