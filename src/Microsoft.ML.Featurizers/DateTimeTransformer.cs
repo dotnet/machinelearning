@@ -490,7 +490,7 @@ namespace Microsoft.ML.Featurizers
                     }
                     else
                     {
-                        dataRoot = Encoding.UTF8.GetBytes(AppDomain.CurrentDomain.BaseDirectory + char.MinValue);
+                        dataRoot = Encoding.UTF8.GetBytes(Assembly.GetExecutingAssembly().Location + char.MinValue);
                     }
 
                     fixed (byte* dataRootDir = dataRoot)
