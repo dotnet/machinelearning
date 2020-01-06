@@ -550,7 +550,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
         }
 
         [Theory]
-        [IterationData(iterations:2)]
+        [IterationData(iterations:5)]
         public void CrossValidationIris(int iteration)
             => CrossValidationOn(GetDataPath("iris.data"), iteration);
 

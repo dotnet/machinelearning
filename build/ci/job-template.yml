@@ -13,7 +13,7 @@ jobs:
     ${{ if eq(parameters.nightlyBuild, 'true') }}:
       timeoutInMinutes: 20
     ${{ if and(eq(parameters.nightlyBuild, 'false'), eq(parameters.codeCoverage, 'false')) }}:
-      timeoutInMinutes: 75
+      timeoutInMinutes: 120
     ${{ if eq(parameters.codeCoverage, 'true') }}:
       timeoutInMinutes: 75
     variables:
