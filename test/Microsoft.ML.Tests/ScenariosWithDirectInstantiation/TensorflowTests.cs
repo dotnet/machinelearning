@@ -1278,12 +1278,9 @@ namespace Microsoft.ML.Scenarios
 
             IDataView trainDataset = trainTestData.TrainSet;
             IDataView testDataset = trainTestData.TestSet;
-            var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
-                    .Fit(testDataset)
-                    .Transform(testDataset);
 
             var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
-                .Append(mlContext.MulticlassClassification.Trainers.ImageClassification("Label", "Image", validationSet: validationSet)
+                .Append(mlContext.MulticlassClassification.Trainers.ImageClassification("Label", "Image")
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel"))); ;
 
             var trainedModel = pipeline.Fit(trainDataset);
@@ -1319,12 +1316,12 @@ namespace Microsoft.ML.Scenarios
             }
             return isReuse;
         }
-        
+
         internal (string, string, string, bool) getInitialParameters(ImageClassificationTrainer.Architecture arch, string finalImagesFolderName)
         {
-            string trainSetBottleneckCachedValuesFileName = "TrainsetCached_" + finalImagesFolderName + "_" + (int) arch;
-            string validationSetBottleneckCachedValuesFileName = "validationsetCached_" + finalImagesFolderName + "_" + (int) arch;
-            string workspacePath = Path.Combine(TensorFlowScenariosTestsFixture.parentWorkspacePath, finalImagesFolderName + "_" + (int) arch);
+            string trainSetBottleneckCachedValuesFileName = "TrainsetCached_" + finalImagesFolderName + "_" + (int)arch;
+            string validationSetBottleneckCachedValuesFileName = "validationsetCached_" + finalImagesFolderName + "_" + (int)arch;
+            string workspacePath = Path.Combine(TensorFlowScenariosTestsFixture.parentWorkspacePath, finalImagesFolderName + "_" + (int)arch);
             bool isReuse = ShouldReuse(workspacePath, trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName);
             return (trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName, workspacePath, isReuse);
         }
@@ -1371,9 +1368,9 @@ namespace Microsoft.ML.Scenarios
                     .Transform(testDataset);
 
             // Check if the bottleneck cached values already exist
-            var (trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName, 
-                workspacePath, isReuse)  = getInitialParameters(arch, finalImagesFolderName);
-            
+            var (trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName,
+                workspacePath, isReuse) = getInitialParameters(arch, finalImagesFolderName);
+
             var options = new ImageClassificationTrainer.Options()
             {
                 FeatureColumnName = "Image",
@@ -1427,7 +1424,7 @@ namespace Microsoft.ML.Scenarios
 
             string[] directories = Directory.GetDirectories(fullImagesetFolderPath);
             string[] labels = new string[directories.Length];
-            for(int j = 0; j < labels.Length; j++)
+            for (int j = 0; j < labels.Length; j++)
             {
                 var dir = new DirectoryInfo(directories[j]);
                 labels[j] = dir.Name;
@@ -1476,7 +1473,7 @@ namespace Microsoft.ML.Scenarios
             TensorFlowImageClassificationWithLRScheduling(new PolynomialLRDecay(), 50);
         }
 
-        internal void TensorFlowImageClassificationWithLRScheduling(LearningRateScheduler  learningRateScheduler, int epoch)
+        internal void TensorFlowImageClassificationWithLRScheduling(LearningRateScheduler learningRateScheduler, int epoch)
         {
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
@@ -1608,7 +1605,6 @@ namespace Microsoft.ML.Scenarios
 
             Assert.True(File.Exists(Path.Combine(options.WorkspacePath, options.TrainSetBottleneckCachedValuesFileName)));
             Assert.True(File.Exists(Path.Combine(options.WorkspacePath, options.ValidationSetBottleneckCachedValuesFileName)));
-            Assert.True(File.Exists(Path.Combine(options.WorkspacePath, "TrainingSetSize.txt")));
             Assert.True(File.Exists(Path.Combine(Path.GetTempPath(), "MLNET", ImageClassificationTrainer.ModelFileName[options.Arch])));
         }
 
@@ -1817,21 +1813,21 @@ namespace Microsoft.ML.Scenarios
         {
             string fileName = "flower_photos_tiny_set_for_unit_tests.zip";
             string filenameAlias = "FPTSUT"; // FPTSUT = flower photos tiny set for unit tests
-            string url = "https://aka.ms/mlnet-resources/flower_photos_tiny_set_for_unit_test.zip";
+            string url = "https://aka.ms/mlnet-resources/datasets/flower_photos_tiny_set_for_unit_test.zip";
 
             Download(url, imagesDownloadFolder, fileName);
             UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);
             // Sometimes tests fail because the path is too long. So rename the dataset folder to a shorter directory.
-            if(!Directory.Exists(Path.Combine(imagesDownloadFolder, filenameAlias)))
-                Directory.Move(Path.Combine(imagesDownloadFolder, Path.GetFileNameWithoutExtension(fileName)), Path.Combine(imagesDownloadFolder,"FPTSUT"));
+            if (!Directory.Exists(Path.Combine(imagesDownloadFolder, filenameAlias)))
+                Directory.Move(Path.Combine(imagesDownloadFolder, Path.GetFileNameWithoutExtension(fileName)), Path.Combine(imagesDownloadFolder, "FPTSUT"));
             return filenameAlias;
         }
 
         public static string DownloadBadImageSet(string imagesDownloadFolder)
         {
             string fileName = "CatsVsDogs_tiny_for_unit_tests.zip";
-            string url = $"https://tlcresources.blob.core.windows.net/datasets/" +
-                $"CatsVsDogs_tiny_for_unit_tests.zip"; 
+            string url = $"https://aka.ms/mlnet-resources/datasets/" +
+                $"CatsVsDogs_tiny_for_unit_tests.zip";
 
             Download(url, imagesDownloadFolder, fileName);
             UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);

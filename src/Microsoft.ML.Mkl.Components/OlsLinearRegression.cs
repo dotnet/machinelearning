@@ -49,6 +49,7 @@ namespace Microsoft.ML.Trainers
     /// | Is normalization required? | Yes |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.Mkl.Components |
+    /// | Exportable to ONNX | Yes |
     ///
     /// ### Training Algorithm Details
     /// [Ordinary least squares (OLS)](https://en.wikipedia.org/wiki/Ordinary_least_squares) is a parameterized regression method.

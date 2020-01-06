@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
@@ -234,6 +235,42 @@ namespace Microsoft.ML.AutoML.Test
 
             Assert.Equal(value1.GetHashCode(), value1.GetHashCode());
             Assert.Equal(value1.GetHashCode(), duplicateValue1.GetHashCode());
+        }
+
+        [Fact]
+        public void TestParameterSetEquality()
+        {
+            LongParameterValue value1 = new LongParameterValue(nameof(value1), 1);
+            LongParameterValue value2 = new LongParameterValue(nameof(value2), 2);
+            StringParameterValue stringValue1 = new StringParameterValue(nameof(value1), "1");
+
+            var parameterSet = new ParameterSet(new[] { value1 });
+            Assert.False(parameterSet.Equals(null));
+
+            // Verify Equals for sets with different hash codes
+            var parameterSetNewHash = new ParameterSet(new IParameterValue[] { value1 }.ToDictionary(x => x.Name), hash: parameterSet.GetHashCode() + 1);
+            Assert.NotEqual(parameterSet.GetHashCode(), parameterSetNewHash.GetHashCode());
+            Assert.False(parameterSet.Equals(parameterSetNewHash));
+
+            // Verify Equals for sets with the same hash code, but different number of values
+            var parameterSetMoreValues = new ParameterSet(new IParameterValue[] { value1, value2 }.ToDictionary(x => x.Name), hash: parameterSet.GetHashCode());
+            Assert.Equal(parameterSet.GetHashCode(), parameterSetMoreValues.GetHashCode());
+            Assert.False(parameterSet.Equals(parameterSetMoreValues));
+
+            // Verify Equals for sets with the same hash and item counts, but one of the items has a different name
+            var parameterSetDifferentName = new ParameterSet(new IParameterValue[] { value2 }.ToDictionary(x => x.Name), hash: parameterSet.GetHashCode());
+            Assert.Equal(parameterSet.GetHashCode(), parameterSetDifferentName.GetHashCode());
+            Assert.False(parameterSet.Equals(parameterSetDifferentName));
+
+            // Verify Equals for sets with the same hash and item names, but one of the items has a different value
+            var parameterSetDifferentValue = new ParameterSet(new IParameterValue[] { stringValue1 }.ToDictionary(x => x.Name), hash: parameterSet.GetHashCode());
+            Assert.Equal(parameterSet.GetHashCode(), parameterSetDifferentValue.GetHashCode());
+            Assert.False(parameterSet.Equals(parameterSetDifferentValue));
+
+            // Verify Equals for sets with the same hash and items
+            var parameterSetSameHash = new ParameterSet(new IParameterValue[] { value1 }.ToDictionary(x => x.Name), hash: parameterSet.GetHashCode());
+            Assert.Equal(parameterSet.GetHashCode(), parameterSetSameHash.GetHashCode());
+            Assert.True(parameterSet.Equals(parameterSetSameHash));
         }
     }
 }

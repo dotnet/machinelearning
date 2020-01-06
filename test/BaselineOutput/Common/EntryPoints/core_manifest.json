@@ -18078,6 +18078,117 @@
       ]
     },
     {
+      "Name": "Transforms.DateTimeSplitter",
+      "Desc": "Splits a date time value into each individual component",
+      "FriendlyName": "DateTime Transform",
+      "ShortName": "DateTimeTransform",
+      "Inputs": [
+        {
+          "Name": "Source",
+          "Type": "String",
+          "Desc": "Input column",
+          "Aliases": [
+            "src"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Prefix",
+          "Type": "String",
+          "Desc": "Output column prefix",
+          "Aliases": [
+            "pre"
+          ],
+          "Required": true,
+          "SortOrder": 2.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Country",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "None",
+              "Argentina",
+              "Australia",
+              "Austria",
+              "Belarus",
+              "Belgium",
+              "Brazil",
+              "Canada",
+              "Colombia",
+              "Croatia",
+              "Czech",
+              "Denmark",
+              "England",
+              "Finland",
+              "France",
+              "Germany",
+              "Hungary",
+              "India",
+              "Ireland",
+              "IsleofMan",
+              "Italy",
+              "Japan",
+              "Mexico",
+              "Netherlands",
+              "NewZealand",
+              "NorthernIreland",
+              "Norway",
+              "Poland",
+              "Portugal",
+              "Scotland",
+              "Slovenia",
+              "SouthAfrica",
+              "Spain",
+              "Sweden",
+              "Switzerland",
+              "Ukraine",
+              "UnitedKingdom",
+              "UnitedStates",
+              "Wales"
+            ]
+          },
+          "Desc": "Country to get holidays for. Defaults to none if not passed",
+          "Aliases": [
+            "ctry"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": "None"
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
       "Name": "Transforms.Dictionarizer",
       "Desc": "Converts input values (words, numbers, etc.) to index in a dictionary.",
       "FriendlyName": "Term Transform",

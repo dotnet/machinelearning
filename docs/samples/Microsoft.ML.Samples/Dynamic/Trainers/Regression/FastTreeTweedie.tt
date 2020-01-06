@@ -7,7 +7,7 @@ string ClassHeader = @"// This example requires installation of additional NuGet
 
 string ClassName="FastTreeTweedieRegression";
 string ExtraUsing = null;
-string Trainer = @"FastForest(
+string Trainer = @"FastTreeTweedie(
                 labelColumnName: nameof(DataPoint.Label),
                 featureColumnName: nameof(DataPoint.Features))";
 string TrainerOptions = null;

@@ -64,7 +64,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected Dataset TrainSet;
         private protected Dataset ValidSet;
         /// <summary>
-        /// Data sets used to evaluate the prediction scores produced the trained model during the triaining process.
+        /// Data sets used to evaluate the prediction scores produced the trained model during the training process.
         /// </summary>
         private protected Dataset[] TestSets;
         private protected int[] FeatureMap;
@@ -214,7 +214,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected void TrainCore(IChannel ch)
         {
             Contracts.CheckValue(ch, nameof(ch));
-            // REVIEW:Get rid of this lock then we completly remove all static classes from FastTree such as BlockingThreadPool.
+            // REVIEW:Get rid of this lock then we completely remove all static classes from FastTree such as BlockingThreadPool.
             lock (FastTreeShared.TrainLock)
             {
                 using (Timer.Time(TimerEvent.TotalInitialization))
@@ -297,7 +297,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         /// <summary>
         /// A virtual method that is used to print header of test graph.
-        /// Appliations that need printing test graph are supposed to override
+        /// Applications that need printing test graph are supposed to override
         /// it to print specific test graph header.
         /// </summary>
         /// <returns> string representation of test graph header </returns>
@@ -814,7 +814,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private protected ScoreTracker ConstructScoreTracker(Dataset set)
         {
-            // If not found contruct one
+            // If not found construct one
             ScoreTracker st = null;
             if (set == TrainSet)
                 st = OptimizationAlgorithm.GetScoreTracker("train", TrainSet, InitTrainScores);

@@ -44,6 +44,7 @@ namespace Microsoft.ML.Trainers
     /// | Is normalization required? | Yes |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | None |
+    /// | Exportable to ONNX | Yes |
     ///
     /// ### Scoring Function
     /// Linear logistic regression is a variant of linear model. It maps feature vector $\textbf{x} \in {\mathbb R}^n$ to a scalar via $\hat{y}\left( \textbf{x} \right) = \textbf{w}^T  \textbf{x} + b = \sum_{j=1}^n w_j x_j + b$,

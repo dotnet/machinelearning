@@ -26,7 +26,7 @@ namespace Microsoft.ML.AutoML.Test
 
         public static IDataView GetUciAdultDataView()
         {
-            if(_uciAdultDataView == null)
+            if (_uciAdultDataView == null)
             {
                 var context = new MLContext();
                 var uciAdultDataFile = DownloadUciAdultDataset();
@@ -69,7 +69,7 @@ namespace Microsoft.ML.AutoML.Test
                             }
                         }
                     }
-                    catch(Exception)
+                    catch (Exception)
                     {
                     }
                 }
@@ -146,10 +146,7 @@ namespace Microsoft.ML.AutoML.Test
         public static string DownloadImageSet(string imagesDownloadFolder)
         {
             string fileName = "flower_photos_tiny_set_for_unit_tests.zip";
-            string url = $"https://mlnetfilestorage.file.core.windows.net/imagesets" +
-                $"/flower_images/flower_photos_tiny_set_for_unit_tests.zip?st=2019" +
-                $"-08-29T00%3A07%3A21Z&se=2030-08-30T00%3A07%3A00Z&sp=rl&sv=2018" +
-                $"-03-28&sr=f&sig=N8HbLziTcT61kstprNLmn%2BDC0JoMrNwo6yRWb3hLLag%3D";
+            string url = $"https://aka.ms/mlnet-resources/datasets/flower_photos_tiny_set_for_unit_test.zip";
 
             Download(url, imagesDownloadFolder, fileName);
             UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);

@@ -48,6 +48,7 @@ namespace Microsoft.ML.Trainers
     /// | Is normalization required? | Yes |
     /// | Is caching required? | Yes |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.Recommender |
+    /// | Exportable to ONNX | No |
     ///
     /// ### Background
     /// The basic idea of matrix factorization is finding two low-rank factor matrices to approximate the training matrix.

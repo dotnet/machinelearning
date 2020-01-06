@@ -49,6 +49,7 @@ namespace Microsoft.ML.Trainers
     /// | Is normalization required? | Yes |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | None |
+    /// | Exportable to ONNX | No |
     ///
     /// ### Training Algorithm Details
     /// This trainer uses the top eigenvectors to approximate the subspace containing the normal class.
