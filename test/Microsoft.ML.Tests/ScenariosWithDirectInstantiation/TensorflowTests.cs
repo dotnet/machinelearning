@@ -22,6 +22,7 @@ using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.DataOperationsCatalog;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.Scenarios
 {
@@ -1466,10 +1467,11 @@ namespace Microsoft.ML.Scenarios
             TensorFlowImageClassificationWithLRScheduling(new ExponentialLRDecay(), 50);
         }
 
-        [TensorFlowFact]
-        public void TensorFlowImageClassificationWithPolynomialLRScheduling()
+        [Theory]
+        [IterationData]
+        public void TensorFlowImageClassificationWithPolynomialLRScheduling(int iteration)
         {
-
+            Console.WriteLine($"{iteration}-th running...");
             TensorFlowImageClassificationWithLRScheduling(new PolynomialLRDecay(), 50);
         }
 
