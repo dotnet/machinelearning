@@ -225,10 +225,6 @@ namespace Microsoft.ML.Trainers.LightGbm
         {
             _numberOfClassesIncludingNan = -1;
             _numberOfClasses = 0;
-
-            //MYTODO: Include more initializations, of TrainedEnsemble, for example?
-            //For example:
-            //TrainedEnsemble = null;
         }
 
         private protected override void ConvertNaNLabels(IChannel ch, RoleMappedData data, float[] labels)
