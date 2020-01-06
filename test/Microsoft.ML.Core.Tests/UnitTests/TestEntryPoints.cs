@@ -3847,7 +3847,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [Theory]
-        [IterationData(iterations: 10)]
+        [IterationData(iterations: 2)]
         public void EntryPointChainedCrossValMacros(int iteration)
         {
             Console.WriteLine($"{iteration}-th running...");
@@ -6029,7 +6029,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [Theory]
-        [IterationData(iterations: 10)]
+        [IterationData(iterations: 2)]
         public void TestOvaMacro(int iteration)
         {
             Console.WriteLine($"{iteration}-th running...");

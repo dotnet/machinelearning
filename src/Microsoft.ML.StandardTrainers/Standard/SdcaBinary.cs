@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -382,7 +383,14 @@ namespace Microsoft.ML.Trainers
                     DataViewRowId id = cursor.Id;
                     if (id.High > 0 || id.Low >= (ulong)maxTrainingExamples)
                     {
-                        Console.WriteLine($"Debug SdcaBinary: Count is {count}, id.High is {id.High}, id.Low is {id.Low}");
+                        var callStack = new StackTrace().ToString();
+                        if (callStack.Contains("CrossValidationIris") ||
+                            callStack.Contains("EntryPointChainedCrossValMacros") ||
+                            callStack.Contains("TestOvaMacro"))
+                        {
+
+                            Console.WriteLine($"Debug SdcaBinary: Count is {count}, id.High is {id.High}, id.Low is {id.Low}, call stack is {callStack}");
+                        }
                         needLookup = true;
                         break;
                     }
@@ -408,7 +416,14 @@ namespace Microsoft.ML.Trainers
                     {
                         // The distribution of id.Low is sparse in [0, idLoMax].
                         // Building a lookup table is more memory efficient.
-                        Console.WriteLine($"Debug SdcaBinary: Count is {count}, idLoMax is {idLoMax}");
+                        var callStack = new StackTrace().ToString();
+                        if (callStack.Contains("CrossValidationIris") ||
+                            callStack.Contains("EntryPointChainedCrossValMacros") ||
+                            callStack.Contains("TestOvaMacro"))
+                        {
+                            Console.WriteLine($"Debug SdcaBinary: Count is {count}, idLoMax is {idLoMax}, call stack is {callStack}");
+                        }
+
                         needLookup = true;
                     }
                 }
