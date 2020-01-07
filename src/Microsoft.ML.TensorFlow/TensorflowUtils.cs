@@ -486,7 +486,14 @@ namespace Microsoft.ML.TensorFlow
                 if (_session == IntPtr.Zero)
                     new ObjectDisposedException(nameof(_session));
 
-                _status.Check(true);
+                try
+                {
+                    _status.Check(true);
+                }
+                catch (TensorflowException exception)
+                {
+                    Console.WriteLine($"Catch Tensorflow exception: {exception.Message} with TF code: {_status.Code}");
+                }
 
                 unsafe
                 {
