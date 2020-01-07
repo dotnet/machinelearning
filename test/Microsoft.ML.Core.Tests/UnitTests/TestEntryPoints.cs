@@ -6190,9 +6190,11 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [Fact]
-        public void TestOvaMacroWithUncalibratedLearner()
+        [Theory]
+        [IterationData(iterations: 100)]
+        public void TestOvaMacroWithUncalibratedLearner(int iteration)
         {
+            Console.WriteLine($"{iteration}-th running...");
             var dataPath = GetDataPath(@"iris.txt");
             string inputGraph = @"
             {
