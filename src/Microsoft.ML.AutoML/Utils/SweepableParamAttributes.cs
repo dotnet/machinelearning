@@ -145,7 +145,7 @@ namespace Microsoft.ML.AutoML
 
         public override void SetUsingValueText(string valueText)
         {
-            RawValue = float.Parse(valueText, CultureInfo.InvariantCulture);
+            RawValue = float.Parse(valueText);
         }
 
         public override SweepableParam Clone() =>
