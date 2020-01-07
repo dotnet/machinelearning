@@ -3846,11 +3846,9 @@ namespace Microsoft.ML.RunTests
             validateAuc(metrics);
         }
 
-        [Theory]
-        [IterationData(iterations: 1)]
-        public void EntryPointChainedCrossValMacros(int iteration)
+        [Fact]
+        public void EntryPointChainedCrossValMacros()
         {
-            Console.WriteLine($"{iteration}-th running...");
             string inputGraph = @"
                 {
                   'Nodes': [
@@ -6028,11 +6026,9 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [Theory]
-        [IterationData(iterations: 1)]
-        public void TestOvaMacro(int iteration)
-        {
-            Console.WriteLine($"{iteration}-th running...");
+        [Fact]
+        public void TestOvaMacro()
+        { 
             var dataPath = GetDataPath(@"iris.txt");
             string inputGraph = @"
             {

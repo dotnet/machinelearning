@@ -486,6 +486,8 @@ namespace Microsoft.ML.TensorFlow
                 if (_session == IntPtr.Zero)
                     new ObjectDisposedException(nameof(_session));
 
+                _status.Check(true);
+
                 unsafe
                 {
                     c_api.TF_SessionRun(_session, null, _inputs, _inputValues,

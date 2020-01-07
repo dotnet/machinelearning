@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.IO;
 using System.Linq;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
 using Xunit.Abstractions;
@@ -98,9 +100,11 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
-        public void SavePipeSlidingWindow()
+        [Theory]
+        [IterationData(iterations: 100)]
+        public void SavePipeSlidingWindow(int iteration)
         {
+            Console.WriteLine($"{iteration}-th running...");
             TestCore(null, true,
                     new[]{"loader=Text{col=Input:R4:1}",
                     "xf=SlideWinTransform{src=Input name=Output wnd=3 l=0}" });

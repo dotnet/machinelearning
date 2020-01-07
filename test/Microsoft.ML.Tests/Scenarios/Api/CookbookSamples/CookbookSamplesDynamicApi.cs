@@ -549,14 +549,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var model = fullLearningPipeline.Fit(data);
         }
 
-        [Theory]
-        [IterationData(iterations: 1)]
-        public void CrossValidationIris(int iteration)
-            => CrossValidationOn(GetDataPath("iris.data"), iteration);
+        [Fact]
+        public void CrossValidationIris()
+            => CrossValidationOn(GetDataPath("iris.data"));
 
-        private void CrossValidationOn(string dataPath, int iteration)
+        private void CrossValidationOn(string dataPath)
         {
-            Console.WriteLine($"{iteration}-th running..."); 
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
