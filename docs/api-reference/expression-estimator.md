@@ -118,12 +118,12 @@ which uses the standard conversion parsing. When converting from a floating poin
 
 | **​Name** | ​ **Meaning** | ​ **Comments** |
 | --- | --- | --- |
-| ​bool | ​convert to BL | The operand must be text or boolean. |
-| ​int | convert to I4 | ​The input may be of any type. |
-| ​long | ​convert to I8 | The input may be of any type. |
-| ​single, float | ​convert to R4 | ​The input may be of any type. |
-| ​double | ​convert to R8 | ​​The input may be of any type. |
-| ​text | ​convert to TX | ​​​The input may be of any type. This produces a default text representation. |
+| ​bool | ​convert to Boolean | The operand must be text or boolean. |
+| ​int | convert to <xref:System.Int32> | ​The input may be of any type. |
+| ​long | ​convert to <xref:System.Int64> | The input may be of any type. |
+| ​single, float | ​convert to <xref:System.Single> | ​The input may be of any type. |
+| ​double | ​convert to <xref:System.Double> | ​​The input may be of any type. |
+| ​text | ​convert to [text](xref:Microsoft.ML.Data.TextDataViewType) | ​​​The input may be of any type. This produces a default text representation. |
 
 The unary functions that require a numeric operand are listed in the following table. The result type is the same as the operand type. An NA operand value produces NA.
 

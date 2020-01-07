@@ -31,6 +31,7 @@ namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// This estimator applies a user provided expression (specified as a string) to input column values to produce new output column values.
+    /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
     ///
@@ -50,7 +51,6 @@ namespace Microsoft.ML.Transforms
     /// ]]></format>
     /// </remarks>
     /// <seealso cref="ExpressionCatalog.Expression(TransformsCatalog, string, string, string[])"/>
-    /// </summary>
     public sealed class ExpressionEstimator : IEstimator<ExpressionTransformer>
     {
         internal sealed class ColumnOptions

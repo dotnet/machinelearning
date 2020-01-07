@@ -950,8 +950,9 @@ namespace Microsoft.ML.Transforms
 
         /// <summary>
         /// Raise a to the b power. Special cases:
-        /// * 1^NA => 1
-        /// * NA^0 => 1
+        /// * a^(negative value) => 0
+        /// * In case of overflow, return I4.MinValue or I4.MaxValue, based on whether the result would have been
+        /// negative or positive.
         /// </summary>
         public static I4 Pow(I4 a, I4 b)
         {
@@ -969,11 +970,18 @@ namespace Microsoft.ML.Transforms
             if (a == -1)
                 return (b & 1) == 0 ? 1 : -1;
             if (b < 0)
-                throw Contracts.Except("Cannot raise an integer to a negative power");
+                return 0;
+
+            bool neg = false;
+            if (a < 0)
+            {
+                a = -a;
+                neg = (b & 1) != 0;
+            }
 
             // Since the abs of the base is at least two, the exponent must be less than 31.
             if (b >= 31)
-                throw Contracts.Except("Cannot raise an integer to a power greater than 30");
+                return neg ? I4.MinValue : I4.MaxValue;
 
             if (a == 0)
             {
@@ -982,18 +990,12 @@ namespace Microsoft.ML.Transforms
                 return 0;
             }
 
-            bool neg = false;
-            if (a < 0)
-            {
-                a = -a;
-                neg = (b & 1) != 0;
-            }
             Contracts.Assert(a >= 2);
 
             // Since the exponent is at least three, the base must be <= 1290.
             Contracts.Assert(b >= 3);
             if (a > 1290)
-                throw Contracts.Except($"Base must be at most 1290 when raising to the power of {b}");
+                return neg ? I4.MinValue : I4.MaxValue;
 
             // REVIEW: Should we use a checked context and exception catching like I8 does?
             ulong u = (ulong)(uint)a;
@@ -1001,12 +1003,12 @@ namespace Microsoft.ML.Transforms
             for (; ; )
             {
                 if ((b & 1) != 0 && (result *= u) > I4.MaxValue)
-                    throw Contracts.Except("Overflow");
+                    return neg ? I4.MinValue : I4.MaxValue;
                 b >>= 1;
                 if (b == 0)
                     break;
                 if ((u *= u) > I4.MaxValue)
-                    throw Contracts.Except("Overflow");
+                    return neg ? I4.MinValue : I4.MaxValue;
             }
             Contracts.Assert(result <= I4.MaxValue);
 
@@ -1018,8 +1020,9 @@ namespace Microsoft.ML.Transforms
 
         /// <summary>
         /// Raise a to the b power. Special cases:
-        /// * 1^NA => 1
-        /// * NA^0 => 1
+        /// * a^(negative value) => 0
+        /// * In case of overflow, return I8.MinValue or I8.MaxValue, based on whether the result would have been
+        /// negative or positive.
         /// </summary>
         public static I8 Pow(I8 a, I8 b)
         {
@@ -1037,11 +1040,18 @@ namespace Microsoft.ML.Transforms
             if (a == -1)
                 return (b & 1) == 0 ? 1 : -1;
             if (b < 0)
-                throw Contracts.Except("Cannot raise an integer to a negative power");
+                return 0;
+
+            bool neg = false;
+            if (a < 0)
+            {
+                a = -a;
+                neg = (b & 1) != 0;
+            }
 
             // Since the abs of the base is at least two, the exponent must be less than 63.
             if (b >= 63)
-                throw Contracts.Except("Cannot raise an integer to a power greater than 62");
+                return neg ? I8.MinValue : I8.MaxValue;
 
             if (a == 0)
             {
@@ -1050,18 +1060,12 @@ namespace Microsoft.ML.Transforms
                 return 0;
             }
 
-            bool neg = false;
-            if (a < 0)
-            {
-                a = -a;
-                neg = (b & 1) != 0;
-            }
             Contracts.Assert(a >= 2);
 
             // Since the exponent is at least three, the base must be < 2^21.
             Contracts.Assert(b >= 3);
             if (a >= (1L << 21))
-                throw Contracts.Except($"Base must be less than 2^21 when raising to the power of {b}");
+                return neg ? I8.MinValue : I8.MaxValue;
 
             long res = 1;
             long x = a;
@@ -1083,7 +1087,7 @@ namespace Microsoft.ML.Transforms
             }
             catch (OverflowException)
             {
-                throw Contracts.Except("Overflow");
+                return neg ? I8.MinValue : I8.MaxValue;
             }
             Contracts.Assert(res > 0);
 

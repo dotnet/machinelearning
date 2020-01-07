@@ -45,45 +45,45 @@ namespace Microsoft.ML.Transforms
 
         Car, // ^
         CarEqu,
-        Amp, // &
-        AmpAmp,
+        Amp,
+        AmpAmp, // &&
         AmpEqu,
-        Bar, // |
-        BarBar,
+        Bar,
+        BarBar, // ||
         BarEqu,
 
-        Til, // ~
+        Til,
         Bng, // !
-        BngEqu,
+        BngEqu, // !=
 
         Equ, // =
-        EquEqu,
-        EquGrt,
-        Lss,
+        EquEqu, // ==
+        EquGrt, // =>
+        Lss, // <
         LssLss,
-        LssEqu,
-        LssGrt,
+        LssEqu, // <=
+        LssGrt, // <>
         LssLssEqu,
-        Grt,
+        Grt, // >
         GrtGrt,
-        GrtEqu,
+        GrtEqu, // >=
         GrtGrtEqu,
 
         Que, // ?
-        QueQue,
+        QueQue, // ??
 
-        Dot,
-        Comma,
-        Colon,
+        Dot, // .
+        Comma, // ,
+        Colon, // :
         ColonColon,
-        Semi,
+        Semi, // ;
 
         OpenCurly,
-        OpenParen,
+        OpenParen, // (
         OpenSquare,
 
         CloseCurly,
-        CloseParen,
+        CloseParen, // )
         CloseSquare,
 
         // Words - identifier and key words
@@ -95,37 +95,6 @@ namespace Microsoft.ML.Transforms
         And,
         Or,
 
-        // REVIEW: These are specific to the NetParser. Use a general mechanism.
-        Const,
-        Input,
-        Output,
-        Hidden,
-        Share,
-        Sigmoid,
-        Linear,
-        SoftMax,
-        RectifiedLinear,
-        Square,
-        Sqrt,
-        SoftRectifiedLinear,
-        Tanh,
-        BoundedRectifiedLinear,
-        From,
-        All,
-        Where,
-        Convolve,
-        Pool,
-        Abs,
-        Bittest,
-        Max,
-        Mean,
-        Response,
-        Norm,
-        FloatsFromBytes,
-        Param,
-        Auto,
-
-        // REVIEW: These are specific to the ExprTransform parser. Use a general mechanism.
         With,
     }
 
