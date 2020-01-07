@@ -68,13 +68,13 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
                 .Evaluate(transformedTestData);
 
             PrintMetrics(metrics);
-            
+
             // Expected output:
             //   Micro Accuracy: 0.99
             //   Macro Accuracy: 0.99
             //   Log Loss: 0.05
             //   Log Loss Reduction: 0.95
-                 
+
             //   Confusion table
             //             ||========================
             //   PREDICTED ||     0 |     1 |     2 | Recall
@@ -142,4 +142,3 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
         }
     }
 }
-

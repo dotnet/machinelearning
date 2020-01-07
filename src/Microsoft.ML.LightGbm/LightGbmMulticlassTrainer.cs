@@ -58,8 +58,13 @@ namespace Microsoft.ML.Trainers.LightGbm
         private const int _minDataToUseSoftmax = 50000;
 
         private const double _maxNumClass = 1e6;
-        private int _numClass;
-        private int _tlcNumClass;
+
+        // If there are NaN labels, they are converted to be equal to _numberOfClassesIncludingNan - 1.
+        // This is done because NaN labels are going to be seen as an extra different class, when training the model in the WrappedLightGbmTraining class
+        // But, when creating the Predictors, only _numberOfClasses is considered, ignoring the "extra class" of NaN labels.
+        private int _numberOfClassesIncludingNan;
+        private int _numberOfClasses;
+
         private protected override PredictionKind PredictionKind => PredictionKind.MulticlassClassification;
 
         /// <summary>
@@ -129,7 +134,7 @@ namespace Microsoft.ML.Trainers.LightGbm
              : base(env, LoadNameValue, options, TrainerUtils.MakeU4ScalarColumn(options.LabelColumnName))
         {
             Contracts.CheckUserArg(options.Sigmoid > 0, nameof(Options.Sigmoid), "must be > 0.");
-            _numClass = -1;
+            _numberOfClassesIncludingNan = -1;
         }
 
         /// <summary>
@@ -168,7 +173,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         private InternalTreeEnsemble GetBinaryEnsemble(int classID)
         {
             var res = new InternalTreeEnsemble();
-            for (int i = classID; i < TrainedEnsemble.NumTrees; i += _numClass)
+            for (int i = classID; i < TrainedEnsemble.NumTrees; i += _numberOfClassesIncludingNan)
             {
                 // Ignore dummy trees.
                 if (TrainedEnsemble.GetTreeAt(i).NumLeaves > 1)
@@ -186,12 +191,12 @@ namespace Microsoft.ML.Trainers.LightGbm
         {
             Host.Check(TrainedEnsemble != null, "The predictor cannot be created before training is complete.");
 
-            Host.Assert(_numClass > 1, "Must know the number of classes before creating a predictor.");
-            Host.Assert(TrainedEnsemble.NumTrees % _numClass == 0, "Number of trees should be a multiple of number of classes.");
+            Host.Assert(_numberOfClassesIncludingNan > 1, "Must know the number of classes before creating a predictor.");
+            Host.Assert(TrainedEnsemble.NumTrees % _numberOfClassesIncludingNan == 0, "Number of trees should be a multiple of number of classes.");
 
             var innerArgs = LightGbmInterfaceUtils.JoinParameters(GbmOptions);
-            IPredictorProducing<float>[] predictors = new IPredictorProducing<float>[_tlcNumClass];
-            for (int i = 0; i < _tlcNumClass; ++i)
+            IPredictorProducing<float>[] predictors = new IPredictorProducing<float>[_numberOfClasses];
+            for (int i = 0; i < _numberOfClasses; ++i)
             {
                 var pred = CreateBinaryPredictor(i, innerArgs);
                 var cali = new PlattCalibrator(Host, -LightGbmTrainerOptions.Sigmoid, 0);
@@ -216,10 +221,17 @@ namespace Microsoft.ML.Trainers.LightGbm
             }
         }
 
+        private protected override void InitializeBeforeTraining()
+        {
+            _numberOfClassesIncludingNan = -1;
+            _numberOfClasses = 0;
+        }
+
         private protected override void ConvertNaNLabels(IChannel ch, RoleMappedData data, float[] labels)
         {
             // Only initialize one time.
-            if (_numClass < 0)
+
+            if (_numberOfClassesIncludingNan < 0)
             {
                 float minLabel = float.MaxValue;
                 float maxLabel = float.MinValue;
@@ -241,21 +253,22 @@ namespace Microsoft.ML.Trainers.LightGbm
                 if (data.Schema.Label.Value.Type is KeyDataViewType keyType)
                 {
                     if (hasNaNLabel)
-                        _numClass = keyType.GetCountAsInt32(Host) + 1;
+                        _numberOfClassesIncludingNan = keyType.GetCountAsInt32(Host) + 1;
                     else
-                        _numClass = keyType.GetCountAsInt32(Host);
-                    _tlcNumClass = keyType.GetCountAsInt32(Host);
+                        _numberOfClassesIncludingNan = keyType.GetCountAsInt32(Host);
+                    _numberOfClasses = keyType.GetCountAsInt32(Host);
                 }
                 else
                 {
                     if (hasNaNLabel)
-                        _numClass = (int)maxLabel + 2;
+                        _numberOfClassesIncludingNan = (int)maxLabel + 2;
                     else
-                        _numClass = (int)maxLabel + 1;
-                    _tlcNumClass = (int)maxLabel + 1;
+                        _numberOfClassesIncludingNan = (int)maxLabel + 1;
+                    _numberOfClasses = (int)maxLabel + 1;
                 }
             }
-            float defaultLabel = _numClass - 1;
+
+            float defaultLabel = _numberOfClassesIncludingNan - 1;
             for (int i = 0; i < labels.Length; ++i)
                 if (float.IsNaN(labels[i]))
                     labels[i] = defaultLabel;
@@ -265,7 +278,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         {
             base.GetDefaultParameters(ch, numRow, hasCategorical, totalCats, true);
             int numberOfLeaves = (int)GbmOptions["num_leaves"];
-            int minimumExampleCountPerLeaf = LightGbmTrainerOptions.MinimumExampleCountPerLeaf ?? DefaultMinDataPerLeaf(numRow, numberOfLeaves, _numClass);
+            int minimumExampleCountPerLeaf = LightGbmTrainerOptions.MinimumExampleCountPerLeaf ?? DefaultMinDataPerLeaf(numRow, numberOfLeaves, _numberOfClassesIncludingNan);
             GbmOptions["min_data_per_leaf"] = minimumExampleCountPerLeaf;
             if (!hiddenMsg)
             {
@@ -282,8 +295,8 @@ namespace Microsoft.ML.Trainers.LightGbm
         {
             Host.AssertValue(ch);
             ch.Assert(PredictionKind == PredictionKind.MulticlassClassification);
-            ch.Assert(_numClass > 1);
-            GbmOptions["num_class"] = _numClass;
+            ch.Assert(_numberOfClassesIncludingNan > 1);
+            GbmOptions["num_class"] = _numberOfClassesIncludingNan;
             bool useSoftmax = false;
 
             if (LightGbmTrainerOptions.UseSoftmax.HasValue)
