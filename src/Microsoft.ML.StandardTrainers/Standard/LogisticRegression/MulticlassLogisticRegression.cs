@@ -1004,9 +1004,17 @@ namespace Microsoft.ML.Trainers
 
             // Onnx outputs an Int64, but ML.NET outputs UInt32. So cast the Onnx output here
             opType = "Cast";
-            var castNode = ctx.CreateNode(opType, predictedLabelInt64, predictedLabelUint32, ctx.GetNodeName(opType), "");
+            var castNodeOutput = ctx.AddIntermediateVariable(NumberDataViewType.UInt32, "CastNodeOutput", true);
+            var castNode = ctx.CreateNode(opType, predictedLabelInt64, castNodeOutput, ctx.GetNodeName(opType), "");
             var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.UInt32).ToType();
             castNode.AddAttribute("to", t);
+
+            // The predictedLabel is a scalar. But the onnx output of ML.NET output expects a [1x1] tensor for output. So reshape it here
+            opType = "Reshape";
+            long[] shape = { 1, 1 };
+            long[] shapeDim = { 2 };
+            var shapeVar = ctx.AddInitializer(shape, shapeDim, "ShapeVar");
+            var reshapeNode = ctx.CreateNode(opType, new[] { castNodeOutput, shapeVar }, new[] { predictedLabelUint32 }, ctx.GetNodeName(opType), "");
 
             return true;
         }

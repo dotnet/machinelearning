@@ -260,7 +260,7 @@
           "PredictedLabelInt64"
         ],
         "output": [
-          "PredictedLabel"
+          "CastNodeOutput"
         ],
         "name": "Cast0",
         "opType": "Cast",
@@ -271,6 +271,17 @@
             "type": "INT"
           }
         ]
+      },
+      {
+        "input": [
+          "CastNodeOutput",
+          "ShapeVar"
+        ],
+        "output": [
+          "PredictedLabel"
+        ],
+        "name": "Reshape",
+        "opType": "Reshape"
       },
       {
         "input": [
@@ -314,6 +325,19 @@
       }
     ],
     "name": "model",
+    "initializer": [
+      {
+        "dims": [
+          "2"
+        ],
+        "dataType": 7,
+        "int64Data": [
+          "1",
+          "1"
+        ],
+        "name": "ShapeVar"
+      }
+    ],
     "input": [
       {
         "name": "Label",
@@ -471,7 +495,7 @@
       "version": "2"
     },
     {
-      "version": "9"
+      "version": "11"
     }
   ]
 }

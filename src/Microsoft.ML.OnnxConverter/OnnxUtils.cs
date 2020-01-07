@@ -305,7 +305,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             model.IrVersion = (long)OnnxCSharpToProtoWrapper.Version.IrVersion;
             model.ModelVersion = modelVersion;
             model.OpsetImport.Add(new OperatorSetIdProto() { Domain = "ai.onnx.ml", Version = 2 });
-            model.OpsetImport.Add(new OperatorSetIdProto() { Domain = "", Version = 9 });
+            model.OpsetImport.Add(new OperatorSetIdProto() { Domain = "", Version = 11 });
             model.Graph = new GraphProto();
             var graph = model.Graph;
             graph.Node.Add(nodes);
