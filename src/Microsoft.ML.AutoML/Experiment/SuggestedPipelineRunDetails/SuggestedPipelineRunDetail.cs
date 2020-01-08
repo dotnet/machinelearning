@@ -23,7 +23,7 @@ namespace Microsoft.ML.AutoML
 
         public static SuggestedPipelineRunDetail FromPipelineRunResult(MLContext context, PipelineScore pipelineRunResult)
         {
-            return new SuggestedPipelineRunDetail(SuggestedPipeline.FromPipeline(context, pipelineRunResult.Pipeline), pipelineRunResult.Score, pipelineRunResult.RunSucceded);
+            return new SuggestedPipelineRunDetail(SuggestedPipeline.FromPipeline(context, pipelineRunResult.Pipeline), pipelineRunResult.Score, pipelineRunResult.RunSucceeded);
         }
 
         public IRunResult ToRunResult(bool isMetricMaximizing)
