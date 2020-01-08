@@ -223,7 +223,8 @@ namespace Microsoft.ML.Trainers
     /// </summary>
     public sealed class NaiveBayesMulticlassModelParameters :
         ModelParametersBase<VBuffer<float>>,
-        IValueMapper, ISingleCanSaveOnnx
+        IValueMapper,
+        ISingleCanSaveOnnx
     {
         internal const string LoaderSignature = "MultiClassNaiveBayesPred";
         private static VersionInfo GetVersionInfo()
@@ -403,8 +404,8 @@ namespace Microsoft.ML.Trainers
                 Array.Copy(_labelHistogram, 0, labelHistogramExpanded, i * _featureHistogram.Length, _featureHistogram.Length);
             }
 
-            var one = ctx.AddInitializer((float)1, "one");
-            var zero = ctx.AddInitializer((float)0, "zero");
+            var one = ctx.AddInitializer(1.0f, "one");
+            var zero = ctx.AddInitializer(0.0f, "zero");
             var labelCount = ctx.AddInitializer((float)_labelCount, "labelCount");
             var trainingCount = ctx.AddInitializer((float)_totalTrainingCount, "totalTrainingCount");
             var labelHistogram = ctx.AddInitializer(labelHistogramExpanded.Take(_labelHistogram.Length), new long[] { _labelHistogram.Length, 1 }, "labelHistogram");
@@ -495,7 +496,11 @@ namespace Microsoft.ML.Trainers
             ctx.CreateNode(opType, new[] { castOutput, absentFeatureLogProbReduceSum }, new[] { subOuput }, ctx.GetNodeName(opType), "");
 
             opType = "Sum";
-            ctx.CreateNode(opType, new[] { subOuput, logProbReduceSum, logOutput }, new[] { outputNames[1] }, ctx.GetNodeName(opType), "");
+            sumOutput = ctx.AddIntermediateVariable(null, "SumOutput", true);
+            ctx.CreateNode(opType, new[] { subOuput, logProbReduceSum, logOutput }, new[] { sumOutput }, ctx.GetNodeName(opType), "");
+
+            opType = "Reshape";
+            ctx.CreateNode(opType, new[] { sumOutput }, new[] { outputNames[1] }, ctx.GetNodeName(opType), "");
 
             opType = "ArgMax";
             var scoreIndex = ctx.AddIntermediateVariable(null, "ScoreIndex", true);
