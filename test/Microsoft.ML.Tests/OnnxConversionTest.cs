@@ -1177,6 +1177,7 @@ namespace Microsoft.ML.Tests
             List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
             {
                 mlContext.MulticlassClassification.Trainers.LbfgsMaximumEntropy(),
+                mlContext.MulticlassClassification.Trainers.NaiveBayes(),
                 mlContext.MulticlassClassification.Trainers.OneVersusAll(
                     mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(), useProbabilities:false),
                 mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(),
