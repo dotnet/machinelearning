@@ -23295,6 +23295,17 @@
           "Desc": "New column definition (optional form: name:src)",
           "Aliases": [
             "col"
+      "Name": "Transforms.TimeSeriesImputer",
+      "Desc": "Fills in missing row and values",
+      "FriendlyName": "TimeSeriesImputer",
+      "ShortName": "TimeSeriesImputer",
+      "Inputs": [
+        {
+          "Name": "TimeSeriesColumn",
+          "Type": "String",
+          "Desc": "Column representing the time",
+          "Aliases": [
+            "time"
           ],
           "Required": true,
           "SortOrder": 1.0,
@@ -23307,6 +23318,89 @@
           "Required": true,
           "SortOrder": 1.0,
           "IsNullable": false
+<<<<<<< HEAD
+=======
+        },
+        {
+          "Name": "GrainColumns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "List of grain columns",
+          "Aliases": [
+            "grains"
+          ],
+          "Required": true,
+          "SortOrder": 2.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "FilterColumns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Columns to filter",
+          "Aliases": [
+            "filters"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "FilterMode",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "NoFilter",
+              "Include",
+              "Exclude"
+            ]
+          },
+          "Desc": "Filter mode. Either include or exclude",
+          "Aliases": [
+            "fmode"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": "Exclude"
+        },
+        {
+          "Name": "ImputeMode",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "ForwardFill",
+              "BackFill",
+              "Median",
+              "Interpolate"
+            ]
+          },
+          "Desc": "Mode for imputing, defaults to ForwardFill if not provided",
+          "Aliases": [
+            "mode"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": "ForwardFill"
+        },
+        {
+          "Name": "SupressTypeErrors",
+          "Type": "Bool",
+          "Desc": "Supress the errors that would occur if a column and impute mode are imcompatible. If true, will skip the column. If false, will stop and throw an error.",
+          "Aliases": [
+            "error"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": false
+>>>>>>> updates to fix tests
         }
       ],
       "Outputs": [
