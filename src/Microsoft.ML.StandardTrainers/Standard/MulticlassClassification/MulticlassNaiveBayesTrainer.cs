@@ -492,19 +492,20 @@ namespace Microsoft.ML.Trainers
             node.AddAttribute("to", t);
 
             opType = "Sub";
-            var subOuput = ctx.AddIntermediateVariable(null, "SubOutput", true);
-            ctx.CreateNode(opType, new[] { castOutput, absentFeatureLogProbReduceSum }, new[] { subOuput }, ctx.GetNodeName(opType), "");
+            var subOutput = ctx.AddIntermediateVariable(null, "SubOutput", true);
+            ctx.CreateNode(opType, new[] { castOutput, absentFeatureLogProbReduceSum }, new[] { subOutput }, ctx.GetNodeName(opType), "");
 
             opType = "Sum";
             sumOutput = ctx.AddIntermediateVariable(null, "SumOutput", true);
-            ctx.CreateNode(opType, new[] { subOuput, logProbReduceSum, logOutput }, new[] { sumOutput }, ctx.GetNodeName(opType), "");
+            ctx.CreateNode(opType, new[] { subOutput, logProbReduceSum, logOutput }, new[] { sumOutput }, ctx.GetNodeName(opType), "");
 
-            opType = "Reshape";
+            opType = "Transpose";
+            var transposeOutput = ctx.AddIntermediateVariable(null, "TransposeOutput", true);
             ctx.CreateNode(opType, new[] { sumOutput }, new[] { outputNames[1] }, ctx.GetNodeName(opType), "");
 
             opType = "ArgMax";
             var scoreIndex = ctx.AddIntermediateVariable(null, "ScoreIndex", true);
-            ctx.CreateNode(opType, new[] { outputNames[1] }, new[] { scoreIndex }, ctx.GetNodeName(opType), "");
+            ctx.CreateNode(opType, new[] { sumOutput }, new[] { scoreIndex }, ctx.GetNodeName(opType), "");
 
             opType = "Cast";
             castOutput = ctx.AddIntermediateVariable(null, "CastOutput3", true);
