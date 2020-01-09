@@ -17,51 +17,51 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 using static Microsoft.ML.Featurizers.CommonExtensions;
 
-[assembly: LoadableClass(typeof(CategoryImputerTransformer), null, typeof(SignatureLoadModel),
-    CategoryImputerTransformer.UserName, CategoryImputerTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(CategoricalImputerTransformer), null, typeof(SignatureLoadModel),
+    CategoricalImputerTransformer.UserName, CategoricalImputerTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(CategoryImputerTransformer), null, typeof(SignatureLoadRowMapper),
-   CategoryImputerTransformer.UserName, CategoryImputerTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(CategoricalImputerTransformer), null, typeof(SignatureLoadRowMapper),
+   CategoricalImputerTransformer.UserName, CategoricalImputerTransformer.LoaderSignature)]
 
 [assembly: EntryPointModule(typeof(CategoryImputerEntrypoint))]
 
 namespace Microsoft.ML.Featurizers
 {
-    public static class CategoryImputerExtensionClass
+    public static class CategoricalImputerExtensionClass
     {
         /// <summary>
-        /// Create a <see cref="CategoryImputerEstimator"/>, which fills in the missing values in a column with the most frequent value. Supports Floats, Doubles, and Strings.
+        /// Create a <see cref="CategoricalImputerEstimator"/>, which fills in the missing values in a column with the most frequent value. Supports Floats, Doubles, and Strings.
         /// A string is assumed "missing" if it is empty.
         /// </summary>
         /// <param name="catalog">Transform Catalog</param>
         /// <param name="outputColumnName">Output column name</param>
         /// <param name="inputColumnName">Input column name, if null defaults to <paramref name="outputColumnName"/></param>
-        /// <returns><see cref="CategoryImputerEstimator"/></returns>
-        public static CategoryImputerEstimator ImputeCategories(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null)
+        /// <returns><see cref="CategoricalImputerEstimator"/></returns>
+        public static CategoricalImputerEstimator ImputeCategories(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null)
         {
-            var options = new CategoryImputerEstimator.Options
+            var options = new CategoricalImputerEstimator.Options
             {
-                Columns = new CategoryImputerEstimator.Column[1] { new CategoryImputerEstimator.Column() { Name = outputColumnName, Source = inputColumnName ?? outputColumnName } }
+                Columns = new CategoricalImputerEstimator.Column[1] { new CategoricalImputerEstimator.Column() { Name = outputColumnName, Source = inputColumnName ?? outputColumnName } }
             };
 
-            return new CategoryImputerEstimator(CatalogUtils.GetEnvironment(catalog), options);
+            return new CategoricalImputerEstimator(CatalogUtils.GetEnvironment(catalog), options);
         }
 
         /// <summary>
-        /// Create a <see cref="CategoryImputerEstimator"/>, which fills in the missing values in a column with the most frequent value. Supports Floats, Doubles, and Strings.
+        /// Create a <see cref="CategoricalImputerEstimator"/>, which fills in the missing values in a column with the most frequent value. Supports Floats, Doubles, and Strings.
         /// A string is assumed "missing" if it is empty.
         /// </summary>
         /// <param name="catalog">Transform Catalog</param>
         /// <param name="columns">List of <see cref="InputOutputColumnPair"/> to fill in missing values</param>
-        /// <returns><see cref="CategoryImputerEstimator"/></returns>
-        public static CategoryImputerEstimator ImputeCategories(this TransformsCatalog catalog, params InputOutputColumnPair[] columns)
+        /// <returns><see cref="CategoricalImputerEstimator"/></returns>
+        public static CategoricalImputerEstimator ImputeCategories(this TransformsCatalog catalog, params InputOutputColumnPair[] columns)
         {
-            var options = new CategoryImputerEstimator.Options
+            var options = new CategoricalImputerEstimator.Options
             {
-                Columns = columns.Select(x => new CategoryImputerEstimator.Column { Name = x.OutputColumnName, Source = x.InputColumnName ?? x.OutputColumnName }).ToArray(),
+                Columns = columns.Select(x => new CategoricalImputerEstimator.Column { Name = x.OutputColumnName, Source = x.InputColumnName ?? x.OutputColumnName }).ToArray(),
             };
 
-            return new CategoryImputerEstimator(CatalogUtils.GetEnvironment(catalog), options);
+            return new CategoricalImputerEstimator(CatalogUtils.GetEnvironment(catalog), options);
         }
     }
 
@@ -85,9 +85,9 @@ namespace Microsoft.ML.Featurizers
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="CategoryImputerExtensionClass.ImputeCategories(TransformsCatalog, InputOutputColumnPair[])"/>
-    /// <seealso cref="CategoryImputerExtensionClass.ImputeCategories(TransformsCatalog, string, string)"/>
-    public sealed class CategoryImputerEstimator : IEstimator<CategoryImputerTransformer>
+    /// <seealso cref="CategoricalImputerExtensionClass.ImputeCategories(TransformsCatalog, InputOutputColumnPair[])"/>
+    /// <seealso cref="CategoricalImputerExtensionClass.ImputeCategories(TransformsCatalog, string, string)"/>
+    public sealed class CategoricalImputerEstimator : IEstimator<CategoricalImputerTransformer>
     {
         private readonly Options _options;
 
@@ -122,11 +122,11 @@ namespace Microsoft.ML.Featurizers
 
         #endregion
 
-        internal CategoryImputerEstimator(IHostEnvironment env, Options options)
+        internal CategoricalImputerEstimator(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
             _host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
-            _host = env.Register(nameof(CategoryImputerEstimator));
+            _host = env.Register(nameof(CategoricalImputerEstimator));
 
             foreach (var columnPair in options.Columns)
             {
@@ -136,9 +136,9 @@ namespace Microsoft.ML.Featurizers
             _options = options;
         }
 
-        public CategoryImputerTransformer Fit(IDataView input)
+        public CategoricalImputerTransformer Fit(IDataView input)
         {
-            return new CategoryImputerTransformer(_host, input, _options.Columns);
+            return new CategoricalImputerTransformer(_host, input, _options.Columns);
         }
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
@@ -149,14 +149,14 @@ namespace Microsoft.ML.Featurizers
             {
                 var inputColumn = columns[column.Source];
                 columns[column.Name] = new SchemaShape.Column(column.Name, inputColumn.Kind,
-                inputColumn.ItemType, inputColumn.IsKey, inputColumn.Annotations);
+                    inputColumn.ItemType, inputColumn.IsKey, inputColumn.Annotations);
             }
 
             return new SchemaShape(columns.Values);
         }
     }
 
-    public sealed class CategoryImputerTransformer : RowToRowTransformerBase, IDisposable
+    public sealed class CategoricalImputerTransformer : RowToRowTransformerBase, IDisposable
     {
         #region Class data members
 
@@ -170,8 +170,8 @@ namespace Microsoft.ML.Featurizers
 
         #endregion
 
-        internal CategoryImputerTransformer(IHostEnvironment host, IDataView input, CategoryImputerEstimator.Column[] columns) :
-            base(host.Register(nameof(CategoryImputerEstimator)))
+        internal CategoricalImputerTransformer(IHostEnvironment host, IDataView input, CategoricalImputerEstimator.Column[] columns) :
+            base(host.Register(nameof(CategoricalImputerEstimator)))
         {
             host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
             var schema = input.Schema;
@@ -184,8 +184,8 @@ namespace Microsoft.ML.Featurizers
         }
 
         // Factory method for SignatureLoadModel.
-        internal CategoryImputerTransformer(IHostEnvironment host, ModelLoadContext ctx) :
-            base(host.Register(nameof(CategoryImputerTransformer)))
+        internal CategoricalImputerTransformer(IHostEnvironment host, ModelLoadContext ctx) :
+            base(host.Register(nameof(CategoricalImputerTransformer)))
         {
             host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
             host.CheckValue(ctx, nameof(ctx));
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Featurizers
 
         // Factory method for SignatureLoadRowMapper.
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
-            => new CategoryImputerTransformer(env, ctx).MakeRowMapper(inputSchema);
+            => new CategoricalImputerTransformer(env, ctx).MakeRowMapper(inputSchema);
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Featurizers
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(CategoryImputerTransformer).Assembly.FullName);
+                loaderAssemblyName: typeof(CategoricalImputerTransformer).Assembly.FullName);
         }
 
         private protected override void SaveModel(ModelSaveContext ctx)
@@ -349,6 +349,8 @@ namespace Microsoft.ML.Featurizers
 
         internal abstract class TypedColumn<T> : TypedColumn
         {
+            private protected T Result;
+
             internal TypedColumn(string name, string source, string type) :
                 base(name, source, type)
             {
@@ -409,6 +411,8 @@ namespace Microsoft.ML.Featurizers
             internal FloatTypedColumn(string name, string source) :
                 base(name, source, typeof(float).ToString())
             {
+                // The result can never be a NaN value, so we can use this to check if its been initialized or not.
+                Result = float.NaN;
             }
 
             [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_float_t_CreateEstimator", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
@@ -441,11 +445,20 @@ namespace Microsoft.ML.Featurizers
             private static unsafe extern bool TransformDataNative(TransformerEstimatorSafeHandle transformer, in float input, out float output, out IntPtr errorHandle);
             internal override float Transform(float input)
             {
-                var success = TransformDataNative(_transformerHandler, input, out float output, out IntPtr errorHandle);
-                if (!success)
-                    throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
+                if (!float.IsNaN(input))
+                {
+                    return input;
+                }
+                else if (float.IsNaN(Result))
+                {
+                    var success = TransformDataNative(_transformerHandler, input, out float output, out IntPtr errorHandle);
+                    if (!success)
+                        throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
-                return output;
+                    Result = output;
+                }
+
+                return Result;
             }
 
             public override void Dispose()
@@ -493,6 +506,7 @@ namespace Microsoft.ML.Featurizers
             internal DoubleTypedColumn(string name, string source) :
                 base(name, source, typeof(double).ToString())
             {
+                Result = double.NaN;
             }
 
             [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_double_t_CreateEstimator", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
@@ -526,11 +540,20 @@ namespace Microsoft.ML.Featurizers
             private static unsafe extern bool TransformDataNative(TransformerEstimatorSafeHandle transformer, in double input, out double output, out IntPtr errorHandle);
             internal override double Transform(double input)
             {
-                var success = TransformDataNative(_transformerHandler, input, out double output, out IntPtr errorHandle);
-                if (!success)
-                    throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
+                if (!double.IsNaN(input))
+                {
+                    return input;
+                }
+                else if (double.IsNaN(Result))
+                {
+                    var success = TransformDataNative(_transformerHandler, input, out double output, out IntPtr errorHandle);
+                    if (!success)
+                        throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
-                return output;
+                    Result = output;
+                }
+
+                return Result;
             }
 
             public override void Dispose()
@@ -578,6 +601,7 @@ namespace Microsoft.ML.Featurizers
             internal ReadOnlyCharTypedColumn(string name, string source) :
                 base(name, source, typeof(ReadOnlyMemory<char>).ToString())
             {
+                Result = new ReadOnlyMemory<char>();
             }
 
             [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_string_CreateEstimator", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
@@ -613,31 +637,40 @@ namespace Microsoft.ML.Featurizers
             private static extern bool DestroyTransformedDataNative(IntPtr output, IntPtr outputSize, out IntPtr errorHandle);
             internal unsafe override ReadOnlyMemory<char> Transform(ReadOnlyMemory<char> input)
             {
-                var inputAsString = input.ToString();
-                fixed (byte* interopInput = string.IsNullOrEmpty(inputAsString) ? null : Encoding.UTF8.GetBytes(inputAsString + char.MinValue))
+                if (!input.IsEmpty)
                 {
-                    var result = TransformDataNative(_transformerHandler, interopInput, out IntPtr output, out IntPtr outputSize, out IntPtr errorHandle);
-
-                    if (!result)
+                    return input;
+                }
+                else if (Result.IsEmpty)
+                {
+                    var inputAsString = input.ToString();
+                    fixed (byte* interopInput = string.IsNullOrEmpty(inputAsString) ? null : Encoding.UTF8.GetBytes(inputAsString + char.MinValue))
                     {
-                        throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
-                    }
+                        var result = TransformDataNative(_transformerHandler, interopInput, out IntPtr output, out IntPtr outputSize, out IntPtr errorHandle);
 
-                    if (outputSize.ToInt32() == 0)
-                        return new ReadOnlyMemory<char>(string.Empty.ToArray());
+                        if (!result)
+                        {
+                            throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
+                        }
 
-                    using (var handler = new TransformedDataSafeHandle(output, outputSize, DestroyTransformedDataNative))
-                    {
+                        if (outputSize.ToInt32() == 0)
+                            return new ReadOnlyMemory<char>(string.Empty.ToArray());
+
+                        using (var handler = new TransformedDataSafeHandle(output, outputSize, DestroyTransformedDataNative))
+                        {
 #if NETSTANDARD2_0
-                        byte[] buffer = new byte[outputSize.ToInt32()];
-                        Marshal.Copy(output, buffer, 0, buffer.Length);
-                        return new ReadOnlyMemory<char>(Encoding.UTF8.GetString(buffer).ToArray());
+                            byte[] buffer = new byte[outputSize.ToInt32()];
+                            Marshal.Copy(output, buffer, 0, buffer.Length);
+                            Result = new ReadOnlyMemory<char>(Encoding.UTF8.GetString(buffer).ToArray());
 #else
-                        var buffer = new ReadOnlySpan<byte>(output.ToPointer(), outputSize.ToInt32());
-                        return new ReadOnlyMemory<char>(Encoding.UTF8.GetString(buffer).ToArray());
+                            var buffer = new ReadOnlySpan<byte>(output.ToPointer(), outputSize.ToInt32());
+                            Result = new ReadOnlyMemory<char>(Encoding.UTF8.GetString(buffer).ToArray());
 #endif
+                        }
                     }
                 }
+
+                return Result;
             }
 
             public override void Dispose()
@@ -689,11 +722,11 @@ namespace Microsoft.ML.Featurizers
 
 #region Class data members
 
-            private readonly CategoryImputerTransformer _parent;
+            private readonly CategoricalImputerTransformer _parent;
 
 #endregion
 
-            public Mapper(CategoryImputerTransformer parent, DataViewSchema inputSchema) :
+            public Mapper(CategoricalImputerTransformer parent, DataViewSchema inputSchema) :
                 base(parent.Host.Register(nameof(Mapper)), inputSchema, parent)
             {
                 _parent = parent;
@@ -749,13 +782,13 @@ namespace Microsoft.ML.Featurizers
     internal static class CategoryImputerEntrypoint
     {
         [TlcModule.EntryPoint(Name = "Transforms.CategoryImputer",
-            Desc = CategoryImputerTransformer.Summary,
-            UserName = CategoryImputerTransformer.UserName,
-            ShortName = CategoryImputerTransformer.ShortName)]
-        public static CommonOutputs.TransformOutput ImputeToKey(IHostEnvironment env, CategoryImputerEstimator.Options input)
+            Desc = CategoricalImputerTransformer.Summary,
+            UserName = CategoricalImputerTransformer.UserName,
+            ShortName = CategoricalImputerTransformer.ShortName)]
+        public static CommonOutputs.TransformOutput ImputeToKey(IHostEnvironment env, CategoricalImputerEstimator.Options input)
         {
-            var h = EntryPointUtils.CheckArgsAndCreateHost(env, CategoryImputerTransformer.ShortName, input);
-            var xf = new CategoryImputerEstimator(h, input).Fit(input.Data).Transform(input.Data);
+            var h = EntryPointUtils.CheckArgsAndCreateHost(env, CategoricalImputerTransformer.ShortName, input);
+            var xf = new CategoricalImputerEstimator(h, input).Fit(input.Data).Transform(input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModelImpl(h, xf, input.Data),

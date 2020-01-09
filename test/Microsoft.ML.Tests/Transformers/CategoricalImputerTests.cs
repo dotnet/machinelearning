@@ -14,9 +14,9 @@ using Microsoft.ML.TestFramework.Attributes;
 
 namespace Microsoft.ML.Tests.Transformers
 {
-    public class CategoryImputerTests : TestDataPipeBase
+    public class CategoricalImputerTests : TestDataPipeBase
     {
-        public CategoryImputerTests(ITestOutputHelper output) : base(output)
+        public CategoricalImputerTests(ITestOutputHelper output) : base(output)
         {
         }
 
@@ -92,12 +92,12 @@ namespace Microsoft.ML.Tests.Transformers
         [NotCentOS7Fact]
         public void TestAllTypes()
         {
-            Test<float>("float_t", false, 1.5f);
-            Test<float>("float_t", true, 1.5f);
-            Test<double>("double_t", false, 1.5);
-            Test<double>("double_t", true, 1.5);
-            Test<string>("str", false, "one");
-            Test<string>("str", true, "one");
+            Test("float_t", false, 1.5f);
+            Test("float_t", true, 1.5f);
+            Test("double_t", false, 1.5);
+            Test("double_t", true, 1.5);
+            Test("str", false, "one");
+            Test("str", true, "one");
 
             Done();
         }
