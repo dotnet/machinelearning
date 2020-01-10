@@ -6,7 +6,7 @@ namespace Microsoft.ML.Samples
 {
     public static class Program
     {
-        public static void Main(string[] args) => RunAll();
+        public static void Main(string[] args) => NormalizeMinMaxMulticolumn.Example();
 
         internal static void RunAll()
         {
