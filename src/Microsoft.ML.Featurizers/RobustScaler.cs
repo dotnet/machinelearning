@@ -30,8 +30,9 @@ namespace Microsoft.ML.Featurizers
     public static class RobustScalerExtensionClass
     {
         /// <summary>
-        /// Creates a <see cref="RobustScalerEstimator"/> which scales features using statistics that are robust to outliers, by removing the median and scaling the data according to the quantile range
-        /// (defaults to IQR: Interquartile Range). Centering and scaling happen independently on each feature by computing the relevant statistics on the samples in the training set.
+        /// Creates a <see cref="RobustScalerEstimator"/> which scales features using statistics that are robust to outliers,
+        /// by removing the median and scaling the data according to the quantile range (defaults to IQR: Interquartile Range).
+        /// Centering and scaling happen independently on each feature by computing the relevant statistics on the samples in the training set.
         /// Median and interquartile range are then stored to be used on later data using the transform method.
         /// </summary>
         /// <param name="catalog">Transform catalog</param>
@@ -42,7 +43,8 @@ namespace Microsoft.ML.Featurizers
         /// <param name="quantileMin">The lower bound to keep. Values range from 0 to 100.0. Must be lower then the <paramref name="quantileMax"/></param>
         /// <param name="quantileMax">The upper bound to keep. Values range from 0 to 100.0. Must be greater then the <paramref name="quantileMin"/></param>
         /// <returns><see cref="RobustScalerEstimator"/></returns>
-        public static RobustScalerEstimator RobustScaler(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null, bool center = true, bool scale = true, float quantileMin = 25.0f, float quantileMax = 75.0f)
+        public static RobustScalerEstimator RobustScaler(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null,
+            bool center = true, bool scale = true, float quantileMin = 25.0f, float quantileMax = 75.0f)
         {
             var options = new RobustScalerEstimator.Options
             {
@@ -57,8 +59,9 @@ namespace Microsoft.ML.Featurizers
         }
 
         /// <summary>
-        /// RobustScalar Featurizer scales features using statistics that are robust to outliers, by removing the median and scaling the data according to the quantile range
-        /// (defaults to IQR: Interquartile Range). Centering and scaling happen independently on each feature by computing the relevant statistics on the samples in the training set.
+        /// Creates a <see cref="RobustScalerEstimator"/> which scales features using statistics that are robust to outliers,
+        /// by removing the median and scaling the data according to the quantile range (defaults to IQR: Interquartile Range).
+        /// Centering and scaling happen independently on each feature by computing the relevant statistics on the samples in the training set.
         /// Median and interquartile range are then stored to be used on later data using the transform method.
         /// </summary>
         /// <param name="catalog">Transform catalog</param>
@@ -68,7 +71,8 @@ namespace Microsoft.ML.Featurizers
         /// <param name="quantileMin">The lower bound to keep. Values range from 0 to 100.0. Must be lower then the <paramref name="quantileMax"/></param>
         /// <param name="quantileMax">The upper bound to keep. Values range from 0 to 100.0. Must be greater then the <paramref name="quantileMin"/></param>
         /// <returns><see cref="RobustScalerEstimator"/></returns>
-        public static RobustScalerEstimator RobustScaler(this TransformsCatalog catalog, InputOutputColumnPair[] columns, bool center = true, bool scale = true, float quantileMin = 25.0f, float quantileMax = 75.0f)
+        public static RobustScalerEstimator RobustScaler(this TransformsCatalog catalog, InputOutputColumnPair[] columns, bool center = true,
+            bool scale = true, float quantileMin = 25.0f, float quantileMax = 75.0f)
         {
             var options = new RobustScalerEstimator.Options
             {
@@ -210,7 +214,7 @@ namespace Microsoft.ML.Featurizers
 
         internal const string Summary = "Removes the median and scales the data according to the quantile range.";
         internal const string UserName = "RobustScalerTransformer";
-        internal const string ShortName = "RobustScalerTransformer";
+        internal const string ShortName = "RobScalT";
         internal const string LoadName = "RobustScalerTransformer";
         internal const string LoaderSignature = "RobustScalerTransformer";
 
@@ -327,6 +331,7 @@ namespace Microsoft.ML.Featurizers
             internal readonly string Source;
             internal readonly string Type;
 
+            private protected TransformerEstimatorSafeHandle TransformerHandler;
             private static readonly Type[] _supportedTypes = new[] { typeof(sbyte), typeof(short), typeof(int), typeof(long), typeof(byte), typeof(ushort),
                 typeof(uint), typeof(ulong), typeof(float), typeof(double) };
 
@@ -338,7 +343,7 @@ namespace Microsoft.ML.Featurizers
             }
 
             internal abstract void CreateTransformerFromEstimator(IDataView input);
-            private protected abstract unsafe void CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize);
+            private protected abstract unsafe TransformerEstimatorSafeHandle CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize);
             private protected abstract bool CreateTransformerSaveDataHelper(out IntPtr buffer, out IntPtr bufferSize, out IntPtr errorHandle);
             public abstract void Dispose();
 
@@ -364,7 +369,7 @@ namespace Microsoft.ML.Featurizers
                 fixed (byte* rawData = data)
                 {
                     IntPtr dataSize = new IntPtr(data.Count());
-                    CreateTransformerFromSavedDataHelper(rawData, dataSize);
+                    TransformerHandler = CreateTransformerFromSavedDataHelper(rawData, dataSize);
                 }
             }
 
@@ -435,6 +440,7 @@ namespace Microsoft.ML.Featurizers
             private protected abstract bool FitHelper(TransformerEstimatorSafeHandle estimator, TSourceType input, out FitResult fitResult, out IntPtr errorHandle);
             private protected abstract bool CompleteTrainingHelper(TransformerEstimatorSafeHandle estimator, out FitResult fitResult, out IntPtr errorHandle);
             private protected abstract bool IsTrainingComplete(TransformerEstimatorSafeHandle estimatorHandle);
+
             private protected TransformerEstimatorSafeHandle CreateTransformerFromEstimatorBase(IDataView input)
             {
                 var success = CreateEstimatorHelper(out IntPtr estimator, out IntPtr errorHandle);
@@ -482,7 +488,6 @@ namespace Microsoft.ML.Featurizers
 
         internal sealed class Int8TypedColumn : TypedColumn<sbyte, float>
         {
-            private TransformerEstimatorSafeHandle _transformerHandler;
             private RobustScalerTransformer _parent;
             internal Int8TypedColumn(string name, string source, RobustScalerTransformer parent) :
                 base(name, source, typeof(sbyte).ToString())
@@ -502,25 +507,25 @@ namespace Microsoft.ML.Featurizers
             private static extern bool DestroyTransformerNative(IntPtr transformer, out IntPtr errorHandle);
             internal override void CreateTransformerFromEstimator(IDataView input)
             {
-                _transformerHandler = CreateTransformerFromEstimatorBase(input);
+                TransformerHandler = CreateTransformerFromEstimatorBase(input);
             }
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_int8_t_CreateTransformerFromSavedData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static unsafe extern bool CreateTransformerFromSavedDataNative(byte* rawData, IntPtr bufferSize, out IntPtr transformer, out IntPtr errorHandle);
-            private protected override unsafe void CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
+            private protected override unsafe TransformerEstimatorSafeHandle CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
             {
                 var result = CreateTransformerFromSavedDataNative(rawData, dataSize, out IntPtr transformer, out IntPtr errorHandle);
                 if (!result)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
-                _transformerHandler = new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
+                return new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
             }
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_int8_t_Transform", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static unsafe extern bool TransformDataNative(TransformerEstimatorSafeHandle transformer, sbyte input, out float output, out IntPtr errorHandle);
             internal unsafe override float Transform(sbyte input)
             {
-                var success = TransformDataNative(_transformerHandler, input, out float output, out IntPtr errorHandle);
+                var success = TransformDataNative(TransformerHandler, input, out float output, out IntPtr errorHandle);
                 if (!success)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
@@ -529,8 +534,8 @@ namespace Microsoft.ML.Featurizers
 
             public override void Dispose()
             {
-                if (!_transformerHandler.IsClosed)
-                    _transformerHandler.Dispose();
+                if (!TransformerHandler.IsClosed)
+                    TransformerHandler.Dispose();
             }
 
             private protected override bool CreateEstimatorHelper(out IntPtr estimator, out IntPtr errorHandle)
@@ -565,7 +570,7 @@ namespace Microsoft.ML.Featurizers
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_int8_t_CreateTransformerSaveData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool CreateTransformerSaveDataNative(TransformerEstimatorSafeHandle transformer, out IntPtr buffer, out IntPtr bufferSize, out IntPtr error);
             private protected override bool CreateTransformerSaveDataHelper(out IntPtr buffer, out IntPtr bufferSize, out IntPtr errorHandle) =>
-                CreateTransformerSaveDataNative(_transformerHandler, out buffer, out bufferSize, out errorHandle);
+                CreateTransformerSaveDataNative(TransformerHandler, out buffer, out bufferSize, out errorHandle);
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_int8_t_IsTrainingComplete", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool IsTrainingCompleteNative(TransformerEstimatorSafeHandle transformer, out bool isTrainingComplete, out IntPtr errorHandle);
@@ -590,7 +595,6 @@ namespace Microsoft.ML.Featurizers
 
         internal sealed class UInt8TypedColumn : TypedColumn<byte, float>
         {
-            private TransformerEstimatorSafeHandle _transformerHandler;
             private RobustScalerTransformer _parent;
             internal UInt8TypedColumn(string name, string source, RobustScalerTransformer parent) :
                 base(name, source, typeof(byte).ToString())
@@ -610,25 +614,25 @@ namespace Microsoft.ML.Featurizers
             private static extern bool DestroyTransformerNative(IntPtr transformer, out IntPtr errorHandle);
             internal override void CreateTransformerFromEstimator(IDataView input)
             {
-                _transformerHandler = CreateTransformerFromEstimatorBase(input);
+                TransformerHandler = CreateTransformerFromEstimatorBase(input);
             }
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_uint8_t_CreateTransformerFromSavedData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static unsafe extern bool CreateTransformerFromSavedDataNative(byte* rawData, IntPtr bufferSize, out IntPtr transformer, out IntPtr errorHandle);
-            private protected override unsafe void CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
+            private protected override unsafe TransformerEstimatorSafeHandle CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
             {
                 var result = CreateTransformerFromSavedDataNative(rawData, dataSize, out IntPtr transformer, out IntPtr errorHandle);
                 if (!result)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
-                _transformerHandler = new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
+                return new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
             }
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_uint8_t_Transform", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static unsafe extern bool TransformDataNative(TransformerEstimatorSafeHandle transformer, byte input, out float output, out IntPtr errorHandle);
             internal unsafe override float Transform(byte input)
             {
-                var success = TransformDataNative(_transformerHandler, input, out float output, out IntPtr errorHandle);
+                var success = TransformDataNative(TransformerHandler, input, out float output, out IntPtr errorHandle);
                 if (!success)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
@@ -637,8 +641,8 @@ namespace Microsoft.ML.Featurizers
 
             public override void Dispose()
             {
-                if (!_transformerHandler.IsClosed)
-                    _transformerHandler.Dispose();
+                if (!TransformerHandler.IsClosed)
+                    TransformerHandler.Dispose();
             }
 
             private protected override bool CreateEstimatorHelper(out IntPtr estimator, out IntPtr errorHandle)
@@ -673,7 +677,7 @@ namespace Microsoft.ML.Featurizers
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_uint8_t_CreateTransformerSaveData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool CreateTransformerSaveDataNative(TransformerEstimatorSafeHandle transformer, out IntPtr buffer, out IntPtr bufferSize, out IntPtr error);
             private protected override bool CreateTransformerSaveDataHelper(out IntPtr buffer, out IntPtr bufferSize, out IntPtr errorHandle) =>
-                CreateTransformerSaveDataNative(_transformerHandler, out buffer, out bufferSize, out errorHandle);
+                CreateTransformerSaveDataNative(TransformerHandler, out buffer, out bufferSize, out errorHandle);
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_uint8_t_IsTrainingComplete", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool IsTrainingCompleteNative(TransformerEstimatorSafeHandle transformer, out bool isTrainingComplete, out IntPtr errorHandle);
@@ -698,7 +702,6 @@ namespace Microsoft.ML.Featurizers
 
         internal sealed class Int16TypedColumn : TypedColumn<short, float>
         {
-            private TransformerEstimatorSafeHandle _transformerHandler;
             private RobustScalerTransformer _parent;
             internal Int16TypedColumn(string name, string source, RobustScalerTransformer parent) :
                 base(name, source, typeof(short).ToString())
@@ -718,25 +721,25 @@ namespace Microsoft.ML.Featurizers
             private static extern bool DestroyTransformerNative(IntPtr transformer, out IntPtr errorHandle);
             internal override void CreateTransformerFromEstimator(IDataView input)
             {
-                _transformerHandler = CreateTransformerFromEstimatorBase(input);
+                TransformerHandler = CreateTransformerFromEstimatorBase(input);
             }
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_int16_t_CreateTransformerFromSavedData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static unsafe extern bool CreateTransformerFromSavedDataNative(byte* rawData, IntPtr bufferSize, out IntPtr transformer, out IntPtr errorHandle);
-            private protected override unsafe void CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
+            private protected override unsafe TransformerEstimatorSafeHandle CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
             {
                 var result = CreateTransformerFromSavedDataNative(rawData, dataSize, out IntPtr transformer, out IntPtr errorHandle);
                 if (!result)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
-                _transformerHandler = new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
+                return new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
             }
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_int16_t_Transform", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static unsafe extern bool TransformDataNative(TransformerEstimatorSafeHandle transformer, short input, out float output, out IntPtr errorHandle);
             internal unsafe override float Transform(short input)
             {
-                var success = TransformDataNative(_transformerHandler, input, out float output, out IntPtr errorHandle);
+                var success = TransformDataNative(TransformerHandler, input, out float output, out IntPtr errorHandle);
                 if (!success)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
@@ -745,8 +748,8 @@ namespace Microsoft.ML.Featurizers
 
             public override void Dispose()
             {
-                if (!_transformerHandler.IsClosed)
-                    _transformerHandler.Dispose();
+                if (!TransformerHandler.IsClosed)
+                    TransformerHandler.Dispose();
             }
 
             private protected override bool CreateEstimatorHelper(out IntPtr estimator, out IntPtr errorHandle)
@@ -781,7 +784,7 @@ namespace Microsoft.ML.Featurizers
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_int16_t_CreateTransformerSaveData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool CreateTransformerSaveDataNative(TransformerEstimatorSafeHandle transformer, out IntPtr buffer, out IntPtr bufferSize, out IntPtr error);
             private protected override bool CreateTransformerSaveDataHelper(out IntPtr buffer, out IntPtr bufferSize, out IntPtr errorHandle) =>
-                CreateTransformerSaveDataNative(_transformerHandler, out buffer, out bufferSize, out errorHandle);
+                CreateTransformerSaveDataNative(TransformerHandler, out buffer, out bufferSize, out errorHandle);
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_int16_t_IsTrainingComplete", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool IsTrainingCompleteNative(TransformerEstimatorSafeHandle transformer, out bool isTrainingComplete, out IntPtr errorHandle);
@@ -806,7 +809,6 @@ namespace Microsoft.ML.Featurizers
 
         internal sealed class UInt16TypedColumn : TypedColumn<ushort, float>
         {
-            private TransformerEstimatorSafeHandle _transformerHandler;
             private RobustScalerTransformer _parent;
             internal UInt16TypedColumn(string name, string source, RobustScalerTransformer parent) :
                 base(name, source, typeof(ushort).ToString())
@@ -826,25 +828,25 @@ namespace Microsoft.ML.Featurizers
             private static extern bool DestroyTransformerNative(IntPtr transformer, out IntPtr errorHandle);
             internal override void CreateTransformerFromEstimator(IDataView input)
             {
-                _transformerHandler = CreateTransformerFromEstimatorBase(input);
+                TransformerHandler = CreateTransformerFromEstimatorBase(input);
             }
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_uint16_t_CreateTransformerFromSavedData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static unsafe extern bool CreateTransformerFromSavedDataNative(byte* rawData, IntPtr bufferSize, out IntPtr transformer, out IntPtr errorHandle);
-            private protected override unsafe void CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
+            private protected override unsafe TransformerEstimatorSafeHandle CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
             {
                 var result = CreateTransformerFromSavedDataNative(rawData, dataSize, out IntPtr transformer, out IntPtr errorHandle);
                 if (!result)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
-                _transformerHandler = new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
+                return new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
             }
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_uint16_t_Transform", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static unsafe extern bool TransformDataNative(TransformerEstimatorSafeHandle transformer, ushort input, out float output, out IntPtr errorHandle);
             internal unsafe override float Transform(ushort input)
             {
-                var success = TransformDataNative(_transformerHandler, input, out float output, out IntPtr errorHandle);
+                var success = TransformDataNative(TransformerHandler, input, out float output, out IntPtr errorHandle);
                 if (!success)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
@@ -853,8 +855,8 @@ namespace Microsoft.ML.Featurizers
 
             public override void Dispose()
             {
-                if (!_transformerHandler.IsClosed)
-                    _transformerHandler.Dispose();
+                if (!TransformerHandler.IsClosed)
+                    TransformerHandler.Dispose();
             }
 
             private protected override bool CreateEstimatorHelper(out IntPtr estimator, out IntPtr errorHandle)
@@ -889,7 +891,7 @@ namespace Microsoft.ML.Featurizers
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_uint16_t_CreateTransformerSaveData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool CreateTransformerSaveDataNative(TransformerEstimatorSafeHandle transformer, out IntPtr buffer, out IntPtr bufferSize, out IntPtr error);
             private protected override bool CreateTransformerSaveDataHelper(out IntPtr buffer, out IntPtr bufferSize, out IntPtr errorHandle) =>
-                CreateTransformerSaveDataNative(_transformerHandler, out buffer, out bufferSize, out errorHandle);
+                CreateTransformerSaveDataNative(TransformerHandler, out buffer, out bufferSize, out errorHandle);
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_uint16_t_IsTrainingComplete", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool IsTrainingCompleteNative(TransformerEstimatorSafeHandle transformer, out bool isTrainingComplete, out IntPtr errorHandle);
@@ -914,7 +916,6 @@ namespace Microsoft.ML.Featurizers
 
         internal sealed class Int32TypedColumn : TypedColumn<int, double>
         {
-            private TransformerEstimatorSafeHandle _transformerHandler;
             private RobustScalerTransformer _parent;
             internal Int32TypedColumn(string name, string source, RobustScalerTransformer parent) :
                 base(name, source, typeof(int).ToString())
@@ -934,25 +935,25 @@ namespace Microsoft.ML.Featurizers
             private static extern bool DestroyTransformerNative(IntPtr transformer, out IntPtr errorHandle);
             internal override void CreateTransformerFromEstimator(IDataView input)
             {
-                _transformerHandler = CreateTransformerFromEstimatorBase(input);
+                TransformerHandler = CreateTransformerFromEstimatorBase(input);
             }
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_int32_t_CreateTransformerFromSavedData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static unsafe extern bool CreateTransformerFromSavedDataNative(byte* rawData, IntPtr bufferSize, out IntPtr transformer, out IntPtr errorHandle);
-            private protected override unsafe void CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
+            private protected override unsafe TransformerEstimatorSafeHandle CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
             {
                 var result = CreateTransformerFromSavedDataNative(rawData, dataSize, out IntPtr transformer, out IntPtr errorHandle);
                 if (!result)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
-                _transformerHandler = new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
+                return new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
             }
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_int32_t_Transform", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static unsafe extern bool TransformDataNative(TransformerEstimatorSafeHandle transformer, int input, out double output, out IntPtr errorHandle);
             internal unsafe override double Transform(int input)
             {
-                var success = TransformDataNative(_transformerHandler, input, out double output, out IntPtr errorHandle);
+                var success = TransformDataNative(TransformerHandler, input, out double output, out IntPtr errorHandle);
                 if (!success)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
@@ -961,8 +962,8 @@ namespace Microsoft.ML.Featurizers
 
             public override void Dispose()
             {
-                if (!_transformerHandler.IsClosed)
-                    _transformerHandler.Dispose();
+                if (!TransformerHandler.IsClosed)
+                    TransformerHandler.Dispose();
             }
 
             private protected override bool CreateEstimatorHelper(out IntPtr estimator, out IntPtr errorHandle)
@@ -997,7 +998,7 @@ namespace Microsoft.ML.Featurizers
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_int32_t_CreateTransformerSaveData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool CreateTransformerSaveDataNative(TransformerEstimatorSafeHandle transformer, out IntPtr buffer, out IntPtr bufferSize, out IntPtr error);
             private protected override bool CreateTransformerSaveDataHelper(out IntPtr buffer, out IntPtr bufferSize, out IntPtr errorHandle) =>
-                CreateTransformerSaveDataNative(_transformerHandler, out buffer, out bufferSize, out errorHandle);
+                CreateTransformerSaveDataNative(TransformerHandler, out buffer, out bufferSize, out errorHandle);
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_int32_t_IsTrainingComplete", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool IsTrainingCompleteNative(TransformerEstimatorSafeHandle transformer, out bool isTrainingComplete, out IntPtr errorHandle);
@@ -1022,7 +1023,6 @@ namespace Microsoft.ML.Featurizers
 
         internal sealed class UInt32TypedColumn : TypedColumn<uint, double>
         {
-            private TransformerEstimatorSafeHandle _transformerHandler;
             private RobustScalerTransformer _parent;
             internal UInt32TypedColumn(string name, string source, RobustScalerTransformer parent) :
                 base(name, source, typeof(uint).ToString())
@@ -1042,25 +1042,25 @@ namespace Microsoft.ML.Featurizers
             private static extern bool DestroyTransformerNative(IntPtr transformer, out IntPtr errorHandle);
             internal override void CreateTransformerFromEstimator(IDataView input)
             {
-                _transformerHandler = CreateTransformerFromEstimatorBase(input);
+                TransformerHandler = CreateTransformerFromEstimatorBase(input);
             }
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_uint32_t_CreateTransformerFromSavedData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static unsafe extern bool CreateTransformerFromSavedDataNative(byte* rawData, IntPtr bufferSize, out IntPtr transformer, out IntPtr errorHandle);
-            private protected override unsafe void CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
+            private protected override unsafe TransformerEstimatorSafeHandle CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
             {
                 var result = CreateTransformerFromSavedDataNative(rawData, dataSize, out IntPtr transformer, out IntPtr errorHandle);
                 if (!result)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
-                _transformerHandler = new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
+                return new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
             }
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_uint32_t_Transform", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static unsafe extern bool TransformDataNative(TransformerEstimatorSafeHandle transformer, uint input, out double output, out IntPtr errorHandle);
             internal unsafe override double Transform(uint input)
             {
-                var success = TransformDataNative(_transformerHandler, input, out double output, out IntPtr errorHandle);
+                var success = TransformDataNative(TransformerHandler, input, out double output, out IntPtr errorHandle);
                 if (!success)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
@@ -1069,8 +1069,8 @@ namespace Microsoft.ML.Featurizers
 
             public override void Dispose()
             {
-                if (!_transformerHandler.IsClosed)
-                    _transformerHandler.Dispose();
+                if (!TransformerHandler.IsClosed)
+                    TransformerHandler.Dispose();
             }
 
             private protected override bool CreateEstimatorHelper(out IntPtr estimator, out IntPtr errorHandle)
@@ -1105,7 +1105,7 @@ namespace Microsoft.ML.Featurizers
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_uint32_t_CreateTransformerSaveData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool CreateTransformerSaveDataNative(TransformerEstimatorSafeHandle transformer, out IntPtr buffer, out IntPtr bufferSize, out IntPtr error);
             private protected override bool CreateTransformerSaveDataHelper(out IntPtr buffer, out IntPtr bufferSize, out IntPtr errorHandle) =>
-                CreateTransformerSaveDataNative(_transformerHandler, out buffer, out bufferSize, out errorHandle);
+                CreateTransformerSaveDataNative(TransformerHandler, out buffer, out bufferSize, out errorHandle);
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_uint32_t_IsTrainingComplete", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool IsTrainingCompleteNative(TransformerEstimatorSafeHandle transformer, out bool isTrainingComplete, out IntPtr errorHandle);
@@ -1130,7 +1130,6 @@ namespace Microsoft.ML.Featurizers
 
         internal sealed class Int64TypedColumn : TypedColumn<long, double>
         {
-            private TransformerEstimatorSafeHandle _transformerHandler;
             private RobustScalerTransformer _parent;
             internal Int64TypedColumn(string name, string source, RobustScalerTransformer parent) :
                 base(name, source, typeof(long).ToString())
@@ -1150,25 +1149,25 @@ namespace Microsoft.ML.Featurizers
             private static extern bool DestroyTransformerNative(IntPtr transformer, out IntPtr errorHandle);
             internal override void CreateTransformerFromEstimator(IDataView input)
             {
-                _transformerHandler = CreateTransformerFromEstimatorBase(input);
+                TransformerHandler = CreateTransformerFromEstimatorBase(input);
             }
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_int64_t_CreateTransformerFromSavedData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static unsafe extern bool CreateTransformerFromSavedDataNative(byte* rawData, IntPtr bufferSize, out IntPtr transformer, out IntPtr errorHandle);
-            private protected override unsafe void CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
+            private protected override unsafe TransformerEstimatorSafeHandle CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
             {
                 var result = CreateTransformerFromSavedDataNative(rawData, dataSize, out IntPtr transformer, out IntPtr errorHandle);
                 if (!result)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
-                _transformerHandler = new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
+                return new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
             }
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_int64_t_Transform", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static unsafe extern bool TransformDataNative(TransformerEstimatorSafeHandle transformer, long input, out double output, out IntPtr errorHandle);
             internal unsafe override double Transform(long input)
             {
-                var success = TransformDataNative(_transformerHandler, input, out double output, out IntPtr errorHandle);
+                var success = TransformDataNative(TransformerHandler, input, out double output, out IntPtr errorHandle);
                 if (!success)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
@@ -1177,8 +1176,8 @@ namespace Microsoft.ML.Featurizers
 
             public override void Dispose()
             {
-                if (!_transformerHandler.IsClosed)
-                    _transformerHandler.Dispose();
+                if (!TransformerHandler.IsClosed)
+                    TransformerHandler.Dispose();
             }
 
             private protected override bool CreateEstimatorHelper(out IntPtr estimator, out IntPtr errorHandle)
@@ -1213,7 +1212,7 @@ namespace Microsoft.ML.Featurizers
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_int64_t_CreateTransformerSaveData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool CreateTransformerSaveDataNative(TransformerEstimatorSafeHandle transformer, out IntPtr buffer, out IntPtr bufferSize, out IntPtr error);
             private protected override bool CreateTransformerSaveDataHelper(out IntPtr buffer, out IntPtr bufferSize, out IntPtr errorHandle) =>
-                CreateTransformerSaveDataNative(_transformerHandler, out buffer, out bufferSize, out errorHandle);
+                CreateTransformerSaveDataNative(TransformerHandler, out buffer, out bufferSize, out errorHandle);
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_int64_t_IsTrainingComplete", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool IsTrainingCompleteNative(TransformerEstimatorSafeHandle transformer, out bool isTrainingComplete, out IntPtr errorHandle);
@@ -1238,7 +1237,6 @@ namespace Microsoft.ML.Featurizers
 
         internal sealed class UInt64TypedColumn : TypedColumn<ulong, double>
         {
-            private TransformerEstimatorSafeHandle _transformerHandler;
             private RobustScalerTransformer _parent;
             internal UInt64TypedColumn(string name, string source, RobustScalerTransformer parent) :
                 base(name, source, typeof(ulong).ToString())
@@ -1258,25 +1256,25 @@ namespace Microsoft.ML.Featurizers
             private static extern bool DestroyTransformerNative(IntPtr transformer, out IntPtr errorHandle);
             internal override void CreateTransformerFromEstimator(IDataView input)
             {
-                _transformerHandler = CreateTransformerFromEstimatorBase(input);
+                TransformerHandler = CreateTransformerFromEstimatorBase(input);
             }
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_uint64_t_CreateTransformerFromSavedData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static unsafe extern bool CreateTransformerFromSavedDataNative(byte* rawData, IntPtr bufferSize, out IntPtr transformer, out IntPtr errorHandle);
-            private protected override unsafe void CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
+            private protected override unsafe TransformerEstimatorSafeHandle CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
             {
                 var result = CreateTransformerFromSavedDataNative(rawData, dataSize, out IntPtr transformer, out IntPtr errorHandle);
                 if (!result)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
-                _transformerHandler = new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
+                return new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
             }
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_uint64_t_Transform", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static unsafe extern bool TransformDataNative(TransformerEstimatorSafeHandle transformer, ulong input, out double output, out IntPtr errorHandle);
             internal unsafe override double Transform(ulong input)
             {
-                var success = TransformDataNative(_transformerHandler, input, out double output, out IntPtr errorHandle);
+                var success = TransformDataNative(TransformerHandler, input, out double output, out IntPtr errorHandle);
                 if (!success)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
@@ -1285,8 +1283,8 @@ namespace Microsoft.ML.Featurizers
 
             public override void Dispose()
             {
-                if (!_transformerHandler.IsClosed)
-                    _transformerHandler.Dispose();
+                if (!TransformerHandler.IsClosed)
+                    TransformerHandler.Dispose();
             }
 
             private protected override bool CreateEstimatorHelper(out IntPtr estimator, out IntPtr errorHandle)
@@ -1321,7 +1319,7 @@ namespace Microsoft.ML.Featurizers
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_uint64_t_CreateTransformerSaveData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool CreateTransformerSaveDataNative(TransformerEstimatorSafeHandle transformer, out IntPtr buffer, out IntPtr bufferSize, out IntPtr error);
             private protected override bool CreateTransformerSaveDataHelper(out IntPtr buffer, out IntPtr bufferSize, out IntPtr errorHandle) =>
-                CreateTransformerSaveDataNative(_transformerHandler, out buffer, out bufferSize, out errorHandle);
+                CreateTransformerSaveDataNative(TransformerHandler, out buffer, out bufferSize, out errorHandle);
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_uint64_t_IsTrainingComplete", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool IsTrainingCompleteNative(TransformerEstimatorSafeHandle transformer, out bool isTrainingComplete, out IntPtr errorHandle);
@@ -1346,7 +1344,6 @@ namespace Microsoft.ML.Featurizers
 
         internal sealed class FloatTypedColumn : TypedColumn<float, float>
         {
-            private TransformerEstimatorSafeHandle _transformerHandler;
             private RobustScalerTransformer _parent;
             internal FloatTypedColumn(string name, string source, RobustScalerTransformer parent) :
                 base(name, source, typeof(float).ToString())
@@ -1366,25 +1363,25 @@ namespace Microsoft.ML.Featurizers
             private static extern bool DestroyTransformerNative(IntPtr transformer, out IntPtr errorHandle);
             internal override void CreateTransformerFromEstimator(IDataView input)
             {
-                _transformerHandler = CreateTransformerFromEstimatorBase(input);
+                TransformerHandler = CreateTransformerFromEstimatorBase(input);
             }
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_float_t_CreateTransformerFromSavedData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static unsafe extern bool CreateTransformerFromSavedDataNative(byte* rawData, IntPtr bufferSize, out IntPtr transformer, out IntPtr errorHandle);
-            private protected override unsafe void CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
+            private protected override unsafe TransformerEstimatorSafeHandle CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
             {
                 var result = CreateTransformerFromSavedDataNative(rawData, dataSize, out IntPtr transformer, out IntPtr errorHandle);
                 if (!result)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
-                _transformerHandler = new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
+                return new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
             }
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_float_t_Transform", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static unsafe extern bool TransformDataNative(TransformerEstimatorSafeHandle transformer, float input, out float output, out IntPtr errorHandle);
             internal unsafe override float Transform(float input)
             {
-                var success = TransformDataNative(_transformerHandler, input, out float output, out IntPtr errorHandle);
+                var success = TransformDataNative(TransformerHandler, input, out float output, out IntPtr errorHandle);
                 if (!success)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
@@ -1393,8 +1390,8 @@ namespace Microsoft.ML.Featurizers
 
             public override void Dispose()
             {
-                if (!_transformerHandler.IsClosed)
-                    _transformerHandler.Dispose();
+                if (!TransformerHandler.IsClosed)
+                    TransformerHandler.Dispose();
             }
 
             private protected override bool CreateEstimatorHelper(out IntPtr estimator, out IntPtr errorHandle)
@@ -1429,7 +1426,7 @@ namespace Microsoft.ML.Featurizers
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_float_t_CreateTransformerSaveData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool CreateTransformerSaveDataNative(TransformerEstimatorSafeHandle transformer, out IntPtr buffer, out IntPtr bufferSize, out IntPtr error);
             private protected override bool CreateTransformerSaveDataHelper(out IntPtr buffer, out IntPtr bufferSize, out IntPtr errorHandle) =>
-                CreateTransformerSaveDataNative(_transformerHandler, out buffer, out bufferSize, out errorHandle);
+                CreateTransformerSaveDataNative(TransformerHandler, out buffer, out bufferSize, out errorHandle);
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_float_t_IsTrainingComplete", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool IsTrainingCompleteNative(TransformerEstimatorSafeHandle transformer, out bool isTrainingComplete, out IntPtr errorHandle);
@@ -1454,7 +1451,7 @@ namespace Microsoft.ML.Featurizers
 
         internal sealed class DoubleTypedColumn : TypedColumn<double, double>
         {
-            private TransformerEstimatorSafeHandle _transformerHandler;
+
             private RobustScalerTransformer _parent;
             internal DoubleTypedColumn(string name, string source, RobustScalerTransformer parent) :
                 base(name, source, typeof(double).ToString())
@@ -1474,25 +1471,25 @@ namespace Microsoft.ML.Featurizers
             private static extern bool DestroyTransformerNative(IntPtr transformer, out IntPtr errorHandle);
             internal override void CreateTransformerFromEstimator(IDataView input)
             {
-                _transformerHandler = CreateTransformerFromEstimatorBase(input);
+                TransformerHandler = CreateTransformerFromEstimatorBase(input);
             }
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_double_t_CreateTransformerFromSavedData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static unsafe extern bool CreateTransformerFromSavedDataNative(byte* rawData, IntPtr bufferSize, out IntPtr transformer, out IntPtr errorHandle);
-            private protected override unsafe void CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
+            private protected override unsafe TransformerEstimatorSafeHandle CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
             {
                 var result = CreateTransformerFromSavedDataNative(rawData, dataSize, out IntPtr transformer, out IntPtr errorHandle);
                 if (!result)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
-                _transformerHandler = new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
+                return new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
             }
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_double_t_Transform", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static unsafe extern bool TransformDataNative(TransformerEstimatorSafeHandle transformer, double input, out double output, out IntPtr errorHandle);
             internal unsafe override double Transform(double input)
             {
-                var success = TransformDataNative(_transformerHandler, input, out double output, out IntPtr errorHandle);
+                var success = TransformDataNative(TransformerHandler, input, out double output, out IntPtr errorHandle);
                 if (!success)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
@@ -1501,8 +1498,8 @@ namespace Microsoft.ML.Featurizers
 
             public override void Dispose()
             {
-                if (!_transformerHandler.IsClosed)
-                    _transformerHandler.Dispose();
+                if (!TransformerHandler.IsClosed)
+                    TransformerHandler.Dispose();
             }
 
             private protected override bool CreateEstimatorHelper(out IntPtr estimator, out IntPtr errorHandle)
@@ -1537,7 +1534,7 @@ namespace Microsoft.ML.Featurizers
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_double_t_CreateTransformerSaveData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool CreateTransformerSaveDataNative(TransformerEstimatorSafeHandle transformer, out IntPtr buffer, out IntPtr bufferSize, out IntPtr error);
             private protected override bool CreateTransformerSaveDataHelper(out IntPtr buffer, out IntPtr bufferSize, out IntPtr errorHandle) =>
-                CreateTransformerSaveDataNative(_transformerHandler, out buffer, out bufferSize, out errorHandle);
+                CreateTransformerSaveDataNative(TransformerHandler, out buffer, out bufferSize, out errorHandle);
 
             [DllImport("Featurizers", EntryPoint = "RobustScalarFeaturizer_double_t_IsTrainingComplete", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool IsTrainingCompleteNative(TransformerEstimatorSafeHandle transformer, out bool isTrainingComplete, out IntPtr errorHandle);
