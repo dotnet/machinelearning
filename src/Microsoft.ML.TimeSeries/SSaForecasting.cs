@@ -78,7 +78,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             [Argument(ArgumentType.Required, HelpText = "The length of series that is kept in buffer for modeling (parameter N).", SortOrder = 2)]
             public int SeriesLength;
 
-            [Argument(ArgumentType.Required, HelpText = "The length of series from the begining used for training.", SortOrder = 2)]
+            [Argument(ArgumentType.Required, HelpText = "The length of series from the beginning used for training.", SortOrder = 2)]
             public int TrainSize;
 
             [Argument(ArgumentType.Required, HelpText = "The number of values to forecast.", SortOrder = 2)]
@@ -242,7 +242,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// The vector contains Alert, Raw Score, P-Value as first three values.</param>
         /// <param name="windowSize">The length of the window on the series for building the trajectory matrix (parameter L).</param>
         /// <param name="seriesLength">The length of series that is kept in buffer for modeling (parameter N).</param>
-        /// <param name="trainSize">The length of series from the begining used for training.</param>
+        /// <param name="trainSize">The length of series from the beginning used for training.</param>
         /// <param name="horizon">The number of values to forecast.</param>
         /// <param name="isAdaptive">The flag determing whether the model is adaptive.</param>
         /// <param name="discountFactor">The discount factor in [0,1] used for online updates.</param>

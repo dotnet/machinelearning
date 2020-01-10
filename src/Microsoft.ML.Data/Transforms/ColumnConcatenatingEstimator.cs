@@ -77,7 +77,7 @@ namespace Microsoft.ML.Transforms
             _host.Assert(col.IsValid);
             if (!col.Annotations.TryFindColumn(AnnotationUtils.Kinds.CategoricalSlotRanges, out var mcol))
                 return false;
-            // The indices must be ints and of a definite size vector type. (Definite becuase
+            // The indices must be ints and of a definite size vector type. (Definite because
             // metadata has only one value anyway.)
             return mcol.Kind == SchemaShape.Column.VectorKind.Vector
                 && mcol.ItemType == NumberDataViewType.Int32;

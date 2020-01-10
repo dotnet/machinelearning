@@ -40,7 +40,7 @@ namespace Microsoft.ML.Data
     /// 3. The SVM-light has some restrictions in its format that are unnatural to attempt
     ///    to restrict in the concept of this loader.
     /// 4. Some common "extensions" of this format that have happened over the years are
-    ///    accomodated where sensible, often supported by specifying some options.
+    ///    accommodated where sensible, often supported by specifying some options.
     ///
     /// The SVM-light format can be summarized here. An SVM-light file can lead with any number
     /// of lines starting with '#'. These are discarded.

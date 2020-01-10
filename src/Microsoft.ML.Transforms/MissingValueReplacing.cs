@@ -228,7 +228,7 @@ namespace Microsoft.ML.Transforms
                 {
                     // REVIEW: The current implementation takes the serialized VBuffer, densifies it, and stores the values array.
                     // It might be of value to consider storing the VBuffer in order to possibly benefit from sparsity. However, this would
-                    // necessitate a reimplementation of the FillValues code to accomodate sparse VBuffers.
+                    // necessitate a reimplementation of the FillValues code to accommodate sparse VBuffers.
                     object[] args = new object[] { repValue, savedVectorType, i };
                     Func<VBuffer<int>, VectorDataViewType, int, int[]> func = GetValuesArray<int>;
                     var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(savedVectorType.ItemType.RawType);

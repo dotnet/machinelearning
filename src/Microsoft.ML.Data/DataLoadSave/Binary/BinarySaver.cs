@@ -163,7 +163,7 @@ namespace Microsoft.ML.Data.IO
             public readonly int UncompressedLength;
             /// <summary>
             /// The column index, which is the index of the column as being written, which
-            /// may be less than the column from the source dataview if there were preceeding
+            /// may be less than the column from the source dataview if there were preceding
             /// columns being dropped.
             /// </summary>
             public readonly int ColumnIndex;

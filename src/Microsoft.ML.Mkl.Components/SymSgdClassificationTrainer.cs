@@ -489,7 +489,7 @@ namespace Microsoft.ML.Trainers
                 // Generally it is the user responsibility to not ask for an array of a size that has not been
                 // previously allocated.
 
-                // In case no allocation has occured.
+                // In case no allocation has occurred.
                 if (_storage.Count == 0)
                 {
                     outGcHandle = null;
@@ -637,7 +637,7 @@ namespace Microsoft.ML.Trainers
                     }
                     else
                     {
-                        // If couldLoad fails at any point (which is becuase of memorySize), isFullyLoaded becomes false forever
+                        // If couldLoad fails at any point (which is because of memorySize), isFullyLoaded becomes false forever
                         _isFullyLoaded = false;
                         break;
                     }

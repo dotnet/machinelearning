@@ -718,17 +718,17 @@ namespace Microsoft.ML.Data.IO
         private const ulong StandardDataTypesVersion = 0x0001000100010006;
 
         /// <summary>
-        /// The first version of the format that accomodated DvText.NA.
+        /// The first version of the format that accommodated DvText.NA.
         /// </summary>
         private const ulong MissingTextVersion = 0x0001000100010005;
 
         /// <summary>
-        /// The first version of the format that accomodated arbitrary metadata.
+        /// The first version of the format that accommodated arbitrary metadata.
         /// </summary>
         private const ulong MetadataVersion = 0x0001000100010004;
 
         /// <summary>
-        /// The first version of the format that accomodated slot names.
+        /// The first version of the format that accommodated slot names.
         /// </summary>
         private const ulong SlotNamesVersion = 0x0001000100010003;
 
