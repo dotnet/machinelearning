@@ -23180,7 +23180,7 @@
       "Name": "Transforms.ToString",
       "Desc": "Turns the given column into a column of its string representation",
       "FriendlyName": "ToString Transform",
-      "ShortName": "ToStringTransform",
+      "ShortName": "tostr",
       "Inputs": [
         {
           "Name": "Column",
