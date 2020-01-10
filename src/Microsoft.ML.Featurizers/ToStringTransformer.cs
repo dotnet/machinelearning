@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// This is Auto Generated code used that is being used to unblock other teams.
+// This functionality will be integrated into the existing type conversions over the next several weeks.
+
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -40,7 +43,7 @@ namespace Microsoft.ML.Featurizers
         /// <param name="inputColumnName">Name of column to convert to its string representation. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> </param>
         /// will be used as source. This column's data type can be scalar of numeric, text, and boolean</param>
         /// <seealso cref="ToStringTransformer(TransformsCatalog, InputOutputColumnPair[])"/>
-        public static ToStringTransformerEstimator ToStringTransformer(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null)
+        public static ToStringTransformerEstimator FeaturizerString(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null)
             => ToStringTransformerEstimator.Create(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName);
 
         /// <summary>
@@ -50,7 +53,7 @@ namespace Microsoft.ML.Featurizers
         /// </summary>
         /// <param name="catalog">The transform catalog.</param>
         /// <param name="columns">Array of <see cref="Microsoft.ML.InputOutputColumnPair"/>. The output column data type will be of type <see cref="System.ReadOnlyMemory{Char}"/> </param>
-        /// <seealso cref="ToStringTransformer(TransformsCatalog, string, string)"/>
+        /// <seealso cref="FeaturizerString(TransformsCatalog, string, string)"/>
         public static ToStringTransformerEstimator ToStringTransformer(this TransformsCatalog catalog, params InputOutputColumnPair[] columns)
             => ToStringTransformerEstimator.Create(CatalogUtils.GetEnvironment(catalog), columns);
     }
@@ -67,6 +70,7 @@ namespace Microsoft.ML.Featurizers
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Scalar of numeric, boolean, [text](xref:Microsoft.ML.Data.TextDataViewType) |
     /// | Output column data type | Scalar of [text](xref:Microsoft.ML.Data.TextDataViewType) type. |
+    /// | Exportable to ONNX | No |
     ///
     /// The <xref:Microsoft.ML.Transforms.ToStringTransformerEstimator> is a trivial estimator that doesn't need training.
     /// The resulting <xref:Microsoft.ML.Transforms.ToStringTransformer> converts one or more input columns into its appropriate string representation.
@@ -77,7 +81,7 @@ namespace Microsoft.ML.Featurizers
     /// </format>
     /// </remarks>
     /// <seealso cref="ToStringTransformerExtensionClass.ToStringTransformer(TransformsCatalog, InputOutputColumnPair[])"/>
-    /// <seealso cref="ToStringTransformerExtensionClass.ToStringTransformer(TransformsCatalog, string, string)"/>
+    /// <seealso cref="ToStringTransformerExtensionClass.FeaturizerString(TransformsCatalog, string, string)"/>
     public sealed class ToStringTransformerEstimator : IEstimator<ToStringTransformer>
     {
         private Options _options;
@@ -175,7 +179,7 @@ namespace Microsoft.ML.Featurizers
 
         internal const string Summary = "Turns the given column into a column of its string representation";
         internal const string UserName = "ToString Transform";
-        internal const string ShortName = "ToStringTransform";
+        internal const string ShortName = "tostr";
         internal const string LoadName = "ToStringTransform";
         internal const string LoaderSignature = "ToStringTransform";
 

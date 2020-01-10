@@ -83,7 +83,7 @@ namespace Microsoft.ML.Tests.Transformers
             MLContext mlContext = new MLContext(1);            
             var data = new[] { new BoolInput() { data = true }, new BoolInput() { data = false } };
             IDataView input = mlContext.Data.LoadFromEnumerable(data);
-            var pipeline = mlContext.Transforms.ToStringTransformer("output", "data");
+            var pipeline = mlContext.Transforms.FeaturizerString("output", "data");
 
             TestEstimatorCore(pipeline, input);
 
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var data = new[] { new ByteInput() { data = byte.MinValue }, new ByteInput() { data = byte.MaxValue } };
             IDataView input = mlContext.Data.LoadFromEnumerable(data);
-            var pipeline = mlContext.Transforms.ToStringTransformer("output", "data");
+            var pipeline = mlContext.Transforms.FeaturizerString("output", "data");
 
             TestEstimatorCore(pipeline, input);
 
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var data = new[] { new SByteInput() { data = sbyte.MinValue }, new SByteInput() { data = sbyte.MaxValue } };
             IDataView input = mlContext.Data.LoadFromEnumerable(data);
-            var pipeline = mlContext.Transforms.ToStringTransformer("output", "data");
+            var pipeline = mlContext.Transforms.FeaturizerString("output", "data");
 
             TestEstimatorCore(pipeline, input);
 
@@ -144,7 +144,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var data = new[] { new UShortInput() { data = ushort.MinValue }, new UShortInput() { data = ushort.MaxValue } };
             IDataView input = mlContext.Data.LoadFromEnumerable(data);
-            var pipeline = mlContext.Transforms.ToStringTransformer("output", "data");
+            var pipeline = mlContext.Transforms.FeaturizerString("output", "data");
 
             TestEstimatorCore(pipeline, input);
 
@@ -164,7 +164,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var data = new[] { new IntInput() { data = int.MinValue }, new IntInput() { data = int.MaxValue } };
             IDataView input = mlContext.Data.LoadFromEnumerable(data);
-            var pipeline = mlContext.Transforms.ToStringTransformer("output", "data");
+            var pipeline = mlContext.Transforms.FeaturizerString("output", "data");
 
             TestEstimatorCore(pipeline, input);
 
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var data = new[] { new UIntInput() { data = uint.MinValue }, new UIntInput() { data = uint.MaxValue } };
             IDataView input = mlContext.Data.LoadFromEnumerable(data);
-            var pipeline = mlContext.Transforms.ToStringTransformer("output", "data");
+            var pipeline = mlContext.Transforms.FeaturizerString("output", "data");
 
             TestEstimatorCore(pipeline, input);
 
@@ -204,7 +204,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var data = new[] { new LongInput() { data = long.MinValue }, new LongInput() { data = long.MaxValue } };
             IDataView input = mlContext.Data.LoadFromEnumerable(data);
-            var pipeline = mlContext.Transforms.ToStringTransformer("output", "data");
+            var pipeline = mlContext.Transforms.FeaturizerString("output", "data");
 
             TestEstimatorCore(pipeline, input);
 
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var data = new[] { new ULongInput() { data = ulong.MinValue }, new ULongInput() { data = ulong.MaxValue } };
             IDataView input = mlContext.Data.LoadFromEnumerable(data);
-            var pipeline = mlContext.Transforms.ToStringTransformer("output", "data");
+            var pipeline = mlContext.Transforms.FeaturizerString("output", "data");
 
             TestEstimatorCore(pipeline, input);
 
@@ -244,7 +244,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var data = new[] { new FloatInput() { data = float.MinValue}, new FloatInput() { data = float.MaxValue }, new FloatInput() { data = float.NaN } };
             IDataView input = mlContext.Data.LoadFromEnumerable(data);
-            var pipeline = mlContext.Transforms.ToStringTransformer("output", "data");
+            var pipeline = mlContext.Transforms.FeaturizerString("output", "data");
 
             TestEstimatorCore(pipeline, input);
 
@@ -264,7 +264,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var data = new[] { new ShortInput() { data = short.MinValue }, new ShortInput() { data = short.MaxValue } };
             IDataView input = mlContext.Data.LoadFromEnumerable(data);
-            var pipeline = mlContext.Transforms.ToStringTransformer("output", "data");
+            var pipeline = mlContext.Transforms.FeaturizerString("output", "data");
 
             TestEstimatorCore(pipeline, input);
 
@@ -284,7 +284,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var data = new[] { new DoubleInput() { data = double.MinValue}, new DoubleInput() { data = double.MaxValue }, new DoubleInput() { data = double.NaN } };
             IDataView input = mlContext.Data.LoadFromEnumerable(data);
-            var pipeline = mlContext.Transforms.ToStringTransformer("data.out", "data");
+            var pipeline = mlContext.Transforms.FeaturizerString("data.out", "data");
 
             TestEstimatorCore(pipeline, input);
 
@@ -306,7 +306,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var data = new[] { new StringInput() { data = ""}, new StringInput() { data = "Long Dummy String Value" } };
             IDataView input = mlContext.Data.LoadFromEnumerable(data);
-            var pipeline = mlContext.Transforms.ToStringTransformer("output", "data");
+            var pipeline = mlContext.Transforms.FeaturizerString("output", "data");
 
             TestEstimatorCore(pipeline, input);
 
