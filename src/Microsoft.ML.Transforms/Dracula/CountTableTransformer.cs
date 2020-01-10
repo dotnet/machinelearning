@@ -31,7 +31,7 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Transforms
 {
-    public sealed class CountTableEstimator : IEstimator<CountTableTransformer>
+    internal sealed class CountTableEstimator : IEstimator<CountTableTransformer>
     {
         internal abstract class ColumnOptionsBase
         {
@@ -349,7 +349,7 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    public sealed class CountTableTransformer : OneToOneTransformerBase
+    internal sealed class CountTableTransformer : OneToOneTransformerBase
     {
         internal sealed class Options : TransformInputBase
         {
