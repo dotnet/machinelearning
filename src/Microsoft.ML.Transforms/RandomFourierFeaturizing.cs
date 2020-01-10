@@ -47,7 +47,7 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.AtMostOnce, HelpText = "Create two features for every random Fourier frequency? (one for cos and one for sin)")]
             public bool UseSin = ApproximatedKernelMappingEstimator.Defaults.UseCosAndSinBases;
 
-            [Argument(ArgumentType.LastOccurenceWins,
+            [Argument(ArgumentType.LastOccurrenceWins,
                 HelpText = "The seed of the random number generator for generating the new features (if unspecified, " +
                 "the global random is used)")]
             public int? Seed;
@@ -64,7 +64,7 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.AtMostOnce, HelpText = "create two features for every random Fourier frequency? (one for cos and one for sin)")]
             public bool? UseSin;
 
-            [Argument(ArgumentType.LastOccurenceWins,
+            [Argument(ArgumentType.LastOccurrenceWins,
                 HelpText = "The seed of the random number generator for generating the new features (if unspecified, " +
                            "the global random is used)")]
             public int? Seed;

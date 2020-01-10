@@ -54,7 +54,7 @@ namespace Microsoft.ML.Tools
             [Argument(ArgumentType.Multiple, HelpText = "Extra DLLs", ShortName = "dll")]
             public string[] ExtraAssemblies;
 
-            [Argument(ArgumentType.LastOccurenceWins, Hide = true, SignatureType = typeof(SignatureModuleGenerator))]
+            [Argument(ArgumentType.LastOccurrenceWins, Hide = true, SignatureType = typeof(SignatureModuleGenerator))]
             public IComponentFactory<string, IGenerator> Generator;
 #pragma warning restore 649 // never assigned
         }
