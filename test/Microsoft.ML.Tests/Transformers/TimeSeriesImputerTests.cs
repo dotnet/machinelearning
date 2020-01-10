@@ -10,6 +10,7 @@ using Xunit;
 using Xunit.Abstractions;
 using System.Drawing.Printing;
 using System.Linq;
+using Microsoft.ML.TestFramework.Attributes;
 
 namespace Microsoft.ML.Tests.Transformers
 {
@@ -42,8 +43,15 @@ namespace Microsoft.ML.Tests.Transformers
             public string grainA;
             public float dataA;
         }
+        
+        private class TimeSeriesOneGrainStringInput
+        {
+            public long date;
+            public string grainA;
+            public string dataA;
+        }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void NotImputeOneColumn()
         {
             MLContext mlContext = new MLContext(1);
@@ -55,7 +63,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = mlContext.Data.LoadFromEnumerable(dataList);
 
             // Build the pipeline, fit, and transform it.
-            var pipeline = mlContext.Transforms.TimeSeriesImputer("date", new string[] { "grainA" }, new string[] { "dataB"});
+            var pipeline = mlContext.Transforms.ReplaceMissingTimeSeriesValues("date", new string[] { "grainA" }, new string[] { "dataB"});
             var model = pipeline.Fit(data);
             var output = model.Transform(data);
             var schema = output.Schema;
@@ -83,7 +91,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
         
-        [Fact]
+        [NotCentOS7Fact]
         public void ImputeOnlyOneColumn()
         {
             MLContext mlContext = new MLContext(1);
@@ -95,7 +103,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = mlContext.Data.LoadFromEnumerable(dataList);
 
             // Build the pipeline, fit, and transform it.
-            var pipeline = mlContext.Transforms.TimeSeriesImputer("date", new string[] { "grainA" }, new string[] { "dataB"}, TimeSeriesImputerEstimator.FilterMode.Include);
+            var pipeline = mlContext.Transforms.ReplaceMissingTimeSeriesValues("date", new string[] { "grainA" }, new string[] { "dataB"}, TimeSeriesImputerEstimator.FilterMode.Include);
             var model = pipeline.Fit(data);
             var output = model.Transform(data);
             var schema = output.Schema;
@@ -127,7 +135,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void Forwardfill()
         {
             MLContext mlContext = new MLContext(1);
@@ -139,7 +147,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = mlContext.Data.LoadFromEnumerable(dataList);
 
             // Build the pipeline, fit, and transform it.
-            var pipeline = mlContext.Transforms.TimeSeriesImputer("date", new string[] { "grainA" });
+            var pipeline = mlContext.Transforms.ReplaceMissingTimeSeriesValues("date", new string[] { "grainA" });
             var model = pipeline.Fit(data);
             var output = model.Transform(data);
             var prev = output.Preview();
@@ -182,7 +190,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
         
-        [Fact]
+        [NotCentOS7Fact]
         public void EntryPoint()
         {
             MLContext mlContext = new MLContext(1);
@@ -235,7 +243,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void Median()
         {
             MLContext mlContext = new MLContext(1);
@@ -247,7 +255,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = mlContext.Data.LoadFromEnumerable(dataList);
 
             // Build the pipeline, fit, and transform it.
-            var pipeline = mlContext.Transforms.TimeSeriesImputer("date", new string[] { "grainA" }, imputeMode: TimeSeriesImputerEstimator.ImputationStrategy.Median, filterColumns: null, suppressTypeErrors: true);
+            var pipeline = mlContext.Transforms.ReplaceMissingTimeSeriesValues("date", new string[] { "grainA" }, imputeMode: TimeSeriesImputerEstimator.ImputationStrategy.Median, filterColumns: null, suppressTypeErrors: true);
             var model = pipeline.Fit(data);
 
             var output = model.Transform(data);
@@ -292,7 +300,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
         
-        [Fact]
+        [NotCentOS7Fact]
         public void Backfill()
         {
             MLContext mlContext = new MLContext(1);
@@ -304,7 +312,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = mlContext.Data.LoadFromEnumerable(dataList);
 
             // Build the pipeline, fit, and transform it.
-            var pipeline = mlContext.Transforms.TimeSeriesImputer("date", new string[] { "grainA" }, TimeSeriesImputerEstimator.ImputationStrategy.BackFill);
+            var pipeline = mlContext.Transforms.ReplaceMissingTimeSeriesValues("date", new string[] { "grainA" }, TimeSeriesImputerEstimator.ImputationStrategy.BackFill);
             var model = pipeline.Fit(data);
             var output = model.Transform(data);
             var prev = output.Preview();
@@ -347,7 +355,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [NotCentOS7Fact]
         public void BackfillTwoGrain()
         {
             MLContext mlContext = new MLContext(1);
@@ -359,7 +367,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = mlContext.Data.LoadFromEnumerable(dataList);
 
             // Build the pipeline, fit, and transform it.
-            var pipeline = mlContext.Transforms.TimeSeriesImputer("date", new string[] { "grainA", "grainB" }, TimeSeriesImputerEstimator.ImputationStrategy.BackFill);
+            var pipeline = mlContext.Transforms.ReplaceMissingTimeSeriesValues("date", new string[] { "grainA", "grainB" }, TimeSeriesImputerEstimator.ImputationStrategy.BackFill);
             var model = pipeline.Fit(data);
             var output = model.Transform(data);
             var prev = output.Preview();
@@ -396,6 +404,67 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(false, prev.ColumnView[4].Values[6]);
 
             TestEstimatorCore(pipeline, data);
+            Done();
+        }
+
+        [NotCentOS7Fact]
+        public void InvalidTypeForImputationStrategy()
+        {
+            MLContext mlContext = new MLContext(1);
+            var dataList = new[] { new TimeSeriesOneGrainStringInput(){ date = 0L, grainA = "A", dataA = "zero" },
+                new TimeSeriesOneGrainStringInput(){ date = 1L, grainA = "A", dataA = "one" },
+                new TimeSeriesOneGrainStringInput(){ date = 3L, grainA = "A", dataA = "three" },
+                new TimeSeriesOneGrainStringInput(){ date = 5L, grainA = "A", dataA = "five" },
+                new TimeSeriesOneGrainStringInput(){ date = 7L, grainA = "A", dataA = "seven" }};
+            var data = mlContext.Data.LoadFromEnumerable(dataList);
+
+            // When suppressTypeErrors is set to false this will throw an error.
+            var pipeline = mlContext.Transforms.ReplaceMissingTimeSeriesValues("date", new string[] { "grainA" }, imputeMode: TimeSeriesImputerEstimator.ImputationStrategy.Median, filterColumns: null, suppressTypeErrors: false);
+            var ex = Assert.Throws<System.Exception>(() => pipeline.Fit(data));
+            Assert.Equal("Only Numeric type columns are supported for ImputationStrategy median. (use suppressError flag to skip imputing non-numeric types)", ex.Message);
+
+            // When suppressTypeErrors is set to true then the default value will be used.
+            pipeline = mlContext.Transforms.ReplaceMissingTimeSeriesValues("date", new string[] { "grainA" }, imputeMode: TimeSeriesImputerEstimator.ImputationStrategy.Median, filterColumns: null, suppressTypeErrors: true);
+            var model = pipeline.Fit(data);
+
+            var output = model.Transform(data);
+            var prev = output.Preview();
+
+            // Should have 3 original columns + 1 more for IsRowImputed
+            Assert.Equal(4, output.Schema.Count);
+
+            // Imputing rows with dates 2,4,6, so should have length of 8
+            Assert.Equal(8, prev.RowView.Length);
+
+            // Check that imputed rows have the default value
+            Assert.Equal("", prev.ColumnView[2].Values[2].ToString());
+            Assert.Equal("", prev.ColumnView[2].Values[4].ToString());
+            Assert.Equal("", prev.ColumnView[2].Values[6].ToString());
+
+            // Make sure grain was propagated correctly
+            Assert.Equal("A", prev.ColumnView[1].Values[2].ToString());
+            Assert.Equal("A", prev.ColumnView[1].Values[4].ToString());
+            Assert.Equal("A", prev.ColumnView[1].Values[6].ToString());
+
+            // Make sure original values stayed the same
+            Assert.Equal("zero", prev.ColumnView[2].Values[0].ToString());
+            Assert.Equal("one", prev.ColumnView[2].Values[1].ToString());
+            Assert.Equal("three", prev.ColumnView[2].Values[3].ToString());
+            Assert.Equal("five", prev.ColumnView[2].Values[5].ToString());
+            Assert.Equal("seven", prev.ColumnView[2].Values[7].ToString());
+
+            // Make sure IsRowImputed is true for row 2, 4,6 , false for the rest
+            Assert.Equal(false, prev.ColumnView[3].Values[0]);
+            Assert.Equal(false, prev.ColumnView[3].Values[1]);
+            Assert.Equal(true, prev.ColumnView[3].Values[2]);
+            Assert.Equal(false, prev.ColumnView[3].Values[3]);
+            Assert.Equal(true, prev.ColumnView[3].Values[4]);
+            Assert.Equal(false, prev.ColumnView[3].Values[5]);
+            Assert.Equal(true, prev.ColumnView[3].Values[6]);
+            Assert.Equal(false, prev.ColumnView[3].Values[7]);
+
+            TestEstimatorCore(pipeline, data);
+
             Done();
         }
     }

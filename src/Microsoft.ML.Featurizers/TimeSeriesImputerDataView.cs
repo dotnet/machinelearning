@@ -26,7 +26,12 @@ namespace Microsoft.ML.Transforms
         {
             public bool SourceCanMoveNext { get; set; }
             public int TransformedDataPosition { get; set; }
+
+            // This array is used to hold the returned row data from the native transformer. Because we create rows in this transformer, the number
+            // of rows returned from the native code is not always consistent and so this has to be an array.
             public NativeBinaryArchiveData[] TransformedData { get; set; }
+
+            // Hold the serialized data that we are going to send to the native code for processing.
             public byte[] ColumnBuffer { get; set; }
             public TransformedDataSafeHandle TransformedDataHandler { get; set; }
         }
@@ -177,16 +182,18 @@ namespace Microsoft.ML.Transforms
                         }
                     }
 
-                    // Base case where we didn't impute anything
+                    // Base case where we didn't impute the column
                     if (!allImputedColumnNames.Contains(Column.Name))
                     {
                         var imputedData = SharedState.TransformedData[SharedState.TransformedDataPosition];
+                        // If the row was imputed we want to just return the default value for the type.
                         if (BoolTypedColumn.GetBoolFromNativeBinaryArchiveData(imputedData.Data, 0))
                         {
                             dst = default;
                         }
                         else
                         {
+                            // If the row wasn't imputed, get the original value for that row we stored in the queue and return that.
                             if (_position != cursor.Position)
                             {
                                 _position = cursor.Position;
@@ -195,6 +202,7 @@ namespace Microsoft.ML.Transforms
                             dst = _cache;
                         }
                     }
+                    // If we did impute the column then parse the data from the returned byte array.
                     else
                     {
                         var imputedData = SharedState.TransformedData[SharedState.TransformedDataPosition];
@@ -659,7 +667,7 @@ namespace Microsoft.ML.Transforms
              new DataViewRowCursor[] { GetRowCursor(columnsNeeded, rand) };
 
         // Since we may add rows we don't know the row count
-        public long? GetRowCount() { return null; }
+        public long? GetRowCount() => null;
 
         public void Save(ModelSaveContext ctx)
         {
@@ -691,7 +699,7 @@ namespace Microsoft.ML.Transforms
                 var sharedState = new SharedColumnState()
                 {
                     SourceCanMoveNext = true,
-                    ColumnBuffer = new byte[1024]
+                    ColumnBuffer = new byte[4096]
                 };
 
                 _allColumns = _schema.Select(x => TypedColumn.CreateTypedColumn(x, dataColumns, allImputedColumnNames, sharedState)).ToDictionary(x => x.Column.Name); ;
@@ -718,10 +726,7 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Since rows will be generated all columns are active
             /// </summary>
-            public override bool IsColumnActive(DataViewSchema.Column column)
-            {
-                return true;
-            }
+            public override bool IsColumnActive(DataViewSchema.Column column) => true;
 
             protected override void Dispose(bool disposing)
             {
