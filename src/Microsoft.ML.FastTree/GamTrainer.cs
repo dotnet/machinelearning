@@ -124,7 +124,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         internal const string Summary = "Trains a gradient boosted stump per feature, on all features simultaneously, " +
-                                         "to fit target values using least-squares. It mantains " +
+                                         "to fit target values using least-squares. It maintains " +
                                          "no interactions between features.";
         private const string RegisterName = "GamTraining";
 
