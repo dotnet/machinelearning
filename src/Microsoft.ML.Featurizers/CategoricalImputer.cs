@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// This is Auto Generated code used that is being used to unblock other teams.
+// This functionality will be integrated into the MissingValueReplacer over the next several weeks.
+
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -30,7 +33,8 @@ namespace Microsoft.ML.Featurizers
     public static class CategoricalImputerExtensionClass
     {
         /// <summary>
-        /// Create a <see cref="CategoricalImputerEstimator"/>, which fills in the missing values in a column with the most frequent value. Supports Floats, Doubles, and Strings.
+        /// Create a <see cref="CategoricalImputerEstimator"/>, which fills in the missing values in a column with the most frequent value.
+        /// Supports Floats, Doubles, and Strings.
         /// A string is assumed "missing" if it is empty.
         /// </summary>
         /// <param name="catalog">Transform Catalog</param>
@@ -41,14 +45,16 @@ namespace Microsoft.ML.Featurizers
         {
             var options = new CategoricalImputerEstimator.Options
             {
-                Columns = new CategoricalImputerEstimator.Column[1] { new CategoricalImputerEstimator.Column() { Name = outputColumnName, Source = inputColumnName ?? outputColumnName } }
+                Columns = new CategoricalImputerEstimator.Column[1] { new CategoricalImputerEstimator.Column()
+                    { Name = outputColumnName, Source = inputColumnName ?? outputColumnName } }
             };
 
             return new CategoricalImputerEstimator(CatalogUtils.GetEnvironment(catalog), options);
         }
 
         /// <summary>
-        /// Create a <see cref="CategoricalImputerEstimator"/>, which fills in the missing values in a column with the most frequent value. Supports Floats, Doubles, and Strings.
+        /// Create a <see cref="CategoricalImputerEstimator"/>, which fills in the missing values in a column with the most frequent value.
+        /// Supports Floats, Doubles, and Strings.
         /// A string is assumed "missing" if it is empty.
         /// </summary>
         /// <param name="catalog">Transform Catalog</param>
@@ -58,7 +64,8 @@ namespace Microsoft.ML.Featurizers
         {
             var options = new CategoricalImputerEstimator.Options
             {
-                Columns = columns.Select(x => new CategoricalImputerEstimator.Column { Name = x.OutputColumnName, Source = x.InputColumnName ?? x.OutputColumnName }).ToArray(),
+                Columns = columns.Select(x => new CategoricalImputerEstimator.Column
+                    { Name = x.OutputColumnName, Source = x.InputColumnName ?? x.OutputColumnName }).ToArray(),
             };
 
             return new CategoricalImputerEstimator(CatalogUtils.GetEnvironment(catalog), options);
@@ -78,6 +85,7 @@ namespace Microsoft.ML.Featurizers
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
     /// | Input column data type | Float, Double, String |
     /// | Output column data type | Same as input column |
+    /// | Exportable to ONNX | No |
     ///
     /// The <xref:Microsoft.ML.Transforms.CategoryImputerEstimator> is not a trivial estimator and needs training.
     ///
@@ -250,7 +258,7 @@ namespace Microsoft.ML.Featurizers
             {
                 ctx.Writer.Write(column.Name);
                 ctx.Writer.Write(column.Source);
-                ctx.Writer.Write(column.Type);
+                ctx.Writer.Write(column.TypeAsString);
 
                 // Save C++ state
                 var data = column.CreateTransformerSaveData();
@@ -283,19 +291,22 @@ namespace Microsoft.ML.Featurizers
         {
             internal readonly string Name;
             internal readonly string Source;
-            internal readonly string Type;
+            internal readonly string TypeAsString;
+            internal readonly Type Type;
 
+            private protected TransformerEstimatorSafeHandle TransformerHandler;
             private static readonly Type[] _supportedTypes = new Type[] { typeof(float), typeof(double), typeof(ReadOnlyMemory<char>) };
 
-            internal TypedColumn(string name, string source, string type)
+            internal TypedColumn(string name, string source, Type type)
             {
                 Name = name;
                 Source = source;
                 Type = type;
+                TypeAsString = type.ToString();
             }
 
             internal abstract void CreateTransformerFromEstimator(IDataView input);
-            private protected abstract unsafe void CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize);
+            private protected abstract unsafe TransformerEstimatorSafeHandle CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize);
             private protected abstract bool CreateTransformerSaveDataHelper(out IntPtr buffer, out IntPtr bufferSize, out IntPtr errorHandle);
             public abstract void Dispose();
 
@@ -324,7 +335,7 @@ namespace Microsoft.ML.Featurizers
                 fixed (byte* rawData = data)
                 {
                     IntPtr dataSize = new IntPtr(data.Count());
-                    CreateTransformerFromSavedDataHelper(rawData, dataSize);
+                    TransformerHandler = CreateTransformerFromSavedDataHelper(rawData, dataSize);
                 }
             }
 
@@ -351,7 +362,7 @@ namespace Microsoft.ML.Featurizers
         {
             private protected T Result;
 
-            internal TypedColumn(string name, string source, string type) :
+            internal TypedColumn(string name, string source, Type type) :
                 base(name, source, type)
             {
             }
@@ -363,6 +374,7 @@ namespace Microsoft.ML.Featurizers
             private protected abstract bool DestroyTransformerHelper(IntPtr transformer, out IntPtr errorHandle);
             private protected abstract bool FitHelper(TransformerEstimatorSafeHandle estimator, T input, out FitResult fitResult, out IntPtr errorHandle);
             private protected abstract bool CompleteTrainingHelper(TransformerEstimatorSafeHandle estimator, out FitResult fitResult, out IntPtr errorHandle);
+
             private protected TransformerEstimatorSafeHandle CreateTransformerFromEstimatorBase(IDataView input)
             {
                 var success = CreateEstimatorHelper(out IntPtr estimator, out IntPtr errorHandle);
@@ -378,11 +390,9 @@ namespace Microsoft.ML.Featurizers
                         {
                             while (fitResult == FitResult.Continue && data.MoveNext())
                             {
-                                {
-                                    success = FitHelper(estimatorHandler, data.Current, out fitResult, out errorHandle);
-                                    if (!success)
-                                        throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
-                                }
+                                success = FitHelper(estimatorHandler, data.Current, out fitResult, out errorHandle);
+                                if (!success)
+                                    throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
                             }
 
                             success = CompleteTrainingHelper(estimatorHandler, out fitResult, out errorHandle);
@@ -406,13 +416,9 @@ namespace Microsoft.ML.Featurizers
 
         internal sealed class FloatTypedColumn : TypedColumn<float>
         {
-            private TransformerEstimatorSafeHandle _transformerHandler;
-
             internal FloatTypedColumn(string name, string source) :
-                base(name, source, typeof(float).ToString())
+                base(name, source, typeof(float))
             {
-                // The result can never be a NaN value, so we can use this to check if its been initialized or not.
-                Result = float.NaN;
             }
 
             [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_float_t_CreateEstimator", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
@@ -425,18 +431,34 @@ namespace Microsoft.ML.Featurizers
             private static extern bool CreateTransformerFromEstimatorNative(TransformerEstimatorSafeHandle estimator, out IntPtr transformer, out IntPtr errorHandle);
             internal override void CreateTransformerFromEstimator(IDataView input)
             {
-                _transformerHandler = CreateTransformerFromEstimatorBase(input);
+                TransformerHandler = CreateTransformerFromEstimatorBase(input);
+
+                // Get the result of the transform and cache it so its cached before transform is called. Pass in float.NaN so we get the Mode back.
+                var success = TransformDataNative(TransformerHandler, float.NaN, out float output, out IntPtr errorHandle);
+                if (!success)
+                    throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
+
+                Result = output;
             }
 
             [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_float_t_CreateTransformerFromSavedData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static unsafe extern bool CreateTransformerFromSavedDataNative(byte* rawData, IntPtr bufferSize, out IntPtr transformer, out IntPtr errorHandle);
-            private protected override unsafe void CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
+            private protected override unsafe TransformerEstimatorSafeHandle CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
             {
-                var result = CreateTransformerFromSavedDataNative(rawData, dataSize, out IntPtr transformer, out IntPtr errorHandle);
-                if (!result)
+                var success = CreateTransformerFromSavedDataNative(rawData, dataSize, out IntPtr transformer, out IntPtr errorHandle);
+                if (!success)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
-                _transformerHandler = new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
+                var handle = new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
+
+                // Get the result of the transform and cache it so its cached before transform is called. Pass in float.NaN so we get the Mode back.
+                success = TransformDataNative(handle, float.NaN, out float output, out errorHandle);
+                if (!success)
+                    throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
+
+                Result = output;
+
+                return handle;
             }
 
             [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_float_t_DestroyTransformer", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
@@ -446,25 +468,15 @@ namespace Microsoft.ML.Featurizers
             internal override float Transform(float input)
             {
                 if (!float.IsNaN(input))
-                {
                     return input;
-                }
-                else if (float.IsNaN(Result))
-                {
-                    var success = TransformDataNative(_transformerHandler, input, out float output, out IntPtr errorHandle);
-                    if (!success)
-                        throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
-
-                    Result = output;
-                }
 
                 return Result;
             }
 
             public override void Dispose()
             {
-                if (!_transformerHandler.IsClosed)
-                    _transformerHandler.Dispose();
+                if (!TransformerHandler.IsClosed)
+                    TransformerHandler.Dispose();
             }
 
             private protected override bool CreateEstimatorHelper(out IntPtr estimator, out IntPtr errorHandle) =>
@@ -492,7 +504,7 @@ namespace Microsoft.ML.Featurizers
             [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_float_t_CreateTransformerSaveData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool CreateTransformerSaveDataNative(TransformerEstimatorSafeHandle transformer, out IntPtr buffer, out IntPtr bufferSize, out IntPtr error);
             private protected override bool CreateTransformerSaveDataHelper(out IntPtr buffer, out IntPtr bufferSize, out IntPtr errorHandle) =>
-                CreateTransformerSaveDataNative(_transformerHandler, out buffer, out bufferSize, out errorHandle);
+                CreateTransformerSaveDataNative(TransformerHandler, out buffer, out bufferSize, out errorHandle);
         }
 
         #endregion
@@ -501,12 +513,9 @@ namespace Microsoft.ML.Featurizers
 
         internal sealed class DoubleTypedColumn : TypedColumn<double>
         {
-            private TransformerEstimatorSafeHandle _transformerHandler;
-
             internal DoubleTypedColumn(string name, string source) :
-                base(name, source, typeof(double).ToString())
+                base(name, source, typeof(double))
             {
-                Result = double.NaN;
             }
 
             [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_double_t_CreateEstimator", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
@@ -519,18 +528,34 @@ namespace Microsoft.ML.Featurizers
             private static extern bool CreateTransformerFromEstimatorNative(TransformerEstimatorSafeHandle estimator, out IntPtr transformer, out IntPtr errorHandle);
             internal override void CreateTransformerFromEstimator(IDataView input)
             {
-                _transformerHandler = CreateTransformerFromEstimatorBase(input);
+                TransformerHandler = CreateTransformerFromEstimatorBase(input);
+
+                // Get the result of the transform and cache it so its cached when Transform is called. Pass in double.NaN so we get the Mode back.
+                var success = TransformDataNative(TransformerHandler, double.NaN, out double output, out IntPtr errorHandle);
+                if (!success)
+                    throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
+
+                Result = output;
             }
 
             [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_double_t_CreateTransformerFromSavedData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static unsafe extern bool CreateTransformerFromSavedDataNative(byte* rawData, IntPtr bufferSize, out IntPtr transformer, out IntPtr errorHandle);
-            private protected override unsafe void CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
+            private protected override unsafe TransformerEstimatorSafeHandle CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
             {
-                var result = CreateTransformerFromSavedDataNative(rawData, dataSize, out IntPtr transformer, out IntPtr errorHandle);
-                if (!result)
+                var success = CreateTransformerFromSavedDataNative(rawData, dataSize, out IntPtr transformer, out IntPtr errorHandle);
+                if (!success)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
-                _transformerHandler = new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
+                var handle = new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
+
+                // Get the result of the transform and cache it. Pass in double.NaN so we get the Mode back.
+                success = TransformDataNative(handle, double.NaN, out double output, out errorHandle);
+                if (!success)
+                    throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
+
+                Result = output;
+
+                return handle;
             }
 
             [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_double_t_DestroyTransformer", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
@@ -541,25 +566,15 @@ namespace Microsoft.ML.Featurizers
             internal override double Transform(double input)
             {
                 if (!double.IsNaN(input))
-                {
                     return input;
-                }
-                else if (double.IsNaN(Result))
-                {
-                    var success = TransformDataNative(_transformerHandler, input, out double output, out IntPtr errorHandle);
-                    if (!success)
-                        throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
-
-                    Result = output;
-                }
 
                 return Result;
             }
 
             public override void Dispose()
             {
-                if (!_transformerHandler.IsClosed)
-                    _transformerHandler.Dispose();
+                if (!TransformerHandler.IsClosed)
+                    TransformerHandler.Dispose();
             }
 
             private protected override bool CreateEstimatorHelper(out IntPtr estimator, out IntPtr errorHandle) =>
@@ -587,7 +602,7 @@ namespace Microsoft.ML.Featurizers
             [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_double_t_CreateTransformerSaveData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool CreateTransformerSaveDataNative(TransformerEstimatorSafeHandle transformer, out IntPtr buffer, out IntPtr bufferSize, out IntPtr error);
             private protected override bool CreateTransformerSaveDataHelper(out IntPtr buffer, out IntPtr bufferSize, out IntPtr errorHandle) =>
-                CreateTransformerSaveDataNative(_transformerHandler, out buffer, out bufferSize, out errorHandle);
+                CreateTransformerSaveDataNative(TransformerHandler, out buffer, out bufferSize, out errorHandle);
         }
 
         #endregion
@@ -596,12 +611,9 @@ namespace Microsoft.ML.Featurizers
 
         internal sealed class ReadOnlyCharTypedColumn : TypedColumn<ReadOnlyMemory<char>>
         {
-            private TransformerEstimatorSafeHandle _transformerHandler;
-
             internal ReadOnlyCharTypedColumn(string name, string source) :
-                base(name, source, typeof(ReadOnlyMemory<char>).ToString())
+                base(name, source, typeof(ReadOnlyMemory<char>))
             {
-                Result = new ReadOnlyMemory<char>();
             }
 
             [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_string_CreateEstimator", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
@@ -612,20 +624,56 @@ namespace Microsoft.ML.Featurizers
 
             [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_string_CreateTransformerFromEstimator", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool CreateTransformerFromEstimatorNative(TransformerEstimatorSafeHandle estimator, out IntPtr transformer, out IntPtr errorHandle);
-            internal override void CreateTransformerFromEstimator(IDataView input)
+            internal override unsafe void CreateTransformerFromEstimator(IDataView input)
             {
-                _transformerHandler = CreateTransformerFromEstimatorBase(input);
+                TransformerHandler = CreateTransformerFromEstimatorBase(input);
+
+                // Get the result of the transform and cache it. Pass in null so we get the Mode back.
+                var result = TransformDataNative(TransformerHandler, null, out IntPtr output, out IntPtr outputSize, out IntPtr errorHandle);
+                if (!result)
+                    throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
+
+                using (var handler = new TransformedDataSafeHandle(output, outputSize, DestroyTransformedDataNative))
+                {
+#if NETSTANDARD2_0
+                    byte[] buffer = new byte[outputSize.ToInt32()];
+                    Marshal.Copy(output, buffer, 0, buffer.Length);
+                    Result = new ReadOnlyMemory<char>(Encoding.UTF8.GetString(buffer).ToArray());
+#else
+                    var buffer = new ReadOnlySpan<byte>(output.ToPointer(), outputSize.ToInt32());
+                    Result = new ReadOnlyMemory<char>(Encoding.UTF8.GetString(buffer).ToArray());
+#endif
+                }
             }
 
             [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_string_CreateTransformerFromSavedData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static unsafe extern bool CreateTransformerFromSavedDataNative(byte* rawData, IntPtr bufferSize, out IntPtr transformer, out IntPtr errorHandle);
-            private protected override unsafe void CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
+            private protected override unsafe TransformerEstimatorSafeHandle CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
             {
                 var result = CreateTransformerFromSavedDataNative(rawData, dataSize, out IntPtr transformer, out IntPtr errorHandle);
                 if (!result)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
-                _transformerHandler = new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
+                var handle = new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
+
+                // Get the result of the transform and cache it. Pass in null so we get the Mode back.
+                result = TransformDataNative(handle, null, out IntPtr output, out IntPtr outputSize, out errorHandle);
+                if (!result)
+                    throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
+
+                using (var handler = new TransformedDataSafeHandle(output, outputSize, DestroyTransformedDataNative))
+                {
+#if NETSTANDARD2_0
+                    byte[] buffer = new byte[outputSize.ToInt32()];
+                    Marshal.Copy(output, buffer, 0, buffer.Length);
+                    Result = new ReadOnlyMemory<char>(Encoding.UTF8.GetString(buffer).ToArray());
+#else
+                    var buffer = new ReadOnlySpan<byte>(output.ToPointer(), outputSize.ToInt32());
+                    Result = new ReadOnlyMemory<char>(Encoding.UTF8.GetString(buffer).ToArray());
+#endif
+                }
+
+                return handle;
             }
 
             [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_string_DestroyTransformer", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
@@ -638,45 +686,15 @@ namespace Microsoft.ML.Featurizers
             internal unsafe override ReadOnlyMemory<char> Transform(ReadOnlyMemory<char> input)
             {
                 if (!input.IsEmpty)
-                {
                     return input;
-                }
-                else if (Result.IsEmpty)
-                {
-                    var inputAsString = input.ToString();
-                    fixed (byte* interopInput = string.IsNullOrEmpty(inputAsString) ? null : Encoding.UTF8.GetBytes(inputAsString + char.MinValue))
-                    {
-                        var result = TransformDataNative(_transformerHandler, interopInput, out IntPtr output, out IntPtr outputSize, out IntPtr errorHandle);
-
-                        if (!result)
-                        {
-                            throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
-                        }
-
-                        if (outputSize.ToInt32() == 0)
-                            return new ReadOnlyMemory<char>(string.Empty.ToArray());
-
-                        using (var handler = new TransformedDataSafeHandle(output, outputSize, DestroyTransformedDataNative))
-                        {
-#if NETSTANDARD2_0
-                            byte[] buffer = new byte[outputSize.ToInt32()];
-                            Marshal.Copy(output, buffer, 0, buffer.Length);
-                            Result = new ReadOnlyMemory<char>(Encoding.UTF8.GetString(buffer).ToArray());
-#else
-                            var buffer = new ReadOnlySpan<byte>(output.ToPointer(), outputSize.ToInt32());
-                            Result = new ReadOnlyMemory<char>(Encoding.UTF8.GetString(buffer).ToArray());
-#endif
-                        }
-                    }
-                }
 
                 return Result;
             }
 
             public override void Dispose()
             {
-                if (!_transformerHandler.IsClosed)
-                    _transformerHandler.Dispose();
+                if (!TransformerHandler.IsClosed)
+                    TransformerHandler.Dispose();
             }
 
             private protected override bool CreateEstimatorHelper(out IntPtr estimator, out IntPtr errorHandle) =>
@@ -710,7 +728,7 @@ namespace Microsoft.ML.Featurizers
             [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_string_CreateTransformerSaveData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool CreateTransformerSaveDataNative(TransformerEstimatorSafeHandle transformer, out IntPtr buffer, out IntPtr bufferSize, out IntPtr error);
             private protected override bool CreateTransformerSaveDataHelper(out IntPtr buffer, out IntPtr bufferSize, out IntPtr errorHandle) =>
-                CreateTransformerSaveDataNative(_transformerHandler, out buffer, out bufferSize, out errorHandle);
+                CreateTransformerSaveDataNative(TransformerHandler, out buffer, out bufferSize, out errorHandle);
         }
 
 #endregion
@@ -734,7 +752,7 @@ namespace Microsoft.ML.Featurizers
 
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                return _parent._columns.Select(x => new DataViewSchema.DetachedColumn(x.Name, ColumnTypeExtensions.PrimitiveTypeFromType(Type.GetType(x.Type)))).ToArray();
+                return _parent._columns.Select(x => new DataViewSchema.DetachedColumn(x.Name, ColumnTypeExtensions.PrimitiveTypeFromType(x.Type))).ToArray();
             }
 
             private Delegate MakeGetter<T>(DataViewRow input, int iinfo)
