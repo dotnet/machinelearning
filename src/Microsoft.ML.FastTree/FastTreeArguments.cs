@@ -837,15 +837,15 @@ namespace Microsoft.ML.Trainers.FastTree
         internal string PositionDiscountFreeform;
 
 #if !NO_STORE
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Offload feature bins to a file store", ShortName = "fbsopt", Hide = true)]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Offload feature bins to a file store", ShortName = "fbsopt", Hide = true)]
         [TGUI(NotGUI = true)]
         public bool offloadBinsToFileStore;
 
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Directory used to offload feature bins", ShortName = "fbsoptdir", Hide = true)]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Directory used to offload feature bins", ShortName = "fbsoptdir", Hide = true)]
         [TGUI(NotGUI = true)]
         public string offloadBinsDirectory = string.Empty;
 
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Preloads feature bins needed for the next iteration when bins file store is used", ShortName = "fbsoptpreload", Hide = true)]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Preloads feature bins needed for the next iteration when bins file store is used", ShortName = "fbsoptpreload", Hide = true)]
         [TGUI(NotGUI = true)]
         public bool preloadFeatureBinsBeforeTraining;
 #endif
