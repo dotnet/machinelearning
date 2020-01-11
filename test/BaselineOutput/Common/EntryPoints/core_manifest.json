@@ -10508,7 +10508,7 @@
     },
     {
       "Name": "Trainers.GeneralizedAdditiveModelBinaryClassifier",
-      "Desc": "Trains a gradient boosted stump per feature, on all features simultaneously, to fit target values using least-squares. It mantains no interactions between features.",
+      "Desc": "Trains a gradient boosted stump per feature, on all features simultaneously, to fit target values using least-squares. It maintains no interactions between features.",
       "FriendlyName": "Generalized Additive Model for Binary Classification",
       "ShortName": "gam",
       "Inputs": [
