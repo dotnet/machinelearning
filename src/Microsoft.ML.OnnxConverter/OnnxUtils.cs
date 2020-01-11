@@ -405,6 +405,20 @@ namespace Microsoft.ML.Model.OnnxConverter
             return tensor;
         }
 
+        // Make double vector (i.e., 1-D tensor) with dims=null. Otherwise, dims is used as the shape of the produced tensor.
+        public static TensorProto MakeDouble(string name, IEnumerable<double> values, IEnumerable<long> dims = null)
+        {
+            var tensor = new TensorProto();
+            tensor.Name = name;
+            tensor.DataType = (int)TensorProto.Types.DataType.Double;
+            tensor.DoubleData.AddRange(values);
+            if (dims != null)
+                tensor.Dims.AddRange(dims);
+            else
+                tensor.Dims.Add(values.Count());
+            return tensor;
+        }
+
         // Make float scalar in ONNX from native C# number
         public static TensorProto MakeFloat(string name, float value)
         {

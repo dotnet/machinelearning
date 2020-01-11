@@ -171,6 +171,16 @@ namespace Microsoft.ML.Model.OnnxConverter
         public abstract string AddInitializer(IEnumerable<long> values, IEnumerable<long> dims, string name = null, bool makeUniqueName = true);
 
         /// <summary>
+        /// Call this function can declare a global double tensor
+        /// </summary>
+        /// <param name="values">The doubles which are going to be added into the ONNX graph</param>
+        /// <param name="dims">The shape that the doubles</param>
+        /// <param name="name">A string used as a seed to generate this initializer's name in the ONNX graph.</param>
+        /// <param name="makeUniqueName">Whether a unique name should be picked for this initializer.</param>
+        /// <returns>The initializer's ONNX name</returns>
+        public abstract string AddInitializer(IEnumerable<double> values, IEnumerable<long> dims, string name = null, bool makeUniqueName = true);
+
+        /// <summary>
         /// Call this function can declare a global string tensor
         /// </summary>
         /// <param name="values">The strings which are going to be added into the ONNX graph</param>
