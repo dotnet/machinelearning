@@ -74,22 +74,31 @@ namespace Samples.Dynamic
             for (int i = 0; i < column.Length; i++)
                 Console.WriteLine(string.Join(", ", column[i].Select(x => x
                 .ToString("f4"))) + "\t\t" + 
-                string.Join(", ", column[i].Select(x => x.ToString("f4"))));
+                string.Join(", ", column2[i].Select(x => x.ToString("f4"))));
 
             // Expected output:
-            // Features                               Features2  
-            //0.6667, 0.6667, 1.0000, 0.0000          0.6667, 0.6667, 1.0000, 0.0000
-            //1.0000, 1.0000, 0.7500, 0.0000          1.0000, 1.0000, 0.7500, 0.0000
-            //0.3333, 0.3333, 0.5000, 0.0000          0.3333, 0.3333, 0.5000, 0.0000
-            //0.0000, 0.0000, 0.0000, 1.0000          0.0000, 0.0000, 0.0000, 1.0000
-            var columnFixZero = fixZeroData.GetColumn<float[]>("Features")
-                .ToArray();
+            // Features                                Features2  
+            // 0.6667, 0.6667, 1.0000, 0.0000          0.0000, 0.2857, 0.0000
+            // 1.0000, 1.0000, 0.7500, 0.0000          0.2500, 0.5714, 0.4000
+            // 0.3333, 0.3333, 0.5000, 0.0000          0.6250, 1.0000, 1.0000
+            // 0.0000, 0.0000, 0.0000, 1.0000          1.0000, 0.0000, 0.2000
 
-            foreach (var row in columnFixZero)
-                Console.WriteLine(string.Join(", ", row.Select(x => x.ToString(
-                    "f4"))));
+            var columnFixZero = fixZeroData.GetColumn<float[]>("Features").ToArray();
+            var column2FixZero = fixZeroData.GetColumn<float[]>("Features2").ToArray();
+
+            Console.WriteLine(Environment.NewLine);
+
+            for (int i = 0; i < column.Length; i++)
+                Console.WriteLine(string.Join(", ", columnFixZero[i].Select(x => x
+                .ToString("f4"))) + "\t\t" +
+                string.Join(", ", column2FixZero[i].Select(x => x.ToString("f4"))));
 
             // Expected output:
+            // Features                                Features2  
+            // 0.5000, 0.5000, 1.0000, 0.0000          0.1111, 0.2857, 0.3750
+            // 1.0000, 1.0000, 0.6667, 0.0000          0.3333, 0.5714, 0.6250
+            // 0.0000, 0.0000, 0.3333, 0.0000          0.6667, 1.0000, 1.0000
+            // -0.5000, -0.5000, -0.3333, 1.0000       1.0000, 0.0000, 0.5000
 
             // Let's get transformation parameters. Since we work with only one
             // column we need to pass 0 as parameter for
@@ -97,6 +106,8 @@ namespace Samples.Dynamic
             // transformations we need to pass index of InputOutputColumnPair.
             var transformParams = normalizeTransform.GetNormalizerModelParameters(0)
                 as AffineNormalizerModelParameters<ImmutableArray<float>>;
+
+            Console.WriteLine(Environment.NewLine);
 
             Console.WriteLine($"The 1-index value in resulting array would be " +
                 $"produce by:");
@@ -106,7 +117,8 @@ namespace Samples.Dynamic
                 .Scale[1]);
 
             // Expected output:
-            //  The 1-index value in resulting array would be produce by: 
+            //  The 1-index value in resulting array would be produce by:
+            //  y = (x - (-1)) * 0.3333333
         }
 
         private class DataPoint
