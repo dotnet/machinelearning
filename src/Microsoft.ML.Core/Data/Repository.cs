@@ -256,7 +256,7 @@ namespace Microsoft.ML
             string root = Path.GetFullPath(DirTemp ?? @"x:\dummy");
             string entityPath = Path.Combine(root, dir ?? "", name);
             entityPath = Path.GetFullPath(entityPath);
-            string tempPath = Path.Combine(root, Guid.NewGuid().ToString(), PathMap.Count.ToString());
+            string tempPath = Path.Combine(root, Guid.NewGuid().ToString());
             tempPath = Path.GetFullPath(tempPath);
 
             string parent = Path.GetDirectoryName(entityPath);
@@ -340,7 +340,9 @@ namespace Microsoft.ML
 
             Stream stream;
             if (pathTemp != null)
+            {
                 stream = new FileStream(pathTemp, FileMode.CreateNew);
+            }
             else
                 stream = new MemoryStream();
 
