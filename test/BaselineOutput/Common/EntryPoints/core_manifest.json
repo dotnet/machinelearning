@@ -4071,7 +4071,7 @@
         {
           "Name": "TrainSize",
           "Type": "Int",
-          "Desc": "The length of series from the begining used for training.",
+          "Desc": "The length of series from the beginning used for training.",
           "Required": true,
           "SortOrder": 2.0,
           "IsNullable": false,
