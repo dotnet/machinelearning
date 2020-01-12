@@ -340,9 +340,7 @@ namespace Microsoft.ML
 
             Stream stream;
             if (pathTemp != null)
-            {
                 stream = new FileStream(pathTemp, FileMode.CreateNew);
-            }
             else
                 stream = new MemoryStream();
 
