@@ -10,7 +10,7 @@ namespace Microsoft.ML.Samples
 
         internal static void RunAll()
         {
-            ImageClassificationDefault2.Example();
+            ImageClassificationDefault2.MyMain();
         }
     }
 }

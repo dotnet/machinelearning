@@ -9,13 +9,59 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ML;
 using Microsoft.ML.Data;
+using Microsoft.ML.Experimental;
 using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Samples.Dynamic
 {
     public class ImageClassificationDefault2
     {
-        public static void Example()
+        public static void MyMain()
+        {
+            MLContext mlContext = new MLContext(seed: 1);
+            var kbTask = Task.Run(() =>
+            {
+                ConsoleListener(mlContext);
+            });
+
+            // thread that performs main work
+            Task.Run(() => {
+                Example(mlContext);
+            });
+
+            Console.WriteLine("Type commands followed by 'ENTER'");
+            Console.WriteLine("Enter 'C' to end program.");
+            Console.WriteLine();
+
+            // keep Console running until cancellation token is invoked
+            kbTask.Wait();
+        }
+
+
+        static void ConsoleListener(MLContext ctx)
+        {
+            while (true)
+            {
+                string userInput = Console.ReadLine();
+                if (userInput == "c")
+                {
+                    Console.WriteLine("Cancelation Requested");
+                    ctx.CancelExecution();
+                    GC.Collect();
+                }
+                else if (userInput == "q")
+                {
+                    break;
+                }
+                else
+                {
+                    // handle input
+                    Console.WriteLine("Executing user command {0}...", userInput);
+                }
+            }
+        }
+
+        public static void Example(MLContext mlContext)
         {
             // Set the path for input images.
             string assetsRelativePath = @"../../../assets";
@@ -31,8 +77,7 @@ namespace Samples.Dynamic
             string fullImagesetFolderPath = Path.Combine(
                 imagesDownloadFolderPath, finalImagesFolderName);
 
-            MLContext mlContext = new MLContext(seed: 1);
-            mlContext.Log += MlContext_Log;
+            // mlContext.Log += MlContext_Log;
 
             // Load all the original images info
             IEnumerable<ImageData> images = LoadImagesFromDirectory(
@@ -82,35 +127,45 @@ namespace Samples.Dynamic
             // ...
             // [Source=ImageClassificationTrainer; ImageClassificationTrainer, Kind=Trace] Phase: Training, Dataset used:      Train, Batch Processed Count:  18, Learning Rate: 0.004759203 Epoch:  25, Accuracy:          1, Cross-Entropy: 0.04848097
             // [Source=ImageClassificationTrainer; ImageClassificationTrainer, Kind=Trace] Phase: Training, Dataset used:      Train, Batch Processed Count:  18, Learning Rate: 0.004473651 Epoch:  26, Accuracy:          1, Cross-Entropy: 0.04930306
-            var trainedModel = pipeline.Fit(trainDataset);
 
-            Console.WriteLine("Training with transfer learning finished.");
+            try
+            {
+                var trainedModel = pipeline.Fit(trainDataset);
 
-            // Save the trained model.
-            mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
-                "model.zip");
+                Console.WriteLine("Training with transfer learning finished.");
 
-            // Load the trained and saved model for prediction.
-            ITransformer loadedModel;
-            DataViewSchema schema;
-            using (var file = File.OpenRead("model.zip"))
-                loadedModel = mlContext.Model.Load(file, out schema);
+                // Save the trained model.
+                mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
+                    "model.zip");
 
-            // Evaluate the model on the test dataset.
-            // Sample output:
-            // Making bulk predictions and evaluating model's quality...
-            // Micro-accuracy: 0.925925925925926,macro-accuracy = 0.933333333333333
-            EvaluateModel(mlContext, testDataset, loadedModel);
+                // Load the trained and saved model for prediction.
+                ITransformer loadedModel;
+                DataViewSchema schema;
+                using (var file = File.OpenRead("model.zip"))
+                    loadedModel = mlContext.Model.Load(file, out schema);
 
-            // Predict on a single image class using an in-memory image.
-            // Sample output:
-            // Scores :  [0.8657553,0.006911285,1.46484E-05,0.1266835,0.0006352618], Predicted Label : daisy
-            TrySinglePrediction(fullImagesetFolderPath, mlContext, loadedModel);
+                // Evaluate the model on the test dataset.
+                // Sample output:
+                // Making bulk predictions and evaluating model's quality...
+                // Micro-accuracy: 0.925925925925926,macro-accuracy = 0.933333333333333
+                EvaluateModel(mlContext, testDataset, loadedModel);
 
-            Console.WriteLine("Prediction on a single image finished.");
+                // Predict on a single image class using an in-memory image.
+                // Sample output:
+                // Scores :  [0.8657553,0.006911285,1.46484E-05,0.1266835,0.0006352618], Predicted Label : daisy
+                TrySinglePrediction(fullImagesetFolderPath, mlContext, loadedModel);
 
-            Console.WriteLine("Press any key to finish");
-            Console.ReadKey();
+                Console.WriteLine("Prediction on a single image finished.");
+            }
+            catch(OperationCanceledException e)
+            {
+                Console.WriteLine($"{nameof(OperationCanceledException)} thrown with message: {e.Message}");
+            }
+            finally
+            {
+                Console.WriteLine("Exiting Example Method");
+            }
+
         }
 
         private static void MlContext_Log(object sender, LoggingEventArgs e)
