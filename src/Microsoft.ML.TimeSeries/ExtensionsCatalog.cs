@@ -156,7 +156,7 @@ namespace Microsoft.ML
         /// The vector contains Alert, Raw Score, P-Value as first three values.</param>
         /// <param name="windowSize">The length of the window on the series for building the trajectory matrix (parameter L).</param>
         /// <param name="seriesLength">The length of series that is kept in buffer for modeling (parameter N).</param>
-        /// <param name="trainSize">The length of series from the begining used for training.</param>
+        /// <param name="trainSize">The length of series from the beginning used for training.</param>
         /// <param name="horizon">The number of values to forecast.</param>
         /// <param name="isAdaptive">The flag determing whether the model is adaptive.</param>
         /// <param name="discountFactor">The discount factor in [0,1] used for online updates.</param>

@@ -279,7 +279,7 @@ namespace Microsoft.ML.Trainers.Recommender
             }
 
             // The index system in the LIBMF (the library trains the model) is 0-based, so we need to deduct one
-            // from 1-based indexes returned by ML.NET's key-valued getters. We also throw when seeing 0 becuase
+            // from 1-based indexes returned by ML.NET's key-valued getters. We also throw when seeing 0 because
             // missing index is not meaningful to the trained model.
             dst = Score((int)(srcCol - 1), (int)(srcRow - 1));
         }

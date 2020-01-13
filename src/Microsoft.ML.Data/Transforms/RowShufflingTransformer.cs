@@ -42,20 +42,20 @@ namespace Microsoft.ML.Transforms
         public sealed class Options
         {
             // REVIEW: A more intelligent heuristic, based on the expected size of the inputs, perhaps?
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The pool will have this many rows", ShortName = "rows")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The pool will have this many rows", ShortName = "rows")]
             public int PoolRows = Defaults.PoolRows;
 
             // REVIEW: Come up with a better way to specify the desired set of functionality.
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "If true, the transform will not attempt to shuffle the input cursor but only shuffle based on the pool. This parameter has no effect if the input data was not itself shufflable.", ShortName = "po")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "If true, the transform will not attempt to shuffle the input cursor but only shuffle based on the pool. This parameter has no effect if the input data was not itself shufflable.", ShortName = "po")]
             public bool PoolOnly = Defaults.PoolOnly;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "If true, the transform will always provide a shuffled view.", ShortName = "force")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "If true, the transform will always provide a shuffled view.", ShortName = "force")]
             public bool ForceShuffle = Defaults.ForceShuffle;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "If true, the transform will always shuffle the input. The default value is the same as forceShuffle.", ShortName = "forceSource")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "If true, the transform will always shuffle the input. The default value is the same as forceShuffle.", ShortName = "forceSource")]
             public bool? ForceShuffleSource;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The random seed to use for forced shuffling.", ShortName = "seed")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The random seed to use for forced shuffling.", ShortName = "seed")]
             public int? ForceShuffleSeed;
         }
 

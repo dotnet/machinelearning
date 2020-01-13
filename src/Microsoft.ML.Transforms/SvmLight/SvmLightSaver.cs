@@ -28,10 +28,10 @@ namespace Microsoft.ML.Data
     {
         public sealed class Arguments
         {
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Write the variant of SVM-light format where feature indices start from 0, not 1", ShortName = "z")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Write the variant of SVM-light format where feature indices start from 0, not 1", ShortName = "z")]
             public bool Zero;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Format output labels for a binary classification problem (-1 for negative, 1 for positive)", ShortName = "b")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Format output labels for a binary classification problem (-1 for negative, 1 for positive)", ShortName = "b")]
             public bool Binary;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for features", ShortName = "feat", SortOrder = 2, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]

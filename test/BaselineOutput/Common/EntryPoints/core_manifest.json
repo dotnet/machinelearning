@@ -4071,7 +4071,7 @@
         {
           "Name": "TrainSize",
           "Type": "Int",
-          "Desc": "The length of series from the begining used for training.",
+          "Desc": "The length of series from the beginning used for training.",
           "Required": true,
           "SortOrder": 2.0,
           "IsNullable": false,
@@ -10508,7 +10508,7 @@
     },
     {
       "Name": "Trainers.GeneralizedAdditiveModelBinaryClassifier",
-      "Desc": "Trains a gradient boosted stump per feature, on all features simultaneously, to fit target values using least-squares. It mantains no interactions between features.",
+      "Desc": "Trains a gradient boosted stump per feature, on all features simultaneously, to fit target values using least-squares. It maintains no interactions between features.",
       "FriendlyName": "Generalized Additive Model for Binary Classification",
       "ShortName": "gam",
       "Inputs": [
@@ -10808,7 +10808,7 @@
     },
     {
       "Name": "Trainers.GeneralizedAdditiveModelRegressor",
-      "Desc": "Trains a gradient boosted stump per feature, on all features simultaneously, to fit target values using least-squares. It mantains no interactions between features.",
+      "Desc": "Trains a gradient boosted stump per feature, on all features simultaneously, to fit target values using least-squares. It maintains no interactions between features.",
       "FriendlyName": "Generalized Additive Model for Regression",
       "ShortName": "gamr",
       "Inputs": [
@@ -13829,7 +13829,7 @@
     },
     {
       "Name": "Trainers.LogisticRegressionClassifier",
-      "Desc": "Maximum entrypy classification is a method in statistics used to predict the probabilities of parallel events. The model predicts the probabilities of parallel events by fitting data to a softmax function.",
+      "Desc": "Maximum entropy classification is a method in statistics used to predict the probabilities of parallel events. The model predicts the probabilities of parallel events by fitting data to a softmax function.",
       "FriendlyName": "Multi-class Logistic Regression",
       "ShortName": "mlr",
       "Inputs": [
@@ -20869,7 +20869,7 @@
     },
     {
       "Name": "Transforms.MissingValueHandler",
-      "Desc": "Handle missing values by replacing them with either the default value or the mean/min/max value (for non-text columns only). An indicator column can optionally be concatenated, if theinput column type is numeric.",
+      "Desc": "Handle missing values by replacing them with either the default value or the mean/min/max value (for non-text columns only). An indicator column can optionally be concatenated, if the input column type is numeric.",
       "FriendlyName": "NA Handle Transform",
       "ShortName": "NAHandle",
       "Inputs": [

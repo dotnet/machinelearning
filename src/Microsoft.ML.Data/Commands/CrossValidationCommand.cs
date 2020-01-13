@@ -39,38 +39,38 @@ namespace Microsoft.ML.Data
             [Argument(ArgumentType.AtMostOnce, HelpText = "Results summary filename", ShortName = "sf")]
             public string SummaryFilename;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for features", ShortName = "feat", SortOrder = 2)]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Column to use for features", ShortName = "feat", SortOrder = 2)]
             public string FeatureColumn = DefaultColumnNames.Features;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for labels", ShortName = "lab", SortOrder = 3)]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Column to use for labels", ShortName = "lab", SortOrder = 3)]
             public string LabelColumn = DefaultColumnNames.Label;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 4)]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 4)]
             public string WeightColumn = DefaultColumnNames.Weight;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for grouping", ShortName = "group", SortOrder = 5)]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Column to use for grouping", ShortName = "group", SortOrder = 5)]
             public string GroupColumn = DefaultColumnNames.GroupId;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name column name", ShortName = "name", SortOrder = 6)]
             public string NameColumn = DefaultColumnNames.Name;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for stratification", ShortName = "strat", SortOrder = 7)]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Column to use for stratification", ShortName = "strat", SortOrder = 7)]
             public string StratificationColumn;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Columns with custom kinds declared through key assignments, for example, col[Kind]=Name to assign column named 'Name' kind 'Kind'",
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Columns with custom kinds declared through key assignments, for example, col[Kind]=Name to assign column named 'Name' kind 'Kind'",
                 Name = "CustomColumn", ShortName = "col", SortOrder = 10)]
             public KeyValuePair<string, string>[] CustomColumns;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of folds in k-fold cross-validation", ShortName = "k")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Number of folds in k-fold cross-validation", ShortName = "k")]
             public int NumFolds = 2;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Use threads", ShortName = "threads")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Use threads", ShortName = "threads")]
             public bool UseThreads = true;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Normalize option for the feature column", ShortName = "norm")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Normalize option for the feature column", ShortName = "norm")]
             public NormalizeOption NormalizeFeatures = NormalizeOption.Auto;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether we should cache input training data", ShortName = "cache")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Whether we should cache input training data", ShortName = "cache")]
             public bool? CacheData;
 
             [Argument(ArgumentType.Multiple, HelpText = "Transforms to apply prior to splitting the data into folds",
@@ -83,10 +83,10 @@ namespace Microsoft.ML.Data
             [Argument(ArgumentType.Multiple, HelpText = "Output calibrator", ShortName = "cali", NullName = "<None>", SignatureType = typeof(SignatureCalibrator))]
             public IComponentFactory<ICalibratorTrainer> Calibrator = new PlattCalibratorTrainerFactory();
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of instances to train the calibrator", ShortName = "numcali")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Number of instances to train the calibrator", ShortName = "numcali")]
             public int MaxCalibrationExamples = 1000000000;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "File to save per-instance predictions and metrics to",
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "File to save per-instance predictions and metrics to",
                 ShortName = "dout")]
             public string OutputDataFile;
 
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Data
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether we should collate metrics or store them in per-folds files", ShortName = "collate")]
             public bool CollateMetrics = true;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether we should load predictor from input model and use it as the initial model state", ShortName = "cont")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Whether we should load predictor from input model and use it as the initial model state", ShortName = "cont")]
             public bool ContinueTrain;
         }
 

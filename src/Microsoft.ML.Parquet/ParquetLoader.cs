@@ -77,10 +77,10 @@ namespace Microsoft.ML.Data
 
         public sealed class Arguments
         {
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of column chunk values to cache while reading from parquet file", ShortName = "chunkSize")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Number of column chunk values to cache while reading from parquet file", ShortName = "chunkSize")]
             public int ColumnChunkReadSize = _defaultColumnChunkReadSize;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "If true, will read large numbers as dates", ShortName = "bigIntDates")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "If true, will read large numbers as dates", ShortName = "bigIntDates")]
             public bool TreatBigIntegersAsDates = true;
         }
 
