@@ -1946,6 +1946,7 @@ namespace Microsoft.Data.Analysis.Tests
                 }
             }
         }
+
         [Fact]
         public void TestAppendRow()
         {
@@ -2026,6 +2027,22 @@ namespace Microsoft.Data.Analysis.Tests
             df.Append(new List<object> { 1, true, null });
             Assert.Equal(13, df.Rows.Count);
             Assert.Equal(1, df.Columns[2].NullCount);
+        }
+
+        [Fact]
+        public void TestApply()
+        {
+            int[] values = { 1, 2, 3, 4, 5 };
+            var col = new PrimitiveDataFrameColumn<int>("Ints", values);
+            PrimitiveDataFrameColumn<double> newCol = col.Apply(i => i + 0.5d);
+
+            Assert.Equal(values.Length, newCol.Length);
+
+            for (int i = 0; i < newCol.Length; i++)
+            {
+                Assert.Equal(col[i], values[i]); // Make sure values didn't change
+                Assert.Equal(newCol[i], values[i] + 0.5d);
+            }
         }
     }
 }

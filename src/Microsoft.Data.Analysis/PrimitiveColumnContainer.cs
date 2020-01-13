@@ -251,6 +251,40 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        public void Apply<TResult>(Func<T?, TResult?> func, PrimitiveColumnContainer<TResult> resultContainer)
+            where TResult : unmanaged
+        {
+            for (int b = 0; b < Buffers.Count; b++)
+            {
+                ReadOnlyDataFrameBuffer<T> buffer = Buffers[b];
+                long prevLength = checked(Buffers[0].Length * b);
+                DataFrameBuffer<T> mutableBuffer = DataFrameBuffer<T>.GetMutableBuffer(buffer);
+                Buffers[b] = mutableBuffer;
+                Span<T> span = mutableBuffer.Span;
+                DataFrameBuffer<byte> mutableNullBitMapBuffer = DataFrameBuffer<byte>.GetMutableBuffer(NullBitMapBuffers[b]);
+                NullBitMapBuffers[b] = mutableNullBitMapBuffer;
+                Span<byte> nullBitMapSpan = mutableNullBitMapBuffer.Span;
+
+                ReadOnlyDataFrameBuffer<TResult> resultBuffer = resultContainer.Buffers[b];
+                long resultPrevLength = checked(resultContainer.Buffers[0].Length * b);
+                DataFrameBuffer<TResult> resultMutableBuffer = DataFrameBuffer<TResult>.GetMutableBuffer(resultBuffer);
+                resultContainer.Buffers[b] = resultMutableBuffer;
+                Span<TResult> resultSpan = resultMutableBuffer.Span;
+                DataFrameBuffer<byte> resultMutableNullBitMapBuffer = DataFrameBuffer<byte>.GetMutableBuffer(resultContainer.NullBitMapBuffers[b]);
+                resultContainer.NullBitMapBuffers[b] = resultMutableNullBitMapBuffer;
+                Span<byte> resultNullBitMapSpan = resultMutableNullBitMapBuffer.Span;
+
+                for (int i = 0; i < span.Length; i++)
+                {
+                    long curIndex = i + prevLength;
+                    bool isValid = IsValid(nullBitMapSpan, i);
+                    TResult? value = func(isValid ? span[i] : default(T?));
+                    resultSpan[i] = value.GetValueOrDefault();
+                    SetValidityBit(resultNullBitMapSpan, i, value != null);
+                }
+            }
+        }
+
         // Faster to use when we already have a span since it avoids indexing
         public bool IsValid(ReadOnlySpan<byte> bitMapBufferSpan, int index)
         {
