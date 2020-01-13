@@ -10,7 +10,21 @@ namespace Microsoft.ML.Samples
 
         internal static void RunAll()
         {
-            ImageClassificationDefault2.MyMain();
+            int samples = 0;
+            var types = Assembly.GetExecutingAssembly().GetTypes();
+            foreach (var type in types)
+            {
+                var sample = type.GetMethod("Example", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+
+                if (sample != null)
+                {
+                    Console.WriteLine(type.Name);
+                    sample.Invoke(null, null);
+                    samples++;
+                }
+            }
+
+            Console.WriteLine("Number of samples that ran without any exception: " + samples);
         }
     }
 }
