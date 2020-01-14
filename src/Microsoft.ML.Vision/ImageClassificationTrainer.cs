@@ -1120,6 +1120,19 @@ namespace Microsoft.ML.Vision
             }
         }
 
+        private void CheckAlive()
+        {
+            try
+            {
+                Host.CheckAlive();
+            }
+            catch(OperationCanceledException e)
+            {
+                TryCleanupTemporaryWorkspace();
+                throw;
+            }
+        }
+
         private void TryCleanupTemporaryWorkspace()
         {
             if (_cleanupWorkspace && Directory.Exists(_options.WorkspacePath))
