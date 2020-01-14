@@ -154,6 +154,7 @@ namespace Microsoft.ML.Transforms
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
     /// | Input column data type | Vector or scalar of numeric, boolean, [text](xref:Microsoft.ML.Data.TextDataViewType), <xref:System.DateTime> or [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
     /// | Output column data type | Scalar or vector of [key](xref:Microsoft.ML.Data.KeyDataViewType), or vector of <xref:System.Single> type. |
+    /// | Exportable to ONNX | Yes |
     ///
     /// The <xref:Microsoft.ML.Transforms.OneHotEncodingEstimator> builds a dictionary of unique values appearing in the input column.
     /// The resulting <xref:Microsoft.ML.Transforms.OneHotEncodingTransformer> converts one or more input columns into as many output

@@ -145,16 +145,16 @@ namespace Microsoft.ML
                 int permutationCount = 1) where TModel : class
         {
             return PermutationFeatureImportance<TModel, BinaryClassificationMetrics, BinaryClassificationMetricsStatistics>.GetImportanceMetricsMatrix(
-                            catalog.GetEnvironment(),
-                            predictionTransformer,
-                            data,
-                            () => new BinaryClassificationMetricsStatistics(),
-                            idv => catalog.Evaluate(idv, labelColumnName),
-                            BinaryClassifierDelta,
-                            predictionTransformer.FeatureColumnName,
-                            permutationCount,
-                            useFeatureWeightFilter,
-                            numberOfExamplesToUse);
+                catalog.GetEnvironment(),
+                predictionTransformer,
+                data,
+                () => new BinaryClassificationMetricsStatistics(),
+                idv => catalog.EvaluateNonCalibrated(idv, labelColumnName),
+                BinaryClassifierDelta,
+                predictionTransformer.FeatureColumnName,
+                permutationCount,
+                useFeatureWeightFilter,
+                numberOfExamplesToUse);
         }
 
         private static BinaryClassificationMetrics BinaryClassifierDelta(

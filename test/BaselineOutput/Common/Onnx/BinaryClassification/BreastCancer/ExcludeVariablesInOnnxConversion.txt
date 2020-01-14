@@ -381,25 +381,25 @@
       },
       {
         "input": [
-          "Score"
+          "Score",
+          "Slope"
+        ],
+        "output": [
+          "MulNodeOutput"
+        ],
+        "name": "Mul",
+        "opType": "Mul"
+      },
+      {
+        "input": [
+          "MulNodeOutput",
+          "Slope0"
         ],
         "output": [
           "linearOutput"
         ],
-        "name": "Affine",
-        "opType": "Affine",
-        "attribute": [
-          {
-            "name": "alpha",
-            "f": 0.4,
-            "type": "FLOAT"
-          },
-          {
-            "name": "beta",
-            "f": -1E-07,
-            "type": "FLOAT"
-          }
-        ]
+        "name": "Add",
+        "opType": "Add"
       },
       {
         "input": [
@@ -478,6 +478,22 @@
       }
     ],
     "name": "A Simple Pipeline",
+    "initializer": [
+      {
+        "dataType": 1,
+        "floatData": [
+          0.4
+        ],
+        "name": "Slope"
+      },
+      {
+        "dataType": 1,
+        "floatData": [
+          -1E-07
+        ],
+        "name": "Slope0"
+      }
+    ],
     "input": [
       {
         "name": "F1",
@@ -671,7 +687,7 @@
       "version": "2"
     },
     {
-      "version": "9"
+      "version": "11"
     }
   ]
 }

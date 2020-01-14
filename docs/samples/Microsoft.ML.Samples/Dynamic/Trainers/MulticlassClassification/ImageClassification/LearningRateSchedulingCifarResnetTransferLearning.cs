@@ -271,7 +271,7 @@ namespace Samples.Dynamic
             // get a set of images to teach the network about the new classes
             // CIFAR dataset ( 50000 train images and 10000 test images )
             string fileName = "cifar10.zip";
-            string url = $"https://tlcresources.blob.core.windows.net/" +
+            string url = $"https://aka.ms/mlnet-resources/" +
                 "datasets/cifar10.zip";
 
             Download(url, imagesDownloadFolder, fileName);

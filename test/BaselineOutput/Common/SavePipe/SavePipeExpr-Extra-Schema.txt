@@ -1,0 +1,47 @@
+---- BoundLoader ----
+4 columns:
+  A: Boolean
+  B: Boolean
+  C: Int32
+  D: Single
+---- RowToRowMapperTransform ----
+5 columns:
+  A: Boolean
+  B: Boolean
+  C: Int32
+  D: Single
+  ID: Boolean
+---- RowToRowMapperTransform ----
+6 columns:
+  A: Boolean
+  B: Boolean
+  C: Int32
+  D: Single
+  ID: Boolean
+  JD: Single
+---- RowToRowMapperTransform ----
+10 columns:
+  A: Boolean
+  B: Boolean
+  C: Int32
+  D: Single
+  ID: Boolean
+  JD: Single
+  KA: Single
+  KB: Single
+  KC: Single
+  KD: Single
+---- RowToRowMapperTransform ----
+12 columns:
+  A: Boolean
+  B: Boolean
+  C: Int32
+  D: Single
+  ID: Boolean
+  JD: Single
+  KA: Single
+  KB: Single
+  KC: Single
+  KD: Single
+  LA: Boolean
+  LC: Boolean

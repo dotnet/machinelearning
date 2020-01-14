@@ -54,6 +54,7 @@ namespace Microsoft.ML.Trainers
     /// | Is normalization required? | Depends on the underlying binary classifier |
     /// | Is caching required? | Yes |
     /// | Required NuGet in addition to Microsoft.ML | None |
+    /// | Exportable to ONNX | Yes |
     ///
     /// ### Training Algorithm Details
     /// In one-versus-all (OVA) strategy, a binary classification algorithm is used to train one classifier for each class,
@@ -558,8 +559,8 @@ namespace Microsoft.ML.Trainers
                         outputs[i] = clipOutput;
 
                         string opType = "Clip";
-                        var clipNode = ctx.CreateNode(opType, clipInput, outputs[i], ctx.GetNodeName(opType), "");
-                        clipNode.AddAttribute("min", 0.0);
+                        var zeroVar = ctx.AddInitializer(0.0f, "Zero");
+                        var clipNode = ctx.CreateNode(opType, new[] { clipInput, zeroVar }, new[] { outputs[i] }, ctx.GetNodeName(opType), "");
                     }
                     else
                         outputs[i] = predictorOutputNames[2];

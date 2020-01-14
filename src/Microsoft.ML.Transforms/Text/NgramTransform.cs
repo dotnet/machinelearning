@@ -841,6 +841,7 @@ namespace Microsoft.ML.Transforms.Text
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
     /// | Input column data type | Vector of [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
     /// | Output column data type | Known-sized vector of <xref:System.Single> |
+    /// | Exportable to ONNX | Yes |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.Text.NgramExtractingTransformer>
     /// creates a new column, named as specified in the output column name parameters, where each

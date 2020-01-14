@@ -64,7 +64,8 @@ namespace Microsoft.ML.Vision
     /// | Machine learning task | Multiclass classification |
     /// | Is normalization required? | No |
     /// | Is caching required? | No |
-    /// | Required NuGet in addition to Microsoft.ML | Micrsoft.ML.Vision and SciSharp.TensorFlow.Redist / SciSharp.TensorFlow.Redist-Windows-GPU / SciSharp.TensorFlow.Redist-Linux-GPU |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.Vision and SciSharp.TensorFlow.Redist / SciSharp.TensorFlow.Redist-Windows-GPU / SciSharp.TensorFlow.Redist-Linux-GPU |
+    /// | Exportable to ONNX | No |
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/tensorflow-usage.md)]
     ///
@@ -76,8 +77,10 @@ namespace Microsoft.ML.Vision
     /// </remarks>
     public sealed class ImageClassificationTrainer :
         TrainerEstimatorBase<MulticlassPredictionTransformer<ImageClassificationModelParameters>,
-            ImageClassificationModelParameters>
+            ImageClassificationModelParameters>, IDisposable
     {
+        private bool _isDisposed;
+
         internal const string LoadName = "ImageClassificationTrainer";
         internal const string UserName = "Image Classification Trainer";
         internal const string ShortName = "IMGCLSS";
@@ -305,7 +308,7 @@ namespace Microsoft.ML.Vision
         }
 
         /// <summary>
-        /// Metrics for image classification bottlenect phase and training.
+        /// Metrics for image classification bottleneck phase and training.
         /// Train metrics may be null when bottleneck phase is running, so have check!
         /// </summary>
         public sealed class ImageClassificationMetrics
@@ -1300,26 +1303,22 @@ namespace Microsoft.ML.Vision
             return new TensorFlowSessionWrapper(GetSession(env, modelFilePath, true), modelFilePath);
         }
 
-        ~ImageClassificationTrainer()
+        public void Dispose()
         {
-            Dispose(false);
-        }
+            if (_isDisposed)
+                return;
 
-        private void Dispose(bool disposing)
-        {
-            // Ensure that the Session is not null and it's handle is not Zero, as it may have already been
-            // disposed/finalized. Technically we shouldn't be calling this if disposing == false,
-            // since we're running in finalizer and the GC doesn't guarantee ordering of finalization of managed
-            // objects, but we have to make sure that the Session is closed before deleting our temporary directory.
+            if (_session?.graph != IntPtr.Zero)
+            {
+                _session.graph.Dispose();
+            }
+
             if (_session != null && _session != IntPtr.Zero)
             {
                 _session.close();
             }
 
-            if (_session != null && _session.graph != IntPtr.Zero)
-            {
-                _session.graph.Dispose();
-            }
+            _isDisposed = true;
         }
 
         /// <summary>
@@ -1336,8 +1335,10 @@ namespace Microsoft.ML.Vision
     /// Image Classification predictor. This class encapsulates the trained Deep Neural Network(DNN) model
     /// and is used to score images.
     /// </summary>
-    public sealed class ImageClassificationModelParameters : ModelParametersBase<VBuffer<float>>, IValueMapper
+    public sealed class ImageClassificationModelParameters : ModelParametersBase<VBuffer<float>>, IValueMapper, IDisposable
     {
+        private bool _isDisposed;
+
         internal const string LoaderSignature = "ImageClassificationPred";
         private static VersionInfo GetVersionInfo()
         {
@@ -1489,26 +1490,22 @@ namespace Microsoft.ML.Vision
             return (ValueMapper<TSrc, TDst>)(Delegate)del;
         }
 
-        ~ImageClassificationModelParameters()
+        public void Dispose()
         {
-            Dispose(false);
-        }
+            if (_isDisposed)
+                return;
 
-        private void Dispose(bool disposing)
-        {
-            // Ensure that the Session is not null and it's handle is not Zero, as it may have already been
-            // disposed/finalized. Technically we shouldn't be calling this if disposing == false,
-            // since we're running in finalizer and the GC doesn't guarantee ordering of finalization of managed
-            // objects, but we have to make sure that the Session is closed before deleting our temporary directory.
+            if (_session?.graph != IntPtr.Zero)
+            {
+                _session.graph.Dispose();
+            }
+
             if (_session != null && _session != IntPtr.Zero)
             {
                 _session.close();
             }
 
-            if (_session != null && _session.graph != IntPtr.Zero)
-            {
-                _session.graph.Dispose();
-            }
+            _isDisposed = true;
         }
     }
 }
