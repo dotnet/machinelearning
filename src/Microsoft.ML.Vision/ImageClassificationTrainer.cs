@@ -1128,7 +1128,7 @@ namespace Microsoft.ML.Vision
             {
                 Host.CheckAlive();
             }
-            catch(OperationCanceledException e)
+            catch(OperationCanceledException)
             {
                 TryCleanupTemporaryWorkspace();
                 throw;
