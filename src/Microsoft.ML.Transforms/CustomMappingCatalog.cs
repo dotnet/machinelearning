@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Net.NetworkInformation;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
@@ -46,5 +47,12 @@ namespace Microsoft.ML
             where TSrc : class, new()
             where TDst : class, new()
             => new CustomMappingEstimator<TSrc, TDst>(catalog.GetEnvironment(), mapAction, contractName, inputSchemaDefinition, outputSchemaDefinition);
+
+        public static StatefulCustomMappingEstimator<TSrc, TState, TDst> StatefulCustomMapping<TSrc, TState, TDst>(this TransformsCatalog catalog, Action<TSrc, TState, TDst> mapAction,
+            Action<TState> stateInitAction, string contractName, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
+            where TSrc : class, new()
+            where TState : class, new()
+            where TDst : class, new()
+            => new StatefulCustomMappingEstimator<TSrc, TState, TDst>(catalog.GetEnvironment(), mapAction, contractName, stateInitAction, inputSchemaDefinition, outputSchemaDefinition);
     }
 }

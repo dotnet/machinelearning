@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
@@ -116,6 +117,72 @@ namespace Microsoft.ML.Tests.Transformers
                 Assert.True(false);
             }
             catch (Exception) { }
+
+            Done();
+        }
+
+        public class MyStatefulInput
+        {
+            public float Value { get; set; }
+        }
+
+        public class MyState
+        {
+            public HashSet<float> SeenValues;
+        }
+
+        public class MyStatefulOutput
+        {
+            public bool FirstAppearance { get; set; }
+        }
+
+        [CustomMappingFactoryAttribute(nameof(MyStatefulLambda))]
+        public class MyStatefulLambda : StatefulCustomMappingFactory<MyStatefulInput, MyState, MyStatefulOutput>
+        {
+            public override Action<MyStatefulInput, MyState, MyStatefulOutput> GetMapping()
+            {
+                return MyStatefulAction;
+            }
+
+            public override Action<MyState> GetStateInitAction()
+            {
+                return MyStateInit;
+            }
+
+            public static void MyStatefulAction(MyStatefulInput input, MyState state, MyStatefulOutput output)
+            {
+                output.FirstAppearance = !state.SeenValues.Contains(input.Value);
+                state.SeenValues.Add(input.Value);
+            }
+
+            public static void MyStateInit(MyState state)
+            {
+                state.SeenValues = new HashSet<float>();
+            }
+        }
+
+        [Fact]
+        public void TestStatefulCustomMappingTransformer()
+        {
+            string dataPath = GetDataPath("breast-cancer.txt");
+            var source = new MultiFileSource(dataPath);
+            var loader = ML.Data.CreateTextLoader(new[] {
+                new TextLoader.Column("Features", DataKind.Single, 1, 9),
+                new TextLoader.Column("Label", DataKind.String, 0),
+                new TextLoader.Column("Value", DataKind.Single, 2),
+            });
+            var data = loader.Load(source);
+
+            // We create a temporary environment to instantiate the custom transformer. This is to ensure that we don't need the same
+            // environment for saving and loading.
+            var tempoEnv = new MLContext();
+            var customEst = tempoEnv.Transforms.StatefulCustomMapping<MyStatefulInput, MyState, MyStatefulOutput>(MyStatefulLambda.MyStatefulAction, MyStatefulLambda.MyStateInit, nameof(MyStatefulLambda));
+
+            ML.ComponentCatalog.RegisterAssembly(typeof(MyStatefulLambda).Assembly);
+            TestEstimatorCore(customEst, data);
+            var transformedData = customEst.Fit(data).Transform(data);
+            var outputs = transformedData.GetColumn<bool>(transformedData.Schema[nameof(MyStatefulOutput.FirstAppearance)]);
+            Assert.Equal(10, outputs.Count(output => output));
 
             Done();
         }

@@ -43,4 +43,24 @@ namespace Microsoft.ML.Transforms
             return new CustomMappingTransformer<TSrc, TDst>(env, mapAction, contractName);
         }
     }
+
+    public abstract class StatefulCustomMappingFactory<TSrc, TState, TDst> : ICustomMappingFactory
+        where TSrc : class, new()
+        where TState : class, new()
+        where TDst : class, new()
+    {
+        /// <summary>
+        /// Returns the mapping delegate that maps from <typeparamref name="TSrc"/> inputs to <typeparamref name="TDst"/> outputs.
+        /// </summary>
+        public abstract Action<TSrc, TState, TDst> GetMapping();
+
+        public abstract Action<TState> GetStateInitAction();
+
+        ITransformer ICustomMappingFactory.CreateTransformer(IHostEnvironment env, string contractName)
+        {
+            Action<TSrc, TState, TDst> mapAction = GetMapping();
+            Action<TState> stateInitAction = GetStateInitAction();
+            return new StatefulCustomMappingTransformer<TSrc, TState, TDst>(env, mapAction, contractName, stateInitAction);
+        }
+    }
 }
