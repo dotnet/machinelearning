@@ -6,12 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
-using Microsoft.ML.RunTests;
-using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests
 {
