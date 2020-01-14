@@ -647,8 +647,6 @@ namespace Microsoft.ML.Vision
 
         private protected override ImageClassificationModelParameters TrainModelCore(TrainContext trainContext)
         {
-            Host.CheckAlive();
-
             // Workspace directory is cleaned after training run. However, the pipeline can be re-used by calling
             // fit() again after transform(), in which case we must ensure workspace directory exists. This scenario
             // is typical in the case of cross-validation.
@@ -908,7 +906,6 @@ namespace Microsoft.ML.Vision
         private void TrainAndEvaluateClassificationLayer(string trainBottleneckFilePath,
             string validationSetBottleneckFilePath)
         {
-            Host.CheckAlive();
             Contracts.Assert(validationSetBottleneckFilePath == null ||
                 (File.Exists(validationSetBottleneckFilePath + "_labels.bin") &&
                     File.Exists(validationSetBottleneckFilePath + "_features.bin")));
