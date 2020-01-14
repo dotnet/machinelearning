@@ -2,18 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests
 {
     public sealed class TimeSeries
     {
-
         private sealed class Prediction
         {
 #pragma warning disable CS0649
@@ -333,6 +336,9 @@ namespace Microsoft.ML.Tests
             List<Data> data = new List<Data>();
             var dataView = env.Data.LoadFromEnumerable(data);
 
+            List<string> logMessages = new List<string>();
+            env.Log += (sender, e) => logMessages.Add(e.Message);
+
             var args = new SsaForecastingTransformer.Options()
             {
                 ConfidenceLevel = 0.95f,
@@ -374,6 +380,11 @@ namespace Microsoft.ML.Tests
                 Assert.Equal(maxCnf[localIndex], row.MaxCnf[localIndex], precision: 7);
             }
 
+
+            foreach(var logMessage in logMessages)
+            {
+                Console.WriteLine($"Debug SsaForecast: {logMessage}.");
+            }
         }
 
         [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
