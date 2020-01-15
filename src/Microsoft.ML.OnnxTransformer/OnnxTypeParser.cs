@@ -178,7 +178,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 case OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension.ValueOneofCase.DimParam:
                     // Variable-length dimension is translated to 0.
                     break;
-                case 0:
+                case OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension.ValueOneofCase.None:
                     // Empty dimension is translated to 0.
                     break;
                 default:
