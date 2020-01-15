@@ -66,6 +66,17 @@ namespace Microsoft.ML.Tests
             [VectorType(InputSize)]
             public string[] data_0;
         }
+        private class TestDataNoneDimension
+        {
+            [VectorType(4)]
+            public float[] input;
+        }
+
+        class PredictionNoneDimension
+        {
+            [VectorType(1)]
+            public long[] output_label { get; set; }
+        }
 
         private class TestDataUnknownDimensions
         {
@@ -342,6 +353,29 @@ namespace Microsoft.ML.Tests
             Assert.Equal(1, predictions[0].argmax[0]);
             Assert.Equal(0, predictions[1].argmax[0]);
             Assert.Equal(2, predictions[2].argmax[0]);
+        }
+
+        [OnnxFact]
+        public void TestOnnxNoneDimValue()
+        {
+            // Model contains None in input shape dimension
+            // Model input dims: [None, 4]
+            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "unknowndimensions", "iris_sample.onnx");
+            var mlContext = new MLContext();
+            var data = new TestDataNoneDimension[]
+            {
+                    new TestDataNoneDimension(){input = new float[] { 5.1f, 3.5f, 1.4f, 0.2f}},
+                    new TestDataNoneDimension(){input = new float[] { 7.0f, 3.2f, 4.7f, 1.4f }},
+                    new TestDataNoneDimension(){input = new float[] { 6.3f, 3.3f, 6.0f, 2.5f }},
+            };
+            var idv = mlContext.Data.LoadFromEnumerable(data);
+            var pipeline = ML.Transforms.ApplyOnnxModel(modelFile);
+            var transformedValues = pipeline.Fit(idv).Transform(idv);
+            var predictions = mlContext.Data.CreateEnumerable<PredictionNoneDimension>(transformedValues, reuseRowObject: false).ToArray();
+
+            Assert.Equal(0, predictions[0].output_label[0]);
+            Assert.Equal(1, predictions[1].output_label[0]);
+            Assert.Equal(2, predictions[2].output_label[0]);
         }
 
         /// <summary>
