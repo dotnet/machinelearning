@@ -168,6 +168,8 @@ namespace Microsoft.ML.RunTests
                 _passed = false;
 
             Log("*** Failure: " + fmt, args);
+
+            Assert.True(_passed);
         }
 
         protected void Log(string msg)
