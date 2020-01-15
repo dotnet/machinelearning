@@ -38,7 +38,7 @@ namespace Samples.Dynamic
 
             // A pipeline for converting text into numeric hashed n-gram features.
             // The following call to 'ProduceHashedNgrams' requires the tokenized
-            // text /string as input. This is acheived by calling 
+            // text /string as input. This is achieved by calling 
             // 'TokenizeIntoWords' first followed by 'ProduceHashedNgrams'.
             // Please note that the length of the output feature vector depends on
             // the 'numberOfBits' settings.

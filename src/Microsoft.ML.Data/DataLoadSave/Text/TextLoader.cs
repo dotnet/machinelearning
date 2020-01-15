@@ -108,7 +108,7 @@ namespace Microsoft.ML.Data
 
             /// <summary>
             /// <see cref="InternalDataKind"/> of the items in the column. It defaults to float.
-            /// Although <see cref="InternalDataKind"/> is internal, <see cref="Type"/>'s information can be publically accessed by <see cref="DataKind"/>.
+            /// Although <see cref="InternalDataKind"/> is internal, <see cref="Type"/>'s information can be publicly accessed by <see cref="DataKind"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Type of the items in the column")]
             [BestFriend]
@@ -285,7 +285,7 @@ namespace Microsoft.ML.Data
             /// <param name="min">The minimum inclusive index of the column.</param>
             /// <param name="max">The maximum-inclusive index of the column. If <c>null</c>
             /// indicates that the <see cref="TextLoader"/> should auto-detect the legnth
-            /// of the lines, and read untill the end.</param>
+            /// of the lines, and read until the end.</param>
             public Range(int min, int? max)
             {
                 Contracts.CheckParam(min >= 0, nameof(min), "Must be non-negative");
@@ -308,7 +308,7 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// The maximum index of the column, inclusive. If <see langword="null"/>
             /// indicates that the <see cref="TextLoader"/> should auto-detect the legnth
-            /// of the lines, and read untill the end.
+            /// of the lines, and read until the end.
             /// If max is specified, the fields <see cref="AutoEnd"/> and <see cref="VariableEnd"/> are ignored.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Last index in the range")]

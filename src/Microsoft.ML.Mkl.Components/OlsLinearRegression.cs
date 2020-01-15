@@ -86,7 +86,7 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Whether to calculate per parameter (e.g., the coefficient of the i-th input feature) significance statistics.
             /// </summary>
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether to calculate per parameter significance statistics", ShortName = "sig")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Whether to calculate per parameter significance statistics", ShortName = "sig")]
             public bool CalculateStatistics = true;
         }
 

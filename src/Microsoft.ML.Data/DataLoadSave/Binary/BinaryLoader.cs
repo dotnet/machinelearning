@@ -40,15 +40,15 @@ namespace Microsoft.ML.Data.IO
     {
         public sealed class Arguments
         {
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The number of worker decompressor threads to use", ShortName = "t")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The number of worker decompressor threads to use", ShortName = "t")]
             public int? Threads;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "If specified, the name of a column to generate and append, providing a U8 key-value indicating the index of the row within the binary file", ShortName = "rowIndex", Hide = true)]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "If specified, the name of a column to generate and append, providing a U8 key-value indicating the index of the row within the binary file", ShortName = "rowIndex", Hide = true)]
             public string RowIndexName;
 
             // REVIEW: Is this the right knob? The other thing we could do is have a bound on number
             // of MB, based on an analysis of average block size.
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "When shuffling, the number of blocks worth of data to keep in the shuffle pool. " +
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "When shuffling, the number of blocks worth of data to keep in the shuffle pool. " +
                 "Larger values will make the shuffling more random, but use more memory. Set to 0 to use only block shuffling.", ShortName = "pb")]
             public Double PoolBlocks = _defaultShuffleBlocks;
         }
@@ -718,17 +718,17 @@ namespace Microsoft.ML.Data.IO
         private const ulong StandardDataTypesVersion = 0x0001000100010006;
 
         /// <summary>
-        /// The first version of the format that accomodated DvText.NA.
+        /// The first version of the format that accommodated DvText.NA.
         /// </summary>
         private const ulong MissingTextVersion = 0x0001000100010005;
 
         /// <summary>
-        /// The first version of the format that accomodated arbitrary metadata.
+        /// The first version of the format that accommodated arbitrary metadata.
         /// </summary>
         private const ulong MetadataVersion = 0x0001000100010004;
 
         /// <summary>
-        /// The first version of the format that accomodated slot names.
+        /// The first version of the format that accommodated slot names.
         /// </summary>
         private const ulong SlotNamesVersion = 0x0001000100010003;
 

@@ -89,7 +89,7 @@ namespace Microsoft.ML.Trainers
     public sealed class LbfgsMaximumEntropyMulticlassTrainer : LbfgsTrainerBase<LbfgsMaximumEntropyMulticlassTrainer.Options,
         MulticlassPredictionTransformer<MaximumEntropyModelParameters>, MaximumEntropyModelParameters>
     {
-        internal const string Summary = "Maximum entrypy classification is a method in statistics used to predict the probabilities of parallel events. The model predicts the probabilities of parallel events by fitting data to a softmax function.";
+        internal const string Summary = "Maximum entropy classification is a method in statistics used to predict the probabilities of parallel events. The model predicts the probabilities of parallel events by fitting data to a softmax function.";
         internal const string LoadNameValue = "MultiClassLogisticRegression";
         internal const string UserNameValue = "Multi-class Logistic Regression";
         internal const string ShortName = "mlr";
@@ -1034,7 +1034,7 @@ namespace Microsoft.ML.Trainers
         /// Copies the weight vector for each class into a set of buffers.
         /// </summary>
         /// <param name="weights">A possibly reusable set of vectors, which will
-        /// be expanded as necessary to accomodate the data.</param>
+        /// be expanded as necessary to accommodate the data.</param>
         /// <param name="numClasses">Set to the rank, which is also the logical length
         /// of <paramref name="weights"/>.</param>
         public void GetWeights(ref VBuffer<float>[] weights, out int numClasses)

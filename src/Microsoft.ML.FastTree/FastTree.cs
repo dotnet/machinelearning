@@ -26,7 +26,7 @@ using Microsoft.ML.TreePredictor;
 using Newtonsoft.Json.Linq;
 
 // All of these reviews apply in general to fast tree and random forest implementations.
-//REVIEW: Decouple train method in Application.cs to have boosting and random forest logic seperate.
+//REVIEW: Decouple train method in Application.cs to have boosting and random forest logic separate.
 //REVIEW: Do we need to keep all the fast tree based testers?
 
 namespace Microsoft.ML.Trainers.FastTree
@@ -1785,7 +1785,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
                 MakeBoundariesAndCheckLabels(out _numMissingInstances, out long numInstances);
                 if (numInstances > Utils.ArrayMaxSize)
-                    throw Host.ExceptParam(nameof(data), "Input data had {0} rows, but can only accomodate {1}", numInstances, Utils.ArrayMaxSize);
+                    throw Host.ExceptParam(nameof(data), "Input data had {0} rows, but can only accommodate {1}", numInstances, Utils.ArrayMaxSize);
                 _numExamples = (int)numInstances;
             }
 

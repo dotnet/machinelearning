@@ -65,7 +65,7 @@ namespace Microsoft.ML.Trainers.FastTree
             /// <summary>
             /// Whether to use derivatives optimized for unbalanced training data.
             /// </summary>
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Option for using derivatives optimized for unbalanced sets", ShortName = "us")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Option for using derivatives optimized for unbalanced sets", ShortName = "us")]
             [TGUI(Label = "Optimize for unbalanced")]
             public bool UnbalancedSets = false;
 
@@ -168,7 +168,7 @@ namespace Microsoft.ML.Trainers.FastTree
             /// The index parameter for the Tweedie distribution, in the range [1, 2]. 1 is Poisson loss, 2 is gamma loss,
             /// and intermediate values are compound Poisson loss.
             /// </summary>
-            [Argument(ArgumentType.LastOccurenceWins, HelpText =
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText =
                 "Index parameter for the Tweedie distribution, in the range [1, 2]. 1 is Poisson loss, 2 is gamma loss, " +
                 "and intermediate values are compound Poisson loss.")]
             public Double Index = 1.5;
@@ -223,19 +223,19 @@ namespace Microsoft.ML.Trainers.FastTree
             /// <summary>
             /// Comma-separated list of gains associated with each relevance label.
             /// </summary>
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Comma-separated list of gains associated to each relevance label.", ShortName = "gains")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Comma-separated list of gains associated to each relevance label.", ShortName = "gains")]
             [TGUI(NoSweep = true)]
             public double[] CustomGains = new double[] { 0, 3, 7, 15, 31 };
 
             /// <summary>
             /// Whether to train using discounted cumulative gain (DCG) instead of normalized DCG (NDCG).
             /// </summary>
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Train DCG instead of NDCG", ShortName = "dcg")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Train DCG instead of NDCG", ShortName = "dcg")]
             public bool UseDcg;
 
             // REVIEW: Hiding sorting for now. Should be an enum or component factory.
             [BestFriend]
-            [Argument(ArgumentType.LastOccurenceWins,
+            [Argument(ArgumentType.LastOccurrenceWins,
                 HelpText = "The sorting algorithm to use for DCG and LambdaMart calculations [DescendingStablePessimistic/DescendingStable/DescendingReverse/DescendingDotNet]",
                 ShortName = "sort",
                 Hide = true)]
@@ -251,7 +251,7 @@ namespace Microsoft.ML.Trainers.FastTree
             public int NdcgTruncationLevel = 100;
 
             [BestFriend]
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Use shifted NDCG", Hide = true)]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Use shifted NDCG", Hide = true)]
             [TGUI(NotGui = true)]
             internal bool ShiftedNdcg;
 
@@ -261,12 +261,12 @@ namespace Microsoft.ML.Trainers.FastTree
             internal char CostFunctionParam = 'w';
 
             [BestFriend]
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Distance weight 2 adjustment to cost", ShortName = "dw", Hide = true)]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Distance weight 2 adjustment to cost", ShortName = "dw", Hide = true)]
             [TGUI(NotGui = true)]
             internal bool DistanceWeight2;
 
             [BestFriend]
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Normalize query lambdas", ShortName = "nql", Hide = true)]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Normalize query lambdas", ShortName = "nql", Hide = true)]
             [TGUI(NotGui = true)]
             internal bool NormalizeQueryLambdas;
 
@@ -354,7 +354,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// The number of threads to use.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The number of threads to use", ShortName = "t", NullName = "<Auto>")]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The number of threads to use", ShortName = "t", NullName = "<Auto>")]
         public int? NumberOfThreads = null;
 
         // this random seed is used for:
@@ -367,52 +367,52 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// The seed of the random number generator.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The seed of the random number generator", ShortName = "r1")]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The seed of the random number generator", ShortName = "r1")]
         public int Seed = 123;
 
         // this random seed is only for active feature selection
         /// <summary>
         /// The seed of the active feature selection.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The seed of the active feature selection", ShortName = "r3", Hide = true)]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The seed of the active feature selection", ShortName = "r3", Hide = true)]
         [TGUI(NotGui = true)]
         public int FeatureSelectionSeed = 123;
 
         /// <summary>
         /// The entropy (regularization) coefficient between 0 and 1.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The entropy (regularization) coefficient between 0 and 1", ShortName = "e")]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The entropy (regularization) coefficient between 0 and 1", ShortName = "e")]
         public Double EntropyCoefficient;
 
         // REVIEW: Different short name from TLC FR arguments.
         /// <summary>
         /// The number of histograms in the pool (between 2 and numLeaves).
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The number of histograms in the pool (between 2 and numLeaves)", ShortName = "ps")]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The number of histograms in the pool (between 2 and numLeaves)", ShortName = "ps")]
         public int HistogramPoolSize = -1;
 
         /// <summary>
         /// Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose", ShortName = "dt")]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose", ShortName = "dt")]
         public bool? DiskTranspose;
 
         /// <summary>
         /// Whether to collectivize features during dataset preparation to speed up training.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether to collectivize features during dataset preparation to speed up training", ShortName = "flocks", Hide = true)]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Whether to collectivize features during dataset preparation to speed up training", ShortName = "flocks", Hide = true)]
         public bool FeatureFlocks = true;
 
         /// <summary>
         /// Whether to do split based on multiple categorical feature values.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether to do split based on multiple categorical feature values.", ShortName = "cat")]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Whether to do split based on multiple categorical feature values.", ShortName = "cat")]
         public bool CategoricalSplit = false;
 
         /// <summary>
         /// Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum categorical split groups to consider when splitting on a categorical feature. " +
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Maximum categorical split groups to consider when splitting on a categorical feature. " +
                                                              "Split groups are a collection of split points. This is used to reduce overfitting when " +
                                                              "there many categorical features.", ShortName = "mcg")]
         public int MaximumCategoricalGroupCountPerNode = 64;
@@ -420,31 +420,31 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Maximum categorical split points to consider when splitting on a categorical feature.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum categorical split points to consider when splitting on a categorical feature.", ShortName = "maxcat")]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Maximum categorical split points to consider when splitting on a categorical feature.", ShortName = "maxcat")]
         public int MaximumCategoricalSplitPointCount = 64;
 
         /// <summary>
         /// Minimum categorical example percentage in a bin to consider for a split. Default is 0.1% of all training examples.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum categorical example percentage in a bin to consider for a split.", ShortName = "mdop")]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Minimum categorical example percentage in a bin to consider for a split.", ShortName = "mdop")]
         public double MinimumExampleFractionForCategoricalSplit = 0.001;
 
         /// <summary>
         /// Minimum categorical example count in a bin to consider for a split.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum categorical example count in a bin to consider for a split.", ShortName = "mdo")]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Minimum categorical example count in a bin to consider for a split.", ShortName = "mdo")]
         public int MinimumExamplesForCategoricalSplit = 100;
 
         /// <summary>
         /// Bias for calculating gradient for each feature bin for a categorical feature.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Bias for calculating gradient for each feature bin for a categorical feature.", ShortName = "bias")]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Bias for calculating gradient for each feature bin for a categorical feature.", ShortName = "bias")]
         public double Bias = 0;
 
         /// <summary>
         /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Bundle low population bins. " +
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Bundle low population bins. " +
                                                              "Bundle.None(0): no bundling, " +
                                                              "Bundle.AggregateLowPopulation(1): Bundle low population, " +
                                                              "Bundle.Adjacent(2): Neighbor low population bundle.", ShortName = "bundle")]
@@ -455,25 +455,25 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Maximum number of distinct values (bins) per feature.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum number of distinct values (bins) per feature", ShortName = "mb")]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Maximum number of distinct values (bins) per feature", ShortName = "mb")]
         public int MaximumBinCountPerFeature = 255;  // save one for undefs
 
         /// <summary>
         /// Sparsity level needed to use sparse feature representation.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Sparsity level needed to use sparse feature representation", ShortName = "sp")]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Sparsity level needed to use sparse feature representation", ShortName = "sp")]
         public Double SparsifyThreshold = 0.7;
 
         /// <summary>
         /// The feature first use penalty coefficient.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The feature first use penalty coefficient", ShortName = "ffup")]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The feature first use penalty coefficient", ShortName = "ffup")]
         public Double FeatureFirstUsePenalty;
 
         /// <summary>
         /// The feature re-use penalty (regularization) coefficient.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The feature re-use penalty (regularization) coefficient", ShortName = "frup")]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The feature re-use penalty (regularization) coefficient", ShortName = "frup")]
         public Double FeatureReusePenalty;
 
         /// <summary>
@@ -483,7 +483,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Value of 0.95 would mean restricting to gains that have less than a 0.05 chance of being generated randomly through choice of a random split.
         /// Valid range is [0,1).
         /// </value>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Tree fitting gain confidence requirement (should be in the range [0,1) ).", ShortName = "gainconf")]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Tree fitting gain confidence requirement (should be in the range [0,1) ).", ShortName = "gainconf")]
         public Double GainConfidenceLevel;
 
         /// <summary>
@@ -502,7 +502,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// The max number of leaves in each regression tree.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The max number of leaves in each regression tree", ShortName = "nl", SortOrder = 2)]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The max number of leaves in each regression tree", ShortName = "nl", SortOrder = 2)]
         [TGUI(Description = "The maximum number of leaves per tree", SuggestedSweeps = "2-128;log;inc:4")]
         [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, isLogScale: true, stepSize: 4)]
         public int NumberOfLeaves = Defaults.NumberOfLeaves;
@@ -512,7 +512,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         // REVIEW: Arrays not supported in GUI
         // REVIEW: Different shortname than FastRank module. Same as the TLC FRWrapper.
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data", ShortName = "mil", SortOrder = 3)]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data", ShortName = "mil", SortOrder = 3)]
         [TGUI(Description = "Minimum number of training instances required to form a leaf", SuggestedSweeps = "1,10,50")]
         [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[] { 1, 10, 50 })]
         public int MinimumExampleCountPerLeaf = Defaults.MinimumExampleCountPerLeaf;
@@ -521,7 +521,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Total number of decision trees to create in the ensemble.
         /// </summary>
         // REVIEW: Different shortname than FastRank module. Same as the TLC FRWrapper.
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Total number of decision trees to create in the ensemble", ShortName = "iter", SortOrder = 1)]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Total number of decision trees to create in the ensemble", ShortName = "iter", SortOrder = 1)]
         [TGUI(Description = "Total number of trees constructed", SuggestedSweeps = "20,100,500")]
         [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[] { 20, 100, 500 })]
         public int NumberOfTrees = Defaults.NumberOfTrees;
@@ -572,14 +572,14 @@ namespace Microsoft.ML.Trainers.FastTree
         /// The level of feature compression to use.
         /// </summary>
         [BestFriend]
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The level of feature compression to use", ShortName = "fcomp", Hide = true)]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The level of feature compression to use", ShortName = "fcomp", Hide = true)]
         [TGUI(NotGui = true)]
         internal int FeatureCompressionLevel = 1;
 
         /// <summary>
         /// Compress the tree Ensemble.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Compress the tree Ensemble", ShortName = "cmp", Hide = true)]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Compress the tree Ensemble", ShortName = "cmp", Hide = true)]
         [TGUI(NotGui = true)]
         public bool CompressEnsemble;
 
@@ -587,7 +587,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Print metrics graph for the first test set.
         /// </summary>
         [BestFriend]
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Print metrics graph for the first test set", ShortName = "graph", Hide = true)]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Print metrics graph for the first test set", ShortName = "graph", Hide = true)]
         [TGUI(NotGui = true)]
         internal bool PrintTestGraph;
 
@@ -596,14 +596,14 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         //It is only enabled if printTestGraph is also set
         [BestFriend]
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Print Train and Validation metrics in graph", ShortName = "graphtv", Hide = true)]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Print Train and Validation metrics in graph", ShortName = "graphtv", Hide = true)]
         [TGUI(NotGui = true)]
         internal bool PrintTrainValidGraph;
 
         /// <summary>
         /// Calculate metric values for train/valid/test every k rounds.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Calculate metric values for train/valid/test every k rounds", ShortName = "tf")]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Calculate metric values for train/valid/test every k rounds", ShortName = "tf")]
         public int TestFrequency = int.MaxValue;
 
         internal virtual void Check(IExceptionContext ectx)
@@ -644,25 +644,25 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Option for using best regression step trees.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Option for using best regression step trees", ShortName = "bsr")]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Option for using best regression step trees", ShortName = "bsr")]
         public bool BestStepRankingRegressionTrees = false;
 
         /// <summary>
         /// Determines whether to use line search for a step size.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Should we use line search for a step size", ShortName = "ls")]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Should we use line search for a step size", ShortName = "ls")]
         public bool UseLineSearch;
 
         /// <summary>
         /// Number of post-bracket line search steps.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of post-bracket line search steps", ShortName = "lssteps")]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Number of post-bracket line search steps", ShortName = "lssteps")]
         public int MaximumNumberOfLineSearchSteps;
 
         /// <summary>
         /// Minimum line search step size.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum line search step size", ShortName = "minstep")]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Minimum line search step size", ShortName = "minstep")]
         public Double MinimumStepSize;
 
         /// <summary>
@@ -676,7 +676,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <value>
         /// See <see cref="OptimizationAlgorithmType"/> for available optimizers.
         /// </value>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)", ShortName = "oa")]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)", ShortName = "oa")]
         public OptimizationAlgorithmType OptimizationAlgorithm = OptimizationAlgorithmType.GradientDescent;
 
         /// <summary>
@@ -723,7 +723,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Use window and tolerance for pruning.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Use window and tolerance for pruning", ShortName = "prtol")]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Use window and tolerance for pruning", ShortName = "prtol")]
         public bool UseTolerantPruning;
 
         /// <summary>
@@ -743,7 +743,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// The learning rate.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The learning rate", ShortName = "lr", SortOrder = 4)]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The learning rate", ShortName = "lr", SortOrder = 4)]
         [TGUI(Label = "Learning Rate", SuggestedSweeps = "0.025-0.4;log")]
         [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale: true)]
         public double LearningRate = Defaults.LearningRate;
@@ -785,7 +785,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Training starts from random ordering (determined by /r1).
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Training starts from random ordering (determined by /r1)", ShortName = "rs", Hide = true)]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Training starts from random ordering (determined by /r1)", ShortName = "rs", Hide = true)]
         [TGUI(NotGui = true)]
         public bool RandomStart;
 
@@ -815,7 +815,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Freeform defining the scores that should be used as the baseline ranker.
         /// </summary>
         [BestFriend]
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Freeform defining the scores that should be used as the baseline ranker", ShortName = "basescores", Hide = true)]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Freeform defining the scores that should be used as the baseline ranker", ShortName = "basescores", Hide = true)]
         [TGUI(NotGui = true)]
         internal string BaselineScoresFormula;
 
@@ -823,7 +823,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Baseline alpha for tradeoffs of risk (0 is normal training).
         /// </summary>
         [BestFriend]
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Baseline alpha for tradeoffs of risk (0 is normal training)", ShortName = "basealpha", Hide = true)]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Baseline alpha for tradeoffs of risk (0 is normal training)", ShortName = "basealpha", Hide = true)]
         [TGUI(NotGui = true)]
         internal string BaselineAlphaRisk;
 
@@ -831,21 +831,21 @@ namespace Microsoft.ML.Trainers.FastTree
         /// The discount freeform which specifies the per position discounts of examples in a query (uses a single variable P for position where P=0 is first position).
         /// </summary>
         [BestFriend]
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The discount freeform which specifies the per position discounts of examples in a query (uses a single variable P for position where P=0 is first position)",
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The discount freeform which specifies the per position discounts of examples in a query (uses a single variable P for position where P=0 is first position)",
             ShortName = "pdff", Hide = true)]
         [TGUI(NotGui = true)]
         internal string PositionDiscountFreeform;
 
 #if !NO_STORE
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Offload feature bins to a file store", ShortName = "fbsopt", Hide = true)]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Offload feature bins to a file store", ShortName = "fbsopt", Hide = true)]
         [TGUI(NotGUI = true)]
         public bool offloadBinsToFileStore;
 
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Directory used to offload feature bins", ShortName = "fbsoptdir", Hide = true)]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Directory used to offload feature bins", ShortName = "fbsoptdir", Hide = true)]
         [TGUI(NotGUI = true)]
         public string offloadBinsDirectory = string.Empty;
 
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Preloads feature bins needed for the next iteration when bins file store is used", ShortName = "fbsoptpreload", Hide = true)]
+        [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Preloads feature bins needed for the next iteration when bins file store is used", ShortName = "fbsoptpreload", Hide = true)]
         [TGUI(NotGUI = true)]
         public bool preloadFeatureBinsBeforeTraining;
 #endif
