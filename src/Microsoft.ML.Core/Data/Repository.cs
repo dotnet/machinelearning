@@ -256,7 +256,7 @@ namespace Microsoft.ML
             string root = Path.GetFullPath(DirTemp ?? @"x:\dummy");
             string entityPath = Path.Combine(root, dir ?? "", name);
             entityPath = Path.GetFullPath(entityPath);
-            string tempPath = Path.Combine(root, Guid.NewGuid().ToString());
+            string tempPath = Path.Combine(root, Path.GetRandomFileName());
             tempPath = Path.GetFullPath(tempPath);
 
             string parent = Path.GetDirectoryName(entityPath);
