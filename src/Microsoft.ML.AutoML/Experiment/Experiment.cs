@@ -113,7 +113,7 @@ namespace Microsoft.ML.AutoML
                 return null;
             }
 
-            var experimentDirFullPath = Path.Combine(rootDir.FullName, Path.GetRandomFileName());
+            var experimentDirFullPath = Path.Combine(rootDir.FullName, $"experiment_{Path.GetRandomFileName()}");
             var experimentDirInfo = new DirectoryInfo(experimentDirFullPath);
             if (!experimentDirInfo.Exists)
             {
