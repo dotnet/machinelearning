@@ -603,7 +603,10 @@ namespace Microsoft.ML.Vision
                     (string)labelType.ToString());
             }
 
-            _classCount = labelCount == 1 ? 2 : (int)labelCount;
+            if (labelCount == 1)
+                throw new InvalidOperationException("Dataset contains only 1 class. ImageClassificationTrainer requires more than 1");
+
+            _classCount = (int)labelCount;
             var imageSize = ImagePreprocessingSize[_options.Arch];
             _session = LoadTensorFlowSessionFromMetaGraph(Host, _options.Arch).Session;
             _session.graph.as_default();
