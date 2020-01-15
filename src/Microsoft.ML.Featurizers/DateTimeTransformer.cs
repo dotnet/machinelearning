@@ -482,7 +482,18 @@ namespace Microsoft.ML.Featurizers
                 }
                 else
                 {
-                    fixed (byte* dataRootDir = Encoding.UTF8.GetBytes(AppDomain.CurrentDomain.BaseDirectory + char.MinValue))
+                    byte[] dataRoot;
+
+                    if (Directory.Exists(AppDomain.CurrentDomain.BaseDirectory + "/Data/DateTimeFeaturizer"))
+                    {
+                        dataRoot = Encoding.UTF8.GetBytes(AppDomain.CurrentDomain.BaseDirectory + char.MinValue);
+                    }
+                    else
+                    {
+                        dataRoot = Encoding.UTF8.GetBytes(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + char.MinValue);
+                    }
+
+                    fixed (byte* dataRootDir = dataRoot)
                     fixed (byte* countryPointer = Encoding.UTF8.GetBytes(Enum.GetName(typeof(DateTimeEstimator.HolidayList), country) + char.MinValue))
                     {
                         success = CreateEstimatorHelper(countryPointer, dataRootDir, out estimator, out errorHandle);
@@ -579,7 +590,18 @@ namespace Microsoft.ML.Featurizers
             private static unsafe extern bool CreateTransformerFromSavedDataNative(byte* rawData, IntPtr bufferSize, byte* dataRootDir, out IntPtr transformer, out IntPtr errorHandle);
             private protected override unsafe void CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
             {
-                fixed (byte* dataRootDir = Encoding.UTF8.GetBytes(AppDomain.CurrentDomain.BaseDirectory + char.MinValue))
+                byte[] dataRoot;
+
+                if (Directory.Exists(AppDomain.CurrentDomain.BaseDirectory + "/Data/DateTimeFeaturizer"))
+                {
+                    dataRoot = Encoding.UTF8.GetBytes(AppDomain.CurrentDomain.BaseDirectory + char.MinValue);
+                }
+                else
+                {
+                    dataRoot = Encoding.UTF8.GetBytes(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + char.MinValue);
+                }
+
+                fixed (byte* dataRootDir = dataRoot)
                 {
                     var result = CreateTransformerFromSavedDataNative(rawData, dataSize, dataRootDir, out IntPtr transformer, out IntPtr errorHandle);
                     if (!result)
