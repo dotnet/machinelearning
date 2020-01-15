@@ -479,6 +479,7 @@ namespace Microsoft.ML.Data
 
             /// <summary>
             /// Whether the data file has a header with feature names.
+            /// Note: If a TextLoader is created with hasHeader=true but without a dataSample, then the TextLoader will not contain slot names, because the output schema is made when the TextLoader is made, and not when Load is called.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, ShortName = "header",
                 HelpText = "Data file has header with feature names. Header is read only if options 'hs' and 'hf' are not specified.")]
