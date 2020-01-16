@@ -588,11 +588,11 @@ namespace Microsoft.ML.EntryPoints.Tests
         }
 
         [Fact]
-        public void ThrowsExceptionWithPropertyName()
+        public void ThrowsExceptionWithMissingFile()
         {
             var mlContext = new MLContext(seed: 1);
-            var ex = Assert.Throws<InvalidOperationException>(() => mlContext.Data.LoadFromTextFile<ModelWithoutColumnAttribute>("fakefile.txt"));
-            Assert.StartsWith($"Field 'String1' is missing the {nameof(LoadColumnAttribute)} attribute", ex.Message);
+            var ex = Assert.Throws<FormatException>(() => mlContext.Data.LoadFromTextFile<ModelWithoutColumnAttribute>("fakefile.txt"));
+            Assert.StartsWith("File does not exist at path: fakefile.txt", ex.Message);
         }
 
         [Fact]
