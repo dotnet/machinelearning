@@ -334,7 +334,7 @@ namespace Microsoft.ML
             string pathEnt;
             string pathTemp;
             GetPath(out pathEnt, out pathTemp, dir, name, true);
-            if (PathMap.TryAdd(pathEnt, pathTemp))
+            if (!PathMap.TryAdd(pathEnt, pathTemp))
                 throw ExceptionContext.ExceptParam(nameof(name), "Duplicate entry: '{0}'", pathEnt);
 
             Stream stream;
@@ -524,7 +524,9 @@ namespace Microsoft.ML
                     // Extract to a temporary file.
                     Directory.CreateDirectory(Path.GetDirectoryName(pathTemp));
                     entry.ExtractToFile(pathTemp);
-                    PathMap.TryAdd(pathLower, pathTemp);
+                    if (!PathMap.TryAdd(pathLower, pathTemp))
+                        throw ExceptionContext.ExceptParam(nameof(name), "Duplicate entry: '{0}'", pathLower);
+
                     stream = new FileStream(pathTemp, FileMode.Open, FileAccess.Read);
                 }
                 else
