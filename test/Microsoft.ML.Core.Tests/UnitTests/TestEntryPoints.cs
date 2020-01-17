@@ -2122,7 +2122,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [RetryLessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         public void EntryPointPipelineEnsembleGetSummary()
         {
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
