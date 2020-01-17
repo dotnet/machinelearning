@@ -200,7 +200,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void RegressionTrainersOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);

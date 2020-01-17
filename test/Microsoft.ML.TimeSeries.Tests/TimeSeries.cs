@@ -5,6 +5,7 @@
 using System.IO;
 using System.Linq;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
 using Xunit.Abstractions;
@@ -98,7 +99,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void SavePipeSlidingWindow()
         {
             TestCore(null, true,

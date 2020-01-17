@@ -10,6 +10,7 @@ using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Xunit;
 using Xunit.Abstractions;
@@ -89,7 +90,7 @@ namespace Microsoft.ML.Tests
                 new LbfgsPoissonRegressionTrainer.Options { NumberOfThreads = 1 }), GetSparseDataset(numberOfInstances: 100), "PoissonRegression");
         }
 
-        [Fact]
+        [RetryFact]
         public void TestGAMRegression()
         {
             TestFeatureContribution(ML.Regression.Trainers.Gam(), GetSparseDataset(numberOfInstances: 100), "GAMRegression");
