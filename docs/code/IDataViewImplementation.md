@@ -191,7 +191,7 @@ values for the same columns, it will apparently be a "consistent" view. It is
 probably obvious what this mean, but specifically:
 
 The cursor as returned through `GetRowCursor` (with perhaps an identically
-constructed `IRandom` instance) in any iteration should return the same number
+constructed `System.Random` instance) in any iteration should return the same number
 of rows on all calls, and with the same values at each row.
 
 Why is this important? Many machine learning algorithms require multiple
@@ -249,7 +249,7 @@ data in a consistent way.
 Let us formalize this somewhat. We consider two data views to be functionally
 identical if there is absolutely no way to distinguish them: they return the
 same values, have the same types, same number of rows, they shuffle
-identically given identically constructed `IRandom` when row cursors are
+identically given identically constructed `System.Random` when row cursors are
 constructed, return the same ID for rows from the ID getter, etc. Obviously
 this concept is transitive. (Of course, `Batch` in a cursor might be different
 between the two, but that is the case even with two cursors constructed on the
