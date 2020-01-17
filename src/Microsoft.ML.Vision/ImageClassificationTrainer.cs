@@ -603,8 +603,7 @@ namespace Microsoft.ML.Vision
                     (string)labelType.ToString());
             }
 
-            if (labelCount == 1)
-                throw new InvalidOperationException("Dataset contains only 1 class. ImageClassificationTrainer requires more than 1");
+            Contracts.CheckParam(labelCount > 1, nameof(labelCount), "ImageClassificationTrainer requires more than 1 class in the training dataset");
 
             _classCount = (int)labelCount;
             var imageSize = ImagePreprocessingSize[_options.Arch];
