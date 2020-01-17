@@ -59,6 +59,14 @@ if exist "%DOTNET_CMD%" goto :afterdotnetrestore
 
 if NOT exist "%DOTNET_PATH%" mkdir "%DOTNET_PATH%"
 
+:: set registry to take dump automatically when test process crashes
+if NOT [%AGENT_ID%] == [] (
+  reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting\\LocalDumps"
+  reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting\\LocalDumps" /v DumpType /t REG_DWORD /d 2
+  reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting\\LocalDumps" /v DumpCount /t REG_DWORD /d 2
+  reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting\\LocalDumps" /v DumpFolder /t REG_SZ /d "%~dp0CrashDumps"
+)
+
 :: install the extra runtime first, so the SDK install will overwrite the root dotnet executable
 echo Installing dotnet runtime %DOTNET_EXTRA_RUNTIME_VERSION%...
 set DOTNET_EXTRA_RUNTIME_ZIP_NAME=dotnet-runtime-%DOTNET_EXTRA_RUNTIME_VERSION%-win-%ARCH%.zip
