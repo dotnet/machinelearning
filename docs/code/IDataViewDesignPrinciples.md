@@ -462,7 +462,7 @@ interfaces of their respective worlds.
 In both worlds, there is a cursoring interface associated with the core
 interface. In the IEnumerable world, the cursoring interface is
 `IEnumerator<T>`. In the IDataView world, the cursoring interface is
-`IRowCursor`.
+`DataViewRowCursor`.
 
 Both cursoring interfaces have `MoveNext()` methods for forward-only iteration
 through the elements.
