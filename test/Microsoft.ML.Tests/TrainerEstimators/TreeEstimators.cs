@@ -68,7 +68,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [LightGBMFact(Skip = "Skip due to crash test host process")]
+        //[LightGBMFact]
+        [Fact(Skip = "Skip due to crash test host process")]
         public void LightGBMBinaryEstimatorUnbalanced()
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
@@ -92,7 +93,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// LightGBMBinaryTrainer CorrectSigmoid test
         /// </summary>
-        [LightGBMFact(Skip="Skip due to crash test host process")]
+        //[LightGBMFact]
+        [Fact(Skip = "Skip due to crash test host process")]
         public void LightGBMBinaryEstimatorCorrectSigmoid()
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
