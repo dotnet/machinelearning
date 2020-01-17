@@ -93,7 +93,7 @@ namespace Microsoft.ML.Tests.Transformers
         [NotCentOS7Fact]
         public void CanUseDateFromColumnLongType()
         {
-            // Future Date - 2025 June 30
+            // Date - 2025 June 30
             MLContext mlContext = new MLContext(1);
             var dataList = new[] { new DateTimeInput() { date = 1751241600 } };
             var data = mlContext.Data.LoadFromEnumerable(dataList);
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Tests.Transformers
         [NotCentOS7Fact]
         public void CanUseDateFromColumnDateTimeType()
         {
-            // Future Date - 2025 June 30
+            // Date - 2025 June 30
             MLContext mlContext = new MLContext(1);
             var dataList = new[] { new { date = new DateTime(2025,6,30)} };
             var data = mlContext.Data.LoadFromEnumerable(dataList);
@@ -179,7 +179,7 @@ namespace Microsoft.ML.Tests.Transformers
         [NotCentOS7Fact]
         public void HolidayTest()
         {
-            // Future Date - 2025 June 30
+            // Date - 2025 June 30
             MLContext mlContext = new MLContext(1);
             var dataList = new[] { new DateTimeInput() { date = 157161600 } };
             var data = mlContext.Data.LoadFromEnumerable(dataList);
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Tests.Transformers
         [NotCentOS7Fact]
         public void ManyRowsTestLongType()
         {
-            // Future Date - 2025 June 30
+            // Date - 2025 June 30
             MLContext mlContext = new MLContext(1);
             var dataList = new[] { new DateTimeInput() { date = 1751241600 }, new DateTimeInput() { date = 1751241600 }, new DateTimeInput() { date = 12341 },
                 new DateTimeInput() { date = 134 }, new DateTimeInput() { date = 134 }, new DateTimeInput() { date = 1234 }, new DateTimeInput() { date = 1751241600 },
@@ -250,7 +250,7 @@ namespace Microsoft.ML.Tests.Transformers
         [NotCentOS7Fact]
         public void ManyRowsTestDateTimeType()
         {
-            // Future Date - 2025 June 30
+            // Date - 2025 June 30
             MLContext mlContext = new MLContext(1);
             var dataList = new[] { new { date = new DateTime(2025, 6, 30) }, new { date = new DateTime(2025, 6, 30) },
                 new { date = DateTime.Now }, new { date = DateTime.UtcNow },
@@ -296,7 +296,7 @@ namespace Microsoft.ML.Tests.Transformers
         [NotCentOS7Fact]
         public void EntryPointTest()
         {
-            // Future Date - 2025 June 30
+            // Date - 2025 June 30
             MLContext mlContext = new MLContext(1);
             var dataList = new[] { new DateTimeInput() { date = 1751241600 } };
             var data = mlContext.Data.LoadFromEnumerable(dataList);

@@ -148,7 +148,7 @@ namespace Microsoft.ML.Featurizers
 
         public DateTimeTransformer Fit(IDataView input)
         {
-            return new DateTimeTransformer(_host, _options.Source, _options.Prefix, _options.Country, input);
+            return new DateTimeTransformer(_host, _options.Source, _options.Prefix, _options.Country, input.Schema);
         }
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
@@ -250,12 +250,12 @@ namespace Microsoft.ML.Featurizers
 
         #endregion
 
-        internal DateTimeTransformer(IHostEnvironment host, string inputColumnName, string columnPrefix, DateTimeEstimator.HolidayList country, IDataView input) :
+        internal DateTimeTransformer(IHostEnvironment host, string inputColumnName, string columnPrefix, DateTimeEstimator.HolidayList country, DataViewSchema schema) :
             base(host.Register(nameof(DateTimeTransformer)))
         {
             host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
 
-            _schema = input.Schema;
+            _schema = schema;
             if (_schema[inputColumnName].Type.RawType != typeof(long) &&
                 _schema[inputColumnName].Type.RawType != typeof(DateTime))
             {
@@ -650,20 +650,19 @@ namespace Microsoft.ML.Featurizers
         private sealed class Mapper : MapperBase
         {
 
-#region Class data members
+            #region Class data members
+            private static readonly DateTime _unixEpoch = new DateTime(1970, 1, 1);
 
             private readonly DateTimeTransformer _parent;
             private ConcurrentDictionary<long, TimePoint> _cache;
             private ConcurrentQueue<long> _oldestKeys;
-            private readonly DateTime _unixEpoc;
 
-#endregion
+            #endregion
 
             public Mapper(DateTimeTransformer parent, DataViewSchema inputSchema) :
                 base(parent.Host.Register(nameof(Mapper)), inputSchema, parent)
             {
                 _parent = parent;
-                _unixEpoc = new DateTime(1970, 1, 1);
                 _cache = new ConcurrentDictionary<long, TimePoint>();
                 _oldestKeys = new ConcurrentQueue<long>();
             }
@@ -683,69 +682,90 @@ namespace Microsoft.ML.Featurizers
 
             private Delegate MakeGetter<TInput, TTransformed>(DataViewRow input, int iinfo)
             {
-                var getter = input.GetGetter<TInput>(input.Schema[_parent._column.Source]);
+                // If already in posix time.
+                if (typeof(TInput) == typeof(long))
+                    return MakeLongGetter<TTransformed>(input, iinfo);
+                // System.DateTime
+                else
+                    return MakeDateTimeGetter<TTransformed>(input, iinfo);
+            }
 
+            private Delegate MakeLongGetter<TTransformed>(DataViewRow input, int iinfo)
+            {
+                var getter = input.GetGetter<long>(input.Schema[_parent._column.Source]);
                 ValueGetter<TTransformed> result = (ref TTransformed dst) =>
                 {
-                    TInput dateTimeColumn = default;
-                    getter(ref dateTimeColumn);
-
-                    long dateTime;
-
-                    // Type already in Posix format
-                    if(typeof(TInput) == typeof(long))
-                        dateTime = (long)(object)dateTimeColumn;
-                    // System.DateTime
-                    else
-                        dateTime = ((DateTime)(object)dateTimeColumn).Subtract(_unixEpoc).Ticks / TimeSpan.TicksPerSecond;
+                    long dateTime = default;
+                    getter(ref dateTime);
 
                     var timePoint = _parent._column.Transform(dateTime);
 
-                    if (iinfo == 0)
-                        dst = (TTransformed)Convert.ChangeType(timePoint.Year, typeof(TTransformed));
-                    else if (iinfo == 1)
-                        dst = (TTransformed)Convert.ChangeType(timePoint.Month, typeof(TTransformed));
-                    else if (iinfo == 2)
-                        dst = (TTransformed)Convert.ChangeType(timePoint.Day, typeof(TTransformed));
-                    else if (iinfo == 3)
-                        dst = (TTransformed)Convert.ChangeType(timePoint.Hour, typeof(TTransformed));
-                    else if (iinfo == 4)
-                        dst = (TTransformed)Convert.ChangeType(timePoint.Minute, typeof(TTransformed));
-                    else if (iinfo == 5)
-                        dst = (TTransformed)Convert.ChangeType(timePoint.Second, typeof(TTransformed));
-                    else if (iinfo == 6)
-                        dst = (TTransformed)Convert.ChangeType(timePoint.AmPm, typeof(TTransformed));
-                    else if (iinfo == 7)
-                        dst = (TTransformed)Convert.ChangeType(timePoint.Hour12, typeof(TTransformed));
-                    else if (iinfo == 8)
-                        dst = (TTransformed)Convert.ChangeType(timePoint.DayOfWeek, typeof(TTransformed));
-                    else if (iinfo == 9)
-                        dst = (TTransformed)Convert.ChangeType(timePoint.DayOfQuarter, typeof(TTransformed));
-                    else if (iinfo == 10)
-                        dst = (TTransformed)Convert.ChangeType(timePoint.DayOfYear, typeof(TTransformed));
-                    else if (iinfo == 11)
-                        dst = (TTransformed)Convert.ChangeType(timePoint.WeekOfMonth, typeof(TTransformed));
-                    else if (iinfo == 12)
-                        dst = (TTransformed)Convert.ChangeType(timePoint.QuarterOfYear, typeof(TTransformed));
-                    else if (iinfo == 13)
-                        dst = (TTransformed)Convert.ChangeType(timePoint.HalfOfYear, typeof(TTransformed));
-                    else if (iinfo == 14)
-                        dst = (TTransformed)Convert.ChangeType(timePoint.WeekIso, typeof(TTransformed));
-                    else if (iinfo == 15)
-                        dst = (TTransformed)Convert.ChangeType(timePoint.YearIso, typeof(TTransformed));
-                    else if (iinfo == 16)
-                        dst = (TTransformed)Convert.ChangeType(timePoint.MonthLabel.AsMemory(), typeof(TTransformed));
-                    else if (iinfo == 17)
-                        dst = (TTransformed)Convert.ChangeType(timePoint.AmPmLabel.AsMemory(), typeof(TTransformed));
-                    else if (iinfo == 18)
-                        dst = (TTransformed)Convert.ChangeType(timePoint.DayOfWeekLabel.AsMemory(), typeof(TTransformed));
-                    else if (iinfo == 19)
-                        dst = (TTransformed)Convert.ChangeType(timePoint.HolidayName.AsMemory(), typeof(TTransformed));
-                    else
-                        dst = (TTransformed)Convert.ChangeType(timePoint.IsPaidTimeOff, typeof(TTransformed));
+                    dst = GetColumnFromStruct<TTransformed>(ref timePoint, iinfo);
                 };
 
                 return result;
+            }
+
+            private Delegate MakeDateTimeGetter<TTransformed>(DataViewRow input, int iinfo)
+            {
+                var getter = input.GetGetter<DateTime>(input.Schema[_parent._column.Source]);
+                ValueGetter<TTransformed> result = (ref TTransformed dst) =>
+                {
+                    DateTime dateTime = default;
+                    getter(ref dateTime);
+
+                    var timePoint = _parent._column.Transform(dateTime.Subtract(_unixEpoch).Ticks / TimeSpan.TicksPerSecond);
+
+                    dst = GetColumnFromStruct<TTransformed>(ref timePoint, iinfo);
+                };
+
+                return result;
+            }
+
+            private TTransformed GetColumnFromStruct<TTransformed>(ref TimePoint timePoint, int iinfo)
+            {
+                if (iinfo == 0)
+                    return (TTransformed)Convert.ChangeType(timePoint.Year, typeof(TTransformed));
+                else if (iinfo == 1)
+                    return (TTransformed)Convert.ChangeType(timePoint.Month, typeof(TTransformed));
+                else if (iinfo == 2)
+                    return (TTransformed)Convert.ChangeType(timePoint.Day, typeof(TTransformed));
+                else if (iinfo == 3)
+                    return (TTransformed)Convert.ChangeType(timePoint.Hour, typeof(TTransformed));
+                else if (iinfo == 4)
+                    return (TTransformed)Convert.ChangeType(timePoint.Minute, typeof(TTransformed));
+                else if (iinfo == 5)
+                    return (TTransformed)Convert.ChangeType(timePoint.Second, typeof(TTransformed));
+                else if (iinfo == 6)
+                    return (TTransformed)Convert.ChangeType(timePoint.AmPm, typeof(TTransformed));
+                else if (iinfo == 7)
+                    return (TTransformed)Convert.ChangeType(timePoint.Hour12, typeof(TTransformed));
+                else if (iinfo == 8)
+                    return (TTransformed)Convert.ChangeType(timePoint.DayOfWeek, typeof(TTransformed));
+                else if (iinfo == 9)
+                    return (TTransformed)Convert.ChangeType(timePoint.DayOfQuarter, typeof(TTransformed));
+                else if (iinfo == 10)
+                    return (TTransformed)Convert.ChangeType(timePoint.DayOfYear, typeof(TTransformed));
+                else if (iinfo == 11)
+                    return (TTransformed)Convert.ChangeType(timePoint.WeekOfMonth, typeof(TTransformed));
+                else if (iinfo == 12)
+                    return (TTransformed)Convert.ChangeType(timePoint.QuarterOfYear, typeof(TTransformed));
+                else if (iinfo == 13)
+                    return (TTransformed)Convert.ChangeType(timePoint.HalfOfYear, typeof(TTransformed));
+                else if (iinfo == 14)
+                    return (TTransformed)Convert.ChangeType(timePoint.WeekIso, typeof(TTransformed));
+                else if (iinfo == 15)
+                    return (TTransformed)Convert.ChangeType(timePoint.YearIso, typeof(TTransformed));
+                else if (iinfo == 16)
+                    return (TTransformed)Convert.ChangeType(timePoint.MonthLabel.AsMemory(), typeof(TTransformed));
+                else if (iinfo == 17)
+                    return (TTransformed)Convert.ChangeType(timePoint.AmPmLabel.AsMemory(), typeof(TTransformed));
+                else if (iinfo == 18)
+                    return (TTransformed)Convert.ChangeType(timePoint.DayOfWeekLabel.AsMemory(), typeof(TTransformed));
+                else if (iinfo == 19)
+                    return (TTransformed)Convert.ChangeType(timePoint.HolidayName.AsMemory(), typeof(TTransformed));
+                else
+                    return (TTransformed)Convert.ChangeType(timePoint.IsPaidTimeOff, typeof(TTransformed));
             }
 
             protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
@@ -753,12 +773,7 @@ namespace Microsoft.ML.Featurizers
                 disposer = null;
 
                 // Have to add 1 to iinfo since the enum starts at 1
-                // If input type is long, Posix time
-                if (input.Schema[_parent._column.Source].Type.RawType == typeof(long))
-                    return Utils.MarshalInvoke(MakeGetter<int, int>, new Type[] { typeof(long), ((DateTimeEstimator.ColumnsProduced)iinfo + 1).GetRawColumnType() }, input, iinfo);
-                // If input types is System.DateTime
-                else
-                    return Utils.MarshalInvoke(MakeGetter<int, int>, new Type[] { typeof(DateTime), ((DateTimeEstimator.ColumnsProduced)iinfo + 1).GetRawColumnType() }, input, iinfo);
+                return Utils.MarshalInvoke(MakeGetter<int, int>, new Type[] { input.Schema[_parent._column.Source].Type.RawType, ((DateTimeEstimator.ColumnsProduced)iinfo + 1).GetRawColumnType() }, input, iinfo);
 
             }
 
