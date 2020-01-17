@@ -835,6 +835,7 @@ namespace Microsoft.ML.Vision
                 metrics.Bottleneck.DatasetUsed = dataset;
                 while (cursor.MoveNext())
                 {
+                    CheckAlive();
                     labelGetter(ref label);
                     imageGetter(ref image);
                     if (image.Length <= 0)
@@ -888,6 +889,7 @@ namespace Microsoft.ML.Vision
 
             foreach (var row in featurizedImages)
             {
+                CheckAlive();
                 writer.WriteLine(row.Item1 + "," + string.Join(",", row.Item2));
                 labels[0] = row.Item1;
                 for (int index = 0; index < sizeof(long); index++)
@@ -992,6 +994,7 @@ namespace Microsoft.ML.Vision
 
                 for (int epoch = 0; epoch < epochs; epoch += 1)
                 {
+                    CheckAlive();
                     // Train.
                     TrainAndEvaluateClassificationLayerCore(epoch, learningRate, featureFileStartOffset,
                         metrics, labelTensorShape, featureTensorShape, batchSize,
@@ -1116,6 +1119,19 @@ namespace Microsoft.ML.Vision
                 metrics.Train.BatchProcessedCount += 1;
                 metricsAggregator(outputTensors, metrics);
                 trainState.CurrentBatchIndex += 1;
+            }
+        }
+
+        private void CheckAlive()
+        {
+            try
+            {
+                Host.CheckAlive();
+            }
+            catch(OperationCanceledException)
+            {
+                TryCleanupTemporaryWorkspace();
+                throw;
             }
         }
 
