@@ -22,6 +22,7 @@ using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.DataOperationsCatalog;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.Scenarios
 {
@@ -1245,7 +1246,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(string.Join(" ", input.B).Replace("/", " "), textOutput.BOut[0]);
         }
 
-        [TensorFlowFact]
+        [RetryTensorFlowFact]
         public void TensorFlowImageClassificationDefault()
         {
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
@@ -1466,7 +1467,7 @@ namespace Microsoft.ML.Scenarios
             TensorFlowImageClassificationWithLRScheduling(new ExponentialLRDecay(), 50);
         }
 
-        [TensorFlowFact]
+        [RetryTensorFlowFact]
         public void TensorFlowImageClassificationWithPolynomialLRScheduling()
         {
 
@@ -1699,7 +1700,7 @@ namespace Microsoft.ML.Scenarios
             Assert.InRange(lastEpoch, 1, 49);
         }
 
-        [TensorFlowFact]
+        [RetryTensorFlowFact]
         public void TensorFlowImageClassificationBadImages()
         {
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",

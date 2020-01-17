@@ -24,6 +24,7 @@ namespace Microsoft.ML.RunTests
     using Xunit.Abstractions;
     using TestLearners = TestLearnersBase;
     using Microsoft.ML.TestFrameworkCommon;
+    using Microsoft.ML.TestFrameworkCommon.Attributes;
 
     /// <summary>
     /// Tests using maml commands (IDV) functionality.
@@ -181,7 +182,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Multiclass Logistic Regression test with a tree featurizer.
         /// </summary>
-        [X64Fact("x86 output differs from Baseline")]
+        [RetryX64Fact("x86 output differs from Baseline")]
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         [TestCategory("FastTree")]
@@ -270,7 +271,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [X64Fact("x86 output differs from Baseline")]
+        [RetryX64Fact("x86 output differs from Baseline")]
         [TestCategory("Binary")]
         public void BinaryClassifierSymSgdTest()
         {
@@ -321,7 +322,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [RetryLessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         [TestCategory("Binary")]
         public void BinaryClassifierLogisticRegressionBinNormTest()
         {
