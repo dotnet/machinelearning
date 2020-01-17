@@ -81,5 +81,24 @@ namespace Microsoft.ML.TestFrameworkCommon.Attributes
 
         public int MaxRetries { get; set; }
     }
+
+    /// <summary>
+    /// A fact for tests requiring matrix factorization.
+    /// </summary>
+    [XunitTestCaseDiscoverer("Microsoft.ML.TestFrameworkCommon.RetryFactDiscoverer", "Microsoft.ML.TestFrameworkCommon")]
+    public sealed class RetryMatrixFactorizationFactAttribute : EnvironmentSpecificFactAttribute
+    {
+        public RetryMatrixFactorizationFactAttribute() : base("")
+        {
+        }
+
+        /// <inheritdoc />
+        protected override bool IsEnvironmentSupported()
+        {
+            return true;
+        }
+
+        public int MaxRetries { get; set; }
+    }
 }
 

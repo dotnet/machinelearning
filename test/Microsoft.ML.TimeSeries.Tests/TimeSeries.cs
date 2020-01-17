@@ -89,7 +89,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void SavePipeExponentialAverage()
         {
             TestCore(null, true,

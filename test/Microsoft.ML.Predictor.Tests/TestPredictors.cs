@@ -271,7 +271,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryX64Fact("x86 output differs from Baseline")]
+        [RetryX64Fact("x86 output differs from Baseline", Skip = "skip due to flaky")]
         [TestCategory("Binary")]
         public void BinaryClassifierSymSgdTest()
         {

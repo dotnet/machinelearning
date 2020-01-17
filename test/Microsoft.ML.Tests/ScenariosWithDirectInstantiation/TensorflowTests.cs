@@ -1467,7 +1467,7 @@ namespace Microsoft.ML.Scenarios
             TensorFlowImageClassificationWithLRScheduling(new ExponentialLRDecay(), 50);
         }
 
-        [RetryTensorFlowFact]
+        [RetryTensorFlowFact(Skip = "skip for flaky")]
         public void TensorFlowImageClassificationWithPolynomialLRScheduling()
         {
 
@@ -1700,7 +1700,7 @@ namespace Microsoft.ML.Scenarios
             Assert.InRange(lastEpoch, 1, 49);
         }
 
-        [RetryTensorFlowFact]
+        [RetryTensorFlowFact(Skip = "skip due to flaky")]
         public void TensorFlowImageClassificationBadImages()
         {
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
