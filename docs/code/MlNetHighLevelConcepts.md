@@ -28,7 +28,7 @@ This document is going to cover the following ML.NET concepts:
 
 In ML.NET, data is very similar to a SQL view: it's a lazily-evaluated, cursorable, heterogenous, schematized dataset.
 
-- It has *Schema* (an instance of an `ISchema` interface), that contains the information about the data view's columns.
+- It has *Schema* (an instance of an `DataViewSchema` class), that contains the information about the data view's columns.
   - Each column has a *Name*, a *Type*, and an arbitrary set of *annotations* associated with it.
   - It is important to note that one of the types is the `vector<T, N>` type, which means that the column's values are *vectors of items of type T, with the size of N*. This is a recommended way to represent multi-dimensional data associated with every row, like pixels in an image, or tokens in a text.
   - The column's *annotations* contains information like 'slot names' of a vector column and suchlike. The annotations itself are actually represented as another one-row *data*, that is unique to each column.
@@ -40,12 +40,12 @@ In ML.NET, data is very similar to a SQL view: it's a lazily-evaluated, cursorab
 
 A transformer is a component that takes data, does some work on it, and return new 'transformed' data.
 
-Here's the interface of `ITransformer`:
+Here's part of the `ITransformer` interface:
 ```c#
 public interface ITransformer
 {
     IDataView Transform(IDataView input);
-    ISchema GetOutputSchema(ISchema inputSchema);
+    DataViewSchema GetOutputSchema(DataViewSchema inputSchema);
 }
 ```
 

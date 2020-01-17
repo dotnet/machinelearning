@@ -383,13 +383,13 @@ inconsistency, surprises and bugs for users and developers.
 
 # Thread Safety
 
-Any `IDataView` implementation, as well as the `ISchema`, *must* be thread
+Any `IDataView` implementation, as well as the `DataViewSchema`, *must* be thread
 safe. There is a lot of code that depends on this. For example, cross
 validation works by operating over the same dataset (just, of course, filtered
 to different subsets of the data). That amounts to multiple cursors being
 opened, simultaneously, over the same data.
 
-So: `IDataView` and `ISchema` must be thread safe. However, `IRowCursor`,
+So: `IDataView` and `DataViewSchema` must be thread safe. However, `IRowCursor`,
 being a stateful object, we assume is accessed from exactly one thread at a
 time. The `IRowCursor`s returned through a `GetRowCursorSet`, however, which
 each single one must be accessed by a single thread at a time, multiple
@@ -485,8 +485,8 @@ schema's `TryGetColumnIndex`.
 
 Regarding name hiding, the principles mention that when multiple columns have
 the same name, other columns are "hidden." The convention all implementations
-of `ISchema` obey is that the column with the *largest* index. Note however
-that this is merely convention, not part of the definition of `ISchema`.
+of `DataViewSchema` obey is that the column with the *largest* index. Note however
+that this is merely convention, not part of the definition of `DataViewSchema`.
 
 Implementations of `TryGetColumnIndex` should be O(1), that is, practically,
 this mapping ought to be backed with a dictionary in most cases. (There are
