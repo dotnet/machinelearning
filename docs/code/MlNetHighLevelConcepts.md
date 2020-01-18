@@ -82,7 +82,7 @@ Here's the exact interface of `IDataReader<T>`:
 public interface IDataReader<in TSource>
 {
     IDataView Read(TSource input);
-    ISchema GetOutputSchema();
+    DataViewSchema GetOutputSchema();
 }
 ```
 As you can see, the reader is capable of reading data (potentially multiple times, and from different 'inputs'), but the resulting data will always have the same schema, denoted by `GetOutputSchema`.
