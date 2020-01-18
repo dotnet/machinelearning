@@ -130,7 +130,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             ITransformer loadedModel = mlContext.Model.Load(modelPath, out var schema);
         }
 
-        [Fact]
+        [RetryFact]
         public void TrainRegressionModel()
             => TrainRegression(GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename), GetDataPath(TestDatasets.generatedRegressionDataset.testFilename),
                 DeleteOutputPath("cook_model.zip"));

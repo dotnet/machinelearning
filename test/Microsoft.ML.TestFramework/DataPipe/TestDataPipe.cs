@@ -10,6 +10,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
@@ -1021,7 +1022,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [TestCategory("DataPipeSerialization")]
-        [Fact]
+        [RetryFact]
         public void SavePipeTrainAndScoreFccTransformStr()
         {
             TestCore(null, false,
