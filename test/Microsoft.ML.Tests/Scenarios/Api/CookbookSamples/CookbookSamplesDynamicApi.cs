@@ -626,7 +626,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             public bool Label { get; set; }
         }
 
-        [Fact]
+        [RetryFact]
         public void CustomTransformer()
         {
             var mlContext = new MLContext();
