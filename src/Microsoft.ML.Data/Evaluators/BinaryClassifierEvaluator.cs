@@ -484,9 +484,10 @@ namespace Microsoft.ML.Data
                 {
                     get
                     {
-                        if (PrecisionPos + RecallPos == 0)
+                        var precisionPlusRecall = PrecisionPos + RecallPos;
+                        if (precisionPlusRecall == 0)
                             return 0;
-                        return 2 * PrecisionPos * RecallPos / (PrecisionPos + RecallPos);
+                        return 2 * PrecisionPos * RecallPos / (precisionPlusRecall);
                     }
                 }
 
