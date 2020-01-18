@@ -5495,7 +5495,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [Fact]
+        [RetryFact]
         public void TestCrossValidationMacroWithStratification()
         {
             var dataPath = GetDataPath(@"breast-cancer.txt");
