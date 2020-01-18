@@ -254,7 +254,6 @@ namespace Microsoft.ML.Data
     /// Base class for transforms that operate row by row with each destination column using one
     /// source column. It provides an extension mechanism to allow a destination column to depend
     /// on multiple input columns.
-    /// This class provides the implementation of ISchema and IRowCursor.
     /// </summary>
     [BestFriend]
     internal abstract class OneToOneTransformBase : RowToRowMapperTransformBase, ITransposeDataView, ITransformCanSavePfa,
