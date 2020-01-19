@@ -12,11 +12,11 @@ using Microsoft.ML.Runtime;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// <see cref="ITransformer"/> resulting from fitting an <see cref="CustomMappingEstimator{TSrc, TDst}"/>.
+    /// <see cref="ITransformer"/> resulting from fitting an <see cref="StatefulCustomMappingEstimator{TSrc, TState, TDst}"/>.
     /// </summary>
-    /// <typeparam name="TSrc">The type that describes what 'source' columns are consumed from the input <see cref="IDataView"/>.</typeparam>
-    /// <typeparam name="TState"></typeparam>
-    /// <typeparam name="TDst">The type that describes what new columns are added by this transform.</typeparam>
+    /// <typeparam name="TSrc">The class defining which columns to take from the incoming data.</typeparam>
+    /// <typeparam name="TState">The type that describes per-cursor state.</typeparam>
+    /// <typeparam name="TDst">The class defining which new columns are added to the data.</typeparam>
     public sealed class StatefulCustomMappingTransformer<TSrc, TState, TDst> : ITransformer
         where TSrc : class, new()
         where TState : class, new()
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">The host environment</param>
         /// <param name="mapAction">The action by which we map source to destination columns</param>
         /// <param name="contractName">The name of the action (will be saved to the model).</param>
-        /// <param name="stateInitAction"></param>
+        /// <param name="stateInitAction">The action to initialize the state object, that is called once before the cursor is initialized.</param>
         /// <param name="inputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TSrc"/> and input data.</param>
         /// <param name="outputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TDst"/> and output data.</param>
         internal StatefulCustomMappingTransformer(IHostEnvironment env, Action<TSrc, TState, TDst> mapAction, string contractName,
@@ -309,7 +309,7 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// Applies a custom mapping function to the specified input columns. The result will be in output columns.
+    /// Applies a custom mapping function to the specified input columns, while allowing a per-cursor state. The result will be in output columns.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
@@ -322,12 +322,11 @@ namespace Microsoft.ML.Transforms
     /// | Output column data type | Any |
     /// | Exportable to ONNX | No |
     ///
-    /// The resulting <xref:Microsoft.ML.Transforms.CustomMappingTransformer`2> applies a user defined mapping
+    /// The resulting <xref:Microsoft.ML.Transforms.StatefulCustomMappingTransformer`3> applies a user defined mapping
     /// to one or more input columns and produces one or more output columns. This transformation doesn't change the number of rows,
     /// and can be seen as the result of applying the user's function to every row of the input data.
     ///
-    /// The provided custom function must be thread-safe and free from side effects.
-    /// The order with which it is applied to the rows of data cannot be guaranteed.
+    /// In addition to the input and output objects, the provided custom function is given a state object that it can look at and/or modify.
     ///
     /// Check the See Also section for links to usage examples.
     /// ]]></format>
@@ -344,7 +343,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">The host environment</param>
         /// <param name="mapAction">The mapping action. This must be thread-safe and free from side effects.</param>
         /// <param name="contractName">The contract name, used by ML.NET for loading the model. If <c>null</c> is specified, such a trained model would not be save-able.</param>
-        /// <param name="stateInitAction"></param>
+        /// <param name="stateInitAction">The action to initialize the state object, that is called once before the cursor is initialized.</param>
         /// <param name="inputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TSrc"/> and input data.</param>
         /// <param name="outputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TDst"/> and output data.</param>
         internal StatefulCustomMappingEstimator(IHostEnvironment env, Action<TSrc, TState, TDst> mapAction, string contractName,
