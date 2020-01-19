@@ -54,5 +54,15 @@ namespace Microsoft.ML
             where TState : class, new()
             where TDst : class, new()
             => new StatefulCustomMappingEstimator<TSrc, TState, TDst>(catalog.GetEnvironment(), mapAction, contractName, stateInitAction, inputSchemaDefinition, outputSchemaDefinition);
+
+        public static IDataView CustomFilter<TSrc>(this DataOperationsCatalog catalog, IDataView input, Func<TSrc, bool> filterPredicate, SchemaDefinition inputSchemaDefinition = null)
+            where TSrc : class, new()
+            => new CustomMappingFilter<TSrc>(catalog.GetEnvironment(), input, filterPredicate, inputSchemaDefinition);
+
+        public static IDataView StatefulCustomFilter<TSrc, TState>(this DataOperationsCatalog catalog, IDataView input, Func<TSrc, TState, bool> filterPredicate,
+            Action<TState> stateInitAction, SchemaDefinition inputSchemaDefinition = null)
+            where TSrc : class, new()
+            where TState : class, new()
+            => new StatefulCustomMappingFilter<TSrc, TState>(catalog.GetEnvironment(), input, filterPredicate, stateInitAction, inputSchemaDefinition);
     }
 }

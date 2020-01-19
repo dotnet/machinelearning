@@ -186,5 +186,62 @@ namespace Microsoft.ML.Tests.Transformers
 
             Done();
         }
+
+        [Fact]
+        public void TestCustomFilter()
+        {
+            string dataPath = GetDataPath("breast-cancer.txt");
+            var source = new MultiFileSource(dataPath);
+            var loader = ML.Data.CreateTextLoader(new[] {
+                new TextLoader.Column("Float4", DataKind.Single, 1, 4),
+                new TextLoader.Column("Float1", DataKind.Single, 2),
+            });
+            var data = loader.Load(source);
+
+            var filteredData = ML.Data.CustomFilter<MyInput>(data, input => input.Float1 % 2 == 0);
+            Assert.True(filteredData.GetColumn<float>(filteredData.Schema[nameof(MyInput.Float1)]).All(x => x % 2 == 1));
+        }
+
+        private sealed class MyFilterState
+        {
+            public int Count { get; set; }
+        }
+
+        private sealed class MyFilterInput
+        {
+            public int Counter { get; set; }
+            public int Value { get; set; }
+        }
+
+        [Fact]
+        public void TestStatefulCustomFilter()
+        {
+            var data = ML.Data.LoadFromEnumerable(new[]
+            {
+                new MyFilterInput() { Counter = 0, Value = 1 },
+                new MyFilterInput() { Counter = 1, Value = 1 },
+                new MyFilterInput() { Counter = 2, Value = 2 },
+                new MyFilterInput() { Counter = 3, Value = 0 },
+                new MyFilterInput() { Counter = 4, Value = 2 },
+                new MyFilterInput() { Counter = 5, Value = 4 },
+                new MyFilterInput() { Counter = 6, Value = 1 },
+                new MyFilterInput() { Counter = 7, Value = 1 },
+                new MyFilterInput() { Counter = 8, Value = 2 },
+            });
+
+            var filteredData = ML.Data.StatefulCustomFilter<MyFilterInput, MyFilterState>(data,
+                (input, state) =>
+                {
+                    if (state.Count++ % 2 == 0)
+                        return input.Value % 2 == 0;
+                    else
+                        return input.Value % 2 == 1;
+                }, state => state.Count = 0);
+
+            var values = filteredData.GetColumn<int>(filteredData.Schema[nameof(MyFilterInput.Value)]);
+            var counter = filteredData.GetColumn<int>(filteredData.Schema[nameof(MyFilterInput.Counter)]);
+            Assert.Equal(new[] { 0, 3, 5, 6 }, counter);
+            Assert.Equal(new[] { 1, 0, 4, 1 }, values);
+        }
     }
 }
