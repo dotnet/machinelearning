@@ -892,6 +892,7 @@ namespace Microsoft.ML
         /// <param name="numberOfIterations">The number of iterations.</param>
         /// <param name="treeDepth">The depth of a Local Deep SVM tree.</param>
         /// <param name="useBias">Indicates if the model should have a bias term.</param>
+        /// <param name="useCachedData">Indicates whether we should iterate over the data using a cache.</param>
         /// <returns></returns>
         public static LdSvmTrainer LdSvm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
@@ -899,7 +900,8 @@ namespace Microsoft.ML
             string exampleWeightColumnName = null,
             int numberOfIterations = LdSvmTrainer.Options.Defaults.NumberOfIterations,
             int treeDepth = LdSvmTrainer.Options.Defaults.TreeDepth,
-            bool useBias = LdSvmTrainer.Options.Defaults.UseBias)
+            bool useBias = LdSvmTrainer.Options.Defaults.UseBias,
+            bool useCachedData = LdSvmTrainer.Options.Defaults.Cache)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var options = new LdSvmTrainer.Options()
@@ -909,7 +911,8 @@ namespace Microsoft.ML
                 ExampleWeightColumnName = exampleWeightColumnName,
                 NumberOfIterations = numberOfIterations,
                 TreeDepth = treeDepth,
-                UseBias = useBias
+                UseBias = useBias,
+                Cache = useCachedData
             };
             return new LdSvmTrainer(catalog.GetEnvironment(), options);
         }

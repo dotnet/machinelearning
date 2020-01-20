@@ -160,8 +160,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void TestEstimatorLdSvmTrainer()
         {
-            var trainers = new[] { ML.BinaryClassification.Trainers.LdSvm(new LdSvmTrainer.Options() { LambdaTheta = 0.02f, NumberOfIterations = 100 }),
-                ML.BinaryClassification.Trainers.LdSvm(numberOfIterations: 100) };
+            var trainers = new[] {
+                ML.BinaryClassification.Trainers.LdSvm(new LdSvmTrainer.Options() { LambdaTheta = 0.02f, NumberOfIterations = 100 }),
+                ML.BinaryClassification.Trainers.LdSvm(numberOfIterations: 100),
+                ML.BinaryClassification.Trainers.LdSvm(numberOfIterations: 100, useCachedData: false)
+            };
 
             foreach (var trainer in trainers)
             {

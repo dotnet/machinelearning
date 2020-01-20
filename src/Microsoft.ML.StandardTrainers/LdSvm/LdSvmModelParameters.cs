@@ -246,8 +246,8 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         private float Margin(in VBuffer<float> src)
         {
-            Double score = 0;
-            Double childIndicator;
+            double score = 0;
+            double childIndicator;
             int current = 0;
             while (current < _numLeaf - 1)
             {

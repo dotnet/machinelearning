@@ -102,6 +102,9 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             internal int MaxCalibrationExamples = 1000000;
 
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to cache the data before the first iteration")]
+            public bool Cache = Defaults.Cache;
+
             internal class Defaults
             {
                 public const int NumberOfIterations = 15000;
@@ -111,10 +114,13 @@ namespace Microsoft.ML.Trainers
                 public const float LambdaTheta = 0.01f;
                 public const float LambdaW = 0.1f;
                 public const int TreeDepth = 3;
+                public const bool Cache = true;
             }
         }
 
-        private Options _options;
+        private const int NumberOfSamplesForGammaUpdate = 100;
+
+        private readonly Options _options;
 
         internal LdSvmTrainer(IHostEnvironment env, Options options)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue),
@@ -127,7 +133,7 @@ namespace Microsoft.ML.Trainers
             _options = options;
         }
 
-        private static readonly TrainerInfo _info = new TrainerInfo(calibration: true, caching: true);
+        private static readonly TrainerInfo _info = new TrainerInfo(calibration: true, caching: false);
         public override TrainerInfo Info => _info;
 
         private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
@@ -188,13 +194,15 @@ namespace Microsoft.ML.Trainers
             else
             {
                 float tempSum = 0;
-                var sample = data.SampleWithReplacement(Host.Rand, 100);
+                var sample = data.SampleForGammaUpdate(Host.Rand);
+                int sampleSize = 0;
                 foreach (var s in sample)
                 {
                     int thetaIdx = Host.Rand.Next(numLeaf - 1);
                     tempSum += Math.Abs(VectorUtils.DotProduct(in s, in theta[thetaIdx]) + biasTheta[thetaIdx]);
+                    sampleSize++;
                 }
-                tempSum /= 100.0f;
+                tempSum /= sampleSize;
                 gamma = 0.1f / tempSum;
                 gamma *= (float)Math.Pow(2.0, iter / (_options.NumberOfIterations / 10.0));
             }
@@ -225,7 +233,9 @@ namespace Microsoft.ML.Trainers
                 biasTheta, biasThetaPrime, tempThetaPrime, tempTheta, tempBiasW, tempBiasTheta, tempBiasThetaPrime);
 
             var gamma = 0.01f;
-            var data = new Data(ch, trainingData);
+            Data data = _options.Cache ?
+                (Data)new CachedData(ch, trainingData) :
+                new StreamingData(ch, trainingData);
             var pathWt = new float[numNodes];
             var localWt = new float[numNodes];
             var gradTheta = new float[numLeaf - 1];
@@ -261,7 +271,7 @@ namespace Microsoft.ML.Trainers
                 for (int i = 0; i < numLeaf - 1; i++)
                     tempBiasTheta[i] *= coef;
 
-                var sample = data.SampleWithoutReplacement(Host.Rand);
+                var sample = data.SampleExamples(Host.Rand);
                 foreach (var s in sample)
                 {
                     float trueLabel = s.Label;
@@ -270,10 +280,9 @@ namespace Microsoft.ML.Trainers
                     // Compute path weight
                     for (int i = 0; i < numNodes; i++)
                         pathWt[i] = 1;
-                    float tanhDist;
                     for (int i = 0; i < numLeaf - 1; i++)
                     {
-                        tanhDist = (float)Math.Tanh(gamma * (VectorUtils.DotProduct(in features, in theta[i]) + biasTheta[i]));
+                        var tanhDist = (float)Math.Tanh(gamma * (VectorUtils.DotProduct(in features, in theta[i]) + biasTheta[i]));
                         pathWt[2 * i + 1] = pathWt[i] * (1 + tanhDist) / (float)2.0;
                         pathWt[2 * i + 2] = pathWt[i] * (1 - tanhDist) / (float)2.0;
                     }
@@ -341,6 +350,7 @@ namespace Microsoft.ML.Trainers
                     biasTheta[i] = tempBiasTheta[i];
                 }
             }
+
             return new LdSvmModelParameters(Host, w, thetaPrime, theta, _options.Sigma, biasW, biasTheta,
                 biasThetaPrime, _options.TreeDepth);
         }
@@ -434,59 +444,182 @@ namespace Microsoft.ML.Trainers
             public VBuffer<float> Features;
         }
 
-        private sealed class Data
+        private abstract class Data
         {
-            private readonly IChannel _ch;
-            private readonly RoleMappedData _data;
+            protected readonly IChannel Ch;
+            //protected readonly int Size;
 
-            public int Length { get; }
+            public abstract long Length { get; }
 
-            public Data(IChannel ch, RoleMappedData data)
+            protected Data(IChannel ch)
             {
-                Contracts.AssertValue(ch);
-                _ch = ch;
-                _ch.AssertValue(data);
+                Ch = ch;
+            }
+
+            public abstract IEnumerable<VBuffer<float>> SampleForGammaUpdate(Random rand);
+            public abstract IEnumerable<LabelFeatures> SampleExamples(Random rand);
+        }
+
+        private sealed class CachedData : Data
+        {
+            private readonly LabelFeatures[] _examples;
+            private readonly int[] _indices;
+
+            public override long Length => _examples.Length;
+
+            public CachedData(IChannel ch, RoleMappedData data)
+                : base(ch)
+            {
+                var examples = new List<LabelFeatures>();
+                using (var cursor = new FloatLabelCursor(data, CursOpt.Label | CursOpt.Features))
+                {
+                    while (cursor.MoveNext())
+                    {
+                        var example = new LabelFeatures();
+                        cursor.Features.CopyTo(ref example.Features);
+                        example.Label = cursor.Label > 0 ? 1 : -1;
+                        examples.Add(example);
+                    }
+                    Ch.Check(cursor.KeptRowCount > 0, NoTrainingInstancesMessage);
+                    if (cursor.SkippedRowCount > 0)
+                        Ch.Warning("Skipped {0} rows with missing feature/label values", cursor.SkippedRowCount);
+                }
+                _examples = examples.ToArray();
+                _indices = Utils.GetIdentityPermutation((int)Length);
+            }
+
+            public override IEnumerable<LabelFeatures> SampleExamples(Random rand)
+            {
+                var sampleSize = Math.Max(1, (int)Math.Sqrt(Length));
+                var length = (int)Length;
+                // Select random subset of data - the first sampleSize indices will be
+                // our subset.
+                for (int k = 0; k < sampleSize; k++)
+                {
+                    int randIdx = k + rand.Next(length - k);
+                    Utils.Swap(ref _indices[k], ref _indices[randIdx]);
+                }
+
+                for (int k = 0; k < sampleSize; k++)
+                {
+                    yield return _examples[_indices[k]];
+                }
+            }
+
+            public override IEnumerable<VBuffer<float>> SampleForGammaUpdate(Random rand)
+            {
+                int length = (int)Length;
+                for (int i = 0; i < NumberOfSamplesForGammaUpdate; i++)
+                {
+                    int index = rand.Next(length);
+                    yield return _examples[index].Features;
+                }
+            }
+        }
+
+        private sealed class StreamingData : Data
+        {
+            private readonly RoleMappedData _data;
+            private readonly int[] _indices;
+            private readonly int[] _indices2;
+
+            public override long Length { get; }
+
+            public StreamingData(IChannel ch, RoleMappedData data)
+                : base(ch)
+            {
+                Ch.AssertValue(data);
 
                 _data = data;
-                using (var cursor = new FloatLabelCursor(_data, CursOpt.Label | CursOpt.Features))
+
+                using (var cursor = _data.Data.GetRowCursor())
                 {
                     while (cursor.MoveNext())
                         Length++;
-                    _ch.Check(cursor.KeptRowCount > 0, NoTrainingInstancesMessage);
-                    if (cursor.SkippedRowCount > 0)
-                        _ch.Warning("Skipped {0} rows with missing feature/label values", cursor.SkippedRowCount);
+                }
+                _indices = Utils.GetIdentityPermutation((int)Length);
+                _indices2 = new int[NumberOfSamplesForGammaUpdate];
+            }
+
+            public override IEnumerable<VBuffer<float>> SampleForGammaUpdate(Random rand)
+            {
+                int length = (int)Length;
+                for (int i = 0; i < NumberOfSamplesForGammaUpdate; i++)
+                {
+                    _indices2[i] = rand.Next(length);
+                }
+                Array.Sort(_indices2);
+
+                using (var cursor = _data.Data.GetRowCursor(_data.Data.Schema[_data.Schema.Feature.Value.Name]/*, labelCol*/))
+                {
+                    var getter = cursor.GetGetter<VBuffer<float>>(_data.Data.Schema[_data.Schema.Feature.Value.Name]);
+                    var features = default(VBuffer<float>);
+                    int iIndex = 0;
+                    while (cursor.MoveNext())
+                    {
+                        if (cursor.Position == _indices2[iIndex])
+                        {
+                            iIndex++;
+                            getter(ref features);
+                            var noNaNs = FloatUtils.IsFinite(features.GetValues());
+                            if (noNaNs)
+                                yield return features;
+                            while (iIndex < NumberOfSamplesForGammaUpdate && cursor.Position == _indices2[iIndex])
+                            {
+                                iIndex++;
+                                if (noNaNs)
+                                    yield return features;
+                            }
+                            if (iIndex == NumberOfSamplesForGammaUpdate)
+                                break;
+                        }
+                    }
                 }
             }
 
-            public IEnumerable<VBuffer<float>> SampleWithReplacement(Random rand, int size)
+            public override IEnumerable<LabelFeatures> SampleExamples(Random rand)
             {
-                using (var cursor = new FeatureFloatVectorCursor(_data))
+                var sampleSize = Math.Max(1, (int)Math.Sqrt(Length));
+                var length = (int)Length;
+                // Select random subset of data - the first sampleSize indices will be
+                // our subset.
+                for (int k = 0; k < sampleSize; k++)
                 {
-                    ValueGetter<VBuffer<float>> getter =
-                        (ref VBuffer<float> dst) => cursor.Features.CopyTo(ref dst);
-                    var reservoir = new ReservoirSamplerWithReplacement<VBuffer<float>>(rand, size, getter);
-                    while (cursor.MoveNext())
-                        reservoir.Sample();
-                    reservoir.Lock();
-                    return reservoir.GetSample();
+                    int randIdx = k + rand.Next(length - k);
+                    Utils.Swap(ref _indices[k], ref _indices[randIdx]);
                 }
-            }
-            public IEnumerable<LabelFeatures> SampleWithoutReplacement(Random rand)
-            {
-                var size = Math.Max(1, (int)Math.Sqrt(Length));
-                using (var cursor = new FloatLabelCursor(_data, CursOpt.Label | CursOpt.Features))
+
+                Array.Sort(_indices, 0, sampleSize);
+
+                var featureCol = _data.Data.Schema[_data.Schema.Feature.Value.Name];
+                var labelCol = _data.Data.Schema[_data.Schema.Label.Value.Name];
+                using (var cursor = _data.Data.GetRowCursor(featureCol, labelCol))
                 {
+                    var featureGetter = cursor.GetGetter<VBuffer<float>>(featureCol);
+                    var labelGetter = RowCursorUtils.GetLabelGetter(cursor, labelCol.Index);
                     ValueGetter<LabelFeatures> getter =
                         (ref LabelFeatures dst) =>
                         {
-                            cursor.Features.CopyTo(ref dst.Features);
-                            dst.Label = cursor.Label > 0 ? 1 : -1;
+                            featureGetter(ref dst.Features);
+                            var label = default(float);
+                            labelGetter(ref label);
+                            dst.Label = label > 0 ? 1 : -1;
                         };
-                    var reservoir = new ReservoirSamplerWithReplacement<LabelFeatures>(rand, size, getter);
+
+                    int iIndex = 0;
                     while (cursor.MoveNext())
-                        reservoir.Sample();
-                    reservoir.Lock();
-                    return reservoir.GetSample();
+                    {
+                        if (cursor.Position == _indices[iIndex])
+                        {
+                            var example = new LabelFeatures();
+                            getter(ref example);
+                            iIndex++;
+                            if (FloatUtils.IsFinite(example.Features.GetValues()))
+                                yield return example;
+                            if (iIndex == sampleSize)
+                                break;
+                        }
+                    }
                 }
             }
         }
@@ -494,7 +627,7 @@ namespace Microsoft.ML.Trainers
         private protected override BinaryPredictionTransformer<LdSvmModelParameters> MakeTransformer(LdSvmModelParameters model, DataViewSchema trainSchema)
             => new BinaryPredictionTransformer<LdSvmModelParameters>(Host, model, trainSchema, _options.FeatureColumnName);
 
-        [TlcModule.EntryPoint(Name = "Trainers.LocalDeepSvmBinaryClassifier", Desc = Summary, UserName = LdSvmTrainer.UserNameValue, ShortName = LoadNameValue)]
+        [TlcModule.EntryPoint(Name = "Trainers.LocalDeepSvmBinaryClassifier", Desc = Summary, UserName = UserNameValue, ShortName = LoadNameValue)]
         internal static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
