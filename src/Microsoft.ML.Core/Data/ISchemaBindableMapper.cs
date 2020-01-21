@@ -9,8 +9,8 @@ using Microsoft.ML.Runtime;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// A mapper that can be bound to a <see cref="RoleMappedSchema"/> (which has mappings from column kinds
-    /// to columns). Binding an <see cref="ISchemaBindableMapper"/> to a <see cref="RoleMappedSchema"/> produces an
+    /// A mapper that can be bound to a <see cref="RoleMappedSchema"/> (which encapsulates a <see cref="DataViewSchema"/> and has mappings from column kinds
+    /// to columns of that schema). Binding an <see cref="ISchemaBindableMapper"/> to a <see cref="RoleMappedSchema"/> produces an
     /// <see cref="ISchemaBoundMapper"/>, which is an interface that has methods to return the names and indices of the input columns
     /// needed by the mapper to compute its output. The <see cref="ISchemaBoundRowMapper"/> is an extention to this interface, that
     /// can also produce an output <see cref="DataViewRow"/> given an input DataViewRow. The DataViewRow produced generally contains only the output columns of the mapper, and not
