@@ -2637,7 +2637,7 @@ namespace Microsoft.ML.RunTests
                 Assert.Equal(3, CountRows(loader));
         }
 
-        [Fact]
+        [RetryFact]
         public void EntryPointEvaluateRegression()
         {
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename);
