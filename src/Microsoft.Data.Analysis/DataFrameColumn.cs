@@ -24,6 +24,44 @@ namespace Microsoft.Data.Analysis
             DataType = type;
         }
 
+        /// <summary>
+        /// A static factory method to create a <see cref="PrimitiveDataFrameColumn{T}"/>. 
+        /// It allows you to take advantage of type inference based on the type of the values supplied.
+        /// </summary>
+        /// <typeparam name="T">The type of the column to create.</typeparam>
+        /// <param name="name">The name of the column.</param>
+        /// <param name="values">The initial values to populate in the column.</param>
+        /// <returns>A <see cref="PrimitiveDataFrameColumn{T}"/> populated with the provided data.</returns>
+        public static PrimitiveDataFrameColumn<T> Create<T>(string name, IEnumerable<T?> values) where T : unmanaged
+        {
+            return new PrimitiveDataFrameColumn<T>(name, values);
+        }
+
+        /// <summary>
+        /// A static factory method to create a <see cref="PrimitiveDataFrameColumn{T}"/>. 
+        /// It allows you to take advantage of type inference based on the type of the values supplied.
+        /// </summary>
+        /// <typeparam name="T">The type of the column to create.</typeparam>
+        /// <param name="name">The name of the column.</param>
+        /// <param name="values">The initial values to populate in the column.</param>
+        /// <returns>A <see cref="PrimitiveDataFrameColumn{T}"/> populated with the provided data.</returns>
+        public static PrimitiveDataFrameColumn<T> Create<T>(string name, IEnumerable<T> values) where T : unmanaged
+        {
+            return new PrimitiveDataFrameColumn<T>(name, values);
+        }
+
+        /// <summary>
+        /// A static factory method to create a <see cref="StringDataFrameColumn"/>. 
+        /// It allows you to take advantage of type inference based on the type of the values supplied.
+        /// </summary>
+        /// <param name="name">The name of the column.</param>
+        /// <param name="values">The initial values to populate in the column.</param>
+        /// <returns>A <see cref="StringDataFrameColumn"/> populated with the provided data.</returns>
+        public static StringDataFrameColumn Create(string name, IEnumerable<string> values)
+        {
+            return new StringDataFrameColumn(name, values);
+        }
+
         private long _length;
         public long Length
         {

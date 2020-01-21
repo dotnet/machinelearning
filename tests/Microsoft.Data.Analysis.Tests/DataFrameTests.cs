@@ -104,14 +104,14 @@ namespace Microsoft.Data.Analysis.Tests
         public static DataFrame MakeDataFrameWithNumericAndStringColumns(int length, bool withNulls = true)
         {
             DataFrame df = MakeDataFrameWithNumericColumns(length, withNulls);
-            DataFrameColumn stringColumn = new StringDataFrameColumn("String", Enumerable.Range(0, length).Select(x => x.ToString()));
+            DataFrameColumn stringColumn = DataFrameColumn.Create("String", Enumerable.Range(0, length).Select(x => x.ToString()));
             df.Columns.Insert(df.Columns.Count, stringColumn);
             if (withNulls)
             {
                 stringColumn[length / 2] = null;
             }
 
-            DataFrameColumn charColumn = new PrimitiveDataFrameColumn<char>("Char", Enumerable.Range(0, length).Select(x => (char)(x + 65)));
+            DataFrameColumn charColumn = DataFrameColumn.Create("Char", Enumerable.Range(0, length).Select(x => (char)(x + 65)));
             df.Columns.Insert(df.Columns.Count, charColumn);
             if (withNulls)
             {
@@ -122,17 +122,17 @@ namespace Microsoft.Data.Analysis.Tests
 
         public static DataFrame MakeDataFrameWithNumericColumns(int length, bool withNulls = true)
         {
-            DataFrameColumn byteColumn = new PrimitiveDataFrameColumn<byte>("Byte", Enumerable.Range(0, length).Select(x => (byte)x));
-            DataFrameColumn decimalColumn = new PrimitiveDataFrameColumn<decimal>("Decimal", Enumerable.Range(0, length).Select(x => (decimal)x));
-            DataFrameColumn doubleColumn = new PrimitiveDataFrameColumn<double>("Double", Enumerable.Range(0, length).Select(x => (double)x));
-            DataFrameColumn floatColumn = new PrimitiveDataFrameColumn<float>("Float", Enumerable.Range(0, length).Select(x => (float)x));
-            DataFrameColumn intColumn = new PrimitiveDataFrameColumn<int>("Int", Enumerable.Range(0, length).Select(x => x));
-            DataFrameColumn longColumn = new PrimitiveDataFrameColumn<long>("Long", Enumerable.Range(0, length).Select(x => (long)x));
-            DataFrameColumn sbyteColumn = new PrimitiveDataFrameColumn<sbyte>("Sbyte", Enumerable.Range(0, length).Select(x => (sbyte)x));
-            DataFrameColumn shortColumn = new PrimitiveDataFrameColumn<short>("Short", Enumerable.Range(0, length).Select(x => (short)x));
-            DataFrameColumn uintColumn = new PrimitiveDataFrameColumn<uint>("Uint", Enumerable.Range(0, length).Select(x => (uint)x));
-            DataFrameColumn ulongColumn = new PrimitiveDataFrameColumn<ulong>("Ulong", Enumerable.Range(0, length).Select(x => (ulong)x));
-            DataFrameColumn ushortColumn = new PrimitiveDataFrameColumn<ushort>("Ushort", Enumerable.Range(0, length).Select(x => (ushort)x));
+            DataFrameColumn byteColumn = DataFrameColumn.Create("Byte", Enumerable.Range(0, length).Select(x => (byte)x));
+            DataFrameColumn decimalColumn = DataFrameColumn.Create("Decimal", Enumerable.Range(0, length).Select(x => (decimal)x));
+            DataFrameColumn doubleColumn = DataFrameColumn.Create("Double", Enumerable.Range(0, length).Select(x => (double)x));
+            DataFrameColumn floatColumn = DataFrameColumn.Create("Float", Enumerable.Range(0, length).Select(x => (float)x));
+            DataFrameColumn intColumn = DataFrameColumn.Create("Int", Enumerable.Range(0, length).Select(x => x));
+            DataFrameColumn longColumn = DataFrameColumn.Create("Long", Enumerable.Range(0, length).Select(x => (long)x));
+            DataFrameColumn sbyteColumn = DataFrameColumn.Create("Sbyte", Enumerable.Range(0, length).Select(x => (sbyte)x));
+            DataFrameColumn shortColumn = DataFrameColumn.Create("Short", Enumerable.Range(0, length).Select(x => (short)x));
+            DataFrameColumn uintColumn = DataFrameColumn.Create("Uint", Enumerable.Range(0, length).Select(x => (uint)x));
+            DataFrameColumn ulongColumn = DataFrameColumn.Create("Ulong", Enumerable.Range(0, length).Select(x => (ulong)x));
+            DataFrameColumn ushortColumn = DataFrameColumn.Create("Ushort", Enumerable.Range(0, length).Select(x => (ushort)x));
 
             DataFrame dataFrame = new DataFrame(new List<DataFrameColumn> { byteColumn, decimalColumn, doubleColumn, floatColumn, intColumn, longColumn, sbyteColumn, shortColumn, uintColumn, ulongColumn, ushortColumn });
 
@@ -150,8 +150,8 @@ namespace Microsoft.Data.Analysis.Tests
             where T1 : unmanaged
             where T2 : unmanaged
         {
-            DataFrameColumn baseColumn1 = new PrimitiveDataFrameColumn<T1>("Column1", Enumerable.Range(0, length).Select(x => (T1)Convert.ChangeType(x % 2 == 0 ? 0 : 1, typeof(T1))));
-            DataFrameColumn baseColumn2 = new PrimitiveDataFrameColumn<T2>("Column2", Enumerable.Range(0, length).Select(x => (T2)Convert.ChangeType(x % 2 == 0 ? 0 : 1, typeof(T2))));
+            DataFrameColumn baseColumn1 = DataFrameColumn.Create("Column1", Enumerable.Range(0, length).Select(x => (T1)Convert.ChangeType(x % 2 == 0 ? 0 : 1, typeof(T1))));
+            DataFrameColumn baseColumn2 = DataFrameColumn.Create("Column2", Enumerable.Range(0, length).Select(x => (T2)Convert.ChangeType(x % 2 == 0 ? 0 : 1, typeof(T2))));
             DataFrame dataFrame = new DataFrame(new List<DataFrameColumn> { baseColumn1, baseColumn2 });
 
             if (withNulls)
