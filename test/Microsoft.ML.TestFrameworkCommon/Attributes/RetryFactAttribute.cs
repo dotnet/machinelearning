@@ -100,5 +100,24 @@ namespace Microsoft.ML.TestFrameworkCommon.Attributes
 
         public int MaxRetries { get; set; }
     }
+
+    /// <summary>
+    /// A fact for tests requiring x64 environment and either .NET Core version lower than 3.0 or framework other than .NET Core.
+    /// </summary>
+    [XunitTestCaseDiscoverer("Microsoft.ML.TestFrameworkCommon.RetryFactDiscoverer", "Microsoft.ML.TestFrameworkCommon")]
+    public sealed class RetryLessThanNetCore30OrNotNetCoreAndX64FactAttribute : EnvironmentSpecificFactAttribute
+    {
+        public RetryLessThanNetCore30OrNotNetCoreAndX64FactAttribute(string skipMessage) : base(skipMessage)
+        {
+        }
+
+        /// <inheritdoc />
+        protected override bool IsEnvironmentSupported()
+        {
+            return Environment.Is64BitProcess && AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") == null;
+        }
+
+        public int MaxRetries { get; set; }
+    }
 }
 

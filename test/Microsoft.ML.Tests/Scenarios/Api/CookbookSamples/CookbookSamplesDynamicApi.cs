@@ -217,7 +217,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             });
         }
 
-        [Fact]
+        [RetryFact]
         public void TrainAndPredictOnIris()
             => PredictOnIris(TrainOnIris(GetDataPath("iris.data")));
 
