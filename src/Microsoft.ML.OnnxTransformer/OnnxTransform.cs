@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -116,8 +117,6 @@ namespace Microsoft.ML.Transforms.Onnx
         /// </summary>
         internal DataViewType[] OutputTypes { get; }
 
-        public readonly DataViewSchema OutputSchema;
-
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -134,18 +133,12 @@ namespace Microsoft.ML.Transforms.Onnx
         // Factory method for SignatureDataTransform
         private static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
-            var transformer = new OnnxTransformer(env, options);
-            var mapper = new Mapper(transformer, input.Schema);
-            return new OnnxDataTransform(env, input, mapper);
+            return new OnnxTransformer(env, options).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadDataTransform
         private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
-        {
-            var transformer = OnnxTransformer.Create(env, ctx);
-            var mapper = new Mapper(transformer, input.Schema);
-            return new OnnxDataTransform(env, input, mapper);
-        }
+            => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadModel.
         private static OnnxTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -194,7 +187,8 @@ namespace Microsoft.ML.Transforms.Onnx
         }
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema) => new Mapper(Create(env, ctx), inputSchema);
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private OnnxTransformer(IHostEnvironment env, Options options, byte[] modelBytes = null) :
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(OnnxTransformer)))
@@ -249,12 +243,6 @@ namespace Microsoft.ML.Transforms.Onnx
                 OutputTypes[i] = outputInfo.DataViewType;
             }
             _options = options;
-
-            var schemaBuilder = new DataViewSchema.Builder();
-            for (var i = 0; i < Outputs.Length; i++)
-                schemaBuilder.AddColumn(Outputs[i], OutputTypes[i]);
-
-            OutputSchema = schemaBuilder.ToSchema();
         }
 
         /// <summary>
@@ -338,14 +326,6 @@ namespace Microsoft.ML.Transforms.Onnx
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema inputSchema) => new Mapper(this, inputSchema);
 
-        protected override DataViewSchema GetOutputSchemaCore(DataViewSchema inputSchema) => OutputSchema;
-
-        private protected override IDataView MakeDataTransformCore(IDataView input)
-        {
-            Host.CheckValue(input, nameof(input));
-            return new OnnxDataTransform(Host, input, new Mapper(this, input.Schema));
-        }
-
         /// <summary>
         /// This design assumes that all unknown dimensions are 1s. It also convert scalar shape [] in ONNX to [1].
         /// [TODO] We should infer the unknown shape from input data instead of forcing them to be 1.
@@ -375,8 +355,6 @@ namespace Microsoft.ML.Transforms.Onnx
             /// <see cref="_inputOnnxTypes"/>'s i-th element value tells if the <see cref="Type"/> of the i-th ONNX input.
             /// </summary>
             private readonly Type[] _inputOnnxTypes;
-
-            public DataViewSchema OutputSchema => _parent.GetOutputSchema(InputSchema);
 
             public Mapper(OnnxTransformer parent, DataViewSchema inputSchema) :
                  base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema, parent)
@@ -423,8 +401,6 @@ namespace Microsoft.ML.Transforms.Onnx
                 }
             }
 
-            public DataViewSchema.DetachedColumn[] GetOutputColumns() => GetOutputColumnsCore();
-
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
                 var info = new DataViewSchema.DetachedColumn[_parent.Outputs.Length];
@@ -432,8 +408,6 @@ namespace Microsoft.ML.Transforms.Onnx
                     info[i] = new DataViewSchema.DetachedColumn(_parent.Outputs[i], _parent.OutputTypes[i], null);
                 return info;
             }
-
-            public Func<int, bool> GetDependencies(Func<int, bool> activeOutput) => GetDependenciesCore(activeOutput);
 
             private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
             {
@@ -670,173 +644,6 @@ namespace Microsoft.ML.Transforms.Onnx
                     _vBuffer.CopyToDense(ref _vBufferDense);
                     return OnnxUtils.CreateNamedOnnxValue(_colName, _vBufferDense.GetValues(), _tensorShape);
                 }
-            }
-        }
-
-        private class OnnxDataTransform : TransformBase, IRowToRowMapper
-        {
-            private readonly Mapper _mapper;
-            private readonly IRowMapper _mapperIf;
-
-            public OnnxDataTransform(IHostEnvironment env, IDataView input, Mapper mapper)
-                :base(env.Register(nameof(OnnxDataTransform)), input)
-            {
-                _mapper = mapper;
-                _mapperIf = mapper as IRowMapper;
-            }
-
-            public DataViewSchema Schema => OutputSchema;
-
-            public DataViewSchema InputSchema => Source.Schema;
-
-            public override DataViewSchema OutputSchema => _mapper.OutputSchema;
-
-            public override long? GetRowCount() => Source.GetRowCount();
-
-            public void Save(ModelSaveContext ctx) => _mapperIf.Save(ctx);
-
-            public IEnumerable<DataViewSchema.Column> GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
-            {
-                return Source.Schema;
-            }
-
-            public DataViewRow GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
-            {
-                Host.CheckValue(input, nameof(input));
-                Host.CheckValue(activeColumns, nameof(activeColumns));
-                Host.Check(input.Schema == Source.Schema, "Schema of input row must be the same as the schema the mapper is bound to");
-
-                using (var ch = Host.Start("GetEntireRow"))
-                {
-                    var pred = RowCursorUtils.FromColumnsToPredicate(activeColumns, Schema);
-                    var getters = _mapperIf.CreateGetters(input, pred, out Action disp);
-                    return new RowImpl(input, this, Schema, getters, disp);
-                }
-            }
-
-            protected override DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
-            {
-                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
-                var active = Utils.BuildArray(Schema.Count, predicate);
-                return new Cursor(Host, Source.GetRowCursor(Source.Schema, rand), this, active);
-            }
-
-            public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
-            {
-                Host.CheckValueOrNull(rand);
-
-                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
-                var active = Utils.BuildArray(Schema.Count, predicate);
-
-                var inputs = Source.GetRowCursorSet(Source.Schema, n, rand);
-                Host.AssertNonEmpty(inputs);
-
-                if (inputs.Length == 1 && n > 1 && Enumerable.Range(0, Schema.Count).Any(predicate))
-                    inputs = DataViewUtils.CreateSplitCursors(Host, inputs[0], n);
-                Host.AssertNonEmpty(inputs);
-
-                var cursors = new DataViewRowCursor[inputs.Length];
-                for (int i = 0; i < inputs.Length; i++)
-                    cursors[i] = new Cursor(Host, inputs[i], this, active);
-                return cursors;
-            }
-
-            private protected override void SaveModel(ModelSaveContext ctx) => _mapperIf.Save(ctx);
-
-            protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
-            {
-                return true;
-            }
-
-            private sealed class RowImpl : WrappingRow
-            {
-                private readonly Delegate[] _getters;
-                private readonly OnnxDataTransform _parent;
-                private readonly Action _disposer;
-
-                public override DataViewSchema Schema { get; }
-
-                public RowImpl(DataViewRow input, OnnxDataTransform parent, DataViewSchema schema, Delegate[] getters, Action disposer)
-                    : base(input)
-                {
-                    _parent = parent;
-                    Schema = schema;
-                    _getters = getters;
-                    _disposer = disposer;
-                }
-
-                protected override void DisposeCore(bool disposing)
-                {
-                    if (disposing)
-                        _disposer?.Invoke();
-                }
-
-                /// <summary>
-                /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
-                /// This throws if the column is not active in this row, or if the type
-                /// <typeparamref name="TValue"/> differs from this column's type.
-                /// </summary>
-                /// <typeparam name="TValue"> is the column's content type.</typeparam>
-                /// <param name="column"> is the output column whose getter should be returned.</param>
-                public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
-                {
-                    int index = column.Index;
-                    Contracts.Assert(_getters[index] != null);
-                    var fn = _getters[index] as ValueGetter<TValue>;
-                    if (fn == null)
-                        throw Contracts.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));
-                    return fn;
-                }
-
-                /// <summary>
-                /// Returns whether the given column is active in this row.
-                /// </summary>
-                public override bool IsColumnActive(DataViewSchema.Column column)
-                {
-                    return _getters[column.Index] != null;
-                }
-            }
-
-            private sealed class Cursor : SynchronizedCursorBase
-            {
-                private readonly OnnxDataTransform _parent;
-                private readonly Delegate[] _getters;
-                private readonly bool[] _active;
-                private readonly Action _disposer;
-                private bool _disposed;
-
-                public Cursor(IChannelProvider provider, DataViewRowCursor input, OnnxDataTransform parent, bool[] active)
-                    : base(provider, input)
-                {
-                    _parent = parent;
-                    Func<int, bool> pred = c => active[c];
-                    _getters = parent._mapperIf.CreateGetters(input, pred, out _disposer);
-                    _active = active;
-                }
-
-                public override DataViewSchema Schema => _parent._mapper.OutputSchema;
-
-                public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
-                {
-                    var getter = _getters[column.Index];
-                    Ch.Assert(getter != null);
-                    var fn = getter as ValueGetter<TValue>;
-                    if (fn == null)
-                        throw Ch.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));
-                    return fn;
-                }
-
-                protected override void Dispose(bool disposing)
-                {
-                    if (_disposed)
-                        return;
-                    if (disposing)
-                        _disposer?.Invoke();
-                    _disposed = true;
-                    base.Dispose(disposing);
-                }
-
-                public override bool IsColumnActive(DataViewSchema.Column column) => _active[column.Index];
             }
         }
     }

@@ -732,6 +732,8 @@ namespace Microsoft.ML.Transforms
 
             public void SaveAsOnnx(OnnxContext ctx)
             {
+                var droppedCols = new HashSet<int>(Enumerable.Range(0, InputSchema.Count));
+
                 var outputToInputMap = _mapper.OutputToInputMap;
                 for(int i = 0; i < outputToInputMap.Length; i++)
                 {
@@ -741,6 +743,13 @@ namespace Microsoft.ML.Transforms
                     var dstVariable = ctx.AddIntermediateVariable(dstCol.Type, dstCol.Name, true);
                     string opType = "Identity";
                     ctx.CreateNode(opType, srcVariable, dstVariable, ctx.GetNodeName(opType), "");
+
+                    droppedCols.Remove(srcCol.Index);
+                }
+
+                foreach (var srcCol in droppedCols)
+                {
+                    ctx.RemoveInputVariable(InputSchema[srcCol].Name);
                 }
             }
         }
