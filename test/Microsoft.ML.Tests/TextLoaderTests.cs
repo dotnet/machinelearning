@@ -591,7 +591,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void ThrowsExceptionWithMissingFile()
         {
             var mlContext = new MLContext(seed: 1);
-            var ex = Assert.Throws<FormatException>(() => mlContext.Data.LoadFromTextFile<ModelWithoutColumnAttribute>("fakefile.txt"));
+            var ex = Assert.Throws<ArgumentOutOfRangeException>(() => mlContext.Data.LoadFromTextFile<ModelWithoutColumnAttribute>("fakefile.txt"));
             Assert.StartsWith("File does not exist at path: fakefile.txt", ex.Message);
         }
 
