@@ -13,9 +13,9 @@ This document is going to cover the following ML.NET concepts:
   - In one sentence, a transformer is a component that takes data, does some work on it, and returns new 'transformed' data.
   - For example, you can think of a machine learning model as a transformer that takes features and returns predictions.
   - Another example, 'text tokenizer' would take a single text column and output a vector column with individual 'words' extracted out of the texts.
-- [*Data reader*](#data-reader), represented as an `IDataReader<T>` interface.
-  - The data reader is ML.NET component to 'create' data: it takes an instance of `T` and returns data out of it. 
-  - For example, a *TextLoader* is an `IDataReader<FileSource>`: it takes the file source and produces data. 
+- [*Data loader*](#data-loader), represented as an `IDataLoader<TSource>` interface.
+  - The data loader is ML.NET component to 'create' data: it takes an instance of `TSource` and returns data out of it. 
+  - For example, a *TextLoader* is an `IDataLoader<IMultiStreamSource>`: it takes the file source and produces data. 
 - [*Estimator*](#estimator), represented as an `IEstimator<T>` interface.
   - This is an object that learns from data. The result of the learning is a *transformer*.
   - You can think of a machine learning *algorithm* as an estimator that learns on data and produces a machine learning *model* (which is a transformer).
@@ -73,26 +73,26 @@ var fullTransformer = transformer1.Append(transformer2).Append(transformer3);
 
 We utilize this property a lot in ML.NET: typically, the trained ML.NET model is a 'chain of transformers', which is, for all intents and purposes, a *transformer*. 
 
-## Data reader
+## Data loader
 
-The data reader is ML.NET component to 'create' data: it takes an instance of `T` and returns data out of it. 
+The data loader is ML.NET component to 'create' data: it takes an instance of `TSource` and returns data out of it. 
 
-Here's the exact interface of `IDataReader<T>`:
+Here's the interface of `IDataLoader<TSource>`:
 ```c#
 public interface IDataReader<in TSource>
 {
-    IDataView Read(TSource input);
+    IDataView Load(TSource input);
     DataViewSchema GetOutputSchema();
 }
 ```
-As you can see, the reader is capable of reading data (potentially multiple times, and from different 'inputs'), but the resulting data will always have the same schema, denoted by `GetOutputSchema`.
+As you can see, the loader is capable of loading data (potentially multiple times, and from different 'inputs'), but the resulting data will always have the same schema, denoted by `GetOutputSchema`.
 
-An interesting property to note is that you can create a new data reader by 'attaching' a transformer to an existing data reader. This way you can have 'reader' with transformation behavior baked in:
+An interesting property to note is that you can create a new data loader by 'attaching' a transformer to an existing data loader. This way you can have a 'loader' with transformation behavior baked in:
 ```c#
-var newReader = reader.Append(transformer1).Append(transformer2)
+var newLoader = loader.Append(transformer1).Append(transformer2)
 ```
 
-Another similarity to transformers is that, since data is lazily evaluated, *readers are lazy*: no (or minimal) actual 'reading' happens when you call `dataReader.Read()`: only when a cursor is requested on the resulting data does the reader begin to work.
+Another similarity to transformers is that, since data is lazily evaluated, *loaders are lazy*: no (or minimal) actual 'loading' happens when you call `dataLoader.Load()`: only when a cursor is requested on the resulting data does the loader begin to work.
 
 ## Estimator
 
