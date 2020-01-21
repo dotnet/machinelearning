@@ -13,7 +13,7 @@ namespace Microsoft.ML.Data
     /// to columns). Binding an <see cref="ISchemaBindableMapper"/> to a <see cref="RoleMappedSchema"/> produces an
     /// <see cref="ISchemaBoundMapper"/>, which is an interface that has methods to return the names and indices of the input columns
     /// needed by the mapper to compute its output. The <see cref="ISchemaBoundRowMapper"/> is an extention to this interface, that
-    /// can also produce an output DataViewRow given an input DataViewRow. The DataViewRow produced generally contains only the output columns of the mapper, and not
+    /// can also produce an output <see cref="DataViewRow"/> given an input DataViewRow. The DataViewRow produced generally contains only the output columns of the mapper, and not
     /// the input columns (but there is nothing preventing an <see cref="ISchemaBoundRowMapper"/> from mapping input columns directly to outputs).
     /// This interface is implemented by wrappers of IValueMapper based predictors, which are predictors that take a single
     /// features column. New predictors can implement <see cref="ISchemaBindableMapper"/> directly. Implementing <see cref="ISchemaBindableMapper"/>
