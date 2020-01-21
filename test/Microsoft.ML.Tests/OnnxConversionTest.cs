@@ -520,7 +520,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [LightGBMFact]
+        [RetryLightGBMFact]
         public void LightGbmBinaryClassificationOnnxConversionTest()
         {
             // Step 1: Create and train a ML.NET pipeline.

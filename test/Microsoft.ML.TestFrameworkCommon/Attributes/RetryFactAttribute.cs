@@ -119,5 +119,24 @@ namespace Microsoft.ML.TestFrameworkCommon.Attributes
 
         public int MaxRetries { get; set; }
     }
+
+    /// <summary>
+    /// A fact for tests requiring LightGBM.
+    /// </summary>
+    [XunitTestCaseDiscoverer("Microsoft.ML.TestFrameworkCommon.RetryFactDiscoverer", "Microsoft.ML.TestFrameworkCommon")]
+    public sealed class RetryLightGBMFactAttribute : EnvironmentSpecificFactAttribute
+    {
+        public RetryLightGBMFactAttribute() : base("LightGBM is 64-bit only")
+        {
+        }
+
+        /// <inheritdoc />
+        protected override bool IsEnvironmentSupported()
+        {
+            return Environment.Is64BitProcess;
+        }
+
+        public int MaxRetries { get; set; }
+    }
 }
 
