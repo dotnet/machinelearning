@@ -114,7 +114,7 @@ namespace Microsoft.ML
             Contracts.CheckNonEmpty(path, nameof(path));
             if (!File.Exists(path))
             {
-                throw Contracts.ExceptDecode("File does not exist at path: {0}", path);
+                throw Contracts.ExceptParam("File does not exist at path: {0}", path);
             }
 
             var options = new TextLoader.Options
@@ -160,7 +160,7 @@ namespace Microsoft.ML
             Contracts.CheckNonEmpty(path, nameof(path));
             if (!File.Exists(path))
             {
-                throw Contracts.ExceptDecode("File does not exist at path: {0}", path);
+                throw Contracts.ExceptParam("File does not exist at path: {0}", path);
             }
 
             // REVIEW: it is almost always a mistake to have a 'trainable' text loader here.
@@ -189,7 +189,7 @@ namespace Microsoft.ML
             Contracts.CheckNonEmpty(path, nameof(path));
             if (!File.Exists(path))
             {
-                throw Contracts.ExceptDecode("File does not exist at path: {0}", path);
+                throw Contracts.ExceptParam("File does not exist at path: {0}", path);
             }
 
             var env = catalog.GetEnvironment();
