@@ -1246,7 +1246,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(string.Join(" ", input.B).Replace("/", " "), textOutput.BOut[0]);
         }
 
-        [RetryTensorFlowFact]
+        [RetryTensorFlowFact(MaxRetries = 5)]
         public void TensorFlowImageClassificationDefault()
         {
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
@@ -1467,7 +1467,7 @@ namespace Microsoft.ML.Scenarios
             TensorFlowImageClassificationWithLRScheduling(new ExponentialLRDecay(), 50);
         }
 
-        [RetryTensorFlowFact]
+        [RetryTensorFlowFact(MaxRetries = 5)]
         public void TensorFlowImageClassificationWithPolynomialLRScheduling()
         {
 
@@ -1700,7 +1700,7 @@ namespace Microsoft.ML.Scenarios
             Assert.InRange(lastEpoch, 1, 49);
         }
 
-        [RetryTensorFlowFact]
+        [RetryTensorFlowFact(MaxRetries = 5)]
         public void TensorFlowImageClassificationBadImages()
         {
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
