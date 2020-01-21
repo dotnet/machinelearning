@@ -13760,6 +13760,15 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": 1000000
+        },
+        {
+          "Name": "Cache",
+          "Type": "Bool",
+          "Desc": "Whether to cache the data before the first iteration",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": true
         }
       ],
       "Outputs": [
