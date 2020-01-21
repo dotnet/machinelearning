@@ -603,7 +603,7 @@ namespace Microsoft.ML.Vision
                     (string)labelType.ToString());
             }
 
-            var msg = $"Only one class found in {_options.LabelColumnName} column. To build a multiclass classification model, the number of classes needs to be 2 or greater";
+            var msg = $"Only one class found in the {_options.LabelColumnName} column. To build a multiclass classification model, the number of classes needs to be 2 or greater";
             Contracts.CheckParam(labelCount > 1, nameof(labelCount), msg);
 
             _classCount = (int)labelCount;
