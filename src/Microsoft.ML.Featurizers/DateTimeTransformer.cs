@@ -354,6 +354,37 @@ namespace Microsoft.ML.Featurizers
 
         #region TimePoint
 
+        // Exact native representation
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        internal struct NativeTimePoint
+        {
+            public int Year;
+            public byte Month;
+            public byte Day;
+            public byte Hour;
+            public byte Minute;
+            public byte Second;
+            public byte AmPm;
+            public byte Hour12;
+            public byte DayOfWeek;
+            public byte DayOfQuarter;
+            public ushort DayOfYear;
+            public ushort WeekOfMonth;
+            public byte QuarterOfYear;
+            public byte HalfOfYear;
+            public byte WeekIso;
+            public int YearIso;
+            public IntPtr MonthLabelPointer;
+            public IntPtr MonthLabelSize;
+            public IntPtr AmPmLabelPointer;
+            public IntPtr AmPmLabelSize;
+            public IntPtr DayOfWeekLabelPointer;
+            public IntPtr DayOfWeekLabelSize;
+            public IntPtr HolidayNamePointer;
+            public IntPtr HolidayNameSize;
+            public byte IsPaidTimeOff;
+        }
+
         [StructLayoutAttribute(LayoutKind.Sequential)]
         internal struct TimePoint
         {
@@ -468,14 +499,13 @@ namespace Microsoft.ML.Featurizers
             internal readonly int IntPtrSize;
             internal readonly int StructSize;
 
-            internal TypedColumn(string source, string prefix)
+            internal unsafe TypedColumn(string source, string prefix)
             {
                 Source = source;
                 Prefix = prefix;
                 IntPtrSize = IntPtr.Size;
 
-                // The native struct is 25 bytes + 8 size_t.
-                StructSize = 25 + (IntPtrSize * 8);
+                StructSize = sizeof(NativeTimePoint);
             }
 
             internal abstract void CreateTransformerFromEstimator(DateTimeEstimator.HolidayList country);
