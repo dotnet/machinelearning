@@ -649,22 +649,12 @@ namespace Microsoft.ML.Transforms
                 Host.Assert(parameters.Kind == WhiteningKind.PrincipalComponentAnalysis || parameters.Kind == WhiteningKind.ZeroPhaseComponentAnalysis);
 
                 int rank = (parameters.Kind == WhiteningKind.PrincipalComponentAnalysis && parameters.Rank > 0) ? parameters.Rank : dimension;
+                Host.CheckParam(rank <= dimension, nameof(rank), "Rank must be at most the dimension of untransformed data.");
+
                 long[] modelDimension = { rank, dimension };
 
-                if (rank != dimension)
-                {
-                    float[] principalComponents = new float[rank * dimension];
-                    for (int i = 0; i < parameters.Rank; i++)
-                    {
-                        if (i >= dimension)
-                            break;
-                        Array.Copy(model, i * dimension, principalComponents, i * dimension, dimension);
-                    }
-                    model = principalComponents;
-                }
-
                 var opType = "Gemm";
-                var modelName = ctx.AddInitializer(model, modelDimension, "model");
+                var modelName = ctx.AddInitializer(model.Take(rank * dimension), modelDimension, "model");
                 var zeroValueName = ctx.AddInitializer((float)0);
 
                 var node = ctx.CreateNode(opType, new[] { modelName, srcVariableName, zeroValueName }, new[] { dstVariableName }, ctx.GetNodeName(opType), "");
