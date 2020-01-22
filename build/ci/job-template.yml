@@ -6,12 +6,15 @@ parameters:
   customMatrixes: ''
   codeCoverage: false
   nightlyBuild: false
+  innerLoop: false
   container: ''
 
 jobs:
   - job: ${{ parameters.name }}
     ${{ if eq(parameters.nightlyBuild, 'true') }}:
       timeoutInMinutes: 20
+    ${{ if eq(parameters.innerLoop, 'true') }}:
+      timeoutInMinutes: 60
     ${{ if and(eq(parameters.nightlyBuild, 'false'), eq(parameters.codeCoverage, 'false')) }}:
       timeoutInMinutes: 75
     ${{ if eq(parameters.codeCoverage, 'true') }}:
@@ -48,7 +51,7 @@ jobs:
     - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.name, 'Ubuntu_x64_NetCoreApp21')) }}:
       - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"
         displayName: Set LD_LIBRARY_PATH for Ubuntu to locate Native shared library in current running path
-    - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }}
+    - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }} -innerLoop=${{ parameters.innerLoop }}
       displayName: Build
     - ${{ if eq(parameters.nightlyBuild, 'true') }}:
       - script: $(dotnetPath) restore $(nightlyBuildProjPath)

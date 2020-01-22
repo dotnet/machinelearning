@@ -89,7 +89,11 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
+#if INNER_LOOP
+        [Fact(Skip = "skip due to flaky")]
+#else
         [Fact]
+#endif
         public void SavePipeExponentialAverage()
         {
             TestCore(null, true,
@@ -99,7 +103,11 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [RetryFact]
+#if INNER_LOOP
+        [Fact(Skip = "skip due to flaky")]
+#else
+        [Fact]
+#endif
         public void SavePipeSlidingWindow()
         {
             TestCore(null, true,

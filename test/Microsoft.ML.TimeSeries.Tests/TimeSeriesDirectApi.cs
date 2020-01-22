@@ -323,7 +323,11 @@ namespace Microsoft.ML.Tests
             Assert.Equal(1.5292508189989167E-07, prediction.Change[3], precision: 5); // Martingale score
         }
 
-        [RetryLessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+#if INNER_LOOP
+        [Fact(Skip = "skip due to flaky")]
+#else
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+#endif
         public void SsaForecast()
         {
             var env = new MLContext();

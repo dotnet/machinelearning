@@ -1246,7 +1246,11 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(string.Join(" ", input.B).Replace("/", " "), textOutput.BOut[0]);
         }
 
-        [RetryTensorFlowFact]
+#if INNER_LOOP
+        [Fact(Skip = "skip due to flaky")]
+#else
+        [TensorFlowFact]
+#endif
         public void TensorFlowImageClassificationDefault()
         {
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
@@ -1467,7 +1471,11 @@ namespace Microsoft.ML.Scenarios
             TensorFlowImageClassificationWithLRScheduling(new ExponentialLRDecay(), 50);
         }
 
-        [RetryTensorFlowFact]
+#if INNER_LOOP
+        [Fact(Skip = "skip due to flaky")]
+#else
+        [TensorFlowFact]
+#endif
         public void TensorFlowImageClassificationWithPolynomialLRScheduling()
         {
 
@@ -1700,7 +1708,11 @@ namespace Microsoft.ML.Scenarios
             Assert.InRange(lastEpoch, 1, 49);
         }
 
-        [RetryTensorFlowFact]
+#if INNER_LOOP
+        [Fact(Skip = "skip due to flaky")]
+#else
+        [TensorFlowFact]
+#endif
         public void TensorFlowImageClassificationBadImages()
         {
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",

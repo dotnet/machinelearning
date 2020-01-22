@@ -200,7 +200,11 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [RetryFact]
+#if INNER_LOOP
+        [Fact(Skip = "skip due to flaky")]
+#else
+        [Fact]
+#endif
         public void RegressionTrainersOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -520,7 +524,11 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
+#if INNER_LOOP
+        [Fact(Skip = "skip due to flaky")]
+#else
         [LightGBMFact]
+#endif
         public void LightGbmBinaryClassificationOnnxConversionTest()
         {
             // Step 1: Create and train a ML.NET pipeline.

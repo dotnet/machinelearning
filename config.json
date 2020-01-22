@@ -95,6 +95,12 @@
       "valueType": "target",
       "values": [],
       "defaultValue": ""
+    },
+    "InnerLoop": {
+      "description": "Whether to run on inner loop, running on inner loop will skip certain long running or flaky tests.",
+      "valueType": "property",
+      "values": ["false", "true"],
+      "defaultValue": "false"
     }
   },
   "commands": {

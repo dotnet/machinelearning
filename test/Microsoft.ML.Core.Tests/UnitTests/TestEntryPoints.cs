@@ -2122,7 +2122,11 @@ namespace Microsoft.ML.RunTests
             }
         }
 
+#if INNER_LOOP
+        [Fact(Skip = "skip due to flaky")]
+#else
         [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+#endif
         public void EntryPointPipelineEnsembleGetSummary()
         {
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
@@ -2637,7 +2641,11 @@ namespace Microsoft.ML.RunTests
                 Assert.Equal(3, CountRows(loader));
         }
 
+#if INNER_LOOP
+        [Fact(Skip = "skip due to flaky")]
+#else
         [Fact]
+#endif
         public void EntryPointEvaluateRegression()
         {
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename);
@@ -2759,7 +2767,11 @@ namespace Microsoft.ML.RunTests
             TestEntryPointRoutine("iris.txt", "Trainers.StochasticDualCoordinateAscentClassifier");
         }
 
-        [RetryFact]
+#if INNER_LOOP
+        [Fact(Skip = "skip due to flaky")]
+#else
+        [Fact]
+#endif
         public void EntryPointSDCARegression()
         {
             TestEntryPointRoutine(TestDatasets.generatedRegressionDatasetmacro.trainFilename, "Trainers.StochasticDualCoordinateAscentRegressor", loader: TestDatasets.generatedRegressionDatasetmacro.loaderSettings);
@@ -3846,7 +3858,11 @@ namespace Microsoft.ML.RunTests
             validateAuc(metrics);
         }
 
-        [RetryFact]
+#if INNER_LOOP
+        [Fact(Skip = "skip due to flaky")]
+#else
+        [Fact]
+#endif
         public void EntryPointChainedCrossValMacros()
         {
             string inputGraph = @"
@@ -5495,7 +5511,11 @@ namespace Microsoft.ML.RunTests
             }
         }
 
+#if INNER_LOOP
+        [Fact(Skip = "skip due to flaky")]
+#else
         [Fact]
+#endif
         public void TestCrossValidationMacroWithStratification()
         {
             var dataPath = GetDataPath(@"breast-cancer.txt");
@@ -6026,7 +6046,11 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [RetryFact]
+#if INNER_LOOP
+        [Fact(Skip = "skip due to flaky")]
+#else
+        [Fact]
+#endif
         public void TestOvaMacro()
         {
             var dataPath = GetDataPath(@"iris.txt");
@@ -6190,7 +6214,11 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [RetryFact]
+#if INNER_LOOP
+        [Fact(Skip = "skip due to flaky")]
+#else
+        [Fact]
+#endif
         public void TestOvaMacroWithUncalibratedLearner()
         {
             var dataPath = GetDataPath(@"iris.txt");

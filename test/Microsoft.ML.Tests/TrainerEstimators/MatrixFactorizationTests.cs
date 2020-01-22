@@ -53,7 +53,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
+#if INNER_LOOP
+        [Fact(Skip = "skip due to flaky")]
+#else
         [MatrixFactorizationFact]
+#endif
         public void MatrixFactorizationSimpleTrainAndPredict()
         {
             var mlContext = new MLContext(seed: 1);

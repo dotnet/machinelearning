@@ -1020,8 +1020,12 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
+#if INNER_LOOP
+        [Fact(Skip = "skip due to flaky")]
+#else
         [TestCategory("DataPipeSerialization")]
         [Fact]
+#endif
         public void SavePipeTrainAndScoreFccTransformStr()
         {
             TestCore(null, false,

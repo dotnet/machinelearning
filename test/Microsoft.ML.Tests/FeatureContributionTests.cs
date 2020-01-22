@@ -90,7 +90,11 @@ namespace Microsoft.ML.Tests
                 new LbfgsPoissonRegressionTrainer.Options { NumberOfThreads = 1 }), GetSparseDataset(numberOfInstances: 100), "PoissonRegression");
         }
 
-        [RetryFact]
+#if INNER_LOOP
+        [Fact(Skip = "skip due to flaky")]
+#else
+        [Fact]
+#endif
         public void TestGAMRegression()
         {
             TestFeatureContribution(ML.Regression.Trainers.Gam(), GetSparseDataset(numberOfInstances: 100), "GAMRegression");
