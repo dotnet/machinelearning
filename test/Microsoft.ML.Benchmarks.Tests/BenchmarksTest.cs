@@ -43,8 +43,12 @@ namespace Microsoft.ML.Benchmarks.Tests
             return benchmarks;
         }
 
+#if INNER_LOOP
+        [Fact(Skip = "skip due to hanging test process")]
+#else
         [BenchmarkTheory]
         [MemberData(nameof(GetBenchmarks))]
+#endif
         public void BenchmarksProjectIsNotBroken(Type type)
         {
             var summary = BenchmarkRunner.Run(type, new TestConfig().With(new OutputLogger(Output)));
