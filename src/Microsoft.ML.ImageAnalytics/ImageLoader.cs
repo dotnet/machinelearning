@@ -88,9 +88,13 @@ namespace Microsoft.ML.Data
         /// <param name="env">The host environment.</param>
         /// <param name="imageFolder">Folder where to look for images.</param>
         /// <param name="columns">Names of input and output columns.</param>
-        internal ImageLoadingTransformer(IHostEnvironment env, string imageFolder = null, params (string outputColumnName, string inputColumnName)[] columns)
+        internal ImageLoadingTransformer(IHostEnvironment env, string imageFolder, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoadingTransformer)), columns)
         {
+            if (String.IsNullOrWhiteSpace(imageFolder) || !File.Exists(imageFolder))
+            {
+                throw new ArgumentException("The provided ImageFolder path {0} is invalid.", imageFolder);
+            }
             ImageFolder = imageFolder;
             _useImageType = true;
         }
@@ -102,9 +106,13 @@ namespace Microsoft.ML.Data
         /// <param name="imageFolder">Folder where to look for images.</param>
         /// <param name="type">Image type flag - true for ImageDataViewType or false for VectorDataViewType. Defaults to true i.e. ImageDataViewType if not specified.</param>
         /// <param name="columns">Names of input and output columns.</param>
-        internal ImageLoadingTransformer(IHostEnvironment env, string imageFolder = null, bool type = true, params (string outputColumnName, string inputColumnName)[] columns)
+        internal ImageLoadingTransformer(IHostEnvironment env, string imageFolder, bool type = true, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoadingTransformer)), columns)
         {
+            if (String.IsNullOrWhiteSpace(imageFolder) || !File.Exists(imageFolder))
+            {
+                throw new ArgumentException("The provided ImageFolder path {0} is invalid.", imageFolder);
+            }
             ImageFolder = imageFolder;
             _useImageType = type;
         }

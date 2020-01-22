@@ -68,8 +68,8 @@ namespace Microsoft.ML
         ///  [!code-csharp[LoadImages](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ImageAnalytics/LoadImages.cs)]
         /// ]]></format>
         /// </example>
-        public static ImageLoadingEstimator LoadImages(this TransformsCatalog catalog, string outputColumnName, string imageFolder, string inputColumnName = null)
-           => new ImageLoadingEstimator(CatalogUtils.GetEnvironment(catalog), imageFolder, true, new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
+        public static ImageLoadingEstimator LoadImages(this TransformsCatalog catalog, string outputColumnName, string imageFolder, string inputColumnName)
+           => new ImageLoadingEstimator(CatalogUtils.GetEnvironment(catalog), imageFolder, true, new[] { (outputColumnName, inputColumnName) });
 
         /// <summary>
         /// Create a <see cref="ImageLoadingEstimator"/>, which loads the data from the column specified in <paramref name="inputColumnName"/>
@@ -87,8 +87,8 @@ namespace Microsoft.ML
         ///  [!code-csharp[LoadImages](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ImageAnalytics/LoadImages.cs)]
         /// ]]></format>
         /// </example>
-        public static ImageLoadingEstimator LoadRawImageBytes(this TransformsCatalog catalog, string outputColumnName, string imageFolder, string inputColumnName = null)
-           => new ImageLoadingEstimator(CatalogUtils.GetEnvironment(catalog), imageFolder, false, new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
+        public static ImageLoadingEstimator LoadRawImageBytes(this TransformsCatalog catalog, string outputColumnName, string imageFolder, string inputColumnName)
+           => new ImageLoadingEstimator(CatalogUtils.GetEnvironment(catalog), imageFolder, false, new[] { (outputColumnName, inputColumnName) });
 
         /// <summary>
         /// Create a <see cref="ImagePixelExtractingEstimator"/>, which extracts pixels values from the data specified in column: <paramref name="inputColumnName"/>
