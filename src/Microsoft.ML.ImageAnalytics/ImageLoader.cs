@@ -109,11 +109,8 @@ namespace Microsoft.ML.Data
         internal ImageLoadingTransformer(IHostEnvironment env, string imageFolder, bool type = true, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoadingTransformer)), columns)
         {
-            if (String.IsNullOrWhiteSpace(imageFolder) || !File.Exists(imageFolder))
-            {
-                throw new ArgumentException("The provided ImageFolder path {0} is invalid.", imageFolder);
-            }
-            ImageFolder = imageFolder;
+            // Throws ArgumentException if given path is invalid/empty, ArgumentNullException if given path is null
+            ImageFolder = Path.GetFullPath(imageFolder);
             _useImageType = type;
         }
 
