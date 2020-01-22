@@ -143,20 +143,6 @@ namespace Microsoft.ML.EntryPoints.Tests
         }
 
         [Fact]
-        public void ConstructorDoesntThrow()
-        {
-            var mlContext = new MLContext(seed: 1);
-
-            Assert.NotNull(mlContext.Data.LoadFromTextFile<Input>("fakeFile.txt"));
-            Assert.NotNull(mlContext.Data.LoadFromTextFile<Input>("fakeFile.txt", hasHeader: true));
-            Assert.NotNull(mlContext.Data.LoadFromTextFile<Input>("fakeFile.txt", hasHeader: false));
-            Assert.NotNull(mlContext.Data.LoadFromTextFile<Input>("fakeFile.txt", hasHeader: false, trimWhitespace: false, allowSparse: false));
-            Assert.NotNull(mlContext.Data.LoadFromTextFile<Input>("fakeFile.txt", hasHeader: false, allowSparse: false));
-            Assert.NotNull(mlContext.Data.LoadFromTextFile<Input>("fakeFile.txt", hasHeader: false, allowQuoting: false));
-            Assert.NotNull(mlContext.Data.LoadFromTextFile<InputWithUnderscore>("fakeFile.txt"));
-        }
-
-        [Fact]
         public void CanSuccessfullyApplyATransform()
         {
             string inputGraph = @"
