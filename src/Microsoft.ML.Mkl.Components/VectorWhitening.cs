@@ -657,8 +657,12 @@ namespace Microsoft.ML.Transforms
                 var modelName = ctx.AddInitializer(model.Take(rank * dimension), modelDimension, "model");
                 var zeroValueName = ctx.AddInitializer((float)0);
 
-                var node = ctx.CreateNode(opType, new[] { modelName, srcVariableName, zeroValueName }, new[] { dstVariableName }, ctx.GetNodeName(opType), "");
+                var gemmOutput = ctx.AddIntermediateVariable(null, "GemmOutput", true);
+                var node = ctx.CreateNode(opType, new[] { modelName, srcVariableName, zeroValueName }, new[] { gemmOutput }, ctx.GetNodeName(opType), "");
                 node.AddAttribute("transB", 1);
+
+                opType = "Transpose";
+                ctx.CreateNode(opType, new[] { gemmOutput }, new[] { dstVariableName }, ctx.GetNodeName(opType), "");
             }
 
             private ValueGetter<T> GetSrcGetter<T>(DataViewRow input, int iinfo)
