@@ -23,7 +23,7 @@ namespace Microsoft.ML.Tests.Transformers
             public long date;
         }
 
-        [NotCentOS7FactAttribute]
+        [NotCentOS7Fact]
         public void CorrectNumberOfColumnsAndSchema()
         {
             MLContext mlContext = new MLContext(1);
@@ -90,10 +90,10 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [NotCentOS7FactAttribute]
-        public void CanUseDateFromColumn()
+        [NotCentOS7Fact]
+        public void CanUseDateFromColumnLongType()
         {
-            // Future Date - 2025 June 30
+            // Date - 2025 June 30
             MLContext mlContext = new MLContext(1);
             var dataList = new[] { new DateTimeInput() { date = 1751241600 } };
             var data = mlContext.Data.LoadFromEnumerable(dataList);
@@ -133,10 +133,53 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [NotCentOS7FactAttribute]
+        [NotCentOS7Fact]
+        public void CanUseDateFromColumnDateTimeType()
+        {
+            // Date - 2025 June 30
+            MLContext mlContext = new MLContext(1);
+            var dataList = new[] { new { date = new DateTime(2025,6,30)} };
+            var data = mlContext.Data.LoadFromEnumerable(dataList);
+
+            // Build the pipeline, fit, and transform it.
+            var pipeline = mlContext.Transforms.FeaturizeDateTime("date", "DTC");
+            var model = pipeline.Fit(data);
+            var output = model.Transform(data);
+
+            // Get the data from the first row and make sure it matches expected
+            var row = output.Preview(1).RowView[0].Values;
+
+            // Assert the data from the first row is what we expect
+            Assert.Equal(2025, row[1].Value);                           // Year
+            Assert.Equal((byte)6, row[2].Value);                        // Month
+            Assert.Equal((byte)30, row[3].Value);                       // Day
+            Assert.Equal((byte)0, row[4].Value);                        // Hour
+            Assert.Equal((byte)0, row[5].Value);                        // Minute
+            Assert.Equal((byte)0, row[6].Value);                        // Second
+            Assert.Equal((byte)0, row[7].Value);                        // AmPm
+            Assert.Equal((byte)0, row[8].Value);                        // Hour12
+            Assert.Equal((byte)1, row[9].Value);                        // DayOfWeek
+            Assert.Equal((byte)91, row[10].Value);                      // DayOfQuarter
+            Assert.Equal((ushort)180, row[11].Value);                   // DayOfYear
+            Assert.Equal((ushort)4, row[12].Value);                     // WeekOfMonth
+            Assert.Equal((byte)2, row[13].Value);                       // QuarterOfYear
+            Assert.Equal((byte)1, row[14].Value);                       // HalfOfYear
+            Assert.Equal((byte)27, row[15].Value);                      // WeekIso
+            Assert.Equal(2025, row[16].Value);                          // YearIso
+            Assert.Equal("June", row[17].Value.ToString());             // MonthLabel
+            Assert.Equal("am", row[18].Value.ToString());               // AmPmLabel
+            Assert.Equal("Monday", row[19].Value.ToString());           // DayOfWeekLabel
+            Assert.Equal("", row[20].Value.ToString());  // HolidayName
+            Assert.Equal((byte)0, row[21].Value);                       // IsPaidTimeOff
+
+            TestEstimatorCore(pipeline, data);
+            Done();
+        }
+
+        [NotCentOS7Fact]
         public void HolidayTest()
         {
-            // Future Date - 2025 June 30
+            // Date - 2025 June 30
             MLContext mlContext = new MLContext(1);
             var dataList = new[] { new DateTimeInput() { date = 157161600 } };
             var data = mlContext.Data.LoadFromEnumerable(dataList);
@@ -157,15 +200,15 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [NotCentOS7FactAttribute]
-        public void ManyRowsTest()
+        [NotCentOS7Fact]
+        public void ManyRowsTestLongType()
         {
-            // Future Date - 2025 June 30
+            // Date - 2025 June 30
             MLContext mlContext = new MLContext(1);
             var dataList = new[] { new DateTimeInput() { date = 1751241600 }, new DateTimeInput() { date = 1751241600 }, new DateTimeInput() { date = 12341 },
                 new DateTimeInput() { date = 134 }, new DateTimeInput() { date = 134 }, new DateTimeInput() { date = 1234 }, new DateTimeInput() { date = 1751241600 },
-                new DateTimeInput() { date = 1751241600 }, new DateTimeInput() { date = 12341 },
-                new DateTimeInput() { date = 134 }, new DateTimeInput() { date = 134 }, new DateTimeInput() { date = 1234 }};
+                new DateTimeInput() { date = 1751241600 }, new DateTimeInput() { date = 12341 }, new DateTimeInput() { date = 1234 }, new DateTimeInput() { date = 1234 },
+                new DateTimeInput() { date = 134 }, new DateTimeInput() { date = 134 }, new DateTimeInput() { date = 1234 }, new DateTimeInput() { date = 1234 }};
 
             var data = mlContext.Data.LoadFromEnumerable(dataList);
 
@@ -204,10 +247,56 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [NotCentOS7FactAttribute]
+        [NotCentOS7Fact]
+        public void ManyRowsTestDateTimeType()
+        {
+            // Date - 2025 June 30
+            MLContext mlContext = new MLContext(1);
+            var dataList = new[] { new { date = new DateTime(2025, 6, 30) }, new { date = new DateTime(2025, 6, 30) },
+                new { date = DateTime.Now }, new { date = DateTime.UtcNow },
+                new { date = DateTime.Now }, new { date = DateTime.UtcNow } };
+
+            var data = mlContext.Data.LoadFromEnumerable(dataList);
+
+            // Build the pipeline, fit, and transform it.
+            var pipeline = mlContext.Transforms.FeaturizeDateTime("date", "DTC");
+            var model = pipeline.Fit(data);
+            var output = model.Transform(data);
+
+            // Get the data from the first row and make sure it matches expected
+            var row = output.Preview().RowView[0].Values;
+
+            // Assert the data from the first row is what we expect
+            Assert.Equal(2025, row[1].Value);                           // Year
+            Assert.Equal((byte)6, row[2].Value);                        // Month
+            Assert.Equal((byte)30, row[3].Value);                       // Day
+            Assert.Equal((byte)0, row[4].Value);                        // Hour
+            Assert.Equal((byte)0, row[5].Value);                        // Minute
+            Assert.Equal((byte)0, row[6].Value);                        // Second
+            Assert.Equal((byte)0, row[7].Value);                        // AmPm
+            Assert.Equal((byte)0, row[8].Value);                        // Hour12
+            Assert.Equal((byte)1, row[9].Value);                        // DayOfWeek
+            Assert.Equal((byte)91, row[10].Value);                      // DayOfQuarter
+            Assert.Equal((ushort)180, row[11].Value);                   // DayOfYear
+            Assert.Equal((ushort)4, row[12].Value);                     // WeekOfMonth
+            Assert.Equal((byte)2, row[13].Value);                       // QuarterOfYear
+            Assert.Equal((byte)1, row[14].Value);                       // HalfOfYear
+            Assert.Equal((byte)27, row[15].Value);                      // WeekIso
+            Assert.Equal(2025, row[16].Value);                          // YearIso
+            Assert.Equal("June", row[17].Value.ToString());             // MonthLabel
+            Assert.Equal("am", row[18].Value.ToString());               // AmPmLabel
+            Assert.Equal("Monday", row[19].Value.ToString());           // DayOfWeekLabel
+            Assert.Equal("", row[20].Value.ToString());  // HolidayName
+            Assert.Equal((byte)0, row[21].Value);                       // IsPaidTimeOff
+
+            TestEstimatorCore(pipeline, data);
+            Done();
+        }
+
+        [NotCentOS7Fact]
         public void EntryPointTest()
         {
-            // Future Date - 2025 June 30
+            // Date - 2025 June 30
             MLContext mlContext = new MLContext(1);
             var dataList = new[] { new DateTimeInput() { date = 1751241600 } };
             var data = mlContext.Data.LoadFromEnumerable(dataList);
