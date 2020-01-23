@@ -28,6 +28,31 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Transforms
 {
+    internal sealed class MissingValueDroppingEstimator : TrivialEstimator<MissingValueDroppingTransformer>
+    {
+        public MissingValueDroppingEstimator(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueDroppingEstimator)), new MissingValueDroppingTransformer(env, columns))
+        {
+        }
+
+        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+
+            var resultDic = inputSchema.ToDictionary(x => x.Name);
+            foreach (var (outputColumnName, inputColumnName) in Transformer.Columns)
+            {
+                if (!inputSchema.TryFindColumn(inputColumnName, out var originalColumn))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColumnName);
+                if (originalColumn.Kind == SchemaShape.Column.VectorKind.Scalar)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", originalColumn.Name, "Vector", "Scalar");
+                var col = new SchemaShape.Column(outputColumnName, SchemaShape.Column.VectorKind.VariableVector, originalColumn.ItemType, originalColumn.IsKey, originalColumn.Annotations);
+                resultDic[outputColumnName] = col;
+            }
+            return new SchemaShape(resultDic.Values);
+        }
+    }
+
     /// <include file='doc.xml' path='doc/members/member[@name="NADrop"]'/>
     internal sealed class MissingValueDroppingTransformer : OneToOneTransformerBase
     {
@@ -163,6 +188,8 @@ namespace Microsoft.ML.Transforms
                 {
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out _srcCols[i]);
                     var srcCol = inputSchema[_srcCols[i]];
+                    if (!(srcCol.Type is VectorDataViewType))
+                        throw _parent.Host.Except($"Column '{srcCol.Name}' is not a vector column");
                     _srcTypes[i] = srcCol.Type;
                     _types[i] = new VectorDataViewType((PrimitiveDataViewType)srcCol.Type.GetItemType());
                     _isNAs[i] = GetIsNADelegate(srcCol.Type);
