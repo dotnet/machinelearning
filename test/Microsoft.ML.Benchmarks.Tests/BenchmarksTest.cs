@@ -44,7 +44,7 @@ namespace Microsoft.ML.Benchmarks.Tests
         }
 
 #if INNER_LOOP
-        [BenchmarkTheory(Skip = "skip due to hanging test process")]
+        [Theory(Skip = "skip due to hanging test process")]
         [MemberData(nameof(GetBenchmarks))]
 #else
         [BenchmarkTheory]
