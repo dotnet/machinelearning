@@ -11,6 +11,7 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.Ensemble\Microsoft.ML.Ensemble.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.EntryPoints\Microsoft.ML.EntryPoints.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Experimental\Microsoft.ML.Experimental.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Featurizers\Microsoft.ML.Featurizers.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.csproj" />
@@ -48,5 +49,13 @@
     <PackageReference Include="Microsoft.ML.TestModels" Version="$(MicrosoftMLTestModelsPackageVersion)" />
     <PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
     <PackageReference Include="System.Data.SqlClient" Version="$(SystemDataSqlClientVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprBindExInput.txt"/>
+    <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprBindInput.txt"/>
+    <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprCodeGenInput.txt"/>
+    <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprEvalInput.txt"/>
+    <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprParseInput.txt"/>
   </ItemGroup>
 </Project>

@@ -114,7 +114,7 @@ namespace Microsoft.ML.CommandLine
     //        /files=<string>                     short form /f
     //        @<file>                             Read response file for more options
     //
-    //    That was pretty easy. However, you realy want to omit the "/files:" for the
+    //    That was pretty easy. However, you really want to omit the "/files:" for the
     //    list of files. The details of field parsing can be controled using custom
     //    attributes. The attributes which control parsing behaviour are:
     //

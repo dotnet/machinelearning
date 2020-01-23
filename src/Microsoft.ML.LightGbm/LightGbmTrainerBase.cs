@@ -286,9 +286,9 @@ namespace Microsoft.ML.Trainers.LightGbm
         /// the code is culture agnostic. When retrieving key value from this dictionary as string
         /// please convert to string invariant by string.Format(CultureInfo.InvariantCulture, "{0}", Option[key]).
         /// </summary>
-        private protected Dictionary<string, object> GbmOptions;
+        private protected readonly Dictionary<string, object> GbmOptions;
 
-        private protected IParallel ParallelTraining;
+        private protected readonly IParallel ParallelTraining;
 
         // Store _featureCount and _trainedEnsemble to construct predictor.
         private protected int FeatureCount;
@@ -335,11 +335,15 @@ namespace Microsoft.ML.Trainers.LightGbm
             Contracts.CheckUserArg(options.L2CategoricalRegularization >= 0.0, nameof(options.L2CategoricalRegularization), "must be >= 0.");
 
             LightGbmTrainerOptions = options;
+            ParallelTraining = LightGbmTrainerOptions.ParallelTrainer != null ? LightGbmTrainerOptions.ParallelTrainer.CreateComponent(Host) : new SingleTrainer();
+            GbmOptions = LightGbmTrainerOptions.ToDictionary(Host);
             InitParallelTraining();
         }
 
         private protected override TModel TrainModelCore(TrainContext context)
         {
+            InitializeBeforeTraining();
+
             Host.CheckValue(context, nameof(context));
 
             Dataset dtrain = null;
@@ -371,11 +375,10 @@ namespace Microsoft.ML.Trainers.LightGbm
             return CreatePredictor();
         }
 
+        private protected virtual void InitializeBeforeTraining(){}
+
         private void InitParallelTraining()
         {
-            GbmOptions = LightGbmTrainerOptions.ToDictionary(Host);
-            ParallelTraining = LightGbmTrainerOptions.ParallelTrainer != null ? LightGbmTrainerOptions.ParallelTrainer.CreateComponent(Host) : new SingleTrainer();
-
             if (ParallelTraining.ParallelType() != "serial" && ParallelTraining.NumMachines() > 1)
             {
                 GbmOptions["tree_learner"] = ParallelTraining.ParallelType();

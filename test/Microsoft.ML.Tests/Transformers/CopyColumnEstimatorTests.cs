@@ -36,7 +36,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void TestWorking()
+        public void TestWorking()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var env = new MLContext();
@@ -48,7 +48,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void TestBadOriginalSchema()
+        public void TestBadOriginalSchema()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var env = new MLContext();
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void TestBadTransformSchema()
+        public void TestBadTransformSchema()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var xydata = new[] { new TestClassXY() { X = 10, Y = 100 }, new TestClassXY() { X = -1, Y = -100 } };
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void TestSavingAndLoading()
+        public void TestSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var env = new MLContext();
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void TestOldSavingAndLoading()
+        public void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var env = new MLContext();
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void TestMetadataCopy()
+        public void TestMetadataCopy()
         {
             var data = new[] { new TestMetaClass() { Term = "A", NotUsed = 1 }, new TestMetaClass() { Term = "B" }, new TestMetaClass() { Term = "C" } };
             var env = new MLContext();
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void TestCommandLine()
+        public void TestCommandLine()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=copy{col=B:A} in=f:\1.txt" }), (int)0);
         }

@@ -23,6 +23,7 @@ namespace Microsoft.ML.Transforms
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Any, except [key](xref:Microsoft.ML.Data.KeyDataViewType) type. All input columns must have the same type.  |
     /// | Output column data type | A vector of the input columns' data type |
+    /// | Exportable to ONNX | Yes |
     ///
     /// The resulting <xref:Microsoft.ML.Data.ColumnConcatenatingTransformer> creates a new column,
     /// named as specified in the output column name parameters, where the input values are concatenated in a vector.
@@ -76,7 +77,7 @@ namespace Microsoft.ML.Transforms
             _host.Assert(col.IsValid);
             if (!col.Annotations.TryFindColumn(AnnotationUtils.Kinds.CategoricalSlotRanges, out var mcol))
                 return false;
-            // The indices must be ints and of a definite size vector type. (Definite becuase
+            // The indices must be ints and of a definite size vector type. (Definite because
             // metadata has only one value anyway.)
             return mcol.Kind == SchemaShape.Column.VectorKind.Vector
                 && mcol.ItemType == NumberDataViewType.Int32;

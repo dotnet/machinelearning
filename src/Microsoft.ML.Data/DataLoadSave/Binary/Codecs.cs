@@ -293,7 +293,7 @@ namespace Microsoft.ML.Data.IO
             // *** Binary block format ***
             // int: Number of entries.
             // int[entries]: The non-decreasing end-boundary character index array, with high bit set for "missing" values.
-            // string: The UTF-8 encoded string, with the standard LEB128 byte-length preceeding it.
+            // string: The UTF-8 encoded string, with the standard LEB128 byte-length preceding it.
 
             public TextCodec(CodecFactory factory)
                 : base(factory, TextDataViewType.Instance)

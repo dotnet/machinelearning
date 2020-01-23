@@ -44,34 +44,34 @@ namespace Microsoft.ML.Sweeper.Algorithms
             [Argument(ArgumentType.AtMostOnce, HelpText = "Seed for the random number generator for the first batch sweeper", ShortName = "seed")]
             public int RandomSeed;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "If iteration point is outside parameter definitions, should it be projected?", ShortName = "project")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "If iteration point is outside parameter definitions, should it be projected?", ShortName = "project")]
             public bool ProjectInBounds = true;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of points to use for random initialization", ShortName = "nip")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Number of points to use for random initialization", ShortName = "nip")]
             public int NumberInitialPopulation = 20;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum mutation spread", ShortName = "mms")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Minimum mutation spread", ShortName = "mms")]
             public double MinimumMutationSpread = 0.001;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum length of history to retain", ShortName = "hlen")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Maximum length of history to retain", ShortName = "hlen")]
             public int HistoryLength = 20;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "If true, draws samples from independent Beta distributions, rather than multivariate Gaussian", ShortName = "beta")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "If true, draws samples from independent Beta distributions, rather than multivariate Gaussian", ShortName = "beta")]
             public bool Beta = false;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "If true, uses simpler mutation and concentration model")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "If true, uses simpler mutation and concentration model")]
             public bool Simple = false;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Proportion of trials, between 0 and 1, that are uniform random draws", ShortName = "prand")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Proportion of trials, between 0 and 1, that are uniform random draws", ShortName = "prand")]
             public double ProportionRandom = 0.05;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum power for rescaling (the larger the number, the stronger the exploitation of good points)", ShortName = "wrp")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Maximum power for rescaling (the larger the number, the stronger the exploitation of good points)", ShortName = "wrp")]
             public double WeightRescalingPower = 30;
 
             // REVIEW: this parameter should be removed as soon as we test the new method (as Prabhat Roy is currently doing 9/18/2017). It is here
             // to allow him to continue to run existing tests in progress using the previous behavior, but should be removed once we're sure this new change
             // doesn't degrade performance.
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "(Deprecated) Use legacy discrete parameter behavior.", ShortName = "legacy", Hide = true, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "(Deprecated) Use legacy discrete parameter behavior.", ShortName = "legacy", Hide = true, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public bool LegacyDpBehavior = false;
         }
 

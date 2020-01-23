@@ -209,7 +209,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// The constructor for Adaptive SSA model.
         /// </summary>
         /// <param name="env">The exception context.</param>
-        /// <param name="trainSize">The length of series from the begining used for training.</param>
+        /// <param name="trainSize">The length of series from the beginning used for training.</param>
         /// <param name="seriesLength">The length of series that is kept in buffer for modeling (parameter N).</param>
         /// <param name="windowSize">The length of the window on the series for building the trajectory matrix (parameter L).</param>
         /// <param name="discountFactor">The discount factor in [0,1] used for online updates (default = 1).</param>

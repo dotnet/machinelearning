@@ -337,7 +337,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestDuplicateKeys()
+        public void TestDuplicateKeys()
         {
             var data = new[] { new TestClass() { A = "barTest", B = "test", C = "foo" } };
             var dataView = ML.Data.LoadFromEnumerable(data);
@@ -643,7 +643,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestCommandLine()
+        public void TestCommandLine()
         {
             var dataFile = GetDataPath("QuotingData.csv");
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=valuemap{keyCol=ID valueCol=Text data="
@@ -652,7 +652,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestCommandLineNoLoader()
+        public void TestCommandLineNoLoader()
         {
             var dataFile = GetDataPath("lm.labels.txt");
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=valuemap{data="
@@ -661,7 +661,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestCommandLineNoLoaderWithColumnNames()
+        public void TestCommandLineNoLoaderWithColumnNames()
         {
             var dataFile = GetDataPath("lm.labels.txt");
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=valuemap{data="
@@ -670,7 +670,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestCommandLineNoLoaderWithoutTreatValuesAsKeys()
+        public void TestCommandLineNoLoaderWithoutTreatValuesAsKeys()
         {
             var dataFile = GetDataPath("lm.labels.txt");
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=valuemap{data="
@@ -679,7 +679,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestSavingAndLoading()
+        public void TestSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = "bar", B = "foo", C = "test", } };
             var dataView = ML.Data.LoadFromEnumerable(data);
@@ -707,7 +707,7 @@ namespace Microsoft.ML.Tests.Transformers
 
 
         [Fact]
-        void TestValueMapBackCompatTermLookup()
+        public void TestValueMapBackCompatTermLookup()
         {
             // Model generated with: xf=drop{col=A} 
             // Expected output: Features Label B C
@@ -724,7 +724,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestValueMapBackCompatTermLookupKeyTypeValue()
+        public void TestValueMapBackCompatTermLookupKeyTypeValue()
         {
             // Model generated with: xf=drop{col=A} 
             // Expected output: Features Label B C

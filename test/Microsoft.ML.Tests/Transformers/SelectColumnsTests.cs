@@ -42,7 +42,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestSelectKeep()
+        public void TestSelectKeep()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ML.Data.LoadFromEnumerable(data);
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestSelectKeepWithOrder()
+        public void TestSelectKeepWithOrder()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ML.Data.LoadFromEnumerable(data);
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestSelectDrop()
+        public void TestSelectDrop()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ML.Data.LoadFromEnumerable(data);
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
         
         [Fact]
-        void TestSelectWorkout()
+        public void TestSelectWorkout()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var invalidData = new [] { new TestClass2 { D = 3, E = 5} };
@@ -117,7 +117,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestSelectColumnsWithMissing()
+        public void TestSelectColumnsWithMissing()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ML.Data.LoadFromEnumerable(data);
@@ -126,7 +126,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestSelectColumnsWithSameName()
+        public void TestSelectColumnsWithSameName()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ML.Data.LoadFromEnumerable(data);
@@ -149,7 +149,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestSelectColumnsWithKeepHidden()
+        public void TestSelectColumnsWithKeepHidden()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ML.Data.LoadFromEnumerable(data);
@@ -172,7 +172,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestSelectSavingAndLoading()
+        public void TestSelectSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ML.Data.LoadFromEnumerable(data);
@@ -191,7 +191,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestSelectSavingAndLoadingWithNoKeepHidden()
+        public void TestSelectSavingAndLoadingWithNoKeepHidden()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ML.Data.LoadFromEnumerable(data);
@@ -211,7 +211,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestSelectBackCompatDropColumns()
+        public void TestSelectBackCompatDropColumns()
         {
             // Model generated with: xf=drop{col=A} 
             // Expected output: Features Label B C
@@ -239,7 +239,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestSelectBackCompatKeepColumns()
+        public void TestSelectBackCompatKeepColumns()
         {
             // Model generated with: xf=keep{col=Label col=Features col=A col=B}
             // Expected output: Label Features A B
@@ -267,7 +267,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
         
         [Fact]
-        void TestSelectBackCompatChooseColumns()
+        public void TestSelectBackCompatChooseColumns()
         {
             // Model generated with: xf=choose{col=Label col=Features col=A col=B}
             // Output expected is Label Features A B
@@ -295,7 +295,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestSelectBackCompatChooseColumnsWithKeep()
+        public void TestSelectBackCompatChooseColumnsWithKeep()
         {
             // Model generated with: xf=copy{col=A:A col=B:B} xf=choose{col=Label col=Features col=A col=B hidden=keep}
             // Output expected is Label Features A A B B
@@ -324,25 +324,25 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestCommandLineWithKeep()
+        public void TestCommandLineWithKeep()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=select{keepcol=A keepcol=B} in=f:\1.txt" }), (int)0);
         }
 
         [Fact]
-        void TestCommandLineWithDrop()
+        public void TestCommandLineWithDrop()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=select{dropcol=A dropcol=B} in=f:\1.txt" }), (int)0);
         }
 
         [Fact]
-        void TestCommandLineKeepWithoutHidden()
+        public void TestCommandLineKeepWithoutHidden()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=select{keepcol=A keepcol=B hidden=-} in=f:\1.txt" }), (int)0);
         }
 
         [Fact]
-        void TestCommandLineKeepWithIgnoreMismatch()
+        public void TestCommandLineKeepWithIgnoreMismatch()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=select{keepcol=A keepcol=B ignore=-} in=f:\1.txt" }), (int)0);
         }

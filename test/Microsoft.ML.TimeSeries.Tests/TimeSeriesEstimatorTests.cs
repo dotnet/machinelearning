@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void TestSsaChangePointEstimator()
+        public void TestSsaChangePointEstimator()
         {
             int Confidence = 95;
             int ChangeHistorySize = 10;
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void TestSsaForecastingEstimator()
+        public void TestSsaForecastingEstimator()
         {
             const int ChangeHistorySize = 10;
             const int SeasonalitySize = 10;
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void TestSsaSpikeEstimator()
+        public void TestSsaSpikeEstimator()
         {
             int Confidence = 95;
             int PValueHistorySize = 10;
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void TestIidChangePointEstimator()
+        public void TestIidChangePointEstimator()
         {
             int Confidence = 95;
             int ChangeHistorySize = 10;
@@ -172,7 +172,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void TestIidSpikeEstimator()
+        public void TestIidSpikeEstimator()
         {
             int Confidence = 95;
             int PValueHistorySize = 10;

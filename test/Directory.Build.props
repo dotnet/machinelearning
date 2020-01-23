@@ -28,12 +28,16 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0" />
     <PackageReference Include="xunit" Version="2.4.0" />
+    <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
     <PackageReference Include="Microsoft.DotNet.XUnitExtensions" Version="2.4.0-prerelease-63213-02" />
     <PackageReference Include="coverlet.msbuild" Version="$(CoverletVersion)" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Coverage)' == 'true'">
+      <!-- https://github.com/tonerdo/coverlet/issues/618 -->
+      <IncludeTestAssembly>true</IncludeTestAssembly>
+
       <CollectCoverage>true</CollectCoverage>
       <SingleHit>true</SingleHit>
       <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies> <!-- https://github.com/tonerdo/coverlet/issues/72 -->
@@ -45,7 +49,7 @@
       -->
       <Exclude>[*]Microsoft.ML.*Contracts*,[*]Microsoft.ML.Internal.Utilities*,[*]Microsoft.ML.Data.VBuffer*</Exclude>
       <ExcludeByAttribute>Obsolete,ExcludeFromCodeCoverage</ExcludeByAttribute>
-      <ExcludeByFile>$(BaseOutputPath)..\src\Microsoft.ML.OnnxConverter\OnnxMl.cs,$(BaseOutputPath)..\src\Microsoft.ML.TensorFlow\TensorFlow\Buffer.cs,$(BaseOutputPath)..\src\Microsoft.ML.TensorFlow\TensorFlow\Tensor.cs,$(BaseOutputPath)..\src\Microsoft.ML.TensorFlow\TensorFlow\Tensorflow.cs</ExcludeByFile>
+      <ExcludeByFile>$(RepoRoot)src\Microsoft.ML.OnnxConverter\OnnxMl.cs,$(RepoRoot)src\Microsoft.ML.TensorFlow\TensorFlow\Buffer.cs,$(RepoRoot)src\Microsoft.ML.TensorFlow\TensorFlow\Tensor.cs,$(RepoRoot)src\Microsoft.ML.TensorFlow\TensorFlow\Tensorflow.cs</ExcludeByFile>
   </PropertyGroup>
 
 </Project>

@@ -4071,7 +4071,7 @@
         {
           "Name": "TrainSize",
           "Type": "Int",
-          "Desc": "The length of series from the begining used for training.",
+          "Desc": "The length of series from the beginning used for training.",
           "Required": true,
           "SortOrder": 2.0,
           "IsNullable": false,
@@ -10508,7 +10508,7 @@
     },
     {
       "Name": "Trainers.GeneralizedAdditiveModelBinaryClassifier",
-      "Desc": "Trains a gradient boosted stump per feature, on all features simultaneously, to fit target values using least-squares. It mantains no interactions between features.",
+      "Desc": "Trains a gradient boosted stump per feature, on all features simultaneously, to fit target values using least-squares. It maintains no interactions between features.",
       "FriendlyName": "Generalized Additive Model for Binary Classification",
       "ShortName": "gam",
       "Inputs": [
@@ -10808,7 +10808,7 @@
     },
     {
       "Name": "Trainers.GeneralizedAdditiveModelRegressor",
-      "Desc": "Trains a gradient boosted stump per feature, on all features simultaneously, to fit target values using least-squares. It mantains no interactions between features.",
+      "Desc": "Trains a gradient boosted stump per feature, on all features simultaneously, to fit target values using least-squares. It maintains no interactions between features.",
       "FriendlyName": "Generalized Additive Model for Regression",
       "ShortName": "gamr",
       "Inputs": [
@@ -13829,7 +13829,7 @@
     },
     {
       "Name": "Trainers.LogisticRegressionClassifier",
-      "Desc": "Maximum entrypy classification is a method in statistics used to predict the probabilities of parallel events. The model predicts the probabilities of parallel events by fitting data to a softmax function.",
+      "Desc": "Maximum entropy classification is a method in statistics used to predict the probabilities of parallel events. The model predicts the probabilities of parallel events by fitting data to a softmax function.",
       "FriendlyName": "Multi-class Logistic Regression",
       "ShortName": "mlr",
       "Inputs": [
@@ -17302,6 +17302,82 @@
       ]
     },
     {
+      "Name": "Transforms.CategoryImputer",
+      "Desc": "Fills in missing values in a column based on the most frequent value",
+      "FriendlyName": "CategoryImputer",
+      "ShortName": "CategoryImputer",
+      "Inputs": [
+        {
+          "Name": "Column",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": {
+              "Kind": "Struct",
+              "Fields": [
+                {
+                  "Name": "Name",
+                  "Type": "String",
+                  "Desc": "Name of the new column",
+                  "Aliases": [
+                    "name"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                },
+                {
+                  "Name": "Source",
+                  "Type": "String",
+                  "Desc": "Name of the source column",
+                  "Aliases": [
+                    "src"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                }
+              ]
+            }
+          },
+          "Desc": "New column definition (optional form: name:src)",
+          "Aliases": [
+            "col"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
       "Name": "Transforms.CharacterTokenizer",
       "Desc": "Character-oriented tokenizer where text is considered a sequence of characters.",
       "FriendlyName": "Character Tokenizer Transform",
@@ -18075,6 +18151,117 @@
           "Type": "TransformModel",
           "Desc": "The scoring transform"
         }
+      ]
+    },
+    {
+      "Name": "Transforms.DateTimeSplitter",
+      "Desc": "Splits a date time value into each individual component",
+      "FriendlyName": "DateTime Transform",
+      "ShortName": "DateTimeTransform",
+      "Inputs": [
+        {
+          "Name": "Source",
+          "Type": "String",
+          "Desc": "Input column",
+          "Aliases": [
+            "src"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Prefix",
+          "Type": "String",
+          "Desc": "Output column prefix",
+          "Aliases": [
+            "pre"
+          ],
+          "Required": true,
+          "SortOrder": 2.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Country",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "None",
+              "Argentina",
+              "Australia",
+              "Austria",
+              "Belarus",
+              "Belgium",
+              "Brazil",
+              "Canada",
+              "Colombia",
+              "Croatia",
+              "Czech",
+              "Denmark",
+              "England",
+              "Finland",
+              "France",
+              "Germany",
+              "Hungary",
+              "India",
+              "Ireland",
+              "IsleofMan",
+              "Italy",
+              "Japan",
+              "Mexico",
+              "Netherlands",
+              "NewZealand",
+              "NorthernIreland",
+              "Norway",
+              "Poland",
+              "Portugal",
+              "Scotland",
+              "Slovenia",
+              "SouthAfrica",
+              "Spain",
+              "Sweden",
+              "Switzerland",
+              "Ukraine",
+              "UnitedKingdom",
+              "UnitedStates",
+              "Wales"
+            ]
+          },
+          "Desc": "Country to get holidays for. Defaults to none if not passed",
+          "Aliases": [
+            "ctry"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": "None"
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
       ]
     },
     {
@@ -20682,7 +20869,7 @@
     },
     {
       "Name": "Transforms.MissingValueHandler",
-      "Desc": "Handle missing values by replacing them with either the default value or the mean/min/max value (for non-text columns only). An indicator column can optionally be concatenated, if theinput column type is numeric.",
+      "Desc": "Handle missing values by replacing them with either the default value or the mean/min/max value (for non-text columns only). An indicator column can optionally be concatenated, if the input column type is numeric.",
       "FriendlyName": "NA Handle Transform",
       "ShortName": "NAHandle",
       "Inputs": [
@@ -21932,6 +22119,130 @@
       ]
     },
     {
+      "Name": "Transforms.RobustScaler",
+      "Desc": "Removes the median and scales the data according to the quantile range.",
+      "FriendlyName": "RobustScalerTransformer",
+      "ShortName": "RobScalT",
+      "Inputs": [
+        {
+          "Name": "Column",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": {
+              "Kind": "Struct",
+              "Fields": [
+                {
+                  "Name": "Name",
+                  "Type": "String",
+                  "Desc": "Name of the new column",
+                  "Aliases": [
+                    "name"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                },
+                {
+                  "Name": "Source",
+                  "Type": "String",
+                  "Desc": "Name of the source column",
+                  "Aliases": [
+                    "src"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                }
+              ]
+            }
+          },
+          "Desc": "New column definition (optional form: name:src)",
+          "Aliases": [
+            "col"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Center",
+          "Type": "Bool",
+          "Desc": "If True, center the data before scaling.",
+          "Aliases": [
+            "ctr"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "Scale",
+          "Type": "Bool",
+          "Desc": "If True, scale the data to interquartile range.",
+          "Aliases": [
+            "sc"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "QuantileMin",
+          "Type": "Float",
+          "Desc": "Min for the quantile range used to calculate scale.",
+          "Aliases": [
+            "min"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": 25.0
+        },
+        {
+          "Name": "QuantileMax",
+          "Type": "Float",
+          "Desc": "Max for the quantile range used to calculate scale.",
+          "Aliases": [
+            "max"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": 75.0
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
       "Name": "Transforms.RowRangeFilter",
       "Desc": "Filters a dataview on a column of type Single, Double or Key (contiguous). Keeps the values that are in the specified min/max range. NaNs are always filtered out. If the input is a Key type, the min/max are considered percentages of the number of values.",
       "FriendlyName": "Range Filter",
@@ -22920,6 +23231,206 @@
           "SortOrder": 114.0,
           "IsNullable": false,
           "Default": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
+      "Name": "Transforms.TimeSeriesImputer",
+      "Desc": "Fills in missing row and values",
+      "FriendlyName": "TimeSeriesImputer",
+      "ShortName": "tsi",
+      "Inputs": [
+        {
+          "Name": "TimeSeriesColumn",
+          "Type": "String",
+          "Desc": "Column representing the time",
+          "Aliases": [
+            "time"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "GrainColumns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "List of grain columns",
+          "Aliases": [
+            "grains"
+          ],
+          "Required": true,
+          "SortOrder": 2.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "FilterColumns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Columns to filter",
+          "Aliases": [
+            "filters"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "FilterMode",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "NoFilter",
+              "Include",
+              "Exclude"
+            ]
+          },
+          "Desc": "Filter mode. Either include or exclude",
+          "Aliases": [
+            "fmode"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": "Exclude"
+        },
+        {
+          "Name": "ImputeMode",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "ForwardFill",
+              "BackFill",
+              "Median"
+            ]
+          },
+          "Desc": "Mode for imputing, defaults to ForwardFill if not provided",
+          "Aliases": [
+            "mode"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": "ForwardFill"
+        },
+        {
+          "Name": "SupressTypeErrors",
+          "Type": "Bool",
+          "Desc": "Supress the errors that would occur if a column and impute mode are imcompatible. If true, will skip the column. If false, will stop and throw an error.",
+          "Aliases": [
+            "error"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
+      "Name": "Transforms.ToString",
+      "Desc": "Turns the given column into a column of its string representation",
+      "FriendlyName": "ToString Transform",
+      "ShortName": "tostr",
+      "Inputs": [
+        {
+          "Name": "Column",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": {
+              "Kind": "Struct",
+              "Fields": [
+                {
+                  "Name": "Name",
+                  "Type": "String",
+                  "Desc": "Name of the new column",
+                  "Aliases": [
+                    "name"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                },
+                {
+                  "Name": "Source",
+                  "Type": "String",
+                  "Desc": "Name of the source column",
+                  "Aliases": [
+                    "src"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                }
+              ]
+            }
+          },
+          "Desc": "New column definition (optional form: name:src)",
+          "Aliases": [
+            "col"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
         }
       ],
       "Outputs": [

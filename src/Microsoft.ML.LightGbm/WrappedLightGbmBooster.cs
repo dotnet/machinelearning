@@ -19,14 +19,13 @@ namespace Microsoft.ML.Trainers.LightGbm
         private readonly bool _hasValid;
         private readonly bool _hasMetric;
 
-        public IntPtr Handle { get; private set; }
+        public WrappedLightGbmInterface.SafeBoosterHandle Handle { get; private set; }
         public int BestIteration { get; set; }
 
         public Booster(Dictionary<string, object> parameters, Dataset trainset, Dataset validset = null)
         {
             var param = LightGbmInterfaceUtils.JoinParameters(parameters);
-            var handle = IntPtr.Zero;
-            LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.BoosterCreate(trainset.Handle, param, ref handle));
+            LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.BoosterCreate(trainset.Handle, param, out var handle));
             Handle = handle;
             if (validset != null)
             {
@@ -284,9 +283,8 @@ namespace Microsoft.ML.Trainers.LightGbm
         #region IDisposable Support
         public void Dispose()
         {
-            if (Handle != IntPtr.Zero)
-                LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.BoosterFree(Handle));
-            Handle = IntPtr.Zero;
+            Handle?.Dispose();
+            Handle = null;
         }
         #endregion
     }

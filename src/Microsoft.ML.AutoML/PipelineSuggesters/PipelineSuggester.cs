@@ -92,11 +92,11 @@ namespace Microsoft.ML.AutoML
             bool isMaximizingMetric)
         {
             // narrow history to first stage runs that succeeded
-            history = history.Take(availableTrainers.Count()).Where(x => x.RunSucceded);
+            history = history.Take(availableTrainers.Count()).Where(x => x.RunSucceeded);
 
             history = history.GroupBy(r => r.Pipeline.Trainer.TrainerName).Select(g => g.First());
             IEnumerable<SuggestedPipelineRunDetail> sortedHistory = history.OrderBy(r => r.Score);
-            if(isMaximizingMetric)
+            if (isMaximizingMetric)
             {
                 sortedHistory = sortedHistory.Reverse();
             }
@@ -198,11 +198,11 @@ namespace Microsoft.ML.AutoML
                 });
 
             IEnumerable<SuggestedPipelineRunDetail> historyToUse = history
-                .Where(r => r.RunSucceded && r.Pipeline.Trainer.TrainerName == trainer.TrainerName && r.Pipeline.Trainer.HyperParamSet != null && r.Pipeline.Trainer.HyperParamSet.Any());
+                .Where(r => r.RunSucceeded && r.Pipeline.Trainer.TrainerName == trainer.TrainerName && r.Pipeline.Trainer.HyperParamSet != null && r.Pipeline.Trainer.HyperParamSet.Any());
 
             // get new set of hyperparameter values
             var proposedParamSet = sweeper.ProposeSweeps(1, historyToUse.Select(h => h.ToRunResult(isMaximizingMetric))).First();
-            if(!proposedParamSet.Any())
+            if (!proposedParamSet.Any())
             {
                 return false;
             }

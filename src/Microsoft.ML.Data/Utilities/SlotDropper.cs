@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
@@ -16,6 +18,7 @@ namespace Microsoft.ML.Internal.Internallearn
     internal sealed class SlotDropper
     {
         private readonly int[] _lengthReduction;
+        private readonly int _srcLength;
 
         /// <summary>
         /// Returns -1 for non vector and unknown length vectors.
@@ -43,6 +46,7 @@ namespace Microsoft.ML.Internal.Internallearn
 
             SlotsMin = slotsMin;
             SlotsMax = slotsMax;
+            _srcLength = srcLength;
             _lengthReduction = ComputeLengthReduction();
 
             Contracts.Check(SlotsMin.Length == _lengthReduction.Length);
@@ -211,6 +215,17 @@ namespace Microsoft.ML.Internal.Internallearn
             }
 
             dst = editor.CommitTruncated(iiDst);
+        }
+
+        public IEnumerable<long> GetPreservedSlots()
+        {
+            var slots = Enumerable.Range(0, _srcLength);
+            var droppedSlots = Enumerable.Range(SlotsMin[0], SlotsMax[0] - SlotsMin[0] + 1);
+            for (int i = 1; i < SlotsMin.Length; i++)
+            {
+                droppedSlots = droppedSlots.Concat(Enumerable.Range(SlotsMin[i], SlotsMax[i] - SlotsMin[i] + 1));
+            }
+            return slots.Except(droppedSlots).Select(i=>(long)i);
         }
     }
 }

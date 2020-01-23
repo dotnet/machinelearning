@@ -24,6 +24,7 @@ namespace Microsoft.ML.RunTests
     using Xunit.Abstractions;
     using TestLearners = TestLearnersBase;
     using Microsoft.ML.TestFrameworkCommon;
+    using Microsoft.ML.TestFrameworkCommon.Attributes;
 
     /// <summary>
     /// Tests using maml commands (IDV) functionality.
@@ -181,7 +182,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Multiclass Logistic Regression test with a tree featurizer.
         /// </summary>
-        [X64Fact("x86 output differs from Baseline")]
+        [RetryX64Fact("x86 output differs from Baseline")]
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         [TestCategory("FastTree")]
@@ -270,7 +271,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [X64Fact("x86 output differs from Baseline")]
+        [RetryX64Fact("x86 output differs from Baseline")]
         [TestCategory("Binary")]
         public void BinaryClassifierSymSgdTest()
         {
@@ -321,7 +322,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [RetryLessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         [TestCategory("Binary")]
         public void BinaryClassifierLogisticRegressionBinNormTest()
         {
@@ -1819,8 +1820,10 @@ output Out [3] from H all;
         }
 #endif
 
+#if !CORECLR
         private const float Epsilon = 0.0004f; // Do not use Single.Epsilon as it is not commonly-accepted machine epsilon.
         private const float MaxRelError = 0.000005f;
+#endif
 
         public TestPredictors(ITestOutputHelper helper) : base(helper)
         {
@@ -1898,6 +1901,8 @@ output Out [3] from H all;
             }
         }
 #endif
+
+#if !CORECLR
         private bool IsLessThanOrEqual(float a, float b, float maxRelError, float maxAbsError)
         {
             if (a <= b)
@@ -1916,6 +1921,7 @@ output Out [3] from H all;
             float largest = Math.Max(Math.Abs(a), Math.Abs(b));
             return diff < largest * maxRelError;
         }
+#endif
     }
 
 #if OLD_TESTS // REVIEW: Some of this should be ported to the new world.

@@ -41,6 +41,7 @@ namespace Microsoft.ML.Trainers
     /// | Is normalization required? | Yes |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | None |
+    /// | Exportable to ONNX | Yes |
     ///
     /// ### Training Algorithm Details
     /// [Poisson regression](https://en.wikipedia.org/wiki/Poisson_regression) is a parameterized regression method.
@@ -154,7 +155,7 @@ namespace Microsoft.ML.Trainers
 
         // Poisson: p(y;lambda) = lambda^y * exp(-lambda) / y!
         //  lambda is the parameter to the Poisson. It is the mean/expected number of occurrences
-        //      p(y;lambda) is the probability that there are y occurences given the expected was lambda
+        //      p(y;lambda) is the probability that there are y occurrences given the expected was lambda
         // Our goal is to maximize log-liklihood. Log(p(y;lambda)) = ylog(lambda) - lambda - log(y!)
         //   lambda = exp(w.x+b)
         //   then dlog(p(y))/dw_i = x_i*y - x_i*lambda = y*x_i - x_i * lambda

@@ -43,6 +43,7 @@ namespace Microsoft.ML.Trainers
     /// | Is normalization required? | Depends on the underlying binary classifier |
     /// | Is caching required? | Yes |
     /// | Required NuGet in addition to Microsoft.ML | None |
+    /// | Exportable to ONNX | No |
     ///
     /// ### Training Algorithm Details
     /// In this strategy, a binary classification algorithm is trained on each pair of classes.
@@ -341,7 +342,7 @@ namespace Microsoft.ML.Trainers
             return true;
         }
 
-        private static PairwiseCouplingModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static PairwiseCouplingModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));

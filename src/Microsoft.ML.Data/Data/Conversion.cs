@@ -1006,7 +1006,7 @@ namespace Microsoft.ML.Data.Conversion
         public bool TryParse(in TX src, out UG dst)
         {
             var span = src.Span;
-            // REVIEW: Accomodate numeric inputs?
+            // REVIEW: Accommodate numeric inputs?
             if (src.Length != 34 || span[0] != '0' || (span[1] != 'x' && span[1] != 'X'))
             {
                 dst = default(UG);
@@ -1181,7 +1181,7 @@ namespace Microsoft.ML.Data.Conversion
                 return false;
             }
             Contracts.Assert(res.HasValue);
-            Contracts.Check((I1)res == res, "Overflow or underflow occured while converting value in text to sbyte.");
+            Contracts.Check((I1)res == res, "Overflow or underflow occurred while converting value in text to sbyte.");
             dst = (I1)res;
             return true;
         }
@@ -1200,7 +1200,7 @@ namespace Microsoft.ML.Data.Conversion
                 return false;
             }
             Contracts.Assert(res.HasValue);
-            Contracts.Check((I2)res == res, "Overflow or underflow occured while converting value in text to short.");
+            Contracts.Check((I2)res == res, "Overflow or underflow occurred while converting value in text to short.");
             dst = (I2)res;
             return true;
         }
@@ -1219,7 +1219,7 @@ namespace Microsoft.ML.Data.Conversion
                 return false;
             }
             Contracts.Assert(res.HasValue);
-            Contracts.Check((I4)res == res, "Overflow or underflow occured while converting value in text to int.");
+            Contracts.Check((I4)res == res, "Overflow or underflow occurred while converting value in text to int.");
             dst = (I4)res;
             return true;
         }
@@ -1399,7 +1399,7 @@ namespace Microsoft.ML.Data.Conversion
         {
             TryParseSigned(I1.MaxValue, in src, out long? res);
             Contracts.Check(res.HasValue, "Value could not be parsed from text to sbyte.");
-            Contracts.Check((I1)res == res, "Overflow or underflow occured while converting value in text to sbyte.");
+            Contracts.Check((I1)res == res, "Overflow or underflow occurred while converting value in text to sbyte.");
             return (I1)res;
         }
 
@@ -1407,7 +1407,7 @@ namespace Microsoft.ML.Data.Conversion
         {
             TryParseSigned(I2.MaxValue, in src, out long? res);
             Contracts.Check(res.HasValue, "Value could not be parsed from text to short.");
-            Contracts.Check((I2)res == res, "Overflow or underflow occured while converting value in text to short.");
+            Contracts.Check((I2)res == res, "Overflow or underflow occurred while converting value in text to short.");
             return (I2)res;
         }
 
@@ -1415,7 +1415,7 @@ namespace Microsoft.ML.Data.Conversion
         {
             TryParseSigned(I4.MaxValue, in src, out long? res);
             Contracts.Check(res.HasValue, "Value could not be parsed from text to int.");
-            Contracts.Check((I4)res == res, "Overflow or underflow occured while converting value in text to int.");
+            Contracts.Check((I4)res == res, "Overflow or underflow occurred while converting value in text to int.");
             return (I4)res;
         }
 

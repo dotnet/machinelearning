@@ -118,7 +118,7 @@
           "Features0"
         ],
         "output": [
-          "PredictedLabel",
+          "PredictedLabelInt64",
           "Score"
         ],
         "name": "LinearClassifier",
@@ -239,7 +239,6 @@
           {
             "name": "classlabels_ints",
             "ints": [
-              "0",
               "1",
               "2",
               "3",
@@ -248,12 +247,41 @@
               "6",
               "7",
               "8",
-              "9"
+              "9",
+              "10"
             ],
             "type": "INTS"
           }
         ],
         "domain": "ai.onnx.ml"
+      },
+      {
+        "input": [
+          "PredictedLabelInt64"
+        ],
+        "output": [
+          "CastNodeOutput"
+        ],
+        "name": "Cast0",
+        "opType": "Cast",
+        "attribute": [
+          {
+            "name": "to",
+            "i": "12",
+            "type": "INT"
+          }
+        ]
+      },
+      {
+        "input": [
+          "CastNodeOutput",
+          "ShapeVar"
+        ],
+        "output": [
+          "PredictedLabel"
+        ],
+        "name": "Reshape",
+        "opType": "Reshape"
       },
       {
         "input": [
@@ -297,6 +325,19 @@
       }
     ],
     "name": "model",
+    "initializer": [
+      {
+        "dims": [
+          "2"
+        ],
+        "dataType": 7,
+        "int64Data": [
+          "1",
+          "1"
+        ],
+        "name": "ShapeVar"
+      }
+    ],
     "input": [
       {
         "name": "Label",
@@ -454,7 +495,7 @@
       "version": "2"
     },
     {
-      "version": "9"
+      "version": "11"
     }
   ]
 }

@@ -9,6 +9,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
@@ -548,7 +549,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var model = fullLearningPipeline.Fit(data);
         }
 
-        [Fact]
+        [RetryFact]
         public void CrossValidationIris()
             => CrossValidationOn(GetDataPath("iris.data"));
 

@@ -8,6 +8,7 @@ using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
@@ -97,7 +98,7 @@ namespace Microsoft.ML.Trainers
             _inputType = new VectorDataViewType(NumberDataViewType.Single);
         }
 
-        private static RandomModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static RandomModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -179,6 +180,7 @@ namespace Microsoft.ML.Trainers
     /// | Is normalization required? | No |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | None |
+    /// | Exportable to ONNX | Yes |
     ///
     /// ### Training Algorithm Details
     /// Learns the prior distribution for 0/1 class labels and outputs that.
@@ -240,9 +242,9 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         public BinaryPredictionTransformer<PriorModelParameters> Fit(IDataView input)
         {
-            RoleMappedData trainRoles = new RoleMappedData(input, feature: null, label: _labelColumnName, weight: _weightColumnName);
+            RoleMappedData trainRoles = new RoleMappedData(input, label: _labelColumnName, feature: null, weight: _weightColumnName);
             var pred = ((ITrainer<PriorModelParameters>)this).Train(new TrainContext(trainRoles));
-            return new BinaryPredictionTransformer<PriorModelParameters>(_host, pred, input.Schema, featureColumn: null);
+            return new BinaryPredictionTransformer<PriorModelParameters>(_host, pred, input.Schema, featureColumn: null, labelColumn: _labelColumnName);
         }
 
         private PriorModelParameters Train(TrainContext context)
@@ -330,7 +332,7 @@ namespace Microsoft.ML.Trainers
     public sealed class PriorModelParameters :
         ModelParametersBase<float>,
         IDistPredictorProducing<float, float>,
-        IValueMapperDist
+        IValueMapperDist, ISingleCanSaveOnnx
     {
         internal const string LoaderSignature = "PriorPredictor";
         private static VersionInfo GetVersionInfo()
@@ -346,6 +348,7 @@ namespace Microsoft.ML.Trainers
 
         private readonly float _prob;
         private readonly float _raw;
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
         /// <summary>
         /// Instantiates a model that returns the prior probability of the positive class in the training set.
@@ -377,7 +380,7 @@ namespace Microsoft.ML.Trainers
             _inputType = new VectorDataViewType(NumberDataViewType.Single);
         }
 
-        private static PriorModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static PriorModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -395,6 +398,38 @@ namespace Microsoft.ML.Trainers
 
             Contracts.Assert(!float.IsNaN(_prob));
             ctx.Writer.Write(_prob);
+        }
+
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputs, string labelColumn)
+        {
+            Host.CheckValue(ctx, nameof(ctx));
+            Host.Check(Utils.Size(outputs) >= 3);
+
+            string scoreVarName = outputs[1];
+            string probVarName = outputs[2];
+            var prob = ctx.AddInitializer(_prob, "probability");
+            var score = ctx.AddInitializer(_raw, "score");
+
+            var xorOutput = ctx.AddIntermediateVariable(null, "XorOutput", true);
+            string opType = "Xor";
+            ctx.CreateNode(opType, new[] { labelColumn, labelColumn }, new[] { xorOutput }, ctx.GetNodeName(opType), "");
+
+            var notOutput = ctx.AddIntermediateVariable(null, "NotOutput", true);
+            opType = "Not";
+            ctx.CreateNode(opType, xorOutput, notOutput, ctx.GetNodeName(opType), "");
+
+            var castOutput = ctx.AddIntermediateVariable(null, "CastOutput", true);
+            opType = "Cast";
+            var node = ctx.CreateNode(opType, notOutput, castOutput, ctx.GetNodeName(opType), "");
+            var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Single).ToType();
+            node.AddAttribute("to", t);
+
+            opType = "Mul";
+            ctx.CreateNode(opType, new[] { castOutput, prob }, new[] { probVarName }, ctx.GetNodeName(opType), "");
+
+            opType = "Mul";
+            ctx.CreateNode(opType, new[] { castOutput, score }, new[] { scoreVarName }, ctx.GetNodeName(opType), "");
+            return true;
         }
 
         private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;

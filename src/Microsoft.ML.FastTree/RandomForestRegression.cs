@@ -9,6 +9,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 
@@ -30,7 +31,8 @@ namespace Microsoft.ML.Trainers.FastTree
     public sealed class FastForestRegressionModelParameters :
         TreeEnsembleModelParametersBasedOnQuantileRegressionTree,
         IQuantileValueMapper,
-        IQuantileRegressionPredictor
+        IQuantileRegressionPredictor,
+        ISingleCanSaveOnnx
     {
         private sealed class QuantileStatistics
         {
@@ -199,7 +201,7 @@ namespace Microsoft.ML.Trainers.FastTree
             ctx.Writer.Write(_quantileSampleCount);
         }
 
-        private static FastForestRegressionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static FastForestRegressionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -208,6 +210,17 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         private protected override PredictionKind PredictionKind => PredictionKind.Regression;
+
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
+        {
+            // Mapping score to prediction
+            var fastTreeOutput = ctx.AddIntermediateVariable(null, "FastTreeOutput", true);
+            var numTrees = ctx.AddInitializer((float)TrainedEnsemble.NumTrees, "NumTrees");
+            base.SaveAsOnnx(ctx, new[] { fastTreeOutput }, featureColumn);
+            var opType = "Div";
+            ctx.CreateNode(opType, new[] { fastTreeOutput, numTrees }, outputNames, ctx.GetNodeName(opType), "");
+            return true;
+        }
 
         private protected override void Map(in VBuffer<float> src, ref float dst)
         {
@@ -261,6 +274,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// | Is normalization required? | No |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.FastTree |
+    /// | Exportable to ONNX | Yes |
     ///
     /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-fastforest.md)]
     /// ]]>
@@ -281,7 +295,7 @@ namespace Microsoft.ML.Trainers.FastTree
             /// <summary>
             /// Whether to shuffle the labels on every iteration.
             /// </summary>
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Shuffle the labels on every iteration. " +
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Shuffle the labels on every iteration. " +
                 "Useful probably only if using this tree as a tree leaf featurizer for multiclass.")]
             public bool ShuffleLabels;
         }

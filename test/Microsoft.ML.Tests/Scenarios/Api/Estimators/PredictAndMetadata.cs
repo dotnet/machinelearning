@@ -21,7 +21,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// key value to original label value. This example also shows how to convert key value to original label.
         /// </summary>
         [Fact]
-        void PredictAndMetadata()
+        public void PredictAndMetadata()
         {
             var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
             var ml = new MLContext();
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             VBuffer<ReadOnlyMemory<char>> originalLabels = default;
             engine.OutputSchema[nameof(IrisPrediction.Score)].Annotations.GetValue(AnnotationUtils.Kinds.TrainingLabelValues, ref originalLabels);
             // Since we apply MapValueToKey estimator with default parameters, key values
-            // depends on order of occurence in data file. Which is "Iris-setosa", "Iris-versicolor", "Iris-virginica"
+            // depends on order of occurrence in data file. Which is "Iris-setosa", "Iris-versicolor", "Iris-virginica"
             // So if we have Score column equal to [0.2, 0.3, 0.5] that's mean what score for
             // Iris-setosa is 0.2
             // Iris-versicolor is 0.3
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
 
         [Fact]
-        void MulticlassConfusionMatrixSlotNames()
+        public void MulticlassConfusionMatrixSlotNames()
         {
             var mlContext = new MLContext(seed: 1);
 

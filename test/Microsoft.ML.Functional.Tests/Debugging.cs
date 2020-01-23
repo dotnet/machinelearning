@@ -32,7 +32,7 @@ namespace Microsoft.ML.Functional.Tests
         /// float vector {3:1, 25:1, 203:1, 511:1}, etc. etc.
         /// </remarks>
         [Fact]
-        void InspectIntermediatePipelineSteps()
+        public void InspectIntermediatePipelineSteps()
         {
             var mlContext = new MLContext(seed: 1);
 

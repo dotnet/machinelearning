@@ -119,7 +119,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             }
         }
 
-        private static EnsembleDistributionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static EnsembleDistributionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));

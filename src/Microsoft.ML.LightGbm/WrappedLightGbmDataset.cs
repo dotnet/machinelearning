@@ -13,9 +13,9 @@ namespace Microsoft.ML.Trainers.LightGbm
     /// </summary>
     internal sealed class Dataset : IDisposable
     {
-        private IntPtr _handle;
+        private WrappedLightGbmInterface.SafeDataSetHandle _handle;
         private int _lastPushedRowID;
-        public IntPtr Handle => _handle;
+        public WrappedLightGbmInterface.SafeDataSetHandle Handle => _handle;
 
         /// <summary>
         /// Create a <see cref="Dataset"/> for storing training and prediciton data under LightGBM framework. The main goal of this function
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             int numTotalRow,
             string param, float[] labels, float[] weights = null, int[] groups = null)
         {
-            _handle = IntPtr.Zero;
+            _handle = null;
 
             // Use GCHandle to pin the memory, avoid the memory relocation.
             GCHandle[] gcValues = new GCHandle[numCol];
@@ -68,7 +68,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                     // Create container. Examples will pushed in later.
                     LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.DatasetCreateFromSampledColumn(
                         (IntPtr)ptrValues, (IntPtr)ptrIndices, numCol, sampleNonZeroCntPerColumn, numSampleRow, numTotalRow,
-                        param, ref _handle));
+                        param, out _handle));
                 }
             }
             finally
@@ -92,11 +92,9 @@ namespace Microsoft.ML.Trainers.LightGbm
 
         public Dataset(Dataset reference, int numTotalRow, float[] labels, float[] weights = null, int[] groups = null)
         {
-            IntPtr refHandle = IntPtr.Zero;
-            if (reference != null)
-                refHandle = reference.Handle;
+            WrappedLightGbmInterface.SafeDataSetHandle refHandle = reference?.Handle;
 
-            LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.DatasetCreateByReference(refHandle, numTotalRow, ref _handle));
+            LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.DatasetCreateByReference(refHandle, numTotalRow, out _handle));
 
             SetLabel(labels);
             SetWeights(weights);
@@ -105,9 +103,8 @@ namespace Microsoft.ML.Trainers.LightGbm
 
         public void Dispose()
         {
-            if (_handle != IntPtr.Zero)
-                LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.DatasetFree(_handle));
-            _handle = IntPtr.Zero;
+            _handle?.Dispose();
+            _handle = null;
         }
 
         /// <summary>

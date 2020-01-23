@@ -113,7 +113,7 @@ namespace Microsoft.ML.Internal.Utilities
                 await DownloadFromUrl(env, ch, absoluteUrl.AbsoluteUri, fileName, timeout, filePath), absoluteUrl.AbsoluteUri);
         }
 
-        /// <returns>Returns the error message if an error occured, null if download was successful.</returns>
+        /// <returns>Returns the error message if an error occurred, null if download was successful.</returns>
         private async Task<string> DownloadFromUrl(IHostEnvironment env, IChannel ch, string url, string fileName, int timeout, string filePath)
         {
             using (var webClient = new WebClient())
@@ -148,7 +148,7 @@ namespace Microsoft.ML.Internal.Utilities
         private static string CheckValidDownload(IChannel ch, string filePath, string url, ref bool deleteNeeded)
         {
             // If the relative url does not exist, aka.ms redirects to www.microsoft.com. Make sure this did not happen.
-            // If the file is big then it is definitly not the redirect.
+            // If the file is big then it is definitely not the redirect.
             var info = new FileInfo(filePath);
             if (info.Length > 4096)
                 return null;

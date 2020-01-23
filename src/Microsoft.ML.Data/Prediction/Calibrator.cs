@@ -760,7 +760,7 @@ namespace Microsoft.ML.Calibrators
             _featureContribution = SubModel as IFeatureContributionMapper;
         }
 
-        private static CalibratedModelParametersBase Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static CalibratedModelParametersBase Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
@@ -1224,7 +1224,7 @@ namespace Microsoft.ML.Calibrators
             _host.CheckDecode(_binProbs.All(x => (0 <= x && x <= 1)));
         }
 
-        private static NaiveCalibrator Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static NaiveCalibrator Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -1581,10 +1581,10 @@ namespace Microsoft.ML.Calibrators
         [TlcModule.Component(Name = "FixedPlattCalibrator", FriendlyName = "Fixed Platt Calibrator", Aliases = new[] { "FixedPlatt", "FixedSigmoid" })]
         public sealed class Arguments : ICalibratorTrainerFactory
         {
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The slope parameter of f(x) = 1 / (1 + exp(-slope * x + offset)", ShortName = "a")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The slope parameter of f(x) = 1 / (1 + exp(-slope * x + offset)", ShortName = "a")]
             public Double Slope = 1;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The offset parameter of f(x) = 1 / (1 + exp(-slope * x + offset)", ShortName = "b")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The offset parameter of f(x) = 1 / (1 + exp(-slope * x + offset)", ShortName = "b")]
             public Double Offset = 0;
 
             public ICalibratorTrainer CreateComponent(IHostEnvironment env)
@@ -1675,7 +1675,7 @@ namespace Microsoft.ML.Calibrators
             _host.CheckDecode(FloatUtils.IsFinite(Offset));
         }
 
-        private static PlattCalibrator Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static PlattCalibrator Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -1742,12 +1742,17 @@ namespace Microsoft.ML.Calibrators
             _host.CheckValue(scoreProbablityColumnNames, nameof(scoreProbablityColumnNames));
             _host.Check(Utils.Size(scoreProbablityColumnNames) == 2);
 
-            string opType = "Affine";
-            string linearOutput = ctx.AddIntermediateVariable(null, "linearOutput", true);
-            var node = ctx.CreateNode(opType, new[] { scoreProbablityColumnNames[0] },
-                new[] { linearOutput }, ctx.GetNodeName(opType), "");
-            node.AddAttribute("alpha", Slope * -1);
-            node.AddAttribute("beta", -0.0000001);
+            // The Affine operator is no longer supported in the v11 opset.
+            // So we have to decompose it using Mul and Add
+            string opType = "Mul";
+            var slopVar = ctx.AddInitializer((float)(-Slope), "Slope");
+            var mulNodeOutput = ctx.AddIntermediateVariable(null, "MulNodeOutput", true);
+            var node = ctx.CreateNode(opType, new[] { scoreProbablityColumnNames[0], slopVar }, new[] { mulNodeOutput }, ctx.GetNodeName(opType), "");
+
+            opType = "Add";
+            var betaVar = ctx.AddInitializer(-0.0000001f, "Slope");
+            var linearOutput = ctx.AddIntermediateVariable(null, "linearOutput", true);
+            node = ctx.CreateNode(opType, new[] { mulNodeOutput, betaVar }, new[] { linearOutput }, ctx.GetNodeName(opType), "");
 
             opType = "Sigmoid";
             node = ctx.CreateNode(opType, new[] { linearOutput },
@@ -1972,7 +1977,7 @@ namespace Microsoft.ML.Calibrators
             _host.CheckDecode(valuePrev <= 1);
         }
 
-        private static IsotonicCalibrator Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static IsotonicCalibrator Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));

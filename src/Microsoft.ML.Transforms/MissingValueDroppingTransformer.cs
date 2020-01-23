@@ -109,7 +109,7 @@ namespace Microsoft.ML.Transforms
         }
 
         // Factory method for SignatureLoadModel
-        private static MissingValueDroppingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static MissingValueDroppingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             ctx.CheckAtModel(GetVersionInfo());
