@@ -55,7 +55,8 @@ namespace Microsoft.ML.Trainers.LightGbm
                {nameof(MaximumCategoricalSplitPointCount),    "max_cat_threshold" },
                {nameof(CategoricalSmoothing),                 "cat_smooth" },
                {nameof(L2CategoricalRegularization),          "cat_l2" },
-               {nameof(HandleMissingValue),                   "use_missing" }
+               {nameof(HandleMissingValue),                   "use_missing" },
+               {nameof(UseZeroAsMissingValue),                "zero_as_missing" }
             };
 
             private protected string GetOptionName(string name)
@@ -177,6 +178,13 @@ namespace Microsoft.ML.Trainers.LightGbm
             [Argument(ArgumentType.AtMostOnce, HelpText = "Enable special handling of missing value or not.")]
             [TlcModule.SweepableDiscreteParam("UseMissing", new object[] { true, false })]
             public bool HandleMissingValue = true;
+
+            /// <summary>
+            /// Whether to enable the usage of zero (0) as missing value.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Enable usage of zero (0) as missing value.")]
+            [TlcModule.SweepableDiscreteParam("ZeroAsMissing", new object[] { true, false })]
+            public bool UseZeroAsMissingValue = false;
 
             /// <summary>
             /// The minimum number of data points per categorical group.
@@ -436,7 +444,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
         private FloatLabelCursor.Factory CreateCursorFactory(RoleMappedData data)
         {
-            var loadFlags = CursOpt.AllLabels | CursOpt.Features;
+            var loadFlags = CursOpt.AllLabels | CursOpt.Features | CursOpt.AllFeatures;
             if (PredictionKind == PredictionKind.Ranking)
                 loadFlags |= CursOpt.Group;
 
