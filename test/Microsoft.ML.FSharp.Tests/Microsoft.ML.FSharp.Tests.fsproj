@@ -5,7 +5,6 @@
     <PublicSign>false</PublicSign>
     <SourceLink></SourceLink>
     <PlatformTarget>$(TargetArchitecture)</PlatformTarget>
-    <LangVersion>4.7</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
