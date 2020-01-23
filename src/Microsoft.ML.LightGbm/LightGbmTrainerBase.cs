@@ -444,7 +444,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
         private FloatLabelCursor.Factory CreateCursorFactory(RoleMappedData data)
         {
-            var loadFlags = CursOpt.AllLabels | CursOpt.Features | CursOpt.AllFeatures;
+            var loadFlags = CursOpt.AllLabels | CursOpt.AllFeatures;
             if (PredictionKind == PredictionKind.Ranking)
                 loadFlags |= CursOpt.Group;
 
