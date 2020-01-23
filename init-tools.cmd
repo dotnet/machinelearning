@@ -61,10 +61,10 @@ if NOT exist "%DOTNET_PATH%" mkdir "%DOTNET_PATH%"
 
 :: set registry to take dump automatically when test process crashes
 if NOT [%AGENT_ID%] == [] (
-  reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting\\LocalDumps"
-  reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting\\LocalDumps" /v DumpType /t REG_DWORD /d 2
-  reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting\\LocalDumps" /v DumpCount /t REG_DWORD /d 2
-  reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting\\LocalDumps" /v DumpFolder /t REG_SZ /d "%~dp0CrashDumps"
+  reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /f
+  reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /f /v DumpType /t REG_DWORD /d 2
+  reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /f /v DumpCount /t REG_DWORD /d 2
+  reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /f /v DumpFolder /t REG_SZ /d "%~dp0CrashDumps"
 )
 
 :: install the extra runtime first, so the SDK install will overwrite the root dotnet executable
