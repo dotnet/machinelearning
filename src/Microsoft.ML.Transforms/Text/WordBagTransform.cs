@@ -490,7 +490,7 @@ namespace Microsoft.ML.Transforms.Text
                 env.CheckUserArg(!string.IsNullOrWhiteSpace(col.Name), nameof(col.Name));
                 env.CheckUserArg(Utils.Size(col.Source) > 0, nameof(col.Source));
                 env.CheckUserArg(col.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(col.Source));
-                estimator.Append(new ColumnConcatenatingEstimator(env, col.Name, col.Source));
+                estimator = estimator.Append<ITransformer>(new ColumnConcatenatingEstimator(env, col.Name, col.Source));
             }
             return estimator;
         }
