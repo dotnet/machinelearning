@@ -1372,7 +1372,7 @@ namespace Microsoft.ML.Tests
                     var onnxTransformer = onnxEstimator.Fit(dataView);
                     var onnxResult = onnxTransformer.Transform(dataView);
                     CompareSelectedScalarColumns<uint>(transformedData.Schema[5].Name, outputNames[2], transformedData, onnxResult); //compare predicted labels
-                    CompareSelectedR4VectorColumns(transformedData.Schema[6].Name, outputNames[3], transformedData, onnxResult, 5); //compare scores
+                    CompareSelectedR4VectorColumns(transformedData.Schema[6].Name, outputNames[3], transformedData, onnxResult, 4); //compare scores
                 }
             }
             Done();

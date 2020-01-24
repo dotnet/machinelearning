@@ -1750,7 +1750,7 @@ namespace Microsoft.ML.Calibrators
             var node = ctx.CreateNode(opType, new[] { scoreProbablityColumnNames[0], slopVar }, new[] { mulNodeOutput }, ctx.GetNodeName(opType), "");
 
             opType = "Add";
-            var betaVar = ctx.AddInitializer((float)(-Offset), "Offset");
+            var betaVar = ctx.AddInitializer((float)(-Offset), "Slope");
             var linearOutput = ctx.AddIntermediateVariable(null, "linearOutput", true);
             node = ctx.CreateNode(opType, new[] { mulNodeOutput, betaVar }, new[] { linearOutput }, ctx.GetNodeName(opType), "");
 
