@@ -183,7 +183,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             /// Whether to enable the usage of zero (0) as missing value.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Enable usage of zero (0) as missing value.")]
-            [TlcModule.SweepableDiscreteParam("ZeroAsMissing", new object[] { true, false })]
+            [TlcModule.SweepableDiscreteParam("UseZeroAsMissing", new object[] { true, false })]
             public bool UseZeroAsMissingValue = false;
 
             /// <summary>
@@ -267,6 +267,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
                 res[GetOptionName(nameof(MaximumBinCountPerFeature))] = MaximumBinCountPerFeature;
                 res[GetOptionName(nameof(HandleMissingValue))] = HandleMissingValue;
+                res[GetOptionName(nameof(UseZeroAsMissingValue))] = UseZeroAsMissingValue;
                 res[GetOptionName(nameof(MinimumExampleCountPerGroup))] = MinimumExampleCountPerGroup;
                 res[GetOptionName(nameof(MaximumCategoricalSplitPointCount))] = MaximumCategoricalSplitPointCount;
                 res[GetOptionName(nameof(CategoricalSmoothing))] = CategoricalSmoothing;

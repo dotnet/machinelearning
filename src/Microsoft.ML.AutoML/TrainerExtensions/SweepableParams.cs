@@ -105,6 +105,7 @@ namespace Microsoft.ML.AutoML
                 new SweepableDiscreteParam("MinimumExampleCountPerLeaf", new object[] { 1, 10, 20, 50 }),
                 new SweepableDiscreteParam("UseCategoricalSplit", new object[] { true, false }),
                 new SweepableDiscreteParam("HandleMissingValue", new object[] { true, false }),
+                new SweepableDiscreteParam("UseZeroAsMissingValue", new object[] { true, false }),
                 new SweepableDiscreteParam("MinimumExampleCountPerGroup", new object[] { 10, 50, 100, 200 }),
                 new SweepableDiscreteParam("MaximumCategoricalSplitPointCount", new object[] { 8, 16, 32, 64 }),
                 new SweepableDiscreteParam("CategoricalSmoothing", new object[] { 1, 10, 20 }),
