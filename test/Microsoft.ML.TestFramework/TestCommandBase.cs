@@ -1271,7 +1271,7 @@ namespace Microsoft.ML.RunTests
             var dataPath = CreateOutputPath("Traindata.txt");
             File.WriteAllLines(dataPath.Path, new string[] {
                 "0,0,1,2", "3,0,4,5", "4,0,5,6", "0,1,1,2", "3,1,4,5", "5,1,5,6" });
-            const string customGains = "0,3,7,15,35,63";
+            double[] customGains = new double[] { 0, 3, 7, 15, 35, 63 };
 
             RunMTAThread(() =>
             {
