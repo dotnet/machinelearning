@@ -248,15 +248,15 @@ namespace Microsoft.ML.Calibrators
 
             void ISaveAsOnnx.SaveAsOnnx(OnnxContext ctx)
             {
-                var inputName = InputSchema[_scoreColIndex].Name;
-                var outputName = GetOutputColumnsCore()[0].Name;
+                var scoreName = InputSchema[_scoreColIndex].Name;
+                var probabilityName = GetOutputColumnsCore()[0].Name;
                 Host.CheckValue(ctx, nameof(ctx));
                 if (_calibrator is ISingleCanSaveOnnx onnx)
                 {
                     Host.Check(onnx.CanSaveOnnx(ctx), "Cannot be saved as ONNX.");
-                    inputName = ctx.GetVariableName(inputName);
-                    outputName = ctx.AddIntermediateVariable(NumberDataViewType.Single, outputName);
-                    onnx.SaveAsOnnx(ctx, new[] { inputName, outputName}, ""); // No need for featureColumn
+                    scoreName = ctx.GetVariableName(scoreName);
+                    probabilityName = ctx.AddIntermediateVariable(NumberDataViewType.Single, probabilityName);
+                    onnx.SaveAsOnnx(ctx, new[] { scoreName, probabilityName }, ""); // No need for featureColumn
                 }
             }
 
