@@ -268,7 +268,7 @@ namespace Microsoft.ML.Numeric
             int dMin = dstIndices.Length == 0 ? 0 : dstIndices.FindIndexSorted(0, dstIndices.Length, offset);
             int dLim = dstIndices.Length == 0 ? 0 : dstIndices.FindIndexSorted(dMin, dstIndices.Length, offset + src.Length);
             Contracts.Assert(dMin - dLim <= src.Length);
-            // First get the number of extra values that we will need to accomodate.
+            // First get the number of extra values that we will need to accommodate.
             int gapCount;
             if (src.IsDense)
                 gapCount = src.Length - (dLim - dMin);

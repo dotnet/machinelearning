@@ -42,7 +42,7 @@ namespace Microsoft.ML.CommandLine
         /// once no error is reported and the value of the argument is the last
         /// value which occurs in the argument list.
         /// </summary>
-        LastOccurenceWins = Multiple,
+        LastOccurrenceWins = Multiple,
 
         /// <summary>
         /// The default type for collection arguments.

@@ -480,7 +480,16 @@ namespace Microsoft.ML.Data
                     }
                 }
 
-                public Double F1 { get { return 2 * PrecisionPos * RecallPos / (PrecisionPos + RecallPos); } }
+                public Double F1
+                {
+                    get
+                    {
+                        var precisionPlusRecall = PrecisionPos + RecallPos;
+                        if (precisionPlusRecall == 0)
+                            return 0;
+                        return 2 * PrecisionPos * RecallPos / precisionPlusRecall;
+                    }
+                }
 
                 public Counters(bool useRaw, Single threshold)
                 {

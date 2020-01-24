@@ -190,7 +190,7 @@ namespace Microsoft.ML.Functional.Tests
                 loadedTransformerModel1 = mlContext.Model.LoadWithDataLoader(fs, out var l);
             }
 
-            void AssertIsGam(ITransformer trans)
+            static void AssertIsGam(ITransformer trans)
             {
                 Assert.IsType<GamBinaryModelParameters>(
                     Assert.IsAssignableFrom<CalibratedModelParametersBase>(

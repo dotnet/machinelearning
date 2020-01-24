@@ -35,7 +35,7 @@ namespace Samples.Dynamic
                 new TextData(){ Text = "The value at each position corresponds " +
                     "to," },
 
-                new TextData(){ Text = "the number of times n-gram occured in " +
+                new TextData(){ Text = "the number of times n-gram occurred in " +
                     "the data (Tf), or" },
 
                 new TextData(){ Text = "the inverse of the number of documents " +

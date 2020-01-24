@@ -19,6 +19,7 @@ using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.Transforms.NormalizingTransformer;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.Tests.Transformers
 {
@@ -749,7 +750,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [RetryFact]
         public void TestGcnNormCommandLine()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=GcnTransform{col=B:A} in=f:\2.txt" }), (int)0);
@@ -777,7 +778,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestNormalizeBackCompatibility()
+        public void TestNormalizeBackCompatibility()
         {
             var dataFile = GetDataPath("breast-cancer.txt");
             var dataView = TextLoader.Create(ML, new TextLoader.Options(), new MultiFileSource(dataFile));
@@ -801,7 +802,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestNormalizeLogMeanVarianceFixZeroOne()
+        public void TestNormalizeLogMeanVarianceFixZeroOne()
         {
             var samples = new List<DataPointOne>()
             {
@@ -842,7 +843,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestNormalizeLogMeanVarianceFixZeroVec()
+        public void TestNormalizeLogMeanVarianceFixZeroVec()
         {
             var samples = new List<DataPointVec>()
             {
@@ -957,7 +958,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestSavingNormalizerWithMultidimensionalVectorInput()
+        public void TestSavingNormalizerWithMultidimensionalVectorInput()
         {
             var samples = TensorData.GetTensorData();
             var data = ML.Data.LoadFromEnumerable(samples);

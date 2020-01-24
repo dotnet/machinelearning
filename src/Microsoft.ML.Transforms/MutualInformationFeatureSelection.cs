@@ -32,6 +32,7 @@ namespace Microsoft.ML.Transforms
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
     /// | Input column data type | Vector or scalar of numeric, [text](xref:Microsoft.ML.Data.TextDataViewType) or [key](xref:Microsoft.ML.Data.KeyDataViewType) data types|
     /// | Output column data type | Same as the input column|
+    /// | Exportable to ONNX | Yes |
     ///
     /// Formally, the mutual information can be written as:
     ///
@@ -90,7 +91,7 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to use for feature selection", Name = "Column", ShortName = "col", SortOrder = 1)]
             public string[] Columns;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for labels", ShortName = "lab",
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Column to use for labels", ShortName = "lab",
                 SortOrder = 4, Purpose = SpecialPurpose.ColumnName)]
             public string LabelColumnName = Defaults.LabelColumnName;
 

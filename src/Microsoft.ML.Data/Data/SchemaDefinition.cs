@@ -143,9 +143,9 @@ namespace Microsoft.ML.Data
         /// <param name="obj">The object that attempts to acquire the channel.</param>
         /// <param name="channel">The channel to pass to the object.</param>
         /// <param name="ectx">The exception context.</param>
-        /// <returns>1. A boolean indicator of whether the channel was sucessfully passed to the object.
+        /// <returns>1. A boolean indicator of whether the channel was successfully passed to the object.
         /// 2. The object passed in (only modified by the addition of the channel to the field
-        /// with the CursorChannelAttribute, if the channel was added sucessfully).</returns>
+        /// with the CursorChannelAttribute, if the channel was added successfully).</returns>
         public static bool TrySetCursorChannel<T>(IExceptionContext ectx, T obj, IChannel channel)
             where T : class
         {

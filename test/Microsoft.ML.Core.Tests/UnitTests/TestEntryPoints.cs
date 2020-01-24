@@ -12,12 +12,14 @@ using Microsoft.ML.Core.Tests.UnitTests;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Featurizers;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Ensemble;
 using Microsoft.ML.Trainers.FastTree;
@@ -330,6 +332,7 @@ namespace Microsoft.ML.RunTests
             Env.ComponentCatalog.RegisterAssembly(typeof(SaveOnnxCommand).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TimeSeriesProcessingEntryPoints).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(ParquetLoader).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(DateTimeTransformer).Assembly);
 
             var catalog = Env.ComponentCatalog;
 
@@ -2756,7 +2759,7 @@ namespace Microsoft.ML.RunTests
             TestEntryPointRoutine("iris.txt", "Trainers.StochasticDualCoordinateAscentClassifier");
         }
 
-        [Fact()]
+        [RetryFact]
         public void EntryPointSDCARegression()
         {
             TestEntryPointRoutine(TestDatasets.generatedRegressionDatasetmacro.trainFilename, "Trainers.StochasticDualCoordinateAscentRegressor", loader: TestDatasets.generatedRegressionDatasetmacro.loaderSettings);
@@ -3843,7 +3846,7 @@ namespace Microsoft.ML.RunTests
             validateAuc(metrics);
         }
 
-        [Fact]
+        [RetryFact]
         public void EntryPointChainedCrossValMacros()
         {
             string inputGraph = @"
@@ -6023,7 +6026,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [Fact]
+        [RetryFact]
         public void TestOvaMacro()
         {
             var dataPath = GetDataPath(@"iris.txt");
@@ -6187,7 +6190,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [Fact]
+        [RetryFact]
         public void TestOvaMacroWithUncalibratedLearner()
         {
             var dataPath = GetDataPath(@"iris.txt");

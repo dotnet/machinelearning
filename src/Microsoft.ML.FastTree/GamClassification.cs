@@ -43,6 +43,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// | Is normalization required? | No |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.FastTree |
+    /// | Exportable to ONNX | No |
     ///
     /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-gam.md)]
     /// ]]>
@@ -65,7 +66,7 @@ namespace Microsoft.ML.Trainers.FastTree
             /// <summary>
             /// Whether to use derivatives optimized for unbalanced training data.
             /// </summary>
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Should we use derivatives optimized for unbalanced sets", ShortName = "us")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Should we use derivatives optimized for unbalanced sets", ShortName = "us")]
             [TGUI(Label = "Optimize for unbalanced")]
             public bool UnbalancedSets = false;
         }

@@ -305,7 +305,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             model.IrVersion = (long)OnnxCSharpToProtoWrapper.Version.IrVersion;
             model.ModelVersion = modelVersion;
             model.OpsetImport.Add(new OperatorSetIdProto() { Domain = "ai.onnx.ml", Version = 2 });
-            model.OpsetImport.Add(new OperatorSetIdProto() { Domain = "", Version = 9 });
+            model.OpsetImport.Add(new OperatorSetIdProto() { Domain = "", Version = 11 });
             model.Graph = new GraphProto();
             var graph = model.Graph;
             graph.Node.Add(nodes);
@@ -398,6 +398,20 @@ namespace Microsoft.ML.Model.OnnxConverter
             tensor.Name = name;
             tensor.DataType = (int)TensorProto.Types.DataType.Int64;
             tensor.Int64Data.AddRange(values);
+            if (dims != null)
+                tensor.Dims.AddRange(dims);
+            else
+                tensor.Dims.Add(values.Count());
+            return tensor;
+        }
+
+        // Make double vector (i.e., 1-D tensor) with dims=null. Otherwise, dims is used as the shape of the produced tensor.
+        public static TensorProto MakeDouble(string name, IEnumerable<double> values, IEnumerable<long> dims = null)
+        {
+            var tensor = new TensorProto();
+            tensor.Name = name;
+            tensor.DataType = (int)TensorProto.Types.DataType.Double;
+            tensor.DoubleData.AddRange(values);
             if (dims != null)
                 tensor.Dims.AddRange(dims);
             else

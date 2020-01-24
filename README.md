@@ -6,7 +6,7 @@
 
 ML.NET allows .NET developers to develop/train their own models and infuse custom machine learning into their applications, using .NET, even without prior expertise in developing or tuning machine learning models while having a powerful end-to-end ML platform covering data loading from dataset files and databases, data transformations and many ML algorithms.
 
-ML.NET was originally developed in Microsoft Research and evolved into an Microsoft internal framework over the last decade being used across many product groups in Microsoft like Windows, Bing, PowerPoint, Excel and more.
+ML.NET was originally developed in Microsoft Research and evolved into a Microsoft internal framework over the last decade being used across many product groups in Microsoft like Windows, Bing, PowerPoint, Excel and more.
 
 ML.NET enables machine learning tasks like classification (for example: support text classification, sentiment analysis), regression (for example, price-prediction) and many other ML tasks such as anomaly detection, time-series-forecast, clustering, ranking, etc.
 

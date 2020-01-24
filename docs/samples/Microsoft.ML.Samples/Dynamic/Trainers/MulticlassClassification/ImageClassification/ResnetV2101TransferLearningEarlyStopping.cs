@@ -230,10 +230,7 @@ namespace Samples.Dynamic
 
             //SINGLE SMALL FLOWERS IMAGESET (200 files)
             string fileName = "flower_photos_small_set.zip";
-            string url = $"https://mlnetfilestorage.file.core.windows.net/" +
-                $"imagesets/flower_images/flower_photos_small_set.zip?st=2019-08-" +
-                $"07T21%3A27%3A44Z&se=2030-08-08T21%3A27%3A00Z&sp=rl&sv=2018-03-" +
-                $"28&sr=f&sig=SZ0UBX47pXD0F1rmrOM%2BfcwbPVob8hlgFtIlN89micM%3D";
+            string url = $"https://aka.ms/mlnet-resources/datasets/flower_photos_small_set.zip";
 
             Download(url, imagesDownloadFolder, fileName);
             UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);

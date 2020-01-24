@@ -430,6 +430,7 @@ namespace Microsoft.ML.Transforms.Image
     /// | Input column data type | <xref:System.Drawing.Bitmap> |
     /// | Output column data type | <xref:System.Drawing.Bitmap> |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.ImageAnalytics |
+    /// | Exportable to ONNX | No |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.Image.ImageResizingTransformer> creates a new column, named as specified in the output column name parameters, and
     /// resizes the data from the input column to this new column.

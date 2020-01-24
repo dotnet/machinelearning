@@ -61,11 +61,11 @@ namespace Microsoft.ML.AutoML
                 var iterationStopwatch = Stopwatch.StartNew();
 
                 // get next pipeline
-                var getPiplelineStopwatch = Stopwatch.StartNew();
+                var getPipelineStopwatch = Stopwatch.StartNew();
                 var pipeline = PipelineSuggester.GetNextInferredPipeline(_context, _history, _datasetColumnInfo, _task,
                     _optimizingMetricInfo.IsMaximizing, _experimentSettings.CacheBeforeTrainer, _trainerWhitelist);
 
-                var pipelineInferenceTimeInSeconds = getPiplelineStopwatch.Elapsed.TotalSeconds;
+                var pipelineInferenceTimeInSeconds = getPipelineStopwatch.Elapsed.TotalSeconds;
 
                 // break if no candidates returned, means no valid pipeline available
                 if (pipeline == null)
@@ -82,7 +82,7 @@ namespace Microsoft.ML.AutoML
                 WriteIterationLog(pipeline, suggestedPipelineRunDetail, iterationStopwatch);
 
                 runDetail.RuntimeInSeconds = iterationStopwatch.Elapsed.TotalSeconds;
-                runDetail.PipelineInferenceTimeInSeconds = getPiplelineStopwatch.Elapsed.TotalSeconds;
+                runDetail.PipelineInferenceTimeInSeconds = getPipelineStopwatch.Elapsed.TotalSeconds;
 
                 ReportProgress(runDetail);
                 iterationResults.Add(runDetail);
@@ -94,7 +94,7 @@ namespace Microsoft.ML.AutoML
                 }
 
                 // If after third run, all runs have failed so far, throw exception
-                if (_history.Count() == 3 && _history.All(r => !r.RunSucceded))
+                if (_history.Count() == 3 && _history.All(r => !r.RunSucceeded))
                 {
                     throw new InvalidOperationException($"Training failed with the exception: {_history.Last().Exception}");
                 }
@@ -112,19 +112,8 @@ namespace Microsoft.ML.AutoML
             {
                 return null;
             }
-            var subdirs = rootDir.Exists ?
-                new HashSet<string>(rootDir.EnumerateDirectories().Select(d => d.Name)) :
-                new HashSet<string>();
-            string experimentDir;
-            for (var i = 0; ; i++)
-            {
-                experimentDir = $"experiment{i}";
-                if (!subdirs.Contains(experimentDir))
-                {
-                    break;
-                }
-            }
-            var experimentDirFullPath = Path.Combine(rootDir.FullName, experimentDir);
+
+            var experimentDirFullPath = Path.Combine(rootDir.FullName, $"experiment_{Path.GetRandomFileName()}");
             var experimentDirInfo = new DirectoryInfo(experimentDirFullPath);
             if (!experimentDirInfo.Exists)
             {

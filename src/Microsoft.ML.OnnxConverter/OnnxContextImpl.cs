@@ -313,6 +313,17 @@ namespace Microsoft.ML.Model.OnnxConverter
             return name;
         }
 
+        public override string AddInitializer(IEnumerable<double> values, IEnumerable<long> dims, string name = null, bool makeUniqueName = true)
+        {
+            _host.CheckValue(values, nameof(values));
+            if (dims != null)
+                _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), "Number of elements doesn't match tensor size");
+
+            name = AddVariable(name ?? "double", makeUniqueName);
+            _initializers.Add(OnnxUtils.MakeDouble(name, values, dims));
+            return name;
+        }
+
         public override string AddInitializer(IEnumerable<string> values, IEnumerable<long> dims, string name = null, bool makeUniqueName = true)
         {
             _host.CheckValue(values, nameof(values));

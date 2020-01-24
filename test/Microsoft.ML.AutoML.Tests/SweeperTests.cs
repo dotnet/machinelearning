@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace Microsoft.ML.AutoML.Test
@@ -165,6 +166,111 @@ namespace Microsoft.ML.AutoML.Test
                     Console.WriteLine("{0}--{1}--{2}--{3}", count, foo, bar, metric);
                 }
             }
+        }
+
+        [Fact]
+        public void TestLongParameterValue()
+        {
+            LongParameterValue value1 = new LongParameterValue(nameof(value1), 1);
+            LongParameterValue value2 = new LongParameterValue(nameof(value2), 2);
+            LongParameterValue duplicateValue1 = new LongParameterValue(nameof(value1), 1);
+
+            Assert.False(value1.Equals(value2));
+            Assert.True(value1.Equals(value1));
+            Assert.True(value1.Equals(duplicateValue1));
+            Assert.False(value1.Equals((object)value2));
+            Assert.True(value1.Equals((object)value1));
+            Assert.True(value1.Equals((object)duplicateValue1));
+
+            Assert.False(value1.Equals(new FloatParameterValue(nameof(value1), 1.0f)));
+            Assert.False(value1.Equals((IParameterValue)null));
+            Assert.False(value1.Equals((object)null));
+            Assert.False(value1.Equals(new object()));
+
+            Assert.Equal(value1.GetHashCode(), value1.GetHashCode());
+            Assert.Equal(value1.GetHashCode(), duplicateValue1.GetHashCode());
+        }
+
+        [Fact]
+        public void TestFloatParameterValue()
+        {
+            FloatParameterValue value1 = new FloatParameterValue(nameof(value1), 1.0f);
+            FloatParameterValue value2 = new FloatParameterValue(nameof(value2), 2.0f);
+            FloatParameterValue duplicateValue1 = new FloatParameterValue(nameof(value1), 1.0f);
+
+            Assert.False(value1.Equals(value2));
+            Assert.True(value1.Equals(value1));
+            Assert.True(value1.Equals(duplicateValue1));
+            Assert.False(value1.Equals((object)value2));
+            Assert.True(value1.Equals((object)value1));
+            Assert.True(value1.Equals((object)duplicateValue1));
+
+            Assert.False(value1.Equals(new LongParameterValue(nameof(value1), 1)));
+            Assert.False(value1.Equals((IParameterValue)null));
+            Assert.False(value1.Equals((object)null));
+            Assert.False(value1.Equals(new object()));
+
+            Assert.Equal(value1.GetHashCode(), value1.GetHashCode());
+            Assert.Equal(value1.GetHashCode(), duplicateValue1.GetHashCode());
+        }
+
+        [Fact]
+        public void TestStringParameterValue()
+        {
+            StringParameterValue value1 = new StringParameterValue(nameof(value1), "1");
+            StringParameterValue value2 = new StringParameterValue(nameof(value2), "2");
+            StringParameterValue duplicateValue1 = new StringParameterValue(nameof(value1), "1");
+
+            Assert.False(value1.Equals(value2));
+            Assert.True(value1.Equals(value1));
+            Assert.True(value1.Equals(duplicateValue1));
+            Assert.False(value1.Equals((object)value2));
+            Assert.True(value1.Equals((object)value1));
+            Assert.True(value1.Equals((object)duplicateValue1));
+
+            Assert.False(value1.Equals(new LongParameterValue(nameof(value1), 1)));
+            Assert.False(value1.Equals((IParameterValue)null));
+            Assert.False(value1.Equals((object)null));
+            Assert.False(value1.Equals(new object()));
+
+            Assert.Equal(value1.GetHashCode(), value1.GetHashCode());
+            Assert.Equal(value1.GetHashCode(), duplicateValue1.GetHashCode());
+        }
+
+        [Fact]
+        public void TestParameterSetEquality()
+        {
+            LongParameterValue value1 = new LongParameterValue(nameof(value1), 1);
+            LongParameterValue value2 = new LongParameterValue(nameof(value2), 2);
+            StringParameterValue stringValue1 = new StringParameterValue(nameof(value1), "1");
+
+            var parameterSet = new ParameterSet(new[] { value1 });
+            Assert.False(parameterSet.Equals(null));
+
+            // Verify Equals for sets with different hash codes
+            var parameterSetNewHash = new ParameterSet(new IParameterValue[] { value1 }.ToDictionary(x => x.Name), hash: parameterSet.GetHashCode() + 1);
+            Assert.NotEqual(parameterSet.GetHashCode(), parameterSetNewHash.GetHashCode());
+            Assert.False(parameterSet.Equals(parameterSetNewHash));
+
+            // Verify Equals for sets with the same hash code, but different number of values
+            var parameterSetMoreValues = new ParameterSet(new IParameterValue[] { value1, value2 }.ToDictionary(x => x.Name), hash: parameterSet.GetHashCode());
+            Assert.Equal(parameterSet.GetHashCode(), parameterSetMoreValues.GetHashCode());
+            Assert.False(parameterSet.Equals(parameterSetMoreValues));
+
+            // Verify Equals for sets with the same hash and item counts, but one of the items has a different name
+            var parameterSetDifferentName = new ParameterSet(new IParameterValue[] { value2 }.ToDictionary(x => x.Name), hash: parameterSet.GetHashCode());
+            Assert.Equal(parameterSet.GetHashCode(), parameterSetDifferentName.GetHashCode());
+            Assert.False(parameterSet.Equals(parameterSetDifferentName));
+
+            // Verify Equals for sets with the same hash and item names, but one of the items has a different value
+            var parameterSetDifferentValue = new ParameterSet(new IParameterValue[] { stringValue1 }.ToDictionary(x => x.Name), hash: parameterSet.GetHashCode());
+            Assert.Equal(parameterSet.GetHashCode(), parameterSetDifferentValue.GetHashCode());
+            Assert.False(parameterSet.Equals(parameterSetDifferentValue));
+
+            // Verify Equals for sets with the same hash and items
+            var parameterSetSameHash = new ParameterSet(new IParameterValue[] { value1 }.ToDictionary(x => x.Name), hash: parameterSet.GetHashCode());
+            Assert.Equal(parameterSet.GetHashCode(), parameterSetSameHash.GetHashCode());
+            Assert.True(parameterSet.Equals(parameterSetSameHash));
         }
     }
 }

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.AutoML
@@ -128,7 +129,7 @@ namespace Microsoft.ML.AutoML
             Runtime.Contracts.Assert(!float.IsNaN(value));
             _name = name;
             _value = value;
-            _valueText = _value.ToString("R");
+            _valueText = _value.ToString("R", CultureInfo.InvariantCulture);
         }
 
         public bool Equals(IParameterValue other)

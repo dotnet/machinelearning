@@ -106,7 +106,7 @@ namespace Microsoft.ML.RunTests
             [Argument(ArgumentType.AtMostOnce)]
             public int once = 1;
 
-            [Argument(ArgumentType.LastOccurenceWins)]
+            [Argument(ArgumentType.LastOccurrenceWins)]
             public string text1 = "";
 
             [Argument(ArgumentType.AtMostOnce)]

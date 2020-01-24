@@ -61,7 +61,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // This is actually an advisory value. The implementations themselves are responsible for
             // determining what they consider appropriate, and the actual heuristics is a bit more
             // complex than just this.
-            [Argument(ArgumentType.LastOccurenceWins,
+            [Argument(ArgumentType.LastOccurrenceWins,
                 HelpText = "Desired degree of parallelism in the data pipeline", ShortName = "n", SortOrder = 6)]
             public int? Parallel;
         }

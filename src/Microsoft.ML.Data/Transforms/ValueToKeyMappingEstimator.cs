@@ -24,6 +24,7 @@ namespace Microsoft.ML.Transforms
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
     /// | Input column data type | Scalar or vector of numeric, boolean, [text](xref:Microsoft.ML.Data.TextDataViewType), [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
     /// | Output column data type | Scalar or vector of [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
+    /// | Exportable to ONNX | Yes |
     ///
     /// The ValueToKeyMappingEstimator maps the input values to keys using a
     /// dictionary that is built during training. The dictionary mapping values to
