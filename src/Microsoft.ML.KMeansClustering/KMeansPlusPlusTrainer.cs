@@ -62,7 +62,7 @@ namespace Microsoft.ML.Trainers
     /// [KMeansTrainer(Options)](xref:Microsoft.ML.KMeansClusteringExtensions.KMeans(Microsoft.ML.ClusteringCatalog.ClusteringTrainers,Microsoft.ML.Trainers.KMeansTrainer.Options)).
     ///
     /// ### Scoring Function
-    /// The output Score column contains the $L_2$-norm distance (i.e., [Euclidean distance](https://en.wikipedia.org/wiki/Euclidean_distance)) of the given input vector $\textbf{x}\in \mathbb{R}^n$ to each cluster's centroid.
+    /// The output Score column contains the square of the $L_2$-norm distance (i.e., [Euclidean distance](https://en.wikipedia.org/wiki/Euclidean_distance)) of the given input vector $\textbf{x}\in \mathbb{R}^n$ to each cluster's centroid.
     /// Assume that the centriod of the $c$-th cluster is $\textbf{m}_c \in \mathbb{R}^n$.
     /// The $c$-th value at the Score column would be $d_c = || \textbf{x} - \textbf{m}\_c ||\_2^2$.
     /// The predicted label is the index with the smallest value in a $K$ dimensional vector $[d\_{0}, \dots, d\_{K-1}]$, where $K$ is the number of clusters.
