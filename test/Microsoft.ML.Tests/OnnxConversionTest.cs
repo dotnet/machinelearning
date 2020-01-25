@@ -373,7 +373,6 @@ namespace Microsoft.ML.Tests
                 Append(mlContext.Transforms.NormalizeMinMax("Features"));
             foreach (var estimator in estimators)
             {
-                // var pipeline = initialPipeline.Append(estimator);
                 var pipeline = initialPipeline.Append(estimator).Append(mlContext.BinaryClassification.Calibrators.Platt());
                 var model = pipeline.Fit(dataView);
                 var outputSchema = model.GetOutputSchema(dataView.Schema);
@@ -444,9 +443,7 @@ namespace Microsoft.ML.Tests
                 var onnxResult = onnxTransformer.Transform(data);
                 CompareSelectedR4ScalarColumns(transformedData.Schema.Last().Name, outputNames.Last(), transformedData, onnxResult, 3); //compare probabilities
             }
-
             Done();
-
         }
 
         private class DataPoint
