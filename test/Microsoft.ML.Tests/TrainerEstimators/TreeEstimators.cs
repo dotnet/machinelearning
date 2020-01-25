@@ -68,11 +68,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-#if INNER_LOOP
-        [Fact(Skip = "skip due to flaky, this test crashes test host process")]
-#else
         [LightGBMFact]
-#endif
+        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        [Trait("Category", "SkipInCI")]
         public void LightGBMBinaryEstimatorUnbalanced()
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
@@ -96,11 +94,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// LightGBMBinaryTrainer CorrectSigmoid test
         /// </summary>
-#if INNER_LOOP
-        [Fact(Skip = "skip due to flaky, this test crashes test host process")]
-#else
         [LightGBMFact]
-#endif
+        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        [Trait("Category", "SkipInCI")]
         public void LightGBMBinaryEstimatorCorrectSigmoid()
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();

@@ -1246,11 +1246,9 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(string.Join(" ", input.B).Replace("/", " "), textOutput.BOut[0]);
         }
 
-#if INNER_LOOP
-        [Fact(Skip = "skip due to flaky")]
-#else
         [TensorFlowFact]
-#endif
+        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassificationDefault()
         {
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
@@ -1471,11 +1469,9 @@ namespace Microsoft.ML.Scenarios
             TensorFlowImageClassificationWithLRScheduling(new ExponentialLRDecay(), 50);
         }
 
-#if INNER_LOOP
-        [Fact(Skip = "skip due to flaky")]
-#else
         [TensorFlowFact]
-#endif
+        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassificationWithPolynomialLRScheduling()
         {
 
@@ -1708,11 +1704,9 @@ namespace Microsoft.ML.Scenarios
             Assert.InRange(lastEpoch, 1, 49);
         }
 
-#if INNER_LOOP
-        [Fact(Skip = "skip due to flaky")]
-#else
         [TensorFlowFact]
-#endif
+        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassificationBadImages()
         {
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",

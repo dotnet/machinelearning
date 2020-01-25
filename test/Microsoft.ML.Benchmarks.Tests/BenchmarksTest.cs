@@ -43,13 +43,10 @@ namespace Microsoft.ML.Benchmarks.Tests
             return benchmarks;
         }
 
-#if INNER_LOOP
-        [Theory(Skip = "skip due to hanging test process")]
-        [MemberData(nameof(GetBenchmarks))]
-#else
         [BenchmarkTheory]
         [MemberData(nameof(GetBenchmarks))]
-#endif
+        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        [Trait("Category", "SkipInCI")]
         public void BenchmarksProjectIsNotBroken(Type type)
         {
             var summary = BenchmarkRunner.Run(type, new TestConfig().With(new OutputLogger(Output)));

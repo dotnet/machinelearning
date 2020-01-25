@@ -14,11 +14,9 @@ namespace Microsoft.ML.Scenarios
 {
     public partial class ScenariosTests : BaseTestClass
     {
-#if INNER_LOOP
-        [Fact(Skip = "skip due to flaky")]
-#else
         [Fact]
-#endif
+        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        [Trait("Category", "SkipInCI")]
         public void TrainAndPredictIrisModelTest()
         {
             var mlContext = new MLContext(seed: 1);

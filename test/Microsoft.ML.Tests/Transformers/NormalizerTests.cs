@@ -750,11 +750,9 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-#if INNER_LOOP
-        [Fact(Skip = "skip due to flaky")]
-#else
         [Fact]
-#endif
+        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        [Trait("Category", "SkipInCI")]
         public void TestGcnNormCommandLine()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=GcnTransform{col=B:A} in=f:\2.txt" }), (int)0);

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DefineConstants>$(DefineConstants);CORECLR</DefineConstants>
+    <DefineConstants>CORECLR</DefineConstants>
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
