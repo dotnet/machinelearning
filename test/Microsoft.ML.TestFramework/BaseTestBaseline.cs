@@ -102,7 +102,7 @@ namespace Microsoft.ML.RunTests
             TestLogger = new TestLogger(Output);
             _env = new ConsoleEnvironment(42, outWriter: LogWriter, errWriter: LogWriter, testWriter:TestLogger)
                 .AddStandardComponents();
-            ML = new MLContext(42, _env);
+            ML = new MLContext(_env, 42);
             ML.AddStandardComponents();
         }
 

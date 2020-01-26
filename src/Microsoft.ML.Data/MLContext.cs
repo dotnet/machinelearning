@@ -82,7 +82,6 @@ namespace Microsoft.ML
         /// Create the ML context.
         /// </summary>
         /// <param name="seed">Seed for MLContext's random number generator. See the remarks for more details.</param>
-        /// <param name="env">Host environment.</param>
         /// <remarks>
         /// Many operations in ML.NET require randomness, such as
         /// random data shuffling, random sampling, random parameter initialization,
@@ -107,16 +106,34 @@ namespace Microsoft.ML
         /// Also ML.NET trainers don't use randomness *after* the training is finished.
         /// So, the predictions from a loaded model don't depend on the seed value.
         /// </remarks>
-        public MLContext(int? seed = null, IHostEnvironment env = null)
+        public MLContext(int? seed = null)
         {
-            if (env == null)
-            {
-                var localEnv = new LocalEnvironment(seed);
-                localEnv.AddListener(ProcessMessage);
-                _env = localEnv;
-            }
-            else
-                _env = env;
+            var localEnv = new LocalEnvironment(seed);
+            localEnv.AddListener(ProcessMessage);
+            _env = localEnv;
+
+            BinaryClassification = new BinaryClassificationCatalog(_env);
+            MulticlassClassification = new MulticlassClassificationCatalog(_env);
+            Regression = new RegressionCatalog(_env);
+            Clustering = new ClusteringCatalog(_env);
+            Ranking = new RankingCatalog(_env);
+            AnomalyDetection = new AnomalyDetectionCatalog(_env);
+            Forecasting = new ForecastingCatalog(_env);
+            Transforms = new TransformsCatalog(_env);
+            Model = new ModelOperationsCatalog(_env);
+            Data = new DataOperationsCatalog(_env);
+        }
+
+        /// <summary>
+        /// Create the ML context with a specific environment
+        /// </summary>
+        /// <param name="env">Host environment.</param>
+        /// <param name="seed">Seed for MLContext's random number generator. See the remarks for more details.</param>
+        /// <remarks>
+        /// </remarks>
+        public MLContext(IHostEnvironment env, int ? seed = null)
+        {
+            _env = env;
 
             BinaryClassification = new BinaryClassificationCatalog(_env);
             MulticlassClassification = new MulticlassClassificationCatalog(_env);
