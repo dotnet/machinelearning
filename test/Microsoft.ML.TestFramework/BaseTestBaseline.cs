@@ -75,6 +75,7 @@ namespace Microsoft.ML.RunTests
 
         // The writer to write to test log files.
         protected StreamWriter LogWriter;
+        protected TestLogger TestLogger;
         private protected ConsoleEnvironment _env;
         protected IHostEnvironment Env => _env;
         protected MLContext ML;
@@ -97,9 +98,11 @@ namespace Microsoft.ML.RunTests
 
             string logPath = Path.Combine(logDir, FullTestName + LogSuffix);
             LogWriter = OpenWriter(logPath);
-            _env = new ConsoleEnvironment(42, outWriter: LogWriter, errWriter: LogWriter)
+
+            TestLogger = new TestLogger(Output);
+            _env = new ConsoleEnvironment(42, outWriter: LogWriter, errWriter: LogWriter, testWriter:TestLogger)
                 .AddStandardComponents();
-            ML = new MLContext(42);
+            ML = new MLContext(42, _env);
             ML.AddStandardComponents();
         }
 

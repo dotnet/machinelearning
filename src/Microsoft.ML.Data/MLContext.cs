@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 
@@ -17,7 +16,7 @@ namespace Microsoft.ML
     public sealed class MLContext : IHostEnvironment
     {
         // REVIEW: consider making LocalEnvironment and MLContext the same class instead of encapsulation.
-        private readonly LocalEnvironment _env;
+        private readonly IHostEnvironment _env;
 
         /// <summary>
         /// Trainers and tasks specific to binary classification problems.
@@ -83,6 +82,7 @@ namespace Microsoft.ML
         /// Create the ML context.
         /// </summary>
         /// <param name="seed">Seed for MLContext's random number generator. See the remarks for more details.</param>
+        /// <param name="env">Host environment.</param>
         /// <remarks>
         /// Many operations in ML.NET require randomness, such as
         /// random data shuffling, random sampling, random parameter initialization,
@@ -107,10 +107,16 @@ namespace Microsoft.ML
         /// Also ML.NET trainers don't use randomness *after* the training is finished.
         /// So, the predictions from a loaded model don't depend on the seed value.
         /// </remarks>
-        public MLContext(int? seed = null)
+        public MLContext(int? seed = null, IHostEnvironment env = null)
         {
-            _env = new LocalEnvironment(seed);
-            _env.AddListener(ProcessMessage);
+            if (env == null)
+            {
+                var localEnv = new LocalEnvironment(seed);
+                localEnv.AddListener(ProcessMessage);
+                _env = localEnv;
+            }
+            else
+                _env = env;
 
             BinaryClassification = new BinaryClassificationCatalog(_env);
             MulticlassClassification = new MulticlassClassificationCatalog(_env);

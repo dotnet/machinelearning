@@ -26,6 +26,7 @@ namespace Microsoft.ML.Runtime
             private readonly ConsoleEnvironment _parent;
             private readonly TextWriter _out;
             private readonly TextWriter _err;
+            private readonly TextWriter _test;
 
             private readonly bool _colorOut;
             private readonly bool _colorErr;
@@ -35,7 +36,7 @@ namespace Microsoft.ML.Runtime
             private const int _maxDots = 50;
             private int _dots;
 
-            public ConsoleWriter(ConsoleEnvironment parent, TextWriter outWriter, TextWriter errWriter)
+            public ConsoleWriter(ConsoleEnvironment parent, TextWriter outWriter, TextWriter errWriter, TextWriter testWriter = null)
             {
                 Contracts.AssertValue(parent);
                 Contracts.AssertValue(outWriter);
@@ -44,6 +45,7 @@ namespace Microsoft.ML.Runtime
                 _parent = parent;
                 _out = outWriter;
                 _err = errWriter;
+                _test = testWriter;
 
                 _colorOut = outWriter == Console.Out;
                 _colorErr = outWriter == Console.Error;
@@ -86,10 +88,19 @@ namespace Microsoft.ML.Runtime
                     string prefix = WriteAndReturnLinePrefix(msg.Sensitivity, wr);
                     var commChannel = sender as PipeBase<ChannelMessage>;
                     if (commChannel?.Verbose == true)
+                    {
                         WriteHeader(wr, commChannel);
+                        if (_test != null)
+                            WriteHeader(_test, commChannel);
+                    }
                     if (msg.Kind == ChannelMessageKind.Warning)
+                    {
                         wr.Write("Warning: ");
+                        _test?.Write("Warning: ");
+                    }
                     _parent.PrintMessageNormalized(wr, msg.Message, true, prefix);
+                    if (_test != null)
+                        _parent.PrintMessageNormalized(_test, msg.Message, true);
                     if (toColor)
                         Console.ResetColor();
                 }
@@ -340,6 +351,9 @@ namespace Microsoft.ML.Runtime
         private volatile ConsoleWriter _consoleWriter;
         private readonly MessageSensitivity _sensitivityFlags;
 
+        // This object is used to write to the test log along with the console if the host process is a test environment
+        private TextWriter _testWriter;
+
         /// <summary>
         /// Create an ML.NET <see cref="IHostEnvironment"/> for local execution, with console feedback.
         /// </summary>
@@ -348,10 +362,11 @@ namespace Microsoft.ML.Runtime
         /// <param name="sensitivity">Allowed message sensitivity.</param>
         /// <param name="outWriter">Text writer to print normal messages to.</param>
         /// <param name="errWriter">Text writer to print error messages to.</param>
+        /// <param name="testWriter">Optional TextWriter to write messages if the host is a test environment.</param>
         public ConsoleEnvironment(int? seed = null, bool verbose = false,
             MessageSensitivity sensitivity = MessageSensitivity.All,
-            TextWriter outWriter = null, TextWriter errWriter = null)
-            : this(RandomUtils.Create(seed), verbose, sensitivity, outWriter, errWriter)
+            TextWriter outWriter = null, TextWriter errWriter = null, TextWriter testWriter = null)
+            : this(RandomUtils.Create(seed), verbose, sensitivity, outWriter, errWriter, testWriter)
         {
         }
 
@@ -364,14 +379,16 @@ namespace Microsoft.ML.Runtime
         /// <param name="sensitivity">Allowed message sensitivity.</param>
         /// <param name="outWriter">Text writer to print normal messages to.</param>
         /// <param name="errWriter">Text writer to print error messages to.</param>
+        /// <param name="testWriter">Optional TextWriter to write messages if the host is a test environment.</param>
         private ConsoleEnvironment(Random rand, bool verbose = false,
             MessageSensitivity sensitivity = MessageSensitivity.All,
-            TextWriter outWriter = null, TextWriter errWriter = null)
+            TextWriter outWriter = null, TextWriter errWriter = null, TextWriter testWriter = null)
             : base(rand, verbose, nameof(ConsoleEnvironment))
         {
             Contracts.CheckValueOrNull(outWriter);
             Contracts.CheckValueOrNull(errWriter);
-            _consoleWriter = new ConsoleWriter(this, outWriter ?? Console.Out, errWriter ?? Console.Error);
+            _testWriter = testWriter;
+            _consoleWriter = new ConsoleWriter(this, outWriter ?? Console.Out, errWriter ?? Console.Error, testWriter);
             _sensitivityFlags = sensitivity;
             AddListener<ChannelMessage>(PrintMessage);
         }
@@ -444,7 +461,7 @@ namespace Microsoft.ML.Runtime
                 Contracts.AssertValue(newOutWriter);
                 Contracts.AssertValue(newErrWriter);
                 _root = env.Root;
-                _newConsoleWriter = new ConsoleWriter(_root, newOutWriter, newErrWriter);
+                _newConsoleWriter = new ConsoleWriter(_root, newOutWriter, newErrWriter, _root._testWriter);
                 _oldConsoleWriter = Interlocked.Exchange(ref _root._consoleWriter, _newConsoleWriter);
                 Contracts.AssertValue(_oldConsoleWriter);
             }
