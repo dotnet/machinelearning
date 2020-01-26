@@ -155,7 +155,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input) =>
-            (IDataTransform)CreateEstimator(env, options, SchemaShape.Create(input.Schema)).Fit(input).Transform(input)/* CreateTransfomer(env, options, input).Transform(input)*/;
+            (IDataTransform)CreateEstimator(env, options, SchemaShape.Create(input.Schema)).Fit(input).Transform(input);
     }
 
     /// <summary>
