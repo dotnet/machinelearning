@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 
@@ -16,7 +17,7 @@ namespace Microsoft.ML
     public sealed class MLContext : IHostEnvironment
     {
         // REVIEW: consider making LocalEnvironment and MLContext the same class instead of encapsulation.
-        private readonly IHostEnvironment _env;
+        private readonly LocalEnvironment _env;
 
         /// <summary>
         /// Trainers and tasks specific to binary classification problems.
@@ -108,32 +109,8 @@ namespace Microsoft.ML
         /// </remarks>
         public MLContext(int? seed = null)
         {
-            var localEnv = new LocalEnvironment(seed);
-            localEnv.AddListener(ProcessMessage);
-            _env = localEnv;
-
-            BinaryClassification = new BinaryClassificationCatalog(_env);
-            MulticlassClassification = new MulticlassClassificationCatalog(_env);
-            Regression = new RegressionCatalog(_env);
-            Clustering = new ClusteringCatalog(_env);
-            Ranking = new RankingCatalog(_env);
-            AnomalyDetection = new AnomalyDetectionCatalog(_env);
-            Forecasting = new ForecastingCatalog(_env);
-            Transforms = new TransformsCatalog(_env);
-            Model = new ModelOperationsCatalog(_env);
-            Data = new DataOperationsCatalog(_env);
-        }
-
-        /// <summary>
-        /// Create the ML context with a specific environment
-        /// </summary>
-        /// <param name="env">Host environment.</param>
-        /// <param name="seed">Seed for MLContext's random number generator. See the remarks for more details.</param>
-        /// <remarks>
-        /// </remarks>
-        public MLContext(IHostEnvironment env, int ? seed = null)
-        {
-            _env = env;
+            _env = new LocalEnvironment(seed);
+            _env.AddListener(ProcessMessage);
 
             BinaryClassification = new BinaryClassificationCatalog(_env);
             MulticlassClassification = new MulticlassClassificationCatalog(_env);

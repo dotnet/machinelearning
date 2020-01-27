@@ -74,8 +74,8 @@ namespace Microsoft.ML.RunTests
         private string _baselineBuildStringDir;
 
         // The writer to write to test log files.
-        protected StreamWriter LogWriter;
         protected TestLogger TestLogger;
+        protected StreamWriter LogWriter;
         private protected ConsoleEnvironment _env;
         protected IHostEnvironment Env => _env;
         protected MLContext ML;
@@ -100,10 +100,16 @@ namespace Microsoft.ML.RunTests
             LogWriter = OpenWriter(logPath);
 
             TestLogger = new TestLogger(Output);
-            _env = new ConsoleEnvironment(42, outWriter: LogWriter, errWriter: LogWriter, testWriter:TestLogger)
+            _env = new ConsoleEnvironment(42, outWriter: LogWriter, errWriter: LogWriter, testWriter: TestLogger)
                 .AddStandardComponents();
-            ML = new MLContext(_env, 42);
+            ML = new MLContext(42);
+            ML.Log += LogTestOutput;
             ML.AddStandardComponents();
+        }
+
+        private void LogTestOutput(object sender, LoggingEventArgs e)
+        {
+            Output.WriteLine(e.Message);
         }
 
         // This method is used by subclass to dispose of disposable objects
