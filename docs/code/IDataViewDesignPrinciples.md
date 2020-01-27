@@ -459,15 +459,15 @@ the IDataView system is similar to the LINQ eco-system. The comparisons below
 refer to the `IDataView` and `IEnumerable<T>` interfaces as the core
 interfaces of their respective worlds.
 
-In both worlds, there is a cursoring interface associated with the core
+In both worlds, there is a cursoring mechanism associated with the core
 interface. In the IEnumerable world, the cursoring interface is
-`IEnumerator<T>`. In the IDataView world, the cursoring interface is
-`IRowCursor`.
+`IEnumerator<T>`. In the IDataView world, the cursoring mechanism is accomplished through a
+`DataViewRowCursor`.
 
-Both cursoring interfaces have `MoveNext()` methods for forward-only iteration
+Both cursoring mechanisms have `MoveNext()` methods for forward-only iteration
 through the elements.
 
-Both cursoring interfaces provide access to information about the current
+Both cursoring mechanisms provide access to information about the current
 item. For the IEnumerable world, the access is through the `Current` property
 of the enumerator. Note that when `T` is a class type, this suggests that each
 item served requires memory allocation. In the IDataView world, there is no
@@ -476,7 +476,7 @@ current row are directly accessible via methods on the cursor. This avoids
 memory allocation for each row.
 
 In both worlds, the item type information is carried by both the core
-interface and the cursoring interface. In the IEnumerable world, this type
+interface and the cursoring mechanism. In the IEnumerable world, this type
 information is part of the .Net type, while in the IDataView world, the type
 information is much richer and contained in the schema, rather than in the
 .Net type.
