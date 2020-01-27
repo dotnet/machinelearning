@@ -1,6 +1,25 @@
 ################################################################################
-# ML.NET's PR validation build
+# ML.NET's outer loop build that will run all tests
 ################################################################################
+
+# no PR builds
+pr: none
+
+# no CI builds
+trigger: none
+
+# scheduled trigger, runs at UTC 8:00 every day which is midnight of GMT-8 
+schedules:
+- cron: "0 8 * * *"
+  displayName: outer loop build at midnight
+  branches:
+    include:
+    - master
+    - releases/1.0
+    - features/automl
+    - features/integrationPackage
+  always: true
+
 
 resources:
   containers:
@@ -25,7 +44,6 @@ jobs:
         _configuration: Release-netcoreapp3_0
         _config_short: RI
         _includeBenchmarkData: true
-    innerLoop: true
     pool:
       name: Hosted Ubuntu 1604
 
@@ -34,7 +52,6 @@ jobs:
     name: Ubuntu_x64_NetCoreApp21
     buildScript: ./build.sh
     container: UbuntuContainer
-    innerLoop: true
     pool:
       name: Hosted Ubuntu 1604
 
@@ -42,7 +59,6 @@ jobs:
   parameters:
     name: MacOS_x64_NetCoreApp21
     buildScript: ./build.sh
-    innerLoop: true
     pool:
       name: Hosted macOS High Sierra
 
@@ -59,7 +75,6 @@ jobs:
         _configuration: Release-netcoreapp3_0
         _config_short: RI
         _includeBenchmarkData: true
-    innerLoop: true
     pool:
       name: NetCorePublic-Pool
       queue: buildpool.windows.10.amd64.vs2017.open
@@ -68,7 +83,6 @@ jobs:
   parameters:
     name: Windows_x64_NetCoreApp21
     buildScript: build.cmd
-    innerLoop: true
     pool:
       name: Hosted VS2017
 
@@ -85,7 +99,6 @@ jobs:
         _configuration: Release-netfx
         _config_short: RFX
         _includeBenchmarkData: false
-    innerLoop: true
     pool:
       name: Hosted VS2017
 
@@ -94,6 +107,5 @@ jobs:
     name: Windows_x86_NetCoreApp21
     architecture: x86
     buildScript: build.cmd
-    innerLoop: true
     pool:
       name: Hosted VS2017
