@@ -798,7 +798,7 @@ var workclasses = transformedData.GetColumn<float[]>(transformedData.Schema["Wor
 // Here's how we could do this:
 
 var fullLearningPipeline = pipeline
-    // Concatenate two of the 3 categorical columns, and the numeric features.
+    // Concatenate two of the 3 categorical pipelines, and the numeric features.
     .Append(mlContext.Transforms.Concatenate("Features", "NumericalFeatures", "CategoricalBag", "WorkclassOneHotTrimmed"))
     // Cache data in memory so that the following trainer will be able to access training examples without
     // loading them from disk multiple times.

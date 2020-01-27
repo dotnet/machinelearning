@@ -75,7 +75,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Step one: read the data as an IDataView.
             // Read the file (remember though, loaders are lazy, so the actual reading will happen when the data is accessed).
-            var trainData = mlContext.Data.LoadFromTextFile<AdultData>(trainDataPath,
+            var trainData = mlContext.Data.LoadFromTextFile<RegressionData>(trainDataPath,
                 // Default separator is tab, but we need a semicolon.
                 separatorChar: ';'
 ,
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var model = pipeline.Fit(trainData);
 
             // Read the test dataset.
-            var testData = mlContext.Data.LoadFromTextFile<AdultData>(testDataPath,
+            var testData = mlContext.Data.LoadFromTextFile<RegressionData>(testDataPath,
                 // Default separator is tab, but we need a semicolon.
                 separatorChar: ';'
 ,
@@ -451,15 +451,15 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 .Append(mlContext.Transforms.Text.NormalizeText("NormalizedMessage", "Message"))
 
                 // NLP pipeline 1: bag of words.
-                .Append(new WordBagEstimator(mlContext, "BagOfWords", "NormalizedMessage"))
+                .Append(mlContext.Transforms.Text.ProduceWordBags("BagOfWords", "NormalizedMessage"))
 
                 // NLP pipeline 2: bag of bigrams, using hashes instead of dictionary indices.
-                .Append(new WordHashBagEstimator(mlContext, "BagOfBigrams","NormalizedMessage", 
+                .Append(mlContext.Transforms.Text.ProduceHashedWordBags("BagOfBigrams","NormalizedMessage", 
                             ngramLength: 2, useAllLengths: false))
 
                 // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
                 .Append(mlContext.Transforms.Text.TokenizeIntoCharactersAsKeys("MessageChars", "Message"))
-                .Append(new NgramExtractingEstimator(mlContext, "BagOfTrichar", "MessageChars", 
+                .Append(mlContext.Transforms.Text.ProduceNgrams("BagOfTrichar", "MessageChars", 
                             ngramLength: 3, weighting: NgramExtractingEstimator.WeightingCriteria.TfIdf))
 
                 // NLP pipeline 4: word embeddings.
@@ -609,7 +609,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Now read the file (remember though, loaders are lazy, so the actual reading will happen when the data is accessed).
-            var loader = mlContext.Data.LoadFromTextFile<AdultData>(dataPath,
+            var loader = mlContext.Data.LoadFromTextFile<RegressionData>(dataPath,
                 // Default separator is tab, but we need a comma.
                 separatorChar: ',');
         }
@@ -776,7 +776,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             public float Features { get; set; }
         }
 
-        private class AdultData
+        private class RegressionData
         {
             [LoadColumn(0, 10), ColumnName("FeatureVector")]
             public float Features { get; set; }
