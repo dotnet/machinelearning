@@ -88,7 +88,7 @@ namespace Microsoft.ML.CLI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error occured while retreiving best pipeline..
+        ///   Looks up a localized string similar to Error occurred while retreiving best pipeline..
         /// </summary>
         internal static string ErrorBestPipeline {
             get {
@@ -97,7 +97,7 @@ namespace Microsoft.ML.CLI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Exception occured while generating the project..
+        ///   Looks up a localized string similar to Exception occurred while generating the project..
         /// </summary>
         internal static string ErrorGeneratingProject {
             get {
@@ -106,7 +106,7 @@ namespace Microsoft.ML.CLI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Exception occured while saving the model.
+        ///   Looks up a localized string similar to Exception occurred while saving the model.
         /// </summary>
         internal static string ErrorSavingModel {
             get {
@@ -133,7 +133,7 @@ namespace Microsoft.ML.CLI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Exception occured while exploring pipelines.
+        ///   Looks up a localized string similar to Exception occurred while exploring pipelines.
         /// </summary>
         internal static string ExplorePipelineException {
             get {
@@ -187,7 +187,7 @@ namespace Microsoft.ML.CLI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An Error occured during inferring columns.
+        ///   Looks up a localized string similar to An error occurred during inferring columns.
         /// </summary>
         internal static string InferColumnError {
             get {
