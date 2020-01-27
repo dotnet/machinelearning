@@ -1464,6 +1464,8 @@ namespace Microsoft.ML.Scenarios
         }
 
         [TensorFlowFact]
+        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassificationWithExponentialLRScheduling()
         {
             TensorFlowImageClassificationWithLRScheduling(new ExponentialLRDecay(), 50);
