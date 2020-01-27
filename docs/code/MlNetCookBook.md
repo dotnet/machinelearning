@@ -26,6 +26,7 @@ Please feel free to search this page and use any code that suits your needs.
 ### List of recipes
 
 - [How do I load data from a text file?](#how-do-i-load-data-from-a-text-file)
+- [How do I load data from multiple files?](#how-do-i-load-data-from-multiple-files)
 - [How do I load data with many columns from a CSV?](#how-do-i-load-data-with-many-columns-from-a-csv)
 - [How do I debug my experiment or preview my pipeline?](#how-do-i-debug-my-experiment-or-preview-my-pipeline)
 - [How do I look at the intermediate data?](#how-do-i-look-at-the-intermediate-data)
@@ -35,11 +36,13 @@ Please feel free to search this page and use any code that suits your needs.
 - [How do I use the model to make one prediction?](#how-do-i-use-the-model-to-make-one-prediction)
 - [What if my training data is not in a text file?](#what-if-my-training-data-is-not-in-a-text-file)
 - [I want to look at my model's coefficients](#i-want-to-look-at-my-models-coefficients)
+- [How do I get a model's weights to look at the global feature importance?](#how-do-i-get-a-models-weights-to-look-at-the-global-feature-importance)
+- [How do I look at the global feature importance?](#how-do-i-look-at-the-global-feature-importance)
+- [How do I look at the local feature importance per example?](#how-do-i-look-at-the-local-feature-importance-per-example)
 - [What is normalization and why do I need to care?](#what-is-normalization-and-why-do-i-need-to-care)
 - [How do I train my model on categorical data?](#how-do-i-train-my-model-on-categorical-data)
 - [How do I train my model on textual data?](#how-do-i-train-my-model-on-textual-data)
 - [How do I train using cross-validation?](#how-do-i-train-using-cross-validation)
-- [Can I mix and match static and dynamic pipelines?](#can-i-mix-and-match-static-and-dynamic-pipelines)
 - [How can I define my own transformation of data?](#how-can-i-define-my-own-transformation-of-data)
 
 ### General questions about the samples
@@ -125,8 +128,6 @@ private class InspectedRow
 
     [LoadColumn(3)]
     public string MaritalStatus { get; set; }
-
-    public string[] AllFeatures { get; set; }
 }
 
 private class InspectedRowWithAllFeatures : InspectedRow
@@ -145,7 +146,8 @@ var data = mlContext.Data.LoadFromTextFile<InspectedRow>(dataPath,
 ## How do I load data from multiple files?
 
 You can again use the `TextLoader`, and specify an array of files to its Load method.
-The files need to have the same schema (same number and type of columns) 
+The files need to have the same schema (same number and type of columns). Here, we demonstrate
+this using the same file twice.
 
 [Example file1](../../test/data/adult.tiny.with-schema.txt):
 [Example file2](../../test/data/adult.tiny.with-schema.txt):
@@ -308,6 +310,45 @@ var someRows = mlContext
 var featureColumns = transformedData.GetColumn<string[]>(transformedData.Schema["AllFeatures"])
 
 ```
+## How do I look at intermediate transformers as they are trained?
+
+We provide a set of `onFit` delegates that allow inspection of the individual transformers as they are trained.
+The following code snippet shows how to use these delegates.
+
+```csharp
+// Create a pipeline to normalize the features and train a binary classifier. We use
+// WithOnFitDelegate for the intermediate binning normalization step, so that we can
+// inspect the properties of the normalizer after fitting.
+NormalizingTransformer binningTransformer = null;
+var pipeline =
+    mlContext.Transforms.NormalizeBinning("Features", maximumBinCount: 3)
+    .WithOnFitDelegate(fittedTransformer => binningTransformer = fittedTransformer)
+    .Append(mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression());
+
+Console.WriteLine(binningTransformer == null);
+// Expected Output:
+//   True
+
+var model = pipeline.Fit(data);
+
+// During fitting binningTransformer will get assigned a new value
+Console.WriteLine(binningTransformer == null);
+// Expected Output:
+//   False
+
+// Inspect some of the properties of the binning transformer
+var binningParam = binningTransformer.GetNormalizerModelParameters(0) as 
+    BinNormalizerModelParameters<ImmutableArray<float>>;
+
+for (int i = 0; i < binningParam.UpperBounds.Length; i++)
+{
+    var upperBounds = string.Join(", ", binningParam.UpperBounds[i]);
+    Console.WriteLine(
+        $"Bin {i}: Density = {binningParam.Density[i]}, " +
+        $"Upper-bounds = {upperBounds}");
+}
+```
+
 ## How do I train a regression model?
 
 Generally, in order to train any model in ML.NET, you will go through three steps:
@@ -527,8 +568,6 @@ Oftentimes, once a model is trained, we are also interested in 'what it has lear
 
 For example, if the linear model assigned zero weight to a feature that we consider important, it could indicate some problem with modeling. The weights of the linear model can also be used as a poor man's estimation of 'feature importance'.
 
-We provide a set of `onFit` delegates that allow inspection of the individual transformers as they are trained.
-
 This is how we can extract the learned parameters out of the model that we trained:
 ```csharp
 
@@ -739,8 +778,10 @@ var catColumns = data.GetColumn<string[]>(data.Schema["CategoricalFeatures"]).Ta
 
 // Build several alternative featurization pipelines.
 var pipeline =
+    // Convert each categorical feature into one-hot encoding independently.
+    mlContext.Transforms.Categorical.OneHotEncoding("CategoricalOneHot", "CategoricalFeatures")
     // Convert all categorical features into indices, and build a 'word bag' of these.
-    .Append(mlContext.Transforms.Categorical.OneHotEncoding("CategoricalBag", "CategoricalFeatures", CategoricalTransform.OutputKind.Bag))
+    .Append(mlContext.Transforms.Categorical.OneHotEncoding("CategoricalBag", "CategoricalFeatures", OneHotEncodingEstimator.OutputKind.Bag))
     // One-hot encode the workclass column, then drop all the categories that have fewer than 10 instances in the train set.
     .Append(mlContext.Transforms.Categorical.OneHotEncoding("WorkclassOneHot", "Workclass"))
     .Append(mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("WorkclassOneHotTrimmed", "WorkclassOneHot", count: 10));
