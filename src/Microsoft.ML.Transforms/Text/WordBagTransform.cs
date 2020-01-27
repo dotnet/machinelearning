@@ -490,31 +490,10 @@ namespace Microsoft.ML.Transforms.Text
                 env.CheckUserArg(!string.IsNullOrWhiteSpace(col.Name), nameof(col.Name));
                 env.CheckUserArg(Utils.Size(col.Source) > 0, nameof(col.Source));
                 env.CheckUserArg(col.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(col.Source));
-                estimator = estimator.Append<ITransformer>(new ColumnConcatenatingEstimator(env, col.Name, col.Source));
+                if (col.Source.Length > 1)
+                    estimator = estimator.Append<ITransformer>(new ColumnConcatenatingEstimator(env, col.Name, col.Source));
             }
             return estimator;
-        }
-
-        public static ITransformer ApplyConcatOnSources(IHostEnvironment env, ManyToOneColumn[] columns)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(columns, nameof(columns));
-
-            var concatColumns = new List<ColumnConcatenatingTransformer.ColumnOptions>();
-            foreach (var col in columns)
-            {
-                env.CheckUserArg(col != null, nameof(WordBagBuildingTransformer.Options.Columns));
-                env.CheckUserArg(!string.IsNullOrWhiteSpace(col.Name), nameof(col.Name));
-                env.CheckUserArg(Utils.Size(col.Source) > 0, nameof(col.Source));
-                env.CheckUserArg(col.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(col.Source));
-                if (col.Source.Length > 1)
-                    concatColumns.Add(new ColumnConcatenatingTransformer.ColumnOptions(col.Name, col.Source));
-            }
-
-            if (concatColumns.Count > 0)
-                return new ColumnConcatenatingTransformer(env, concatColumns.ToArray());
-
-            return new TransformerChain<ITransformer>();
         }
 
         /// <summary>
