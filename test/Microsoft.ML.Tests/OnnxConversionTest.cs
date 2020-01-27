@@ -1341,6 +1341,68 @@ namespace Microsoft.ML.Tests
         }
 
 
+
+        [Fact]
+        public void SelectColumnsOnnxTest()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            string dataPath = GetDataPath("breast-cancer.txt");
+
+            var dataView = ML.Data.LoadFromTextFile(dataPath, new[] {
+                new TextLoader.Column("Label", DataKind.Boolean, 0),
+                new TextLoader.Column("Thickness", DataKind.Int32, 1),
+                new TextLoader.Column("Size", DataKind.Int32, 2),
+                new TextLoader.Column("Shape", DataKind.Int32, 3),
+                new TextLoader.Column("Adhesion", DataKind.Int32, 4),
+                new TextLoader.Column("EpithelialSize", DataKind.Int32, 5),
+                new TextLoader.Column("BlandChromatin", DataKind.Int32, 7),
+                new TextLoader.Column("NormalNucleoli", DataKind.Int32, 8),
+                new TextLoader.Column("Mitoses", DataKind.Int32, 9),
+            });
+
+            var pipeline = mlContext.Transforms.SelectColumns(new[] { "Size", "Shape", "Thickness", "Label" });
+
+            var model = pipeline.Fit(dataView);
+            var transformedData = model.Transform(dataView);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+            var onnxFileName = "selectcolumns.onnx";
+            var onnxModelPath = GetOutputPath(onnxFileName);
+
+            SaveOnnxModel(onnxModel, onnxModelPath, null);
+
+            if (IsOnnxRuntimeSupported())
+            {
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(dataView);
+                var onnxResult = onnxTransformer.Transform(dataView);
+
+                // Verify that onnx output has only the four columns we selected from the input
+                Assert.Equal(4, outputNames.Length);
+                Assert.Equal("Size1", outputNames[0]);
+                Assert.Equal("Shape1", outputNames[1]);
+                Assert.Equal("Thickness1", outputNames[2]);
+                Assert.Equal("Label1", outputNames[3]);
+
+                CompareSelectedScalarColumns<int>("Size", "Size1", transformedData, onnxResult);
+                CompareSelectedScalarColumns<int>("Shape", "Shape1", transformedData, onnxResult);
+                CompareSelectedScalarColumns<int>("Thickness", "Thickness1", transformedData, onnxResult);
+                CompareSelectedScalarColumns<bool>("Label", "Label1", transformedData, onnxResult);
+            }
+
+            onnxFileName = "SelectColumns.txt";
+            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "Transforms");
+            var onnxTextModelPath = GetOutputPath(subDir, onnxFileName);
+            SaveOnnxModel(onnxModel, null, onnxTextModelPath);
+            CheckEquality(subDir, onnxFileName, digitsOfPrecision: 1);
+
+            Done();
+        }
+
         private void CompareResults(string leftColumnName, string rightColumnName, IDataView left, IDataView right)
         {
             var leftColumn = left.Schema[leftColumnName];
