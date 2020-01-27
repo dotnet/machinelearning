@@ -1203,9 +1203,13 @@ namespace Microsoft.ML.Data.IO
             _host.Assert(!string.IsNullOrWhiteSpace(rowIndexName));
             // REVIEW: Having a row count of 0 means that there are no valid output key values here,
             // so this should be a key with *genuinely* a count of 0. However, a count of a key of 0 means
-            // that the key length is unknown. Unsure of how to reconcile this. Is the least harmful thing
-            // to do, if RowCount=0, to set count to some value like 1?
-            ulong count = (ulong)_header.RowCount <= ulong.MaxValue ? (ulong)_header.RowCount : 0;
+            // that the key length is unknown, which also causes an error with KeyDataViewType, as in this case
+            // a count of 0 is not allowed. So count is set to 1 to avoid this error.
+            ulong count;
+            if (_header.RowCount == 0)
+                count = 1;
+            else
+                count = (ulong)_header.RowCount <= ulong.MaxValue ? (ulong)_header.RowCount : 0;
             KeyDataViewType type = new KeyDataViewType(typeof(ulong), count);
             // We are mapping the row index as expressed as a long, into a key value, so we must increment by one.
             ValueMapper<long, ulong> mapper = (in long src, ref ulong dst) => dst = (ulong)(src + 1);
