@@ -30,6 +30,7 @@ Please feel free to search this page and use any code that suits your needs.
 - [How do I load data with many columns from a CSV?](#how-do-i-load-data-with-many-columns-from-a-csv)
 - [How do I debug my experiment or preview my pipeline?](#how-do-i-debug-my-experiment-or-preview-my-pipeline)
 - [How do I look at the intermediate data?](#how-do-i-look-at-the-intermediate-data)
+- [How do I look at intermediate transformers as they are trained?](#how-do-i-look-at-intermediate-transformers-as-they-are-trained)
 - [How do I train a regression model?](#how-do-i-train-a-regression-model)
 - [How do I verify the model quality?](#how-do-i-verify-the-model-quality)
 - [How do I save and load the model?](#how-do-i-save-and-load-the-model)
