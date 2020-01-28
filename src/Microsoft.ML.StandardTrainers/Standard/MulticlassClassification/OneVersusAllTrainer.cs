@@ -563,7 +563,7 @@ namespace Microsoft.ML.Trainers
                         var clipNode = ctx.CreateNode(opType, new[] { clipInput, zeroVar }, new[] { outputs[i] }, ctx.GetNodeName(opType), "");
                     }
                     else
-                        outputs[i] = predictorOutputNames[2];
+                        outputs[i] = predictorOutputNames[1];
                 }
                 return outputs;
             }
@@ -659,7 +659,7 @@ namespace Microsoft.ML.Trainers
 
             public override bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
             {
-                var probabilityOutputs = base.SaveAsOnnxPreProcess(ctx, featureColumn, true);
+                var probabilityOutputs = base.SaveAsOnnxPreProcess(ctx, featureColumn, false);
 
                 string opType = "Concat";
                 var concatOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "ConcatOutput", true);
@@ -794,22 +794,27 @@ namespace Microsoft.ML.Trainers
 
                 opType = "Sum";
                 var sumOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "SumOfScores", true);
-                var sumNode = ctx.CreateNode(opType, probabilityOutputs, new[] { sumOutput }, ctx.GetNodeName(opType), "");
+                ctx.CreateNode(opType, probabilityOutputs, new[] { sumOutput }, ctx.GetNodeName(opType), "");
 
                 opType = "Cast";
-                var castOutput = ctx.AddIntermediateVariable(BooleanDataViewType.Instance, "IsSumZero", true);
+                var castOutput = ctx.AddIntermediateVariable(BooleanDataViewType.Instance, "CastOutput", true);
                 var castNode = ctx.CreateNode(opType, sumOutput, castOutput, ctx.GetNodeName(opType), "");
                 var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Boolean).ToType();
                 castNode.AddAttribute("to", t);
 
+                opType = "Not";
+                var notOutput = ctx.AddIntermediateVariable(null, "IsSumZero", true);
+                ctx.CreateNode(opType, castOutput, notOutput, ctx.GetNodeName(opType), "");
+
+                opType = "Cast";
                 var castIsZeroSumToFloat = ctx.AddIntermediateVariable(BooleanDataViewType.Instance, "IsSumZeroAsFloat", true);
-                var castIsZeroSumToFloatNode = ctx.CreateNode(opType, castOutput, castIsZeroSumToFloat, ctx.GetNodeName(opType), "");
+                var castIsZeroSumToFloatNode = ctx.CreateNode(opType, notOutput, castIsZeroSumToFloat, ctx.GetNodeName(opType), "");
                 var t1 = InternalDataKindExtensions.ToInternalDataKind(DataKind.Single).ToType();
                 castIsZeroSumToFloatNode.AddAttribute("to", t1);
 
                 opType = "Sum";
                 var sumOutputNonZero = ctx.AddIntermediateVariable(NumberDataViewType.Single, "SumOfScoresNonZero", true);
-                var sumOutputNonZeroNode = ctx.CreateNode(opType, new[] { sumOutput, castIsZeroSumToFloat },
+                ctx.CreateNode(opType, new[] { sumOutput, castIsZeroSumToFloat },
                     new[] { sumOutputNonZero }, ctx.GetNodeName(opType), "");
 
                 string[] divOutputs = new string[Predictors.Length];
