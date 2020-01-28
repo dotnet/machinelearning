@@ -325,7 +325,7 @@ namespace Microsoft.ML.Tests
 
         [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
+        [Trait("Category", "RunSpecificTest")]
         public void SsaForecast()
         {
             var env = new MLContext();
