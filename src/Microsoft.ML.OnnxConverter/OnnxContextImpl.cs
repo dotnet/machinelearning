@@ -247,6 +247,15 @@ namespace Microsoft.ML.Model.OnnxConverter
             _inputs.Add(OnnxUtils.GetModelArgs(type, colName));
         }
 
+        public override void RemoveInputVariable(string colName)
+        {
+            var variableName = TryGetVariableName(colName);
+            _host.CheckValue(variableName, nameof(variableName));
+
+            RemoveVariable(variableName, true);
+            _inputs.Remove(_inputs.Single(modelArg => modelArg.Name == variableName));
+        }
+
         /// <summary>
         /// Retrieve the shape of an ONNX variable. Returns null if no shape for the specified variable can be found.
         /// </summary>

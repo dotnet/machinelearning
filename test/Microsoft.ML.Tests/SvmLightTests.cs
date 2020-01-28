@@ -51,6 +51,8 @@ namespace Microsoft.ML.Tests
             data = ML.Data.LoadFromSvmLightFile(savingPath, inputSize: inputSize, zeroBased: zeroBased);
             CheckSameValues(ColumnSelectingTransformer.CreateDrop(Env, data, "Comment"),
                 ColumnSelectingTransformer.CreateDrop(Env, expectedData, "Comment"), checkId: false);
+
+            Done();
         }
 
         [Fact]
@@ -495,7 +497,7 @@ namespace Microsoft.ML.Tests
                 new SvmLightOutput() { Label = -1, Weight = 1, Features = new VBuffer<float>(6, 1, new[] { 5f }, new[] { 1 }) }
             }, schemaDef);
             var savingPath = DeleteOutputPath(TestName + "-saved-data.txt");
-            TestSvmLight(path, savingPath, 0, int.MaxValue, false, expectedData);
+            TestSvmLight(path, savingPath, 0, 6, false, expectedData);
         }
 
         [Fact]
