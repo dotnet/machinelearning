@@ -78,6 +78,12 @@
       "values": [],
       "defaultValue": ""
     },
+    "RunCITests": {
+      "description": "MsBuild target that run CI tests. Call this after building.",
+      "valueType": "target",
+      "values": [],
+      "defaultValue": ""
+    },
     "RunNightlyBuildTests": {
       "description": "MsBuild target that run the nightly build tests. Call this after building.",
         "valueType": "target",
@@ -164,6 +170,12 @@
           "description": "Runs the tests. Call this after building.",
           "settings": {
             "RunTests": "default"
+          }
+        },
+        "runCITests": {
+          "description": "Runs CI tests. Call this after building.",
+          "settings": {
+            "RunCITests": "default"
           }
         },
         "runnightlybuildtests": {

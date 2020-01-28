@@ -92,7 +92,8 @@
  
   <!-- Language configuration -->
   <PropertyGroup>
-    <LangVersion>latest</LangVersion> <!-- default to allowing all language features -->
+    <LangVersion Condition="'$(MSBuildProjectExtension)'=='.csproj'">8.0</LangVersion>
+    <LangVersion Condition="'$(MSBuildProjectExtension)'=='.fsproj'">4.7</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   

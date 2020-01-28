@@ -8,9 +8,9 @@ For a better understanding of `IDataView` principles and type system please refe
 
 ## Introduction
 
-Every dataset in ML.NET is represented as an `IDataView`, which is, for the purposes of this document, a collection of rows that share the same columns. The set of columns, their names, types and other annotations is known as the *schema* of the `IDataView`, and it's represented as an `ISchema` object.
+Every dataset in ML.NET is represented as an `IDataView`, which is, for the purposes of this document, a collection of rows that share the same columns. The set of columns, their names, types and other annotations is known as the *schema* of the `IDataView`, and it's represented as an `DataViewSchema` object.
 
-In this document, we will be using the terms *data view* and `IDataView` interchangeably, same for *schema* and `ISchema`.
+In this document, we will be using the terms *data view* and `IDataView` interchangeably, same for *schema* and `DataViewSchema`.
 
 Before any new data enters ML.NET, the user needs to somehow define how the schema of the data will look like.
 To do this, the following questions need to be answered:
