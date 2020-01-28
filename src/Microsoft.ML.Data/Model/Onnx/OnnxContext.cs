@@ -61,6 +61,12 @@ namespace Microsoft.ML.Model.OnnxConverter
         public abstract void RemoveVariable(string variableName, bool removeColumn);
 
         /// <summary>
+        /// Removes a variable from the input columns list. This function is used only by the ColumnSelectingTransformer.
+        /// </summary>
+        /// <param name="variableName">ONNX variable to remove. </param>
+        public abstract void RemoveInputVariable(string variableName);
+
+        /// <summary>
         /// ONNX variables are referred to by name. At each stage of a ML.NET pipeline, the corresponding
         /// <see cref="IDataView"/>'s column names will map to a variable in the ONNX graph if the intermediate steps
         /// used to calculate that value are things we knew how to save as ONNX. Retrieves the variable name that maps
