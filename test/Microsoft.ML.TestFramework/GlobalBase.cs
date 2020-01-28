@@ -12,7 +12,9 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.TestFrameworkCommon;
 using Xunit;
 
 namespace Microsoft.ML.Internal.Internallearn.Test
@@ -70,7 +72,7 @@ namespace Microsoft.ML.Internal.Internallearn.Test
 #endif
             {
                 Assert.True(false, $"Assert failed: {msg}");
-                System.Diagnostics.Debugger.Launch();
+                CrashTestHostProcessorHelper.CrashTestHostProcess();
             }
         }
 

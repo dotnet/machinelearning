@@ -11,6 +11,7 @@ using System.Threading;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Tools;
 using Xunit;
 using Xunit.Abstractions;
@@ -165,7 +166,10 @@ namespace Microsoft.ML.RunTests
         {
             Contracts.Assert(IsActive);
             if (!relax)
+            {
                 _passed = false;
+                CrashTestHostProcessorHelper.CrashTestHostProcess();
+            }
 
             Log("*** Failure: " + fmt, args);
         }
@@ -374,7 +378,7 @@ namespace Microsoft.ML.RunTests
             if (!CheckBaseFile(basePath))
                 return false;
 
-            bool res = CheckEqualityFromPathsCore(relPath, basePath, outPath, digitsOfPrecision: digitsOfPrecision, parseOption: parseOption);
+                bool res = CheckEqualityFromPathsCore(relPath, basePath, outPath, digitsOfPrecision: digitsOfPrecision, parseOption: parseOption);
 
             // No need to keep the raw (unnormalized) output file.
             if (normalize && res)
