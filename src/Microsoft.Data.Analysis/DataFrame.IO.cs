@@ -271,7 +271,7 @@ namespace Microsoft.Data.Analysis
                     }
                     else
                     {
-                        ret.Append(spl);
+                        ret.Append(spl, inPlace: true);
                     }
                     ++rowline;
                     line = streamReader.ReadLine();

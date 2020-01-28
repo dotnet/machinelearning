@@ -1948,69 +1948,161 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void TestAppendRows()
+        {
+            DataFrame df = MakeDataFrame<float, bool>(10);
+            DataFrame df2 = MakeDataFrame<int, bool>(5);
+            Assert.Equal(10, df.Rows.Count);
+            Assert.Equal(1, df.Columns[0].NullCount);
+            Assert.Equal(1, df.Columns[1].NullCount);
+
+            DataFrame ret = df.Append(df2.Rows, inPlace: false);
+            Assert.Equal(10, df.Rows.Count);
+            Assert.Equal(1, df.Columns[0].NullCount);
+            Assert.Equal(1, df.Columns[1].NullCount);
+
+            Verify(ret, df, df2);
+
+            void Verify(DataFrame ret, DataFrame check1, DataFrame check2)
+            {
+                Assert.Equal(15, ret.Rows.Count);
+                Assert.Equal(2, ret.Columns[0].NullCount);
+                Assert.Equal(2, ret.Columns[1].NullCount);
+                for (long i = 0; i < ret.Rows.Count; i++)
+                {
+                    DataFrameRow row = ret.Rows[i];
+                    for (int j = 0; j < check1.Columns.Count; j++)
+                    {
+                        if (i < check1.Rows.Count)
+                        {
+                            Assert.Equal(row[j], check1.Rows[i][j]);
+                        }
+                        else
+                        {
+                            Assert.Equal(row[j]?.ToString(), (check2.Rows[i - check1.Rows.Count][j])?.ToString());
+                        }
+                    }
+                }
+            }
+
+            DataFrame dfClone = df.Clone();
+            df.Append(df2.Rows, inPlace: true);
+            Verify(df, dfClone, df2);
+        }
+
+        [Fact]
         public void TestAppendRow()
         {
             DataFrame df = MakeDataFrame<int, bool>(10);
-            df.Append(new List<object> { 5, true });
+            df.Append(new List<object> { 5, true }, inPlace: true);
             Assert.Equal(11, df.Rows.Count);
             Assert.Equal(1, df.Columns[0].NullCount);
             Assert.Equal(1, df.Columns[1].NullCount);
 
-            df.Append(new List<object> { 100 });
+            DataFrame ret = df.Append(new List<object> { 5, true });
+            Assert.Equal(12, ret.Rows.Count);
+            Assert.Equal(1, ret.Columns[0].NullCount);
+            Assert.Equal(1, ret.Columns[1].NullCount);
+
+            df.Append(new List<object> { 100 }, inPlace: true);
             Assert.Equal(12, df.Rows.Count);
             Assert.Equal(1, df.Columns[0].NullCount);
             Assert.Equal(2, df.Columns[1].NullCount);
 
-            df.Append(new List<object> { null, null });
+            ret = df.Append(new List<object> { 100 }, inPlace: false);
+            Assert.Equal(13, ret.Rows.Count);
+            Assert.Equal(1, ret.Columns[0].NullCount);
+            Assert.Equal(3, ret.Columns[1].NullCount);
+
+            df.Append(new List<object> { null, null }, inPlace: true);
             Assert.Equal(13, df.Rows.Count);
             Assert.Equal(2, df.Columns[0].NullCount);
             Assert.Equal(3, df.Columns[1].NullCount);
+            ret = df.Append(new List<object> { null, null }, inPlace: false);
+            Assert.Equal(14, ret.Rows.Count);
+            Assert.Equal(3, ret.Columns[0].NullCount);
+            Assert.Equal(4, ret.Columns[1].NullCount);
 
-            df.Append(new Dictionary<string, object> { { "Column1", (object)5 } ,  { "Column2", false } });
+            df.Append(new Dictionary<string, object> { { "Column1", (object)5 }, { "Column2", false } }, inPlace: true);
             Assert.Equal(14, df.Rows.Count);
             Assert.Equal(2, df.Columns[0].NullCount);
             Assert.Equal(3, df.Columns[1].NullCount);
+            ret = df.Append(new Dictionary<string, object> { { "Column1", (object)5 }, { "Column2", false } }, inPlace: false);
+            Assert.Equal(15, ret.Rows.Count);
+            Assert.Equal(2, ret.Columns[0].NullCount);
+            Assert.Equal(3, ret.Columns[1].NullCount);
 
-            df.Append(new Dictionary<string, object> { { "Column1", 5 } });
+            df.Append(new Dictionary<string, object> { { "Column1", 5 } }, inPlace: true);
             Assert.Equal(15, df.Rows.Count);
 
             Assert.Equal(15, df["Column1"].Length);
             Assert.Equal(15, df["Column2"].Length);
             Assert.Equal(2, df.Columns[0].NullCount);
             Assert.Equal(4, df.Columns[1].NullCount);
+            ret = df.Append(new Dictionary<string, object> { { "Column1", 5 } }, inPlace: false);
+            Assert.Equal(16, ret.Rows.Count);
 
-            df.Append(new Dictionary<string, object> { { "Column2", false } });
+            Assert.Equal(16, ret["Column1"].Length);
+            Assert.Equal(16, ret["Column2"].Length);
+            Assert.Equal(2, ret.Columns[0].NullCount);
+            Assert.Equal(5, ret.Columns[1].NullCount);
+
+            df.Append(new Dictionary<string, object> { { "Column2", false } }, inPlace: true);
             Assert.Equal(16, df.Rows.Count);
             Assert.Equal(16, df["Column1"].Length);
             Assert.Equal(16, df["Column2"].Length);
             Assert.Equal(3, df.Columns[0].NullCount);
             Assert.Equal(4, df.Columns[1].NullCount);
+            ret = df.Append(new Dictionary<string, object> { { "Column2", false } }, inPlace: false);
+            Assert.Equal(17, ret.Rows.Count);
+            Assert.Equal(17, ret["Column1"].Length);
+            Assert.Equal(17, ret["Column2"].Length);
+            Assert.Equal(4, ret.Columns[0].NullCount);
+            Assert.Equal(4, ret.Columns[1].NullCount);
 
-            df.Append((IEnumerable<object>)null);
+            df.Append((IEnumerable<object>)null, inPlace: true);
             Assert.Equal(17, df.Rows.Count);
             Assert.Equal(17, df["Column1"].Length);
             Assert.Equal(17, df["Column2"].Length);
             Assert.Equal(4, df.Columns[0].NullCount);
             Assert.Equal(5, df.Columns[1].NullCount);
+            ret = df.Append((IEnumerable<object>)null, inPlace: false);
+            Assert.Equal(18, ret.Rows.Count);
+            Assert.Equal(18, ret["Column1"].Length);
+            Assert.Equal(18, ret["Column2"].Length);
+            Assert.Equal(5, ret.Columns[0].NullCount);
+            Assert.Equal(6, ret.Columns[1].NullCount);
 
             // DataFrame must remain usable even if Append throws
-            Assert.Throws<FormatException>(() => df.Append(new List<object> { 5, "str" }));
-            Assert.Throws<FormatException>(() => df.Append(new Dictionary<string, object> { { "Column2", "str" } }));
-            Assert.Throws<ArgumentException>(() => df.Append(new List<object> { 5, true, true }));
+            Assert.Throws<FormatException>(() => df.Append(new List<object> { 5, "str" }, inPlace: true));
+            Assert.Throws<FormatException>(() => df.Append(new Dictionary<string, object> { { "Column2", "str" } }, inPlace: true));
+            Assert.Throws<ArgumentException>(() => df.Append(new List<object> { 5, true, true }, inPlace: true));
 
-            df.Append();
+            df.Append(inPlace: true);
             Assert.Equal(18, df.Rows.Count);
             Assert.Equal(18, df["Column1"].Length);
             Assert.Equal(18, df["Column2"].Length);
             Assert.Equal(5, df.Columns[0].NullCount);
             Assert.Equal(6, df.Columns[1].NullCount);
+
+            ret = df.Append(inPlace: false);
+            Assert.Equal(18, df.Rows.Count);
+            Assert.Equal(18, df["Column1"].Length);
+            Assert.Equal(18, df["Column2"].Length);
+            Assert.Equal(5, df.Columns[0].NullCount);
+            Assert.Equal(6, df.Columns[1].NullCount);
+            Assert.Equal(19, ret.Rows.Count);
+            Assert.Equal(19, ret["Column1"].Length);
+            Assert.Equal(19, ret["Column2"].Length);
+            Assert.Equal(6, ret.Columns[0].NullCount);
+            Assert.Equal(7, ret.Columns[1].NullCount);
         }
 
         [Fact]
         public void TestAppendEmptyValue()
         {
             DataFrame df = MakeDataFrame<int, bool>(10);
-            df.Append(new List<object> { "", true });
+            df.Append(new List<object> { "", true }, inPlace: true);
             Assert.Equal(11, df.Rows.Count);
             Assert.Equal(2, df.Columns[0].NullCount);
             Assert.Equal(1, df.Columns[1].NullCount);
@@ -2018,13 +2110,13 @@ namespace Microsoft.Data.Analysis.Tests
             StringDataFrameColumn column = new StringDataFrameColumn("Strings", Enumerable.Range(0, 11).Select(x => x.ToString()));
             df.Columns.Add(column);
 
-            df.Append(new List<object> { 1, true, "" });
+            df.Append(new List<object> { 1, true, "" }, inPlace: true);
             Assert.Equal(12, df.Rows.Count);
             Assert.Equal(2, df.Columns[0].NullCount);
             Assert.Equal(1, df.Columns[1].NullCount);
             Assert.Equal(0, df.Columns[2].NullCount);
 
-            df.Append(new List<object> { 1, true, null });
+            df.Append(new List<object> { 1, true, null }, inPlace: true);
             Assert.Equal(13, df.Rows.Count);
             Assert.Equal(1, df.Columns[2].NullCount);
         }
