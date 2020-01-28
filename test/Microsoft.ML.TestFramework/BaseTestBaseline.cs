@@ -170,7 +170,7 @@ namespace Microsoft.ML.RunTests
                 _passed = false;
                 var callStack = new System.Diagnostics.StackTrace().ToString();
                 Console.WriteLine($"---Debug---: Failed with callstack: {callStack}");
-                //CrashTestHostProcessorHelper.CrashTestHostProcess();
+                CrashTestHostProcessorHelper.CrashTestHostProcess();
             }
 
             Log("*** Failure: " + fmt, args);
