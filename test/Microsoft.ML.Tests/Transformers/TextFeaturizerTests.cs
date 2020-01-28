@@ -777,6 +777,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Append(ML.BinaryClassification.Trainers.FastTree());
 
             TestEstimatorCore(pipeline, dataView);
+            Done();
         }
     }
 }
