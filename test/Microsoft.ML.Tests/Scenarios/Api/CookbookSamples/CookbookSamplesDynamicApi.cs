@@ -219,11 +219,20 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             });
         }
 
-        [Fact]
+        [Theory]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void TrainAndPredictOnIris()
-            => PredictOnIris(TrainOnIris(GetDataPath("iris.data")));
+        // [Trait("Category", "SkipInCI")]
+        [IterationData(iterations: 100)]
+        public void TrainAndPredictOnIris(int iteration)
+        {
+            Console.WriteLine($"{iteration}");
+            PredictOnIris(TrainOnIris(GetDataPath("iris.data")));
+
+            if(iteration == 99)
+            {
+                Environment.FailFast("Crash on purpose here to take dump!");
+            }
+        }
 
         private void NormalizationWorkout(string dataPath)
         {
