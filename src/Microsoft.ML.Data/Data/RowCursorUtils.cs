@@ -40,7 +40,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Given a destination type, IRow, and column index, return a ValueGetter for the column
+        /// Given a destination type, <see cref="DataViewRow"/>, and column index, return a ValueGetter for the column
         /// with a conversion to typeDst, if needed. This is a weakly typed version of
         /// <see cref="GetGetterAs{TDst}"/>.
         /// </summary>
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Given a destination type, IRow, and column index, return a ValueGetter{TDst} for the column
+        /// Given a destination type, <see cref="DataViewRow"/>, and column index, return a ValueGetter{TDst} for the column
         /// with a conversion to typeDst, if needed.
         /// </summary>
         public static ValueGetter<TDst> GetGetterAs<TDst>(DataViewType typeDst, DataViewRow row, int col)
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Given an IRow, and column index, return a function that utilizes the
+        /// Given a <see cref="DataViewRow"/>, and column index, return a function that utilizes the
         /// <see cref="Conversions.GetStringConversion{TSrc}(DataViewType)"/> on the input
         /// rows to map the values in the column, whatever type they may be, into a string
         /// builder. This method will obviously succeed only if there is a string conversion

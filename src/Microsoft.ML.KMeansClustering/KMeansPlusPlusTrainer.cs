@@ -1692,8 +1692,8 @@ namespace Microsoft.ML.Trainers
 
         /// <summary>
         /// Takes a data cursor and perform an in-memory parallel aggregation operation on it. This
-        /// helper wraps some of the behavior common to parallel operations over a IRowCursor set,
-        /// including building the set, creating separate Random instances, and IRowCursor disposal.
+        /// helper wraps some of the behavior common to parallel operations over a <see cref="DataViewRowCursor"/> set,
+        /// including building the set, creating separate Random instances, and <see cref="DataViewRowCursor"/> disposal.
         /// </summary>
         /// <typeparam name="TPartitionState">The type that each parallel cursor will be expected to aggregate to.</typeparam>
         /// <typeparam name="TGlobalState">The type of the final output from combining each per-thread instance of TInterAgg.</typeparam>

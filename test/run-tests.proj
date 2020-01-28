@@ -13,6 +13,13 @@
              Properties="VSTestNoBuild=true;VSTestBlame=true" />
   </Target>
 
+  <Target Name="RunCITests">
+    <Message Importance="High" Text="Running CI tests ..." />
+    <MSBuild Targets="VSTest"
+             Projects="@(Project)"
+             Properties="VSTestNoBuild=true;VSTestBlame=true;VSTestTestCaseFilter=Category!=SkipInCI" />
+  </Target>
+
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.targets))\Directory.Build.targets" />
 
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.traversal.targets))\dir.traversal.targets" />

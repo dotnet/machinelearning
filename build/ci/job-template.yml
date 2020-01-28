@@ -6,6 +6,7 @@ parameters:
   customMatrixes: ''
   codeCoverage: false
   nightlyBuild: false
+  innerLoop: false
   container: ''
 
 jobs:
@@ -64,8 +65,12 @@ jobs:
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
       - script: ${{ parameters.buildScript }} -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=$(_includeBenchmarkData)
         displayName: Download Benchmark Data
-      - script: ${{ parameters.buildScript }} -$(_configuration) -runtests -coverage=${{ parameters.codeCoverage }}
-        displayName: Run Tests.
+      - ${{ if eq(parameters.innerLoop, 'false') }}:
+        - script: ${{ parameters.buildScript }} -$(_configuration) -runtests -coverage=${{ parameters.codeCoverage }}
+          displayName: Run All Tests.
+      - ${{ if eq(parameters.innerLoop, 'true') }}:
+        - script: ${{ parameters.buildScript }} -$(_configuration) -runCITests -coverage=${{ parameters.codeCoverage }}
+          displayName: Run CI Tests.
     - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet msbuild -restore build/Codecoverage.proj
       displayName: Upload coverage to codecov.io
       condition: and(succeeded(), eq(${{ parameters.codeCoverage }}, True))

@@ -9,7 +9,7 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Base class for creating a cursor on top of another cursor that does not add or remove rows.
     /// It forces one-to-one correspondence between items in the input cursor and this cursor.
-    /// It delegates all ICursor functionality except Dispose() to the root cursor.
+    /// It delegates all <see cref="DataViewRowCursor"/> functionality except Dispose() to the root cursor.
     /// Dispose is virtual with the default implementation delegating to the input cursor.
     /// </summary>
     [BestFriend]
