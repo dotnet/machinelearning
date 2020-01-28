@@ -62,7 +62,7 @@ namespace Microsoft.ML.Trainers
     /// [KMeansTrainer(Options)](xref:Microsoft.ML.KMeansClusteringExtensions.KMeans(Microsoft.ML.ClusteringCatalog.ClusteringTrainers,Microsoft.ML.Trainers.KMeansTrainer.Options)).
     ///
     /// ### Scoring Function
-    /// The output Score column contains the $L_2$-norm distance (i.e., [Euclidean distance](https://en.wikipedia.org/wiki/Euclidean_distance)) of the given input vector $\textbf{x}\in \mathbb{R}^n$ to each cluster's centroid.
+    /// The output Score column contains the square of the $L_2$-norm distance (i.e., [Euclidean distance](https://en.wikipedia.org/wiki/Euclidean_distance)) of the given input vector $\textbf{x}\in \mathbb{R}^n$ to each cluster's centroid.
     /// Assume that the centriod of the $c$-th cluster is $\textbf{m}_c \in \mathbb{R}^n$.
     /// The $c$-th value at the Score column would be $d_c = || \textbf{x} - \textbf{m}\_c ||\_2^2$.
     /// The predicted label is the index with the smallest value in a $K$ dimensional vector $[d\_{0}, \dots, d\_{K-1}]$, where $K$ is the number of clusters.
@@ -1692,8 +1692,8 @@ namespace Microsoft.ML.Trainers
 
         /// <summary>
         /// Takes a data cursor and perform an in-memory parallel aggregation operation on it. This
-        /// helper wraps some of the behavior common to parallel operations over a IRowCursor set,
-        /// including building the set, creating separate Random instances, and IRowCursor disposal.
+        /// helper wraps some of the behavior common to parallel operations over a <see cref="DataViewRowCursor"/> set,
+        /// including building the set, creating separate Random instances, and <see cref="DataViewRowCursor"/> disposal.
         /// </summary>
         /// <typeparam name="TPartitionState">The type that each parallel cursor will be expected to aggregate to.</typeparam>
         /// <typeparam name="TGlobalState">The type of the final output from combining each per-thread instance of TInterAgg.</typeparam>

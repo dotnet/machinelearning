@@ -346,7 +346,7 @@
       {
         "input": [
           "MulNodeOutput",
-          "Slope0"
+          "Offset"
         ],
         "output": [
           "linearOutput"
@@ -482,9 +482,9 @@
       {
         "dataType": 1,
         "floatData": [
-          -1E-07
+          0
         ],
-        "name": "Slope0"
+        "name": "Offset"
       }
     ],
     "input": [

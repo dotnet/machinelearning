@@ -564,8 +564,8 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// This fetches and validates values for the standard active columns.
         /// It is called automatically by MoveNext(). Client code should only need
-        /// to deal with this if it calls MoveNext() or MoveMany() on the underlying
-        /// IRowCursor directly. That is, this is only for very advanced scenarios.
+        /// to deal with this if it calls MoveNext() on the underlying
+        /// <see cref="DataViewRowCursor"/> directly. That is, this is only for very advanced scenarios.
         /// </summary>
         public virtual bool Accept()
         {
