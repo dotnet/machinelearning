@@ -168,7 +168,9 @@ namespace Microsoft.ML.RunTests
             if (!relax)
             {
                 _passed = false;
-                CrashTestHostProcessorHelper.CrashTestHostProcess();
+                var callStack = new System.Diagnostics.StackTrace().ToString();
+                Console.WriteLine($"---Debug---: Failed with callstack: {callStack}");
+                //CrashTestHostProcessorHelper.CrashTestHostProcess();
             }
 
             Log("*** Failure: " + fmt, args);
