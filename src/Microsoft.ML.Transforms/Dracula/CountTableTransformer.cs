@@ -223,7 +223,7 @@ namespace Microsoft.ML.Transforms
         {
             // The label column type is checked as part of args validation.
             var type = col.Type;
-            _host.Assert(type is KeyDataViewType || type is NumberDataViewType);
+            _host.Assert(type is KeyDataViewType || type is NumberDataViewType || type is BooleanDataViewType);
 
             if (type is BooleanDataViewType)
             {
@@ -349,7 +349,7 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    internal sealed class CountTableTransformer : OneToOneTransformerBase
+    internal sealed class CountTableTransformer : OneToOneTransformerBase, ITransformerWithDifferentMappingAtTrainingTime
     {
         internal sealed class Options : TransformInputBase
         {
@@ -511,7 +511,7 @@ namespace Microsoft.ML.Transforms
                 estimator = new CountTableEstimator(env, options.LabelColumn, builder.CreateComponent(env), columnOptions);
             }
 
-            return estimator.Fit(input).MakeDataTransform(input);
+            return (estimator.Fit(input) as ITransformerWithDifferentMappingAtTrainingTime).TransformForTrainingPipeline(input) as IDataTransform;
         }
 
         // Factory method for SignatureLoadModel.
@@ -585,15 +585,25 @@ namespace Microsoft.ML.Transforms
             ctx.SaveModel(Featurizer, "Featurizer");
         }
 
+        IDataView ITransformerWithDifferentMappingAtTrainingTime.TransformForTrainingPipeline(IDataView input)
+        {
+            return new RowToRowMapperTransform(Host, input, MakeRowMapperWithNoise(input.Schema), MakeRowMapperWithNoise);
+        }
+
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
+
+        private IRowMapper MakeRowMapperWithNoise(DataViewSchema schema) => new Mapper(this, schema, true);
 
         private sealed class Mapper : OneToOneMapperBase
         {
             private readonly CountTableTransformer _parent;
-            public Mapper(CountTableTransformer parent, DataViewSchema schema)
+            private readonly bool _addNoise;
+
+            public Mapper(CountTableTransformer parent, DataViewSchema schema, bool addNoise = false)
                 : base(parent.Host.Register(nameof(Mapper)), parent, schema)
             {
                 _parent = parent;
+                _addNoise = addNoise;
             }
 
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
@@ -673,7 +683,7 @@ namespace Microsoft.ML.Transforms
                 uint src = 0;
                 var srcGetter = input.GetGetter<uint>(input.Schema[_parent.ColumnPairs[iinfo].inputColumnName]);
                 var outputLength = _parent.Featurizer.NumFeatures;
-                var rand = new Random(_parent.Seeds[iinfo]);
+                var rand = _addNoise ? new Random(_parent.Seeds[iinfo]) : null;
                 var featurizer = _parent.Featurizer;
                 return (ref VBuffer<float> dst) =>
                 {
@@ -693,7 +703,7 @@ namespace Microsoft.ML.Transforms
 
                 var outputLength = _parent.Featurizer.NumFeatures;
                 var srcGetter = input.GetGetter<VBuffer<uint>>(inputCol);
-                var rand = new Random(_parent.Seeds[iinfo]);
+                var rand = _addNoise ? new Random(_parent.Seeds[iinfo]) : null;
                 return (ref VBuffer<float> dst) =>
                 {
                     srcGetter(ref src);

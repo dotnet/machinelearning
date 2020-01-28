@@ -311,7 +311,7 @@ namespace Microsoft.ML.Transforms
             env.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns));
 
             var estimator = new CountTargetEncodingEstimator(env, options);
-            return estimator.Fit(input).Transform(input) as IDataTransform;
+            return (estimator.Fit(input) as ITransformerWithDifferentMappingAtTrainingTime).TransformForTrainingPipeline(input) as IDataTransform;
         }
 
         private static CountTargetEncodingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -371,12 +371,11 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// <see cref="ITransformer"/> resulting from fitting a <see cref="LpNormNormalizingEstimator"/> or <see cref="CountTargetEncodingEstimator"/>.
     /// </summary>
-    public sealed class CountTargetEncodingTransformer : ITransformer
+    public sealed class CountTargetEncodingTransformer : ITransformerWithDifferentMappingAtTrainingTime
     {
         private readonly IHost _host;
         internal readonly HashJoiningTransform HashJoin;
         internal readonly CountTableTransformer CountTable;
-        private readonly TransformerChain<ITransformer> _chain;
 
         internal const string Summary = "Transforms the categorical column into the set of features: count of each label class, "
             + "log-odds for each label class, back-off indicator. The columns can be of arbitrary type.";
@@ -404,7 +403,6 @@ namespace Microsoft.ML.Transforms
             _host = env.Register(nameof(CountTargetEncodingTransformer));
             HashJoin = hashJoin;
             CountTable = countTable;
-            _chain = new TransformerChain<ITransformer>(new TransformWrapper(_host, HashJoin), CountTable);
         }
 
         private CountTargetEncodingTransformer(IHost host, ModelLoadContext ctx)
@@ -428,7 +426,6 @@ namespace Microsoft.ML.Transforms
 
             ctx.LoadModel<HashJoiningTransform, SignatureLoadDataTransform>(_host, out HashJoin, "HashJoin", view);
             ctx.LoadModel<CountTableTransformer, SignatureLoadModel>(_host, out CountTable, "CountTable");
-            _chain = new TransformerChain<ITransformer>(new TransformWrapper(_host, HashJoin), CountTable);
         }
 
         public void Save(ModelSaveContext ctx)
@@ -469,24 +466,51 @@ namespace Microsoft.ML.Transforms
         public DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            return _chain.GetOutputSchema(inputSchema);
+            var chain = new TransformerChain<ITransformer>(new TransformWrapper(_host, HashJoin), CountTable);
+            return chain.GetOutputSchema(inputSchema);
         }
 
         IRowToRowMapper ITransformer.GetRowToRowMapper(DataViewSchema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            return (_chain as ITransformer).GetRowToRowMapper(inputSchema);
+            ITransformer chain = new TransformerChain<ITransformer>(new TransformWrapper(_host, HashJoin), CountTable);
+            return chain.GetRowToRowMapper(inputSchema);
         }
 
         public IDataView Transform(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
-            return _chain.Transform(input);
+            var chain = new TransformerChain<ITransformer>(new TransformWrapper(_host, HashJoin), CountTable);
+            return chain.Transform(input);
+        }
+
+        IDataView ITransformerWithDifferentMappingAtTrainingTime.TransformForTrainingPipeline(IDataView input)
+        {
+            var hashJoin = ApplyTransformUtils.ApplyTransformToData(_host, HashJoin, input);
+            return (CountTable as ITransformerWithDifferentMappingAtTrainingTime).TransformForTrainingPipeline(hashJoin);
         }
     }
 
     public static class CountTargetEncodingCatalog
     {
+        /// <summary>
+        /// Transforms a categorical column into a set of features that includes the count of each label class,
+        /// the log-odds for each label class and the back-off indicator.
+        /// </summary>
+        /// <param name="catalog">The transforms catalog.</param>
+        /// <param name="columns">The input and output columns.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="builder">The builder that creates the count tables from the training data.</param>
+        /// <param name="priorCoefficient">The coefficient with which to apply the prior smoothing to the features.</param>
+        /// <param name="laplaceScale">The Laplacian noise diversity/scale-parameter. Recommended values are between 0 and 1. Note that the noise
+        /// will only be applied if the estimator is part of an <see cref="EstimatorChain{TLastTransformer}"/>, when fitting the next estimator in the chain.</param>
+        /// <param name="sharedTable">Indicates whether to keep counts for all columns and slots in one shared count table. If true, the keys in the count table
+        /// will include a hash of the column and slot indices.</param>
+        /// <param name="numberOfBits">The number of bits to hash the input into. Must be between 1 and 31, inclusive.</param>
+        /// <param name="combine">In case the input is a vector column, indicates whether the values should be combined into a single hash to create a single
+        /// count table, or be left as a vector of hashes with multiple count tables.</param>
+        /// <param name="hashingSeed">The seed used for hashing the input columns.</param>
+        /// <returns></returns>
         public static CountTargetEncodingEstimator CountTargetEncode(this TransformsCatalog catalog,
             InputOutputColumnPair[] columns, string labelColumn = DefaultColumnNames.Label,
             CountTableBuilderBase builder = null,
@@ -526,12 +550,37 @@ namespace Microsoft.ML.Transforms
             return estimator;
         }
 
+        /// <summary>
+        /// Transforms a categorical column into a set of features that includes the count of each label class,
+        /// the log-odds for each label class and the back-off indicator.
+        /// </summary>
+        /// <param name="catalog">The transforms catalog.</param>
+        /// <param name="columns">The input and output columns.</param>
+        /// <param name="initialCounts">A previously trained count table containing initial counts.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <returns></returns>
         public static CountTargetEncodingEstimator CountTargetEncode(this TransformsCatalog catalog,
             InputOutputColumnPair[] columns, CountTargetEncodingTransformer initialCounts, string labelColumn = "Label")
         {
             return new CountTargetEncodingEstimator(CatalogUtils.GetEnvironment(catalog), labelColumn, initialCounts, columns);
         }
 
+        /// <summary>
+        /// Transforms a categorical column into a set of features that includes the count of each label class,
+        /// the log-odds for each label class and the back-off indicator.
+        /// </summary>
+        /// <param name="catalog">The transforms catalog.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="builder">The builder that creates the count tables from the training data.</param>
+        /// <param name="priorCoefficient">The coefficient with which to apply the prior smoothing to the features.</param>
+        /// <param name="laplaceScale">The Laplacian noise diversity/scale-parameter. Recommended values are between 0 and 1. Note that the noise
+        /// will only be applied if the estimator is part of an <see cref="EstimatorChain{TLastTransformer}"/>, when fitting the next estimator in the chain.</param>
+        /// <param name="numberOfBits">The number of bits to hash the input into. Must be between 1 and 31, inclusive.</param>
+        /// <param name="combine">In case the input is a vector column, indicates whether the values should be combined into a single hash to create a single
+        /// count table, or be left as a vector of hashes with multiple count tables.</param>
+        /// <param name="hashingSeed">The seed used for hashing the input columns.</param>
         public static CountTargetEncodingEstimator CountTargetEncode(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null,
             string labelColumn = DefaultColumnNames.Label,
             CountTableBuilderBase builder = null,
@@ -552,6 +601,16 @@ namespace Microsoft.ML.Transforms
                 numberOfBits, combine, hashingSeed);
         }
 
+        /// <summary>
+        /// Transforms a categorical column into a set of features that includes the count of each label class,
+        /// the log-odds for each label class and the back-off indicator.
+        /// </summary>
+        /// <param name="catalog">The transforms catalog.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="initialCounts">A previously trained count table containing initial counts.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <returns></returns>
         public static CountTargetEncodingEstimator CountTargetEncode(this TransformsCatalog catalog, string outputColumnName,
             CountTargetEncodingTransformer initialCounts,
             string inputColumnName = null, string labelColumn = "Label")

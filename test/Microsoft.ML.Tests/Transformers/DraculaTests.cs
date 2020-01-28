@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Transforms;
@@ -29,6 +30,7 @@ namespace Microsoft.ML.Tests.Transformers
             var estimator = ML.Transforms.CountTargetEncode(new[] {
                 new InputOutputColumnPair("ScalarString"), new InputOutputColumnPair("VectorString") }, "Label");
             TestEstimatorCore(estimator, data);
+            Done();
         }
 
         [Fact]
@@ -64,6 +66,57 @@ namespace Microsoft.ML.Tests.Transformers
             var transformer1 = estimator.Fit(data);
 
             CheckDoubleCounts(data, transformer, transformer1, 2, 5);
+        }
+
+        [Fact]
+        public void TestCountTargetEncodingWithNoise()
+        {
+            var dataPath = GetDataPath("breast-cancer.txt");
+            var data = ML.Data.LoadFromTextFile(dataPath, new[] {
+                new TextLoader.Column("ScalarString", DataKind.String, 1),
+                new TextLoader.Column("VectorString", DataKind.String, 2, 9),
+                new TextLoader.Column("Label", DataKind.Boolean, 0)
+            });
+
+            IReadOnlyList<float> weights = null;
+            var estimator = ML.Transforms.CountTargetEncode(new[] {
+                new InputOutputColumnPair("ScalarString"), new InputOutputColumnPair("VectorString") }, "Label", CountTableBuilderBase.CreateCMCountTableBuilder(2, 1 << 6), laplaceScale: 1f)
+                .Append(ML.Transforms.Concatenate("Features", "ScalarString", "VectorString"))
+                .Append(ML.BinaryClassification.Trainers.AveragedPerceptron().WithOnFitDelegate(x => weights = x.Model.Weights));
+            TestEstimatorCore(estimator, data);
+            var model = estimator.Fit(data);
+
+            IReadOnlyList<float> weightsNoNoise = null;
+            estimator = ML.Transforms.CountTargetEncode(new[] {
+                new InputOutputColumnPair("ScalarString"), new InputOutputColumnPair("VectorString") }, "Label", CountTableBuilderBase.CreateCMCountTableBuilder(2, 1 << 6))
+                .Append(ML.Transforms.Concatenate("Features", "ScalarString", "VectorString"))
+                .Append(ML.BinaryClassification.Trainers.AveragedPerceptron().WithOnFitDelegate(x => weightsNoNoise = x.Model.Weights));
+
+            var modelNoNoise = estimator.Fit(data);
+
+            // Fit another pipeline just to make sure that the difference between the first and the second model doesn't come from randomness.
+            IReadOnlyList<float> weightsNoNoise2 = null;
+            estimator = ML.Transforms.CountTargetEncode(new[] {
+                new InputOutputColumnPair("ScalarString"), new InputOutputColumnPair("VectorString") }, "Label", CountTableBuilderBase.CreateCMCountTableBuilder(2, 1 << 6))
+                .Append(ML.Transforms.Concatenate("Features", "ScalarString", "VectorString"))
+                .Append(ML.BinaryClassification.Trainers.AveragedPerceptron().WithOnFitDelegate(x => weightsNoNoise2 = x.Model.Weights));
+
+            var modelNoNoise2 = estimator.Fit(data);
+
+            // The second and third models should be identical, and the first one different, because it was trained with noise.
+            Assert.Equal(weightsNoNoise, weightsNoNoise2);
+            Assert.NotEqual(weights, weightsNoNoise);
+
+            var transformed = model.Transform(data);
+            var transformedNoNoise = modelNoNoise.Transform(data);
+
+            var select = ML.Transforms.SelectColumns("Features").Fit(transformed);
+
+            transformed = select.Transform(transformed);
+            transformedNoNoise = select.Transform(transformedNoNoise);
+            CheckSameValues(transformed, transformedNoNoise);
+
+            Done();
         }
 
         private static void CheckDoubleCounts(IDataView data, CountTargetEncodingTransformer transformer, CountTargetEncodingTransformer transformer1, params int[] countCols)
@@ -117,6 +170,7 @@ namespace Microsoft.ML.Tests.Transformers
                 ML.Transforms.CountTargetEncode("ScalarString2", "ScalarString", builder: CountTableBuilderBase.CreateDictionaryCountTableBuilder(1)));
 
             TestEstimatorCore(estimator, data);
+            Done();
         }
     }
 }

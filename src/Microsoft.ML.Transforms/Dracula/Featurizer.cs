@@ -157,7 +157,8 @@ namespace Microsoft.ML.Transforms
                     countsBuffer[i++] = count;
             }
 
-            sum = AddLaplacianNoisePerLabel(iCol, rand, countsBuffer);
+            if (rand != null)
+                sum = AddLaplacianNoisePerLabel(iCol, rand, countsBuffer);
 
             // add log odds in the next _logOddsCount indices.
             GenerateLogOdds(iCol, countTable, countsBuffer, features.Slice(_labelBinCount, _logOddsCount), sum);
@@ -172,6 +173,7 @@ namespace Microsoft.ML.Transforms
         private float AddLaplacianNoisePerLabel(int iCol, Random rand, Span<float> counts)
         {
             _host.Assert(_labelBinCount == counts.Length);
+            _host.AssertValue(rand);
 
             float sum = 0;
             for (int ifeat = 0; ifeat < _labelBinCount; ifeat++)
