@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -157,12 +156,11 @@ namespace Microsoft.ML.Transforms
                     countsBuffer[i++] = count;
             }
 
-            if (rand != null)
-                sum = AddLaplacianNoisePerLabel(iCol, rand, countsBuffer);
+            sum = AddLaplacianNoisePerLabel(iCol, rand, countsBuffer);
 
             // add log odds in the next _logOddsCount indices.
             GenerateLogOdds(iCol, countTable, countsBuffer, features.Slice(_labelBinCount, _logOddsCount), sum);
-            AssertValidOutput(features);
+            _host.Assert(FloatUtils.IsFinite(features));
 
             // Add the last feature: an indicator for isGarbage.
             features[NumFeatures - 1] = isGarbage ? 1 : 0;
@@ -173,12 +171,11 @@ namespace Microsoft.ML.Transforms
         private float AddLaplacianNoisePerLabel(int iCol, Random rand, Span<float> counts)
         {
             _host.Assert(_labelBinCount == counts.Length);
-            _host.AssertValue(rand);
 
             float sum = 0;
             for (int ifeat = 0; ifeat < _labelBinCount; ifeat++)
             {
-                if (LaplaceScale[iCol] > 0)
+                if (rand != null && LaplaceScale[iCol] > 0)
                     counts[ifeat] += Stats.SampleFromLaplacian(rand, 0, LaplaceScale[iCol]);
 
                 // Clamp to zero when noise is too big and negative.
@@ -192,7 +189,7 @@ namespace Microsoft.ML.Transforms
         }
 
         // Fills _labelBinCount log odds features. One per class, or only one if 2 classes.
-        private void GenerateLogOdds(int iCol, ICountTable countTable, Span<float> counts, Span<float> logOdds, Single sum)
+        private void GenerateLogOdds(int iCol, ICountTable countTable, Span<float> counts, Span<float> logOdds, float sum)
         {
             _host.Assert(counts.Length == _labelBinCount);
             _host.Assert(logOdds.Length == _logOddsCount);
@@ -209,13 +206,6 @@ namespace Microsoft.ML.Transforms
                         (sum - counts[i] + PriorCoef[iCol] * (1 - countTable.PriorFrequencies[i])));
                 }
             }
-        }
-
-        [Conditional("DEBUG")]
-        private void AssertValidOutput(Span<float> features)
-        {
-            foreach (var feature in features)
-                _host.Assert(FloatUtils.IsFinite(feature));
         }
     }
 }
