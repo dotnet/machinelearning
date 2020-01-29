@@ -529,7 +529,6 @@ namespace Microsoft.ML.Trainers
                 }
                 else
                 {
-                    Console.WriteLine($"Value of count: { count }");
                     Contracts.Assert(dualsLength <= MaxDualTableSize);
                     duals = new BigArrayDualsTable(count);
                 }
@@ -560,7 +559,6 @@ namespace Microsoft.ML.Trainers
             // If we favor storing the invariants, precompute the invariants now.
             if (invariants != null)
             {
-                Console.WriteLine($"Value of invariants.Length: {invariants.Length}");
                 Contracts.Assert((idToIdx == null & ((long)idLoMax + 1) * weightSetCount <= Utils.ArrayMaxSize) | (idToIdx != null & count * weightSetCount <= Utils.ArrayMaxSize));
                 Func<DataViewRowId, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
                 int invariantCoeff = weightSetCount == 1 ? 1 : 2;
