@@ -345,9 +345,16 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
-        public void PlattCalibratorOnnxConversionTest()
+        [Theory]
+        [Trait("Category", "RunSpecificTest")]
+        [IterationData]
+        public void PlattCalibratorOnnxConversionTest(int iterations)
         {
+            if(iterations > 100)
+            {
+                Console.WriteLine(iterations);
+            }
+
             var mlContext = new MLContext(seed: 1);
             string dataPath = GetDataPath("breast-cancer.txt");
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
