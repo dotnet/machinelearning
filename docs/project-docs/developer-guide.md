@@ -66,3 +66,8 @@ One can build in Debug or Release mode from the root by doing `build.cmd -Releas
 
 We only support 64-bit binaries right now.
 
+### Updating manifest and ep-list files
+
+During development, there may arise a need to update the current baseline `core_manifest.json` and `core_ep-list.tsv` files.
+
+This is done through running `RegenerateEntryPointCatalog` in `machinelearning/test/Microsoft.ML.Core.Tests/UnitTests/TestEntryPoints.cs`. This can be done by unskipping `RegenerateEntryPointCatalog`, running `RegenerateEntryPointCatalog`, and then pushing the changes to these files.
