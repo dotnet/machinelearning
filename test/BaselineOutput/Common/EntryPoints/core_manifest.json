@@ -11649,6 +11649,22 @@
           }
         },
         {
+          "Name": "UseZeroAsMissingValue",
+          "Type": "Bool",
+          "Desc": "Enable usage of zero (0) as missing value.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              true,
+              false
+            ]
+          }
+        },
+        {
           "Name": "MinimumExampleCountPerGroup",
           "Type": "Int",
           "Desc": "Minimum number of instances per categorical group.",
@@ -12137,6 +12153,22 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": true,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "Name": "UseZeroAsMissingValue",
+          "Type": "Bool",
+          "Desc": "Enable usage of zero (0) as missing value.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false,
           "SweepRange": {
             "RangeType": "Discrete",
             "Values": [
@@ -12643,6 +12675,22 @@
           }
         },
         {
+          "Name": "UseZeroAsMissingValue",
+          "Type": "Bool",
+          "Desc": "Enable usage of zero (0) as missing value.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              true,
+              false
+            ]
+          }
+        },
+        {
           "Name": "MinimumExampleCountPerGroup",
           "Type": "Int",
           "Desc": "Minimum number of instances per categorical group.",
@@ -13092,6 +13140,22 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": true,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "Name": "UseZeroAsMissingValue",
+          "Type": "Bool",
+          "Desc": "Enable usage of zero (0) as missing value.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false,
           "SweepRange": {
             "RangeType": "Discrete",
             "Values": [
