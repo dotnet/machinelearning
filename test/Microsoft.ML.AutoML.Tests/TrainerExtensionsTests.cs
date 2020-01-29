@@ -16,7 +16,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void TrainerExtensionInstanceTests()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var columnInfo = new ColumnInformation();
             var trainerNames = Enum.GetValues(typeof(TrainerName)).Cast<TrainerName>()
                 .Except(new[] { TrainerName.Ova });
@@ -45,7 +45,7 @@ namespace Microsoft.ML.AutoML.Test
         [TensorFlowFact]
         public void TrainerExtensionTensorFlowInstanceTests()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var columnInfo = new ColumnInformation();
             var extension = TrainerExtensionCatalog.GetTrainerExtension(TrainerName.ImageClassification);
             var instance = extension.CreateInstance(context, null, columnInfo);
@@ -359,7 +359,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void AllowedTrainersWhitelistNullTest()
         {
-            var trainers = RecipeInference.AllowedTrainers(new MLContext(), TaskKind.BinaryClassification, new ColumnInformation(), null);
+            var trainers = RecipeInference.AllowedTrainers(new MLContext(1), TaskKind.BinaryClassification, new ColumnInformation(), null);
             Assert.True(trainers.Any());
         }
 
@@ -367,7 +367,7 @@ namespace Microsoft.ML.AutoML.Test
         public void AllowedTrainersWhitelistTest()
         {
             var whitelist = new[] { TrainerName.AveragedPerceptronBinary, TrainerName.FastForestBinary };
-            var trainers = RecipeInference.AllowedTrainers(new MLContext(), TaskKind.BinaryClassification, new ColumnInformation(), whitelist);
+            var trainers = RecipeInference.AllowedTrainers(new MLContext(1), TaskKind.BinaryClassification, new ColumnInformation(), whitelist);
             Assert.Equal(whitelist.Count(), trainers.Count());
         }
     }

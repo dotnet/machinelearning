@@ -89,7 +89,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void ChangeDetection()
         {
-            var env = new MLContext();
+            var env = new MLContext(1);
             const int size = 10;
             List<Data> data = new List<Data>(size);
             var dataView = env.Data.LoadFromEnumerable(data);
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Tests
         [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         public void ChangePointDetectionWithSeasonality()
         {
-            var env = new MLContext();
+            var env = new MLContext(1);
             const int ChangeHistorySize = 10;
             const int SeasonalitySize = 10;
             const int NumberOfSeasonsInTraining = 5;
@@ -328,7 +328,7 @@ namespace Microsoft.ML.Tests
         [Trait("Category", "SkipInCI")]
         public void SsaForecast()
         {
-            var env = new MLContext();
+            var env = new MLContext(1);
             const int ChangeHistorySize = 10;
             const int SeasonalitySize = 10;
             const int NumberOfSeasonsInTraining = 5;
@@ -474,7 +474,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void AnomalyDetectionWithSrCnn()
         {
-            var ml = new MLContext();
+            var ml = new MLContext(1);
 
             // Generate sample series data with an anomaly
             var data = new List<TimeSeriesData>();

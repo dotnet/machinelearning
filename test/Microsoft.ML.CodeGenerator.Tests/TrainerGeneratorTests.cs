@@ -18,7 +18,7 @@ namespace mlnet.Tests
         public void CultureInvariantTest()
         {
 
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>()
             {
@@ -46,7 +46,7 @@ namespace mlnet.Tests
         public void LightGbmBinaryBasicTest()
         {
 
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>()
             {
@@ -67,7 +67,7 @@ namespace mlnet.Tests
         public void LightGbmBinaryAdvancedParameterTest()
         {
 
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>()
             {
@@ -90,7 +90,7 @@ namespace mlnet.Tests
         public void SymbolicSgdLogisticRegressionBinaryBasicTest()
         {
 
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("SymbolicSgdLogisticRegressionBinary", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
@@ -107,7 +107,7 @@ namespace mlnet.Tests
         public void SymbolicSgdLogisticRegressionBinaryAdvancedParameterTest()
         {
 
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>()
             {
@@ -127,7 +127,7 @@ namespace mlnet.Tests
         [Fact]
         public void SgdCalibratedBinaryBasicTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("SgdCalibratedBinary", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
@@ -144,7 +144,7 @@ namespace mlnet.Tests
         public void SgdCalibratedBinaryAdvancedParameterTest()
         {
 
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>()
             {
@@ -164,7 +164,7 @@ namespace mlnet.Tests
         [Fact]
         public void SdcaLogisticRegressionBinaryBasicTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("SdcaLogisticRegressionBinary", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
@@ -181,7 +181,7 @@ namespace mlnet.Tests
         public void SdcaLogisticRegressionBinaryAdvancedParameterTest()
         {
 
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>()
             {
@@ -201,7 +201,7 @@ namespace mlnet.Tests
         [Fact]
         public void SdcaMaximumEntropyMultiBasicTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("SdcaMaximumEntropyMulti", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
@@ -218,7 +218,7 @@ namespace mlnet.Tests
         public void SdcaMaximumEntropyMultiAdvancedParameterTest()
         {
 
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>()
             {
@@ -238,7 +238,7 @@ namespace mlnet.Tests
         [Fact]
         public void SdcaRegressionBasicTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("SdcaRegression", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
@@ -255,7 +255,7 @@ namespace mlnet.Tests
         public void SdcaRegressionAdvancedParameterTest()
         {
 
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>()
             {
@@ -275,7 +275,7 @@ namespace mlnet.Tests
         [Fact]
         public void MatrixFactorizationBasicTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("MatrixFactorization", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
@@ -289,7 +289,7 @@ namespace mlnet.Tests
         [Fact]
         public void MatrixFactorizationAdvancedTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var elementProperties = new Dictionary<string, object>()
             {
                 {"MatrixColumnIndexColumnName","userId" },
@@ -308,7 +308,7 @@ namespace mlnet.Tests
         [Fact]
         public void LbfgsPoissonRegressionBasicTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("LbfgsPoissonRegression", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
@@ -325,7 +325,7 @@ namespace mlnet.Tests
         public void LbfgsPoissonRegressionAdvancedParameterTest()
         {
 
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>()
             {
@@ -345,7 +345,7 @@ namespace mlnet.Tests
         [Fact]
         public void OlsRegressionBasicTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("OlsRegression", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
@@ -362,7 +362,7 @@ namespace mlnet.Tests
         public void OlsRegressionAdvancedParameterTest()
         {
 
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>()
             {
@@ -382,7 +382,7 @@ namespace mlnet.Tests
         [Fact]
         public void OnlineGradientDescentRegressionBasicTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("OnlineGradientDescentRegression", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
@@ -399,7 +399,7 @@ namespace mlnet.Tests
         public void OnlineGradientDescentRegressionAdvancedParameterTest()
         {
 
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>()
             {
@@ -419,7 +419,7 @@ namespace mlnet.Tests
         [Fact]
         public void LbfgsLogisticRegressionBinaryBasicTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("LbfgsLogisticRegressionBinary", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
@@ -436,7 +436,7 @@ namespace mlnet.Tests
         public void LbfgsLogisticRegressionBinaryAdvancedParameterTest()
         {
 
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>()
             {
@@ -456,7 +456,7 @@ namespace mlnet.Tests
         [Fact]
         public void LbfgsMaximumEntropyMultiMultiBasicTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("LbfgsMaximumEntropyMulti", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
@@ -473,7 +473,7 @@ namespace mlnet.Tests
         public void LbfgsMaximumEntropyMultiAdvancedParameterTest()
         {
 
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>()
             {
@@ -493,7 +493,7 @@ namespace mlnet.Tests
         [Fact]
         public void LinearSvmBinaryBasicTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("LinearSvmBinary", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
@@ -510,7 +510,7 @@ namespace mlnet.Tests
         public void LinearSvmBinaryParameterTest()
         {
 
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>()
             {
@@ -531,7 +531,7 @@ namespace mlnet.Tests
         [Fact]
         public void FastTreeTweedieRegressionBasicTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("FastTreeTweedieRegression", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
@@ -548,7 +548,7 @@ namespace mlnet.Tests
         public void FastTreeTweedieRegressionAdvancedParameterTest()
         {
 
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>()
             {
@@ -569,7 +569,7 @@ namespace mlnet.Tests
         [Fact]
         public void FastTreeRegressionBasicTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("FastTreeRegression", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
@@ -586,7 +586,7 @@ namespace mlnet.Tests
         public void FastTreeRegressionAdvancedParameterTest()
         {
 
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>()
             {
@@ -607,7 +607,7 @@ namespace mlnet.Tests
         [Fact]
         public void FastTreeBinaryBasicTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("FastTreeBinary", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
@@ -624,7 +624,7 @@ namespace mlnet.Tests
         public void FastTreeBinaryAdvancedParameterTest()
         {
 
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>()
             {
@@ -645,7 +645,7 @@ namespace mlnet.Tests
         [Fact]
         public void FastForestRegressionBasicTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("FastForestRegression", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
@@ -661,7 +661,7 @@ namespace mlnet.Tests
         [Fact]
         public void FastForestRegressionAdvancedParameterTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>()
             {
@@ -682,7 +682,7 @@ namespace mlnet.Tests
         [Fact]
         public void FastForestBinaryBasicTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("FastForestBinary", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
@@ -699,7 +699,7 @@ namespace mlnet.Tests
         public void FastForestBinaryAdvancedParameterTest()
         {
 
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>()
             {
@@ -720,7 +720,7 @@ namespace mlnet.Tests
         [Fact]
         public void AveragedPerceptronBinaryBasicTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("AveragedPerceptronBinary", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
@@ -737,7 +737,7 @@ namespace mlnet.Tests
         public void AveragedPerceptronBinaryAdvancedParameterTest()
         {
 
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>()
             {

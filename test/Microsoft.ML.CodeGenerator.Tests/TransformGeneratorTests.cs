@@ -15,7 +15,7 @@ namespace mlnet.Tests
         [Fact]
         public void MissingValueReplacingTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var elementProperties = new Dictionary<string, object>();//categorical
             PipelineNode node = new PipelineNode("MissingValueReplacing", PipelineNodeType.Transform, new string[] { "categorical_column_1" }, new string[] { "categorical_column_1" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
@@ -29,7 +29,7 @@ namespace mlnet.Tests
         [Fact]
         public void OneHotEncodingTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var elementProperties = new Dictionary<string, object>();//categorical
             PipelineNode node = new PipelineNode("OneHotEncoding", PipelineNodeType.Transform, new string[] { "categorical_column_1" }, new string[] { "categorical_column_1" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
@@ -43,7 +43,7 @@ namespace mlnet.Tests
         [Fact]
         public void NormalizingTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("Normalizing", PipelineNodeType.Transform, new string[] { "numeric_column_1" }, new string[] { "numeric_column_1_copy" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
@@ -57,7 +57,7 @@ namespace mlnet.Tests
         [Fact]
         public void ColumnConcatenatingTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("ColumnConcatenating", PipelineNodeType.Transform, new string[] { "numeric_column_1", "numeric_column_2" }, new string[] { "Features" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
@@ -71,7 +71,7 @@ namespace mlnet.Tests
         [Fact]
         public void ColumnCopyingTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var elementProperties = new Dictionary<string, object>();//nume to num feature 2
             PipelineNode node = new PipelineNode("ColumnCopying", PipelineNodeType.Transform, new string[] { "numeric_column_1" }, new string[] { "numeric_column_2" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
@@ -85,7 +85,7 @@ namespace mlnet.Tests
         [Fact]
         public void KeyToValueMappingTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("KeyToValueMapping", PipelineNodeType.Transform, new string[] { "Label" }, new string[] { "Label" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
@@ -99,7 +99,7 @@ namespace mlnet.Tests
         [Fact]
         public void MissingValueIndicatingTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var elementProperties = new Dictionary<string, object>();//numeric feature
             PipelineNode node = new PipelineNode("MissingValueIndicating", PipelineNodeType.Transform, new string[] { "numeric_column_1" }, new string[] { "numeric_column_1" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
@@ -113,7 +113,7 @@ namespace mlnet.Tests
         [Fact]
         public void OneHotHashEncodingTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("OneHotHashEncoding", PipelineNodeType.Transform, new string[] { "Categorical_column_1" }, new string[] { "Categorical_column_1" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
@@ -127,7 +127,7 @@ namespace mlnet.Tests
         [Fact]
         public void TextFeaturizingTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("TextFeaturizing", PipelineNodeType.Transform, new string[] { "Text_column_1" }, new string[] { "Text_column_1" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
@@ -141,7 +141,7 @@ namespace mlnet.Tests
         [Fact]
         public void TypeConvertingTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("TypeConverting", PipelineNodeType.Transform, new string[] { "I4_column_1" }, new string[] { "R4_column_1" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
@@ -155,7 +155,7 @@ namespace mlnet.Tests
         [Fact]
         public void ValueToKeyMappingTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("ValueToKeyMapping", PipelineNodeType.Transform, new string[] { "Label" }, new string[] { "Label" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });

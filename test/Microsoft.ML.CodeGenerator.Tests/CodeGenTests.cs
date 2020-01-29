@@ -17,7 +17,7 @@ namespace mlnet.Tests
         [Fact]
         public void TrainerGeneratorBasicNamedParameterTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>()
             {
@@ -37,7 +37,7 @@ namespace mlnet.Tests
         [Fact]
         public void TrainerGeneratorBasicAdvancedParameterTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>()
             {
@@ -58,7 +58,7 @@ namespace mlnet.Tests
         [Fact]
         public void TransformGeneratorBasicTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("Normalizing", PipelineNodeType.Transform, new string[] { "Label" }, new string[] { "Label" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
@@ -72,7 +72,7 @@ namespace mlnet.Tests
         [Fact]
         public void TransformGeneratorUsingTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("OneHotEncoding", PipelineNodeType.Transform, new string[] { "Label" }, new string[] { "Label" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
@@ -117,7 +117,7 @@ namespace mlnet.Tests
         [Fact]
         public void TrainerComplexParameterTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var elementProperties = new Dictionary<string, object>()
             {

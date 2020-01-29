@@ -14,7 +14,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void InferredPipelinesHashTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var columnInfo = new ColumnInformation();
 
             // test same learners with no hyperparams have the same hash code

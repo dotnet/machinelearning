@@ -294,7 +294,7 @@ namespace mlnet.Tests
         {
             if (mockedPipeline == null)
             {
-                MLContext context = new MLContext();
+                MLContext context = new MLContext(1);
 
                 var trainer1 = new SuggestedTrainer(context, new MatrixFactorizationExtension(), new ColumnInformation() {
                     LabelColumnName = "Label",
@@ -335,7 +335,7 @@ namespace mlnet.Tests
         {
             if (mockedPipeline == null)
             {
-                MLContext context = new MLContext();
+                MLContext context = new MLContext(1);
                 // same learners with different hyperparams
                 var hyperparams1 = new Microsoft.ML.AutoML.ParameterSet(new List<Microsoft.ML.AutoML.IParameterValue>() { new LongParameterValue("NumLeaves", 2) });
                 var trainer1 = new SuggestedTrainer(context, new LightGbmBinaryExtension(), new ColumnInformation(), hyperparams1);
@@ -372,7 +372,7 @@ namespace mlnet.Tests
         {
             if (mockedPipeline == null)
             {
-                MLContext context = new MLContext();
+                MLContext context = new MLContext(1);
                 // same learners with different hyperparams
                 var hyperparams1 = new Microsoft.ML.AutoML.ParameterSet(new List<Microsoft.ML.AutoML.IParameterValue>() { new LongParameterValue("NumLeaves", 2) });
                 var trainer1 = new SuggestedTrainer(context, new LightGbmRegressionExtension(), new ColumnInformation(), hyperparams1);
@@ -409,7 +409,7 @@ namespace mlnet.Tests
         {
             if (mockedOvaPipeline == null)
             {
-                MLContext context = new MLContext();
+                MLContext context = new MLContext(1);
                 // same learners with different hyperparams
                 var hyperparams1 = new Microsoft.ML.AutoML.ParameterSet(new List<Microsoft.ML.AutoML.IParameterValue>() { new LongParameterValue("NumLeaves", 2) });
                 var trainer1 = new SuggestedTrainer(context, new FastForestOvaExtension(), new ColumnInformation(), hyperparams1);

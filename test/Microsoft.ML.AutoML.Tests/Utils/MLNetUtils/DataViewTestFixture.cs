@@ -22,7 +22,7 @@ namespace Microsoft.ML.AutoML.Test
 
         public static IDataView BuildDummyDataView(IEnumerable<(string name, DataViewType type)> columns, bool createDummyRow = true)
         {
-            var dataBuilder = new ArrayDataViewBuilder(new MLContext());
+            var dataBuilder = new ArrayDataViewBuilder(new MLContext(1));
 
             foreach (var column in columns)
             {
