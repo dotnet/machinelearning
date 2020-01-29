@@ -275,12 +275,15 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
+        [Theory]
         [TestCategory("Binary")]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         [Trait("Category", "RunSpecificTest")]
-        public void BinaryClassifierSymSgdTest()
+        [IterationData(iterations: 100)]
+        public void BinaryClassifierSymSgdTest(int iterations)
         {
+            if (iterations % 10 == 0)
+                Console.WriteLine(iterations);
             //Results sometimes go out of error tolerance on OS X.
             //if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             //    return;
