@@ -345,11 +345,17 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void PlattCalibratorOnnxConversionTest()
+        [Theory]
+        ////Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        //[Trait("Category", "SkipInCI")]
+        [Trait("Category", "RunSpecificTest")]
+        [IterationData]
+        public void PlattCalibratorOnnxConversionTest(int iteration)
         {
+            if(iteration > 100)
+            {
+                Console.WriteLine(iteration);
+            }
             var mlContext = new MLContext(seed: 1);
             string dataPath = GetDataPath("breast-cancer.txt");
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
