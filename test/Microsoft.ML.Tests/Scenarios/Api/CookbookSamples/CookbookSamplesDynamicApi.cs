@@ -222,16 +222,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
         [Theory]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         [Trait("Category", "RunSpecificTest")]
-        [IterationData(iterations: 300)]
+        [IterationData(iterations: 100)]
         public void TrainAndPredictOnIris(int iteration)
         {
             PredictOnIris(TrainOnIris(GetDataPath("iris.data")));
 
-            if(iteration % 100 == 0)
-            {
-                Console.WriteLine($"{iteration}");
+            Console.WriteLine($"Iteration: {iteration}");
                 // Environment.FailFast("Crash on purpose here to take dump!");
-            }
         }
 
         private void NormalizationWorkout(string dataPath)
