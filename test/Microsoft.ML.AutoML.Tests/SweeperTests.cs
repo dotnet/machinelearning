@@ -5,19 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.TestFramework;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class SweeperTests : BaseTestClass
+    public class SweeperTests
     {
-        public SweeperTests(ITestOutputHelper output) : base(output)
-        {
-        }
-
         [Fact]
         public void SmacQuickRunTest()
         {

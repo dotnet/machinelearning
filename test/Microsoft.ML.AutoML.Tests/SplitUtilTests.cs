@@ -5,19 +5,13 @@
 using System;
 using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.ML.TestFramework;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class SplitUtilTests : BaseTestClass
+    public class SplitUtilTests
     {
-        public SplitUtilTests(ITestOutputHelper output) : base(output)
-        {
-        }
-
         /// <summary>
         /// When there's only one row of data, assert that
         /// attempted cross validation throws (all splits should have empty

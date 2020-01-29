@@ -4,19 +4,13 @@
 
 using System.Collections.Generic;
 using Microsoft.ML.Data;
-using Microsoft.ML.TestFramework;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class BestResultUtilTests : BaseTestClass
+    public class BestResultUtilTests
     {
-        public BestResultUtilTests(ITestOutputHelper output) : base(output)
-        {
-        }
-
         [Fact]
         public void FindBestResultWithSomeNullMetrics()
         {

@@ -3,20 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.ML.TestFramework;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class SuggestedPipelineBuilderTests : BaseTestClass
+    public class SuggestedPipelineBuilderTests
     {
         private static MLContext _context = new MLContext();
-
-        public SuggestedPipelineBuilderTests(ITestOutputHelper output) : base(output)
-        {
-        }
 
         [Fact]
         public void TrainerWantsCaching()

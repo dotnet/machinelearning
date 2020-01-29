@@ -5,19 +5,13 @@
 using System;
 using System.IO;
 using Microsoft.ML.Data;
-using Microsoft.ML.TestFramework;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class ColumnInferenceValidationUtilTests : BaseTestClass
+    public class ColumnInferenceValidationUtilTests
     {
-        public ColumnInferenceValidationUtilTests(ITestOutputHelper output) : base(output)
-        {
-        }
-
         [Fact]
         public void ValidateColumnNotContainedInData()
         {

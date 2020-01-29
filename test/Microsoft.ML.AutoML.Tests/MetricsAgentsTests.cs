@@ -4,18 +4,12 @@
 
 using System;
 using Microsoft.ML.Data;
-using Microsoft.ML.TestFramework;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    public class MetricsAgentsTests : BaseTestClass
+    public class MetricsAgentsTests
     {
-        public MetricsAgentsTests(ITestOutputHelper output) : base(output)
-        {
-        }
-
         [Fact]
         public void BinaryMetricsGetScoreTest()
         {

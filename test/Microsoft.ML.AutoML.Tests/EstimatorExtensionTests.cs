@@ -5,19 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.TestFramework;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class EstimatorExtensionTests : BaseTestClass
+    public class EstimatorExtensionTests
     {
-        public EstimatorExtensionTests(ITestOutputHelper output) : base(output)
-        {
-        }
-
         [Fact]
         public void EstimatorExtensionInstanceTests()
         {

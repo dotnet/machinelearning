@@ -138,7 +138,7 @@ namespace Microsoft.ML.Internal.Utilities
                 {
                     downloadCancel.Cancel();
                     deleteNeeded = true;
-                    return (await t).Message;
+                    return t.Result.Message;
                 }
 
                 return CheckValidDownload(ch, filePath, url, ref deleteNeeded);

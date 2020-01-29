@@ -3,19 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using Microsoft.ML.TestFramework;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class ColumnInformationUtilTests : BaseTestClass
+    public class ColumnInformationUtilTests
     {
-        public ColumnInformationUtilTests(ITestOutputHelper output) : base(output)
-        {
-        }
-
         [Fact]
         public void GetColumnPurpose()
         {

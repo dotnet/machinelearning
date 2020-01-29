@@ -4,19 +4,13 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.TestFramework;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class InferredPipelineTests : BaseTestClass
+    public class InferredPipelineTests
     {
-        public InferredPipelineTests(ITestOutputHelper output) : base(output)
-        {
-        }
-
         [Fact]
         public void InferredPipelinesHashTest()
         {

@@ -1,17 +1,11 @@
 ﻿using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.ML.TestFramework;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    public class PurposeInferenceTests : BaseTestClass
+    public class PurposeInferenceTests
     {
-        public PurposeInferenceTests(ITestOutputHelper output) : base(output)
-        {
-        }
-
         [Fact]
         public void PurposeInferenceHiddenColumnsTest()
         {

@@ -2,19 +2,13 @@
 using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.ML.TestFramework;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class ColumnInferenceTests : BaseTestClass
+    public class ColumnInferenceTests
     {
-        public ColumnInferenceTests(ITestOutputHelper output) : base(output)
-        {
-        }
-
         [Fact]
         public void UnGroupReturnsMoreColumnsThanGroup()
         {
