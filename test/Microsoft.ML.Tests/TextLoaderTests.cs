@@ -143,20 +143,6 @@ namespace Microsoft.ML.EntryPoints.Tests
         }
 
         [Fact]
-        public void ConstructorDoesntThrow()
-        {
-            var mlContext = new MLContext(seed: 1);
-
-            Assert.NotNull(mlContext.Data.LoadFromTextFile<Input>("fakeFile.txt"));
-            Assert.NotNull(mlContext.Data.LoadFromTextFile<Input>("fakeFile.txt", hasHeader: true));
-            Assert.NotNull(mlContext.Data.LoadFromTextFile<Input>("fakeFile.txt", hasHeader: false));
-            Assert.NotNull(mlContext.Data.LoadFromTextFile<Input>("fakeFile.txt", hasHeader: false, trimWhitespace: false, allowSparse: false));
-            Assert.NotNull(mlContext.Data.LoadFromTextFile<Input>("fakeFile.txt", hasHeader: false, allowSparse: false));
-            Assert.NotNull(mlContext.Data.LoadFromTextFile<Input>("fakeFile.txt", hasHeader: false, allowQuoting: false));
-            Assert.NotNull(mlContext.Data.LoadFromTextFile<InputWithUnderscore>("fakeFile.txt"));
-        }
-
-        [Fact]
         public void CanSuccessfullyApplyATransform()
         {
             string inputGraph = @"
@@ -588,11 +574,11 @@ namespace Microsoft.ML.EntryPoints.Tests
         }
 
         [Fact]
-        public void ThrowsExceptionWithPropertyName()
+        public void ThrowsExceptionWithMissingFile()
         {
             var mlContext = new MLContext(seed: 1);
-            var ex = Assert.Throws<InvalidOperationException>(() => mlContext.Data.LoadFromTextFile<ModelWithoutColumnAttribute>("fakefile.txt"));
-            Assert.StartsWith($"Field 'String1' is missing the {nameof(LoadColumnAttribute)} attribute", ex.Message);
+            var ex = Assert.Throws<ArgumentOutOfRangeException>(() => mlContext.Data.LoadFromTextFile<ModelWithoutColumnAttribute>("fakefile.txt"));
+            Assert.StartsWith("File does not exist at path: fakefile.txt", ex.Message);
         }
 
         [Fact]

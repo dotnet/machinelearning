@@ -112,6 +112,10 @@ namespace Microsoft.ML
             bool allowSparse = TextLoader.Defaults.AllowSparse)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
+            if (!File.Exists(path))
+            {
+                throw Contracts.ExceptParam(nameof(path), "File does not exist at path: {0}", path);
+            }
 
             var options = new TextLoader.Options
             {
@@ -154,6 +158,10 @@ namespace Microsoft.ML
             bool allowSparse = TextLoader.Defaults.AllowSparse)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
+            if (!File.Exists(path))
+            {
+                throw Contracts.ExceptParam(nameof(path), "File does not exist at path: {0}", path);
+            }
 
             // REVIEW: it is almost always a mistake to have a 'trainable' text loader here.
             // Therefore, we are going to disallow data sample.
@@ -179,6 +187,10 @@ namespace Microsoft.ML
             TextLoader.Options options = null)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
+            if (!File.Exists(path))
+            {
+                throw Contracts.ExceptParam(nameof(path), "File does not exist at path: {0}", path);
+            }
 
             var env = catalog.GetEnvironment();
             var source = new MultiFileSource(path);
