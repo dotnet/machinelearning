@@ -28,6 +28,5 @@
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="CpuMathNative" />
   </ItemGroup>
-  <ItemGroup />
 
 </Project>
