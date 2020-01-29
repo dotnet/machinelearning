@@ -5,13 +5,19 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class TransformInferenceTests
+    public class TransformInferenceTests : BaseTestClass
     {
+        public TransformInferenceTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void TransformInferenceNumAndCatCols()
         {

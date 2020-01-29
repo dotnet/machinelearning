@@ -3,13 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class DatasetDimensionsTests
+    public class DatasetDimensionsTests : BaseTestClass
     {
+        public DatasetDimensionsTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         public object DatasetDimensionUtil { get; private set; }
 
         [Fact]

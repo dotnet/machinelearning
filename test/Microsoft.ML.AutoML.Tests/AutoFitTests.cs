@@ -12,11 +12,17 @@ using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 using static Microsoft.ML.DataOperationsCatalog;
+using Microsoft.ML.TestFramework;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    public class AutoFitTests
+    public class AutoFitTests : BaseTestClass
     {
+        public AutoFitTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void AutoFitBinaryTest()
         {
@@ -194,13 +200,6 @@ namespace Microsoft.ML.AutoML.Test
                 return null;
             }
             return directory;
-        }
-
-        public static string GetDataPath(string name)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-                return null;
-            return Path.GetFullPath(Path.Combine(Path.Combine(GetRepoRoot(), "test", "data"), name));
         }
     }
 }
