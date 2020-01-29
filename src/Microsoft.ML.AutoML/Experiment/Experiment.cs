@@ -112,19 +112,8 @@ namespace Microsoft.ML.AutoML
             {
                 return null;
             }
-            var subdirs = rootDir.Exists ?
-                new HashSet<string>(rootDir.EnumerateDirectories().Select(d => d.Name)) :
-                new HashSet<string>();
-            string experimentDir;
-            for (var i = 0; ; i++)
-            {
-                experimentDir = $"experiment{i}";
-                if (!subdirs.Contains(experimentDir))
-                {
-                    break;
-                }
-            }
-            var experimentDirFullPath = Path.Combine(rootDir.FullName, experimentDir);
+
+            var experimentDirFullPath = Path.Combine(rootDir.FullName, $"experiment_{Path.GetRandomFileName()}");
             var experimentDirInfo = new DirectoryInfo(experimentDirFullPath);
             if (!experimentDirInfo.Exists)
             {

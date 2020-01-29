@@ -91,7 +91,7 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to use for feature selection", Name = "Column", ShortName = "col", SortOrder = 1)]
             public string[] Columns;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for labels", ShortName = "lab",
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Column to use for labels", ShortName = "lab",
                 SortOrder = 4, Purpose = SpecialPurpose.ColumnName)]
             public string LabelColumnName = Defaults.LabelColumnName;
 

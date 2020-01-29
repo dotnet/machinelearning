@@ -61,6 +61,12 @@ namespace Microsoft.ML.Model.OnnxConverter
         public abstract void RemoveVariable(string variableName, bool removeColumn);
 
         /// <summary>
+        /// Removes a variable from the input columns list. This function is used only by the ColumnSelectingTransformer.
+        /// </summary>
+        /// <param name="variableName">ONNX variable to remove. </param>
+        public abstract void RemoveInputVariable(string variableName);
+
+        /// <summary>
         /// ONNX variables are referred to by name. At each stage of a ML.NET pipeline, the corresponding
         /// <see cref="IDataView"/>'s column names will map to a variable in the ONNX graph if the intermediate steps
         /// used to calculate that value are things we knew how to save as ONNX. Retrieves the variable name that maps
@@ -169,6 +175,16 @@ namespace Microsoft.ML.Model.OnnxConverter
         /// <param name="makeUniqueName">Whether a unique name should be picked for this initializer.</param>
         /// <returns>The initializer's ONNX name</returns>
         public abstract string AddInitializer(IEnumerable<long> values, IEnumerable<long> dims, string name = null, bool makeUniqueName = true);
+
+        /// <summary>
+        /// Call this function can declare a global double tensor
+        /// </summary>
+        /// <param name="values">The doubles which are going to be added into the ONNX graph</param>
+        /// <param name="dims">The shape that the doubles</param>
+        /// <param name="name">A string used as a seed to generate this initializer's name in the ONNX graph.</param>
+        /// <param name="makeUniqueName">Whether a unique name should be picked for this initializer.</param>
+        /// <returns>The initializer's ONNX name</returns>
+        public abstract string AddInitializer(IEnumerable<double> values, IEnumerable<long> dims, string name = null, bool makeUniqueName = true);
 
         /// <summary>
         /// Call this function can declare a global string tensor

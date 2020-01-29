@@ -1019,7 +1019,7 @@ namespace Microsoft.ML.Trainers.FastTree
                             _sumTargets += target;
                             _docIndices[nonZeroCount] = i;
 
-                            // orignal code here: nonZeroCount++
+                            // original code here: nonZeroCount++
                             // is a bug and it will cause issue in next several lines of code,
                             // so we move it down to the end of if{} block.
                             if (Weights != null)

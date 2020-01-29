@@ -46,7 +46,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             VBuffer<ReadOnlyMemory<char>> originalLabels = default;
             engine.OutputSchema[nameof(IrisPrediction.Score)].Annotations.GetValue(AnnotationUtils.Kinds.TrainingLabelValues, ref originalLabels);
             // Since we apply MapValueToKey estimator with default parameters, key values
-            // depends on order of occurence in data file. Which is "Iris-setosa", "Iris-versicolor", "Iris-virginica"
+            // depends on order of occurrence in data file. Which is "Iris-setosa", "Iris-versicolor", "Iris-virginica"
             // So if we have Score column equal to [0.2, 0.3, 0.5] that's mean what score for
             // Iris-setosa is 0.2
             // Iris-versicolor is 0.3

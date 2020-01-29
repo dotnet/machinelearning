@@ -653,7 +653,7 @@ namespace Microsoft.ML.Trainers
         /// into a set of buffers.
         /// </summary>
         /// <param name="vectors">A possibly reusable set of vectors, which will
-        /// be expanded as necessary to accomodate the data.</param>
+        /// be expanded as necessary to accommodate the data.</param>
         /// <param name="rank">Set to the rank, which is also the logical length
         /// of <paramref name="vectors"/>.</param>
         public void GetEigenVectors(ref VBuffer<float>[] vectors, out int rank)

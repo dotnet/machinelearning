@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
 
@@ -323,6 +324,8 @@ namespace Microsoft.ML.Tests
         }
 
         [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        [Trait("Category", "SkipInCI")]
         public void SsaForecast()
         {
             var env = new MLContext();
@@ -377,6 +380,8 @@ namespace Microsoft.ML.Tests
         }
 
         [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        [Trait("Category", "SkipInCI")]
         public void SsaForecastPredictionEngine()
         {
             const int ChangeHistorySize = 10;

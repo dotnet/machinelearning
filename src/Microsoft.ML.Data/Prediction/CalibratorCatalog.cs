@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
@@ -220,12 +221,14 @@ namespace Microsoft.ML.Calibrators
                 loaderAssemblyName: typeof(CalibratorTransformer<>).Assembly.FullName);
         }
 
-        private sealed class Mapper<TCalibrator> : MapperBase
+        private sealed class Mapper<TCalibrator> : MapperBase, ISaveAsOnnx
             where TCalibrator : class, ICalibrator
         {
             private TCalibrator _calibrator;
             private readonly int _scoreColIndex;
             private CalibratorTransformer<TCalibrator> _parent;
+
+            bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => _calibrator is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx(ctx) : false;
 
             internal Mapper(CalibratorTransformer<TCalibrator> parent, TCalibrator calibrator, DataViewSchema inputSchema) :
                 base(parent.Host, inputSchema, parent)
@@ -242,6 +245,20 @@ namespace Microsoft.ML.Calibrators
                => col => col == _scoreColIndex;
 
             private protected override void SaveModel(ModelSaveContext ctx) => _parent.SaveModel(ctx);
+
+            void ISaveAsOnnx.SaveAsOnnx(OnnxContext ctx)
+            {
+                var scoreName = InputSchema[_scoreColIndex].Name;
+                var probabilityName = GetOutputColumnsCore()[0].Name;
+                Host.CheckValue(ctx, nameof(ctx));
+                if (_calibrator is ISingleCanSaveOnnx onnx)
+                {
+                    Host.Check(onnx.CanSaveOnnx(ctx), "Cannot be saved as ONNX.");
+                    scoreName = ctx.GetVariableName(scoreName);
+                    probabilityName = ctx.AddIntermediateVariable(NumberDataViewType.Single, probabilityName);
+                    onnx.SaveAsOnnx(ctx, new[] { scoreName, probabilityName }, ""); // No need for featureColumn
+                }
+            }
 
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {

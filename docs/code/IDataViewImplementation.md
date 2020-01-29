@@ -144,12 +144,13 @@ to make it a loader or a transform. If not, it probably does not make sense.
 Let us address something fairly conspicuous. The question almost everyone
 asks, when they first start using `IDataView`: what is up with these getters?
 
-One does not fetch values directly from an `IRow` implementation (including
-`IRowCursor`). Rather, one retains a delegate that can be used to fetch
-objects, through the `GetGetter` method on `IRow`. This delegate is:
+One does not fetch values directly from a `DataViewRow` implementation (including
+`DataViewRowCursor`). Rather, one retains a delegate that can be used to fetch
+objects, through the `GetGetter` method on `DataViewRow`. This delegate is:
 
 ```csharp
 public delegate void ValueGetter<TValue>(ref TValue value);
+
 ```
 
 If you are unfamiliar with delegates, [read
@@ -159,7 +160,7 @@ method, and you use this delegate multiple times to fetch the actual column
 values as you `MoveNext` through the cursor.
 
 Some history to motivate this: In the first version of `IDataView` the
-`IRowCursor` implementation did not actually have these "getters" but rather
+`DataViewRowCursor` implementation (formerly known as `IRowCursor`) did not actually have these "getters" but rather
 had a method, `GetColumnValue<TValue>(int col, ref TValue val)`. However, this
 has the following problems:
 
@@ -191,7 +192,7 @@ values for the same columns, it will apparently be a "consistent" view. It is
 probably obvious what this mean, but specifically:
 
 The cursor as returned through `GetRowCursor` (with perhaps an identically
-constructed `IRandom` instance) in any iteration should return the same number
+constructed `System.Random` instance) in any iteration should return the same number
 of rows on all calls, and with the same values at each row.
 
 Why is this important? Many machine learning algorithms require multiple
@@ -203,7 +204,7 @@ are computed were not consistent? How could a dual algorithm like SDCA
 function with any accuracy, if the examples associated with any given dual
 variable were to change? Consider even a relatively simple transform, like a
 forward looking windowed averager, or anything relating to time series. The
-implementation of those `ICursor` interfaces often open *two* cursors on the
+implementation of those `DataViewRowCursor` interfaces often open *two* cursors on the
 underlying `IDataView`, one "look ahead" cursor used to gather and calculate
 necessary statistics, and another cursor for any data: how could the column
 constructed out of that transform be meaningful of the look ahead cursor was
@@ -249,7 +250,7 @@ data in a consistent way.
 Let us formalize this somewhat. We consider two data views to be functionally
 identical if there is absolutely no way to distinguish them: they return the
 same values, have the same types, same number of rows, they shuffle
-identically given identically constructed `IRandom` when row cursors are
+identically given identically constructed `System.Random` when row cursors are
 constructed, return the same ID for rows from the ID getter, etc. Obviously
 this concept is transitive. (Of course, `Batch` in a cursor might be different
 between the two, but that is the case even with two cursors constructed on the
@@ -348,7 +349,7 @@ feature names are, etc.) when all we have is the data model. (For example, the
 
 # Getters Must Fail for Invalid Types
 
-For a given `IRow`, we must expect that `GetGetter<TValue>(col)` will throw if
+For a given `DataViewRow`, we must expect that `GetGetter<TValue>(col)` will throw if
 either `IsColumnActive(col)` is `false`, or `typeof(TValue) !=
 Schema.GetColumnType(col).RawType`, as indicated in the code documentation.
 But why? It might seem reasonable to add seemingly "harmless" flexibility to
@@ -383,15 +384,15 @@ inconsistency, surprises and bugs for users and developers.
 
 # Thread Safety
 
-Any `IDataView` implementation, as well as the `ISchema`, *must* be thread
+Any `IDataView` implementation, as well as the `DataViewSchema`, *must* be thread
 safe. There is a lot of code that depends on this. For example, cross
 validation works by operating over the same dataset (just, of course, filtered
 to different subsets of the data). That amounts to multiple cursors being
 opened, simultaneously, over the same data.
 
-So: `IDataView` and `ISchema` must be thread safe. However, `IRowCursor`,
+So: `IDataView` and `DataViewSchema` must be thread safe. However, `DataViewRowCursor`,
 being a stateful object, we assume is accessed from exactly one thread at a
-time. The `IRowCursor`s returned through a `GetRowCursorSet`, however, which
+time. The `DataViewRowCursor`s returned through a `GetRowCursorSet`, however, which
 each single one must be accessed by a single thread at a time, multiple
 threads can access this set of cursors simultaneously: that's why we have that
 method in the first place.
@@ -431,10 +432,10 @@ not have been obvious immediately.
 
 # `GetGetter` Returning the Same Delegate
 
-On a single instance of `IRowCursor`, since each `IRowCursor` instance has no
+On a single instance of `DataViewRowCursor`, since each `DataViewRowCursor` instance has no
 requirement to be thread safe, it is entirely legal for a call to `GetGetter`
 on a single column to just return the same getting delegate. It has come to
-pass that the majority of implementations of `IRowCursor` actually do that,
+pass that the majority of implementations of `DataViewRowCursor` actually do that,
 since it is in some ways easier to write the code that way.
 
 This practice has inadvertently enabled a fairly attractive tool for analysis
@@ -447,29 +448,12 @@ do not, but the vast majority do.
 # Class Structuring
 
 The essential attendant classes of an `IDataView` are its schema, as returned
-through the `Schema` property, as well as the `IRowCursor` implementation(s),
+through the `Schema` property, as well as the `DataViewRowCursor` implementation(s),
 as returned through the `GetRowCursor` and `GetRowCursorSet` methods. The
 implementations for those two interfaces are typically nested within the
 `IDataView` implementation itself. The cursor implementation is almost always
 at the bottom of the data view class.
 
-# `IRow` and `ICursor` vs. `IRowCursor`
-
-We have `IRowCursor` which descends from both `IRow` and `ICursor`. Why do
-these other interfaces exist?
-
-Firstly, there are implementations of `IRow` or `ICursor` that are not
-`IRowCursor`s. We have occasionally found it useful to have something
-resembling a key-value store, but that is strongly, dynamically typed in some
-fashion. Why not simply represent this using the same idioms of `IDataView`?
-So we put them in an `IRow`. Similarly: we have several things that behave
-*like* cursors, but that are in no way *row* cursors.
-
-However, more than that, there are a number of utility functions where we want
-to operate over something like an `IRowCursor`, but we want to have some
-indication that this function will not move the cursor (in which case `IRow`
-is helpful), or that will not access any values (in which case `ICursor` is
-helpful).
 
 # Schema
 
@@ -485,8 +469,8 @@ schema's `TryGetColumnIndex`.
 
 Regarding name hiding, the principles mention that when multiple columns have
 the same name, other columns are "hidden." The convention all implementations
-of `ISchema` obey is that the column with the *largest* index. Note however
-that this is merely convention, not part of the definition of `ISchema`.
+of `DataViewSchema` obey is that the column with the *largest* index. Note however
+that this is merely convention, not part of the definition of `DataViewSchema`.
 
 Implementations of `TryGetColumnIndex` should be O(1), that is, practically,
 this mapping ought to be backed with a dictionary in most cases. (There are

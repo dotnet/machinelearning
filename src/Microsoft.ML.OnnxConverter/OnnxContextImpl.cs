@@ -247,6 +247,15 @@ namespace Microsoft.ML.Model.OnnxConverter
             _inputs.Add(OnnxUtils.GetModelArgs(type, colName));
         }
 
+        public override void RemoveInputVariable(string colName)
+        {
+            var variableName = TryGetVariableName(colName);
+            _host.CheckValue(variableName, nameof(variableName));
+
+            RemoveVariable(variableName, true);
+            _inputs.Remove(_inputs.Single(modelArg => modelArg.Name == variableName));
+        }
+
         /// <summary>
         /// Retrieve the shape of an ONNX variable. Returns null if no shape for the specified variable can be found.
         /// </summary>
@@ -310,6 +319,17 @@ namespace Microsoft.ML.Model.OnnxConverter
 
             name = AddVariable(name ?? "int64s", makeUniqueName);
             _initializers.Add(OnnxUtils.MakeInt64s(name, values, dims));
+            return name;
+        }
+
+        public override string AddInitializer(IEnumerable<double> values, IEnumerable<long> dims, string name = null, bool makeUniqueName = true)
+        {
+            _host.CheckValue(values, nameof(values));
+            if (dims != null)
+                _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), "Number of elements doesn't match tensor size");
+
+            name = AddVariable(name ?? "double", makeUniqueName);
+            _initializers.Add(OnnxUtils.MakeDouble(name, values, dims));
             return name;
         }
 

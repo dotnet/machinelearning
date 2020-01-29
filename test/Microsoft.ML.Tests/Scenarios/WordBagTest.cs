@@ -22,7 +22,7 @@ namespace Microsoft.ML.Scenarios
                 new TextData(){ Text = "computing n-grams and their neumeric values." },
                 new TextData(){ Text = "Each position in the output vector corresponds to a particular n-gram." },
                 new TextData(){ Text = "The value at each position corresponds to," },
-                new TextData(){ Text = "the number of times n-gram occured in the data (Tf), or" },
+                new TextData(){ Text = "the number of times n-gram occurred in the data (Tf), or" },
                 new TextData(){ Text = "the inverse of the number of documents contain the n-gram (Idf)," },
                 new TextData(){ Text = "or compute both and multipy together (Tf-Idf)." },
             };
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Scenarios
                 new TextData(){ Text = "computing n-grams and their neumeric values." },
                 new TextData(){ Text = "Each position in the output vector corresponds to a particular n-gram." },
                 new TextData(){ Text = "The value at each position corresponds to," },
-                new TextData(){ Text = "the number of times n-gram occured in the data (Tf), or" },
+                new TextData(){ Text = "the number of times n-gram occurred in the data (Tf), or" },
                 new TextData(){ Text = "the inverse of the number of documents contain the n-gram (Idf)," },
                 new TextData(){ Text = "or compute both and multipy together (Tf-Idf)." },
             };

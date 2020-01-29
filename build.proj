@@ -97,6 +97,11 @@
              Targets="RunTests" />
   </Target>
 
+  <Target Name="RunCITests">
+    <MSBuild Projects="test\run-tests.proj"
+             Targets="RunCITests" />
+  </Target>
+
   <Target Name="RunNightlyBuildTests">
     <MSBuild Projects="test\run-night-build-tests.proj"
              Targets="RunNightlyBuildTests" />

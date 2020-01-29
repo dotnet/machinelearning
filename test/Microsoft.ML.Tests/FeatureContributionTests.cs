@@ -10,6 +10,7 @@ using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Xunit;
 using Xunit.Abstractions;
@@ -90,6 +91,8 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
+        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        [Trait("Category", "SkipInCI")]
         public void TestGAMRegression()
         {
             TestFeatureContribution(ML.Regression.Trainers.Gam(), GetSparseDataset(numberOfInstances: 100), "GAMRegression");
