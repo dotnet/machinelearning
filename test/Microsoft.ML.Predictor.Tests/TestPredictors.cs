@@ -278,7 +278,7 @@ namespace Microsoft.ML.RunTests
         [X64Fact("x86 output differs from Baseline")]
         [TestCategory("Binary")]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
+        [Trait("Category", "RunSpecificTest")]
         public void BinaryClassifierSymSgdTest()
         {
             //Results sometimes go out of error tolerance on OS X.
