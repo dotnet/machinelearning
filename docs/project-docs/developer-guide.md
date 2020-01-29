@@ -70,4 +70,9 @@ We only support 64-bit binaries right now.
 
 During development, there may arise a need to update the current baseline `core_manifest.json` and `core_ep-list.tsv` files.
 
-This is done through running `RegenerateEntryPointCatalog` in `machinelearning/test/Microsoft.ML.Core.Tests/UnitTests/TestEntryPoints.cs`. This can be done by unskipping `RegenerateEntryPointCatalog`, running `RegenerateEntryPointCatalog`, and then pushing the changes to these files.
+Steps:
+1. Unskip the `RegenerateEntryPointCatalog` unit test in `test/Microsoft.ML.Core.Tests/UnitTests/TestEntryPoints.cs`. This can be done by temporarily commenting out the skip attribute on the unit test for `RegenerateEntryPointCatalog` (`[Fact(Skip = "Execute this test if you want to regenerate the core_manifest and core_ep_list files")]`)
+2. Run the unit tests (`build.cmd -runTests`)
+3. Verify the changes to `core_manifest.json` and `core_ep-list.tsv` are correct
+4. Re-enable the skip attribute on the `RegenerateEntryPointCatalog` test
+5. Commit the updated `core_manifest.json` and `core_ep-list.tsv` files to your branch
