@@ -12485,7 +12485,7 @@
           "Name": "CustomGains",
           "Type": {
             "Kind": "Array",
-            "ItemType": "Float"
+            "ItemType": "Int"
           },
           "Desc": "An array of gains associated to each relevance label.",
           "Aliases": [
@@ -12495,18 +12495,18 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": [
-            0.0,
-            3.0,
-            7.0,
-            15.0,
-            31.0,
-            63.0,
-            127.0,
-            255.0,
-            511.0,
-            1023.0,
-            2047.0,
-            4095.0
+            0,
+            3,
+            7,
+            15,
+            31,
+            63,
+            127,
+            255,
+            511,
+            1023,
+            2047,
+            4095
           ]
         },
         {

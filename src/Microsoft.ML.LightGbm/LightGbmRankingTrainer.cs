@@ -129,7 +129,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             /// </summary>
             [Argument(ArgumentType.Multiple, HelpText = "An array of gains associated to each relevance label.", ShortName = "gains")]
             [TGUI(Label = "Ranking Label Gain")]
-            public double[] CustomGains = { 0, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047, 4095 };
+            public int[] CustomGains = { 0, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047, 4095 };
 
             /// <summary>
             /// Parameter for the sigmoid function.
