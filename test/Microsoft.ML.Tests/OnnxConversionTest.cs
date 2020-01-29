@@ -357,7 +357,7 @@ namespace Microsoft.ML.Tests
 
             var mlContext = new MLContext(seed: 1);
             string dataPath = GetDataPath("breast-cancer.txt");
-            // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
+            // // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
             var dataView = mlContext.Data.LoadFromTextFile<BreastCancerBinaryClassification>(dataPath, separatorChar: '\t', hasHeader: true);
             List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
             {
