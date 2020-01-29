@@ -13,8 +13,8 @@ namespace Samples.Dynamic
         /// </summary>
         public static void Example()
         {
-            // This will download an unfrozen (SavedModel format) pre-trained
-            // sentiment model and return the path to the model directory.
+            // Download an unfrozen (SavedModel format) pre-trained sentiment
+            // model and return the path to the model directory.
             string modelLocation = Microsoft.ML.SamplesUtils.DatasetUtils
                 .DownloadTensorFlowSentimentModel();
 
