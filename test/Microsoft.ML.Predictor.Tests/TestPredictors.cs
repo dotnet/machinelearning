@@ -282,8 +282,8 @@ namespace Microsoft.ML.RunTests
         public void BinaryClassifierSymSgdTest()
         {
             //Results sometimes go out of error tolerance on OS X.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                return;
+            //if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            //    return;
 
             RunOneAllTests(TestLearners.symSGD, TestDatasets.breastCancer, summary: true, digitsOfPrecision: 4);
             Done();
