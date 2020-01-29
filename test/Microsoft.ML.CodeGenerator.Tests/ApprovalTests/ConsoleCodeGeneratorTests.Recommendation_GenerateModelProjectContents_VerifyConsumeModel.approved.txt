@@ -21,7 +21,7 @@ namespace TestNamespace.Model
         {
 
             // Create new MLContext
-            MLContext mlContext = new MLContext(1);
+            MLContext mlContext = new MLContext();
 
             // Load model & create prediction engine
             string modelPath = AppDomain.CurrentDomain.BaseDirectory + "MLModel.zip";

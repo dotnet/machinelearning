@@ -42,7 +42,7 @@ namespace TestNamespace.ConsoleApp
         private static ModelInput CreateSingleDataSample(string dataFilePath)
         {
             // Create MLContext
-            MLContext mlContext = new MLContext(1);
+            MLContext mlContext = new MLContext();
 
             // Load dataset
             IDataView dataView = mlContext.Data.LoadFromTextFile<ModelInput>(
