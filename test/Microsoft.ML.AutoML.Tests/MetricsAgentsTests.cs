@@ -5,6 +5,7 @@
 using System;
 using Microsoft.ML.Data;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
