@@ -10,6 +10,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
@@ -222,7 +223,8 @@ namespace Microsoft.ML.Trainers
     /// </summary>
     public sealed class NaiveBayesMulticlassModelParameters :
         ModelParametersBase<VBuffer<float>>,
-        IValueMapper
+        IValueMapper,
+        ISingleCanSaveOnnx
     {
         internal const string LoaderSignature = "MultiClassNaiveBayesPred";
         private static VersionInfo GetVersionInfo()
@@ -251,6 +253,8 @@ namespace Microsoft.ML.Trainers
         DataViewType IValueMapper.InputType => _inputType;
 
         DataViewType IValueMapper.OutputType => _outputType;
+
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
         /// <summary>
         /// Get the label histogram.
@@ -381,6 +385,155 @@ namespace Microsoft.ML.Trainers
 
             ValueMapper<VBuffer<float>, VBuffer<float>> del = Map;
             return (ValueMapper<TIn, TOut>)(Delegate)del;
+        }
+
+        /// <summary>
+        /// Creates an Onnx inferencing model by vectorizing and following the logic found in <see cref="Map"/>
+        /// </summary>
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
+        {
+            float[] featureHistogram = new float[_featureHistogram[0].Length * _labelHistogram.Length];
+            float[] labelHistogramExpanded = new float[_featureHistogram[0].Length * _labelHistogram.Length];
+
+            for (int i = 0; i < _featureHistogram.Length; i++)
+            {
+                Array.Copy(_featureHistogram[i], 0, featureHistogram, i * _featureHistogram[i].Length, _featureHistogram[i].Length);
+            }
+            for (int i = 0; i < _featureHistogram[0].Length; i++)
+            {
+                Array.Copy(_labelHistogram, 0, labelHistogramExpanded, i * _featureHistogram.Length, _featureHistogram.Length);
+            }
+
+            var one = ctx.AddInitializer(1.0f, "one");
+            var zero = ctx.AddInitializer(0.0f, "zero");
+            var labelCount = ctx.AddInitializer((float)_labelCount, "labelCount");
+            var trainingCount = ctx.AddInitializer((float)_totalTrainingCount, "totalTrainingCount");
+            var labelHistogram = ctx.AddInitializer(labelHistogramExpanded.Take(_labelHistogram.Length), new long[] { _labelHistogram.Length, 1 }, "labelHistogram");
+
+            var featureHistogramName = ctx.AddInitializer(featureHistogram, new long[] { _featureHistogram.Length, _featureHistogram[0].Length }, "featureHistogram");
+            var labelHistogramName = ctx.AddInitializer(labelHistogramExpanded, new long[] { _featureHistogram[0].Length, _labelHistogram.Length }, "labelHistogramExpanded");
+            var learnedAbsentFeatureLogProb = ctx.AddInitializer(_absentFeaturesLogProb, new long[] { _absentFeaturesLogProb.Length, 1 }, "absentFeaturesLogProb");
+
+            var greaterOutput = ctx.AddIntermediateVariable(null, "greaterOutput", true);
+            var opType = "Greater";
+            ctx.CreateNode(opType, new[] { featureColumn, zero }, new[] { greaterOutput }, ctx.GetNodeName(opType), "");
+
+            opType = "Cast";
+            var isFeaturePresent = ctx.AddIntermediateVariable(null, "isFeaturePresent", true);
+            var node = ctx.CreateNode(opType, greaterOutput, isFeaturePresent, ctx.GetNodeName(opType), "");
+            var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Single).ToType();
+            node.AddAttribute("to", t);
+
+            //initialize logProb
+            opType = "Div";
+            var divOutput = ctx.AddIntermediateVariable(null, "DivOutput", true);
+            ctx.CreateNode(opType, new[] { labelHistogram, trainingCount }, new[] { divOutput }, ctx.GetNodeName(opType), "");
+
+            opType = "Log";
+            var logOutput = ctx.AddIntermediateVariable(null, "LogOutput", true);
+            ctx.CreateNode(opType, divOutput, logOutput, ctx.GetNodeName(opType), "");
+
+            //log1
+            opType = "Sum";
+            var sumOutput = ctx.AddIntermediateVariable(null, "SumOutput", true);
+            ctx.CreateNode(opType, new[] { featureHistogramName, one }, new[] { sumOutput }, ctx.GetNodeName(opType), "");
+
+            var logOutput1 = ctx.AddIntermediateVariable(null, "LogOutput", true);
+            LogMul(ctx, sumOutput, isFeaturePresent, logOutput1);
+
+            //log2
+            opType = "Transpose";
+            var labelHistogramTrans = ctx.AddIntermediateVariable(null, "transpose", true);
+            ctx.CreateNode(opType, labelHistogramName, labelHistogramTrans, ctx.GetNodeName(opType), "");
+
+            opType = "Sub";
+            var absentFeatureCount = ctx.AddIntermediateVariable(null, "AbsentFeatureCounts", true);
+            ctx.CreateNode(opType, new[] { labelHistogramTrans, featureHistogramName }, new[] { absentFeatureCount }, ctx.GetNodeName(opType), "");
+
+            opType = "Sum";
+            sumOutput = ctx.AddIntermediateVariable(null, "SumOutput", true);
+            ctx.CreateNode(opType, new[] { labelHistogramTrans, labelCount }, new[] { sumOutput }, ctx.GetNodeName(opType), "");
+
+            var logOutput2 = ctx.AddIntermediateVariable(null, "LogOutput", true);
+            LogMul(ctx, sumOutput, isFeaturePresent, logOutput2);
+
+            //log3
+            opType = "Sum";
+            sumOutput = ctx.AddIntermediateVariable(null, "SumOutput", true);
+            ctx.CreateNode(opType, new[] { absentFeatureCount, one }, new[] { sumOutput }, ctx.GetNodeName(opType), "");
+
+            var logOutput3 = ctx.AddIntermediateVariable(null, "LogOutput", true);
+            LogMul(ctx, sumOutput, isFeaturePresent, logOutput3);
+
+            //result
+            opType = "Sub";
+            var logProb = ctx.AddIntermediateVariable(null, "LogProb", true);
+            ctx.CreateNode(opType, new[] { logOutput1, logOutput2 }, new[] { logProb }, ctx.GetNodeName(opType), "");
+
+            opType = "Sub";
+            var absentFeatureLogProb = ctx.AddIntermediateVariable(null, "AbsentFeatureLogProb", true);
+            ctx.CreateNode(opType, new[] { logOutput3, logOutput2 }, new[] { absentFeatureLogProb }, ctx.GetNodeName(opType), "");
+
+            opType = "ReduceSum";
+            var logProbReduceSum = ctx.AddIntermediateVariable(null, "ReduceSum", true);
+            node = ctx.CreateNode(opType, new[] { logProb }, new[] { logProbReduceSum }, ctx.GetNodeName(opType), "");
+            long[] list = { 1 };
+            node.AddAttribute("axes", list);
+
+            opType = "ReduceSum";
+            var absentFeatureLogProbReduceSum = ctx.AddIntermediateVariable(null, "ReduceSum", true);
+            node = ctx.CreateNode(opType, new[] { absentFeatureLogProb }, new[] { absentFeatureLogProbReduceSum }, ctx.GetNodeName(opType), "");
+            node.AddAttribute("axes", list);
+
+            opType = "Cast";
+            var castOutput = ctx.AddIntermediateVariable(null, "CastOutput2", true);
+            node = ctx.CreateNode(opType, learnedAbsentFeatureLogProb, castOutput, ctx.GetNodeName(opType), "");
+            t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Single).ToType();
+            node.AddAttribute("to", t);
+
+            opType = "Sub";
+            var subOutput = ctx.AddIntermediateVariable(null, "SubOutput", true);
+            ctx.CreateNode(opType, new[] { castOutput, absentFeatureLogProbReduceSum }, new[] { subOutput }, ctx.GetNodeName(opType), "");
+
+            opType = "Sum";
+            sumOutput = ctx.AddIntermediateVariable(null, "SumOutput", true);
+            ctx.CreateNode(opType, new[] { subOutput, logProbReduceSum, logOutput }, new[] { sumOutput }, ctx.GetNodeName(opType), "");
+
+            opType = "Transpose";
+            var transposeOutput = ctx.AddIntermediateVariable(null, "TransposeOutput", true);
+            ctx.CreateNode(opType, new[] { sumOutput }, new[] { outputNames[1] }, ctx.GetNodeName(opType), "");
+
+            opType = "ArgMax";
+            var scoreIndex = ctx.AddIntermediateVariable(null, "ScoreIndex", true);
+            ctx.CreateNode(opType, new[] { sumOutput }, new[] { scoreIndex }, ctx.GetNodeName(opType), "");
+
+            opType = "Cast";
+            castOutput = ctx.AddIntermediateVariable(null, "CastOutput3", true);
+            node = ctx.CreateNode(opType, scoreIndex, castOutput, ctx.GetNodeName(opType), "");
+            t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Single).ToType();
+            node.AddAttribute("to", t);
+
+            //log3
+            opType = "Sum";
+            sumOutput = ctx.AddIntermediateVariable(null, "SumOutput", true);
+            ctx.CreateNode(opType, new[] { castOutput, one }, new[] { sumOutput }, ctx.GetNodeName(opType), "");
+
+            opType = "Cast";
+            node = ctx.CreateNode(opType, sumOutput, outputNames[0], ctx.GetNodeName(opType), "");
+            t = InternalDataKindExtensions.ToInternalDataKind(DataKind.UInt32).ToType();
+            node.AddAttribute("to", t);
+
+            return true;
+        }
+
+        private void LogMul(OnnxContext ctx, string input, string isFeaturePresent, string output)
+        {
+            var opType = "Log";
+            var logOutput = ctx.AddIntermediateVariable(null, "LogOutput", true);
+            ctx.CreateNode(opType, input, logOutput, ctx.GetNodeName(opType), "");
+
+            opType = "Mul";
+            ctx.CreateNode(opType, new[] { logOutput, isFeaturePresent }, new[] { output }, ctx.GetNodeName(opType), "");
         }
 
         private void ComputeLabelProbabilityFromFeature(double labelOccurrenceCount, int labelIndex, int featureIndex,

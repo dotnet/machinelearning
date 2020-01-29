@@ -9,6 +9,7 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
@@ -43,6 +44,7 @@ namespace Microsoft.ML.Transforms
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input columns data type | Any |
+    /// | Exportable to ONNX | Yes |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.ColumnSelectingTransformer>
     /// operates on the schema of a given <xref:Microsoft.ML.IDataView> by dropping or keeping selected columns from the schema.
@@ -520,7 +522,7 @@ namespace Microsoft.ML.Transforms
         {
             private readonly IHost _host;
             private readonly DataViewSchema _inputSchema;
-            private readonly int[] _outputToInputMap;
+            public readonly int[] OutputToInputMap;
 
             public DataViewSchema InputSchema => _inputSchema;
 
@@ -531,17 +533,17 @@ namespace Microsoft.ML.Transforms
                 _host = transform._host.Register(nameof(Mapper));
                 _inputSchema = inputSchema;
 
-                _outputToInputMap = BuildOutputToInputMap(transform.SelectColumns,
+                OutputToInputMap = BuildOutputToInputMap(transform.SelectColumns,
                                                             transform.KeepColumns,
                                                             transform.KeepHidden,
                                                             _inputSchema);
-                OutputSchema = GenerateOutputSchema(_outputToInputMap, _inputSchema);
+                OutputSchema = GenerateOutputSchema(OutputToInputMap, _inputSchema);
             }
 
             public int GetInputIndex(int outputIndex)
             {
-                _host.Assert(0 <= outputIndex && outputIndex < _outputToInputMap.Length);
-                return _outputToInputMap[outputIndex];
+                _host.Assert(0 <= outputIndex && outputIndex < OutputToInputMap.Length);
+                return OutputToInputMap[outputIndex];
             }
 
             private static int[] BuildOutputToInputMap(IEnumerable<string> selectedColumns,
@@ -648,7 +650,7 @@ namespace Microsoft.ML.Transforms
             public override bool IsColumnActive(DataViewSchema.Column column) => true;
         }
 
-        private sealed class SelectColumnsDataTransform : IDataTransform, IRowToRowMapper, ITransformTemplate
+        private sealed class SelectColumnsDataTransform : IDataTransform, IRowToRowMapper, ITransformTemplate, ITransformCanSaveOnnx
         {
             private readonly IHost _host;
             private readonly ColumnSelectingTransformer _transform;
@@ -725,6 +727,31 @@ namespace Microsoft.ML.Transforms
 
             IDataTransform ITransformTemplate.ApplyToData(IHostEnvironment env, IDataView newSource)
                 => new SelectColumnsDataTransform(env, _transform, new Mapper(_transform, newSource.Schema), newSource);
+
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
+
+            public void SaveAsOnnx(OnnxContext ctx)
+            {
+                var droppedCols = new HashSet<int>(Enumerable.Range(0, InputSchema.Count));
+
+                var outputToInputMap = _mapper.OutputToInputMap;
+                for(int i = 0; i < outputToInputMap.Length; i++)
+                {
+                    var srcCol = InputSchema[outputToInputMap[i]];
+                    var dstCol = OutputSchema[i];
+                    var srcVariable = ctx.GetVariableName(srcCol.Name);
+                    var dstVariable = ctx.AddIntermediateVariable(dstCol.Type, dstCol.Name, true);
+                    string opType = "Identity";
+                    ctx.CreateNode(opType, srcVariable, dstVariable, ctx.GetNodeName(opType), "");
+
+                    droppedCols.Remove(srcCol.Index);
+                }
+
+                foreach (var srcCol in droppedCols)
+                {
+                    ctx.RemoveInputVariable(InputSchema[srcCol].Name);
+                }
+            }
         }
 
         private sealed class Cursor : SynchronizedCursorBase

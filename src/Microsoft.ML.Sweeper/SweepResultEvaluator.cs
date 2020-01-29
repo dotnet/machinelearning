@@ -20,7 +20,7 @@ namespace Microsoft.ML.Sweeper
     {
         public sealed class Options
         {
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The sweeper used to get the initial results.", ShortName = "m")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The sweeper used to get the initial results.", ShortName = "m")]
             public string Metric = "AUC";
         }
 

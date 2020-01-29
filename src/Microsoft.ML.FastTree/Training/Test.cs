@@ -179,7 +179,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         // This is the info string that represnts the cotent in teh most descriptive fashion
-        // The main diffrence between ConsoleString is always printed. The caller is responsible for deciding if InfoString is InfoString needs to be printed or not
+        // The main difference between ConsoleString is always printed. The caller is responsible for deciding if InfoString is InfoString needs to be printed or not
         public virtual string FormatInfoString()
         {
             var sb = new System.Text.StringBuilder();

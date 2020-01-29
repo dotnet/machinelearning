@@ -1581,10 +1581,10 @@ namespace Microsoft.ML.Calibrators
         [TlcModule.Component(Name = "FixedPlattCalibrator", FriendlyName = "Fixed Platt Calibrator", Aliases = new[] { "FixedPlatt", "FixedSigmoid" })]
         public sealed class Arguments : ICalibratorTrainerFactory
         {
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The slope parameter of f(x) = 1 / (1 + exp(-slope * x + offset)", ShortName = "a")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The slope parameter of f(x) = 1 / (1 + exp(-slope * x + offset)", ShortName = "a")]
             public Double Slope = 1;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The offset parameter of f(x) = 1 / (1 + exp(-slope * x + offset)", ShortName = "b")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The offset parameter of f(x) = 1 / (1 + exp(-slope * x + offset)", ShortName = "b")]
             public Double Offset = 0;
 
             public ICalibratorTrainer CreateComponent(IHostEnvironment env)
@@ -1750,7 +1750,7 @@ namespace Microsoft.ML.Calibrators
             var node = ctx.CreateNode(opType, new[] { scoreProbablityColumnNames[0], slopVar }, new[] { mulNodeOutput }, ctx.GetNodeName(opType), "");
 
             opType = "Add";
-            var betaVar = ctx.AddInitializer(-0.0000001f, "Slope");
+            var betaVar = ctx.AddInitializer((float)(-Offset), "Offset");
             var linearOutput = ctx.AddIntermediateVariable(null, "linearOutput", true);
             node = ctx.CreateNode(opType, new[] { mulNodeOutput, betaVar }, new[] { linearOutput }, ctx.GetNodeName(opType), "");
 

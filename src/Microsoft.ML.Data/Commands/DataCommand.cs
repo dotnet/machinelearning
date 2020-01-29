@@ -50,7 +50,7 @@ namespace Microsoft.ML.Data
             // This is actually an advisory value. The implementations themselves are responsible for
             // determining what they consider appropriate, and the actual heuristics is a bit more
             // complex than just this.
-            [Argument(ArgumentType.LastOccurenceWins, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly,
+            [Argument(ArgumentType.LastOccurrenceWins, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly,
                 HelpText = "Desired degree of parallelism in the data pipeline", ShortName = "n")]
             public int? Parallel;
 

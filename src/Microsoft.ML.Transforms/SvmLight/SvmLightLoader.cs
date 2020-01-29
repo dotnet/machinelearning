@@ -40,7 +40,7 @@ namespace Microsoft.ML.Data
     /// 3. The SVM-light has some restrictions in its format that are unnatural to attempt
     ///    to restrict in the concept of this loader.
     /// 4. Some common "extensions" of this format that have happened over the years are
-    ///    accomodated where sensible, often supported by specifying some options.
+    ///    accommodated where sensible, often supported by specifying some options.
     ///
     /// The SVM-light format can be summarized here. An SVM-light file can lead with any number
     /// of lines starting with '#'. These are discarded.
@@ -689,7 +689,7 @@ namespace Microsoft.ML.Data
                     var values = result.GetValues();
                     for (int i = 0; i < values.Length; ++i)
                     {
-                        if (!parser(in values[i], out var val))
+                        if (!parser(in values[i], out var val) || val > int.MaxValue)
                         {
                             missingCount++;
                             continue;
@@ -700,17 +700,10 @@ namespace Microsoft.ML.Data
                     }
                 }
                 if (missingCount > 0)
-                    ch.Warning("{0} of {1} detected keys were missing or unparsable", missingCount, count + missingCount);
+                    ch.Warning($"{missingCount} of {count + missingCount} detected keys were missing, unparsable or greater than {int.MaxValue}");
                 if (count == 0)
                     throw ch.Except("No int parsable keys found during key transform inference");
                 ch.Info("Observed max was {0}", keyMax);
-
-                if (keyMax > int.MaxValue)
-                {
-                    // Similarly for missing values/misparses, warn, but don't error.
-                    ch.Warning("Indices above {0} will be ignored.", int.MaxValue);
-                    keyMax = int.MaxValue;
-                }
             }
             return (uint)keyMax;
         }

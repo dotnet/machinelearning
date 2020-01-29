@@ -603,7 +603,10 @@ namespace Microsoft.ML.Vision
                     (string)labelType.ToString());
             }
 
-            _classCount = labelCount == 1 ? 2 : (int)labelCount;
+            var msg = $"Only one class found in the {_options.LabelColumnName} column. To build a multiclass classification model, the number of classes needs to be 2 or greater";
+            Contracts.CheckParam(labelCount > 1, nameof(labelCount), msg);
+
+            _classCount = (int)labelCount;
             var imageSize = ImagePreprocessingSize[_options.Arch];
             _session = LoadTensorFlowSessionFromMetaGraph(Host, _options.Arch).Session;
             _session.graph.as_default();
@@ -835,6 +838,7 @@ namespace Microsoft.ML.Vision
                 metrics.Bottleneck.DatasetUsed = dataset;
                 while (cursor.MoveNext())
                 {
+                    CheckAlive();
                     labelGetter(ref label);
                     imageGetter(ref image);
                     if (image.Length <= 0)
@@ -888,6 +892,7 @@ namespace Microsoft.ML.Vision
 
             foreach (var row in featurizedImages)
             {
+                CheckAlive();
                 writer.WriteLine(row.Item1 + "," + string.Join(",", row.Item2));
                 labels[0] = row.Item1;
                 for (int index = 0; index < sizeof(long); index++)
@@ -992,6 +997,7 @@ namespace Microsoft.ML.Vision
 
                 for (int epoch = 0; epoch < epochs; epoch += 1)
                 {
+                    CheckAlive();
                     // Train.
                     TrainAndEvaluateClassificationLayerCore(epoch, learningRate, featureFileStartOffset,
                         metrics, labelTensorShape, featureTensorShape, batchSize,
@@ -1116,6 +1122,19 @@ namespace Microsoft.ML.Vision
                 metrics.Train.BatchProcessedCount += 1;
                 metricsAggregator(outputTensors, metrics);
                 trainState.CurrentBatchIndex += 1;
+            }
+        }
+
+        private void CheckAlive()
+        {
+            try
+            {
+                Host.CheckAlive();
+            }
+            catch(OperationCanceledException)
+            {
+                TryCleanupTemporaryWorkspace();
+                throw;
             }
         }
 

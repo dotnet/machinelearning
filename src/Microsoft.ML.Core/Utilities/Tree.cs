@@ -11,7 +11,7 @@ namespace Microsoft.ML.Internal.Utilities
     /// <summary>
     /// The tree structure is simultaneously a tree, and a node in a tree. The interface to
     /// get children occurs through the tree itself implementing itself as a dictionary. This
-    /// tree is not terribly efficient, and is meant to be accomodate additions, deletions,
+    /// tree is not terribly efficient, and is meant to be accommodate additions, deletions,
     /// and change of values. Because it is implemented as a dictionary, there is an unfortunate
     /// collision in naming between the dictionary type of "values" (which in this case are
     /// child trees) and the tree type of values, called "node values."

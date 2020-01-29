@@ -37,7 +37,7 @@ namespace Microsoft.ML.Trainers.FastTree
             /// <summary>
             /// The entropy (regularization) coefficient between 0 and 1.
             /// </summary>
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The entropy (regularization) coefficient between 0 and 1", ShortName = "e")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The entropy (regularization) coefficient between 0 and 1", ShortName = "e")]
             public double EntropyCoefficient;
 
             /// <summary>
@@ -47,13 +47,13 @@ namespace Microsoft.ML.Trainers.FastTree
             /// Value of 0.95 would mean restricting to gains that have less than a 0.05 chance of being generated randomly through choice of a random split.
             /// Valid range is [0,1).
             /// </value>
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Tree fitting gain confidence requirement (should be in the range [0,1) ).", ShortName = "gainconf")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Tree fitting gain confidence requirement (should be in the range [0,1) ).", ShortName = "gainconf")]
             public int GainConfidenceLevel;
 
             /// <summary>
             /// Total number of passes over the training data.
             /// </summary>
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Total number of iterations over all features", ShortName = "iter", SortOrder = 1)]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Total number of iterations over all features", ShortName = "iter", SortOrder = 1)]
             [TGUI(SuggestedSweeps = "200,1500,9500")]
             [TlcModule.SweepableDiscreteParamAttribute("NumIterations", new object[] { 200, 1500, 9500 })]
             public int NumberOfIterations = GamDefaults.NumberOfIterations;
@@ -61,13 +61,13 @@ namespace Microsoft.ML.Trainers.FastTree
             /// <summary>
             /// The number of threads to use.
             /// </summary>
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The number of threads to use", ShortName = "t", NullName = "<Auto>")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The number of threads to use", ShortName = "t", NullName = "<Auto>")]
             public int? NumberOfThreads = null;
 
             /// <summary>
             /// The learning rate.
             /// </summary>
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The learning rate", ShortName = "lr", SortOrder = 4)]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The learning rate", ShortName = "lr", SortOrder = 4)]
             [TGUI(SuggestedSweeps = "0.001,0.1;log")]
             [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.001f, 0.1f, isLogScale: true)]
             public double LearningRate = GamDefaults.LearningRate;
@@ -75,13 +75,13 @@ namespace Microsoft.ML.Trainers.FastTree
             /// <summary>
             /// Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose.
             /// </summary>
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose", ShortName = "dt")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose", ShortName = "dt")]
             public bool? DiskTranspose;
 
             /// <summary>
             /// The maximum number of distinct values (bins) per feature.
             /// </summary>
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum number of distinct values (bins) per feature", ShortName = "mb")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Maximum number of distinct values (bins) per feature", ShortName = "mb")]
             public int MaximumBinCountPerFeature = GamDefaults.MaximumBinCountPerFeature;
 
             /// <summary>
@@ -99,13 +99,13 @@ namespace Microsoft.ML.Trainers.FastTree
             /// <summary>
             /// The seed of the random number generator.
             /// </summary>
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The seed of the random number generator", ShortName = "r1")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The seed of the random number generator", ShortName = "r1")]
             public int Seed = 123;
 
             /// <summary>
             /// The minimal number of data points required to form a new tree leaf.
             /// </summary>
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum number of training instances required to form a partition", ShortName = "mi", SortOrder = 3)]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Minimum number of training instances required to form a partition", ShortName = "mi", SortOrder = 3)]
             [TGUI(SuggestedSweeps = "1,10,50")]
             [TlcModule.SweepableDiscreteParamAttribute("MinDocuments", new object[] { 1, 10, 50 })]
             public int MinimumExampleCountPerLeaf = 10;
@@ -113,7 +113,7 @@ namespace Microsoft.ML.Trainers.FastTree
             /// <summary>
             /// Whether to collectivize features during dataset preparation to speed up training.
             /// </summary>
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether to collectivize features during dataset preparation to speed up training", ShortName = "flocks", Hide = true)]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Whether to collectivize features during dataset preparation to speed up training", ShortName = "flocks", Hide = true)]
             public bool FeatureFlocks = true;
 
             /// <summary>
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         internal const string Summary = "Trains a gradient boosted stump per feature, on all features simultaneously, " +
-                                         "to fit target values using least-squares. It mantains " +
+                                         "to fit target values using least-squares. It maintains " +
                                          "no interactions between features.";
         private const string RegisterName = "GamTraining";
 

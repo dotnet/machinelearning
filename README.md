@@ -86,6 +86,10 @@ To build ML.NET from source please visit our [developers guide](docs/project-doc
 |**Windows x86**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x86_NetCoreApp21&configuration=Windows_x86_NetCoreApp21%20Debug_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x86_NetCoreApp21&configuration=Windows_x86_NetCoreApp21%20Release_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|
 |**Windows NetCore3.0**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x64_NetCoreApp30&configuration=Windows_x64_NetCoreApp30%20Debug_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x64_NetCoreApp30&configuration=Windows_x64_NetCoreApp30%20Release_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|
 
+## Release process and versioning
+
+Check out the [release process documentation](docs/release-notes) to understand the different kinds of ML.NET releases.
+
 ## Contributing
 
 We welcome contributions! Please review our [contribution guide](CONTRIBUTING.md).
