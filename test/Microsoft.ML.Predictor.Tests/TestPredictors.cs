@@ -275,7 +275,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [X64Fact("x86 output differs from Baseline")]
+        [Fact]
         [TestCategory("Binary")]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         [Trait("Category", "RunSpecificTest")]
