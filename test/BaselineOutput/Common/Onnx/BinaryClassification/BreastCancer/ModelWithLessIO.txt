@@ -777,7 +777,7 @@
           "PredictedLabel"
         ],
         "output": [
-          "PredictedLabel0"
+          "PredictedLabel.onnx"
         ],
         "name": "Identity",
         "opType": "Identity"
@@ -787,7 +787,7 @@
           "Score"
         ],
         "output": [
-          "Score0"
+          "Score.onnx"
         ],
         "name": "Identity0",
         "opType": "Identity"
@@ -797,7 +797,7 @@
           "Probability"
         ],
         "output": [
-          "Probability0"
+          "Probability.onnx"
         ],
         "name": "Identity1",
         "opType": "Identity"
@@ -860,7 +860,7 @@
     ],
     "output": [
       {
-        "name": "PredictedLabel0",
+        "name": "PredictedLabel.onnx",
         "type": {
           "tensorType": {
             "elemType": 9,
@@ -878,7 +878,7 @@
         }
       },
       {
-        "name": "Score0",
+        "name": "Score.onnx",
         "type": {
           "tensorType": {
             "elemType": 1,
@@ -896,7 +896,7 @@
         }
       },
       {
-        "name": "Probability0",
+        "name": "Probability.onnx",
         "type": {
           "tensorType": {
             "elemType": 1,

@@ -37,7 +37,7 @@
           "Features"
         ],
         "output": [
-          "Features0"
+          "Features.onnx"
         ],
         "name": "Identity",
         "opType": "Identity"
@@ -47,7 +47,7 @@
           "MissingIndicator0"
         ],
         "output": [
-          "MissingIndicator1"
+          "MissingIndicator.onnx"
         ],
         "name": "Identity0",
         "opType": "Identity"
@@ -76,7 +76,7 @@
     ],
     "output": [
       {
-        "name": "Features0",
+        "name": "Features.onnx",
         "type": {
           "tensorType": {
             "elemType": 1,
@@ -94,7 +94,7 @@
         }
       },
       {
-        "name": "MissingIndicator1",
+        "name": "MissingIndicator.onnx",
         "type": {
           "tensorType": {
             "elemType": 6,
