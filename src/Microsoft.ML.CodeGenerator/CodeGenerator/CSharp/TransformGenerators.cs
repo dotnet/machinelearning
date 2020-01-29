@@ -330,6 +330,24 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         }
     }
 
+    internal class ImageLoadingRawBytes : TransformGeneratorBase
+    {
+        public ImageLoadingRawBytes(PipelineNode node) : base(node)
+        {
+        }
+
+        internal override string MethodName => "LoadRawImageBytes";
+
+        public override string GenerateTransformer()
+        {
+            string inputColumn = InputColumns.Count() == 1 ? InputColumns[0] : throw new Exception($"input columns for the suggested transform: {MethodName} is not exactly one.");
+            string outputColumn = OutputColumns.Count() == 1 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} it not exactly one.");
+
+            // example: Transforms.LoadImages(output, inputfolder, input)
+            return $"{MethodName}({outputColumn}, {@"null"}, {inputColumn})";
+        }
+    }
+
     internal class ImageLoading : TransformGeneratorBase
     {
         public ImageLoading(PipelineNode node) : base(node)
