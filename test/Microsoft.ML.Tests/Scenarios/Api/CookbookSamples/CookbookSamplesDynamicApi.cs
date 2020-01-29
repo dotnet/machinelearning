@@ -221,16 +221,16 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
         [Theory]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        // [Trait("Category", "SkipInCI")]
-        [IterationData(iterations: 100)]
+        [Trait("Category", "RunSpecificTest")]
+        [IterationData(iterations: 1000)]
         public void TrainAndPredictOnIris(int iteration)
         {
-            Console.WriteLine($"{iteration}");
             PredictOnIris(TrainOnIris(GetDataPath("iris.data")));
 
-            if(iteration == 99)
+            if(iteration % 100 == 0)
             {
-                Environment.FailFast("Crash on purpose here to take dump!");
+                Console.WriteLine($"{iteration}");
+                // Environment.FailFast("Crash on purpose here to take dump!");
             }
         }
 
