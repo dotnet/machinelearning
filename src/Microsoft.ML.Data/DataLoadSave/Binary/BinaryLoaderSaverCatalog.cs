@@ -47,6 +47,10 @@ namespace Microsoft.ML
         public static IDataView LoadFromBinary(this DataOperationsCatalog catalog, string path)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
+            if (!File.Exists(path))
+            {
+                throw Contracts.ExceptParam(nameof(path), "File does not exist at path: {0}", path);
+            }
 
             var env = catalog.GetEnvironment();
 
