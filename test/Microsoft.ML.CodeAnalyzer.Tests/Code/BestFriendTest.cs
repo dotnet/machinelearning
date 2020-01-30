@@ -59,7 +59,6 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
                 TestState =
                 {
                     Sources = { SourceUser.Value },
-                    AdditionalReferences = { MetadataReference.CreateFromFile(typeof(Console).Assembly.Location) },
                 },
                 SolutionTransforms =
                 {
@@ -70,7 +69,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
                         projectA = projectA.AddDocument("BestFriendDeclaration.cs", SourceDeclaration.Value).Project;
                         projectA = projectA.WithParseOptions(((CSharpParseOptions)projectA.ParseOptions).WithLanguageVersion(LanguageVersion.CSharp7_2));
                         projectA = projectA.WithCompilationOptions(projectA.CompilationOptions.WithOutputKind(OutputKind.DynamicallyLinkedLibrary));
-                        projectA = projectA.WithMetadataReferences(solution.GetProject(projectId).MetadataReferences.Concat(test.TestState.AdditionalReferences));
+                        projectA = projectA.WithMetadataReferences(solution.GetProject(projectId).MetadataReferences);
                         solution = projectA.Solution;
 
                         solution = solution.AddProjectReference(projectId, new ProjectReference(projectA.Id));
@@ -83,10 +82,10 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 
             // Remove these assemblies, or an additional definition of BestFriendAttribute could exist and the
             // compilation will not be able to locate a single definition for use in the analyzer.
-            test.TestState.AdditionalReferences.Remove(AdditionalMetadataReferences.MLNetCoreReference);
-            test.TestState.AdditionalReferences.Remove(AdditionalMetadataReferences.MLNetDataReference);
+            Assert.True(test.TestState.AdditionalReferences.Remove(AdditionalMetadataReferences.MLNetCoreReference));
+            Assert.True(test.TestState.AdditionalReferences.Remove(AdditionalMetadataReferences.MLNetDataReference));
 
-            test.Exclusions &= ~AnalysisExclusions.GeneratedCode;
+            test.TestBehaviors |= TestBehaviors.SkipGeneratedCodeCheck;
             test.ExpectedDiagnostics.AddRange(expected);
             await test.RunAsync();
         }

@@ -59,9 +59,8 @@ namespace Microsoft.ML.CodeAnalyzer.Tests.Helpers
         {
             public Test()
             {
-                TestState.AdditionalReferences.Add(AdditionalMetadataReferences.StandardReference);
-                TestState.AdditionalReferences.Add(AdditionalMetadataReferences.RuntimeReference);
-                TestState.AdditionalReferences.Add(AdditionalMetadataReferences.CSharpSymbolsReference);
+                ReferenceAssemblies = AdditionalMetadataReferences.DefaultReferenceAssemblies;
+
                 TestState.AdditionalReferences.Add(AdditionalMetadataReferences.MSDataDataViewReference);
                 TestState.AdditionalReferences.Add(AdditionalMetadataReferences.MLNetCoreReference);
                 TestState.AdditionalReferences.Add(AdditionalMetadataReferences.MLNetDataReference);
