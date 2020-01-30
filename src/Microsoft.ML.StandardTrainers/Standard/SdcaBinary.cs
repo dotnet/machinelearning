@@ -412,6 +412,8 @@ namespace Microsoft.ML.Trainers
                 }
             }
 
+            Console.WriteLine($"Value of count: {count}");
+
             if (needLookup)
             {
                 // Note: At this point, 'count' may be less than the actual count of training examples.
@@ -529,7 +531,6 @@ namespace Microsoft.ML.Trainers
                 }
                 else
                 {
-                    Console.WriteLine($"Value of count: {count}");
                     Contracts.Assert(dualsLength <= MaxDualTableSize);
                     duals = new BigArrayDualsTable(count);
                 }
