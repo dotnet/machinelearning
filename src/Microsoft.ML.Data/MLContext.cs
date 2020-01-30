@@ -131,9 +131,7 @@ namespace Microsoft.ML
             if (log == null)
                 return;
 
-            var msg = $"[Source={source.FullName}, Kind={message.Kind}] {message.Message}";
-
-            log(this, new LoggingEventArgs(msg));
+            log(this, new LoggingEventArgs(message.Message, message.Kind, source.FullName));
         }
 
         string IExceptionContext.ContextDescription => _env.ContextDescription;
