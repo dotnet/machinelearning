@@ -74,7 +74,7 @@ During development, there may arise a need to update the current baseline `core_
 
 Steps to update `core_manifest.json` and `core_ep-list.tsv`:
 1. Unskip the `RegenerateEntryPointCatalog` unit test in `test/Microsoft.ML.Core.Tests/UnitTests/TestEntryPoints.cs`. This can be done by temporarily commenting out the skip attribute on the unit test for `RegenerateEntryPointCatalog` (`[Fact(Skip = "Execute this test if you want to regenerate the core_manifest and core_ep_list files")]`).
-2. Run the unit tests `build.cmd -runTests`.
+2. Run the unit tests `build.cmd -runTests` (alternatively, run the `RegenerateEntryPointCatalog` unit test natively on Visual Studio through the Test Explorer or through Shortcuts by clicking on `RegenerateEntryPointCatalog` in `test/Microsoft.ML.Core.Tests/UnitTests/TestEntryPoints.cs` and pressing Ctrl+R,T).
 3. Verify the changes to `core_manifest.json` and `core_ep-list.tsv` are correct.
 4. Re-enable the skip attribute on the `RegenerateEntryPointCatalog` test.
 5. Commit the updated `core_manifest.json` and `core_ep-list.tsv` files to your branch.
