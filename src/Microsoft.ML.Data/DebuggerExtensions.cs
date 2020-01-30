@@ -41,6 +41,8 @@ namespace Microsoft.ML
         public static DataDebuggerPreview Preview(this IEstimator<ITransformer> estimator, IDataView data, int maxRows = DataDebuggerPreview.Defaults.MaxRows,
             int maxTrainingRows = DataDebuggerPreview.Defaults.MaxRows)
         {
+            System.Console.WriteLine($"thread: {System.Threading.Thread.CurrentThread.ManagedThreadId} - maxTrainingRows: {maxTrainingRows}");
+
             Contracts.CheckValue(estimator, nameof(estimator));
             Contracts.CheckValue(data, nameof(data));
             Contracts.CheckParam(maxRows >= 0, nameof(maxRows));

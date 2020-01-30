@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -412,8 +413,6 @@ namespace Microsoft.ML.Trainers
                 }
             }
 
-            Console.WriteLine($"Value of count: {count}");
-
             if (needLookup)
             {
                 // Note: At this point, 'count' may be less than the actual count of training examples.
@@ -561,7 +560,9 @@ namespace Microsoft.ML.Trainers
             // If we favor storing the invariants, precompute the invariants now.
             if (invariants != null)
             {
-                Console.WriteLine($"Value of invariants.Length: {invariants.Length}");
+                var threadid = Thread.CurrentThread.ManagedThreadId;
+                Console.WriteLine($"thread: {threadid} count: {count}, invariants.Length: {invariants.Length}");
+
                 Contracts.Assert((idToIdx == null & ((long)idLoMax + 1) * weightSetCount <= Utils.ArrayMaxSize) | (idToIdx != null & count * weightSetCount <= Utils.ArrayMaxSize));
                 Func<DataViewRowId, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
                 int invariantCoeff = weightSetCount == 1 ? 1 : 2;
