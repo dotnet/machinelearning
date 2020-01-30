@@ -7,6 +7,7 @@ parameters:
   codeCoverage: false
   nightlyBuild: false
   innerLoop: false
+  runSpecific: false
   container: ''
 
 jobs:
@@ -66,8 +67,12 @@ jobs:
       - script: ${{ parameters.buildScript }} -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=$(_includeBenchmarkData)
         displayName: Download Benchmark Data
       - ${{ if eq(parameters.innerLoop, 'false') }}:
-        - script: ${{ parameters.buildScript }} -$(_configuration) -runtests -coverage=${{ parameters.codeCoverage }}
-          displayName: Run All Tests.
+        - ${{ if eq(parameters.runSpecific, 'false') }}:
+          - script: ${{ parameters.buildScript }} -$(_configuration) -runtests -coverage=${{ parameters.codeCoverage }}
+            displayName: Run All Tests.
+        - ${{ if eq(parameters.runSpecific, 'true') }}:
+          - script: ${{ parameters.buildScript }} -$(_configuration) -runSpecificTests -coverage=${{ parameters.codeCoverage }}
+            displayName: Run Specific Tests.
       - ${{ if eq(parameters.innerLoop, 'true') }}:
         - script: ${{ parameters.buildScript }} -$(_configuration) -runCITests -coverage=${{ parameters.codeCoverage }}
           displayName: Run CI Tests.
