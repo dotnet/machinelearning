@@ -599,9 +599,7 @@ namespace Microsoft.ML.Tests.Transformers
             var est = new WordBagEstimator(ML, "bag_of_words", "text").
                 Append(new WordHashBagEstimator(ML, "bag_of_wordshash", "text", maximumNumberOfInverts: -1));
 
-            // The following call fails because of the following issue
-            // https://github.com/dotnet/machinelearning/issues/969
-            // TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
+            TestEstimatorCore(est, data, invalidInput: invalidData);
 
             var outputPath = GetOutputPath("Text", "bag_of_words.tsv");
             var savedData = ML.Data.TakeRows(est.Fit(data).Transform(data), 4);
@@ -686,10 +684,11 @@ namespace Microsoft.ML.Tests.Transformers
                 Append(new LatentDirichletAllocationEstimator(env, "topics", "bag_of_words", 10, maximumNumberOfIterations: 10,
                     resetRandomGenerator: true));
 
-            // The following call fails because of the following issue
-            // https://github.com/dotnet/machinelearning/issues/969
-            // In this test it manifests because of the WordBagEstimator in the estimator chain
-            // TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
+            // Diabling this check due to the following issue with consitency of output.
+            // `seed` specified in ConsoleEnvironment has no effect.
+            // https://github.com/dotnet/machinelearning/issues/1004
+            // On single box, setting `s.ResetRandomGenerator = true` works but fails on build server
+            // TestEstimatorCore(est, data, invalidInput: invalidData);
 
             var outputPath = GetOutputPath("Text", "ldatopics.tsv");
             using (var ch = env.Start("save"))
@@ -763,6 +762,22 @@ namespace Microsoft.ML.Tests.Transformers
                 Assert.Equal(input.Sentiment, prediction.Sentiment);
                 Assert.True(input.Sentiment && prediction.Score > 1 || !input.Sentiment && prediction.Score < -1);
             }
+        }
+
+        [Fact]
+        public void TestWordBagInPipeline()
+        {
+            string dataPath = GetDataPath("breast-cancer.txt");
+            var dataView = ML.Data.LoadFromTextFile(dataPath, new[] {
+                new TextLoader.Column("Label", DataKind.Boolean, 0),
+                new TextLoader.Column("Features", DataKind.String, 1, 9)
+            });
+
+            var pipeline = ML.Transforms.Text.ProduceWordBags("Features")
+                .Append(ML.BinaryClassification.Trainers.FastTree());
+
+            TestEstimatorCore(pipeline, dataView);
+            Done();
         }
     }
 }

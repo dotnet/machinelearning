@@ -13,6 +13,8 @@ namespace Samples.Dynamic
         /// </summary>
         public static void Example()
         {
+            // Download an unfrozen (SavedModel format) pre-trained sentiment
+            // model and return the path to the model directory.
             string modelLocation = Microsoft.ML.SamplesUtils.DatasetUtils
                 .DownloadTensorFlowSentimentModel();
 
@@ -55,6 +57,9 @@ namespace Samples.Dynamic
             //      - Use it for quering the schema for input and output in the
             //            model
             //      - Use it for prediction in the pipeline.
+            // Unfrozen (SavedModel format) models are loaded by providing the
+            // path to the directory containing the model file and other model
+            // artifacts like pre-trained weights.
             var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(
                 modelLocation);
             var schema = tensorFlowModel.GetModelSchema();
