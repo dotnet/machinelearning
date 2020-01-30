@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -22,6 +23,7 @@ using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
+using Xunit;
 
 [assembly: LoadableClass(typeof(LegacySdcaBinaryTrainer), typeof(LegacySdcaBinaryTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -314,6 +316,22 @@ namespace Microsoft.ML.Trainers
             return VectorUtils.DotProduct(in weights, in features) + bias;
         }
 
+        private string GetTestName()
+        {
+            var stackTrace = new StackTrace();
+            foreach(var stackFrame in stackTrace.GetFrames())
+            {
+                var methodBase = stackFrame.GetMethod();
+                var atts = methodBase.GetCustomAttributes(typeof(FactAttribute), false);
+                if(atts.Length >= 1)
+                {
+                    return methodBase.Name;
+                }
+            }
+
+            return "NoName";
+        }
+
         private protected sealed override TModel TrainCore(IChannel ch, RoleMappedData data, LinearModelParameters predictor, int weightSetCount)
         {
             Contracts.Assert(predictor == null, "SDCA based trainers don't support continuous training.");
@@ -560,8 +578,10 @@ namespace Microsoft.ML.Trainers
             // If we favor storing the invariants, precompute the invariants now.
             if (invariants != null)
             {
+                var currentTestName = GetTestName();
                 var threadid = Thread.CurrentThread.ManagedThreadId;
-                Console.WriteLine($"thread: {threadid} count: {count}, invariants.Length: {invariants.Length}");
+
+                Console.WriteLine($"test: {currentTestName} - thread: {threadid} count: {count}, invariants.Length: {invariants.Length}");
 
                 Contracts.Assert((idToIdx == null & ((long)idLoMax + 1) * weightSetCount <= Utils.ArrayMaxSize) | (idToIdx != null & count * weightSetCount <= Utils.ArrayMaxSize));
                 Func<DataViewRowId, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
