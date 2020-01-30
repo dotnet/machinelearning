@@ -109,8 +109,7 @@ namespace Microsoft.ML.RunTests
 
         private void LogTestOutput(object sender, LoggingEventArgs e)
         {
-            var msg = $"[Source={e.Source}, Kind={e.Kind}] {e.Message}";
-            Output.WriteLine(msg);
+            Output.WriteLine(e.Message);
         }
 
         // This method is used by subclass to dispose of disposable objects

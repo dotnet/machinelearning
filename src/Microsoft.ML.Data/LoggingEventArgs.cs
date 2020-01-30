@@ -29,9 +29,10 @@ namespace Microsoft.ML
         /// <param name="source"> The source of the message </param>
         public LoggingEventArgs(string message, ChannelMessageKind kind, string source)
         {
-            Message = message;
+            RawMessage = message;
             Kind = kind;
             Source = source;
+            Message = $"[Source={Source}, Kind={Kind}] {RawMessage}";
         }
 
         /// <summary>
@@ -48,5 +49,10 @@ namespace Microsoft.ML
         /// Gets the message being logged.
         /// </summary>
         public string Message { get; }
+
+        /// <summary>
+        /// Gets the original message that doesn't include the source and kind
+        /// </summary>
+        public string RawMessage { get; }
     }
 }
