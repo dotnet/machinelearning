@@ -221,7 +221,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
         [Theory]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        //[Trait("Category", "RunSpecificTest")]
+        [Trait("Category", "RunSpecificTest")]
         [IterationData(iterations: 100)]
         public void TrainAndPredictOnIris(int iteration)
         {
