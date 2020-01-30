@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.ML;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 
 namespace Microsoft.Extensions.ML
@@ -29,7 +30,7 @@ namespace Microsoft.Extensions.ML
             Assert.Throws<InvalidOperationException>(() => loaderUnderTest.GetReloadToken());
         }
 
-        [Fact]
+        [RetryFact(MaxRetries = 3)]
         public void can_reload_model()
         {
             var services = new ServiceCollection()
