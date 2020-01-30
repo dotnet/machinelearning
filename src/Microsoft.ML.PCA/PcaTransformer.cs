@@ -629,7 +629,7 @@ namespace Microsoft.ML.Transforms
 
                 // When the transformer is loaded from a model file,
                 // _schemaInfos does not exist. Infer the input type
-                // from the transformInfo dimension. 
+                // from the transformInfo dimension.
                 DataViewType inputType = (_parent._schemaInfos != null) ?
                                           _parent._schemaInfos[iinfo].InputType :
                                           new VectorDataViewType(NumberDataViewType.Single, transformInfo.Dimension);
