@@ -3,3 +3,26 @@ root = true
 [*.cs]
 # Sort using directives with System.* appearing first
 dotnet_sort_system_directives_first = true
+
+[test/**/*.cs]
+
+# MSML_GeneralName: This name should be PascalCased
+dotnet_diagnostic.MSML_GeneralName.severity = none
+
+# MSML_PrivateFieldName: Private field name not in: _camelCase format
+dotnet_diagnostic.MSML_PrivateFieldName.severity = none
+
+# MSML_SingleVariableDeclaration: Have only a single variable present per declaration
+dotnet_diagnostic.MSML_SingleVariableDeclaration.severity = none
+
+# MSML_NoBestFriendInternal: Cross-assembly internal access requires referenced item to have Microsoft.ML.BestFriendAttribute attribute.
+dotnet_diagnostic.MSML_NoBestFriendInternal.severity = none
+
+# MSML_NoInstanceInitializers: No initializers on instance fields or properties
+dotnet_diagnostic.MSML_NoInstanceInitializers.severity = none
+
+# MSML_ParameterLocalVarName: Parameter or local variable name not standard
+dotnet_diagnostic.MSML_ParameterLocalVarName.severity = none
+
+# MSML_TypeParamName: Type parameter name not standard
+dotnet_diagnostic.MSML_TypeParamName.severity = none
