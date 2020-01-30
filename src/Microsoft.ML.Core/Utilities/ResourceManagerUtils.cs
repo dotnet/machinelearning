@@ -114,7 +114,7 @@ namespace Microsoft.ML.Internal.Utilities
         }
 
         private string DownloadFromUrlWithRetry(IHostEnvironment env, IChannel ch, string url, string fileName,
-            int timeout, string filePath, int retryTimes = 3)
+            int timeout, string filePath, int retryTimes = 5)
         {
             var downloadResult = "";
 
@@ -126,6 +126,9 @@ namespace Microsoft.ML.Internal.Utilities
                     return thisDownloadResult;
                 else
                     downloadResult += thisDownloadResult + @"\n";
+
+                Random random = new Random();
+                Thread.Sleep(random.Next(1, 60) * 1000);
             }
 
             return downloadResult;
