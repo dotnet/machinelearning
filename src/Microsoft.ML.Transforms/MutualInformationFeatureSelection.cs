@@ -219,14 +219,27 @@ namespace Microsoft.ML.Transforms
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
+
+            if (!inputSchema.TryFindColumn(_labelColumnName, out var label))
+                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "label", $"Label column '{_labelColumnName}' not found in input schema");
+            if (!(label.IsKey || MutualInformationFeatureSelectionUtils.IsValidColumnType(label.ItemType)))
+            {
+                throw _host.ExceptUserArg(nameof(inputSchema),
+                    $"Label column '{_labelColumnName}' does not have compatible type. Expected types are float, double, int, bool and key.");
+            }
+
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colPair in _columns)
             {
                 if (!inputSchema.TryFindColumn(colPair.inputColumnName, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.inputColumnName);
                 if (!MutualInformationFeatureSelectionUtils.IsValidColumnType(col.ItemType))
+                {
                     throw _host.ExceptUserArg(nameof(inputSchema),
                         "Column '{0}' does not have compatible type. Expected types are float, double, int, bool and key.", colPair.inputColumnName);
+                }
+                if (col.Kind == SchemaShape.Column.VectorKind.VariableVector)
+                    throw _host.ExceptUserArg(nameof(inputSchema), $"Variable length column '{col.Name}' is not allowed");
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);
