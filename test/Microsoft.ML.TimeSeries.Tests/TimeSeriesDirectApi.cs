@@ -505,7 +505,7 @@ namespace Microsoft.ML.Tests
             foreach (var prediction in predictionColumn)
             {
                 if (k == 20)
-                    Assert.Equal(1, prediction.Prediction[0]);
+                    Assert.Equal(-1, prediction.Prediction[0]);
                 else
                     Assert.Equal(0, prediction.Prediction[0]);
                 k += 1;
