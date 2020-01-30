@@ -85,7 +85,7 @@ namespace Microsoft.ML.Internal.Utilities
         }
 
         /// <summary>
-        /// Returns a <see cref="Task"/> that tries to download a resource from a specified url, and returns the path to which it was
+        /// Returns a ResourceDownloadResults that tries to download a resource from a specified url, and returns the path to which it was
         /// downloaded, and an exception if one was thrown.
         /// </summary>
         /// <param name="env">The host environment.</param>
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// <param name="timeout">An integer indicating the number of milliseconds to wait before timing out while downloading a resource.</param>
         /// <returns>The download results, containing the file path where the resources was (or should have been) downloaded to, and an error message
         /// (or null if there was no error).</returns>
-        public async Task<ResourceDownloadResults> EnsureResource(IHostEnvironment env, IChannel ch, string relativeUrl, string fileName, string dir, int timeout)
+        public ResourceDownloadResults EnsureResource(IHostEnvironment env, IChannel ch, string relativeUrl, string fileName, string dir, int timeout)
         {
             var filePath = GetFilePath(ch, fileName, dir, out var error);
             if (File.Exists(filePath) || !string.IsNullOrEmpty(error))
@@ -110,7 +110,25 @@ namespace Microsoft.ML.Internal.Utilities
                     $"Could not create a valid URI from the base URI '{MlNetResourcesUrl}' and the relative URI '{relativeUrl}'");
             }
             return new ResourceDownloadResults(filePath,
-                await DownloadFromUrl(env, ch, absoluteUrl.AbsoluteUri, fileName, timeout, filePath), absoluteUrl.AbsoluteUri);
+                DownloadFromUrlWithRetry(env, ch, absoluteUrl.AbsoluteUri, fileName, timeout, filePath), absoluteUrl.AbsoluteUri);
+        }
+
+        private string DownloadFromUrlWithRetry(IHostEnvironment env, IChannel ch, string url, string fileName,
+            int timeout, string filePath, int retryTimes = 3)
+        {
+            var downloadResult = "";
+
+            for (int i = 0; i < retryTimes; ++i)
+            {
+                var thisDownloadResult = DownloadFromUrl(env, ch, url, fileName, timeout, filePath).Result;
+
+                if (string.IsNullOrEmpty(thisDownloadResult))
+                    return thisDownloadResult;
+                else
+                    downloadResult += thisDownloadResult + @"\n";
+            }
+
+            return downloadResult;
         }
 
         /// <returns>Returns the error message if an error occurred, null if download was successful.</returns>

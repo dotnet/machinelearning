@@ -629,8 +629,7 @@ namespace Microsoft.ML.Transforms.Text
                     string dir = kind == WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding ? Path.Combine("Text", "Sswe") : "WordVectors";
                     var url = $"{dir}/{modelFileName}";
                     var ensureModel = ResourceManagerUtils.Instance.EnsureResource(Host, ch, url, modelFileName, dir, Timeout);
-                    ensureModel.Wait();
-                    var errorResult = ResourceManagerUtils.GetErrorMessage(out var errorMessage, ensureModel.Result);
+                    var errorResult = ResourceManagerUtils.GetErrorMessage(out var errorMessage, ensureModel);
                     if (errorResult != null)
                     {
                         var directory = Path.GetDirectoryName(errorResult.FileName);
@@ -638,7 +637,7 @@ namespace Microsoft.ML.Transforms.Text
                         throw ch.Except($"{errorMessage}\nModel file for Word Embedding transform could not be found! " +
                             $@"Please copy the model file '{name}' from '{url}' to '{directory}'.");
                     }
-                    return ensureModel.Result.FileName;
+                    return ensureModel.FileName;
                 }
             }
             throw Host.Except($"Can't map model kind = {kind} to specific file, please refer to https://aka.ms/MLNetIssue for assistance");
