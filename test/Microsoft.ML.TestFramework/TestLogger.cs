@@ -43,7 +43,7 @@ namespace Microsoft.ML.TestFramework
         public override void Write(char[] buffer, int index, int count)
         {
             var span = buffer.AsSpan(index, count);
-            if ((span[count - 2] == '\r') && (span[count - 1] == '\n'))
+            if ((span.Length >= 2) && (span[count - 2] == '\r') && (span[count - 1] == '\n'))
                 span = span.Slice(0, count - 2);
             _testOutput.WriteLine(span.ToString());
         }
