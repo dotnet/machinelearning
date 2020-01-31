@@ -85,6 +85,7 @@ namespace Microsoft.Extensions.ML
                     var previousToken = Interlocked.Exchange(ref _reloadToken, new ModelReloadToken());
                     previousToken.OnReload();
                     Console.WriteLine("---Debug---: start exchange token");
+                    Console.WriteLine($"---Debug---: {previousToken.HasChanged}");
                 }
 
                 Logger.UriReloadEnd(_logger, _uri, duration.Elapsed);
@@ -177,6 +178,7 @@ namespace Microsoft.Extensions.ML
 
             if (!_started) throw new InvalidOperationException("Start must be called on a ModelLoader before it can be used.");
 
+            Console.WriteLine($"---Debug---: _reloadToken.HasChanged : {_reloadToken.HasChanged}");
             return _reloadToken;
         }
 
