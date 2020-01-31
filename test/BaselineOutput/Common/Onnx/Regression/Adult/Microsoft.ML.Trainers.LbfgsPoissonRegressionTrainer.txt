@@ -29,15 +29,15 @@
             "name": "coefficients",
             "floats": [
               0.2037472,
-              0.00516796159,
+              0.005167962,
               0.1929681,
-              0.0104187969,
-              -0.0006584526,
-              0.00338159618,
-              0.0447585955,
-              0.00602662656,
-              0.00161118712,
-              -0.0018964255,
+              0.01041878,
+              -0.000658446748,
+              0.00338159036,
+              0.0447585769,
+              0.00602663541,
+              0.00161118619,
+              -0.00189642713,
               0.2229219
             ],
             "type": "FLOATS"
@@ -67,7 +67,7 @@
           "FeatureVector"
         ],
         "output": [
-          "FeatureVector0"
+          "FeatureVector.onnx"
         ],
         "name": "Identity",
         "opType": "Identity"
@@ -77,7 +77,7 @@
           "Target"
         ],
         "output": [
-          "Target0"
+          "Target.onnx"
         ],
         "name": "Identity0",
         "opType": "Identity"
@@ -87,7 +87,7 @@
           "Score"
         ],
         "output": [
-          "Score0"
+          "Score.onnx"
         ],
         "name": "Identity1",
         "opType": "Identity"
@@ -134,7 +134,7 @@
     ],
     "output": [
       {
-        "name": "FeatureVector0",
+        "name": "FeatureVector.onnx",
         "type": {
           "tensorType": {
             "elemType": 1,
@@ -152,7 +152,7 @@
         }
       },
       {
-        "name": "Target0",
+        "name": "Target.onnx",
         "type": {
           "tensorType": {
             "elemType": 1,
@@ -170,7 +170,7 @@
         }
       },
       {
-        "name": "Score0",
+        "name": "Score.onnx",
         "type": {
           "tensorType": {
             "elemType": 1,
