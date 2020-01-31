@@ -579,9 +579,13 @@ namespace Microsoft.ML.Trainers
             if (invariants != null)
             {
                 var currentTestName = GetTestName();
+
                 var threadid = Thread.CurrentThread.ManagedThreadId;
 
-                Console.WriteLine($"test: {currentTestName} - thread: {threadid} count: {count}, invariants.Length: {invariants.Length}");
+                Console.WriteLine($"test: {currentTestName} - thread: {threadid} count: {count}, invariants.Length: {invariants.Length}, idLoMax: {idLoMax}");
+
+                // if (count != 100 && count != 150)
+                    // Environment.FailFast($"The count of test TrainAndPredictOnIris is not acceptable (count = {count})");
 
                 Contracts.Assert((idToIdx == null & ((long)idLoMax + 1) * weightSetCount <= Utils.ArrayMaxSize) | (idToIdx != null & count * weightSetCount <= Utils.ArrayMaxSize));
                 Func<DataViewRowId, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
@@ -595,7 +599,7 @@ namespace Microsoft.ML.Trainers
                     {
                         Host.CheckAlive();
                         long longIdx = getIndexFromIdAndRow(cursor.Id, row);
-                        Contracts.Assert(0 <= longIdx & longIdx < invariants.Length, $"longIdx={longIdx}, invariants.Length={invariants.Length}");
+                        Contracts.Assert(0 <= longIdx & longIdx < invariants.Length, $"longIdx={longIdx}, invariants.Length={invariants.Length}, count={count}, needLookup={needLookup}, idLoMax={idLoMax}");
                         int idx = (int)longIdx;
                         var features = cursor.Features;
                         var normSquared = VectorUtils.NormSquared(features);
