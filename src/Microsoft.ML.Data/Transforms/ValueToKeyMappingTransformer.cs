@@ -811,6 +811,16 @@ namespace Microsoft.ML.Transforms
                     var terms = GetTermsAndIds<double>(iinfo, out termIds);
                     node.AddAttribute("keys_floats", terms);
                 }
+                else if (info.TypeSrc.GetItemType().Equals(NumberDataViewType.Int64))
+                {
+                    var castOutput = ctx.AddIntermediateVariable(null, "castOutput", true);
+                    castNode = ctx.CreateNode("Cast", srcVariableName, castOutput, ctx.GetNodeName(opType), "");
+                    var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.String).ToType();
+                    castNode.AddAttribute("to", t);
+                    node = ctx.CreateNode(opType, castOutput, labelEncoderOutput, ctx.GetNodeName(opType));
+                    var terms = GetTermsAndIds<long>(iinfo, out termIds);
+                    node.AddAttribute("keys_strings", terms.Select(item => item.ToString()));
+                }
                 else
                 {
                     // LabelEncoder-2 in ORT v1 only supports the following mappings
