@@ -345,7 +345,7 @@
           "Tokens"
         ],
         "output": [
-          "Tokens0"
+          "Tokens.onnx"
         ],
         "name": "Identity",
         "opType": "Identity"
@@ -355,7 +355,7 @@
           "Embed"
         ],
         "output": [
-          "Embed0"
+          "Embed.onnx"
         ],
         "name": "Identity0",
         "opType": "Identity"
@@ -1053,7 +1053,7 @@
     ],
     "output": [
       {
-        "name": "Tokens0",
+        "name": "Tokens.onnx",
         "type": {
           "tensorType": {
             "elemType": 8,
@@ -1071,7 +1071,7 @@
         }
       },
       {
-        "name": "Embed0",
+        "name": "Embed.onnx",
         "type": {
           "tensorType": {
             "elemType": 1,

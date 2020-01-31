@@ -17,7 +17,7 @@ namespace Microsoft.ML.Benchmarks
            where TTrainer : ITrainerEstimator<ISingleFeaturePredictionTransformer<TModel>, TModel>
            where TModel : class
         {
-            var ctx = new MLContext();
+            var ctx = new MLContext(1);
             IHostEnvironment environment = ctx;
 
             environment.ComponentCatalog.RegisterAssembly(typeof(TLoader).Assembly);
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Benchmarks
             where TTrainer : ITrainerEstimator<ISingleFeaturePredictionTransformer<TModel>, TModel>
            where TModel : class
         {
-            var ctx = new MLContext();
+            var ctx = new MLContext(1);
             IHostEnvironment environment = ctx;
 
             environment.ComponentCatalog.RegisterAssembly(typeof(TEvaluator).Assembly);

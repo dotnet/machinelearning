@@ -756,7 +756,7 @@ namespace Microsoft.ML.AutoML.Test
             string expectedJson,
             TaskKind task = TaskKind.BinaryClassification)
         {
-            var transforms = TransformInferenceApi.InferTransforms(new MLContext(), task, columns);
+            var transforms = TransformInferenceApi.InferTransforms(new MLContext(1), task, columns);
             TestApplyTransformsToRealDataView(transforms, columns);
             var pipelineNodes = transforms.Select(t => t.PipelineNode);
             Util.AssertObjectMatchesJson(expectedJson, pipelineNodes);

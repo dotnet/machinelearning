@@ -89,10 +89,8 @@ namespace Microsoft.ML.Data
         /// <param name="imageFolder">Folder where to look for images.</param>
         /// <param name="columns">Names of input and output columns.</param>
         internal ImageLoadingTransformer(IHostEnvironment env, string imageFolder = null, params (string outputColumnName, string inputColumnName)[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoadingTransformer)), columns)
+            : this (env, imageFolder, type: true, columns)
         {
-            ImageFolder = imageFolder;
-            _useImageType = true;
         }
 
         /// <summary>
@@ -105,7 +103,11 @@ namespace Microsoft.ML.Data
         internal ImageLoadingTransformer(IHostEnvironment env, string imageFolder = null, bool type = true, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoadingTransformer)), columns)
         {
-            ImageFolder = imageFolder;
+            // Throws ArgumentException if given imageFolder path is invalid or empty. Note: imageFolder may be null in this case.
+            if (imageFolder != null)
+                ImageFolder = Path.GetFullPath(imageFolder);
+            else
+                ImageFolder = null;
             _useImageType = type;
         }
 

@@ -26,7 +26,7 @@
              Projects="@(Project)"
              Properties="VSTestNoBuild=true;VSTestBlame=true;VSTestTestCaseFilter=Category=RunSpecificTest" />
   </Target>
-  
+
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.targets))\Directory.Build.targets" />
 
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.traversal.targets))\dir.traversal.targets" />

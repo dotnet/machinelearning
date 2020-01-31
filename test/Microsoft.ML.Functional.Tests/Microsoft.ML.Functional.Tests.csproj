@@ -41,4 +41,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="$(MicrosoftMLOnnxTestModelsVersion)" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Update="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

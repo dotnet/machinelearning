@@ -535,11 +535,13 @@ namespace Microsoft.ML.Transforms
                 size = 1;
 
             // REVIEW:
-            // AddInitializer only supports long, float and string.
-            // Here we are casting double to float and ulong to long.
-            // Fixing this would involve adding additional functions to OnnxContext.
-            if ((type == typeof(float)) || (type == typeof(double)))
+            // AddInitializer only supports long, float, double and string.
+            // Here we are casting ulong to long. Fixing this would involve
+            // adding additional functions to OnnxContext.
+            if (type == typeof(float))
                 ctx.AddInitializer(new float[size], new long[] { 1, size }, inputColumnName, false);
+            else if (type == typeof(double))
+                ctx.AddInitializer(new double[size], new long[] { 1, size }, inputColumnName, false);
             else if ((type == typeof(long)) || (type == typeof(int)) || (type == typeof(short)) || (type == typeof(sbyte)) ||
                      (type == typeof(ulong)) || (type == typeof(uint)) || (type == typeof(ushort)) || (type == typeof(byte)))
                 ctx.AddInitializer(new long[size], new long[] { 1, size }, inputColumnName, false);

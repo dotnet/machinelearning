@@ -129,7 +129,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void LoadModelAndExtractPredictor()
         {
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
 
             var file = new MultiFileSource(TestCommon.GetDataPath(DataDir, TestDatasets.adult.trainFilename));
             var loader = mlContext.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
@@ -233,7 +233,7 @@ namespace Microsoft.ML.Functional.Tests
             SchemaDefinition inputSchemaDefinition = SchemaDefinition.Create(typeof(ModelInput));
             inputSchemaDefinition[nameof(ModelInput.CategoricalFeatures)].ColumnType = new VectorDataViewType(TextDataViewType.Instance, 5);
             inputSchemaDefinition[nameof(ModelInput.NumericalFeatures)].ColumnType = new VectorDataViewType(NumberDataViewType.Single, 3);
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             ITransformer trainedModel;
             DataViewSchema dataViewSchema;
             trainedModel = mlContext.Model.Load(TestCommon.GetDataPath(DataDir, "backcompat", "modelwithoptionalcolumntransform.zip"), out dataViewSchema);
@@ -246,7 +246,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void SaveAndLoadModelWithLoader()
         {
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
 
             var file = new MultiFileSource(TestCommon.GetDataPath(DataDir, TestDatasets.adult.trainFilename));
             var loader = mlContext.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
@@ -303,7 +303,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void LoadSchemaAndCreateNewData()
         {
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
 
             var file = new MultiFileSource(TestCommon.GetDataPath(DataDir, TestDatasets.adult.trainFilename));
             var loader = mlContext.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
@@ -336,7 +336,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void SaveTextLoaderAndLoad()
         {
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
 
             var file = new MultiFileSource(TestCommon.GetDataPath(DataDir, TestDatasets.adult.trainFilename));
             var loader = mlContext.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
@@ -365,7 +365,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void SaveCompositeLoaderAndLoad()
         {
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
 
             var file = new MultiFileSource(TestCommon.GetDataPath(DataDir, TestDatasets.adult.trainFilename));
             var loader = mlContext.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
@@ -403,7 +403,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void SaveLoaderAndTransformerAndLoad()
         {
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
 
             var file = new MultiFileSource(TestCommon.GetDataPath(DataDir, TestDatasets.adult.trainFilename));
             var loader = mlContext.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
@@ -436,7 +436,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void SaveTransformerAndSchemaAndLoad()
         {
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
 
             var file = new MultiFileSource(TestCommon.GetDataPath(DataDir, TestDatasets.adult.trainFilename));
             var loader = mlContext.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);

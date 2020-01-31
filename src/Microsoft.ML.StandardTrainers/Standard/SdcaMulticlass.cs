@@ -504,8 +504,8 @@ namespace Microsoft.ML.Trainers
     /// ### Scoring Function
     /// This trains a linear model to solve multiclass classification problems.
     /// Assume that the number of classes is $m$ and number of features is $n$.
-    /// It assigns the $c$-th class a coefficient vector $\textbf{w}_c \in {\mathbb R}^n$ and a bias $b_c \in {\mathbb R}$, for $c=1,\dots,m$.
-    /// Given a feature vector $\textbf{x} \in {\mathbb R}^n$, the $c$-th class's score would be $\tilde{P}(c | \textbf{x}) = \frac{ e^{\hat{y}^c} }{ \sum_{c' = 1}^m e^{\hat{y}^{c'}} }$, where $\hat{y}^c = \textbf{w}_c^T \textbf{x} + b_c$.
+    /// It assigns the $c$-th class a coefficient vector $\textbf{w}\_c \in {\mathbb R}^n$ and a bias $b_c \in {\mathbb R}$, for $c=1,\dots,m$.
+    /// Given a feature vector $\textbf{x} \in {\mathbb R}^n$, the $c$-th class's score would be $\tilde{P}(c | \textbf{x}) = \frac{ e^{\hat{y}^c} }{ \sum\_{c' = 1}^m e^{\hat{y}^{c'}} }$, where $\hat{y}^c = \textbf{w}\_c^T \textbf{x} + b_c$.
     /// Note that $\tilde{P}(c | \textbf{x})$ is the probability of observing class $c$ when the feature vector is $\textbf{x}$.
     ///
     /// ### Training Algorithm Details

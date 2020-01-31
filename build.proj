@@ -106,7 +106,7 @@
     <MSBuild Projects="test\run-tests.proj"
              Targets="RunSpecificTests" />
   </Target>
-  
+
   <Target Name="RunNightlyBuildTests">
     <MSBuild Projects="test\run-night-build-tests.proj"
              Targets="RunNightlyBuildTests" />

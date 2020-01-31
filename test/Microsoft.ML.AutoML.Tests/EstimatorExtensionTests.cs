@@ -15,7 +15,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void EstimatorExtensionInstanceTests()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var pipelineNode = new PipelineNode()
             {
                 InColumns = new string[] { "Input" },
@@ -35,7 +35,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void EstimatorExtensionStaticTests()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var inCol = "Input";
             var outCol = "Output";
             var inCols = new string[] { inCol };
