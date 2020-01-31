@@ -632,7 +632,7 @@ namespace Microsoft.ML.Data
 
                     ch.Trace("Loading model");
                     IPredictor predictor;
-                    using (Stream strm = new FileStream(args.TrainedModelFile, FileMode.Open, FileAccess.Read))
+                    using (Stream strm = new FileStream(args.TrainedModelFile, FileMode.Open, FileAccess.Read, FileShare.Read))
                     using (var rep = RepositoryReader.Open(strm, ch))
                         ModelLoadContext.LoadModel<IPredictor, SignatureLoadModel>(host, out predictor, rep, ModelFileUtils.DirPredictor);
 
