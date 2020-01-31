@@ -103,7 +103,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestClassWithLabel() { A = 115, B = 2000, Label = false },
                 new TestClassWithLabel() { A = 115, B = 2000, Label = false }};
 
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             var dataView = mlContext.Data.LoadFromEnumerable(data);
             var pipe = mlContext.Transforms.Conversion.ConvertType("A", outputKind: DataKind.Single)
                 .Append(mlContext.Transforms.Conversion.ConvertType("B", outputKind: DataKind.Single))
@@ -126,7 +126,7 @@ namespace Microsoft.ML.Tests.Transformers
             // In this case, whatever the value of the input, the term mapping should come from the optional side data if specified.
             var data = new[] { new TestStringClass() { A = "Stay" }, new TestStringClass() { A = "awhile and listen" } };
 
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             var dataView = mlContext.Data.LoadFromEnumerable(data);
 
             var sideDataBuilder = new ArrayDataViewBuilder(mlContext);

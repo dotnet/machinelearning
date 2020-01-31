@@ -18,7 +18,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void LoadOriginalBinaryLoaderModel()
         {
-            var env = new MLContext().AddStandardComponents();
+            var env = new MLContext(1).AddStandardComponents();
             using (var modelStream = File.OpenRead(Path.Combine("TestModels", "BinaryLoader-v3.11.0.0.zip")))
             using (var rep = RepositoryReader.Open(modelStream, env))
             {
@@ -36,7 +36,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void LoadOldConcatTransformModel()
         {
-            var env = new MLContext().AddStandardComponents();
+            var env = new MLContext(1).AddStandardComponents();
             using (var modelStream = File.OpenRead(Path.Combine("TestModels", "ConcatTransform.zip")))
             using (var rep = RepositoryReader.Open(modelStream, env))
             {

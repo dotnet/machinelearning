@@ -20,7 +20,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void CrossValSplitThrowsWhenNotEnoughData()
         {
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             var dataViewBuilder = new ArrayDataViewBuilder(mlContext);
             dataViewBuilder.AddColumn("Number", NumberDataViewType.Single, 0f);
             dataViewBuilder.AddColumn("Label", NumberDataViewType.Single, 0f);

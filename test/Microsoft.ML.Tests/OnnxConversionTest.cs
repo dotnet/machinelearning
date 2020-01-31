@@ -560,7 +560,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void InitializerCreationTest()
         {
-            var env = new MLContext();
+            var env = new MLContext(1);
             // Create the actual implementation
             var ctxImpl = new OnnxContextImpl(env, "model", "ML.NET", "0", 0, "com.test", Model.OnnxConverter.OnnxVersion.Stable);
 

@@ -80,7 +80,7 @@ namespace Microsoft.ML.RunTests
         [TestCategory("Cmd Parsing")]
         public void NewTest()
         {
-            var ml = new MLContext();
+            var ml = new MLContext(1);
             ml.AddStandardComponents();
             var classes = Utils.MarshalInvoke(ml.ComponentCatalog.FindLoadableClasses<int>, typeof(SignatureCalibrator));
             foreach (var cls in classes)

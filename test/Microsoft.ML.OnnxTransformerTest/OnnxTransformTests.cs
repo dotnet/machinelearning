@@ -203,7 +203,7 @@ namespace Microsoft.ML.Tests
         {
             var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "squeezenet", "00000001", "model.onnx");
 
-            var env = new MLContext();
+            var env = new MLContext(1);
             var imageHeight = 224;
             var imageWidth = 224;
             var dataFile = GetDataPath("images/images.tsv");
@@ -327,7 +327,7 @@ namespace Microsoft.ML.Tests
             // model contains -1 in input and output shape dimensions
             // model: input dims = [-1, 3], output argmax dims = [-1]
             var modelFile = @"unknowndimensions/test_unknowndimensions_float.onnx";
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             var data = new TestDataUnknownDimensions[]
                 {
                     new TestDataUnknownDimensions(){input = new float[] {1.1f, 1.3f, 1.2f }},
