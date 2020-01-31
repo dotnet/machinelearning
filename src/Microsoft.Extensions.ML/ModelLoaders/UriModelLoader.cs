@@ -66,6 +66,7 @@ namespace Microsoft.Extensions.ML
 
         internal async Task RunAsync()
         {
+            Console.WriteLine("---Debug---: start reload model");
             CancellationTokenSource cancellation = null;
             //TODO: Switch to ValueStopWatch
             var duration = Stopwatch.StartNew();
@@ -78,9 +79,12 @@ namespace Microsoft.Extensions.ML
                 var eTagMatches = await MatchEtag(_uri, _eTag);
                 if (!eTagMatches)
                 {
+                    Console.WriteLine("---Debug---: need reload model");
                     await LoadModel();
+                    Console.WriteLine("---Debug---: finish reload model");
                     var previousToken = Interlocked.Exchange(ref _reloadToken, new ModelReloadToken());
                     previousToken.OnReload();
+                    Console.WriteLine("---Debug---: start exchange token");
                 }
 
                 Logger.UriReloadEnd(_logger, _uri, duration.Elapsed);
@@ -91,6 +95,7 @@ namespace Microsoft.Extensions.ML
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"---Debug---: failed reload with exception {ex.Message}");
                 Logger.UriReloadError(_logger, _uri, duration.Elapsed, ex);
             }
             finally
@@ -167,6 +172,9 @@ namespace Microsoft.Extensions.ML
 
         public override IChangeToken GetReloadToken()
         {
+            var callStack = new StackTrace().ToString();
+            Console.WriteLine($"---Debug---: call stack is {callStack}");
+
             if (!_started) throw new InvalidOperationException("Start must be called on a ModelLoader before it can be used.");
 
             return _reloadToken;
