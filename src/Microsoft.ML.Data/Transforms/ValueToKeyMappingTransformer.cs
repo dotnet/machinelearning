@@ -805,8 +805,8 @@ namespace Microsoft.ML.Transforms
                 {
                     var castOutput = ctx.AddIntermediateVariable(null, "castOutput", true);
                     castNode = ctx.CreateNode("Cast", srcVariableName, castOutput, ctx.GetNodeName(opType), "");
-                    var t2 = InternalDataKindExtensions.ToInternalDataKind(DataKind.Single).ToType();
-                    castNode.AddAttribute("to", t2);
+                    var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Single).ToType();
+                    castNode.AddAttribute("to", t);
                     node = ctx.CreateNode(opType, castOutput, labelEncoderOutput, ctx.GetNodeName(opType));
                     var terms = GetTermsAndIds<double>(iinfo, out termIds);
                     node.AddAttribute("keys_floats", terms);
