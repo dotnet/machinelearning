@@ -582,7 +582,7 @@ namespace Microsoft.ML.Trainers
 
                 var threadid = Thread.CurrentThread.ManagedThreadId;
 
-                Console.WriteLine($"test: {currentTestName} - thread: {threadid} count: {count}, invariants.Length: {invariants.Length}, idLoMax: {idLoMax}");
+                Console.WriteLine($"test: {currentTestName} - count: {count}, invariants.Length: {invariants.Length}, idLoMax: {idLoMax}, thread: {threadid}");
 
                 // if (count != 100 && count != 150)
                     // Environment.FailFast($"The count of test TrainAndPredictOnIris is not acceptable (count = {count})");
