@@ -1093,7 +1093,8 @@ namespace Microsoft.ML.Tests
         }
 
         [Theory]
-        [InlineData(DataKind.Single)]
+        [InlineData(DataKind.Int64)]
+        [InlineData(DataKind.Double)]
         [InlineData(DataKind.String)]
         public void ValueToKeyMappingOnnxConversionTest(DataKind valueType)
         {
