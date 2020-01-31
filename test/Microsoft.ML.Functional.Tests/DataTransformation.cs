@@ -143,7 +143,7 @@ namespace Microsoft.ML.Functional.Tests
                     }, "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(
-                    new SdcaLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 }));
+                    new SdcaLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1, Shuffle = false }));
 
             // Train the model.
             var model = pipeline.Fit(data);

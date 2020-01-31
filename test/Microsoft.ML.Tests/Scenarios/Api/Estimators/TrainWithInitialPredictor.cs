@@ -33,7 +33,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             // Train the first predictor.
             var trainer = ml.BinaryClassification.Trainers.SdcaNonCalibrated(
-                new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1 });
+                new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1, Shuffle = false });
 
             var firstModel = trainer.Fit(trainData);
 

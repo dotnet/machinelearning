@@ -58,7 +58,7 @@ namespace Microsoft.ML.Benchmarks
             var pipeline = new ColumnConcatenatingEstimator(env, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
                 .Append(env.Transforms.Conversion.MapValueToKey("Label"))
                 .Append(env.MulticlassClassification.Trainers.SdcaMaximumEntropy(
-                    new SdcaMaximumEntropyMulticlassTrainer.Options { NumberOfThreads = 1, ConvergenceTolerance = 1e-2f, }));
+                    new SdcaMaximumEntropyMulticlassTrainer.Options { NumberOfThreads = 1, ConvergenceTolerance = 1e-2f, Shuffle = false }));
 
             var model = pipeline.Fit(data);
 
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Benchmarks
 
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .Append(mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(
-                    new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1, ConvergenceTolerance = 1e-2f, }));
+                    new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1, ConvergenceTolerance = 1e-2f, Shuffle = false}));
 
             var model = pipeline.Fit(data);
 
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Benchmarks
             IDataView data = loader.Load(_breastCancerDataPath);
 
             var pipeline = env.BinaryClassification.Trainers.SdcaNonCalibrated(
-                new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1, ConvergenceTolerance = 1e-2f, });
+                new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1, ConvergenceTolerance = 1e-2f, Shuffle = false});
 
             var model = pipeline.Fit(data);
 

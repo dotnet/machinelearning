@@ -218,7 +218,7 @@ namespace Microsoft.ML.Functional.Tests
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(
-                    new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1 }));
+                    new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1, Shuffle = false }));
 
             // Fit the pipeline.
             var model = pipeline.Fit(data);
@@ -426,7 +426,9 @@ namespace Microsoft.ML.Functional.Tests
                 .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(
                 new SdcaMaximumEntropyMulticlassTrainer.Options {
                     MaximumNumberOfIterations = 10,
-                    NumberOfThreads = 1 }));
+                    NumberOfThreads = 1,
+                    Shuffle = false
+                }));
         }
     }
 }

@@ -42,7 +42,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a selection of learners.
             var sdcaTrainer = mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(
-                    new SdcaLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 });
+                    new SdcaLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1, Shuffle = false });
 
             var fastTreeTrainer = mlContext.BinaryClassification.Trainers.FastTree(
                     new FastTreeBinaryTrainer.Options { NumberOfThreads = 1 });

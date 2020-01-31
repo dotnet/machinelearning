@@ -36,7 +36,7 @@ namespace Microsoft.ML.Scenarios
                             .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
                             .AppendCacheCheckpoint(mlContext)
                             .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(
-                                new SdcaMaximumEntropyMulticlassTrainer.Options { NumberOfThreads = 1 }));
+                                new SdcaMaximumEntropyMulticlassTrainer.Options { NumberOfThreads = 1, Shuffle = false }));
 
             // Read training and test data sets
             string dataPath = GetDataPath(TestDatasets.iris.trainFilename);

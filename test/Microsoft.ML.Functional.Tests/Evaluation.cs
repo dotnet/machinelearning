@@ -65,7 +65,7 @@ namespace Microsoft.ML.Functional.Tests
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(
-                    new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1 }));
+                    new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1, Shuffle = false }));
 
             // Train the model.
             var model = pipeline.Fit(data);
@@ -152,7 +152,7 @@ namespace Microsoft.ML.Functional.Tests
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(
-                    new SdcaMaximumEntropyMulticlassTrainer.Options { NumberOfThreads = 1 }));
+                    new SdcaMaximumEntropyMulticlassTrainer.Options { NumberOfThreads = 1, Shuffle = false }));
 
             // Train the model.
             var model = pipeline.Fit(data);

@@ -28,7 +28,7 @@ namespace micro
             var pipeline = _context.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(_context)
                 .Append(_context.BinaryClassification.Trainers.SdcaNonCalibrated(
-                    new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1 }));
+                    new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1, Shuffle = false }));
 
             // Train.
             var model = pipeline.Fit(data);

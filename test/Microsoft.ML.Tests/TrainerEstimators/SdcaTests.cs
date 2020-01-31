@@ -27,25 +27,25 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 .Fit(data).Transform(data);
 
             var binaryTrainer = ML.BinaryClassification.Trainers.SdcaLogisticRegression(
-                new SdcaLogisticRegressionBinaryTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
+                new SdcaLogisticRegressionBinaryTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10, Shuffle= false });
             TestEstimatorCore(binaryTrainer, binaryData);
 
             var nonCalibratedBinaryTrainer = ML.BinaryClassification.Trainers.SdcaNonCalibrated(
-                new SdcaNonCalibratedBinaryTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
+                new SdcaNonCalibratedBinaryTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10, Shuffle = false });
             TestEstimatorCore(nonCalibratedBinaryTrainer, binaryData);
 
             var regressionTrainer = ML.Regression.Trainers.Sdca(
-                new SdcaRegressionTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
+                new SdcaRegressionTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10, Shuffle = false });
 
             TestEstimatorCore(regressionTrainer, data);
             var mcData = ML.Transforms.Conversion.MapValueToKey("Label").Fit(data).Transform(data);
 
             var mcTrainer = ML.MulticlassClassification.Trainers.SdcaMaximumEntropy(
-                new SdcaMaximumEntropyMulticlassTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
+                new SdcaMaximumEntropyMulticlassTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10, Shuffle = false });
             TestEstimatorCore(mcTrainer, mcData);
 
             var mcTrainerNonCalibrated = ML.MulticlassClassification.Trainers.SdcaNonCalibrated(
-                new SdcaNonCalibratedMulticlassTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
+                new SdcaNonCalibratedMulticlassTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10, Shuffle = false });
             TestEstimatorCore(mcTrainerNonCalibrated, mcData);
 
             Done();
@@ -114,9 +114,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // SdcaLogisticRegression with and without weights.
             var sdcaWithoutWeightBinary = mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(
-                new SdcaLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 });
+                new SdcaLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1, Shuffle = false });
             var sdcaWithWeightBinary = mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(
-                new SdcaLogisticRegressionBinaryTrainer.Options { ExampleWeightColumnName = "Weight", NumberOfThreads = 1 });
+                new SdcaLogisticRegressionBinaryTrainer.Options { ExampleWeightColumnName = "Weight", NumberOfThreads = 1, Shuffle = false });
 
             var modelWithoutWeights = sdcaWithoutWeightBinary.Fit(data);
             var modelWithWeights = sdcaWithWeightBinary.Fit(data);
@@ -169,11 +169,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // SdcaMaximumEntropy with and without weights.
             var sdcaWithoutWeightMulticlass = mlContext.Transforms.Conversion.MapValueToKey("LabelIndex", "Label").
                Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(
-                   new SdcaMaximumEntropyMulticlassTrainer.Options { LabelColumnName = "LabelIndex", NumberOfThreads = 1 }));
+                   new SdcaMaximumEntropyMulticlassTrainer.Options { LabelColumnName = "LabelIndex", NumberOfThreads = 1, Shuffle = false }));
 
             var sdcaWithWeightMulticlass = mlContext.Transforms.Conversion.MapValueToKey("LabelIndex", "Label").
                 Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(
-                    new SdcaMaximumEntropyMulticlassTrainer.Options { LabelColumnName = "LabelIndex", ExampleWeightColumnName = "Weight", NumberOfThreads = 1 }));
+                    new SdcaMaximumEntropyMulticlassTrainer.Options { LabelColumnName = "LabelIndex", ExampleWeightColumnName = "Weight", NumberOfThreads = 1, Shuffle = false }));
 
             var modelWithoutWeights = sdcaWithoutWeightMulticlass.Fit(data);
             var modelWithWeights = sdcaWithWeightMulticlass.Fit(data);

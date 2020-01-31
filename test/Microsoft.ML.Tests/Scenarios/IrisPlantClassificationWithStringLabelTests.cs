@@ -38,7 +38,7 @@ namespace Microsoft.ML.Scenarios
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label", "IrisPlantType"), TransformerScope.TrainTest)
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(
-                    new SdcaMaximumEntropyMulticlassTrainer.Options { NumberOfThreads = 1 }))
+                    new SdcaMaximumEntropyMulticlassTrainer.Options { NumberOfThreads = 1, Shuffle = false }))
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue("Plant", "PredictedLabel"));
 
             // Train the pipeline
