@@ -30,7 +30,7 @@ namespace Microsoft.Extensions.ML
             Assert.Throws<InvalidOperationException>(() => loaderUnderTest.GetReloadToken());
         }
 
-        [RetryFact(MaxRetries = 3)]
+        [Fact]
         public void can_reload_model()
         {
             var services = new ServiceCollection()
