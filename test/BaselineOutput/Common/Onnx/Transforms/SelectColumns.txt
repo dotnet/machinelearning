@@ -12,6 +12,31 @@
         "output": [
           "Size0"
         ],
+        "name": "Imputer",
+        "opType": "Imputer",
+        "attribute": [
+          {
+            "name": "replaced_value_float",
+            "f": "NaN",
+            "type": "FLOAT"
+          },
+          {
+            "name": "imputed_value_floats",
+            "floats": [
+              0
+            ],
+            "type": "FLOATS"
+          }
+        ],
+        "domain": "ai.onnx.ml"
+      },
+      {
+        "input": [
+          "Size0"
+        ],
+        "output": [
+          "Size1"
+        ],
         "name": "Identity",
         "opType": "Identity"
       },
@@ -47,7 +72,7 @@
       },
       {
         "input": [
-          "Size0"
+          "Size1"
         ],
         "output": [
           "Size.onnx"
@@ -110,7 +135,7 @@
         "name": "Thickness",
         "type": {
           "tensorType": {
-            "elemType": 6,
+            "elemType": 11,
             "shape": {
               "dim": [
                 {
@@ -128,7 +153,7 @@
         "name": "Size",
         "type": {
           "tensorType": {
-            "elemType": 6,
+            "elemType": 1,
             "shape": {
               "dim": [
                 {
@@ -159,6 +184,96 @@
             }
           }
         }
+      },
+      {
+        "name": "Adhesion",
+        "type": {
+          "tensorType": {
+            "elemType": 6,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "EpithelialSize",
+        "type": {
+          "tensorType": {
+            "elemType": 6,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "BlandChromatin",
+        "type": {
+          "tensorType": {
+            "elemType": 6,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "NormalNucleoli",
+        "type": {
+          "tensorType": {
+            "elemType": 6,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Mitoses",
+        "type": {
+          "tensorType": {
+            "elemType": 6,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
       }
     ],
     "output": [
@@ -166,7 +281,7 @@
         "name": "Size.onnx",
         "type": {
           "tensorType": {
-            "elemType": 6,
+            "elemType": 1,
             "shape": {
               "dim": [
                 {
@@ -202,7 +317,7 @@
         "name": "Thickness.onnx",
         "type": {
           "tensorType": {
-            "elemType": 6,
+            "elemType": 11,
             "shape": {
               "dim": [
                 {
@@ -221,6 +336,26 @@
         "type": {
           "tensorType": {
             "elemType": 9,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "valueInfo": [
+      {
+        "name": "Size0",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
             "shape": {
               "dim": [
                 {

@@ -746,11 +746,6 @@ namespace Microsoft.ML.Transforms
 
                     droppedCols.Remove(srcCol.Index);
                 }
-
-                foreach (var srcCol in droppedCols)
-                {
-                    ctx.RemoveInputVariable(InputSchema[srcCol].Name);
-                }
             }
         }
 
