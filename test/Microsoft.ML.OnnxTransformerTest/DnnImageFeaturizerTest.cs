@@ -18,11 +18,11 @@ namespace Microsoft.ML.Tests
 {
     public class DnnImageFeaturizerTests : TestDataPipeBase
     {
-        private const int inputSize = 3 * 224 * 224;
+        private const int InputSize = 3 * 224 * 224;
 
         private class TestData
         {
-            [VectorType(inputSize)]
+            [VectorType(InputSize)]
             public float[] data_0;
         }
         private class TestDataSize
@@ -32,20 +32,20 @@ namespace Microsoft.ML.Tests
         }
         private class TestDataXY
         {
-            [VectorType(inputSize)]
+            [VectorType(InputSize)]
             public float[] A;
         }
         private class TestDataDifferntType
         {
-            [VectorType(inputSize)]
+            [VectorType(InputSize)]
             public string[] data_0;
         }
 
         private float[] GetSampleArrayData()
         {
-            var samplevector = new float[inputSize];
-            for (int i = 0; i < inputSize; i++)
-                samplevector[i] = (i / ((float)inputSize));
+            var samplevector = new float[InputSize];
+            for (int i = 0; i < InputSize; i++)
+                samplevector[i] = (i / ((float)InputSize));
             return samplevector;
         }
 
@@ -66,8 +66,8 @@ namespace Microsoft.ML.Tests
                     },
                 });
 
-            var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
-            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
+            var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[InputSize] } };
+            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[InputSize] } };
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
             var pipe = ML.Transforms.DnnFeaturizeImage("output_1", m => m.ModelSelector.ResNet18(m.Environment, m.OutputColumn, m.InputColumn), "data_0");
 

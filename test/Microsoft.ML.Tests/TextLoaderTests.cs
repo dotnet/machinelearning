@@ -137,11 +137,11 @@ namespace Microsoft.ML.EntryPoints.Tests
 
     public class TextLoaderTests : BaseTestClass
     {
-        ConsoleEnvironment env;
+        ConsoleEnvironment _env;
         public TextLoaderTests(ITestOutputHelper output)
             : base(output)
         {
-            env = new ConsoleEnvironment(42).AddStandardComponents();
+            _env = new ConsoleEnvironment(42).AddStandardComponents();
         }
 
         [Fact]
@@ -204,8 +204,8 @@ namespace Microsoft.ML.EntryPoints.Tests
             }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var runner = new GraphRunner(env, graph[FieldNames.Nodes] as JArray);
-            var inputFile = new SimpleFileHandle(env, "fakeFile.txt", false, false);
+            var runner = new GraphRunner(_env, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(_env, "fakeFile.txt", false, false);
             runner.SetInput("inputFile", inputFile);
             runner.RunAll();
 
@@ -278,8 +278,8 @@ namespace Microsoft.ML.EntryPoints.Tests
             }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var runner = new GraphRunner(env, graph[FieldNames.Nodes] as JArray);
-            var inputFile = new SimpleFileHandle(env, dataPath, false, false);
+            var runner = new GraphRunner(_env, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(_env, dataPath, false, false);
             runner.SetInput("inputFile", inputFile);
             runner.RunAll();
 
@@ -424,8 +424,8 @@ namespace Microsoft.ML.EntryPoints.Tests
             }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var runner = new GraphRunner(env, graph[FieldNames.Nodes] as JArray);
-            var inputFile = new SimpleFileHandle(env, dataPath, false, false);
+            var runner = new GraphRunner(_env, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(_env, dataPath, false, false);
             runner.SetInput("inputFile", inputFile);
             runner.RunAll();
 
@@ -538,8 +538,8 @@ namespace Microsoft.ML.EntryPoints.Tests
             }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var runner = new GraphRunner(env, graph[FieldNames.Nodes] as JArray);
-            var inputFile = new SimpleFileHandle(env, dataPath, false, false);
+            var runner = new GraphRunner(_env, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(_env, dataPath, false, false);
             runner.SetInput("inputFile", inputFile);
             runner.RunAll();
 
@@ -793,17 +793,17 @@ namespace Microsoft.ML.EntryPoints.Tests
         private class IrisPrivateFields
         {
             [LoadColumn(0)]
-            private float SepalLength;
+            private float _sepalLength;
 
             [LoadColumn(1)]
             private float SepalWidth { get; }
 
             public float GetSepalLenght()
-                => SepalLength;
+                => _sepalLength;
 
             public void SetSepalLength(float sepalLength)
             {
-                SepalLength = sepalLength;
+                _sepalLength = sepalLength;
             }
         }
         private class IrisPublicGetProperties

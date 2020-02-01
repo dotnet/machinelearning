@@ -13,7 +13,7 @@ namespace Microsoft.ML.Tests
 {
     public class TimeSeriesEstimatorTests : TestDataPipeBase
     {
-        private const int inputSize = 150528;
+        private const int InputSize = 150528;
 
         private class Data
         {
@@ -27,12 +27,12 @@ namespace Microsoft.ML.Tests
 
         private class TestDataXY
         {
-            [VectorType(inputSize)]
+            [VectorType(InputSize)]
             public float[] A;
         }
         private class TestDataDifferntType
         {
-            [VectorType(inputSize)]
+            [VectorType(InputSize)]
             public string[] data_0;
         }
 
@@ -62,8 +62,8 @@ namespace Microsoft.ML.Tests
             var pipe = new SsaChangePointEstimator(Env, "Change", 
                 confidence, changeHistorySize, maxTrainingSize, seasonalitySize, "Value");
 
-            var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
-            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
+            var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[InputSize] } };
+            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[InputSize] } };
 
             var invalidDataWrongNames = ML.Data.LoadFromEnumerable(xyData);
             var invalidDataWrongTypes = ML.Data.LoadFromEnumerable(stringData);
@@ -98,8 +98,8 @@ namespace Microsoft.ML.Tests
                     confidenceLowerBoundColumn: "ConfidenceLowerBound",
                     confidenceUpperBoundColumn: "ConfidenceUpperBound");
 
-            var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
-            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
+            var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[InputSize] } };
+            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[InputSize] } };
 
             var invalidDataWrongNames = ML.Data.LoadFromEnumerable(xyData);
             var invalidDataWrongTypes = ML.Data.LoadFromEnumerable(stringData);
@@ -132,8 +132,8 @@ namespace Microsoft.ML.Tests
             var pipe = new SsaSpikeEstimator(Env, "Change",
                 confidence, pValueHistorySize, maxTrainingSize, seasonalitySize, "Value");
 
-            var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
-            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
+            var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[InputSize] } };
+            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[InputSize] } };
 
             var invalidDataWrongNames = ML.Data.LoadFromEnumerable(xyData);
             var invalidDataWrongTypes = ML.Data.LoadFromEnumerable(stringData);
@@ -159,8 +159,8 @@ namespace Microsoft.ML.Tests
             var pipe = new IidChangePointEstimator(Env,
                 "Change", confidence, changeHistorySize, "Value");
 
-            var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
-            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
+            var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[InputSize] } };
+            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[InputSize] } };
 
             var invalidDataWrongNames = ML.Data.LoadFromEnumerable(xyData);
             var invalidDataWrongTypes = ML.Data.LoadFromEnumerable(stringData);
@@ -186,8 +186,8 @@ namespace Microsoft.ML.Tests
             var pipe = new IidSpikeEstimator(Env,
                 "Change", confidence, pValueHistorySize, "Value");
 
-            var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
-            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
+            var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[InputSize] } };
+            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[InputSize] } };
 
             var invalidDataWrongNames = ML.Data.LoadFromEnumerable(xyData);
             var invalidDataWrongTypes = ML.Data.LoadFromEnumerable(stringData);

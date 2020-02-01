@@ -15,12 +15,12 @@ namespace Microsoft.ML.TestFrameworkCommon
     /// </summary>
     public class DelayedMessageBus : IMessageBus
     {
-        private readonly IMessageBus innerBus;
+        private readonly IMessageBus _innerBus;
         public readonly List<IMessageSinkMessage> messages = new List<IMessageSinkMessage>();
 
         public DelayedMessageBus(IMessageBus innerBus)
         {
-            this.innerBus = innerBus;
+            this._innerBus = innerBus;
         }
 
         public bool QueueMessage(IMessageSinkMessage message)
@@ -36,7 +36,7 @@ namespace Microsoft.ML.TestFrameworkCommon
         public void Dispose()
         {
             foreach (var message in messages)
-                innerBus.QueueMessage(message);
+                _innerBus.QueueMessage(message);
         }
     }
 }

@@ -24,10 +24,10 @@ namespace Microsoft.ML.TestFramework
         public static readonly string TestConsoleApp = Path.GetFullPath(@"RemoteExecutorConsoleApp.dll");
 #if NETFRAMEWORK
         public static readonly string HostRunner = Path.GetFullPath(@"RemoteExecutorConsoleApp.exe");
-        private static readonly string ExtraParameter = "";
+        private static readonly string _extraParameter = "";
 #else
         public static readonly string HostRunner = Process.GetCurrentProcess().MainModule.FileName;
-        private static readonly string ExtraParameter = TestConsoleApp;
+        private static readonly string _extraParameter = TestConsoleApp;
 #endif
         /// <summary>A timeout (milliseconds) after which a wait on a remote operation should be considered a failure.</summary>
         public const int FailWaitTimeoutMilliseconds = 60 * 1000;
@@ -103,7 +103,7 @@ namespace Microsoft.ML.TestFramework
             // If we need the host (if it exists), use it, otherwise target the console app directly.
             string metadataArgs = PasteArguments.Paste(new string[] { a.FullName, t.FullName, method.Name, options.ExceptionFile }, pasteFirstArgumentUsingArgV0Rules: false);
             string passedArgs = pasteArguments ? PasteArguments.Paste(args, pasteFirstArgumentUsingArgV0Rules: false) : string.Join(" ", args);
-            string testConsoleAppArgs = ExtraParameter + " " + metadataArgs + " " + passedArgs;
+            string testConsoleAppArgs = _extraParameter + " " + metadataArgs + " " + passedArgs;
 
             psi.FileName = HostRunner;
             psi.Arguments = testConsoleAppArgs;

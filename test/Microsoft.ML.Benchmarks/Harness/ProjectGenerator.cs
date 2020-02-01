@@ -25,12 +25,12 @@ namespace Microsoft.ML.Benchmarks.Harness
     /// </summary>
     public class ProjectGenerator : CsProjGenerator
     {
-        private readonly string runtimeIdentifier = string.Empty;
+        private readonly string _runtimeIdentifier = string.Empty;
 
         public ProjectGenerator(string targetFrameworkMoniker) : base(targetFrameworkMoniker, null, null, null)
         {
 #if NETFRAMEWORK
-            runtimeIdentifier = "win-x64";
+            _runtimeIdentifier = "win-x64";
 #endif
         }
 
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Benchmarks.Harness
     <OutputType>Exe</OutputType>
     <OutputPath>bin\{buildPartition.BuildConfiguration}</OutputPath>
     <TargetFramework>{TargetFrameworkMoniker}</TargetFramework>
-    <RuntimeIdentifier>{runtimeIdentifier}</RuntimeIdentifier>
+    <RuntimeIdentifier>{_runtimeIdentifier}</RuntimeIdentifier>
     <AssemblyName>{artifactsPaths.ProgramName}</AssemblyName>
     <AssemblyTitle>{artifactsPaths.ProgramName}</AssemblyTitle>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Benchmarks.Harness
 
         // This overrides the .exe path to also involve the runtimeIdentifier for .NET Framework
         protected override string GetBinariesDirectoryPath(string buildArtifactsDirectoryPath, string configuration) 
-            => Path.Combine(buildArtifactsDirectoryPath, "bin", configuration, TargetFrameworkMoniker, runtimeIdentifier);
+            => Path.Combine(buildArtifactsDirectoryPath, "bin", configuration, TargetFrameworkMoniker, _runtimeIdentifier);
 
         private string GenerateNativeReferences(BuildPartition buildPartition, ILogger logger)
         {

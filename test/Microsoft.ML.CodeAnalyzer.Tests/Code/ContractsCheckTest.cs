@@ -17,9 +17,9 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
     public sealed class ContractsCheckTest
     {
-        private readonly Lazy<string> Source = TestUtils.LazySource("ContractsCheckResource.cs");
-        private readonly Lazy<string> SourceContracts = TestUtils.LazySource("Contracts.cs");
-        private readonly Lazy<string> SourceFriend = TestUtils.LazySource("BestFriendAttribute.cs");
+        private readonly Lazy<string> _source = TestUtils.LazySource("ContractsCheckResource.cs");
+        private readonly Lazy<string> _sourceContracts = TestUtils.LazySource("Contracts.cs");
+        private readonly Lazy<string> _sourceFriend = TestUtils.LazySource("BestFriendAttribute.cs");
 
         [Fact]
         public async Task ContractsCheck()
@@ -50,9 +50,9 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
                 {
                     Sources =
                     {
-                        Source.Value,
-                        SourceContracts.Value,
-                        SourceFriend.Value,
+                        _source.Value,
+                        _sourceContracts.Value,
+                        _sourceFriend.Value,
                     },
                 }
             };
@@ -86,13 +86,13 @@ namespace TestNamespace
             await VerifyCS.VerifyAnalyzerAsync(decoySource);
         }
 
-        private readonly Lazy<string> SourcePreFix = TestUtils.LazySource("ContractsCheckBeforeFix.cs");
-        private readonly Lazy<string> SourcePostFix = TestUtils.LazySource("ContractsCheckAfterFix.cs");
+        private readonly Lazy<string> _sourcePreFix = TestUtils.LazySource("ContractsCheckBeforeFix.cs");
+        private readonly Lazy<string> _sourcePostFix = TestUtils.LazySource("ContractsCheckAfterFix.cs");
 
-        private readonly Lazy<string> SourceArgAttr = TestUtils.LazySource("ArgumentAttribute.cs");
-        private readonly Lazy<string> SourceArgType = TestUtils.LazySource("ArgumentType.cs");
-        private readonly Lazy<string> SourceBestAttr = TestUtils.LazySource("BestFriendAttribute.cs");
-        private readonly Lazy<string> SourceDefArgAttr = TestUtils.LazySource("DefaultArgumentAttribute.cs");
+        private readonly Lazy<string> _sourceArgAttr = TestUtils.LazySource("ArgumentAttribute.cs");
+        private readonly Lazy<string> _sourceArgType = TestUtils.LazySource("ArgumentType.cs");
+        private readonly Lazy<string> _sourceBestAttr = TestUtils.LazySource("BestFriendAttribute.cs");
+        private readonly Lazy<string> _sourceDefArgAttr = TestUtils.LazySource("DefaultArgumentAttribute.cs");
 
         [Fact]
         public async Task ContractsCheckFix()
@@ -104,12 +104,12 @@ namespace TestNamespace
                 {
                     Sources =
                     {
-                        SourcePreFix.Value,
-                        SourceContracts.Value,
-                        SourceArgAttr.Value,
-                        SourceArgType.Value,
-                        SourceBestAttr.Value,
-                        SourceDefArgAttr.Value,
+                        _sourcePreFix.Value,
+                        _sourceContracts.Value,
+                        _sourceArgAttr.Value,
+                        _sourceArgType.Value,
+                        _sourceBestAttr.Value,
+                        _sourceDefArgAttr.Value,
                     },
                     ExpectedDiagnostics =
                     {
@@ -135,12 +135,12 @@ namespace TestNamespace
                 {
                     Sources =
                     {
-                        SourcePostFix.Value,
-                        SourceContracts.Value,
-                        SourceArgAttr.Value,
-                        SourceArgType.Value,
-                        SourceBestAttr.Value,
-                        SourceDefArgAttr.Value,
+                        _sourcePostFix.Value,
+                        _sourceContracts.Value,
+                        _sourceArgAttr.Value,
+                        _sourceArgType.Value,
+                        _sourceBestAttr.Value,
+                        _sourceDefArgAttr.Value,
                     },
                     ExpectedDiagnostics =
                     {

@@ -935,20 +935,20 @@ namespace Microsoft.ML.Tests.Transformers
 
         public class TensorData
         {
-            private const int dim1 = 2;
-            private const int dim2 = 3;
-            private const int dim3 = 4;
-            private const int size = dim1 * dim2 * dim3;
+            private const int Dim1 = 2;
+            private const int Dim2 = 3;
+            private const int Dim3 = 4;
+            private const int Size = Dim1 * Dim2 * Dim3;
 
-            [VectorType(dim1, dim2, dim3)]
+            [VectorType(Dim1, Dim2, Dim3)]
             public float[] input { get; set; }
 
             public static TensorData[] GetTensorData()
             {
-                var tensor1 = Enumerable.Range(0, size).Select(
+                var tensor1 = Enumerable.Range(0, Size).Select(
                 x => (float)x).ToArray();
 
-                var tensor2 = Enumerable.Range(0, size).Select(
+                var tensor2 = Enumerable.Range(0, Size).Select(
                 x => (float)(x + 10000)).ToArray();
 
                 return new TensorData[]

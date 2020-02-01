@@ -10,11 +10,11 @@ namespace Microsoft.ML.TestFrameworkCommon
 {
     public class RetryFactDiscoverer : IXunitTestCaseDiscoverer
     {
-        readonly IMessageSink diagnosticMessageSink;
+        readonly IMessageSink _diagnosticMessageSink;
 
         public RetryFactDiscoverer(IMessageSink diagnosticMessageSink)
         {
-            this.diagnosticMessageSink = diagnosticMessageSink;
+            this._diagnosticMessageSink = diagnosticMessageSink;
         }
 
         public IEnumerable<IXunitTestCase> Discover(ITestFrameworkDiscoveryOptions discoveryOptions, 
@@ -25,7 +25,7 @@ namespace Microsoft.ML.TestFrameworkCommon
             if (maxRetries < 1)
                 maxRetries = 2;
 
-            yield return new RetryTestCase(diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), testMethod, maxRetries);
+            yield return new RetryTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), testMethod, maxRetries);
         }
     }
 }
