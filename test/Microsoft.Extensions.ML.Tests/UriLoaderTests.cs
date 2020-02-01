@@ -74,7 +74,7 @@ namespace Microsoft.Extensions.ML
 
     class UriLoaderMock : UriModelLoader
     {
-        public Func<Uri, string, bool> ETagMatches { get; set; } = (_, __) => false;
+        public Func<Uri, string, bool> ETagMatches { get; set; } = delegate { return false; };
 
         public UriLoaderMock(IOptions<MLOptions> contextOptions,
                          ILogger<UriModelLoader> logger) : base(contextOptions, logger)

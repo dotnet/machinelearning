@@ -287,38 +287,38 @@ namespace Microsoft.ML.EntryPoints.Tests
 
             using (var cursor = data.GetRowCursorForAllColumns())
             {
-                var IDGetter = cursor.GetGetter<float>(cursor.Schema[0]);
-                var TextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema[1]);
+                var idGetter = cursor.GetGetter<float>(cursor.Schema[0]);
+                var textGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema[1]);
 
                 Assert.True(cursor.MoveNext());
 
-                float ID = 0;
-                IDGetter(ref ID);
-                Assert.Equal(1, ID);
+                float id = 0;
+                idGetter(ref id);
+                Assert.Equal(1, id);
 
-                ReadOnlyMemory<char> Text = new ReadOnlyMemory<char>();
-                TextGetter(ref Text);
-                Assert.Equal("This text contains comma, within quotes.", Text.ToString());
-
-                Assert.True(cursor.MoveNext());
-
-                ID = 0;
-                IDGetter(ref ID);
-                Assert.Equal(2, ID);
-
-                Text = new ReadOnlyMemory<char>();
-                TextGetter(ref Text);
-                Assert.Equal("This text contains extra punctuations and special characters.;*<>?!@#$%^&*()_+=-{}|[]:;'", Text.ToString());
+                ReadOnlyMemory<char> text = new ReadOnlyMemory<char>();
+                textGetter(ref text);
+                Assert.Equal("This text contains comma, within quotes.", text.ToString());
 
                 Assert.True(cursor.MoveNext());
 
-                ID = 0;
-                IDGetter(ref ID);
-                Assert.Equal(3, ID);
+                id = 0;
+                idGetter(ref id);
+                Assert.Equal(2, id);
 
-                Text = new ReadOnlyMemory<char>();
-                TextGetter(ref Text);
-                Assert.Equal("This text has no quotes", Text.ToString());
+                text = new ReadOnlyMemory<char>();
+                textGetter(ref text);
+                Assert.Equal("This text contains extra punctuations and special characters.;*<>?!@#$%^&*()_+=-{}|[]:;'", text.ToString());
+
+                Assert.True(cursor.MoveNext());
+
+                id = 0;
+                idGetter(ref id);
+                Assert.Equal(3, id);
+
+                text = new ReadOnlyMemory<char>();
+                textGetter(ref text);
+                Assert.Equal("This text has no quotes", text.ToString());
 
                 Assert.False(cursor.MoveNext());
             }
@@ -548,28 +548,28 @@ namespace Microsoft.ML.EntryPoints.Tests
 
             using (var cursor = data.GetRowCursorForAllColumns())
             {
-                var IDGetter = cursor.GetGetter<float>(cursor.Schema[0]);
-                var TextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema[1]);
+                var idGetter = cursor.GetGetter<float>(cursor.Schema[0]);
+                var textGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema[1]);
 
                 Assert.True(cursor.MoveNext());
 
-                float ID = 0;
-                IDGetter(ref ID);
-                Assert.Equal(1, ID);
+                float id = 0;
+                idGetter(ref id);
+                Assert.Equal(1, id);
 
-                ReadOnlyMemory<char> Text = new ReadOnlyMemory<char>();
-                TextGetter(ref Text);
-                Assert.Equal("There is a space at the end", Text.ToString());
+                ReadOnlyMemory<char> text = new ReadOnlyMemory<char>();
+                textGetter(ref text);
+                Assert.Equal("There is a space at the end", text.ToString());
 
                 Assert.True(cursor.MoveNext());
 
-                ID = 0;
-                IDGetter(ref ID);
-                Assert.Equal(2, ID);
+                id = 0;
+                idGetter(ref id);
+                Assert.Equal(2, id);
 
-                Text = new ReadOnlyMemory<char>();
-                TextGetter(ref Text);
-                Assert.Equal("There is no space at the end", Text.ToString());
+                text = new ReadOnlyMemory<char>();
+                textGetter(ref text);
+                Assert.Equal("There is no space at the end", text.ToString());
 
                 Assert.False(cursor.MoveNext());
             }

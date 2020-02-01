@@ -56,10 +56,10 @@ namespace Microsoft.ML.NugetPackageVersionUpdater
 
             foreach (var projectFilePath in projectFilePaths)
             {
-                var CsprojDoc = new XmlDocument();
-                CsprojDoc.Load(projectFilePath);
+                var csprojDoc = new XmlDocument();
+                csprojDoc.Load(projectFilePath);
 
-                var packageReferenceNodes = CsprojDoc.DocumentElement.SelectNodes(packageReferencePath);
+                var packageReferenceNodes = csprojDoc.DocumentElement.SelectNodes(packageReferencePath);
 
                 for (int i = 0; i < packageReferenceNodes.Count; i++)
                 {
@@ -75,7 +75,7 @@ namespace Microsoft.ML.NugetPackageVersionUpdater
                         Console.WriteLine($"Can't find newer version of Package {packageName} from NuGet source, don't need to update version.");
                 }
 
-                CsprojDoc.Save(projectFilePath);
+                csprojDoc.Save(projectFilePath);
             }
         }
     }
