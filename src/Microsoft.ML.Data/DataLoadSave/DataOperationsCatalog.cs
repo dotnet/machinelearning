@@ -495,13 +495,14 @@ namespace Microsoft.ML
         /// </summary>
         internal static void EnsureGroupPreservationColumn(IHostEnvironment env, ref IDataView data, ref string samplingKeyColumn, int? seed = null)
         {
+            Contracts.CheckValue(env, nameof(env));
+            var host = env.Register("rand");
             // We need to handle two cases: if samplingKeyColumn is provided, we use hashJoin to
             // build a single hash of it. If it is not, we generate a random number.
-
             if (samplingKeyColumn == null)
             {
                 samplingKeyColumn = data.Schema.GetTempColumnName("SamplingKeyColumn");
-                data = new GenerateNumberTransform(env, data, samplingKeyColumn, (uint?)seed);
+                data = new GenerateNumberTransform(env, data, samplingKeyColumn, (uint?)(seed ?? host.Rand.Next()));
             }
             else
             {
@@ -517,11 +518,7 @@ namespace Microsoft.ML
                     // instead of having two hash transformations.
                     var origStratCol = samplingKeyColumn;
                     samplingKeyColumn = data.Schema.GetTempColumnName(samplingKeyColumn);
-                    HashingEstimator.ColumnOptionsInternal columnOptions;
-                    if (seed.HasValue)
-                        columnOptions = new HashingEstimator.ColumnOptionsInternal(samplingKeyColumn, origStratCol, 30, (uint)seed.Value);
-                    else
-                        columnOptions = new HashingEstimator.ColumnOptionsInternal(samplingKeyColumn, origStratCol, 30);
+                    var columnOptions = new HashingEstimator.ColumnOptionsInternal(samplingKeyColumn, origStratCol, 30, (uint)(seed ?? host.Rand.Next()));
                     data = new HashingEstimator(env, columnOptions).Fit(data).Transform(data);
                 }
                 else
@@ -533,7 +530,6 @@ namespace Microsoft.ML
                         data = new NormalizingEstimator(env, new NormalizingEstimator.MinMaxColumnOptions(samplingKeyColumn, origStratCol, ensureZeroUntouched: true)).Fit(data).Transform(data);
                     }
                 }
-
             }
         }
     }
