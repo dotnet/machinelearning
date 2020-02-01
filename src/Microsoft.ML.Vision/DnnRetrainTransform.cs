@@ -37,8 +37,10 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// <see cref="ITransformer" /> for the <see cref="DnnRetrainEstimator"/>.
     /// </summary>
-    internal sealed class DnnRetrainTransformer : RowToRowTransformerBase
+    internal sealed class DnnRetrainTransformer : RowToRowTransformerBase, IDisposable
     {
+        private bool _isDisposed;
+
         private readonly IHostEnvironment _env;
         private readonly string _modelLocation;
         private readonly bool _isTemporarySavedModel;
@@ -723,13 +725,11 @@ namespace Microsoft.ML.Transforms
             });
         }
 
-        ~DnnRetrainTransformer()
+        public void Dispose()
         {
-            Dispose(false);
-        }
+            if (_isDisposed)
+                return;
 
-        private void Dispose(bool disposing)
-        {
             // Ensure that the Session is not null and it's handle is not Zero, as it may have already been disposed/finalized.
             // Technically we shouldn't be calling this if disposing == false, since we're running in finalizer
             // and the GC doesn't guarantee ordering of finalization of managed objects, but we have to make sure
@@ -747,6 +747,8 @@ namespace Microsoft.ML.Transforms
                 {
                     DeleteFolderWithRetries(Host, _modelLocation);
                 }
+
+                _isDisposed = true;
             }
         }
 
