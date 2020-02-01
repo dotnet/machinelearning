@@ -13,7 +13,7 @@ namespace Microsoft.ML.Scenarios
         [Fact]
         public static void WordBags()
         {
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             var samples = new List<TextData>()
             {
                 new TextData(){ Text = "This is an example to compute bag-of-word features." },
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Scenarios
         [Fact]
         public static void WordBagsHash()
         {
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             var samples = new List<TextData>()
             {
                 new TextData(){ Text = "This is an example to compute bag-of-word features." },

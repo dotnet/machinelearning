@@ -201,8 +201,6 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void RegressionTrainersOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -560,7 +558,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void InitializerCreationTest()
         {
-            var env = new MLContext();
+            var env = new MLContext(1);
             // Create the actual implementation
             var ctxImpl = new OnnxContextImpl(env, "model", "ML.NET", "0", 0, "com.test", Model.OnnxConverter.OnnxVersion.Stable);
 

@@ -78,7 +78,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void ValidateExperimentExecuteArgsTrainValidColCountMismatch()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var trainDataBuilder = new ArrayDataViewBuilder(context);
             trainDataBuilder.AddColumn("0", NumberDataViewType.Single, new float[] { 1 });
@@ -100,7 +100,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void ValidateExperimentExecuteArgsTrainValidColNamesMismatch()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var trainDataBuilder = new ArrayDataViewBuilder(context);
             trainDataBuilder.AddColumn("0", NumberDataViewType.Single, new float[] { 1 });
@@ -123,7 +123,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void ValidateExperimentExecuteArgsTrainValidColTypeMismatch()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             var trainDataBuilder = new ArrayDataViewBuilder(context);
             trainDataBuilder.AddColumn("0", NumberDataViewType.Single, new float[] { 1 });
@@ -243,7 +243,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void ValidateAllowedFeatureColumnTypes()
         {
-            var dataViewBuilder = new ArrayDataViewBuilder(new MLContext());
+            var dataViewBuilder = new ArrayDataViewBuilder(new MLContext(1));
             dataViewBuilder.AddColumn("Boolean", BooleanDataViewType.Instance, false);
             dataViewBuilder.AddColumn("Number", NumberDataViewType.Single, 0f);
             dataViewBuilder.AddColumn("Text", "a");
@@ -288,7 +288,7 @@ namespace Microsoft.ML.AutoML.Test
         public void ValidateEmptyValidationDataThrows()
         {
             // Training data
-            var dataViewBuilder = new ArrayDataViewBuilder(new MLContext());
+            var dataViewBuilder = new ArrayDataViewBuilder(new MLContext(1));
             dataViewBuilder.AddColumn("Number", NumberDataViewType.Single, 0f);
             dataViewBuilder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single, 0f);
             var trainingData = dataViewBuilder.GetDataView();
@@ -312,7 +312,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void TestValidationDataSchemaChecksIgnoreHiddenColumns()
         {
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
 
             // Build training data where label column is a float.
             var trainDataBuilder = new ArrayDataViewBuilder(mlContext);
@@ -338,7 +338,7 @@ namespace Microsoft.ML.AutoML.Test
 
         private static void ValidateLabelTypeTestCore<LabelRawType>(TaskKind task, PrimitiveDataViewType labelType, bool labelTypeShouldBeValid)
         {
-            var dataViewBuilder = new ArrayDataViewBuilder(new MLContext());
+            var dataViewBuilder = new ArrayDataViewBuilder(new MLContext(1));
             dataViewBuilder.AddColumn(DefaultColumnNames.Features, NumberDataViewType.Single, 0f);
             if (labelType == TextDataViewType.Instance)
             {

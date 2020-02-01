@@ -716,7 +716,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void LdaWorkoutEstimatorCore()
         {
-            var ml = new MLContext();
+            var ml = new MLContext(1);
 
             var builder = new ArrayDataViewBuilder(Env);
             var data = new[]

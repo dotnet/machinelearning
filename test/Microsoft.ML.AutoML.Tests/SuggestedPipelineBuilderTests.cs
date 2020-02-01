@@ -10,7 +10,7 @@ namespace Microsoft.ML.AutoML.Test
     
     public class SuggestedPipelineBuilderTests
     {
-        private static MLContext _context = new MLContext();
+        private static MLContext _context = new MLContext(1);
 
         [Fact]
         public void TrainerWantsCaching()

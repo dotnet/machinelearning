@@ -71,7 +71,7 @@ namespace Microsoft.ML.Benchmarks
 
         private const int Count = 100_000;
 
-        private readonly IHostEnvironment _env = new MLContext();
+        private readonly IHostEnvironment _env = new MLContext(1);
 
         private RowImpl _inRow;
         private ValueGetter<uint> _getter;

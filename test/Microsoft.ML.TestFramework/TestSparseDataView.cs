@@ -47,7 +47,7 @@ namespace Microsoft.ML.RunTests
                 new SparseExample<T>() { X = new VBuffer<T> (5, 3, v1, new int[] { 0, 2, 4 }) },
                 new SparseExample<T>() { X = new VBuffer<T> (5, 3, v2, new int[] { 0, 1, 3 }) }
             };
-            var env = new MLContext();
+            var env = new MLContext(1);
             var data = env.Data.LoadFromEnumerable(inputs);
             var value = new VBuffer<T>();
             int n = 0;
@@ -87,7 +87,7 @@ namespace Microsoft.ML.RunTests
                 new DenseExample<T>() { X = v1 },
                 new DenseExample<T>() { X = v2 }
             };
-            var env = new MLContext();
+            var env = new MLContext(1);
             var data = env.Data.LoadFromEnumerable(inputs);
             var value = new VBuffer<T>();
             int n = 0;

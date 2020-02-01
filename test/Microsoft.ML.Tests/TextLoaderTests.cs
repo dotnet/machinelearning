@@ -706,7 +706,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void LoaderColumnsFromIrisData()
         {
             var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
 
             var irisFirstRow = new Dictionary<string, float>();
             irisFirstRow["SepalLength"] = 5.1f;
@@ -771,7 +771,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         {
             // Model generated with the following command on a version of the code previous to the KeyType change that removed Min and Contiguous:
             // Train data=...\breast-cancer.txt loader =TextLoader{col=Label:R4:0 col=Features:R4:1-9 col=key:U4[0-*]:3} tr=LogisticRegression {} out=model.zip
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             string textLoaderModelPath = GetDataPath("backcompat/textloader-with-key-model.zip");
             string breastCancerPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
 
@@ -841,7 +841,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void TestTextLoaderNoFields()
         {
             var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
 
             // Class with get property only.
             var dataIris = mlContext.Data.CreateTextLoader<IrisPublicGetProperties>(separatorChar: ',').Load(dataPath);
