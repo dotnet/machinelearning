@@ -336,7 +336,7 @@ namespace Microsoft.ML.AutoML.Test
         }
 
 
-        private static void ValidateLabelTypeTestCore<LabelRawType>(TaskKind task, PrimitiveDataViewType labelType, bool labelTypeShouldBeValid)
+        private static void ValidateLabelTypeTestCore<TLabelRawType>(TaskKind task, PrimitiveDataViewType labelType, bool labelTypeShouldBeValid)
         {
             var dataViewBuilder = new ArrayDataViewBuilder(new MLContext(1));
             dataViewBuilder.AddColumn(DefaultColumnNames.Features, NumberDataViewType.Single, 0f);
@@ -346,7 +346,7 @@ namespace Microsoft.ML.AutoML.Test
             }
             else
             {
-                dataViewBuilder.AddColumn(DefaultColumnNames.Label, labelType, Activator.CreateInstance<LabelRawType>());
+                dataViewBuilder.AddColumn(DefaultColumnNames.Label, labelType, Activator.CreateInstance<TLabelRawType>());
             }
             var dataView = dataViewBuilder.GetDataView();
             var validationExceptionThrown = false;
