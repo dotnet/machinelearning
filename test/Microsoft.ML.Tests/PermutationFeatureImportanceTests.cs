@@ -559,11 +559,11 @@ namespace Microsoft.ML.Tests
             // Setup synthetic dataset.
             const int numberOfInstances = 1000;
             var rand = new Random(10);
-            float[] yArray = new float[numberOfInstances],
-                x1Array = new float[numberOfInstances],
-                x2Array = new float[numberOfInstances],
-                x3Array = new float[numberOfInstances],
-                x4RandArray = new float[numberOfInstances];
+            float[] yArray = new float[numberOfInstances];
+            float[] x1Array = new float[numberOfInstances];
+            float[] x2Array = new float[numberOfInstances];
+            float[] x3Array = new float[numberOfInstances];
+            float[] x4RandArray = new float[numberOfInstances];
 
             for (var i = 0; i < numberOfInstances; i++)
             {
@@ -626,9 +626,9 @@ namespace Microsoft.ML.Tests
             // Setup synthetic dataset.
             const int numberOfInstances = 10000;
             var rand = new Random(10);
-            float[] yArray = new float[numberOfInstances],
-                x1Array = new float[numberOfInstances],
-                x3Array = new float[numberOfInstances];
+            float[] yArray = new float[numberOfInstances];
+            float[] x1Array = new float[numberOfInstances];
+            float[] x3Array = new float[numberOfInstances];
 
             VBuffer<float>[] vbArray = new VBuffer<float>[numberOfInstances];
 
