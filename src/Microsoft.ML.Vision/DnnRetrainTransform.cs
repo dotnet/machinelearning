@@ -528,7 +528,7 @@ namespace Microsoft.ML.Transforms
 
             _env = env;
             _session = session;
-            _modelLocation = modelLocation;
+            _modelLocation = Path.IsPathRooted(modelLocation) ? modelLocation : Path.Combine(Directory.GetCurrentDirectory(), modelLocation);
             _isTemporarySavedModel = isTemporarySavedModel;
             _addBatchDimensionInput = addBatchDimensionInput;
             _inputs = inputColumnNames;
