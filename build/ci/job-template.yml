@@ -18,6 +18,7 @@ jobs:
       timeoutInMinutes: 75
     ${{ if eq(parameters.codeCoverage, 'true') }}:
       timeoutInMinutes: 75
+    cancelTimeoutInMinutes: 10
     variables:
       dotnetPath: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet
       nugetFeed: https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json
