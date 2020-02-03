@@ -3,3 +3,72 @@ root = true
 [*.cs]
 # Sort using directives with System.* appearing first
 dotnet_sort_system_directives_first = true
+
+[test/**/*.cs]
+
+# MSML_GeneralName: This name should be PascalCased
+dotnet_diagnostic.MSML_GeneralName.severity = none
+
+# MSML_PrivateFieldName: Private field name not in: _camelCase format
+dotnet_diagnostic.MSML_PrivateFieldName.severity = none
+
+# MSML_SingleVariableDeclaration: Have only a single variable present per declaration
+dotnet_diagnostic.MSML_SingleVariableDeclaration.severity = none
+
+# MSML_NoBestFriendInternal: Cross-assembly internal access requires referenced item to have Microsoft.ML.BestFriendAttribute attribute.
+dotnet_diagnostic.MSML_NoBestFriendInternal.severity = none
+
+# MSML_NoInstanceInitializers: No initializers on instance fields or properties
+dotnet_diagnostic.MSML_NoInstanceInitializers.severity = none
+
+# MSML_ParameterLocalVarName: Parameter or local variable name not standard
+dotnet_diagnostic.MSML_ParameterLocalVarName.severity = none
+
+[test/Microsoft.ML.CodeAnalyzer.Tests/**.cs]
+# BaseTestClass does not apply for analyzer testing.
+# MSML_ExtendBaseTestClass: Test classes should be derived from BaseTestClass
+dotnet_diagnostic.MSML_ExtendBaseTestClass.severity = none
+
+[test/Microsoft.Extensions.ML.Tests/**.cs]
+# MSML_ExtendBaseTestClass: Test classes should be derived from BaseTestClass
+dotnet_diagnostic.MSML_ExtendBaseTestClass.severity = none
+
+[test/Microsoft.ML.Tests/**.cs]
+# MSML_ExtendBaseTestClass: Test classes should be derived from BaseTestClass
+dotnet_diagnostic.MSML_ExtendBaseTestClass.severity = none
+
+[test/Microsoft.ML.AutoML.Tests/**.cs]
+# MSML_ExtendBaseTestClass: Test classes should be derived from BaseTestClass
+dotnet_diagnostic.MSML_ExtendBaseTestClass.severity = none
+
+[test/Microsoft.ML.Benchmarks.Tests/**.cs]
+# MSML_ExtendBaseTestClass: Test classes should be derived from BaseTestClass
+dotnet_diagnostic.MSML_ExtendBaseTestClass.severity = none
+
+[test/Microsoft.ML.CodeGenerator.Tests/**.cs]
+# MSML_ExtendBaseTestClass: Test classes should be derived from BaseTestClass
+dotnet_diagnostic.MSML_ExtendBaseTestClass.severity = none
+
+[test/Microsoft.ML.Core.Tests/**.cs]
+# MSML_ExtendBaseTestClass: Test classes should be derived from BaseTestClass
+dotnet_diagnostic.MSML_ExtendBaseTestClass.severity = none
+
+[test/Microsoft.ML.CpuMath.UnitTests/**.cs]
+# MSML_ExtendBaseTestClass: Test classes should be derived from BaseTestClass
+dotnet_diagnostic.MSML_ExtendBaseTestClass.severity = none
+
+[test/Microsoft.ML.Functional.Tests/**.cs]
+# MSML_ExtendBaseTestClass: Test classes should be derived from BaseTestClass
+dotnet_diagnostic.MSML_ExtendBaseTestClass.severity = none
+
+[test/Microsoft.ML.Predictor.Tests/**.cs]
+# MSML_ExtendBaseTestClass: Test classes should be derived from BaseTestClass
+dotnet_diagnostic.MSML_ExtendBaseTestClass.severity = none
+
+[test/Microsoft.ML.Sweeper.Tests/**.cs]
+# MSML_ExtendBaseTestClass: Test classes should be derived from BaseTestClass
+dotnet_diagnostic.MSML_ExtendBaseTestClass.severity = none
+
+[test/Microsoft.ML.TimeSeries.Tests/**.cs]
+# MSML_ExtendBaseTestClass: Test classes should be derived from BaseTestClass
+dotnet_diagnostic.MSML_ExtendBaseTestClass.severity = none

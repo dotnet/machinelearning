@@ -156,7 +156,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ConversionSimpleClass()
             };
 
-            var env = new MLContext();
+            var env = new MLContext(1);
             var dataView = env.Data.LoadFromEnumerable(data);
             var enumeratorSimple = env.Data.CreateEnumerable<ConversionSimpleClass>(dataView, false).GetEnumerator();
             var originalEnumerator = data.GetEnumerator();
@@ -178,7 +178,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void ConversionExceptionsBehavior()
         {
-            var env = new MLContext();
+            var env = new MLContext(1);
             var data = new ConversionNotSupportedMinValueClass[1];
             foreach (var field in typeof(ConversionNotSupportedMinValueClass).GetFields())
             {
@@ -230,7 +230,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithConstField(){ fInt=-1, fString ="" },
             };
 
-            var env = new MLContext();
+            var env = new MLContext(1);
             var dataView = env.Data.LoadFromEnumerable(data);
             var enumeratorSimple = env.Data.CreateEnumerable<ClassWithConstField>(dataView, false).GetEnumerator();
             var originalEnumerator = data.GetEnumerator();
@@ -256,7 +256,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithMixOfFieldsAndProperties(){ IntProp=-1, fString ="" },
             };
 
-            var env = new MLContext();
+            var env = new MLContext(1);
             var dataView = env.Data.LoadFromEnumerable(data);
             var enumeratorSimple = env.Data.CreateEnumerable<ClassWithMixOfFieldsAndProperties>(dataView, false).GetEnumerator();
             var originalEnumerator = data.GetEnumerator();
@@ -310,7 +310,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithPrivateFieldsAndProperties(){ StringProp ="baba" }
             };
 
-            var env = new MLContext();
+            var env = new MLContext(1);
             var dataView = env.Data.LoadFromEnumerable(data);
             var enumeratorSimple = env.Data.CreateEnumerable<ClassWithPrivateFieldsAndProperties>(dataView, false).GetEnumerator();
             var originalEnumerator = data.GetEnumerator();
@@ -340,7 +340,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithInheritedProperties(){ IntProp=-1, StringProp ="", LongProp=2, ByteProp=4 },
             };
 
-            var env = new MLContext();
+            var env = new MLContext(1);
             var dataView = env.Data.LoadFromEnumerable(data);
             var enumeratorSimple = env.Data.CreateEnumerable<ClassWithInheritedProperties>(dataView, false).GetEnumerator();
             var originalEnumerator = data.GetEnumerator();
@@ -391,7 +391,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             };
 
 
-            var env = new MLContext();
+            var env = new MLContext(1);
             var dataView = env.Data.LoadFromEnumerable(data);
             var enumeratorSimple = env.Data.CreateEnumerable<ClassWithArrays>(dataView, false).GetEnumerator();
             var originalEnumerator = data.GetEnumerator();
@@ -442,7 +442,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithArrayProperties()
             };
 
-            var env = new MLContext();
+            var env = new MLContext(1);
             var dataView = env.Data.LoadFromEnumerable(data);
             var enumeratorSimple = env.Data.CreateEnumerable<ClassWithArrayProperties>(dataView, false).GetEnumerator();
             var originalEnumerator = data.GetEnumerator();
@@ -479,7 +479,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithGetter()
             };
 
-            var env = new MLContext();
+            var env = new MLContext(1);
             var dataView = env.Data.LoadFromEnumerable(data);
             var enumeratorSimple = env.Data.CreateEnumerable<ClassWithSetter>(dataView, false).GetEnumerator();
             var originalEnumerator = data.GetEnumerator();

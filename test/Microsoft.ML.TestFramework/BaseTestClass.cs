@@ -8,7 +8,10 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using Microsoft.ML.Internal.Internallearn.Test;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.TestFramework
@@ -17,6 +20,8 @@ namespace Microsoft.ML.TestFramework
     {
         public string TestName { get; set; }
         public string FullTestName { get; set; }
+
+        public ChannelMessageKind MessageKindToLog;
 
         static BaseTestClass()
         {
@@ -53,6 +58,13 @@ namespace Microsoft.ML.TestFramework
             ITest test = (ITest)output.GetType().GetField("test", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(output);
             FullTestName = test.TestCase.TestMethod.TestClass.Class.Name + "." + test.TestCase.TestMethod.Method.Name;
             TestName = test.TestCase.TestMethod.Method.Name;
+
+            MessageKindToLog = ChannelMessageKind.Error;
+            var attributes = test.TestCase.TestMethod.Method.GetCustomAttributes(typeof(LogMessageKind));
+            foreach (var attrib in attributes)
+            {
+                MessageKindToLog = attrib.GetNamedArgument<ChannelMessageKind>("MessageKind");
+            }
 
             // write to the console when a test starts and stops so we can identify any test hangs/deadlocks in CI
             Console.WriteLine($"Starting test: {FullTestName}");

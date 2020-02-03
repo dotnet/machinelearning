@@ -95,12 +95,11 @@ namespace Microsoft.ML.Transforms.Text
         internal const string Summary = "Produces a bag of counts of n-grams (sequences of consecutive words of length 1-n) in a given text. It does so by building "
             + "a dictionary of n-grams and using the id in the dictionary as the index in the bag.";
 
-        internal static ITransformer CreateTransfomer(IHostEnvironment env, Options options, IDataView input)
+        internal static IEstimator<ITransformer> CreateEstimator(IHostEnvironment env, Options options, SchemaShape inputSchema)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
             h.CheckValue(options, nameof(options));
-            h.CheckValue(input, nameof(input));
             h.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns), "Columns must be specified");
 
             // Compose the WordBagTransform from a tokenize transform,
@@ -149,17 +148,14 @@ namespace Microsoft.ML.Transforms.Text
                     };
             }
 
-            IDataView view = input;
-            ITransformer t0 = NgramExtractionUtils.ApplyConcatOnSources(h, options.Columns);
-            view = t0.Transform(view);
-            ITransformer t1 = new WordTokenizingEstimator(env, tokenizeColumns).Fit(view);
-            view = t1.Transform(view);
-            ITransformer t2 = NgramExtractorTransform.Create(h, extractorArgs, view);
-            return new TransformerChain<ITransformer>(new[] { t0, t1, t2 });
+            IEstimator<ITransformer> estimator = NgramExtractionUtils.GetConcatEstimator(h, options.Columns);
+            estimator = estimator.Append(new WordTokenizingEstimator(env, tokenizeColumns));
+            estimator = estimator.Append(NgramExtractorTransform.CreateEstimator(h, extractorArgs, estimator.GetOutputSchema(inputSchema)));
+            return estimator;
         }
 
         internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input) =>
-            (IDataTransform)CreateTransfomer(env, options, input).Transform(input);
+            (IDataTransform)CreateEstimator(env, options, SchemaShape.Create(input.Schema)).Fit(input).Transform(input);
     }
 
     /// <summary>
@@ -262,15 +258,14 @@ namespace Microsoft.ML.Transforms.Text
 
         internal const string LoaderSignature = "NgramExtractor";
 
-        internal static ITransformer Create(IHostEnvironment env, Options options, IDataView input, TermLoaderArguments termLoaderArgs = null)
+        internal static IEstimator<ITransformer> CreateEstimator(IHostEnvironment env, Options options, SchemaShape inputSchema, TermLoaderArguments termLoaderArgs = null)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(LoaderSignature);
             h.CheckValue(options, nameof(options));
-            h.CheckValue(input, nameof(input));
             h.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns), "Columns must be specified");
 
-            var chain = new TransformerChain<ITransformer>();
+            var chain = new EstimatorChain<ITransformer>();
 
             var termCols = new List<Column>();
             var isTermCol = new bool[options.Columns.Length];
@@ -281,9 +276,8 @@ namespace Microsoft.ML.Transforms.Text
 
                 h.CheckNonWhiteSpace(col.Name, nameof(col.Name));
                 h.CheckNonWhiteSpace(col.Source, nameof(col.Source));
-                int colId;
-                if (input.Schema.TryGetColumnIndex(col.Source, out colId) &&
-                    input.Schema[colId].Type.GetItemType() is TextDataViewType)
+                if (inputSchema.TryFindColumn(col.Source, out var colShape) &&
+                    colShape.ItemType is TextDataViewType)
                 {
                     termCols.Add(col);
                     isTermCol[i] = true;
@@ -327,9 +321,9 @@ namespace Microsoft.ML.Transforms.Text
                     using (var ch = env.Start("Create key data view"))
                         keyData = ValueToKeyMappingTransformer.GetKeyDataViewOrNull(env, ch, termLoaderArgs.DataFile, termLoaderArgs.TermsColumn, termLoaderArgs.Loader, out var autoConvert);
                 }
-                chain = chain.Append<ITransformer>(new ValueToKeyMappingEstimator(h, columnOptions.ToArray(), keyData).Fit(input));
+                chain = chain.Append<ITransformer>(new ValueToKeyMappingEstimator(h, columnOptions.ToArray(), keyData));
                 if (missingDropColumns != null)
-                    chain = chain.Append<ITransformer>(new MissingValueDroppingTransformer(h, missingDropColumns.Select(x => (x, x)).ToArray()));
+                    chain = chain.Append<ITransformer>(new MissingValueDroppingEstimator(h, missingDropColumns.Select(x => (x, x)).ToArray()));
             }
 
             var ngramColumns = new NgramExtractingEstimator.ColumnOptions[options.Columns.Length];
@@ -345,9 +339,7 @@ namespace Microsoft.ML.Transforms.Text
                     isTermCol[iinfo] ? column.Name : column.Source
                     );
             }
-
-            input = chain.Transform(input);
-            return chain.Append<ITransformer>(new NgramExtractingEstimator(env, ngramColumns).Fit(input));
+            return chain.Append<ITransformer>(new NgramExtractingEstimator(env, ngramColumns));
         }
 
         internal static IDataTransform CreateDataTransform(IHostEnvironment env, Options options, IDataView input,
@@ -355,20 +347,11 @@ namespace Microsoft.ML.Transforms.Text
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
-            return Create(env, options, input, termLoaderArgs).Transform(input) as IDataTransform;
+            return CreateEstimator(env, options, SchemaShape.Create(input.Schema), termLoaderArgs).Fit(input).Transform(input)/* Create(env, options, input, termLoaderArgs).Transform(input) */as IDataTransform;
         }
 
-        internal static ITransformer Create(IHostEnvironment env, NgramExtractorArguments extractorArgs, IDataView input,
-            ExtractorColumn[] cols, TermLoaderArguments termLoaderArgs = null)
+        internal static Options CreateNgramExtractorOptions(NgramExtractorArguments extractorArgs, ExtractorColumn[] cols)
         {
-            Contracts.CheckValue(env, nameof(env));
-            var h = env.Register(LoaderSignature);
-            h.CheckValue(extractorArgs, nameof(extractorArgs));
-            h.CheckValue(input, nameof(input));
-            h.CheckUserArg(extractorArgs.SkipLength < extractorArgs.NgramLength, nameof(extractorArgs.SkipLength), "Should be less than " + nameof(extractorArgs.NgramLength));
-            h.CheckUserArg(Utils.Size(cols) > 0, nameof(Options.Columns), "Must be specified");
-            h.CheckValueOrNull(termLoaderArgs);
-
             var extractorCols = new Column[cols.Length];
             for (int i = 0; i < cols.Length; i++)
             {
@@ -385,8 +368,7 @@ namespace Microsoft.ML.Transforms.Text
                 MaxNumTerms = extractorArgs.MaxNumTerms,
                 Weighting = extractorArgs.Weighting
             };
-
-            return Create(h, options, input, termLoaderArgs);
+            return options;
         }
 
         internal static INgramExtractorFactory Create(IHostEnvironment env, NgramExtractorArguments extractorArgs,
@@ -468,7 +450,8 @@ namespace Microsoft.ML.Transforms.Text
 
         public ITransformer Create(IHostEnvironment env, IDataView input, ExtractorColumn[] cols)
         {
-            return NgramExtractorTransform.Create(env, _extractorArgs, input, cols, _termLoaderArgs);
+            var options = NgramExtractorTransform.CreateNgramExtractorOptions(_extractorArgs, cols);
+            return NgramExtractorTransform.CreateEstimator(env, options, SchemaShape.Create(input.Schema), _termLoaderArgs).Fit(input);
         }
     }
 
@@ -495,12 +478,12 @@ namespace Microsoft.ML.Transforms.Text
 
     internal static class NgramExtractionUtils
     {
-        public static ITransformer ApplyConcatOnSources(IHostEnvironment env, ManyToOneColumn[] columns)
+        public static IEstimator<ITransformer> GetConcatEstimator(IHostEnvironment env, ManyToOneColumn[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(columns, nameof(columns));
 
-            var concatColumns = new List<ColumnConcatenatingTransformer.ColumnOptions>();
+            var estimator = new EstimatorChain<ITransformer>();
             foreach (var col in columns)
             {
                 env.CheckUserArg(col != null, nameof(WordBagBuildingTransformer.Options.Columns));
@@ -508,13 +491,9 @@ namespace Microsoft.ML.Transforms.Text
                 env.CheckUserArg(Utils.Size(col.Source) > 0, nameof(col.Source));
                 env.CheckUserArg(col.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(col.Source));
                 if (col.Source.Length > 1)
-                    concatColumns.Add(new ColumnConcatenatingTransformer.ColumnOptions(col.Name, col.Source));
+                    estimator = estimator.Append<ITransformer>(new ColumnConcatenatingEstimator(env, col.Name, col.Source));
             }
-
-            if (concatColumns.Count > 0)
-                return new ColumnConcatenatingTransformer(env, concatColumns.ToArray());
-
-            return new TransformerChain<ITransformer>();
+            return estimator;
         }
 
         /// <summary>

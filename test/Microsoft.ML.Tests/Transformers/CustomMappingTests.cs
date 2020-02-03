@@ -59,7 +59,7 @@ namespace Microsoft.ML.Tests.Transformers
             IDataView transformedData;
             // We create a temporary environment to instantiate the custom transformer. This is to ensure that we don't need the same
             // environment for saving and loading.
-            var tempoEnv = new MLContext();
+            var tempoEnv = new MLContext(1);
             var customEst = new CustomMappingEstimator<MyInput, MyOutput>(tempoEnv, MyLambda.MyAction, "MyLambda");
 
             try

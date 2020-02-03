@@ -54,7 +54,6 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
                         SourceContracts.Value,
                         SourceFriend.Value,
                     },
-                    AdditionalReferences = { AdditionalMetadataReferences.RefFromType<Memory<int>>() },
                 }
             };
 
@@ -131,7 +130,6 @@ namespace TestNamespace
                         new DiagnosticResult("CS0122", DiagnosticSeverity.Error).WithLocation("Test1.cs", 752, 67).WithMessage("'ICancelable.IsCanceled' is inaccessible due to its protection level"),
                         new DiagnosticResult("CS1503", DiagnosticSeverity.Error).WithLocation("Test1.cs", 753, 91).WithMessage("Argument 2: cannot convert from 'Microsoft.ML.Runtime.IHostEnvironment' to 'Microsoft.ML.Runtime.IExceptionContext'"),
                     },
-                    AdditionalReferences = { AdditionalMetadataReferences.RefFromType<Memory<int>>() },
                 },
                 FixedState =
                 {

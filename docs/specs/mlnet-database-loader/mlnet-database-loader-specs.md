@@ -183,7 +183,7 @@ MLContext mlContext = new MLContext();
 IDataView trainingDataView = mlContext.Data.LoadFromDbSqlQuery<ModelInputData, SqlConnection>(connString: myConnString, sqlQuerySentence: "Select * from InputMLModelDataset where InputMLModelDataset.CompanyName = 'MSFT'"); 
 ```
 
-**2. (Foundational method) Data loading from a database with an IDataReader object:**
+**2. (Foundational method) Data loading from a database with a System.Data.IDataReader object:**
 
 This is the foundational or pillar method which will be used by the rest of the higher level or convenient methods:
 

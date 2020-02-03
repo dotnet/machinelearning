@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -73,12 +74,13 @@ namespace Microsoft.ML.RunTests
         private string _baselineBuildStringDir;
 
         // The writer to write to test log files.
+        protected TestLogger TestLogger;
         protected StreamWriter LogWriter;
         private protected ConsoleEnvironment _env;
         protected IHostEnvironment Env => _env;
         protected MLContext ML;
         private bool _normal;
-        private bool _passed;
+        private readonly List<Exception> _failures = new List<Exception>();
 
         protected override void Initialize()
         {
@@ -96,11 +98,19 @@ namespace Microsoft.ML.RunTests
 
             string logPath = Path.Combine(logDir, FullTestName + LogSuffix);
             LogWriter = OpenWriter(logPath);
-            _passed = true;
-            _env = new ConsoleEnvironment(42, outWriter: LogWriter, errWriter: LogWriter)
+
+            TestLogger = new TestLogger(Output);
+            _env = new ConsoleEnvironment(42, outWriter: LogWriter, errWriter: LogWriter, testWriter: TestLogger)
                 .AddStandardComponents();
             ML = new MLContext(42);
+            ML.Log += LogTestOutput;
             ML.AddStandardComponents();
+        }
+
+        private void LogTestOutput(object sender, LoggingEventArgs e)
+        {
+            if (e.Kind >= MessageKindToLog)
+                Output.WriteLine(e.Message);
         }
 
         // This method is used by subclass to dispose of disposable objects
@@ -113,7 +123,7 @@ namespace Microsoft.ML.RunTests
             Contracts.Assert(IsActive);
             Log("Test {0}: {1}: {2}", TestName,
                 _normal ? "completed normally" : "aborted",
-                _passed ? "passed" : "failed");
+                IsPassing ? "passed" : "failed");
 
             Contracts.AssertValue(LogWriter);
             LogWriter.Dispose();
@@ -124,7 +134,7 @@ namespace Microsoft.ML.RunTests
 
         protected bool IsActive { get { return LogWriter != null; } }
 
-        protected bool IsPassing { get { return _passed; } }
+        protected bool IsPassing { get { return _failures.Count == 0; } }
 
         // Called by a test to signal normal completion. If this is not called before the
         // TestScope is disposed, we assume the test was aborted.
@@ -134,7 +144,18 @@ namespace Microsoft.ML.RunTests
             Contracts.Assert(!_normal, "Done() should only be called once!");
             _normal = true;
 
-            Assert.True(_passed);
+            switch (_failures.Count)
+            {
+                case 0:
+                    break;
+
+                case 1:
+                    ExceptionDispatchInfo.Capture(_failures[0]).Throw();
+                    break;
+
+                default:
+                    throw new AggregateException(_failures.ToArray());
+            }
         }
 
         protected bool Check(bool f, string msg)
@@ -164,8 +185,14 @@ namespace Microsoft.ML.RunTests
         protected void Fail(bool relax, string fmt, params object[] args)
         {
             Contracts.Assert(IsActive);
-            if (!relax)
-                _passed = false;
+            try
+            {
+                throw new InvalidOperationException(string.Format(fmt, args));
+            }
+            catch (Exception ex) when (!relax)
+            {
+                _failures.Add(ex);
+            }
 
             Log("*** Failure: " + fmt, args);
         }
@@ -208,12 +235,6 @@ namespace Microsoft.ML.RunTests
             }
 
             return Path.GetFullPath(Path.Combine(_baselineBuildStringDir, subDir, name));
-        }
-
-        // Inverts the _passed flag. Do not ever use this except in rare conditions. Eg. Recording failure of a test as a success.
-        protected void DoNotEverUseInvertPass()
-        {
-            _passed = !_passed;
         }
 
         // These are used to normalize output.

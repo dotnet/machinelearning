@@ -52,10 +52,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprBindExInput.txt"/>
-    <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprBindInput.txt"/>
-    <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprCodeGenInput.txt"/>
-    <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprEvalInput.txt"/>
-    <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprParseInput.txt"/>
+    <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprBindExInput.txt" />
+    <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprBindInput.txt" />
+    <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprCodeGenInput.txt" />
+    <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprEvalInput.txt" />
+    <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprParseInput.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

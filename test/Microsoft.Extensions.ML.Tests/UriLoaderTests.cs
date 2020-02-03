@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.ML;
+using Microsoft.ML.TestFrameworkCommon;
 using Xunit;
 
 namespace Microsoft.Extensions.ML
@@ -45,7 +46,7 @@ namespace Microsoft.Extensions.ML
                         () => loaderUnderTest.GetReloadToken(),
                         () => changed.Set());
             
-            Assert.True(changed.WaitOne(1000), "UriLoader ChangeToken didn't fire before the allotted time.");
+            Assert.True(changed.WaitOne(AsyncTestHelper.UnexpectedTimeout), "UriLoader ChangeToken didn't fire before the allotted time.");
         }
 
         [Fact]

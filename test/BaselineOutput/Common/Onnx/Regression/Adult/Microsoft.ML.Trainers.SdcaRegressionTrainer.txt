@@ -28,24 +28,24 @@
           {
             "name": "coefficients",
             "floats": [
-              77.0922546,
-              0.0301597714,
-              74.77238,
-              0.0247383546,
-              0.015633028,
-              -0.00285232812,
-              19.3064137,
-              3.93808079,
-              -0.04581693,
-              0.19576098,
-              82.69531
+              77.0586548,
+              0.008821458,
+              74.8481,
+              -0.0400403664,
+              -0.0316747874,
+              0.0483982079,
+              19.31359,
+              3.932647,
+              0.0116912266,
+              0.09054199,
+              82.77022
             ],
             "type": "FLOATS"
           },
           {
             "name": "intercepts",
             "floats": [
-              373.80426
+              373.88443
             ],
             "type": "FLOATS"
           }
@@ -57,7 +57,7 @@
           "FeatureVector"
         ],
         "output": [
-          "FeatureVector0"
+          "FeatureVector.onnx"
         ],
         "name": "Identity",
         "opType": "Identity"
@@ -67,7 +67,7 @@
           "Target"
         ],
         "output": [
-          "Target0"
+          "Target.onnx"
         ],
         "name": "Identity0",
         "opType": "Identity"
@@ -77,7 +77,7 @@
           "Score"
         ],
         "output": [
-          "Score0"
+          "Score.onnx"
         ],
         "name": "Identity1",
         "opType": "Identity"
@@ -124,7 +124,7 @@
     ],
     "output": [
       {
-        "name": "FeatureVector0",
+        "name": "FeatureVector.onnx",
         "type": {
           "tensorType": {
             "elemType": 1,
@@ -142,7 +142,7 @@
         }
       },
       {
-        "name": "Target0",
+        "name": "Target.onnx",
         "type": {
           "tensorType": {
             "elemType": 1,
@@ -160,7 +160,7 @@
         }
       },
       {
-        "name": "Score0",
+        "name": "Score.onnx",
         "type": {
           "tensorType": {
             "elemType": 1,
