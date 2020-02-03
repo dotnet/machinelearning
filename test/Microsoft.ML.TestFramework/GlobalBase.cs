@@ -67,8 +67,8 @@ namespace Microsoft.ML.Internal.Internallearn.Test
                 Console.WriteLine("Assert handler invoked but ignored: {0}", msg);
             }
             else
-            {
 #endif
+            {
                 Environment.FailFast("Crash here to take memory dump");
                 Assert.True(false, $"Assert failed: {msg}");
             }
