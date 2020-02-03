@@ -21,7 +21,6 @@ namespace Microsoft.ML.TestFrameworkCommon
         // REVIEW: Replace these with appropriate SubComponents!
         public string settings;
         public string testSettings;
-        public string extraSettings;
         // REVIEW: Remove the three above setting strings once conversion work is complete.
         public string loaderSettings;
         public string[] mamlExtraSettings;
@@ -38,7 +37,6 @@ namespace Microsoft.ML.TestFrameworkCommon
                 labelFilename = labelFilename,
                 settings = settings,
                 testSettings = testSettings,
-                extraSettings = extraSettings,
                 loaderSettings = loaderSettings,
                 mamlExtraSettings = mamlExtraSettings
             };
@@ -81,7 +79,6 @@ namespace Microsoft.ML.TestFrameworkCommon
             name = "breast-cancer",
             trainFilename = "breast-cancer.txt",
             testFilename = "breast-cancer.txt",
-            extraSettings = "cacheinst- inst=Text{label=0 attr=1-9}",
         };
 
         /// <summary>
@@ -95,7 +92,6 @@ namespace Microsoft.ML.TestFrameworkCommon
             // Using "col=Features:1-5,6,7-9" improves code coverage. Same with "col=Attr:TX:6".
             loaderSettings = "loader=Text{sparse- col=Attr:TX:6 col=Label:0 col=Features:1-5,6,7-9}",
             mamlExtraSettings = new[] { "cache-" },
-            extraSettings = "/cacheinst- /inst Pipe{loader=Text{sparse- col=Attr:TX:6 col=Label:0 col=Features:1-5,6,7-9} lab=Label feat=Features}"
         };
 
         /// <summary>
@@ -270,7 +266,6 @@ namespace Microsoft.ML.TestFrameworkCommon
             name = "breast-cancer-bing",
             trainFilename = "breast-cancer-bing.txt",
             testFilename = "breast-cancer-bing.txt",
-            extraSettings = "/inst ExtractInstances{}"
         };
 
         public static TestDataset adult = new TestDataset
@@ -282,7 +277,6 @@ namespace Microsoft.ML.TestFrameworkCommon
             fileSeparator = '\t',
             loaderSettings = "loader=Text{header+ col=Label:0 col=Num:9-14 col=Cat:TX:1-8}",
             mamlExtraSettings = new[] { "xf=Cat{col=Cat}", "xf=Concat{col=Features:Num,Cat}" },
-            extraSettings = @"/inst Text{header+ sep=, label=14 handler=Categorical{cols=5-9,1,13,3}}",
         };
 
         public static TestDataset adultOnlyCat = new TestDataset
@@ -292,7 +286,6 @@ namespace Microsoft.ML.TestFrameworkCommon
             testFilename = "adult.tiny.with-schema.txt",
             loaderSettings = "loader=Text{header+ col=Label:0 col=Cat:TX:1-8}",
             mamlExtraSettings = new[] { "xf=Cat{col=Cat}", "xf=Concat{col=Features:Cat}" },
-            extraSettings = @"/inst Text{header+ sep=, label=14 handler=Categorical{cols=5-9,1,13,3}}",
         };
 
         public static TestDataset adultHash = new TestDataset
@@ -302,7 +295,6 @@ namespace Microsoft.ML.TestFrameworkCommon
             testFilename = "adult.tiny.with-schema.txt",
             loaderSettings = "loader=Text{header+ col=Label:0 col=Num:9-14 col=Cat:TX:1-8}",
             mamlExtraSettings = new[] { "xf=CatHash{col=Cat bits=5}", "xf=Concat{col=Features:Num,Cat}" },
-            extraSettings = @"/inst Text{header+ sep=, label=14 handler=CatHash{cols=1,3,5-9,13 bits=5}}"
         };
 
         public static TestDataset adultHashWithDataPipe = new TestDataset
@@ -321,7 +313,6 @@ namespace Microsoft.ML.TestFrameworkCommon
             testFilename = "adult.tiny.with-schema.txt",
             loaderSettings = "loader=Text{header+ col=Label:0 col=Word:TX:1-8 col=Num:~}",
             mamlExtraSettings = new[] { "xf=WordBag{col=Word}", "xf=Concat{col=Features:Num,Word}" },
-            extraSettings = @"/inst Text{header+ sep=, label=14 handler=WordBag{cols=1,3,5-9,13}}"
         };
 
         public static TestDataset adultTextHash = new TestDataset
@@ -331,7 +322,6 @@ namespace Microsoft.ML.TestFrameworkCommon
             testFilename = "adult.tiny.with-schema.txt",
             loaderSettings = "loader=Text{header+ col=Label:0 col=Word:TX:1-8 col=Num:~}",
             mamlExtraSettings = new[] { "xf=WordHashBag{col=Word bits=8}", "xf=Concat{col=Features:Num,Word}" },
-            extraSettings = @"/inst Text{header+ sep=, label=14 handler=WordHashBag{cols=1,3,5-9,13 sep=, bits=8}}"
         };
 
         public static TestDataset adultRanking = new TestDataset
@@ -378,7 +368,6 @@ namespace Microsoft.ML.TestFrameworkCommon
             mamlExtraSettings = new[] {
                 "xf=Cat{col=Cat3 col=Cat4 col=Cat5 col=Cat6 col=Cat7 col=Cat8 col=Cat9 col=Cat15 col=Cat16 col=Cat18}",
                 "xf=Concat{col=Features:Features,Cat3,Cat4,Cat5,Cat6,Cat7,Cat8,Cat9,Cat15,Cat16,Cat18}" },
-            // extraSettings = "inst=Text{cat=3,4,5,6,7,8,9,15,16,18 label=0 maxBad=100}"
         };
 
         public static TestDataset reutersMaxDim = new TestDataset()
@@ -493,7 +482,6 @@ namespace Microsoft.ML.TestFrameworkCommon
             trainFilename = @"..\LM\Local.source_features.de-de.txt",
             testFilename = @"..\LM\Local.validate_features.de-de.txt",
             labelFilename = @"..\LM\Mapping.de-de.txt",
-            extraSettings = @"/inst Text{header+ attr=1,2 handler=WordHashBag{cols=3,4}}"
         };
 
         public static TestDataset LMCharGrams = new TestDataset()
@@ -502,7 +490,6 @@ namespace Microsoft.ML.TestFrameworkCommon
             trainFilename = @"..\LM\Local.source_features.de-de.txt",
             testFilename = @"..\LM\Local.validate_features.de-de.txt",
             labelFilename = @"..\LM\Mapping.de-de.txt",
-            extraSettings = @"/inst Text{header+ attr=1,2 handler=CharGram{cols=3,4 len=3}}"
         };
 
         public static TestDataset LMBigrams = new TestDataset()
@@ -511,7 +498,6 @@ namespace Microsoft.ML.TestFrameworkCommon
             trainFilename = @"..\LM\Local.source_features.de-de.txt",
             testFilename = @"..\LM\Local.validate_features.de-de.txt",
             labelFilename = @"..\LM\Mapping.de-de.txt",
-            extraSettings = @"/inst Text{header+ attr=1,2 handler=WordBag{cols=3,4 ngram=2}}"
         };
 
         public static TestDataset LMNgrams = new TestDataset()
@@ -520,7 +506,6 @@ namespace Microsoft.ML.TestFrameworkCommon
             trainFilename = @"..\LM\Local.source_features.de-de.txt",
             testFilename = @"..\LM\Local.validate_features.de-de.txt",
             labelFilename = @"..\LM\Mapping.de-de.txt",
-            extraSettings = @"/inst Text{header+ attr=1,2 handler=WordBag{cols=3,4 ngram=5 max=200000}}"
         };
 
         public static TestDataset LMSkipNgrams = new TestDataset()
@@ -529,7 +514,6 @@ namespace Microsoft.ML.TestFrameworkCommon
             trainFilename = @"..\LM\Local.source_features.de-de.txt",
             testFilename = @"..\LM\Local.validate_features.de-de.txt",
             labelFilename = @"..\LM\Mapping.de-de.txt",
-            extraSettings = @"/inst Text{header+ attr=1,2 handler=WordBag{cols=3,4 ngram=4 skips=1 max=200000}}"
         };
 
         public static TestDataset LMNgramsHashing = new TestDataset()
@@ -538,7 +522,6 @@ namespace Microsoft.ML.TestFrameworkCommon
             trainFilename = @"..\LM\Local.source_features.de-de.txt",
             testFilename = @"..\LM\Local.validate_features.de-de.txt",
             labelFilename = @"..\LM\Mapping.de-de.txt",
-            extraSettings = @"/inst Text{header+ attr=1,2 handler=WordHashBag{cols=3,4 ngram=10}}"
         };
 
         public static TestDataset rankingText = new TestDataset()
@@ -548,7 +531,6 @@ namespace Microsoft.ML.TestFrameworkCommon
             testFilename = @"ranking-sample.txt",
             labelFilename = @"ranking-sample.txt.labels",
             loaderSettings = "loader=Text{header+ col=Label:TX:0 col=GroupId:U4[0-*]:1 col=Name:TX:1-2 col=Features:3-*}",
-            extraSettings = @"/inst Text{header+ name=1-2 groupKey=n0}"
         };
 
         public static TestDataset rankingExtract = new TestDataset()
@@ -557,7 +539,6 @@ namespace Microsoft.ML.TestFrameworkCommon
             trainFilename = @"ranking-sample.txt",
             testFilename = @"ranking-sample.txt",
             labelFilename = @"ranking-sample.txt.labels",
-            extraSettings = @"/inst ExtractInstances{header+ name=1-2 groupKey=n0}"
         };
 
         public static TestDataset breastCancerWeighted = new TestDataset
@@ -617,7 +598,6 @@ namespace Microsoft.ML.TestFrameworkCommon
             trainFilename = @"adult.SparseWithCat.txt",
             testFilename = @"adult.SparseWithCat.txt",
             settings = "",
-            extraSettings = @"/inst TextInstances { handler=CatHashHandler{cols=0 bits=6} }"
         };
 
         public static TestDataset adultSparseWithCatAsAtt = new TestDataset()
@@ -626,7 +606,6 @@ namespace Microsoft.ML.TestFrameworkCommon
             trainFilename = @"adult.SparseWithCat.txt",
             testFilename = @"adult.SparseWithCat.txt",
             settings = "",
-            extraSettings = @"/inst TextInstances { attr=0 threads-}"
         };
 
         public static TestDataset pClick = new TestDataset()
