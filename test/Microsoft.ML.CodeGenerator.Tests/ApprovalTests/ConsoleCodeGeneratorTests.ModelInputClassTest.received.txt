@@ -1,0 +1,38 @@
+﻿//*****************************************************************************************
+//*                                                                                       *
+//* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *
+//*                                                                                       *
+//*****************************************************************************************
+
+using Microsoft.ML.Data;
+
+namespace test.Model
+{
+    public class ModelInput
+    {
+        [ColumnName("Label"), LoadColumn(0)]
+        public bool Label { get; set; }
+
+
+        [ColumnName("col1_map"), LoadColumn(1)]
+        public long Col1 { get; set; }
+
+
+        [ColumnName("col2_map"), LoadColumn(0)]
+        public uint Col2 { get; set; }
+
+
+        [ColumnName("col3"), LoadColumn(0)]
+        public string Col3 { get; set; }
+
+
+        [ColumnName("col4"), LoadColumn(0)]
+        public int Col4 { get; set; }
+
+
+        [ColumnName("col5"), LoadColumn(0)]
+        public uint Col5 { get; set; }
+
+
+    }
+}
