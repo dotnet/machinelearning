@@ -11,6 +11,7 @@ using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using TestNamespace.Model;
+using Microsoft.ML.Trainers;
 
 namespace TestNamespace.ConsoleApp
 {
@@ -55,9 +56,10 @@ namespace TestNamespace.ConsoleApp
         public static IEstimator<ITransformer> BuildTrainingPipeline(MLContext mlContext)
         {
             // Data process configuration with pipeline data transformations 
-            var dataProcessPipeline = mlContext.Transforms.Concatenate("Out", new[] { "In" });
+            var dataProcessPipeline = mlContext.Transforms.Conversion.MapValueToKey("userId", "userId")
+                                      .Append(mlContext.Transforms.Conversion.MapValueToKey("movieId", "movieId"));
             // Set the training algorithm 
-            var trainer = mlContext.Recommendation().Trainers.MatrixFactorization(labelColumnName: "Label", matrixColumnIndexColumnName: "userId", matrixRowIndexColumnName: "movieId");
+            var trainer = mlContext.Recommendation().Trainers.MatrixFactorization(new MatrixFactorizationTrainer.Options() { MatrixColumnIndexColumnName = "userId", MatrixRowIndexColumnName = "movieId", LabelColumnName = "Label", NumberOfIterations = 10, LearningRate = 0.01f, ApproximationRank = 8, Lambda = 0.01f, LossFunction = MatrixFactorizationTrainer.LossFunctionType.SquareLossRegression, Alpha = 1f, C = 1E-05f });
 
             var trainingPipeline = dataProcessPipeline.Append(trainer);
 

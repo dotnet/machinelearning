@@ -97,6 +97,12 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                     value = "\"" + val + "\"";
                 }
 
+                if (type.IsEnum)
+                {
+                    //example: "MatrixFactorizationTrainer.LossFunctionType.SquareLossRegression"
+                    value = $"{type.ReflectedType.Name}.{type.Name}.{kv.Value.ToString()}";
+                }
+
                 if (type == typeof(CustomProperty))
                 {
                     value = kv.Value;
