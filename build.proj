@@ -87,9 +87,12 @@
 
   <Target Name="DownloadExternalTestFiles" Inputs="@(TestFile)" Outputs="%(TestFile.DestinationFile)">
     <Message Importance="High" Text="Downloading external test files... %(TestFile.DestinationFile)" />
-    <DownloadFilesFromUrl Items="@(TestFile)"
-                         DestinationDir="test/data/external"
-                         TreatErrorsAsWarnings="true"/>
+    <DownloadFile
+            SourceUrl="%(BenchmarkFile.Url)"
+            DestinationFolder="$(MSBuildThisFileDirectory)/test/data/external/"
+            Retries="5"
+            SkipUnchangedFiles="true">
+    </DownloadFile>
   </Target>
 
   <Target Name="RunTests">
