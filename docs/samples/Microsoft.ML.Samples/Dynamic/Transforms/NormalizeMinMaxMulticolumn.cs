@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -40,21 +40,18 @@ namespace Samples.Dynamic
             // Convert training data to IDataView, the general data type used in
             // ML.NET.
             var data = mlContext.Data.LoadFromEnumerable(samples);
-
-            // NormalizeMinMax normalize rows by finding min and max values in each
-            // row slot and setting projection of min value to 0 and max to 1 and
-            // everything else to values in between.
-            var normalize = mlContext.Transforms.NormalizeMinMax(new[] {
-                    new InputOutputColumnPair("Features"),
-                    new InputOutputColumnPair("Features2")
-                },
-                fixZero: false);
-
+            
             var columnPair = new[]
             {
                 new InputOutputColumnPair("Features"),
                 new InputOutputColumnPair("Features2")
             };
+
+            // NormalizeMinMax normalize rows by finding min and max values in each
+            // row slot and setting projection of min value to 0 and max to 1 and
+            // everything else to values in between.
+            var normalize = mlContext.Transforms.NormalizeMinMax(columnPair,
+                fixZero: false);
 
             // Normalize rows by finding min and max values in each row slot, but
             // make sure zero values remain zero after normalization. Helps
