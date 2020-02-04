@@ -20,7 +20,7 @@ namespace Microsoft.ML
         IHostEnvironment IInternalCatalog.Environment => Environment;
 
         [BestFriend]
-        private protected IHostEnvironment Environment { get; }
+        private protected ISeededEnvironment Environment { get; }
 
         /// <summary>
         /// Results for specific cross-validation fold.
@@ -111,7 +111,7 @@ namespace Microsoft.ML
         }
 
         [BestFriend]
-        private protected TrainCatalogBase(IHostEnvironment env, string registrationName)
+        private protected TrainCatalogBase(ISeededEnvironment env, string registrationName)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonEmpty(registrationName, nameof(registrationName));
@@ -151,7 +151,7 @@ namespace Microsoft.ML
         /// </summary>
         public BinaryClassificationTrainers Trainers { get; }
 
-        internal BinaryClassificationCatalog(IHostEnvironment env)
+        internal BinaryClassificationCatalog(ISeededEnvironment env)
             : base(env, nameof(BinaryClassificationCatalog))
         {
             Calibrators = new CalibratorsCatalog(this);
@@ -388,7 +388,7 @@ namespace Microsoft.ML
         /// <summary>
         /// The clustering context.
         /// </summary>
-        internal ClusteringCatalog(IHostEnvironment env)
+        internal ClusteringCatalog(ISeededEnvironment env)
             : base(env, nameof(ClusteringCatalog))
         {
             Trainers = new ClusteringTrainers(this);
@@ -468,7 +468,7 @@ namespace Microsoft.ML
         /// </summary>
         public MulticlassClassificationTrainers Trainers { get; }
 
-        internal MulticlassClassificationCatalog(IHostEnvironment env)
+        internal MulticlassClassificationCatalog(ISeededEnvironment env)
             : base(env, nameof(MulticlassClassificationCatalog))
         {
             Trainers = new MulticlassClassificationTrainers(this);
@@ -549,7 +549,7 @@ namespace Microsoft.ML
         /// </summary>
         public RegressionTrainers Trainers { get; }
 
-        internal RegressionCatalog(IHostEnvironment env)
+        internal RegressionCatalog(ISeededEnvironment env)
             : base(env, nameof(RegressionCatalog))
         {
             Trainers = new RegressionTrainers(this);
@@ -619,7 +619,7 @@ namespace Microsoft.ML
         /// </summary>
         public RankingTrainers Trainers { get; }
 
-        internal RankingCatalog(IHostEnvironment env)
+        internal RankingCatalog(ISeededEnvironment env)
             : base(env, nameof(RankingCatalog))
         {
             Trainers = new RankingTrainers(this);
@@ -685,7 +685,7 @@ namespace Microsoft.ML
         /// </summary>
         public AnomalyDetectionTrainers Trainers { get; }
 
-        internal AnomalyDetectionCatalog(IHostEnvironment env)
+        internal AnomalyDetectionCatalog(ISeededEnvironment env)
             : base(env, nameof(AnomalyDetectionCatalog))
         {
             Trainers = new AnomalyDetectionTrainers(this);
@@ -753,7 +753,7 @@ namespace Microsoft.ML
         /// </summary>
         public Forecasters Trainers { get; }
 
-        internal ForecastingCatalog(IHostEnvironment env) : base(env, nameof(ForecastingCatalog))
+        internal ForecastingCatalog(ISeededEnvironment env) : base(env, nameof(ForecastingCatalog))
         {
             Trainers = new Forecasters(this);
         }

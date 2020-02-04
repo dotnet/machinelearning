@@ -66,11 +66,6 @@ namespace Microsoft.ML.Runtime
         /// The catalog of loadable components (<see cref="LoadableClassAttribute"/>) that are available in this host.
         /// </summary>
         ComponentCatalog ComponentCatalog { get; }
-
-        /// <summary>
-        /// The seed property that, if assigned, makes components requiring randomness behave deterministically.
-        /// </summary>
-        int? Seed { get; }
     }
 
     [BestFriend]
@@ -85,6 +80,15 @@ namespace Microsoft.ML.Runtime
         /// Flag which indicates host execution has been stopped.
         /// </summary>
         bool IsCanceled { get; }
+    }
+
+    [BestFriend]
+    internal interface ISeededEnvironment : IHostEnvironment
+    {
+        /// <summary>
+        /// The seed property that, if assigned, makes components requiring randomness behave deterministically.
+        /// </summary>
+        int? Seed { get; }
     }
 
     /// <summary>

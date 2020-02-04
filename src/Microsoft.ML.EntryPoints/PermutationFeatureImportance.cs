@@ -19,7 +19,7 @@ namespace Microsoft.ML.Transforms
     internal static class PermutationFeatureImportanceEntryPoints
     {
         [TlcModule.EntryPoint(Name = "Transforms.PermutationFeatureImportance", Desc = "Permutation Feature Importance (PFI)", UserName = "PFI", ShortName = "PFI")]
-        public static PermutationFeatureImportanceOutput PermutationFeatureImportance(IHostEnvironment env, PermutationFeatureImportanceArguments input)
+        public static PermutationFeatureImportanceOutput PermutationFeatureImportance(ISeededEnvironment env, PermutationFeatureImportanceArguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("Pfi");
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Transforms
     internal static class PermutationFeatureImportanceUtils
     {
         internal static IDataView GetMetrics(
-            IHostEnvironment env,
+            ISeededEnvironment env,
             IPredictor predictor,
             RoleMappedData roleMappedData,
             PermutationFeatureImportanceArguments input)
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Transforms
         }
 
         private static IDataView GetBinaryMetrics(
-            IHostEnvironment env,
+            ISeededEnvironment env,
             IPredictor predictor,
             RoleMappedData roleMappedData,
             PermutationFeatureImportanceArguments input)
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Transforms
         }
 
         private static IDataView GetMulticlassMetrics(
-            IHostEnvironment env,
+            ISeededEnvironment env,
             IPredictor predictor,
             RoleMappedData roleMappedData,
             PermutationFeatureImportanceArguments input)
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Transforms
         }
 
         private static IDataView GetRegressionMetrics(
-            IHostEnvironment env,
+            ISeededEnvironment env,
             IPredictor predictor,
             RoleMappedData roleMappedData,
             PermutationFeatureImportanceArguments input)
@@ -249,7 +249,7 @@ namespace Microsoft.ML.Transforms
         }
 
         private static IDataView GetRankingMetrics(
-            IHostEnvironment env,
+            ISeededEnvironment env,
             IPredictor predictor,
             RoleMappedData roleMappedData,
             PermutationFeatureImportanceArguments input)

@@ -29,7 +29,7 @@ namespace Microsoft.ML
         /// </summary>
         public RecommendationTrainers Trainers { get; }
 
-        internal RecommendationCatalog(IHostEnvironment env)
+        internal RecommendationCatalog(ISeededEnvironment env)
             : base(env, nameof(RecommendationCatalog))
         {
             Trainers = new RecommendationTrainers(this);
