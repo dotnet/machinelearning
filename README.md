@@ -8,7 +8,7 @@ ML.NET allows .NET developers to develop/train their own models and infuse custo
 
 ML.NET was originally developed in Microsoft Research and evolved into a Microsoft internal framework over the last decade being used across many product groups in Microsoft like Windows, Bing, PowerPoint, Excel and more.
 
-ML.NET enables machine learning tasks like classification (for example: support text classification, sentiment analysis), regression (for example, price-prediction) and many other ML tasks such as anomaly detection, time-series-forecast, clustering, ranking, etc.
+ML.NET enables machine learning tasks like classification (for example, support text classification, sentiment analysis), regression (for example, price-prediction), and many other ML tasks such as anomaly detection, time-series-forecast, clustering, ranking, etc.
 
 ML.NET also brings .NET APIs for training models, using models for predictions, as well as the core components of this framework such as learning algorithms, transforms, and ML data structures.
 
@@ -28,13 +28,12 @@ See the [API Reference documentation](https://docs.microsoft.com/en-us/dotnet/ap
 
 We have a GitHub repo with [ML.NET sample apps](https://github.com/dotnet/machinelearning-samples) with many scenarios such as Sentiment analysis, Fraud detection, Product Recommender, Price Prediction, Anomaly Detection, Image Classification, Object Detection and many more. 
 
-In addition to the ML.NET samples provided by Microsoft, we're also highlighting many more samples created by the community showcased in this separated page [ML.NET Community Samples](https://github.com/dotnet/machinelearning-samples/blob/master/docs/COMMUNITY-SAMPLES.md)
+In addition to the ML.NET samples provided by Microsoft, we're also highlighting many more samples created by the community showcased in this separate page [ML.NET Community Samples](https://github.com/dotnet/machinelearning-samples/blob/master/docs/COMMUNITY-SAMPLES.md)
 
 
 ## ML.NET videos playlist at YouTube
 
-There a list of short videos each one focusing on a particular single topic of ML.NET at the [ML.NET videos playlist](https://aka.ms/mlnetyoutube) in YouTube.
-
+The [ML.NET videos playlist](https://aka.ms/mlnetyoutube) on YouTube contains several short videos. Each video focuses on a particular topic of ML.NET.
 
 ## Operating systems and processor architectures supported by ML.NET
 
@@ -64,7 +63,7 @@ or from the NuGet package manager:
 Install-Package Microsoft.ML
 ```
 
-Or alternatively, you can add the Microsoft.ML package from within Visual Studio's NuGet package manager or via [Paket](https://github.com/fsprojects/Paket).
+Alternatively, you can add the Microsoft.ML package from within Visual Studio's NuGet package manager or via [Paket](https://github.com/fsprojects/Paket).
 
 Daily NuGet builds of the project are also available in our Azure DevOps feed:
 
