@@ -281,7 +281,7 @@ namespace Microsoft.ML.RunTests
         [TestCategory("Binary")]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         [Trait("Category", "RunSpecificTest")]
-        [IterationData(iterations: 100)]
+        [IterationData(iterations: 1)]
         public void BinaryClassifierSymSgdTest(int iterations)
         {
             if (iterations % 10 == 0)
@@ -292,6 +292,7 @@ namespace Microsoft.ML.RunTests
 
             RunOneAllTests(TestLearners.symSGD, TestDatasets.breastCancer, summary: true, digitsOfPrecision: 4);
             Done();
+            Environment.FailFast("Get the baselines!");
         }
 
         [X64Fact("x86 output differs from Baseline")]
