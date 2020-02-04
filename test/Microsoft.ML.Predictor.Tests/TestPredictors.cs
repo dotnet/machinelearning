@@ -281,7 +281,7 @@ namespace Microsoft.ML.RunTests
         [TestCategory("Binary")]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         [Trait("Category", "RunSpecificTest")]
-        [IterationData(iterations: 1)]
+        [IterationData(iterations: 100)]
         public void BinaryClassifierSymSgdTest(int iterations)
         {
             if (iterations % 10 == 0)
