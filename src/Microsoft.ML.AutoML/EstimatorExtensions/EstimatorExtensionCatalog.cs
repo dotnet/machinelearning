@@ -20,6 +20,7 @@ namespace Microsoft.ML.AutoML
         TextFeaturizing,
         TypeConverting,
         ValueToKeyMapping,
+        RawByteImageLoading,
         ImageLoading
     }
 
@@ -39,7 +40,8 @@ namespace Microsoft.ML.AutoML
             { EstimatorName.TextFeaturizing, typeof(TextFeaturizingExtension) },
             { EstimatorName.TypeConverting, typeof(TypeConvertingExtension) },
             { EstimatorName.ValueToKeyMapping, typeof(ValueToKeyMappingExtension) },
-            { EstimatorName.ImageLoading, typeof(ImageLoadingExtension) }
+            { EstimatorName.RawByteImageLoading, typeof(RawByteImageLoading) },
+            { EstimatorName.ImageLoading, typeof(ImageLoading) }
         };
 
         public static IEstimatorExtension GetExtension(EstimatorName estimatorName)

@@ -1473,8 +1473,8 @@ namespace Microsoft.ML.Tests
 
             var dataView = ML.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("Label", DataKind.Boolean, 0),
-                new TextLoader.Column("Thickness", DataKind.Int32, 1),
-                new TextLoader.Column("Size", DataKind.Int32, 2),
+                new TextLoader.Column("Thickness", DataKind.Double, 1),
+                new TextLoader.Column("Size", DataKind.Single, 2),
                 new TextLoader.Column("Shape", DataKind.Int32, 3),
                 new TextLoader.Column("Adhesion", DataKind.Int32, 4),
                 new TextLoader.Column("EpithelialSize", DataKind.Int32, 5),
@@ -1483,7 +1483,7 @@ namespace Microsoft.ML.Tests
                 new TextLoader.Column("Mitoses", DataKind.Int32, 9),
             });
 
-            var pipeline = mlContext.Transforms.SelectColumns(new[] { "Size", "Shape", "Thickness", "Label" });
+            var pipeline = mlContext.Transforms.ReplaceMissingValues("Size").Append(mlContext.Transforms.SelectColumns(new[] { "Size", "Shape", "Thickness", "Label" }));
 
             var model = pipeline.Fit(dataView);
             var transformedData = model.Transform(dataView);
@@ -1510,9 +1510,9 @@ namespace Microsoft.ML.Tests
                 Assert.Equal("Thickness.onnx", outputNames[2]);
                 Assert.Equal("Label.onnx", outputNames[3]);
 
-                CompareSelectedScalarColumns<int>("Size", "Size.onnx", transformedData, onnxResult);
+                CompareSelectedScalarColumns<Single>("Size", "Size.onnx", transformedData, onnxResult);
                 CompareSelectedScalarColumns<int>("Shape", "Shape.onnx", transformedData, onnxResult);
-                CompareSelectedScalarColumns<int>("Thickness", "Thickness.onnx", transformedData, onnxResult);
+                CompareSelectedScalarColumns<double>("Thickness", "Thickness.onnx", transformedData, onnxResult);
                 CompareSelectedScalarColumns<bool>("Label", "Label.onnx", transformedData, onnxResult);
             }
 

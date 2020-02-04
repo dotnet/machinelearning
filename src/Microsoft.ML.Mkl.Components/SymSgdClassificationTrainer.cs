@@ -809,6 +809,8 @@ namespace Microsoft.ML.Trainers
                 if (stateGCHandle.IsAllocated)
                     stateGCHandle.Free();
             }
+
+            ch.Info($"Bias: {bias}, Weights: [{String.Join(",", weights.DenseValues())}]");
             return CreatePredictor(weights, bias);
         }
 

@@ -18,8 +18,7 @@ namespace TestNamespace.ConsoleApp
     {
         private static string TRAIN_DATA_FILEPATH = @"x:\dummypath\dummy_train.csv";
         private static string TEST_DATA_FILEPATH = @"x:\dummypath\dummy_test.csv";
-        private static string MODEL_FILEPATH = @"../../../../TestNamespace.Model/MLModel.zip";
-
+        private static string MODEL_FILEPATH = @"x:\models\model.zip";
         // Create MLContext to be shared across the model creation workflow objects 
         // Set a random seed for repeatable/deterministic results across multiple trainings.
         private static MLContext mlContext = new MLContext(seed: 1);
@@ -57,9 +56,9 @@ namespace TestNamespace.ConsoleApp
         {
             // Data process configuration with pipeline data transformations 
             var dataProcessPipeline = mlContext.Transforms.Concatenate("Out", new[] { "In" });
-
             // Set the training algorithm 
             var trainer = mlContext.Recommendation().Trainers.MatrixFactorization(labelColumnName: "Label", matrixColumnIndexColumnName: "userId", matrixRowIndexColumnName: "movieId");
+
             var trainingPipeline = dataProcessPipeline.Append(trainer);
 
             return trainingPipeline;

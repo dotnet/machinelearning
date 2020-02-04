@@ -23,7 +23,7 @@ namespace TestNamespace.ConsoleApp
             ModelInput sampleData = CreateSingleDataSample(DATA_FILEPATH);
 
             // Make a single prediction on the sample data and print results
-            ModelOutput predictionResult = ConsumeModel.Predict(sampleData);
+            var predictionResult = ConsumeModel.Predict(sampleData);
 
             Console.WriteLine("Using model to make single prediction -- Comparing actual Label with predicted Label from sample data...\n\n");
             Console.WriteLine($"col1: {sampleData.Col1}");

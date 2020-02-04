@@ -358,7 +358,7 @@ namespace Microsoft.ML.AutoML
                         var columnDestSuffix = "_featurized";
                         string columnDestRenamed = $"{column.ColumnName}{columnDestSuffix}";
 
-                        yield return ImageLoadingExtension.CreateSuggestedTransform(Context, column.ColumnName, columnDestRenamed);
+                        yield return RawByteImageLoading.CreateSuggestedTransform(Context, column.ColumnName, columnDestRenamed);
                     }
                 }
             }

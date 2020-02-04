@@ -34,19 +34,19 @@ namespace <#= Namespace #>.ConsoleApp
             ModelInput sampleData = CreateSingleDataSample(DATA_FILEPATH);
 
 			// Make a single prediction on the sample data and print results
-			ModelOutput predictionResult = ConsumeModel.Predict(sampleData);
+			var predictionResult = ConsumeModel.Predict(sampleData);
 
 			Console.WriteLine("Using model to make single prediction -- Comparing actual <#= Utils.Normalize(LabelName) #> with predicted <#= Utils.Normalize(LabelName) #> from sample data...\n\n");
 <#foreach(var label in Features){#>
 			Console.WriteLine($"<#= label #>: {sampleData.<#= Utils.Normalize(label) #>}");
 <#}#>
-<#if("BinaryClassification".Equals(TaskType)){ #>
+<#if("BinaryClassification".Equals(TaskType) ){ #>
 			Console.WriteLine($"\n\nActual <#= Utils.Normalize(LabelName) #>: {sampleData.<#= Utils.Normalize(LabelName) #>} \nPredicted <#= Utils.Normalize(LabelName) #>: {predictionResult.Prediction}\n\n");
 <#} else if("Regression".Equals(TaskType) || "Recommendation".Equals(TaskType)){#>
 			Console.WriteLine($"\n\nActual <#= Utils.Normalize(LabelName) #>: {sampleData.<#= Utils.Normalize(LabelName) #>} \nPredicted <#= Utils.Normalize(LabelName) #>: {predictionResult.Score}\n\n");
 <#} else if("MulticlassClassification".Equals(TaskType)){#>
 			Console.WriteLine($"\n\nActual <#= Utils.Normalize(LabelName) #>: {sampleData.<#= Utils.Normalize(LabelName) #>} \nPredicted <#= Utils.Normalize(LabelName) #> value {predictionResult.Prediction} \nPredicted <#= Utils.Normalize(LabelName) #> scores: [{String.Join(",", predictionResult.Score)}]\n\n");
-<#}#>
+<#} #>
             Console.WriteLine("=============== End of process, hit any key to finish ===============");
             Console.ReadKey();
         }
