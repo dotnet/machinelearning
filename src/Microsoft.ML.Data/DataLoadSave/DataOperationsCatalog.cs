@@ -496,13 +496,12 @@ namespace Microsoft.ML
         internal static void EnsureGroupPreservationColumn(IHostEnvironment env, ref IDataView data, ref string samplingKeyColumn, int? seed = null)
         {
             Contracts.CheckValue(env, nameof(env));
-            var host = env.Register("rand");
             // We need to handle two cases: if samplingKeyColumn is provided, we use hashJoin to
             // build a single hash of it. If it is not, we generate a random number.
             if (samplingKeyColumn == null)
             {
                 samplingKeyColumn = data.Schema.GetTempColumnName("SamplingKeyColumn");
-                data = new GenerateNumberTransform(env, data, samplingKeyColumn, (uint?)(seed ?? host.Rand.Next()));
+                data = new GenerateNumberTransform(env, data, samplingKeyColumn, (uint?)(seed ?? env.Seed));
             }
             else
             {
@@ -518,7 +517,7 @@ namespace Microsoft.ML
                     // instead of having two hash transformations.
                     var origStratCol = samplingKeyColumn;
                     samplingKeyColumn = data.Schema.GetTempColumnName(samplingKeyColumn);
-                    var columnOptions = new HashingEstimator.ColumnOptionsInternal(samplingKeyColumn, origStratCol, 30, (uint)(seed ?? host.Rand.Next()));
+                    var columnOptions = new HashingEstimator.ColumnOptionsInternal(samplingKeyColumn, origStratCol, 30, (uint)(seed ?? env.Seed));
                     data = new HashingEstimator(env, columnOptions).Fit(data).Transform(data);
                 }
                 else

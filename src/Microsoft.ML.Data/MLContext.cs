@@ -140,6 +140,7 @@ namespace Microsoft.ML
         IChannel IChannelProvider.Start(string name) => _env.Start(name);
         IPipe<TMessage> IChannelProvider.StartPipe<TMessage>(string name) => _env.StartPipe<TMessage>(name);
         IProgressChannel IProgressChannelProvider.StartProgressChannel(string name) => _env.StartProgressChannel(name);
+        int? IHostEnvironment.Seed => _env.Seed;
 
         [BestFriend]
         internal void CancelExecution() => ((ICancelable)_env).CancelExecution();

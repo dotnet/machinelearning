@@ -366,24 +366,7 @@ namespace Microsoft.ML.Runtime
         public ConsoleEnvironment(int? seed = null, bool verbose = false,
             MessageSensitivity sensitivity = MessageSensitivity.All,
             TextWriter outWriter = null, TextWriter errWriter = null, TextWriter testWriter = null)
-            : this(RandomUtils.Create(seed), verbose, sensitivity, outWriter, errWriter, testWriter)
-        {
-        }
-
-        // REVIEW: do we really care about custom random? If we do, let's make this ctor public.
-        /// <summary>
-        /// Create an ML.NET environment for local execution, with console feedback.
-        /// </summary>
-        /// <param name="rand">An custom source of randomness to use in the environment.</param>
-        /// <param name="verbose">Set to <c>true</c> for fully verbose logging.</param>
-        /// <param name="sensitivity">Allowed message sensitivity.</param>
-        /// <param name="outWriter">Text writer to print normal messages to.</param>
-        /// <param name="errWriter">Text writer to print error messages to.</param>
-        /// <param name="testWriter">Optional TextWriter to write messages if the host is a test environment.</param>
-        private ConsoleEnvironment(Random rand, bool verbose = false,
-            MessageSensitivity sensitivity = MessageSensitivity.All,
-            TextWriter outWriter = null, TextWriter errWriter = null, TextWriter testWriter = null)
-            : base(rand, verbose, nameof(ConsoleEnvironment))
+            : base(seed, verbose, nameof(ConsoleEnvironment))
         {
             Contracts.CheckValueOrNull(outWriter);
             Contracts.CheckValueOrNull(errWriter);

@@ -66,6 +66,11 @@ namespace Microsoft.ML.Runtime
         /// The catalog of loadable components (<see cref="LoadableClassAttribute"/>) that are available in this host.
         /// </summary>
         ComponentCatalog ComponentCatalog { get; }
+
+        /// <summary>
+        /// The seed property that, if assigned, makes components requiring randomness behave deterministically.
+        /// </summary>
+        int? Seed { get; }
     }
 
     [BestFriend]
