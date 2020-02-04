@@ -100,7 +100,7 @@
     <MakeDir Directories="@(ModelFiles->'%(DestinationDir)')" />
     <DownloadFile
             SourceUrl="%(ModelFiles.Url)"
-            DestinationFolder="%(ModelFiles.DestinationDir)')"
+            DestinationFolder="%(ModelFiles.DestinationDir)"
             Retries="5"
             SkipUnchangedFiles="true">
     </DownloadFile>
