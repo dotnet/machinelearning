@@ -19,6 +19,7 @@ using Microsoft.ML.CodeGenerator.Templates.Azure.Console;
 using Microsoft.ML.CodeGenerator.Templates.Console;
 using Microsoft.ML.CodeGenerator.Utilities;
 using Microsoft.ML.Data;
+using Microsoft.ML.Trainers;
 using Xunit;
 using CodeGenerator = Microsoft.ML.CodeGenerator.CSharp.CodeGenerator;
 
@@ -466,16 +467,30 @@ namespace mlnet.Tests
             if (mockedPipeline == null)
             {
                 MLContext context = new MLContext();
+                var hyperParam = new Dictionary<string, object>()
+                {
+                    {"MatrixColumnIndexColumnName","userId" },
+                    {"MatrixRowIndexColumnName","movieId" },
+                    {"LabelColumnName","Label" },
+                    {nameof(MatrixFactorizationTrainer.Options.NumberOfIterations), 10 },
+                    {nameof(MatrixFactorizationTrainer.Options.LearningRate), 0.01f },
+                    {nameof(MatrixFactorizationTrainer.Options.ApproximationRank), 8 },
+                    {nameof(MatrixFactorizationTrainer.Options.Lambda), 0.01f },
+                    {nameof(MatrixFactorizationTrainer.Options.LossFunction), MatrixFactorizationTrainer.LossFunctionType.SquareLossRegression },
+                    {nameof(MatrixFactorizationTrainer.Options.Alpha), 1f },
+                    {nameof(MatrixFactorizationTrainer.Options.C), 0.00001f },
+                };
+                var valueToKeyPipelineNode1 = new PipelineNode(nameof(EstimatorName.ValueToKeyMapping), PipelineNodeType.Transform, "userId", "userId");
+                var valueToKeyPipelineNode2 = new PipelineNode(nameof(EstimatorName.ValueToKeyMapping), PipelineNodeType.Transform, "movieId", "movieId");
+                var matrixPipelineNode = new PipelineNode(nameof(TrainerName.MatrixFactorization), PipelineNodeType.Trainer, "Features", "Score", hyperParam);
+                var pipeline = new Pipeline(new PipelineNode[]
+                {
+                    valueToKeyPipelineNode1,
+                    valueToKeyPipelineNode2,
+                    matrixPipelineNode
+                });
 
-                var trainer1 = new SuggestedTrainer(context, new MatrixFactorizationExtension(), new ColumnInformation() {
-                    LabelColumnName = "Label",
-                    UserIdColumnName = "userId",
-                    ItemIdColumnName = "movieId",
-                }, hyperParamSet: null);
-                var transforms1 = new List<SuggestedTransform>() { ColumnConcatenatingExtension.CreateSuggestedTransform(context, new[] { "In" }, "Out") };
-                var inferredPipeline1 = new SuggestedPipeline(transforms1, new List<SuggestedTransform>(), trainer1, context, false);
-
-                mockedPipeline = inferredPipeline1.ToPipeline();
+                mockedPipeline = pipeline;
                 var textLoaderArgs = new TextLoader.Options()
                 {
                     Columns = new[] {
