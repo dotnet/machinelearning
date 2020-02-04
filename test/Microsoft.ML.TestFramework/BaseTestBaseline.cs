@@ -627,6 +627,8 @@ namespace Microsoft.ML.RunTests
                         $"\t AllowedVariance: {allowedVariance}" + Environment.NewLine +
                         $"\t delta: {delta}" + Environment.NewLine +
                         $"\t delta2: {delta2}" + Environment.NewLine);
+
+                Environment.FailFast("Fail here to take memory dump");
             }
 
             return inRange;
