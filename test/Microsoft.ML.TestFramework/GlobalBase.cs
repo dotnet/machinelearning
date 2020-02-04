@@ -69,8 +69,12 @@ namespace Microsoft.ML.Internal.Internallearn.Test
             else
 #endif
             {
-                Environment.FailFast("Crash here to take memory dump");
+                var callStack = new System.Diagnostics.StackTrace().ToString();
+                Console.WriteLine($"Fail in AssertHandler with message: {msg} and callstack: {callStack}");
                 Assert.True(false, $"Assert failed: {msg}");
+
+                if(callStack.Contains("SdcaTrainerBase"))
+                    Environment.FailFast("Crash here to take memory dump");
             }
         }
 
