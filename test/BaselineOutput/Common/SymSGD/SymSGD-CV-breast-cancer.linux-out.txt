@@ -1,0 +1,69 @@
+maml.exe CV tr=SymSGD{nt=1} threads=- norm=No dout=%Output% data=%Data% seed=1
+Not adding a normalizer.
+Data fully loaded into memory.
+Initial learning rate is tuned to 100.000000
+Bias: -465.74258, Weights: [10.088505,67.45707,18.099556,-11.573266,-32.295338,52.25842,17.802341,14.058811,-2.0404801]
+Not training a calibrator because it is not needed.
+Not adding a normalizer.
+Data fully loaded into memory.
+Initial learning rate is tuned to 100.000000
+Bias: -484.28625, Weights: [-12.7873125,140.42897,121.93798,37.52739,-129.81442,70.90551,-89.37083,81.64296,-32.327835]
+Not training a calibrator because it is not needed.
+Warning: The predictor produced non-finite prediction values on 8 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
+TEST POSITIVE RATIO:	0.3785 (134.0/(134.0+220.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      130 |        4 | 0.9701
+ negative ||        7 |      213 | 0.9682
+          ||======================
+Precision ||   0.9489 |   0.9816 |
+OVERALL 0/1 ACCURACY: 0.968927
+LOG LOSS/instance:  Infinity
+Test-set entropy (prior Log-Loss/instance): 0.956998
+LOG-LOSS REDUCTION (RIG): -Infinity
+AUC:                0.990095
+Warning: The predictor produced non-finite prediction values on 8 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
+TEST POSITIVE RATIO:	0.3191 (105.0/(105.0+224.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||       96 |        9 | 0.9143
+ negative ||       11 |      213 | 0.9509
+          ||======================
+Precision ||   0.8972 |   0.9595 |
+OVERALL 0/1 ACCURACY: 0.939210
+LOG LOSS/instance:  Infinity
+Test-set entropy (prior Log-Loss/instance): 0.903454
+LOG-LOSS REDUCTION (RIG): -Infinity
+AUC:                0.963435
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.976765 (0.0133)
+Accuracy:           0.954068 (0.0149)
+Positive precision: 0.923051 (0.0259)
+Positive recall:    0.942217 (0.0279)
+Negative precision: 0.970513 (0.0111)
+Negative recall:    0.959537 (0.0086)
+Log-loss:           Infinity (NaN)
+Log-loss reduction: -Infinity (NaN)
+F1 Score:           0.932535 (0.0269)
+AUPRC:              0.963544 (0.0159)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'Preprocessing' started.
+[1] 'Preprocessing' finished in %Time%.
+[2] 'Training' started.
+[2] 'Training' finished in %Time%.
+[3] 'Preprocessing #2' started.
+[3] 'Preprocessing #2' finished in %Time%.
+[4] 'Training #2' started.
+[4] 'Training #2' finished in %Time%.

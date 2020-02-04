@@ -290,9 +290,20 @@ namespace Microsoft.ML.RunTests
             //if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             //    return;
 
-            RunOneAllTests(TestLearners.symSGD, TestDatasets.breastCancer, summary: true, digitsOfPrecision: 4);
+            var extraTag = "";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitOperatingSystem)
+                extraTag = "windows64";
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitOperatingSystem)
+                extraTag = "windows32";
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                extraTag = "linux";
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                extraTag = "macos";
+
+
+            RunOneAllTests(TestLearners.symSGD, TestDatasets.breastCancer, summary: true, digitsOfPrecision: 4, extraTag: extraTag);
             Done();
-            Environment.FailFast("Get the baselines!");
+            // Environment.FailFast("Get the baselines!");
         }
 
         [X64Fact("x86 output differs from Baseline")]
