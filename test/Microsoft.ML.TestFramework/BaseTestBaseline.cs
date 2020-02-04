@@ -628,7 +628,8 @@ namespace Microsoft.ML.RunTests
                         $"\t delta: {delta}" + Environment.NewLine +
                         $"\t delta2: {delta2}" + Environment.NewLine);
 
-                Environment.FailFast("Fail here to take memory dump");
+                if (!_allowMismatch)
+                    Environment.FailFast("Fail here to take memory dump");
             }
 
             return inRange;
