@@ -37,7 +37,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void AutoFitMultiTest()
         {
-            var context = new MLContext(1);
+            var context = new MLContext(42);
             var columnInference = context.Auto().InferColumns(DatasetUtil.TrivialMulticlassDatasetPath, DatasetUtil.TrivialMulticlassDatasetLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(DatasetUtil.TrivialMulticlassDatasetPath);
