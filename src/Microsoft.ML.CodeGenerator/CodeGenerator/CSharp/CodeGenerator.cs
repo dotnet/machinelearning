@@ -329,18 +329,11 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         {
             if (_pipeline == null)
                 throw new ArgumentNullException(nameof(_pipeline));
-            try
-            {
-                var node = _pipeline.Nodes.Where(t => t.NodeType == PipelineNodeType.Trainer).First();
-                ITrainerGenerator generator = TrainerGeneratorFactory.GetInstance(node);
-                var trainerString = generator.GenerateTrainer();
-                var trainerUsings = generator.GenerateUsings();
-                return (trainerString, trainerUsings);
-            }
-            catch (Exception)
-            {
-                return (string.Empty, new string[0]);
-            }
+            var node = _pipeline.Nodes.Where(t => t.NodeType == PipelineNodeType.Trainer).First();
+            ITrainerGenerator generator = TrainerGeneratorFactory.GetInstance(node);
+            var trainerString = generator.GenerateTrainer();
+            var trainerUsings = generator.GenerateUsings();
+            return (trainerString, trainerUsings);
         }
 
         internal IList<string> GenerateClassLabels(IDictionary<string, CodeGeneratorSettings.ColumnMapping> columnMapping = default)
