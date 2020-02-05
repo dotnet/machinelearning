@@ -476,7 +476,7 @@ namespace Microsoft.ML.RunTests
         public void LightGBMClassificationTest()
         {
             var learners = new[] { TestLearners.LightGBMClassifier };
-            var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe };
+            var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipeMissing };
             foreach (var learner in learners)
             {
                 foreach (TestDataset dataset in binaryClassificationDatasets)
@@ -491,7 +491,7 @@ namespace Microsoft.ML.RunTests
         public void GossLightGBMTest()
         {
             var binaryPredictors = new[] { TestLearners.LightGBMGoss };
-            var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe };
+            var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipeMissing };
             RunAllTests(binaryPredictors, binaryClassificationDatasets, extraTag: "goss");
             Done();
         }
@@ -502,7 +502,7 @@ namespace Microsoft.ML.RunTests
         public void DartLightGBMTest()
         {
             var binaryPredictors = new[] { TestLearners.LightGBMDart };
-            var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe };
+            var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipeMissing };
             RunAllTests(binaryPredictors, binaryClassificationDatasets, extraTag: "dart");
             Done();
         }
