@@ -376,7 +376,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                 }
             }
             //batch size.
-            dimsLocal?.Insert(0, 1);
+            dimsLocal?.Insert(0, -1);
 
             return new ModelArgs(name, dataType, dimsLocal, dimsParamLocal);
         }
