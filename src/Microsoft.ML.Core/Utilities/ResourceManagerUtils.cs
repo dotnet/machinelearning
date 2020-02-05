@@ -110,10 +110,10 @@ namespace Microsoft.ML.Internal.Utilities
                     $"Could not create a valid URI from the base URI '{MlNetResourcesUrl}' and the relative URI '{relativeUrl}'");
             }
             return new ResourceDownloadResults(filePath,
-                await DownloadFromUrlWithRetry(env, ch, absoluteUrl.AbsoluteUri, fileName, timeout, filePath), absoluteUrl.AbsoluteUri);
+                await DownloadFromUrlWithRetryAsync(env, ch, absoluteUrl.AbsoluteUri, fileName, timeout, filePath), absoluteUrl.AbsoluteUri);
         }
 
-        private async Task<string> DownloadFromUrlWithRetry(IHostEnvironment env, IChannel ch, string url, string fileName,
+        private async Task<string> DownloadFromUrlWithRetryAsync(IHostEnvironment env, IChannel ch, string url, string fileName,
             int timeout, string filePath, int retryTimes = 5)
         {
             var downloadResult = "";
@@ -127,8 +127,7 @@ namespace Microsoft.ML.Internal.Utilities
                 else
                     downloadResult += thisDownloadResult.Result + @"\n";
 
-                Random random = new Random();
-                Thread.Sleep(random.Next(1, 60) * 1000);
+                await Task.Delay(10 * 1000);
             }
 
             return downloadResult;
