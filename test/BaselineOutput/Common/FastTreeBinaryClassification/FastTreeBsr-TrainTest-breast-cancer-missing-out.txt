@@ -1,0 +1,58 @@
+maml.exe TrainTest test=%Data% tr=FastTreeBinaryClassification{nl=5 mil=5 bsr+ lr=0.25 iter=20 mb=255} cache=- dout=%Output% loader=Text{col=Label:0 col=Good:1-5,7-9 col=Mixed:6 col=More:4-6} data=%Data% out=%Output% seed=1 xf=NAHandle{col=Fixed:Mixed col=More} xf=Concat{col=Features:Good,Fixed,More}
+Not adding a normalizer.
+Making per-feature arrays
+Changing data from row-wise to column-wise
+Processed 699 instances
+Binning and forming Feature objects
+Changing data from row-wise to column-wise
+Reserved memory for tree learner: %Number% bytes
+Starting to train ...
+Not training a calibrator because it is not needed.
+TEST POSITIVE RATIO:	0.3448 (241.0/(241.0+458.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      235 |        6 | 0.9751
+ negative ||       17 |      441 | 0.9629
+          ||======================
+Precision ||   0.9325 |   0.9866 |
+OVERALL 0/1 ACCURACY: 0.967096
+LOG LOSS/instance:  0.832745
+Test-set entropy (prior Log-Loss/instance): 0.929318
+LOG-LOSS REDUCTION (RIG): 0.103919
+AUC:                0.984132
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.984132 (0.0000)
+Accuracy:           0.967096 (0.0000)
+Positive precision: 0.932540 (0.0000)
+Positive recall:    0.975104 (0.0000)
+Negative precision: 0.986577 (0.0000)
+Negative recall:    0.962882 (0.0000)
+Log-loss:           0.832745 (0.0000)
+Log-loss reduction: 0.103919 (0.0000)
+F1 Score:           0.953347 (0.0000)
+AUPRC:              0.931899 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'FastTree data preparation' started.
+[1] 'FastTree data preparation' finished in %Time%.
+[2] 'FastTree in-memory bins initialization' started.
+[2] 'FastTree in-memory bins initialization' finished in %Time%.
+[3] 'FastTree feature conversion' started.
+[3] 'FastTree feature conversion' finished in %Time%.
+[4] 'FastTree data preparation #2' started.
+[4] 'FastTree data preparation #2' finished in %Time%.
+[5] 'FastTree feature conversion #2' started.
+[5] 'FastTree feature conversion #2' finished in %Time%.
+[6] 'FastTree training' started.
+[6] 'FastTree training' finished in %Time%.
+[7] 'Saving model' started.
+[7] 'Saving model' finished in %Time%.

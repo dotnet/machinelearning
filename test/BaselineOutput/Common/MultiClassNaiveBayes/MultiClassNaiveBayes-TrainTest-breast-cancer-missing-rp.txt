@@ -1,0 +1,4 @@
+MultiClassNaiveBayes
+Accuracy(micro-avg)	Accuracy(macro-avg)	Log-loss	Log-loss reduction	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.655222	0.5	34.53878	-52.61881	MultiClassNaiveBayes	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=MultiClassNaiveBayes cache=- dout=%Output% loader=Text{col=Label:0 col=Good:1-5,7-9 col=Mixed:6 col=More:4-6} data=%Data% out=%Output% seed=1 xf=NAHandle{col=Fixed:Mixed col=More} xf=Concat{col=Features:Good,Fixed,More}		
+

@@ -1,0 +1,52 @@
+maml.exe TrainTest test=%Data% tr=FastTreeBinaryClassification{nl=5 mil=5 lr=0.25 iter=20 mb=255 dt+} cache=- dout=%Output% loader=Text{col=Label:0 col=Good:1-5,7-9 col=Mixed:6 col=More:4-6} data=%Data% out=%Output% seed=1 xf=NAHandle{col=Fixed:Mixed col=More} xf=Concat{col=Features:Good,Fixed,More}
+Not adding a normalizer.
+Making per-feature arrays
+Changing data from row-wise to column-wise on disk
+Processed 699 instances
+Binning and forming Feature objects
+Changing data from row-wise to column-wise on disk
+Reserved memory for tree learner: %Number% bytes
+Starting to train ...
+Not training a calibrator because it is not needed.
+TEST POSITIVE RATIO:	0.3448 (241.0/(241.0+458.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      238 |        3 | 0.9876
+ negative ||        8 |      450 | 0.9825
+          ||======================
+Precision ||   0.9675 |   0.9934 |
+OVERALL 0/1 ACCURACY: 0.984263
+LOG LOSS/instance:  0.071528
+Test-set entropy (prior Log-Loss/instance): 0.929318
+LOG-LOSS REDUCTION (RIG): 0.923031
+AUC:                0.999139
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.999139 (0.0000)
+Accuracy:           0.984263 (0.0000)
+Positive precision: 0.967480 (0.0000)
+Positive recall:    0.987552 (0.0000)
+Negative precision: 0.993377 (0.0000)
+Negative recall:    0.982533 (0.0000)
+Log-loss:           0.071528 (0.0000)
+Log-loss reduction: 0.923031 (0.0000)
+F1 Score:           0.977413 (0.0000)
+AUPRC:              0.998427 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'FastTree disk-based bins initialization' started.
+[1] 'FastTree disk-based bins initialization' finished in %Time%.
+[2] 'FastTree disk-based bins initialization #2' started.
+[2] 'FastTree disk-based bins initialization #2' finished in %Time%.
+[3] 'FastTree training' started.
+[3] 'FastTree training' finished in %Time%.
+[4] 'Saving model' started.
+[4] 'Saving model' finished in %Time%.
