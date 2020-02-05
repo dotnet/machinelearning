@@ -109,10 +109,10 @@ namespace Microsoft.ML.Tests
             {
                 row = enumerator.Current;
 
-                CompareNumbersWithTolerance(expectedValues[index++], row.Data[0], digitsOfPrecision: 5);  // Alert
-                CompareNumbersWithTolerance(expectedValues[index++], row.Data[1], digitsOfPrecision: 5);  // Raw score
-                CompareNumbersWithTolerance(expectedValues[index++], row.Data[2], digitsOfPrecision: 5);  // P-Value score
-                CompareNumbersWithTolerance(expectedValues[index++], row.Data[3], digitsOfPrecision: 5);  // Martingale score
+                CompareNumbersAndLogErrors(expectedValues[index++], row.Data[0], digitsOfPrecision: 5);  // Alert
+                CompareNumbersAndLogErrors(expectedValues[index++], row.Data[1], digitsOfPrecision: 5);  // Raw score
+                CompareNumbersAndLogErrors(expectedValues[index++], row.Data[2], digitsOfPrecision: 5);  // P-Value score
+                CompareNumbersAndLogErrors(expectedValues[index++], row.Data[3], digitsOfPrecision: 5);  // Martingale score
             }
         }
 
@@ -160,9 +160,9 @@ namespace Microsoft.ML.Tests
             {
                 row = enumerator.Current;
 
-                CompareNumbersWithTolerance(expectedValues[i][0], row.Data[0], digitsOfPrecision: 7);
-                CompareNumbersWithTolerance(expectedValues[i][1], row.Data[1], digitsOfPrecision: 7);
-                CompareNumbersWithTolerance(expectedValues[i][2], row.Data[2], digitsOfPrecision: 7);
+                CompareNumbersAndLogErrors(expectedValues[i][0], row.Data[0], digitsOfPrecision: 7);
+                CompareNumbersAndLogErrors(expectedValues[i][1], row.Data[1], digitsOfPrecision: 7);
+                CompareNumbersAndLogErrors(expectedValues[i][2], row.Data[2], digitsOfPrecision: 7);
             }
         }
 
@@ -218,9 +218,9 @@ namespace Microsoft.ML.Tests
             {
                 row = enumerator.Current;
 
-                CompareNumbersWithTolerance(expectedValues[i][0], row.Data[0], digitsOfPrecision: 6);
-                CompareNumbersWithTolerance(expectedValues[i][1], row.Data[1], digitsOfPrecision: 6);
-                CompareNumbersWithTolerance(expectedValues[i][2], row.Data[2], digitsOfPrecision: 6);
+                CompareNumbersAndLogErrors(expectedValues[i][0], row.Data[0], digitsOfPrecision: 6);
+                CompareNumbersAndLogErrors(expectedValues[i][1], row.Data[1], digitsOfPrecision: 6);
+                CompareNumbersAndLogErrors(expectedValues[i][2], row.Data[2], digitsOfPrecision: 6);
             }
         }
     }

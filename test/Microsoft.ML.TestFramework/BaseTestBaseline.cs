@@ -172,29 +172,16 @@ namespace Microsoft.ML.RunTests
             return f;
         }
 
-        protected void Fail(string msg)
-        {
-            Fail(false, msg);
-        }
-
         protected void Fail(string fmt, params object[] args)
-        {
-            Fail(false, fmt, args);
-        }
-
-        protected void Fail(bool relax, string fmt, params object[] args)
         {
             Contracts.Assert(IsActive);
             try
             {
                 throw new InvalidOperationException(string.Format(fmt, args));
             }
-            catch (Exception ex) when (!relax)
+            catch (Exception ex)
             {
                 _failures.Add(ex);
-            }
-            catch when (relax)
-            {
             }
 
             Log("*** Failure: " + fmt, args);
@@ -446,7 +433,7 @@ namespace Microsoft.ML.RunTests
         }
 
         protected bool CheckEqualityFromPathsCore(string relPath, string basePath, string outPath, int skip = 0,
-            int digitsOfPrecision = DigitsOfPrecision, NumberParseOption parseOption = NumberParseOption.Default, bool allowMismatch = false)
+            int digitsOfPrecision = DigitsOfPrecision, NumberParseOption parseOption = NumberParseOption.Default)
         {
             Contracts.Assert(skip >= 0);
 
@@ -500,7 +487,7 @@ namespace Microsoft.ML.RunTests
                         if (line1 == null || line2 == null)
                             Fail("Output and baseline different lengths: '{0}'", relPath);
                         else
-                            Fail(allowMismatch, "Output and baseline mismatch at line {1}, expected '{2}' but got '{3}' : '{0}'", relPath, count, line1, line2);
+                            Fail("Output and baseline mismatch at line {1}, expected '{2}' but got '{3}' : '{0}'", relPath, count, line1, line2);
                         return false;
                     }
                 }
@@ -536,7 +523,7 @@ namespace Microsoft.ML.RunTests
                     float f1 = float.Parse(firstCollection[i].ToString());
                     float f2 = float.Parse(secondCollection[i].ToString());
 
-                    if (!CompareNumbersWithTolerance(f1, f2, i, digitsOfPrecision))
+                    if (!CompareNumbersAndLogErrors(f1, f2, i, digitsOfPrecision))
                     {
                         return false;
                     }
@@ -549,7 +536,7 @@ namespace Microsoft.ML.RunTests
                     double f1 = double.Parse(firstCollection[i].ToString());
                     double f2 = double.Parse(secondCollection[i].ToString());
 
-                    if (!CompareNumbersWithTolerance(f1, f2, i, digitsOfPrecision))
+                    if (!CompareNumbersAndLogErrors(f1, f2, i, digitsOfPrecision))
                     {
                         return false;
                     }
@@ -563,11 +550,22 @@ namespace Microsoft.ML.RunTests
             return true;
         }
 
-        public bool CompareNumbersWithTolerance(double expected, double actual, 
+        public bool CompareNumbersAndLogErrors(double expected, double actual,
+            int? iterationOnCollection = null, int digitsOfPrecision = DigitsOfPrecision)
+        {
+            var compareResult = CompareNumbers(expected, actual, iterationOnCollection, digitsOfPrecision);
+
+            if (!compareResult.Item1)
+                Fail(compareResult.Item2);
+
+            return compareResult.Item1;
+        }
+
+        public (bool, string) CompareNumbers(double expected, double actual, 
             int? iterationOnCollection = null, int digitsOfPrecision = DigitsOfPrecision, bool allowMismatch = false)
         {
             if (double.IsNaN(expected) && double.IsNaN(actual))
-                return true;
+                return (true, "");
 
             // this follows the IEEE recommendations for how to compare floating point numbers
             double allowedVariance = Math.Pow(10, -digitsOfPrecision);
@@ -594,16 +592,16 @@ namespace Microsoft.ML.RunTests
 
             if (!inRange)
             {
-                var message = iterationOnCollection != null ? "" : $"Output and baseline mismatch at line {iterationOnCollection}." + Environment.NewLine;
+                var message = iterationOnCollection != null ? "" : $"Output and baseline mismatch at line {iterationOnCollection}." + Environment.NewLine +
+                    $"Values to compare are {expected} and {actual}" + Environment.NewLine +
+                    $"\t AllowedVariance: {allowedVariance}" + Environment.NewLine +
+                    $"\t delta: {delta}" + Environment.NewLine +
+                    $"\t delta2: {delta2}" + Environment.NewLine;
 
-                Fail(allowMismatch, message +
-                        $"Values to compare are {expected} and {actual}" + Environment.NewLine +
-                        $"\t AllowedVariance: {allowedVariance}" + Environment.NewLine +
-                        $"\t delta: {delta}" + Environment.NewLine +
-                        $"\t delta2: {delta2}" + Environment.NewLine);
+                return (inRange, message);
             }
 
-            return inRange;
+            return (inRange, "");
         }
 
         private static double Round(double value, int digitsOfPrecision)

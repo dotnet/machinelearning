@@ -1743,7 +1743,7 @@ namespace Microsoft.ML.RunTests
                     getterAnom(ref scoreAnom);
                     Assert.True(Single.IsNaN(scoreBin) && Single.IsNaN(score) || scoreBin == score);
                     Assert.True(Single.IsNaN(scoreBinCali) && Single.IsNaN(score) || scoreBinCali == score);
-                    Assert.True(Single.IsNaN(scoreSaved) && Single.IsNaN(score) || CompareNumbersWithTolerance(scoreSaved, score, null, 5));
+                    Assert.True(Single.IsNaN(scoreSaved) && Single.IsNaN(score) || CompareNumbersAndLogErrors(scoreSaved, score, null, 5));
                     Assert.True(Single.IsNaN(scoreAnom) && Single.IsNaN(score) || scoreAnom == score);
 
                     Single avg = 0;

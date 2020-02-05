@@ -100,11 +100,11 @@ namespace Microsoft.ML.Core.Tests.UnitTests
 
                 float infNorm = a.GetValues().Length == 0 ? 0 : a.Items().Max(iv => Math.Abs(iv.Value));
 
-                Assert.True(CompareNumbersWithTolerance(sum, VectorUtils.Sum(in a), digitsOfPrecision: tol));
-                Assert.True(CompareNumbersWithTolerance(l1, VectorUtils.L1Norm(in a), digitsOfPrecision: tol));
-                Assert.True(CompareNumbersWithTolerance(l2Squared, VectorUtils.NormSquared(in a), digitsOfPrecision: tol));
-                Assert.True(CompareNumbersWithTolerance(l2, VectorUtils.Norm(in a), digitsOfPrecision: tol));
-                Assert.True(CompareNumbersWithTolerance(infNorm, VectorUtils.MaxNorm(in a), digitsOfPrecision: tol));
+                Assert.True(CompareNumbersAndLogErrors(sum, VectorUtils.Sum(in a), digitsOfPrecision: tol));
+                Assert.True(CompareNumbersAndLogErrors(l1, VectorUtils.L1Norm(in a), digitsOfPrecision: tol));
+                Assert.True(CompareNumbersAndLogErrors(l2Squared, VectorUtils.NormSquared(in a), digitsOfPrecision: tol));
+                Assert.True(CompareNumbersAndLogErrors(l2, VectorUtils.Norm(in a), digitsOfPrecision: tol));
+                Assert.True(CompareNumbersAndLogErrors(infNorm, VectorUtils.MaxNorm(in a), digitsOfPrecision: tol));
 
                 float d = 0;
                 switch (trial % 3)
@@ -833,10 +833,10 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 var dot = a.Items(all: true).Zip(b.Items(all: true), (av, bv) => av.Value * bv.Value).Sum();
 
                 const int tol = 4;
-                Assert.True(CompareNumbersWithTolerance(l1Dist, VectorUtils.L1Distance(in a, in b), digitsOfPrecision: tol));
-                Assert.True(CompareNumbersWithTolerance(l2Dist2, VectorUtils.L2DistSquared(in a, in b), digitsOfPrecision: tol));
-                Assert.True(CompareNumbersWithTolerance(l2Dist, VectorUtils.Distance(in a, in b), digitsOfPrecision: tol));
-                Assert.True(CompareNumbersWithTolerance(dot, VectorUtils.DotProduct(in a, in b), digitsOfPrecision: tol));
+                Assert.True(CompareNumbersAndLogErrors(l1Dist, VectorUtils.L1Distance(in a, in b), digitsOfPrecision: tol));
+                Assert.True(CompareNumbersAndLogErrors(l2Dist2, VectorUtils.L2DistSquared(in a, in b), digitsOfPrecision: tol));
+                Assert.True(CompareNumbersAndLogErrors(l2Dist, VectorUtils.Distance(in a, in b), digitsOfPrecision: tol));
+                Assert.True(CompareNumbersAndLogErrors(dot, VectorUtils.DotProduct(in a, in b), digitsOfPrecision: tol));
             }
         }
 

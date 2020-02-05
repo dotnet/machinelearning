@@ -101,8 +101,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
                 Assert.NotNull(biasStats);
 
-                CompareNumbersWithTolerance(biasStats.StandardError, 0.25, digitsOfPrecision: 2);
-                CompareNumbersWithTolerance(biasStats.ZScore, 7.97, digitsOfPrecision: 2);
+                CompareNumbersAndLogErrors(biasStats.StandardError, 0.25, digitsOfPrecision: 2);
+                CompareNumbersAndLogErrors(biasStats.ZScore, 7.97, digitsOfPrecision: 2);
 
                 var scoredData = transformer.Transform(dataView);
 
@@ -149,8 +149,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 var subPredictor = result?.SubModel as LinearBinaryModelParameters;
                 var stats = subPredictor?.Statistics;
 
-                CompareNumbersWithTolerance(stats.Deviance, 458.970917);
-                CompareNumbersWithTolerance(stats.NullDeviance, 539.276367);
+                CompareNumbersAndLogErrors(stats.Deviance, 458.970917);
+                CompareNumbersAndLogErrors(stats.NullDeviance, 539.276367);
                 Assert.Equal(7, stats.ParametersCount);
                 Assert.Equal(500, stats.TrainingExampleCount);
 
@@ -198,8 +198,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 var stats = modelParams.Statistics;
                 Assert.NotNull(stats);
 
-                CompareNumbersWithTolerance(stats.Deviance, 45.35, digitsOfPrecision: 2);
-                CompareNumbersWithTolerance(stats.NullDeviance, 329.58, digitsOfPrecision: 2);
+                CompareNumbersAndLogErrors(stats.Deviance, 45.35, digitsOfPrecision: 2);
+                CompareNumbersAndLogErrors(stats.NullDeviance, 329.58, digitsOfPrecision: 2);
                 //Assert.Equal(14, stats.ParametersCount);
                 Assert.Equal(150, stats.TrainingExampleCount);
             };
