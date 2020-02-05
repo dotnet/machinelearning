@@ -48,7 +48,7 @@ namespace Microsoft.ML.Transforms
     /// <seealso cref="CountTargetEncodingCatalog.CountTargetEncode(TransformsCatalog, InputOutputColumnPair[], string, CountTableBuilderBase, float, float, bool, int, bool, uint)" />
     /// <seealso cref="CountTargetEncodingCatalog.CountTargetEncode(TransformsCatalog, string, CountTargetEncodingTransformer, string, string)"/>
     /// <seealso cref="CountTargetEncodingCatalog.CountTargetEncode(TransformsCatalog, string, string, string, CountTableBuilderBase, float, float, int, bool, uint)"/>
-    public class CountTargetEncodingEstimator : IEstimator<CountTargetEncodingTransformer>
+    internal class CountTargetEncodingEstimator : IEstimator<CountTargetEncodingTransformer>
     {
         /// <summary>
         /// This is a merger of arguments for <see cref="CountTableTransformer"/> and <see cref="HashJoiningTransform"/>
@@ -371,7 +371,7 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// <see cref="ITransformer"/> resulting from fitting a <see cref="LpNormNormalizingEstimator"/> or <see cref="CountTargetEncodingEstimator"/>.
     /// </summary>
-    public sealed class CountTargetEncodingTransformer : ITransformerWithDifferentMappingAtTrainingTime
+    internal sealed class CountTargetEncodingTransformer : ITransformerWithDifferentMappingAtTrainingTime
     {
         private readonly IHost _host;
         internal readonly HashJoiningTransform HashJoin;
@@ -491,7 +491,7 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    public static class CountTargetEncodingCatalog
+    internal static class CountTargetEncodingCatalog
     {
         /// <summary>
         /// Transforms a categorical column into a set of features that includes the count of each label class,

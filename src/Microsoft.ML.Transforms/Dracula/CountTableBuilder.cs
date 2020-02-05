@@ -16,7 +16,7 @@ namespace Microsoft.ML.Transforms
     /// Builds a table that provides counts to the <see cref="CountTargetEncodingTransformer"/>
     /// by going over the training data.
     /// </summary>
-    public abstract class CountTableBuilderBase
+    internal abstract class CountTableBuilderBase
     {
         private protected CountTableBuilderBase()
         {
