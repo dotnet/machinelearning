@@ -447,7 +447,6 @@ namespace Microsoft.ML.Trainers
         private abstract class Data
         {
             protected readonly IChannel Ch;
-            //protected readonly int Size;
 
             public abstract long Length { get; }
 
@@ -550,7 +549,7 @@ namespace Microsoft.ML.Trainers
                 }
                 Array.Sort(_indices2);
 
-                using (var cursor = _data.Data.GetRowCursor(_data.Data.Schema[_data.Schema.Feature.Value.Name]/*, labelCol*/))
+                using (var cursor = _data.Data.GetRowCursor(_data.Data.Schema[_data.Schema.Feature.Value.Name]))
                 {
                     var getter = cursor.GetGetter<VBuffer<float>>(_data.Data.Schema[_data.Schema.Feature.Value.Name]);
                     var features = default(VBuffer<float>);
