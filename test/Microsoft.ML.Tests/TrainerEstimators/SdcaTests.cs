@@ -148,6 +148,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 }
             }
             Assert.False(sameScores);
+
+            Done();
         }
 
         [Fact]
@@ -205,6 +207,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 }
             }
             Assert.False(sameScores);
+
+            Done();
         }
 
         [Fact]

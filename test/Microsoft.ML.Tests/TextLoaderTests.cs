@@ -81,6 +81,8 @@ namespace Microsoft.ML.EntryPoints.Tests
 
                 Assert.Equal(i, sByteTargets.Length);
             }
+
+            Done();
         }
 
         [Fact]
