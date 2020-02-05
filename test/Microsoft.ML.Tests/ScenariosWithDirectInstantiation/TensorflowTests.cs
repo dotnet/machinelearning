@@ -1784,45 +1784,45 @@ namespace Microsoft.ML.Scenarios
         //    Assert.InRange(metrics.MacroAccuracy, 0.3, 1);
         //}
 
-        //public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,
-        //    bool useFolderNameAsLabel = true)
-        //{
-        //    var files = Directory.GetFiles(folder, "*",
-        //        searchOption: SearchOption.AllDirectories);
-        //    /*
-        //     * This is only needed as Linux can produce files in a different 
-        //     * order than other OSes. As this is a test case we want to maintain
-        //     * consistent accuracy across all OSes, so we sort to remove this discrepency.
-        //     */
-        //    Array.Sort(files);
-        //    foreach (var file in files)
-        //    {
-        //        if (Path.GetExtension(file) != ".jpg")
-        //            continue;
+        public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,
+            bool useFolderNameAsLabel = true)
+        {
+            var files = Directory.GetFiles(folder, "*",
+                searchOption: SearchOption.AllDirectories);
+            /*
+             * This is only needed as Linux can produce files in a different 
+             * order than other OSes. As this is a test case we want to maintain
+             * consistent accuracy across all OSes, so we sort to remove this discrepency.
+             */
+            Array.Sort(files);
+            foreach (var file in files)
+            {
+                if (Path.GetExtension(file) != ".jpg")
+                    continue;
 
-        //        var label = Path.GetFileName(file);
-        //        if (useFolderNameAsLabel)
-        //            label = Directory.GetParent(file).Name;
-        //        else
-        //        {
-        //            for (int index = 0; index < label.Length; index++)
-        //            {
-        //                if (!char.IsLetter(label[index]))
-        //                {
-        //                    label = label.Substring(0, index);
-        //                    break;
-        //                }
-        //            }
-        //        }
+                var label = Path.GetFileName(file);
+                if (useFolderNameAsLabel)
+                    label = Directory.GetParent(file).Name;
+                else
+                {
+                    for (int index = 0; index < label.Length; index++)
+                    {
+                        if (!char.IsLetter(label[index]))
+                        {
+                            label = label.Substring(0, index);
+                            break;
+                        }
+                    }
+                }
 
-        //        yield return new ImageData()
-        //        {
-        //            ImagePath = file,
-        //            Label = label
-        //        };
+                yield return new ImageData()
+                {
+                    ImagePath = file,
+                    Label = label
+                };
 
-        //    }
-        //}
+            }
+        }
 
         public static string DownloadImageSet(string imagesDownloadFolder)
         {
