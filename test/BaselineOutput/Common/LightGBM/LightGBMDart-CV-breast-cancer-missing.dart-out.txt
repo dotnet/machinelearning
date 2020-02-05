@@ -1,0 +1,65 @@
+maml.exe CV tr=LightGBM{nt=1 iter=10 booster=dart lr=0.2 mil=10 nl=20} threads=- cache=- dout=%Output% loader=Text{col=Label:0 col=Good:1-5,7-9 col=Mixed:6 col=More:4-6} data=%Data% seed=1 xf=NAHandle{col=Fixed:Mixed col=More} xf=Concat{col=Features:Good,Fixed,More}
+Not adding a normalizer.
+Auto-tuning parameters: UseCategoricalSplit = False
+LightGBM objective=binary
+Not training a calibrator because it is not needed.
+Not adding a normalizer.
+Auto-tuning parameters: UseCategoricalSplit = False
+LightGBM objective=binary
+Not training a calibrator because it is not needed.
+TEST POSITIVE RATIO:	0.3702 (134.0/(134.0+228.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      125 |        9 | 0.9328
+ negative ||        9 |      219 | 0.9605
+          ||======================
+Precision ||   0.9328 |   0.9605 |
+OVERALL 0/1 ACCURACY: 0.950276
+LOG LOSS/instance:  0.300792
+Test-set entropy (prior Log-Loss/instance): 0.950799
+LOG-LOSS REDUCTION (RIG): 0.683643
+AUC:                0.985336
+TEST POSITIVE RATIO:	0.3175 (107.0/(107.0+230.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||       97 |       10 | 0.9065
+ negative ||       10 |      220 | 0.9565
+          ||======================
+Precision ||   0.9065 |   0.9565 |
+OVERALL 0/1 ACCURACY: 0.940653
+LOG LOSS/instance:  0.298227
+Test-set entropy (prior Log-Loss/instance): 0.901650
+LOG-LOSS REDUCTION (RIG): 0.669244
+AUC:                0.991792
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.988564 (0.0032)
+Accuracy:           0.945465 (0.0048)
+Positive precision: 0.919689 (0.0131)
+Positive recall:    0.919689 (0.0131)
+Negative precision: 0.958524 (0.0020)
+Negative recall:    0.958524 (0.0020)
+Log-loss:           0.299509 (0.0013)
+Log-loss reduction: 0.676443 (0.0072)
+F1 Score:           0.919689 (0.0131)
+AUPRC:              0.972386 (0.0103)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'Loading data for LightGBM' started.
+[1] 'Loading data for LightGBM' finished in %Time%.
+[2] 'Training with LightGBM' started.
+[2] 'Training with LightGBM' finished in %Time%.
+[3] 'Loading data for LightGBM #2' started.
+[3] 'Loading data for LightGBM #2' finished in %Time%.
+[4] 'Training with LightGBM #2' started.
+[4] 'Training with LightGBM #2' finished in %Time%.

@@ -1,0 +1,45 @@
+maml.exe TrainTest test=%Data% tr=LightGBMBinary{nt=1 nl=5 mil=5 lr=0.25 iter=20 mb=255} cache=- dout=%Output% loader=Text{col=Label:0 col=Good:1-5,7-9 col=Mixed:6 col=More:4-6} data=%Data% out=%Output% seed=1 xf=NAHandle{col=Fixed:Mixed col=More} xf=Concat{col=Features:Good,Fixed,More}
+Not adding a normalizer.
+Auto-tuning parameters: UseCategoricalSplit = False
+LightGBM objective=binary
+Not training a calibrator because it is not needed.
+TEST POSITIVE RATIO:	0.3448 (241.0/(241.0+458.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      238 |        3 | 0.9876
+ negative ||       10 |      448 | 0.9782
+          ||======================
+Precision ||   0.9597 |   0.9933 |
+OVERALL 0/1 ACCURACY: 0.981402
+LOG LOSS/instance:  0.075271
+Test-set entropy (prior Log-Loss/instance): 0.929318
+LOG-LOSS REDUCTION (RIG): 0.919004
+AUC:                0.998840
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.998840 (0.0000)
+Accuracy:           0.981402 (0.0000)
+Positive precision: 0.959677 (0.0000)
+Positive recall:    0.987552 (0.0000)
+Negative precision: 0.993348 (0.0000)
+Negative recall:    0.978166 (0.0000)
+Log-loss:           0.075271 (0.0000)
+Log-loss reduction: 0.919004 (0.0000)
+F1 Score:           0.973415 (0.0000)
+AUPRC:              0.997830 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'Loading data for LightGBM' started.
+[1] 'Loading data for LightGBM' finished in %Time%.
+[2] 'Training with LightGBM' started.
+[2] 'Training with LightGBM' finished in %Time%.
+[3] 'Saving model' started.
+[3] 'Saving model' finished in %Time%.
