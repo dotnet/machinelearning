@@ -85,7 +85,7 @@ namespace Microsoft.ML.Internal.Utilities
         }
 
         /// <summary>
-        /// Returns a ResourceDownloadResults that tries to download a resource from a specified url, and returns the path to which it was
+        /// Returns a <see cref="Task"/> that tries to download a resource from a specified url, and returns the path to which it was
         /// downloaded, and an exception if one was thrown.
         /// </summary>
         /// <param name="env">The host environment.</param>
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// <param name="timeout">An integer indicating the number of milliseconds to wait before timing out while downloading a resource.</param>
         /// <returns>The download results, containing the file path where the resources was (or should have been) downloaded to, and an error message
         /// (or null if there was no error).</returns>
-        public ResourceDownloadResults EnsureResource(IHostEnvironment env, IChannel ch, string relativeUrl, string fileName, string dir, int timeout)
+        public async Task<ResourceDownloadResults> EnsureResource(IHostEnvironment env, IChannel ch, string relativeUrl, string fileName, string dir, int timeout)
         {
             var filePath = GetFilePath(ch, fileName, dir, out var error);
             if (File.Exists(filePath) || !string.IsNullOrEmpty(error))
@@ -110,22 +110,22 @@ namespace Microsoft.ML.Internal.Utilities
                     $"Could not create a valid URI from the base URI '{MlNetResourcesUrl}' and the relative URI '{relativeUrl}'");
             }
             return new ResourceDownloadResults(filePath,
-                DownloadFromUrlWithRetry(env, ch, absoluteUrl.AbsoluteUri, fileName, timeout, filePath), absoluteUrl.AbsoluteUri);
+                await DownloadFromUrlWithRetry(env, ch, absoluteUrl.AbsoluteUri, fileName, timeout, filePath), absoluteUrl.AbsoluteUri);
         }
 
-        private string DownloadFromUrlWithRetry(IHostEnvironment env, IChannel ch, string url, string fileName,
+        private async Task<string> DownloadFromUrlWithRetry(IHostEnvironment env, IChannel ch, string url, string fileName,
             int timeout, string filePath, int retryTimes = 5)
         {
             var downloadResult = "";
 
             for (int i = 0; i < retryTimes; ++i)
             {
-                var thisDownloadResult = DownloadFromUrl(env, ch, url, fileName, timeout, filePath).Result;
+                var thisDownloadResult = DownloadFromUrl(env, ch, url, fileName, timeout, filePath);
 
-                if (string.IsNullOrEmpty(thisDownloadResult))
-                    return thisDownloadResult;
+                if (string.IsNullOrEmpty(await thisDownloadResult))
+                    return await thisDownloadResult;
                 else
-                    downloadResult += thisDownloadResult + @"\n";
+                    downloadResult += thisDownloadResult.Result + @"\n";
 
                 Random random = new Random();
                 Thread.Sleep(random.Next(1, 60) * 1000);

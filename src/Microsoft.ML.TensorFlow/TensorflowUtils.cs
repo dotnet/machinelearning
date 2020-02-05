@@ -182,7 +182,8 @@ namespace Microsoft.ML.TensorFlow
             using (var ch = env.Start("Ensuring meta files are present."))
             {
                 var ensureModel = ResourceManagerUtils.Instance.EnsureResource(env, ch, url, fileName, dir, timeout);
-                var errorResult = ResourceManagerUtils.GetErrorMessage(out var errorMessage, ensureModel);
+                ensureModel.Wait();
+                var errorResult = ResourceManagerUtils.GetErrorMessage(out var errorMessage, ensureModel.Result);
                 if (errorResult != null)
                 {
                     var directory = Path.GetDirectoryName(errorResult.FileName);
