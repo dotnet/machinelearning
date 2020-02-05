@@ -73,7 +73,7 @@ namespace Microsoft.ML.Internal.Internallearn.Test
                 Console.WriteLine($"Fail in AssertHandler with message: {msg} and callstack: {callStack}");
                 Assert.True(false, $"Assert failed: {msg}");
 
-                if(callStack.Contains("SdcaTrainerBase"))
+                if(!callStack.Contains("TryLoadModelCore"))
                     Environment.FailFast("Crash here to take memory dump");
             }
         }

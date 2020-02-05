@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
@@ -372,6 +373,13 @@ namespace Microsoft.ML.Tests
 
             for (int localIndex = 0; localIndex < 4; localIndex++)
             {
+                if (Math.Abs(expectedForecast[localIndex] - row.Forecast[localIndex]) > 1e-7 ||
+                    Math.Abs(minCnf[localIndex] - row.MinCnf[localIndex]) > 1e-7 ||
+                    Math.Abs(maxCnf[localIndex] - row.MaxCnf[localIndex]) > 1e-7)
+                {
+                    Environment.FailFast("Fail here to take memory dump");
+                }
+
                 Assert.Equal(expectedForecast[localIndex], row.Forecast[localIndex], precision: 7);
                 Assert.Equal(minCnf[localIndex], row.MinCnf[localIndex], precision: 7);
                 Assert.Equal(maxCnf[localIndex], row.MaxCnf[localIndex], precision: 7);

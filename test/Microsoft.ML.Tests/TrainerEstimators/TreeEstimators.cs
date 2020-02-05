@@ -68,7 +68,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [LightGBMFact]
+        [Fact(Skip="")]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         [Trait("Category", "SkipInCI")]
         public void LightGBMBinaryEstimatorUnbalanced()
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// LightGBMBinaryTrainer CorrectSigmoid test
         /// </summary>
-        [LightGBMFact]
+        [Fact(Skip = "")]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         [Trait("Category", "SkipInCI")]
         public void LightGBMBinaryEstimatorCorrectSigmoid()
