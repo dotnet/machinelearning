@@ -682,28 +682,14 @@ namespace Microsoft.ML.RunTests
 
         public static PredictorAndArgs LDSVMDefault = new PredictorAndArgs
         {
-            Trainer = new SubComponent("LDSVM", "iter=1000"),
+            Trainer = new SubComponent("LdSvm", "iter=1000"),
             Tag = "LDSVM-def"
         };
 
         public static PredictorAndArgs LDSVMNoBias = new PredictorAndArgs
         {
-            Trainer = new SubComponent("LDSVM", "iter=1000 noBias=+"),
+            Trainer = new SubComponent("LdSvm", "iter=1000 bias=-"),
             Tag = "LDSVM-nob"
-        };
-
-        public static PredictorAndArgs LDSvmNoNorm = new PredictorAndArgs
-        {
-            Trainer = new SubComponent("LDSVM", "iter=1000"),
-            MamlArgs = new[] { "norm=no" },
-            Tag = "LDSVM-non"
-        };
-
-        public static PredictorAndArgs LDSvmNoCalib = new PredictorAndArgs
-        {
-            Trainer = new SubComponent("LDSVM", "iter=1000"),
-            MamlArgs = new[] { "cali={}" },
-            Tag = "LDSVM-noc"
         };
 
         public static PredictorAndArgs KMeansDefault = new PredictorAndArgs

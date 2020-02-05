@@ -13507,6 +13507,288 @@
       ]
     },
     {
+      "Name": "Trainers.LocalDeepSvmBinaryClassifier",
+      "Desc": "LD-SVM learns a binary, non-linear SVM classifier with a kernel that is specifically designed to reduce prediction time. LD-SVM learns decision boundaries that are locally linear.",
+      "FriendlyName": "Local Deep SVM (LDSVM)",
+      "ShortName": "LDSVM",
+      "Inputs": [
+        {
+          "Name": "TrainingData",
+          "Type": "DataView",
+          "Desc": "The data to be used for training",
+          "Aliases": [
+            "data"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "FeatureColumnName",
+          "Type": "String",
+          "Desc": "Column to use for features",
+          "Aliases": [
+            "feat"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": "Features"
+        },
+        {
+          "Name": "LabelColumnName",
+          "Type": "String",
+          "Desc": "Column to use for labels",
+          "Aliases": [
+            "lab"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": "Label"
+        },
+        {
+          "Name": "ExampleWeightColumnName",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "NormalizeFeatures",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "No",
+              "Warn",
+              "Auto",
+              "Yes"
+            ]
+          },
+          "Desc": "Normalize option for the feature column",
+          "Aliases": [
+            "norm"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": "Auto"
+        },
+        {
+          "Name": "Caching",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Auto",
+              "Memory",
+              "None"
+            ]
+          },
+          "Desc": "Whether trainer should cache input training data",
+          "Aliases": [
+            "cache"
+          ],
+          "Required": false,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": "Auto"
+        },
+        {
+          "Name": "TreeDepth",
+          "Type": "Int",
+          "Desc": "Depth of Local Deep SVM tree",
+          "Aliases": [
+            "depth"
+          ],
+          "Required": false,
+          "SortOrder": 50.0,
+          "IsNullable": false,
+          "Default": 3,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              1,
+              3,
+              5,
+              7
+            ]
+          }
+        },
+        {
+          "Name": "LambdaW",
+          "Type": "Float",
+          "Desc": "Regularizer for classifier parameter W",
+          "Aliases": [
+            "lw"
+          ],
+          "Required": false,
+          "SortOrder": 50.0,
+          "IsNullable": false,
+          "Default": 0.1,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              0.1,
+              0.01,
+              0.001
+            ]
+          }
+        },
+        {
+          "Name": "LambdaTheta",
+          "Type": "Float",
+          "Desc": "Regularizer for kernel parameter Theta",
+          "Aliases": [
+            "lt"
+          ],
+          "Required": false,
+          "SortOrder": 50.0,
+          "IsNullable": false,
+          "Default": 0.01,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              0.1,
+              0.01,
+              0.001
+            ]
+          }
+        },
+        {
+          "Name": "LambdaThetaprime",
+          "Type": "Float",
+          "Desc": "Regularizer for kernel parameter Thetaprime",
+          "Aliases": [
+            "lp"
+          ],
+          "Required": false,
+          "SortOrder": 50.0,
+          "IsNullable": false,
+          "Default": 0.01,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              0.1,
+              0.01,
+              0.001
+            ]
+          }
+        },
+        {
+          "Name": "Sigma",
+          "Type": "Float",
+          "Desc": "Parameter for sigmoid sharpness",
+          "Aliases": [
+            "s"
+          ],
+          "Required": false,
+          "SortOrder": 50.0,
+          "IsNullable": false,
+          "Default": 1.0,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              1.0,
+              0.1,
+              0.01
+            ]
+          }
+        },
+        {
+          "Name": "NumberOfIterations",
+          "Type": "Int",
+          "Desc": "Number of iterations",
+          "Aliases": [
+            "iter",
+            "NumIterations"
+          ],
+          "Required": false,
+          "SortOrder": 50.0,
+          "IsNullable": false,
+          "Default": 15000,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              10000,
+              15000
+            ]
+          }
+        },
+        {
+          "Name": "UseBias",
+          "Type": "Bool",
+          "Desc": "No bias",
+          "Aliases": [
+            "bias"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": true,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              false,
+              true
+            ]
+          }
+        },
+        {
+          "Name": "Calibrator",
+          "Type": {
+            "Kind": "Component",
+            "ComponentKind": "CalibratorTrainer"
+          },
+          "Desc": "The calibrator kind to apply to the predictor. Specify null for no calibration",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": {
+            "Name": "PlattCalibrator"
+          }
+        },
+        {
+          "Name": "MaxCalibrationExamples",
+          "Type": "Int",
+          "Desc": "The maximum number of examples to use when training the calibrator",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 1000000
+        },
+        {
+          "Name": "Cache",
+          "Type": "Bool",
+          "Desc": "Whether to cache the data before the first iteration",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": true
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "PredictorModel",
+          "Type": "PredictorModel",
+          "Desc": "The trained model"
+        }
+      ],
+      "InputKind": [
+        "ITrainerInputWithWeight",
+        "ITrainerInputWithLabel",
+        "ITrainerInput"
+      ],
+      "OutputKind": [
+        "IBinaryClassificationOutput",
+        "ITrainerOutput"
+      ]
+    },
+    {
       "Name": "Trainers.LogisticRegressionBinaryClassifier",
       "Desc": "Logistic Regression is a method in statistics used to predict the probability of occurrence of an event and can be used as a classification algorithm. The algorithm predicts the probability of occurrence of an event by fitting data to a logistical function.",
       "FriendlyName": "Logistic Regression",

@@ -11,7 +11,7 @@ namespace Microsoft.ML.RunTests
 {
     using System.Linq;
     using System.Runtime.InteropServices;
-        using Microsoft.ML;
+    using Microsoft.ML;
     using Microsoft.ML.Data;
     using Microsoft.ML.EntryPoints;
     using Microsoft.ML.Internal.Utilities;
@@ -2125,7 +2125,7 @@ output Out [3] from H all;
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         [TestCategory("Binary")]
         [TestCategory("LDSVM")]
         public void BinaryClassifierLDSvmTest()
@@ -2139,40 +2139,12 @@ output Out [3] from H all;
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         [TestCategory("Binary")]
         [TestCategory("LDSVM")]
         public void BinaryClassifierLDSvmNoBiasTest()
         {
             var binaryPredictors = new[] { TestLearners.LDSVMNoBias };
-            var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(binaryPredictors, binaryClassificationDatasets);
-            Done();
-        }
-
-        /// <summary>
-        ///A test for binary classifiers
-        ///</summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
-        [TestCategory("Binary")]
-        [TestCategory("LDSVM")]
-        public void BinaryClassifierLDSvmNoNormTest()
-        {
-            var binaryPredictors = new[] { TestLearners.LDSvmNoNorm };
-            var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(binaryPredictors, binaryClassificationDatasets);
-            Done();
-        }
-
-        /// <summary>
-        ///A test for binary classifiers
-        ///</summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
-        [TestCategory("Binary")]
-        [TestCategory("LDSVM")]
-        public void BinaryClassifierLDSvmNoCalibTest()
-        {
-            var binaryPredictors = new[] { TestLearners.LDSvmNoCalib };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
             RunAllTests(binaryPredictors, binaryClassificationDatasets);
             Done();
