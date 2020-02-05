@@ -93,7 +93,10 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Append a 'caching checkpoint' to the estimator chain. This will ensure that the downstream estimators will be trained against
-        /// cached data. It is helpful to have a caching checkpoint before trainers that take multiple data passes.
+        /// cached data. It is helpful to have a caching checkpoint before trainers or feature engineering that take multiple data passes.
+        /// It is also helpful to have after a slow operation, for example after dataset loading from a slow source or after feature
+        /// engineering that is slow on its apply phase. AppendCacheCheckpoint() should be disabled if disk thrashing or OutOfMemory
+        /// exceptions are seen, which can occur on when the featured dataset immediately prior to the checkpoint is larger than available RAM.
         /// </summary>
         /// <param name="env">The host environment to use for caching.</param>
         public EstimatorChain<TLastTransformer> AppendCacheCheckpoint(IHostEnvironment env)
