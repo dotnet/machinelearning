@@ -193,6 +193,9 @@ namespace Microsoft.ML.RunTests
             {
                 _failures.Add(ex);
             }
+            catch when (relax)
+            {
+            }
 
             Log("*** Failure: " + fmt, args);
         }
@@ -315,36 +318,6 @@ namespace Microsoft.ML.RunTests
                     line = _matchGuid.Replace(line, "%Guid%");
                     dst.WriteLine(line);
                 }
-            }
-        }
-
-        // Set and restored by instances of MismatchContext. When this is true, baseline differences
-        // are tolerated. They are still reported in the test log, but do not cause a test failure.
-        // REVIEW: Perhaps they should cause the test to be inconclusive instead of pass?
-        private bool _allowMismatch;
-
-        /// <summary>
-        /// When hardware dependent baseline values should be tolerated, scope the code
-        /// that does the comparisons with an instance of this disposable struct.
-        /// </summary>
-        protected readonly struct MismatchContext : IDisposable
-        {
-            // The test class instance.
-            private readonly BaseTestBaseline _host;
-            // Dispose restores this value to the _allowMismatch field of _host.
-            private readonly bool _allowMismatch;
-
-            public MismatchContext(BaseTestBaseline host)
-            {
-                _host = host;
-                _allowMismatch = _host._allowMismatch;
-                _host._allowMismatch = true;
-            }
-
-            public void Dispose()
-            {
-                Contracts.Assert(_host._allowMismatch);
-                _host._allowMismatch = _allowMismatch;
             }
         }
 
@@ -473,7 +446,7 @@ namespace Microsoft.ML.RunTests
         }
 
         protected bool CheckEqualityFromPathsCore(string relPath, string basePath, string outPath, int skip = 0,
-            int digitsOfPrecision = DigitsOfPrecision, NumberParseOption parseOption = NumberParseOption.Default)
+            int digitsOfPrecision = DigitsOfPrecision, NumberParseOption parseOption = NumberParseOption.Default, bool allowMismatch = false)
         {
             Contracts.Assert(skip >= 0);
 
@@ -527,7 +500,7 @@ namespace Microsoft.ML.RunTests
                         if (line1 == null || line2 == null)
                             Fail("Output and baseline different lengths: '{0}'", relPath);
                         else
-                            Fail(_allowMismatch, "Output and baseline mismatch at line {1}, expected '{2}' but got '{3}' : '{0}'", relPath, count, line1, line2);
+                            Fail(allowMismatch, "Output and baseline mismatch at line {1}, expected '{2}' but got '{3}' : '{0}'", relPath, count, line1, line2);
                         return false;
                     }
                 }
@@ -590,7 +563,8 @@ namespace Microsoft.ML.RunTests
             return true;
         }
 
-        public bool CompareNumbersWithTolerance(double expected, double actual, int? iterationOnCollection = null, int digitsOfPrecision = DigitsOfPrecision)
+        public bool CompareNumbersWithTolerance(double expected, double actual, 
+            int? iterationOnCollection = null, int digitsOfPrecision = DigitsOfPrecision, bool allowMismatch = false)
         {
             if (double.IsNaN(expected) && double.IsNaN(actual))
                 return true;
@@ -622,7 +596,7 @@ namespace Microsoft.ML.RunTests
             {
                 var message = iterationOnCollection != null ? "" : $"Output and baseline mismatch at line {iterationOnCollection}." + Environment.NewLine;
 
-                Fail(_allowMismatch, message +
+                Fail(allowMismatch, message +
                         $"Values to compare are {expected} and {actual}" + Environment.NewLine +
                         $"\t AllowedVariance: {allowedVariance}" + Environment.NewLine +
                         $"\t delta: {delta}" + Environment.NewLine +
