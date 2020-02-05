@@ -11,6 +11,7 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Text;
 
@@ -184,7 +185,7 @@ namespace Microsoft.ML.Transforms.Text
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
-        private sealed class Mapper : OneToOneMapperBase
+        private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
         {
             private readonly DataViewType _type;
             private readonly TokenizingByCharactersTransformer _parent;
@@ -204,6 +205,44 @@ namespace Microsoft.ML.Transforms.Text
                     _isSourceVector[i] = inputSchema[_parent.ColumnPairs[i].inputColumnName].Type is VectorDataViewType;
             }
 
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
+            public void SaveAsOnnx(OnnxContext ctx)
+            {
+                Host.CheckValue(ctx, nameof(ctx));
+                for (int iinfo = 0; iinfo < _isSourceVector.Length; ++iinfo)
+                {
+                    string inputColumnName = _parent.ColumnPairs[iinfo].inputColumnName;
+                    if (!ctx.ContainsColumn(inputColumnName))
+                        continue;
+
+                    string outputColumnName = _parent.ColumnPairs[iinfo].outputColumnName;
+                    string srcVariableName = ctx.GetVariableName(inputColumnName);
+                    string dstVariableName = ctx.AddIntermediateVariable(_type, outputColumnName, true);
+                    SaveAsOnnxCore(ctx, srcVariableName, dstVariableName);
+                }
+            }
+
+            private void SaveAsOnnxCore(OnnxContext ctx, string srcVariableName, string dstVariableName)
+            {
+                string opType = "Tokenizer";
+                string tokenizerOutput = ctx.AddIntermediateVariable(null, "TokenizerOutput" , true);
+                var node = ctx.CreateNode(opType, srcVariableName, tokenizerOutput, ctx.GetNodeName(opType), "com.microsoft");
+                node.AddAttribute("mark", _parent._useMarkerChars);
+                node.AddAttribute("mincharnum", 1);
+                node.AddAttribute("pad_value", "");
+                node.AddAttribute("separators", new string[] { "" });
+
+                opType = "Squeeze";
+                var squeezeOutput = ctx.AddIntermediateVariable(_type, "SqueezeOutput", true);
+                node = ctx.CreateNode(opType, tokenizerOutput, dstVariableName, ctx.GetNodeName(opType), "");
+                node.AddAttribute("axes", new long[] { 0 });
+
+                //opType = "Cast";
+                //node = ctx.CreateNode(opType, squeezeOutput, dstVariableName, ctx.GetNodeName(opType), "");
+                //var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.UInt16).ToType();
+                //node.AddAttribute("to", t);
+
+            }
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
                 var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
