@@ -465,7 +465,7 @@ namespace Microsoft.ML.RunTests
             {
                 var learners = new[] { TestLearners.FastTreeClassfier, TestLearners.FastTreeDropoutClassfier,
                     TestLearners.FastTreeBsrClassfier, TestLearners.FastTreeClassfierDisk };
-                var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe };
+                var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe, TestDatasets.breastCancerPipeMissing };
                 foreach (var learner in learners)
                 {
                     foreach (TestDataset dataset in binaryClassificationDatasets)
@@ -481,7 +481,7 @@ namespace Microsoft.ML.RunTests
         public void LightGBMClassificationTest()
         {
             var learners = new[] { TestLearners.LightGBMClassifier };
-            var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe };
+            var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe, TestDatasets.breastCancerPipeMissing };
             foreach (var learner in learners)
             {
                 foreach (TestDataset dataset in binaryClassificationDatasets)
@@ -496,7 +496,7 @@ namespace Microsoft.ML.RunTests
         public void GossLightGBMTest()
         {
             var binaryPredictors = new[] { TestLearners.LightGBMGoss };
-            var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe };
+            var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe, TestDatasets.breastCancerPipeMissing };
             RunAllTests(binaryPredictors, binaryClassificationDatasets, extraTag: "goss");
             Done();
         }
@@ -507,7 +507,7 @@ namespace Microsoft.ML.RunTests
         public void DartLightGBMTest()
         {
             var binaryPredictors = new[] { TestLearners.LightGBMDart };
-            var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe };
+            var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe, TestDatasets.breastCancerPipeMissing };
             RunAllTests(binaryPredictors, binaryClassificationDatasets, extraTag: "dart");
             Done();
         }
@@ -1016,7 +1016,7 @@ namespace Microsoft.ML.RunTests
             RunMTAThread(() =>
             {
                 var learners = new[] { TestLearners.FastTreeClassfierHighMinDocs };
-                var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe };
+                var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe, TestDatasets.breastCancerPipeMissing };
                 foreach (var learner in learners)
                 {
                     foreach (TestDataset dataset in binaryClassificationDatasets)
@@ -2174,7 +2174,13 @@ output Out [3] from H all;
         [TestCategory("Multi Class Naive Bayes Classifier")]
         public void MulticlassNaiveBayes()
         {
-            RunOneAllTests(TestLearners.MulticlassNaiveBayesClassifier, TestDatasets.breastCancerPipe);
+            var learners = new[] { TestLearners.MulticlassNaiveBayesClassifier };
+            var multiclassClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe, TestDatasets.breastCancerPipeMissing };
+            foreach (var learner in learners)
+            {
+                foreach (TestDataset dataset in multiclassClassificationDatasets)
+                    Run_TrainTest(learner, dataset);
+            }
             Done();
         }
 
