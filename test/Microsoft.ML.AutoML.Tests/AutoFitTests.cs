@@ -20,7 +20,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void AutoFitBinaryTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var dataPath = DatasetUtil.DownloadUciAdultDataset();
             var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
@@ -37,7 +37,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void AutoFitMultiTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var columnInference = context.Auto().InferColumns(DatasetUtil.TrivialMulticlassDatasetPath, DatasetUtil.TrivialMulticlassDatasetLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(DatasetUtil.TrivialMulticlassDatasetPath);
@@ -79,7 +79,7 @@ namespace Microsoft.ML.AutoML.Test
             // This test executes the code path that model builder code will take to get a model using image 
             // classification API.
 
-            var context = new MLContext();
+            var context = new MLContext(1);
             context.Log += Context_Log;
             var datasetPath = DatasetUtil.GetFlowersDataset();
             var columnInference = context.Auto().InferColumns(datasetPath, "Label");
@@ -102,7 +102,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void AutoFitRegressionTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
             var dataPath = DatasetUtil.DownloadMlNetGeneratedRegressionDataset();
             var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.MlNetGeneratedRegressionLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
@@ -125,7 +125,7 @@ namespace Microsoft.ML.AutoML.Test
             string userColumnName = "User";
             string itemColumnName = "Item";
             string scoreColumnName = "Score";
-            MLContext mlContext = new MLContext();
+            MLContext mlContext = new MLContext(1);
 
             // STEP 1: Load data
             var reader = new TextLoader(mlContext, GetLoaderArgs(labelColumnName, userColumnName, itemColumnName));

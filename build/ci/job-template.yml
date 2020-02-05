@@ -7,6 +7,7 @@ parameters:
   codeCoverage: false
   nightlyBuild: false
   innerLoop: false
+  runSpecific: false
   container: ''
 
 jobs:
@@ -17,6 +18,7 @@ jobs:
       timeoutInMinutes: 75
     ${{ if eq(parameters.codeCoverage, 'true') }}:
       timeoutInMinutes: 75
+    cancelTimeoutInMinutes: 10
     variables:
       dotnetPath: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet
       nugetFeed: https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json
@@ -67,8 +69,12 @@ jobs:
       - script: ${{ parameters.buildScript }} -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=$(_includeBenchmarkData)
         displayName: Download Benchmark Data
       - ${{ if eq(parameters.innerLoop, 'false') }}:
-        - script: ${{ parameters.buildScript }} -$(_configuration) -runtests -coverage=${{ parameters.codeCoverage }}
-          displayName: Run All Tests.
+        - ${{ if eq(parameters.runSpecific, 'false') }}:
+          - script: ${{ parameters.buildScript }} -$(_configuration) -runtests -coverage=${{ parameters.codeCoverage }}
+            displayName: Run All Tests.
+        - ${{ if eq(parameters.runSpecific, 'true') }}:
+          - script: ${{ parameters.buildScript }} -$(_configuration) -runSpecificTests -coverage=${{ parameters.codeCoverage }}
+            displayName: Run Specific Tests.
       - ${{ if eq(parameters.innerLoop, 'true') }}:
         - script: ${{ parameters.buildScript }} -$(_configuration) -runCITests -coverage=${{ parameters.codeCoverage }}
           displayName: Run CI Tests.

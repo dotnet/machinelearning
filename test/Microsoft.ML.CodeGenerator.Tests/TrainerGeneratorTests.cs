@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.ML;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.CodeGenerator.CSharp;
+using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace mlnet.Tests
@@ -295,14 +296,21 @@ namespace mlnet.Tests
                 {"MatrixColumnIndexColumnName","userId" },
                 {"MatrixRowIndexColumnName","movieId" },
                 {"LabelColumnName","rating" },
+                {nameof(MatrixFactorizationTrainer.Options.NumberOfIterations), 10 },
+                {nameof(MatrixFactorizationTrainer.Options.LearningRate), 0.01f },
+                {nameof(MatrixFactorizationTrainer.Options.ApproximationRank), 8 },
+                {nameof(MatrixFactorizationTrainer.Options.Lambda), 0.01f },
+                {nameof(MatrixFactorizationTrainer.Options.LossFunction), MatrixFactorizationTrainer.LossFunctionType.SquareLossRegression },
+                {nameof(MatrixFactorizationTrainer.Options.Alpha), 1f },
+                {nameof(MatrixFactorizationTrainer.Options.C), 0.00001f },
             };
             PipelineNode node = new PipelineNode("MatrixFactorization", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "MatrixFactorization(matrixColumnIndexColumnName:\"userId\",matrixRowIndexColumnName:\"movieId\",labelColumnName:\"rating\")";
+            string expectedTrainerString = "MatrixFactorization(new MatrixFactorizationTrainer.Options(){MatrixColumnIndexColumnName=\"userId\",MatrixRowIndexColumnName=\"movieId\",LabelColumnName=\"rating\",NumberOfIterations=10,LearningRate=0.01f,ApproximationRank=8,Lambda=0.01f,LossFunction=MatrixFactorizationTrainer.LossFunctionType.SquareLossRegression,Alpha=1f,C=1E-05f})";
             Assert.Equal(expectedTrainerString, actual.Item1);
-            Assert.Null(actual.Item2);
+            Assert.Equal(new string[] { "using Microsoft.ML.Trainers;\r\n" },actual.Item2);
         }
 
         [Fact]

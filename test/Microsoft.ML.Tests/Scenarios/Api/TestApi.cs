@@ -20,7 +20,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 {
     public partial class TestApi : BaseTestClass
     {
-        private const string OutputRelativePath = @"..\Common\Api";
+        private const string OutputRelativePath = @"../Common/Api";
 
         public TestApi(ITestOutputHelper output) : base(output)
         {

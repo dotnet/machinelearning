@@ -174,8 +174,13 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary> Trains and returns a <see cref="ITransformer"/>.</summary>
         public ITransformer Fit(IDataView input)
         {
-            // Create arguments.
-            var options = new WordBagBuildingTransformer.Options
+            var estimator = WordBagBuildingTransformer.CreateEstimator(_host, CreateOptions(), SchemaShape.Create(input.Schema));
+            return estimator.Fit(input);
+        }
+
+        private WordBagBuildingTransformer.Options CreateOptions()
+        {
+            return new WordBagBuildingTransformer.Options
             {
                 Columns = _columns.Select(x => new WordBagBuildingTransformer.Column { Name = x.outputColumnName, Source = x.sourceColumnsNames }).ToArray(),
                 NgramLength = _ngramLength,
@@ -184,8 +189,6 @@ namespace Microsoft.ML.Transforms.Text
                 MaxNumTerms = new[] { _maxNumTerms },
                 Weighting = _weighting
             };
-
-            return WordBagBuildingTransformer.CreateTransfomer(_host, options, input);
         }
 
         /// <summary>
@@ -196,9 +199,8 @@ namespace Microsoft.ML.Transforms.Text
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
 
-            var fakeSchema = FakeSchemaFactory.Create(inputSchema);
-            var transformer = Fit(new EmptyDataView(_host, fakeSchema));
-            return SchemaShape.Create(transformer.GetOutputSchema(fakeSchema));
+            var estimator = WordBagBuildingTransformer.CreateEstimator(_host, CreateOptions(), inputSchema);
+            return estimator.GetOutputSchema(inputSchema);
         }
     }
 

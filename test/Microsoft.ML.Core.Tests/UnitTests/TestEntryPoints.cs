@@ -743,7 +743,7 @@ namespace Microsoft.ML.RunTests
             var cmd = new ExecuteGraphCommand(Env, args);
             cmd.Run();
 
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             var loadedData = mlContext.Data.LoadFromBinary(outputDataPath);
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("FeatureName"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("AreaUnderRocCurve"));
@@ -891,7 +891,7 @@ namespace Microsoft.ML.RunTests
             var cmd = new ExecuteGraphCommand(Env, args);
             cmd.Run();
 
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             var loadedData = mlContext.Data.LoadFromBinary(outputDataPath);
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("FeatureName"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("MacroAccuracy"));
@@ -1052,7 +1052,7 @@ namespace Microsoft.ML.RunTests
             var cmd = new ExecuteGraphCommand(Env, args);
             cmd.Run();
 
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             var loadedData = mlContext.Data.LoadFromBinary(outputDataPath);
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("FeatureName"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("MacroAccuracy"));
@@ -1195,7 +1195,7 @@ namespace Microsoft.ML.RunTests
             var cmd = new ExecuteGraphCommand(Env, args);
             cmd.Run();
                         
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             var loadedData = mlContext.Data.LoadFromBinary(outputDataPath);
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("FeatureName"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("MeanAbsoluteError"));
@@ -1342,7 +1342,7 @@ namespace Microsoft.ML.RunTests
             var cmd = new ExecuteGraphCommand(Env, args);
             cmd.Run();
 
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
             var loadedData = mlContext.Data.LoadFromBinary(outputDataPath);
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("FeatureName"));
             Assert.NotNull(loadedData.Schema.GetColumnOrNull("DiscountedCumulativeGains"));
@@ -1358,7 +1358,7 @@ namespace Microsoft.ML.RunTests
             var modelPath = DeleteOutputPath("score_model.zip");
             var outputDataPath = DeleteOutputPath("scored.idv");
 
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(1);
 
             var data = new TextLoader(mlContext,
                     new TextLoader.Options()
@@ -6487,7 +6487,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void LoadEntryPointModel()
         {
-            var ml = new MLContext();
+            var ml = new MLContext(1);
             for (int i = 0; i < 5; i++)
             {
                 var modelPath = GetDataPath($"backcompat/ep_model{i}.zip");

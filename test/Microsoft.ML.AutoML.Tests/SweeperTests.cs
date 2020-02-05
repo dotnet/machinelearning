@@ -23,7 +23,7 @@ namespace Microsoft.ML.AutoML.Test
             var longLogValueGenerator = new LongValueGenerator(new LongParamArguments() { Name = "longLog", Min = 1, Max = 1000, LogBase = true });
             var discreteValueGeneator = new DiscreteValueGenerator(new DiscreteParamArguments() { Name = "discrete", Values = new[] { "200", "400", "600", "800" } });
 
-            var sweeper = new SmacSweeper(new MLContext(), new SmacSweeper.Arguments()
+            var sweeper = new SmacSweeper(new MLContext(1), new SmacSweeper.Arguments()
             {
                 SweptParameters = new IValueGenerator[] {
                     floatValueGenerator,
@@ -80,7 +80,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact(Skip = "This test is too slow to run as part of automation.")]
         public void Smac4ParamsConvergenceTest()
         {
-            var sweeper = new SmacSweeper(new MLContext(), new SmacSweeper.Arguments()
+            var sweeper = new SmacSweeper(new MLContext(1), new SmacSweeper.Arguments()
             {
                 SweptParameters = new INumericValueGenerator[] {
                     new FloatValueGenerator(new FloatParamArguments() { Name = "x1", Min = 1, Max = 1000}),
@@ -133,7 +133,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact(Skip = "This test is too slow to run as part of automation.")]
         public void Smac2ParamsConvergenceTest()
         {
-            var sweeper = new SmacSweeper(new MLContext(), new SmacSweeper.Arguments()
+            var sweeper = new SmacSweeper(new MLContext(1), new SmacSweeper.Arguments()
             {
                 SweptParameters = new INumericValueGenerator[] {
                     new FloatValueGenerator(new FloatParamArguments() { Name = "foo", Min = 1, Max = 5}),
