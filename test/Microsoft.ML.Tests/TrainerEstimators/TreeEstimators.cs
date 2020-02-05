@@ -68,55 +68,55 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [Fact(Skip="")]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void LightGBMBinaryEstimatorUnbalanced()
-        {
-            var (pipe, dataView) = GetBinaryClassificationPipeline();
+        //[Fact(Skip="")]
+        ////Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        //[Trait("Category", "SkipInCI")]
+        //public void LightGBMBinaryEstimatorUnbalanced()
+        //{
+        //    var (pipe, dataView) = GetBinaryClassificationPipeline();
 
-            var trainer = ML.BinaryClassification.Trainers.LightGbm(new LightGbmBinaryTrainer.Options
-            {
-                NumberOfLeaves = 10,
-                NumberOfThreads = 1,
-                MinimumExampleCountPerLeaf = 2,
-                UnbalancedSets = true,
-            });
+        //    var trainer = ML.BinaryClassification.Trainers.LightGbm(new LightGbmBinaryTrainer.Options
+        //    {
+        //        NumberOfLeaves = 10,
+        //        NumberOfThreads = 1,
+        //        MinimumExampleCountPerLeaf = 2,
+        //        UnbalancedSets = true,
+        //    });
 
-            var pipeWithTrainer = pipe.Append(trainer);
-            TestEstimatorCore(pipeWithTrainer, dataView);
+        //    var pipeWithTrainer = pipe.Append(trainer);
+        //    TestEstimatorCore(pipeWithTrainer, dataView);
 
-            var transformedDataView = pipe.Fit(dataView).Transform(dataView);
-            var model = trainer.Fit(transformedDataView, transformedDataView);
-            Done();
-        }
+        //    var transformedDataView = pipe.Fit(dataView).Transform(dataView);
+        //    var model = trainer.Fit(transformedDataView, transformedDataView);
+        //    Done();
+        //}
 
-        /// <summary>
-        /// LightGBMBinaryTrainer CorrectSigmoid test
-        /// </summary>
-        [Fact(Skip = "")]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void LightGBMBinaryEstimatorCorrectSigmoid()
-        {
-            var (pipe, dataView) = GetBinaryClassificationPipeline();
-            var sigmoid = .789;
+        ///// <summary>
+        ///// LightGBMBinaryTrainer CorrectSigmoid test
+        ///// </summary>
+        //[Fact(Skip = "")]
+        ////Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        //[Trait("Category", "SkipInCI")]
+        //public void LightGBMBinaryEstimatorCorrectSigmoid()
+        //{
+        //    var (pipe, dataView) = GetBinaryClassificationPipeline();
+        //    var sigmoid = .789;
 
-            var trainer = ML.BinaryClassification.Trainers.LightGbm(new LightGbmBinaryTrainer.Options
-            {
-                NumberOfLeaves = 10,
-                NumberOfThreads = 1,
-                MinimumExampleCountPerLeaf = 2,
-                Sigmoid = sigmoid
-            });
+        //    var trainer = ML.BinaryClassification.Trainers.LightGbm(new LightGbmBinaryTrainer.Options
+        //    {
+        //        NumberOfLeaves = 10,
+        //        NumberOfThreads = 1,
+        //        MinimumExampleCountPerLeaf = 2,
+        //        Sigmoid = sigmoid
+        //    });
 
-            var transformedDataView = pipe.Fit(dataView).Transform(dataView);
-            var model = trainer.Fit(transformedDataView, transformedDataView);
+        //    var transformedDataView = pipe.Fit(dataView).Transform(dataView);
+        //    var model = trainer.Fit(transformedDataView, transformedDataView);
 
-            // The slope in the model calibrator should be equal to the negative of the sigmoid passed into the trainer.
-            Assert.Equal(sigmoid, -model.Model.Calibrator.Slope);
-            Done();
-        }
+        //    // The slope in the model calibrator should be equal to the negative of the sigmoid passed into the trainer.
+        //    Assert.Equal(sigmoid, -model.Model.Calibrator.Slope);
+        //    Done();
+        //}
 
 
         [Fact]
