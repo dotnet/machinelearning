@@ -17,7 +17,7 @@ namespace Microsoft.ML
     public sealed class DataOperationsCatalog : IInternalCatalog
     {
         IHostEnvironment IInternalCatalog.Environment => _env;
-        private readonly ISeededEnvironment _env;
+        private readonly IHostEnvironment _env;
 
         /// <summary>
         /// A pair of datasets, for the train and test set.
@@ -44,7 +44,7 @@ namespace Microsoft.ML
             }
         }
 
-        internal DataOperationsCatalog(ISeededEnvironment env)
+        internal DataOperationsCatalog(IHostEnvironment env)
         {
             Contracts.AssertValue(env);
             _env = env;
@@ -493,7 +493,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Ensures the provided <paramref name="samplingKeyColumn"/> is valid for <see cref="RangeFilter"/>, hashing it if necessary, or creates a new column <paramref name="samplingKeyColumn"/> is null.
         /// </summary>
-        internal static void EnsureGroupPreservationColumn(ISeededEnvironment env, ref IDataView data, ref string samplingKeyColumn, int? seed = null)
+        internal static void EnsureGroupPreservationColumn(IHostEnvironment env, ref IDataView data, ref string samplingKeyColumn, int? seed = null)
         {
             Contracts.CheckValue(env, nameof(env));
             // We need to handle two cases: if samplingKeyColumn is provided, we use hashJoin to
@@ -501,7 +501,7 @@ namespace Microsoft.ML
             if (samplingKeyColumn == null)
             {
                 samplingKeyColumn = data.Schema.GetTempColumnName("SamplingKeyColumn");
-                data = new GenerateNumberTransform(env, data, samplingKeyColumn, (uint?)(seed ?? env.Seed));
+                data = new GenerateNumberTransform(env, data, samplingKeyColumn, (uint?)(seed ?? ((ISeededEnvironment)env).Seed));
             }
             else
             {
@@ -517,7 +517,7 @@ namespace Microsoft.ML
                     // instead of having two hash transformations.
                     var origStratCol = samplingKeyColumn;
                     samplingKeyColumn = data.Schema.GetTempColumnName(samplingKeyColumn);
-                    var columnOptions = new HashingEstimator.ColumnOptionsInternal(samplingKeyColumn, origStratCol, 30, (uint)(seed ?? env.Seed));
+                    var columnOptions = new HashingEstimator.ColumnOptionsInternal(samplingKeyColumn, origStratCol, 30, (uint)(seed ?? ((ISeededEnvironment)env).Seed));
                     data = new HashingEstimator(env, columnOptions).Fit(data).Transform(data);
                 }
                 else

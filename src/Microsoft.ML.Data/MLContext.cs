@@ -14,7 +14,7 @@ namespace Microsoft.ML
     /// create components for data preparation, feature enginering, training, prediction, model evaluation.
     /// It also allows logging, execution control, and the ability set repeatable random numbers.
     /// </summary>
-    public sealed class MLContext : ISeededEnvironment, IHostEnvironment
+    public sealed class MLContext : ISeededEnvironment
     {
         // REVIEW: consider making LocalEnvironment and MLContext the same class instead of encapsulation.
         private readonly LocalEnvironment _env;
