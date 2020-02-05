@@ -617,7 +617,8 @@ namespace Microsoft.ML.Transforms
                         continue;
                     }
 
-                    if (!SaveAsOnnxCore(ctx, iinfo, ctx.GetVariableName(inputColumnName), ctx.AddIntermediateVariable(_srcTypes[iinfo], inputColumnName)))
+                    string outputColumnName = _parent.ColumnPairs[iinfo].outputColumnName;
+                    if (!SaveAsOnnxCore(ctx, iinfo, ctx.GetVariableName(inputColumnName), ctx.AddIntermediateVariable(_srcTypes[iinfo], outputColumnName)))
                     {
                         ctx.RemoveColumn(inputColumnName, true);
                     }
