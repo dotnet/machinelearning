@@ -355,7 +355,7 @@ namespace Microsoft.ML.Runtime
                 var parameters = method.GetParameters();
                 if (parameters.Length != 2 && parameters.Length != 3)
                     throw Contracts.Except("Method '{0}' has {1} parameters, but must have 2 or 3", method.Name, parameters.Length);
-                if (parameters[0].ParameterType != typeof(IHostEnvironment))
+                if (parameters[0].ParameterType != typeof(IHostEnvironment) && parameters[0].ParameterType != typeof(ISeededEnvironment))
                     throw Contracts.Except("Method '{0}', 1st parameter is {1}, but must be IHostEnvironment", method.Name, parameters[0].ParameterType);
                 InputType = parameters[1].ParameterType;
                 var outputType = method.ReturnType;
