@@ -120,12 +120,12 @@ namespace Microsoft.ML.Internal.Utilities
 
             for (int i = 0; i < retryTimes; ++i)
             {
-                var thisDownloadResult = DownloadFromUrl(env, ch, url, fileName, timeout, filePath);
+                var thisDownloadResult = await DownloadFromUrl(env, ch, url, fileName, timeout, filePath);
 
-                if (string.IsNullOrEmpty(await thisDownloadResult))
-                    return await thisDownloadResult;
+                if (string.IsNullOrEmpty(thisDownloadResult))
+                    return thisDownloadResult;
                 else
-                    downloadResult += thisDownloadResult.Result + @"\n";
+                    downloadResult += thisDownloadResult + @"\n";
 
                 await Task.Delay(10 * 1000);
             }
