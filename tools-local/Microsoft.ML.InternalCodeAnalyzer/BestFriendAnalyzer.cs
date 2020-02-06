@@ -38,6 +38,9 @@ namespace Microsoft.ML.InternalCodeAnalyzer
 
         public override void Initialize(AnalysisContext context)
         {
+            // This analyzer reports violations in all code (including generated code)
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+
             context.RegisterSemanticModelAction(Analyze);
         }
 
