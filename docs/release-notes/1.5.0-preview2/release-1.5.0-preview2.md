@@ -1,8 +1,8 @@
 # [ML.NET](http://dot.net/ml) 1.5.0-preview2
 
 ## **New Features (IN-PREVIEW, please provide feedback)**
-- **TimeSeriesImputer** ([#4623](https://github.com/dotnet/machinelearning/pull/4623))
-- **LDSVM Trainer** ([#4060](https://github.com/dotnet/machinelearning/pull/4060))
+- **TimeSeriesImputer** ([#4623](https://github.com/dotnet/machinelearning/pull/4623)) This data transformer can be used to impute missing rows in time series data.
+- **LDSVM Trainer** ([#4060](https://github.com/dotnet/machinelearning/pull/4060)) The "Local Deep SVM" usess trees as its SVM kernel to create a non-linear binary trainer. A sample can be found [here](https://github.com/dotnet/machinelearning/blob/c819d77e9250c68883713d5f1cd79b8971a11faf/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/LdSvm.cs).
 - **Export-to-ONNX for below components:**
     - SlotsDroppingTransformer ([#4562](https://github.com/dotnet/machinelearning/pull/4562))
     - ColumnSelectingTransformer ([#4590](https://github.com/dotnet/machinelearning/pull/4590))
@@ -12,7 +12,7 @@
 
   
 ## **Bug Fixes**
-- Fix for OneVersusAllTrainer([#4698](https://github.com/dotnet/machinelearning/pull/4698))
+- Fix for OneVersusAllTrainer ([#4698](https://github.com/dotnet/machinelearning/pull/4698))
 - Added support to run PFI on uncalibrated binary classification models ([#4587](https://github.com/dotnet/machinelearning/pull/4587))
 - Fix bug in WordBagEstimator when training on empty data ([#4696](https://github.com/dotnet/machinelearning/pull/4696))
 - Added Cancellation mechanism to Image Classification (through the experimental nuget) (fixes #4632) ([#4650](https://github.com/dotnet/machinelearning/pull/4650))
@@ -21,7 +21,6 @@
 - Changed onnx export to append a .onnx string to column names to support better mapping to ML.NET output column names ([#4734](https://github.com/dotnet/machinelearning/pull/4734))
 -	TextLoader, BinaryLoader and SvmLightLoader now check the existence of the input file before training ([#4665](https://github.com/dotnet/machinelearning/pull/4665))
 - ImageLoadingTransformer now checks the existence of input folder before training ([#4691]( https://github.com/dotnet/machinelearning/pull/4691))
-- Sweep Trimming of Whitespace in AutoML ([#3918](https://github.com/dotnet/machinelearning/pull/3918))
 - Use random file name for AutoML experiment folder ([#4657](https://github.com/dotnet/machinelearning/pull/4657))
 - Using invariance culture when converting to string  ([#4635](https://github.com/dotnet/machinelearning/pull/4635))
 - Fix NullReferenceException when it comes to Recommendation in AutoML and CodeGenerator ([#4774](https://github.com/dotnet/machinelearning/pull/4774))
@@ -51,7 +50,7 @@
 - Fix documentation of SvmLightLoader ([#4616](https://github.com/dotnet/machinelearning/pull/4616))
 - Correct KMeans scoring function doc ([#4705](https://github.com/dotnet/machinelearning/pull/4705))
 - Several typo fixes thanks to [@MaherJendoubi](https://github.com/MaherJendoubi) ([#4627](https://github.com/dotnet/machinelearning/pull/4627), [#4631](https://github.com/dotnet/machinelearning/pull/4631), [#4626](https://github.com/dotnet/machinelearning/pull/4626) [#4617](https://github.com/dotnet/machinelearning/pull/4617), [#4633](https://github.com/dotnet/machinelearning/pull/4633), [#4629](https://github.com/dotnet/machinelearning/pull/4629), [#4642](https://github.com/dotnet/machinelearning/pull/4642))
-- Other typo fixes:([#4628](https://github.com/dotnet/machinelearning/pull/4628), [#4685](https://github.com/dotnet/machinelearning/pull/4685))
+- Other typo fixes: ([#4628](https://github.com/dotnet/machinelearning/pull/4628), [#4685](https://github.com/dotnet/machinelearning/pull/4685))
 
 ## **Breaking Changes**
 - None
