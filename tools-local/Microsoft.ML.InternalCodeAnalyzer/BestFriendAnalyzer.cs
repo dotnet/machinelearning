@@ -40,6 +40,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
         {
             // This analyzer reports violations in all code (including generated code)
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            context.EnableConcurrentExecution();
 
             context.RegisterSemanticModelAction(Analyze);
         }

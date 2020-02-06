@@ -13,9 +13,6 @@ dotnet_diagnostic.VSTHRD103.severity = none
 # VSTHRD200: Use "Async" suffix for async methods
 dotnet_diagnostic.VSTHRD200.severity = none
 
-# RS1026: Enable concurrent execution
-dotnet_diagnostic.RS1026.severity = none
-
 [test/**/*.cs]
 
 # MSML_GeneralName: This name should be PascalCased
