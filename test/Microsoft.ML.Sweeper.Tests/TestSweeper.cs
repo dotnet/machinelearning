@@ -206,7 +206,7 @@ namespace Microsoft.ML.Sweeper.RunTests
                 if (i < args.BatchSize - args.Relaxation)
                 {
                     Assert.True(task.IsCompleted);
-                    sweeper.Update(task.Result.Id, new RunResult(task.Result.ParameterSet, random.NextDouble(), true));
+                    sweeper.Update(task.CompletedResult().Id, new RunResult(task.CompletedResult().ParameterSet, random.NextDouble(), true));
                     numCompleted++;
                 }
                 else
@@ -218,7 +218,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             await Task.WhenAll(tasks);
             foreach (var task in tasks)
             {
-                if (task.Result != null)
+                if (task.CompletedResult() != null)
                     numCompleted++;
             }
             Assert.Equal(args.BatchSize + args.BatchSize, numCompleted);
@@ -254,9 +254,9 @@ namespace Microsoft.ML.Sweeper.RunTests
             {
                 var task = sweeper.Propose();
                 Assert.True(task.IsCompleted);
-                paramSets.Add(task.Result.ParameterSet);
-                var result = new RunResult(task.Result.ParameterSet, random.NextDouble(), true);
-                sweeper.Update(task.Result.Id, result);
+                paramSets.Add(task.CompletedResult().ParameterSet);
+                var result = new RunResult(task.CompletedResult().ParameterSet, random.NextDouble(), true);
+                sweeper.Update(task.CompletedResult().Id, result);
             }
             Assert.Equal(sweeps, paramSets.Count);
             CheckAsyncSweeperResult(paramSets);
@@ -273,9 +273,9 @@ namespace Microsoft.ML.Sweeper.RunTests
                 var task = sweeper.Propose();
                 Assert.True(task.IsCompleted);
                 tasks[i] = task;
-                if (task.Result == null)
+                if (task.CompletedResult() == null)
                     continue;
-                results.Add(new KeyValuePair<int, IRunResult>(task.Result.Id, new RunResult(task.Result.ParameterSet, 0.42, true)));
+                results.Add(new KeyValuePair<int, IRunResult>(task.CompletedResult().Id, new RunResult(task.CompletedResult().ParameterSet, 0.42, true)));
             }
             // Register consumers for the 2nd batch. Those consumers will await until at least one run
             // in the previous batch has been posted to the sweeper.
