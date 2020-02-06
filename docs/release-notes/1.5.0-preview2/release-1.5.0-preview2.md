@@ -20,10 +20,11 @@
 - TextLoader, BinaryLoader and SvmLightLoader now check the existence of the input file before training ([#4665](https://github.com/dotnet/machinelearning/pull/4665))
 - Changed onnx export to append a .onnx string to column names to support better mapping to ML.NET output column names ([#4734](https://github.com/dotnet/machinelearning/pull/4734))
 -	TextLoader, BinaryLoader and SvmLightLoader now check the existence of the input file before training ([#4665](https://github.com/dotnet/machinelearning/pull/4665))
-- ImageClassificationTrainer now checks the existence of input folder before training ([#4691]( https://github.com/dotnet/machinelearning/pull/4691))
+- ImageLoadingTransformer now checks the existence of input folder before training ([#4691]( https://github.com/dotnet/machinelearning/pull/4691))
 - Sweep Trimming of Whitespace in AutoML ([#3918](https://github.com/dotnet/machinelearning/pull/3918))
 - Use random file name for AutoML experiment folder ([#4657](https://github.com/dotnet/machinelearning/pull/4657))
-
+- Using invariance culture when converting to string  ([#4635](https://github.com/dotnet/machinelearning/pull/4635))
+- Fix NullReferenceException when it comes to Recommendation in AutoML and CodeGenerator ([#4774](https://github.com/dotnet/machinelearning/pull/4774))
 
 ## **Enhancements**
 - Added in support for System.DateTime type for the DateTimeTransformer ([#4661](https://github.com/dotnet/machinelearning/pull/4661))
