@@ -151,7 +151,7 @@ namespace Microsoft.ML.Internal.Utilities
                 var t = Task.Run(() => DownloadResource(env, ch, webClient, new Uri(url), filePath, fileName, downloadCancel.Token));
 
                 UpdateTimeout(ref timeout);
-                var timeoutTask = Task.Delay(timeout).ContinueWith(task => default(Exception));
+                var timeoutTask = Task.Delay(timeout).ContinueWith(task => default(Exception), TaskScheduler.Default);
                 ch.Info($"Downloading {fileName} from {url} to {filePath}");
                 var completedTask = await Task.WhenAny(t, timeoutTask);
                 if (completedTask != t || completedTask.Result != null)
