@@ -175,14 +175,14 @@ namespace Microsoft.ML.Trainers.LightGbm
             /// <summary>
             /// Whether to enable special handling of missing value or not.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Enable special handling of missing value or not.")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Enable special handling of missing value or not.", ShortName = "hmv")]
             [TlcModule.SweepableDiscreteParam("UseMissing", new object[] { true, false })]
             public bool HandleMissingValue = true;
 
             /// <summary>
             /// Whether to enable the usage of zero (0) as missing value.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Enable usage of zero (0) as missing value.")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Enable usage of zero (0) as missing value.", ShortName = "uzam")]
             [TlcModule.SweepableDiscreteParam("UseZeroAsMissing", new object[] { true, false })]
             public bool UseZeroAsMissingValue = false;
 
