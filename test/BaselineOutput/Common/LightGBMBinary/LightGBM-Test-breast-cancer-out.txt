@@ -1,0 +1,17 @@
+***** Unexpected failure. Please refer to https://aka.ms/MLNetIssue to file an issue with details *****
+***** Error log has been saved to '%Temp%\%ErrorLog%', please refer to https://aka.ms/MLNetIssue to file an issue with details *****
+===== Begin detailed dump =====
+(1) Unexpected exception: Assert failed: Assertion Failed
+Expected: True
+Actual:   False, 'Xunit.Sdk.TrueException'
+   at Xunit.Assert.True(Nullable`1 condition, String userMessage) in C:\Dev\xunit\xunit\src\xunit.assert\Asserts\BooleanAsserts.cs:line 95
+   at Microsoft.ML.Internal.Internallearn.Test.GlobalBase.AssertHandler(String msg, IExceptionContext ectx) in C:\Users\mubal\Documents\GitHub\machinelearning\test\Microsoft.ML.TestFramework\GlobalBase.cs:line 71
+   at Microsoft.ML.Runtime.Contracts.DbgFailCore(String msg, IExceptionContext ctx) in C:\Users\mubal\Documents\GitHub\machinelearning\src\Microsoft.ML.Core\Utilities\Contracts.cs:line 781
+   at Microsoft.ML.Runtime.Contracts.DbgFail(IExceptionContext ctx) in C:\Users\mubal\Documents\GitHub\machinelearning\src\Microsoft.ML.Core\Utilities\Contracts.cs:line 790
+   at Microsoft.ML.Runtime.Contracts.Assert(Boolean f) in C:\Users\mubal\Documents\GitHub\machinelearning\src\Microsoft.ML.Core\Utilities\Contracts.cs:line 839
+   at Microsoft.ML.Runtime.ComponentCatalog.ParseArguments(IHostEnvironment env, Object args, String settings, String name) in C:\Users\mubal\Documents\GitHub\machinelearning\src\Microsoft.ML.Core\ComponentModel\ComponentCatalog.cs:line 1067
+   at Microsoft.ML.Runtime.ComponentCatalog.TryCreateInstance[TRes](IHostEnvironment env, Type signatureType, TRes& result, String name, String options, Object[] extra) in C:\Users\mubal\Documents\GitHub\machinelearning\src\Microsoft.ML.Core\ComponentModel\ComponentCatalog.cs:line 1036
+   at Microsoft.ML.Runtime.ComponentCatalog.TryCreateInstance[TRes,TSig](IHostEnvironment env, TRes& result, String name, String options, Object[] extra) in C:\Users\mubal\Documents\GitHub\machinelearning\src\Microsoft.ML.Core\ComponentModel\ComponentCatalog.cs:line 993
+   at Microsoft.ML.Tools.Maml.MainCore(IHostEnvironment env, String args, Boolean alwaysPrintStacktrace) in C:\Users\mubal\Documents\GitHub\machinelearning\src\Microsoft.ML.Maml\MAML.cs:line 129
+====== End detailed dump =====
+--- Progress log ---
