@@ -52,9 +52,6 @@
 - Several typo fixes thanks to [@MaherJendoubi](https://github.com/MaherJendoubi) ([#4627](https://github.com/dotnet/machinelearning/pull/4627), [#4631](https://github.com/dotnet/machinelearning/pull/4631), [#4626](https://github.com/dotnet/machinelearning/pull/4626) [#4617](https://github.com/dotnet/machinelearning/pull/4617), [#4633](https://github.com/dotnet/machinelearning/pull/4633), [#4629](https://github.com/dotnet/machinelearning/pull/4629), [#4642](https://github.com/dotnet/machinelearning/pull/4642))
 - Other typo fixes:([#4628](https://github.com/dotnet/machinelearning/pull/4628), [#4685](https://github.com/dotnet/machinelearning/pull/4685))
 
-## **CLI and AutoML API**
-  - CodeGen For AzureAttach ([#4498](https://github.com/dotnet/machinelearning/pull/4498))
-
 ## **Breaking Changes**
 - None
 
