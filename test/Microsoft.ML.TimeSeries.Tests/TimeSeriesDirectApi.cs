@@ -337,6 +337,9 @@ namespace Microsoft.ML.Tests
             List<Data> data = new List<Data>();
             var dataView = env.Data.LoadFromEnumerable(data);
 
+            List<string> logMessages = new List<string>();
+            env.Log += (sender, e) => logMessages.Add(e.Message);
+
             var args = new SsaForecastingTransformer.Options()
             {
                 ConfidenceLevel = 0.95f,
@@ -370,6 +373,11 @@ namespace Microsoft.ML.Tests
             List<float> maxCnf = new List<float>() { 4.3571825f, 7.448609f, 10.435009f, 12.5572853f };
             enumerator.MoveNext();
             row = enumerator.Current;
+
+            foreach (var logMessage in logMessages)
+            {
+                Console.WriteLine($"Debug SsaForecast: {logMessage}.");
+            }
 
             for (int localIndex = 0; localIndex < 4; localIndex++)
             {
