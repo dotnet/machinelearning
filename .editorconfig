@@ -10,9 +10,6 @@ dotnet_diagnostic.VSTHRD002.severity = none
 # VSTHRD103: Call async methods when in an async method
 dotnet_diagnostic.VSTHRD103.severity = none
 
-# VSTHRD105: Avoid method overloads that assume TaskScheduler.Current
-dotnet_diagnostic.VSTHRD105.severity = none
-
 # VSTHRD200: Use "Async" suffix for async methods
 dotnet_diagnostic.VSTHRD200.severity = none
 
