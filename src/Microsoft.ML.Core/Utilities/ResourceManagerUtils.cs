@@ -110,7 +110,27 @@ namespace Microsoft.ML.Internal.Utilities
                     $"Could not create a valid URI from the base URI '{MlNetResourcesUrl}' and the relative URI '{relativeUrl}'");
             }
             return new ResourceDownloadResults(filePath,
-                await DownloadFromUrl(env, ch, absoluteUrl.AbsoluteUri, fileName, timeout, filePath), absoluteUrl.AbsoluteUri);
+                await DownloadFromUrlWithRetryAsync(env, ch, absoluteUrl.AbsoluteUri, fileName, timeout, filePath), absoluteUrl.AbsoluteUri);
+        }
+
+        private async Task<string> DownloadFromUrlWithRetryAsync(IHostEnvironment env, IChannel ch, string url, string fileName,
+            int timeout, string filePath, int retryTimes = 5)
+        {
+            var downloadResult = "";
+
+            for (int i = 0; i < retryTimes; ++i)
+            {
+                var thisDownloadResult = await DownloadFromUrl(env, ch, url, fileName, timeout, filePath);
+
+                if (string.IsNullOrEmpty(thisDownloadResult))
+                    return thisDownloadResult;
+                else
+                    downloadResult += thisDownloadResult + @"\n";
+
+                await Task.Delay(10 * 1000);
+            }
+
+            return downloadResult;
         }
 
         /// <returns>Returns the error message if an error occurred, null if download was successful.</returns>

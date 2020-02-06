@@ -53,6 +53,7 @@ jobs:
         displayName: Set LD_LIBRARY_PATH for Ubuntu to locate Native shared library in current running path
     - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }}
       displayName: Build
+      timeoutInMinutes: 20
     - ${{ if eq(parameters.nightlyBuild, 'true') }}:
       - script: $(dotnetPath) restore $(nightlyBuildProjPath)
         displayName: Restore nightly build project
