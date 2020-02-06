@@ -27,7 +27,7 @@ namespace Microsoft.ML.Internal.Internallearn.Test
 
             // Enable Conditional Numerical Reproducibility
             // https://software.intel.com/en-us/articles/introduction-to-the-conditional-numerical-reproducibility-cnr
-            Environment.SetEnvironmentVariable("MKL_CBWR", "COMPATIBLE");
+            // Environment.SetEnvironmentVariable("MKL_CBWR", "COMPATIBLE");
 
             // HACK: ensure MklImports is loaded very early in the tests so it doesn't deadlock while loading it later.
             // See https://github.com/dotnet/machinelearning/issues/1073
