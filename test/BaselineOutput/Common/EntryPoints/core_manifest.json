@@ -11636,6 +11636,9 @@
           "Name": "HandleMissingValue",
           "Type": "Bool",
           "Desc": "Enable special handling of missing value or not.",
+          "Aliases": [
+            "hmv"
+          ],
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -11652,6 +11655,9 @@
           "Name": "UseZeroAsMissingValue",
           "Type": "Bool",
           "Desc": "Enable usage of zero (0) as missing value.",
+          "Aliases": [
+            "uzam"
+          ],
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -12149,6 +12155,9 @@
           "Name": "HandleMissingValue",
           "Type": "Bool",
           "Desc": "Enable special handling of missing value or not.",
+          "Aliases": [
+            "hmv"
+          ],
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -12165,6 +12174,9 @@
           "Name": "UseZeroAsMissingValue",
           "Type": "Bool",
           "Desc": "Enable usage of zero (0) as missing value.",
+          "Aliases": [
+            "uzam"
+          ],
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -12662,6 +12674,9 @@
           "Name": "HandleMissingValue",
           "Type": "Bool",
           "Desc": "Enable special handling of missing value or not.",
+          "Aliases": [
+            "hmv"
+          ],
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -12678,6 +12693,9 @@
           "Name": "UseZeroAsMissingValue",
           "Type": "Bool",
           "Desc": "Enable usage of zero (0) as missing value.",
+          "Aliases": [
+            "uzam"
+          ],
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -13136,6 +13154,9 @@
           "Name": "HandleMissingValue",
           "Type": "Bool",
           "Desc": "Enable special handling of missing value or not.",
+          "Aliases": [
+            "hmv"
+          ],
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -13152,6 +13173,9 @@
           "Name": "UseZeroAsMissingValue",
           "Type": "Bool",
           "Desc": "Enable usage of zero (0) as missing value.",
+          "Aliases": [
+            "uzam"
+          ],
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
