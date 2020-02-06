@@ -545,8 +545,12 @@ namespace Microsoft.ML.Transforms
             else if ((type == typeof(long)) || (type == typeof(int)) || (type == typeof(short)) || (type == typeof(sbyte)) ||
                      (type == typeof(ulong)) || (type == typeof(uint)) || (type == typeof(ushort)) || (type == typeof(byte)))
                 ctx.AddInitializer(new long[size], new long[] { 1, size }, inputColumnName, false);
-            else if (type == typeof(string))
-                ctx.AddInitializer(new string[size], new long[] { 1, size }, inputColumnName, false);
+            else if ((type == typeof(string)) || (columnType is TextDataViewType))
+            {
+                string[] values = new string[size];
+                for (int i = 0; i < size; i++) values[i] = "";
+                ctx.AddInitializer(values, new long[] { 1, size }, inputColumnName, false);
+            }
             else
                 return false;
 
