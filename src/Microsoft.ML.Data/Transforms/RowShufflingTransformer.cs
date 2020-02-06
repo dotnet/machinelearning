@@ -546,7 +546,7 @@ namespace Microsoft.ML.Transforms
                 for (int i = 1; i < _bufferDepth; ++i)
                     PostAssert(_toProduce, _blockSize);
 
-                _producerTask = LoopProducerWorker();
+                _producerTask = ProduceAsync();
             }
 
             protected override void Dispose(bool disposing)
@@ -586,7 +586,7 @@ namespace Microsoft.ML.Transforms
                 return _idGetter;
             }
 
-            private async Task LoopProducerWorker()
+            private async Task ProduceAsync()
             {
                 try
                 {

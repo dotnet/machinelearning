@@ -1333,9 +1333,9 @@ namespace Microsoft.ML.Data.IO
                     _pipeGetters[c] = _pipes[c].GetGetter();
                 }
                 // The data structures are initialized. Now set up the workers.
-                _readerThread = Utils.RunOnBackgroundThread(ReaderWorker);
+                _readerThread = Utils.RunOnBackgroundThreadAsync(ReaderWorker);
 
-                _pipeTask = SetupDecompressTask();
+                _pipeTask = DecompressAsync();
             }
 
             protected override void Dispose(bool disposing)
@@ -1405,14 +1405,14 @@ namespace Microsoft.ML.Data.IO
                 base.Dispose(disposing);
             }
 
-            private Task SetupDecompressTask()
+            private Task DecompressAsync()
             {
                 Task[] pipeWorkers = new Task[_parent._threads];
                 long decompressSequence = -1;
                 long decompressSequenceLim = (long)_numBlocks * _actives.Length;
                 for (int w = 0; w < pipeWorkers.Length; ++w)
                 {
-                    pipeWorkers[w] = Utils.RunOnBackgroundThread(() =>
+                    pipeWorkers[w] = Utils.RunOnBackgroundThreadAsync(() =>
                     {
                         try
                         {
