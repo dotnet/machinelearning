@@ -803,6 +803,7 @@ namespace Microsoft.ML.Transforms
                 }
                 else if (info.TypeSrc.GetItemType().Equals(NumberDataViewType.Double))
                 {
+                    // LabelEncoder doesn't support double tensors, so values are cast to floats
                     var castOutput = ctx.AddIntermediateVariable(null, "castOutput", true);
                     castNode = ctx.CreateNode("Cast", srcVariableName, castOutput, ctx.GetNodeName(opType), "");
                     var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Single).ToType();
@@ -813,6 +814,7 @@ namespace Microsoft.ML.Transforms
                 }
                 else if (info.TypeSrc.GetItemType().Equals(NumberDataViewType.Int64))
                 {
+                    // LabelEncoder doesn't support mapping int64 -> int64, so values are cast to strings
                     var castOutput = ctx.AddIntermediateVariable(null, "castOutput", true);
                     castNode = ctx.CreateNode("Cast", srcVariableName, castOutput, ctx.GetNodeName(opType), "");
                     var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.String).ToType();

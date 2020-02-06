@@ -1095,7 +1095,7 @@ namespace Microsoft.ML.Tests
         [InlineData(DataKind.Int64)]
         [InlineData(DataKind.Double)]
         [InlineData(DataKind.String)]
-        public void ValueToKeyMappingOnnxConversionTest(DataKind valueType)
+        public void ValueToKeyandKeyToValueMappingOnnxConversionTest(DataKind valueType)
         {
             var mlContext = new MLContext(seed: 1);
             string filePath = GetDataPath("type-conversion.txt");
@@ -1106,7 +1106,8 @@ namespace Microsoft.ML.Tests
             };
             var dataView = mlContext.Data.LoadFromTextFile(filePath, columns);
 
-            var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Key", "Value");
+            var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Key", "Value").
+                Append(mlContext.Transforms.Conversion.MapKeyToValue("ValueOutput", "Key"));
             var model = pipeline.Fit(dataView);
             var mlnetResult = model.Transform(dataView);
 
@@ -1123,9 +1124,9 @@ namespace Microsoft.ML.Tests
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
 
-                CompareSelectedVectorColumns<UInt32>(model.ColumnPairs[0].outputColumnName, outputNames[1], mlnetResult, onnxResult);
+                CompareResults(mlnetResult.Schema[2].Name, outputNames[2], mlnetResult, onnxResult); //compare output values
+                CompareSelectedVectorColumns<UInt32>(mlnetResult.Schema[1].Name, outputNames[1], mlnetResult, onnxResult); //compare keys
             }
-
             Done();
         }
 
@@ -1555,6 +1556,8 @@ namespace Microsoft.ML.Tests
                 CompareSelectedR4VectorColumns(leftColumnName, rightColumnName, left, right);
             else if (leftType == NumberDataViewType.Double)
                 CompareSelectedVectorColumns<double>(leftColumnName, rightColumnName, left, right);
+            else if (leftType == TextDataViewType.Instance)
+                CompareSelectedVectorColumns<ReadOnlyMemory<char>>(leftColumnName, rightColumnName, left, right);
         }
 
         private void CompareSelectedVectorColumns<T>(string leftColumnName, string rightColumnName, IDataView left, IDataView right)
