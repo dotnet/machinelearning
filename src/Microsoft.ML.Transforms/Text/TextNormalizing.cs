@@ -213,7 +213,8 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            public bool CanSaveOnnx(OnnxContext ctx) => true;
+            public bool CanSaveOnnx(OnnxContext ctx) => (_parent._keepDiacritics && _parent._keepNumbers && _parent._keepPunctuations);
+
             public void SaveAsOnnx(OnnxContext ctx)
             {
                 Host.CheckValue(ctx, nameof(ctx));

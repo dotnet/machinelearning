@@ -457,9 +457,9 @@ namespace Microsoft.ML.Tests
                 new TextLoader.Column("label", DataKind.Boolean, 0),
                 new TextLoader.Column("text", DataKind.String, 1)
             }, hasHeader: true);
-            var pipeline = new TextNormalizingEstimator(mlContext, columns: new[] { ("NormText", "text") }).Append(
-                new TextNormalizingEstimator(mlContext, caseMode: TextNormalizingEstimator.CaseMode.Upper, columns: new[] { ("UpperText", "text") })).Append(
-                new TextNormalizingEstimator(mlContext, caseMode: TextNormalizingEstimator.CaseMode.None, columns: new[] { ("OriginalText", "text") }));
+            var pipeline = new TextNormalizingEstimator(mlContext, keepDiacritics: true, columns: new[] { ("NormText", "text") }).Append(
+                new TextNormalizingEstimator(mlContext, keepDiacritics: true, caseMode: TextNormalizingEstimator.CaseMode.Upper, columns: new[] { ("UpperText", "text") })).Append(
+                new TextNormalizingEstimator(mlContext, keepDiacritics: true, caseMode: TextNormalizingEstimator.CaseMode.None, columns: new[] { ("OriginalText", "text") }));
             var model = pipeline.Fit(dataView);
             var transformedData = model.Transform(dataView);
             var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
