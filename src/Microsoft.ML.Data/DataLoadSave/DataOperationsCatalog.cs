@@ -517,7 +517,7 @@ namespace Microsoft.ML
                     // instead of having two hash transformations.
                     var origStratCol = samplingKeyColumn;
                     samplingKeyColumn = data.Schema.GetTempColumnName(samplingKeyColumn);
-                    var columnOptions = new HashingEstimator.ColumnOptionsInternal(samplingKeyColumn, origStratCol, 30, (uint)(seed ?? ((ISeededEnvironment)env).Seed));
+                    var columnOptions = new HashingEstimator.ColumnOptionsInternal(samplingKeyColumn, origStratCol, 30, (uint?)(seed ?? ((ISeededEnvironment)env).Seed));
                     data = new HashingEstimator(env, columnOptions).Fit(data).Transform(data);
                 }
                 else
