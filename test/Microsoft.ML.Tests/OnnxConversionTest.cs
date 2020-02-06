@@ -921,8 +921,9 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
-        public void TokenizingByCharactersOnnxConversionTest()
+        [Theory]
+        [CombinatorialData]
+        public void TokenizingByCharactersOnnxConversionTest(bool useMarkerCharacters)
         {
             var mlContext = new MLContext(seed: 1);
             var dataPath = GetDataPath("wikipedia-detox-250-line-test.tsv");
@@ -930,7 +931,7 @@ namespace Microsoft.ML.Tests
                 new TextLoader.Column("label", DataKind.Boolean, 0),
                 new TextLoader.Column("text", DataKind.String, 1)
             }, hasHeader: true);
-            var pipeline = new TokenizingByCharactersEstimator(mlContext, columns: new[] { ("TokenizedText", "text") });
+            var pipeline = new TokenizingByCharactersEstimator(mlContext, useMarkerCharacters: useMarkerCharacters, columns: new[] { ("TokenizedText", "text") });
             var model = pipeline.Fit(dataView);
             var transformedData = model.Transform(dataView);
             var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
