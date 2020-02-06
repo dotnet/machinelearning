@@ -1631,7 +1631,7 @@ namespace Microsoft.ML.Tests
                         // So make sure we compare floats
                         float exp = expected.GetItemOrDefault(i);
                         float act = actual.GetItemOrDefault(i);
-                        CompareNumbersAndLogErrors(exp, act, null, precision);
+                        CompareNumbersWithTolerance(exp, act, null, precision);
                     }
                 }
             }
@@ -1656,7 +1656,7 @@ namespace Microsoft.ML.Tests
 
                     // Scalar such as R4 (float) is converted to [1, 1]-tensor in ONNX format for consitency of making batch prediction.
                     Assert.Equal(1, actual.Length);
-                    CompareNumbersAndLogErrors(expected, actual.GetItemOrDefault(0), null, precision);
+                    CompareNumbersWithTolerance(expected, actual.GetItemOrDefault(0), null, precision);
                 }
             }
         }

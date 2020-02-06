@@ -485,9 +485,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var testResults = mlContext.Data.CreateEnumerable<OneClassMatrixElementZeroBasedForScore>(testPrediction, false).ToList();
             // Positive example (i.e., examples can be found in dataMatrix) is close to 1.
-            CompareNumbersAndLogErrors(0.982391, testResults[0].Score, digitsOfPrecision: 5);
+            CompareNumbersWithTolerance(0.982391, testResults[0].Score, digitsOfPrecision: 5);
             // Negative example (i.e., examples can not be found in dataMatrix) is close to 0.15 (specified by s.C = 0.15 in the trainer).
-            CompareNumbersAndLogErrors(0.141411, testResults[1].Score, digitsOfPrecision: 5);
+            CompareNumbersWithTolerance(0.141411, testResults[1].Score, digitsOfPrecision: 5);
         }
 
         [MatrixFactorizationFact]
@@ -553,9 +553,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var testResults = mlContext.Data.CreateEnumerable<OneClassMatrixElementZeroBasedForScore>(testPrediction, false).ToList();
             // Positive example (i.e., examples can be found in dataMatrix) is close to 1.
-            CompareNumbersAndLogErrors(0.982391, testResults[0].Score, digitsOfPrecision: 5);
+            CompareNumbersWithTolerance(0.982391, testResults[0].Score, digitsOfPrecision: 5);
             // Negative example (i.e., examples can not be found in dataMatrix) is close to 0.15 (specified by s.C = 0.15 in the trainer).
-            CompareNumbersAndLogErrors(0.141411, testResults[1].Score, digitsOfPrecision: 5);
+            CompareNumbersWithTolerance(0.141411, testResults[1].Score, digitsOfPrecision: 5);
         }
 
         [MatrixFactorizationFact]
@@ -623,11 +623,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var testResults = mlContext.Data.CreateEnumerable<OneClassMatrixElementZeroBasedForScore>(testPrediction, false).ToList();
             // Positive example (i.e., examples can be found in dataMatrix) is close to 1.
-            CompareNumbersAndLogErrors(0.9823623, testResults[0].Score, digitsOfPrecision: 5);
+            CompareNumbersWithTolerance(0.9823623, testResults[0].Score, digitsOfPrecision: 5);
             // Negative examples' scores (i.e., examples can not be found in dataMatrix) are closer
             // to 0.15 (specified by s.C = 0.15 in the trainer) than positive example's score.
-            CompareNumbersAndLogErrors(0.05511549, testResults[1].Score, digitsOfPrecision: 5);
-            CompareNumbersAndLogErrors(0.00316973357, testResults[2].Score, digitsOfPrecision: 5);
+            CompareNumbersWithTolerance(0.05511549, testResults[1].Score, digitsOfPrecision: 5);
+            CompareNumbersWithTolerance(0.00316973357, testResults[2].Score, digitsOfPrecision: 5);
         }
 
         [MatrixFactorizationFact]

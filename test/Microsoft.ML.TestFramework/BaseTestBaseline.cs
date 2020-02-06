@@ -523,7 +523,7 @@ namespace Microsoft.ML.RunTests
                     float f1 = float.Parse(firstCollection[i].ToString());
                     float f2 = float.Parse(secondCollection[i].ToString());
 
-                    if (!CompareNumbersAndLogErrors(f1, f2, i, digitsOfPrecision))
+                    if (!CompareNumbersWithTolerance(f1, f2, i, digitsOfPrecision))
                     {
                         return false;
                     }
@@ -536,7 +536,7 @@ namespace Microsoft.ML.RunTests
                     double f1 = double.Parse(firstCollection[i].ToString());
                     double f2 = double.Parse(secondCollection[i].ToString());
 
-                    if (!CompareNumbersAndLogErrors(f1, f2, i, digitsOfPrecision))
+                    if (!CompareNumbersWithTolerance(f1, f2, i, digitsOfPrecision))
                     {
                         return false;
                     }
@@ -550,22 +550,11 @@ namespace Microsoft.ML.RunTests
             return true;
         }
 
-        public bool CompareNumbersAndLogErrors(double expected, double actual,
-            int? iterationOnCollection = null, int digitsOfPrecision = DigitsOfPrecision)
-        {
-            var compareResult = CompareNumbers(expected, actual, iterationOnCollection, digitsOfPrecision);
-
-            if (!compareResult.Item1)
-                Fail(compareResult.Item2);
-
-            return compareResult.Item1;
-        }
-
-        public (bool, string) CompareNumbers(double expected, double actual, 
-            int? iterationOnCollection = null, int digitsOfPrecision = DigitsOfPrecision, bool allowMismatch = false)
+        public bool CompareNumbersWithTolerance(double expected, double actual, int? iterationOnCollection = null, 
+            int digitsOfPrecision = DigitsOfPrecision, bool logFailure = true)
         {
             if (double.IsNaN(expected) && double.IsNaN(actual))
-                return (true, "");
+                return true;
 
             // this follows the IEEE recommendations for how to compare floating point numbers
             double allowedVariance = Math.Pow(10, -digitsOfPrecision);
@@ -592,16 +581,17 @@ namespace Microsoft.ML.RunTests
 
             if (!inRange)
             {
-                var message = iterationOnCollection != null ? "" : $"Output and baseline mismatch at line {iterationOnCollection}." + Environment.NewLine +
-                    $"Values to compare are {expected} and {actual}" + Environment.NewLine +
-                    $"\t AllowedVariance: {allowedVariance}" + Environment.NewLine +
-                    $"\t delta: {delta}" + Environment.NewLine +
-                    $"\t delta2: {delta2}" + Environment.NewLine;
+                var message = iterationOnCollection != null ? "" : $"Output and baseline mismatch at line {iterationOnCollection}." + Environment.NewLine;
 
-                return (inRange, message);
+                if(logFailure)
+                    Fail(message +
+                            $"Values to compare are {expected} and {actual}" + Environment.NewLine +
+                            $"\t AllowedVariance: {allowedVariance}" + Environment.NewLine +
+                            $"\t delta: {delta}" + Environment.NewLine +
+                            $"\t delta2: {delta2}" + Environment.NewLine);
             }
 
-            return (inRange, "");
+            return inRange;
         }
 
         private static double Round(double value, int digitsOfPrecision)

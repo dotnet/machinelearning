@@ -141,7 +141,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             bool sameScores = true;
             for (int i = 0; i < scores1.Length; i++)
             {
-                if(!CompareNumbers(scores1[i], scores2[i]).Item1)
+                if(!CompareNumbersWithTolerance(scores1[i], scores2[i], logFailure: false))
                 {
                     sameScores = false;
                     break;
@@ -200,7 +200,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             bool sameScores = true;
             for (int i = 0; i < scores1.Length; i++)
             {
-                if (!CompareNumbers(scores1[i][0], scores2[i][0]).Item1)
+                if (!CompareNumbersWithTolerance(scores1[i][0], scores2[i][0], logFailure: false))
                 {
                     sameScores = false;
                     break;
