@@ -241,7 +241,7 @@ namespace Microsoft.ML.Transforms.Text
                 opType = "LabelEncoder";
                 var labelEncoderOutput = ctx.AddIntermediateVariable(null, "LabelEncoderOutput", true);
                 node = ctx.CreateNode(opType, squeezeOutput, labelEncoderOutput, ctx.GetNodeName(opType));
-                //GetKeyValues(iinfo, ref dst);
+
                 IEnumerable<string> charStrings = Enumerable.Range(0, 65535).Select(x => ((char)x).ToString());
                 IEnumerable<long> charValues = Enumerable.Range(0, 65535).Select(x => Convert.ToInt64(x)); ;
                 node.AddAttribute("keys_strings", charStrings);
