@@ -206,6 +206,7 @@ namespace Microsoft.ML.Transforms.Text
             }
 
             public bool CanSaveOnnx(OnnxContext ctx) => true;
+
             public void SaveAsOnnx(OnnxContext ctx)
             {
                 Host.CheckValue(ctx, nameof(ctx));
@@ -225,7 +226,7 @@ namespace Microsoft.ML.Transforms.Text
             private void SaveAsOnnxCore(OnnxContext ctx, string srcVariableName, string dstVariableName)
             {
                 string opType = "Tokenizer";
-                string tokenizerOutput = ctx.AddIntermediateVariable(null, "TokenizerOutput" , true);
+                string tokenizerOutput = ctx.AddIntermediateVariable(null, "TokenizerOutput", true);
                 var node = ctx.CreateNode(opType, srcVariableName, tokenizerOutput, ctx.GetNodeName(opType), "com.microsoft");
                 node.AddAttribute("mark", _parent._useMarkerChars);
                 node.AddAttribute("mincharnum", 1);
@@ -233,16 +234,25 @@ namespace Microsoft.ML.Transforms.Text
                 node.AddAttribute("separators", new string[] { "" });
 
                 opType = "Squeeze";
-                var squeezeOutput = ctx.AddIntermediateVariable(_type, "SqueezeOutput", true);
-                node = ctx.CreateNode(opType, tokenizerOutput, dstVariableName, ctx.GetNodeName(opType), "");
+                var squeezeOutput = ctx.AddIntermediateVariable(null, "SqueezeOutput", true);
+                node = ctx.CreateNode(opType, tokenizerOutput, squeezeOutput, ctx.GetNodeName(opType), "");
                 node.AddAttribute("axes", new long[] { 0 });
 
-                //opType = "Cast";
-                //node = ctx.CreateNode(opType, squeezeOutput, dstVariableName, ctx.GetNodeName(opType), "");
-                //var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.UInt16).ToType();
-                //node.AddAttribute("to", t);
+                opType = "LabelEncoder";
+                var labelEncoderOutput = ctx.AddIntermediateVariable(null, "LabelEncoderOutput", true);
+                node = ctx.CreateNode(opType, squeezeOutput, labelEncoderOutput, ctx.GetNodeName(opType));
+                //GetKeyValues(iinfo, ref dst);
+                IEnumerable<string> charStrings = Enumerable.Range(0, 65535).Select(x => ((char)x).ToString());
+                IEnumerable<long> charValues = Enumerable.Range(0, 65535).Select(x => Convert.ToInt64(x)); ;
+                node.AddAttribute("keys_strings", charStrings);
+                node.AddAttribute("values_int64s", charValues);
 
+                opType = "Cast";
+                var castNode = ctx.CreateNode(opType, labelEncoderOutput, dstVariableName, ctx.GetNodeName(opType), "");
+                var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.UInt16).ToType();
+                castNode.AddAttribute("to", t);
             }
+
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
                 var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];

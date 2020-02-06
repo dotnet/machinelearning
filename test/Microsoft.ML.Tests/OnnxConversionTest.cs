@@ -934,7 +934,6 @@ namespace Microsoft.ML.Tests
             var model = pipeline.Fit(dataView);
             var transformedData = model.Transform(dataView);
             var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
-            //CompareSelectedVectorColumns<UInt16>(transformedData.Schema[2].Name, transformedData.Schema[2].Name, transformedData, transformedData);
             // Compare model scores produced by ML.NET and ONNX's runtime. 
             if (IsOnnxRuntimeSupported())
             {
@@ -948,7 +947,6 @@ namespace Microsoft.ML.Tests
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
                 CompareSelectedVectorColumns<UInt16>(transformedData.Schema[2].Name, outputNames[2], transformedData, onnxResult); //compare scores
-
             }
             Done();
         }
