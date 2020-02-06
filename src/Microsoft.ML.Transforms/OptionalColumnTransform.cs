@@ -548,7 +548,9 @@ namespace Microsoft.ML.Transforms
             else if ((type == typeof(string)) || (columnType is TextDataViewType))
             {
                 string[] values = new string[size];
-                for (int i = 0; i < size; i++) values[i] = "";
+                for (int i = 0; i < size; i++)
+                    values[i] = "";
+
                 ctx.AddInitializer(values, new long[] { 1, size }, inputColumnName, false);
             }
             else
