@@ -7,9 +7,6 @@ dotnet_sort_system_directives_first = true
 # VSTHRD002: Avoid problematic synchronous waits
 dotnet_diagnostic.VSTHRD002.severity = none
 
-# VSTHRD100: Avoid async void methods
-dotnet_diagnostic.VSTHRD100.severity = none
-
 # VSTHRD103: Call async methods when in an async method
 dotnet_diagnostic.VSTHRD103.severity = none
 
