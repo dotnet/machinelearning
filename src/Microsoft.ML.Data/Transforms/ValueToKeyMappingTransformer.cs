@@ -786,6 +786,7 @@ namespace Microsoft.ML.Transforms
                 OnnxNode node;
                 long[] termIds;
                 string opType = "LabelEncoder";
+                OnnxNode castNode;
                 var labelEncoderOutput = ctx.AddIntermediateVariable(_types[iinfo], "LabelEncoderOutput", true);
 
                 if (info.TypeSrc.GetItemType().Equals(TextDataViewType.Instance))
@@ -799,6 +800,26 @@ namespace Microsoft.ML.Transforms
                     node = ctx.CreateNode(opType, srcVariableName, labelEncoderOutput, ctx.GetNodeName(opType));
                     var terms = GetTermsAndIds<float>(iinfo, out termIds);
                     node.AddAttribute("keys_floats", terms);
+                }
+                else if (info.TypeSrc.GetItemType().Equals(NumberDataViewType.Double))
+                {
+                    var castOutput = ctx.AddIntermediateVariable(null, "castOutput", true);
+                    castNode = ctx.CreateNode("Cast", srcVariableName, castOutput, ctx.GetNodeName(opType), "");
+                    var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Single).ToType();
+                    castNode.AddAttribute("to", t);
+                    node = ctx.CreateNode(opType, castOutput, labelEncoderOutput, ctx.GetNodeName(opType));
+                    var terms = GetTermsAndIds<double>(iinfo, out termIds);
+                    node.AddAttribute("keys_floats", terms);
+                }
+                else if (info.TypeSrc.GetItemType().Equals(NumberDataViewType.Int64))
+                {
+                    var castOutput = ctx.AddIntermediateVariable(null, "castOutput", true);
+                    castNode = ctx.CreateNode("Cast", srcVariableName, castOutput, ctx.GetNodeName(opType), "");
+                    var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.String).ToType();
+                    castNode.AddAttribute("to", t);
+                    node = ctx.CreateNode(opType, castOutput, labelEncoderOutput, ctx.GetNodeName(opType));
+                    var terms = GetTermsAndIds<long>(iinfo, out termIds);
+                    node.AddAttribute("keys_strings", terms.Select(item => item.ToString()));
                 }
                 else
                 {
@@ -822,7 +843,7 @@ namespace Microsoft.ML.Transforms
                 InternalDataKindExtensions.TryGetDataKind(_parent._unboundMaps[iinfo].OutputType.RawType, out dataKind);
 
                 opType = "Cast";
-                var castNode = ctx.CreateNode(opType, labelEncoderOutput, dstVariableName, ctx.GetNodeName(opType), "");
+                castNode = ctx.CreateNode(opType, labelEncoderOutput, dstVariableName, ctx.GetNodeName(opType), "");
                 castNode.AddAttribute("to", dataKind.ToType());
 
                 return true;

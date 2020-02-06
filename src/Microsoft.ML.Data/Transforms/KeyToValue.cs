@@ -520,7 +520,7 @@ namespace Microsoft.ML.Transforms
                         long[] values = Array.ConvertAll<TValue, long>(_values.GetValues().ToArray(), item => Convert.ToInt64(item));
                         node.AddAttribute("values_int64s", values);
                     }
-                    else if (TypeOutput == NumberDataViewType.Single)
+                    else if (TypeOutput == NumberDataViewType.Double || TypeOutput == NumberDataViewType.Single)
                     {
                         float[] values = Array.ConvertAll<TValue, float>(_values.GetValues().ToArray(), item => Convert.ToSingle(item));
                         node.AddAttribute("values_floats", values);
