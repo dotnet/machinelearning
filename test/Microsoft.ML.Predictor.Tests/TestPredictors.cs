@@ -292,9 +292,9 @@ namespace Microsoft.ML.RunTests
 
             var extraTag = "";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
-                extraTag = "windows64";
+                extraTag = null;
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
-                extraTag = "windows32";
+                extraTag = "linux";
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 extraTag = "linux";
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
