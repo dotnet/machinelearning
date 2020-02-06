@@ -466,8 +466,9 @@ namespace Microsoft.ML.Trainers
                 ctx.LoadModelOrNull<LinearModelParameterStatistics, SignatureLoadModel>(Host, out stats, ModelStatsSubModelFilename);
                 Statistics = stats;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 ModelStatisticsBase stats;
                 ctx.LoadModelOrNull<ModelStatisticsBase, SignatureLoadModel>(Host, out stats, ModelStatsSubModelFilename);
                 Statistics = stats;

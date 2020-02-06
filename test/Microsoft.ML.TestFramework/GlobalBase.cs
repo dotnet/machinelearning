@@ -71,10 +71,11 @@ namespace Microsoft.ML.Internal.Internallearn.Test
             {
                 var callStack = new System.Diagnostics.StackTrace().ToString();
                 Console.WriteLine($"Fail in AssertHandler with message: {msg} and callstack: {callStack}");
-                Assert.True(false, $"Assert failed: {msg}");
 
-                if(!callStack.Contains("TryLoadModelCore"))
+                if (!callStack.Contains("CommandTrainingLrWithStats"))
                     Environment.FailFast("Crash here to take memory dump");
+
+                Assert.True(false, $"Assert failed: {msg}");
             }
         }
 
