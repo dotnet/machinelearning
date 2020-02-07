@@ -499,14 +499,14 @@ namespace Microsoft.ML.RunTests
         public void LightGBMPreviousModelBaselineTest()
         {
             // Previously trained LightGBM model is located at:
-            // "machinelearning\test\BaselineOutput\Common\LightGBMBinary\LightGBM-Train-breast-cancer-model.zip"
+            // "machinelearning/test/BaselineOutput/Common/LightGBMBinary/LightGBM-Train-breast-cancer-model.zip"
             // Expected baseline output is located at:
-            // "machinelearning\test\BaselineOutput\Common\LightGBMBinary\LightGBM-Test-breast-cancer-out.txt"
-            string modelPath = "..\\..\\..\\..\\test\\BaselineOutput\\Common\\LightGBMBinary\\LightGBM-Train-breast-cancer-model.zip";
-            string expectedBaselinePath = "..\\..\\..\\..\\test\\BaselineOutput\\Common\\LightGBMBinary\\LightGBM-Test-breast-cancer-out.txt";
+            // "machinelearning/test/BaselineOutput/Common/LightGBMBinary/LightGBM-Test-breast-cancer-out.txt"
+            string modelPath = "../../../../test/BaselineOutput/Common/LightGBMBinary/LightGBM-Train-breast-cancer-model.zip";
+            string expectedBaselinePath = "../../../../test/BaselineOutput/Common/LightGBMBinary/LightGBM-Test-breast-cancer-out.txt";
             Assert.True(File.Exists(modelPath));
             Assert.True(File.Exists(expectedBaselinePath));
-            Run_Test(TestLearners.LightGBMClassifier, TestDatasets.breastCancerPipe, modelPath);
+            Run_Test(TestLearners.LightGBMClassifier, TestDatasets.breastCancerPipeWithoutMamlExtraSettings, modelPath);
             Done();
         }
 
