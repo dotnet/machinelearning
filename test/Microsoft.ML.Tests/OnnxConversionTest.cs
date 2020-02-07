@@ -922,6 +922,37 @@ namespace Microsoft.ML.Tests
         }
 
         [Theory]
+        [CombinatorialData]
+        public void TokenizingByCharactersOnnxConversionTest(bool useMarkerCharacters)
+        {
+            var mlContext = new MLContext(seed: 1);
+            var dataPath = GetDataPath("wikipedia-detox-250-line-test.tsv");
+            var dataView = ML.Data.LoadFromTextFile(dataPath, new[] {
+                new TextLoader.Column("label", DataKind.Boolean, 0),
+                new TextLoader.Column("text", DataKind.String, 1)
+            }, hasHeader: true);
+            var pipeline = new TokenizingByCharactersEstimator(mlContext, useMarkerCharacters: useMarkerCharacters, columns: new[] { ("TokenizedText", "text") });
+            var model = pipeline.Fit(dataView);
+            var transformedData = model.Transform(dataView);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+            // Compare model scores produced by ML.NET and ONNX's runtime. 
+            if (IsOnnxRuntimeSupported())
+            {
+                var onnxFileName = $"TokenizingByCharacters.onnx";
+                var onnxModelPath = GetOutputPath(onnxFileName);
+                SaveOnnxModel(onnxModel, onnxModelPath, null);
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(dataView);
+                var onnxResult = onnxTransformer.Transform(dataView);
+                CompareSelectedVectorColumns<UInt16>(transformedData.Schema[2].Name, outputNames[2], transformedData, onnxResult); //compare scores
+            }
+            Done();
+        }
+
+        [Theory]
         // These are the supported conversions
         // ML.NET does not allow any conversions between signed and unsigned numeric types
         // Onnx does not seem to support casting a string to any type
