@@ -24,12 +24,20 @@ namespace <#= Namespace #>.Model
         // Method for consuming model in your app
         public static ModelOutput Predict(ModelInput input)
         {
-
+		
             // Create new MLContext
             MLContext mlContext = new MLContext();
+<#if(HasNormalizeMapping){ #> 
+			// Register NormalizeMapping
+            mlContext.ComponentCatalog.RegisterAssembly(typeof(NormalizeMapping).Assembly);
+<#} #>
+<#if(HasLabelMapping){ #> 
+			// Register LabelMapping
+            mlContext.ComponentCatalog.RegisterAssembly(typeof(LabelMapping).Assembly);
+<#} #>
 
             // Load model & create prediction engine
-            string modelPath = AppDomain.CurrentDomain.BaseDirectory + "MLModel.zip";
+            string modelPath = @"<#= MLNetModelpath #>";
             ITransformer mlModel = mlContext.Model.Load(modelPath, out var modelInputSchema);
             var predEngine = mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(mlModel);
 
@@ -42,4 +50,7 @@ namespace <#= Namespace #>.Model
 <#+
 public string Namespace {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
+public bool HasNormalizeMapping {get; set;}=false;
+public bool HasLabelMapping {get; set;}=false;
+public string MLNetModelpath {get; set;}
 #>

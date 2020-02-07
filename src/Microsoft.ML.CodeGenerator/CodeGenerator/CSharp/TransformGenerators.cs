@@ -330,9 +330,9 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         }
     }
 
-    internal class ImageLoading : TransformGeneratorBase
+    internal class ImageLoadingRawBytes : TransformGeneratorBase
     {
-        public ImageLoading(PipelineNode node) : base(node)
+        public ImageLoadingRawBytes(PipelineNode node) : base(node)
         {
         }
 
@@ -345,6 +345,84 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
             // example: Transforms.LoadImages(output, inputfolder, input)
             return $"{MethodName}({outputColumn}, {@"null"}, {inputColumn})";
+        }
+    }
+
+    internal class ImageLoading : TransformGeneratorBase
+    {
+        public ImageLoading(PipelineNode node) : base(node)
+        {
+        }
+
+        internal override string MethodName => "LoadImages";
+
+        public override string GenerateTransformer()
+        {
+            string inputColumn = InputColumns.Count() == 1 ? InputColumns[0] : throw new Exception($"input columns for the suggested transform: {MethodName} is not exactly one.");
+            string outputColumn = OutputColumns.Count() == 1 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} it not exactly one.");
+
+            // example: Transforms.LoadImages(output, inputfolder, input)
+            return $"{MethodName}({outputColumn}, {@"null"}, {inputColumn})";
+        }
+    }
+
+    internal class ImageResizing : TransformGeneratorBase
+    {
+        public ImageResizing(PipelineNode node) : base(node) { }
+        internal override string MethodName => "ResizeImages";
+
+        public override string GenerateTransformer()
+        {
+            return @"ResizeImages(""ImageSource_featurized"", 224, 224, ""ImageSource_featurized"")";
+        }
+    }
+
+    internal class PixelExtract : TransformGeneratorBase
+    {
+        public PixelExtract(PipelineNode node) : base(node) { }
+        internal override string MethodName => "ExtractPixels";
+
+        public override string GenerateTransformer()
+        {
+            return @"ExtractPixels(""ImageSource_featurized"", ""ImageSource_featurized"")";
+        }
+    }
+
+    internal class CustomNormalizeMapping : TransformGeneratorBase
+    {
+        public CustomNormalizeMapping(PipelineNode node) : base(node) { }
+        internal override string MethodName => "NormalizeMapping";
+
+        public override string GenerateTransformer()
+        {
+            return @"CustomMapping<NormalizeInput, NormalizeOutput>(
+                                          (input, output) => NormalizeMapping.Mapping(input, output),
+                                          contractName: nameof(NormalizeMapping))";
+        }
+    }
+
+    internal class CustomLabelMapping : TransformGeneratorBase
+    {
+        public CustomLabelMapping(PipelineNode node) : base(node) { }
+        internal override string MethodName => "LabelMapping";
+
+        public override string GenerateTransformer()
+        {
+            return @"CustomMapping<LabelMappingInput, LabelMappingOutput>(
+                                          (input, output) => LabelMapping.Mapping(input, output),
+                                          contractName: nameof(LabelMapping))";
+        }
+    }
+
+    internal class ApplyOnnxModel : TransformGeneratorBase
+    {
+        public ApplyOnnxModel(PipelineNode node) : base(node) { }
+        internal override string MethodName => "ApplyOnnxModel";
+
+        public override string GenerateTransformer()
+        {
+            // TODO ONNX_MODEL is fixed in this transformer, maybe update it to accept a real onnx model path.
+            return $"ApplyOnnxModel(modelFile: ONNX_MODEL)";
         }
     }
 }

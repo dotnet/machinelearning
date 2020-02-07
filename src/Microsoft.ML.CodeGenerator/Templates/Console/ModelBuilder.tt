@@ -27,8 +27,10 @@ namespace <#= Namespace #>.ConsoleApp
 <#if(!string.IsNullOrEmpty(TestPath)){ #>
         private static string TEST_DATA_FILEPATH = @"<#= TestPath #>";
 <# } #>
-        private static string MODEL_FILEPATH = @"../../../../<#= Namespace #>.Model/MLModel.zip";
-
+        private static string MODEL_FILEPATH = @"<#= MLNetModelpath #>";
+<# if(HasOnnxModel) {#>
+		private static string ONNX_MODEL = @"../../../../<#= Namespace #>.Model/bestModel.onnx";
+<# } #>
         // Create MLContext to be shared across the model creation workflow objects 
         // Set a random seed for repeatable/deterministic results across multiple trainings.
         private static MLContext mlContext = new MLContext(seed: 1);
@@ -54,14 +56,14 @@ namespace <#= Namespace #>.ConsoleApp
             // Build training pipeline
             IEstimator<ITransformer> trainingPipeline = BuildTrainingPipeline(mlContext);
 
-<# if(string.IsNullOrEmpty(TestPath)){ #>
+<# if(string.IsNullOrEmpty(TestPath) && !HasOnnxModel){ #>
             // Evaluate quality of Model
             Evaluate(mlContext, trainingDataView, trainingPipeline);
 
 <#}#>
             // Train Model
             ITransformer mlModel = TrainModel(mlContext, trainingDataView, trainingPipeline);
-<# if(!string.IsNullOrEmpty(TestPath)){ #>
+<# if(!string.IsNullOrEmpty(TestPath) && !HasOnnxModel){ #>
 
             // Evaluate quality of Model
             EvaluateModel(mlContext, mlModel, testDataView);
@@ -89,7 +91,7 @@ namespace <#= Namespace #>.ConsoleApp
                                            Write("\r\n                                      .AppendCacheCheckpoint(mlContext)");
                                            } #>;
 <#}#>
-
+<# if(Trainer != String.Empty ) {#>
             // Set the training algorithm 
             var trainer = mlContext.<#= TaskType #><#if("Recommendation".Equals(TaskType)){ #>()<# } #>.Trainers.<#= Trainer #><# for(int i=0;i<PostTrainerTransforms.Count;i++) 
                                          { 
@@ -97,8 +99,13 @@ namespace <#= Namespace #>.ConsoleApp
                                              Write("mlContext.Transforms."+PostTrainerTransforms[i]);
                                              Write(")");
                                          }#>;
-<# if(PreTrainerTransforms.Count >0 ) {#>
+<#}#>
+
+<# if(PreTrainerTransforms.Count >0 && Trainer != String.Empty ) {#>
             var trainingPipeline = dataProcessPipeline.Append(trainer);
+<# }
+else if (PreTrainerTransforms.Count >0 && Trainer == String.Empty) {#>
+			var trainingPipeline = dataProcessPipeline;
 <# }
 else{#>
             var trainingPipeline = trainer;
@@ -329,4 +336,6 @@ public string LabelName {get;set;}
 public bool CacheBeforeTrainer {get;set;}
 public IList<string> PostTrainerTransforms {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
+public bool HasOnnxModel {get;set;} = false;
+public string MLNetModelpath {get; set;}
 #>

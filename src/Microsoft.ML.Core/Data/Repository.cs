@@ -505,7 +505,7 @@ namespace Microsoft.ML
             string pathLower = pathEnt.ToLowerInvariant();
             if (PathMap.TryGetValue(pathLower, out pathAbs))
             {
-                stream = new FileStream(pathAbs, FileMode.Open, FileAccess.Read);
+                stream = new FileStream(pathAbs, FileMode.Open, FileAccess.Read, FileShare.Read);
             }
             else
             {
@@ -527,7 +527,7 @@ namespace Microsoft.ML
                     if (!PathMap.TryAdd(pathLower, pathTemp))
                         throw ExceptionContext.ExceptParam(nameof(name), "Duplicate entry: '{0}'", pathLower);
 
-                    stream = new FileStream(pathTemp, FileMode.Open, FileAccess.Read);
+                    stream = new FileStream(pathTemp, FileMode.Open, FileAccess.Read, FileShare.Read);
                 }
                 else
                 {

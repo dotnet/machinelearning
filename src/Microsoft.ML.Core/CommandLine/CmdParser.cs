@@ -976,7 +976,7 @@ namespace Microsoft.ML.CommandLine
             string args;
             try
             {
-                using (FileStream file = new FileStream(fileName, FileMode.Open, FileAccess.Read))
+                using (FileStream file = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     args = (new StreamReader(file)).ReadToEnd();
                 }
@@ -1047,7 +1047,7 @@ namespace Microsoft.ML.CommandLine
             string nested;
             try
             {
-                using (FileStream file = new FileStream(path, FileMode.Open, FileAccess.Read))
+                using (FileStream file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     nested = (new StreamReader(file)).ReadToEnd();
                 }

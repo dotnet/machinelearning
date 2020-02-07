@@ -72,7 +72,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
                 var hasTestMethod = false;
                 foreach (var member in namedType.GetMembers())
                 {
-                    if (member is IMethodSymbol method && IsTestMethod(method))
+                    if (member is IMethodSymbol method && method.IsTestMethod(_knownTestAttributes, _factAttribute))
                     {
                         hasTestMethod = true;
                         break;
@@ -85,25 +85,6 @@ namespace Microsoft.ML.InternalCodeAnalyzer
                 context.ReportDiagnostic(Diagnostic.Create(Rule, namedType.Locations[0], namedType));
             }
 
-            private bool IsTestMethod(IMethodSymbol method)
-            {
-                foreach (var attribute in method.GetAttributes())
-                {
-                    if (IsTestAttribute(attribute.AttributeClass))
-                        return true;
-                }
-
-                return false;
-            }
-
-            private bool IsTestAttribute(INamedTypeSymbol attributeClass)
-            {
-                if (_knownTestAttributes.TryGetValue(attributeClass, out var isTest))
-                    return isTest;
-
-                return _knownTestAttributes.GetOrAdd(attributeClass, ExtendsFactAttribute(attributeClass));
-            }
-
             private bool ExtendsBaseTestClass(INamedTypeSymbol namedType)
             {
                 if (_baseTestClass is null)
@@ -112,18 +93,6 @@ namespace Microsoft.ML.InternalCodeAnalyzer
                 for (var current = namedType; current is object; current = current.BaseType)
                 {
                     if (Equals(current, _baseTestClass))
-                        return true;
-                }
-
-                return false;
-            }
-
-            private bool ExtendsFactAttribute(INamedTypeSymbol namedType)
-            {
-                Debug.Assert(_factAttribute is object);
-                for (var current = namedType; current is object; current = current.BaseType)
-                {
-                    if (Equals(current, _factAttribute))
                         return true;
                 }
 

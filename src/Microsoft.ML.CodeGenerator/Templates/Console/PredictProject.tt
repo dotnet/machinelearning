@@ -24,6 +24,12 @@
 <# if (IncludeImageTransformerPackage){ #>
     <PackageReference Include="Microsoft.ML.ImageAnalytics" Version="<#= StablePackageVersion #>" />
 <#}#>
+<# if (IncludeOnnxPackage){ #>
+    <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="<#= StablePackageVersion #>" />
+<#}#>
+<# if (IncludeResNet18Package){ #>
+    <PackageReference Include="Microsoft.ML.DnnImageFeaturizer.ResNet18" Version="0.15.1" />
+<#}#>
 <# if (IncludeImageClassificationPackage){ #>
     <PackageReference Include="Microsoft.ML.Vision" Version="<#= StablePackageVersion #>" />
 	<PackageReference Include="SciSharp.TensorFlow.Redist" Version="1.14.0" />
@@ -43,6 +49,8 @@ public bool IncludeMklComponentsPackage {get;set;}
 public bool IncludeFastTreePackage {get;set;}
 public bool IncludeImageTransformerPackage {get; set;}
 public bool IncludeImageClassificationPackage {get; set;}
+public bool IncludeOnnxPackage {get; set;}
+public bool IncludeResNet18Package {get; set;}
 public bool IncludeRecommenderPackage {get;set;}
 public string StablePackageVersion {get;set;}
 public string UnstablePackageVersion {get;set;}

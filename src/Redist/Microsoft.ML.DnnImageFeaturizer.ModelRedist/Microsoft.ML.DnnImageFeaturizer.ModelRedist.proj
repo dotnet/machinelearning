@@ -98,7 +98,12 @@
     <Message Importance="High" Text="Downloading external model files... @(ModelFiles->'%(DestinationFile)')" />
     <MakeDir Directories="$(ModelPlacementDir)" />
     <MakeDir Directories="@(ModelFiles->'%(DestinationDir)')" />
-    <DownloadFilesFromUrl Items="@(ModelFiles)"/>
+    <DownloadFile
+            SourceUrl="%(ModelFiles.Url)"
+            DestinationFolder="%(ModelFiles.DestinationDir)"
+            Retries="5"
+            SkipUnchangedFiles="true">
+    </DownloadFile>
   </Target>
 
   <Target Name="CopyDnnModelFiles"

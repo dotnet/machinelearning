@@ -43,12 +43,22 @@ MB_Annotation();
         // Method for consuming model in your app
         public static ModelOutput Predict(ModelInput input)
         {
-
+		
             // Create new MLContext
             MLContext mlContext = new MLContext();
-
-            // Load model & create prediction engine
-            string modelPath = AppDomain.CurrentDomain.BaseDirectory + ""MLModel.zip"";
+");
+if(HasNormalizeMapping){ 
+            this.Write(" \r\n\t\t\t// Register NormalizeMapping\r\n            mlContext.ComponentCatalog.Regist" +
+                    "erAssembly(typeof(NormalizeMapping).Assembly);\r\n");
+} 
+if(HasLabelMapping){ 
+            this.Write(" \r\n\t\t\t// Register LabelMapping\r\n            mlContext.ComponentCatalog.RegisterAs" +
+                    "sembly(typeof(LabelMapping).Assembly);\r\n");
+} 
+            this.Write("\r\n            // Load model & create prediction engine\r\n            string modelP" +
+                    "ath = @\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(MLNetModelpath));
+            this.Write(@""";
             ITransformer mlModel = mlContext.Model.Load(modelPath, out var modelInputSchema);
             var predEngine = mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(mlModel);
 
@@ -64,6 +74,9 @@ MB_Annotation();
 
 public string Namespace {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
+public bool HasNormalizeMapping {get; set;}=false;
+public bool HasLabelMapping {get; set;}=false;
+public string MLNetModelpath {get; set;}
 
 
 void CLI_Annotation()

@@ -2,10 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.ML.CodeGenerator
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Microsoft.ML.CodeGenerator.CodeGenerator
 {
-    internal interface IProjectGenerator
+    public interface IWritable
     {
-        void GenerateOutput();
+        void WriteToDisk(string path);
     }
 }
