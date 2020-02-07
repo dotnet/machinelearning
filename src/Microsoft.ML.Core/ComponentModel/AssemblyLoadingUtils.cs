@@ -31,6 +31,10 @@ namespace Microsoft.ML.Runtime
                     {
                         // REVIEW: Will LoadFrom ever return null?
                         Contracts.CheckNonEmpty(path, nameof(path));
+                        if (!File.Exists(path))
+                        {
+                            throw Contracts.ExceptParam(nameof(path), "File does not exist at path: {0}", path);
+                        }
                         var assem = LoadAssembly(env, path);
                         if (assem != null)
                             continue;

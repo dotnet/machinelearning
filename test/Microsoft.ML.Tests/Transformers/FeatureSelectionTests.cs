@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
@@ -219,6 +220,41 @@ namespace Microsoft.ML.Tests.Transformers
                 var loadedView = ModelFileUtils.LoadTransforms(ML, dataView, ms);
             }
             Done();
+        }
+
+        [Fact]
+        public void TestFeatureSelectionWithBadInput()
+        {
+            string dataPath = GetDataPath("breast-cancer.txt");
+            var dataView = ML.Data.LoadFromTextFile(dataPath, new[] {
+                new TextLoader.Column("BadLabel", DataKind.UInt32, 0),
+                new TextLoader.Column("Label", DataKind.Single, 0),
+                new TextLoader.Column("Features", DataKind.String, 1, 9),
+            });
+
+            var ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            {
+                var pipeline = ML.Transforms.Text.TokenizeIntoWords("Features")
+                    .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("Features"));
+                var model = pipeline.GetOutputSchema(SchemaShape.Create(dataView.Schema));
+            });
+            Assert.Contains("Variable length column 'Features' is not allowed", ex.Message);
+
+            ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            {
+                var pipeline = ML.Transforms.Text.TokenizeIntoWords("Features")
+                    .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("Features", labelColumnName: "BadLabel"));
+                var model = pipeline.GetOutputSchema(SchemaShape.Create(dataView.Schema));
+            });
+            Assert.Contains("Label column 'BadLabel' does not have compatible type. Expected types are float, double, int, bool and key.", ex.Message);
+
+            ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            {
+                var pipeline = ML.Transforms.Text.TokenizeIntoWords("Features")
+                    .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("Features"));
+                var model = pipeline.GetOutputSchema(SchemaShape.Create(dataView.Schema));
+            });
+            Assert.Contains("Column 'Features' does not have compatible type. Expected types are float, double, int, bool and key.", ex.Message);
         }
     }
 }

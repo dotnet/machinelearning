@@ -39317,7 +39317,7 @@
           "FeatureVector"
         ],
         "output": [
-          "FeatureVector0"
+          "FeatureVector.onnx"
         ],
         "name": "Identity",
         "opType": "Identity"
@@ -39327,7 +39327,7 @@
           "Target"
         ],
         "output": [
-          "Target0"
+          "Target.onnx"
         ],
         "name": "Identity0",
         "opType": "Identity"
@@ -39337,7 +39337,7 @@
           "Score"
         ],
         "output": [
-          "Score0"
+          "Score.onnx"
         ],
         "name": "Identity1",
         "opType": "Identity"
@@ -39353,7 +39353,7 @@
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "11"
@@ -39371,7 +39371,7 @@
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "1"
@@ -39384,14 +39384,14 @@
     ],
     "output": [
       {
-        "name": "FeatureVector0",
+        "name": "FeatureVector.onnx",
         "type": {
           "tensorType": {
             "elemType": 1,
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "11"
@@ -39402,14 +39402,14 @@
         }
       },
       {
-        "name": "Target0",
+        "name": "Target.onnx",
         "type": {
           "tensorType": {
             "elemType": 1,
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "1"
@@ -39420,14 +39420,14 @@
         }
       },
       {
-        "name": "Score0",
+        "name": "Score.onnx",
         "type": {
           "tensorType": {
             "elemType": 1,
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "1"
@@ -39447,7 +39447,7 @@
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "1"

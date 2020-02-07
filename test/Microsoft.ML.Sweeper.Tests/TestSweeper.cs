@@ -175,7 +175,7 @@ namespace Microsoft.ML.Sweeper.RunTests
         }
 
         [Fact]
-        public void TestDeterministicSweeperAsyncCancellation()
+        public async Task TestDeterministicSweeperAsyncCancellation()
         {
             var random = new Random(42);
             var env = new MLContext(42);
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             // Cancel after the first barrier and check if the number of registered actions
             // is indeed 2 * batchSize.
             sweeper.Cancel();
-            Task.WaitAll(tasks.ToArray());
+            await Task.WhenAll(tasks);
             foreach (var task in tasks)
             {
                 if (task.Result != null)
@@ -225,7 +225,7 @@ namespace Microsoft.ML.Sweeper.RunTests
         }
 
         [Fact]
-        public void TestDeterministicSweeperAsync()
+        public async Task TestDeterministicSweeperAsync()
         {
             var random = new Random(42);
             var env = new MLContext(42);
@@ -289,8 +289,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             foreach (var run in results)
                 sweeper.Update(run.Key, run.Value);
 
-            Task.WaitAll(tasks);
-            tasks.All(t => t.IsCompleted);
+            await Task.WhenAll(tasks);
         }
 
         [Fact]
@@ -327,7 +326,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             int[] sleeps = new int[sweeps];
             for (int i = 0; i < sleeps.Length; i++)
                 sleeps[i] = random.Next(10, 100);
-            var r = Parallel.For(0, sweeps, options, (int i) =>
+            var r = Task.Run(() => Parallel.For(0, sweeps, options, (int i) =>
             {
                 var task = sweeper.Propose();
                 task.Wait();
@@ -340,7 +339,7 @@ namespace Microsoft.ML.Sweeper.RunTests
                 sweeper.Update(paramWithId.Id, result);
                 lock (mlock)
                     paramSets.Add(paramWithId.ParameterSet);
-            });
+            }));
             Assert.True(paramSets.Count <= sweeps);
             CheckAsyncSweeperResult(paramSets);
         }

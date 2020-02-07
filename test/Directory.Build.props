@@ -34,6 +34,15 @@
     <PackageReference Include="coverlet.msbuild" Version="$(CoverletVersion)" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference
+      Condition="'$(UseMLCodeAnalyzer)' != 'false' and '$(MSBuildProjectExtension)' == '.csproj'"
+      Include="$(MSBuildThisFileDirectory)\..\tools-local\Microsoft.ML.InternalCodeAnalyzer\Microsoft.ML.InternalCodeAnalyzer.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <OutputItemType>Analyzer</OutputItemType>
+    </ProjectReference>
+  </ItemGroup>
+
   <PropertyGroup Condition="'$(Coverage)' == 'true'">
       <!-- https://github.com/tonerdo/coverlet/issues/618 -->
       <IncludeTestAssembly>true</IncludeTestAssembly>

@@ -37,7 +37,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void ChangeDetection()
         {
-            var env = new MLContext();
+            var env = new MLContext(1);
             const int Size = 10;
             var data = new List<Data>(Size);
             var dataView = env.Data.LoadFromEnumerable(data);
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void ChangePointDetectionWithSeasonality()
         {
-            var env = new MLContext();
+            var env = new MLContext(1);
             const int ChangeHistorySize = 10;
             const int SeasonalitySize = 10;
             const int NumberOfSeasonsInTraining = 5;
@@ -119,7 +119,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void SpikeDetection()
         {
-            var env = new MLContext();
+            var env = new MLContext(1);
             const int Size = 10;
             const int PvalHistoryLength = Size / 4;
 
@@ -169,7 +169,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void SsaSpikeDetection()
         {
-            var env = new MLContext();
+            var env = new MLContext(1);
             const int Size = 16;
             const int ChangeHistoryLength = Size / 4;
             const int TrainingWindowSize = Size / 2;

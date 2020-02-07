@@ -21,7 +21,7 @@ namespace micro
         [GlobalSetup]
         public void Setup()
         {
-            _context = new MLContext();
+            _context = new MLContext(1);
             var data = _context.Data.LoadFromTextFile<SentimentData>(BaseTestClass.GetDataPath("wikipedia-detox-250-line-data.tsv"), hasHeader: true);
 
             // Pipeline.

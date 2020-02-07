@@ -12,7 +12,7 @@ namespace Microsoft.ML.RunTests
     {
         private EarlyStoppingRuleBase CreateEarlyStoppingCriterion(string name, string args, bool lowerIsBetter)
         {
-            var env = new MLContext()
+            var env = new MLContext(1)
                 .AddStandardComponents();
             var sub = new SubComponent<EarlyStoppingRuleBase, SignatureEarlyStoppingCriterion>(name, args);
             return sub.CreateInstance(env, lowerIsBetter);

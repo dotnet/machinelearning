@@ -37,7 +37,7 @@ namespace Microsoft.ML.Tests
         }
         public static PredictionEngine<FloatInput, OutputObj> LoadModel(string onnxModelFilePath)
         {
-            var ctx = new MLContext();
+            var ctx = new MLContext(1);
             var dataView = ctx.Data.LoadFromEnumerable(new List<FloatInput>());
 
             var pipeline = ctx.Transforms.ApplyOnnxModel(

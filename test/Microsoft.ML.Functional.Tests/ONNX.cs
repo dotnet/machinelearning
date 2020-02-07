@@ -57,7 +57,7 @@ namespace Microsoft.ML.Functional.Tests
             // type on the Prediction engine.
             // See #2980 and #2981 for more information.
             var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(modelPath)
-                .Append(mlContext.Transforms.CopyColumns("Score", "Score0"));
+                .Append(mlContext.Transforms.CopyColumns("Score", "Score.onnx"));
             var onnxModel = onnxEstimator.Fit(data);
 
             // Create prediction engine and test predictions.
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Functional.Tests
             // TODO #2980: ONNX outputs don't match the outputs of the model, so we must hand-correct this for now.
             // TODO #2981: ONNX models cannot be fit as part of a pipeline, so we must use a workaround like this.
             var onnxWorkaroundPipeline = onnxModel.Append(
-                mlContext.Transforms.CopyColumns("Score", "Score0").Fit(onnxModel.Transform(data)));
+                mlContext.Transforms.CopyColumns("Score", "Score.onnx").Fit(onnxModel.Transform(data)));
 
             // Create prediction engine and test predictions.
             var originalPredictionEngine = mlContext.Model.CreatePredictionEngine<HousingRegression, VectorScoreColumn>(model);
@@ -161,7 +161,7 @@ namespace Microsoft.ML.Functional.Tests
             // TODO #2980: ONNX outputs don't match the outputs of the model, so we must hand-correct this for now.
             // TODO #2981: ONNX models cannot be fit as part of a pipeline, so we must use a workaround like this.
             var onnxWorkaroundPipeline = onnxModel.Append(
-                mlContext.Transforms.CopyColumns("Score", "Score0").Fit(onnxModel.Transform(data)));
+                mlContext.Transforms.CopyColumns("Score", "Score.onnx").Fit(onnxModel.Transform(data)));
 
             // Create prediction engine and test predictions.
             var originalPredictionEngine = mlContext.Model.CreatePredictionEngine<HousingRegression, ScoreColumn>(model);

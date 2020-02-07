@@ -1,0 +1,74 @@
+﻿//*****************************************************************************************
+//*                                                                                       *
+//* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *
+//*                                                                                       *
+//*****************************************************************************************
+
+using Microsoft.ML.Data;
+
+namespace test.Model
+{
+    public class ModelInput
+    {
+        [ColumnName("Age"), LoadColumn(0)]
+        public double Age { get; set; }
+
+
+        [ColumnName("Workclass"), LoadColumn(1)]
+        public string Workclass { get; set; }
+
+
+        [ColumnName("Fnlwgt"), LoadColumn(2)]
+        public double Fnlwgt { get; set; }
+
+
+        [ColumnName("Education"), LoadColumn(3)]
+        public string Education { get; set; }
+
+
+        [ColumnName("Education_num"), LoadColumn(4)]
+        public double Education_num { get; set; }
+
+
+        [ColumnName("Marital_status"), LoadColumn(5)]
+        public string Marital_status { get; set; }
+
+
+        [ColumnName("Occupation"), LoadColumn(6)]
+        public string Occupation { get; set; }
+
+
+        [ColumnName("Relationship"), LoadColumn(7)]
+        public string Relationship { get; set; }
+
+
+        [ColumnName("Race"), LoadColumn(8)]
+        public string Race { get; set; }
+
+
+        [ColumnName("Sex"), LoadColumn(9)]
+        public string Sex { get; set; }
+
+
+        [ColumnName("Capital_gain"), LoadColumn(10)]
+        public double Capital_gain { get; set; }
+
+
+        [ColumnName("Capital_loss"), LoadColumn(11)]
+        public double Capital_loss { get; set; }
+
+
+        [ColumnName("Hours_per_week"), LoadColumn(12)]
+        public double Hours_per_week { get; set; }
+
+
+        [ColumnName("Native_country"), LoadColumn(13)]
+        public string Native_country { get; set; }
+
+
+        [ColumnName("label"), LoadColumn(14)]
+        public bool Label { get; set; }
+
+
+    }
+}

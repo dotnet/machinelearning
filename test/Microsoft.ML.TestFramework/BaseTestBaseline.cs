@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -73,12 +74,13 @@ namespace Microsoft.ML.RunTests
         private string _baselineBuildStringDir;
 
         // The writer to write to test log files.
+        protected TestLogger TestLogger;
         protected StreamWriter LogWriter;
         private protected ConsoleEnvironment _env;
         protected IHostEnvironment Env => _env;
         protected MLContext ML;
         private bool _normal;
-        private bool _passed;
+        private readonly List<Exception> _failures = new List<Exception>();
 
         protected override void Initialize()
         {
@@ -96,11 +98,19 @@ namespace Microsoft.ML.RunTests
 
             string logPath = Path.Combine(logDir, FullTestName + LogSuffix);
             LogWriter = OpenWriter(logPath);
-            _passed = true;
-            _env = new ConsoleEnvironment(42, outWriter: LogWriter, errWriter: LogWriter)
+
+            TestLogger = new TestLogger(Output);
+            _env = new ConsoleEnvironment(42, outWriter: LogWriter, errWriter: LogWriter, testWriter: TestLogger)
                 .AddStandardComponents();
             ML = new MLContext(42);
+            ML.Log += LogTestOutput;
             ML.AddStandardComponents();
+        }
+
+        private void LogTestOutput(object sender, LoggingEventArgs e)
+        {
+            if (e.Kind >= MessageKindToLog)
+                Output.WriteLine(e.Message);
         }
 
         // This method is used by subclass to dispose of disposable objects
@@ -113,7 +123,7 @@ namespace Microsoft.ML.RunTests
             Contracts.Assert(IsActive);
             Log("Test {0}: {1}: {2}", TestName,
                 _normal ? "completed normally" : "aborted",
-                _passed ? "passed" : "failed");
+                IsPassing ? "passed" : "failed");
 
             Contracts.AssertValue(LogWriter);
             LogWriter.Dispose();
@@ -124,7 +134,7 @@ namespace Microsoft.ML.RunTests
 
         protected bool IsActive { get { return LogWriter != null; } }
 
-        protected bool IsPassing { get { return _passed; } }
+        protected bool IsPassing { get { return _failures.Count == 0; } }
 
         // Called by a test to signal normal completion. If this is not called before the
         // TestScope is disposed, we assume the test was aborted.
@@ -134,7 +144,18 @@ namespace Microsoft.ML.RunTests
             Contracts.Assert(!_normal, "Done() should only be called once!");
             _normal = true;
 
-            Assert.True(_passed);
+            switch (_failures.Count)
+            {
+                case 0:
+                    break;
+
+                case 1:
+                    ExceptionDispatchInfo.Capture(_failures[0]).Throw();
+                    break;
+
+                default:
+                    throw new AggregateException(_failures.ToArray());
+            }
         }
 
         protected bool Check(bool f, string msg)
@@ -151,21 +172,17 @@ namespace Microsoft.ML.RunTests
             return f;
         }
 
-        protected void Fail(string msg)
-        {
-            Fail(false, msg);
-        }
-
         protected void Fail(string fmt, params object[] args)
         {
-            Fail(false, fmt, args);
-        }
-
-        protected void Fail(bool relax, string fmt, params object[] args)
-        {
             Contracts.Assert(IsActive);
-            if (!relax)
-                _passed = false;
+            try
+            {
+                throw new InvalidOperationException(string.Format(fmt, args));
+            }
+            catch (Exception ex)
+            {
+                _failures.Add(ex);
+            }
 
             Log("*** Failure: " + fmt, args);
         }
@@ -208,12 +225,6 @@ namespace Microsoft.ML.RunTests
             }
 
             return Path.GetFullPath(Path.Combine(_baselineBuildStringDir, subDir, name));
-        }
-
-        // Inverts the _passed flag. Do not ever use this except in rare conditions. Eg. Recording failure of a test as a success.
-        protected void DoNotEverUseInvertPass()
-        {
-            _passed = !_passed;
         }
 
         // These are used to normalize output.
@@ -294,36 +305,6 @@ namespace Microsoft.ML.RunTests
                     line = _matchGuid.Replace(line, "%Guid%");
                     dst.WriteLine(line);
                 }
-            }
-        }
-
-        // Set and restored by instances of MismatchContext. When this is true, baseline differences
-        // are tolerated. They are still reported in the test log, but do not cause a test failure.
-        // REVIEW: Perhaps they should cause the test to be inconclusive instead of pass?
-        private bool _allowMismatch;
-
-        /// <summary>
-        /// When hardware dependent baseline values should be tolerated, scope the code
-        /// that does the comparisons with an instance of this disposable struct.
-        /// </summary>
-        protected readonly struct MismatchContext : IDisposable
-        {
-            // The test class instance.
-            private readonly BaseTestBaseline _host;
-            // Dispose restores this value to the _allowMismatch field of _host.
-            private readonly bool _allowMismatch;
-
-            public MismatchContext(BaseTestBaseline host)
-            {
-                _host = host;
-                _allowMismatch = _host._allowMismatch;
-                _host._allowMismatch = true;
-            }
-
-            public void Dispose()
-            {
-                Contracts.Assert(_host._allowMismatch);
-                _host._allowMismatch = _allowMismatch;
             }
         }
 
@@ -506,7 +487,7 @@ namespace Microsoft.ML.RunTests
                         if (line1 == null || line2 == null)
                             Fail("Output and baseline different lengths: '{0}'", relPath);
                         else
-                            Fail(_allowMismatch, "Output and baseline mismatch at line {1}, expected '{2}' but got '{3}' : '{0}'", relPath, count, line1, line2);
+                            Fail("Output and baseline mismatch at line {1}, expected '{2}' but got '{3}' : '{0}'", relPath, count, line1, line2);
                         return false;
                     }
                 }
@@ -569,7 +550,8 @@ namespace Microsoft.ML.RunTests
             return true;
         }
 
-        public bool CompareNumbersWithTolerance(double expected, double actual, int? iterationOnCollection = null, int digitsOfPrecision = DigitsOfPrecision)
+        public bool CompareNumbersWithTolerance(double expected, double actual, int? iterationOnCollection = null, 
+            int digitsOfPrecision = DigitsOfPrecision, bool logFailure = true)
         {
             if (double.IsNaN(expected) && double.IsNaN(actual))
                 return true;
@@ -601,11 +583,12 @@ namespace Microsoft.ML.RunTests
             {
                 var message = iterationOnCollection != null ? "" : $"Output and baseline mismatch at line {iterationOnCollection}." + Environment.NewLine;
 
-                Fail(_allowMismatch, message +
-                        $"Values to compare are {expected} and {actual}" + Environment.NewLine +
-                        $"\t AllowedVariance: {allowedVariance}" + Environment.NewLine +
-                        $"\t delta: {delta}" + Environment.NewLine +
-                        $"\t delta2: {delta2}" + Environment.NewLine);
+                if(logFailure)
+                    Fail(message +
+                            $"Values to compare are {expected} and {actual}" + Environment.NewLine +
+                            $"\t AllowedVariance: {allowedVariance}" + Environment.NewLine +
+                            $"\t delta: {delta}" + Environment.NewLine +
+                            $"\t delta2: {delta2}" + Environment.NewLine);
             }
 
             return inRange;

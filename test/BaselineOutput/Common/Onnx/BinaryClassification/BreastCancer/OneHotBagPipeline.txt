@@ -404,7 +404,7 @@
           "Label"
         ],
         "output": [
-          "Label0"
+          "Label.onnx"
         ],
         "name": "Identity",
         "opType": "Identity"
@@ -414,7 +414,7 @@
           "F1"
         ],
         "output": [
-          "F10"
+          "F1.onnx"
         ],
         "name": "Identity0",
         "opType": "Identity"
@@ -424,7 +424,7 @@
           "F22"
         ],
         "output": [
-          "F23"
+          "F2.onnx"
         ],
         "name": "Identity1",
         "opType": "Identity"
@@ -434,7 +434,7 @@
           "Features"
         ],
         "output": [
-          "Features0"
+          "Features.onnx"
         ],
         "name": "Identity2",
         "opType": "Identity"
@@ -444,7 +444,7 @@
           "PredictedLabel"
         ],
         "output": [
-          "PredictedLabel0"
+          "PredictedLabel.onnx"
         ],
         "name": "Identity3",
         "opType": "Identity"
@@ -454,7 +454,7 @@
           "Score"
         ],
         "output": [
-          "Score0"
+          "Score.onnx"
         ],
         "name": "Identity4",
         "opType": "Identity"
@@ -464,7 +464,7 @@
           "Probability"
         ],
         "output": [
-          "Probability0"
+          "Probability.onnx"
         ],
         "name": "Identity5",
         "opType": "Identity"
@@ -496,7 +496,7 @@
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "1"
@@ -514,7 +514,7 @@
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "1"
@@ -532,7 +532,7 @@
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "1"
@@ -545,14 +545,14 @@
     ],
     "output": [
       {
-        "name": "Label0",
+        "name": "Label.onnx",
         "type": {
           "tensorType": {
             "elemType": 9,
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "1"
@@ -563,14 +563,14 @@
         }
       },
       {
-        "name": "F10",
+        "name": "F1.onnx",
         "type": {
           "tensorType": {
             "elemType": 1,
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "1"
@@ -581,14 +581,14 @@
         }
       },
       {
-        "name": "F23",
+        "name": "F2.onnx",
         "type": {
           "tensorType": {
             "elemType": 1,
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "10"
@@ -599,14 +599,14 @@
         }
       },
       {
-        "name": "Features0",
+        "name": "Features.onnx",
         "type": {
           "tensorType": {
             "elemType": 1,
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "11"
@@ -617,14 +617,14 @@
         }
       },
       {
-        "name": "PredictedLabel0",
+        "name": "PredictedLabel.onnx",
         "type": {
           "tensorType": {
             "elemType": 9,
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "1"
@@ -635,14 +635,14 @@
         }
       },
       {
-        "name": "Score0",
+        "name": "Score.onnx",
         "type": {
           "tensorType": {
             "elemType": 1,
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "1"
@@ -653,14 +653,14 @@
         }
       },
       {
-        "name": "Probability0",
+        "name": "Probability.onnx",
         "type": {
           "tensorType": {
             "elemType": 1,
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "1"
@@ -680,7 +680,7 @@
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "1"
@@ -698,7 +698,7 @@
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "10"
@@ -716,7 +716,7 @@
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "10"
@@ -734,7 +734,7 @@
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "11"

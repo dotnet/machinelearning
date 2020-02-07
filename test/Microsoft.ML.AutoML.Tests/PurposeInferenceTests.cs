@@ -10,7 +10,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void PurposeInferenceHiddenColumnsTest()
         {
-            var context = new MLContext();
+            var context = new MLContext(1);
 
             // build basic data view
             var schemaBuilder = new DataViewSchema.Builder();

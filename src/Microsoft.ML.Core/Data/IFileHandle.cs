@@ -189,7 +189,7 @@ namespace Microsoft.ML.Data
                 // Drop read streams that have already been disposed.
                 _streams.RemoveAll(s => !s.CanRead);
 
-                var stream = new FileStream(_fullPath, FileMode.Open, FileAccess.Read);
+                var stream = new FileStream(_fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
                 _streams.Add(stream);
                 return stream;
             }

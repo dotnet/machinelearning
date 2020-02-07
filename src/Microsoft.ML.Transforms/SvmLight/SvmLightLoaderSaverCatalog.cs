@@ -65,6 +65,10 @@ namespace Microsoft.ML.Data
             bool zeroBased = false)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
+            if (!File.Exists(path))
+            {
+                throw Contracts.ExceptParam(nameof(path), "File does not exist at path: {0}", path);
+            }
 
             var file = new MultiFileSource(path);
             var loader = catalog.CreateSvmLightLoader(numberOfRows, inputSize, zeroBased, file);
@@ -83,6 +87,10 @@ namespace Microsoft.ML.Data
             long? numberOfRows = null)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
+            if (!File.Exists(path))
+            {
+                throw Contracts.ExceptParam(nameof(path), "File does not exist at path: {0}", path);
+            }
 
             var file = new MultiFileSource(path);
             var loader = catalog.CreateSvmLightLoaderWithFeatureNames(numberOfRows, file);
