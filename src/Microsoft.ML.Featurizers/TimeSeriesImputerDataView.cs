@@ -103,6 +103,8 @@ namespace Microsoft.ML.Transforms
                     return new StringTypedColumn(column, optionalColumns.Contains(column.Name), allImputedColumns.Contains(column.Name), state);
                 else if (type == typeof(bool).ToString())
                     return new BoolTypedColumn(column, optionalColumns.Contains(column.Name), allImputedColumns.Contains(column.Name), state);
+                else if (type == typeof(DateTime).ToString())
+                    return new DateTimeTypedColumn(column, optionalColumns.Contains(column.Name), allImputedColumns.Contains(column.Name), state);
 
                 throw new InvalidOperationException($"Unsupported type {type}");
             }
@@ -583,6 +585,61 @@ namespace Microsoft.ML.Transforms
                     return 1 + (int)size + sizeof(uint); // + 1 for the byte bool flag
 
                 return (int)size + sizeof(uint);
+            }
+        }
+
+        private class DateTimeTypedColumn : TypedColumn<DateTime>
+        {
+            private static readonly DateTime _unixEpoch = new DateTime(1970, 1, 1);
+            private readonly bool _isNullable;
+
+            internal DateTimeTypedColumn(DataViewSchema.Column column, bool isNullable, bool isImputed, SharedColumnState state) :
+                base(column, isImputed, state)
+            {
+                _isNullable = isNullable;
+            }
+
+            internal override byte[] GetSerializedValue()
+            {
+                var dateTime = GetSourceValue();
+                byte[] bytes;
+
+                var value = dateTime.Subtract(_unixEpoch).Ticks / TimeSpan.TicksPerSecond;
+
+                bytes = BitConverter.GetBytes(value);
+
+                if (_isNullable)
+                    return new byte[1] { Convert.ToByte(true) }.Concat(bytes).ToArray();
+                else
+                    return bytes;
+            }
+
+            internal unsafe override DateTime GetDataFromNativeBinaryArchiveData(byte* data, int offset)
+            {
+                long value;
+                if (_isNullable)
+                {
+                    if (!BoolTypedColumn.GetBoolFromNativeBinaryArchiveData(data, offset)) // If value not present return empty string
+                        return new DateTime();
+
+                    value = *(long*)(data + offset + 1); // Add 1 for the byte bool flag
+
+                }
+                else
+                {
+                    value = *(long*)(data + offset);
+                }
+
+                return new DateTime(_unixEpoch.Ticks + (value * TimeSpan.TicksPerSecond));
+
+            }
+
+            internal override unsafe int GetDataSizeInBytes(byte* data, int currentOffset)
+            {
+                if (_isNullable)
+                    return 1 + sizeof(long); // + 1 for the byte bool flag
+
+                return sizeof(long);
             }
         }
 

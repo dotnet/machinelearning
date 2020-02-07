@@ -32,7 +32,7 @@ namespace Microsoft.ML.Featurizers
         /// purpose of this estimator. Other column types will have the default value placed if a row is imputed.
         /// </summary>
         /// <param name="catalog">The transform catalog.</param>
-        /// <param name="timeSeriesColumn">Column representing the time series. Should be of type <see cref="long"/></param>
+        /// <param name="timeSeriesColumn">Column representing the time series. Should be of type <see cref="long"/> or <see cref="System.DateTime"/></param>
         /// <param name="grainColumns">List of columns to use as grains</param>
         /// <param name="imputeMode">Mode of imputation for missing values in column. If not passed defaults to forward fill</param>
         public static TimeSeriesImputerEstimator ReplaceMissingTimeSeriesValues(this TransformsCatalog catalog, string timeSeriesColumn, string[] grainColumns,
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Featurizers
         /// purpose of this estimator.
         /// </summary>
         /// <param name="catalog">The transform catalog.</param>
-        /// <param name="timeSeriesColumn">Column representing the time series. Should be of type <see cref="long"/></param>
+        /// <param name="timeSeriesColumn">Column representing the time series. Should be of type <see cref="long"/> or <see cref="System.DateTime"/></param>
         /// <param name="grainColumns">List of columns to use as grains</param>
         /// <param name="filterColumns">List of columns to filter. If <paramref name="filterMode"/> is <see cref="TimeSeriesImputerEstimator.FilterMode.Exclude"/> than columns in the list will be ignored.
         /// If <paramref name="filterMode"/> is <see cref="TimeSeriesImputerEstimator.FilterMode.Include"/> than values in the list are the only columns imputed.</param>
@@ -83,6 +83,16 @@ namespace Microsoft.ML.Featurizers
     /// | Output column data type | All Types |
     /// | Exportable to ONNX | No |
     ///
+    /// The TimeSeriesImputer imputes missing rows and column data per grain (category), based on the dates in the date column. This operation needs to happen to every column in the IDataView,
+    /// If you "filter" a column using the filterColumns and filterMode parameters, if a row is imputed the default value for that type will be used.
+    /// Currently only float/double/string columns are supported for imputation strategies, and an empty string is considered "missing" for the
+    /// purpose of this estimator. A new column is added to the schema after this operation is run. The column is called "IsRowImputed" and is a
+    /// boolean value representing if the row was created as a result of this operation or not.
+    ///
+    /// NOTE: It is not recommended to chain this multiple times. If a column is filtered, the default value is placed when a row is imputed, and the
+    /// default value is not null. Thus any other TimeSeriesImputers will not be able to replace those values anymore causing essentially a very
+    /// computationally expensive NO-OP.
+    ///
     /// The <xref:Microsoft.ML.Transforms.TimeSeriesImputerEstimator> is not a trivial estimator and needs training.
     ///
     ///
@@ -98,7 +108,7 @@ namespace Microsoft.ML.Featurizers
 
         private readonly IHost _host;
         private static readonly List<Type> _currentSupportedTypes = new List<Type> { typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint),
-            typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(string), typeof(ReadOnlyMemory<char>)};
+            typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(string), typeof(ReadOnlyMemory<char>), typeof(DateTime)};
 
         #region Options
         internal sealed class Options : TransformInputBase
@@ -127,6 +137,12 @@ namespace Microsoft.ML.Featurizers
 
         #region Class Enums
 
+        /// <summary>
+        /// This is the representation of which Imputation Strategy to use.
+        /// ForwardFill takes the value from the last good row and propagates it forward anytime a row is imputer or a missing value is found.
+        /// BackFill is the same as ForwardFill, expect it takes from the next good row and propagates backwards.
+        /// Median only supports float/double, takes the median value found during training and uses that to replace missing values
+        /// </summary>
         public enum ImputationStrategy : byte
         {
             ForwardFill = 1,
@@ -135,6 +151,12 @@ namespace Microsoft.ML.Featurizers
             // Interpolate = 4, interpolate not currently supported in the native code.
         };
 
+        /// <summary>
+        /// What the filter strategy used is.
+        /// NoFilter takes all of the columns so you dont have to specify anything.
+        /// Include only does the specified ImputationStrategy on the columns you specify. The other columns will get a default value.
+        /// Exclude is the exact opposite of Include, and does the ImputationStrategy on all columns but the ones you specify, which will get the default value.
+        /// </summary>
         public enum FilterMode : byte
         {
             NoFilter = 1,
@@ -559,6 +581,8 @@ namespace Microsoft.ML.Featurizers
                     return new NumericTypedColumn<double>(column, optionalColumns.Contains(column.Name));
                 else if (type == typeof(ReadOnlyMemory<char>).ToString())
                     return new StringTypedColumn(column, optionalColumns.Contains(column.Name));
+                else if (type == typeof(DateTime).ToString())
+                    return new DateTimeTypedColumn(column, optionalColumns.Contains(column.Name));
 
                 throw new InvalidOperationException($"Unsupported type {type}");
             }
@@ -634,6 +658,33 @@ namespace Microsoft.ML.Featurizers
                 if (_isNullable)
                     return new byte[] { Convert.ToByte(true) }.Concat(BitConverter.GetBytes(stringBytes.Length)).Concat(stringBytes).ToArray();
                 return BitConverter.GetBytes(stringBytes.Length).Concat(stringBytes).ToArray();
+            }
+        }
+
+        private class DateTimeTypedColumn : TypedColumn<DateTime>
+        {
+            private static readonly DateTime _unixEpoch = new DateTime(1970, 1, 1);
+            private readonly bool _isNullable;
+
+            internal DateTimeTypedColumn(DataViewSchema.Column column, bool isNullable = false) :
+                base(column)
+            {
+                _isNullable = isNullable;
+            }
+
+            internal override byte[] GetSerializedValue()
+            {
+                var dateTime = GetValue();
+                byte[] bytes;
+
+                var value = dateTime.Subtract(_unixEpoch).Ticks / TimeSpan.TicksPerSecond;
+
+                bytes = BitConverter.GetBytes(value);
+
+                if (_isNullable)
+                    return new byte[1] { Convert.ToByte(true) }.Concat(bytes).ToArray();
+                else
+                    return bytes;
             }
         }
 
