@@ -378,6 +378,10 @@ namespace Microsoft.ML.Trainers
                 pch.SetHeader(new ProgressHeader("examples"), e => e.SetProgress(0, count));
                 while (cursor.MoveNext())
                 {
+                    var random = new Random();
+                    Thread.Sleep(random.Next(1, 10) * 100);
+                    GC.Collect();
+
                     Host.CheckAlive();
                     DataViewRowId id = cursor.Id;
                     if (id.High > 0 || id.Low >= (ulong)maxTrainingExamples)

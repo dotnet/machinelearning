@@ -497,18 +497,21 @@ namespace Microsoft.ML.Trainers
 
         public long SkippedRowCount { get; private set; }
         public long KeptRowCount { get; private set; }
+        private long _totalRowCount;
 
         /// <summary>
         /// The base constructor class for the factory-based cursor creation.
         /// </summary>
         /// <param name="input"></param>
         /// <param name="signal">This method is called </param>
-        protected TrainingCursorBase(DataViewRowCursor input, Action<CursOpt> signal)
+        /// <param name="totalRowCount"></param>
+        protected TrainingCursorBase(DataViewRowCursor input, Action<CursOpt> signal, int totalRowCount = -1)
         {
             Contracts.AssertValue(input);
             Contracts.AssertValueOrNull(signal);
             _cursor = input;
             _signal = signal;
+            _totalRowCount = totalRowCount;
         }
 
         protected static DataViewRowCursor CreateCursor(RoleMappedData data, CursOpt opt, Random rand, params int[] extraCols)
@@ -550,6 +553,15 @@ namespace Microsoft.ML.Trainers
                 {
                     if (_signal != null)
                         _signal(CursoringCompleteFlags());
+
+                    if (_totalRowCount > 0 & KeptRowCount + SkippedRowCount < _totalRowCount)
+                    {
+                        var callStack = new System.Diagnostics.StackTrace().ToString();
+                        Console.WriteLine($"Fail in MoveNext with callstack: {callStack}");
+
+                        Environment.FailFast("Crash here to take memory dump");
+                    }
+
                     return false;
                 }
                 if (Accept())
@@ -738,8 +750,8 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        protected StandardScalarCursor(DataViewRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal = null)
-            : base(input, signal)
+        protected StandardScalarCursor(DataViewRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal = null, int totalRowCount = -1)
+            : base(input, signal, totalRowCount)
         {
             Contracts.AssertValue(data);
 
@@ -829,7 +841,7 @@ namespace Microsoft.ML.Trainers
         }
 
         protected FeatureFloatVectorCursor(DataViewRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal = null)
-            : base(input, data, opt, signal)
+            : base(input, data, opt, signal, totalRowCount: (int)(data.Data.GetRowCount().HasValue? data.Data.GetRowCount().Value : -1))
         {
             if ((opt & CursOpt.Features) != 0 && data.Schema.Feature != null)
             {
