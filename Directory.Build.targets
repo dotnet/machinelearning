@@ -4,6 +4,10 @@
     <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="16.4.45" PrivateAssets="all" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="$(MicrosoftNETFrameworkReferenceAssembliesVersion)" PrivateAssets="all" />
+  </ItemGroup>
+
   <Target Name="CheckForBuildTools">
     <Error Condition="!Exists('$(ToolsDir)')"
            Text="The tools directory [$(ToolsDir)] does not exist. Please run build in the root of the repo to ensure the tools are installed before attempting to build an individual project." />
