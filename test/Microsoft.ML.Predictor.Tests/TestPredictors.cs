@@ -25,7 +25,6 @@ namespace Microsoft.ML.RunTests
     using TestLearners = TestLearnersBase;
     using Microsoft.ML.TestFrameworkCommon;
     using Microsoft.ML.TestFrameworkCommon.Attributes;
-    using Microsoft.DotNet.PlatformAbstractions;
 
     /// <summary>
     /// Tests using maml commands (IDV) functionality.
@@ -503,13 +502,17 @@ namespace Microsoft.ML.RunTests
             // "machinelearning/test/Microsoft.ML.Predictor.Tests/PreviousBaselineModel/LightGBM-Train-breast-cancer-model.zip"
             // The path of the expected baseline output:
             // "machinelearning/test/BaselineOutput/Common/LightGBMBinary/LightGBM-Test-breast-cancer-out.txt"
-            string startingPath = ApplicationEnvironment.ApplicationBasePath;
+            string startingPath = AppContext.BaseDirectory;
             var pathItems = startingPath.Split(Path.DirectorySeparatorChar);
             var pos = pathItems.Reverse().ToList().FindIndex(x => string.Equals("bin", x));
             string projectPath = String.Join(Path.DirectorySeparatorChar.ToString(), pathItems.Take(pathItems.Length - pos - 1));
             string previousBaselineModelPath = Path.Combine(projectPath, 
-                "test/Microsoft.ML.Predictor.Tests/PreviousBaselineModel", "LightGBM-Train-breast-cancer-model.zip");
-            Run_Test(TestLearners.LightGBMClassifier, TestDatasets.breastCancerPipeWithoutMamlExtraSettings, previousBaselineModelPath);
+                "test", "Microsoft.ML.Predictor.Tests", "PreviousBaselineModel", "LightGBM-Train-breast-cancer-model.zip");
+            Uri uri1 = new Uri(previousBaselineModelPath);
+            Uri uri2 = new Uri(AppContext.BaseDirectory);
+            Uri relativeUri = uri2.MakeRelativeUri(uri1);
+
+            Run_Test(TestLearners.LightGBMClassifier, TestDatasets.breastCancerPipeWithoutMamlExtraSettings, relativeUri.ToString());
             Done();
         }
 

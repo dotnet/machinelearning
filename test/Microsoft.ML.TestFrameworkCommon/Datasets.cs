@@ -108,7 +108,6 @@ namespace Microsoft.ML.TestFrameworkCommon
             testFilename = "breast-cancer.txt",
             // Using "col=Features:1-5,6,7-9" improves code coverage. Same with "col=Attr:TX:6".
             loaderSettings = "loader=Text{sparse- col=Attr:TX:6 col=Label:0 col=Features:1-5,6,7-9}",
-            extraSettings = "/cacheinst- /inst Pipe{loader=Text{sparse- col=Attr:TX:6 col=Label:0 col=Features:1-5,6,7-9} lab=Label feat=Features}"
         };
 
         /// <summary>
