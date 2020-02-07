@@ -479,9 +479,9 @@ namespace Microsoft.ML.Data
 
             /// <summary>
             /// Whether the data file has a header with feature names.
-            /// Note: If a TextLoader is created with HasHeader = true but without a dataSample, then vector columns made by TextLoader will not contain slot name
+            /// Note: If a TextLoader is created with hasHeader = true but without a dataSample, then vector columns made by TextLoader will not contain slot name
             /// annotations (slots being the elements of the given vector column), because the output schema is made when the TextLoader is made, and not when
-            /// TextLoader.Load(IMultiStreamSource source) is called. In addition, the case where dataSample = null and HasHeader = true indicates to the
+            /// TextLoader.Load(IMultiStreamSource source) is called. In addition, the case where dataSample = null and hasHeader = true indicates to the
             /// loader that when it is given a file when <see cref="TextLoader.Load(IMultiStreamSource)"/> is called, it needs to skip the first line.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, ShortName = "header",
