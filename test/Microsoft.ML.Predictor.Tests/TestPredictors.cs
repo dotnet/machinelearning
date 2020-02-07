@@ -25,6 +25,7 @@ namespace Microsoft.ML.RunTests
     using TestLearners = TestLearnersBase;
     using Microsoft.ML.TestFrameworkCommon;
     using Microsoft.ML.TestFrameworkCommon.Attributes;
+    using Microsoft.DotNet.PlatformAbstractions;
 
     /// <summary>
     /// Tests using maml commands (IDV) functionality.
@@ -498,15 +499,17 @@ namespace Microsoft.ML.RunTests
         [TestCategory("LightGBM")]
         public void LightGBMPreviousModelBaselineTest()
         {
-            // Previously trained LightGBM model is located at:
-            // "machinelearning/test/BaselineOutput/Common/LightGBMBinary/LightGBM-Train-breast-cancer-model.zip"
-            // Expected baseline output is located at:
+            // The path of reviously trained LightGBM model:
+            // "machinelearning/test/Microsoft.ML.Predictor.Tests/PreviousBaselineModel/LightGBM-Train-breast-cancer-model.zip"
+            // The path of the expected baseline output:
             // "machinelearning/test/BaselineOutput/Common/LightGBMBinary/LightGBM-Test-breast-cancer-out.txt"
-            string modelPath = "../../../../test/BaselineOutput/Common/LightGBMBinary/LightGBM-Train-breast-cancer-model.zip";
-            string expectedBaselinePath = "../../../../test/BaselineOutput/Common/LightGBMBinary/LightGBM-Test-breast-cancer-out.txt";
-            Assert.True(File.Exists(modelPath));
-            Assert.True(File.Exists(expectedBaselinePath));
-            Run_Test(TestLearners.LightGBMClassifier, TestDatasets.breastCancerPipeWithoutMamlExtraSettings, modelPath);
+            string startingPath = ApplicationEnvironment.ApplicationBasePath;
+            var pathItems = startingPath.Split(Path.DirectorySeparatorChar);
+            var pos = pathItems.Reverse().ToList().FindIndex(x => string.Equals("bin", x));
+            string projectPath = String.Join(Path.DirectorySeparatorChar.ToString(), pathItems.Take(pathItems.Length - pos - 1));
+            string previousBaselineModelPath = Path.Combine(projectPath, 
+                "test/Microsoft.ML.Predictor.Tests/PreviousBaselineModel", "LightGBM-Train-breast-cancer-model.zip");
+            Run_Test(TestLearners.LightGBMClassifier, TestDatasets.breastCancerPipeWithoutMamlExtraSettings, previousBaselineModelPath);
             Done();
         }
 
