@@ -233,11 +233,23 @@ namespace Microsoft.ML.Transforms.Text
 
             private void SaveAsOnnxCore(OnnxContext ctx, string srcVariableName, string dstVariableName)
             {
-                var opType = "StringNormalizer";
-                var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType), "");
+                // StringNormalizer only takes input of shapes [C] or [1,C],
+                // so the input is squeezed to support inferred shapes ( e.g. [-1,C] ).
+                var opType = "Squeeze";
+                var squeezeOutput = ctx.AddIntermediateVariable(null, "SqueezeOutput", true);
+                var node = ctx.CreateNode(opType, srcVariableName, squeezeOutput, ctx.GetNodeName(opType), "");
+                node.AddAttribute("axes", new long[] { 0 });
+
+                opType = "StringNormalizer";
+                var normalizerOutput = ctx.AddIntermediateVariable(null, "NormalizerOutput", true);
+                node = ctx.CreateNode(opType, squeezeOutput, normalizerOutput, ctx.GetNodeName(opType), "");
                 var isCaseChange = (_parent._caseMode == TextNormalizingEstimator.CaseMode.Lower) ? "LOWER" :
                     (_parent._caseMode == TextNormalizingEstimator.CaseMode.Upper) ? "UPPER" : "NONE";
                 node.AddAttribute("case_change_action", isCaseChange);
+
+                opType = "Unsqueeze";
+                node = ctx.CreateNode(opType, normalizerOutput, dstVariableName, ctx.GetNodeName(opType), "");
+                node.AddAttribute("axes", new long[] { 0 });
             }
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
