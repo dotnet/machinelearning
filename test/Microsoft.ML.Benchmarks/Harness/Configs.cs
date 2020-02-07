@@ -14,7 +14,7 @@ namespace Microsoft.ML.Benchmarks
 {
     public class RecommendedConfig : ManualConfig
     {
-        protected static readonly IReadOnlyList<MsBuildArgument> msbuildArguments = new List<MsBuildArgument>() { new MsBuildArgument($"/p:Configuration={GetBuildConfigurationName()}") };
+        protected static readonly IReadOnlyList<MsBuildArgument> msbuildArguments = new List<MsBuildArgument>() { new MsBuildArgument($"/p:Configuration={GetBuildConfigurationName()}"), new MsBuildArgument($"/p:TargetFramework={GetBuildTargetFramework()}") };
 
         public RecommendedConfig()
         {
@@ -54,12 +54,17 @@ namespace Microsoft.ML.Benchmarks
 
         private static string GetBuildConfigurationName()
         {
-#if NETCOREAPP3_0
-            return "Release-netcoreapp3_0";
-#elif NET461
-            return "Release-netfx";
-#else
             return "Release";
+        }
+
+        private static string GetBuildTargetFramework()
+        {
+#if NETCOREAPP3_0
+            return "netcoreapp3.0";
+#elif NET461
+            return "net461";
+#else
+            return "netcoreapp2.1";
 #endif
         }
     }

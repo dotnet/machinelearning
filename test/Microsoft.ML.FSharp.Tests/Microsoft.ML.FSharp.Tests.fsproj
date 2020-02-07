@@ -1,6 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFrameworks>netcoreapp2.1;netcoreapp3.0;net461</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <NoWarn>2003;$(NoWarn)</NoWarn>
     <PublicSign>false</PublicSign>
     <SourceLink></SourceLink>

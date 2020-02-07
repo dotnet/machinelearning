@@ -1,6 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFrameworks>netcoreapp2.1;netcoreapp3.0;net461</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <!-- Workaround https://github.com/microsoft/msbuild/issues/4695. Remove when it is fixed in the SDK-->
     <EmbeddedResourceUseDependentUponConvention>false</EmbeddedResourceUseDependentUponConvention>
   </PropertyGroup>

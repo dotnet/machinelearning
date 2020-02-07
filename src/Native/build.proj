@@ -59,12 +59,22 @@
           DependsOnTargets="GenerateVersionHeader">
 
     <PropertyGroup>
-      <BuildArgs>$(Configuration) $(TargetArchitecture) --mkllibpath $(PackagesDir)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native</BuildArgs>
+      <BuildArgsNetCoreApp21>$(Configuration) $(TargetArchitecture) --mkllibpath $(PackagesDir)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native</BuildArgsNetCoreApp21>
+      <BuildArgsNetCoreApp30>$(Configuration)-netcoreapp3_0 $(TargetArchitecture) --mkllibpath $(PackagesDir)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native</BuildArgsNetCoreApp30>
+      <BuildArgsNet461>$(Configuration)-netfx $(TargetArchitecture) --mkllibpath $(PackagesDir)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native</BuildArgsNet461>
     </PropertyGroup>
 
     <!-- Run script that invokes Cmake to create VS files, and then calls msbuild to compile them -->
-    <Message Text="$(MSBuildProjectDirectory)\build.cmd $(BuildArgs)" Importance="High"/>
-    <Exec Command="&quot;$(MSBuildProjectDirectory)\build.cmd&quot; $(BuildArgs)" />
+    <Message Text="$(MSBuildProjectDirectory)\build.cmd $(BuildArgsNetCoreApp21)" Importance="High"/>
+    <Exec Command="&quot;$(MSBuildProjectDirectory)\build.cmd&quot; $(BuildArgsNetCoreApp21)" />
+
+    <!-- Run script that invokes Cmake to create VS files, and then calls msbuild to compile them -->
+    <Message Text="$(MSBuildProjectDirectory)\build.cmd $(BuildArgsNetCoreApp30)" Importance="High"/>
+    <Exec Command="&quot;$(MSBuildProjectDirectory)\build.cmd&quot; $(BuildArgsNetCoreApp30)" />
+
+    <!-- Run script that invokes Cmake to create VS files, and then calls msbuild to compile them -->
+    <Message Text="$(MSBuildProjectDirectory)\build.cmd $(BuildArgsNet461)" Importance="High"/>
+    <Exec Command="&quot;$(MSBuildProjectDirectory)\build.cmd&quot; $(BuildArgsNet461)" />
 
   </Target>
 

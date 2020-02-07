@@ -1,6 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFrameworks>netcoreapp2.1;netcoreapp3.0;net461</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <!-- DON'T CHANGE THIS!!! We are turning off strong naming to ensure we never add `InternalsVisibleTo` for these tests -->
     <SignAssembly>false</SignAssembly>
     <!-- DON'T CHANGE THIS!!! We are turning off strong naming to ensure we never add `InternalsVisibleTo` for these tests -->
@@ -19,7 +23,6 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.SamplesUtils\Microsoft.ML.SamplesUtils.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.PCA\Microsoft.ML.PCA.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.ML.KMeansClustering\Microsoft.ML.KMeansClustering.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Recommender\Microsoft.ML.Recommender.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.StandardTrainers\Microsoft.ML.StandardTrainers.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.OnnxConverter\Microsoft.ML.OnnxConverter.csproj" />
