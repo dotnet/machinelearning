@@ -1205,7 +1205,7 @@ namespace Microsoft.ML.Tests
 
         [Theory]
         [CombinatorialData]
-        public void NgramOnnxConnversionTest(
+        public void NgramOnnxConversionTest(
             [CombinatorialValues(1, 2, 3)] int ngramLength,
             bool useAllLength,
             NgramExtractingEstimator.WeightingCriteria weighting)
@@ -1231,6 +1231,12 @@ namespace Microsoft.ML.Tests
                                             useAllLengths: useAllLength,
                                             weighting: weighting)),
 
+                mlContext.Transforms.Text.TokenizeIntoCharactersAsKeys("Tokens", "Text")
+                .Append(mlContext.Transforms.Text.ProduceNgrams("NGrams", "Tokens",
+                            ngramLength: ngramLength,
+                            useAllLengths: useAllLength,
+                            weighting: weighting)),
+
                 mlContext.Transforms.Text.ProduceWordBags("Tokens", "Text",
                                         ngramLength: ngramLength,
                                         useAllLengths: useAllLength,
@@ -1255,10 +1261,9 @@ namespace Microsoft.ML.Tests
                     var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxFilePath);
                     var onnxTransformer = onnxEstimator.Fit(dataView);
                     var onnxResult = onnxTransformer.Transform(dataView);
-                    CompareSelectedR4VectorColumns(transformedData.Schema[3].Name, outputNames[outputNames.Length-1], transformedData, onnxResult, 3);
+                    CompareSelectedR4VectorColumns(transformedData.Schema[transformedData.Schema.Count-1].Name, outputNames[outputNames.Length-1], transformedData, onnxResult, 3); //comparing Ngrams
                 }
             }
-
             Done();
         }
 

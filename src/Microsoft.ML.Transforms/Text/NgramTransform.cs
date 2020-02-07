@@ -768,7 +768,7 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            private void SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName )
+            private void SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
             {
                 VBuffer<ReadOnlyMemory<char>> slotNames = default;
                 GetSlotNames(iinfo, 0, ref slotNames);
@@ -777,13 +777,15 @@ namespace Microsoft.ML.Transforms.Text
 
                 // TfIdfVectorizer accepts strings, int32 and int64 tensors.
                 // But in the ML.NET implementation of the NGramTransform, it only accepts keys as inputs
-                // That are the result of ValueToKeyMapping transformer, which outputs UInt32 values
-                // So, if it is UInt32 or UInt64, cast the output here to Int32/Int64
+                // That are the result of ValueToKeyMapping transformer, which outputs UInt32 values,
+                // Or TokenizingByCharacters, which outputs UInt16 values
+                // So, if it is UInt32, UInt64, or UInt16, cast the output here to Int32/Int64
                 string opType;
                 var vectorType = _srcTypes[iinfo] as VectorDataViewType;
 
                 if ((vectorType != null) &&
-                    ((vectorType.RawType == typeof(VBuffer<UInt32>)) || (vectorType.RawType == typeof(VBuffer<UInt64>))))
+                    ((vectorType.RawType == typeof(VBuffer<UInt32>)) || (vectorType.RawType == typeof(VBuffer<UInt64>)) ||
+                    (vectorType.RawType == typeof(VBuffer<UInt16>))))
                 {
                     var dataKind = _srcTypes[iinfo] == NumberDataViewType.UInt32 ? DataKind.Int32 : DataKind.Int64;
 
