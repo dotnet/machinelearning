@@ -126,6 +126,9 @@ namespace Microsoft.ML.RunTests
                 _normal ? "completed normally" : "aborted",
                 IsPassing ? "passed" : "failed");
 
+            if (!_normal)
+                Done();
+
             Contracts.AssertValue(LogWriter);
             LogWriter.Dispose();
             LogWriter = null;
