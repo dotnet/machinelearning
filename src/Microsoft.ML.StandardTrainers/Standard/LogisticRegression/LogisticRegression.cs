@@ -455,7 +455,7 @@ namespace Microsoft.ML.Trainers
             CurrentWeights.CopyTo(ref weights, 1, CurrentWeights.Length - 1);
             return new ParameterMixingCalibratedModelParameters<LinearBinaryModelParameters, PlattCalibrator>(Host,
                 new LinearBinaryModelParameters(Host, in weights, bias, _stats),
-                new PlattCalibrator(Host, -1, 0));
+                new PlattCalibrator(Host, 1, 0));
         }
 
         [TlcModule.EntryPoint(Name = "Trainers.LogisticRegressionBinaryClassifier",
