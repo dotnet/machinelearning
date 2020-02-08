@@ -29,37 +29,33 @@ namespace Microsoft.ML.Scenarios
 
     internal sealed class TensorFlowScenariosTestsFixture : IDisposable
     {
+        public static string tempFolder;
         public static string parentWorkspacePath;
         public static string assetsPath;
-        internal void CreateParentWorkspacePathForImageClassification()
+        internal static void CreateParentWorkspacePathForImageClassification()
         {
-            string assetsRelativePath = @"assets";
-            assetsPath = GetAbsolutePath(assetsRelativePath);
-            string workspacePath = Path.Combine(assetsPath, "cached");
+            tempFolder = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            assetsPath = Path.Combine(tempFolder, "assets");
+            parentWorkspacePath = Path.Combine(assetsPath, "cached");
             // Delete if the workspace path already exists
-            if (Directory.Exists(workspacePath))
+            if (Directory.Exists(parentWorkspacePath))
             {
-                Directory.Delete(workspacePath, true);
+                Directory.Delete(parentWorkspacePath, true);
             }
 
             // Create a new empty workspace path
-            Directory.CreateDirectory(workspacePath);
-            parentWorkspacePath = workspacePath;
+            Directory.CreateDirectory(parentWorkspacePath);
         }
 
-        public TensorFlowScenariosTestsFixture()
+        static TensorFlowScenariosTestsFixture()
         {
             CreateParentWorkspacePathForImageClassification();
         }
 
         public void Dispose()
         {
-            // clean up test data
+            Directory.Delete(tempFolder, true);
         }
-
-        public static string GetAbsolutePath(string relativePath) =>
-            Path.Combine(new FileInfo(typeof(
-                TensorFlowScenariosTestsFixture).Assembly.Location).Directory.FullName, relativePath);
     }
 
     [Collection("NoParallelization")]
@@ -1879,11 +1875,6 @@ namespace Microsoft.ML.Scenarios
             ZipFile.ExtractToDirectory(gzArchiveName, destFolder);
             File.Create(Path.Combine(destFolder, flag));
         }
-
-        public static string GetAbsolutePath(string relativePath) =>
-            Path.Combine(new FileInfo(typeof(
-                TensorFlowScenariosTests).Assembly.Location).Directory.FullName, relativePath);
-
 
         public class ImageData
         {
