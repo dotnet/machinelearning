@@ -393,7 +393,9 @@ namespace Microsoft.ML.Transforms.Onnx
                      typeof(UInt32),
                      typeof(UInt64),
                      typeof(ReadOnlyMemory<Char>),
-                     typeof(Boolean)
+                     typeof(Boolean),
+                     typeof(SByte),
+                     typeof(Byte)
                 };
         private static Dictionary<Type, InternalDataKind> _typeToKindMap=
             new Dictionary<Type, InternalDataKind>
@@ -408,6 +410,8 @@ namespace Microsoft.ML.Transforms.Onnx
                     { typeof(UInt64) , InternalDataKind.U8},
                     { typeof(String) , InternalDataKind.TX},
                     { typeof(Boolean) , InternalDataKind.BL},
+                    { typeof(SByte) , InternalDataKind.I1},
+                    { typeof(Byte) , InternalDataKind.U1},
                 };
 
         /// <summary>
