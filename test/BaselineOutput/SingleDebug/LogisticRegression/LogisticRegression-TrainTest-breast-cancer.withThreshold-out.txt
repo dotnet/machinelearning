@@ -12,27 +12,27 @@ Confusion table
           ||======================
 PREDICTED || positive | negative | Recall
 TRUTH     ||======================
- positive ||      198 |       41 | 0.8285
- negative ||        3 |      441 | 0.9932
+ positive ||        0 |      239 | 0.0000
+ negative ||      413 |       31 | 0.0698
           ||======================
-Precision ||   0.9851 |   0.9149 |
-OVERALL 0/1 ACCURACY: 0.935578
-LOG LOSS/instance:  0.111003
+Precision ||   0.0000 |   0.1148 |
+OVERALL 0/1 ACCURACY: 0.045388
+LOG LOSS/instance:  7.780130
 Test-set entropy (prior Log-Loss/instance): 0.934003
-LOG-LOSS REDUCTION (RIG): 0.881154
+LOG-LOSS REDUCTION (RIG): -7.329880
 AUC:                0.996136
 
 OVERALL RESULTS
 ---------------------------------------
 AUC:                0.996136 (0.0000)
-Accuracy:           0.935578 (0.0000)
-Positive precision: 0.985075 (0.0000)
-Positive recall:    0.828452 (0.0000)
-Negative precision: 0.914938 (0.0000)
-Negative recall:    0.993243 (0.0000)
-Log-loss:           0.111003 (0.0000)
-Log-loss reduction: 0.881154 (0.0000)
-F1 Score:           0.900000 (0.0000)
+Accuracy:           0.045388 (0.0000)
+Positive precision: 0.000000 (0.0000)
+Positive recall:    0.000000 (0.0000)
+Negative precision: 0.114815 (0.0000)
+Negative recall:    0.069820 (0.0000)
+Log-loss:           7.780130 (0.0000)
+Log-loss reduction: -7.329880 (0.0000)
+F1 Score:           0.000000 (0.0000)
 AUPRC:              0.991883 (0.0000)
 
 ---------------------------------------
