@@ -332,7 +332,7 @@ namespace Microsoft.ML.Transforms.Text
             // To each input column to the NgramHashExtractorArguments, a HashTransform using 31
             // bits (to minimize collisions) is applied first, followed by an NgramHashTransform.
 
-            var hashColumns = new List<HashingEstimator.ColumnOptionsInternal>();
+            var hashColumns = new List<HashingEstimator.ColumnOptions>();
             var ngramHashColumns = new NgramHashingEstimator.ColumnOptions[options.Columns.Length];
 
             var colCount = options.Columns.Length;
@@ -353,7 +353,7 @@ namespace Microsoft.ML.Transforms.Text
                     var tmpName = input.Schema.GetTempColumnName(column.Source[isrc]);
                     tmpColNames[iinfo][isrc] = tmpName;
 
-                    hashColumns.Add(new HashingEstimator.ColumnOptionsInternal(tmpName, column.Source[isrc],
+                    hashColumns.Add(new HashingEstimator.ColumnOptions(tmpName, column.Source[isrc],
                         30, column.Seed ?? options.Seed, false, column.MaximumNumberOfInverts ?? options.MaximumNumberOfInverts));
                 }
 
