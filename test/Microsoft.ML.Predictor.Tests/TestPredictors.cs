@@ -244,13 +244,16 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [X64Fact("x86 output differs from Baseline")]
+        //[X64Fact("x86 output differs from Baseline")]
+        [Theory]
+        [IterationData(iterations:300)]
         [TestCategory("Binary")]
         [TestCategory("SDCA")]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         [Trait("Category", "SkipInCI")]
-        public void LinearClassifierTest()
+        public void LinearClassifierTest(int iteration)
         {
+            Console.WriteLine($"{iteration} - th running...");
             var binaryPredictors = new[]
                 {
                     TestLearners.binarySdca,

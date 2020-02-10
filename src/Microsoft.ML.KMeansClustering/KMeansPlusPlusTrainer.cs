@@ -275,7 +275,7 @@ namespace Microsoft.ML.Trainers
         {
             // REVIEW: For small data sets it would be nice to clamp down on concurrency, it
             // isn't going to get us a performance improvement.
-            int maxThreads = Environment.ProcessorCount / 2;
+            int maxThreads = 1;// Environment.ProcessorCount / 2;
 
             // If we specified a number of threads that's fine, but it must be below maxThreads.
             if (argNumThreads.HasValue)
