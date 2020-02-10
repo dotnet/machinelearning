@@ -2086,7 +2086,7 @@ namespace Microsoft.ML.Calibrators
         public sealed class FixedPlattInput : CalibrateInputBase
         {
             [Argument(ArgumentType.AtMostOnce, ShortName = "slope", HelpText = "The slope parameter of the calibration function 1 / (1 + exp(-slope * x + offset)", SortOrder = 1)]
-            public Double Slope = 1;
+            public Double Slope = -1;
 
             [Argument(ArgumentType.AtMostOnce, ShortName = "offset", HelpText = "The offset parameter of the calibration function 1 / (1 + exp(-slope * x + offset)", SortOrder = 3)]
             public Double Offset = 0;
