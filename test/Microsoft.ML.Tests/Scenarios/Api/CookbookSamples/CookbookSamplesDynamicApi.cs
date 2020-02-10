@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
@@ -15,6 +16,7 @@ using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
+using static Microsoft.ML.Transforms.NormalizingTransformer;
 
 namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 {
@@ -67,6 +69,77 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
         public void InspectIntermediateDataGetColumn()
             => IntermediateData(GetDataPath("adult.tiny.with-schema.txt"));
 
+        private void InspectIntermediateTransformer()
+        {
+            // Create a new ML context, for ML.NET operations. It can be used for
+            // exception tracking and logging, as well as the source of randomness.
+            var mlContext = new MLContext();
+            var samples = new List<DataPoint>()
+            {
+                new DataPoint(){ Features = new float[4] { 8, 1, 3, 0},
+                    Label = true },
+
+                new DataPoint(){ Features = new float[4] { 6, 2, 2, 0},
+                    Label = true },
+
+                new DataPoint(){ Features = new float[4] { 4, 0, 1, 0},
+                    Label = false },
+
+                new DataPoint(){ Features = new float[4] { 2,-1,-1, 1},
+                    Label = false }
+
+            };
+            // Convert training data to IDataView, the general data type used in
+            // ML.NET.
+            var data = mlContext.Data.LoadFromEnumerable(samples);
+
+            // Create a pipeline to normalize the features and train a binary
+            // classifier. We use WithOnFitDelegate for the intermediate binning
+            // normalization step, so that we can inspect the properties of the
+            // normalizer after fitting.
+            NormalizingTransformer binningTransformer = null;
+            var pipeline =
+                mlContext.Transforms
+                .NormalizeBinning("Features", maximumBinCount: 3)
+                .WithOnFitDelegate(
+                fittedTransformer => binningTransformer = fittedTransformer)
+                .Append(mlContext.BinaryClassification.Trainers
+                .LbfgsLogisticRegression());
+
+            Console.WriteLine(binningTransformer == null);
+            // Expected Output:
+            //   True
+
+            var model = pipeline.Fit(data);
+
+            // During fitting binningTransformer will get assigned a new value
+            Console.WriteLine(binningTransformer == null);
+            // Expected Output:
+            //   False
+
+            // Inspect some of the properties of the binning transformer
+            var binningParam = binningTransformer.GetNormalizerModelParameters(0) as
+                BinNormalizerModelParameters<ImmutableArray<float>>;
+
+            for (int i = 0; i < binningParam.UpperBounds.Length; i++)
+            {
+                var upperBounds = string.Join(", ", binningParam.UpperBounds[i]);
+                Console.WriteLine(
+                    $"Bin {i}: Density = {binningParam.Density[i]}, " +
+                    $"Upper-bounds = {upperBounds}");
+
+            }
+            // Expected output:
+            //   Bin 0: Density = 2, Upper-bounds = 3, 7, Infinity
+            //   Bin 1: Density = 2, Upper-bounds = -0.5, 1.5, Infinity
+            //   Bin 2: Density = 2, Upper-bounds = 0, 2.5, Infinity
+            //   Bin 3: Density = 1, Upper-bounds = 0.5, Infinity
+        }
+
+        [Fact]
+        public void InspectIntermediateTransformerWithOnFitDelegate()
+            => InspectIntermediateTransformer();
+
         private void TrainRegression(string trainDataPath, string testDataPath, string modelPath)
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -75,7 +148,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Step one: read the data as an IDataView.
             // Read the file (remember though, loaders are lazy, so the actual reading will happen when the data is accessed).
-            var trainData = mlContext.Data.LoadFromTextFile<AdultData>(trainDataPath,
+            var trainData = mlContext.Data.LoadFromTextFile<RegressionData>(trainDataPath,
                 // Default separator is tab, but we need a semicolon.
                 separatorChar: ';'
 ,
@@ -111,7 +184,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var model = pipeline.Fit(trainData);
 
             // Read the test dataset.
-            var testData = mlContext.Data.LoadFromTextFile<AdultData>(testDataPath,
+            var testData = mlContext.Data.LoadFromTextFile<RegressionData>(testDataPath,
                 // Default separator is tab, but we need a semicolon.
                 separatorChar: ';'
 ,
@@ -457,15 +530,15 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 .Append(mlContext.Transforms.Text.NormalizeText("NormalizedMessage", "Message"))
 
                 // NLP pipeline 1: bag of words.
-                .Append(new WordBagEstimator(mlContext, "BagOfWords", "NormalizedMessage"))
+                .Append(mlContext.Transforms.Text.ProduceWordBags("BagOfWords", "NormalizedMessage"))
 
                 // NLP pipeline 2: bag of bigrams, using hashes instead of dictionary indices.
-                .Append(new WordHashBagEstimator(mlContext, "BagOfBigrams","NormalizedMessage", 
+                .Append(mlContext.Transforms.Text.ProduceHashedWordBags("BagOfBigrams","NormalizedMessage", 
                             ngramLength: 2, useAllLengths: false))
 
                 // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
                 .Append(mlContext.Transforms.Text.TokenizeIntoCharactersAsKeys("MessageChars", "Message"))
-                .Append(new NgramExtractingEstimator(mlContext, "BagOfTrichar", "MessageChars", 
+                .Append(mlContext.Transforms.Text.ProduceNgrams("BagOfTrichar", "MessageChars", 
                             ngramLength: 3, weighting: NgramExtractingEstimator.WeightingCriteria.TfIdf))
 
                 // NLP pipeline 4: word embeddings.
@@ -617,7 +690,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext(1);
 
             // Now read the file (remember though, loaders are lazy, so the actual reading will happen when the data is accessed).
-            var loader = mlContext.Data.LoadFromTextFile<AdultData>(dataPath,
+            var loader = mlContext.Data.LoadFromTextFile<RegressionData>(dataPath,
                 // Default separator is tab, but we need a comma.
                 separatorChar: ',');
         }
@@ -786,7 +859,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             public float Features { get; set; }
         }
 
-        private class AdultData
+        private class RegressionData
         {
             [LoadColumn(0, 10), ColumnName("FeatureVector")]
             public float Features { get; set; }
@@ -809,6 +882,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             public float HighwayDistance { get; set; }
             public float TaxRate { get; set; }
             public float TeacherRatio { get; set; }
+        }
+
+        private class DataPoint
+        {
+            [VectorType(4)]
+            public float[] Features { get; set; }
+            public bool Label { get; set; }
         }
     }
 }

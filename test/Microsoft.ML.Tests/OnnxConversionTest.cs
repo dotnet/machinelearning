@@ -922,6 +922,37 @@ namespace Microsoft.ML.Tests
         }
 
         [Theory]
+        [CombinatorialData]
+        public void TokenizingByCharactersOnnxConversionTest(bool useMarkerCharacters)
+        {
+            var mlContext = new MLContext(seed: 1);
+            var dataPath = GetDataPath("wikipedia-detox-250-line-test.tsv");
+            var dataView = ML.Data.LoadFromTextFile(dataPath, new[] {
+                new TextLoader.Column("label", DataKind.Boolean, 0),
+                new TextLoader.Column("text", DataKind.String, 1)
+            }, hasHeader: true);
+            var pipeline = new TokenizingByCharactersEstimator(mlContext, useMarkerCharacters: useMarkerCharacters, columns: new[] { ("TokenizedText", "text") });
+            var model = pipeline.Fit(dataView);
+            var transformedData = model.Transform(dataView);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+            // Compare model scores produced by ML.NET and ONNX's runtime. 
+            if (IsOnnxRuntimeSupported())
+            {
+                var onnxFileName = $"TokenizingByCharacters.onnx";
+                var onnxModelPath = GetOutputPath(onnxFileName);
+                SaveOnnxModel(onnxModel, onnxModelPath, null);
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(dataView);
+                var onnxResult = onnxTransformer.Transform(dataView);
+                CompareSelectedVectorColumns<UInt16>(transformedData.Schema[2].Name, outputNames[2], transformedData, onnxResult); //compare scores
+            }
+            Done();
+        }
+
+        [Theory]
         // These are the supported conversions
         // ML.NET does not allow any conversions between signed and unsigned numeric types
         // Onnx does not seem to support casting a string to any type
@@ -1092,8 +1123,10 @@ namespace Microsoft.ML.Tests
 
         [Theory]
         [InlineData(DataKind.Single)]
+        [InlineData(DataKind.Int64)]
+        [InlineData(DataKind.Double)]
         [InlineData(DataKind.String)]
-        public void ValueToKeyMappingOnnxConversionTest(DataKind valueType)
+        public void ValueToKeyandKeyToValueMappingOnnxConversionTest(DataKind valueType)
         {
             var mlContext = new MLContext(seed: 1);
             string filePath = GetDataPath("type-conversion.txt");
@@ -1104,7 +1137,8 @@ namespace Microsoft.ML.Tests
             };
             var dataView = mlContext.Data.LoadFromTextFile(filePath, columns);
 
-            var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Key", "Value");
+            var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Key", "Value").
+                Append(mlContext.Transforms.Conversion.MapKeyToValue("ValueOutput", "Key"));
             var model = pipeline.Fit(dataView);
             var mlnetResult = model.Transform(dataView);
 
@@ -1121,9 +1155,9 @@ namespace Microsoft.ML.Tests
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
 
-                CompareSelectedVectorColumns<UInt32>(model.ColumnPairs[0].outputColumnName, outputNames[1], mlnetResult, onnxResult);
+                CompareResults(mlnetResult.Schema[2].Name, outputNames[2], mlnetResult, onnxResult); //compare output values
+                CompareSelectedVectorColumns<UInt32>(mlnetResult.Schema[1].Name, outputNames[1], mlnetResult, onnxResult); //compare keys
             }
-
             Done();
         }
 
@@ -1171,7 +1205,7 @@ namespace Microsoft.ML.Tests
 
         [Theory]
         [CombinatorialData]
-        public void NgramOnnxConnversionTest(
+        public void NgramOnnxConversionTest(
             [CombinatorialValues(1, 2, 3)] int ngramLength,
             bool useAllLength,
             NgramExtractingEstimator.WeightingCriteria weighting)
@@ -1197,6 +1231,12 @@ namespace Microsoft.ML.Tests
                                             useAllLengths: useAllLength,
                                             weighting: weighting)),
 
+                mlContext.Transforms.Text.TokenizeIntoCharactersAsKeys("Tokens", "Text")
+                .Append(mlContext.Transforms.Text.ProduceNgrams("NGrams", "Tokens",
+                            ngramLength: ngramLength,
+                            useAllLengths: useAllLength,
+                            weighting: weighting)),
+
                 mlContext.Transforms.Text.ProduceWordBags("Tokens", "Text",
                                         ngramLength: ngramLength,
                                         useAllLengths: useAllLength,
@@ -1221,10 +1261,9 @@ namespace Microsoft.ML.Tests
                     var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxFilePath);
                     var onnxTransformer = onnxEstimator.Fit(dataView);
                     var onnxResult = onnxTransformer.Transform(dataView);
-                    CompareSelectedR4VectorColumns(transformedData.Schema[3].Name, outputNames[outputNames.Length-1], transformedData, onnxResult, 3);
+                    CompareSelectedR4VectorColumns(transformedData.Schema[transformedData.Schema.Count-1].Name, outputNames[outputNames.Length-1], transformedData, onnxResult, 3); //comparing Ngrams
                 }
             }
-
             Done();
         }
 
@@ -1553,6 +1592,8 @@ namespace Microsoft.ML.Tests
                 CompareSelectedR4VectorColumns(leftColumnName, rightColumnName, left, right);
             else if (leftType == NumberDataViewType.Double)
                 CompareSelectedVectorColumns<double>(leftColumnName, rightColumnName, left, right);
+            else if (leftType == TextDataViewType.Instance)
+                CompareSelectedVectorColumns<ReadOnlyMemory<char>>(leftColumnName, rightColumnName, left, right);
         }
 
         private void CompareSelectedVectorColumns<T>(string leftColumnName, string rightColumnName, IDataView left, IDataView right)

@@ -35,6 +35,11 @@
     <None Update="MLModel.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+<# if (IncludeOnnxModel){ #>
+    <None Update="bestModel.onnx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+<#}#>
   </ItemGroup>
   
 </Project>
@@ -44,6 +49,7 @@ public bool IncludeMklComponentsPackage {get;set;}
 public bool IncludeFastTreePackage {get;set;}
 public bool IncludeImageTransformerPackage {get; set;}
 public bool IncludeImageClassificationPackage {get; set;}
+public bool IncludeOnnxModel {get; set;}
 public bool IncludeRecommenderPackage {get;set;}
 public string StablePackageVersion {get;set;}
 public string UnstablePackageVersion {get;set;}

@@ -375,8 +375,13 @@ namespace Microsoft.ML.Model.OnnxConverter
                         dimsLocal.Add(vec.Dimensions[i]);
                 }
             }
-            //batch size.
-            dimsLocal?.Insert(0, 1);
+            // Set batch size to -1. The ONNX docs, https://github.com/onnx/onnx/blob/master/docs/IR.md#static-tensor-shapes, state that if
+            // dim_param is used instead of dim_value, that the size of the dimension "is not statically constrained to a particular number"
+            // "This is useful for declaring the interfaces that care about the number of dimensions, but not the exact size of each dimension"
+            // This file, https://github.com/onnx/onnx/blob/master/onnx/tools/update_model_dims.py, explains that if the dim value is negative
+            // than it treats that as a dim_param instead of a dim_value. This allows ML.NET to run 1 row at a time in a streaming fassion,
+            // but allows the ONNX model the flexiblity to be run in batch mode if that is desired.
+            dimsLocal?.Insert(0, -1);
 
             return new ModelArgs(name, dataType, dimsLocal, dimsParamLocal);
         }

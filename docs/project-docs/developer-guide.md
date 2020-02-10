@@ -66,3 +66,15 @@ One can build in Debug or Release mode from the root by doing `build.cmd -Releas
 
 We only support 64-bit binaries right now.
 
+### Updating manifest and ep-list files
+
+During development, there may arise a need to update the current baseline `core_manifest.json` and/or `core_ep-list.tsv` files. For example, a change in the name or type of a variable in a given class in the API that is not reflected in `core_manifest.json` will trigger the following failure:
+
+`*** Failure: Output and baseline mismatch at line 123 , expected ' ...x... ' but got ' ...y...' : '../Common/EntryPoints/core_manifest.json'`
+
+Steps to update `core_manifest.json` and `core_ep-list.tsv`:
+1. Unskip the `RegenerateEntryPointCatalog` unit test in `test/Microsoft.ML.Core.Tests/UnitTests/TestEntryPoints.cs`. This can be done by temporarily commenting out the skip attribute on the unit test for `RegenerateEntryPointCatalog` (`[Fact(Skip = "Execute this test if you want to regenerate the core_manifest and core_ep_list files")]`).
+2. Run the unit tests `build.cmd -runTests` (alternatively, run the `RegenerateEntryPointCatalog` unit test natively on Visual Studio through the Test Explorer or through Shortcuts by clicking on `RegenerateEntryPointCatalog` in `test/Microsoft.ML.Core.Tests/UnitTests/TestEntryPoints.cs` and pressing Ctrl+R,T).
+3. Verify the changes to `core_manifest.json` and `core_ep-list.tsv` are correct.
+4. Re-enable the skip attribute on the `RegenerateEntryPointCatalog` test.
+5. Commit the updated `core_manifest.json` and `core_ep-list.tsv` files to your branch.

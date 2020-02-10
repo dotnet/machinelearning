@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Text;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.TestFramework
+namespace Microsoft.ML.TestFrameworkCommon
 {
     public sealed class TestLogger : TextWriter
     {

@@ -53,13 +53,16 @@ namespace Microsoft.Extensions.ML
             _started = true;
         }
 
-        private async void ReloadTimerTick(object state)
+        private void ReloadTimerTick(object state)
         {
-            StopReloadTimer();
+            _ = Task.Run(async () =>
+            {
+                StopReloadTimer();
 
-            await RunAsync();
+                await RunAsync();
 
-            StartReloadTimer();
+                StartReloadTimer();
+            });
         }
 
         internal bool IsStopping => _stopping.IsCancellationRequested;

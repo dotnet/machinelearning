@@ -6,6 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Templates\Azure\ConsoleApp\**" />
+    <EmbeddedResource Remove="Templates\Azure\ConsoleApp\**" />
+    <None Remove="Templates\Azure\ConsoleApp\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="System.CodeDom" Version="$(SystemCodeDomPackageVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisCSharpVersion)" />
   </ItemGroup>
@@ -15,6 +21,30 @@
   </ItemGroup>
   
   <ItemGroup>
+    <None Update="Templates\Azure\Console\AzureModelBuilder.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>AzureModelBuilder.cs</LastGenOutput>
+    </None>
+    <None Update="Templates\Azure\Model\AzureAttachImageConsumeModel.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>AzureAttachImageConsumeModel.cs</LastGenOutput>
+    </None>
+    <None Update="Templates\Azure\Model\ImageLabelMapping.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>ImageLabelMapping.cs</LastGenOutput>
+    </None>
+    <None Update="Templates\Azure\Model\OnnxModelOutputClass.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>OnnxModelOutputClass.cs</LastGenOutput>
+    </None>
+    <None Update="Templates\Azure\Model\NormalizeMapping.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>NormalizeMapping.cs</LastGenOutput>
+    </None>
+    <None Update="Templates\Azure\Model\LabelMapping.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>LabelMapping.cs</LastGenOutput>
+    </None>
     <None Update="Templates\Console\Annotation.ttinclude">
     </None>
     <None Update="Templates\Console\ConsumeModel.tt">
@@ -52,6 +82,36 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Templates\Azure\Console\AzureModelBuilder.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AzureModelBuilder.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Azure\Model\AzureAttachImageConsumeModel.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AzureAttachImageConsumeModel.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Azure\Model\ImageLabelMapping.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ImageLabelMapping.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Azure\Model\OnnxModelOutputClass.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>OnnxModelOutputClass.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Azure\Model\NormalizeMapping.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>NormalizeMapping.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Azure\Model\LabelMapping.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LabelMapping.tt</DependentUpon>
+    </Compile>
     <Compile Update="Templates\Console\ConsumeModel.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -86,16 +146,6 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>PredictProject.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Templates\Templates\Console\ModelInputClass.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ModelInputClass.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Templates\Templates\Console\ModelOutputClass.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ModelOutputClass.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 </Project>

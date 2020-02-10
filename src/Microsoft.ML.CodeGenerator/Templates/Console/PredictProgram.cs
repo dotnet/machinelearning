@@ -55,7 +55,7 @@ if(string.IsNullOrEmpty(TestDataPath)){
             ModelInput sampleData = CreateSingleDataSample(DATA_FILEPATH);
 
 			// Make a single prediction on the sample data and print results
-			ModelOutput predictionResult = ConsumeModel.Predict(sampleData);
+			var predictionResult = ConsumeModel.Predict(sampleData);
 
 			Console.WriteLine(""Using model to make single prediction -- Comparing actual ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
@@ -69,7 +69,7 @@ foreach(var label in Features){
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(label)));
             this.Write("}\");\r\n");
 }
-if("BinaryClassification".Equals(TaskType)){ 
+if("BinaryClassification".Equals(TaskType) ){ 
             this.Write("\t\t\tConsole.WriteLine($\"\\n\\nActual ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(": {sampleData.");
@@ -95,7 +95,7 @@ if("BinaryClassification".Equals(TaskType)){
             this.Write(" value {predictionResult.Prediction} \\nPredicted ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(" scores: [{String.Join(\",\", predictionResult.Score)}]\\n\\n\");\r\n");
-}
+} 
             this.Write(@"            Console.WriteLine(""=============== End of process, hit any key to finish ==============="");
             Console.ReadKey();
         }
