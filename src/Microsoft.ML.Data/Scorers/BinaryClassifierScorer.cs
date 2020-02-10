@@ -198,29 +198,18 @@ namespace Microsoft.ML.Data
             for (int iinfo = 0; iinfo < Bindings.InfoCount; ++iinfo)
                 outColumnNames[iinfo] = Bindings.GetColumnName(Bindings.MapIinfoToCol(iinfo));
 
-            /* If the probability column was generated, then the classification threshold is set to 0.5. Otherwise,
-               the predicted label is based on the sign of the score.
-             */
             string opType = "Binarizer";
             OnnxNode node;
             var binarizerOutput = ctx.AddIntermediateVariable(null, "BinarizerOutput", true);
 
-            if (Bindings.InfoCount >= 3)
-            {
-                Host.Assert(ctx.ContainsColumn(outColumnNames[2]));
-                node = ctx.CreateNode(opType, ctx.GetVariableName(outColumnNames[2]), binarizerOutput, ctx.GetNodeName(opType));
-                node.AddAttribute("threshold", 0.5);
-            }
-            else
-            {
-                node = ctx.CreateNode(opType, ctx.GetVariableName(outColumnNames[1]), binarizerOutput, ctx.GetNodeName(opType));
-                node.AddAttribute("threshold", 0.0);
-            }
+            node = ctx.CreateNode(opType, ctx.GetVariableName(outColumnNames[1]), binarizerOutput, ctx.GetNodeName(opType));
+            node.AddAttribute("threshold", _threshold);
 
             opType = "Cast";
             node = ctx.CreateNode(opType, binarizerOutput, ctx.GetVariableName(outColumnNames[0]), ctx.GetNodeName(opType), "");
             var predictedLabelCol = OutputSchema.GetColumnOrNull(outColumnNames[0]);
-            node.AddAttribute("to", predictedLabelCol.HasValue ? predictedLabelCol.Value.Type.RawType : typeof(bool));
+            Host.Assert(predictedLabelCol.HasValue);
+            node.AddAttribute("to", predictedLabelCol.Value.Type.RawType);
         }
 
         private protected override IDataTransform ApplyToDataCore(IHostEnvironment env, IDataView newSource)
