@@ -117,6 +117,7 @@ namespace Microsoft.ML.AutoML.Test
     ""MinimumExampleCountPerLeaf"": 10,
     ""UseCategoricalSplit"": false,
     ""HandleMissingValue"": false,
+    ""UseZeroAsMissingValue"": false,
     ""MinimumExampleCountPerGroup"": 50,
     ""MaximumCategoricalSplitPointCount"": 16,
     ""CategoricalSmoothing"": 10,

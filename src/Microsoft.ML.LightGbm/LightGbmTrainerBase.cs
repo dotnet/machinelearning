@@ -55,7 +55,8 @@ namespace Microsoft.ML.Trainers.LightGbm
                {nameof(MaximumCategoricalSplitPointCount),    "max_cat_threshold" },
                {nameof(CategoricalSmoothing),                 "cat_smooth" },
                {nameof(L2CategoricalRegularization),          "cat_l2" },
-               {nameof(HandleMissingValue),                   "use_missing" }
+               {nameof(HandleMissingValue),                   "use_missing" },
+               {nameof(UseZeroAsMissingValue),                "zero_as_missing" }
             };
 
             private protected string GetOptionName(string name)
@@ -174,9 +175,16 @@ namespace Microsoft.ML.Trainers.LightGbm
             /// <summary>
             /// Whether to enable special handling of missing value or not.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Enable special handling of missing value or not.")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Enable special handling of missing value or not.", ShortName = "hmv")]
             [TlcModule.SweepableDiscreteParam("UseMissing", new object[] { true, false })]
             public bool HandleMissingValue = true;
+
+            /// <summary>
+            /// Whether to enable the usage of zero (0) as missing value.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Enable usage of zero (0) as missing value.", ShortName = "uzam")]
+            [TlcModule.SweepableDiscreteParam("UseZeroAsMissing", new object[] { true, false })]
+            public bool UseZeroAsMissingValue = false;
 
             /// <summary>
             /// The minimum number of data points per categorical group.
@@ -259,6 +267,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
                 res[GetOptionName(nameof(MaximumBinCountPerFeature))] = MaximumBinCountPerFeature;
                 res[GetOptionName(nameof(HandleMissingValue))] = HandleMissingValue;
+                res[GetOptionName(nameof(UseZeroAsMissingValue))] = UseZeroAsMissingValue;
                 res[GetOptionName(nameof(MinimumExampleCountPerGroup))] = MinimumExampleCountPerGroup;
                 res[GetOptionName(nameof(MaximumCategoricalSplitPointCount))] = MaximumCategoricalSplitPointCount;
                 res[GetOptionName(nameof(CategoricalSmoothing))] = CategoricalSmoothing;
@@ -436,7 +445,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
         private FloatLabelCursor.Factory CreateCursorFactory(RoleMappedData data)
         {
-            var loadFlags = CursOpt.AllLabels | CursOpt.Features;
+            var loadFlags = CursOpt.AllLabels | CursOpt.AllFeatures;
             if (PredictionKind == PredictionKind.Ranking)
                 loadFlags |= CursOpt.Group;
 

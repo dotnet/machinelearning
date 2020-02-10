@@ -95,6 +95,18 @@ namespace Microsoft.ML.TestFrameworkCommon
         };
 
         /// <summary>
+        /// Modified version of breastCancerPipe without mamlExtraSettings.
+        /// </summary>
+        public static TestDataset breastCancerPipeWithoutMamlExtraSettings = new TestDataset
+        {
+            name = "breast-cancer",
+            trainFilename = "breast-cancer.txt",
+            testFilename = "breast-cancer.txt",
+            // Using "col=Features:1-5,6,7-9" improves code coverage. Same with "col=Attr:TX:6".
+            loaderSettings = "loader=Text{sparse- col=Attr:TX:6 col=Label:0 col=Features:1-5,6,7-9}",
+        };
+
+        /// <summary>
         /// Fixes missing values.
         /// </summary>
         public static TestDataset breastCancerPipeMissing = new TestDataset

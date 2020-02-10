@@ -491,6 +491,28 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
+        /// <summary>
+        /// This test checks that the run-time behavior of LightGBM does not change by modifying the flags
+        /// used by LightGBM with <see cref="CursOpt.AllFeatures"/>, and that this change does not affect 
+        /// the features extracted during validation. This is done by checking that an older LightGbm model 
+        /// trained with <see cref="CursOpt.Features"/> produces the same baselines as it did before this change.
+        /// 
+        /// </summary>
+        [LightGBMFact]
+        [TestCategory("Binary")]
+        [TestCategory("LightGBM")]
+        public void LightGBMPreviousModelBaselineTest()
+        {
+            // The path of previously trained LightGBM model:
+            // "machinelearning/data/test/LightGBM-Train-breast-cancer-model.zip"
+            // The path of the expected baseline output:
+            // "machinelearning/test/BaselineOutput/Common/LightGBMBinary/LightGBM-Test-breast-cancer-out.txt"
+
+            string previousBaselineModelPath = GetDataPath("LightGBM-Train-breast-cancer-model.zip");
+            Run_Test(TestLearners.LightGBMClassifier, TestDatasets.breastCancerPipeWithoutMamlExtraSettings, previousBaselineModelPath);
+            Done();
+        }
+
         [LightGBMFact]
         [TestCategory("Binary"), TestCategory("LightGBM")]
         public void GossLightGBMTest()
