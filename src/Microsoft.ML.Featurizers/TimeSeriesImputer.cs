@@ -61,15 +61,7 @@ namespace Microsoft.ML.Featurizers
     }
 
     /// <summary>
-    /// Imputes missing rows and column data per grain, based on the dates in the date column. This operation needs to happen to every column in the IDataView,
-    /// If you "filter" a column using the filterColumns and filterMode parameters, if a row is imputed the default value for that type will be used.
-    /// Currently only float/double/string columns are supported for imputation strategies, and an empty string is considered "missing" for the
-    /// purpose of this estimator. A new column is added to the schema after this operation is run. The column is called "IsRowImputed" and is a
-    /// boolean value representing if the row was created as a result of this operation or not.
-    ///
-    /// NOTE: It is not recommended to chain this multiple times. If a column is filtered, the default value is placed when a row is imputed, and the
-    /// default value is not null. Thus any other TimeSeriesImputers will not be able to replace those values anymore causing essentially a very
-    /// computationally expensive NO-OP.
+    /// Imputes missing rows and column data per grain, based on the dates in the date column.
     ///
     /// </summary>
     /// <remarks>
@@ -92,9 +84,6 @@ namespace Microsoft.ML.Featurizers
     /// NOTE: It is not recommended to chain this multiple times. If a column is filtered, the default value is placed when a row is imputed, and the
     /// default value is not null. Thus any other TimeSeriesImputers will not be able to replace those values anymore causing essentially a very
     /// computationally expensive NO-OP.
-    ///
-    /// The <xref:Microsoft.ML.Transforms.TimeSeriesImputerEstimator> is not a trivial estimator and needs training.
-    ///
     ///
     /// ]]>
     /// </format>
@@ -152,7 +141,7 @@ namespace Microsoft.ML.Featurizers
         };
 
         /// <summary>
-        /// What the filter strategy used is.
+        /// Method by which columns are selected for imputing values.
         /// NoFilter takes all of the columns so you dont have to specify anything.
         /// Include only does the specified ImputationStrategy on the columns you specify. The other columns will get a default value.
         /// Exclude is the exact opposite of Include, and does the ImputationStrategy on all columns but the ones you specify, which will get the default value.
