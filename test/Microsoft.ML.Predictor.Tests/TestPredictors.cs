@@ -503,19 +503,17 @@ namespace Microsoft.ML.RunTests
         [TestCategory("LightGBM")]
         public void LightGBMPreviousModelBaselineTest()
         {
-            // The path of reviously trained LightGBM model:
-            // "machinelearning/test/Microsoft.ML.Predictor.Tests/PreviousBaselineModel/LightGBM-Train-breast-cancer-model.zip"
+            // The path of previously trained LightGBM model:
+            // "machinelearning/data/test/LightGBM-Train-breast-cancer-model.zip"
             // The path of the expected baseline output:
             // "machinelearning/test/BaselineOutput/Common/LightGBMBinary/LightGBM-Test-breast-cancer-out.txt"
-            string startingPath = AppContext.BaseDirectory;
-            var pathItems = startingPath.Split(Path.DirectorySeparatorChar);
-            var pos = pathItems.Reverse().ToList().FindIndex(x => string.Equals("bin", x));
-            string projectPath = String.Join(Path.DirectorySeparatorChar.ToString(), pathItems.Take(pathItems.Length - pos - 1));
-            string previousBaselineModelPath = Path.Combine(projectPath, 
-                "test", "Microsoft.ML.Predictor.Tests", "PreviousBaselineModel", "LightGBM-Train-breast-cancer-model.zip");
+
+            //If the build environment is NetFx, then the path of the files above will be slightly different.
+            string previousBaselineModelPath = GetDataPath("LightGBM-Train-breast-cancer-model.zip");
             Uri uri1 = new Uri(previousBaselineModelPath);
             Uri uri2 = new Uri(AppContext.BaseDirectory);
             Uri relativeUri = uri2.MakeRelativeUri(uri1);
+            
 
             Run_Test(TestLearners.LightGBMClassifier, TestDatasets.breastCancerPipeWithoutMamlExtraSettings, relativeUri.ToString());
             Done();
