@@ -131,7 +131,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         public abstract List<long> RetrieveShapeOrNull(string variableName);
 
         /// <summary>
-        /// Call this function to declare a global bool
+        /// Call this function to declare a global bool scalar
         /// </summary>
         /// <param name="value">The boolean value which is going to be added</param>
         /// <param name="name">A string used as a seed to generate this initializer's name in the ONNX graph.</param>
@@ -140,7 +140,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         public abstract string AddInitializer(bool value, string name = null, bool makeUniqueName = true);
 
         /// <summary>
-        /// Call this function to declare a global float
+        /// Call this function to declare a global float scalar
         /// </summary>
         /// <param name="value">The float number which is going to be added</param>
         /// <param name="name">A string used as a seed to generate this initializer's name in the ONNX graph.</param>
@@ -149,17 +149,17 @@ namespace Microsoft.ML.Model.OnnxConverter
         public abstract string AddInitializer(float value, string name = null, bool makeUniqueName = true);
 
         /// <summary>
-        /// Call this function to declare a global float
+        /// Call this function to declare a global integer scalar or smaller types
         /// </summary>
         /// <param name="value">The float number which is going to be added</param>
-        /// <param name="type">The type of integer to be added, e.g. typeof(short). Use this for all integer types smaller than Int32</param>
+        /// <param name="type">The type of integer to be added, e.g. typeof(short). Use this for all integer types Int32 and smaller</param>
         /// <param name="name">A string used as a seed to generate this initializer's name in the ONNX graph.</param>
         /// <param name="makeUniqueName">Whether a unique name should be picked for this initializer.</param>
         /// <returns>The initializer's ONNX name</returns>
         public abstract string AddInitializer(int value, Type type, string name = null, bool makeUniqueName = true);
 
         /// <summary>
-        /// Call this function to declare a global string
+        /// Call this function to declare a global string scalar
         /// </summary>
         /// <param name="value">The string which is going to be added into the ONNX graph</param>
         /// <param name="name">A string used as a seed to generate this initializer's name in the ONNX graph.</param>
@@ -168,7 +168,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         public abstract string AddInitializer(string value, string name = null, bool makeUniqueName = true);
 
         /// <summary>
-        /// Call this function to declare a global long
+        /// Call this function to declare a global long scalar
         /// </summary>
         /// <param name="value">The long number which is going to be added into the ONNX graph</param>
         /// <param name="name">A string used as a seed to generate this initializer's name in the ONNX graph.</param>
@@ -177,7 +177,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         public abstract string AddInitializer(long value, string name = null, bool makeUniqueName = true);
 
         /// <summary>
-        /// Call this function to declare a global double
+        /// Call this function to declare a global double scalar
         /// </summary>
         /// <param name="value">The double number which is going to be added into the ONNX graph</param>
         /// <param name="name">A string used as a seed to generate this initializer's name in the ONNX graph.</param>
@@ -186,7 +186,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         public abstract string AddInitializer(double value, string name = null, bool makeUniqueName = true);
 
         /// <summary>
-        /// Call this function to declare a global ulong or uint
+        /// Call this function to declare a global ulong or uint scalar
         /// </summary>
         /// <param name="value">The long number which is going to be added into the ONNX graph</param>
         /// <param name="isUint64">true if value contains a ulong value and false if it contains uint </param>
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         public abstract string AddInitializer(IEnumerable<float> values, IEnumerable<long> dims, string name = null, bool makeUniqueName = true);
 
         /// <summary>
-        /// Call this function to declare a global long tensor
+        /// Call this function to declare a global tensor of integer or smaller types
         /// </summary>
         /// <param name="values">The ints which are going to be added into the ONNX graph</param>
         /// <param name="type">The type of ints which are going to be added into the ONNX graph, e.g. typeof(short). Use this for adding array initializers of integer types smaller than Int32</param>
@@ -257,7 +257,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         public abstract string AddInitializer(IEnumerable<double> values, IEnumerable<long> dims, string name = null, bool makeUniqueName = true);
 
         /// <summary>
-        /// Call this function to declare a global double tensor
+        /// Call this function to declare a global ulong tensor
         /// </summary>
         /// <param name="values">The unsigned integers which are going to be added into the ONNX graph</param>
         /// <param name="isUint64">Set to true if values contain ulong values false if they contain uint values</param>
