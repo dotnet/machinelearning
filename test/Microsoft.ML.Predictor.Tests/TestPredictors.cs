@@ -508,14 +508,8 @@ namespace Microsoft.ML.RunTests
             // The path of the expected baseline output:
             // "machinelearning/test/BaselineOutput/Common/LightGBMBinary/LightGBM-Test-breast-cancer-out.txt"
 
-            //If the build environment is NetFx, then the path of the files above will be slightly different.
             string previousBaselineModelPath = GetDataPath("LightGBM-Train-breast-cancer-model.zip");
-            Uri uri1 = new Uri(previousBaselineModelPath);
-            Uri uri2 = new Uri(AppContext.BaseDirectory);
-            Uri relativeUri = uri2.MakeRelativeUri(uri1);
-            
-
-            Run_Test(TestLearners.LightGBMClassifier, TestDatasets.breastCancerPipeWithoutMamlExtraSettings, relativeUri.ToString());
+            Run_Test(TestLearners.LightGBMClassifier, TestDatasets.breastCancerPipeWithoutMamlExtraSettings, previousBaselineModelPath);
             Done();
         }
 
