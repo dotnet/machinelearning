@@ -249,6 +249,7 @@ namespace Microsoft.ML.RunTests
         [TestCategory("SDCA")]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         [Trait("Category", "RunSpecificTest")]
+        [IterationData]
         public void LinearClassifierTest(int iteration)
         {
             if (iteration > 100)
