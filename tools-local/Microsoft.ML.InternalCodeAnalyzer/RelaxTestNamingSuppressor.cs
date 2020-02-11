@@ -16,7 +16,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
         private const string SuppressedDiagnosticId = "VSTHRD200";
         private const string Justification = "Asynchronous test methods do not require the 'Async' suffix.";
 
-        private static readonly SuppressionDescriptor Rule =
+        internal static readonly SuppressionDescriptor Rule =
             new SuppressionDescriptor(Id, SuppressedDiagnosticId, Justification);
 
         public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions { get; } = ImmutableArray.Create(Rule);
