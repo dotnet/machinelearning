@@ -704,11 +704,8 @@ namespace Microsoft.ML.Tests
                 separatorChar: '\t',
                 hasHeader: true);
 
-            var pipeline1 = mlContext.Transforms.Conversion.MapValueToKey("Label");
-
-            var data1 = pipeline1.Fit(data).Transform(data);
-
             var pipeline = mlContext.Transforms.NormalizeMinMax("Features").
+                Append(mlContext.Transforms.Conversion.MapValueToKey("Label")).
                 Append(mlContext.MulticlassClassification.Trainers.LbfgsMaximumEntropy(new LbfgsMaximumEntropyMulticlassTrainer.Options() { NumberOfThreads = 1 }));
 
             var model = pipeline.Fit(data);
