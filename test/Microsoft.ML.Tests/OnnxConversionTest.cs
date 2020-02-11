@@ -1505,8 +1505,9 @@ namespace Microsoft.ML.Tests
             var onnxResult = onnxEstimator.Fit(reloadedData).Transform(reloadedData);
 
             // Step 6: Compare results to an onnx model created using the mappedData IDataView
-            // Notice that this ONNX model would actually include the steps to do the ValueToKeyTransformer mapping
-            // And because of this, it can only be applied to reloadedData dataview, despite mappedData was used to create the model.
+            // Notice that this ONNX model would actually include the steps to do the ValueToKeyTransformer mapping,
+            // because mappedData actually includes the information to do the mapping, and so ONNX would that automatically.
+            // And because of this, it can only be applied to originalData dataview, despite mappedData was used to create the model.
             // If it's tried to apply this model to mappedData or reloadedData, it will throw an exception, since the ONNX model
             // will expect a Label input of type string (which only originalData provides).
             string onnxModelPath2 = GetOutputPath("onnxmodel2-kdvt-as-uint32.onnx");
