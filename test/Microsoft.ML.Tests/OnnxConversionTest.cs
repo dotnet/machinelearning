@@ -1475,7 +1475,8 @@ namespace Microsoft.ML.Tests
             var originalData = loader.Load(dataPath);
             var pipeline1 = mlContext.Transforms.Conversion.MapValueToKey("Label");
             var mappedData = pipeline1.Fit(originalData).Transform(originalData);
-            string mappedDataPath = @"C:\Users\anvelazq\Desktop\is22\data-new.idv";
+
+            string mappedDataPath = GetOutputPath("kdvt-as-uint32-mapped-data.idv");
             using (FileStream stream = new FileStream(mappedDataPath, FileMode.Create))
                 mlContext.Data.SaveAsBinary(mappedData, stream, keepHidden: false);
 
