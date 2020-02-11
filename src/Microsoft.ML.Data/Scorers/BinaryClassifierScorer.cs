@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
@@ -202,7 +203,15 @@ namespace Microsoft.ML.Data
             OnnxNode node;
             var binarizerOutput = ctx.AddIntermediateVariable(null, "BinarizerOutput", true);
 
-            node = ctx.CreateNode(opType, ctx.GetVariableName(outColumnNames[1]), binarizerOutput, ctx.GetNodeName(opType));
+            string scoreColumn;
+            if (Bindings.RowMapper.OutputSchema[Bindings.ScoreColumnIndex].Name == "Score")
+                scoreColumn = outColumnNames[1];
+            else
+            {
+                Host.Assert(Bindings.InfoCount >= 3);
+                scoreColumn = outColumnNames[2];
+            }
+            node = ctx.CreateNode(opType, ctx.GetVariableName(scoreColumn), binarizerOutput, ctx.GetNodeName(opType));
             node.AddAttribute("threshold", _threshold);
 
             opType = "Cast";
