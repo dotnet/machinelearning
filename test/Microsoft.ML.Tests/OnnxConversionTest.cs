@@ -711,12 +711,12 @@ namespace Microsoft.ML.Tests
             var pipeline = mlContext.Transforms.NormalizeMinMax("Features").
                 Append(mlContext.MulticlassClassification.Trainers.LbfgsMaximumEntropy(new LbfgsMaximumEntropyMulticlassTrainer.Options() { NumberOfThreads = 1 }));
 
-            var model = pipeline.Fit(data1);
-            var transformedData = model.Transform(data1);
-            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data1);
+            var model = pipeline.Fit(data);
+            var transformedData = model.Transform(data);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
 
             var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "MultiClassClassification", "BreastCancer");
-            var onnxFileName = "MultiClassificationLogisticRegressionSaveModelToOnnxTest-WithoutMVTK.onnx";
+            var onnxFileName = "MultiClassificationLogisticRegressionSaveModelToOnnxTest.onnx";
             var onnxFilePath = GetOutputPath(subDir, onnxFileName);
             var onnxTextName = "MultiClassificationLogisticRegressionSaveModelToOnnxTest.txt";
             var onnxTextPath = GetOutputPath(subDir, onnxTextName);
@@ -1526,7 +1526,7 @@ namespace Microsoft.ML.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            string dataPath = GetDataPath("breast -cancer.txt");
+            string dataPath = GetDataPath("breast-cancer.txt");
 
             var dataView = ML.Data.LoadFromTextFile(dataPath, new[] {
                 new TextLoader.Column("ScalarFloat", DataKind.Single, 6),
