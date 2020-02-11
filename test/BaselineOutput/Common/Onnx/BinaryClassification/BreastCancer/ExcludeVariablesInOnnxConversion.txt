@@ -413,7 +413,7 @@
       },
       {
         "input": [
-          "Probability"
+          "Score"
         ],
         "output": [
           "BinarizerOutput"
@@ -423,7 +423,6 @@
         "attribute": [
           {
             "name": "threshold",
-            "f": 0.5,
             "type": "FLOAT"
           }
         ],
