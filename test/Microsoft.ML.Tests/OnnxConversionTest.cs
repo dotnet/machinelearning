@@ -476,9 +476,9 @@ namespace Microsoft.ML.Tests
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
-                CompareSelectedScalarColumns<ReadOnlyMemory<char>>(transformedData.Schema[2].Name, outputNames[2], transformedData, onnxResult); //compare NormText
-                CompareSelectedScalarColumns<ReadOnlyMemory<char>>(transformedData.Schema[3].Name, outputNames[3], transformedData, onnxResult); //compare UpperText
-                CompareSelectedScalarColumns<ReadOnlyMemory<char>>(transformedData.Schema[4].Name, outputNames[4], transformedData, onnxResult); //compare OriginalText
+                CompareSelectedColumns<ReadOnlyMemory<char>>(transformedData.Schema[2].Name, outputNames[2], transformedData, onnxResult); //compare NormText
+                CompareSelectedColumns<ReadOnlyMemory<char>>(transformedData.Schema[3].Name, outputNames[3], transformedData, onnxResult); //compare UpperText
+                CompareSelectedColumns<ReadOnlyMemory<char>>(transformedData.Schema[4].Name, outputNames[4], transformedData, onnxResult); //compare OriginalText
             }
             Done();
         }
