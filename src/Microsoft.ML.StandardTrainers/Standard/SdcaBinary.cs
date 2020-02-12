@@ -401,6 +401,7 @@ namespace Microsoft.ML.Trainers
 
                 if ((long)idLoMax + 1 < data.Data.GetRowCount())
                 {
+                    Console.WriteLine($"SdcaBinary error with row count {data.Data.GetRowCount()} and max id {idLoMax + 1}");
                     Environment.FailFast("Fail here to take memory dump");
                 }
 
