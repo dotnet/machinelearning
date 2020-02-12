@@ -389,7 +389,14 @@ namespace Microsoft.ML.Transforms.Onnx
                         throw Host.Except($"Variable length input columns not supported");
 
                     if (type.GetItemType() != inputNodeInfo.DataViewType.GetItemType())
-                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Inputs[i], inputNodeInfo.DataViewType.GetItemType().ToString(), type.ToString());
+                    {
+                        // If the ONNX model input node expects a type that mismatches with the type of the input IDataView column that is provided
+                        // then throw an exception.
+                        // This is done except in the case where the ONNX model input node expects a UInt32 but the input column is actually KeyDataViewType
+                        // This is done to support a corner case originated in NimbusML. For more info, see: https://github.com/microsoft/NimbusML/issues/426
+                        if (!(type.GetItemType() is KeyDataViewType && inputNodeInfo.DataViewType.GetItemType().RawType == typeof(UInt32)))
+                            throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Inputs[i], inputNodeInfo.DataViewType.GetItemType().ToString(), type.ToString());
+                    }
 
                     // If the column is one dimension we make sure that the total size of the Onnx shape matches.
                     // Compute the total size of the known dimensions of the shape.
