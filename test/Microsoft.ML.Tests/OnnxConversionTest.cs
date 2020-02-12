@@ -465,7 +465,8 @@ namespace Microsoft.ML.Tests
             var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
 
             // Compare model scores produced by ML.NET and ONNX's runtime.
-            if (IsOnnxRuntimeSupported())
+            // Skipping test in Linux platforms temporarily
+            if (IsOnnxRuntimeSupported() && !RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 var onnxFileName = $"TextNormalizing.onnx";
                 var onnxModelPath = GetOutputPath(onnxFileName);
