@@ -1500,24 +1500,29 @@ namespace Microsoft.ML.Tests
             string[] inputNames = onnxProtoBufModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
             string[] outputNames = onnxProtoBufModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
 
-            // Step 5: Apply Onnx Model
-            var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
-            var onnxResult = onnxEstimator.Fit(reloadedData).Transform(reloadedData);
+            if (IsOnnxRuntimeSupported())
+            {
+                // Step 5: Apply Onnx Model
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxResult = onnxEstimator.Fit(reloadedData).Transform(reloadedData);
 
-            // Step 6: Compare results to an onnx model created using the mappedData IDataView
-            // Notice that this ONNX model would actually include the steps to do the ValueToKeyTransformer mapping,
-            // because mappedData actually includes the information to do the mapping, and so ONNX would that automatically.
-            // And because of this, it can only be applied to originalData dataview, despite mappedData was used to create the model.
-            // If it's tried to apply this model to mappedData or reloadedData, it will throw an exception, since the ONNX model
-            // will expect a Label input of type string (which only originalData provides).
-            string onnxModelPath2 = GetOutputPath("onnxmodel2-kdvt-as-uint32.onnx");
-            using (FileStream stream = new FileStream(onnxModelPath2, FileMode.Create))
-                mlContext.Model.ConvertToOnnx(model, mappedData, stream);
-            var onnxEstimator2 = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath2);
-            var onnxResult2 = onnxEstimator2.Fit(originalData).Transform(originalData);
+                // Step 6: Compare results to an onnx model created using the mappedData IDataView
+                // Notice that this ONNX model would actually include the steps to do the ValueToKeyTransformer mapping,
+                // because mappedData actually includes the information to do the mapping, and so ONNX would that automatically.
+                // And because of this, it can only be applied to originalData dataview, despite mappedData was used to create the model.
+                // If it's tried to apply this model to mappedData or reloadedData, it will throw an exception, since the ONNX model
+                // will expect a Label input of type string (which only originalData provides).
+                string onnxModelPath2 = GetOutputPath("onnxmodel2-kdvt-as-uint32.onnx");
+                using (FileStream stream = new FileStream(onnxModelPath2, FileMode.Create))
+                    mlContext.Model.ConvertToOnnx(model, mappedData, stream);
+                var onnxEstimator2 = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath2);
+                var onnxResult2 = onnxEstimator2.Fit(originalData).Transform(originalData);
 
-            foreach (var name in outputNames)
-                CompareResults(name, name, onnxResult, onnxResult2);
+                foreach (var name in outputNames)
+                    CompareResults(name, name, onnxResult, onnxResult2);
+            }
+
+            Done();
         }
 
         [Fact]
