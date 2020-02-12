@@ -124,7 +124,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        private void HashTestCore<T>(T val, PrimitiveDataViewType type, uint expected, uint expectedOrdered, uint expectedOrdered3)
+        private void HashTestCore<T>(T val, PrimitiveDataViewType type, uint expected, uint expectedOrdered, uint expectedOrdered3, uint expectedCombined, uint expectedCombinedSparse)
         {
             const int bits = 10;
 
@@ -183,6 +183,12 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(expectedOrdered3, vecResult.GetItemOrDefault(3));
             Assert.All(vecResult.DenseValues(), v => Assert.True((v == 0) == (expectedOrdered == 0)));
 
+            // Now combine into one hash.
+            info = new HashingEstimator.ColumnOptions("Bar", "Foo", numberOfBits: bits, combine: true);
+            getter = hashGetter<uint>(info);
+            getter(ref result);
+            Assert.Equal(expectedCombined, result);
+
             // Let's now do a sparse vector.
             var sparseVec = new VBuffer<T>(10, 3, Utils.CreateArray(3, val), new[] { 0, 3, 7 });
             builder = new DataViewSchema.Annotations.Builder();
@@ -205,9 +211,14 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(10, vecResult.Length);
             Assert.Equal(expectedOrdered, vecResult.GetItemOrDefault(0));
             Assert.Equal(expectedOrdered3, vecResult.GetItemOrDefault(3));
+
+            info = new HashingEstimator.ColumnOptions("Bar", "Foo", numberOfBits: bits, combine: true);
+            getter = hashGetter<uint>(info);
+            getter(ref result);
+            Assert.Equal(expectedCombinedSparse, result);
         }
 
-        private void HashTestPositiveIntegerCore(ulong value, uint expected, uint expectedOrdered, uint expectedOrdered3)
+        private void HashTestPositiveIntegerCore(ulong value, uint expected, uint expectedOrdered, uint expectedOrdered3, uint expectedCombined, uint expectedCombinedSparse)
         {
             uint eKey = value == 0 ? 0 : expected;
             uint eoKey = value == 0 ? 0 : expectedOrdered;
@@ -215,34 +226,34 @@ namespace Microsoft.ML.Tests.Transformers
 
             if (value <= byte.MaxValue)
             {
-                HashTestCore((byte)value, NumberDataViewType.Byte, expected, expectedOrdered, expectedOrdered3);
-                HashTestCore((byte)value, new KeyDataViewType(typeof(byte), byte.MaxValue - 1), eKey, eoKey, e3Key);
+                HashTestCore((byte)value, NumberDataViewType.Byte, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
+                HashTestCore((byte)value, new KeyDataViewType(typeof(byte), byte.MaxValue - 1), eKey, eoKey, e3Key, expectedCombined, expectedCombinedSparse);
             }
             if (value <= ushort.MaxValue)
             {
-                HashTestCore((ushort)value, NumberDataViewType.UInt16, expected, expectedOrdered, expectedOrdered3);
-                HashTestCore((ushort)value, new KeyDataViewType(typeof(ushort), ushort.MaxValue - 1), eKey, eoKey, e3Key);
+                HashTestCore((ushort)value, NumberDataViewType.UInt16, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
+                HashTestCore((ushort)value, new KeyDataViewType(typeof(ushort),ushort.MaxValue - 1), eKey, eoKey, e3Key, expectedCombined, expectedCombinedSparse);
             }
             if (value <= uint.MaxValue)
             {
-                HashTestCore((uint)value, NumberDataViewType.UInt32, expected, expectedOrdered, expectedOrdered3);
-                HashTestCore((uint)value, new KeyDataViewType(typeof(uint), int.MaxValue - 1), eKey, eoKey, e3Key);
+                HashTestCore((uint)value, NumberDataViewType.UInt32, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
+                HashTestCore((uint)value, new KeyDataViewType(typeof(uint), int.MaxValue - 1), eKey, eoKey, e3Key, expectedCombined, expectedCombinedSparse);
             }
-            HashTestCore(value, NumberDataViewType.UInt64, expected, expectedOrdered, expectedOrdered3);
-            HashTestCore((ulong)value, new KeyDataViewType(typeof(ulong), int.MaxValue - 1), eKey, eoKey, e3Key);
+            HashTestCore(value, NumberDataViewType.UInt64, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
+            HashTestCore((ulong)value, new KeyDataViewType(typeof(ulong), int.MaxValue - 1), eKey, eoKey, e3Key, expectedCombined, expectedCombinedSparse);
 
-            HashTestCore(new DataViewRowId(value, 0), RowIdDataViewType.Instance, expected, expectedOrdered, expectedOrdered3);
+            HashTestCore(new DataViewRowId(value, 0), RowIdDataViewType.Instance, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
 
             // Next let's check signed numbers.
 
             if (value <= (ulong)sbyte.MaxValue)
-                HashTestCore((sbyte)value, NumberDataViewType.SByte, expected, expectedOrdered, expectedOrdered3);
+                HashTestCore((sbyte)value, NumberDataViewType.SByte, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
             if (value <= (ulong)short.MaxValue)
-                HashTestCore((short)value, NumberDataViewType.Int16, expected, expectedOrdered, expectedOrdered3);
+                HashTestCore((short)value, NumberDataViewType.Int16, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
             if (value <= int.MaxValue)
-                HashTestCore((int)value, NumberDataViewType.Int32, expected, expectedOrdered, expectedOrdered3);
+                HashTestCore((int)value, NumberDataViewType.Int32, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
             if (value <= long.MaxValue)
-                HashTestCore((long)value, NumberDataViewType.Int64, expected, expectedOrdered, expectedOrdered3);
+                HashTestCore((long)value, NumberDataViewType.Int64, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
         }
 
         [Fact]

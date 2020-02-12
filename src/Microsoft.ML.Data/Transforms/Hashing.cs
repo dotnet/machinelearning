@@ -54,6 +54,9 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.AtMostOnce, HelpText = "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
                 ShortName = "ih")]
             public int MaximumNumberOfInverts = HashingEstimator.Defaults.MaximumNumberOfInverts;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the slots of a vector column should be hashed into a single value.")]
+            public bool Combine = HashingEstimator.Defaults.Combine;
         }
 
         internal sealed class Column : OneToOneColumn
@@ -71,6 +74,9 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.AtMostOnce, HelpText = "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
                 ShortName = "ih")]
             public int? MaximumNumberOfInverts;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the slots of a vector column should be hashed into a single value.")]
+            public bool? Combine;
 
             internal static Column Parse(string str)
             {
@@ -103,7 +109,7 @@ namespace Microsoft.ML.Transforms
             internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
-                if (Seed != null || Ordered != null || MaximumNumberOfInverts != null)
+                if (Seed != null || Ordered != null || MaximumNumberOfInverts != null || Combine != null)
                     return false;
                 if (NumberOfBits == null)
                     return TryUnparseCore(sb);
@@ -155,7 +161,7 @@ namespace Microsoft.ML.Transforms
             inputSchema.TryGetColumnIndex(column.InputColumnName, out int srcCol);
             var itemType = new KeyDataViewType(typeof(uint), keyCount);
             var srcType = inputSchema[srcCol].Type;
-            if (srcType is VectorDataViewType vectorType)
+            if (srcType is VectorDataViewType vectorType && !column.Combine)
                 return new VectorDataViewType(itemType, vectorType.Size);
             else
                 return itemType;
@@ -169,18 +175,21 @@ namespace Microsoft.ML.Transforms
         internal HashingTransformer(IHostEnvironment env, params HashingEstimator.ColumnOptions[] columns) :
               base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
-            _columns = columns.ToArray();
+            _columns = columns;
             foreach (var column in _columns)
             {
                 if (column.MaximumNumberOfInverts != 0)
-                    throw Host.ExceptParam(nameof(columns), $"Found column with {nameof(column.MaximumNumberOfInverts)} set to non zero value, please use { nameof(HashingEstimator)} instead");
+                    throw Host.ExceptParam(nameof(columns), $"Found colunm with {nameof(column.MaximumNumberOfInverts)} set to non zero value, please use { nameof(HashingEstimator)} instead");
+
+                if (column.Combine && column.UseOrderedHashing)
+                    throw Host.ExceptParam(nameof(HashingEstimator.ColumnOptions.Combine), "When the 'Combine' option is specified, ordered hashing is not supported.");
             }
         }
 
         internal HashingTransformer(IHostEnvironment env, IDataView input, params HashingEstimator.ColumnOptions[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
-            _columns = columns.ToArray();
+            _columns = columns;
             var types = new DataViewType[_columns.Length];
             List<int> invertIinfos = null;
             List<int> invertHashMaxCounts = null;
@@ -193,6 +202,11 @@ namespace Microsoft.ML.Transforms
                 CheckInputColumn(input.Schema, i, srcCol.Value.Index);
 
                 types[i] = GetOutputType(input.Schema, _columns[i]);
+
+                // If Combine is specified, there are no invert hashes.
+                if (_columns[i].Combine)
+                    continue;
+
                 int invertHashMaxCount;
                 if (_columns[i].MaximumNumberOfInverts == -1)
                     invertHashMaxCount = int.MaxValue;
@@ -322,7 +336,6 @@ namespace Microsoft.ML.Transforms
             for (int i = 0; i < cols.Length; i++)
             {
                 var item = options.Columns[i];
-                var kind = item.MaximumNumberOfInverts ?? options.MaximumNumberOfInverts;
                 cols[i] = new HashingEstimator.ColumnOptions(
                     item.Name,
                     item.Source ?? item.Name,
@@ -555,45 +568,46 @@ namespace Microsoft.ML.Transforms
             var mask = (1U << _columns[iinfo].NumberOfBits) - 1;
             uint seed = _columns[iinfo].Seed;
 
+            Type rawType = srcType.ItemType.RawType;
             if (srcType.ItemType is KeyDataViewType)
             {
-                if (srcType.RawType == typeof(uint))
+                if (rawType == typeof(uint))
                     return MakeCombinedVectorHashGetter<uint, HashKey4>(input, srcCol, seed, mask);
-                else if (srcType.RawType == typeof(ulong))
+                else if (rawType == typeof(ulong))
                     return MakeCombinedVectorHashGetter<ulong, HashKey8>(input, srcCol, seed, mask);
-                else if (srcType.RawType == typeof(ushort))
+                else if (rawType == typeof(ushort))
                     return MakeCombinedVectorHashGetter<ushort, HashKey2>(input, srcCol, seed, mask);
 
-                Host.Assert(srcType.RawType == typeof(byte));
+                Host.Assert(rawType == typeof(byte));
                 return MakeCombinedVectorHashGetter<byte, HashKey1>(input, srcCol, seed, mask);
             }
 
-            if (srcType.RawType == typeof(ReadOnlyMemory<char>))
+            if (rawType == typeof(ReadOnlyMemory<char>))
                 return MakeCombinedVectorHashGetter<ReadOnlyMemory<char>, HashText>(input, srcCol, seed, mask);
-            else if (srcType.RawType == typeof(float))
+            else if (rawType == typeof(float))
                 return MakeCombinedVectorHashGetter<float, HashFloat>(input, srcCol, seed, mask);
-            else if (srcType.RawType == typeof(double))
+            else if (rawType == typeof(double))
                 return MakeCombinedVectorHashGetter<double, HashDouble>(input, srcCol, seed, mask);
-            else if (srcType.RawType == typeof(sbyte))
+            else if (rawType == typeof(sbyte))
                 return MakeCombinedVectorHashGetter<sbyte, HashI1>(input, srcCol, seed, mask);
-            else if (srcType.RawType == typeof(short))
+            else if (rawType == typeof(short))
                 return MakeCombinedVectorHashGetter<short, HashI2>(input, srcCol, seed, mask);
-            else if (srcType.RawType == typeof(int))
+            else if (rawType == typeof(int))
                 return MakeCombinedVectorHashGetter<int, HashI4>(input, srcCol, seed, mask);
-            else if (srcType.RawType == typeof(long))
+            else if (rawType == typeof(long))
                 return MakeCombinedVectorHashGetter<long, HashI8>(input, srcCol, seed, mask);
-            else if (srcType.RawType == typeof(byte))
+            else if (rawType == typeof(byte))
                 return MakeCombinedVectorHashGetter<byte, HashU1>(input, srcCol, seed, mask);
-            else if (srcType.RawType == typeof(ushort))
+            else if (rawType == typeof(ushort))
                 return MakeCombinedVectorHashGetter<ushort, HashU2>(input, srcCol, seed, mask);
-            else if (srcType.RawType == typeof(uint))
+            else if (rawType == typeof(uint))
                 return MakeCombinedVectorHashGetter<uint, HashU4>(input, srcCol, seed, mask);
-            else if (srcType.RawType == typeof(ulong))
+            else if (rawType == typeof(ulong))
                 return MakeCombinedVectorHashGetter<ulong, HashU8>(input, srcCol, seed, mask);
-            else if (srcType.RawType == typeof(DataViewRowId))
+            else if (rawType == typeof(DataViewRowId))
                 return MakeCombinedVectorHashGetter<DataViewRowId, HashU16>(input, srcCol, seed, mask);
 
-            Host.Assert(srcType.RawType == typeof(bool));
+            Host.Assert(rawType == typeof(bool));
             return MakeCombinedVectorHashGetter<bool, HashBool>(input, srcCol, seed, mask);
         }
 
@@ -634,7 +648,7 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
-                    hash = Hashing.MurmurRound(seed, FloatUtils.GetBits(value == 0 ? 0 : value));
+                    hash = Hashing.MurmurRound(hash, FloatUtils.GetBits(value == 0 ? 0 : value));
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
         }
@@ -668,7 +682,7 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
-                    hash = HashRound(seed, value);
+                    hash = HashRound(hash, value);
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
 
@@ -712,7 +726,7 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
-                    hash = Hashing.MurmurHash(seed, value.Span.Trim(' '));
+                    hash = Hashing.MurmurHash(hash, value.Span.Trim(' '));
                 return (hash & mask) + 1;
             }
         }
@@ -735,7 +749,7 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
-                    hash = Hashing.MurmurRound(seed, value);
+                    hash = Hashing.MurmurRound(hash, value);
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
         }
@@ -754,11 +768,11 @@ namespace Microsoft.ML.Transforms
                 => value == 0 ? 0 : (Hashing.MixHash(Hashing.MurmurRound(seed, value)) & mask) + 1;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public uint HashCore(uint seed, uint mask, in VBuffer<byte> values)
+            public uint HashCore(uint seed, uint mask, in VBuffer<ushort> values)
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
-                    hash = Hashing.MurmurRound(seed, value);
+                    hash = Hashing.MurmurRound(hash, value);
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
         }
@@ -781,7 +795,7 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
-                    hash = Hashing.MurmurRound(seed, value);
+                    hash = Hashing.MurmurRound(hash, value);
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
         }
@@ -812,7 +826,7 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
-                    hash = HashRound(seed, value);
+                    hash = HashRound(hash, value);
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
 
@@ -853,7 +867,7 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
-                    hash = Hashing.MurmurRound(seed, value);
+                    hash = Hashing.MurmurRound(hash, value);
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
         }
@@ -876,7 +890,7 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
-                    hash = Hashing.MurmurRound(seed, value);
+                    hash = Hashing.MurmurRound(hash, value);
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
         }
@@ -899,7 +913,7 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
-                    hash = Hashing.MurmurRound(seed, value);
+                    hash = Hashing.MurmurRound(hash, value);
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
         }
@@ -928,7 +942,7 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
-                    hash = HashRound(seed, value);
+                    hash = HashRound(hash, value);
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
 
@@ -980,7 +994,7 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
-                    hash = HashRound(seed, value);
+                    hash = HashRound(hash, value);
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
 
@@ -1033,7 +1047,7 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
-                    hash = Hashing.MurmurRound(seed, value ? 1u : 0u);
+                    hash = Hashing.MurmurRound(hash, value ? 1u : 0u);
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
         }
@@ -1056,7 +1070,7 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
-                    hash = Hashing.MurmurRound(seed, (uint)value);
+                    hash = Hashing.MurmurRound(hash, (uint)value);
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
         }
@@ -1079,7 +1093,7 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
-                    hash = Hashing.MurmurRound(seed, (uint)value);
+                    hash = Hashing.MurmurRound(hash, (uint)value);
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
         }
@@ -1102,7 +1116,7 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
-                    hash = Hashing.MurmurRound(seed, (uint)value);
+                    hash = Hashing.MurmurRound(hash, (uint)value);
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
         }
@@ -1131,7 +1145,7 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
-                    hash = HashRound(seed, value);
+                    hash = HashRound(hash, value);
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
 
@@ -1249,7 +1263,7 @@ namespace Microsoft.ML.Transforms
 
             // Determine whether this transformation is sparsity preserving, or not. It is sparsity preserving
             // if the default of T maps to the "missing" key value, that is, 0.
-            uint defaultHash = hasher.HashCore(seed, mask, default);
+            uint defaultHash = hasher.HashCore(seed, mask, default(T));
             if (defaultHash == 0)
             {
                 // It is sparsity preserving.
@@ -1300,7 +1314,7 @@ namespace Microsoft.ML.Transforms
                     {
                         uint indexSeed = Hashing.MurmurRound(seed, (uint)i);
                         if (srcIndices.Length <= j || srcIndices[j] > i)
-                            editor.Values[i] = hasher.HashCore(indexSeed, mask, default);
+                            editor.Values[i] = hasher.HashCore(indexSeed, mask, default(T));
                         else if (srcIndices[j] == i)
                             editor.Values[i] = hasher.HashCore(indexSeed, mask, srcValues[j++]);
                         else
@@ -1783,69 +1797,9 @@ namespace Microsoft.ML.Transforms
             public const bool Combine = false;
         }
 
-        ///// <summary>
-        ///// Initializes a new instance of the ColumnOptions class.
-        ///// </summary>
-        //public sealed class ColumnOptions
-        //{
-        //    /// <summary>
-        //    /// Name of the column resulting from the transformation of <see cref="InputColumnName"/>.
-        //    /// </summary>
-        //    public string Name { get; set; }
-
-        //    /// <summary> Name of column to transform.</summary>
-        //    public string InputColumnName { get; set; }
-
-        //    /// <summary> Number of bits to hash into. Must be between 1 and 31, inclusive.</summary>
-        //    public int NumberOfBits { get; set; }
-
-        //    /// <summary> Hashing seed.</summary>
-        //    public uint Seed { get; set; }
-
-        //    /// <summary> Whether the position of each term should be included in the hash, only applies to inputs of vector type.</summary>
-        //    public bool UseOrderedHashing { get; set; }
-
-        ///// <summary>
-        ///// During hashing we constuct mappings between original values and the produced hash values.
-        ///// Text representation of original values are stored in the slot names of the annotations for the new column.Hashing, as such, can map many initial values to one.
-        ///// <see cref="MaximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
-        ///// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.
-        ///// </summary>
-        //    public int MaximumNumberOfInverts { get; set; }
-
-        //    /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        //    /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
-        //    /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
-        //    /// <param name="seed">Hashing seed.</param>
-        //    /// <param name="useOrderedHashing">Whether the position of each term should be included in the hash, only applies to inputs of vector type.</param>
-        //    /// <param name="maximumNumberOfInverts">During hashing we construct mappings between original values and the produced hash values.
-        //    /// Text representation of original values are stored in the slot names of the annotations for the new column.Hashing, as such, can map many initial values to one.
-        //    /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
-        //    /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
-        //    public ColumnOptions(string name,
-        //        string inputColumnName = null,
-        //        int numberOfBits = Defaults.NumberOfBits,
-        //        uint seed = Defaults.Seed,
-        //        bool useOrderedHashing = Defaults.UseOrderedHashing,
-        //        int maximumNumberOfInverts = Defaults.MaximumNumberOfInverts)
-        //    {
-        //        Name = name;
-        //        InputColumnName = inputColumnName ?? name;
-        //        NumberOfBits = numberOfBits;
-        //        Seed = seed;
-        //        UseOrderedHashing = useOrderedHashing;
-        //        MaximumNumberOfInverts = maximumNumberOfInverts;
-        //    }
-
-        //    public ColumnOptions()
-        //    {
-        //    }
-        //}
-
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        //[BestFriend]
         public sealed class ColumnOptions
         {
             /// <summary>
@@ -1867,7 +1821,7 @@ namespace Microsoft.ML.Transforms
 
             /// <summary>
             /// During hashing we constuct mappings between original values and the produced hash values.
-            /// Text representation of original values are stored in the slot names of the annotations for the new column.Hashing, as such, can map many initial values to one.
+            /// Text representation of original values are stored in the key names of the annotations for the new column. Hashing, as such, can map many initial values to one.
             /// <see cref="MaximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
             /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.
             /// </summary>
@@ -1980,10 +1934,12 @@ namespace Microsoft.ML.Transforms
         /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         /// <param name="useOrderedHashing">Whether the position of each term should be included in the hash, only applies to inputs of vector type.</param>
+        /// <param name="combine">Whether the slots of a vector column should be hashed into a single value.</param>
         internal HashingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
-            int numberOfBits = Defaults.NumberOfBits, int maximumNumberOfInverts = Defaults.MaximumNumberOfInverts, bool useOrderedHashing = Defaults.UseOrderedHashing)
+            int numberOfBits = Defaults.NumberOfBits, int maximumNumberOfInverts = Defaults.MaximumNumberOfInverts,
+            bool useOrderedHashing = Defaults.UseOrderedHashing, bool combine = Defaults.Combine)
             : this(env, new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName,
-                numberOfBits: numberOfBits, useOrderedHashing: useOrderedHashing, maximumNumberOfInverts: maximumNumberOfInverts))
+                numberOfBits: numberOfBits, useOrderedHashing: useOrderedHashing, maximumNumberOfInverts: maximumNumberOfInverts, combine: combine))
         {
         }
 
@@ -1997,7 +1953,16 @@ namespace Microsoft.ML.Transforms
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(HashingEstimator));
-            _columns = columns.ToArray();
+            _columns = columns;
+
+            // Validate the options.
+            foreach (var columnOptions in _columns)
+            {
+                if (columnOptions.Combine && columnOptions.MaximumNumberOfInverts != 0)
+                    throw _host.ExceptParam(nameof(ColumnOptions.Combine), "When the 'Combine' option is specified, invert hashes are not supported.");
+                if (columnOptions.Combine && columnOptions.UseOrderedHashing)
+                    throw _host.ExceptParam(nameof(ColumnOptions.Combine), "When the 'Combine' option is specified, ordered hashing is not supported.");
+            }
         }
 
         /// <summary>
@@ -2020,11 +1985,12 @@ namespace Microsoft.ML.Transforms
                 if (!IsColumnTypeValid(col.ItemType))
                     throw _host.ExceptParam(nameof(inputSchema), ExpectedColumnType);
                 var metadata = new List<SchemaShape.Column>();
-                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotMeta))
+                if (!colInfo.Combine && col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);
                 if (colInfo.MaximumNumberOfInverts != 0)
                     metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
-                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, col.Kind, NumberDataViewType.UInt32, true, new SchemaShape(metadata));
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, colInfo.Combine ? SchemaShape.Column.VectorKind.Scalar : col.Kind,
+                    NumberDataViewType.UInt32, true, new SchemaShape(metadata));
             }
             return new SchemaShape(result.Values);
         }
