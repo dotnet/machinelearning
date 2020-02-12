@@ -2765,11 +2765,13 @@ namespace Microsoft.ML.RunTests
             TestEntryPointRoutine("iris.txt", "Trainers.StochasticDualCoordinateAscentClassifier");
         }
 
-        [Fact]
+        [Theory]
+        [IterationData(iterations: 300)]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         [Trait("Category", "SkipInCI")]
-        public void EntryPointSDCARegression()
+        public void EntryPointSDCARegression(int iteration)
         {
+            Console.WriteLine($"{iteration} - th running...");
             TestEntryPointRoutine(TestDatasets.generatedRegressionDatasetmacro.trainFilename, "Trainers.StochasticDualCoordinateAscentRegressor", loader: TestDatasets.generatedRegressionDatasetmacro.loaderSettings);
         }
 

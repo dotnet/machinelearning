@@ -684,20 +684,34 @@ namespace Microsoft.ML.Data
                 foreach (var w in _waiters)
                     w.Wait(pos);
 
-                var originalRowCount = _parent._rowCount;
-                var result = pos < originalRowCount || originalRowCount == -1;
+                var result = pos < _parent._rowCount || _parent._rowCount == -1;
 
-                if(!result)
+                if (!result)
                 {
                     var callStack = new StackTrace(true).ToString();
 
-                    if(callStack.Contains("LinearClassifierTest") &&
+                    if (callStack.Contains("LinearClassifierTest") &&
                        callStack.Contains("Run_CV"))
-                        Console.WriteLine($"WaitWaiter finish wait with pos: {pos}; original RowCont: " +
-                            $"{originalRowCount}; RowCount: {_parent._rowCount}");
+                        Console.WriteLine($"WaitWaiter finish wait with pos: {pos}; RowCount: {_parent._rowCount};" +
+                            $"result: {result} and latest result: {pos < _parent._rowCount || _parent._rowCount == -1}");
                 }
 
                 return result;
+
+                //var originalRowCount = _parent._rowCount;
+                //var result = pos < originalRowCount || originalRowCount == -1;
+
+                //if(!result)
+                //{
+                //    var callStack = new StackTrace(true).ToString();
+
+                //    if(callStack.Contains("LinearClassifierTest") &&
+                //       callStack.Contains("Run_CV"))
+                //        Console.WriteLine($"WaitWaiter finish wait with pos: {pos}; original RowCont: " +
+                //            $"{originalRowCount}; RowCount: {_parent._rowCount}");
+                //}
+
+                //return result;
             }
 
             public static Wrapper Create(CacheDataView parent, Func<int, bool> pred)
