@@ -1,7 +1,7 @@
 <Project InitialTargets="CheckForBuildTools">
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="16.4.45" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="16.5.132" PrivateAssets="all" />
   </ItemGroup>
 
   <Target Name="CheckForBuildTools">
