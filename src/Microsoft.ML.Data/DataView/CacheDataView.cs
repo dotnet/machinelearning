@@ -684,7 +684,7 @@ namespace Microsoft.ML.Data
                 foreach (var w in _waiters)
                     w.Wait(pos);
 
-                var result = pos < _parent._rowCount || _parent._rowCount == -1;
+                var result = _parent._rowCount == -1 || pos < _parent._rowCount;
 
                 if (!result)
                 {
