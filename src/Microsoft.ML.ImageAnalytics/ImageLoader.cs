@@ -105,7 +105,10 @@ namespace Microsoft.ML.Data
         {
             // Throws ArgumentException if given imageFolder path is invalid or empty. Note: imageFolder may be null in this case.
             if (imageFolder != null)
-                ImageFolder = Path.GetFullPath(imageFolder);
+                if (Directory.Exists(imageFolder))
+                    ImageFolder = Path.GetFullPath(imageFolder);
+                else
+                    throw Host.Except(String.Format("Directory \"{0}\" does not exist.", imageFolder));
             else
                 ImageFolder = null;
             _useImageType = type;
