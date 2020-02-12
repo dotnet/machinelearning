@@ -38,10 +38,12 @@ jobs:
     customMatrixes:
       Debug_Build:
         _configuration: Debug
+        _testFramework: netcoreapp3.0
         _config_short: DI
         _includeBenchmarkData: false
       Release_Build:
         _configuration: Release
+        _testFramework: netcoreapp3.0
         _config_short: RI
         _includeBenchmarkData: true
     pool:
@@ -69,10 +71,12 @@ jobs:
     customMatrixes:
       Debug_Build:
         _configuration: Debug
+        _testFramework: netcoreapp3.0
         _config_short: DI
         _includeBenchmarkData: false
       Release_Build:
         _configuration: Release
+        _testFramework: netcoreapp3.0
         _config_short: RI
         _includeBenchmarkData: true
     pool:
@@ -93,10 +97,12 @@ jobs:
     customMatrixes:
       Debug_Build:
         _configuration: Debug
+        _testFramework: net461
         _config_short: DFX
         _includeBenchmarkData: false
       Release_Build:
         _configuration: Release
+        _testFramework: net461
         _config_short: RFX
         _includeBenchmarkData: false
     pool:

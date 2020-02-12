@@ -17,7 +17,7 @@
     <Message Importance="High" Text="Running CI tests ..." />
     <MSBuild Targets="VSTest"
              Projects="@(Project)"
-             Properties="VSTestNoBuild=true;VSTestBlame=true;VSTestTestCaseFilter=Category!=SkipInCI" />
+             Properties="VSTestNoBuild=true;VSTestBlame=true;VSTestTestCaseFilter=Category!=SkipInCI;TargetFramework=$(_testFramework)" />
   </Target>
 
   <Target Name="RunSpecificTests">
