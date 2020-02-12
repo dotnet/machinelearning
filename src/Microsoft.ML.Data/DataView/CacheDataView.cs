@@ -682,7 +682,13 @@ namespace Microsoft.ML.Data
             {
                 foreach (var w in _waiters)
                     w.Wait(pos);
-                return pos < _parent._rowCount || _parent._rowCount == -1;
+
+                // Back ground thread is filling data view and change the _rowCount from -1 to real row count.
+                // Original is: return pos < _parent._rowCount || _parent._rowCount == -1;
+                // In some case the change to _rowCount happens
+                // after pos < _parent._rowCount finish but before _parent._rowCount == -1
+                // thus cause flakyness
+                return _parent._rowCount == -1 || pos < _parent._rowCount;
             }
 
             public static Wrapper Create(CacheDataView parent, Func<int, bool> pred)
