@@ -399,6 +399,11 @@ namespace Microsoft.ML.Trainers
                     count++;
                 }
 
+                if ((long)idLoMax + 1 < data.Data.GetRowCount())
+                {
+                    Environment.FailFast("Fail here to take memory dump");
+                }
+
                 Contracts.Assert(count <= maxTrainingExamples);
                 if (!needLookup)
                 {
