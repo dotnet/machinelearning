@@ -609,8 +609,9 @@ namespace Microsoft.ML.Data
 
             private TrivialWaiter(CacheDataView parent)
             {
-                Contracts.Assert(parent.GetRowCount().HasValue);
-                _lim = parent.GetRowCount().Value;
+                var rowCount = parent.GetRowCount();
+                Contracts.Assert(rowCount.HasValue);
+                _lim = rowCount.Value;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -686,7 +687,9 @@ namespace Microsoft.ML.Data
             {
                 foreach (var w in _waiters)
                     w.Wait(pos);
-                return !_parent.GetRowCount().HasValue || pos < _parent.GetRowCount().Value;
+
+                var rowCount = _parent.GetRowCount();
+                return !rowCount.HasValue || pos < rowCount.Value;
             }
 
             public static Wrapper Create(CacheDataView parent, Func<int, bool> pred)
@@ -1423,8 +1426,8 @@ namespace Microsoft.ML.Data
                     : base(parent, input, srcCol, waiter)
                 {
                     _getter = input.GetGetter<T>(input.Schema[srcCol]);
-                    if (parent.GetRowCount().HasValue)
-                        _values = new T[(int)parent.GetRowCount().Value];
+                    if (parent.GetRowCount() is { } rowCount)
+                        _values = new T[rowCount];
                 }
 
                 public override void CacheCurrent()
