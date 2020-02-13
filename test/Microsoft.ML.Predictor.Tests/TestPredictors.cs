@@ -247,8 +247,6 @@ namespace Microsoft.ML.RunTests
         [X64Fact("x86 output differs from Baseline")]
         [TestCategory("Binary")]
         [TestCategory("SDCA")]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void LinearClassifierTest()
         {
             var binaryPredictors = new[]
@@ -324,8 +322,6 @@ namespace Microsoft.ML.RunTests
         ///</summary>
         [LessThanNetCore30OrNotNetCoreAndX64Fact("netcoreapp3.0 and x86 output differs from Baseline")]
         [TestCategory("Binary")]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void BinaryClassifierLogisticRegressionNonNegativeTest()
         {
             var binaryPredictors = new[] { TestLearners.logisticRegressionNonNegative };
