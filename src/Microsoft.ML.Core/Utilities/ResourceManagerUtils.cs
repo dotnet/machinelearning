@@ -154,11 +154,11 @@ namespace Microsoft.ML.Internal.Utilities
                 var timeoutTask = Task.Delay(timeout).ContinueWith(task => default(Exception), TaskScheduler.Default);
                 ch.Info($"Downloading {fileName} from {url} to {filePath}");
                 var completedTask = await Task.WhenAny(t, timeoutTask);
-                if (completedTask != t || completedTask.Result != null)
+                if (completedTask != t || completedTask.CompletedResult() != null)
                 {
                     downloadCancel.Cancel();
                     deleteNeeded = true;
-                    return t.Result.Message;
+                    return (await t).Message;
                 }
 
                 return CheckValidDownload(ch, filePath, url, ref deleteNeeded);
