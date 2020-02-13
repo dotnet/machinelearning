@@ -197,9 +197,13 @@ namespace Microsoft.ML.Data
         /// </summary>
         public long? GetRowCount()
         {
-            if (_rowCount < 0)
+            // _rowCount may or may not be initialized at this point. Only read the value once
+            // to avoid race conditions.
+            long rowCount = _rowCount;
+
+            if (rowCount < 0)
                 return null;
-            return _rowCount;
+            return rowCount;
         }
 
         public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
@@ -605,8 +609,8 @@ namespace Microsoft.ML.Data
 
             private TrivialWaiter(CacheDataView parent)
             {
-                Contracts.Assert(parent._rowCount >= 0);
-                _lim = parent._rowCount;
+                Contracts.Assert(parent.GetRowCount().HasValue);
+                _lim = parent.GetRowCount().Value;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -669,7 +673,7 @@ namespace Microsoft.ML.Data
                         waiters.Add(waiter);
                 }
                 // Make the array of waiters.
-                if (_parent._rowCount < 0 && waiters.Count == 0)
+                if (!_parent.GetRowCount().HasValue && waiters.Count == 0)
                 {
                     Contracts.AssertValue(_parent._cacheDefaultWaiter);
                     waiters.Add(_parent._cacheDefaultWaiter);
@@ -682,11 +686,7 @@ namespace Microsoft.ML.Data
             {
                 foreach (var w in _waiters)
                     w.Wait(pos);
-
-                // _parent._rowCount may or may not be initialized at this point. Only read the value once
-                // to avoid race conditions.
-                var rowCount = _parent._rowCount;
-                return rowCount == -1 || pos < rowCount;
+                return !_parent.GetRowCount().HasValue || pos < _parent.GetRowCount().Value;
             }
 
             public static Wrapper Create(CacheDataView parent, Func<int, bool> pred)
@@ -1423,8 +1423,8 @@ namespace Microsoft.ML.Data
                     : base(parent, input, srcCol, waiter)
                 {
                     _getter = input.GetGetter<T>(input.Schema[srcCol]);
-                    if (parent._rowCount >= 0)
-                        _values = new T[(int)parent._rowCount];
+                    if (parent.GetRowCount().HasValue)
+                        _values = new T[(int)parent.GetRowCount().Value];
                 }
 
                 public override void CacheCurrent()
