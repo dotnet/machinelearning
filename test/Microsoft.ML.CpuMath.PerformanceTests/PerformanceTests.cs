@@ -27,7 +27,12 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         internal AlignedArray testSrcVectorAligned;
         internal AlignedArray testDstVectorAligned;
 
-        protected float[] src, dst, original, src1, src2, result;
+        protected float[] src;
+        protected float[] dst;
+        protected float[] original;
+        protected float[] src1;
+        protected float[] src2;
+        protected float[] result;
         protected int[] idx;
         protected int[] matrixIdx;
 
