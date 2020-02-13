@@ -24,9 +24,6 @@ dotnet_diagnostic.MSML_NoBestFriendInternal.severity = none
 # MSML_NoInstanceInitializers: No initializers on instance fields or properties
 dotnet_diagnostic.MSML_NoInstanceInitializers.severity = none
 
-# MSML_ParameterLocalVarName: Parameter or local variable name not standard
-dotnet_diagnostic.MSML_ParameterLocalVarName.severity = none
-
 [test/Microsoft.ML.CodeAnalyzer.Tests/**.cs]
 # BaseTestClass does not apply for analyzer testing.
 # MSML_ExtendBaseTestClass: Test classes should be derived from BaseTestClass

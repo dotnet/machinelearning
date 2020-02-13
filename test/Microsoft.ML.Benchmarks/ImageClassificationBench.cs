@@ -205,10 +205,10 @@ namespace Microsoft.ML.Benchmarks
 
         public static string GetAbsolutePath(string relativePath)
         {
-            FileInfo _dataRoot = new FileInfo(typeof(
+            FileInfo dataRoot = new FileInfo(typeof(
                 ImageClassificationBench).Assembly.Location);
 
-            string assemblyFolderPath = _dataRoot.Directory.FullName;
+            string assemblyFolderPath = dataRoot.Directory.FullName;
 
             string fullPath = Path.Combine(assemblyFolderPath, relativePath);
 
