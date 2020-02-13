@@ -95,7 +95,7 @@ namespace Microsoft.ML.Tests
                 var onnxResult = onnxTransformer.Transform(data);
 
                 // Step 4: Compare ONNX and ML.NET results.
-                CompareSelectedR4ScalarColumns("Score", "Score.onnx", transformedData, onnxResult, 1);
+                CompareSelectedColumns<float>("Score", "Score.onnx", transformedData, onnxResult, 1);
             }
 
             // Step 5: Check ONNX model's text format. This test will be not necessary if Step 3 and Step 4 can run on Linux and
@@ -186,7 +186,7 @@ namespace Microsoft.ML.Tests
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(data);
                 var onnxResult = onnxTransformer.Transform(data);
-                CompareSelectedR4VectorColumns("Score", "Score.onnx", transformedData, onnxResult, 3);
+                CompareSelectedColumns<float>("Score", "Score.onnx", transformedData, onnxResult, 3);
             }
 
             // Check ONNX model's text format. We save the produced ONNX model as a text file and compare it against
@@ -241,7 +241,7 @@ namespace Microsoft.ML.Tests
                     var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                     var onnxTransformer = onnxEstimator.Fit(dataView);
                     var onnxResult = onnxTransformer.Transform(dataView);
-                    CompareSelectedR4ScalarColumns(transformedData.Schema[2].Name, outputNames[2], transformedData, onnxResult, 3); // compare score results 
+                    CompareSelectedColumns<float>(transformedData.Schema[2].Name, outputNames[2], transformedData, onnxResult, 3); // compare score results 
                 }
                 // Compare the Onnx graph to a baseline if OnnxRuntime is not supported
                 else
@@ -302,8 +302,8 @@ namespace Microsoft.ML.Tests
                     var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                     var onnxTransformer = onnxEstimator.Fit(dataView);
                     var onnxResult = onnxTransformer.Transform(dataView);
-                    CompareSelectedR4ScalarColumns(transformedData.Schema[5].Name, outputNames[3], transformedData, onnxResult, 3); //compare scores
-                    CompareSelectedScalarColumns<Boolean>(transformedData.Schema[4].Name, outputNames[2], transformedData, onnxResult); //compare predicted labels
+                    CompareSelectedColumns<float>(transformedData.Schema[5].Name, outputNames[3], transformedData, onnxResult, 3); //compare scores
+                    CompareSelectedColumns<bool>(transformedData.Schema[4].Name, outputNames[2], transformedData, onnxResult); //compare predicted labels
                 }
             }
             Done();
@@ -337,8 +337,8 @@ namespace Microsoft.ML.Tests
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
-                CompareSelectedR4VectorColumns(transformedData.Schema[2].Name, outputNames[2], transformedData, onnxResult); // whitened1
-                CompareSelectedR4VectorColumns(transformedData.Schema[3].Name, outputNames[3], transformedData, onnxResult); // whitened2
+                CompareSelectedColumns<float>(transformedData.Schema[2].Name, outputNames[2], transformedData, onnxResult); // whitened1
+                CompareSelectedColumns<float>(transformedData.Schema[3].Name, outputNames[3], transformedData, onnxResult); // whitened2
             }
             Done();
         }
@@ -393,9 +393,9 @@ namespace Microsoft.ML.Tests
                     var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                     var onnxTransformer = onnxEstimator.Fit(dataView);
                     var onnxResult = onnxTransformer.Transform(dataView);
-                    CompareSelectedR4ScalarColumns(transformedData.Schema[5].Name, outputNames[3], transformedData, onnxResult, 3); //compare scores
-                    CompareSelectedScalarColumns<Boolean>(transformedData.Schema[4].Name, outputNames[2], transformedData, onnxResult); //compare predicted labels
-                    CompareSelectedR4ScalarColumns(transformedData.Schema.Last().Name, outputNames.Last(), transformedData, onnxResult, 3); //compare probabilities
+                    CompareSelectedColumns<float>(transformedData.Schema[5].Name, outputNames[3], transformedData, onnxResult, 3); //compare scores
+                    CompareSelectedColumns<bool>(transformedData.Schema[4].Name, outputNames[2], transformedData, onnxResult); //compare predicted labels
+                    CompareSelectedColumns<float>(transformedData.Schema.Last().Name, outputNames.Last(), transformedData, onnxResult, 3); //compare probabilities
                 }
             }
             Done();
@@ -443,7 +443,43 @@ namespace Microsoft.ML.Tests
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(data);
                 var onnxResult = onnxTransformer.Transform(data);
-                CompareSelectedR4ScalarColumns(transformedData.Schema.Last().Name, outputNames.Last(), transformedData, onnxResult, 3); //compare probabilities
+                CompareSelectedColumns<float>(transformedData.Schema.Last().Name, outputNames.Last(), transformedData, onnxResult, 3); //compare probabilities
+            }
+            Done();
+        }
+
+        [Fact]
+        public void TextNormalizingOnnxConversionTest()
+        {
+            var mlContext = new MLContext(seed: 1);
+            var dataPath = GetDataPath("wikipedia-detox-250-line-test.tsv");
+            var dataView = ML.Data.LoadFromTextFile(dataPath, new[] {
+                new TextLoader.Column("label", DataKind.Boolean, 0),
+                new TextLoader.Column("text", DataKind.String, 1)
+            }, hasHeader: true);
+            var pipeline = new TextNormalizingEstimator(mlContext, keepDiacritics: true, columns: new[] { ("NormText", "text") }).Append(
+                new TextNormalizingEstimator(mlContext, keepDiacritics: true, caseMode: TextNormalizingEstimator.CaseMode.Upper, columns: new[] { ("UpperText", "text") })).Append(
+                new TextNormalizingEstimator(mlContext, keepDiacritics: true, caseMode: TextNormalizingEstimator.CaseMode.None, columns: new[] { ("OriginalText", "text") }));
+            var model = pipeline.Fit(dataView);
+            var transformedData = model.Transform(dataView);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+            // Compare model scores produced by ML.NET and ONNX's runtime.
+            // Skipping test in Linux platforms temporarily
+            if (IsOnnxRuntimeSupported() && !RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                var onnxFileName = $"TextNormalizing.onnx";
+                var onnxModelPath = GetOutputPath(onnxFileName);
+                SaveOnnxModel(onnxModel, onnxModelPath, null);
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(dataView);
+                var onnxResult = onnxTransformer.Transform(dataView);
+                CompareSelectedColumns<ReadOnlyMemory<char>>(transformedData.Schema[2].Name, outputNames[2], transformedData, onnxResult); //compare NormText
+                CompareSelectedColumns<ReadOnlyMemory<char>>(transformedData.Schema[3].Name, outputNames[3], transformedData, onnxResult); //compare UpperText
+                CompareSelectedColumns<ReadOnlyMemory<char>>(transformedData.Schema[4].Name, outputNames[4], transformedData, onnxResult); //compare OriginalText
             }
             Done();
         }
@@ -492,7 +528,7 @@ namespace Microsoft.ML.Tests
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
-                CompareSelectedR4VectorColumns(nameof(DataPoint.Features), outputNames[0], transformedData, onnxResult, 3);
+                CompareSelectedColumns<float>(nameof(DataPoint.Features), outputNames[0], transformedData, onnxResult, 3);
             }
 
             Done();
@@ -660,8 +696,6 @@ namespace Microsoft.ML.Tests
         }
 
         [LightGBMFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void LightGbmBinaryClassificationOnnxConversionTest()
         {
             // Step 1: Create and train a ML.NET pipeline.
@@ -922,11 +956,52 @@ namespace Microsoft.ML.Tests
         }
 
         [Theory]
+        [CombinatorialData]
+        public void TokenizingByCharactersOnnxConversionTest(bool useMarkerCharacters)
+        {
+            var mlContext = new MLContext(seed: 1);
+            var dataPath = GetDataPath("wikipedia-detox-250-line-test.tsv");
+            var dataView = ML.Data.LoadFromTextFile(dataPath, new[] {
+                new TextLoader.Column("label", DataKind.Boolean, 0),
+                new TextLoader.Column("text", DataKind.String, 1)
+            }, hasHeader: true);
+            var pipeline = new TokenizingByCharactersEstimator(mlContext, useMarkerCharacters: useMarkerCharacters, columns: new[] { ("TokenizedText", "text") });
+            var model = pipeline.Fit(dataView);
+            var transformedData = model.Transform(dataView);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+            // Compare model scores produced by ML.NET and ONNX's runtime. 
+            if (IsOnnxRuntimeSupported())
+            {
+                var onnxFileName = $"TokenizingByCharacters.onnx";
+                var onnxModelPath = GetOutputPath(onnxFileName);
+                SaveOnnxModel(onnxModel, onnxModelPath, null);
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(dataView);
+                var onnxResult = onnxTransformer.Transform(dataView);
+                CompareSelectedColumns<ushort>(transformedData.Schema[2].Name, outputNames[2], transformedData, onnxResult); //compare scores
+            }
+            Done();
+        }
+
+        [Theory]
         // These are the supported conversions
         // ML.NET does not allow any conversions between signed and unsigned numeric types
         // Onnx does not seem to support casting a string to any type
-        // Though the onnx docs claim support for byte and sbyte, 
-        // CreateNamedOnnxValue in OnnxUtils.cs throws a NotImplementedException for those two
+        [InlineData(DataKind.SByte, DataKind.SByte)]
+        [InlineData(DataKind.SByte, DataKind.Int16)]
+        [InlineData(DataKind.SByte, DataKind.Int32)]
+        [InlineData(DataKind.SByte, DataKind.Int64)]
+        [InlineData(DataKind.SByte, DataKind.Single)]
+        [InlineData(DataKind.SByte, DataKind.Double)]
+        [InlineData(DataKind.Byte, DataKind.Byte)]
+        [InlineData(DataKind.Byte, DataKind.UInt16)]
+        [InlineData(DataKind.Byte, DataKind.UInt32)]
+        [InlineData(DataKind.Byte, DataKind.UInt64)]
+        [InlineData(DataKind.Byte, DataKind.Single)]
+        [InlineData(DataKind.Byte, DataKind.Double)]
         [InlineData(DataKind.Int16, DataKind.Int16)]
         [InlineData(DataKind.Int16, DataKind.Int32)]
         [InlineData(DataKind.Int16, DataKind.Int64)]
@@ -1022,7 +1097,7 @@ namespace Microsoft.ML.Tests
                     var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                     var onnxTransformer = onnxEstimator.Fit(dataView);
                     var onnxResult = onnxTransformer.Transform(dataView);
-                    CompareSelectedR4VectorColumns(model.ColumnPairs[0].outputColumnName, outputNames[2], transformedData, onnxResult);
+                    CompareSelectedColumns<float>(model.ColumnPairs[0].outputColumnName, outputNames[2], transformedData, onnxResult);
                 }
             }
 
@@ -1083,7 +1158,7 @@ namespace Microsoft.ML.Tests
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
-                CompareSelectedVectorColumns<int>(model.LastTransformer.ColumnPairs[0].outputColumnName, outputNames[1], transformedData, onnxResult);
+                CompareSelectedColumns<int>(model.LastTransformer.ColumnPairs[0].outputColumnName, outputNames[1], transformedData, onnxResult);
             }
 
             CheckEquality(subDir, onnxTextName, parseOption: NumberParseOption.UseSingle);
@@ -1092,8 +1167,10 @@ namespace Microsoft.ML.Tests
 
         [Theory]
         [InlineData(DataKind.Single)]
+        [InlineData(DataKind.Int64)]
+        [InlineData(DataKind.Double)]
         [InlineData(DataKind.String)]
-        public void ValueToKeyMappingOnnxConversionTest(DataKind valueType)
+        public void ValueToKeyandKeyToValueMappingOnnxConversionTest(DataKind valueType)
         {
             var mlContext = new MLContext(seed: 1);
             string filePath = GetDataPath("type-conversion.txt");
@@ -1104,7 +1181,8 @@ namespace Microsoft.ML.Tests
             };
             var dataView = mlContext.Data.LoadFromTextFile(filePath, columns);
 
-            var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Key", "Value");
+            var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Key", "Value").
+                Append(mlContext.Transforms.Conversion.MapKeyToValue("ValueOutput", "Key"));
             var model = pipeline.Fit(dataView);
             var mlnetResult = model.Transform(dataView);
 
@@ -1121,9 +1199,9 @@ namespace Microsoft.ML.Tests
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
 
-                CompareSelectedVectorColumns<UInt32>(model.ColumnPairs[0].outputColumnName, outputNames[1], mlnetResult, onnxResult);
+                CompareResults(mlnetResult.Schema[2].Name, outputNames[2], mlnetResult, onnxResult); //compare output values
+                CompareSelectedColumns<uint>(mlnetResult.Schema[1].Name, outputNames[1], mlnetResult, onnxResult); //compare keys
             }
-
             Done();
         }
 
@@ -1163,7 +1241,7 @@ namespace Microsoft.ML.Tests
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxFilePath);
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
-                CompareSelectedVectorColumns<ReadOnlyMemory<char>>(transformedData.Schema[1].Name, outputNames[1], transformedData, onnxResult);
+                CompareSelectedColumns<ReadOnlyMemory<char>>(transformedData.Schema[1].Name, outputNames[1], transformedData, onnxResult);
             }
 
             Done();
@@ -1171,7 +1249,7 @@ namespace Microsoft.ML.Tests
 
         [Theory]
         [CombinatorialData]
-        public void NgramOnnxConnversionTest(
+        public void NgramOnnxConversionTest(
             [CombinatorialValues(1, 2, 3)] int ngramLength,
             bool useAllLength,
             NgramExtractingEstimator.WeightingCriteria weighting)
@@ -1197,6 +1275,12 @@ namespace Microsoft.ML.Tests
                                             useAllLengths: useAllLength,
                                             weighting: weighting)),
 
+                mlContext.Transforms.Text.TokenizeIntoCharactersAsKeys("Tokens", "Text")
+                .Append(mlContext.Transforms.Text.ProduceNgrams("NGrams", "Tokens",
+                            ngramLength: ngramLength,
+                            useAllLengths: useAllLength,
+                            weighting: weighting)),
+
                 mlContext.Transforms.Text.ProduceWordBags("Tokens", "Text",
                                         ngramLength: ngramLength,
                                         useAllLengths: useAllLength,
@@ -1221,26 +1305,38 @@ namespace Microsoft.ML.Tests
                     var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxFilePath);
                     var onnxTransformer = onnxEstimator.Fit(dataView);
                     var onnxResult = onnxTransformer.Transform(dataView);
-                    CompareSelectedR4VectorColumns(transformedData.Schema[3].Name, outputNames[outputNames.Length-1], transformedData, onnxResult, 3);
+                    CompareSelectedColumns<float>(transformedData.Schema[transformedData.Schema.Count-1].Name, outputNames[outputNames.Length-1], transformedData, onnxResult, 3); //comparing Ngrams
                 }
             }
-
             Done();
         }
 
-        [Fact]
-        public void OptionalColumnOnnxTest()
+        [Theory]
+        [InlineData(DataKind.Boolean)]
+        [InlineData(DataKind.SByte)]
+        [InlineData(DataKind.Byte)]
+        [InlineData(DataKind.Int16)]
+        [InlineData(DataKind.UInt16)]
+        [InlineData(DataKind.Int32)]
+        [InlineData(DataKind.UInt32)]
+        [InlineData(DataKind.Int64)]
+        [InlineData(DataKind.UInt64)]
+        [InlineData(DataKind.Single)]
+        [InlineData(DataKind.Double)]
+        [InlineData(DataKind.String)]
+        public void OptionalColumnOnnxTest(DataKind dataKind)
         {
             var mlContext = new MLContext(seed: 1);
 
-            var samples = new List<BreastCancerCatFeatureExample>()
-            {
-                new BreastCancerCatFeatureExample() { Label = false, F1 = 0.0f, F2 = "F2"},
-                new BreastCancerCatFeatureExample() { Label = true, F1 = 0.1f, F2 = "F2"},
-            };
+            string dataPath = GetDataPath("breast-cancer.txt");
+
+            var dataView = ML.Data.LoadFromTextFile(dataPath, new[] {
+                new TextLoader.Column("Label", dataKind, 0),
+                new TextLoader.Column("Thickness", DataKind.Single, 1),
+            });
+
             IHostEnvironment env = mlContext as IHostEnvironment;
-            var dataView = mlContext.Data.LoadFromEnumerable(samples);
-            var args = new OptionalColumnTransform.Arguments { Columns = new[] { "F1" }, Data = dataView };
+            var args = new OptionalColumnTransform.Arguments { Columns = new[] { "Label" }, Data = dataView };
             var transform = OptionalColumnTransform.MakeOptional(env, args);
 
             var ctx = new OnnxContextImpl(mlContext, "model", "ML.NET", "0", 0, "machinelearning.dotnet", OnnxVersion.Stable);
@@ -1253,7 +1349,7 @@ namespace Microsoft.ML.Tests
                 onnxModel = SaveOnnxCommand.ConvertTransformListToOnnxModel(ctx, ch, root, sink, transforms, null, null);
             }
 
-            var onnxFileName = "optionalcol.onnx";
+            var onnxFileName = $"optionalcol-{dataKind}.onnx";
             var onnxModelPath = GetOutputPath(onnxFileName);
             var onnxTextFileName = "optionalcol.txt";
             var onnxTextPath = GetOutputPath(onnxTextFileName);
@@ -1266,7 +1362,7 @@ namespace Microsoft.ML.Tests
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
-                CompareSelectedR4ScalarColumns(transform.Model.OutputSchema[2].Name, outputNames[1], outputData, onnxResult);
+                CompareResults("Label", "Label.onnx", outputData, onnxResult);
             }
             Done();
         }
@@ -1301,7 +1397,7 @@ namespace Microsoft.ML.Tests
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
-                CompareSelectedScalarColumns<ReadOnlyMemory<Char>>(transformedData.Schema[3].Name, outputNames[3], transformedData, onnxResult);
+                CompareSelectedColumns<ReadOnlyMemory<Char>>(transformedData.Schema[3].Name, outputNames[3], transformedData, onnxResult);
             }
 
             Done();
@@ -1371,8 +1467,8 @@ namespace Microsoft.ML.Tests
                     var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                     var onnxTransformer = onnxEstimator.Fit(dataView);
                     var onnxResult = onnxTransformer.Transform(dataView);
-                    CompareSelectedScalarColumns<uint>(transformedData.Schema[5].Name, outputNames[2], transformedData, onnxResult); //compare predicted labels
-                    CompareSelectedR4VectorColumns(transformedData.Schema[6].Name, outputNames[3], transformedData, onnxResult, 4); //compare scores
+                    CompareSelectedColumns<uint>(transformedData.Schema[5].Name, outputNames[2], transformedData, onnxResult); //compare predicted labels
+                    CompareSelectedColumns<float>(transformedData.Schema[6].Name, outputNames[3], transformedData, onnxResult, 4); //compare scores
                 }
             }
             Done();
@@ -1406,8 +1502,83 @@ namespace Microsoft.ML.Tests
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
-                CompareSelectedR4ScalarColumns(model.ColumnPairs[0].outputColumnName, outputNames[2], transformedData, onnxResult);
+                CompareSelectedColumns<float>(model.ColumnPairs[0].outputColumnName, outputNames[2], transformedData, onnxResult);
             }
+            Done();
+        }
+
+        [Fact]
+        public void UseKeyDataViewTypeAsUInt32InOnnxInput()
+        {
+            // In this test an onnx model which expect a uin32 input column is applied to a KeyDataViewType input column
+            // This, is done as needed by NimbusML. For more context see: https://github.com/microsoft/NimbusML/issues/426
+
+            // Step 1: Load the Iris Dataset and apply a Value To Key Mapping to it.
+            // Save the resulting dataview in .idv format eliminating all hidden columns
+            var mlContext = new MLContext();
+            var loader = mlContext.Data.CreateTextLoader(
+                columns: new[]
+                    {
+                        new TextLoader.Column("Label", DataKind.String, 0),
+                        new TextLoader.Column("SepalLength", DataKind.Single, 1),
+                        new TextLoader.Column("SepalWidth", DataKind.Single, 2),
+                        new TextLoader.Column("PetalLength", DataKind.Single, 3),
+                        new TextLoader.Column("PetalWidth", DataKind.Single, 4)
+                    },
+                hasHeader: false
+            );
+
+            string dataPath = GetDataPath("iris.txt");
+            var originalData = loader.Load(dataPath);
+            var pipeline1 = mlContext.Transforms.Conversion.MapValueToKey("Label");
+            var mappedData = pipeline1.Fit(originalData).Transform(originalData);
+
+            string mappedDataPath = GetOutputPath("kdvt-as-uint32-mapped-data.idv");
+            using (FileStream stream = new FileStream(mappedDataPath, FileMode.Create))
+                mlContext.Data.SaveAsBinary(mappedData, stream, keepHidden: false);
+
+            // Step 2: Load back the saved .idv
+            // This IDataView will have a Label column of type KeyDataViewType
+            // It's necessary to do this, because if I were to use mappedData directly inside the next
+            // steps, then when saving the ONNX model, it would actually also save the ValueToKeyTransformer part
+            // and that wouldn't reproduce the scenario.
+            IDataView reloadedData = mlContext.Data.LoadFromBinary(mappedDataPath);
+
+            // Step 3: Create ONNX model which simply applies Identity to Label column
+            var pipeline2 = mlContext.Transforms.CopyColumns("Label", "Label");
+            var model = pipeline2.Fit(reloadedData);
+
+            var onnxModelPath = GetOutputPath("onnxmodel1-kdvt-as-uint32.onnx");
+            using (FileStream stream = new FileStream(onnxModelPath, FileMode.Create))
+                mlContext.Model.ConvertToOnnx(model, reloadedData, stream);
+
+            // Step 4: Get input and output names of model
+            var onnxProtoBufModel = mlContext.Model.ConvertToOnnxProtobuf(model, reloadedData);
+            string[] inputNames = onnxProtoBufModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+            string[] outputNames = onnxProtoBufModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+
+            if (IsOnnxRuntimeSupported())
+            {
+                // Step 5: Apply Onnx Model
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxResult = onnxEstimator.Fit(reloadedData).Transform(reloadedData);
+
+                // Step 6: Compare results to an onnx model created using the mappedData IDataView
+                // Notice that this ONNX model would actually include the steps to do the ValueToKeyTransformer mapping,
+                // because mappedData actually includes the information to do the mapping, and so ONNX would that automatically.
+                // And because of this, it can only be applied to originalData dataview, despite mappedData was used to create the model.
+                // If it's tried to apply this model to mappedData or reloadedData, it will throw an exception, since the ONNX model
+                // will expect a Label input of type string (which only originalData provides).
+                string onnxModelPath2 = GetOutputPath("onnxmodel2-kdvt-as-uint32.onnx");
+                using (FileStream stream = new FileStream(onnxModelPath2, FileMode.Create))
+                    mlContext.Model.ConvertToOnnx(model, mappedData, stream);
+                var onnxEstimator2 = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath2);
+                var onnxResult2 = onnxEstimator2.Fit(originalData).Transform(originalData);
+
+                foreach (var name in outputNames)
+                    CompareResults(name, name, onnxResult, onnxResult2);
+            }
+
             Done();
         }
 
@@ -1454,10 +1625,10 @@ namespace Microsoft.ML.Tests
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
-                CompareSelectedR4ScalarColumns("FeatureSelectMIScalarFloat", "FeatureSelectMIScalarFloat.onnx", transformedData, onnxResult);
-                CompareSelectedR4VectorColumns("FeatureSelectMIVectorFloat", "FeatureSelectMIVectorFloat.onnx", transformedData, onnxResult);
-                CompareSelectedR4ScalarColumns("ScalFeatureSelectMissing690", "ScalFeatureSelectMissing690.onnx", transformedData, onnxResult);
-                CompareSelectedR8VectorColumns("VecFeatureSelectMissing690", "VecFeatureSelectMissing690.onnx", transformedData, onnxResult);
+                CompareSelectedColumns<float>("FeatureSelectMIScalarFloat", "FeatureSelectMIScalarFloat.onnx", transformedData, onnxResult);
+                CompareSelectedColumns<float>("FeatureSelectMIVectorFloat", "FeatureSelectMIVectorFloat.onnx", transformedData, onnxResult);
+                CompareSelectedColumns<float>("ScalFeatureSelectMissing690", "ScalFeatureSelectMissing690.onnx", transformedData, onnxResult);
+                CompareSelectedColumns<double>("VecFeatureSelectMissing690", "VecFeatureSelectMissing690.onnx", transformedData, onnxResult);
             }
             Done();
         }
@@ -1510,10 +1681,10 @@ namespace Microsoft.ML.Tests
                 Assert.Equal("Thickness.onnx", outputNames[2]);
                 Assert.Equal("Label.onnx", outputNames[3]);
 
-                CompareSelectedScalarColumns<Single>("Size", "Size.onnx", transformedData, onnxResult);
-                CompareSelectedScalarColumns<int>("Shape", "Shape.onnx", transformedData, onnxResult);
-                CompareSelectedScalarColumns<double>("Thickness", "Thickness.onnx", transformedData, onnxResult);
-                CompareSelectedScalarColumns<bool>("Label", "Label.onnx", transformedData, onnxResult);
+                CompareSelectedColumns<Single>("Size", "Size.onnx", transformedData, onnxResult);
+                CompareSelectedColumns<int>("Shape", "Shape.onnx", transformedData, onnxResult);
+                CompareSelectedColumns<double>("Thickness", "Thickness.onnx", transformedData, onnxResult);
+                CompareSelectedColumns<bool>("Label", "Label.onnx", transformedData, onnxResult);
             }
 
             onnxFileName = "SelectColumns.txt";
@@ -1525,7 +1696,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        private void CompareResults(string leftColumnName, string rightColumnName, IDataView left, IDataView right)
+        private void CompareResults(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
         {
             var leftColumn = left.Schema[leftColumnName];
             var rightColumn = right.Schema[rightColumnName];
@@ -1534,28 +1705,33 @@ namespace Microsoft.ML.Tests
             Assert.Equal(leftType, rightType);
 
             if (leftType == NumberDataViewType.SByte)
-                CompareSelectedVectorColumns<sbyte>(leftColumnName, rightColumnName, left, right);
+                CompareSelectedColumns<sbyte>(leftColumnName, rightColumnName, left, right);
             else if (leftType == NumberDataViewType.Byte)
-                CompareSelectedVectorColumns<byte>(leftColumnName, rightColumnName, left, right);
+                CompareSelectedColumns<byte>(leftColumnName, rightColumnName, left, right);
             else if (leftType == NumberDataViewType.Int16)
-                CompareSelectedVectorColumns<short>(leftColumnName, rightColumnName, left, right);
+                CompareSelectedColumns<short>(leftColumnName, rightColumnName, left, right);
             else if (leftType == NumberDataViewType.UInt16)
-                CompareSelectedVectorColumns<ushort>(leftColumnName, rightColumnName, left, right);
+                CompareSelectedColumns<ushort>(leftColumnName, rightColumnName, left, right);
             else if (leftType == NumberDataViewType.Int32)
-                CompareSelectedVectorColumns<int>(leftColumnName, rightColumnName, left, right);
+                CompareSelectedColumns<int>(leftColumnName, rightColumnName, left, right);
             else if (leftType == NumberDataViewType.UInt32)
-                CompareSelectedVectorColumns<uint>(leftColumnName, rightColumnName, left, right);
+                CompareSelectedColumns<uint>(leftColumnName, rightColumnName, left, right);
             else if (leftType == NumberDataViewType.Int64)
-                CompareSelectedVectorColumns<long>(leftColumnName, rightColumnName, left, right);
+                CompareSelectedColumns<long>(leftColumnName, rightColumnName, left, right);
             else if (leftType == NumberDataViewType.UInt64)
-                CompareSelectedVectorColumns<ulong>(leftColumnName, rightColumnName, left, right);
+                CompareSelectedColumns<ulong>(leftColumnName, rightColumnName, left, right);
             else if (leftType == NumberDataViewType.Single)
-                CompareSelectedR4VectorColumns(leftColumnName, rightColumnName, left, right);
+                CompareSelectedColumns<float>(leftColumnName, rightColumnName, left, right, precision);
             else if (leftType == NumberDataViewType.Double)
-                CompareSelectedVectorColumns<double>(leftColumnName, rightColumnName, left, right);
+                CompareSelectedColumns<double>(leftColumnName, rightColumnName, left, right, precision);
+            else if (leftType == BooleanDataViewType.Instance)
+                CompareSelectedColumns<bool>(leftColumnName, rightColumnName, left, right);
+            else if (leftType == TextDataViewType.Instance)
+                CompareSelectedColumns<ReadOnlyMemory<char>>(leftColumnName, rightColumnName, left, right);
+
         }
 
-        private void CompareSelectedVectorColumns<T>(string leftColumnName, string rightColumnName, IDataView left, IDataView right)
+        private void CompareSelectedColumns<T>(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
         {
             var leftColumn = left.Schema[leftColumnName];
             var rightColumn = right.Schema[rightColumnName];
@@ -1563,130 +1739,57 @@ namespace Microsoft.ML.Tests
             using (var expectedCursor = left.GetRowCursor(leftColumn))
             using (var actualCursor = right.GetRowCursor(rightColumn))
             {
-                VBuffer<T> expected = default;
+                T expectedScalar = default;
+                VBuffer<T> expectedVector = default;
+
+                ValueGetter<T> expectedScalarGetter = default;
+                ValueGetter<VBuffer<T>> expectedVectorGetter = default;
+
                 VBuffer<T> actual = default;
-                var expectedGetter = expectedCursor.GetGetter<VBuffer<T>>(leftColumn);
+
+                if (leftColumn.Type is VectorDataViewType)
+                    expectedVectorGetter = expectedCursor.GetGetter<VBuffer<T>>(leftColumn);
+                else
+                    expectedScalarGetter = expectedCursor.GetGetter<T>(leftColumn);
+
                 var actualGetter = actualCursor.GetGetter<VBuffer<T>>(rightColumn);
                 while (expectedCursor.MoveNext() && actualCursor.MoveNext())
                 {
-                    expectedGetter(ref expected);
                     actualGetter(ref actual);
 
-                    Assert.Equal(expected.Length, actual.Length);
-                    for (int i = 0; i < expected.Length; ++i)
-                        if (typeof(T) == typeof(ReadOnlyMemory<char>))
-                            Assert.Equal(expected.GetItemOrDefault(i).ToString(), actual.GetItemOrDefault(i).ToString());
-                        else
-                            Assert.Equal(expected.GetItemOrDefault(i), actual.GetItemOrDefault(i));
-                }
-            }
-        }
-
-        private void CompareSelectedR8VectorColumns(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
-        {
-            var leftColumn = left.Schema[leftColumnName];
-            var rightColumn = right.Schema[rightColumnName];
-
-            using (var expectedCursor = left.GetRowCursor(leftColumn))
-            using (var actualCursor = right.GetRowCursor(rightColumn))
-            {
-                VBuffer<double> expected = default;
-                VBuffer<double> actual = default;
-                var expectedGetter = expectedCursor.GetGetter<VBuffer<double>>(leftColumn);
-                var actualGetter = actualCursor.GetGetter<VBuffer<double>>(rightColumn);
-                while (expectedCursor.MoveNext() && actualCursor.MoveNext())
-                {
-                    expectedGetter(ref expected);
-                    actualGetter(ref actual);
-
-                    Assert.Equal(expected.Length, actual.Length);
-                    for (int i = 0; i < expected.Length; ++i)
-                        Assert.Equal(expected.GetItemOrDefault(i), actual.GetItemOrDefault(i), precision);
-                }
-            }
-        }
-
-        private void CompareSelectedR4VectorColumns(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
-        {
-            var leftColumn = left.Schema[leftColumnName];
-            var rightColumn = right.Schema[rightColumnName];
-
-            using (var expectedCursor = left.GetRowCursor(leftColumn))
-            using (var actualCursor = right.GetRowCursor(rightColumn))
-            {
-                VBuffer<float> expected = default;
-                VBuffer<float> actual = default;
-                var expectedGetter = expectedCursor.GetGetter<VBuffer<float>>(leftColumn);
-                var actualGetter = actualCursor.GetGetter<VBuffer<float>>(rightColumn);
-                while (expectedCursor.MoveNext() && actualCursor.MoveNext())
-                {
-                    expectedGetter(ref expected);
-                    actualGetter(ref actual);
-
-                    Assert.Equal(expected.Length, actual.Length);
-                    for (int i = 0; i < expected.Length; ++i)
+                    if (leftColumn.Type is VectorDataViewType)
                     {
-                        // We are using float values. But the Assert.Equal function takes doubles.
-                        // And sometimes the converted doubles are different in their precision.
-                        // So make sure we compare floats
-                        float exp = expected.GetItemOrDefault(i);
-                        float act = actual.GetItemOrDefault(i);
-                        CompareNumbersWithTolerance(exp, act, null, precision);
+                        expectedVectorGetter(ref expectedVector);
+                        Assert.Equal(expectedVector.Length, actual.Length);
+
+                        for (int i = 0; i < expectedVector.Length; ++i)
+                            CompareScalarValues<T>(expectedVector.GetItemOrDefault(i), actual.GetItemOrDefault(i), precision);
+                    }
+                    else
+                    {
+                        expectedScalarGetter(ref expectedScalar);
+                        Assert.Equal(1, actual.Length);
+
+                        var actualVal = actual.GetItemOrDefault(0);
+                        CompareScalarValues<T>(expectedScalar, actualVal, precision);
                     }
                 }
             }
         }
 
-        private void CompareSelectedR4ScalarColumns(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
+        private void CompareScalarValues<T>(T expected, T actual, int precision)
         {
-            var leftColumn = left.Schema[leftColumnName];
-            var rightColumn = right.Schema[rightColumnName];
-
-            using (var expectedCursor = left.GetRowCursor(leftColumn))
-            using (var actualCursor = right.GetRowCursor(rightColumn))
-            {
-                float expected = default;
-                VBuffer<float> actual = default;
-                var expectedGetter = expectedCursor.GetGetter<float>(leftColumn);
-                var actualGetter = actualCursor.GetGetter<VBuffer<float>>(rightColumn);
-                while (expectedCursor.MoveNext() && actualCursor.MoveNext())
-                {
-                    expectedGetter(ref expected);
-                    actualGetter(ref actual);
-
-                    // Scalar such as R4 (float) is converted to [1, 1]-tensor in ONNX format for consitency of making batch prediction.
-                    Assert.Equal(1, actual.Length);
-                    CompareNumbersWithTolerance(expected, actual.GetItemOrDefault(0), null, precision);
-                }
-            }
-        }
-
-        private void CompareSelectedScalarColumns<T>(string leftColumnName, string rightColumnName, IDataView left, IDataView right)
-        {
-            var leftColumn = left.Schema[leftColumnName];
-            var rightColumn = right.Schema[rightColumnName];
-
-            using (var expectedCursor = left.GetRowCursor(leftColumn))
-            using (var actualCursor = right.GetRowCursor(rightColumn))
-            {
-                T expected = default;
-                VBuffer<T> actual = default;
-                var expectedGetter = expectedCursor.GetGetter<T>(leftColumn);
-                var actualGetter = actualCursor.GetGetter<VBuffer<T>>(rightColumn);
-                while (expectedCursor.MoveNext() && actualCursor.MoveNext())
-                {
-                    expectedGetter(ref expected);
-                    actualGetter(ref actual);
-                    var actualVal = actual.GetItemOrDefault(0);
-
-                    Assert.Equal(1, actual.Length);
-
-                    if (typeof(T) == typeof(ReadOnlyMemory<Char>))
-                        Assert.Equal(expected.ToString(), actualVal.ToString());
-                    else
-                        Assert.Equal(expected, actualVal);
-                }
-            }
+            if (typeof(T) == typeof(ReadOnlyMemory<Char>))
+                Assert.Equal(expected.ToString(), actual.ToString());
+            else if (typeof(T) == typeof(double))
+                Assert.Equal(Convert.ToDouble(expected), Convert.ToDouble(actual), precision);
+            else if (typeof(T) == typeof(float))
+                // We are using float values. But the Assert.Equal function takes doubles.
+                // And sometimes the converted doubles are different in their precision.
+                // So make sure we compare floats
+                CompareNumbersWithTolerance(Convert.ToSingle(expected), Convert.ToSingle(actual), null, precision);
+            else
+                Assert.Equal(expected, actual);
         }
 
         private void SaveOnnxModel(ModelProto model, string binaryFormatPath, string textFormatPath)

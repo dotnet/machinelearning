@@ -43,7 +43,7 @@
     <Message Importance="High" Text="Restoring all projects..." />
     <MSBuild Projects="@(Project)"
              Targets="Restore" 
-             Properties="MSBuildWarningsAsMessages=NU1503" />
+             Properties="MSBuildWarningsAsMessages=NU1503;RestoreDisableParallel=true" />
   </Target>
 
   <Target Name="BuildRedist"
@@ -87,9 +87,12 @@
 
   <Target Name="DownloadExternalTestFiles" Inputs="@(TestFile)" Outputs="%(TestFile.DestinationFile)">
     <Message Importance="High" Text="Downloading external test files... %(TestFile.DestinationFile)" />
-    <DownloadFilesFromUrl Items="@(TestFile)"
-                         DestinationDir="test/data/external"
-                         TreatErrorsAsWarnings="true"/>
+    <DownloadFile
+            SourceUrl="%(BenchmarkFile.Url)"
+            DestinationFolder="$(MSBuildThisFileDirectory)/test/data/external/"
+            Retries="5"
+            SkipUnchangedFiles="true">
+    </DownloadFile>
   </Target>
 
   <Target Name="RunTests">

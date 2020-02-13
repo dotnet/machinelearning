@@ -205,10 +205,10 @@ namespace Microsoft.ML.Benchmarks
 
         public static string GetAbsolutePath(string relativePath)
         {
-            FileInfo _dataRoot = new FileInfo(typeof(
+            FileInfo dataRoot = new FileInfo(typeof(
                 ImageClassificationBench).Assembly.Location);
 
-            string assemblyFolderPath = _dataRoot.Directory.FullName;
+            string assemblyFolderPath = dataRoot.Directory.FullName;
 
             string fullPath = Path.Combine(assemblyFolderPath, relativePath);
 
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Benchmarks
     }
     public static class HttpContentExtensions
     {
-        public static Task ReadAsFileAsync(this HttpContent content, string filename, bool overwrite)
+        public static async Task ReadAsFileAsync(this HttpContent content, string filename, bool overwrite)
         {
             string pathname = Path.GetFullPath(filename);
             if (!overwrite && File.Exists(filename))
@@ -235,25 +235,8 @@ namespace Microsoft.ML.Benchmarks
                 throw new InvalidOperationException(string.Format("File {0} already exists.", pathname));
             }
 
-            FileStream fileStream = null;
-            try
-            {
-                fileStream = new FileStream(pathname, FileMode.Create, FileAccess.Write, FileShare.None);
-                return content.CopyToAsync(fileStream).ContinueWith(
-                    (copyTask) =>
-                    {
-                        fileStream.Close();
-                    });
-            }
-            catch
-            {
-                if (fileStream != null)
-                {
-                    fileStream.Close();
-                }
-
-                throw;
-            }
+            using FileStream fileStream = new FileStream(pathname, FileMode.Create, FileAccess.Write, FileShare.None);
+            await content.CopyToAsync(fileStream);
         }
     }
 }

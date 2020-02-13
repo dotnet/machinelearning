@@ -112,7 +112,7 @@ namespace Microsoft.ML.TestFramework
             CheckProcess(Process.Start(psi), options);
         }
 
-        private static void CheckProcess(Process process, RemoteInvokeOptions Options)
+        private static void CheckProcess(Process process, RemoteInvokeOptions options)
         {
             if (process != null)
             {
@@ -120,27 +120,27 @@ namespace Microsoft.ML.TestFramework
                 // needing to do this in every derived test and keep each test much simpler.
                 try
                 {
-                    Assert.True(process.WaitForExit(Options.TimeOut),
-                        $"Timed out after {Options.TimeOut}ms waiting for remote process {process.Id}");
+                    Assert.True(process.WaitForExit(options.TimeOut),
+                        $"Timed out after {options.TimeOut}ms waiting for remote process {process.Id}");
 
-                    if (File.Exists(Options.ExceptionFile))
+                    if (File.Exists(options.ExceptionFile))
                     {
-                        throw new RemoteExecutionException(File.ReadAllText(Options.ExceptionFile));
+                        throw new RemoteExecutionException(File.ReadAllText(options.ExceptionFile));
                     }
 
-                    if (Options.CheckExitCode)
+                    if (options.CheckExitCode)
                     {
-                        int expected = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? Options.ExpectedExitCode : unchecked((sbyte)Options.ExpectedExitCode);
+                        int expected = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? options.ExpectedExitCode : unchecked((sbyte)options.ExpectedExitCode);
                         int actual = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? process.ExitCode : unchecked((sbyte)process.ExitCode);
 
-                        Assert.True(expected == actual, $"Exit code was {process.ExitCode} but it should have been {Options.ExpectedExitCode}");
+                        Assert.True(expected == actual, $"Exit code was {process.ExitCode} but it should have been {options.ExpectedExitCode}");
                     }
                 }
                 finally
                 {
-                    if (File.Exists(Options.ExceptionFile))
+                    if (File.Exists(options.ExceptionFile))
                     {
-                        File.Delete(Options.ExceptionFile);
+                        File.Delete(options.ExceptionFile);
                     }
 
                     // Cleanup

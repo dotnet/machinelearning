@@ -11,7 +11,7 @@ namespace Microsoft.ML.RunTests
 {
     using System.Linq;
     using System.Runtime.InteropServices;
-        using Microsoft.ML;
+    using Microsoft.ML;
     using Microsoft.ML.Data;
     using Microsoft.ML.EntryPoints;
     using Microsoft.ML.Internal.Utilities;
@@ -244,16 +244,11 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        //[X64Fact("x86 output differs from Baseline")]
-        [Theory]
-        [IterationData(iterations:300)]
+        [X64Fact("x86 output differs from Baseline")]
         [TestCategory("Binary")]
         [TestCategory("SDCA")]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void LinearClassifierTest(int iteration)
+        public void LinearClassifierTest()
         {
-            Console.WriteLine($"{iteration} - th running...");
             var binaryPredictors = new[]
                 {
                     TestLearners.binarySdca,
@@ -286,6 +281,11 @@ namespace Microsoft.ML.RunTests
         [Trait("Category", "SkipInCI")]
         public void BinaryClassifierSymSgdTest()
         {
+            // Linux uses a version of MKL that doesn't support conditional numerical reproducibility the same way as
+            // Windows runs.
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                return;
+
             //Results sometimes go out of error tolerance on OS X.
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 return;
@@ -322,8 +322,6 @@ namespace Microsoft.ML.RunTests
         ///</summary>
         [LessThanNetCore30OrNotNetCoreAndX64Fact("netcoreapp3.0 and x86 output differs from Baseline")]
         [TestCategory("Binary")]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void BinaryClassifierLogisticRegressionNonNegativeTest()
         {
             var binaryPredictors = new[] { TestLearners.logisticRegressionNonNegative };
@@ -486,6 +484,28 @@ namespace Microsoft.ML.RunTests
                     Run_TrainTest(learner, dataset);
             }
 
+            Done();
+        }
+
+        /// <summary>
+        /// This test checks that the run-time behavior of LightGBM does not change by modifying the flags
+        /// used by LightGBM with <see cref="CursOpt.AllFeatures"/>, and that this change does not affect 
+        /// the features extracted during validation. This is done by checking that an older LightGbm model 
+        /// trained with <see cref="CursOpt.Features"/> produces the same baselines as it did before this change.
+        /// 
+        /// </summary>
+        [LightGBMFact]
+        [TestCategory("Binary")]
+        [TestCategory("LightGBM")]
+        public void LightGBMPreviousModelBaselineTest()
+        {
+            // The path of previously trained LightGBM model:
+            // "machinelearning/data/test/LightGBM-Train-breast-cancer-model.zip"
+            // The path of the expected baseline output:
+            // "machinelearning/test/BaselineOutput/Common/LightGBMBinary/LightGBM-Test-breast-cancer-out.txt"
+
+            string previousBaselineModelPath = GetDataPath("LightGBM-Train-breast-cancer-model.zip");
+            Run_Test(TestLearners.LightGBMClassifier, TestDatasets.breastCancerPipeWithoutMamlExtraSettings, previousBaselineModelPath);
             Done();
         }
 
@@ -2123,7 +2143,7 @@ output Out [3] from H all;
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         [TestCategory("Binary")]
         [TestCategory("LDSVM")]
         public void BinaryClassifierLDSvmTest()
@@ -2137,40 +2157,12 @@ output Out [3] from H all;
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         [TestCategory("Binary")]
         [TestCategory("LDSVM")]
         public void BinaryClassifierLDSvmNoBiasTest()
         {
             var binaryPredictors = new[] { TestLearners.LDSVMNoBias };
-            var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(binaryPredictors, binaryClassificationDatasets);
-            Done();
-        }
-
-        /// <summary>
-        ///A test for binary classifiers
-        ///</summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
-        [TestCategory("Binary")]
-        [TestCategory("LDSVM")]
-        public void BinaryClassifierLDSvmNoNormTest()
-        {
-            var binaryPredictors = new[] { TestLearners.LDSvmNoNorm };
-            var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(binaryPredictors, binaryClassificationDatasets);
-            Done();
-        }
-
-        /// <summary>
-        ///A test for binary classifiers
-        ///</summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
-        [TestCategory("Binary")]
-        [TestCategory("LDSVM")]
-        public void BinaryClassifierLDSvmNoCalibTest()
-        {
-            var binaryPredictors = new[] { TestLearners.LDSvmNoCalib };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
             RunAllTests(binaryPredictors, binaryClassificationDatasets);
             Done();

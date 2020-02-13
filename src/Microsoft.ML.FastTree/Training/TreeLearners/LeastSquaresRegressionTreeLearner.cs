@@ -347,7 +347,7 @@ namespace Microsoft.ML.Trainers.FastTree
             using (Timer.Time(TimerEvent.FindBestSplit))
             using (Timer.Time(TimerEvent.FindBestSplitOfRoot))
             {
-                var smallSplitInit = Task.Factory.StartNew(() =>
+                var smallSplitInit = Task.Run(() =>
                 {
                     // Initialize.
                     using (Timer.Time(TimerEvent.FindBestSplitInit))
@@ -408,7 +408,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 {
                     using (Timer.Time(TimerEvent.FindBestSplitInit))
                     {
-                        var smallSplitInit = Task.Factory.StartNew(() => SmallerChildSplitCandidates.Initialize(lteChild, partitioning, targets, GetTargetWeights(), FilterZeros));
+                        var smallSplitInit = Task.Run(() => SmallerChildSplitCandidates.Initialize(lteChild, partitioning, targets, GetTargetWeights(), FilterZeros));
                         LargerChildSplitCandidates.Initialize(gtChild, partitioning, targets, GetTargetWeights(), FilterZeros);
                         smallSplitInit.Wait();
                     }
@@ -421,7 +421,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 {
                     using (Timer.Time(TimerEvent.FindBestSplitInit))
                     {
-                        var smallSplitInit = Task.Factory.StartNew(() => SmallerChildSplitCandidates.Initialize(gtChild, partitioning, targets, GetTargetWeights(), FilterZeros));
+                        var smallSplitInit = Task.Run(() => SmallerChildSplitCandidates.Initialize(gtChild, partitioning, targets, GetTargetWeights(), FilterZeros));
                         LargerChildSplitCandidates.Initialize(lteChild, partitioning, targets, GetTargetWeights(), FilterZeros);
                         smallSplitInit.Wait();
                     }

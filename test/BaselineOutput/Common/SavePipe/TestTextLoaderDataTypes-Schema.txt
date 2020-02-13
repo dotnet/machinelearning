@@ -1,0 +1,6 @@
+---- BoundLoader ----
+4 columns:
+  DvInt1: SByte
+  DvInt2: Int16
+  DvInt4: Int32
+  DvInt8: Int64

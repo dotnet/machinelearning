@@ -27,9 +27,14 @@
     <TensorflowDotNETVersion>0.11.8.1</TensorflowDotNETVersion>
   </PropertyGroup>
 
-  <!-- Code Analyzer Dependencies -->
+  <!-- Model Builder Dependencies -->
   <PropertyGroup>
     <MicrosoftCodeAnalysisCSharpVersion>2.9.0</MicrosoftCodeAnalysisCSharpVersion>
+  </PropertyGroup>
+
+  <!-- Code Analyzer Dependencies -->
+  <PropertyGroup>
+    <MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>3.3.1</MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>
     <MicrosoftCSharpVersion>4.5.0</MicrosoftCSharpVersion>
     <SystemCompositionVersion>1.2.0</SystemCompositionVersion>
   </PropertyGroup>

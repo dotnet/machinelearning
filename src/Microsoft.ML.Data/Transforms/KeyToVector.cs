@@ -705,7 +705,7 @@ namespace Microsoft.ML.Transforms
 
                 opType = "OneHotEncoder";
                 var node = ctx.CreateNode(opType, castOutput, encodedVariableName, ctx.GetNodeName(opType));
-                node.AddAttribute("cats_int64s", Enumerable.Range(0, info.TypeSrc.GetItemType().GetKeyCountAsInt32(Host)).Select(x => (long)x));
+                node.AddAttribute("cats_int64s", Enumerable.Range(1, info.TypeSrc.GetItemType().GetKeyCountAsInt32(Host)).Select(x => (long)x));
                 node.AddAttribute("zeros", true);
                 if (_parent._columns[iinfo].OutputCountVector)
                 {

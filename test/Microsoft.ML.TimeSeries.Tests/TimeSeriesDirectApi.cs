@@ -132,10 +132,10 @@ namespace Microsoft.ML.Tests
         public void ChangePointDetectionWithSeasonality()
         {
             var env = new MLContext(1);
-            const int ChangeHistorySize = 10;
-            const int SeasonalitySize = 10;
-            const int NumberOfSeasonsInTraining = 5;
-            const int MaxTrainingSize = NumberOfSeasonsInTraining * SeasonalitySize;
+            const int changeHistorySize = 10;
+            const int seasonalitySize = 10;
+            const int numberOfSeasonsInTraining = 5;
+            const int maxTrainingSize = numberOfSeasonsInTraining * seasonalitySize;
 
             List<Data> data = new List<Data>();
             var dataView = env.Data.LoadFromEnumerable(data);
@@ -145,16 +145,16 @@ namespace Microsoft.ML.Tests
                 Confidence = 95,
                 Source = "Value",
                 Name = "Change",
-                ChangeHistoryLength = ChangeHistorySize,
-                TrainingWindowSize = MaxTrainingSize,
-                SeasonalWindowSize = SeasonalitySize
+                ChangeHistoryLength = changeHistorySize,
+                TrainingWindowSize = maxTrainingSize,
+                SeasonalWindowSize = seasonalitySize
             };
 
-            for (int j = 0; j < NumberOfSeasonsInTraining; j++)
-                for (int i = 0; i < SeasonalitySize; i++)
+            for (int j = 0; j < numberOfSeasonsInTraining; j++)
+                for (int i = 0; i < seasonalitySize; i++)
                     data.Add(new Data(i));
 
-            for (int i = 0; i < ChangeHistorySize; i++)
+            for (int i = 0; i < changeHistorySize; i++)
                 data.Add(new Data(i * 100));
 
             // Train
@@ -181,21 +181,21 @@ namespace Microsoft.ML.Tests
         [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         public void ChangePointDetectionWithSeasonalityPredictionEngineNoColumn()
         {
-            const int ChangeHistorySize = 10;
-            const int SeasonalitySize = 10;
-            const int NumberOfSeasonsInTraining = 5;
-            const int MaxTrainingSize = NumberOfSeasonsInTraining * SeasonalitySize;
+            const int changeHistorySize = 10;
+            const int seasonalitySize = 10;
+            const int numberOfSeasonsInTraining = 5;
+            const int maxTrainingSize = numberOfSeasonsInTraining * seasonalitySize;
 
             List<Data> data = new List<Data>();
 
             var ml = new MLContext(seed: 1);
             var dataView = ml.Data.LoadFromEnumerable(data);
 
-            for (int j = 0; j < NumberOfSeasonsInTraining; j++)
-                for (int i = 0; i < SeasonalitySize; i++)
+            for (int j = 0; j < numberOfSeasonsInTraining; j++)
+                for (int i = 0; i < seasonalitySize; i++)
                     data.Add(new Data(i));
 
-            for (int i = 0; i < ChangeHistorySize; i++)
+            for (int i = 0; i < changeHistorySize; i++)
                 data.Add(new Data(i * 100));
 
 
@@ -206,9 +206,9 @@ namespace Microsoft.ML.Tests
                     Confidence = 95,
                     Source = "Value",
                     Name = "Change",
-                    ChangeHistoryLength = ChangeHistorySize,
-                    TrainingWindowSize = MaxTrainingSize,
-                    SeasonalWindowSize = SeasonalitySize
+                    ChangeHistoryLength = changeHistorySize,
+                    TrainingWindowSize = maxTrainingSize,
+                    SeasonalWindowSize = seasonalitySize
                 }));
 
             // Train.
@@ -257,21 +257,21 @@ namespace Microsoft.ML.Tests
         [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         public void ChangePointDetectionWithSeasonalityPredictionEngine()
         {
-            const int ChangeHistorySize = 10;
-            const int SeasonalitySize = 10;
-            const int NumberOfSeasonsInTraining = 5;
-            const int MaxTrainingSize = NumberOfSeasonsInTraining * SeasonalitySize;
+            const int changeHistorySize = 10;
+            const int seasonalitySize = 10;
+            const int numberOfSeasonsInTraining = 5;
+            const int maxTrainingSize = numberOfSeasonsInTraining * seasonalitySize;
 
             List<Data> data = new List<Data>();
 
             var ml = new MLContext(seed: 1);
             var dataView = ml.Data.LoadFromEnumerable(data);
 
-            for (int j = 0; j < NumberOfSeasonsInTraining; j++)
-                for (int i = 0; i < SeasonalitySize; i++)
+            for (int j = 0; j < numberOfSeasonsInTraining; j++)
+                for (int i = 0; i < seasonalitySize; i++)
                     data.Add(new Data(i));
 
-            for (int i = 0; i < ChangeHistorySize; i++)
+            for (int i = 0; i < changeHistorySize; i++)
                 data.Add(new Data(i * 100));
 
 
@@ -283,9 +283,9 @@ namespace Microsoft.ML.Tests
                     Confidence = 95,
                     Source = "Value",
                     Name = "Change",
-                    ChangeHistoryLength = ChangeHistorySize,
-                    TrainingWindowSize = MaxTrainingSize,
-                    SeasonalWindowSize = SeasonalitySize
+                    ChangeHistoryLength = changeHistorySize,
+                    TrainingWindowSize = maxTrainingSize,
+                    SeasonalWindowSize = seasonalitySize
                 }));
 
             // Train.
@@ -330,9 +330,9 @@ namespace Microsoft.ML.Tests
         public void SsaForecast()
         {
             var env = new MLContext(1);
-            const int ChangeHistorySize = 10;
-            const int SeasonalitySize = 10;
-            const int NumberOfSeasonsInTraining = 5;
+            const int changeHistorySize = 10;
+            const int seasonalitySize = 10;
+            const int numberOfSeasonsInTraining = 5;
 
             List<Data> data = new List<Data>();
             var dataView = env.Data.LoadFromEnumerable(data);
@@ -354,11 +354,11 @@ namespace Microsoft.ML.Tests
                 IsAdaptive = true
             };
 
-            for (int j = 0; j < NumberOfSeasonsInTraining; j++)
-                for (int i = 0; i < SeasonalitySize; i++)
+            for (int j = 0; j < numberOfSeasonsInTraining; j++)
+                for (int i = 0; i < seasonalitySize; i++)
                     data.Add(new Data(i));
 
-            for (int i = 0; i < ChangeHistorySize; i++)
+            for (int i = 0; i < changeHistorySize; i++)
                 data.Add(new Data(i * 100));
 
             // Train
@@ -400,9 +400,9 @@ namespace Microsoft.ML.Tests
         [Trait("Category", "SkipInCI")]
         public void SsaForecastPredictionEngine()
         {
-            const int ChangeHistorySize = 10;
-            const int SeasonalitySize = 10;
-            const int NumberOfSeasonsInTraining = 5;
+            const int changeHistorySize = 10;
+            const int seasonalitySize = 10;
+            const int numberOfSeasonsInTraining = 5;
 
             List<Data> data = new List<Data>();
 
@@ -423,11 +423,11 @@ namespace Microsoft.ML.Tests
                 VariableHorizon = true
             };
 
-            for (int j = 0; j < NumberOfSeasonsInTraining; j++)
-                for (int i = 0; i < SeasonalitySize; i++)
+            for (int j = 0; j < numberOfSeasonsInTraining; j++)
+                for (int i = 0; i < seasonalitySize; i++)
                     data.Add(new Data(i));
 
-            for (int i = 0; i < ChangeHistorySize; i++)
+            for (int i = 0; i < changeHistorySize; i++)
                 data.Add(new Data(i * 100));
 
             // Train

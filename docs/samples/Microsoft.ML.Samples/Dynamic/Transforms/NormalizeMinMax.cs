@@ -12,8 +12,6 @@ namespace Samples.Dynamic
     {
         public static void Example()
         {
-            // Create a new ML context, for ML.NET operations. It can be used for
-            // exception tracking and logging, as well as the source of randomness.
             var mlContext = new MLContext();
             var samples = new List<DataPoint>()
             {
@@ -32,8 +30,8 @@ namespace Samples.Dynamic
                 fixZero: false);
 
             // Normalize rows by finding min and max values in each row slot, but
-            // make sure zero values would remain zero after normalization. Helps
-            // preserve sparsity.
+            // make sure zero values remain zero after normalization. Helps
+            // preserve sparsity. That is, to help maintain very little non-zero elements.
             var normalizeFixZero = mlContext.Transforms.NormalizeMinMax("Features",
                 fixZero: true);
 
@@ -66,7 +64,7 @@ namespace Samples.Dynamic
             //  0.0000, 0.0000, 0.3333, 0.0000
             // -0.5000,-0.5000,-0.3333, 1.0000
 
-            // Let's get transformation parameters. Since we work with only one
+            // Get transformation parameters. Since we work with only one
             // column we need to pass 0 as parameter for
             // GetNormalizerModelParameters. If we have multiple columns
             // transformations we need to pass index of InputOutputColumnPair.
@@ -74,7 +72,7 @@ namespace Samples.Dynamic
                 as AffineNormalizerModelParameters<ImmutableArray<float>>;
 
             Console.WriteLine($"The 1-index value in resulting array would be " +
-                $"produce by:");
+                $"produced by:");
 
              Console.WriteLine(" y = (x - (" + (transformParams.Offset.Length == 0 ?
                  0 : transformParams.Offset[1]) + ")) * " + transformParams

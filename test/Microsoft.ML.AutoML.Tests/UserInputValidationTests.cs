@@ -188,16 +188,16 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void ValidateTextColumnNotText()
         {
-            const string TextPurposeColName = "TextColumn";
+            const string textPurposeColName = "TextColumn";
             var schemaBuilder = new DataViewSchema.Builder();
             schemaBuilder.AddColumn(DefaultColumnNames.Features, NumberDataViewType.Single);
             schemaBuilder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single);
-            schemaBuilder.AddColumn(TextPurposeColName, NumberDataViewType.Single);
+            schemaBuilder.AddColumn(textPurposeColName, NumberDataViewType.Single);
             var schema = schemaBuilder.ToSchema();
             var dataView = DataViewTestFixture.BuildDummyDataView(schema);
 
             var columnInfo = new ColumnInformation();
-            columnInfo.TextColumnNames.Add(TextPurposeColName);
+            columnInfo.TextColumnNames.Add(textPurposeColName);
 
             foreach (var task in new[] { TaskKind.Recommendation, TaskKind.Regression })
             {

@@ -534,19 +534,28 @@ namespace Microsoft.ML.Transforms
             else
                 size = 1;
 
-            // REVIEW:
-            // AddInitializer only supports long, float, double and string.
-            // Here we are casting ulong to long. Fixing this would involve
-            // adding additional functions to OnnxContext.
-            if (type == typeof(float))
+            if ((type == typeof(int)) ||
+                (type == typeof(short)) || (type == typeof(ushort)) ||
+                (type == typeof(sbyte)) || (type == typeof(byte)))
+                ctx.AddInitializer(new int[size], type, new long[] { 1, size }, inputColumnName, false);
+            else if (type == typeof(uint) || (type == typeof(ulong)))
+                ctx.AddInitializer(new ulong[size], type == typeof(ulong), new long[] { 1, size }, inputColumnName, false);
+            else if (type == typeof(bool))
+                ctx.AddInitializer(new bool[size], new long[] { 1, size }, inputColumnName, false);
+            else if (type == typeof(long))
+                ctx.AddInitializer(new long[size], new long[] { 1, size }, inputColumnName, false);
+            else if (type == typeof(float))
                 ctx.AddInitializer(new float[size], new long[] { 1, size }, inputColumnName, false);
             else if (type == typeof(double))
                 ctx.AddInitializer(new double[size], new long[] { 1, size }, inputColumnName, false);
-            else if ((type == typeof(long)) || (type == typeof(int)) || (type == typeof(short)) || (type == typeof(sbyte)) ||
-                     (type == typeof(ulong)) || (type == typeof(uint)) || (type == typeof(ushort)) || (type == typeof(byte)))
-                ctx.AddInitializer(new long[size], new long[] { 1, size }, inputColumnName, false);
-            else if (type == typeof(string))
-                ctx.AddInitializer(new string[size], new long[] { 1, size }, inputColumnName, false);
+            else if ((type == typeof(string)) || (columnType is TextDataViewType))
+            {
+                string[] values = new string[size];
+                for (int i = 0; i < size; i++)
+                    values[i] = "";
+
+                ctx.AddInitializer(values, new long[] { 1, size }, inputColumnName, false);
+            }
             else
                 return false;
 
