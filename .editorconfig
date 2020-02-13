@@ -13,9 +13,6 @@ dotnet_diagnostic.VSTHRD103.severity = none
 # VSTHRD200: Use "Async" suffix for async methods
 dotnet_diagnostic.VSTHRD200.severity = none
 
-# RS1024: Compare symbols correctly
-dotnet_diagnostic.RS1024.severity = none
-
 # RS1025: Configure generated code analysis
 dotnet_diagnostic.RS1025.severity = none
 
