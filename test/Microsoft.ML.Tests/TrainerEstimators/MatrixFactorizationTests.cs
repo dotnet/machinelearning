@@ -53,10 +53,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [MatrixFactorizationFact]
+        //[MatrixFactorizationFact]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void MatrixFactorizationSimpleTrainAndPredict()
+        [Theory]
+        [IterationData(iterations: 1000)]
+        [Trait("Category", "RunSpecificTest")]
+        public void MatrixFactorizationSimpleTrainAndPredict(int iterations)
         {
             var mlContext = new MLContext(seed: 1);
 
@@ -128,6 +130,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 // Linux case
+                Console.WriteLine($"Linux {iterations}-th run: {metrices.MeanSquaredError}");
                 var expectedUnixL2Error = 0.614457914950479; // Linux baseline
                 Assert.InRange(metrices.MeanSquaredError, expectedUnixL2Error - tolerance, expectedUnixL2Error + tolerance);
             }
@@ -135,12 +138,14 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             {
                 // The Mac case is just broken. Should be fixed later. Re-enable when done.
                 // Mac case
-                //var expectedMacL2Error = 0.61192207960271; // Mac baseline
-                //Assert.InRange(metrices.L2, expectedMacL2Error - 5e-3, expectedMacL2Error + 5e-3); // 1e-7 is too small for Mac so we try 1e-5
+                Console.WriteLine($"OSX {iterations}-th run: {metrices.MeanSquaredError}");
+                var expectedMacL2Error = 0.61192207960271; // Mac baseline
+                Assert.InRange(metrices.MeanSquaredError, expectedMacL2Error - 5e-3, expectedMacL2Error + 5e-3); // 1e-7 is too small for Mac so we try 1e-5
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // Windows case
+                Console.WriteLine($"Windows {iterations}-th run: {metrices.MeanSquaredError}");
                 var expectedWindowsL2Error = 0.6098110249191965; // Windows baseline
                 Assert.InRange(metrices.MeanSquaredError, expectedWindowsL2Error - tolerance, expectedWindowsL2Error + tolerance);
             }

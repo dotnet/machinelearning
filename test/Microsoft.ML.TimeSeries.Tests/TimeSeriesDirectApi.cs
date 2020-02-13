@@ -324,11 +324,13 @@ namespace Microsoft.ML.Tests
             Assert.Equal(1.5292508189989167E-07, prediction.Change[3], precision: 5); // Martingale score
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [Theory]
+        [IterationData(iterations: 1000)]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void SsaForecast()
+        [Trait("Category", "RunSpecificTest")]
+        public void SsaForecast(int iterations)
         {
+            Console.WriteLine($"{iterations} - th run for SsaForecast");
             var env = new MLContext(1);
             const int changeHistorySize = 10;
             const int seasonalitySize = 10;
@@ -394,12 +396,13 @@ namespace Microsoft.ML.Tests
             }
 
         }
-
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [Theory]
+        [IterationData(iterations: 1000)]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void SsaForecastPredictionEngine()
+        [Trait("Category", "RunSpecificTest")]
+        public void SsaForecastPredictionEngine(int iterations)
         {
+            Console.WriteLine($"{iterations} - th run for SsaForecast");
             const int changeHistorySize = 10;
             const int seasonalitySize = 10;
             const int numberOfSeasonsInTraining = 5;
