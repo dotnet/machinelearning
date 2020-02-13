@@ -28,10 +28,10 @@ namespace mlnet.Tests
     [UseReporter(typeof(DiffReporter))]
     public class ConsoleCodeGeneratorTests
     {
-        private Pipeline mockedPipeline;
-        private Pipeline mockedOvaPipeline;
-        private ColumnInferenceResults columnInference = default;
-        private string namespaceValue = "TestNamespace";
+        private Pipeline _mockedPipeline;
+        private Pipeline _mockedOvaPipeline;
+        private ColumnInferenceResults _columnInference = default;
+        private string _namespaceValue = "TestNamespace";
         private const string StablePackageVersion = "1.4.0-preview3-28229-2";
         private const string UnstablePackageVersion = "0.16.0-preview3-28229-2";
 
@@ -45,7 +45,7 @@ namespace mlnet.Tests
                         ColumnInferenceResults columnInference) = GetMockedOvaPipelineAndInference();
 
             var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.MulticlassClassification));
-            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true,
+            var result = consoleCodeGen.GenerateConsoleAppProjectContents(_namespaceValue, typeof(float), true, true,
                 false, false, false, false);
 
             Approvals.Verify(result.modelBuilderCSFileContent);
@@ -60,7 +60,7 @@ namespace mlnet.Tests
                         ColumnInferenceResults columnInference) = GetMockedBinaryPipelineAndInference();
 
             var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.BinaryClassification));
-            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true,
+            var result = consoleCodeGen.GenerateConsoleAppProjectContents(_namespaceValue, typeof(float), true, true,
                 false, false, false, false);
 
             Approvals.Verify(result.modelBuilderCSFileContent);
@@ -75,7 +75,7 @@ namespace mlnet.Tests
                         ColumnInferenceResults columnInference) = GetMockedRegressionPipelineAndInference();
 
             var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.Regression));
-            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true,
+            var result = consoleCodeGen.GenerateConsoleAppProjectContents(_namespaceValue, typeof(float), true, true,
                 false, false, false, false);
 
             Approvals.Verify(result.modelBuilderCSFileContent);
@@ -92,7 +92,7 @@ namespace mlnet.Tests
                        ColumnInferenceResults columnInference) = GetMockedBinaryPipelineAndInference();
 
             var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.BinaryClassification));
-            var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), true, true, true,
+            var result = consoleCodeGen.GenerateModelProjectContents(_namespaceValue, typeof(float), true, true, true,
                 false, false, false);
 
             Approvals.Verify(result.ModelProjectFileContent);
@@ -107,7 +107,7 @@ namespace mlnet.Tests
                        ColumnInferenceResults columnInference) = GetMockedBinaryPipelineAndInference();
 
             var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.BinaryClassification));
-            var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), true, true, false,
+            var result = consoleCodeGen.GenerateModelProjectContents(_namespaceValue, typeof(float), true, true, false,
                 false, false, false);
 
             Approvals.Verify(result.ConsumeModelCSFileContent);
@@ -122,7 +122,7 @@ namespace mlnet.Tests
                        ColumnInferenceResults columnInference) = GetMockedBinaryPipelineAndInference();
 
             var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.BinaryClassification));
-            var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), true, true, false,
+            var result = consoleCodeGen.GenerateModelProjectContents(_namespaceValue, typeof(float), true, true, false,
                 false, false, false);
 
             Approvals.Verify(result.ModelInputCSFileContent);
@@ -137,7 +137,7 @@ namespace mlnet.Tests
                        ColumnInferenceResults columnInference) = GetMockedBinaryPipelineAndInference();
 
             var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.BinaryClassification));
-            var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), true, true, false,
+            var result = consoleCodeGen.GenerateModelProjectContents(_namespaceValue, typeof(float), true, true, false,
                 false, false, false);
 
             Approvals.Verify(result.ModelOutputCSFileContent);
@@ -152,7 +152,7 @@ namespace mlnet.Tests
                        ColumnInferenceResults columnInference) = GetMockedBinaryPipelineAndInference();
 
             var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.BinaryClassification));
-            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true,
+            var result = consoleCodeGen.GenerateConsoleAppProjectContents(_namespaceValue, typeof(float), true, true,
                 false, false, false, false);
 
             Approvals.Verify(result.ConsoleAppProgramCSFileContent);
@@ -168,7 +168,7 @@ namespace mlnet.Tests
                        ColumnInferenceResults columnInference) = GetMockedBinaryPipelineAndInference();
 
             var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.BinaryClassification));
-            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true,
+            var result = consoleCodeGen.GenerateConsoleAppProjectContents(_namespaceValue, typeof(float), true, true,
                 false, false, false, false);
 
             Approvals.Verify(result.ConsoleAppProgramCSFileContent);
@@ -183,7 +183,7 @@ namespace mlnet.Tests
                        ColumnInferenceResults columnInference) = GetMockedBinaryPipelineAndInference();
 
             var consoleCodeGen = new CodeGenerator(pipeline, columnInference, CreateCodeGeneratorSettingsFor(TaskKind.BinaryClassification));
-            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true,
+            var result = consoleCodeGen.GenerateConsoleAppProjectContents(_namespaceValue, typeof(float), true, true,
                 false, false, false, false);
 
             Approvals.Verify(result.ConsoleAppProjectFileContent);
@@ -429,7 +429,7 @@ namespace mlnet.Tests
         {
             CodeGenerator consoleCodeGen = PrepareForRecommendationTask();
             return consoleCodeGen.GenerateModelProjectContents(
-                namespaceValue,
+                _namespaceValue,
                 labelTypeCsharp: typeof(float),
                 includeLightGbmPackage: false,
                 includeMklComponentsPackage: false,
@@ -443,7 +443,7 @@ namespace mlnet.Tests
         {
             CodeGenerator consoleCodeGen = PrepareForRecommendationTask();
             return consoleCodeGen.GenerateConsoleAppProjectContents(
-                namespaceValue,
+                _namespaceValue,
                 labelTypeCsharp: typeof(float),
                 includeLightGbmPackage: false,
                 includeMklComponentsPackage: false,
@@ -464,7 +464,7 @@ namespace mlnet.Tests
 
         private (Pipeline, ColumnInferenceResults) GetMockedRecommendationPipelineAndInference()
         {
-            if (mockedPipeline == null)
+            if (_mockedPipeline == null)
             {
                 MLContext context = new MLContext();
                 var hyperParam = new Dictionary<string, object>()
@@ -490,7 +490,7 @@ namespace mlnet.Tests
                     matrixPipelineNode
                 });
 
-                mockedPipeline = pipeline;
+                _mockedPipeline = pipeline;
                 var textLoaderArgs = new TextLoader.Options()
                 {
                     Columns = new[] {
@@ -504,7 +504,7 @@ namespace mlnet.Tests
                     Separators = new[] { ',' }
                 };
 
-                this.columnInference = new ColumnInferenceResults()
+                this._columnInference = new ColumnInferenceResults()
                 {
                     TextLoaderOptions = textLoaderArgs,
                     ColumnInformation = new ColumnInformation() {
@@ -514,12 +514,12 @@ namespace mlnet.Tests
                     }
                 };
             }
-            return (mockedPipeline, columnInference);
+            return (_mockedPipeline, _columnInference);
         }
 
         private (Pipeline, ColumnInferenceResults) GetMockedBinaryPipelineAndInference()
         {
-            if (mockedPipeline == null)
+            if (_mockedPipeline == null)
             {
                 MLContext context = new MLContext();
                 // same learners with different hyperparams
@@ -528,7 +528,7 @@ namespace mlnet.Tests
                 var transforms1 = new List<SuggestedTransform>() { ColumnConcatenatingExtension.CreateSuggestedTransform(context, new[] { "In" }, "Out") };
                 var inferredPipeline1 = new SuggestedPipeline(transforms1, new List<SuggestedTransform>(), trainer1, context, true);
 
-                this.mockedPipeline = inferredPipeline1.ToPipeline();
+                this._mockedPipeline = inferredPipeline1.ToPipeline();
                 var textLoaderArgs = new TextLoader.Options()
                 {
                     Columns = new[] {
@@ -545,18 +545,18 @@ namespace mlnet.Tests
                     Separators = new[] { ',' }
                 };
 
-                this.columnInference = new ColumnInferenceResults()
+                this._columnInference = new ColumnInferenceResults()
                 {
                     TextLoaderOptions = textLoaderArgs,
                     ColumnInformation = new ColumnInformation() { LabelColumnName = "Label" }
                 };
             }
-            return (mockedPipeline, columnInference);
+            return (_mockedPipeline, _columnInference);
         }
 
         private (Pipeline, ColumnInferenceResults) GetMockedRegressionPipelineAndInference()
         {
-            if (mockedPipeline == null)
+            if (_mockedPipeline == null)
             {
                 MLContext context = new MLContext();
                 // same learners with different hyperparams
@@ -565,7 +565,7 @@ namespace mlnet.Tests
                 var transforms1 = new List<SuggestedTransform>() { ColumnConcatenatingExtension.CreateSuggestedTransform(context, new[] { "In" }, "Out") };
                 var inferredPipeline1 = new SuggestedPipeline(transforms1, new List<SuggestedTransform>(), trainer1, context, true);
 
-                this.mockedPipeline = inferredPipeline1.ToPipeline();
+                this._mockedPipeline = inferredPipeline1.ToPipeline();
                 var textLoaderArgs = new TextLoader.Options()
                 {
                     Columns = new[] {
@@ -582,13 +582,13 @@ namespace mlnet.Tests
                     Separators = new[] { ',' }
                 };
 
-                this.columnInference = new ColumnInferenceResults()
+                this._columnInference = new ColumnInferenceResults()
                 {
                     TextLoaderOptions = textLoaderArgs,
                     ColumnInformation = new ColumnInformation() { LabelColumnName = "Label" }
                 };
             }
-            return (mockedPipeline, columnInference);
+            return (_mockedPipeline, _columnInference);
         }
 
         private (Pipeline, ColumnInferenceResults) GetMockedAzureImagePipelineAndInference()
@@ -826,7 +826,7 @@ namespace mlnet.Tests
 
         private (Pipeline, ColumnInferenceResults) GetMockedOvaPipelineAndInference()
         {
-            if (mockedOvaPipeline == null)
+            if (_mockedOvaPipeline == null)
             {
                 MLContext context = new MLContext();
                 // same learners with different hyperparams
@@ -835,7 +835,7 @@ namespace mlnet.Tests
                 var transforms1 = new List<SuggestedTransform>() { ColumnConcatenatingExtension.CreateSuggestedTransform(context, new[] { "In" }, "Out") };
                 var inferredPipeline1 = new SuggestedPipeline(transforms1, new List<SuggestedTransform>(), trainer1, context, true);
 
-                this.mockedOvaPipeline = inferredPipeline1.ToPipeline();
+                this._mockedOvaPipeline = inferredPipeline1.ToPipeline();
                 var textLoaderArgs = new TextLoader.Options()
                 {
                     Columns = new[] {
@@ -853,14 +853,14 @@ namespace mlnet.Tests
                 };
 
 
-                this.columnInference = new ColumnInferenceResults()
+                this._columnInference = new ColumnInferenceResults()
                 {
                     TextLoaderOptions = textLoaderArgs,
                     ColumnInformation = new ColumnInformation() { LabelColumnName = "Label" }
                 };
 
             }
-            return (mockedOvaPipeline, columnInference);
+            return (_mockedOvaPipeline, _columnInference);
         }
 
         private static CodeGeneratorSettings CreateCodeGeneratorSettingsFor(TaskKind task)

@@ -55,15 +55,15 @@ namespace Microsoft.ML.RunTests
 #endif
 
         private const string OutputRootRegExp = @"[a-z]:\\[^/\t ]+\\TestOutput" + @"\\[^/\t ]+";
-        private static readonly string BinRegExp = @"[a-z]:\\[^\t ]+\\bin\\" + Mode;
-        private static readonly string Bin64RegExp = @"[a-z]:\\[^/\t ]+\\bin\\x64\\" + Mode;
+        private static readonly string _binRegExp = @"[a-z]:\\[^\t ]+\\bin\\" + Mode;
+        private static readonly string _bin64RegExp = @"[a-z]:\\[^/\t ]+\\bin\\x64\\" + Mode;
 
         private const string OutputRootUnixRegExp = @"\/[^\\\t ]+\/TestOutput" + @"\/[^\\\t ]+";
-        private static readonly string BinRegUnixExp = @"\/[^\\\t ]+\/bin\/" + Mode;
-        private static readonly string Bin64RegUnixExp = @"\/[^\\\t ]+\/bin\/x64\/" + Mode;
+        private static readonly string _binRegUnixExp = @"\/[^\\\t ]+\/bin\/" + Mode;
+        private static readonly string _bin64RegUnixExp = @"\/[^\\\t ]+\/bin\/x64\/" + Mode;
         // The Regex matches both positive and negative decimal point numbers present in a string.
         // The numbers could be a part of a word. They can also be in Exponential form eg. 3E-9 or 4E+07
-        private static readonly Regex MatchNumbers = new Regex(@"-?\b[0-9]+\.?[0-9]*(E[-+][0-9]*)?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex _matchNumbers = new Regex(@"-?\b[0-9]+\.?[0-9]*(E[-+][0-9]*)?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         /// <summary>
         /// When the progress log is appended to the end of output (in test runs), this line precedes the progress log.
@@ -256,10 +256,10 @@ namespace Microsoft.ML.RunTests
         private static readonly Regex _matchInfinity = new Regex(@"\u221E", RegexOptions.Compiled);
         private static readonly Regex _matchErrorLog = new Regex(@"Error_[\w-]+\.log", RegexOptions.Compiled);
         private static readonly Regex _matchGuid = new Regex(@"[A-F0-9]{8}(?:-[A-F0-9]{4}){3}-[A-F0-9]{12}", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private static readonly Regex _matchBin = new Regex(BinRegExp, RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private static readonly Regex _matchUnixBin = new Regex(BinRegUnixExp, RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private static readonly Regex _matchBin64 = new Regex(Bin64RegExp, RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private static readonly Regex _matchUnixBin64 = new Regex(Bin64RegUnixExp, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex _matchBin = new Regex(_binRegExp, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex _matchUnixBin = new Regex(_binRegUnixExp, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex _matchBin64 = new Regex(_bin64RegExp, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex _matchUnixBin64 = new Regex(_bin64RegUnixExp, RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         protected void Normalize(string path)
         {
@@ -498,8 +498,8 @@ namespace Microsoft.ML.RunTests
         private bool GetNumbersFromFile(ref string firstString, ref string secondString,
             int digitsOfPrecision, NumberParseOption parseOption)
         {
-            MatchCollection firstCollection = MatchNumbers.Matches(firstString);
-            MatchCollection secondCollection = MatchNumbers.Matches(secondString);
+            MatchCollection firstCollection = _matchNumbers.Matches(firstString);
+            MatchCollection secondCollection = _matchNumbers.Matches(secondString);
 
             if (firstCollection.Count == secondCollection.Count)
             {
@@ -509,8 +509,8 @@ namespace Microsoft.ML.RunTests
                 }
             }
 
-            firstString = MatchNumbers.Replace(firstString, "%Number%");
-            secondString = MatchNumbers.Replace(secondString, "%Number%");
+            firstString = _matchNumbers.Replace(firstString, "%Number%");
+            secondString = _matchNumbers.Replace(secondString, "%Number%");
             return true;
         }
 

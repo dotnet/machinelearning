@@ -15,9 +15,6 @@ dotnet_diagnostic.VSTHRD200.severity = none
 # MSML_GeneralName: This name should be PascalCased
 dotnet_diagnostic.MSML_GeneralName.severity = none
 
-# MSML_PrivateFieldName: Private field name not in: _camelCase format
-dotnet_diagnostic.MSML_PrivateFieldName.severity = none
-
 # MSML_NoBestFriendInternal: Cross-assembly internal access requires referenced item to have Microsoft.ML.BestFriendAttribute attribute.
 dotnet_diagnostic.MSML_NoBestFriendInternal.severity = none
 
