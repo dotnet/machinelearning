@@ -125,8 +125,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Determine if the selected metric is reasonable for different platforms
             double windowsTolerance = Math.Pow(10, -7);
-            // 1e-7 is too small for Linux, so we try 1e-5
-            double linuxTolerance = Math.Pow(10, -5);
+            // 1e-7 is too small for Linux, so we try 1e-4
+            double linuxTolerance = Math.Pow(10, -4);
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 // Linux case
