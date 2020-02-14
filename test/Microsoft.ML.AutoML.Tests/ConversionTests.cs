@@ -12,11 +12,11 @@ namespace Microsoft.ML.AutoML.Test
     
     public class ConversionTests
     {
-        private readonly ITestOutputHelper output;
+        private readonly ITestOutputHelper _output;
 
         public ConversionTests(ITestOutputHelper output)
         {
-            this.output = output;
+            this._output = output;
         }
 
         [Fact]
@@ -34,7 +34,7 @@ namespace Microsoft.ML.AutoML.Test
             {
                 float value;
                 var success = Conversions.Instance.TryParse(missingValue.AsMemory(), out value);
-                output.WriteLine($"{missingValue} parsed as {value}");
+                _output.WriteLine($"{missingValue} parsed as {value}");
                 Assert.True(success);
                 //Assert.Equal(float.NaN, value);
             }

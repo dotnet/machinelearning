@@ -16,15 +16,15 @@ namespace Microsoft.ML.Benchmarks
     [CIBenchmark]
     public class RffTransformTrain
     {
-        private string _dataPath_Digits;
+        private string _dataPathDigits;
 
         [GlobalSetup]
         public void SetupTrainingSpeedTests()
         {
-            _dataPath_Digits = BaseTestClass.GetDataPath(TestDatasets.Digits.trainFilename);
+            _dataPathDigits = BaseTestClass.GetDataPath(TestDatasets.Digits.trainFilename);
 
-            if (!File.Exists(_dataPath_Digits))
-                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPath_Digits));
+            if (!File.Exists(_dataPathDigits))
+                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPathDigits));
         }
 
         [Benchmark]
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Benchmarks
                 Separators = new[] {','}
             });
 
-            var data = loader.Load(_dataPath_Digits);
+            var data = loader.Load(_dataPathDigits);
 
             var pipeline = mlContext.Transforms.ApproximatedKernelMap("FeaturesRFF", "Features")
             .AppendCacheCheckpoint(mlContext)

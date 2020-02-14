@@ -34,18 +34,18 @@ namespace Microsoft.ML.Tests.Transformers
             public double double_t;
             public string str;
 
-            internal SchemaAllTypes(byte num_i, float num_f, string s)
+            internal SchemaAllTypes(byte numI, float numF, string s)
             {
-                uint8_t = num_i;
-                int8_t = (sbyte)num_i;
-                int16_t = num_i;
-                uint16_t = num_i;
-                int32_t = num_i;
-                uint32_t = num_i;
-                int64_t = num_i;
-                uint64_t = num_i;
-                float_t = num_f;
-                double_t = num_f;
+                uint8_t = numI;
+                int8_t = (sbyte)numI;
+                int16_t = numI;
+                uint16_t = numI;
+                int32_t = numI;
+                uint32_t = numI;
+                int64_t = numI;
+                uint64_t = numI;
+                float_t = numF;
+                double_t = numF;
                 str = s;
             }
         }

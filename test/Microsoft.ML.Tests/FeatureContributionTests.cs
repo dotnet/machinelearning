@@ -253,9 +253,9 @@ namespace Microsoft.ML.Tests
         {
             // Setup synthetic dataset.
             var rand = new Random(10);
-            float[] yArray = new float[numberOfInstances],
-                x1Array = new float[numberOfInstances],
-                x3Array = new float[numberOfInstances];
+            float[] yArray = new float[numberOfInstances];
+            float[] x1Array = new float[numberOfInstances];
+            float[] x3Array = new float[numberOfInstances];
 
             VBuffer<float>[] vbArray = new VBuffer<float>[numberOfInstances];
 

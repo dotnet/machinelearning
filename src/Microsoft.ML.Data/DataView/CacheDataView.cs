@@ -197,9 +197,13 @@ namespace Microsoft.ML.Data
         /// </summary>
         public long? GetRowCount()
         {
-            if (_rowCount < 0)
+            // _rowCount may or may not be initialized at this point. Only read the value once
+            // to avoid race conditions.
+            long rowCount = _rowCount;
+
+            if (rowCount < 0)
                 return null;
-            return _rowCount;
+            return rowCount;
         }
 
         public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
@@ -605,8 +609,9 @@ namespace Microsoft.ML.Data
 
             private TrivialWaiter(CacheDataView parent)
             {
-                Contracts.Assert(parent._rowCount >= 0);
-                _lim = parent._rowCount;
+                var rowCount = parent.GetRowCount();
+                Contracts.Assert(rowCount.HasValue);
+                _lim = rowCount.Value;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -669,7 +674,7 @@ namespace Microsoft.ML.Data
                         waiters.Add(waiter);
                 }
                 // Make the array of waiters.
-                if (_parent._rowCount < 0 && waiters.Count == 0)
+                if (!_parent.GetRowCount().HasValue && waiters.Count == 0)
                 {
                     Contracts.AssertValue(_parent._cacheDefaultWaiter);
                     waiters.Add(_parent._cacheDefaultWaiter);
@@ -682,7 +687,9 @@ namespace Microsoft.ML.Data
             {
                 foreach (var w in _waiters)
                     w.Wait(pos);
-                return pos < _parent._rowCount || _parent._rowCount == -1;
+
+                var rowCount = _parent.GetRowCount();
+                return !rowCount.HasValue || pos < rowCount.Value;
             }
 
             public static Wrapper Create(CacheDataView parent, Func<int, bool> pred)
@@ -1419,8 +1426,8 @@ namespace Microsoft.ML.Data
                     : base(parent, input, srcCol, waiter)
                 {
                     _getter = input.GetGetter<T>(input.Schema[srcCol]);
-                    if (parent._rowCount >= 0)
-                        _values = new T[(int)parent._rowCount];
+                    if (parent.GetRowCount() is { } rowCount)
+                        _values = new T[rowCount];
                 }
 
                 public override void CacheCurrent()
