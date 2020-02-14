@@ -54,8 +54,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [MatrixFactorizationFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void MatrixFactorizationSimpleTrainAndPredict()
         {
             var mlContext = new MLContext(seed: 1);
@@ -128,7 +126,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 // Linux case
-                var expectedUnixL2Error = 0.614457914950479; // Linux baseline
+                var expectedUnixL2Error = 0.614440959250773; // Linux baseline
                 Assert.InRange(metrices.MeanSquaredError, expectedUnixL2Error - tolerance, expectedUnixL2Error + tolerance);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
