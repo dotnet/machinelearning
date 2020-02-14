@@ -108,7 +108,7 @@ namespace Microsoft.ML.Scenarios
         {
             var imageHeight = 32;
             var imageWidth = 32;
-            var model_location = "cifar_model/frozen_model.pb";
+            var modelLocation = "cifar_model/frozen_model.pb";
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 
@@ -125,7 +125,7 @@ namespace Microsoft.ML.Scenarios
             var pipeEstimator = new ImageLoadingEstimator(mlContext, imageFolder, ("ImageReal", "ImagePath"))
                     .Append(new ImageResizingEstimator(mlContext, "ImageCropped", imageHeight, imageWidth, "ImageReal"))
                     .Append(new ImagePixelExtractingEstimator(mlContext, "Input", "ImageCropped", interleavePixelColors: true))
-                    .Append(mlContext.Model.LoadTensorFlowModel(model_location).ScoreTensorFlowModel("Output", "Input"))
+                    .Append(mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel("Output", "Input"))
                     .Append(new ColumnConcatenatingEstimator(mlContext, "Features", "Output"))
                     .Append(new ValueToKeyMappingEstimator(mlContext, "Label"))
                     .AppendCacheCheckpoint(mlContext)
@@ -345,7 +345,7 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformInputOutputTypesTest()
         {
             // This an identity model which returns the same output as input.
-            var model_location = "model_types_test";
+            var modelLocation = "model_types_test";
 
             //Data
             var data = new List<TypesData>(
@@ -382,7 +382,7 @@ namespace Microsoft.ML.Scenarios
 
             var inputs = new string[] { "f64", "f32", "i64", "i32", "i16", "i8", "u64", "u32", "u16", "u8", "b" };
             var outputs = new string[] { "o_f64", "o_f32", "o_i64", "o_i32", "o_i16", "o_i8", "o_u64", "o_u32", "o_u16", "o_u8", "o_b" };
-            var trans = mlContext.Model.LoadTensorFlowModel(model_location).ScoreTensorFlowModel(outputs, inputs).Fit(loader).Transform(loader); ;
+            var trans = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(outputs, inputs).Fit(loader).Transform(loader); ;
 
             using (var cursor = trans.GetRowCursorForAllColumns())
             {
@@ -546,8 +546,8 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowInputsOutputsSchemaTest()
         {
             var mlContext = new MLContext(seed: 1);
-            var model_location = "mnist_model/frozen_saved_model.pb";
-            var schema = TensorFlowUtils.GetModelSchema(mlContext, model_location);
+            var modelLocation = "mnist_model/frozen_saved_model.pb";
+            var schema = TensorFlowUtils.GetModelSchema(mlContext, modelLocation);
             Assert.Equal(86, schema.Count);
             Assert.True(schema.TryGetColumnIndex("Placeholder", out int col));
             var type = (VectorDataViewType)schema[col].Type;
@@ -607,8 +607,8 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(1, inputOps.Length);
             Assert.Equal("sequential/dense_1/BiasAdd", inputOps.GetValues()[0].ToString());
 
-            model_location = "model_matmul/frozen_saved_model.pb";
-            schema = TensorFlowUtils.GetModelSchema(mlContext, model_location);
+            modelLocation = "model_matmul/frozen_saved_model.pb";
+            schema = TensorFlowUtils.GetModelSchema(mlContext, modelLocation);
             char name = 'a';
             for (int i = 0; i < schema.Count; i++)
             {
@@ -663,7 +663,7 @@ namespace Microsoft.ML.Scenarios
         {
             const double expectedMicroAccuracy = 0.72173913043478266;
             const double expectedMacroAccruacy = 0.67482993197278918;
-            var model_location = "mnist_lr_model";
+            var modelLocation = "mnist_lr_model";
             try
             {
                 var mlContext = new MLContext(seed: 1);
@@ -686,7 +686,7 @@ namespace Microsoft.ML.Scenarios
                         labelColumnName: "OneHotLabel",
                         dnnLabel: "Label",
                         optimizationOperation: "SGDOptimizer",
-                        modelPath: model_location,
+                        modelPath: modelLocation,
                         lossOperation: "Loss",
                         epoch: 10,
                         learningRateOperation: "SGDOptimizer/learning_rate",
@@ -724,16 +724,16 @@ namespace Microsoft.ML.Scenarios
             {
                 // This test changes the state of the model.
                 // Cleanup folder so that other test can also use the same model.
-                CleanUp(model_location);
+                CleanUp(modelLocation);
             }
         }
 
-        private void CleanUp(string model_location)
+        private void CleanUp(string modelLocation)
         {
-            var directories = Directory.GetDirectories(model_location, "variables-*");
+            var directories = Directory.GetDirectories(modelLocation, "variables-*");
             if (directories != null && directories.Length > 0)
             {
-                var varDir = Path.Combine(model_location, "variables");
+                var varDir = Path.Combine(modelLocation, "variables");
                 if (Directory.Exists(varDir))
                     Directory.Delete(varDir, true);
                 Directory.Move(directories[0], varDir);

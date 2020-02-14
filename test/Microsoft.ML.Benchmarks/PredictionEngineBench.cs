@@ -34,7 +34,7 @@ namespace Microsoft.ML.Benchmarks
                 PetalWidth = 5.1f,
             };
 
-            string _irisDataPath = BaseTestClass.GetDataPath("iris.txt");
+            string irisDataPath = BaseTestClass.GetDataPath("iris.txt");
 
             var env = new MLContext(seed: 1);
 
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Benchmarks
             };
             var loader = new TextLoader(env, options: options);
 
-            IDataView data = loader.Load(_irisDataPath);
+            IDataView data = loader.Load(irisDataPath);
 
             var pipeline = new ColumnConcatenatingEstimator(env, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
                 .Append(env.Transforms.Conversion.MapValueToKey("Label"))
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Benchmarks
                 SentimentText = "Not a big fan of this."
             };
 
-            string _sentimentDataPath = BaseTestClass.GetDataPath("wikipedia-detox-250-line-data.tsv");
+            string sentimentDataPath = BaseTestClass.GetDataPath("wikipedia-detox-250-line-data.tsv");
 
             var mlContext = new MLContext(seed: 1);
 
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Benchmarks
             };
             var loader = new TextLoader(mlContext, options: options);
 
-            IDataView data = loader.Load(_sentimentDataPath);
+            IDataView data = loader.Load(sentimentDataPath);
 
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .Append(mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Benchmarks
                 Features = new[] { 5f, 1f, 1f, 1f, 2f, 1f, 3f, 1f, 1f }
             };
 
-            string _breastCancerDataPath = BaseTestClass.GetDataPath("breast-cancer.txt");
+            string breastCancerDataPath = BaseTestClass.GetDataPath("breast-cancer.txt");
 
             var env = new MLContext(seed: 1);
 
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Benchmarks
             };
             var loader = new TextLoader(env, options: options);
 
-            IDataView data = loader.Load(_breastCancerDataPath);
+            IDataView data = loader.Load(breastCancerDataPath);
 
             var pipeline = env.BinaryClassification.Trainers.SdcaNonCalibrated(
                 new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1, ConvergenceTolerance = 1e-2f, });

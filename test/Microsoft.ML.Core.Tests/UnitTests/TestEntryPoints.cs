@@ -2640,8 +2640,6 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void EntryPointEvaluateRegression()
         {
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename);
@@ -2752,8 +2750,6 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void EntryPointSdcaBinary()
         {
             TestEntryPointRoutine("breast-cancer.txt", "Trainers.StochasticDualCoordinateAscentBinaryClassifier");
@@ -2766,8 +2762,6 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void EntryPointSDCARegression()
         {
             TestEntryPointRoutine(TestDatasets.generatedRegressionDatasetmacro.trainFilename, "Trainers.StochasticDualCoordinateAscentRegressor", loader: TestDatasets.generatedRegressionDatasetmacro.loaderSettings);
@@ -3855,8 +3849,6 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void EntryPointChainedCrossValMacros()
         {
             string inputGraph = @"
@@ -5506,8 +5498,6 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void TestCrossValidationMacroWithStratification()
         {
             var dataPath = GetDataPath(@"breast-cancer.txt");
@@ -6039,8 +6029,6 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void TestOvaMacro()
         {
             var dataPath = GetDataPath(@"iris.txt");

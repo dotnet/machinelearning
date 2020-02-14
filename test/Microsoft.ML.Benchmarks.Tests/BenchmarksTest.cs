@@ -73,31 +73,31 @@ namespace Microsoft.ML.Benchmarks.Tests
 
     public class OutputLogger : AccumulationLogger
     {
-        private readonly ITestOutputHelper testOutputHelper;
-        private string currentLine = "";
+        private readonly ITestOutputHelper _testOutputHelper;
+        private string _currentLine = "";
 
         public OutputLogger(ITestOutputHelper testOutputHelper)
         {
-            this.testOutputHelper = testOutputHelper ?? throw new ArgumentNullException(nameof(testOutputHelper));
+            this._testOutputHelper = testOutputHelper ?? throw new ArgumentNullException(nameof(testOutputHelper));
         }
 
         public override void Write(LogKind logKind, string text)
         {
-            currentLine += text;
+            _currentLine += text;
             base.Write(logKind, text);
         }
 
         public override void WriteLine()
         {
-            testOutputHelper.WriteLine(currentLine);
-            currentLine = "";
+            _testOutputHelper.WriteLine(_currentLine);
+            _currentLine = "";
             base.WriteLine();
         }
 
         public override void WriteLine(LogKind logKind, string text)
         {
-            testOutputHelper.WriteLine(currentLine + text);
-            currentLine = "";
+            _testOutputHelper.WriteLine(_currentLine + text);
+            _currentLine = "";
             base.WriteLine(logKind, text);
         }
     }
