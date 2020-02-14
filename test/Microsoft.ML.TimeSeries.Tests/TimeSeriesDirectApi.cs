@@ -335,6 +335,11 @@ namespace Microsoft.ML.Tests
         [Trait("Category", "RunSpecificTest")]
         public void SsaForecast(int iterations)
         {
+            if (AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
+            {
+                return;
+            }
+
             Console.WriteLine($"{iterations} - th run for SsaForecast");
             var env = new MLContext(1);
             const int changeHistorySize = 10;
@@ -407,6 +412,11 @@ namespace Microsoft.ML.Tests
         [Trait("Category", "RunSpecificTest")]
         public void SsaForecastPredictionEngine(int iterations)
         {
+            if (AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
+            {
+                return;
+            }
+
             Console.WriteLine($"{iterations} - th run for SsaForecast");
             const int changeHistorySize = 10;
             const int seasonalitySize = 10;
