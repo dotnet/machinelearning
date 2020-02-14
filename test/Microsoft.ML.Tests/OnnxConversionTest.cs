@@ -878,6 +878,50 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
+        [Fact]
+        public void TestCustomOnnxGraph()
+        {
+            var modelPath = @"C:\Users\anvelazq\Desktop\is23\generated_model.zip";
+            var onnxJsonPath = @"C:\Users\anvelazq\Desktop\is23\onnx-json.json";
+            var onnxPath = @"C:\Users\anvelazq\Desktop\is23\onnx-model.onnx";
+
+            // Make entry point graph to conduct ONNX conversion.
+            var inputGraph = string.Format(@"
+            {{
+                'Inputs': {{
+                    'model': '{0}'
+                }},
+                'Nodes': [
+                    {{
+                        'Inputs': {{
+                            'Domain': 'com.microsoft.models',
+                            'Json': '{1}',
+                            'PredictiveModel': '$model',
+                            'Onnx': '{2}',
+                            'OnnxVersion': 'Experimental'
+                        }},
+                        'Name': 'Models.OnnxConverter',
+                        'Outputs': {{}}
+                    }}
+                ],
+                'Outputs': {{}}
+            }}
+            ", modelPath.Replace("\\", "\\\\"), onnxJsonPath.Replace("\\", "\\\\"), onnxPath.Replace("\\", "\\\\"));
+
+            // Write entry point graph for ONNX conversion into file so that it can be invoke by graph runner below.
+            var jsonPath = DeleteOutputPath("graph.json");
+            File.WriteAllLines(jsonPath, new[] { inputGraph });
+
+            // Onnx converter's assembly is not loaded by default, so we need to register it before calling it.
+            Env.ComponentCatalog.RegisterAssembly(typeof(OnnxExportExtensions).Assembly);
+
+            // Execute the saved entry point graph to convert the saved model to ONNX format.
+            var args = new ExecuteGraphCommand.Arguments() { GraphPath = jsonPath };
+            var cmd = new ExecuteGraphCommand(Env, args);
+            cmd.Run();
+
+            Done();
+        }
 
         [Fact]
         public void RemoveVariablesInPipelineTest()
@@ -1413,34 +1457,8 @@ namespace Microsoft.ML.Tests
 
             List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
             {
-                mlContext.MulticlassClassification.Trainers.LbfgsMaximumEntropy(),
-                mlContext.MulticlassClassification.Trainers.NaiveBayes(),
-                mlContext.MulticlassClassification.Trainers.OneVersusAll(
-                    mlContext.BinaryClassification.Trainers.AveragedPerceptron()),
-                mlContext.MulticlassClassification.Trainers.OneVersusAll(
-                    mlContext.BinaryClassification.Trainers.AveragedPerceptron(), useProbabilities:false),
-                mlContext.MulticlassClassification.Trainers.OneVersusAll(
-                    mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression()),
-                mlContext.MulticlassClassification.Trainers.OneVersusAll(
-                    mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(), useProbabilities:false),
-                mlContext.MulticlassClassification.Trainers.OneVersusAll(
-                    mlContext.BinaryClassification.Trainers.LinearSvm()),
-                mlContext.MulticlassClassification.Trainers.OneVersusAll(
-                    mlContext.BinaryClassification.Trainers.LinearSvm(), useProbabilities:false),
-                mlContext.MulticlassClassification.Trainers.OneVersusAll(
-                    mlContext.BinaryClassification.Trainers.FastForest()),
-                mlContext.MulticlassClassification.Trainers.OneVersusAll(
-                    mlContext.BinaryClassification.Trainers.FastForest(), useProbabilities:false),
                 mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(),
-                mlContext.MulticlassClassification.Trainers.SdcaNonCalibrated()
             };
-
-            if (Environment.Is64BitProcess)
-            {
-                estimators.Add(mlContext.MulticlassClassification.Trainers.LightGbm());
-                estimators.Add(mlContext.MulticlassClassification.Trainers.LightGbm(
-                    new LightGbmMulticlassTrainer.Options { UseSoftmax = true }));
-            }
 
             var initialPipeline = mlContext.Transforms.ReplaceMissingValues("Features")
                 .Append(mlContext.Transforms.NormalizeMinMax("Features"))

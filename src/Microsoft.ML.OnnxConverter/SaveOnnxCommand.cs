@@ -13,6 +13,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Transforms;
 using Newtonsoft.Json;
 using static Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper;
 
@@ -209,6 +210,31 @@ namespace Microsoft.ML.Model.OnnxConverter
             return ctx.MakeModel();
         }
 
+        private IDataView MyTest(PredictorModel predictorModel, IDataView inputData)
+        {
+            var host = new MLContext();
+            RoleMappedData data;
+            IPredictor predictor;
+            predictorModel.PrepareData(host, inputData, out data, out predictor);
+
+            IDataView scoredData;
+            //using (var ch = host.Start("Creating scoring pipeline"))
+            {
+                //ch.Trace("Creating pipeline");
+                var bindable = ScoreUtils.GetSchemaBindableMapper(host, predictor);
+                //ch.AssertValue(bindable);
+
+                var mapper = bindable.Bind(host, data.Schema);
+                var scorer = ScoreUtils.GetScorerComponent(host, mapper, null);
+                scoredData = scorer.CreateComponent(host, data.Data, mapper, predictorModel.GetTrainingSchema(host));
+            }
+
+            var xf = new KeyToValueMappingTransformer(host, "PredictedLabel").Transform(scoredData);
+            var output = new CommonOutputs.TransformOutput { Model = new TransformModelImpl(host, xf, scoredData), OutputData = xf };
+            var outputDataView = output.OutputData;
+            return outputDataView;
+        }
+
         private void Run(IChannel ch)
         {
             ILegacyDataLoader loader = null;
@@ -240,6 +266,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                 view = _predictiveModel.TransformModel.Apply(Host, new EmptyDataView(Host, _predictiveModel.TransformModel.InputSchema));
                 rawPred = _predictiveModel.Predictor;
                 trainSchema = _predictiveModel.GetTrainingSchema(Host);
+                // view = MyTest(_predictiveModel, view);
             }
 
             // Create the ONNX context for storing global information
@@ -276,6 +303,11 @@ namespace Microsoft.ML.Model.OnnxConverter
                     Host.Assert(scorePipe.Source == end);
                     end = scorePipe;
                     transforms.AddLast(scoreOnnx);
+
+                    var xf = new KeyToValueMappingTransformer(Host, "PredictedLabel").Transform(scorePipe);
+                    var output = new CommonOutputs.TransformOutput { Model = new TransformModelImpl(Host, xf, scorePipe), OutputData = xf };
+                    end = output.OutputData;
+                    transforms.AddLast(end as ITransformCanSaveOnnx);
                 }
                 else
                 {
