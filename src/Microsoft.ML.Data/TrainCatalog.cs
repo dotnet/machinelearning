@@ -213,7 +213,8 @@ namespace Microsoft.ML
         /// <summary>
         /// Run cross-validation over <paramref name="numberOfFolds"/> folds of <paramref name="data"/>, by fitting <paramref name="estimator"/>,
         /// and respecting <paramref name="samplingKeyColumnName"/> if provided.
-        /// Then evaluate each sub-model against <paramref name="labelColumnName"/> and return metrics.
+        /// Then evaluate each sub-model against <paramref name="labelColumnName"/> and return <see cref="BinaryClassificationMetrics"/>, which
+        /// do not include probability-based metrics.
         /// </summary>
         /// <param name="data">The data to run cross-validation on.</param>
         /// <param name="estimator">The estimator to fit.</param>
@@ -237,7 +238,8 @@ namespace Microsoft.ML
         /// <summary>
         /// Run cross-validation over <paramref name="numberOfFolds"/> folds of <paramref name="data"/>, by fitting <paramref name="estimator"/>,
         /// and respecting <paramref name="samplingKeyColumnName"/> if provided.
-        /// Then evaluate each sub-model against <paramref name="labelColumnName"/> and return metrics.
+        /// Then evaluate each sub-model against <paramref name="labelColumnName"/> and return <see cref="CalibratedBinaryClassificationMetrics"/>, which
+        /// include probability-based metrics.
         /// </summary>
         /// <param name="data">The data to run cross-validation on.</param>
         /// <param name="estimator">The estimator to fit.</param>
