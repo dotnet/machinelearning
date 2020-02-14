@@ -7,7 +7,7 @@ parameters:
   codeCoverage: false
   nightlyBuild: false
   innerLoop: false
-  runSpecific: false
+  runSpecific: true
   container: ''
 
 jobs:
