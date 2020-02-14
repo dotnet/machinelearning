@@ -210,31 +210,6 @@ namespace Microsoft.ML.Model.OnnxConverter
             return ctx.MakeModel();
         }
 
-        private IDataView MyTest(PredictorModel predictorModel, IDataView inputData)
-        {
-            var host = new MLContext();
-            RoleMappedData data;
-            IPredictor predictor;
-            predictorModel.PrepareData(host, inputData, out data, out predictor);
-
-            IDataView scoredData;
-            //using (var ch = host.Start("Creating scoring pipeline"))
-            {
-                //ch.Trace("Creating pipeline");
-                var bindable = ScoreUtils.GetSchemaBindableMapper(host, predictor);
-                //ch.AssertValue(bindable);
-
-                var mapper = bindable.Bind(host, data.Schema);
-                var scorer = ScoreUtils.GetScorerComponent(host, mapper, null);
-                scoredData = scorer.CreateComponent(host, data.Data, mapper, predictorModel.GetTrainingSchema(host));
-            }
-
-            var xf = new KeyToValueMappingTransformer(host, "PredictedLabel").Transform(scoredData);
-            var output = new CommonOutputs.TransformOutput { Model = new TransformModelImpl(host, xf, scoredData), OutputData = xf };
-            var outputDataView = output.OutputData;
-            return outputDataView;
-        }
-
         private void Run(IChannel ch)
         {
             ILegacyDataLoader loader = null;
