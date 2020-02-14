@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.IO;
 using System.Linq;
 using Microsoft.ML.TestFramework.Attributes;
@@ -101,11 +102,12 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void SavePipeSlidingWindow()
+        [Theory]
+        [IterationData(iterations: 1000)]
+        [Trait("Category", "RunSpecificTest")]
+        public void SavePipeSlidingWindow(int iterations)
         {
+            Console.WriteLine($"{iterations} - th run for SsaForecast");
             TestCore(null, true,
                     new[]{"loader=Text{col=Input:R4:1}",
                     "xf=SlideWinTransform{src=Input name=Output wnd=3 l=0}" });
@@ -113,9 +115,12 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
-        public void SavePipeSlidingWindowW1L1()
+        [Theory]
+        [IterationData(iterations: 1000)]
+        [Trait("Category", "RunSpecificTest")]
+        public void SavePipeSlidingWindowW1L1(int iterations)
         {
+            Console.WriteLine($"{iterations} - th run for SsaForecast");
             TestCore(null, true,
                 new[]{"loader=Text{col=Input:R4:1}",
                 "xf=SlideWinTransform{src=Input name=Output wnd=1 l=1}" });
@@ -123,11 +128,13 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
+        [Theory]
+        [IterationData(iterations: 1000)]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void SavePipeSlidingWindowW2L1()
+        [Trait("Category", "RunSpecificTest")]
+        public void SavePipeSlidingWindowW2L1(int iterations)
         {
+            Console.WriteLine($"{iterations} - th run for SsaForecast");
             TestCore(null, true,
                     new[]{"loader=Text{col=Input:R4:1}",
                     "xf=SlideWinTransform{src=Input name=Output wnd=2 l=1}" });
@@ -135,9 +142,12 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
-        public void SavePipeSlidingWindowW1L2()
+        [Theory]
+        [IterationData(iterations: 1000)]
+        [Trait("Category", "RunSpecificTest")]
+        public void SavePipeSlidingWindowW1L2(int iterations)
         {
+            Console.WriteLine($"{iterations} - th run for SsaForecast");
             TestCore(null, true,
                     new[]{"loader=Text{col=Input:R4:1}",
                     "xf=SlideWinTransform{src=Input name=Output wnd=1 l=2}" });
