@@ -14,7 +14,7 @@ namespace Microsoft.ML.CodeAnalyzer.Tests.Code
 {
     public class BaseTestClassTest
     {
-        private static readonly ReferenceAssemblies _referenceAssemblies = ReferenceAssemblies.Default
+        internal static readonly ReferenceAssemblies ReferenceAssemblies = ReferenceAssemblies.Default
             .AddPackages(ImmutableArray.Create(new PackageIdentity("xunit", "2.4.0")));
 
         [Fact]
@@ -31,7 +31,7 @@ public class [|SomeClass|] {
 
             await new VerifyCS.Test
             {
-                ReferenceAssemblies = _referenceAssemblies,
+                ReferenceAssemblies = ReferenceAssemblies,
                 TestState = { Sources = { code } },
             }.RunAsync();
         }
@@ -50,7 +50,7 @@ public class [|SomeClass|] {
 
             await new VerifyCS.Test
             {
-                ReferenceAssemblies = _referenceAssemblies,
+                ReferenceAssemblies = ReferenceAssemblies,
                 TestState = { Sources = { code } },
             }.RunAsync();
         }
@@ -74,7 +74,7 @@ namespace Microsoft.ML.TestFramework {
 
             await new VerifyCS.Test
             {
-                ReferenceAssemblies = _referenceAssemblies,
+                ReferenceAssemblies = ReferenceAssemblies,
                 TestState = { Sources = { code } },
             }.RunAsync();
         }
@@ -100,7 +100,7 @@ namespace Microsoft.ML.TestFramework {
 
             await new VerifyCS.Test
             {
-                ReferenceAssemblies = _referenceAssemblies,
+                ReferenceAssemblies = ReferenceAssemblies,
                 TestState = { Sources = { code } },
             }.RunAsync();
         }
