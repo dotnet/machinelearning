@@ -69,7 +69,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [LightGBMFact]
-        [Trait("Category", "RunSpecificTest")]
         public void LightGBMBinaryEstimatorUnbalanced()
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
@@ -94,7 +93,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// LightGBMBinaryTrainer CorrectSigmoid test
         /// </summary>
         [LightGBMFact]
-        [Trait("Category", "RunSpecificTest")]
         public void LightGBMBinaryEstimatorCorrectSigmoid()
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
