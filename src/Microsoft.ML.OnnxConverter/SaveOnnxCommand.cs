@@ -241,7 +241,6 @@ namespace Microsoft.ML.Model.OnnxConverter
                 view = _predictiveModel.TransformModel.Apply(Host, new EmptyDataView(Host, _predictiveModel.TransformModel.InputSchema));
                 rawPred = _predictiveModel.Predictor;
                 trainSchema = _predictiveModel.GetTrainingSchema(Host);
-                // view = MyTest(_predictiveModel, view);
             }
 
             // Create the ONNX context for storing global information
