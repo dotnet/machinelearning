@@ -57,7 +57,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         [Theory]
         [IterationData(iterations: 1000)]
-        [Trait("Category", "RunSpecificTest")]
+        [Trait("Category", "SkipInCI")]
         public void MatrixFactorizationSimpleTrainAndPredict(int iterations)
         {
             var mlContext = new MLContext(seed: 1);

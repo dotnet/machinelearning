@@ -15,12 +15,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests
 {
-    public sealed class TimeSeries : BaseTestClass
+    public sealed class TimeSeries
     {
-        public TimeSeries(ITestOutputHelper output) : base(output)
-        {
-        }
-
         private sealed class Prediction
         {
 #pragma warning disable CS0649
