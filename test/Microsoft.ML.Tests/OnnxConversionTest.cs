@@ -1457,8 +1457,34 @@ namespace Microsoft.ML.Tests
 
             List<IEstimator<ITransformer>> estimators = new List<IEstimator<ITransformer>>()
             {
+                mlContext.MulticlassClassification.Trainers.LbfgsMaximumEntropy(),
+                mlContext.MulticlassClassification.Trainers.NaiveBayes(),
+                mlContext.MulticlassClassification.Trainers.OneVersusAll(
+                    mlContext.BinaryClassification.Trainers.AveragedPerceptron()),
+                mlContext.MulticlassClassification.Trainers.OneVersusAll(
+                    mlContext.BinaryClassification.Trainers.AveragedPerceptron(), useProbabilities:false),
+                mlContext.MulticlassClassification.Trainers.OneVersusAll(
+                    mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression()),
+                mlContext.MulticlassClassification.Trainers.OneVersusAll(
+                    mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(), useProbabilities:false),
+                mlContext.MulticlassClassification.Trainers.OneVersusAll(
+                    mlContext.BinaryClassification.Trainers.LinearSvm()),
+                mlContext.MulticlassClassification.Trainers.OneVersusAll(
+                    mlContext.BinaryClassification.Trainers.LinearSvm(), useProbabilities:false),
+                mlContext.MulticlassClassification.Trainers.OneVersusAll(
+                    mlContext.BinaryClassification.Trainers.FastForest()),
+                mlContext.MulticlassClassification.Trainers.OneVersusAll(
+                    mlContext.BinaryClassification.Trainers.FastForest(), useProbabilities:false),
                 mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(),
+                mlContext.MulticlassClassification.Trainers.SdcaNonCalibrated()
             };
+
+            if (Environment.Is64BitProcess)
+            {
+                estimators.Add(mlContext.MulticlassClassification.Trainers.LightGbm());
+                estimators.Add(mlContext.MulticlassClassification.Trainers.LightGbm(
+                    new LightGbmMulticlassTrainer.Options { UseSoftmax = true }));
+            }
 
             var initialPipeline = mlContext.Transforms.ReplaceMissingValues("Features")
                 .Append(mlContext.Transforms.NormalizeMinMax("Features"))
