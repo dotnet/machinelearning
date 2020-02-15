@@ -402,7 +402,7 @@ namespace Microsoft.ML.Tests
             }
             Done();
 
-            Console.WriteLine($"{iteration}-th run finish for TestEstimatorHogwildSGD");
+            Console.WriteLine($"{iteration}-th run finish for PlattCalibratorOnnxConversionTest");
         }
 
         class PlattModelInput
