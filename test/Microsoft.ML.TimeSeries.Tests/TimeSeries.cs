@@ -102,12 +102,9 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Theory]
-        [IterationData(iterations: 1000)]
-        [Trait("Category", "RunSpecificTest")]
-        public void SavePipeSlidingWindow(int iterations)
+        [Fact]
+        public void SavePipeSlidingWindow()
         {
-            Console.WriteLine($"{iterations} - th run for SsaForecast");
             TestCore(null, true,
                     new[]{"loader=Text{col=Input:R4:1}",
                     "xf=SlideWinTransform{src=Input name=Output wnd=3 l=0}" });
@@ -115,12 +112,9 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Theory]
-        [IterationData(iterations: 1000)]
-        [Trait("Category", "RunSpecificTest")]
-        public void SavePipeSlidingWindowW1L1(int iterations)
+        [Fact]
+        public void SavePipeSlidingWindowW1L1()
         {
-            Console.WriteLine($"{iterations} - th run for SsaForecast");
             TestCore(null, true,
                 new[]{"loader=Text{col=Input:R4:1}",
                 "xf=SlideWinTransform{src=Input name=Output wnd=1 l=1}" });
@@ -128,13 +122,9 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Theory]
-        [IterationData(iterations: 1000)]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "RunSpecificTest")]
-        public void SavePipeSlidingWindowW2L1(int iterations)
+        [Fact]
+        public void SavePipeSlidingWindowW2L1()
         {
-            Console.WriteLine($"{iterations} - th run for SsaForecast");
             TestCore(null, true,
                     new[]{"loader=Text{col=Input:R4:1}",
                     "xf=SlideWinTransform{src=Input name=Output wnd=2 l=1}" });
@@ -142,12 +132,9 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Theory]
-        [IterationData(iterations: 1000)]
-        [Trait("Category", "RunSpecificTest")]
-        public void SavePipeSlidingWindowW1L2(int iterations)
+        [Fact]
+        public void SavePipeSlidingWindowW1L2()
         {
-            Console.WriteLine($"{iterations} - th run for SsaForecast");
             TestCore(null, true,
                     new[]{"loader=Text{col=Input:R4:1}",
                     "xf=SlideWinTransform{src=Input name=Output wnd=1 l=2}" });
