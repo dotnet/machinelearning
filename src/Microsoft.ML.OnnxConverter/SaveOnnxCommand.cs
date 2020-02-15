@@ -279,7 +279,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                     transforms.AddLast(scoreOnnx);
 
                     var xf = new KeyToValueMappingTransformer(Host, "PredictedLabel").Transform(scorePipe);
-                    var output = new CommonOutputs.TransformOutput { Model = new TransformModelImpl(Host, xf, scorePipe), OutputData = xf };
+                    var output = new CommonOutputs.TransformOutput { Model = new TransformModelImpl(Host, xf, scorePipe), OutputData = xf }; //MYTODO: Is this step necessary? I'd think it isn't
                     end = output.OutputData;
                     transforms.AddLast(end as ITransformCanSaveOnnx);
                 }
@@ -294,6 +294,29 @@ namespace Microsoft.ML.Model.OnnxConverter
             {
                 Contracts.CheckUserArg(_loadPredictor != true,
                     nameof(Arguments.LoadPredictor), "We were explicitly told to load the predictor but one was not present.");
+            }
+
+            // Convert back to values the KeyDataViewType columns that appear both in input and output (i.e those that remained untouched
+            // by the model.
+            //MYTODO: perhaps move this into another function.
+            var outputNames = new HashSet<string>();
+            foreach (var col in end.Schema)
+                if(col.Type is KeyDataViewType)
+                    outputNames.Add(col.Name);
+
+            var inputNames = new HashSet<string>();
+            foreach (var col in source.Schema)
+                if(col.Type is KeyDataViewType && col.IsHidden == false)
+                    inputNames.Add(col.Name);
+
+            outputNames.IntersectWith(inputNames);
+
+            foreach(var name in outputNames)
+            {
+                var xf = new KeyToValueMappingTransformer(Host, name).Transform(end);
+                var output = new CommonOutputs.TransformOutput { Model = new TransformModelImpl(Host, xf, end), OutputData = xf }; // MYTODO: is this step necessary? I'd think it isn't
+                end = output.OutputData;
+                transforms.AddLast(end as ITransformCanSaveOnnx);
             }
 
             var model = ConvertTransformListToOnnxModel(ctx, ch, source, end, transforms, _inputsToDrop, _outputsToDrop);
