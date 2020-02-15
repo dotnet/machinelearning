@@ -878,12 +878,13 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
+        //MYTODO: Remove this once I am finished with this PR
         [Fact]
-        public void TestCustomOnnxGraph()
+        public void TestOnnxCustomPredictorGraph()
         {
-            var modelPath = @"C:\Users\anvelazq\Desktop\is23\generated_model.zip";
-            var onnxJsonPath = @"C:\Users\anvelazq\Desktop\is23\onnx-json.json";
-            var onnxPath = @"C:\Users\anvelazq\Desktop\is23\onnx-model.onnx";
+            var modelPath = @"C:\Users\anvelazq\Desktop\is23repros\Handler.zip";
+            var onnxJsonPath = @"C:\Users\anvelazq\Desktop\is23repros\Handler.json";
+            var onnxPath = @"C:\Users\anvelazq\Desktop\is23repros\Handler.onnx";
 
             // Make entry point graph to conduct ONNX conversion.
             var inputGraph = string.Format(@"
@@ -897,6 +898,52 @@ namespace Microsoft.ML.Tests
                             'Domain': 'com.microsoft.models',
                             'Json': '{1}',
                             'PredictiveModel': '$model',
+                            'Onnx': '{2}',
+                            'OnnxVersion': 'Experimental'
+                        }},
+                        'Name': 'Models.OnnxConverter',
+                        'Outputs': {{}}
+                    }}
+                ],
+                'Outputs': {{}}
+            }}
+            ", modelPath.Replace("\\", "\\\\"), onnxJsonPath.Replace("\\", "\\\\"), onnxPath.Replace("\\", "\\\\"));
+
+            // Write entry point graph for ONNX conversion into file so that it can be invoke by graph runner below.
+            var jsonPath = DeleteOutputPath("graph.json");
+            File.WriteAllLines(jsonPath, new[] { inputGraph });
+
+            // Onnx converter's assembly is not loaded by default, so we need to register it before calling it.
+            Env.ComponentCatalog.RegisterAssembly(typeof(OnnxExportExtensions).Assembly);
+
+            // Execute the saved entry point graph to convert the saved model to ONNX format.
+            var args = new ExecuteGraphCommand.Arguments() { GraphPath = jsonPath };
+            var cmd = new ExecuteGraphCommand(Env, args);
+            cmd.Run();
+
+            Done();
+        }
+
+        //MYTODO: Remove this once I am finished with this PR
+        [Fact]
+        public void TestOnnxCustomTransformGraph()
+        {
+            var modelPath = @"C:\Users\anvelazq\Desktop\is23repros\Handler.zip";
+            var onnxJsonPath = @"C:\Users\anvelazq\Desktop\is23repros\Handler.json";
+            var onnxPath = @"C:\Users\anvelazq\Desktop\is23repros\Handler.onnx";
+
+            // Make entry point graph to conduct ONNX conversion.
+            var inputGraph = string.Format(@"
+            {{
+                'Inputs': {{
+                    'model': '{0}'
+                }},
+                'Nodes': [
+                    {{
+                        'Inputs': {{
+                            'Domain': 'com.microsoft.models',
+                            'Json': '{1}',
+                            'Model': '$model',
                             'Onnx': '{2}',
                             'OnnxVersion': 'Experimental'
                         }},
