@@ -364,11 +364,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             }
         }
 
-        [Fact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void GetLinearModelWeights()
+        [Theory]
+        [IterationData(iterations: 1000)]
+        [Trait("Category", "RunSpecific")]
+        public void GetLinearModelWeights(int iteration)
         {
+            Console.WriteLine($"{iteration}-th run start for GetLinearModelWeights");
+
             var dataPath = GetDataPath("housing.txt");
 
             var context = new MLContext(1);
@@ -398,7 +400,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             var linearModel = model.LastTransformer.Model;
 
-            var weights = linearModel.Weights; 
+            var weights = linearModel.Weights;
+
+            Console.WriteLine($"{iteration}-th run finish for GetLinearModelWeights");
         }
 
         [Fact]

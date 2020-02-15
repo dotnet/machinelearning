@@ -90,12 +90,16 @@ namespace Microsoft.ML.Tests
                 new LbfgsPoissonRegressionTrainer.Options { NumberOfThreads = 1 }), GetSparseDataset(numberOfInstances: 100), "PoissonRegression");
         }
 
-        [Fact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void TestGAMRegression()
+        [Theory]
+        [IterationData(iterations: 1000)]
+        [Trait("Category", "RunSpecific")]
+        public void TestGAMRegression(int iteration)
         {
+            Console.WriteLine($"{iteration}-th run start for TestGAMRegression");
+
             TestFeatureContribution(ML.Regression.Trainers.Gam(), GetSparseDataset(numberOfInstances: 100), "GAMRegression");
+
+            Console.WriteLine($"{iteration}-th run finish for TestGAMRegression");
         }
 
         // Tests for ranking trainers that implement IFeatureContributionMapper interface.

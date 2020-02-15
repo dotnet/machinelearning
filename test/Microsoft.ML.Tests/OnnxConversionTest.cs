@@ -343,11 +343,13 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void PlattCalibratorOnnxConversionTest()
+        [Theory]
+        [IterationData(iterations: 1000)]
+        [Trait("Category", "RunSpecific")]
+        public void PlattCalibratorOnnxConversionTest(int iteration)
         {
+            Console.WriteLine($"{iteration}-th run start for PlattCalibratorOnnxConversionTest");
+
             var mlContext = new MLContext(seed: 1);
             string dataPath = GetDataPath("breast-cancer.txt");
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
@@ -399,6 +401,8 @@ namespace Microsoft.ML.Tests
                 }
             }
             Done();
+
+            Console.WriteLine($"{iteration}-th run finish for TestEstimatorHogwildSGD");
         }
 
         class PlattModelInput

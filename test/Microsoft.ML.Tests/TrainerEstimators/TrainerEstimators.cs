@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
@@ -86,11 +88,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// HogwildSGD TrainerEstimator test (logistic regression).
         /// </summary>
-        [Fact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void TestEstimatorHogwildSGD()
+        [Theory]
+        [IterationData(iterations: 1000)]
+        [Trait("Category", "RunSpecific")]
+        public void TestEstimatorHogwildSGD(int iteration)
         {
+            Console.WriteLine($"{iteration}-th run start for TestEstimatorHogwildSGD");
+
             var trainers = new[] { ML.BinaryClassification.Trainers.SgdCalibrated(l2Regularization: 0, numberOfIterations: 80),
                 ML.BinaryClassification.Trainers.SgdCalibrated(new Trainers.SgdCalibratedTrainer.Options(){ L2Regularization = 0, NumberOfIterations = 80})};
 
@@ -115,6 +119,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             }
 
             Done();
+
+            Console.WriteLine($"{iteration}-th run finish for TestEstimatorHogwildSGD");
         }
 
         /// <summary>

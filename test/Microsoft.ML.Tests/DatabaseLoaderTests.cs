@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
@@ -11,6 +12,7 @@ using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -169,16 +171,23 @@ namespace Microsoft.ML.Tests
             }).PredictedLabel);
         }
 
-        [LightGBMFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void IrisVectorLightGbmWithLoadColumnName()
+        [Theory]
+        [IterationData(iterations: 1000)]
+        [Trait("Category", "RunSpecific")]
+        public void IrisVectorLightGbmWithLoadColumnName(int iteration)
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // https://github.com/dotnet/machinelearning/issues/4156
                 return;
             }
+
+            if (!Environment.Is64BitProcess)
+            {
+                return;
+            }
+
+            Console.WriteLine($"{iteration}-th run start for IrisVectorLightGbmWithLoadColumnName");
 
             var mlContext = new MLContext(seed: 1);
 
@@ -212,6 +221,8 @@ namespace Microsoft.ML.Tests
                 SepalInfo = new float[] { 4.9f, 2.4f },
                 PetalInfo = new float[] { 3.3f, 1.0f },
             }).PredictedLabel);
+
+            Console.WriteLine($"{iteration}-th run finish for IrisVectorLightGbmWithLoadColumnName");
         }
 
         [Fact]
