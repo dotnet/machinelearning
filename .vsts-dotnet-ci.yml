@@ -25,6 +25,7 @@ jobs:
         _configuration: Release-netcoreapp3_0
         _config_short: RI
         _includeBenchmarkData: true
+    innerLoop: true
     pool:
       name: Hosted Ubuntu 1604
 
@@ -33,6 +34,7 @@ jobs:
     name: Ubuntu_x64_NetCoreApp21
     buildScript: ./build.sh
     container: UbuntuContainer
+    innerLoop: true
     pool:
       name: Hosted Ubuntu 1604
 
@@ -40,6 +42,7 @@ jobs:
   parameters:
     name: MacOS_x64_NetCoreApp21
     buildScript: ./build.sh
+    innerLoop: true
     pool:
       name: Hosted macOS High Sierra
 
@@ -56,15 +59,18 @@ jobs:
         _configuration: Release-netcoreapp3_0
         _config_short: RI
         _includeBenchmarkData: true
+    innerLoop: true
     pool:
-      name: MachineLearning Test
+      name: NetCorePublic-Pool
+      queue: buildpool.windows.10.amd64.vs2017.open
 
 - template: /build/ci/job-template.yml
   parameters:
     name: Windows_x64_NetCoreApp21
     buildScript: build.cmd
+    innerLoop: true
     pool:
-      name: MachineLearning Test
+      name: Hosted VS2017
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -79,13 +85,15 @@ jobs:
         _configuration: Release-netfx
         _config_short: RFX
         _includeBenchmarkData: false
+    innerLoop: true
     pool:
-      name: MachineLearning Test
+      name: Hosted VS2017
 
 - template: /build/ci/job-template.yml
   parameters:
     name: Windows_x86_NetCoreApp21
     architecture: x86
     buildScript: build.cmd
+    innerLoop: true
     pool:
-      name: MachineLearning Test
+      name: Hosted VS2017

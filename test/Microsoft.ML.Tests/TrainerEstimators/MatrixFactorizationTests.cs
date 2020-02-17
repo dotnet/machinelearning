@@ -53,9 +53,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [Theory]
-        [Trait("Category", "RunSpecificTest")]
-        [IterationData(1000)]
+        [MatrixFactorizationFact]
         public void MatrixFactorizationSimpleTrainAndPredict(int iterations)
         {
             var mlContext = new MLContext(seed: 1);
@@ -132,10 +130,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 // Linux case
                 var expectedUnixL2Error = 0.614457914950479; // Linux baseline
                 Assert.InRange(metrices.MeanSquaredError, expectedUnixL2Error - linuxTolerance, expectedUnixL2Error + linuxTolerance);
-                if (iterations > 100)
-                {
-                    Console.WriteLine(iterations);
-                }
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
