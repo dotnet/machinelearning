@@ -75,7 +75,7 @@
           "Size1"
         ],
         "output": [
-          "Size.onnx"
+          "Size.output"
         ],
         "name": "Identity3",
         "opType": "Identity"
@@ -85,7 +85,7 @@
           "Shape0"
         ],
         "output": [
-          "Shape.onnx"
+          "Shape.output"
         ],
         "name": "Identity4",
         "opType": "Identity"
@@ -95,7 +95,7 @@
           "Thickness0"
         ],
         "output": [
-          "Thickness.onnx"
+          "Thickness.output"
         ],
         "name": "Identity5",
         "opType": "Identity"
@@ -105,7 +105,7 @@
           "Label0"
         ],
         "output": [
-          "Label.onnx"
+          "Label.output"
         ],
         "name": "Identity6",
         "opType": "Identity"
@@ -278,7 +278,7 @@
     ],
     "output": [
       {
-        "name": "Size.onnx",
+        "name": "Size.output",
         "type": {
           "tensorType": {
             "elemType": 1,
@@ -296,7 +296,7 @@
         }
       },
       {
-        "name": "Shape.onnx",
+        "name": "Shape.output",
         "type": {
           "tensorType": {
             "elemType": 6,
@@ -314,7 +314,7 @@
         }
       },
       {
-        "name": "Thickness.onnx",
+        "name": "Thickness.output",
         "type": {
           "tensorType": {
             "elemType": 11,
@@ -332,7 +332,7 @@
         }
       },
       {
-        "name": "Label.onnx",
+        "name": "Label.output",
         "type": {
           "tensorType": {
             "elemType": 9,
