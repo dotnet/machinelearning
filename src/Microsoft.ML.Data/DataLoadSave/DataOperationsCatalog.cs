@@ -511,12 +511,13 @@ namespace Microsoft.ML
                 var type = data.Schema[stratCol].Type;
                 if (!RangeFilter.IsValidRangeFilterColumnType(env, type))
                 {
-                    // Hash the samplingKeyColumn.
-                    // REVIEW: this could currently crash, since Hash only accepts a limited set
-                    // of column types. It used to be HashJoin, but we should probably extend Hash
-                    // instead of having two hash transformations.
                     var origStratCol = samplingKeyColumn;
                     samplingKeyColumn = data.Schema.GetTempColumnName(samplingKeyColumn);
+                    // HashingEstimator currently handles all primitive types except for DateTime, DateTimeOffset and TimeSpan.
+                    var itemType = type.GetItemType();
+                    if (itemType is DateTimeDataViewType || itemType is DateTimeOffsetDataViewType || itemType is TimeSpanDataViewType)
+                        data = new TypeConvertingTransformer(env, origStratCol, DataKind.Int64, origStratCol).Transform(data);
+
                     HashingEstimator.ColumnOptions columnOptions;
                     if (seed.HasValue)
                         columnOptions = new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30, (uint)seed.Value, combine: true);
