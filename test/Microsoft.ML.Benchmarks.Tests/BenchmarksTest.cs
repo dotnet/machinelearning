@@ -56,7 +56,7 @@ namespace Microsoft.ML.Benchmarks.Tests
             Assert.True(summary.Reports.Any(), "The \"Summary\" should contain at least one \"BenchmarkReport\" in the \"Reports\" collection");
 
             Assert.True(summary.Reports.All(r => r.BuildResult.IsBuildSuccess),
-                "The following benchmarks are failed to build: " +
+                "The following benchmarks failed to build: " +
                 string.Join(", ", summary.Reports.Where(r => !r.BuildResult.IsBuildSuccess).Select(r => r.BenchmarkCase.DisplayInfo)));
 
             Assert.True(summary.Reports.All(r => r.ExecuteResults != null),
