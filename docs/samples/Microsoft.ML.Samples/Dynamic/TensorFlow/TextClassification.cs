@@ -54,7 +54,7 @@ namespace Samples.Dynamic
                );
 
             // Load the TensorFlow model once.
-            //      - Use it for queering the schema for input and output in the
+            //      - Use it for querying the schema for input and output in the
             //            model
             //      - Use it for prediction in the pipeline.
             // Unfrozen (SavedModel format) models are loaded by providing the
