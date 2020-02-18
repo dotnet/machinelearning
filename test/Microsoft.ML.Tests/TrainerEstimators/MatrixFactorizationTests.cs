@@ -54,7 +54,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [MatrixFactorizationFact]
-        public void MatrixFactorizationSimpleTrainAndPredict(int iterations)
+        public void MatrixFactorizationSimpleTrainAndPredict()
         {
             var mlContext = new MLContext(seed: 1);
 
