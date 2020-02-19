@@ -26,7 +26,7 @@ namespace Samples.Dynamic
                 new TextData(){ Text = "It does so by first tokenizing " +
                     "text/string into words/tokens then " },
 
-                new TextData(){ Text = "computing n-grams and their neumeric " +
+                new TextData(){ Text = "computing n-grams and their numeric " +
                     "values." },
 
                 new TextData(){ Text = "Each position in the output vector " +
@@ -41,7 +41,7 @@ namespace Samples.Dynamic
                 new TextData(){ Text = "the inverse of the number of documents " +
                     "contain the n-gram (Idf)," },
 
-                new TextData(){ Text = "or compute both and multipy together " +
+                new TextData(){ Text = "or compute both and multiply together " +
                     "(Tf-Idf)." },
             };
 

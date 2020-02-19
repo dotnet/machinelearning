@@ -25,11 +25,11 @@ string TrainerDescription = @"// This trainer trains field-aware factorization (
 string TrainerOptions = null;
 
 string ExpectedOutputPerInstance= @"// Expected output:
-            //   Actual label: True, predicted label: True, score of being positive class: 1.115094, and probability of beling positive class: 0.7530775.
-            //   Actual label: False, predicted label: False, score of being positive class: -3.478797, and probability of beling positive class: 0.02992158.
-            //   Actual label: True, predicted label: True, score of being positive class: 3.191896, and probability of beling positive class: 0.9605282.
-            //   Actual label: False, predicted label: False, score of being positive class: -3.400863, and probability of beling positive class: 0.03226851.
-            //   Actual label: True, predicted label: True, score of being positive class: 4.06056, and probability of beling positive class: 0.9830528.";
+            //   Actual label: True, predicted label: True, score of being positive class: 1.115094, and probability of being positive class: 0.7530775.
+            //   Actual label: False, predicted label: False, score of being positive class: -3.478797, and probability of being positive class: 0.02992158.
+            //   Actual label: True, predicted label: True, score of being positive class: 3.191896, and probability of being positive class: 0.9605282.
+            //   Actual label: False, predicted label: False, score of being positive class: -3.400863, and probability of being positive class: 0.03226851.
+            //   Actual label: True, predicted label: True, score of being positive class: 4.06056, and probability of being positive class: 0.9830528.";
 
 string ExpectedOutput = @"// Expected output:
             //   Accuracy: 0.99
