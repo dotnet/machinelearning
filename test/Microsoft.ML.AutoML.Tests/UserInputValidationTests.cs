@@ -6,14 +6,20 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class UserInputValidationTests
+    public class UserInputValidationTests : BaseTestClass
     {
         private static readonly IDataView _data = DatasetUtil.GetUciAdultDataView();
+
+        public UserInputValidationTests(ITestOutputHelper output) : base(output)
+        {
+        }
 
         [Fact]
         public void ValidateExperimentExecuteNullTrainData()

@@ -8,18 +8,24 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.ML.CodeAnalyzer.Tests.Helpers;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 using VerifyCS = Microsoft.ML.CodeAnalyzer.Tests.Helpers.CSharpCodeFixVerifier<
-    Microsoft.ML.InternalCodeAnalyzer.ContractsCheckAnalyzer,
-    Microsoft.ML.InternalCodeAnalyzer.ContractsCheckNameofFixProvider>;
+Microsoft.ML.InternalCodeAnalyzer.ContractsCheckAnalyzer,
+Microsoft.ML.InternalCodeAnalyzer.ContractsCheckNameofFixProvider>;
 
 namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
-    public sealed class ContractsCheckTest
+    public sealed class ContractsCheckTest : BaseTestClass
     {
         private readonly Lazy<string> _source = TestUtils.LazySource("ContractsCheckResource.cs");
         private readonly Lazy<string> _sourceContracts = TestUtils.LazySource("Contracts.cs");
         private readonly Lazy<string> _sourceFriend = TestUtils.LazySource("BestFriendAttribute.cs");
+
+        public ContractsCheckTest(ITestOutputHelper output) : base(output)
+        {
+        }
 
         [Fact]
         public async Task ContractsCheck()

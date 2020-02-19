@@ -9,14 +9,16 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.ML.CodeAnalyzer.Tests.Helpers;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 using VerifyCS = Microsoft.ML.CodeAnalyzer.Tests.Helpers.CSharpCodeFixVerifier<
-    Microsoft.ML.InternalCodeAnalyzer.BestFriendAnalyzer,
-    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+Microsoft.ML.InternalCodeAnalyzer.BestFriendAnalyzer,
+Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
-    public sealed class BestFriendTest
+    public sealed class BestFriendTest : BaseTestClass
     {
         // We do things in this somewhat odd way rather than just referencing the Core assembly directly,
         // because we certainly want the best friend attribute itself to be internal, but the assembly
@@ -27,6 +29,10 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
         private readonly Lazy<string> _sourceAttribute = TestUtils.LazySource("BestFriendAttribute.cs");
         private readonly Lazy<string> _sourceDeclaration = TestUtils.LazySource("BestFriendDeclaration.cs");
         private readonly Lazy<string> _sourceUser = TestUtils.LazySource("BestFriendUser.cs");
+
+        public BestFriendTest(ITestOutputHelper output) : base(output)
+        {
+        }
 
         [Fact]
         public async Task BestFriend()

@@ -5,17 +5,23 @@
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 using VerifyCS = Microsoft.ML.CodeAnalyzer.Tests.Helpers.CSharpCodeFixVerifier<
-    Microsoft.ML.InternalCodeAnalyzer.BaseTestClassAnalyzer,
-    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+Microsoft.ML.InternalCodeAnalyzer.BaseTestClassAnalyzer,
+Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.ML.CodeAnalyzer.Tests.Code
 {
-    public class BaseTestClassTest
+    public class BaseTestClassTest : BaseTestClass
     {
         internal static readonly ReferenceAssemblies ReferenceAssemblies = ReferenceAssemblies.Default
             .AddPackages(ImmutableArray.Create(new PackageIdentity("xunit", "2.4.0")));
+
+        public BaseTestClassTest(ITestOutputHelper output) : base(output)
+        {
+        }
 
         [Fact]
         public async Task TestClassWithFact()

@@ -4,15 +4,21 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 using VerifyCS = Microsoft.ML.CodeAnalyzer.Tests.Helpers.CSharpCodeFixVerifier<
-    Microsoft.ML.InternalCodeAnalyzer.SingleVariableDeclarationAnalyzer,
-    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+Microsoft.ML.InternalCodeAnalyzer.SingleVariableDeclarationAnalyzer,
+Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
-    public sealed class SingleVariableDeclarationTest
+    public sealed class SingleVariableDeclarationTest : BaseTestClass
     {
+        public SingleVariableDeclarationTest(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public async Task SingleVariableDeclaration()
         {
