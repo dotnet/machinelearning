@@ -10,21 +10,15 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.ML.InternalCodeAnalyzer;
-using Microsoft.ML.TestFramework;
 using Xunit;
-using Xunit.Abstractions;
 using VerifyCS = Microsoft.ML.CodeAnalyzer.Tests.Helpers.CSharpCodeFixVerifier<
 Microsoft.ML.CodeAnalyzer.Tests.Code.RelaxTestNamingTest.WarnForMissingAsyncSuffix,
 Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.ML.CodeAnalyzer.Tests.Code
 {
-    public class RelaxTestNamingTest : BaseTestClass
+    public class RelaxTestNamingTest
     {
-        public RelaxTestNamingTest(ITestOutputHelper output) : base(output)
-        {
-        }
-
         private static Solution WithoutSuppressedDiagnosticsTransform(Solution solution, ProjectId projectId)
         {
             var compilationOptions = solution.GetProject(projectId).CompilationOptions;

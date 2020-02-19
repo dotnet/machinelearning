@@ -4,16 +4,14 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.ML.TestFramework;
 using Xunit;
-using Xunit.Abstractions;
 using VerifyCS = Microsoft.ML.CodeAnalyzer.Tests.Helpers.CSharpCodeFixVerifier<
 Microsoft.ML.InternalCodeAnalyzer.NameAnalyzer,
 Microsoft.ML.InternalCodeAnalyzer.NameFixProvider>;
 
 namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
-    public sealed class NameTest : BaseTestClass
+    public sealed class NameTest
     {
         [Fact]
         public async Task PrivateFieldName()
@@ -197,9 +195,5 @@ namespace foo.bar.Biz
 
     struct Marco { public int Polo; }
 }";
-
-        public NameTest(ITestOutputHelper output) : base(output)
-        {
-        }
     }
 }

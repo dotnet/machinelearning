@@ -4,21 +4,15 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.ML.TestFramework;
 using Xunit;
-using Xunit.Abstractions;
 using VerifyCS = Microsoft.ML.CodeAnalyzer.Tests.Helpers.CSharpCodeFixVerifier<
 Microsoft.ML.InternalCodeAnalyzer.InstanceInitializerAnalyzer,
 Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
-    public sealed class InstanceInitializerTest : BaseTestClass
+    public sealed class InstanceInitializerTest
     {
-        public InstanceInitializerTest(ITestOutputHelper output) : base(output)
-        {
-        }
-
         [Fact]
         public async Task InstanceInitializer()
         {
