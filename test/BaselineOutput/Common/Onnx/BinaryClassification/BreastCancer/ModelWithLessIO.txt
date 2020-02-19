@@ -677,27 +677,27 @@
             "floats": [
               -0.9850374,
               -1,
-              -0.428571433,
+              -0.42857143,
               0.05882353,
               0.9655172,
-              0.478260875,
-              7.006492E-45,
+              0.47826087,
+              7E-45,
               0.9354839,
               -0.837172,
-              -0.896625638,
+              -0.89662564,
               -0.3455931,
-              0.223126009,
+              0.22312601,
               0.8040303,
               0.60825175,
               -0.06932944,
-              -0.402043074,
+              -0.40204307,
               -0.7417274,
-              -0.408434927,
+              -0.40843493,
               0.7105746,
               0.1875386,
               0.7631735,
-              0.706173241,
-              0.625906467,
+              0.70617324,
+              0.62590647,
               -0.35968104
             ],
             "type": "FLOATS"
@@ -776,7 +776,7 @@
           "PredictedLabel"
         ],
         "output": [
-          "PredictedLabel.onnx"
+          "PredictedLabel.output"
         ],
         "name": "Identity",
         "opType": "Identity"
@@ -786,7 +786,7 @@
           "Score"
         ],
         "output": [
-          "Score.onnx"
+          "Score.output"
         ],
         "name": "Identity0",
         "opType": "Identity"
@@ -796,7 +796,7 @@
           "Probability"
         ],
         "output": [
-          "Probability.onnx"
+          "Probability.output"
         ],
         "name": "Identity1",
         "opType": "Identity"
@@ -859,7 +859,7 @@
     ],
     "output": [
       {
-        "name": "PredictedLabel.onnx",
+        "name": "PredictedLabel.output",
         "type": {
           "tensorType": {
             "elemType": 9,
@@ -877,7 +877,7 @@
         }
       },
       {
-        "name": "Score.onnx",
+        "name": "Score.output",
         "type": {
           "tensorType": {
             "elemType": 1,
@@ -895,7 +895,7 @@
         }
       },
       {
-        "name": "Probability.onnx",
+        "name": "Probability.output",
         "type": {
           "tensorType": {
             "elemType": 1,

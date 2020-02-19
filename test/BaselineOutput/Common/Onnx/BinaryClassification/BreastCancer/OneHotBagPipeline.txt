@@ -324,8 +324,8 @@
           {
             "name": "target_weights",
             "floats": [
-              0.504761934,
-              -0.979112267
+              0.50476193,
+              -0.97911227
             ],
             "type": "FLOATS"
           }
@@ -403,7 +403,7 @@
           "Label"
         ],
         "output": [
-          "Label.onnx"
+          "Label.output"
         ],
         "name": "Identity",
         "opType": "Identity"
@@ -413,7 +413,7 @@
           "F1"
         ],
         "output": [
-          "F1.onnx"
+          "F1.output"
         ],
         "name": "Identity0",
         "opType": "Identity"
@@ -423,7 +423,7 @@
           "F22"
         ],
         "output": [
-          "F2.onnx"
+          "F2.output"
         ],
         "name": "Identity1",
         "opType": "Identity"
@@ -433,7 +433,7 @@
           "Features"
         ],
         "output": [
-          "Features.onnx"
+          "Features.output"
         ],
         "name": "Identity2",
         "opType": "Identity"
@@ -443,7 +443,7 @@
           "PredictedLabel"
         ],
         "output": [
-          "PredictedLabel.onnx"
+          "PredictedLabel.output"
         ],
         "name": "Identity3",
         "opType": "Identity"
@@ -453,7 +453,7 @@
           "Score"
         ],
         "output": [
-          "Score.onnx"
+          "Score.output"
         ],
         "name": "Identity4",
         "opType": "Identity"
@@ -463,7 +463,7 @@
           "Probability"
         ],
         "output": [
-          "Probability.onnx"
+          "Probability.output"
         ],
         "name": "Identity5",
         "opType": "Identity"
@@ -544,7 +544,7 @@
     ],
     "output": [
       {
-        "name": "Label.onnx",
+        "name": "Label.output",
         "type": {
           "tensorType": {
             "elemType": 9,
@@ -562,7 +562,7 @@
         }
       },
       {
-        "name": "F1.onnx",
+        "name": "F1.output",
         "type": {
           "tensorType": {
             "elemType": 1,
@@ -580,7 +580,7 @@
         }
       },
       {
-        "name": "F2.onnx",
+        "name": "F2.output",
         "type": {
           "tensorType": {
             "elemType": 1,
@@ -598,7 +598,7 @@
         }
       },
       {
-        "name": "Features.onnx",
+        "name": "Features.output",
         "type": {
           "tensorType": {
             "elemType": 1,
@@ -616,7 +616,7 @@
         }
       },
       {
-        "name": "PredictedLabel.onnx",
+        "name": "PredictedLabel.output",
         "type": {
           "tensorType": {
             "elemType": 9,
@@ -634,7 +634,7 @@
         }
       },
       {
-        "name": "Score.onnx",
+        "name": "Score.output",
         "type": {
           "tensorType": {
             "elemType": 1,
@@ -652,7 +652,7 @@
         }
       },
       {
-        "name": "Probability.onnx",
+        "name": "Probability.output",
         "type": {
           "tensorType": {
             "elemType": 1,

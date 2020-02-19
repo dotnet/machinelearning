@@ -85,17 +85,15 @@ namespace Microsoft.ML.Tests
             var onnxModelPath = GetOutputPath(onnxFileName);
             SaveOnnxModel(onnxModel, onnxModelPath, null);
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
+            if (IsOnnxRuntimeSupported())
             {
                 // Step 3: Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(data);
                 var onnxResult = onnxTransformer.Transform(data);
 
                 // Step 4: Compare ONNX and ML.NET results.
-                CompareSelectedColumns<float>("Score", "Score.onnx", transformedData, onnxResult, 1);
+                CompareSelectedColumns<float>("Score", "Score", transformedData, onnxResult, 1);
             }
 
             // Step 5: Check ONNX model's text format. This test will be not necessary if Step 3 and Step 4 can run on Linux and
@@ -173,20 +171,18 @@ namespace Microsoft.ML.Tests
 
             var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
 
-            // Compare results produced by ML.NET and ONNX's runtime.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
-            {
-                var onnxFileName = "model.onnx";
-                var onnxModelPath = GetOutputPath(onnxFileName);
-                SaveOnnxModel(onnxModel, onnxModelPath, null);
+            var onnxFileName = "model.onnx";
+            var onnxModelPath = GetOutputPath(onnxFileName);
+            SaveOnnxModel(onnxModel, onnxModelPath, null);
 
+            // Compare results produced by ML.NET and ONNX's runtime.
+            if (IsOnnxRuntimeSupported())
+            {
                 // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(data);
                 var onnxResult = onnxTransformer.Transform(data);
-                CompareSelectedColumns<float>("Score", "Score.onnx", transformedData, onnxResult, 3);
+                CompareSelectedColumns<float>("Score", "Score", transformedData, onnxResult, 3);
             }
 
             // Check ONNX model's text format. We save the produced ONNX model as a text file and compare it against
@@ -229,22 +225,21 @@ namespace Microsoft.ML.Tests
                 var model = estimator.Fit(dataView);
                 var transformedData = model.Transform(dataView);
                 var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
                 // Compare model scores produced by ML.NET and ONNX's runtime
                 if (IsOnnxRuntimeSupported())
                 {
                     var onnxFileName = $"{estimator.ToString()}.onnx";
                     var onnxModelPath = GetOutputPath(onnxFileName);
                     SaveOnnxModel(onnxModel, onnxModelPath, null);
-                    // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-                    string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                    string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+
+                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
                     var onnxTransformer = onnxEstimator.Fit(dataView);
                     var onnxResult = onnxTransformer.Transform(dataView);
-                    CompareSelectedColumns<float>(transformedData.Schema[2].Name, outputNames[2], transformedData, onnxResult, 3); // compare score results 
+                    CompareSelectedColumns<float>("Score", "Score", transformedData, onnxResult, 3);
                 }
                 // Compare the Onnx graph to a baseline if OnnxRuntime is not supported
-                else
+                //else
                 {
                     var onnxFileName = $"{estimator.ToString()}.txt";
                     var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "Regression", "Adult");
@@ -290,20 +285,20 @@ namespace Microsoft.ML.Tests
                 var model = pipeline.Fit(dataView);
                 var transformedData = model.Transform(dataView);
                 var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+
+                var onnxFileName = $"{estimator.ToString()}.onnx";
+                var onnxModelPath = GetOutputPath(onnxFileName);
+                SaveOnnxModel(onnxModel, onnxModelPath, null);
+
                 // Compare model scores produced by ML.NET and ONNX's runtime.
                 if (IsOnnxRuntimeSupported())
                 {
-                    var onnxFileName = $"{estimator.ToString()}.onnx";
-                    var onnxModelPath = GetOutputPath(onnxFileName);
-                    SaveOnnxModel(onnxModel, onnxModelPath, null);
                     // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-                    string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                    string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
                     var onnxTransformer = onnxEstimator.Fit(dataView);
                     var onnxResult = onnxTransformer.Transform(dataView);
-                    CompareSelectedColumns<float>(transformedData.Schema[5].Name, outputNames[3], transformedData, onnxResult, 3); //compare scores
-                    CompareSelectedColumns<bool>(transformedData.Schema[4].Name, outputNames[2], transformedData, onnxResult); //compare predicted labels
+                    CompareSelectedColumns<float>("Score", "Score", transformedData, onnxResult, 3); //compare scores
+                    CompareSelectedColumns<bool>("PredictedLabel", "PredictedLabel", transformedData, onnxResult); //compare predicted labels
                 }
             }
             Done();
@@ -326,19 +321,17 @@ namespace Microsoft.ML.Tests
             var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
 
             // Compare model scores produced by ML.NET and ONNX's runtime.
+            var onnxFileName = $"VectorWhitening.onnx";
+            var onnxModelPath = GetOutputPath(onnxFileName);
+            SaveOnnxModel(onnxModel, onnxModelPath, null);
+
             if (IsOnnxRuntimeSupported())
             {
-                var onnxFileName = $"VectorWhitening.onnx";
-                var onnxModelPath = GetOutputPath(onnxFileName);
-                SaveOnnxModel(onnxModel, onnxModelPath, null);
-                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
-                CompareSelectedColumns<float>(transformedData.Schema[2].Name, outputNames[2], transformedData, onnxResult); // whitened1
-                CompareSelectedColumns<float>(transformedData.Schema[3].Name, outputNames[3], transformedData, onnxResult); // whitened2
+                CompareSelectedColumns<float>("whitened1", "whitened1", transformedData, onnxResult);
+                CompareSelectedColumns<float>("whitened2", "whitened2", transformedData, onnxResult);
             }
             Done();
         }
@@ -381,21 +374,20 @@ namespace Microsoft.ML.Tests
                 var transformedData = model.Transform(dataView);
                 var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
 
+                var onnxFileName = $"{estimator.ToString()}-WithPlattCalibrator.onnx";
+                var onnxModelPath = GetOutputPath(onnxFileName);
+                SaveOnnxModel(onnxModel, onnxModelPath, null);
+
                 // Compare model scores produced by ML.NET and ONNX's runtime. 
                 if (IsOnnxRuntimeSupported())
                 {
-                    var onnxFileName = $"{estimator.ToString()}-WithPlattCalibrator.onnx";
-                    var onnxModelPath = GetOutputPath(onnxFileName);
-                    SaveOnnxModel(onnxModel, onnxModelPath, null);
                     // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-                    string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                    string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
                     var onnxTransformer = onnxEstimator.Fit(dataView);
                     var onnxResult = onnxTransformer.Transform(dataView);
-                    CompareSelectedColumns<float>(transformedData.Schema[5].Name, outputNames[3], transformedData, onnxResult, 3); //compare scores
-                    CompareSelectedColumns<bool>(transformedData.Schema[4].Name, outputNames[2], transformedData, onnxResult); //compare predicted labels
-                    CompareSelectedColumns<float>(transformedData.Schema.Last().Name, outputNames.Last(), transformedData, onnxResult, 3); //compare probabilities
+                    CompareSelectedColumns<float>("Score", "Score", transformedData, onnxResult, 3);
+                    CompareSelectedColumns<bool>("PredictedLabel", "PredictedLabel", transformedData, onnxResult);
+                    CompareSelectedColumns<float>("Probability", "Probability", transformedData, onnxResult, 3);
                 }
             }
             Done();
@@ -430,20 +422,17 @@ namespace Microsoft.ML.Tests
             var transformedData = calibratorTransformer.Transform(data);
             var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(calibratorTransformer, data);
 
+            var onnxFileName = $"{calibratorTransformer.ToString()}.onnx";
+            var onnxModelPath = GetOutputPath(onnxFileName);
+            SaveOnnxModel(onnxModel, onnxModelPath, null);
+
             // Compare model scores produced by ML.NET and ONNX's runtime.
             if (IsOnnxRuntimeSupported())
             {
-                var onnxFileName = $"{calibratorTransformer.ToString()}.onnx";
-                var onnxModelPath = GetOutputPath(onnxFileName);
-                SaveOnnxModel(onnxModel, onnxModelPath, null);
-
-                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(data);
                 var onnxResult = onnxTransformer.Transform(data);
-                CompareSelectedColumns<float>(transformedData.Schema.Last().Name, outputNames.Last(), transformedData, onnxResult, 3); //compare probabilities
+                CompareSelectedColumns<float>("Probability", "Probability", transformedData, onnxResult, 3); //compare probabilities
             }
             Done();
         }
@@ -464,22 +453,21 @@ namespace Microsoft.ML.Tests
             var transformedData = model.Transform(dataView);
             var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
 
+            var onnxFileName = $"TextNormalizing.onnx";
+            var onnxModelPath = GetOutputPath(onnxFileName);
+            SaveOnnxModel(onnxModel, onnxModelPath, null);
+
             // Compare model scores produced by ML.NET and ONNX's runtime.
             // Skipping test in Linux platforms temporarily
             if (IsOnnxRuntimeSupported() && !RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                var onnxFileName = $"TextNormalizing.onnx";
-                var onnxModelPath = GetOutputPath(onnxFileName);
-                SaveOnnxModel(onnxModel, onnxModelPath, null);
                 // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
-                CompareSelectedColumns<ReadOnlyMemory<char>>(transformedData.Schema[2].Name, outputNames[2], transformedData, onnxResult); //compare NormText
-                CompareSelectedColumns<ReadOnlyMemory<char>>(transformedData.Schema[3].Name, outputNames[3], transformedData, onnxResult); //compare UpperText
-                CompareSelectedColumns<ReadOnlyMemory<char>>(transformedData.Schema[4].Name, outputNames[4], transformedData, onnxResult); //compare OriginalText
+                CompareSelectedColumns<ReadOnlyMemory<char>>("NormText", "NormText", transformedData, onnxResult);
+                CompareSelectedColumns<ReadOnlyMemory<char>>("UpperText", "UpperText", transformedData, onnxResult);
+                CompareSelectedColumns<ReadOnlyMemory<char>>("OriginalText", "OriginalText", transformedData, onnxResult);
             }
             Done();
         }
@@ -520,15 +508,13 @@ namespace Microsoft.ML.Tests
             SaveOnnxModel(onnxModel, onnxModelPath, null);
 
             // Compare results produced by ML.NET and ONNX's runtime.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
+            if (IsOnnxRuntimeSupported())
             {
                 // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
-                CompareSelectedColumns<float>(nameof(DataPoint.Features), outputNames[0], transformedData, onnxResult, 3);
+                CompareSelectedColumns<float>("Features", "Features", transformedData, onnxResult, 3);
             }
 
             Done();
@@ -969,19 +955,19 @@ namespace Microsoft.ML.Tests
             var model = pipeline.Fit(dataView);
             var transformedData = model.Transform(dataView);
             var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
+            
             // Compare model scores produced by ML.NET and ONNX's runtime. 
+            var onnxFileName = $"TokenizingByCharacters.onnx";
+            var onnxModelPath = GetOutputPath(onnxFileName);
+            SaveOnnxModel(onnxModel, onnxModelPath, null);
+
             if (IsOnnxRuntimeSupported())
             {
-                var onnxFileName = $"TokenizingByCharacters.onnx";
-                var onnxModelPath = GetOutputPath(onnxFileName);
-                SaveOnnxModel(onnxModel, onnxModelPath, null);
                 // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
-                CompareSelectedColumns<ushort>(transformedData.Schema[2].Name, outputNames[2], transformedData, onnxResult); //compare scores
+                CompareSelectedColumns<ushort>("TokenizedText", "TokenizedText", transformedData, onnxResult);
             }
             Done();
         }
@@ -1051,15 +1037,13 @@ namespace Microsoft.ML.Tests
             var onnxModelPath = GetOutputPath(onnxFileName);
             SaveOnnxModel(onnxModel, onnxModelPath, null);
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
+            if (IsOnnxRuntimeSupported())
             {
-                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
 
-                CompareResults(model.ColumnPairs[0].outputColumnName, outputNames[1], mlnetResult, onnxResult);
+                CompareResults("ValueConverted", "ValueConverted", mlnetResult, onnxResult);
             }
 
             Done();
@@ -1089,15 +1073,13 @@ namespace Microsoft.ML.Tests
 
                 SaveOnnxModel(onnxModel, onnxModelPath, null);
 
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
+                if (IsOnnxRuntimeSupported())
                 {
                     // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-                    string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                    string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
                     var onnxTransformer = onnxEstimator.Fit(dataView);
                     var onnxResult = onnxTransformer.Transform(dataView);
-                    CompareSelectedColumns<float>(model.ColumnPairs[0].outputColumnName, outputNames[2], transformedData, onnxResult);
+                    CompareSelectedColumns<float>("pca", "pca", transformedData, onnxResult);
                 }
             }
 
@@ -1153,12 +1135,10 @@ namespace Microsoft.ML.Tests
             if (IsOnnxRuntimeSupported())
             {
                 // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
-                CompareSelectedColumns<int>(model.LastTransformer.ColumnPairs[0].outputColumnName, outputNames[1], transformedData, onnxResult);
+                CompareSelectedColumns<int>("MissingIndicator", "MissingIndicator", transformedData, onnxResult);
             }
 
             CheckEquality(subDir, onnxTextName, parseOption: NumberParseOption.UseSingle);
@@ -1193,14 +1173,12 @@ namespace Microsoft.ML.Tests
 
             if (IsOnnxRuntimeSupported())
             {
-                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
 
-                CompareResults(mlnetResult.Schema[2].Name, outputNames[2], mlnetResult, onnxResult); //compare output values
-                CompareSelectedColumns<uint>(mlnetResult.Schema[1].Name, outputNames[1], mlnetResult, onnxResult); //compare keys
+                CompareResults("ValueOutput", "ValueOutput", mlnetResult, onnxResult);
+                CompareSelectedColumns<uint>("Key", "Key", mlnetResult, onnxResult);
             }
             Done();
         }
@@ -1233,15 +1211,14 @@ namespace Microsoft.ML.Tests
             var onnxFilename = "Tokenizer.onnx";
             var onnxFilePath = GetOutputPath(onnxFilename);
             SaveOnnxModel(onnxModel, onnxFilePath, null);
+
             if (IsOnnxRuntimeSupported())
             {
                 // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxFilePath);
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxFilePath);
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
-                CompareSelectedColumns<ReadOnlyMemory<char>>(transformedData.Schema[1].Name, outputNames[1], transformedData, onnxResult);
+                CompareSelectedColumns<ReadOnlyMemory<char>>("Tokens", "Tokens", transformedData, onnxResult);
             }
 
             Done();
@@ -1297,15 +1274,14 @@ namespace Microsoft.ML.Tests
                 var onnxFilename = $"Ngram-{i}-{ngramLength}-{useAllLength}-{weighting}.onnx";
                 var onnxFilePath = GetOutputPath(onnxFilename);
                 SaveOnnxModel(onnxModel, onnxFilePath, null);
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
+
+                if (IsOnnxRuntimeSupported())
                 {
-                    // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-                    string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                    string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxFilePath);
+                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxFilePath);
                     var onnxTransformer = onnxEstimator.Fit(dataView);
                     var onnxResult = onnxTransformer.Transform(dataView);
-                    CompareSelectedColumns<float>(transformedData.Schema[transformedData.Schema.Count-1].Name, outputNames[outputNames.Length-1], transformedData, onnxResult, 3); //comparing Ngrams
+                    var columnName = i == pipelines.Length - 1 ? "Tokens" : "NGrams";
+                    CompareSelectedColumns<float>(columnName, columnName, transformedData, onnxResult, 3);
                 }
             }
             Done();
@@ -1362,7 +1338,7 @@ namespace Microsoft.ML.Tests
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
-                CompareResults("Label", "Label.onnx", outputData, onnxResult);
+                CompareResults("Label", "Label", outputData, onnxResult);
             }
             Done();
         }
@@ -1392,12 +1368,10 @@ namespace Microsoft.ML.Tests
             if (IsOnnxRuntimeSupported())
             {
                 // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
-                CompareSelectedColumns<ReadOnlyMemory<Char>>(transformedData.Schema[3].Name, outputNames[3], transformedData, onnxResult);
+                CompareSelectedColumns<ReadOnlyMemory<Char>>("LabelValue", "LabelValue", transformedData, onnxResult);
             }
 
             Done();
@@ -1462,13 +1436,11 @@ namespace Microsoft.ML.Tests
                 if (IsOnnxRuntimeSupported())
                 {
                     // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-                    string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                    string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
                     var onnxTransformer = onnxEstimator.Fit(dataView);
                     var onnxResult = onnxTransformer.Transform(dataView);
-                    CompareSelectedColumns<uint>(transformedData.Schema[5].Name, outputNames[2], transformedData, onnxResult); //compare predicted labels
-                    CompareSelectedColumns<float>(transformedData.Schema[6].Name, outputNames[3], transformedData, onnxResult, 4); //compare scores
+                    CompareSelectedColumns<uint>("PredictedLabel", "PredictedLabel", transformedData, onnxResult);
+                    CompareSelectedColumns<float>("Score", "Score", transformedData, onnxResult, 4);
                 }
             }
             Done();
@@ -1497,12 +1469,10 @@ namespace Microsoft.ML.Tests
             if (IsOnnxRuntimeSupported())
             {
                 // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
-                CompareSelectedColumns<float>(model.ColumnPairs[0].outputColumnName, outputNames[2], transformedData, onnxResult);
+                CompareSelectedColumns<float>("Target", "Target1", transformedData, onnxResult);
             }
             Done();
         }
@@ -1575,8 +1545,13 @@ namespace Microsoft.ML.Tests
                 var onnxEstimator2 = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath2);
                 var onnxResult2 = onnxEstimator2.Fit(originalData).Transform(originalData);
 
+                var stdSuffix = ".output";
                 foreach (var name in outputNames)
-                    CompareResults(name, name, onnxResult, onnxResult2);
+                {
+                    Assert.EndsWith(stdSuffix, name);
+                    var colName = name.Replace(stdSuffix, "");
+                    CompareResults(colName, colName, onnxResult, onnxResult2);
+                }
             }
 
             Done();
@@ -1620,15 +1595,13 @@ namespace Microsoft.ML.Tests
             if (IsOnnxRuntimeSupported())
             {
                 // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(dataView);
                 var onnxResult = onnxTransformer.Transform(dataView);
-                CompareSelectedColumns<float>("FeatureSelectMIScalarFloat", "FeatureSelectMIScalarFloat.onnx", transformedData, onnxResult);
-                CompareSelectedColumns<float>("FeatureSelectMIVectorFloat", "FeatureSelectMIVectorFloat.onnx", transformedData, onnxResult);
-                CompareSelectedColumns<float>("ScalFeatureSelectMissing690", "ScalFeatureSelectMissing690.onnx", transformedData, onnxResult);
-                CompareSelectedColumns<double>("VecFeatureSelectMissing690", "VecFeatureSelectMissing690.onnx", transformedData, onnxResult);
+                CompareSelectedColumns<float>("FeatureSelectMIScalarFloat", "FeatureSelectMIScalarFloat", transformedData, onnxResult);
+                CompareSelectedColumns<float>("FeatureSelectMIVectorFloat", "FeatureSelectMIVectorFloat", transformedData, onnxResult);
+                CompareSelectedColumns<float>("ScalFeatureSelectMissing690", "ScalFeatureSelectMissing690", transformedData, onnxResult);
+                CompareSelectedColumns<double>("VecFeatureSelectMissing690", "VecFeatureSelectMissing690", transformedData, onnxResult);
             }
             Done();
         }
@@ -1676,15 +1649,15 @@ namespace Microsoft.ML.Tests
 
                 // Verify that onnx output has only the four columns we selected from the input
                 Assert.Equal(4, outputNames.Length);
-                Assert.Equal("Size.onnx", outputNames[0]);
-                Assert.Equal("Shape.onnx", outputNames[1]);
-                Assert.Equal("Thickness.onnx", outputNames[2]);
-                Assert.Equal("Label.onnx", outputNames[3]);
+                Assert.Equal("Size.output", outputNames[0]);
+                Assert.Equal("Shape.output", outputNames[1]);
+                Assert.Equal("Thickness.output", outputNames[2]);
+                Assert.Equal("Label.output", outputNames[3]);
 
-                CompareSelectedColumns<Single>("Size", "Size.onnx", transformedData, onnxResult);
-                CompareSelectedColumns<int>("Shape", "Shape.onnx", transformedData, onnxResult);
-                CompareSelectedColumns<double>("Thickness", "Thickness.onnx", transformedData, onnxResult);
-                CompareSelectedColumns<bool>("Label", "Label.onnx", transformedData, onnxResult);
+                CompareSelectedColumns<Single>("Size", "Size", transformedData, onnxResult);
+                CompareSelectedColumns<int>("Shape", "Shape", transformedData, onnxResult);
+                CompareSelectedColumns<double>("Thickness", "Thickness", transformedData, onnxResult);
+                CompareSelectedColumns<bool>("Label", "Label", transformedData, onnxResult);
             }
 
             onnxFileName = "SelectColumns.txt";
