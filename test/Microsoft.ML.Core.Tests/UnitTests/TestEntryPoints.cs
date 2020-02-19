@@ -6369,7 +6369,6 @@ namespace Microsoft.ML.RunTests
         //public void EntryPointTensorFlowTransform()
         //{
         //    Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransformer).Assembly);
-
         //    TestEntryPointPipelineRoutine(GetDataPath("Train-Tiny-28x28.txt"), "col=Label:R4:0 col=Placeholder:R4:1-784",
         //        new[] { "Transforms.TensorFlowScorer" },
         //        new[]
@@ -6463,7 +6462,6 @@ namespace Microsoft.ML.RunTests
         //    var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
         //    runner.SetInput("inputFile", inputFile);
         //    runner.RunAll();
-
         //    var data = runner.GetOutput<IDataView>("outputData");
 
         //    var schema = data.Schema;

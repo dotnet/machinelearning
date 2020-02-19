@@ -22,6 +22,9 @@
 <# if (IncludeImageTransformerPackage){ #>
     <PackageReference Include="Microsoft.ML.ImageAnalytics" Version="<#= StablePackageVersion #>" />
 <#}#>
+<# if (IncludeOnnxModel){ #>
+    <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="<#= StablePackageVersion #>" />
+<#}#>
 <# if (IncludeImageClassificationPackage){ #>
     <PackageReference Include="Microsoft.ML.Vision" Version="<#= StablePackageVersion #>" />
 	<PackageReference Include="SciSharp.TensorFlow.Redist" Version="1.14.0" />
