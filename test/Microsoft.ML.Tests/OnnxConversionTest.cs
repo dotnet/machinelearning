@@ -1272,8 +1272,10 @@ namespace Microsoft.ML.Tests
 
                 var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
                 var onnxFilename = $"Ngram-{i}-{ngramLength}-{useAllLength}-{weighting}.onnx";
+                var txtFilename = $"Ngram-{i}-{ngramLength}-{useAllLength}-{weighting}.txt";
                 var onnxFilePath = GetOutputPath(onnxFilename);
-                SaveOnnxModel(onnxModel, onnxFilePath, null);
+                var txtFilePath = GetOutputPath(txtFilename);
+                SaveOnnxModel(onnxModel, onnxFilePath, txtFilePath);
 
                 if (IsOnnxRuntimeSupported())
                 {
@@ -1282,6 +1284,16 @@ namespace Microsoft.ML.Tests
                     var onnxResult = onnxTransformer.Transform(dataView);
                     var columnName = i == pipelines.Length - 1 ? "Tokens" : "NGrams";
                     CompareSelectedColumns<float>(columnName, columnName, transformedData, onnxResult, 3);
+
+                    VBuffer<ReadOnlyMemory<char>> mlNetSlots = default;
+                    VBuffer<ReadOnlyMemory<char>> onnxSlots= default;
+                    transformedData.Schema[columnName].GetSlotNames(ref mlNetSlots);
+                    onnxResult.Schema[columnName].GetSlotNames(ref onnxSlots);
+                    Assert.Equal(mlNetSlots.Length, onnxSlots.Length);
+                    var mlNetSlotNames = mlNetSlots.DenseValues().ToList();
+                    var onnxSlotNames = onnxSlots.DenseValues().ToList();
+                    for (int j = 0; j < mlNetSlots.Length; j++)
+                        Assert.Equal(mlNetSlotNames[j].ToString(), onnxSlotNames[j].ToString());
                 }
             }
             Done();
