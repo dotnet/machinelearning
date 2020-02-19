@@ -410,9 +410,14 @@ namespace Microsoft.ML.Transforms.Onnx
 
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
+                var stdSuffix = ".output";
                 var info = new DataViewSchema.DetachedColumn[_parent.Outputs.Length];
                 for (int i = 0; i < _parent.Outputs.Length; i++)
-                    info[i] = new DataViewSchema.DetachedColumn(_parent.Outputs[i], _parent.OutputTypes[i], null);
+                {
+                    var onnxOutputName = _parent.Outputs[i];
+                    var columnName = onnxOutputName.EndsWith(stdSuffix) ? onnxOutputName.Replace(stdSuffix, "") : onnxOutputName;
+                    info[i] = new DataViewSchema.DetachedColumn(columnName, _parent.OutputTypes[i], null);
+                }
                 return info;
             }
 

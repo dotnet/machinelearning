@@ -104,7 +104,7 @@
           "FeatureVector0"
         ],
         "output": [
-          "FeatureVector.onnx"
+          "FeatureVector.output"
         ],
         "name": "Identity",
         "opType": "Identity"
@@ -114,7 +114,7 @@
           "Target"
         ],
         "output": [
-          "Target.onnx"
+          "Target.output"
         ],
         "name": "Identity0",
         "opType": "Identity"
@@ -124,7 +124,7 @@
           "Score"
         ],
         "output": [
-          "Score.onnx"
+          "Score.output"
         ],
         "name": "Identity1",
         "opType": "Identity"
@@ -171,7 +171,7 @@
     ],
     "output": [
       {
-        "name": "FeatureVector.onnx",
+        "name": "FeatureVector.output",
         "type": {
           "tensorType": {
             "elemType": 1,
@@ -189,7 +189,7 @@
         }
       },
       {
-        "name": "Target.onnx",
+        "name": "Target.output",
         "type": {
           "tensorType": {
             "elemType": 1,
@@ -207,7 +207,7 @@
         }
       },
       {
-        "name": "Score.onnx",
+        "name": "Score.output",
         "type": {
           "tensorType": {
             "elemType": 1,
