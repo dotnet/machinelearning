@@ -11,40 +11,37 @@ resources:
     image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-16.04-mlnet-207e097-20190312152303
 
 jobs:
-- template: /build/ci/job-template.yml
-  parameters:
-    name: Centos_x64_NetCoreApp30
-    buildScript: ./build.sh
-    container: CentosContainer
-    customMatrixes:
-      Debug_Build:
-        _configuration: Debug-netcoreapp3_0
-        _config_short: DI
-        _includeBenchmarkData: false
-      Release_Build:
-        _configuration: Release-netcoreapp3_0
-        _config_short: RI
-        _includeBenchmarkData: true
-    runSpecific: true
-    pool:
-      name: Hosted Ubuntu 1604
+# - template: /build/ci/job-template.yml
+#   parameters:
+#     name: Centos_x64_NetCoreApp30
+#     buildScript: ./build.sh
+#     container: CentosContainer
+#     customMatrixes:
+#       Debug_Build:
+#         _configuration: Debug-netcoreapp3_0
+#         _config_short: DI
+#         _includeBenchmarkData: false
+#       Release_Build:
+#         _configuration: Release-netcoreapp3_0
+#         _config_short: RI
+#         _includeBenchmarkData: true
+#     pool:
+#       name: Hosted Ubuntu 1604
 
-- template: /build/ci/job-template.yml
-  parameters:
-    name: Ubuntu_x64_NetCoreApp21
-    buildScript: ./build.sh
-    container: UbuntuContainer
-    runSpecific: true
-    pool:
-      name: Hosted Ubuntu 1604
+# - template: /build/ci/job-template.yml
+#   parameters:
+#     name: Ubuntu_x64_NetCoreApp21
+#     buildScript: ./build.sh
+#     container: UbuntuContainer
+#     pool:
+#       name: Hosted Ubuntu 1604
 
-- template: /build/ci/job-template.yml
-  parameters:
-    name: MacOS_x64_NetCoreApp21
-    buildScript: ./build.sh
-    runSpecific: true
-    pool:
-      name: Hosted macOS High Sierra
+# - template: /build/ci/job-template.yml
+#   parameters:
+#     name: MacOS_x64_NetCoreApp21
+#     buildScript: ./build.sh
+#     pool:
+#       name: Hosted macOS High Sierra
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -59,7 +56,6 @@ jobs:
         _configuration: Release-netcoreapp3_0
         _config_short: RI
         _includeBenchmarkData: true
-    runSpecific: true
     pool:
       name: NetCorePublic-Pool
       queue: buildpool.windows.10.amd64.vs2017.open
@@ -68,7 +64,6 @@ jobs:
   parameters:
     name: Windows_x64_NetCoreApp21
     buildScript: build.cmd
-    runSpecific: true
     pool:
       name: Hosted VS2017
 
@@ -85,7 +80,6 @@ jobs:
         _configuration: Release-netfx
         _config_short: RFX
         _includeBenchmarkData: false
-    runSpecific: true
     pool:
       name: Hosted VS2017
 
@@ -94,6 +88,5 @@ jobs:
     name: Windows_x86_NetCoreApp21
     architecture: x86
     buildScript: build.cmd
-    runSpecific: true
     pool:
       name: Hosted VS2017

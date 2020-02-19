@@ -6365,112 +6365,112 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [TensorFlowFact]
-        public void EntryPointTensorFlowTransform()
-        {
-            Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransformer).Assembly);
+        //[TensorFlowFact]
+        //public void EntryPointTensorFlowTransform()
+        //{
+        //    Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransformer).Assembly);
 
-            TestEntryPointPipelineRoutine(GetDataPath("Train-Tiny-28x28.txt"), "col=Label:R4:0 col=Placeholder:R4:1-784",
-                new[] { "Transforms.TensorFlowScorer" },
-                new[]
-                {
-                    @"'InputColumns': [ 'Placeholder' ],
-                      'ModelLocation': 'mnist_model/frozen_saved_model.pb',
-                      'OutputColumns': [ 'Softmax' ]"
-                });
-        }
+        //    TestEntryPointPipelineRoutine(GetDataPath("Train-Tiny-28x28.txt"), "col=Label:R4:0 col=Placeholder:R4:1-784",
+        //        new[] { "Transforms.TensorFlowScorer" },
+        //        new[]
+        //        {
+        //            @"'InputColumns': [ 'Placeholder' ],
+        //              'ModelLocation': 'mnist_model/frozen_saved_model.pb',
+        //              'OutputColumns': [ 'Softmax' ]"
+        //        });
+        //}
 
-        [TensorFlowFact]
-        public void TestTensorFlowEntryPoint()
-        {
-            var dataPath = GetDataPath("Train-Tiny-28x28.txt");
-            Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransformer).Assembly);
-            string inputGraph = @"
-            {
-                'Nodes':
-                [{
-                        'Name': 'Data.TextLoader',
-                        'Inputs': {
-                            'InputFile': '$inputFile',
-                            'Arguments': {
-                                'UseThreads': true,
-                                'HeaderFile': null,
-                                'MaxRows': null,
-                                'AllowQuoting': true,
-                                'AllowSparse': true,
-                                'InputSize': null,
-                                'Separator': [
-                                    '\t'
-                                ],
-                                'Column': [{
-                                        'Name': 'Label',
-                                        'Type': null,
-                                        'Source': [{
-                                                'Min': 0,
-                                                'Max': 0,
-                                                'AutoEnd': false,
-                                                'VariableEnd': false,
-                                                'AllOther': false,
-                                                'ForceVector': false
-                                            }
-                                        ],
-                                        'KeyCount': null
-                                    }, {
-                                        'Name': 'Placeholder',
-                                        'Type': null,
-                                        'Source': [{
-                                                'Min': 1,
-                                                'Max': 784,
-                                                'AutoEnd': false,
-                                                'VariableEnd': false,
-                                                'AllOther': false,
-                                                'ForceVector': false
-                                            }
-                                        ],
-                                        'KeyCount': null
-                                    }
-                                ],
-                                'TrimWhitespace': false,
-                                'HasHeader': false
-                            }
-                        },
-                        'Outputs': {
-                            'Data': '$Var_2802f3e485814063828c2303ec60327c'
-                        }
-                    }, {
-                        'Name': 'Transforms.TensorFlowScorer',
-                        'Inputs': {
-                            'ModelLocation': 'mnist_model/frozen_saved_model.pb',
-                            'InputColumns': [
-                                'Placeholder'
-                            ],
-                            'OutputColumns': [
-                                'Softmax'
-                            ],
-                            'BatchSize': 64,
-                            'Data': '$Var_2802f3e485814063828c2303ec60327c'
-                        },
-                        'Outputs': {
-                            'OutputData': '$outputData',
-                            'Model': '$Var_c3a191a107c54725acc49e432bfdf104'
-                        }
-                    }
-                ]
-            }
-            ";
-            JObject graph = JObject.Parse(inputGraph);
-            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
-            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-            runner.SetInput("inputFile", inputFile);
-            runner.RunAll();
+        //[TensorFlowFact]
+        //public void TestTensorFlowEntryPoint()
+        //{
+        //    var dataPath = GetDataPath("Train-Tiny-28x28.txt");
+        //    Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransformer).Assembly);
+        //    string inputGraph = @"
+        //    {
+        //        'Nodes':
+        //        [{
+        //                'Name': 'Data.TextLoader',
+        //                'Inputs': {
+        //                    'InputFile': '$inputFile',
+        //                    'Arguments': {
+        //                        'UseThreads': true,
+        //                        'HeaderFile': null,
+        //                        'MaxRows': null,
+        //                        'AllowQuoting': true,
+        //                        'AllowSparse': true,
+        //                        'InputSize': null,
+        //                        'Separator': [
+        //                            '\t'
+        //                        ],
+        //                        'Column': [{
+        //                                'Name': 'Label',
+        //                                'Type': null,
+        //                                'Source': [{
+        //                                        'Min': 0,
+        //                                        'Max': 0,
+        //                                        'AutoEnd': false,
+        //                                        'VariableEnd': false,
+        //                                        'AllOther': false,
+        //                                        'ForceVector': false
+        //                                    }
+        //                                ],
+        //                                'KeyCount': null
+        //                            }, {
+        //                                'Name': 'Placeholder',
+        //                                'Type': null,
+        //                                'Source': [{
+        //                                        'Min': 1,
+        //                                        'Max': 784,
+        //                                        'AutoEnd': false,
+        //                                        'VariableEnd': false,
+        //                                        'AllOther': false,
+        //                                        'ForceVector': false
+        //                                    }
+        //                                ],
+        //                                'KeyCount': null
+        //                            }
+        //                        ],
+        //                        'TrimWhitespace': false,
+        //                        'HasHeader': false
+        //                    }
+        //                },
+        //                'Outputs': {
+        //                    'Data': '$Var_2802f3e485814063828c2303ec60327c'
+        //                }
+        //            }, {
+        //                'Name': 'Transforms.TensorFlowScorer',
+        //                'Inputs': {
+        //                    'ModelLocation': 'mnist_model/frozen_saved_model.pb',
+        //                    'InputColumns': [
+        //                        'Placeholder'
+        //                    ],
+        //                    'OutputColumns': [
+        //                        'Softmax'
+        //                    ],
+        //                    'BatchSize': 64,
+        //                    'Data': '$Var_2802f3e485814063828c2303ec60327c'
+        //                },
+        //                'Outputs': {
+        //                    'OutputData': '$outputData',
+        //                    'Model': '$Var_c3a191a107c54725acc49e432bfdf104'
+        //                }
+        //            }
+        //        ]
+        //    }
+        //    ";
+        //    JObject graph = JObject.Parse(inputGraph);
+        //    var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
+        //    var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
+        //    runner.SetInput("inputFile", inputFile);
+        //    runner.RunAll();
 
-            var data = runner.GetOutput<IDataView>("outputData");
+        //    var data = runner.GetOutput<IDataView>("outputData");
 
-            var schema = data.Schema;
-            Assert.Equal(3, schema.Count);
-            Assert.Equal("Softmax", schema[2].Name);
-            Assert.Equal(10, (schema[2].Type as VectorDataViewType)?.Size);
-        }
+        //    var schema = data.Schema;
+        //    Assert.Equal(3, schema.Count);
+        //    Assert.Equal("Softmax", schema[2].Name);
+        //    Assert.Equal(10, (schema[2].Type as VectorDataViewType)?.Size);
+        //}
 
         [Fact]
         public void LoadEntryPointModel()

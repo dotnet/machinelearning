@@ -1244,64 +1244,64 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(string.Join(" ", input.B).Replace("/", " "), textOutput.BOut[0]);
         }
 
-        [TensorFlowFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void TensorFlowImageClassificationDefault()
-        {
-            string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
-                "images");
+        //[TensorFlowFact]
+        ////Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        //[Trait("Category", "SkipInCI")]
+        //public void TensorFlowImageClassificationDefault()
+        //{
+        //    string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
+        //        "images");
 
-            //Download the image set and unzip
-            string finalImagesFolderName = DownloadImageSet(
-                imagesDownloadFolderPath);
+        //    //Download the image set and unzip
+        //    string finalImagesFolderName = DownloadImageSet(
+        //        imagesDownloadFolderPath);
 
-            string fullImagesetFolderPath = Path.Combine(
-                imagesDownloadFolderPath, finalImagesFolderName);
+        //    string fullImagesetFolderPath = Path.Combine(
+        //        imagesDownloadFolderPath, finalImagesFolderName);
 
-            MLContext mlContext = new MLContext(seed: 1);
+        //    MLContext mlContext = new MLContext(seed: 1);
 
-            //Load all the original images info
-            IEnumerable<ImageData> images = LoadImagesFromDirectory(
-                folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
+        //    //Load all the original images info
+        //    IEnumerable<ImageData> images = LoadImagesFromDirectory(
+        //        folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
 
-            IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
-                mlContext.Data.LoadFromEnumerable(images), seed: 1);
+        //    IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
+        //        mlContext.Data.LoadFromEnumerable(images), seed: 1);
 
-            shuffledFullImagesDataset = mlContext.Transforms.Conversion
-                .MapValueToKey("Label")
-                .Fit(shuffledFullImagesDataset)
-                .Transform(shuffledFullImagesDataset);
+        //    shuffledFullImagesDataset = mlContext.Transforms.Conversion
+        //        .MapValueToKey("Label")
+        //        .Fit(shuffledFullImagesDataset)
+        //        .Transform(shuffledFullImagesDataset);
 
-            // Split the data 80:10 into train and test sets, train and evaluate.
-            TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
-                shuffledFullImagesDataset, testFraction: 0.2, seed: 1);
+        //    // Split the data 80:10 into train and test sets, train and evaluate.
+        //    TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
+        //        shuffledFullImagesDataset, testFraction: 0.2, seed: 1);
 
-            IDataView trainDataset = trainTestData.TrainSet;
-            IDataView testDataset = trainTestData.TestSet;
+        //    IDataView trainDataset = trainTestData.TrainSet;
+        //    IDataView testDataset = trainTestData.TestSet;
 
-            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
-                .Append(mlContext.MulticlassClassification.Trainers.ImageClassification("Label", "Image")
-                .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel"))); ;
+        //    var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
+        //        .Append(mlContext.MulticlassClassification.Trainers.ImageClassification("Label", "Image")
+        //        .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel"))); ;
 
-            var trainedModel = pipeline.Fit(trainDataset);
+        //    var trainedModel = pipeline.Fit(trainDataset);
 
-            mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
-                "model.zip");
+        //    mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
+        //        "model.zip");
 
-            ITransformer loadedModel;
-            DataViewSchema schema;
-            using (var file = File.OpenRead("model.zip"))
-                loadedModel = mlContext.Model.Load(file, out schema);
+        //    ITransformer loadedModel;
+        //    DataViewSchema schema;
+        //    using (var file = File.OpenRead("model.zip"))
+        //        loadedModel = mlContext.Model.Load(file, out schema);
 
-            // Testing EvaluateModel: group testing on test dataset
-            IDataView predictions = trainedModel.Transform(testDataset);
-            var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
+        //    // Testing EvaluateModel: group testing on test dataset
+        //    IDataView predictions = trainedModel.Transform(testDataset);
+        //    var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
 
-            Assert.InRange(metrics.MicroAccuracy, 0.8, 1);
-            Assert.InRange(metrics.MacroAccuracy, 0.8, 1);
+        //    Assert.InRange(metrics.MicroAccuracy, 0.8, 1);
+        //    Assert.InRange(metrics.MacroAccuracy, 0.8, 1);
 
-        }
+        //}
 
         internal bool ShouldReuse(string workspacePath, string trainSetBottleneckCachedValuesFileName, string validationSetBottleneckCachedValuesFileName)
         {
@@ -1327,158 +1327,158 @@ namespace Microsoft.ML.Scenarios
             return (trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName, workspacePath, isReuse);
         }
 
-        [TensorFlowTheory]
-        [InlineData(ImageClassificationTrainer.Architecture.ResnetV2101)]
-        [InlineData(ImageClassificationTrainer.Architecture.MobilenetV2)]
-        [InlineData(ImageClassificationTrainer.Architecture.ResnetV250)]
-        [InlineData(ImageClassificationTrainer.Architecture.InceptionV3)]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void TensorFlowImageClassification(ImageClassificationTrainer.Architecture arch)
-        {
-            string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
-                "images");
+        //[TensorFlowTheory]
+        //[InlineData(ImageClassificationTrainer.Architecture.ResnetV2101)]
+        //[InlineData(ImageClassificationTrainer.Architecture.MobilenetV2)]
+        //[InlineData(ImageClassificationTrainer.Architecture.ResnetV250)]
+        //[InlineData(ImageClassificationTrainer.Architecture.InceptionV3)]
+        ////Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        //[Trait("Category", "SkipInCI")]
+        //public void TensorFlowImageClassification(ImageClassificationTrainer.Architecture arch)
+        //{
+        //    string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
+        //        "images");
 
-            //Download the image set and unzip
-            string finalImagesFolderName = DownloadImageSet(
-                imagesDownloadFolderPath);
+        //    //Download the image set and unzip
+        //    string finalImagesFolderName = DownloadImageSet(
+        //        imagesDownloadFolderPath);
 
-            string fullImagesetFolderPath = Path.Combine(
-                imagesDownloadFolderPath, finalImagesFolderName);
+        //    string fullImagesetFolderPath = Path.Combine(
+        //        imagesDownloadFolderPath, finalImagesFolderName);
 
-            MLContext mlContext = new MLContext(seed: 1);
+        //    MLContext mlContext = new MLContext(seed: 1);
 
-            //Load all the original images info
-            IEnumerable<ImageData> images = LoadImagesFromDirectory(
-                folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
+        //    //Load all the original images info
+        //    IEnumerable<ImageData> images = LoadImagesFromDirectory(
+        //        folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
 
-            IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
-                mlContext.Data.LoadFromEnumerable(images), seed: 1);
+        //    IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
+        //        mlContext.Data.LoadFromEnumerable(images), seed: 1);
 
-            shuffledFullImagesDataset = mlContext.Transforms.Conversion
-                .MapValueToKey("Label")
-                .Fit(shuffledFullImagesDataset)
-                .Transform(shuffledFullImagesDataset);
+        //    shuffledFullImagesDataset = mlContext.Transforms.Conversion
+        //        .MapValueToKey("Label")
+        //        .Fit(shuffledFullImagesDataset)
+        //        .Transform(shuffledFullImagesDataset);
 
-            // Split the data 80:20 into train and test sets, train and evaluate.
-            TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
-                shuffledFullImagesDataset, testFraction: 0.2, seed: 1);
+        //    // Split the data 80:20 into train and test sets, train and evaluate.
+        //    TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
+        //        shuffledFullImagesDataset, testFraction: 0.2, seed: 1);
 
-            IDataView trainDataset = trainTestData.TrainSet;
-            IDataView testDataset = trainTestData.TestSet;
-            var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
-                    .Fit(testDataset)
-                    .Transform(testDataset);
+        //    IDataView trainDataset = trainTestData.TrainSet;
+        //    IDataView testDataset = trainTestData.TestSet;
+        //    var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
+        //            .Fit(testDataset)
+        //            .Transform(testDataset);
 
-            // Check if the bottleneck cached values already exist
-            var (trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName,
-                workspacePath, isReuse) = getInitialParameters(arch, finalImagesFolderName);
+        //    // Check if the bottleneck cached values already exist
+        //    var (trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName,
+        //        workspacePath, isReuse) = getInitialParameters(arch, finalImagesFolderName);
 
-            var options = new ImageClassificationTrainer.Options()
-            {
-                FeatureColumnName = "Image",
-                LabelColumnName = "Label",
-                // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
-                // ResnetV2101 you can try a different architecture/
-                // pre-trained model. 
-                Arch = arch,
-                Epoch = 50,
-                BatchSize = 10,
-                LearningRate = 0.01f,
-                MetricsCallback = (metric) => Console.WriteLine(metric),
-                TestOnTrainSet = false,
-                WorkspacePath = workspacePath,
-                ReuseTrainSetBottleneckCachedValues = isReuse,
-                ReuseValidationSetBottleneckCachedValues = isReuse,
-                TrainSetBottleneckCachedValuesFileName = trainSetBottleneckCachedValuesFileName,
-                ValidationSetBottleneckCachedValuesFileName = validationSetBottleneckCachedValuesFileName,
-                ValidationSet = validationSet
-            };
+        //    var options = new ImageClassificationTrainer.Options()
+        //    {
+        //        FeatureColumnName = "Image",
+        //        LabelColumnName = "Label",
+        //        // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
+        //        // ResnetV2101 you can try a different architecture/
+        //        // pre-trained model. 
+        //        Arch = arch,
+        //        Epoch = 50,
+        //        BatchSize = 10,
+        //        LearningRate = 0.01f,
+        //        MetricsCallback = (metric) => Console.WriteLine(metric),
+        //        TestOnTrainSet = false,
+        //        WorkspacePath = workspacePath,
+        //        ReuseTrainSetBottleneckCachedValues = isReuse,
+        //        ReuseValidationSetBottleneckCachedValues = isReuse,
+        //        TrainSetBottleneckCachedValuesFileName = trainSetBottleneckCachedValuesFileName,
+        //        ValidationSetBottleneckCachedValuesFileName = validationSetBottleneckCachedValuesFileName,
+        //        ValidationSet = validationSet
+        //    };
 
-            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
-                .Append(mlContext.MulticlassClassification.Trainers.ImageClassification(options)
-                .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel")));
+        //    var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
+        //        .Append(mlContext.MulticlassClassification.Trainers.ImageClassification(options)
+        //        .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel")));
 
-            var trainedModel = pipeline.Fit(trainDataset);
+        //    var trainedModel = pipeline.Fit(trainDataset);
 
-            mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
-                "model.zip");
+        //    mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
+        //        "model.zip");
 
-            ITransformer loadedModel;
-            DataViewSchema schema;
-            using (var file = File.OpenRead("model.zip"))
-                loadedModel = mlContext.Model.Load(file, out schema);
+        //    ITransformer loadedModel;
+        //    DataViewSchema schema;
+        //    using (var file = File.OpenRead("model.zip"))
+        //        loadedModel = mlContext.Model.Load(file, out schema);
 
-            // Testing EvaluateModel: group testing on test dataset
-            IDataView predictions = trainedModel.Transform(testDataset);
-            var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
+        //    // Testing EvaluateModel: group testing on test dataset
+        //    IDataView predictions = trainedModel.Transform(testDataset);
+        //    var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
 
-            Assert.InRange(metrics.MicroAccuracy, 0.8, 1);
-            Assert.InRange(metrics.MacroAccuracy, 0.8, 1);
+        //    Assert.InRange(metrics.MicroAccuracy, 0.8, 1);
+        //    Assert.InRange(metrics.MacroAccuracy, 0.8, 1);
 
-            // Testing TrySinglePrediction: Utilizing PredictionEngine for single
-            // predictions. Here, two pre-selected images are utilized in testing
-            // the Prediction engine.
-            var predictionEngine = mlContext.Model
-                .CreatePredictionEngine<ImageData, ImagePrediction>(loadedModel);
+        //    // Testing TrySinglePrediction: Utilizing PredictionEngine for single
+        //    // predictions. Here, two pre-selected images are utilized in testing
+        //    // the Prediction engine.
+        //    var predictionEngine = mlContext.Model
+        //        .CreatePredictionEngine<ImageData, ImagePrediction>(loadedModel);
 
-            IEnumerable<ImageData> testImages = LoadImagesFromDirectory(
-                fullImagesetFolderPath, true);
+        //    IEnumerable<ImageData> testImages = LoadImagesFromDirectory(
+        //        fullImagesetFolderPath, true);
 
-            string[] directories = Directory.GetDirectories(fullImagesetFolderPath);
-            string[] labels = new string[directories.Length];
-            for (int j = 0; j < labels.Length; j++)
-            {
-                var dir = new DirectoryInfo(directories[j]);
-                labels[j] = dir.Name;
-            }
+        //    string[] directories = Directory.GetDirectories(fullImagesetFolderPath);
+        //    string[] labels = new string[directories.Length];
+        //    for (int j = 0; j < labels.Length; j++)
+        //    {
+        //        var dir = new DirectoryInfo(directories[j]);
+        //        labels[j] = dir.Name;
+        //    }
 
-            // Test daisy image
-            ImageData firstImageToPredict = new ImageData
-            {
-                ImagePath = Path.Combine(fullImagesetFolderPath, "daisy", "5794835_d15905c7c8_n.jpg")
-            };
+        //    // Test daisy image
+        //    ImageData firstImageToPredict = new ImageData
+        //    {
+        //        ImagePath = Path.Combine(fullImagesetFolderPath, "daisy", "5794835_d15905c7c8_n.jpg")
+        //    };
 
-            // Test rose image
-            ImageData secondImageToPredict = new ImageData
-            {
-                ImagePath = Path.Combine(fullImagesetFolderPath, "roses", "12240303_80d87f77a3_n.jpg")
-            };
+        //    // Test rose image
+        //    ImageData secondImageToPredict = new ImageData
+        //    {
+        //        ImagePath = Path.Combine(fullImagesetFolderPath, "roses", "12240303_80d87f77a3_n.jpg")
+        //    };
 
-            var predictionFirst = predictionEngine.Predict(firstImageToPredict);
-            var predictionSecond = predictionEngine.Predict(secondImageToPredict);
+        //    var predictionFirst = predictionEngine.Predict(firstImageToPredict);
+        //    var predictionSecond = predictionEngine.Predict(secondImageToPredict);
 
-            var labelColumnFirst = schema.GetColumnOrNull("Label").Value;
-            var labelTypeFirst = labelColumnFirst.Type;
-            var labelCountFirst = labelTypeFirst.GetKeyCount();
-            var labelColumnSecond = schema.GetColumnOrNull("Label").Value;
-            var labelTypeSecond = labelColumnSecond.Type;
-            var labelCountSecond = labelTypeSecond.GetKeyCount();
+        //    var labelColumnFirst = schema.GetColumnOrNull("Label").Value;
+        //    var labelTypeFirst = labelColumnFirst.Type;
+        //    var labelCountFirst = labelTypeFirst.GetKeyCount();
+        //    var labelColumnSecond = schema.GetColumnOrNull("Label").Value;
+        //    var labelTypeSecond = labelColumnSecond.Type;
+        //    var labelCountSecond = labelTypeSecond.GetKeyCount();
 
-            Assert.Equal((int)labelCountFirst, predictionFirst.Score.Length);
-            Assert.Equal((int)labelCountSecond, predictionSecond.Score.Length);
-            Assert.Equal("daisy", predictionFirst.PredictedLabel);
-            Assert.Equal("roses", predictionSecond.PredictedLabel);
-            Assert.True(Array.IndexOf(labels, predictionFirst.PredictedLabel) > -1);
-            Assert.True(Array.IndexOf(labels, predictionSecond.PredictedLabel) > -1);
-        }
+        //    Assert.Equal((int)labelCountFirst, predictionFirst.Score.Length);
+        //    Assert.Equal((int)labelCountSecond, predictionSecond.Score.Length);
+        //    Assert.Equal("daisy", predictionFirst.PredictedLabel);
+        //    Assert.Equal("roses", predictionSecond.PredictedLabel);
+        //    Assert.True(Array.IndexOf(labels, predictionFirst.PredictedLabel) > -1);
+        //    Assert.True(Array.IndexOf(labels, predictionSecond.PredictedLabel) > -1);
+        //}
 
-        [TensorFlowFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void TensorFlowImageClassificationWithExponentialLRScheduling()
-        {
-            TensorFlowImageClassificationWithLRScheduling(new ExponentialLRDecay(), 50);
-        }
+        //[TensorFlowFact]
+        ////Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        //[Trait("Category", "SkipInCI")]
+        //public void TensorFlowImageClassificationWithExponentialLRScheduling()
+        //{
+        //    TensorFlowImageClassificationWithLRScheduling(new ExponentialLRDecay(), 50);
+        //}
 
-        [TensorFlowFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void TensorFlowImageClassificationWithPolynomialLRScheduling()
-        {
+        //[TensorFlowFact]
+        ////Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        //[Trait("Category", "SkipInCI")]
+        //public void TensorFlowImageClassificationWithPolynomialLRScheduling()
+        //{
 
-            TensorFlowImageClassificationWithLRScheduling(new PolynomialLRDecay(), 50);
-        }
+        //    TensorFlowImageClassificationWithLRScheduling(new PolynomialLRDecay(), 50);
+        //}
 
         internal void TensorFlowImageClassificationWithLRScheduling(LearningRateScheduler learningRateScheduler, int epoch)
         {
@@ -1615,170 +1615,170 @@ namespace Microsoft.ML.Scenarios
             Assert.True(File.Exists(Path.Combine(Path.GetTempPath(), "MLNET", ImageClassificationTrainer.ModelFileName[options.Arch])));
         }
 
-        [TensorFlowTheory]
-        [InlineData(ImageClassificationTrainer.EarlyStoppingMetric.Accuracy)]
-        [InlineData(ImageClassificationTrainer.EarlyStoppingMetric.Loss)]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void TensorFlowImageClassificationEarlyStopping(ImageClassificationTrainer.EarlyStoppingMetric earlyStoppingMetric)
-        {
-            string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
-                "images");
+        //[TensorFlowTheory]
+        //[InlineData(ImageClassificationTrainer.EarlyStoppingMetric.Accuracy)]
+        //[InlineData(ImageClassificationTrainer.EarlyStoppingMetric.Loss)]
+        ////Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        //[Trait("Category", "SkipInCI")]
+        //public void TensorFlowImageClassificationEarlyStopping(ImageClassificationTrainer.EarlyStoppingMetric earlyStoppingMetric)
+        //{
+        //    string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
+        //        "images");
 
-            //Download the image set and unzip
-            string finalImagesFolderName = DownloadImageSet(
-                imagesDownloadFolderPath);
+        //    //Download the image set and unzip
+        //    string finalImagesFolderName = DownloadImageSet(
+        //        imagesDownloadFolderPath);
 
-            string fullImagesetFolderPath = Path.Combine(
-                imagesDownloadFolderPath, finalImagesFolderName);
+        //    string fullImagesetFolderPath = Path.Combine(
+        //        imagesDownloadFolderPath, finalImagesFolderName);
 
-            MLContext mlContext = new MLContext(seed: 1);
+        //    MLContext mlContext = new MLContext(seed: 1);
 
-            //Load all the original images info
-            IEnumerable<ImageData> images = LoadImagesFromDirectory(
-                folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
+        //    //Load all the original images info
+        //    IEnumerable<ImageData> images = LoadImagesFromDirectory(
+        //        folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
 
-            IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
-                mlContext.Data.LoadFromEnumerable(images), seed: 1);
+        //    IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
+        //        mlContext.Data.LoadFromEnumerable(images), seed: 1);
 
-            shuffledFullImagesDataset = mlContext.Transforms.Conversion
-                .MapValueToKey("Label")
-                .Fit(shuffledFullImagesDataset)
-                .Transform(shuffledFullImagesDataset);
+        //    shuffledFullImagesDataset = mlContext.Transforms.Conversion
+        //        .MapValueToKey("Label")
+        //        .Fit(shuffledFullImagesDataset)
+        //        .Transform(shuffledFullImagesDataset);
 
-            // Split the data 80:10 into train and test sets, train and evaluate.
-            TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
-                shuffledFullImagesDataset, testFraction: 0.2, seed: 1);
+        //    // Split the data 80:10 into train and test sets, train and evaluate.
+        //    TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
+        //        shuffledFullImagesDataset, testFraction: 0.2, seed: 1);
 
-            IDataView trainDataset = trainTestData.TrainSet;
-            IDataView testDataset = trainTestData.TestSet;
+        //    IDataView trainDataset = trainTestData.TrainSet;
+        //    IDataView testDataset = trainTestData.TestSet;
 
-            int lastEpoch = 0;
-            var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
-                    .Fit(testDataset)
-                    .Transform(testDataset);
+        //    int lastEpoch = 0;
+        //    var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
+        //            .Fit(testDataset)
+        //            .Transform(testDataset);
 
-            // Check if the bottleneck cached values already exist
-            var (trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName,
-                workspacePath, isReuse) = getInitialParameters(ImageClassificationTrainer.Architecture.ResnetV2101, finalImagesFolderName);
+        //    // Check if the bottleneck cached values already exist
+        //    var (trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName,
+        //        workspacePath, isReuse) = getInitialParameters(ImageClassificationTrainer.Architecture.ResnetV2101, finalImagesFolderName);
 
 
 
-            var options = new ImageClassificationTrainer.Options()
-            {
-                FeatureColumnName = "Image",
-                LabelColumnName = "Label",
-                // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
-                // ResnetV2101 you can try a different architecture/
-                // pre-trained model. 
-                Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
-                EarlyStoppingCriteria = new ImageClassificationTrainer.EarlyStopping(metric: earlyStoppingMetric),
-                Epoch = 100,
-                BatchSize = 5,
-                LearningRate = 0.01f,
-                MetricsCallback = (metric) => { Console.WriteLine(metric); lastEpoch = metric.Train != null ? metric.Train.Epoch : 0; },
-                TestOnTrainSet = false,
-                WorkspacePath = workspacePath,
-                ReuseTrainSetBottleneckCachedValues = isReuse,
-                ReuseValidationSetBottleneckCachedValues = isReuse,
-                TrainSetBottleneckCachedValuesFileName = trainSetBottleneckCachedValuesFileName,
-                ValidationSetBottleneckCachedValuesFileName = validationSetBottleneckCachedValuesFileName,
-                ValidationSet = validationSet
-            };
+        //    var options = new ImageClassificationTrainer.Options()
+        //    {
+        //        FeatureColumnName = "Image",
+        //        LabelColumnName = "Label",
+        //        // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
+        //        // ResnetV2101 you can try a different architecture/
+        //        // pre-trained model. 
+        //        Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
+        //        EarlyStoppingCriteria = new ImageClassificationTrainer.EarlyStopping(metric: earlyStoppingMetric),
+        //        Epoch = 100,
+        //        BatchSize = 5,
+        //        LearningRate = 0.01f,
+        //        MetricsCallback = (metric) => { Console.WriteLine(metric); lastEpoch = metric.Train != null ? metric.Train.Epoch : 0; },
+        //        TestOnTrainSet = false,
+        //        WorkspacePath = workspacePath,
+        //        ReuseTrainSetBottleneckCachedValues = isReuse,
+        //        ReuseValidationSetBottleneckCachedValues = isReuse,
+        //        TrainSetBottleneckCachedValuesFileName = trainSetBottleneckCachedValuesFileName,
+        //        ValidationSetBottleneckCachedValuesFileName = validationSetBottleneckCachedValuesFileName,
+        //        ValidationSet = validationSet
+        //    };
 
-            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
-                .Append(mlContext.MulticlassClassification.Trainers.ImageClassification(options));
+        //    var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
+        //        .Append(mlContext.MulticlassClassification.Trainers.ImageClassification(options));
 
-            var trainedModel = pipeline.Fit(trainDataset);
-            mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
-                "model.zip");
+        //    var trainedModel = pipeline.Fit(trainDataset);
+        //    mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
+        //        "model.zip");
 
-            ITransformer loadedModel;
-            DataViewSchema schema;
-            using (var file = File.OpenRead("model.zip"))
-                loadedModel = mlContext.Model.Load(file, out schema);
+        //    ITransformer loadedModel;
+        //    DataViewSchema schema;
+        //    using (var file = File.OpenRead("model.zip"))
+        //        loadedModel = mlContext.Model.Load(file, out schema);
 
-            IDataView predictions = trainedModel.Transform(testDataset);
-            var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
+        //    IDataView predictions = trainedModel.Transform(testDataset);
+        //    var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
 
-            Assert.InRange(metrics.MicroAccuracy, 0.8, 1);
-            Assert.InRange(metrics.MacroAccuracy, 0.8, 1);
+        //    Assert.InRange(metrics.MicroAccuracy, 0.8, 1);
+        //    Assert.InRange(metrics.MacroAccuracy, 0.8, 1);
 
-            //Assert that the training ran and stopped within half epochs due to EarlyStopping
-            Assert.InRange(lastEpoch, 1, 49);
-        }
+        //    //Assert that the training ran and stopped within half epochs due to EarlyStopping
+        //    Assert.InRange(lastEpoch, 1, 49);
+        //}
 
-        [TensorFlowFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void TensorFlowImageClassificationBadImages()
-        {
-            string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
-                "images");
+        //[TensorFlowFact]
+        ////Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        //[Trait("Category", "SkipInCI")]
+        //public void TensorFlowImageClassificationBadImages()
+        //{
+        //    string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
+        //        "images");
 
-            //Download the image set and unzip
-            string finalImagesFolderName = DownloadBadImageSet(
-                imagesDownloadFolderPath);
+        //    //Download the image set and unzip
+        //    string finalImagesFolderName = DownloadBadImageSet(
+        //        imagesDownloadFolderPath);
 
-            string fullImagesetFolderPath = Path.Combine(
-                imagesDownloadFolderPath, finalImagesFolderName);
+        //    string fullImagesetFolderPath = Path.Combine(
+        //        imagesDownloadFolderPath, finalImagesFolderName);
 
-            MLContext mlContext = new MLContext(seed: 1);
+        //    MLContext mlContext = new MLContext(seed: 1);
 
-            //Load all the original images info
-            IEnumerable<ImageData> images = LoadImagesFromDirectory(
-                folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
+        //    //Load all the original images info
+        //    IEnumerable<ImageData> images = LoadImagesFromDirectory(
+        //        folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
 
-            IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
-                mlContext.Data.LoadFromEnumerable(images), seed: 1);
+        //    IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
+        //        mlContext.Data.LoadFromEnumerable(images), seed: 1);
 
-            shuffledFullImagesDataset = mlContext.Transforms.Conversion
-                .MapValueToKey("Label")
-                .Append(mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath"))
-                .Fit(shuffledFullImagesDataset)
-                .Transform(shuffledFullImagesDataset);
+        //    shuffledFullImagesDataset = mlContext.Transforms.Conversion
+        //        .MapValueToKey("Label")
+        //        .Append(mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath"))
+        //        .Fit(shuffledFullImagesDataset)
+        //        .Transform(shuffledFullImagesDataset);
 
-            // Split the data 90:10 into train and test sets, train and evaluate.
-            TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
-                shuffledFullImagesDataset, testFraction: 0.1, seed: 1);
+        //    // Split the data 90:10 into train and test sets, train and evaluate.
+        //    TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
+        //        shuffledFullImagesDataset, testFraction: 0.1, seed: 1);
 
-            IDataView trainDataset = trainTestData.TrainSet;
-            IDataView testDataset = trainTestData.TestSet;
+        //    IDataView trainDataset = trainTestData.TrainSet;
+        //    IDataView testDataset = trainTestData.TestSet;
 
-            var options = new ImageClassificationTrainer.Options()
-            {
-                FeatureColumnName = "Image",
-                LabelColumnName = "Label",
-                // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
-                // ResnetV2101 you can try a different architecture/
-                // pre-trained model. 
-                Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
-                Epoch = 5,
-                BatchSize = 32,
-                LearningRate = 0.0001f,
-                ValidationSet = testDataset,
-                EarlyStoppingCriteria = null
-            };
+        //    var options = new ImageClassificationTrainer.Options()
+        //    {
+        //        FeatureColumnName = "Image",
+        //        LabelColumnName = "Label",
+        //        // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
+        //        // ResnetV2101 you can try a different architecture/
+        //        // pre-trained model. 
+        //        Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
+        //        Epoch = 5,
+        //        BatchSize = 32,
+        //        LearningRate = 0.0001f,
+        //        ValidationSet = testDataset,
+        //        EarlyStoppingCriteria = null
+        //    };
 
-            var pipeline = mlContext.MulticlassClassification.Trainers.ImageClassification(options);
+        //    var pipeline = mlContext.MulticlassClassification.Trainers.ImageClassification(options);
 
-            var trainedModel = pipeline.Fit(trainDataset);
-            mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
-                "model.zip");
+        //    var trainedModel = pipeline.Fit(trainDataset);
+        //    mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
+        //        "model.zip");
 
-            ITransformer loadedModel;
-            DataViewSchema schema;
-            using (var file = File.OpenRead("model.zip"))
-                loadedModel = mlContext.Model.Load(file, out schema);
+        //    ITransformer loadedModel;
+        //    DataViewSchema schema;
+        //    using (var file = File.OpenRead("model.zip"))
+        //        loadedModel = mlContext.Model.Load(file, out schema);
 
-            IDataView predictions = trainedModel.Transform(testDataset);
-            var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
+        //    IDataView predictions = trainedModel.Transform(testDataset);
+        //    var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
 
-            // Assert accuracy was returned meaning training completed
-            // by skipping bad images.
-            Assert.InRange(metrics.MicroAccuracy, 0.3, 1);
-            Assert.InRange(metrics.MacroAccuracy, 0.3, 1);
-        }
+        //    // Assert accuracy was returned meaning training completed
+        //    // by skipping bad images.
+        //    Assert.InRange(metrics.MicroAccuracy, 0.3, 1);
+        //    Assert.InRange(metrics.MacroAccuracy, 0.3, 1);
+        //}
 
         public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,
             bool useFolderNameAsLabel = true)
