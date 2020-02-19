@@ -23,6 +23,7 @@
     <VSTestLogger>trx</VSTestLogger>
     <VSTestResultsDirectory>$(OutputPath)</VSTestResultsDirectory>
     <AssemblyOriginatorKeyFile>$(ToolsDir)Test.snk</AssemblyOriginatorKeyFile>
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
   </PropertyGroup>
   
   <ItemGroup>

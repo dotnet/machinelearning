@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.ML" Version="StablePackageVersion" />
+    <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="StablePackageVersion" />
   </ItemGroup>
 
   <ItemGroup>

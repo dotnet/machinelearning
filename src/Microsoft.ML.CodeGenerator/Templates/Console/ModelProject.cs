@@ -50,6 +50,11 @@ namespace Microsoft.ML.CodeGenerator.Templates.Console
             this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
             this.Write("\" />\r\n");
 }
+ if (IncludeOnnxModel){ 
+            this.Write("    <PackageReference Include=\"Microsoft.ML.OnnxTransformer\" Version=\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
+            this.Write("\" />\r\n");
+}
  if (IncludeImageClassificationPackage){ 
             this.Write("    <PackageReference Include=\"Microsoft.ML.Vision\" Version=\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(StablePackageVersion));
