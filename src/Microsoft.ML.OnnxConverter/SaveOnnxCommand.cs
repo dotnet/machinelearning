@@ -278,10 +278,15 @@ namespace Microsoft.ML.Model.OnnxConverter
                     end = scorePipe;
                     transforms.AddLast(scoreOnnx);
 
-                    var xf = new KeyToValueMappingTransformer(Host, "PredictedLabel").Transform(scorePipe);
-                    var output = new CommonOutputs.TransformOutput { Model = new TransformModelImpl(Host, xf, scorePipe), OutputData = xf }; //MYTODO: Is this step necessary? I'd think it isn't
-                    end = output.OutputData;
-                    transforms.AddLast(end as ITransformCanSaveOnnx);
+                    if(rawPred.PredictionKind == PredictionKind.BinaryClassification || rawPred.PredictionKind == PredictionKind.MulticlassClassification)
+                    {
+                        if(scorePipe.Schema.GetColumnOrNull("PredictedLabel")?.Type is KeyDataViewType)
+                        {
+                            var outputData = new KeyToValueMappingTransformer(Host, "PredictedLabel").Transform(scorePipe);
+                            end = outputData;
+                            transforms.AddLast(outputData as ITransformCanSaveOnnx);
+                        }
+                    }
                 }
                 else
                 {
@@ -299,9 +304,10 @@ namespace Microsoft.ML.Model.OnnxConverter
             // Convert back to values the KeyDataViewType columns that appear both in input and output (i.e those that remained untouched
             // by the model.
             //MYTODO: perhaps move this into another function.
+            //MYTODO: Filter the following with _inputsToDrop and _outputsToDrop?
             var outputNames = new HashSet<string>();
             foreach (var col in end.Schema)
-                if(col.Type is KeyDataViewType)
+                if(col.Type is KeyDataViewType && col.IsHidden == false)
                     outputNames.Add(col.Name);
 
             var inputNames = new HashSet<string>();
@@ -313,9 +319,8 @@ namespace Microsoft.ML.Model.OnnxConverter
 
             foreach(var name in outputNames)
             {
-                var xf = new KeyToValueMappingTransformer(Host, name).Transform(end);
-                var output = new CommonOutputs.TransformOutput { Model = new TransformModelImpl(Host, xf, end), OutputData = xf }; // MYTODO: is this step necessary? I'd think it isn't
-                end = output.OutputData;
+                var outputData = new KeyToValueMappingTransformer(Host, name).Transform(end);
+                end = outputData;
                 transforms.AddLast(end as ITransformCanSaveOnnx);
             }
 
