@@ -751,7 +751,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Theory]
-        [IterationData(iterations: 1000)]
+        [IterationData(iterations: 100)]
         [Trait("Category", "RunSpecific")]
         public void TestGcnNormCommandLine(int iteration)
         {

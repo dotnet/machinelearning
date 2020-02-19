@@ -172,7 +172,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Theory]
-        [IterationData(iterations: 1000)]
+        [IterationData(iterations: 100)]
         [Trait("Category", "RunSpecific")]
         public void IrisVectorLightGbmWithLoadColumnName(int iteration)
         {
