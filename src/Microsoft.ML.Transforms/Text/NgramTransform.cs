@@ -770,9 +770,6 @@ namespace Microsoft.ML.Transforms.Text
 
             private void SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
             {
-                VBuffer<ReadOnlyMemory<char>> slotNames = default;
-                GetSlotNames(iinfo, 0, ref slotNames);
-
                 var transformInfo = _parent._transformInfos[iinfo];
 
                 // TfIdfVectorizer accepts strings, int32 and int64 tensors.
