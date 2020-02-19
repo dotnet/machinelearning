@@ -24,10 +24,10 @@ namespace Microsoft.ML.TestFramework
         public static readonly string TestConsoleApp = Path.GetFullPath(@"RemoteExecutorConsoleApp.dll");
 #if NETFRAMEWORK
         public static readonly string HostRunner = Path.GetFullPath(@"RemoteExecutorConsoleApp.exe");
-        private static readonly string ExtraParameter = "";
+        private static readonly string _extraParameter = "";
 #else
         public static readonly string HostRunner = Process.GetCurrentProcess().MainModule.FileName;
-        private static readonly string ExtraParameter = TestConsoleApp;
+        private static readonly string _extraParameter = TestConsoleApp;
 #endif
         /// <summary>A timeout (milliseconds) after which a wait on a remote operation should be considered a failure.</summary>
         public const int FailWaitTimeoutMilliseconds = 60 * 1000;
@@ -103,7 +103,7 @@ namespace Microsoft.ML.TestFramework
             // If we need the host (if it exists), use it, otherwise target the console app directly.
             string metadataArgs = PasteArguments.Paste(new string[] { a.FullName, t.FullName, method.Name, options.ExceptionFile }, pasteFirstArgumentUsingArgV0Rules: false);
             string passedArgs = pasteArguments ? PasteArguments.Paste(args, pasteFirstArgumentUsingArgV0Rules: false) : string.Join(" ", args);
-            string testConsoleAppArgs = ExtraParameter + " " + metadataArgs + " " + passedArgs;
+            string testConsoleAppArgs = _extraParameter + " " + metadataArgs + " " + passedArgs;
 
             psi.FileName = HostRunner;
             psi.Arguments = testConsoleAppArgs;
@@ -112,7 +112,7 @@ namespace Microsoft.ML.TestFramework
             CheckProcess(Process.Start(psi), options);
         }
 
-        private static void CheckProcess(Process process, RemoteInvokeOptions Options)
+        private static void CheckProcess(Process process, RemoteInvokeOptions options)
         {
             if (process != null)
             {
@@ -120,27 +120,27 @@ namespace Microsoft.ML.TestFramework
                 // needing to do this in every derived test and keep each test much simpler.
                 try
                 {
-                    Assert.True(process.WaitForExit(Options.TimeOut),
-                        $"Timed out after {Options.TimeOut}ms waiting for remote process {process.Id}");
+                    Assert.True(process.WaitForExit(options.TimeOut),
+                        $"Timed out after {options.TimeOut}ms waiting for remote process {process.Id}");
 
-                    if (File.Exists(Options.ExceptionFile))
+                    if (File.Exists(options.ExceptionFile))
                     {
-                        throw new RemoteExecutionException(File.ReadAllText(Options.ExceptionFile));
+                        throw new RemoteExecutionException(File.ReadAllText(options.ExceptionFile));
                     }
 
-                    if (Options.CheckExitCode)
+                    if (options.CheckExitCode)
                     {
-                        int expected = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? Options.ExpectedExitCode : unchecked((sbyte)Options.ExpectedExitCode);
+                        int expected = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? options.ExpectedExitCode : unchecked((sbyte)options.ExpectedExitCode);
                         int actual = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? process.ExitCode : unchecked((sbyte)process.ExitCode);
 
-                        Assert.True(expected == actual, $"Exit code was {process.ExitCode} but it should have been {Options.ExpectedExitCode}");
+                        Assert.True(expected == actual, $"Exit code was {process.ExitCode} but it should have been {options.ExpectedExitCode}");
                     }
                 }
                 finally
                 {
-                    if (File.Exists(Options.ExceptionFile))
+                    if (File.Exists(options.ExceptionFile))
                     {
-                        File.Delete(Options.ExceptionFile);
+                        File.Delete(options.ExceptionFile);
                     }
 
                     // Cleanup

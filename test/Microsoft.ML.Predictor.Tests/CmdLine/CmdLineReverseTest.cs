@@ -185,13 +185,13 @@ namespace Microsoft.ML.RunTests
                 commandLineLeft.GetSettingsString() == commandLineRight.GetSettingsString();
         }
 
-        private static readonly MethodInfo CreateComponentFactoryMethod = typeof(CmdParser)
+        private static readonly MethodInfo _createComponentFactoryMethod = typeof(CmdParser)
             .GetNestedType("ComponentFactoryFactory", BindingFlags.NonPublic)
             .GetMethod("CreateComponentFactory");
 
         private static IComponentFactory<SimpleArg> CreateComponentFactory(string name, string settings)
         {
-            return (IComponentFactory<SimpleArg>)CreateComponentFactoryMethod.Invoke(null,
+            return (IComponentFactory<SimpleArg>)_createComponentFactoryMethod.Invoke(null,
                 new object[]
                 {
                     typeof(IComponentFactory<SimpleArg>),

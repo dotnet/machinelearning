@@ -48,13 +48,13 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         private int GetSeed()
         {
             int seed = DefaultSeed;
-            string CPUMATH_SEED = Environment.GetEnvironmentVariable("CPUMATH_SEED");
+            string cpumathSeed = Environment.GetEnvironmentVariable("CPUMATH_SEED");
 
-            if (CPUMATH_SEED != null)
+            if (cpumathSeed != null)
             {
-                if (!int.TryParse(CPUMATH_SEED, out seed))
+                if (!int.TryParse(cpumathSeed, out seed))
                 {
-                    if (string.Equals(CPUMATH_SEED, "random", StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(cpumathSeed, "random", StringComparison.OrdinalIgnoreCase))
                     {
                         seed = new Random().Next();
                     }

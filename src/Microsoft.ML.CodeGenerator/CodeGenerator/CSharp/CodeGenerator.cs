@@ -93,53 +93,6 @@ namespace Microsoft.ML.CodeGenerator.CSharp
             Utils.AddProjectsToSolution(modelprojectDir, modelProjectName, consoleAppProjectDir, consoleAppProjectName, solutionPath);
         }
 
-        public void GenerateAzureRemoteImageOutput()
-        {
-            // Get Namespace
-            var namespaceValue = Utils.Normalize(_settings.OutputName);
-            var labelType = _columnInferenceResult.TextLoaderOptions.Columns.Where(t => t.Name == _settings.LabelName).First().DataKind;
-            Type labelTypeCsharp = Utils.GetCSharpType(labelType);
-
-            // Generate Model Project
-            var modelProjectContents = GenerateAzureAttachImageModelProjectContents(namespaceValue);
-
-            var modelProjectDir = Path.Combine(_settings.OutputBaseDir, $"{_settings.OutputName}.Model");
-            var modelProjectName = $"{_settings.OutputName}.Model.csproj";
-
-            // Get Normalize Mapping
-            var normalizeContent = new NormalizeMapping()
-            {
-                Namespace = namespaceValue,
-                Target = _settings.Target,
-            }.TransformText();
-            normalizeContent = Utils.FormatCode(normalizeContent);
-
-            // Write files to disk
-            Utils.WriteOutputToFiles(modelProjectContents.ModelInputCSFileContent, "ModelInput.cs", modelProjectDir);
-            Utils.WriteOutputToFiles(modelProjectContents.ModelOutputCSFileContent, "ModelOutput.cs", modelProjectDir);
-            Utils.WriteOutputToFiles(modelProjectContents.ConsumeModelCSFileContent, "ConsumeModel.cs", modelProjectDir);
-            Utils.WriteOutputToFiles(modelProjectContents.ModelProjectFileContent, modelProjectName, modelProjectDir);
-            Utils.WriteOutputToFiles(normalizeContent, "NormalizeMapping.cs", modelProjectDir);
-
-            // Generate ConsoleApp Project
-            var consoleAppProjectContents = GenerateConsoleAppProjectContents(namespaceValue, labelTypeCsharp,
-                false, false, false, true, false, false, true, true);
-
-            // Write files to disk.
-            var consoleAppProjectDir = Path.Combine(_settings.OutputBaseDir, $"{_settings.OutputName}.ConsoleApp");
-            var consoleAppProjectName = $"{_settings.OutputName}.ConsoleApp.csproj";
-
-            Utils.WriteOutputToFiles(consoleAppProjectContents.ConsoleAppProgramCSFileContent, "Program.cs", consoleAppProjectDir);
-            Utils.WriteOutputToFiles(consoleAppProjectContents.modelBuilderCSFileContent, "ModelBuilder.cs", consoleAppProjectDir);
-            Utils.WriteOutputToFiles(consoleAppProjectContents.ConsoleAppProjectFileContent, consoleAppProjectName, consoleAppProjectDir);
-
-            // New solution file.
-            Utils.CreateSolutionFile(_settings.OutputName, _settings.OutputBaseDir);
-
-            // Add projects to solution
-            var solutionPath = Path.Combine(_settings.OutputBaseDir, $"{_settings.OutputName}.sln");
-            Utils.AddProjectsToSolution(modelProjectDir, modelProjectName, consoleAppProjectDir, consoleAppProjectName, solutionPath);
-        }
         private void SetRequiredNugetPackages(IEnumerable<PipelineNode> trainerNodes, ref bool includeLightGbmPackage,
             ref bool includeMklComponentsPackage, ref bool includeFastTreePackage,
             ref bool includeImageTransformerPackage, ref bool includeImageClassificationPackage, ref bool includeRecommenderPackage)
