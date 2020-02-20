@@ -585,10 +585,7 @@ namespace Microsoft.ML.Tests
                 CompareSelectedColumns<float>("Probability", "Probability", transformedData, onnxResult);
                 CompareSelectedColumns<bool>("PredictedLabel", "PredictedLabel", transformedData, onnxResult);
             }
-            else
-            {
-                CheckEquality(subDir, onnxTextName);
-            }
+            CheckEquality(subDir, onnxTextName);
             Done();
         }
 
@@ -931,10 +928,7 @@ namespace Microsoft.ML.Tests
                     CompareSelectedColumns<float>("Probability", "Probability", transformedData, onnxResult);
                     CompareSelectedColumns<bool>("PredictedLabel", "PredictedLabel", transformedData, onnxResult);
                 }
-                else
-                {
-                    CheckEquality(subDir, onnxTextName, digitsOfPrecision: 3);
-                }
+                CheckEquality(subDir, onnxTextName, digitsOfPrecision: 3);
             }
             Done();
         }
