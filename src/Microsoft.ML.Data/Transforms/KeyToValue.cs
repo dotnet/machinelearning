@@ -565,6 +565,7 @@ namespace Microsoft.ML.Transforms
                 {
                     var info = _parent.ColumnPairs[iinfo];
                     var inputColumnName = info.inputColumnName;
+
                     if (!ctx.ContainsColumn(inputColumnName))
                         continue;
                     string srcVariableName = ctx.GetVariableName(inputColumnName);
