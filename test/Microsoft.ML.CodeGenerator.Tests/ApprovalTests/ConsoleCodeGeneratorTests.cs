@@ -19,14 +19,16 @@ using Microsoft.ML.CodeGenerator.Templates.Azure.Console;
 using Microsoft.ML.CodeGenerator.Templates.Console;
 using Microsoft.ML.CodeGenerator.Utilities;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Xunit;
+using Xunit.Abstractions;
 using CodeGenerator = Microsoft.ML.CodeGenerator.CSharp.CodeGenerator;
 
 namespace mlnet.Tests
 {
     [UseReporter(typeof(DiffReporter))]
-    public class ConsoleCodeGeneratorTests
+    public class ConsoleCodeGeneratorTests : BaseTestClass
     {
         private Pipeline _mockedPipeline;
         private Pipeline _mockedOvaPipeline;
@@ -35,6 +37,9 @@ namespace mlnet.Tests
         private const string StablePackageVersion = "1.4.0-preview3-28229-2";
         private const string UnstablePackageVersion = "0.16.0-preview3-28229-2";
 
+        public ConsoleCodeGeneratorTests(ITestOutputHelper output) : base(output)
+        {
+        }
 
         [Fact]
         [UseReporter(typeof(DiffReporter))]

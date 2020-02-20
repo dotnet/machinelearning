@@ -4,6 +4,8 @@
     <ProjectReference Include="..\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj" />
 
     <NativeAssemblyReference Include="CpuMathNative" />
+    <NativeAssemblyReference Include="MklImports" />
+    <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
   </ItemGroup>
 
   <ItemGroup>

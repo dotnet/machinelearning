@@ -10,8 +10,8 @@ using Microsoft.CodeAnalysis.Testing;
 using Microsoft.ML.CodeAnalyzer.Tests.Helpers;
 using Xunit;
 using VerifyCS = Microsoft.ML.CodeAnalyzer.Tests.Helpers.CSharpCodeFixVerifier<
-    Microsoft.ML.InternalCodeAnalyzer.ContractsCheckAnalyzer,
-    Microsoft.ML.InternalCodeAnalyzer.ContractsCheckNameofFixProvider>;
+Microsoft.ML.InternalCodeAnalyzer.ContractsCheckAnalyzer,
+Microsoft.ML.InternalCodeAnalyzer.ContractsCheckNameofFixProvider>;
 
 namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
