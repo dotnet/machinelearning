@@ -23,7 +23,7 @@ jobs:
       dotnetPath: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet
       nugetFeed: https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json
       nightlyBuildProjPath: $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj
-      nightlyBuildRunPath: (Build.SourcesDirectory)/bin/AnyCPU.(_configuration)/Microsoft.ML.NightlyBuild.Tests/netcoreapp2.1
+      nightlyBuildRunPath: (Build.SourcesDirectory)/bin/AnyCPU.(_configuration)/Microsoft.ML.NightlyBuild.Tests/(_targetFramework)
       packageUpdaterProjPath: $(Build.SourcesDirectory)/test/Microsoft.ML.NugetPackageVersionUpdater/Microsoft.ML.NugetPackageVersionUpdater.csproj
       versionFilePath: $(Build.SourcesDirectory)/test/Microsoft.ML.NugetPackageVersionUpdater/latest_versions.txt
     strategy:
@@ -33,10 +33,12 @@ jobs:
             _configuration: Debug
             _config_short: D
             _includeBenchmarkData: false
+            _targetFramework: netcoreapp2.1
           Release_Build:
             _configuration: Release
             _config_short: R
             _includeBenchmarkData: true
+            _targetFramework: netcoreapp2.1
         ${{ if ne(parameters.customMatrixes, '') }}:
           ${{ insert }}: ${{ parameters.customMatrixes }}
     

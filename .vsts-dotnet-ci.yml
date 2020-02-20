@@ -21,10 +21,12 @@ jobs:
         _configuration: Debug-netcoreapp3_0
         _config_short: DI
         _includeBenchmarkData: false
+        _targetFramework: netcoreapp3.0
       Release_Build:
         _configuration: Release-netcoreapp3_0
         _config_short: RI
         _includeBenchmarkData: true
+        _targetFramework: netcoreapp3.0
     innerLoop: true
     pool:
       name: Hosted Ubuntu 1604
@@ -55,10 +57,12 @@ jobs:
         _configuration: Debug-netcoreapp3_0
         _config_short: DI
         _includeBenchmarkData: false
+        _targetFramework: netcoreapp3.0
       Release_Build:
         _configuration: Release-netcoreapp3_0
         _config_short: RI
         _includeBenchmarkData: true
+        _targetFramework: netcoreapp3.0
     innerLoop: true
     pool:
       name: Hosted VS2017
@@ -80,10 +84,12 @@ jobs:
         _configuration: Debug-netfx
         _config_short: DFX
         _includeBenchmarkData: false
+        _targetFramework: win-x64
       Release_Build:
         _configuration: Release-netfx
         _config_short: RFX
         _includeBenchmarkData: false
+        _targetFramework: win-x64
     innerLoop: true
     pool:
       name: Hosted VS2017
