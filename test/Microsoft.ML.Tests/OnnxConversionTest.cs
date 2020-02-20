@@ -562,6 +562,7 @@ namespace Microsoft.ML.Tests
             .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numberOfLeaves: 2, numberOfTrees: 1, minimumExampleCountPerLeaf: 2));
 
             var model = pipeline.Fit(data);
+            var transformedData = model.Transform(data);
             var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
 
             // Check ONNX model's text format. We save the produced ONNX model as a text file and compare it against
@@ -571,9 +572,23 @@ namespace Microsoft.ML.Tests
             var onnxTextName = "OneHotBagPipeline.txt";
             var onnxFileName = "OneHotBagPipeline.onnx";
             var onnxTextPath = GetOutputPath(subDir, onnxTextName);
-            var onnxFilePath = GetOutputPath(subDir, onnxFileName);
-            SaveOnnxModel(onnxModel, onnxFilePath, onnxTextPath);
-            CheckEquality(subDir, onnxTextName);
+            var onnxModelPath = GetOutputPath(subDir, onnxFileName);
+            SaveOnnxModel(onnxModel, onnxModelPath, onnxTextPath);
+            // Compare results produced by ML.NET and ONNX's runtime.
+            if (IsOnnxRuntimeSupported())
+            {
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(data);
+                var onnxResult = onnxTransformer.Transform(data);
+                CompareSelectedColumns<float>("Score", "Score", transformedData, onnxResult);
+                CompareSelectedColumns<float>("Probability", "Probability", transformedData, onnxResult);
+                CompareSelectedColumns<bool>("PredictedLabel", "PredictedLabel", transformedData, onnxResult);
+            }
+            else
+            {
+                CheckEquality(subDir, onnxTextName);
+            }
             Done();
         }
 
@@ -904,9 +919,22 @@ namespace Microsoft.ML.Tests
                 var onnxTextName = "ExcludeVariablesInOnnxConversion.txt";
                 var onnxFileName = "ExcludeVariablesInOnnxConversion.onnx";
                 var onnxTextPath = GetOutputPath(subDir, onnxTextName);
-                var onnxFilePath = GetOutputPath(subDir, onnxFileName);
-                SaveOnnxModel(onnxModel, onnxFilePath, onnxTextPath);
-                CheckEquality(subDir, onnxTextName, digitsOfPrecision: 3);
+                var onnxModelPath = GetOutputPath(subDir, onnxFileName);
+                SaveOnnxModel(onnxModel, onnxModelPath, onnxTextPath);
+                if (IsOnnxRuntimeSupported())
+                {
+                    // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                    var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+                    var onnxTransformer = onnxEstimator.Fit(data);
+                    var onnxResult = onnxTransformer.Transform(data);
+                    CompareSelectedColumns<float>("Score", "Score", transformedData, onnxResult);
+                    CompareSelectedColumns<float>("Probability", "Probability", transformedData, onnxResult);
+                    CompareSelectedColumns<bool>("PredictedLabel", "PredictedLabel", transformedData, onnxResult);
+                }
+                else
+                {
+                    CheckEquality(subDir, onnxTextName, digitsOfPrecision: 3);
+                }
             }
             Done();
         }

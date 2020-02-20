@@ -179,19 +179,15 @@
         "output": [
           "Features"
         ],
-        "name": "FeatureVectorizer",
-        "opType": "FeatureVectorizer",
+        "name": "Concat",
+        "opType": "Concat",
         "attribute": [
           {
-            "name": "inputdimensions",
-            "ints": [
-              "1",
-              "10"
-            ],
-            "type": "INTS"
+            "name": "axis",
+            "i": "1",
+            "type": "INT"
           }
-        ],
-        "domain": "ai.onnx.ml"
+        ]
       },
       {
         "input": [
@@ -324,8 +320,8 @@
           {
             "name": "target_weights",
             "floats": [
-              0.50476193,
-              -0.97911227
+              0.504761934,
+              -0.979112267
             ],
             "type": "FLOATS"
           }
