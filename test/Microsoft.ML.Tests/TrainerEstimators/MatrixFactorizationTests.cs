@@ -54,7 +54,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [MatrixFactorizationFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         public void MatrixFactorizationSimpleTrainAndPredict()
         {
             var mlContext = new MLContext(seed: 1);

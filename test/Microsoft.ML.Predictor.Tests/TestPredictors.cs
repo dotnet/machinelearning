@@ -188,7 +188,6 @@ namespace Microsoft.ML.RunTests
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         [TestCategory("FastTree")]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         public void MulticlassTreeFeaturizedLRTest()
         {
             RunMTAThread(() =>
