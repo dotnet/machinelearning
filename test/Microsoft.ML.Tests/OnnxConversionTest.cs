@@ -880,6 +880,7 @@ namespace Microsoft.ML.Tests
 
         //MYTODO: Remove this once I am finished with this PR
         [Fact]
+        [Trait("Category", "SkipInCI")]
         public void TestOnnxCustomPredictorGraph()
         {
             var modelPath = @"C:\Users\anvelazq\Desktop\is23repros\Handler.zip";
@@ -926,6 +927,7 @@ namespace Microsoft.ML.Tests
 
         //MYTODO: Remove this once I am finished with this PR
         [Fact]
+        [Trait("Category", "SkipInCI")]
         public void TestOnnxCustomTransformGraph()
         {
             var modelPath = @"C:\Users\anvelazq\Desktop\is23repros\Handler.zip";
