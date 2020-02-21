@@ -896,7 +896,7 @@ namespace Microsoft.ML.Data
                 Host.CheckValue(ctx, nameof(ctx));
                 Contracts.Assert(CanSaveOnnx(ctx));
 
-                string opType = "Concat";
+                string opType = "FeatureVectorizer";
                 for (int iinfo = 0; iinfo < _columns.Length; ++iinfo)
                 {
                     var colInfo = _parent._columns[iinfo];
@@ -925,10 +925,16 @@ namespace Microsoft.ML.Data
                             InputSchema[srcIndex].Type.GetValueCount()));
                     }
 
+                    var dstVariableName = ctx.AddIntermediateVariable(outColType, outName, true);
+                    var vectorizerOutputName = ctx.AddIntermediateVariable(null, "VectorFeaturizerOutput", true);
                     var node = ctx.CreateNode(opType, inputList.Select(t => t.Key),
-                        new[] { ctx.AddIntermediateVariable(outColType, outName) }, ctx.GetNodeName(opType), "");
+                        new[] { vectorizerOutputName }, ctx.GetNodeName(opType));
+                    node.AddAttribute("inputdimensions", inputList.Select(x => x.Value));
 
-                    node.AddAttribute("axis", 1);
+                    opType = "Cast";
+                    var castNode = ctx.CreateNode(opType, vectorizerOutputName, dstVariableName, ctx.GetNodeName(opType), "");
+                    var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Double).ToType();
+                    castNode.AddAttribute("to", outColType.ItemType.RawType);
                 }
             }
         }
