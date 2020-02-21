@@ -11,9 +11,12 @@ namespace Microsoft.ML.TestFrameworkCommon.Attributes
     /// <summary>
     /// A fact for tests with varying tolerance levels
     /// <code>
-    /// [Theory, VaryingTolerance(50)]
+    /// [Theory, VaryingTolerance(5)]
     /// public void VaryingToleranceTest(double tolerance)
     /// {
+    ///     Console.WriteLine(String.Format("Tolerance: {0}", tolerance)); // "Tolerance: 1e-5
+    ///     ...
+    ///     Assert.InRange(actualMetric, expectedMetric - tolerance, expectedMetric + tolerance);
     /// }
     /// </code>
     /// </summary>
