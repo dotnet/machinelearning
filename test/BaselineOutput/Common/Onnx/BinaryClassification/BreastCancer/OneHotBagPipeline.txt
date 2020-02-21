@@ -179,19 +179,15 @@
         "output": [
           "Features"
         ],
-        "name": "FeatureVectorizer",
-        "opType": "FeatureVectorizer",
+        "name": "Concat",
+        "opType": "Concat",
         "attribute": [
           {
-            "name": "inputdimensions",
-            "ints": [
-              "1",
-              "10"
-            ],
-            "type": "INTS"
+            "name": "axis",
+            "i": "1",
+            "type": "INT"
           }
-        ],
-        "domain": "ai.onnx.ml"
+        ]
       },
       {
         "input": [

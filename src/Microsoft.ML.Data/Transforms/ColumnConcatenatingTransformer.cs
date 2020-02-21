@@ -896,7 +896,7 @@ namespace Microsoft.ML.Data
                 Host.CheckValue(ctx, nameof(ctx));
                 Contracts.Assert(CanSaveOnnx(ctx));
 
-                string opType = "FeatureVectorizer";
+                string opType = "Concat";
                 for (int iinfo = 0; iinfo < _columns.Length; ++iinfo)
                 {
                     var colInfo = _parent._columns[iinfo];
@@ -926,9 +926,9 @@ namespace Microsoft.ML.Data
                     }
 
                     var node = ctx.CreateNode(opType, inputList.Select(t => t.Key),
-                        new[] { ctx.AddIntermediateVariable(outColType, outName) }, ctx.GetNodeName(opType));
+                        new[] { ctx.AddIntermediateVariable(outColType, outName) }, ctx.GetNodeName(opType), "");
 
-                    node.AddAttribute("inputdimensions", inputList.Select(x => x.Value));
+                    node.AddAttribute("axis", 1);
                 }
             }
         }
