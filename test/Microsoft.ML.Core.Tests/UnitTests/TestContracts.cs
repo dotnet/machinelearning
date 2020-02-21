@@ -4,11 +4,18 @@
 
 using System;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
+
 namespace Microsoft.ML.RunTests
 {
-    public sealed class TestContracts
+    public sealed class TestContracts : BaseTestClass
     {
+        public TestContracts(ITestOutputHelper output) : base(output)
+        {
+        }
+
         private void Helper(IExceptionContext ectx, MessageSensitivity expected)
         {
             Contracts.AssertValueOrNull(ectx);

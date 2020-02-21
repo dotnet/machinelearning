@@ -856,7 +856,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        private const int inputSize = 3 * 224 * 224;
+        private const int InputSize = 3 * 224 * 224;
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed = 0)
         {
@@ -866,14 +866,14 @@ namespace Microsoft.ML.Tests
             {
                 yield return new DataPoint
                 {
-                    Features = Enumerable.Repeat(0, inputSize).Select(x => random.NextDouble()*100).ToArray()
+                    Features = Enumerable.Repeat(0, InputSize).Select(x => random.NextDouble()*100).ToArray()
                 };
             }
         }
 
         private class DataPoint
         {
-            [VectorType(inputSize)]
+            [VectorType(InputSize)]
             public double[] Features { get; set; }
         }
     }

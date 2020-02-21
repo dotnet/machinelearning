@@ -11,6 +11,7 @@ using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.ML.Runtime;
+using static Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper;
 using OnnxShape = System.Collections.Generic.List<int>;
 
 namespace Microsoft.ML.Transforms.Onnx
@@ -157,6 +158,8 @@ namespace Microsoft.ML.Transforms.Onnx
         /// </summary>
         internal OnnxModelInfo ModelInfo { get; }
 
+        internal GraphProto Graph { get; }
+
         /// <summary>
         /// Constructs OnnxModel object from file.
         /// </summary>
@@ -217,6 +220,8 @@ namespace Microsoft.ML.Transforms.Onnx
 
             // Create a view to the used ONNX model from ONNXRuntime's perspective.
             ModelInfo = new OnnxModelInfo(inputInfos, outputInfos, overrideableInitializers);
+
+            Graph = model.Graph;
         }
 
         private List<OnnxVariableInfo> GetOnnxVariablesFromMetadata(IReadOnlyDictionary<string, NodeMetadata> nodeMetadata,
@@ -232,6 +237,10 @@ namespace Microsoft.ML.Transforms.Onnx
                 var meta = pair.Value;
                 var dataViewType = typePool[name];
                 var caster = casterPool?[name];
+
+                if (name.StartsWith("mlnet.") &&
+                    (name.EndsWith(".unusedInput") || name.EndsWith(".unusedOutput")))
+                    continue;
 
                 OnnxVariableInfo info = null;
                 if (shapeDictionary != null && shapeDictionary.ContainsKey(name))

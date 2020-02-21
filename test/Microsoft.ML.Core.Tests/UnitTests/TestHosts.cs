@@ -9,12 +9,18 @@ using System.Linq;
 using System.Threading;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.RunTests
 {
-    public class TestHosts
+    public class TestHosts : BaseTestClass
     {
+        public TestHosts(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void TestCancellation()
         {

@@ -14,7 +14,7 @@ namespace Microsoft.ML.TestFrameworkCommon
     [Serializable]
     public class RetryTestCase : XunitTestCase
     {
-        private int maxRetries;
+        private int _maxRetries;
 
         [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("Called by the de-serializer", true)]
@@ -24,7 +24,7 @@ namespace Microsoft.ML.TestFrameworkCommon
             ITestMethod testMethod, int maxRetries)
             : base(diagnosticMessageSink, testMethodDisplay, TestMethodDisplayOptions.None, testMethod, testMethodArguments: null)
         {
-            this.maxRetries = maxRetries;
+            this._maxRetries = maxRetries;
         }
 
         // This method is called by the xUnit test framework classes to run the test case. We will do the
@@ -55,7 +55,7 @@ namespace Microsoft.ML.TestFrameworkCommon
                     Console.WriteLine(errorMessage);
                 }
 
-                if (summary.Failed == 0 || ++runCount >= maxRetries)
+                if (summary.Failed == 0 || ++runCount >= _maxRetries)
                 {
                     delayedMessageBus.Dispose();  // Sends all the delayed messages
                     return summary;
@@ -106,14 +106,14 @@ namespace Microsoft.ML.TestFrameworkCommon
         {
             base.Serialize(data);
 
-            data.AddValue("MaxRetries", maxRetries);
+            data.AddValue("MaxRetries", _maxRetries);
         }
 
         public override void Deserialize(IXunitSerializationInfo data)
         {
             base.Deserialize(data);
 
-            maxRetries = data.GetValue<int>("MaxRetries");
+            _maxRetries = data.GetValue<int>("MaxRetries");
         }
     }
 }

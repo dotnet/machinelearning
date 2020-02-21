@@ -8,12 +8,18 @@ using Microsoft.ML;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.CodeGenerator.CSharp;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace mlnet.Tests
 {
-    public class CodeGeneratorTests
+    public class CodeGeneratorTests : BaseTestClass
     {
+        public CodeGeneratorTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void TrainerGeneratorBasicNamedParameterTest()
         {

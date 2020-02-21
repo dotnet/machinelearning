@@ -288,7 +288,7 @@
           "Label0"
         ],
         "output": [
-          "Label.onnx"
+          "Label.output"
         ],
         "name": "Identity",
         "opType": "Identity"
@@ -298,7 +298,7 @@
           "Features0"
         ],
         "output": [
-          "Features.onnx"
+          "Features.output"
         ],
         "name": "Identity0",
         "opType": "Identity"
@@ -308,7 +308,7 @@
           "PredictedLabel"
         ],
         "output": [
-          "PredictedLabel.onnx"
+          "PredictedLabel.output"
         ],
         "name": "Identity1",
         "opType": "Identity"
@@ -318,10 +318,55 @@
           "Score"
         ],
         "output": [
-          "Score.onnx"
+          "Score.output"
         ],
         "name": "Identity2",
         "opType": "Identity"
+      },
+      {
+        "input": [
+          "mlnet.Score.SlotNames"
+        ],
+        "output": [
+          "mlnet.Score.unusedOutput"
+        ],
+        "name": "mlnet.Score.SlotNames",
+        "opType": "LabelEncoder",
+        "attribute": [
+          {
+            "name": "keys_strings",
+            "strings": [
+              "NQ==",
+              "Mw==",
+              "Ng==",
+              "NA==",
+              "OA==",
+              "MQ==",
+              "Mg==",
+              "Nw==",
+              "MTA=",
+              "OQ=="
+            ],
+            "type": "STRINGS"
+          },
+          {
+            "name": "values_int64s",
+            "ints": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8",
+              "9"
+            ],
+            "type": "INTS"
+          }
+        ],
+        "domain": "ai.onnx.ml"
       }
     ],
     "name": "model",
@@ -336,6 +381,17 @@
           "1"
         ],
         "name": "ShapeVar"
+      },
+      {
+        "dims": [
+          "1",
+          "1"
+        ],
+        "dataType": 8,
+        "stringData": [
+          "b25l"
+        ],
+        "name": "mlnet.Score.SlotNames"
       }
     ],
     "input": [
@@ -378,7 +434,7 @@
     ],
     "output": [
       {
-        "name": "Label.onnx",
+        "name": "Label.output",
         "type": {
           "tensorType": {
             "elemType": 12,
@@ -396,7 +452,7 @@
         }
       },
       {
-        "name": "Features.onnx",
+        "name": "Features.output",
         "type": {
           "tensorType": {
             "elemType": 1,
@@ -414,7 +470,7 @@
         }
       },
       {
-        "name": "PredictedLabel.onnx",
+        "name": "PredictedLabel.output",
         "type": {
           "tensorType": {
             "elemType": 12,
@@ -432,7 +488,7 @@
         }
       },
       {
-        "name": "Score.onnx",
+        "name": "Score.output",
         "type": {
           "tensorType": {
             "elemType": 1,
@@ -443,6 +499,24 @@
                 },
                 {
                   "dimValue": "10"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "mlnet.Score.unusedOutput",
+        "type": {
+          "tensorType": {
+            "elemType": 7,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
                 }
               ]
             }

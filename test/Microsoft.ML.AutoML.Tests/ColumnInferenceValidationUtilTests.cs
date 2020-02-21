@@ -3,15 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.IO;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class ColumnInferenceValidationUtilTests
+    public class ColumnInferenceValidationUtilTests : BaseTestClass
     {
+        public ColumnInferenceValidationUtilTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void ValidateColumnNotContainedInData()
         {

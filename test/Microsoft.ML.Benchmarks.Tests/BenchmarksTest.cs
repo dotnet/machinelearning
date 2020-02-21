@@ -10,6 +10,7 @@ using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Running;
 using Microsoft.ML.Benchmarks.Harness;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 using Xunit.Abstractions;
@@ -21,11 +22,14 @@ namespace Microsoft.ML.Benchmarks.Tests
         protected override Job GetJobDefinition() => Job.Dry; // Job.Dry runs the benchmark just once
     }
 
-    public class BenchmarksTest
+    public class BenchmarksTest : BaseTestClass
     {
-        public BenchmarksTest(ITestOutputHelper output) => Output = output;
+        public BenchmarksTest(ITestOutputHelper output) : base(output)
+        {
+            this.output = output;
+        }
 
-        private ITestOutputHelper Output { get; }
+        private ITestOutputHelper output { get; }
 
         public static TheoryData<Type> GetBenchmarks()
         {
@@ -49,14 +53,14 @@ namespace Microsoft.ML.Benchmarks.Tests
         [Trait("Category", "SkipInCI")]
         public void BenchmarksProjectIsNotBroken(Type type)
         {
-            var summary = BenchmarkRunner.Run(type, new TestConfig().With(new OutputLogger(Output)));
+            var summary = BenchmarkRunner.Run(type, new TestConfig().With(new OutputLogger(output)));
 
             Assert.False(summary.HasCriticalValidationErrors, "The \"Summary\" should have NOT \"HasCriticalValidationErrors\"");
 
             Assert.True(summary.Reports.Any(), "The \"Summary\" should contain at least one \"BenchmarkReport\" in the \"Reports\" collection");
 
             Assert.True(summary.Reports.All(r => r.BuildResult.IsBuildSuccess),
-                "The following benchmarks are failed to build: " +
+                "The following benchmarks failed to build: " +
                 string.Join(", ", summary.Reports.Where(r => !r.BuildResult.IsBuildSuccess).Select(r => r.BenchmarkCase.DisplayInfo)));
 
             Assert.True(summary.Reports.All(r => r.ExecuteResults != null),
@@ -73,31 +77,31 @@ namespace Microsoft.ML.Benchmarks.Tests
 
     public class OutputLogger : AccumulationLogger
     {
-        private readonly ITestOutputHelper testOutputHelper;
-        private string currentLine = "";
+        private readonly ITestOutputHelper _testOutputHelper;
+        private string _currentLine = "";
 
         public OutputLogger(ITestOutputHelper testOutputHelper)
         {
-            this.testOutputHelper = testOutputHelper ?? throw new ArgumentNullException(nameof(testOutputHelper));
+            this._testOutputHelper = testOutputHelper ?? throw new ArgumentNullException(nameof(testOutputHelper));
         }
 
         public override void Write(LogKind logKind, string text)
         {
-            currentLine += text;
+            _currentLine += text;
             base.Write(logKind, text);
         }
 
         public override void WriteLine()
         {
-            testOutputHelper.WriteLine(currentLine);
-            currentLine = "";
+            _testOutputHelper.WriteLine(_currentLine);
+            _currentLine = "";
             base.WriteLine();
         }
 
         public override void WriteLine(LogKind logKind, string text)
         {
-            testOutputHelper.WriteLine(currentLine + text);
-            currentLine = "";
+            _testOutputHelper.WriteLine(_currentLine + text);
+            _currentLine = "";
             base.WriteLine(logKind, text);
         }
     }

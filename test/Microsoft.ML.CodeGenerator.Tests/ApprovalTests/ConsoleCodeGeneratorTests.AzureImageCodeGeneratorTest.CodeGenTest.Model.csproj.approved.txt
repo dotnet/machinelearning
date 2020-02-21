@@ -6,6 +6,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.ML" Version="stableversion" />
     <PackageReference Include="Microsoft.ML.ImageAnalytics" Version="stableversion" />
+    <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="stableversion" />
   </ItemGroup>
 
   <ItemGroup>

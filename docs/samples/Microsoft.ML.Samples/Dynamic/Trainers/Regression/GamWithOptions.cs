@@ -77,7 +77,7 @@ namespace Samples.Dynamic.Trainers.Regression
             //   Mean Absolute Error: 0.04
             //   Mean Squared Error: 0.01
             //   Root Mean Squared Error: 0.05
-            //   RSquared: 0.98 (closer to 1 is better. The worest case is 0)
+            //   RSquared: 0.98 (closer to 1 is better. The worst case is 0)
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,

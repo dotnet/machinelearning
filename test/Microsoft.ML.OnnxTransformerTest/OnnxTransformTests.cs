@@ -23,11 +23,11 @@ namespace Microsoft.ML.Tests
 {
     public class OnnxTransformTests : TestDataPipeBase
     {
-        private const int inputSize = 150528;
+        private const int InputSize = 150528;
 
         private class TestData
         {
-            [VectorType(inputSize)]
+            [VectorType(InputSize)]
             public float[] data_0;
         }
 
@@ -57,13 +57,13 @@ namespace Microsoft.ML.Tests
 
         private class TestDataXY
         {
-            [VectorType(inputSize)]
+            [VectorType(InputSize)]
             public float[] A;
         }
 
         private class TestDataDifferntType
         {
-            [VectorType(inputSize)]
+            [VectorType(InputSize)]
             public string[] data_0;
         }
 
@@ -93,9 +93,9 @@ namespace Microsoft.ML.Tests
 
         private float[] GetSampleArrayData()
         {
-            var samplevector = new float[inputSize];
-            for (int i = 0; i < inputSize; i++)
-                samplevector[i] = (i / (inputSize * 1.01f));
+            var samplevector = new float[InputSize];
+            for (int i = 0; i < InputSize; i++)
+                samplevector[i] = (i / (InputSize * 1.01f));
             return samplevector;
         }
 
@@ -120,8 +120,8 @@ namespace Microsoft.ML.Tests
                      }
                 });
 
-            var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
-            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
+            var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[InputSize] } };
+            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[InputSize] } };
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
             var pipe = ML.Transforms.ApplyOnnxModel(new[] { "softmaxout_1" }, new[] { "data_0" }, modelFile);
 
@@ -352,17 +352,17 @@ namespace Microsoft.ML.Tests
             /// <summary>
             /// Height of <see cref="Image"/>.
             /// </summary>
-            private const int height = 224;
+            private const int Height = 224;
 
             /// <summary>
             /// Width of <see cref="Image"/>.
             /// </summary>
-            private const int width = 224;
+            private const int Width = 224;
 
             /// <summary>
             /// Image will be consumed by ONNX image multiclass classification model.
             /// </summary>
-            [ImageType(height, width)]
+            [ImageType(Height, Width)]
             public Bitmap Image { get; set; }
 
             /// <summary>
@@ -378,9 +378,9 @@ namespace Microsoft.ML.Tests
 
             public ImageDataPoint(Color color)
             {
-                Image = new Bitmap(width, height);
-                for (int i = 0; i < width; ++i)
-                    for (int j = 0; j < height; ++j)
+                Image = new Bitmap(Width, Height);
+                for (int i = 0; i < Width; ++i)
+                    for (int j = 0; j < Height; ++j)
                         Image.SetPixel(i, j, color);
             }
         }

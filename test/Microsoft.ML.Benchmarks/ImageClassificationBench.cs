@@ -20,15 +20,15 @@ namespace Microsoft.ML.Benchmarks
     [Config(typeof(TrainConfig))]
     public class ImageClassificationBench
     {
-        private MLContext mlContext;
-        private IDataView trainDataset;
-        private IDataView testDataset;
+        private MLContext _mlContext;
+        private IDataView _trainDataset;
+        private IDataView _testDataset;
 
 
         [GlobalSetup]
         public void SetupData()
         {
-            mlContext = new MLContext(seed: 1);
+            _mlContext = new MLContext(seed: 1);
             /*
              * Running in benchmarks causes to create a new temporary dir for each run
              * However this dir is deleted while still running, as such need to get one
@@ -54,23 +54,23 @@ namespace Microsoft.ML.Benchmarks
             IEnumerable<ImageData> images = LoadImagesFromDirectory(
                 folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
 
-            IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
-                mlContext.Data.LoadFromEnumerable(images));
+            IDataView shuffledFullImagesDataset = _mlContext.Data.ShuffleRows(
+                _mlContext.Data.LoadFromEnumerable(images));
 
-            shuffledFullImagesDataset = mlContext.Transforms.Conversion
+            shuffledFullImagesDataset = _mlContext.Transforms.Conversion
                     .MapValueToKey("Label")
-                .Append(mlContext.Transforms.LoadRawImageBytes("Image",
+                .Append(_mlContext.Transforms.LoadRawImageBytes("Image",
                             fullImagesetFolderPath, "ImagePath"))
                 .Fit(shuffledFullImagesDataset)
                 .Transform(shuffledFullImagesDataset);
 
             // Split the data 90:10 into train and test sets, train and
             // evaluate.
-            TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
+            TrainTestData trainTestData = _mlContext.Data.TrainTestSplit(
                 shuffledFullImagesDataset, testFraction: 0.1, seed: 1);
 
-            trainDataset = trainTestData.TrainSet;
-            testDataset = trainTestData.TestSet;
+            _trainDataset = trainTestData.TrainSet;
+            _testDataset = trainTestData.TestSet;
 
         }
 
@@ -86,14 +86,14 @@ namespace Microsoft.ML.Benchmarks
                 BatchSize = 10,
                 LearningRate = 0.01f,
                 EarlyStoppingCriteria = new ImageClassificationTrainer.EarlyStopping(minDelta: 0.001f, patience: 20, metric: ImageClassificationTrainer.EarlyStoppingMetric.Loss),
-                ValidationSet = testDataset
+                ValidationSet = _testDataset
             };
-            var pipeline = mlContext.MulticlassClassification.Trainers.ImageClassification(options)
-            .Append(mlContext.Transforms.Conversion.MapKeyToValue(
+            var pipeline = _mlContext.MulticlassClassification.Trainers.ImageClassification(options)
+            .Append(_mlContext.Transforms.Conversion.MapKeyToValue(
                 outputColumnName: "PredictedLabel",
                 inputColumnName: "PredictedLabel"));
 
-            return pipeline.Fit(trainDataset);
+            return pipeline.Fit(_trainDataset);
         }
 
 

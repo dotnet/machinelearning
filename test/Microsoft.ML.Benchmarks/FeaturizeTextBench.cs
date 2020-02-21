@@ -16,35 +16,35 @@ namespace Microsoft.ML.Benchmarks
     [Config(typeof(TrainConfig))]
     public class FeaturizeTextBench
     {
-        private MLContext mlContext;
-        private IDataView dataset;
-        private static int numColumns = 1000;
-        private static int numRows = 300;
-        private static int maxWordLength = 15;
+        private MLContext _mlContext;
+        private IDataView _dataset;
+        private static int _numColumns = 1000;
+        private static int _numRows = 300;
+        private static int _maxWordLength = 15;
 
         [GlobalSetup]
         public void SetupData()
         {
             Path.GetTempFileName();
-            mlContext = new MLContext(seed: 1);
+            _mlContext = new MLContext(seed: 1);
             var path = Path.GetTempFileName();
             Console.WriteLine($"Created dataset in temporary file:\n{path}\n");
             path = CreateRandomFile(path);
 
             var columns = new List<TextLoader.Column>();
-            for(int i = 0; i < numColumns; i++)
+            for(int i = 0; i < _numColumns; i++)
             {
                 columns.Add(new TextLoader.Column($"Column{i}", DataKind.String, i));
             }
 
-            var textLoader = mlContext.Data.CreateTextLoader(new TextLoader.Options()
+            var textLoader = _mlContext.Data.CreateTextLoader(new TextLoader.Options()
             {
                 Columns = columns.ToArray(),
                 HasHeader = false,
                 Separators = new char[] { ',' }
             });
 
-            dataset = textLoader.Load(path);
+            _dataset = textLoader.Load(path);
         }
 
         [Benchmark]
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Benchmarks
             var featurizers = new List<TextFeaturizingEstimator>();
             foreach (var textColumn in textColumns)
             {
-                var featurizer = mlContext.Transforms.Text.FeaturizeText(textColumn, new TextFeaturizingEstimator.Options()
+                var featurizer = _mlContext.Transforms.Text.FeaturizeText(textColumn, new TextFeaturizingEstimator.Options()
                 {
                     CharFeatureExtractor = null,
                     WordFeatureExtractor = new WordBagEstimator.Options()
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Benchmarks
                 pipeline = pipeline.Append(featurizer);
             }
 
-            var model = pipeline.Fit(dataset);
+            var model = pipeline.Fit(_dataset);
 
             // BENCHMARK OUTPUT
             // * Summary *
@@ -126,8 +126,8 @@ namespace Microsoft.ML.Benchmarks
 
             using (StreamWriter file = new StreamWriter(path))
             {
-                for(int i = 0; i < numRows; i++)
-                    file.WriteLine(CreateRandomLine(numColumns, random));
+                for(int i = 0; i < _numRows; i++)
+                    file.WriteLine(CreateRandomLine(_numColumns, random));
             }
             return path;
         }
@@ -155,7 +155,7 @@ namespace Microsoft.ML.Benchmarks
 
             for(int i = 0; i < numwords; i++)
             {
-                wordLength = random.Next(1, maxWordLength);
+                wordLength = random.Next(1, _maxWordLength);
                 for(int j = 0; j < wordLength; j++)
                     columnSB.Append(characters[random.Next(characters.Length)]);
                 

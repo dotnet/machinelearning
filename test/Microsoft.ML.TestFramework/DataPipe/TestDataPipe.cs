@@ -18,19 +18,19 @@ namespace Microsoft.ML.RunTests
 {
     public sealed partial class TestDataPipe : TestDataPipeBase
     {
-        private static float[] dataFloat = new float[] { -0.0f, 0,  1, -1,  2, -2, Single.NaN, Single.MinValue,
+        private static float[] _dataFloat = new float[] { -0.0f, 0,  1, -1,  2, -2, Single.NaN, Single.MinValue,
                 Single.MaxValue, Single.Epsilon, Single.NegativeInfinity, Single.PositiveInfinity };
-        private static uint[] resultsFloat = new uint[] { 21, 21, 16, 16, 31, 17, 0, 23, 24, 15, 10, 7 };
+        private static uint[] _resultsFloat = new uint[] { 21, 21, 16, 16, 31, 17, 0, 23, 24, 15, 10, 7 };
 
-        private static VBuffer<Single> dataFloatSparse = new VBuffer<Single>(5, 3, new float[] { -0.0f, 0, 1 }, new[] { 0, 3, 4 });
-        private static uint[] resultsFloatSparse = new uint[] { 21, 21, 21, 21, 16 };
+        private static VBuffer<Single> _dataFloatSparse = new VBuffer<Single>(5, 3, new float[] { -0.0f, 0, 1 }, new[] { 0, 3, 4 });
+        private static uint[] _resultsFloatSparse = new uint[] { 21, 21, 21, 21, 16 };
 
-        private static Double[] dataDouble = new Double[]   { -0.0, 0, 1, -1,  2, -2, Double.NaN, Double.MinValue,
+        private static Double[] _dataDouble = new Double[]   { -0.0, 0, 1, -1,  2, -2, Double.NaN, Double.MinValue,
                 Double.MaxValue, Double.Epsilon, Double.NegativeInfinity, Double.PositiveInfinity };
-        private static uint[] resultsDouble = new uint[] { 21, 21, 31, 17, 10, 15, 0, 16, 21, 15, 6, 30 };
+        private static uint[] _resultsDouble = new uint[] { 21, 21, 31, 17, 10, 15, 0, 16, 21, 15, 6, 30 };
 
-        private static VBuffer<Double> dataDoubleSparse = new VBuffer<Double>(5, 3, new double[] { -0.0, 0, 1 }, new[] { 0, 3, 4 });
-        private static uint[] resultsDoubleSparse = new uint[] { 21, 21, 21, 21, 31 };
+        private static VBuffer<Double> _dataDoubleSparse = new VBuffer<Double>(5, 3, new double[] { -0.0, 0, 1 }, new[] { 0, 3, 4 });
+        private static uint[] _resultsDoubleSparse = new uint[] { 21, 21, 21, 21, 31 };
 
         [Fact()]
         public void SavePipeLabelParsers()
@@ -1053,42 +1053,42 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void TestHashTransformFloat()
         {
-            TestHashTransformHelper(dataFloat, resultsFloat, NumberDataViewType.Single);
+            TestHashTransformHelper(_dataFloat, _resultsFloat, NumberDataViewType.Single);
         }
 
         [Fact]
         public void TestHashTransformFloatVector()
         {
-            var data = new[] { dataFloat };
-            var results = new[] { resultsFloat };
+            var data = new[] { _dataFloat };
+            var results = new[] { _resultsFloat };
             TestHashTransformVectorHelper(data, results, NumberDataViewType.Single);
         }
 
         [Fact]
         public void TestHashTransformFloatSparseVector()
         {
-            var results = new[] { resultsFloatSparse };
-            TestHashTransformVectorHelper(dataFloatSparse, results, NumberDataViewType.Single);
+            var results = new[] { _resultsFloatSparse };
+            TestHashTransformVectorHelper(_dataFloatSparse, results, NumberDataViewType.Single);
         }
 
         [Fact]
         public void TestHashTransformDoubleSparseVector()
         {
-            var results = new[] { resultsDoubleSparse };
-            TestHashTransformVectorHelper(dataDoubleSparse, results, NumberDataViewType.Double);
+            var results = new[] { _resultsDoubleSparse };
+            TestHashTransformVectorHelper(_dataDoubleSparse, results, NumberDataViewType.Double);
         }
 
         [Fact]
         public void TestHashTransformDouble()
         {
-            TestHashTransformHelper(dataDouble, resultsDouble, NumberDataViewType.Double);
+            TestHashTransformHelper(_dataDouble, _resultsDouble, NumberDataViewType.Double);
         }
 
         [Fact]
         public void TestHashTransformDoubleVector()
         {
-            var data = new[] { dataDouble };
-            var results = new[] { resultsDouble };
+            var data = new[] { _dataDouble };
+            var results = new[] { _resultsDouble };
             TestHashTransformVectorHelper(data, results, NumberDataViewType.Double);
         }
 

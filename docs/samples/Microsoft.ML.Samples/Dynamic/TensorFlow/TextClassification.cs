@@ -54,7 +54,7 @@ namespace Samples.Dynamic
                );
 
             // Load the TensorFlow model once.
-            //      - Use it for quering the schema for input and output in the
+            //      - Use it for querying the schema for input and output in the
             //            model
             //      - Use it for prediction in the pipeline.
             // Unfrozen (SavedModel format) models are loaded by providing the
@@ -78,7 +78,7 @@ namespace Samples.Dynamic
             // In this sample, CustomMappingEstimator is used to resize variable
             // length vector to fixed length vector.
             // The following ML.NET pipeline
-            //      1. tokenzies the string into words, 
+            //      1. tokenizes the string into words, 
             //      2. maps each word to an integer which is an index in the
             //         dictionary ('lookupMap'),
             //      3. Resizes the integer vector to a fixed length vector using

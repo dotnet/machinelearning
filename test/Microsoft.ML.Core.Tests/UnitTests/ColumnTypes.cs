@@ -4,12 +4,19 @@
 
 using System.Collections.Generic;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms.Image;
 using Xunit;
+using Xunit.Abstractions;
+
 namespace Microsoft.ML.RunTests
 {
-    public sealed class ColumnTypeTests
+    public sealed class ColumnTypeTests : BaseTestClass
     {
+        public ColumnTypeTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void TestEqualAndGetHashCode()
         {

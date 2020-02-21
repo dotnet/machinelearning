@@ -11,13 +11,13 @@ namespace Microsoft.ML.NugetPackageVersionUpdater
 {
     class Program
     {
-        private const string tempVersionsFile = "latest_versions.txt";
-        private const string targetPropsFiles = "../NightlyBuildDependency.props;../TestFrameworkDependency.props";
-        private const string packageNamespace = "Microsoft.ML";
+        private const string TempVersionsFile = "latest_versions.txt";
+        private const string TargetPropsFiles = "../NightlyBuildDependency.props;../TestFrameworkDependency.props";
+        private const string PackageNamespace = "Microsoft.ML";
 
         public static void Main(string[] args)
         {
-            string projFiles = targetPropsFiles;
+            string projFiles = TargetPropsFiles;
             var packageVersions = GetLatestPackageVersions();
             UpdatePackageVersion(projFiles, packageVersions);
         }
@@ -26,13 +26,13 @@ namespace Microsoft.ML.NugetPackageVersionUpdater
         {
             Dictionary<string, string> packageVersions = new Dictionary<string, string>();
 
-            using (var file = new StreamReader(tempVersionsFile))
+            using (var file = new StreamReader(TempVersionsFile))
             {
                 var output = file.ReadToEnd();
                 var splits = output.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
                 foreach (var split in splits)
                 {
-                    if (split.Contains(packageNamespace))
+                    if (split.Contains(PackageNamespace))
                     {
                         var detailSplit = split.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 

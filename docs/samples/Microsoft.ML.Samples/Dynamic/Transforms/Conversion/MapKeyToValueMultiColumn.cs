@@ -38,11 +38,11 @@ namespace Samples.Dynamic
             // Typically predictions would be in a different, validation set. 
             var dataWithPredictions = pipeline.Fit(dataView).Transform(dataView);
 
-            // At this point, the Label colum is tranformed from strings, to
+            // At this point, the Label column is transformed from strings, to
             // DataViewKeyType and the transformation has added the PredictedLabel
             // column, with same DataViewKeyType as transformed Label column.
             // MapKeyToValue would take columns with DataViewKeyType and convert
-            // them back to thier original values.
+            // them back to their original values.
             var newPipeline = mlContext.Transforms.Conversion.MapKeyToValue(new[]
             {
                 new InputOutputColumnPair("LabelOriginalValue","Label"),

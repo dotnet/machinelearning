@@ -5,18 +5,22 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
-using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 using static Microsoft.ML.DataOperationsCatalog;
+using Microsoft.ML.TestFramework;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    public class AutoFitTests
+    public class AutoFitTests : BaseTestClass
     {
+        public AutoFitTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void AutoFitBinaryTest()
         {
@@ -176,33 +180,6 @@ namespace Microsoft.ML.AutoML.Test
                     new TextLoader.Column(itemIdColumnName, DataKind.UInt32, new [] { new TextLoader.Range(2) }, new KeyCount(40)),
                 }
             };
-        }
-
-        private static string GetRepoRoot()
-        {
-#if NETFRAMEWORK
-            string directory = AppDomain.CurrentDomain.BaseDirectory;
-#else
-            string directory = AppContext.BaseDirectory;
-#endif
-
-            while (!Directory.Exists(Path.Combine(directory, ".git")) && directory != null)
-            {
-                directory = Directory.GetParent(directory).FullName;
-            }
-
-            if (directory == null)
-            {
-                return null;
-            }
-            return directory;
-        }
-
-        public static string GetDataPath(string name)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-                return null;
-            return Path.GetFullPath(Path.Combine(Path.Combine(GetRepoRoot(), "test", "data"), name));
         }
     }
 }

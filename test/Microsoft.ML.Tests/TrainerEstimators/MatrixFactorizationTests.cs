@@ -94,7 +94,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var rightMatrix = model.Model.RightFactorMatrix;
             Assert.Equal(leftMatrix.Count, model.Model.NumberOfRows * model.Model.ApproximationRank);
             Assert.Equal(rightMatrix.Count, model.Model.NumberOfColumns * model.Model.ApproximationRank);
-            // MF produce different matrixes on different platforms, so at least test thier content on windows.
+            // MF produce different matrices on different platforms, so at least test their content on windows.
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 Assert.Equal(0.33491, leftMatrix[0], 5);
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Native test. Just check the pipeline runs.
             Assert.True(metrics.MeanSquaredError < 0.1);
 
-            // Create two two entries for making prediction. Of course, the prediction value, Score, is unknown so it's default.
+            // Create two entries for making prediction. Of course, the prediction value, Score, is unknown so it's default.
             var testMatrix = new List<MatrixElementForScore>() {
                 new MatrixElementForScore() { MatrixColumnIndex = 10, MatrixRowIndex = 7, Score = default },
                 new MatrixElementForScore() { MatrixColumnIndex = 3, MatrixRowIndex = 6, Score = default } };
@@ -394,7 +394,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         // using standard collaborative filtering, all your predictions would
         // be 1! One-class matrix factorization assumes unspecified matrix
         // entries are all 0 (or a small constant value selected by the user)
-        // so that the trainined model can assign purchased itemas higher
+        // so that the trained model can assign purchased items higher
         // scores than those not purchased.
         private const int _oneClassMatrixColumnCount = 2;
         private const int _oneClassMatrixRowCount = 3;

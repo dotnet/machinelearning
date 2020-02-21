@@ -6,14 +6,20 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class UserInputValidationTests
+    public class UserInputValidationTests : BaseTestClass
     {
-        private static readonly IDataView Data = DatasetUtil.GetUciAdultDataView();
+        private static readonly IDataView _data = DatasetUtil.GetUciAdultDataView();
+
+        public UserInputValidationTests(ITestOutputHelper output) : base(output)
+        {
+        }
 
         [Fact]
         public void ValidateExperimentExecuteNullTrainData()
@@ -25,7 +31,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void ValidateExperimentExecuteNullLabel()
         {
-            var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(Data,
+            var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(_data,
                 new ColumnInformation() { LabelColumnName = null }, null, TaskKind.Regression));
 
             Assert.Equal("Provided label column cannot be null", ex.Message);
@@ -36,7 +42,7 @@ namespace Microsoft.ML.AutoML.Test
         {
             foreach (var task in new[] { TaskKind.Recommendation, TaskKind.Regression })
             {
-                var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(Data,
+                var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(_data,
                 new ColumnInformation() { LabelColumnName = "L" }, null, task));
 
                 Assert.Equal("Provided label column 'L' not found in training data.", ex.Message);
@@ -51,7 +57,7 @@ namespace Microsoft.ML.AutoML.Test
 
             foreach (var task in new[] { TaskKind.Recommendation, TaskKind.Regression })
             {
-                var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, columnInfo, null, task));
+                var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(_data, columnInfo, null, task));
                 Assert.Equal("Provided label column 'Label' was of type Boolean, but only type Single is allowed.", ex.Message);
             }
         }
@@ -62,7 +68,7 @@ namespace Microsoft.ML.AutoML.Test
             var columnInfo = new ColumnInformation();
             columnInfo.NumericColumnNames.Add(null);
 
-            var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, columnInfo, null, TaskKind.Regression));
+            var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(_data, columnInfo, null, TaskKind.Regression));
             Assert.Equal("Null column string was specified as numeric in column information", ex.Message);
         }
 
@@ -72,7 +78,7 @@ namespace Microsoft.ML.AutoML.Test
             var columnInfo = new ColumnInformation();
             columnInfo.NumericColumnNames.Add(DefaultColumnNames.Label);
 
-            var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, columnInfo, null, TaskKind.Regression));
+            var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(_data, columnInfo, null, TaskKind.Regression));
         }
 
         [Fact]

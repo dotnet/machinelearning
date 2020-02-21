@@ -2,15 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class InferredPipelineTests
+    public class InferredPipelineTests : BaseTestClass
     {
+        public InferredPipelineTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void InferredPipelinesHashTest()
         {
