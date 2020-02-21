@@ -301,24 +301,23 @@ namespace Microsoft.ML.Model.OnnxConverter
                     nameof(Arguments.LoadPredictor), "We were explicitly told to load the predictor but one was not present.");
             }
 
-            // Convert back to values the KeyDataViewType columns that appear both in input and output (i.e those that remained untouched
-            // by the model.
-            //MYTODO: perhaps move this into another function.
-            //MYTODO: Filter the following with _inputsToDrop and _outputsToDrop?
+            // Convert back to values the KeyDataViewType columns that appear both in input and output
+            // (i.e those that remained untouched by the model).
             var outputNames = new HashSet<string>();
             foreach (var col in end.Schema)
-                if(col.Type is KeyDataViewType && col.IsHidden == false)
+                if (col.Type is KeyDataViewType && col.IsHidden == false)
                     outputNames.Add(col.Name);
 
             var inputNames = new HashSet<string>();
             foreach (var col in source.Schema)
-                if(col.Type is KeyDataViewType && col.IsHidden == false)
+                if (col.Type is KeyDataViewType && col.IsHidden == false)
                     inputNames.Add(col.Name);
 
             outputNames.IntersectWith(inputNames);
 
-            foreach(var name in outputNames)
+            foreach (var name in outputNames)
             {
+                // MYTODO: Add in here any check necessary to see if the column actually has KeyValue Annotations
                 var outputData = new KeyToValueMappingTransformer(Host, name).Transform(end);
                 end = outputData;
                 transforms.AddLast(end as ITransformCanSaveOnnx);
