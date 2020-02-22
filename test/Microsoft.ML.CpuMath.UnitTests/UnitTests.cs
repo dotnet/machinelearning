@@ -8,10 +8,11 @@ using System.Globalization;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.CpuMath.UnitTests
 {
-    public class CpuMathUtilsUnitTests
+    public class CpuMathUtilsUnitTests : BaseTestClass
     {
         private static readonly float[][] _testArrays;
         private static readonly int[] _testIndexArray;
@@ -100,6 +101,10 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 { _disableSse , "0" }
             };
 #endif
+        }
+
+        public CpuMathUtilsUnitTests(ITestOutputHelper output) : base(output)
+        {
         }
 
         private static void CheckProperFlag(string mode)

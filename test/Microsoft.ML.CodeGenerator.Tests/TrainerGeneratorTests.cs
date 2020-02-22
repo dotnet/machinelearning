@@ -8,13 +8,19 @@ using System.Threading;
 using Microsoft.ML;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.CodeGenerator.CSharp;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace mlnet.Tests
 {
-    public class TrainerGeneratorTests
+    public class TrainerGeneratorTests : BaseTestClass
     {
+        public TrainerGeneratorTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void CultureInvariantTest()
         {

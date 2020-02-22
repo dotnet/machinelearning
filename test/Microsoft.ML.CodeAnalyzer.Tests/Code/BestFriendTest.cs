@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11,8 +10,8 @@ using Microsoft.CodeAnalysis.Testing;
 using Microsoft.ML.CodeAnalyzer.Tests.Helpers;
 using Xunit;
 using VerifyCS = Microsoft.ML.CodeAnalyzer.Tests.Helpers.CSharpCodeFixVerifier<
-    Microsoft.ML.InternalCodeAnalyzer.BestFriendAnalyzer,
-    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+Microsoft.ML.InternalCodeAnalyzer.BestFriendAnalyzer,
+Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {

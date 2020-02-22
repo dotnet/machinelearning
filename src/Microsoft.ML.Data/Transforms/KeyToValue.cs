@@ -568,9 +568,9 @@ namespace Microsoft.ML.Transforms
 
                     if (!ctx.ContainsColumn(inputColumnName))
                         continue;
-
+                    string srcVariableName = ctx.GetVariableName(inputColumnName);
                     var dstVariableName = ctx.AddIntermediateVariable(_types[iinfo], info.outputColumnName, true);
-                    if (!_kvMaps[iinfo].SaveOnnx(ctx, inputColumnName, dstVariableName))
+                    if (!_kvMaps[iinfo].SaveOnnx(ctx, srcVariableName, dstVariableName))
                     {
                         ctx.RemoveColumn(inputColumnName, true);
                     }

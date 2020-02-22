@@ -12,8 +12,8 @@ using Microsoft.CodeAnalysis.Testing;
 using Microsoft.ML.InternalCodeAnalyzer;
 using Xunit;
 using VerifyCS = Microsoft.ML.CodeAnalyzer.Tests.Helpers.CSharpCodeFixVerifier<
-    Microsoft.ML.CodeAnalyzer.Tests.Code.RelaxTestNamingTest.WarnForMissingAsyncSuffix,
-    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+Microsoft.ML.CodeAnalyzer.Tests.Code.RelaxTestNamingTest.WarnForMissingAsyncSuffix,
+Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.ML.CodeAnalyzer.Tests.Code
 {

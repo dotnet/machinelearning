@@ -9,10 +9,11 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.RunTests
 {
-    public class CmdLineReverseTests
+    public class CmdLineReverseTests : BaseTestClass
     {
         /// <summary>
         /// This tests CmdParser.GetSettings
@@ -188,6 +189,10 @@ namespace Microsoft.ML.RunTests
         private static readonly MethodInfo _createComponentFactoryMethod = typeof(CmdParser)
             .GetNestedType("ComponentFactoryFactory", BindingFlags.NonPublic)
             .GetMethod("CreateComponentFactory");
+
+        public CmdLineReverseTests(ITestOutputHelper output) : base(output)
+        {
+        }
 
         private static IComponentFactory<SimpleArg> CreateComponentFactory(string name, string settings)
         {

@@ -10,12 +10,18 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.Extensions.ML
 {
-    public class FileLoaderTests
+    public class FileLoaderTests : BaseTestClass
     {
+        public FileLoaderTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void throw_until_started()
         {

@@ -23,7 +23,7 @@
     <VSTestLogger>trx</VSTestLogger>
     <VSTestResultsDirectory>$(OutputPath)</VSTestResultsDirectory>
     <AssemblyOriginatorKeyFile>$(ToolsDir)Test.snk</AssemblyOriginatorKeyFile>
-    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <CopyLocalLockFileAssemblies Condition="'$(TargetFramework)' == 'netcoreapp3.0'">false</CopyLocalLockFileAssemblies>
   </PropertyGroup>
   
   <ItemGroup>

@@ -5,12 +5,17 @@
 using System;
 using System.IO;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.RunTests
 {
-    public sealed class FileSource
+    public sealed class FileSource : BaseTestClass
     {
+        public FileSource(ITestOutputHelper output) : base(output)
+        {
+        }
 
         [Fact]
         public void MultiFileSourceUnitTest()

@@ -10,6 +10,7 @@ using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Running;
 using Microsoft.ML.Benchmarks.Harness;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 using Xunit.Abstractions;
@@ -21,11 +22,14 @@ namespace Microsoft.ML.Benchmarks.Tests
         protected override Job GetJobDefinition() => Job.Dry; // Job.Dry runs the benchmark just once
     }
 
-    public class BenchmarksTest
+    public class BenchmarksTest : BaseTestClass
     {
-        public BenchmarksTest(ITestOutputHelper output) => Output = output;
+        public BenchmarksTest(ITestOutputHelper output) : base(output)
+        {
+            this.output = output;
+        }
 
-        private ITestOutputHelper Output { get; }
+        private ITestOutputHelper output { get; }
 
         public static TheoryData<Type> GetBenchmarks()
         {
@@ -49,7 +53,7 @@ namespace Microsoft.ML.Benchmarks.Tests
         [Trait("Category", "SkipInCI")]
         public void BenchmarksProjectIsNotBroken(Type type)
         {
-            var summary = BenchmarkRunner.Run(type, new TestConfig().With(new OutputLogger(Output)));
+            var summary = BenchmarkRunner.Run(type, new TestConfig().With(new OutputLogger(output)));
 
             Assert.False(summary.HasCriticalValidationErrors, "The \"Summary\" should have NOT \"HasCriticalValidationErrors\"");
 

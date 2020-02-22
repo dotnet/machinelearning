@@ -8,8 +8,8 @@ using Microsoft.CodeAnalysis.Testing;
 using Microsoft.ML.CodeAnalyzer.Tests.Helpers;
 using Xunit;
 using VerifyCS = Microsoft.ML.CodeAnalyzer.Tests.Helpers.CSharpCodeFixVerifier<
-    Microsoft.ML.InternalCodeAnalyzer.BestFriendOnPublicDeclarationsAnalyzer,
-    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+Microsoft.ML.InternalCodeAnalyzer.BestFriendOnPublicDeclarationsAnalyzer,
+Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
