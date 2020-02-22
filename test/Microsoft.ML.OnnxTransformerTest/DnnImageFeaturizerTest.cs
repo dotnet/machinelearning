@@ -58,6 +58,7 @@ namespace Microsoft.ML.Tests
         {
             //skip running for x86 as this test using too much memory (over 2GB limit on x86) 
             //and very like to hit memory related issue when running on CI
+            //TODO: optimized memory usage in related code and enable x86 test run
             if (!Environment.Is64BitProcess)
                 return;
 
@@ -133,6 +134,7 @@ namespace Microsoft.ML.Tests
         {
             //skip running for x86 as this test using too much memory (over 2GB limit on x86) 
             //and very like to hit memory related issue when running on CI
+            //TODO: optimized memory usage in related code and enable x86 run
             if (!Environment.Is64BitProcess)
                 return;
 
