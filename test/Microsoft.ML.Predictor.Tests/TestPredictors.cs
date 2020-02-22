@@ -278,12 +278,12 @@ namespace Microsoft.ML.RunTests
         [TestCategory("Binary")]
         public void BinaryClassifierSymSgdTest()
         {
-            // Linux uses a version of MKL that doesn't support conditional numerical reproducibility the same way as
+            // TODO: Linux uses a version of MKL that doesn't support conditional numerical reproducibility the same way as
             // Windows runs.
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 return;
 
-            //Results sometimes go out of error tolerance on OS X.
+            // TODO: Results sometimes go out of error tolerance on OS X.
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 return;
 
