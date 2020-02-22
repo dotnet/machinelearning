@@ -54,10 +54,14 @@ namespace Microsoft.ML.Tests
         }
 
         [OnnxFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void TestDnnImageFeaturizer()
         {
+            //skip running for x86 as this test using too much memory (over 2GB limit on x86) 
+            //and very like to hit memory related issue when running on CI
+            //TODO: optimized memory usage in related code and enable x86 test run
+            if (!Environment.Is64BitProcess)
+                return;
+
             var samplevector = GetSampleArrayData();
 
             var dataView = DataViewConstructionUtils.CreateFromList(Env,
@@ -125,12 +129,15 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        // Onnx is only supported on x64 Windows
         [OnnxFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void TestOldSavingAndLoading()
         {
+            //skip running for x86 as this test using too much memory (over 2GB limit on x86) 
+            //and very like to hit memory related issue when running on CI
+            //TODO: optimized memory usage in related code and enable x86 run
+            if (!Environment.Is64BitProcess)
+                return;
+
             var samplevector = GetSampleArrayData();
 
             var dataView = ML.Data.LoadFromEnumerable(
