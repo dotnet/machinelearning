@@ -148,6 +148,42 @@
             }
           }
         }
+      },
+      {
+        "name": "Features.output",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "3"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "MissingIndicator.output",
+        "type": {
+          "tensorType": {
+            "elemType": 6,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "3"
+                }
+              ]
+            }
+          }
+        }
       }
     ]
   },

@@ -199,23 +199,26 @@ namespace Microsoft.ML.Data
             for (int iinfo = 0; iinfo < Bindings.InfoCount; ++iinfo)
                 outColumnNames[iinfo] = Bindings.GetColumnName(Bindings.MapIinfoToCol(iinfo));
 
-            string opType = "Binarizer";
-            OnnxNode node;
-            var binarizerOutput = ctx.AddIntermediateVariable(null, "BinarizerOutput", true);
+            string scoreColumn = Bindings.RowMapper.OutputSchema[Bindings.ScoreColumnIndex].Name;
 
-            string scoreColumn;
-            if (Bindings.RowMapper.OutputSchema[Bindings.ScoreColumnIndex].Name == "Score")
-                scoreColumn = outColumnNames[1];
-            else
-            {
-                Host.Assert(Bindings.InfoCount >= 3);
-                scoreColumn = outColumnNames[2];
-            }
+            OnnxNode node;
+            string opType = "Binarizer";
+            var binarizerOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "BinarizerOutput", false);
             node = ctx.CreateNode(opType, ctx.GetVariableName(scoreColumn), binarizerOutput, ctx.GetNodeName(opType));
             node.AddAttribute("threshold", _threshold);
 
+            string comparisonOutput = binarizerOutput;
+            if (Bindings.PredColType is KeyDataViewType)
+            {
+                var one = ctx.AddInitializer(1.0f, "one");
+                var addOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "Add", false);
+                opType = "Add";
+                ctx.CreateNode(opType, new[] { binarizerOutput, one }, new[] { addOutput }, ctx.GetNodeName(opType), "");
+                comparisonOutput = addOutput;
+            }
+
             opType = "Cast";
-            node = ctx.CreateNode(opType, binarizerOutput, ctx.GetVariableName(outColumnNames[0]), ctx.GetNodeName(opType), "");
+            node = ctx.CreateNode(opType, comparisonOutput, ctx.GetVariableName(outColumnNames[0]), ctx.GetNodeName(opType), "");
             var predictedLabelCol = OutputSchema.GetColumnOrNull(outColumnNames[0]);
             Host.Assert(predictedLabelCol.HasValue);
             node.AddAttribute("to", predictedLabelCol.Value.Type.RawType);

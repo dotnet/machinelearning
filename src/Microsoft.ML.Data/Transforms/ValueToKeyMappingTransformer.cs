@@ -787,7 +787,7 @@ namespace Microsoft.ML.Transforms
                 long[] termIds;
                 string opType = "LabelEncoder";
                 OnnxNode castNode;
-                var labelEncoderOutput = ctx.AddIntermediateVariable(_types[iinfo], "LabelEncoderOutput", true);
+                var labelEncoderOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "LabelEncoderOutput", true);
 
                 if (info.TypeSrc.GetItemType().Equals(TextDataViewType.Instance))
                 {
@@ -804,7 +804,7 @@ namespace Microsoft.ML.Transforms
                 else if (info.TypeSrc.GetItemType().Equals(NumberDataViewType.Double))
                 {
                     // LabelEncoder doesn't support double tensors, so values are cast to floats
-                    var castOutput = ctx.AddIntermediateVariable(null, "castOutput", true);
+                    var castOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "castOutput", true);
                     castNode = ctx.CreateNode("Cast", srcVariableName, castOutput, ctx.GetNodeName(opType), "");
                     var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Single).ToType();
                     castNode.AddAttribute("to", t);
@@ -815,7 +815,7 @@ namespace Microsoft.ML.Transforms
                 else if (info.TypeSrc.GetItemType().Equals(NumberDataViewType.Int64))
                 {
                     // LabelEncoder doesn't support mapping int64 -> int64, so values are cast to strings
-                    var castOutput = ctx.AddIntermediateVariable(null, "castOutput", true);
+                    var castOutput = ctx.AddIntermediateVariable(TextDataViewType.Instance, "castOutput", true);
                     castNode = ctx.CreateNode("Cast", srcVariableName, castOutput, ctx.GetNodeName(opType), "");
                     var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.String).ToType();
                     castNode.AddAttribute("to", t);
