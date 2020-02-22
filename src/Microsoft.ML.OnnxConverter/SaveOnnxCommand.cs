@@ -312,11 +312,19 @@ namespace Microsoft.ML.Model.OnnxConverter
 
                     if(rawPred.PredictionKind == PredictionKind.BinaryClassification || rawPred.PredictionKind == PredictionKind.MulticlassClassification)
                     {
-                        if(scorePipe.Schema.GetColumnOrNull("PredictedLabel")?.Type is KeyDataViewType)
+                        // Check if the PredictedLabel Column is a KeyDataViewType and has KeyValue Annotations.
+                        // If it does, add a KeyToValueMappingTransformer, to enable NimbusML to get the values back
+                        // when using an ONNX model, as described in https://github.com/dotnet/machinelearning/pull/4841
+                        var predictedLabelColumn = scorePipe.Schema.GetColumnOrNull(DefaultColumnNames.PredictedLabel);
+                        if (predictedLabelColumn?.Type.GetItemType() is KeyDataViewType keyType)
                         {
-                            var outputData = new KeyToValueMappingTransformer(Host, "PredictedLabel").Transform(scorePipe);
-                            end = outputData;
-                            transforms.AddLast(outputData as ITransformCanSaveOnnx);
+                            var metaColumn = predictedLabelColumn?.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues);
+                            if(metaColumn != null && metaColumn.Value.Type is VectorDataViewType vectorType && keyType.Count == (ulong)vectorType.Size)
+                            {
+                                var outputData = new KeyToValueMappingTransformer(Host, DefaultColumnNames.PredictedLabel).Transform(scorePipe);
+                                end = outputData;
+                                transforms.AddLast(outputData as ITransformCanSaveOnnx);
+                            }
                         }
                     }
                 }
@@ -334,7 +342,9 @@ namespace Microsoft.ML.Model.OnnxConverter
             }
 
             // Convert back to values the KeyDataViewType columns that appear both in input and output
-            // (i.e those that remained untouched by the model).
+            // (i.e those that remained untouched by the model). This is done to enable NimbusML to get these values
+            // as described in https://github.com/dotnet/machinelearning/pull/4841
+
             var outputNames = new HashSet<string>();
             foreach (var col in end.Schema)
                 if (col.Type is KeyDataViewType && col.IsHidden == false)
