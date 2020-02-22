@@ -276,16 +276,14 @@ namespace Microsoft.ML.RunTests
 
         [X64Fact("x86 output differs from Baseline")]
         [TestCategory("Binary")]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void BinaryClassifierSymSgdTest()
         {
-            // Linux uses a version of MKL that doesn't support conditional numerical reproducibility the same way as
+            // TODO: Linux uses a version of MKL that doesn't support conditional numerical reproducibility the same way as
             // Windows runs.
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 return;
 
-            //Results sometimes go out of error tolerance on OS X.
+            // TODO: Results sometimes go out of error tolerance on OS X.
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 return;
 
