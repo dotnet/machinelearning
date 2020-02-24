@@ -13,6 +13,7 @@ using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.LightGbm;
@@ -68,11 +69,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [LightGBMFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void LightGBMBinaryEstimatorUnbalanced()
+        [Theory]
+        [IterationData]
+        [Trait("Category", "RunSpecificTest")]
+        public void LightGBMBinaryEstimatorUnbalanced(int iteration)
         {
+            Output.WriteLine($"{iteration} - th");
             var (pipe, dataView) = GetBinaryClassificationPipeline();
 
             var trainer = ML.BinaryClassification.Trainers.LightGbm(new LightGbmBinaryTrainer.Options
@@ -94,11 +96,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// LightGBMBinaryTrainer CorrectSigmoid test
         /// </summary>
-        [LightGBMFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void LightGBMBinaryEstimatorCorrectSigmoid()
+        [Theory]
+        [IterationData]
+        [Trait("Category", "RunSpecificTest")]
+        public void LightGBMBinaryEstimatorCorrectSigmoid(int iteration)
         {
+            Output.WriteLine($"{iteration} - th");
             var (pipe, dataView) = GetBinaryClassificationPipeline();
             var sigmoid = .789;
 
@@ -218,9 +221,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// LightGbmRegressionTrainer TrainerEstimator test
         /// </summary>
-        [LightGBMFact]
-        public void LightGBMRegressorEstimator()
+        [Theory]
+        [IterationData]
+        [Trait("Category", "RunSpecificTest")]
+        public void LightGBMRegressorEstimator(int iteration)
         {
+            Output.WriteLine($"{iteration} - th");
             var dataView = GetRegressionPipeline();
             var trainer = ML.Regression.Trainers.LightGbm(new LightGbmRegressionTrainer.Options
             {
