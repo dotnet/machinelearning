@@ -205,7 +205,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                 ch.Check(variableName != null, "The targeted pipeline can not be fully converted into a well-defined ONNX model. " +
                     "Please check if all steps in that pipeline are convertible to ONNX " +
                     "and all necessary variables are not dropped (via command line arguments).");
-                var trueVariableName = ctx.AddIntermediateVariable(null, idataviewColumnName + ".output", true);
+                var trueVariableName = ctx.AddIntermediateVariable(outputData.Schema[i].Type, idataviewColumnName + ".output");
                 ctx.CreateNode("Identity", variableName, trueVariableName, ctx.GetNodeName("Identity"), "");
                 ctx.AddOutputVariable(outputData.Schema[i].Type, trueVariableName);
 

@@ -505,7 +505,7 @@ namespace Microsoft.ML.Transforms
                     // Onnx expects the input keys to be int64s. But the input data can come from an ML.NET node that
                     // may output a uint32. So cast it here to ensure that the data is treated correctly
                     opType = "Cast";
-                    var castNodeOutput = ctx.AddIntermediateVariable(TypeOutput, "CastNodeOutput", true);
+                    var castNodeOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "CastNodeOutput", true);
                     var castNode = ctx.CreateNode(opType, srcVariableName, castNodeOutput, ctx.GetNodeName(opType), "");
                     var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Int64).ToType();
                     castNode.AddAttribute("to", t);
@@ -568,12 +568,11 @@ namespace Microsoft.ML.Transforms
 
                     if (!ctx.ContainsColumn(inputColumnName))
                         continue;
+
                     string srcVariableName = ctx.GetVariableName(inputColumnName);
-                    var dstVariableName = ctx.AddIntermediateVariable(_types[iinfo], info.outputColumnName, true);
+                    var dstVariableName = ctx.AddIntermediateVariable(_types[iinfo], info.outputColumnName);
                     if (!_kvMaps[iinfo].SaveOnnx(ctx, srcVariableName, dstVariableName))
-                    {
                         ctx.RemoveColumn(inputColumnName, true);
-                    }
                 }
             }
         }
