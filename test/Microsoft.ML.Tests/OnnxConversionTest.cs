@@ -878,6 +878,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
+
         [Fact]
         public void RemoveVariablesInPipelineTest()
         {
