@@ -55,7 +55,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         [MatrixFactorizationFact]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void MatrixFactorizationSimpleTrainAndPredict()
         {
             var mlContext = new MLContext(seed: 1);
@@ -94,13 +93,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var rightMatrix = model.Model.RightFactorMatrix;
             Assert.Equal(leftMatrix.Count, model.Model.NumberOfRows * model.Model.ApproximationRank);
             Assert.Equal(rightMatrix.Count, model.Model.NumberOfColumns * model.Model.ApproximationRank);
-            // MF produce different matrices on different platforms, so at least test their content on windows.
+            // MF produce different matrices on different platforms, so check their content on Windows.
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                Assert.Equal(0.33491, leftMatrix[0], 5);
-                Assert.Equal(0.571346991, leftMatrix[leftMatrix.Count - 1], 5);
-                Assert.Equal(0.2433036714792256, rightMatrix[0], 5);
-                Assert.Equal(0.381277978420258, rightMatrix[rightMatrix.Count - 1], 5);
+                Assert.Equal(0.301269173622131, leftMatrix[0], 5);
+                Assert.Equal(0.558746933937073, leftMatrix[leftMatrix.Count - 1], 5);
+                Assert.Equal(0.27028301358223, rightMatrix[0], 5);
+                Assert.Equal(0.390790820121765, rightMatrix[rightMatrix.Count - 1], 5);
             }
             // Read the test data set as an IDataView
             var testData = reader.Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
@@ -124,12 +123,14 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var metrices = mlContext.Recommendation().Evaluate(prediction, labelColumnName: labelColumnName, scoreColumnName: scoreColumnName);
 
             // Determine if the selected metric is reasonable for different platforms
-            double tolerance = Math.Pow(10, -7);
+            // Windows tolerance is set at 1e-7, and Linux tolerance is set at 1e-5
+            double windowsTolerance = Math.Pow(10, -7);
+            double linuxTolerance = Math.Pow(10, -5);
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 // Linux case
-                var expectedUnixL2Error = 0.614457914950479; // Linux baseline
-                Assert.InRange(metrices.MeanSquaredError, expectedUnixL2Error - tolerance, expectedUnixL2Error + tolerance);
+                var expectedUnixL2Error = 0.612974867782832; // Linux baseline
+                Assert.InRange(metrices.MeanSquaredError, expectedUnixL2Error - linuxTolerance, expectedUnixL2Error + linuxTolerance);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
@@ -141,8 +142,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // Windows case
-                var expectedWindowsL2Error = 0.6098110249191965; // Windows baseline
-                Assert.InRange(metrices.MeanSquaredError, expectedWindowsL2Error - tolerance, expectedWindowsL2Error + tolerance);
+                var expectedWindowsL2Error = 0.622283290742721; // Windows baseline
+                Assert.InRange(metrices.MeanSquaredError, expectedWindowsL2Error - windowsTolerance, expectedWindowsL2Error + windowsTolerance);
             }
 
             var modelWithValidation = pipeline.Fit(data, testData);
