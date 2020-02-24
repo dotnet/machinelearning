@@ -15,6 +15,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Transforms;
 using Newtonsoft.Json;
 using static Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper;
 
@@ -320,6 +321,26 @@ namespace Microsoft.ML.Model.OnnxConverter
             {
                 Contracts.CheckUserArg(_loadPredictor != true,
                     nameof(Arguments.LoadPredictor), "We were explicitly told to load the predictor but one was not present.");
+            }
+
+            // If the output schema has KeyDataViewType columns, and it has annotations
+            // add KeyToValueMappingTransformer to translate the keys back to values
+            // This is done during Onnx export but not in regular pipelines because onnx does not
+            // support annotations on tensors
+            foreach (var column in end.Schema)
+            {
+                if ((column.IsHidden) || (!(column.Type.GetItemType() is KeyDataViewType keyType)))
+                    continue;
+
+                var metaColumn = column.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues);
+                if (metaColumn != null
+                    && metaColumn.Value.Type is VectorDataViewType vectorType
+                    && keyType.Count == (ulong)vectorType.Size)
+                {
+                    var outputData = new KeyToValueMappingTransformer(Host, column.Name).Transform(end);
+                    end = outputData;
+                    transforms.AddLast(end as ITransformCanSaveOnnx);
+                }
             }
 
             var model = ConvertTransformListToOnnxModel(ctx, ch, source, end, transforms, _inputsToDrop, _outputsToDrop);
