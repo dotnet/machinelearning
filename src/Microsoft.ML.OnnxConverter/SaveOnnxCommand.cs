@@ -242,6 +242,21 @@ namespace Microsoft.ML.Model.OnnxConverter
             ctx.AddOutputVariable(NumberDataViewType.Int64, labelEncoderOutput);
         }
 
+        // Checks if a column has KeyValues Annotations of any type,
+        // So to know if it is safe to use KeyToValue Transformer on it.
+        private bool HasKeyValues(DataViewSchema.Column column)
+        {
+            if (column.Type.GetItemType() is KeyDataViewType keyType)
+            {
+                var metaColumn = column.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues);
+                return metaColumn != null &&
+                    metaColumn.Value.Type is VectorDataViewType vectorType &&
+                    keyType.Count == (ulong)vectorType.Size;
+            }
+
+            return false;
+        }
+
         private void Run(IChannel ch)
         {
             ILegacyDataLoader loader = null;
@@ -316,15 +331,11 @@ namespace Microsoft.ML.Model.OnnxConverter
                         // If it does, add a KeyToValueMappingTransformer, to enable NimbusML to get the values back
                         // when using an ONNX model, as described in https://github.com/dotnet/machinelearning/pull/4841
                         var predictedLabelColumn = scorePipe.Schema.GetColumnOrNull(DefaultColumnNames.PredictedLabel);
-                        if (predictedLabelColumn?.Type.GetItemType() is KeyDataViewType keyType)
+                        if (predictedLabelColumn.HasValue && HasKeyValues(predictedLabelColumn.Value))
                         {
-                            var metaColumn = predictedLabelColumn?.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues);
-                            if(metaColumn != null && metaColumn.Value.Type is VectorDataViewType vectorType && keyType.Count == (ulong)vectorType.Size)
-                            {
-                                var outputData = new KeyToValueMappingTransformer(Host, DefaultColumnNames.PredictedLabel).Transform(scorePipe);
-                                end = outputData;
-                                transforms.AddLast(outputData as ITransformCanSaveOnnx);
-                            }
+                            var outputData = new KeyToValueMappingTransformer(Host, DefaultColumnNames.PredictedLabel).Transform(scorePipe);
+                            end = outputData;
+                            transforms.AddLast(outputData as ITransformCanSaveOnnx);
                         }
                     }
                 }
@@ -341,25 +352,25 @@ namespace Microsoft.ML.Model.OnnxConverter
                     nameof(Arguments.LoadPredictor), "We were explicitly told to load the predictor but one was not present.");
             }
 
-            // Convert back to values the KeyDataViewType columns that appear both in input and output
+            // Convert back to values the KeyDataViewType "pass-through" columns
             // (i.e those that remained untouched by the model). This is done to enable NimbusML to get these values
             // as described in https://github.com/dotnet/machinelearning/pull/4841
 
-            var outputNames = new HashSet<string>();
-            foreach (var col in end.Schema)
-                if (col.Type is KeyDataViewType && col.IsHidden == false)
-                    outputNames.Add(col.Name);
-
-            var inputNames = new HashSet<string>();
+            var inputKeyDataViewTypeColumnsNames = new HashSet<string>();
             foreach (var col in source.Schema)
-                if (col.Type is KeyDataViewType && col.IsHidden == false)
-                    inputNames.Add(col.Name);
+                if (col.IsHidden == false && HasKeyValues(col))
+                    inputKeyDataViewTypeColumnsNames.Add(col.Name);
 
-            outputNames.IntersectWith(inputNames);
+            var passThroughColumnNames = new HashSet<string>();
+            var onlyDistinctColumnNames = end.Schema.Select(c => c.Name).Distinct(); //  only check column names that appear once in the output schema
+            foreach (var col in end.Schema)
+                if (col.IsHidden == false && onlyDistinctColumnNames.Contains(col.Name) && HasKeyValues(col))
+                    passThroughColumnNames.Add(col.Name);
 
-            foreach (var name in outputNames)
+            passThroughColumnNames.IntersectWith(inputKeyDataViewTypeColumnsNames); // Only count those columns that were in the input of the pipeline
+
+            foreach (var name in passThroughColumnNames)
             {
-                // MYTODO: Add in here any check necessary to see if the column actually has KeyValue Annotations
                 var outputData = new KeyToValueMappingTransformer(Host, name).Transform(end);
                 end = outputData;
                 transforms.AddLast(end as ITransformCanSaveOnnx);
