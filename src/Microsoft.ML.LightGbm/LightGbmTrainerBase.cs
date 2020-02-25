@@ -44,7 +44,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         public class OptionsBase : TrainerInputBaseWithGroupId
         {
             // Static override name map that maps friendly names to lightGBM arguments.
-            // If an argument is not here, then its name is identicaltto a lightGBM argument
+            // If an argument is not here, then its name is identical to a lightGBM argument
             // and does not require a mapping, for example, Subsample.
             private protected static Dictionary<string, string> NameMapping = new Dictionary<string, string>()
             {
@@ -291,7 +291,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         private protected readonly TOptions LightGbmTrainerOptions;
 
         /// <summary>
-        /// Stores argumments as objects to convert them to invariant string type in the end so that
+        /// Stores arguments as objects to convert them to invariant string type in the end so that
         /// the code is culture agnostic. When retrieving key value from this dictionary as string
         /// please convert to string invariant by string.Format(CultureInfo.InvariantCulture, "{0}", Option[key]).
         /// </summary>

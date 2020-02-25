@@ -242,7 +242,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             if (FastTreeTrainerOptions.PrintTestGraph)
             {
-                // If FirstTestHistory is null (which means the tests were not intialized due to /tf==infinity)
+                // If FirstTestHistory is null (which means the tests were not initialized due to /tf==infinity)
                 // We need initialize first set for graph printing
                 // Adding to a tests would result in printing the results after final iteration
                 if (_firstTestSetHistory == null)
@@ -760,7 +760,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
                     if (_groupIdToTopLabel[groupIndex] != -1)
                     {
-                        // this is the second+ occurance of a result
+                        // this is the second+ occurrence of a result
                         // of the same duplicate group, so:
                         // - disconsider when applying the cost function
                         //
@@ -894,7 +894,7 @@ namespace Microsoft.ML.Trainers.FastTree
                             }
                         }
 
-                        // Continous cost function and shifted NDCG require a re-sort and recomputation of maxDCG
+                        // Continuous cost function and shifted NDCG require a re-sort and recomputation of maxDCG
                         // (Change of scores in the former and scores and labels in the latter)
                         if (!_useDcg && (_costFunctionParam == 'c' || _useShiftedNdcg))
                         {

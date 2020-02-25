@@ -170,7 +170,7 @@ namespace Microsoft.ML.Transforms
             foreach (var column in _columns)
             {
                 if (column.MaximumNumberOfInverts != 0)
-                    throw Host.ExceptParam(nameof(columns), $"Found colunm with {nameof(column.MaximumNumberOfInverts)} set to non zero value, please use { nameof(HashingEstimator)} instead");
+                    throw Host.ExceptParam(nameof(columns), $"Found column with {nameof(column.MaximumNumberOfInverts)} set to non zero value, please use { nameof(HashingEstimator)} instead");
             }
         }
 
@@ -451,7 +451,7 @@ namespace Microsoft.ML.Transforms
         /// implementor was a class, or if the hasher implementation was just passed in with a delegate, or
         /// the hashing logic was encapsulated as the abstract method of some class.
         ///
-        /// In a prior time, there were methods for all possible combinations of types, scalarness, vector
+        /// In a prior time, there were methods for all possible combinations of types, scalar-ness, vector
         /// sparsity/density, whether the hash was sparsity preserving or not, whether it was ordered or not.
         /// This resulted in an explosion of methods that made the hash transform code somewhat hard to maintain.
         /// On the other hand, the methods were fast, since they were effectively (by brute enumeration) completely

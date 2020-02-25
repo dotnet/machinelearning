@@ -823,7 +823,7 @@ namespace Microsoft.ML.Calibrators
                 calibrator.GetType()
             };
 
-            // Call the appropiate constructor of the created generic type passing on the previously loaded predictor and calibrator
+            // Call the appropriate constructor of the created generic type passing on the previously loaded predictor and calibrator
             var genericCtor = constructed.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, constructorArgs, null);
             object genericInstance = genericCtor.Invoke(new object[] { env, ctx, predictor, calibrator });
 

@@ -264,7 +264,7 @@ namespace Microsoft.ML
         /// <typeparam name="TModel">The type of the model parameters.</typeparam>
         /// <param name="model">Existing model to modify threshold.</param>
         /// <param name="threshold">New threshold.</param>
-        /// <returns>New model with modified threashold.</returns>
+        /// <returns>New model with modified threshold.</returns>
         public BinaryPredictionTransformer<TModel> ChangeModelThreshold<TModel>(BinaryPredictionTransformer<TModel> model, float threshold)
              where TModel : class
         {

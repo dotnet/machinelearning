@@ -238,7 +238,7 @@ namespace Microsoft.ML.Data
                 else if (colType is VectorDataViewType vectorType)
                 {
                     // VBuffer<T> -> VBuffer<T>
-                    // REVIEW: Do we care about accomodating VBuffer<string> -> ReadOnlyMemory<char>?
+                    // REVIEW: Do we care about accommodating VBuffer<string> -> ReadOnlyMemory<char>?
                     Host.Assert(outputType.IsGenericType);
                     Host.Assert(outputType.GetGenericTypeDefinition() == typeof(VBuffer<>));
                     Host.Assert(outputType.GetGenericArguments()[0] == vectorType.ItemType.RawType);

@@ -103,7 +103,7 @@ namespace Microsoft.ML
         /// This provides a means for reconciling multiple rows that have been produced generally from
         /// <see cref="IDataView.GetRowCursorSet(IEnumerable{DataViewSchema.Column}, int, Random)"/>. When getting a set, there is a need
         /// to, while allowing parallel processing to proceed, always have an aim that the original order should be
-        /// reconverable. Note, whether or not a user cares about that original order in ones specific application is
+        /// recoverable. Note, whether or not a user cares about that original order in ones specific application is
         /// another story altogether (most callers of this as a practical matter do not, otherwise they would not call
         /// it), but at least in principle it should be possible to reconstruct the original order one would get from an
         /// identically configured <see cref="IDataView.GetRowCursor(IEnumerable{DataViewSchema.Column}, Random)"/>. So: for any cursor
@@ -135,7 +135,7 @@ namespace Microsoft.ML
         /// considered part of the data per se. So, to take the example of a data view specifically, a single data view
         /// must render consistent IDs across all cursorings, but there is no suggestion at all that if the "same" data
         /// were presented in a different data view (as by, say, being transformed, cached, saved, or whatever), that
-        /// the IDs between the two different data views would have any discernable relationship.</summary>
+        /// the IDs between the two different data views would have any discernible relationship.</summary>
         public abstract ValueGetter<DataViewRowId> GetIdGetter();
 
         /// <summary>

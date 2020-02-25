@@ -109,7 +109,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private IEnumerable<int> CreateSparse(IChannel ch, Random rgen)
         {
-            ch.CheckUserArg(0 <= _param && _param < 1, nameof(Arguments.Parameter), "For sparse ararys");
+            ch.CheckUserArg(0 <= _param && _param < 1, nameof(Arguments.Parameter), "For sparse arrays");
             // The parameter is the level of sparsity. Use the geometric distribution to determine the number of
             // Geometric distribution (with 0 support) would be Math.
             double denom = Math.Log(1 - _param);

@@ -97,7 +97,7 @@ namespace Microsoft.ML.CommandLine
     //        }
     //    }
     //
-    //    So you could call this aplication with the following command line to count
+    //    So you could call this application with the following command line to count
     //    lines in the foo and bar files:
     //
     //        wc.exe /lines /files:foo /files:bar
@@ -115,14 +115,14 @@ namespace Microsoft.ML.CommandLine
     //        @<file>                             Read response file for more options
     //
     //    That was pretty easy. However, you really want to omit the "/files:" for the
-    //    list of files. The details of field parsing can be controled using custom
-    //    attributes. The attributes which control parsing behaviour are:
+    //    list of files. The details of field parsing can be controlled using custom
+    //    attributes. The attributes which control parsing behavior are:
     //
     //    ArgumentAttribute
     //        - controls short name, long name, required, allow duplicates, default value
     //        and help text
     //    DefaultArgumentAttribute
-    //        - allows omition of the "/name".
+    //        - allows omission of the "/name".
     //        - This attribute is allowed on only one field in the argument class.
     //
     //    So for the wc.exe program we want this:
@@ -180,7 +180,7 @@ namespace Microsoft.ML.CommandLine
     /// <summary>
     /// Parser for command line arguments.
     ///
-    /// The parser specification is infered from the instance fields of the object
+    /// The parser specification is inferred from the instance fields of the object
     /// specified as the destination of the parse.
     /// Valid argument types are: int, uint, string, bool, enums
     /// Also argument types of Array of the above types are also valid.
@@ -209,9 +209,9 @@ namespace Microsoft.ML.CommandLine
         private readonly IHost _host;
 
         /// <summary>
-        /// Parses a command line. This assumes that the exe name has been stripped off.
+        /// Parses a command line. This assumes that the .exe name has been stripped off.
         /// Errors are output on Console.Error.
-        /// Use ArgumentAttributes to control parsing behaviour.
+        /// Use ArgumentAttributes to control parsing behavior.
         /// </summary>
         /// <param name="env"> The host environment</param>
         /// <param name="settings">The command line</param>
@@ -223,8 +223,8 @@ namespace Microsoft.ML.CommandLine
         }
 
         /// <summary>
-        /// Parses a command line. This assumes that the exe name has been stripped off.
-        /// Use ArgumentAttributes to control parsing behaviour.
+        /// Parses a command line. This assumes that the .exe name has been stripped off.
+        /// Use ArgumentAttributes to control parsing behavior.
         /// </summary>
         /// <param name="env"> The host environment</param>
         /// <param name="settings">The command line</param>
@@ -268,7 +268,7 @@ namespace Microsoft.ML.CommandLine
 
         /// <summary>
         /// Parses a command line. This assumes that the exe name has been stripped off.
-        /// Use ArgumentAttributes to control parsing behaviour.
+        /// Use ArgumentAttributes to control parsing behavior.
         /// </summary>
         /// <param name="env"> The host environment</param>
         /// <param name="settings">The command line</param>
@@ -403,7 +403,7 @@ namespace Microsoft.ML.CommandLine
 
         /// <summary>
         /// Returns a Usage string for command line argument parsing.
-        /// Use ArgumentAttributes to control parsing behaviour.
+        /// Use ArgumentAttributes to control parsing behavior.
         /// </summary>
         /// <param name="env"> The host environment. </param>
         /// <param name="type"> The type of the arguments to display usage for. </param>

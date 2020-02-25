@@ -19,7 +19,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
             // C# naming guidelines say, any initialism greater than two characters should not
             // be all upper cased. So: _readIOStream is good, and _readHttpStream is good. You
             // could imagine having two two-letter initialisms, like: _readIOUI, where you use
-            // two two character initialism, but I'm going to suppose that never happens since
+            // two character initialism, but I'm going to suppose that never happens since
             // if someone is doing that, that's pretty odd. The upshot is: 
             const int maxConsecutive = 3;
             // Force the first after the _ to be lower case.

@@ -363,7 +363,7 @@ namespace Microsoft.ML.Trainers.FastTree
         // 3. grad Sampling Rate in Objective Function
         // 4. tree learner
         // 5. bagging provider
-        // 6. emsemble compressor
+        // 6. ensemble compressor
         /// <summary>
         /// The seed of the random number generator.
         /// </summary>

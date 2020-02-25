@@ -1100,7 +1100,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
     /// <summary>
     /// A base class for a feature flock that wraps a single <see cref="IntArray"/> that contains multiple
-    /// feature values using a concatentation of the non-zero ranges of each feature, and also in some way
+    /// feature values using a concatenation of the non-zero ranges of each feature, and also in some way
     /// that doing a <see cref="IntArray.Sumup"/> will accumulate sufficient statistics correctly for all
     /// except the first (zero) bin.
     /// </summary>

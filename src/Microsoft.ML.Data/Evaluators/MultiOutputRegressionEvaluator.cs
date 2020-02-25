@@ -617,7 +617,7 @@ namespace Microsoft.ML.Data
             [Argument(ArgumentType.Multiple, HelpText = "Loss function", ShortName = "loss")]
             public ISupportRegressionLossFactory LossFunction = new SquaredLossFactory();
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Supress labels and scores in per-instance outputs?", ShortName = "noScores")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Suppress labels and scores in per-instance outputs?", ShortName = "noScores")]
             public bool SupressScoresAndLabels = false;
         }
 

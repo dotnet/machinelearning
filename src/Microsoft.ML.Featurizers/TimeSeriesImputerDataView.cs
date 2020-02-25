@@ -614,7 +614,7 @@ namespace Microsoft.ML.Transforms
 
             protected override bool ReleaseHandle()
             {
-                // Not sure what to do with error stuff here.  There shoudln't ever be one though.
+                // Not sure what to do with error stuff here.  There shouldn't ever be one though.
                 return DestroyTransformedDataNative(handle, _size, out IntPtr errorHandle);
             }
         }

@@ -41,7 +41,7 @@ namespace Microsoft.ML.Featurizers
 
         /// <summary>
         /// Create a <see cref="TimeSeriesImputerEstimator"/>, Imputes missing rows and column data per grain. Applies the imputation strategy on
-        /// a filtered list of columns in the IDataView. Columns that are are excluded will have the default value for that data type used when a row
+        /// a filtered list of columns in the IDataView. Columns that are excluded will have the default value for that data type used when a row
         /// is imputed. Currently only float/double/string columns are supported for imputation strategies, and an empty string is considered "missing" for the
         /// purpose of this estimator.
         /// </summary>
@@ -52,7 +52,7 @@ namespace Microsoft.ML.Featurizers
         /// If <paramref name="filterMode"/> is <see cref="TimeSeriesImputerEstimator.FilterMode.Include"/> than values in the list are the only columns imputed.</param>
         /// <param name="filterMode">Whether the list <paramref name="filterColumns"/> should include or exclude those columns.</param>
         /// <param name="imputeMode">Mode of imputation for missing values in column. If not passed defaults to forward fill</param>
-        /// <param name="suppressTypeErrors">Supress the errors that would occur if a column and impute mode are imcompatible. If true, will skip the column and use the default value. If false, will stop and throw an error.</param>
+        /// <param name="suppressTypeErrors">Suppress the errors that would occur if a column and impute mode are incompatible. If true, will skip the column and use the default value. If false, will stop and throw an error.</param>
         public static TimeSeriesImputerEstimator ReplaceMissingTimeSeriesValues(this TransformsCatalog catalog, string timeSeriesColumn,
             string[] grainColumns, string[] filterColumns, TimeSeriesImputerEstimator.FilterMode filterMode = TimeSeriesImputerEstimator.FilterMode.Exclude,
             TimeSeriesImputerEstimator.ImputationStrategy imputeMode = TimeSeriesImputerEstimator.ImputationStrategy.ForwardFill,
@@ -119,7 +119,7 @@ namespace Microsoft.ML.Featurizers
             [Argument(ArgumentType.AtMostOnce, HelpText = "Mode for imputing, defaults to ForwardFill if not provided", Name = "ImputeMode", ShortName = "mode", SortOrder = 3)]
             public ImputationStrategy ImputeMode = ImputationStrategy.ForwardFill;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Supress the errors that would occur if a column and impute mode are imcompatible. If true, will skip the column. If false, will stop and throw an error.", Name = "SupressTypeErrors", ShortName = "error", SortOrder = 3)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Suppress the errors that would occur if a column and impute mode are incompatible. If true, will skip the column. If false, will stop and throw an error.", Name = "SupressTypeErrors", ShortName = "error", SortOrder = 3)]
             public bool SupressTypeErrors = false;
         }
 

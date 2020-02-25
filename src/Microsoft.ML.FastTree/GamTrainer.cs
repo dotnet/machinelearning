@@ -277,7 +277,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private void TrainCore(IChannel ch)
         {
             Contracts.CheckValue(ch, nameof(ch));
-            // REVIEW:Get rid of this lock then we completly remove all static classes from Gam such as BlockingThreadPool.
+            // REVIEW:Get rid of this lock then we completely remove all static classes from Gam such as BlockingThreadPool.
             lock (FastTreeShared.TrainLock)
             {
                 using (Timer.Time(TimerEvent.TotalInitialization))

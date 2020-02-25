@@ -36,7 +36,7 @@ namespace Microsoft.ML.Data.IO
             [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The block-size heuristic will choose no more than this many rows to have per block, can be set to null to indicate that there is no inherent limit", ShortName = "rpb")]
             public int? MaxRowsPerBlock = 1 << 13; // ~8 thousand.
 
-            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The block-size heuristic will attempt to have about this many bytes across all columns per block, can be set to null to accept the inidcated max-rows-per-block as the number of rows per block", ShortName = "bpb")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The block-size heuristic will attempt to have about this many bytes across all columns per block, can be set to null to accept the indicated max-rows-per-block as the number of rows per block", ShortName = "bpb")]
             public long? MaxBytesPerBlock = 80 << 20; // ~80 megabytes.
 
             [Argument(ArgumentType.LastOccurrenceWins, HelpText = "If true, this forces a deterministic block order during writing", ShortName = "det")]
@@ -696,7 +696,7 @@ namespace Microsoft.ML.Data.IO
                 if (!_silent)
                     ch.Info("Wrote {0} rows across {1} columns in {2}", _rowCount, activeColumns.Length, sw.Elapsed);
                 // When we dispose the exception marshaller, this will set the cancellation token when we internally
-                // dispose the cancellation token source, so one way or another those threads are being cancelled, even
+                // dispose the cancellation token source, so one way or another those threads are being canceled, even
                 // if an exception is thrown in the main body of this function.
             }
         }
