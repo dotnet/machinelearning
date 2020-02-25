@@ -54,7 +54,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [Theory, VaryingTolerance(5)]
-        public void MatrixFactorizationSimpleTrainAndPredict(double tolerance)
+        public void MatrixFactorizationSimpleTrainAndPredict(int tolerance)
         {
             var mlContext = new MLContext(seed: 1);
 
@@ -120,13 +120,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Compute prediction errors
             var metrices = mlContext.Recommendation().Evaluate(prediction, labelColumnName: labelColumnName, scoreColumnName: scoreColumnName);
-
+            var toleranceDelta = Math.Pow(10, -1 * tolerance);
             // Determine if the selected metric is reasonable for different platforms
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 // Linux case
                 var expectedUnixL2Error = 0.612974867782832; // Linux baseline
-                Assert.InRange(metrices.MeanSquaredError, expectedUnixL2Error - tolerance, expectedUnixL2Error + tolerance);
+                Assert.InRange(metrices.MeanSquaredError, expectedUnixL2Error - toleranceDelta, expectedUnixL2Error + toleranceDelta);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             {
                 // Windows case
                 var expectedWindowsL2Error = 0.622283290742721; // Windows baseline
-                Assert.InRange(metrices.MeanSquaredError, expectedWindowsL2Error - tolerance, expectedWindowsL2Error + tolerance);
+                Assert.InRange(metrices.MeanSquaredError, expectedWindowsL2Error - toleranceDelta, expectedWindowsL2Error + toleranceDelta);
             }
 
             var modelWithValidation = pipeline.Fit(data, testData);

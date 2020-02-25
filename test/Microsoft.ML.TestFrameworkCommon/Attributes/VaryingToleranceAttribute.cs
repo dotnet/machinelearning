@@ -9,7 +9,7 @@ using Xunit.Sdk;
 namespace Microsoft.ML.TestFrameworkCommon.Attributes
 {
     /// <summary>
-    /// A fact for tests with varying tolerance levels
+    /// A theory for tests with varying tolerance levels
     /// <code>
     /// [Theory, VaryingTolerance(5)]
     /// public void VaryingToleranceTest(double tolerance)
@@ -30,8 +30,8 @@ namespace Microsoft.ML.TestFrameworkCommon.Attributes
         public int Tolerance { get; }
         public override IEnumerable<object[]> GetData(MethodInfo testMethod)
         {
-            Console.WriteLine("This test utilizes varying tolerances.");
-            yield return new object[] { Math.Pow(10, -1 * Tolerance) };
+            Console.WriteLine(String.Format("Test \"{0}\" utilizes varying tolerances.", testMethod.Name));
+            yield return new object[] { Tolerance };
         }
     }
 }

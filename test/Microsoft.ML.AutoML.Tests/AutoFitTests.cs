@@ -12,6 +12,7 @@ using Xunit;
 using static Microsoft.ML.DataOperationsCatalog;
 using Microsoft.ML.TestFramework;
 using Xunit.Abstractions;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.AutoML.Test
 {
@@ -53,11 +54,14 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(NumberDataViewType.Single, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
         }
 
-        [TensorFlowFact]
+        // [TensorFlowFact]
+        [Theory, VaryingTolerance(3)]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void AutoFitImageClassificationTrainTest()
+        public void AutoFitImageClassificationTrainTest(int tolerance)
         {
+            // Replacing TensorFlowFact
+            if (Environment.Is64BitProcess == false)
+                return;
             var context = new MLContext(seed: 1);
             var datasetPath = DatasetUtil.GetFlowersDataset();
             var columnInference = context.Auto().InferColumns(datasetPath, "Label");
@@ -71,7 +75,7 @@ namespace Microsoft.ML.AutoML.Test
                             .CreateMulticlassClassificationExperiment(0)
                             .Execute(trainDataset, testDataset, columnInference.ColumnInformation);
 
-            Assert.Equal(1, result.BestRun.ValidationMetrics.MicroAccuracy, 3);
+            Assert.Equal(1, result.BestRun.ValidationMetrics.MicroAccuracy, tolerance);
 
             var scoredData = result.BestRun.Model.Transform(trainData);
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
