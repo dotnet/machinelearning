@@ -126,13 +126,34 @@
           "F21"
         ],
         "output": [
-          "Features"
+          "VectorFeaturizerOutput"
         ],
-        "name": "Concat",
-        "opType": "Concat",
+        "name": "FeatureVectorizer",
+        "opType": "FeatureVectorizer",
         "attribute": [
           {
-            "name": "axis",
+            "name": "inputdimensions",
+            "ints": [
+              "8",
+              "9"
+            ],
+            "type": "INTS"
+          }
+        ],
+        "domain": "ai.onnx.ml"
+      },
+      {
+        "input": [
+          "VectorFeaturizerOutput"
+        ],
+        "output": [
+          "Features"
+        ],
+        "name": "Cast1",
+        "opType": "Cast",
+        "attribute": [
+          {
+            "name": "to",
             "i": "1",
             "type": "INT"
           }
@@ -757,7 +778,7 @@
         "output": [
           "PredictedLabel"
         ],
-        "name": "Cast1",
+        "name": "Cast2",
         "opType": "Cast",
         "attribute": [
           {
@@ -940,6 +961,24 @@
                 },
                 {
                   "dimValue": "9"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "VectorFeaturizerOutput",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "17"
                 }
               ]
             }
