@@ -330,7 +330,6 @@ namespace Microsoft.ML.Tests
         }
 
         //[LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         [Theory, VaryingTolerance(7)]
         [Trait("Category", "SkipInCI")]
         public void SsaForecast(int tolerance)

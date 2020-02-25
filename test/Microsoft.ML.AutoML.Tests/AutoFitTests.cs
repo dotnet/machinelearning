@@ -56,7 +56,6 @@ namespace Microsoft.ML.AutoML.Test
 
         // [TensorFlowFact]
         [Theory, VaryingTolerance(3)]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         public void AutoFitImageClassificationTrainTest(int tolerance)
         {
             // Replacing TensorFlowFact

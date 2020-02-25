@@ -150,7 +150,6 @@ namespace Microsoft.ML.RunTests
         [Theory, VaryingTolerance(4)]
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         public void MulticlassLRTest(int tolerance)
         {
             // Replacing LessThanNetCore30OrNotNetCoreFactAttribute
@@ -345,8 +344,6 @@ namespace Microsoft.ML.RunTests
         //[LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         [Theory, VaryingTolerance(6)]
         [TestCategory("Binary")]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void BinaryClassifierLogisticRegressionBinNormTest(int tolerance)
         {
             // Replacing LessThanNetCore30OrNotNetCoreFactAttribute
