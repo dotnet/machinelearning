@@ -648,7 +648,11 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
+                {
+                    if (float.IsNaN(value))
+                        return 0;
                     hash = Hashing.MurmurRound(hash, FloatUtils.GetBits(value == 0 ? 0 : value));
+                }
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
         }
@@ -682,7 +686,11 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
+                {
+                    if (double.IsNaN(value))
+                        return 0;
                     hash = HashRound(hash, value);
+                }
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
 
@@ -726,7 +734,11 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
+                {
+                    if (value.IsEmpty)
+                        return 0;
                     hash = Hashing.MurmurHash(hash, value.Span.Trim(' '));
+                }
                 return (hash & mask) + 1;
             }
         }
@@ -749,7 +761,11 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
+                {
+                    if (value == 0)
+                        return 0;
                     hash = Hashing.MurmurRound(hash, value);
+                }
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
         }
@@ -772,7 +788,11 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
+                {
+                    if (value == 0)
+                        return 0;
                     hash = Hashing.MurmurRound(hash, value);
+                }
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
         }
@@ -795,7 +815,11 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
+                {
+                    if (value == 0)
+                        return 0;
                     hash = Hashing.MurmurRound(hash, value);
+                }
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
         }
@@ -826,7 +850,11 @@ namespace Microsoft.ML.Transforms
             {
                 var hash = seed;
                 foreach (var value in values.DenseValues())
+                {
+                    if (value == 0)
+                        return 0;
                     hash = HashRound(hash, value);
+                }
                 return (Hashing.MixHash(hash) & mask) + 1;
             }
 

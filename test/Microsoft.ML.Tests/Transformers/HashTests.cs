@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
+using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
@@ -323,6 +324,43 @@ namespace Microsoft.ML.Tests.Transformers
                 }
             }
             CheckEquality("Text", "murmurHash.tsv");
+        }
+
+        [Fact]
+        public void TestCombineLengthOneVector()
+        {
+            var data = new[] 
+            { 
+                new TestClass() { A = 1, B = 2, C = 3 },
+                new TestClass() { A = 4, B = 5, C = 6 },
+                new TestClass() { A = float.NaN, B = 3, C = 12 }
+            };
+            var dataView = ML.Data.LoadFromEnumerable(data);
+
+            var pipeline = ML.Transforms.Concatenate("D", "A")
+                .Append(ML.Transforms.Conversion.Hash(
+                    new HashingEstimator.ColumnOptions("AHashed", "A"),
+                    new HashingEstimator.ColumnOptions("DHashed", "D"),
+                    new HashingEstimator.ColumnOptions("DHashedCombined", "D", combine: true)));
+
+            var transformed = pipeline.Fit(dataView).Transform(dataView);
+            Assert.True(transformed.Schema["D"].Type.IsKnownSizeVector());
+            Assert.True(transformed.Schema["DHashed"].Type.IsKnownSizeVector());
+            Assert.Equal(1, transformed.Schema["DHashed"].Type.GetValueCount());
+            Assert.False(transformed.Schema["DHashedCombined"].Type.IsKnownSizeVector());
+            Assert.Equal(1, transformed.Schema["DHashedCombined"].Type.GetValueCount());
+
+            var aHashed = transformed.GetColumn<uint>(transformed.Schema["AHashed"]);
+            var dHashed = transformed.GetColumn<VBuffer<uint>>(transformed.Schema["DHashed"]).Select(buffer =>
+            {
+                Assert.True(buffer.Length == 1);
+                return buffer.DenseValues().First();
+            });
+            var dHashedCombined = transformed.GetColumn<uint>(transformed.Schema["DHashedCombined"]);
+
+            Assert.Equal(aHashed, dHashed);
+            Assert.Equal(aHashed, dHashedCombined);
+            Assert.Equal((uint)0, aHashed.Last());
         }
     }
 }

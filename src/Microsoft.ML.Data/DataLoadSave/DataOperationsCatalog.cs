@@ -518,13 +518,11 @@ namespace Microsoft.ML
                     if (itemType is DateTimeDataViewType || itemType is DateTimeOffsetDataViewType || itemType is TimeSpanDataViewType)
                         data = new TypeConvertingTransformer(env, origStratCol, DataKind.Int64, origStratCol).Transform(data);
 
-                    HashingEstimator.ColumnOptions columnOptions;
-                    if (seed.HasValue)
-                        columnOptions = new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30, (uint)seed.Value, combine: true);
-                    else if (((ISeededEnvironment)env).Seed.HasValue)
-                        columnOptions = new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30, (uint)((ISeededEnvironment)env).Seed.Value, combine: true);
-                    else
-                        columnOptions = new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30, combine: true);
+                    var localSeed = seed.HasValue ? seed : ((ISeededEnvironment)env).Seed.HasValue ? ((ISeededEnvironment)env).Seed : null;
+                    var columnOptions =
+                        localSeed.HasValue ?
+                        new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30, (uint)localSeed.Value, combine: true) :
+                        new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30, combine: true);
                     data = new HashingEstimator(env, columnOptions).Fit(data).Transform(data);
                 }
                 else
