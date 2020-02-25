@@ -340,6 +340,96 @@
             }
           }
         }
+      },
+      {
+        "name": "PredictedLabel",
+        "type": {
+          "tensorType": {
+            "elemType": 12,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Score",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "4"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Features.output",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "9"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "PredictedLabel.output",
+        "type": {
+          "tensorType": {
+            "elemType": 12,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Score.output",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "4"
+                }
+              ]
+            }
+          }
+        }
       }
     ]
   },
