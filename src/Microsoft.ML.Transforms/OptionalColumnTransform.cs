@@ -511,7 +511,12 @@ namespace Microsoft.ML.Transforms
                 if (!ctx.ContainsColumn(inputColumnName))
                     continue;
 
-                if (!SaveAsOnnxCore(ctx, ctx.GetVariableName(inputColumnName), _bindings.ColumnTypes[iinfo]))
+                // If there is already a column of this name, don't add this column as an OptionalColumn/Initializer
+                var srcVariableName = ctx.GetVariableName(inputColumnName);
+                if (srcVariableName != inputColumnName)
+                    continue;
+
+                if (!SaveAsOnnxCore(ctx, srcVariableName, _bindings.ColumnTypes[iinfo]))
                     ctx.RemoveColumn(inputColumnName, true);
             }
         }
