@@ -257,6 +257,37 @@ namespace Microsoft.ML.Model.OnnxConverter
             return false;
         }
 
+        // Get the names of the KeyDataViewType columns that aren't affected by the pipeline that is being exported to ONNX.
+        private HashSet<string> GetPassThroughKeyDataViewTypeColumnsNames(IDataView source, IDataView end)
+        {
+            var inputKeyDataViewTypeColumnsNames = new HashSet<string>();
+            foreach (var col in source.Schema)
+                if (col.IsHidden == false && HasKeyValues(col))
+                    inputKeyDataViewTypeColumnsNames.Add(col.Name);
+
+            var passThroughColumnNames = new HashSet<string>();
+            var outputColumnNames = new HashSet<string>();
+            foreach (var col in end.Schema)
+            {
+                if (outputColumnNames.Contains(col.Name))
+                {
+                    // "Pass through" column names appear only once in the output schema
+                    passThroughColumnNames.Remove(col.Name);
+                }
+                else
+                {
+                    // We are only interested in the KeyDataViewType outpus columns
+                    if (col.IsHidden == false && HasKeyValues(col))
+                        passThroughColumnNames.Add(col.Name);
+                }
+                outputColumnNames.Add(col.Name);
+            }
+
+            // Only count those columns that were in the input of the pipeline
+            passThroughColumnNames.IntersectWith(inputKeyDataViewTypeColumnsNames);
+            return passThroughColumnNames;
+        }
+
         private void Run(IChannel ch)
         {
             ILegacyDataLoader loader = null;
@@ -356,19 +387,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             // (i.e those that remained untouched by the model). This is done to enable NimbusML to get these values
             // as described in https://github.com/dotnet/machinelearning/pull/4841
 
-            var inputKeyDataViewTypeColumnsNames = new HashSet<string>();
-            foreach (var col in source.Schema)
-                if (col.IsHidden == false && HasKeyValues(col))
-                    inputKeyDataViewTypeColumnsNames.Add(col.Name);
-
-            var passThroughColumnNames = new HashSet<string>();
-            var onlyDistinctColumnNames = end.Schema.Select(c => c.Name).Distinct(); //  only check column names that appear once in the output schema
-            foreach (var col in end.Schema)
-                if (col.IsHidden == false && onlyDistinctColumnNames.Contains(col.Name) && HasKeyValues(col))
-                    passThroughColumnNames.Add(col.Name);
-
-            passThroughColumnNames.IntersectWith(inputKeyDataViewTypeColumnsNames); // Only count those columns that were in the input of the pipeline
-
+            var passThroughColumnNames = GetPassThroughKeyDataViewTypeColumnsNames(source, end);
             foreach (var name in passThroughColumnNames)
             {
                 var outputData = new KeyToValueMappingTransformer(Host, name).Transform(end);
