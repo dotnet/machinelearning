@@ -155,7 +155,10 @@ namespace Microsoft.ML.RunTests
         {
             // Replacing LessThanNetCore30OrNotNetCoreFactAttribute
             if (AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
+            {
+                Console.WriteLine("netcoreapp3.0 output differs from Baseline, skipping MulticlassLRTest.");
                 return;
+            }
             RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.iris, digitsOfPrecision: tolerance);
             Done();
         }
@@ -279,13 +282,14 @@ namespace Microsoft.ML.RunTests
         //[X64Fact("x86 output differs from Baseline")]
         [Theory, VaryingTolerance(4)]
         [TestCategory("Binary")]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void BinaryClassifierSymSgdTest(int tolerance)
         {
             // Replacing X64Fact
             if (Environment.Is64BitProcess == false)
+            {
+                Console.WriteLine("x86 output differs from Baseline, skipping BinaryClassifierSymSgdTest.");
                 return;
+            }
             // Linux uses a version of MKL that doesn't support conditional numerical reproducibility the same way as
             // Windows runs.
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -347,7 +351,10 @@ namespace Microsoft.ML.RunTests
         {
             // Replacing LessThanNetCore30OrNotNetCoreFactAttribute
             if (AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
+            {
+                Console.WriteLine("netcoreapp3.0 output differs from Baseline, skipping BinaryClassifierLogisticRegressionBinNormTest.");
                 return;
+            }
             var binaryPredictors = new[] { TestLearners.logisticRegressionBinNorm };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
             RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: tolerance);

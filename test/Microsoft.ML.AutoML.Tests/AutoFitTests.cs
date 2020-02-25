@@ -61,7 +61,10 @@ namespace Microsoft.ML.AutoML.Test
         {
             // Replacing TensorFlowFact
             if (Environment.Is64BitProcess == false)
+            {
+                Console.WriteLine("TensorFlow is 64-bit only, skipping AutoFitImageClassificationTrainTest.");
                 return;
+            }
             var context = new MLContext(seed: 1);
             var datasetPath = DatasetUtil.GetFlowersDataset();
             var columnInference = context.Auto().InferColumns(datasetPath, "Label");

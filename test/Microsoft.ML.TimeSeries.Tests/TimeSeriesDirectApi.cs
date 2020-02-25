@@ -337,7 +337,10 @@ namespace Microsoft.ML.Tests
         {
             // Replacing LessThanNetCore30OrNotNetCoreFactAttribute
             if (AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
+            {
+                Console.WriteLine("netcoreapp3.0 output differs from Baseline, skipping SsaForecast.");
                 return;
+            }
             var env = new MLContext(1);
             const int changeHistorySize = 10;
             const int seasonalitySize = 10;
