@@ -878,6 +878,36 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
+        [Fact]
+        public void ConcatenateOnnxConversionTest()
+        {
+            var mlContext = new MLContext(seed: 1);
+            string dataPath = GetDataPath("breast-cancer.txt");
+
+            var data = ML.Data.LoadFromTextFile(dataPath, new[] {
+                new TextLoader.Column("VectorDouble2", DataKind.Double, 1),
+                new TextLoader.Column("VectorDouble1", DataKind.Double, 4, 8),
+                new TextLoader.Column("Label", DataKind.Boolean, 0)
+            });
+            var pipeline = mlContext.Transforms.Concatenate("Features", "VectorDouble1", "VectorDouble2");
+            var model = pipeline.Fit(data);
+            var transformedData = model.Transform(data);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
+
+            // Compare results produced by ML.NET and ONNX's runtime.
+            if (IsOnnxRuntimeSupported())
+            {
+                var onnxModelName = "Concatenate.onnx";
+                var onnxModelPath = GetOutputPath(onnxModelName);
+                SaveOnnxModel(onnxModel, onnxModelPath, null);
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
+                var onnxTransformer = onnxEstimator.Fit(data);
+                var onnxResult = onnxTransformer.Transform(data);
+                CompareSelectedColumns<double>("Features", "Features", transformedData, onnxResult);
+            }
+            Done();
+        }
 
         [Fact]
         public void RemoveVariablesInPipelineTest()
