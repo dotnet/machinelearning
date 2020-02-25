@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -24,6 +25,13 @@ namespace Microsoft.ML.Transforms
         private TimeSeriesImputerTransformer _parent;
         public class SharedColumnState
         {
+            public SharedColumnState()
+            {
+                SourceCanMoveNext = true;
+                MemStream = new MemoryStream(4096);
+                BinWriter = new BinaryWriter(MemStream, Encoding.UTF8);
+            }
+
             public bool SourceCanMoveNext { get; set; }
             public int TransformedDataPosition { get; set; }
 
@@ -32,7 +40,8 @@ namespace Microsoft.ML.Transforms
             public NativeBinaryArchiveData[] TransformedData { get; set; }
 
             // Hold the serialized data that we are going to send to the native code for processing.
-            public byte[] ColumnBuffer { get; set; }
+            public MemoryStream MemStream { get; set; }
+            public BinaryWriter BinWriter { get; set; }
             public TransformedDataSafeHandle TransformedDataHandler { get; set; }
         }
 
@@ -54,7 +63,7 @@ namespace Microsoft.ML.Transforms
                 string[] grainColumns, string[] dataColumns, string[] allColumnNames, Dictionary<string, TypedColumn> allColumns);
 
             internal abstract TypeId GetTypeId();
-            internal abstract byte[] GetSerializedValue();
+            internal abstract void SerializeValue(BinaryWriter binaryWriter);
             internal abstract unsafe int GetDataSizeInBytes(byte* data, int currentOffset);
             internal abstract void QueueNonImputedColumnValue();
 
@@ -152,11 +161,11 @@ namespace Microsoft.ML.Transforms
                         NativeBinaryArchiveData* outputData = default;
                         while(outputDataSize == IntPtr.Zero && SharedState.SourceCanMoveNext)
                         {
-                            BuildColumnByteArray(allColumns, allImputedColumnNames, out int bufferLength);
+                            BuildColumnByteArray(allColumns, allImputedColumnNames);
                             QueueDataForNonImputedColumns(allColumns, allImputedColumnNames);
-                            fixed (byte* bufferPointer = SharedState.ColumnBuffer)
+                            fixed (byte* bufferPointer = SharedState.MemStream.GetBuffer())
                             {
-                                var binaryArchiveData = new NativeBinaryArchiveData() { Data = bufferPointer, DataSize = new IntPtr(bufferLength) };
+                                var binaryArchiveData = new NativeBinaryArchiveData() { Data = bufferPointer, DataSize = new IntPtr(SharedState.MemStream.Position) };
                                 success = TransformDataNative(transformer, binaryArchiveData, out outputData, out outputDataSize, out errorHandle);
                                 if (!success)
                                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
@@ -164,6 +173,8 @@ namespace Microsoft.ML.Transforms
 
                             if (outputDataSize == IntPtr.Zero)
                                 SharedState.SourceCanMoveNext = cursor.MoveNext();
+
+                            SharedState.MemStream.Position = 0;
                         }
 
                         if (!SharedState.SourceCanMoveNext)
@@ -238,22 +249,11 @@ namespace Microsoft.ML.Transforms
                 SourceQueue.Enqueue(GetSourceValue());
             }
 
-            private void BuildColumnByteArray(Dictionary<string, TypedColumn> allColumns, string[] columns, out int bufferLength)
+            private void BuildColumnByteArray(Dictionary<string, TypedColumn> allColumns, string[] columns)
             {
-                bufferLength = 0;
                 foreach(var column in columns.Where(x => x != IsRowImputedColumnName))
                 {
-                    var bytes = allColumns[column].GetSerializedValue();
-                    var byteLength = bytes.Length;
-                    if (byteLength + bufferLength >= SharedState.ColumnBuffer.Length)
-                    {
-                        var buffer = SharedState.ColumnBuffer;
-                        Array.Resize(ref buffer, SharedState.ColumnBuffer.Length * 2);
-                        SharedState.ColumnBuffer = buffer;
-                    }
-
-                    Array.Copy(bytes, 0, SharedState.ColumnBuffer, bufferLength, byteLength);
-                    bufferLength += byteLength;
+                    allColumns[column].SerializeValue(SharedState.BinWriter);
                 }
             }
 
@@ -282,21 +282,14 @@ namespace Microsoft.ML.Transforms
                 IsNullable = isNullable;
             }
 
-            internal override byte[] GetSerializedValue()
+            internal override void SerializeValue(BinaryWriter binaryWriter)
             {
                 dynamic value = GetSourceValue();
-                byte[] bytes;
-                if (value.GetType() == typeof(byte))
-                    bytes = new byte[1] { value };
-                if (BitConverter.IsLittleEndian)
-                    bytes = BitConverter.GetBytes(value);
-                else
-                    bytes = BitConverter.GetBytes(value);
 
                 if (IsNullable && value.GetType() != typeof(float) && value.GetType() != typeof(double))
-                    return new byte[1] { Convert.ToByte(true) }.Concat(bytes).ToArray();
-                else
-                    return bytes;
+                    binaryWriter.Write(true);
+
+                binaryWriter.Write(value);
             }
 
             internal override unsafe int GetDataSizeInBytes(byte* data, int currentOffset)
@@ -546,13 +539,17 @@ namespace Microsoft.ML.Transforms
                 _isNullable = isNullable;
             }
 
-            internal override byte[] GetSerializedValue()
+            internal override void SerializeValue(BinaryWriter binaryWriter)
             {
                 var value = GetSourceValue().ToString();
                 var stringBytes = Encoding.UTF8.GetBytes(value);
+
                 if (_isNullable)
-                    return new byte[] { Convert.ToByte(true)}.Concat(BitConverter.GetBytes(stringBytes.Length)).Concat(stringBytes).ToArray();
-                return BitConverter.GetBytes(stringBytes.Length).Concat(stringBytes).ToArray();
+                    binaryWriter.Write(true);
+
+                binaryWriter.Write(stringBytes.Length);
+
+                binaryWriter.Write(stringBytes);
             }
 
             internal unsafe override ReadOnlyMemory<char> GetDataFromNativeBinaryArchiveData(byte* data, int offset)
@@ -599,19 +596,16 @@ namespace Microsoft.ML.Transforms
                 _isNullable = isNullable;
             }
 
-            internal override byte[] GetSerializedValue()
+            internal override void SerializeValue(BinaryWriter binaryWriter)
             {
                 var dateTime = GetSourceValue();
-                byte[] bytes;
 
                 var value = dateTime.Subtract(_unixEpoch).Ticks / TimeSpan.TicksPerSecond;
 
-                bytes = BitConverter.GetBytes(value);
-
                 if (_isNullable)
-                    return new byte[1] { Convert.ToByte(true) }.Concat(bytes).ToArray();
-                else
-                    return bytes;
+                    binaryWriter.Write(true);
+
+                binaryWriter.Write(value);
             }
 
             internal unsafe override DateTime GetDataFromNativeBinaryArchiveData(byte* data, int offset)
@@ -753,11 +747,7 @@ namespace Microsoft.ML.Transforms
                 _schema = schema;
                 _transformer = transformer;
 
-                var sharedState = new SharedColumnState()
-                {
-                    SourceCanMoveNext = true,
-                    ColumnBuffer = new byte[4096]
-                };
+                var sharedState = new SharedColumnState();
 
                 _allColumns = _schema.Select(x => TypedColumn.CreateTypedColumn(x, dataColumns, allImputedColumnNames, sharedState)).ToDictionary(x => x.Column.Name); ;
                 _allColumns[IsRowImputedColumnName] = new BoolTypedColumn(_schema[IsRowImputedColumnName], false, true, sharedState);
