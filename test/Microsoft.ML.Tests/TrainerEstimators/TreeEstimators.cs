@@ -70,7 +70,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [Theory]
-        [IterationData]
+        [IterationData(iterations:20)]
         [Trait("Category", "RunSpecificTest")]
         public void LightGBMBinaryEstimatorUnbalanced(int iteration)
         {
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// LightGBMBinaryTrainer CorrectSigmoid test
         /// </summary>
         [Theory]
-        [IterationData]
+        [IterationData(iterations: 20)]
         [Trait("Category", "RunSpecificTest")]
         public void LightGBMBinaryEstimatorCorrectSigmoid(int iteration)
         {
@@ -222,7 +222,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// LightGbmRegressionTrainer TrainerEstimator test
         /// </summary>
         [Theory]
-        [IterationData]
+        [IterationData(iterations: 20)]
         [Trait("Category", "RunSpecificTest")]
         public void LightGBMRegressorEstimator(int iteration)
         {

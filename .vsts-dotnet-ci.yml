@@ -71,7 +71,7 @@ jobs:
   parameters:
     name: Windows_x64_NetCoreApp21
     buildScript: build.cmd
-    runSpecific: true
+    innerLoop: true
     pool:
       name: MachineLearning Test
 
