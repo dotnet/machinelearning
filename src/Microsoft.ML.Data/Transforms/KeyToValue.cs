@@ -512,7 +512,10 @@ namespace Microsoft.ML.Transforms
 
                     var labelEncoderOutput = dstVariableName;
                     var labelEncoderInput = srcVariableName;
-                    if (TypeOutput == NumberDataViewType.Double || TypeOutput == NumberDataViewType.Int64)
+                    if (TypeOutput == NumberDataViewType.Double || TypeOutput == NumberDataViewType.Int64 ||
+                        TypeOutput == NumberDataViewType.Int32 || TypeOutput == NumberDataViewType.Int16 ||
+                        TypeOutput == NumberDataViewType.UInt64 || TypeOutput == NumberDataViewType.UInt32 ||
+                        TypeOutput == NumberDataViewType.UInt16)
                         labelEncoderOutput = ctx.AddIntermediateVariable(TypeOutput, "CastNodeOutput", true);
 
                     opType = "LabelEncoder";
@@ -520,15 +523,16 @@ namespace Microsoft.ML.Transforms
                     var keys = Array.ConvertAll<int, long>(Enumerable.Range(1, _values.Length).ToArray(), item => Convert.ToInt64(item));
                     node.AddAttribute("keys_int64s", keys);
 
-                    if (TypeOutput == NumberDataViewType.Int64)
+                    if (TypeOutput == NumberDataViewType.Int64 || TypeOutput == NumberDataViewType.Int32 ||
+                        TypeOutput == NumberDataViewType.Int16 || TypeOutput == NumberDataViewType.UInt64 ||
+                        TypeOutput == NumberDataViewType.UInt32 || TypeOutput == NumberDataViewType.UInt16)
                     {
                         // LabelEncoder doesn't support mapping int64 -> int64, so values are converted to strings and later cast back to Int64s
                         string[] values = Array.ConvertAll<TValue, string>(_values.GetValues().ToArray(), item => Convert.ToString(item));
                         node.AddAttribute("values_strings", values);
                         opType = "Cast";
                         castNode = ctx.CreateNode(opType, labelEncoderOutput, dstVariableName, ctx.GetNodeName(opType), "");
-                        t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Int64).ToType();
-                        castNode.AddAttribute("to", t);
+                        castNode.AddAttribute("to", TypeOutput.RawType);
                     }
                     else if (TypeOutput == NumberDataViewType.Single)
                     {

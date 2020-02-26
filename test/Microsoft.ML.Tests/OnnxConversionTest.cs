@@ -1242,6 +1242,11 @@ namespace Microsoft.ML.Tests
         [Theory]
         [InlineData(DataKind.Single)]
         [InlineData(DataKind.Int64)]
+        [InlineData(DataKind.Int32)]
+        [InlineData(DataKind.Int16)]
+        [InlineData(DataKind.UInt64)]
+        [InlineData(DataKind.UInt32)]
+        [InlineData(DataKind.UInt16)]
         [InlineData(DataKind.Double)]
         [InlineData(DataKind.String)]
         public void KeyToValueMappingOnnxConversionTest(DataKind valueType)
