@@ -834,7 +834,7 @@ namespace mlnet.Tests
             if (_mockedOvaPipeline == null)
             {
                 MLContext context = new MLContext();
-                // same learners with different hyperparams
+                // same learners with different hyperparameters
                 var hyperparams1 = new Microsoft.ML.AutoML.ParameterSet(new List<Microsoft.ML.AutoML.IParameterValue>() { new LongParameterValue("NumLeaves", 2) });
                 var trainer1 = new SuggestedTrainer(context, new FastForestOvaExtension(), new ColumnInformation(), hyperparams1);
                 var transforms1 = new List<SuggestedTransform>() { ColumnConcatenatingExtension.CreateSuggestedTransform(context, new[] { "In" }, "Out") };

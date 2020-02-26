@@ -75,7 +75,7 @@ namespace Microsoft.ML.Featurizers
     /// The <xref:Microsoft.ML.Transforms.ToStringTransformerEstimator> is a trivial estimator that doesn't need training.
     /// The resulting <xref:Microsoft.ML.Transforms.ToStringTransformer> converts one or more input columns into its appropriate string representation.
     ///
-    /// The ToStringTransformer can be applied to one or more columns, in which case it turns each input type into its appropriate string represenation.
+    /// The ToStringTransformer can be applied to one or more columns, in which case it turns each input type into its appropriate string representation.
     ///
     /// ]]>
     /// </format>
@@ -297,7 +297,7 @@ namespace Microsoft.ML.Featurizers
 
             protected override bool ReleaseHandle()
             {
-                // Not sure what to do with error stuff here.  There shoudln't ever be one though.
+                // Not sure what to do with error stuff here.  There shouldn't ever be one though.
                 return _destroySaveDataHandler(handle, _dataSize, out IntPtr errorHandle);
             }
         }

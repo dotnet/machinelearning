@@ -165,7 +165,7 @@ namespace Microsoft.ML.Transforms.Onnx
         /// </summary>
         /// <param name="modelFile">Model file path.</param>
         /// <param name="gpuDeviceId">GPU device ID to execute on. Null for CPU.</param>
-        /// <param name="fallbackToCpu">If true, resumes CPU execution quitely upon GPU error.</param>
+        /// <param name="fallbackToCpu">If true, resumes CPU execution quietly upon GPU error.</param>
         /// <param name="ownModelFile">If true, the <paramref name="modelFile"/> will be deleted when <see cref="OnnxModel"/> is
         /// no longer needed.</param>
         /// <param name="shapeDictionary"></param>

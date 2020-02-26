@@ -18,7 +18,7 @@ namespace Microsoft.ML.Benchmarks
         protected abstract IEnumerable<Metric> GetMetrics();
 
         /// <summary>
-        ///  this method is executed after running the benchmrks
+        ///  this method is executed after running the benchmarks
         ///  we use it as hack to simply print to console so ExtraMetricColumn can parse the output
         /// </summary>
         [GlobalCleanup]

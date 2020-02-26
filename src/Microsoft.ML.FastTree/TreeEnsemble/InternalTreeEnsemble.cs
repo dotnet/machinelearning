@@ -292,7 +292,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             int innerLoopSize = 1 + dataset.NumDocs / BlockingThreadPool.NumThreads;  // minimize number of times we have to skip forward in the sparse arrays
             // REVIEW: This partitioning doesn't look optimal.
-            // Probably make sence to investigate better ways of splitting data?
+            // Probably make sense to investigate better ways of splitting data?
             var actions = new Action[(int)Math.Ceiling(1.0 * dataset.NumDocs / innerLoopSize)];
             var actionIndex = 0;
             for (int d = 0; d < dataset.NumDocs; d += innerLoopSize)

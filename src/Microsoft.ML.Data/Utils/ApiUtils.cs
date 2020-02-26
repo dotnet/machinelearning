@@ -126,7 +126,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Each of the specialized 'poke' methods sets the appropriate field value of an instance of T
         /// to the provided value. So, the call is 'peek(userObject, providedValue)' and the logic is
-        /// indentical to 'userObject.##FIELD## = providedValue', where ##FIELD## is defined per poke method.
+        /// identical to 'userObject.##FIELD## = providedValue', where ##FIELD## is defined per poke method.
         /// </summary>
         internal static Delegate GeneratePoke<TOwn, TRow>(InternalSchemaDefinition.Column column)
         {

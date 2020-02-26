@@ -72,7 +72,7 @@ namespace Microsoft.ML.Transforms
 
         /// <summary>
         /// Feature Contribution Calculation computes model-specific contribution scores for each feature.
-        /// Note that this functionality is not supported by all the models. See <see cref="FeatureContributionCalculatingTransformer"/> for a list of the suported models.
+        /// Note that this functionality is not supported by all the models. See <see cref="FeatureContributionCalculatingTransformer"/> for a list of the sported models.
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="modelParameters">Trained model parameters that support Feature Contribution Calculation and which will be used for scoring.</param>
@@ -305,7 +305,7 @@ namespace Microsoft.ML.Transforms
 
         /// <summary>
         /// Feature Contribution Calculation computes model-specific contribution scores for each feature.
-        /// Note that this functionality is not supported by all the models. See <see cref="FeatureContributionCalculatingTransformer"/> for a list of the suported models.
+        /// Note that this functionality is not supported by all the models. See <see cref="FeatureContributionCalculatingTransformer"/> for a list of the sported models.
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="model">A <see cref="ISingleFeaturePredictionTransformer{TModel}"/> that supports Feature Contribution Calculation,

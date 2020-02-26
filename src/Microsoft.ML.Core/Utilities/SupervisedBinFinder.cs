@@ -12,7 +12,7 @@ namespace Microsoft.ML.Internal.Utilities
     /// <summary>
     /// This class performs discretization of (value, label) pairs into bins in a way that minimizes
     /// the target function "minimum description length".
-    /// The algorithm is outlineed in an article
+    /// The algorithm is outlined in an article
     /// "Multi-Interval Discretization of Continuous-Valued Attributes for Classification Learning"
     /// [Fayyad, Usama M.; Irani, Keki B. (1993)] https://ijcai.org/Past%20Proceedings/IJCAI-93-VOL2/PDF/022.pdf
     ///

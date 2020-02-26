@@ -122,7 +122,7 @@ namespace Microsoft.ML.AutoML.Test
             {
                 var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData,
                     new ColumnInformation() { LabelColumnName = "0" }, validData, task));
-                Assert.StartsWith("Training data and validation data schemas do not match. Column '1' exsits in train data, but not in validation data.", ex.Message);
+                Assert.StartsWith("Training data and validation data schemas do not match. Column '1' exists in train data, but not in validation data.", ex.Message);
             }
         }
 
@@ -332,7 +332,7 @@ namespace Microsoft.ML.AutoML.Test
                 new List<KeyValuePair<float, bool>>() { new KeyValuePair<float, bool>(1, true) });
             trainingData = convertLabelToBoolEstimator.Fit(trainingData).Transform(trainingData);
 
-            // Build validaiton data where label column is a Boolean.
+            // Build validation data where label column is a Boolean.
             var validationDataBuilder = new ArrayDataViewBuilder(mlContext);
             validationDataBuilder.AddColumn("Number", NumberDataViewType.Single, 0f);
             validationDataBuilder.AddColumn(DefaultColumnNames.Label, BooleanDataViewType.Instance, false);

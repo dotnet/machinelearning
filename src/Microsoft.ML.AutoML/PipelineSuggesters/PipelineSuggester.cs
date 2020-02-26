@@ -49,7 +49,7 @@ namespace Microsoft.ML.AutoML
             // sort top trainers by # of times they've been run, from lowest to highest
             var orderedTopTrainers = OrderTrainersByNumTrials(history, topTrainers);
 
-            // keep as hashset of previously visited pipelines
+            // keep as hash set of previously visited pipelines
             var visitedPipelines = new HashSet<SuggestedPipeline>(history.Select(h => h.Pipeline));
 
             // iterate over top trainers (from least run to most run),
@@ -186,7 +186,7 @@ namespace Microsoft.ML.AutoML
 
         /// <summary>
         /// Samples new hyperparameters for the trainer, and sets them.
-        /// Returns true if success (new hyperparams were suggested and set). Else, returns false.
+        /// Returns true if success (new hyperparameters were suggested and set). Else, returns false.
         /// </summary>
         private static bool SampleHyperparameters(MLContext context, SuggestedTrainer trainer, IEnumerable<SuggestedPipelineRunDetail> history, bool isMaximizingMetric)
         {
@@ -207,7 +207,7 @@ namespace Microsoft.ML.AutoML
                 return false;
             }
 
-            // associate proposed param set with trainer, so that smart hyperparam
+            // associate proposed parameter set with trainer, so that smart hyperparameter
             // sweepers (like KDO) can map them back.
             trainer.SetHyperparamValues(proposedParamSet);
 

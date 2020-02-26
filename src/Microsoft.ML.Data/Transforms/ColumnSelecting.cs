@@ -260,7 +260,7 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Back-compatibilty function that handles loading the DropColumns Transform.
+        /// Back-compatibility function that handles loading the DropColumns Transform.
         /// </summary>
         private static ColumnSelectingTransformer LoadDropColumnsTransform(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
@@ -298,7 +298,7 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Back-compatibilty that is handling the HiddenColumnOption from ChooseColumns.
+        /// Back-compatibility that is handling the HiddenColumnOption from ChooseColumns.
         /// </summary>
         private enum HiddenColumnOption : byte
         {

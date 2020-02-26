@@ -288,7 +288,7 @@ namespace Microsoft.ML.Trainers
 
         bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
         {
-            // Computation graph of distances to all centriods for a batch of examples. Note that a centriod is just
+            // Computation graph of distances to all centroids for a batch of examples. Note that a centroid is just
             // the center of a cluster. We use [] to denote the dimension of a variable; for example, X [3, 2] means
             // that X is a 3-by-2 tensor. In addition, for a matrix X, X^T denotes its transpose.
             //
@@ -296,11 +296,11 @@ namespace Microsoft.ML.Trainers
             // l: # of examples.
             // n: # of features per input example.
             // X: input examples, l-by-n tensor.
-            // C: centriods, k-by-n tensor.
-            // C^2: 2-norm of all centriod vectors, its shape is [k].
-            // Y: 2-norm of difference between examples and centriods, l-by-k tensor. The value at i-th row and k-th
-            // column row, Y[i,k], is the distance from example i to centrioid k.
-            // L: the id of the nearest centriod for each input example, its shape is [l].
+            // C: centroids, k-by-n tensor.
+            // C^2: 2-norm of all centroid vectors, its shape is [k].
+            // Y: 2-norm of difference between examples and centroids, l-by-k tensor. The value at i-th row and k-th
+            // column row, Y[i,k], is the distance from example i to centroid k.
+            // L: the id of the nearest centroid for each input example, its shape is [l].
             //
             // .------------------------------------------------------.
             // |                                                      |

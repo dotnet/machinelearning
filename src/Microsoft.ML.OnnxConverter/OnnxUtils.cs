@@ -380,7 +380,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             // "This is useful for declaring the interfaces that care about the number of dimensions, but not the exact size of each dimension"
             // This file, https://github.com/onnx/onnx/blob/master/onnx/tools/update_model_dims.py, explains that if the dim value is negative
             // than it treats that as a dim_param instead of a dim_value. This allows ML.NET to run 1 row at a time in a streaming fassion,
-            // but allows the ONNX model the flexiblity to be run in batch mode if that is desired.
+            // but allows the ONNX model the flexibility to be run in batch mode if that is desired.
             dimsLocal?.Insert(0, -1);
 
             return new ModelArgs(name, dataType, dimsLocal, dimsParamLocal);

@@ -14,7 +14,7 @@ namespace Microsoft.ML.TestFramework.Attributes
     /// </summary>
     public sealed class NotCentOS7FactAttribute : EnvironmentSpecificFactAttribute
     {
-        public NotCentOS7FactAttribute() : base("These tests are not CentOS7 complient.")
+        public NotCentOS7FactAttribute() : base("These tests are not CentOS7 compliant.")
         {
         }
         protected override bool IsEnvironmentSupported()

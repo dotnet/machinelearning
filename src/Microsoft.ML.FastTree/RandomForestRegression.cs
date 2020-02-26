@@ -67,7 +67,7 @@ namespace Microsoft.ML.Trainers.FastTree
             /// </summary>
             public float GetQuantile(float p)
             {
-                Contracts.CheckParam(0 <= p && p <= 1, nameof(p), "Probablity argument for Quantile function should be between 0 to 1 inclusive");
+                Contracts.CheckParam(0 <= p && p <= 1, nameof(p), "Probability argument for Quantile function should be between 0 to 1 inclusive");
 
                 if (_data.Length == 0)
                     return float.NaN;
@@ -153,7 +153,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new VersionInfo(
                 modelSignature: "FFORE RE",
                 // verWrittenCur: 0x00010001, Initial
-                // verWrittenCur: 0x00010002, // InstanceWeights are part of QuantileRegression Tree to support weighted intances
+                // verWrittenCur: 0x00010002, // InstanceWeights are part of QuantileRegression Tree to support weighted instances
                 // verWrittenCur: 0x00010003, // _numFeatures serialized
                 // verWrittenCur: 0x00010004, // Ini content out of predictor
                 // verWrittenCur: 0x00010005, // Add _defaultValueForMissing

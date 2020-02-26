@@ -178,7 +178,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return ComputeTests(scores);
         }
 
-        // This is the info string that represnts the cotent in teh most descriptive fashion
+        // This is the info string that represents the content in the most descriptive fashion
         // The main difference between ConsoleString is always printed. The caller is responsible for deciding if InfoString is InfoString needs to be printed or not
         public virtual string FormatInfoString()
         {
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
     // A simple class that tracks history of underlying Test.
     // It captures an iteration that peak on a given metric
-    // Each itaratin captures an array of LossFunctions computed by inderlying Test
+    // Each iteration captures an array of LossFunctions computed by underlying Test
     internal class TestHistory : Test
     {
         public readonly Test SimpleTest;
@@ -254,7 +254,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
     // A class that tracks history of underlying Test.
     // Can capture an iteration that peak on a given metric
-    // Each itaratin captures an array of LossFunctions computed by inderlying Test
+    // Each iteration captures an array of LossFunctions computed by underlying Test
     internal class TestWindowWithTolerance : TestHistory
     {
         // Struct to keep information for tolerant early stopping
@@ -286,7 +286,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public double CurrentAverageValue => _currentWindowSum / _windowSize;
 
         // windowSize - number of iterations of average
-        // tolerance - how much off we can be from the best average (0.04 stand that we consider the best itration the average over the window is 4% worse than the best average)
+        // tolerance - how much off we can be from the best average (0.04 stand that we consider the best iteration the average over the window is 4% worse than the best average)
         public TestWindowWithTolerance(Test scenarioWithoutHistory, int lossIndex,
                                        int windowSize, double tolerance)
             : base(scenarioWithoutHistory, lossIndex)
@@ -537,7 +537,7 @@ namespace Microsoft.ML.Trainers.FastTree
             double totalL2Error = 0.0;
             int chunkSize = 1 + Dataset.NumDocs / BlockingThreadPool.NumThreads;   // Minimizes the number of repeat computations in sparse array to have each thread take as big a chunk as possible
             // REVIEW: This partitioning doesn't look optimal.
-            // Probably make sence to investigate better ways of splitting data?
+            // Probably make sense to investigate better ways of splitting data?
             var actions = new Action[(int)Math.Ceiling(1.0 * Dataset.NumDocs / chunkSize)];
             var actionIndex = 0;
             for (int documentStart = 0; documentStart < Dataset.NumDocs; documentStart += chunkSize)
@@ -612,10 +612,10 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             long totalNpos = 0;
             long totalNneg = 0;
-            // Compute number number of positives and number of negative examples
+            // Compute number of positives and number of negative examples
             int chunkSize = 1 + binaryLabels.Length / BlockingThreadPool.NumThreads;   // Minimizes the number of repeat computations in sparse array to have each thread take as big a chunk as possible
             // REVIEW: This partitioning doesn't look optimal.
-            // Probably make sence to investigate better ways of splitting data?
+            // Probably make sense to investigate better ways of splitting data?
             var actions = new Action[(int)Math.Ceiling(1.0 * binaryLabels.Length / chunkSize)];
             var actionIndex = 0;
             for (int documentStart = 0; documentStart < binaryLabels.Length; documentStart += chunkSize)
@@ -655,7 +655,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             int chunkSize = 1 + Dataset.NumDocs / BlockingThreadPool.NumThreads;   // Minimizes the number of repeat computations in sparse array to have each thread take as big a chunk as possible
             // REVIEW: This partitioning doesn't look optimal.
-            // Probably make sence to investigate better ways of splitting data?
+            // Probably make sense to investigate better ways of splitting data?
             var actions = new Action[(int)Math.Ceiling(1.0 * Dataset.NumDocs / chunkSize)];
             var actionIndex = 0;
             for (int documentStart = 0; documentStart < Dataset.NumDocs; documentStart += chunkSize)

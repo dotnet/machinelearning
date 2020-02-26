@@ -225,7 +225,7 @@ namespace Microsoft.ML.Data
 
             public abstract void Reset(int irow, int size);
 
-            // Passed by-ref for effeciency, not so it can be modified.
+            // Passed by-ref for efficiency, not so it can be modified.
             public abstract bool Consume(int irow, int index, ref ReadOnlyMemory<char> text);
 
             public abstract Delegate GetGetter();
