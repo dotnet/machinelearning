@@ -896,7 +896,6 @@ namespace Microsoft.ML.Data
                 Host.CheckValue(ctx, nameof(ctx));
                 Contracts.Assert(CanSaveOnnx(ctx));
 
-                string opType = "Concat";
                 for (int iinfo = 0; iinfo < _columns.Length; ++iinfo)
                 {
                     var colInfo = _parent._columns[iinfo];
@@ -904,7 +903,7 @@ namespace Microsoft.ML.Data
 
                     string outName = colInfo.Name;
                     var outColType = boundCol.OutputType;
-                    if (!outColType.IsKnownSize)
+                    if ((!outColType.IsKnownSize) || (!(outColType.GetItemType() is NumberDataViewType)))
                     {
                         ctx.RemoveColumn(outName, false);
                         continue;
@@ -925,10 +924,19 @@ namespace Microsoft.ML.Data
                             InputSchema[srcIndex].Type.GetValueCount()));
                     }
 
+                    string opType = "FeatureVectorizer";
+                    int outVectorSize = (int)inputList.Sum(x => x.Value);
+                    var vectorizerOutputType = new VectorDataViewType(NumberDataViewType.Single, outVectorSize);
+                    var vectorizerOutputName = ctx.AddIntermediateVariable(vectorizerOutputType, "VectorFeaturizerOutput");
                     var node = ctx.CreateNode(opType, inputList.Select(t => t.Key),
-                        new[] { ctx.AddIntermediateVariable(outColType, outName) }, ctx.GetNodeName(opType), "");
+                        new[] { vectorizerOutputName }, ctx.GetNodeName(opType));
+                    node.AddAttribute("inputdimensions", inputList.Select(x => x.Value));
 
-                    node.AddAttribute("axis", 1);
+                    opType = "Cast";
+                    var dstVectorType = new VectorDataViewType(outColType.GetItemType() as PrimitiveDataViewType, outVectorSize);
+                    var dstVariableName = ctx.AddIntermediateVariable(dstVectorType, outName);
+                    var castNode = ctx.CreateNode(opType, vectorizerOutputName, dstVariableName, ctx.GetNodeName(opType), "");
+                    castNode.AddAttribute("to", outColType.ItemType.RawType);
                 }
             }
         }
