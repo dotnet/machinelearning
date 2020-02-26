@@ -274,14 +274,22 @@
       },
       {
         "input": [
-          "CastNodeOutput",
-          "ShapeVar"
+          "CastNodeOutput"
         ],
         "output": [
           "PredictedLabel"
         ],
-        "name": "Reshape",
-        "opType": "Reshape"
+        "name": "Unsqueeze",
+        "opType": "Unsqueeze",
+        "attribute": [
+          {
+            "name": "axes",
+            "ints": [
+              "0"
+            ],
+            "type": "INTS"
+          }
+        ]
       },
       {
         "input": [
@@ -371,17 +379,6 @@
     ],
     "name": "model",
     "initializer": [
-      {
-        "dims": [
-          "2"
-        ],
-        "dataType": 7,
-        "int64Data": [
-          "1",
-          "1"
-        ],
-        "name": "ShapeVar"
-      },
       {
         "dims": [
           "1",
