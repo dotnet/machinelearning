@@ -54,16 +54,9 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(NumberDataViewType.Single, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
         }
 
-        // [TensorFlowFact]
-        [Theory, VaryingTolerance(3)]
-        public void AutoFitImageClassificationTrainTest(int tolerance)
+        [TensorFlowFact]
+        public void AutoFitImageClassificationTrainTest()
         {
-            // Replacing TensorFlowFact
-            if (Environment.Is64BitProcess == false)
-            {
-                Console.WriteLine("TensorFlow is 64-bit only, skipping AutoFitImageClassificationTrainTest.");
-                return;
-            }
             var context = new MLContext(seed: 1);
             var datasetPath = DatasetUtil.GetFlowersDataset();
             var columnInference = context.Auto().InferColumns(datasetPath, "Label");
@@ -77,7 +70,7 @@ namespace Microsoft.ML.AutoML.Test
                             .CreateMulticlassClassificationExperiment(0)
                             .Execute(trainDataset, testDataset, columnInference.ColumnInformation);
 
-            Assert.Equal(1, result.BestRun.ValidationMetrics.MicroAccuracy, tolerance);
+            Assert.Equal(1, result.BestRun.ValidationMetrics.MicroAccuracy, 3);
 
             var scoredData = result.BestRun.Model.Transform(trainData);
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);

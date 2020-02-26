@@ -146,19 +146,12 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Multiclass Logistic Regression test.
         /// </summary>
-        //[LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
-        [Theory, VaryingTolerance(4)]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
-        public void MulticlassLRTest(int tolerance)
+        public void MulticlassLRTest()
         {
-            // Replacing LessThanNetCore30OrNotNetCoreFactAttribute
-            if (AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
-            {
-                Console.WriteLine("netcoreapp3.0 output differs from Baseline, skipping MulticlassLRTest.");
-                return;
-            }
-            RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.iris, digitsOfPrecision: tolerance);
+            RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.iris, digitsOfPrecision: 4);
             Done();
         }
 
@@ -278,18 +271,10 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        //[X64Fact("x86 output differs from Baseline")]
-        [Theory, VaryingTolerance(4)]
+        [X64Fact("x86 output differs from Baseline")]
         [TestCategory("Binary")]
-        public void BinaryClassifierSymSgdTest(int tolerance)
-        {
-            // Replacing X64Fact
-            if (Environment.Is64BitProcess == false)
-            {
-                Console.WriteLine("x86 output differs from Baseline, skipping BinaryClassifierSymSgdTest.");
-                return;
-            }
-            
+        public void BinaryClassifierSymSgdTest()
+        {            
             // TODO: Linux uses a version of MKL that doesn't support conditional numerical reproducibility the same way as
             // Windows runs.
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -299,7 +284,7 @@ namespace Microsoft.ML.RunTests
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 return;
 
-            RunOneAllTests(TestLearners.symSGD, TestDatasets.breastCancer, summary: true, digitsOfPrecision: tolerance);
+            RunOneAllTests(TestLearners.symSGD, TestDatasets.breastCancer, summary: true, digitsOfPrecision: 4);
             Done();
         }
 
@@ -342,20 +327,13 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        //[LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
-        [Theory, VaryingTolerance(6)]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         [TestCategory("Binary")]
-        public void BinaryClassifierLogisticRegressionBinNormTest(int tolerance)
+        public void BinaryClassifierLogisticRegressionBinNormTest()
         {
-            // Replacing LessThanNetCore30OrNotNetCoreFactAttribute
-            if (AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
-            {
-                Console.WriteLine("netcoreapp3.0 output differs from Baseline, skipping BinaryClassifierLogisticRegressionBinNormTest.");
-                return;
-            }
             var binaryPredictors = new[] { TestLearners.logisticRegressionBinNorm };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: tolerance);
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 6);
             Done();
         }
 

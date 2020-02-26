@@ -329,17 +329,9 @@ namespace Microsoft.ML.Tests
             Assert.Equal(1.5292508189989167E-07, prediction.Change[3], precision: 5); // Martingale score
         }
 
-        //[LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
-        [Theory, VaryingTolerance(7)]
-        [Trait("Category", "SkipInCI")]
-        public void SsaForecast(int tolerance)
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        public void SsaForecast()
         {
-            // Replacing LessThanNetCore30OrNotNetCoreFactAttribute
-            if (AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
-            {
-                Console.WriteLine("netcoreapp3.0 output differs from Baseline, skipping SsaForecast.");
-                return;
-            }
             var env = new MLContext(1);
             const int changeHistorySize = 10;
             const int seasonalitySize = 10;
@@ -384,9 +376,9 @@ namespace Microsoft.ML.Tests
 
             for (int localIndex = 0; localIndex < 4; localIndex++)
             {
-                Assert.Equal(expectedForecast[localIndex], row.Forecast[localIndex], precision: tolerance);
-                Assert.Equal(minCnf[localIndex], row.MinCnf[localIndex], precision: tolerance);
-                Assert.Equal(maxCnf[localIndex], row.MaxCnf[localIndex], precision: tolerance);
+                Assert.Equal(expectedForecast[localIndex], row.Forecast[localIndex], precision: 7);
+                Assert.Equal(minCnf[localIndex], row.MinCnf[localIndex], precision: 7);
+                Assert.Equal(maxCnf[localIndex], row.MaxCnf[localIndex], precision: 7);
             }
 
         }
