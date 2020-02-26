@@ -1009,12 +1009,9 @@ namespace Microsoft.ML.Trainers
             var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.UInt32).ToType();
             castNode.AddAttribute("to", t);
 
-            // The predictedLabel is a scalar. But the onnx output of ML.NET output expects a [1x1] tensor for output. So reshape it here
-            opType = "Reshape";
-            long[] shape = { 1, 1 };
-            long[] shapeDim = { 2 };
-            var shapeVar = ctx.AddInitializer(shape, shapeDim, "ShapeVar");
-            var reshapeNode = ctx.CreateNode(opType, new[] { castNodeOutput, shapeVar }, new[] { predictedLabelUint32 }, ctx.GetNodeName(opType), "");
+            opType = "Unsqueeze";
+            var unsqueezeNode = ctx.CreateNode(opType, castNodeOutput, predictedLabelUint32, ctx.GetNodeName(opType), "");
+            unsqueezeNode.AddAttribute("axes", new long[] { 0 });
 
             return true;
         }
