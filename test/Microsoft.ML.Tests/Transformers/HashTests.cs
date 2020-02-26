@@ -224,24 +224,25 @@ namespace Microsoft.ML.Tests.Transformers
             uint eKey = value == 0 ? 0 : expected;
             uint eoKey = value == 0 ? 0 : expectedOrdered;
             uint e3Key = value == 0 ? 0 : expectedOrdered3;
+            uint ecKey = value == 0 ? 0 : expectedCombined;
 
             if (value <= byte.MaxValue)
             {
                 HashTestCore((byte)value, NumberDataViewType.Byte, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
-                HashTestCore((byte)value, new KeyDataViewType(typeof(byte), byte.MaxValue - 1), eKey, eoKey, e3Key, expectedCombined, expectedCombinedSparse);
+                HashTestCore((byte)value, new KeyDataViewType(typeof(byte), byte.MaxValue - 1), eKey, eoKey, e3Key, ecKey, 0);
             }
             if (value <= ushort.MaxValue)
             {
                 HashTestCore((ushort)value, NumberDataViewType.UInt16, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
-                HashTestCore((ushort)value, new KeyDataViewType(typeof(ushort),ushort.MaxValue - 1), eKey, eoKey, e3Key, expectedCombined, expectedCombinedSparse);
+                HashTestCore((ushort)value, new KeyDataViewType(typeof(ushort),ushort.MaxValue - 1), eKey, eoKey, e3Key, ecKey, 0);
             }
             if (value <= uint.MaxValue)
             {
                 HashTestCore((uint)value, NumberDataViewType.UInt32, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
-                HashTestCore((uint)value, new KeyDataViewType(typeof(uint), int.MaxValue - 1), eKey, eoKey, e3Key, expectedCombined, expectedCombinedSparse);
+                HashTestCore((uint)value, new KeyDataViewType(typeof(uint), int.MaxValue - 1), eKey, eoKey, e3Key, ecKey, 0);
             }
             HashTestCore(value, NumberDataViewType.UInt64, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
-            HashTestCore((ulong)value, new KeyDataViewType(typeof(ulong), int.MaxValue - 1), eKey, eoKey, e3Key, expectedCombined, expectedCombinedSparse);
+            HashTestCore((ulong)value, new KeyDataViewType(typeof(ulong), int.MaxValue - 1), eKey, eoKey, e3Key, ecKey, 0);
 
             HashTestCore(new DataViewRowId(value, 0), RowIdDataViewType.Instance, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
 
