@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using Microsoft.ML.Calibrators;
@@ -49,6 +50,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [LightGBMFact]
+        [Category]
         public void LightGBMBinaryEstimator()
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
@@ -72,6 +74,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Theory]
         [IterationData(iterations:20)]
         [Trait("Category", "RunSpecificTest")]
+        //[TestCategory("LightGBM")]
         public void LightGBMBinaryEstimatorUnbalanced(int iteration)
         {
             Output.WriteLine($"{iteration} - th");
@@ -99,6 +102,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Theory]
         [IterationData(iterations: 20)]
         [Trait("Category", "RunSpecificTest")]
+        //[TestCategory("LightGBM")]
         public void LightGBMBinaryEstimatorCorrectSigmoid(int iteration)
         {
             Output.WriteLine($"{iteration} - th");
@@ -224,6 +228,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Theory]
         [IterationData(iterations: 20)]
         [Trait("Category", "RunSpecificTest")]
+        //[TestCategory("LightGBM")]
         public void LightGBMRegressorEstimator(int iteration)
         {
             Output.WriteLine($"{iteration} - th");

@@ -253,9 +253,13 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
-        public void BinaryClassificationTrainersOnnxConversionTest()
+        [Theory]
+        [IterationData(iterations: 20)]
+        [Trait("Category", "RunSpecificTest")]
+        //[TestCategory("Onnx")]
+        public void BinaryClassificationTrainersOnnxConversionTest(int iteration)
         {
+            Output.WriteLine($"{iteration} - th");
             var mlContext = new MLContext(seed: 1);
             string dataPath = GetDataPath("breast-cancer.txt");
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).

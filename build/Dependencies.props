@@ -14,7 +14,7 @@
   <!-- Other/Non-Core Product Dependencies -->
   <PropertyGroup>
     <GoogleProtobufPackageVersion>3.10.1</GoogleProtobufPackageVersion>
-    <LightGBMPackageVersion>2.3.1</LightGBMPackageVersion>
+    <LightGBMPackageVersion>2.2.3</LightGBMPackageVersion>
     <MicrosoftExtensionsPackageVersion>2.1.0</MicrosoftExtensionsPackageVersion>
     <MicrosoftMLOnnxRuntimePackageVersion>1.0.0</MicrosoftMLOnnxRuntimePackageVersion>
     <MlNetMklDepsPackageVersion>0.0.0.9</MlNetMklDepsPackageVersion>
