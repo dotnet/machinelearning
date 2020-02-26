@@ -559,6 +559,24 @@
         }
       },
       {
+        "name": "LabelEncoderOutput",
+        "type": {
+          "tensorType": {
+            "elemType": 7,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
         "name": "PredictedLabel",
         "type": {
           "tensorType": {

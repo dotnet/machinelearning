@@ -505,30 +505,35 @@ namespace Microsoft.ML.Transforms
                     // Onnx expects the input keys to be int64s. But the input data can come from an ML.NET node that
                     // may output a uint32. So cast it here to ensure that the data is treated correctly
                     opType = "Cast";
-                    var castNodeOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "CastNodeOutput", true);
+                    var castNodeOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "CastNodeOutput");
                     var castNode = ctx.CreateNode(opType, srcVariableName, castNodeOutput, ctx.GetNodeName(opType), "");
                     var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Int64).ToType();
                     castNode.AddAttribute("to", t);
 
                     var labelEncoderOutput = dstVariableName;
                     var labelEncoderInput = srcVariableName;
-                    if (TypeOutput == NumberDataViewType.Double || TypeOutput == NumberDataViewType.Int64)
-                        labelEncoderOutput = ctx.AddIntermediateVariable(TypeOutput, "CastNodeOutput", true);
+                    if (TypeOutput == NumberDataViewType.Double)
+                        labelEncoderOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "CastNodeOutput");
+                    else if (TypeOutput == NumberDataViewType.Int64 || TypeOutput == NumberDataViewType.UInt16 ||
+                        TypeOutput == NumberDataViewType.Int32 || TypeOutput == NumberDataViewType.Int16 ||
+                        TypeOutput == NumberDataViewType.UInt64 || TypeOutput == NumberDataViewType.UInt32)
+                        labelEncoderOutput = ctx.AddIntermediateVariable(TextDataViewType.Instance, "CastNodeOutput");
 
                     opType = "LabelEncoder";
                     var node = ctx.CreateNode(opType, castNodeOutput, labelEncoderOutput, ctx.GetNodeName(opType));
                     var keys = Array.ConvertAll<int, long>(Enumerable.Range(1, _values.Length).ToArray(), item => Convert.ToInt64(item));
                     node.AddAttribute("keys_int64s", keys);
 
-                    if (TypeOutput == NumberDataViewType.Int64)
+                    if (TypeOutput == NumberDataViewType.Int64 || TypeOutput == NumberDataViewType.Int32 ||
+                        TypeOutput == NumberDataViewType.Int16 || TypeOutput == NumberDataViewType.UInt64 ||
+                        TypeOutput == NumberDataViewType.UInt32 || TypeOutput == NumberDataViewType.UInt16)
                     {
                         // LabelEncoder doesn't support mapping int64 -> int64, so values are converted to strings and later cast back to Int64s
                         string[] values = Array.ConvertAll<TValue, string>(_values.GetValues().ToArray(), item => Convert.ToString(item));
                         node.AddAttribute("values_strings", values);
                         opType = "Cast";
                         castNode = ctx.CreateNode(opType, labelEncoderOutput, dstVariableName, ctx.GetNodeName(opType), "");
-                        t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Int64).ToType();
-                        castNode.AddAttribute("to", t);
+                        castNode.AddAttribute("to", TypeOutput.RawType);
                     }
                     else if (TypeOutput == NumberDataViewType.Single)
                     {

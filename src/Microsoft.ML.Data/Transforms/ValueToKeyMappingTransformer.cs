@@ -781,47 +781,73 @@ namespace Microsoft.ML.Transforms
                 return termValues;
             }
 
+            private void CastInputToString<T>(OnnxContext ctx, out OnnxNode node, out long[] termIds, string srcVariableName, int iinfo,
+                string opType, string labelEncoderOutput)
+            {
+                var castOutput = ctx.AddIntermediateVariable(TextDataViewType.Instance, "castOutput");
+                var castNode = ctx.CreateNode("Cast", srcVariableName, castOutput, ctx.GetNodeName("Cast"), "");
+                var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.String).ToType();
+                castNode.AddAttribute("to", t);
+                node = ctx.CreateNode(opType, castOutput, labelEncoderOutput, ctx.GetNodeName(opType));
+                var terms = GetTermsAndIds<T>(iinfo, out termIds);
+                node.AddAttribute("keys_strings", terms.Select(item => item.ToString()));
+            }
+
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
                 OnnxNode node;
                 long[] termIds;
                 string opType = "LabelEncoder";
                 OnnxNode castNode;
-                var labelEncoderOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "LabelEncoderOutput", true);
+                var labelEncoderOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "LabelEncoderOutput");
 
-                if (info.TypeSrc.GetItemType().Equals(TextDataViewType.Instance))
+                var type = info.TypeSrc.GetItemType();
+                if (type.Equals(TextDataViewType.Instance))
                 {
                     node = ctx.CreateNode(opType, srcVariableName, labelEncoderOutput, ctx.GetNodeName(opType));
                     var terms = GetTermsAndIds<ReadOnlyMemory<char>>(iinfo, out termIds);
                     node.AddAttribute("keys_strings", terms);
                 }
-                else if (info.TypeSrc.GetItemType().Equals(NumberDataViewType.Single))
+                else if (type.Equals(NumberDataViewType.Single))
                 {
                     node = ctx.CreateNode(opType, srcVariableName, labelEncoderOutput, ctx.GetNodeName(opType));
                     var terms = GetTermsAndIds<float>(iinfo, out termIds);
                     node.AddAttribute("keys_floats", terms);
                 }
-                else if (info.TypeSrc.GetItemType().Equals(NumberDataViewType.Double))
+                else if (type.Equals(NumberDataViewType.Double))
                 {
                     // LabelEncoder doesn't support double tensors, so values are cast to floats
-                    var castOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "castOutput", true);
-                    castNode = ctx.CreateNode("Cast", srcVariableName, castOutput, ctx.GetNodeName(opType), "");
+                    var castOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "castOutput");
+                    castNode = ctx.CreateNode("Cast", srcVariableName, castOutput, ctx.GetNodeName("Cast"), "");
                     var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Single).ToType();
                     castNode.AddAttribute("to", t);
                     node = ctx.CreateNode(opType, castOutput, labelEncoderOutput, ctx.GetNodeName(opType));
                     var terms = GetTermsAndIds<double>(iinfo, out termIds);
                     node.AddAttribute("keys_floats", terms);
                 }
-                else if (info.TypeSrc.GetItemType().Equals(NumberDataViewType.Int64))
+                else if (type.Equals(NumberDataViewType.Int64))
                 {
-                    // LabelEncoder doesn't support mapping int64 -> int64, so values are cast to strings
-                    var castOutput = ctx.AddIntermediateVariable(TextDataViewType.Instance, "castOutput", true);
-                    castNode = ctx.CreateNode("Cast", srcVariableName, castOutput, ctx.GetNodeName(opType), "");
-                    var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.String).ToType();
-                    castNode.AddAttribute("to", t);
-                    node = ctx.CreateNode(opType, castOutput, labelEncoderOutput, ctx.GetNodeName(opType));
-                    var terms = GetTermsAndIds<long>(iinfo, out termIds);
-                    node.AddAttribute("keys_strings", terms.Select(item => item.ToString()));
+                    CastInputToString<Int64>(ctx, out node, out termIds ,srcVariableName, iinfo, opType, labelEncoderOutput );
+                }
+                else if (type.Equals(NumberDataViewType.Int32))
+                {
+                    CastInputToString<Int32>(ctx, out node, out termIds, srcVariableName, iinfo, opType, labelEncoderOutput);
+                }
+                else if (type.Equals(NumberDataViewType.Int16))
+                {
+                    CastInputToString<Int16>(ctx, out node, out termIds, srcVariableName, iinfo, opType, labelEncoderOutput);
+                }
+                else if (type.Equals(NumberDataViewType.UInt64))
+                {
+                    CastInputToString<UInt64>(ctx, out node, out termIds, srcVariableName, iinfo, opType, labelEncoderOutput);
+                }
+                else if (type.Equals(NumberDataViewType.UInt32))
+                {
+                    CastInputToString<UInt32>(ctx, out node, out termIds, srcVariableName, iinfo, opType, labelEncoderOutput);
+                }
+                else if (type.Equals(NumberDataViewType.UInt16))
+                {
+                    CastInputToString<UInt16>(ctx, out node, out termIds, srcVariableName, iinfo, opType, labelEncoderOutput);
                 }
                 else
                 {
