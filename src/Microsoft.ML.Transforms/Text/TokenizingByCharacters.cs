@@ -190,6 +190,7 @@ namespace Microsoft.ML.Transforms.Text
             private readonly DataViewType _type;
             private readonly TokenizingByCharactersTransformer _parent;
             private readonly bool[] _isSourceVector;
+            private readonly int[] _sourceVectorLength;
             // Constructed and cached the first time it is needed.
             private volatile string _keyValuesStr;
             private volatile int[] _keyValuesBoundaries;
@@ -201,8 +202,13 @@ namespace Microsoft.ML.Transforms.Text
                 var keyType = new KeyDataViewType(typeof(ushort), CharsCount);
                 _type = new VectorDataViewType(keyType);
                 _isSourceVector = new bool[_parent.ColumnPairs.Length];
+                _sourceVectorLength = new int[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _isSourceVector.Length; i++)
-                    _isSourceVector[i] = inputSchema[_parent.ColumnPairs[i].inputColumnName].Type is VectorDataViewType;
+                {
+                    var type = inputSchema[_parent.ColumnPairs[i].inputColumnName].Type;
+                    _isSourceVector[i] = type is VectorDataViewType;
+                    _sourceVectorLength[i] = type.GetValueCount();
+                }
             }
 
             public bool CanSaveOnnx(OnnxContext ctx) => true;
@@ -219,14 +225,20 @@ namespace Microsoft.ML.Transforms.Text
                     string outputColumnName = _parent.ColumnPairs[iinfo].outputColumnName;
                     string srcVariableName = ctx.GetVariableName(inputColumnName);
                     string dstVariableName = ctx.AddIntermediateVariable(_type, outputColumnName, true);
-                    SaveAsOnnxCore(ctx, srcVariableName, dstVariableName);
+                    SaveAsOnnxCore(ctx, iinfo, srcVariableName, dstVariableName);
                 }
             }
 
-            private void SaveAsOnnxCore(OnnxContext ctx, string srcVariableName, string dstVariableName)
+            private void SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
             {
                 string opType = "Tokenizer";
-                string tokenizerOutput = ctx.AddIntermediateVariable(null, "TokenizerOutput", true);
+                DataViewType dataViewType;
+                if (_isSourceVector[iinfo])
+                    dataViewType = new VectorDataViewType(TextDataViewType.Instance, _sourceVectorLength[iinfo]);
+                else
+                    dataViewType = TextDataViewType.Instance;
+
+                string tokenizerOutput = ctx.AddIntermediateVariable(dataViewType, "TokenizerOutput", true);
                 var node = ctx.CreateNode(opType, srcVariableName, tokenizerOutput, ctx.GetNodeName(opType), "com.microsoft");
                 node.AddAttribute("mark", _parent._useMarkerChars);
                 node.AddAttribute("mincharnum", 1);
@@ -234,12 +246,12 @@ namespace Microsoft.ML.Transforms.Text
                 node.AddAttribute("separators", new string[] { "" });
 
                 opType = "Squeeze";
-                var squeezeOutput = ctx.AddIntermediateVariable(null, "SqueezeOutput", true);
+                var squeezeOutput = ctx.AddIntermediateVariable(dataViewType, "SqueezeOutput");
                 node = ctx.CreateNode(opType, tokenizerOutput, squeezeOutput, ctx.GetNodeName(opType), "");
-                node.AddAttribute("axes", new long[] { 0 });
+                node.AddAttribute("axes", new long[] { 1 });
 
                 opType = "LabelEncoder";
-                var labelEncoderOutput = ctx.AddIntermediateVariable(null, "LabelEncoderOutput", true);
+                var labelEncoderOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "LabelEncoderOutput");
                 node = ctx.CreateNode(opType, squeezeOutput, labelEncoderOutput, ctx.GetNodeName(opType));
 
                 IEnumerable<string> charStrings = Enumerable.Range(0, 65535).Select(x => ((char)x).ToString());

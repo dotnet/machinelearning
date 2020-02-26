@@ -238,7 +238,7 @@ namespace Microsoft.ML.Transforms.Text
                 var opType = "Squeeze";
                 var squeezeOutput = ctx.AddIntermediateVariable(null, "SqueezeOutput", true);
                 var node = ctx.CreateNode(opType, srcVariableName, squeezeOutput, ctx.GetNodeName(opType), "");
-                node.AddAttribute("axes", new long[] { 0 });
+                node.AddAttribute("axes", new long[] { 1 });
 
                 opType = "StringNormalizer";
                 var normalizerOutput = ctx.AddIntermediateVariable(null, "NormalizerOutput", true);
@@ -249,7 +249,7 @@ namespace Microsoft.ML.Transforms.Text
 
                 opType = "Unsqueeze";
                 node = ctx.CreateNode(opType, normalizerOutput, dstVariableName, ctx.GetNodeName(opType), "");
-                node.AddAttribute("axes", new long[] { 0 });
+                node.AddAttribute("axes", new long[] { 1 });
             }
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
