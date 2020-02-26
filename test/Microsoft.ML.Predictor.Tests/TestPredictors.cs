@@ -274,7 +274,7 @@ namespace Microsoft.ML.RunTests
         [X64Fact("x86 output differs from Baseline")]
         [TestCategory("Binary")]
         public void BinaryClassifierSymSgdTest()
-        {            
+        {
             // TODO: Linux uses a version of MKL that doesn't support conditional numerical reproducibility the same way as
             // Windows runs.
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))

@@ -12,7 +12,6 @@ using Xunit;
 using static Microsoft.ML.DataOperationsCatalog;
 using Microsoft.ML.TestFramework;
 using Xunit.Abstractions;
-using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.AutoML.Test
 {
