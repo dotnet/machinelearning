@@ -180,7 +180,7 @@ namespace Microsoft.ML.EntryPoints
         {
             Contracts.CheckValue(variableType, nameof(variableType));
 
-            // Option types should not be used to consturct graph.
+            // Option types should not be used to construct graph.
             if (variableType.IsGenericType && variableType.GetGenericTypeDefinition() == typeof(Optional<>))
                 return false;
 

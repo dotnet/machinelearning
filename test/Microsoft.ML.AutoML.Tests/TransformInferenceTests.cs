@@ -774,7 +774,7 @@ namespace Microsoft.ML.AutoML.Test
             // create a dummy data view from input columns
             var data = DataViewTestFixture.BuildDummyDataView(columns);
 
-            // iterate thru suggested transforms and apply it to a real data view
+            // iterate through suggested transforms and apply it to a real data view
             foreach (var transform in transforms.Select(t => t.Estimator))
             {
                 data = transform.Fit(data).Transform(data);

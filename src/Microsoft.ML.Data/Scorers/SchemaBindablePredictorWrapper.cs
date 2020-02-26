@@ -426,7 +426,7 @@ namespace Microsoft.ML.Data
 
             var mapper = ValueMapper as ISingleCanSaveOnnx;
             Contracts.CheckValue(mapper, nameof(mapper));
-            Contracts.Assert(Utils.Size(outputNames) == 3); // Predicted Label, Score and Probablity.
+            Contracts.Assert(Utils.Size(outputNames) == 3); // Predicted Label, Score and Probability.
 
             // Prior doesn't have a feature column and uses the training label column to determine predicted labels
             if (!schema.Feature.HasValue)

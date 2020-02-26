@@ -71,7 +71,7 @@ namespace Microsoft.ML.Tools
                 {
                     progressCancel.Cancel();
                     progressTrackerTask.Wait();
-                    // If the run completed so quickly that the progress task was cancelled before it even got a chance to start,
+                    // If the run completed so quickly that the progress task was canceled before it even got a chance to start,
                     // we need to gather the checkpoints.
                     env.PrintProgress();
                 }

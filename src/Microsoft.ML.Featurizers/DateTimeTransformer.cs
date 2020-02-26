@@ -37,7 +37,7 @@ namespace Microsoft.ML.Featurizers
     {
         /// <summary>
         /// Create a <see cref="DateTimeEstimator"/>, which splits up the input column specified by <paramref name="inputColumnName"/>
-        /// into all its individual datetime components. Input column must be of type Int64 representing the number of seconds since the unix epoc.
+        /// into all its individual datetime components. Input column must be of type Int64 representing the number of seconds since the unix epoch.
         /// This transformer will append the <paramref name="columnPrefix"/> to all the output columns. If you specify a country,
         /// Holiday details will be looked up for that country as well.
         /// </summary>
@@ -345,7 +345,7 @@ namespace Microsoft.ML.Featurizers
 
             protected override bool ReleaseHandle()
             {
-                // Not sure what to do with error stuff here.  There shoudln't ever be one though.
+                // Not sure what to do with error stuff here.  There shouldn't ever be one though.
                 return _destroyTransformedDataHandler(handle, out IntPtr errorHandle);
             }
         }

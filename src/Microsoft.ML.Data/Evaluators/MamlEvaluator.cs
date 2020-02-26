@@ -127,7 +127,7 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// All the input columns needed by an evaluator should be added here.
-        /// The base class ipmlementation gets the score column, the label column (if exists) and the weight column (if exists).
+        /// The base class implementation gets the score column, the label column (if exists) and the weight column (if exists).
         /// Override if additional columns are needed.
         /// </summary>
         [BestFriend]

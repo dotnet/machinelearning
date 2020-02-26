@@ -119,7 +119,7 @@ namespace Microsoft.ML.AutoML.Test
             /*
              * This is only needed as Linux can produce files in a different 
              * order than other OSes. As this is a test case we want to maintain
-             * consistent accuracy across all OSes, so we sort to remove this discrepency.
+             * consistent accuracy across all OSes, so we sort to remove this discrepancy.
              */
             Array.Sort(files);
             foreach (var file in files)

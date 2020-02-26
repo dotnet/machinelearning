@@ -35,7 +35,7 @@ namespace Microsoft.ML.Data.IO
     {
         public sealed class Arguments
         {
-            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The number of worker decompressor threads to use", ShortName = "t")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The number of worker decompresser threads to use", ShortName = "t")]
             public int? Threads;
         }
 

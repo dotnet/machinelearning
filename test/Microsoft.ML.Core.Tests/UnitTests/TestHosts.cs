@@ -100,7 +100,7 @@ namespace Microsoft.ML.RunTests
 
             ((MLContext)env).CancelExecution();
 
-            //Ensure all created hosts are cancelled.
+            //Ensure all created hosts are canceled.
             //5 parent and one child for each.
             Assert.Equal(10, hosts.Count);
 

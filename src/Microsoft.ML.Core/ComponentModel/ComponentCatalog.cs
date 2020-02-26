@@ -62,7 +62,7 @@ namespace Microsoft.ML.Runtime
     }
 
     /// <summary>
-    /// This catalogs instantiatable components (aka, loadable classes). Components are registered via
+    /// This catalogs instantiable components (aka, loadable classes). Components are registered via
     /// a descendant of <see cref="LoadableClassAttributeBase"/>, identifying the names and signature types under which the component
     /// type should be registered. Signatures are delegate types that return void and specify that parameter
     /// types for component instantiation. Each component may also specify an "arguments object" that should
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Runtime
         }
 
         /// <summary>
-        /// Provides information on an instantiatable component, aka, loadable class.
+        /// Provides information on an instantiable component, aka, loadable class.
         /// </summary>
         [BestFriend]
         internal sealed class LoadableClassInfo
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Runtime
             /// <summary>
             /// Create an instance, given the arguments object and arguments to the signature delegate.
             /// The args should be non-null iff ArgType is non-null. The length of the extra array should
-            /// match the number of paramters for the signature delgate. When that number is zero, extra
+            /// match the number of parameters for the signature delegate. When that number is zero, extra
             /// may be null.
             /// </summary>
             public object CreateInstance(IHostEnvironment env, object args, object[] extra)
@@ -280,7 +280,7 @@ namespace Microsoft.ML.Runtime
             /// <summary>
             /// Create an instance, given the arguments object and arguments to the signature delegate.
             /// The args should be non-null iff ArgType is non-null. The length of the extra array should
-            /// match the number of paramters for the signature delgate. When that number is zero, extra
+            /// match the number of parameters for the signature delegate. When that number is zero, extra
             /// may be null.
             /// </summary>
             public TRes CreateInstance<TRes>(IHostEnvironment env, object args, object[] extra)
@@ -714,7 +714,7 @@ namespace Microsoft.ML.Runtime
         }
 
         /// <summary>
-        /// Return an array containing information for all instantiatable components.
+        /// Return an array containing information for all instantiable components.
         /// If provided, the given set of assemblies is loaded first.
         /// </summary>
         [BestFriend]
@@ -724,7 +724,7 @@ namespace Microsoft.ML.Runtime
         }
 
         /// <summary>
-        /// Return an array containing information for instantiatable components with the given
+        /// Return an array containing information for instantiable components with the given
         /// signature and base type. If provided, the given set of assemblies is loaded first.
         /// </summary>
         [BestFriend]

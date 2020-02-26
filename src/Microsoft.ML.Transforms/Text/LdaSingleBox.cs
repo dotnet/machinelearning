@@ -306,7 +306,7 @@ namespace Microsoft.ML.TextAnalytics
             // (1) TestOneDoc
             // (2) TestOneDocRestart
             // The second one is the same as the first one except that it will reset
-            // the states of the internal random number generator, so that it yields reproducable results for the same input
+            // the states of the internal random number generator, so that it yields reproducible results for the same input
             LdaInterface.TestOneDocDense(_engine, pVal, termNum, pTopic, pProb, ref numTopicReturn, numBurninIter, reset);
 
             // PREfast suspects that the value of numTopicReturn could be changed in _engine->TestOneDoc, which might result in read overrun in the following loop.

@@ -21,7 +21,7 @@ namespace Microsoft.ML.Benchmarks.Harness
     /// 
     /// this is why this class exists: 
     ///  1. to tell MSBuild to copy the native dependencies to folder with .exe (NativeAssemblyReference)
-    ///  2. to generate a .csproj file that does not exclude Directory.Build.props (default BDN behaviour) which contains custom NuGet feeds that are required for restore step
+    ///  2. to generate a .csproj file that does not exclude Directory.Build.props (default BDN behavior) which contains custom NuGet feeds that are required for restore step
     /// </summary>
     public class ProjectGenerator : CsProjGenerator
     {

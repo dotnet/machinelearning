@@ -97,7 +97,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// </summary>
         /// <param name="v">The value</param>
         /// <param name="w">The weight given to this value</param>
-        /// <param name="c">Amount of appereance of this value</param>
+        /// <param name="c">Amount of appearance of this value</param>
         public virtual void Add(double v, double w = 1.0, long c = 1)
         {
             double temp = w + Count;
@@ -317,7 +317,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// </summary>
         /// <param name="v">The value</param>
         /// <param name="w">The weight given to this value</param>
-        /// <param name="c">Amount of appereance of this value</param>
+        /// <param name="c">Amount of appearance of this value</param>
         public override void Add(double v, double w = 1.0, long c = 1)
         {
             double temp = w + Count;

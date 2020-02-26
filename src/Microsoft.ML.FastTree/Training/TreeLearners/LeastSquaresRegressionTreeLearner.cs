@@ -444,7 +444,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// After the gain for each feature has been computed, this function chooses the gain maximizing feature
         /// and sets its info in the right places
-        /// This method is overriden in MPI version of the code
+        /// This method is overridden in MPI version of the code
         /// </summary>
         /// <param name="leafSplitCandidates">the FindBestThesholdleafSplitCandidates data structure that contains the best split information</param>
         protected virtual void FindAndSetBestFeatureForLeaf(LeafSplitCandidates leafSplitCandidates)
@@ -611,7 +611,7 @@ namespace Microsoft.ML.Trainers.FastTree
             {
                 if (BsrMaxTreeOutput < 0)
                     return (sumTargets * sumTargets) / count;
-                // For the BSR case, fall through to below with sweight
+                // For the BSR case, fall through to below with sumWeight
                 // receiving the "natural" weight.
                 sumWeights = count;
             }

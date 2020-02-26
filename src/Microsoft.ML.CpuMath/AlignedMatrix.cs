@@ -248,7 +248,7 @@ namespace Microsoft.ML.Internal.CpuMath
 
         // Since FloatAlign is a power of two, shifting by Shift = log_2(FloatAlign) is the same as multiplying/dividing by FloatAlign.
         protected readonly int Shift;
-        // Since FloatAlign is a power of two, bitwise and with Mask = FloatAlign - 1 will be the same as moding by FloatAlign.
+        // Since FloatAlign is a power of two, bitwise and with Mask = FloatAlign - 1 will be the same as modding by FloatAlign.
         protected readonly int Mask;
 
         // Logical length of runs (RunLen) and number of runs (RunCnt).
@@ -280,7 +280,7 @@ namespace Microsoft.ML.Internal.CpuMath
         public abstract int RowCountPhy { get; }
 
         /// <summary>
-        /// The pysical number of columns
+        /// The physical number of columns
         /// </summary>
         public abstract int ColCountPhy { get; }
 

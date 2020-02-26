@@ -1903,9 +1903,9 @@
           }
         },
         {
-          "Name": "SupressScoresAndLabels",
+          "Name": "SuppressScoresAndLabels",
           "Type": "Bool",
-          "Desc": "Supress labels and scores in per-instance outputs?",
+          "Desc": "Suppress labels and scores in per-instance outputs?",
           "Aliases": [
             "noScores"
           ],
@@ -23717,7 +23717,7 @@
         {
           "Name": "SupressTypeErrors",
           "Type": "Bool",
-          "Desc": "Supress the errors that would occur if a column and impute mode are imcompatible. If true, will skip the column. If false, will stop and throw an error.",
+          "Desc": "Suppress the errors that would occur if a column and impute mode are incompatible. If true, will skip the column. If false, will stop and throw an error.",
           "Aliases": [
             "error"
           ],
