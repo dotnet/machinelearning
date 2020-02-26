@@ -146,19 +146,12 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Multiclass Logistic Regression test.
         /// </summary>
-        // [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
-        [Theory, VaryingTolerance(3)]
         public void MulticlassLRTest(int tolerance)
         {
-            // Replacing LessThanNetCore30OrNotNetCoreFactAttribute
-            if (AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
-            {
-                Console.WriteLine("netcoreapp3.0 output differs from Baseline, skipping MulticlassLRTest.");
-                return;
-            }
-                RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.iris, digitsOfPrecision: tolerance);
+            RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.iris, digitsOfPrecision: 4);
             Done();
         }
 
@@ -334,20 +327,13 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        // [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         [TestCategory("Binary")]
-        [Theory, VaryingTolerance(5)]
-        public void BinaryClassifierLogisticRegressionBinNormTest(int tolerance)
+        public void BinaryClassifierLogisticRegressionBinNormTest()
         {
-            // Replacing LessThanNetCore30OrNotNetCoreFactAttribute
-            if (AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
-            {
-                Console.WriteLine("netcoreapp3.0 output differs from Baseline, skipping BinaryClassifierLogisticRegressionBinNormTest.");
-                return;
-            }
             var binaryPredictors = new[] { TestLearners.logisticRegressionBinNorm };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: tolerance);
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 6);
             Done();
         }
 
