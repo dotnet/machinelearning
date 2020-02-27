@@ -62,7 +62,7 @@ jobs:
     buildScript: ./build.sh
     nightlyBuild: true
     pool:
-      name: Hosted macOS High Sierra
+      name: Hosted macOS
 
 - template: /build/ci/job-template.yml
   parameters:
