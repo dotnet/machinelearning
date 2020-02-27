@@ -167,7 +167,7 @@ namespace Microsoft.ML.Internal.Utilities
     /// would be engineered without this class, except they will wrap their contents in a try-catch
     /// block to push any exceptions (hopefully none) into this marshaller, using <see cref="Set"/>.
     /// Further, any potentially blocking operation of the thread workers must be changed to use
-    /// <see cref="Token"/> as the cancellation token (this token is cancelled iff <see cref="Set"/>
+    /// <see cref="Token"/> as the cancellation token (this token is canceled iff <see cref="Set"/>
     /// is ever called). The controlling thread, whatever that may be, once it is either sure
     /// <see cref="Set"/> has been called (possibly by receiving the cancellation) or is sure somehow
     /// that the workers have finished by its own means, will call <see cref="ThrowIfSet"/> to throw
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Internal.Utilities
         private Exception _ex;
 
         /// <summary>
-        /// A cancellation token, whose source will be cancelled if <see cref="Set"/> is ever called.
+        /// A cancellation token, whose source will be canceled if <see cref="Set"/> is ever called.
         /// Any thread blocking operation of a family of thread workers using this structure
         /// must use this cancellation token, or else there is a strong possibility for threads
         /// to stop responding if an exception is thrown at any point.

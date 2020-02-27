@@ -82,6 +82,15 @@ namespace Microsoft.ML.Runtime
         bool IsCanceled { get; }
     }
 
+    [BestFriend]
+    internal interface ISeededEnvironment : IHostEnvironment
+    {
+        /// <summary>
+        /// The seed property that, if assigned, makes components requiring randomness behave deterministically.
+        /// </summary>
+        int? Seed { get; }
+    }
+
     /// <summary>
     /// A host is coupled to a component and provides random number generation and concurrency guidance.
     /// Note that the random number generation, like the host environment methods, should be accessed only

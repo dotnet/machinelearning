@@ -10,13 +10,19 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.ML;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFrameworkCommon;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.Extensions.ML
 {
-    public class UriLoaderTests
+    public class UriLoaderTests : BaseTestClass
     {
+        public UriLoaderTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void throw_until_started()
         {
@@ -74,7 +80,7 @@ namespace Microsoft.Extensions.ML
 
     class UriLoaderMock : UriModelLoader
     {
-        public Func<Uri, string, bool> ETagMatches { get; set; } = (_, __) => false;
+        public Func<Uri, string, bool> ETagMatches { get; set; } = delegate { return false; };
 
         public UriLoaderMock(IOptions<MLOptions> contextOptions,
                          ILogger<UriModelLoader> logger) : base(contextOptions, logger)

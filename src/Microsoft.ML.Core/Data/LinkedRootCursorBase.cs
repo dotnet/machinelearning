@@ -20,7 +20,7 @@ namespace Microsoft.ML.Data
         /// Returns the root cursor of the input. It should be used to perform <see cref="DataViewRowCursor.MoveNext"/>
         /// operations, but with the distinction, as compared to <see cref="SynchronizedCursorBase"/>, that this is not
         /// a simple passthrough, but rather very implementation specific. For example, a common usage of this class is
-        /// on filter cursor implemetnations, where how that input cursor is consumed is very implementation specific.
+        /// on filter cursor implementations, where how that input cursor is consumed is very implementation specific.
         /// That is why this is <see langword="protected"/>, not <see langword="private"/>.
         /// </summary>
         protected DataViewRowCursor Root { get; }

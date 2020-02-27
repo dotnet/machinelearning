@@ -5,14 +5,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class TrainerExtensionsTests
+    public class TrainerExtensionsTests : BaseTestClass
     {
+        public TrainerExtensionsTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void TrainerExtensionInstanceTests()
         {
@@ -117,6 +123,7 @@ namespace Microsoft.ML.AutoML.Test
     ""MinimumExampleCountPerLeaf"": 10,
     ""UseCategoricalSplit"": false,
     ""HandleMissingValue"": false,
+    ""UseZeroAsMissingValue"": false,
     ""MinimumExampleCountPerGroup"": 50,
     ""MaximumCategoricalSplitPointCount"": 16,
     ""CategoricalSmoothing"": 10,

@@ -2016,7 +2016,7 @@ namespace Microsoft.ML.Data.IO
                         // effort to recycle buffers since it would be exceptionally difficult
                         // to do so. All threads are already unblocked, one of them with the
                         // source exception that kicked off this process, the remaining with
-                        // other later exceptions or the operation cancelled exception. So we
+                        // other later exceptions or the operation canceled exception. So we
                         // are free to join. Still, given the exceptional nature, we won't
                         // wait forever to do it.
                         const int timeOut = 100;

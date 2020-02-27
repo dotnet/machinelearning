@@ -8,7 +8,7 @@ This project contains performance benchmarks.
 
     git submodule update --init
 
-**Pre-requisite:** On a clean repo with initalized submodules, `build.cmd` at the root installs the right version of dotnet.exe and builds the solution. You need to build the solution in `Release` with native dependencies. 
+**Pre-requisite:** On a clean repo with initialized submodules, `build.cmd` at the root installs the right version of dotnet.exe and builds the solution. You need to build the solution in `Release` with native dependencies. 
 
     build.cmd -release -buildNative
     
@@ -86,7 +86,7 @@ public class TrainingBenchmark
 ```
 ## Running the `BenchmarksProjectIsNotBroken`  test
 
-If your build is failing in the build machines, in the release configuraiton due to the `BenchmarksProjectIsNotBroken` test failing, 
+If your build is failing in the build machines, in the release configuration due to the `BenchmarksProjectIsNotBroken` test failing, 
 you can debug this test locally by:
 
 1- Building the solution in the release mode locally

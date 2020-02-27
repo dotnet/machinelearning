@@ -7,15 +7,21 @@ using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests
 {
-    public class CopyColumnEstimatorTests
+    public class CopyColumnEstimatorTests : BaseTestClass
     {
+        public CopyColumnEstimatorTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         class TestClass
         {
             public int A;

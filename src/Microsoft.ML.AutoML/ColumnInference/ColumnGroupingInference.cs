@@ -12,7 +12,7 @@ using static Microsoft.ML.Data.TextLoader;
 namespace Microsoft.ML.AutoML
 {
     /// <summary>
-    /// This class incapsulates logic for grouping together the inferred columns of the text file based on their type
+    /// This class encapsulates logic for grouping together the inferred columns of the text file based on their type
     /// and purpose, and generating column names.
     /// </summary>
     internal static class ColumnGroupingInference

@@ -11,6 +11,7 @@ using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.ML.Runtime;
+using static Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper;
 using OnnxShape = System.Collections.Generic.List<int>;
 
 namespace Microsoft.ML.Transforms.Onnx
@@ -157,12 +158,14 @@ namespace Microsoft.ML.Transforms.Onnx
         /// </summary>
         internal OnnxModelInfo ModelInfo { get; }
 
+        internal GraphProto Graph { get; }
+
         /// <summary>
         /// Constructs OnnxModel object from file.
         /// </summary>
         /// <param name="modelFile">Model file path.</param>
         /// <param name="gpuDeviceId">GPU device ID to execute on. Null for CPU.</param>
-        /// <param name="fallbackToCpu">If true, resumes CPU execution quitely upon GPU error.</param>
+        /// <param name="fallbackToCpu">If true, resumes CPU execution quietly upon GPU error.</param>
         /// <param name="ownModelFile">If true, the <paramref name="modelFile"/> will be deleted when <see cref="OnnxModel"/> is
         /// no longer needed.</param>
         /// <param name="shapeDictionary"></param>
@@ -217,6 +220,8 @@ namespace Microsoft.ML.Transforms.Onnx
 
             // Create a view to the used ONNX model from ONNXRuntime's perspective.
             ModelInfo = new OnnxModelInfo(inputInfos, outputInfos, overrideableInitializers);
+
+            Graph = model.Graph;
         }
 
         private List<OnnxVariableInfo> GetOnnxVariablesFromMetadata(IReadOnlyDictionary<string, NodeMetadata> nodeMetadata,
@@ -232,6 +237,10 @@ namespace Microsoft.ML.Transforms.Onnx
                 var meta = pair.Value;
                 var dataViewType = typePool[name];
                 var caster = casterPool?[name];
+
+                if (name.StartsWith("mlnet.") &&
+                    (name.EndsWith(".unusedInput") || name.EndsWith(".unusedOutput")))
+                    continue;
 
                 OnnxVariableInfo info = null;
                 if (shapeDictionary != null && shapeDictionary.ContainsKey(name))
@@ -393,7 +402,9 @@ namespace Microsoft.ML.Transforms.Onnx
                      typeof(UInt32),
                      typeof(UInt64),
                      typeof(ReadOnlyMemory<Char>),
-                     typeof(Boolean)
+                     typeof(Boolean),
+                     typeof(SByte),
+                     typeof(Byte)
                 };
         private static Dictionary<Type, InternalDataKind> _typeToKindMap=
             new Dictionary<Type, InternalDataKind>
@@ -408,6 +419,8 @@ namespace Microsoft.ML.Transforms.Onnx
                     { typeof(UInt64) , InternalDataKind.U8},
                     { typeof(String) , InternalDataKind.TX},
                     { typeof(Boolean) , InternalDataKind.BL},
+                    { typeof(SByte) , InternalDataKind.I1},
+                    { typeof(Byte) , InternalDataKind.U1},
                 };
 
         /// <summary>

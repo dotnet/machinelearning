@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 using VerifyCS = Microsoft.ML.CodeAnalyzer.Tests.Helpers.CSharpCodeFixVerifier<
-    Microsoft.ML.InternalCodeAnalyzer.NameAnalyzer,
-    Microsoft.ML.InternalCodeAnalyzer.NameFixProvider>;
+Microsoft.ML.InternalCodeAnalyzer.NameAnalyzer,
+Microsoft.ML.InternalCodeAnalyzer.NameFixProvider>;
 
 namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {

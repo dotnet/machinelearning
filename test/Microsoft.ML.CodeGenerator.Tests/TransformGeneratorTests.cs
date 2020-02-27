@@ -6,12 +6,18 @@ using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.CodeGenerator.CSharp;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace mlnet.Tests
 {
-    public class TransformGeneratorTests
+    public class TransformGeneratorTests : BaseTestClass
     {
+        public TransformGeneratorTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void MissingValueReplacingTest()
         {

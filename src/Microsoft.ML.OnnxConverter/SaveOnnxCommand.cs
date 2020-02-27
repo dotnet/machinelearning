@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Google.Protobuf;
 using Microsoft.ML;
 using Microsoft.ML.Command;
@@ -13,6 +15,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Transforms;
 using Newtonsoft.Json;
 using static Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper;
 
@@ -188,7 +191,9 @@ namespace Microsoft.ML.Model.OnnxConverter
                 if (outputData.Schema[i].IsHidden)
                     continue;
 
-                var idataviewColumnName = outputData.Schema[i].Name;
+                var column = outputData.Schema[i];
+
+                var idataviewColumnName = column.Name;
 
                 // Since the last IDataView also contains columns of the initial IDataView, last IDataView's columns found in
                 // _inputToDrop should be removed too.
@@ -201,12 +206,86 @@ namespace Microsoft.ML.Model.OnnxConverter
                 ch.Check(variableName != null, "The targeted pipeline can not be fully converted into a well-defined ONNX model. " +
                     "Please check if all steps in that pipeline are convertible to ONNX " +
                     "and all necessary variables are not dropped (via command line arguments).");
-                var trueVariableName = ctx.AddIntermediateVariable(null, idataviewColumnName + ".onnx", true);
+                var trueVariableName = ctx.AddIntermediateVariable(outputData.Schema[i].Type, idataviewColumnName + ".output");
                 ctx.CreateNode("Identity", variableName, trueVariableName, ctx.GetNodeName("Identity"), "");
                 ctx.AddOutputVariable(outputData.Schema[i].Type, trueVariableName);
+
+                if (column.HasSlotNames())
+                    AddSlotNames(ctx, column);
             }
 
+            // Add metadata graph outputs
+
             return ctx.MakeModel();
+        }
+
+        private static void AddSlotNames(OnnxContextImpl ctx, DataViewSchema.Column column)
+        {
+            VBuffer<ReadOnlyMemory<char>> slotNames = default;
+            column.GetSlotNames(ref slotNames);
+            IEnumerable<string> slotNamesAsStrings = slotNames.DenseValues().Select(name => name.ToString());
+
+            string opType = "LabelEncoder";
+            string labelEncoderInputName = $"mlnet.{column.Name}.unusedInput";
+            string labelEncoderOutputName = $"mlnet.{column.Name}.unusedOutput";
+            string labelEncoderNodeName = $"mlnet.{column.Name}.SlotNames";
+
+            string[] oneVals = new string[] { "one" };
+            long[] dims = new long[] { 1, 1 };
+            var one = ctx.AddInitializer(oneVals, dims, labelEncoderNodeName);
+
+            var labelEncoderOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, labelEncoderOutputName, true);
+            var node = ctx.CreateNode(opType, one, labelEncoderOutput, labelEncoderNodeName);
+            node.AddAttribute("keys_strings", slotNamesAsStrings);
+            node.AddAttribute("values_int64s", Enumerable.Range(0, slotNames.Length).Select(x => (long)x));
+
+            ctx.AddOutputVariable(NumberDataViewType.Int64, labelEncoderOutput);
+        }
+
+        // Checks if a column has KeyValues Annotations of any type,
+        // So to know if it is safe to use KeyToValue Transformer on it.
+        private bool HasKeyValues(DataViewSchema.Column column)
+        {
+            if (column.Type.GetItemType() is KeyDataViewType keyType)
+            {
+                var metaColumn = column.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues);
+                return metaColumn != null &&
+                    metaColumn.Value.Type is VectorDataViewType vectorType &&
+                    keyType.Count == (ulong)vectorType.Size;
+            }
+
+            return false;
+        }
+
+        // Get the names of the KeyDataViewType columns that aren't affected by the pipeline that is being exported to ONNX.
+        private HashSet<string> GetPassThroughKeyDataViewTypeColumnsNames(IDataView source, IDataView end)
+        {
+            var inputKeyDataViewTypeColumnsNames = new HashSet<string>();
+            foreach (var col in source.Schema)
+                if (col.IsHidden == false && HasKeyValues(col))
+                    inputKeyDataViewTypeColumnsNames.Add(col.Name);
+
+            var passThroughColumnNames = new HashSet<string>();
+            var outputColumnNames = new HashSet<string>();
+            foreach (var col in end.Schema)
+            {
+                if (outputColumnNames.Contains(col.Name))
+                {
+                    // "Pass through" column names appear only once in the output schema
+                    passThroughColumnNames.Remove(col.Name);
+                }
+                else
+                {
+                    // We are only interested in the KeyDataViewType outpus columns
+                    if (col.IsHidden == false && HasKeyValues(col))
+                        passThroughColumnNames.Add(col.Name);
+                }
+                outputColumnNames.Add(col.Name);
+            }
+
+            // Only count those columns that were in the input of the pipeline
+            passThroughColumnNames.IntersectWith(inputKeyDataViewTypeColumnsNames);
+            return passThroughColumnNames;
         }
 
         private void Run(IChannel ch)
@@ -224,7 +303,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                     rawPred = null;
                     trainSchema = null;
                     Host.CheckUserArg(ImplOptions.LoadPredictor != true, nameof(ImplOptions.LoadPredictor),
-                        "Cannot be set to true unless " + nameof(ImplOptions.InputModelFile) + " is also specifified.");
+                        "Cannot be set to true unless " + nameof(ImplOptions.InputModelFile) + " is also specified.");
                 }
                 else
                     LoadModelObjects(ch, _loadPredictor, out rawPred, true, out trainSchema, out loader);
@@ -276,6 +355,20 @@ namespace Microsoft.ML.Model.OnnxConverter
                     Host.Assert(scorePipe.Source == end);
                     end = scorePipe;
                     transforms.AddLast(scoreOnnx);
+
+                    if(rawPred.PredictionKind == PredictionKind.BinaryClassification || rawPred.PredictionKind == PredictionKind.MulticlassClassification)
+                    {
+                        // Check if the PredictedLabel Column is a KeyDataViewType and has KeyValue Annotations.
+                        // If it does, add a KeyToValueMappingTransformer, to enable NimbusML to get the values back
+                        // when using an ONNX model, as described in https://github.com/dotnet/machinelearning/pull/4841
+                        var predictedLabelColumn = scorePipe.Schema.GetColumnOrNull(DefaultColumnNames.PredictedLabel);
+                        if (predictedLabelColumn.HasValue && HasKeyValues(predictedLabelColumn.Value))
+                        {
+                            var outputData = new KeyToValueMappingTransformer(Host, DefaultColumnNames.PredictedLabel).Transform(scorePipe);
+                            end = outputData;
+                            transforms.AddLast(outputData as ITransformCanSaveOnnx);
+                        }
+                    }
                 }
                 else
                 {
@@ -288,6 +381,18 @@ namespace Microsoft.ML.Model.OnnxConverter
             {
                 Contracts.CheckUserArg(_loadPredictor != true,
                     nameof(Arguments.LoadPredictor), "We were explicitly told to load the predictor but one was not present.");
+            }
+
+            // Convert back to values the KeyDataViewType "pass-through" columns
+            // (i.e those that remained untouched by the model). This is done to enable NimbusML to get these values
+            // as described in https://github.com/dotnet/machinelearning/pull/4841
+
+            var passThroughColumnNames = GetPassThroughKeyDataViewTypeColumnsNames(source, end);
+            foreach (var name in passThroughColumnNames)
+            {
+                var outputData = new KeyToValueMappingTransformer(Host, name).Transform(end);
+                end = outputData;
+                transforms.AddLast(end as ITransformCanSaveOnnx);
             }
 
             var model = ConvertTransformListToOnnxModel(ctx, ch, source, end, transforms, _inputsToDrop, _outputsToDrop);

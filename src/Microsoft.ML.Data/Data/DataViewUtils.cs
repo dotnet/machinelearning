@@ -369,7 +369,7 @@ namespace Microsoft.ML.Data
                     // so they all handle their disposal internal to the thread.
                     workers[t] = Utils.RunOnBackgroundThread(() =>
                     {
-                            // This will be the last batch sent in the finally. If iteration procedes without
+                            // This will be the last batch sent in the finally. If iteration proceeds without
                             // error, it will remain null, and be sent as a sentinel. If iteration results in
                             // an exception that we catch, the exception catching block will set this to an
                             // exception bearing block, and that will be passed along as the last block instead.

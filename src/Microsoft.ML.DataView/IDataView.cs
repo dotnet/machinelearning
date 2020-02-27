@@ -136,7 +136,7 @@ namespace Microsoft.ML
         /// considered part of the data per se. So, to take the example of a data view specifically, a single data view
         /// must render consistent IDs across all cursorings, but there is no suggestion at all that if the "same" data
         /// were presented in a different data view (as by, say, being transformed, cached, saved, or whatever), that
-        /// the IDs between the two different data views would have any discernable relationship.</summary>
+        /// the IDs between the two different data views would have any discernible relationship.</summary>
         public abstract ValueGetter<DataViewRowId> GetIdGetter();
 
         /// <summary>

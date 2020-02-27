@@ -21,8 +21,11 @@ namespace Microsoft.ML
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="columns">Array of columns <see cref="TextLoader.Column"/> defining the schema.</param>
         /// <param name="separatorChar">The character used as separator between data points in a row. By default the tab character is used as separator.</param>
-        /// <param name="hasHeader">Whether the data file has a header. If true, it will cause the header to be skipped,
-        /// but will not help with automatically detecting column names or types, which must be specified with <paramref name="columns"/> or in <paramref name="dataSample"/>.</param>
+        /// <param name="hasHeader">Whether the file has a header with feature names. Note: If a TextLoader is created with hasHeader = true but without a
+        /// <paramref name="dataSample"/>, then vector columns made by TextLoader will not contain slot name annotations (slots being the elements of the given vector column),
+        /// because the output schema is made when the TextLoader is made, and not when <see cref="TextLoader.Load(IMultiStreamSource)"/> is called.
+        /// In addition, the case where dataSample = null and hasHeader = true indicates to the loader that when it is given a file when Load()
+        /// is called, it needs to skip the first line.</param>
         /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer column names and number of slots in each column.
         /// The sample must be a text file previously saved with <see cref="SaveAsText(DataOperationsCatalog, IDataView, Stream, char, bool, bool, bool, bool)"/>,
         /// so that it contains the schema information in the header that the loader can use to infer columns.</param>
@@ -86,11 +89,12 @@ namespace Microsoft.ML
         /// names and their data types in the schema of the loaded data.</typeparam>
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="separatorChar">Column separator character. Default is '\t'</param>
-        /// <param name="hasHeader">Whether the data file has a header. If true, it will cause the header to be skipped,
-        /// but will not help with automatically detecting column names or types, which must be specified in the input
-        /// type <typeparamref name="TInput"/>.</param>
-        /// <param name="dataSample">The optional location of a data sample. Since <typeparamref name="TInput"/> defines
-        /// the schema of the data to be loaded, the data sample is ignored.</param>
+        /// <param name="hasHeader">Whether the file has a header with feature names. Note: If a TextLoader is created with hasHeader = true but without a
+        /// <paramref name="dataSample"/>, then vector columns made by TextLoader will not contain slot name annotations (slots being the elements of the given vector column),
+        /// because the output schema is made when the TextLoader is made, and not when <see cref="TextLoader.Load(IMultiStreamSource)"/> is called.
+        /// In addition, the case where dataSample = null and hasHeader = true indicates to the loader that when it is given a file when Load()
+        /// is called, it needs to skip the first line.</param>
+        /// <param name="dataSample">The optional location of a data sample.</param>
         /// <param name="allowQuoting">Whether the input may include double-quoted values. This parameter is used to distinguish separator characters
         /// in an input value from actual separators. When true, separators within double quotes are treated as part of the
         /// input value. When false, all separators, even those whitin quotes, are treated as delimiting a new column.
@@ -119,8 +123,11 @@ namespace Microsoft.ML
         /// <param name="path">The path to the file.</param>
         /// <param name="columns">The columns of the schema.</param>
         /// <param name="separatorChar">The character used as separator between data points in a row. By default the tab character is used as separator.</param>
-        /// <param name="hasHeader">Whether the data file has a header. If true, it will cause the header to be skipped,
-        /// but will not help with automatically detecting column names or types, which must be specified with <paramref name="columns"/>.</param>
+        /// <param name="hasHeader">Whether the file has a header with feature names. Note: If a TextLoader is created with hasHeader = true but without a
+        /// dataSample, then vector columns made by TextLoader will not contain slot name annotations (slots being the elements of the given vector column),
+        /// because the output schema is made when the TextLoader is made, and not when <see cref="TextLoader.Load(IMultiStreamSource)"/> is called.
+        /// In addition, the case where dataSample = null and hasHeader = true indicates to the loader that when it is given a file when Load()
+        /// is called, it needs to skip the first line.</param>
         /// <param name="allowQuoting">Whether the input may include double-quoted values. This parameter is used to distinguish separator characters
         /// in an input value from actual separators. When true, separators within double quotes are treated as part of the
         /// input value. When false, all separators, even those whitin quotes, are treated as delimiting a new column.
@@ -166,9 +173,11 @@ namespace Microsoft.ML
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="path">The path to the file.</param>
         /// <param name="separatorChar">Column separator character. Default is '\t'</param>
-        /// <param name="hasHeader">Whether the data file has a header. If true, it will cause the header to be skipped,
-        /// but will not help with automatically detecting column names or types, which must be specified in the input
-        /// type <typeparamref name="TInput"/>.</param>
+        /// /// <param name="hasHeader">Whether the file has a header with feature names. Note: If a TextLoader is created with hasHeader = true but without a
+        /// dataSample, then vector columns made by TextLoader will not contain slot name annotations (slots being the elements of the given vector column),
+        /// because the output schema is made when the TextLoader is made, and not when <see cref="TextLoader.Load(IMultiStreamSource)"/> is called.
+        /// In addition, the case where dataSample = null and hasHeader = true indicates to the loader that when it is given a file when Load()
+        /// is called, it needs to skip the first line.</param>
         /// <param name="allowQuoting">Whether the input may include double-quoted values. This parameter is used to distinguish separator characters
         /// in an input value from actual separators. When true, separators within double quotes are treated as part of the
         /// input value. When false, all separators, even those whitin quotes, are treated as delimiting a new column.

@@ -251,7 +251,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected override void PrepareLabels(IChannel ch)
         {
             _trainSetLabels = GetClassificationLabelsFromRatings(TrainSet).ToArray(TrainSet.NumDocs);
-            //Here we set regression labels to what is in bin file if the values were not overriden with floats
+            //Here we set regression labels to what is in bin file if the values were not overridden with floats
         }
 
         private protected override Test ConstructTestForTrainingData()
@@ -292,7 +292,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
                 else
                 {
-                    //use tollerant stopping condition
+                    //use tolerant stopping condition
                     PruningTest = new TestWindowWithTolerance(ValidTest, 0, FastTreeTrainerOptions.PruningWindowSize, FastTreeTrainerOptions.PruningThreshold);
                 }
             }

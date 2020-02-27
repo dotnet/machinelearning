@@ -7,11 +7,16 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.RunTests
 {
-    public class TestModelLoad
+    public class TestModelLoad : BaseTestClass
     {
+        public TestModelLoad(ITestOutputHelper output) : base(output)
+        {
+        }
+
         /// <summary>
         /// Tests loading a model file that was saved using an older version still loads correctly.
         /// </summary>

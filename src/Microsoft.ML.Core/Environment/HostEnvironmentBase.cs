@@ -93,7 +93,7 @@ namespace Microsoft.ML.Runtime
     /// query progress.
     /// </summary>
     [BestFriend]
-    internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEnvironment, IChannelProvider, ICancelable
+    internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, ISeededEnvironment, IChannelProvider, ICancelable
         where TEnv : HostEnvironmentBase<TEnv>
     {
         void ICancelable.CancelExecution()
@@ -330,6 +330,9 @@ namespace Microsoft.ML.Runtime
 
         // The random number generator for this host.
         private readonly Random _rand;
+
+        public int? Seed { get; }
+
         // A dictionary mapping the type of message to the Dispatcher that gets the strongly typed dispatch delegate.
         protected readonly ConcurrentDictionary<Type, Dispatcher> ListenerDict;
 
@@ -345,14 +348,14 @@ namespace Microsoft.ML.Runtime
         private readonly List<WeakReference<IHost>> _children;
 
         /// <summary>
-        ///  The main constructor.
+        /// The main constructor.
         /// </summary>
-        protected HostEnvironmentBase(Random rand, bool verbose,
+        protected HostEnvironmentBase(int? seed, bool verbose,
             string shortName = null, string parentFullName = null)
             : base(shortName, parentFullName, verbose)
         {
-            Contracts.CheckValueOrNull(rand);
-            _rand = rand ?? RandomUtils.Create();
+            Seed = seed;
+            _rand = RandomUtils.Create(Seed);
             ListenerDict = new ConcurrentDictionary<Type, Dispatcher>();
             ProgressTracker = new ProgressReporting.ProgressTracker(this);
             _cancelLock = new object();

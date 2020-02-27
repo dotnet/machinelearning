@@ -28,7 +28,7 @@ namespace Samples.Dynamic
             // results in new columns. The first transform hashes the string column
             // and the second transform hashes the integer column.
             //
-            // Hashing is not a reversible operation, so there is no way to retrive
+            // Hashing is not a reversible operation, so there is no way to retrieve
             // the original value from the hashed value. Sometimes, for debugging,
             // or model explainability, users will need to know what values in the
             // original columns generated the values in the hashed columns, since
@@ -70,7 +70,7 @@ namespace Samples.Dynamic
 
             // For the Category column, where we set the maximumNumberOfInverts
             // parameter, the names of the original categories, and their
-            // correspondance with the generated hash values is preserved in the
+            // correspondence with the generated hash values is preserved in the
             // Annotations in the format of indices and values.the indices array
             // will have the hashed values, and the corresponding element,
             // position -wise, in the values array will contain the original value. 

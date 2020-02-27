@@ -24,7 +24,7 @@ namespace Microsoft.ML.Benchmarks
                 .With(msbuildArguments)
                 .With(CreateToolchain())); // toolchain is responsible for generating, building and running dedicated executable per benchmark
 
-            Add(new ExtraMetricColumn()); // an extra colum that can display additional metric reported by the benchmarks
+            Add(new ExtraMetricColumn()); // an extra column that can display additional metric reported by the benchmarks
         }
 
         protected virtual Job GetJobDefinition()

@@ -240,7 +240,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             if (FastTreeTrainerOptions.PrintTestGraph)
             {
-                // If FirstTestHistory is null (which means the tests were not intialized due to /tf==infinity),
+                // If FirstTestHistory is null (which means the tests were not initialized due to /tf==infinity),
                 // we need initialize first set for graph printing.
                 // Adding to a tests would result in printing the results after final iteration.
                 if (_firstTestSetHistory == null)
@@ -322,7 +322,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             // We only print non-zero train&valid graph if earlyStoppingTruncation!=0.
             // In case /es is not set, we print 0 for train and valid graph NDCG.
-            // Let's keeping this behaviour for backward compatibility with previous FR version.
+            // Let's keeping this behavior for backward compatibility with previous FR version.
             // Ideally /graphtv should enforce non-zero /es in the commandline validation.
             if (_trainRegressionTest != null)
                 trainRegression = _trainRegressionTest.ComputeTests().Last().FinalValue;

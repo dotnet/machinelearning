@@ -853,7 +853,7 @@ namespace Microsoft.ML.Transforms
                         {
                             VBuffer<int> dst = default(VBuffer<int>);
                             GetCategoricalSlotRangesCore(iinfo, _slotDropper[iinfo].SlotsMin, _slotDropper[iinfo].SlotsMax, _categoricalRanges[iinfo], ref dst);
-                            // REVIEW: cache dst as opposed to caculating it again.
+                            // REVIEW: cache dst as opposed to calculating it again.
                             if (dst.Length > 0)
                             {
                                 Contracts.Assert(dst.Length % 2 == 0);

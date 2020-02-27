@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11,8 +10,8 @@ using Microsoft.CodeAnalysis.Testing;
 using Microsoft.ML.CodeAnalyzer.Tests.Helpers;
 using Xunit;
 using VerifyCS = Microsoft.ML.CodeAnalyzer.Tests.Helpers.CSharpCodeFixVerifier<
-    Microsoft.ML.InternalCodeAnalyzer.BestFriendAnalyzer,
-    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+Microsoft.ML.InternalCodeAnalyzer.BestFriendAnalyzer,
+Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
@@ -24,9 +23,9 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
         // of the core assembly (even if we were in a mood to pollute the core assembly with friend
         // declarations to enable this one test). We instead compile the same source, as part of this
         // dummy assembly. The type name will be the same so the same analyzer will work.
-        private readonly Lazy<string> SourceAttribute = TestUtils.LazySource("BestFriendAttribute.cs");
-        private readonly Lazy<string> SourceDeclaration = TestUtils.LazySource("BestFriendDeclaration.cs");
-        private readonly Lazy<string> SourceUser = TestUtils.LazySource("BestFriendUser.cs");
+        private readonly Lazy<string> _sourceAttribute = TestUtils.LazySource("BestFriendAttribute.cs");
+        private readonly Lazy<string> _sourceDeclaration = TestUtils.LazySource("BestFriendDeclaration.cs");
+        private readonly Lazy<string> _sourceUser = TestUtils.LazySource("BestFriendUser.cs");
 
         [Fact]
         public async Task BestFriend()
@@ -58,15 +57,15 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
                 LanguageVersion = LanguageVersion.CSharp7_2,
                 TestState =
                 {
-                    Sources = { SourceUser.Value },
+                    Sources = { _sourceUser.Value },
                 },
                 SolutionTransforms =
                 {
                     (solution, projectId) =>
                     {
                         var projectA = solution.AddProject("ProjectA", "ProjectA", LanguageNames.CSharp);
-                        projectA = projectA.AddDocument("BestFriendAttribute.cs", SourceAttribute.Value).Project;
-                        projectA = projectA.AddDocument("BestFriendDeclaration.cs", SourceDeclaration.Value).Project;
+                        projectA = projectA.AddDocument("BestFriendAttribute.cs", _sourceAttribute.Value).Project;
+                        projectA = projectA.AddDocument("BestFriendDeclaration.cs", _sourceDeclaration.Value).Project;
                         projectA = projectA.WithParseOptions(((CSharpParseOptions)projectA.ParseOptions).WithLanguageVersion(LanguageVersion.CSharp7_2));
                         projectA = projectA.WithCompilationOptions(projectA.CompilationOptions.WithOutputKind(OutputKind.DynamicallyLinkedLibrary));
                         projectA = projectA.WithMetadataReferences(solution.GetProject(projectId).MetadataReferences);

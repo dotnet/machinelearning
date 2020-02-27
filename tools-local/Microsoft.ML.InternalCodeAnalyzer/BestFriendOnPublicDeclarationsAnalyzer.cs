@@ -59,7 +59,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
             if (context.Symbol.DeclaredAccessibility != Accessibility.Public)
                 return;
 
-            var attribute = context.Symbol.GetAttributes().FirstOrDefault(a => a.AttributeClass == attributeType);
+            var attribute = context.Symbol.GetAttributes().FirstOrDefault(a => Equals(a.AttributeClass, attributeType));
             if (attribute == null)
                 return;
 

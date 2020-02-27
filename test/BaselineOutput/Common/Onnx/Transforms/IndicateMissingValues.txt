@@ -37,7 +37,7 @@
           "Features"
         ],
         "output": [
-          "Features.onnx"
+          "Features.output"
         ],
         "name": "Identity",
         "opType": "Identity"
@@ -47,7 +47,7 @@
           "MissingIndicator0"
         ],
         "output": [
-          "MissingIndicator.onnx"
+          "MissingIndicator.output"
         ],
         "name": "Identity0",
         "opType": "Identity"
@@ -63,7 +63,7 @@
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "3"
@@ -76,14 +76,14 @@
     ],
     "output": [
       {
-        "name": "Features.onnx",
+        "name": "Features.output",
         "type": {
           "tensorType": {
             "elemType": 1,
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "3"
@@ -94,14 +94,14 @@
         }
       },
       {
-        "name": "MissingIndicator.onnx",
+        "name": "MissingIndicator.output",
         "type": {
           "tensorType": {
             "elemType": 6,
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "3"
@@ -121,7 +121,7 @@
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "3"
@@ -139,7 +139,43 @@
             "shape": {
               "dim": [
                 {
-                  "dimValue": "1"
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "3"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Features.output",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "3"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "MissingIndicator.output",
+        "type": {
+          "tensorType": {
+            "elemType": 6,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
                 },
                 {
                   "dimValue": "3"

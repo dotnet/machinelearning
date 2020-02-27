@@ -56,12 +56,12 @@ namespace Microsoft.ML.Tests
 
             FloatInput input = new FloatInput() { Input = new float[] { 1.0f, 2.0f, 3.0f } };
             var output = predictor.Predict(input);
-            var onnx_out = output.Output.FirstOrDefault();
-            Assert.True(onnx_out.Count == 3, "Output missing data.");
-            var keys = new List<string>(onnx_out.Keys);
-            for(var i =0; i < onnx_out.Count; ++i)
+            var onnxOut = output.Output.FirstOrDefault();
+            Assert.True(onnxOut.Count == 3, "Output missing data.");
+            var keys = new List<string>(onnxOut.Keys);
+            for(var i =0; i < onnxOut.Count; ++i)
             {
-                Assert.Equal(onnx_out[keys[i]], input.Input[i]);
+                Assert.Equal(onnxOut[keys[i]], input.Input[i]);
             }
 
         }

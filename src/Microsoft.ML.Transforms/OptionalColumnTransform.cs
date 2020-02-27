@@ -511,21 +511,20 @@ namespace Microsoft.ML.Transforms
                 if (!ctx.ContainsColumn(inputColumnName))
                     continue;
 
-                if (!SaveAsOnnxCore(ctx, iinfo, ctx.GetVariableName(inputColumnName),
-                    ctx.AddIntermediateVariable(OutputSchema[_bindings.MapIinfoToCol(iinfo)].Type, inputColumnName)))
-                {
+                // If there is already a column of this name, don't add this column as an OptionalColumn/Initializer
+                var srcVariableName = ctx.GetVariableName(inputColumnName);
+                if (srcVariableName != inputColumnName)
+                    continue;
+
+                if (!SaveAsOnnxCore(ctx, srcVariableName, _bindings.ColumnTypes[iinfo]))
                     ctx.RemoveColumn(inputColumnName, true);
-                }
             }
         }
 
         public bool CanSaveOnnx(OnnxContext ctx) => true;
 
-        private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
+        private bool SaveAsOnnxCore(OnnxContext ctx, string srcVariableName, DataViewType columnType)
         {
-            var columnType = _bindings.ColumnTypes[iinfo];
-            string inputColumnName = Source.Schema[_bindings.SrcCols[iinfo]].Name;
-
             Type type = columnType.RawType;
 
             int size;
@@ -534,19 +533,28 @@ namespace Microsoft.ML.Transforms
             else
                 size = 1;
 
-            // REVIEW:
-            // AddInitializer only supports long, float, double and string.
-            // Here we are casting ulong to long. Fixing this would involve
-            // adding additional functions to OnnxContext.
-            if (type == typeof(float))
-                ctx.AddInitializer(new float[size], new long[] { 1, size }, inputColumnName, false);
+            if ((type == typeof(int)) ||
+                (type == typeof(short)) || (type == typeof(ushort)) ||
+                (type == typeof(sbyte)) || (type == typeof(byte)))
+                ctx.AddInitializer(new int[size], type, new long[] { 1, size }, srcVariableName, false);
+            else if (type == typeof(uint) || (type == typeof(ulong)))
+                ctx.AddInitializer(new ulong[size], type == typeof(ulong), new long[] { 1, size }, srcVariableName, false);
+            else if (type == typeof(bool))
+                ctx.AddInitializer(new bool[size], new long[] { 1, size }, srcVariableName, false);
+            else if (type == typeof(long))
+                ctx.AddInitializer(new long[size], new long[] { 1, size }, srcVariableName, false);
+            else if (type == typeof(float))
+                ctx.AddInitializer(new float[size], new long[] { 1, size }, srcVariableName, false);
             else if (type == typeof(double))
-                ctx.AddInitializer(new double[size], new long[] { 1, size }, inputColumnName, false);
-            else if ((type == typeof(long)) || (type == typeof(int)) || (type == typeof(short)) || (type == typeof(sbyte)) ||
-                     (type == typeof(ulong)) || (type == typeof(uint)) || (type == typeof(ushort)) || (type == typeof(byte)))
-                ctx.AddInitializer(new long[size], new long[] { 1, size }, inputColumnName, false);
-            else if (type == typeof(string))
-                ctx.AddInitializer(new string[size], new long[] { 1, size }, inputColumnName, false);
+                ctx.AddInitializer(new double[size], new long[] { 1, size }, srcVariableName, false);
+            else if ((type == typeof(string)) || (columnType is TextDataViewType))
+            {
+                string[] values = new string[size];
+                for (int i = 0; i < size; i++)
+                    values[i] = "";
+
+                ctx.AddInitializer(values, new long[] { 1, size }, srcVariableName, false);
+            }
             else
                 return false;
 

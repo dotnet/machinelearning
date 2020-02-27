@@ -5,13 +5,19 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class TransformInferenceTests
+    public class TransformInferenceTests : BaseTestClass
     {
+        public TransformInferenceTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void TransformInferenceNumAndCatCols()
         {
@@ -768,7 +774,7 @@ namespace Microsoft.ML.AutoML.Test
             // create a dummy data view from input columns
             var data = DataViewTestFixture.BuildDummyDataView(columns);
 
-            // iterate thru suggested transforms and apply it to a real data view
+            // iterate through suggested transforms and apply it to a real data view
             foreach (var transform in transforms.Select(t => t.Estimator))
             {
                 data = transform.Fit(data).Transform(data);
