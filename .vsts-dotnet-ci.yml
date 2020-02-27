@@ -21,7 +21,7 @@ jobs:
         _configuration: Debug-netcoreapp3_1
         _config_short: DI
         _includeBenchmarkData: false
-        _targetFramework: netcoreapp3.0
+        _targetFramework: netcoreapp3.1
       Release_Build:
         _configuration: Release-netcoreapp3_1
         _config_short: RI
