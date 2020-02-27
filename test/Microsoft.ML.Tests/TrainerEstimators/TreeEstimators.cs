@@ -69,8 +69,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [LightGBMFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void LightGBMBinaryEstimatorUnbalanced()
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
@@ -95,8 +93,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// LightGBMBinaryTrainer CorrectSigmoid test
         /// </summary>
         [LightGBMFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void LightGBMBinaryEstimatorCorrectSigmoid()
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
