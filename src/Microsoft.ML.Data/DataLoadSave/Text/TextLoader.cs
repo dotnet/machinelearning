@@ -427,9 +427,12 @@ namespace Microsoft.ML.Data
         public class Options
         {
             /// <summary>
-            /// Whether the input may include quoted values, which can contain separator characters, colons,
-            /// and distinguish empty values from missing values. When true, consecutive separators denote a
-            /// missing value and an empty value is denoted by \"\". When false, consecutive separators denote an empty value.
+            /// Whether the input may include double-quoted values. This parameter is used to distinguish separator characters
+            /// in an input value from actual separators. When true, separators within double quotes are treated as part of the
+            /// input value. When false, all separators, even those whitin quotes, are treated as delimiting a new column.
+            /// It is also used to distinguish empty values from missing values. When true, missing value are denoted by consecutive
+            /// separators and empty values by \"\". When false, empty values are denoted by consecutive separators and missing
+            /// values by the default missing value for each type documented in <see cref="DataKind"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce,
                 HelpText =
@@ -441,7 +444,9 @@ namespace Microsoft.ML.Data
             public bool AllowQuoting = Defaults.AllowQuoting;
 
             /// <summary>
-            /// Whether the input may include sparse representations.
+            /// Whether the input may include sparse representations. For example, a row containing
+            /// "5 2:6 4:3" means that there are 5 columns, and the only non-zero are columns 2 and 4, which have values 6 and 3,
+            /// respectively. Column indices are zero-based, so columns 2 and 4 represent the 3rd and 5th columns.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the input may include sparse representations", ShortName = "sparse")]
             public bool AllowSparse = Defaults.AllowSparse;
@@ -478,7 +483,8 @@ namespace Microsoft.ML.Data
             public bool TrimWhitespace = Defaults.TrimWhitespace;
 
             /// <summary>
-            /// Whether the data file has a header with feature names.
+            /// Whether the data file has a header. If true, it will only cause the header to be skipped, but will not help with
+            /// automatically detecting column names or types, which must be specified with <see cref="Options.Columns"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, ShortName = "header",
                 HelpText = "Data file has header with feature names. Header is read only if options 'hs' and 'hf' are not specified.")]
@@ -1260,7 +1266,8 @@ namespace Microsoft.ML.Data
                 // Setting the defaults to the user provided values will avoid these in the output of the call CmdParser.GetSettings.
                 UseThreads = options.UseThreads,
                 HeaderFile = options.HeaderFile,
-                MaxRows = options.MaxRows
+                MaxRows = options.MaxRows,
+                HasHeader = options.HasHeader
             });
 
             // Try to get the schema information from the file.
@@ -1302,6 +1309,7 @@ namespace Microsoft.ML.Data
                 optionsNew.UseThreads = options.UseThreads;
                 optionsNew.HeaderFile = options.HeaderFile;
                 optionsNew.MaxRows = options.MaxRows;
+                optionsNew.HasHeader = options.HasHeader;
 
                 cols = optionsNew.Columns;
                 if (Utils.Size(cols) == 0)

@@ -21,11 +21,28 @@ namespace Microsoft.ML
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="columns">Array of columns <see cref="TextLoader.Column"/> defining the schema.</param>
         /// <param name="separatorChar">The character used as separator between data points in a row. By default the tab character is used as separator.</param>
-        /// <param name="hasHeader">Whether the file has a header.</param>
-        /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer column names and number of slots in each column.</param>
-        /// <param name="allowQuoting">Whether the file can contain columns defined by a quoted string.</param>
-        /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
-        /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format.</param>
+        /// <param name="hasHeader">Whether the data file has a header. If true, it will cause the header to be skipped,
+        /// but will not help with automatically detecting column names or types, which must be specified with <paramref name="columns"/> or in <paramref name="dataSample"/>.</param>
+        /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer column names and number of slots in each column.
+        /// The sample must be a text file previously saved with <see cref="SaveAsText(DataOperationsCatalog, IDataView, Stream, char, bool, bool, bool, bool)"/>,
+        /// so that it contains the schema information in the header that the loader can use to infer columns.</param>
+        /// <param name="allowQuoting">Whether the input may include double-quoted values. This parameter is used to distinguish separator characters
+        /// in an input value from actual separators. When true, separators within double quotes are treated as part of the
+        /// input value. When false, all separators, even those whitin quotes, are treated as delimiting a new column.
+        /// It is also used to distinguish empty values from missing values. When true, missing value are denoted by consecutive
+        /// separators and empty values by \"\". When false, empty values are denoted by consecutive separators and missing
+        /// values by the default missing value for each type documented in <see cref="DataKind"/>.</param>
+        /// <param name="trimWhitespace">Remove trailing whitespace from lines.</param>
+        /// <param name="allowSparse">Whether the input may include sparse representations. For example, a row containing
+        /// "5 2:6 4:3" means that there are 5 columns, and the only non-zero are columns 2 and 4, which have values 6 and 3,
+        /// respectively. Column indices are zero-based, so columns 2 and 4 represent the 3rd and 5th columns.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[CreateTextLoader](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/LoadingText.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static TextLoader CreateTextLoader(this DataOperationsCatalog catalog,
             TextLoader.Column[] columns,
             char separatorChar = TextLoader.Defaults.Separator,
@@ -53,7 +70,9 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="options">Defines the settings of the load operation.</param>
-        /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer column names and number of slots in each column.</param>
+        /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer column names and number of slots in each column.
+        /// The sample must be a text file previously saved with <see cref="SaveAsText(DataOperationsCatalog, IDataView, Stream, char, bool, bool, bool, bool)"/>,
+        /// so that it contains the schema information in the header that the loader can use to infer columns.</param>
         public static TextLoader CreateTextLoader(this DataOperationsCatalog catalog,
             TextLoader.Options options,
             IMultiStreamSource dataSample = null)
@@ -67,18 +86,21 @@ namespace Microsoft.ML
         /// names and their data types in the schema of the loaded data.</typeparam>
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="separatorChar">Column separator character. Default is '\t'</param>
-        /// <param name="hasHeader">Does the file contains header?</param>
-        /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer information
-        /// about the columns, such as slot names.</param>
-        /// <param name="allowQuoting">Whether the input may include quoted values,
-        /// which can contain separator characters, colons,
-        /// and distinguish empty values from missing values. When true, consecutive separators
-        /// denote a missing value and an empty value is denoted by \"\".
-        /// When false, consecutive separators denote an empty value.</param>
-        /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
-        /// <param name="allowSparse">Whether the input may include sparse representations for example,
-        /// if one of the row contains "5 2:6 4:3" that's mean there are 5 columns all zero
-        /// except for 3rd and 5th columns which have values 6 and 3</param>
+        /// <param name="hasHeader">Whether the data file has a header. If true, it will cause the header to be skipped,
+        /// but will not help with automatically detecting column names or types, which must be specified in the input
+        /// type <typeparamref name="TInput"/>.</param>
+        /// <param name="dataSample">The optional location of a data sample. Since <typeparamref name="TInput"/> defines
+        /// the schema of the data to be loaded, the data sample is ignored.</param>
+        /// <param name="allowQuoting">Whether the input may include double-quoted values. This parameter is used to distinguish separator characters
+        /// in an input value from actual separators. When true, separators within double quotes are treated as part of the
+        /// input value. When false, all separators, even those whitin quotes, are treated as delimiting a new column.
+        /// It is also used to distinguish empty values from missing values. When true, missing value are denoted by consecutive
+        /// separators and empty values by \"\". When false, empty values are denoted by consecutive separators and missing
+        /// values by the default missing value for each type documented in <see cref="DataKind"/>.</param>
+        /// <param name="trimWhitespace">Remove trailing whitespace from lines.</param>
+        /// <param name="allowSparse">Whether the input may include sparse representations. For example, a row containing
+        /// "5 2:6 4:3" means that there are 5 columns, and the only non-zero are columns 2 and 4, which have values 6 and 3,
+        /// respectively. Column indices are zero-based, so columns 2 and 4 represent the 3rd and 5th columns.</param>
         public static TextLoader CreateTextLoader<TInput>(this DataOperationsCatalog catalog,
             char separatorChar = TextLoader.Defaults.Separator,
             bool hasHeader = TextLoader.Defaults.HasHeader,
@@ -97,9 +119,15 @@ namespace Microsoft.ML
         /// <param name="path">The path to the file.</param>
         /// <param name="columns">The columns of the schema.</param>
         /// <param name="separatorChar">The character used as separator between data points in a row. By default the tab character is used as separator.</param>
-        /// <param name="hasHeader">Whether the file has a header.</param>
-        /// <param name="allowQuoting">Whether the file can contain columns defined by a quoted string.</param>
-        /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
+        /// <param name="hasHeader">Whether the data file has a header. If true, it will cause the header to be skipped,
+        /// but will not help with automatically detecting column names or types, which must be specified with <paramref name="columns"/>.</param>
+        /// <param name="allowQuoting">Whether the input may include double-quoted values. This parameter is used to distinguish separator characters
+        /// in an input value from actual separators. When true, separators within double quotes are treated as part of the
+        /// input value. When false, all separators, even those whitin quotes, are treated as delimiting a new column.
+        /// It is also used to distinguish empty values from missing values. When true, missing value are denoted by consecutive
+        /// separators and empty values by \"\". When false, empty values are denoted by consecutive separators and missing
+        /// values by the default missing value for each type documented in <see cref="DataKind"/>.</param>
+        /// <param name="trimWhitespace">Remove trailing whitespace from lines.</param>
         /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format.</param>
         /// <returns>The data view.</returns>
         public static IDataView LoadFromTextFile(this DataOperationsCatalog catalog,
@@ -138,16 +166,19 @@ namespace Microsoft.ML
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="path">The path to the file.</param>
         /// <param name="separatorChar">Column separator character. Default is '\t'</param>
-        /// <param name="hasHeader">Does the file contains header?</param>
-        /// <param name="allowQuoting">Whether the input may include quoted values,
-        /// which can contain separator characters, colons,
-        /// and distinguish empty values from missing values. When true, consecutive separators
-        /// denote a missing value and an empty value is denoted by \"\".
-        /// When false, consecutive separators denote an empty value.</param>
-        /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
-        /// <param name="allowSparse">Whether the input may include sparse representations for example,
-        /// if one of the row contains "5 2:6 4:3" that's mean there are 5 columns all zero
-        /// except for 3rd and 5th columns which have values 6 and 3</param>
+        /// <param name="hasHeader">Whether the data file has a header. If true, it will cause the header to be skipped,
+        /// but will not help with automatically detecting column names or types, which must be specified in the input
+        /// type <typeparamref name="TInput"/>.</param>
+        /// <param name="allowQuoting">Whether the input may include double-quoted values. This parameter is used to distinguish separator characters
+        /// in an input value from actual separators. When true, separators within double quotes are treated as part of the
+        /// input value. When false, all separators, even those whitin quotes, are treated as delimiting a new column.
+        /// It is also used to distinguish empty values from missing values. When true, missing value are denoted by consecutive
+        /// separators and empty values by \"\". When false, empty values are denoted by consecutive separators and missing
+        /// values by the default missing value for each type documented in <see cref="DataKind"/>.</param>
+        /// <param name="trimWhitespace">Remove trailing whitespace from lines.</param>
+        /// <param name="allowSparse">Whether the input may include sparse representations. For example, a row containing
+        /// "5 2:6 4:3" means that there are 5 columns, and the only non-zero are columns 2 and 4, which have values 6 and 3,
+        /// respectively. Column indices are zero-based, so columns 2 and 4 represent the 3rd and 5th columns.</param>
         /// <returns>The data view.</returns>
         public static IDataView LoadFromTextFile<TInput>(this DataOperationsCatalog catalog,
             string path,
