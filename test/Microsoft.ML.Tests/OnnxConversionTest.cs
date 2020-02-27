@@ -1213,9 +1213,7 @@ namespace Microsoft.ML.Tests
         public void ValueToKeyMappingOnnxConversionTest(DataKind valueType)
         {
             var mlContext = new MLContext(seed: 1);
-            string filePath = GetDataPath("type-conversion.txt");
-            if (valueType == DataKind.Boolean)
-                filePath = GetDataPath("type-conversion-boolean.txt");
+            string filePath = (valueType == DataKind.Boolean) ? GetDataPath("type-conversion-boolean.txt") : GetDataPath("type-conversion.txt");
 
             TextLoader.Column[] columns = new[]
             {
@@ -1257,6 +1255,7 @@ namespace Microsoft.ML.Tests
         {
             var mlContext = new MLContext(seed: 1);
             string filePath = (valueType == DataKind.Boolean) ? GetDataPath("type-conversion-boolean.txt") : GetDataPath("type-conversion.txt");
+
             TextLoader.Column[] columns = new[]
             {
                 new TextLoader.Column("Value", valueType, 0, 0)
