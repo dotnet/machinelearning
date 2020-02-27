@@ -793,6 +793,17 @@ namespace Microsoft.ML.Transforms
                 node.AddAttribute("keys_strings", terms.Select(item => item.ToString()));
             }
 
+            private void CastInputToFloat<T>(OnnxContext ctx, out OnnxNode node, out long[] termIds, string srcVariableName, int iinfo,
+                string opType, string labelEncoderOutput)
+            {
+                var castOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "castOutput");
+                var castNode = ctx.CreateNode("Cast", srcVariableName, castOutput, ctx.GetNodeName("Cast"), "");
+                var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Single).ToType();
+                castNode.AddAttribute("to", t);
+                node = ctx.CreateNode(opType, castOutput, labelEncoderOutput, ctx.GetNodeName(opType));
+                var terms = GetTermsAndIds<T>(iinfo, out termIds);
+                node.AddAttribute("keys_floats", terms.Select(item => Convert.ToSingle(item)));
+            }
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
                 OnnxNode node;
@@ -808,6 +819,11 @@ namespace Microsoft.ML.Transforms
                     var terms = GetTermsAndIds<ReadOnlyMemory<char>>(iinfo, out termIds);
                     node.AddAttribute("keys_strings", terms);
                 }
+                else if (type.Equals(BooleanDataViewType.Instance))
+                {
+                    // LabelEncoder doesn't support boolean tensors, so values are cast to floats
+                    CastInputToFloat<Boolean>(ctx, out node, out termIds, srcVariableName, iinfo, opType, labelEncoderOutput);
+                }
                 else if (type.Equals(NumberDataViewType.Single))
                 {
                     node = ctx.CreateNode(opType, srcVariableName, labelEncoderOutput, ctx.GetNodeName(opType));
@@ -817,13 +833,7 @@ namespace Microsoft.ML.Transforms
                 else if (type.Equals(NumberDataViewType.Double))
                 {
                     // LabelEncoder doesn't support double tensors, so values are cast to floats
-                    var castOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "castOutput");
-                    castNode = ctx.CreateNode("Cast", srcVariableName, castOutput, ctx.GetNodeName("Cast"), "");
-                    var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Single).ToType();
-                    castNode.AddAttribute("to", t);
-                    node = ctx.CreateNode(opType, castOutput, labelEncoderOutput, ctx.GetNodeName(opType));
-                    var terms = GetTermsAndIds<double>(iinfo, out termIds);
-                    node.AddAttribute("keys_floats", terms);
+                    CastInputToFloat<Double>(ctx, out node, out termIds, srcVariableName, iinfo, opType, labelEncoderOutput);
                 }
                 else if (type.Equals(NumberDataViewType.Int64))
                 {

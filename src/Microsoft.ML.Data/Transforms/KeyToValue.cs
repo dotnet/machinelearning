@@ -512,7 +512,7 @@ namespace Microsoft.ML.Transforms
 
                     var labelEncoderOutput = dstVariableName;
                     var labelEncoderInput = srcVariableName;
-                    if (TypeOutput == NumberDataViewType.Double)
+                    if (TypeOutput == NumberDataViewType.Double || TypeOutput == BooleanDataViewType.Instance)
                         labelEncoderOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "CastNodeOutput");
                     else if (TypeOutput == NumberDataViewType.Int64 || TypeOutput == NumberDataViewType.UInt16 ||
                         TypeOutput == NumberDataViewType.Int32 || TypeOutput == NumberDataViewType.Int16 ||
@@ -554,6 +554,15 @@ namespace Microsoft.ML.Transforms
                     {
                         string[] values = Array.ConvertAll<TValue, string>(_values.GetValues().ToArray(), item => Convert.ToString(item));
                         node.AddAttribute("values_strings", values);
+                    }
+                    else if (TypeOutput == BooleanDataViewType.Instance)
+                    {
+                        float[] values = Array.ConvertAll<TValue, float>(_values.GetValues().ToArray(), item => Convert.ToSingle(item));
+                        node.AddAttribute("values_floats", values);
+                        opType = "Cast";
+                        castNode = ctx.CreateNode(opType, labelEncoderOutput, dstVariableName, ctx.GetNodeName(opType), "");
+                        t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Boolean).ToType();
+                        castNode.AddAttribute("to", t);
                     }
                     else
                         return false;
