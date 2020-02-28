@@ -125,6 +125,25 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
+        [Fact]
+        public void TestOldFormatModel()
+        {
+            string dataPath = GetDataPath("breast-cancer.txt");
+            var dataView = ML.Data.LoadFromTextFile(dataPath, new[]
+            {
+                new TextLoader.Column("Features", DataKind.Single, 1, 9)
+            });
+
+            string modelPath = GetDataPath("backcompat", "hashing-before-combine.zip");
+            var model = ML.Model.Load(modelPath, out _);
+
+            var hashed = model.Transform(dataView);
+            var hashedCol = hashed.Schema["Features"];
+            Assert.True(hashedCol.Type.GetItemType() is KeyDataViewType);
+            Assert.Equal(9, hashedCol.Type.GetValueCount());
+            Assert.Equal(Math.Pow(2, 31), hashedCol.Type.GetItemType().GetKeyCount());
+        }
+
         private void HashTestCore<T>(T val, PrimitiveDataViewType type, uint expected, uint expectedOrdered, uint expectedOrdered3, uint expectedCombined, uint expectedCombinedSparse)
         {
             const int bits = 10;
