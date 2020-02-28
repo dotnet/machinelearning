@@ -11,53 +11,53 @@ resources:
     image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-16.04-mlnet-207e097-20190312152303
 
 jobs:
-- template: /build/ci/job-template.yml
-  parameters:
-    name: Centos_x64_NetCoreApp30
-    buildScript: ./build.sh
-    container: CentosContainer
-    customMatrixes:
-      Debug_Build:
-        _configuration: Debug-netcoreapp3_0
-        _config_short: DI
-        _includeBenchmarkData: false
-        _targetFramework: netcoreapp3.0
-      Release_Build:
-        _configuration: Release-netcoreapp3_0
-        _config_short: RI
-        _includeBenchmarkData: true
-        _targetFramework: netcoreapp3.0
-    innerLoop: true
-    pool:
-      name: Hosted Ubuntu 1604
+# - template: /build/ci/job-template.yml
+#   parameters:
+#     name: Centos_x64_NetCoreApp30
+#     buildScript: ./build.sh
+#     container: CentosContainer
+#     customMatrixes:
+#       Debug_Build:
+#         _configuration: Debug-netcoreapp3_0
+#         _config_short: DI
+#         _includeBenchmarkData: false
+#         _targetFramework: netcoreapp3.0
+#       Release_Build:
+#         _configuration: Release-netcoreapp3_0
+#         _config_short: RI
+#         _includeBenchmarkData: true
+#         _targetFramework: netcoreapp3.0
+#     innerLoop: true
+#     pool:
+#       name: Hosted Ubuntu 1604
 
-- template: /build/ci/job-template.yml
-  parameters:
-    name: Ubuntu_x64_NetCoreApp21
-    buildScript: ./build.sh
-    container: UbuntuContainer
-    innerLoop: true
-    pool:
-      name: Hosted Ubuntu 1604
+# - template: /build/ci/job-template.yml
+#   parameters:
+#     name: Ubuntu_x64_NetCoreApp21
+#     buildScript: ./build.sh
+#     container: UbuntuContainer
+#     innerLoop: true
+#     pool:
+#       name: Hosted Ubuntu 1604
 
-- template: /build/ci/job-template.yml
-  parameters:
-    name: MacOS_x64_NetCoreApp21
-    buildScript: ./build.sh
-    innerLoop: true
-    pool:
-      name: Hosted macOS
+# - template: /build/ci/job-template.yml
+#   parameters:
+#     name: MacOS_x64_NetCoreApp21
+#     buildScript: ./build.sh
+#     innerLoop: true
+#     pool:
+#       name: Hosted macOS
 
 - template: /build/ci/job-template.yml
   parameters:
     name: Windows_x64_NetCoreApp30
     buildScript: build.cmd
     customMatrixes:
-      Debug_Build:
-        _configuration: Debug-netcoreapp3_0
-        _config_short: DI
-        _includeBenchmarkData: false
-        _targetFramework: netcoreapp3.0
+      # Debug_Build:
+      #   _configuration: Debug-netcoreapp3_0
+      #   _config_short: DI
+      #   _includeBenchmarkData: false
+      #   _targetFramework: netcoreapp3.0
       Release_Build:
         _configuration: Release-netcoreapp3_0
         _config_short: RI
@@ -67,38 +67,38 @@ jobs:
     pool:
       name: Hosted VS2017
 
-- template: /build/ci/job-template.yml
-  parameters:
-    name: Windows_x64_NetCoreApp21
-    buildScript: build.cmd
-    innerLoop: true
-    pool:
-      name: Hosted VS2017
+# - template: /build/ci/job-template.yml
+#   parameters:
+#     name: Windows_x64_NetCoreApp21
+#     buildScript: build.cmd
+#     innerLoop: true
+#     pool:
+#       name: Hosted VS2017
 
-- template: /build/ci/job-template.yml
-  parameters:
-    name: Windows_x64_NetFx461
-    buildScript: build.cmd
-    customMatrixes:
-      Debug_Build:
-        _configuration: Debug-netfx
-        _config_short: DFX
-        _includeBenchmarkData: false
-        _targetFramework: win-x64
-      Release_Build:
-        _configuration: Release-netfx
-        _config_short: RFX
-        _includeBenchmarkData: false
-        _targetFramework: win-x64
-    innerLoop: true
-    pool:
-      name: Hosted VS2017
+# - template: /build/ci/job-template.yml
+#   parameters:
+#     name: Windows_x64_NetFx461
+#     buildScript: build.cmd
+#     customMatrixes:
+#       Debug_Build:
+#         _configuration: Debug-netfx
+#         _config_short: DFX
+#         _includeBenchmarkData: false
+#         _targetFramework: win-x64
+#       Release_Build:
+#         _configuration: Release-netfx
+#         _config_short: RFX
+#         _includeBenchmarkData: false
+#         _targetFramework: win-x64
+#     innerLoop: true
+#     pool:
+#       name: Hosted VS2017
 
-- template: /build/ci/job-template.yml
-  parameters:
-    name: Windows_x86_NetCoreApp21
-    architecture: x86
-    buildScript: build.cmd
-    innerLoop: true
-    pool:
-      name: Hosted VS2017
+# - template: /build/ci/job-template.yml
+#   parameters:
+#     name: Windows_x86_NetCoreApp21
+#     architecture: x86
+#     buildScript: build.cmd
+#     innerLoop: true
+#     pool:
+#       name: Hosted VS2017
