@@ -483,11 +483,8 @@ namespace Microsoft.ML.Data
             public bool TrimWhitespace = Defaults.TrimWhitespace;
 
             /// <summary>
-            /// Whether the data file has a header with feature names.
-            /// Note: If a TextLoader is created with hasHeader = true but without a dataSample, then vector columns made by TextLoader will not contain slot name
-            /// annotations (slots being the elements of the given vector column), because the output schema is made when the TextLoader is made, and not when
-            /// TextLoader.Load(IMultiStreamSource source) is called. In addition, the case where dataSample = null and hasHeader = true indicates to the
-            /// loader that when it is given a file when <see cref="TextLoader.Load(IMultiStreamSource)"/> is called, it needs to skip the first line.
+            /// Whether the file has a header with feature names. When <see langword="true"/>, the loader will skip the first line when
+            /// <see cref="TextLoader.Load(IMultiStreamSource)"/> is called.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, ShortName = "header",
                 HelpText = "Data file has header with feature names. Header is read only if options 'hs' and 'hf' are not specified.")]
@@ -1269,8 +1266,7 @@ namespace Microsoft.ML.Data
                 // Setting the defaults to the user provided values will avoid these in the output of the call CmdParser.GetSettings.
                 UseThreads = options.UseThreads,
                 HeaderFile = options.HeaderFile,
-                MaxRows = options.MaxRows,
-                HasHeader = options.HasHeader
+                MaxRows = options.MaxRows
             });
 
             // Try to get the schema information from the file.
@@ -1312,7 +1308,6 @@ namespace Microsoft.ML.Data
                 optionsNew.UseThreads = options.UseThreads;
                 optionsNew.HeaderFile = options.HeaderFile;
                 optionsNew.MaxRows = options.MaxRows;
-                optionsNew.HasHeader = options.HasHeader;
 
                 cols = optionsNew.Columns;
                 if (Utils.Size(cols) == 0)

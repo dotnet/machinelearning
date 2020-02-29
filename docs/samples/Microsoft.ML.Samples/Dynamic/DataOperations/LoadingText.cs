@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 
@@ -13,7 +14,7 @@ namespace Samples.Dynamic.DataOperations
         {
             // Create 5 data files to illustrate different loading methods.
             var dataFiles = new List<string>();
-            var random = new Random();
+            var random = new Random(1);
             var dataDirectoryName = "DataDir";
             Directory.CreateDirectory(dataDirectoryName);
             for (int i = 0; i < 5; i++)
@@ -21,19 +22,29 @@ namespace Samples.Dynamic.DataOperations
                 var fileName = Path.Combine(dataDirectoryName, $"Data_{i}.csv");
                 dataFiles.Add(fileName);
                 using (var fs = File.CreateText(fileName))
-                    // Write without header with a random column, followed by five
-                    // tab separated columns of 0.
+                {
+                    // Write without header with 10 random columns, forcing
+                    // approximately 80% of values to be 0.
                     for (int line = 0; line < 10; line++)
-                        fs.WriteLine(random.NextDouble().ToString()+ "\t0\t0\t0\t0\t0");
+                    {
+                        var sb = new StringBuilder();
+                        for (int pos = 0; pos < 10; pos++)
+                        {
+                            var value = random.NextDouble();
+                            sb.Append((value < 0.8 ? 0 : value).ToString() + '\t');
+                        }
+                        fs.WriteLine(sb.ToString(0, sb.Length - 1));
+                    }
+                }
             }
 
             // Create a TextLoader.
             var mlContext = new MLContext();
             var loader = mlContext.Data.CreateTextLoader(
                 columns: new[]
-                    {
-                        new TextLoader.Column("Features", DataKind.Single, 0, 5)
-                    },
+                {
+                    new TextLoader.Column("Features", DataKind.Single, 0, 9)
+                },
                 hasHeader: false
             );
 
@@ -74,64 +85,87 @@ namespace Samples.Dynamic.DataOperations
             //   10
 
 
-            // Save the data with 10 rows to a text file to illustrate the use of
-            // sparse format, and data loading with schema inferred from a data sample.
-            var sparseDataFileName = Path.Combine(dataDirectoryName, "saved_data.tsv");
-            using (FileStream stream = new FileStream(sparseDataFileName, FileMode.Create))
-                mlContext.Data.SaveAsText(singleFileData, stream, schema: true);
-
-            // The data will be saved with the schema encoded in the header. Since
-            // there are many zeroes in the data, it will be saved in a sparse
-            // representation to save disk space. The data may be forced to be saved
-            // in a dense representation by setting forceDense to true. The sparse
-            // data, along with the schema, will look like the following:
-            //
-            //   #@ TextLoader{
-            //   #@   sep=tab
-            //   #@   col=Features:R4:0-5
-            //   #@ }
-            //   6   0:0.286606282
-            //   6   0:0.1535183
-            //   6   0:0.499382764
-            //   6   0:0.5140711
-            //
-            // The schema header indicates that values are separated by tabs, and
-            // that columns 0 through 5 are to read into a vector called Features
-            // of type DataKind.Single (unimportant: internally represented as R4).
-            // The sparse representation of the first row indicates that there are
-            // 6 columns, the zero-th column has value 0.286606282, and other omitted
-            // columns have value 0.
-
-            // Create a TextLoader that allows sparse input. Since the data file inlcudes
-            // the schema in the header, columns may be left as null instead of providing
-            // schema information, and the data file itself may be provided as a data
-            // sample so that the schema can be inferred from the header.
-            var dataSample = new MultiFileSource(sparseDataFileName);
-            var sparseLoader = mlContext.Data.CreateTextLoader(
-                columns: null,
-                allowSparse: true,
+            // Create a TextLoader with unknown column length to illutrate
+            // how a data sample may be used to infer column size.
+            var dataSample = new MultiFileSource(dataFiles[0]);
+            var loaderWithUnknownLength = mlContext.Data.CreateTextLoader(
+                columns: new[]
+                {
+                    new TextLoader.Column("Features",
+                                            DataKind.Single,
+                                            new[] { new TextLoader.Range(0, null) })
+                },
                 dataSample: dataSample
             );
 
-            // Load the saved sparse data.
-            var dataFromSparseLoader = sparseLoader.Load(sparseDataFileName);
-            PrintRowCount(dataFromSparseLoader);
+            var dataWithInferredLength = loaderWithUnknownLength.Load(dataFiles[0]);
+            PrintRowCount(dataWithInferredLength);
 
             // Expected Output:
             //   10
 
 
-            // Create a TextLoader that allows sparse input using TextLoader.Options.
-            // The schema will again be inferred from the data sample.
+            // Save the data with 10 rows to a text file to illustrate the use of
+            // sparse format.
+            var sparseDataFileName = Path.Combine(dataDirectoryName, "saved_data.tsv");
+            using (FileStream stream = new FileStream(sparseDataFileName, FileMode.Create))
+                mlContext.Data.SaveAsText(singleFileData, stream);
+
+            // Since there are many zeroes in the data, it will be saved in a sparse
+            // representation to save disk space. The data may be forced to be saved
+            // in a dense representation by setting forceDense to true. The sparse
+            // data will look like the following:
+            //
+            //   10 7:0.943862259
+            //   10 3:0.989767134
+            //   10 0:0.949778438   8:0.823028445   9:0.886469543
+            //
+            // The sparse representation of the first row indicates that there are
+            // 10 columns, the column 7 (8-th column) has value 0.943862259, and other
+            // omitted columns have value 0.
+
+            // Create a TextLoader that allows sparse input.
+            var sparseLoader = mlContext.Data.CreateTextLoader(
+                columns: new[]
+                {
+                    new TextLoader.Column("Features", DataKind.Single, 0, 9)
+                },
+                allowSparse: true
+            );
+
+            // Load the saved sparse data.
+            var sparseData = sparseLoader.Load(sparseDataFileName);
+            PrintRowCount(sparseData);
+
+            // Expected Output:
+            //   10
+
+
+            // Create a TextLoader without any column schema using TextLoader.Options.
+            // Since the sparse data file was saved with ML.NET, it has the schema
+            // enoded in its header that the loader can understand:
+            //
+            // #@ TextLoader{
+            // #@   sep=tab
+            // #@   col=Features:R4:0-9
+            // #@ }
+            //
+            // The schema syntax is unimportant since it is only used internally. In
+            // short, it tells the loader that the values are separated by tabs, and
+            // that columns 0-9 in the text file are to be read into one column named
+            // "Features" of type Single (internal type R4).
+
             var options = new TextLoader.Options()
             {
                 AllowSparse = true,
             };
-            var sparseLoaderWithOptions = mlContext.Data.CreateTextLoader(options, dataSample);
+            var dataSampleWithSchema = new MultiFileSource(sparseDataFileName);
+            var sparseLoaderWithSchema =
+                mlContext.Data.CreateTextLoader(options, dataSample: dataSampleWithSchema);
 
             // Load the saved sparse data.
-            var dataFromSparseLoaderWithOptions = sparseLoaderWithOptions.Load(sparseDataFileName);
-            PrintRowCount(dataFromSparseLoaderWithOptions);
+            var sparseDataWithSchema = sparseLoaderWithSchema.Load(sparseDataFileName);
+            PrintRowCount(sparseDataWithSchema);
 
             // Expected Output:
             //   10
@@ -151,7 +185,7 @@ namespace Samples.Dynamic.DataOperations
 
         private class Data
         {
-            [LoadColumn(0, 5)]
+            [LoadColumn(0, 9)]
             public float[] Features { get; set; }
         }
     }
