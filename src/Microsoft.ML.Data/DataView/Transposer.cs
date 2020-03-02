@@ -1318,6 +1318,9 @@ namespace Microsoft.ML.Data
 
     internal static class TransposerUtils
     {
+        private static readonly FuncInstanceMethodInfo1<SlotCursor, Delegate> _slotCursorGetGetterMethodInfo
+            = FuncInstanceMethodInfo1<SlotCursor, Delegate>.Create(target => target.GetGetter<int>);
+
         /// <summary>
         /// This is a convenience method that extracts a single slot value's vector,
         /// while simultaneously verifying that there is exactly one value.
@@ -1359,9 +1362,7 @@ namespace Microsoft.ML.Data
             var genTypeArgs = type.GetGenericArguments();
             ctx.Assert(genTypeArgs.Length == 1);
 
-            Func<ValueGetter<VBuffer<int>>> del = cursor.GetGetter<int>;
-            var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(genTypeArgs[0]);
-            var getter = methodInfo.Invoke(cursor, null) as ValueGetter<TValue>;
+            var getter = Utils.MarshalInvoke(_slotCursorGetGetterMethodInfo, cursor, genTypeArgs[0]) as ValueGetter<TValue>;
             if (getter == null)
                 throw ctx.Except("Invalid TValue: '{0}'", typeof(TValue));
             return getter;
