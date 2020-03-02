@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -21,6 +22,54 @@ namespace Microsoft.ML.CodeGenerator.Utilities
         internal static string Sanitize(string name)
         {
             return string.Join("", name.Select(x => Char.IsLetterOrDigit(x) ? x : '_'));
+        }
+
+        internal static IDictionary<string, string> GenerateSampleData(string inputFile, ColumnInferenceResults columnInference)
+        {
+            var mlContext = new MLContext();
+            var textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            var trainData = textLoader.Load(inputFile);
+            return Utils.GenerateSampleData(trainData, columnInference);
+        }
+
+        internal static IDictionary<string, string> GenerateSampleData(IDataView dataView, ColumnInferenceResults columnInference)
+        {
+            var featureColumns = dataView.Schema.AsEnumerable().Where(col => col.Name != columnInference.ColumnInformation.LabelColumnName);
+            var rowCursor = dataView.GetRowCursor(featureColumns);
+
+            var sampleData = featureColumns.Select(column => new { key = Utils.Normalize(column.Name), val = "null" }).ToDictionary(x => x.key, x => x.val);
+            if (rowCursor.MoveNext())
+            {
+                var getGetGetterMethod = typeof(Utils).GetMethod(nameof(Utils.GetValueFromColumn), BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+
+                foreach (var column in featureColumns)
+                {
+                    var getGeneraicGetGetterMethod = getGetGetterMethod.MakeGenericMethod(column.Type.RawType);
+                    string val = getGeneraicGetGetterMethod.Invoke(null, new object[] { rowCursor, column }) as string;
+                    sampleData[Utils.Normalize(column.Name)] = val;
+                }
+            }
+
+            return sampleData;
+        }
+
+        internal static string GetValueFromColumn<T>(DataViewRowCursor rowCursor, DataViewSchema.Column column)
+        {
+            T val = default;
+            var getter = rowCursor.GetGetter<T>(column);
+            getter(ref val);
+
+            // wrap string in quotes
+            if (typeof(T) == typeof(ReadOnlyMemory<Char>))
+            {
+                return $"\"{val.ToString()}\"";
+            }
+
+            if (val is null)
+            {
+                return "\"null\"";
+            }
+            return val.ToString();
         }
 
         internal static string Normalize(string input)
