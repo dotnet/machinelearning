@@ -92,12 +92,12 @@ namespace Microsoft.Extensions.ML
             return null;
         }
 
-        internal override Task<bool> LoadModel()
+        internal override Task<bool> LoadModelAsync()
         {
             return Task.FromResult(true);
         }
 
-        internal override Task<bool> MatchEtag(Uri uri, string eTag)
+        internal override Task<bool> MatchEtagAsync(Uri uri, string eTag)
         {
             return Task.FromResult(ETagMatches(uri, eTag));
         }

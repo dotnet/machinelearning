@@ -98,7 +98,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// <param name="timeout">An integer indicating the number of milliseconds to wait before timing out while downloading a resource.</param>
         /// <returns>The download results, containing the file path where the resources was (or should have been) downloaded to, and an error message
         /// (or null if there was no error).</returns>
-        public async Task<ResourceDownloadResults> EnsureResource(IHostEnvironment env, IChannel ch, string relativeUrl, string fileName, string dir, int timeout)
+        public async Task<ResourceDownloadResults> EnsureResourceAsync(IHostEnvironment env, IChannel ch, string relativeUrl, string fileName, string dir, int timeout)
         {
             var filePath = GetFilePath(ch, fileName, dir, out var error);
             if (File.Exists(filePath) || !string.IsNullOrEmpty(error))
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Internal.Utilities
 
             for (int i = 0; i < retryTimes; ++i)
             {
-                var thisDownloadResult = await DownloadFromUrl(env, ch, url, fileName, timeout, filePath);
+                var thisDownloadResult = await DownloadFromUrlAsync(env, ch, url, fileName, timeout, filePath);
 
                 if (string.IsNullOrEmpty(thisDownloadResult))
                     return thisDownloadResult;
@@ -134,7 +134,7 @@ namespace Microsoft.ML.Internal.Utilities
         }
 
         /// <returns>Returns the error message if an error occurred, null if download was successful.</returns>
-        private async Task<string> DownloadFromUrl(IHostEnvironment env, IChannel ch, string url, string fileName, int timeout, string filePath)
+        private async Task<string> DownloadFromUrlAsync(IHostEnvironment env, IChannel ch, string url, string fileName, int timeout, string filePath)
         {
             using (var webClient = new WebClient())
             using (var downloadCancel = new CancellationTokenSource())

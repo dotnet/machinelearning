@@ -180,7 +180,7 @@ namespace Microsoft.ML.TensorFlow
         {
             using (var ch = env.Start("Ensuring meta files are present."))
             {
-                var ensureModel = ResourceManagerUtils.Instance.EnsureResource(env, ch, url, fileName, dir, timeout);
+                var ensureModel = ResourceManagerUtils.Instance.EnsureResourceAsync(env, ch, url, fileName, dir, timeout);
                 ensureModel.Wait();
                 var errorResult = ResourceManagerUtils.GetErrorMessage(out var errorMessage, ensureModel.Result);
                 if (errorResult != null)

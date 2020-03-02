@@ -364,7 +364,7 @@ namespace Microsoft.ML.Data
             // They will not be caught by the big catch in the main thread, as filler is not running
             // in the main thread. Some sort of scheme by which these exceptions could be
             // cleanly handled would be more appropriate. See task 3740.
-            var fillerThread = Utils.RunOnBackgroundThread(() => Filler(cursor, caches, waiter));
+            var fillerThread = Utils.RunOnBackgroundThreadAsync(() => Filler(cursor, caches, waiter));
             _cacheFillerThreads.Add(fillerThread);
         }
 
