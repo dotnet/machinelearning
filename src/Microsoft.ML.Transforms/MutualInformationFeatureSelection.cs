@@ -409,6 +409,9 @@ namespace Microsoft.ML.Transforms
 
         private sealed class Impl
         {
+            private static readonly FuncStaticMethodInfo1<DataViewType, Delegate> _makeKeyMapperMethodInfo
+                = new FuncStaticMethodInfo1<DataViewType, Delegate>(MakeKeyMapper<int>);
+
             private readonly IHost _host;
             private readonly BinFinderBase _binFinder;
             private int _numBins;
@@ -627,11 +630,10 @@ namespace Microsoft.ML.Transforms
                 }
                 ulong keyCount = itemType.GetKeyCount();
                 Contracts.Assert(keyCount < Utils.ArrayMaxSize);
-                Func<DataViewType, Mapper<int>> del = MakeKeyMapper<int>;
-                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(itemType.RawType);
+                var mapper = Utils.MarshalInvoke(_makeKeyMapperMethodInfo, itemType.RawType, itemType);
                 ComputeMutualInformationDelegate<int> cmiDel = ComputeMutualInformation;
                 var cmiMethodInfo = cmiDel.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(itemType.RawType);
-                return (Single[])cmiMethodInfo.Invoke(this, new object[] { trans, col, methodInfo.Invoke(null, new object[] { itemType }) });
+                return (Single[])cmiMethodInfo.Invoke(this, new object[] { trans, col, mapper });
             }
 
             private delegate float[] ComputeMutualInformationDelegate<T>(Transposer trans, int col, Mapper<T> mapper);

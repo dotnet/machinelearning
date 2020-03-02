@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML
@@ -18,6 +19,9 @@ namespace Microsoft.ML
 
     internal static class ApiUtils
     {
+        private static readonly FuncStaticMethodInfo3<PropertyInfo, Delegate> _generatePokeMethodInfo
+            = new FuncStaticMethodInfo3<PropertyInfo, Delegate>(GeneratePoke<int, int, int>);
+
         private static OpCode GetAssignmentOpCode(Type t, IEnumerable<Attribute> attributes)
         {
             // REVIEW: This should be a Dictionary<Type, OpCode> based solution.
@@ -145,10 +149,7 @@ namespace Microsoft.ML
                     Type propertyType = propertyInfo.PropertyType;
 
                     var assignmentOpCodeProp = GetAssignmentOpCode(propertyType, propertyInfo.GetCustomAttributes());
-                    Func<PropertyInfo, Delegate> funcProp = GeneratePoke<TOwn, TRow, int>;
-                    var methInfoProp = funcProp.GetMethodInfo().GetGenericMethodDefinition()
-                        .MakeGenericMethod(typeof(TOwn), typeof(TRow), propertyType);
-                    return (Delegate)methInfoProp.Invoke(null, new object[] { propertyInfo });
+                    return Utils.MarshalInvoke(_generatePokeMethodInfo, typeof(TOwn), typeof(TRow), propertyType, propertyInfo);
 
                 default:
                     Contracts.Assert(false);

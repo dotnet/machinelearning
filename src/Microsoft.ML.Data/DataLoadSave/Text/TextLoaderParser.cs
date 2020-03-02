@@ -24,6 +24,12 @@ namespace Microsoft.ML.Data
         /// </summary>
         private sealed class ValueCreatorCache
         {
+            private static readonly FuncInstanceMethodInfo1<ValueCreatorCache, PrimitiveDataViewType, Func<RowSet, ColumnPipe>> _getCreatorOneCoreMethodInfo
+                = FuncInstanceMethodInfo1<ValueCreatorCache, PrimitiveDataViewType, Func<RowSet, ColumnPipe>>.Create(target => target.GetCreatorOneCore<int>);
+
+            private static readonly FuncInstanceMethodInfo1<ValueCreatorCache, PrimitiveDataViewType, Func<RowSet, ColumnPipe>> _getCreatorVecCoreMethodInfo
+                = FuncInstanceMethodInfo1<ValueCreatorCache, PrimitiveDataViewType, Func<RowSet, ColumnPipe>>.Create(target => target.GetCreatorVecCore<int>);
+
             private static volatile ValueCreatorCache _instance;
             public static ValueCreatorCache Instance
             {
@@ -36,8 +42,6 @@ namespace Microsoft.ML.Data
             }
 
             private readonly Conversions _conv;
-            private readonly MethodInfo _methOne;
-            private readonly MethodInfo _methVec;
 
             // Indexed by DataKind.ToIndex()
             private readonly Func<RowSet, ColumnPipe>[] _creatorsOne;
@@ -46,10 +50,6 @@ namespace Microsoft.ML.Data
             private ValueCreatorCache()
             {
                 _conv = Conversions.Instance;
-                _methOne = new Func<PrimitiveDataViewType, Func<RowSet, ColumnPipe>>(GetCreatorOneCore<int>)
-                    .GetMethodInfo().GetGenericMethodDefinition();
-                _methVec = new Func<PrimitiveDataViewType, Func<RowSet, ColumnPipe>>(GetCreatorVecCore<int>)
-                    .GetMethodInfo().GetGenericMethodDefinition();
 
                 _creatorsOne = new Func<RowSet, ColumnPipe>[InternalDataKindExtensions.KindCount];
                 _creatorsVec = new Func<RowSet, ColumnPipe>[InternalDataKindExtensions.KindCount];
@@ -63,8 +63,7 @@ namespace Microsoft.ML.Data
 
             private Func<RowSet, ColumnPipe> GetCreatorOneCore(PrimitiveDataViewType type)
             {
-                MethodInfo meth = _methOne.MakeGenericMethod(type.RawType);
-                return (Func<RowSet, ColumnPipe>)meth.Invoke(this, new object[] { type });
+                return Utils.MarshalInvoke(_getCreatorOneCoreMethodInfo, this, type.RawType, type);
             }
 
             private Func<RowSet, ColumnPipe> GetCreatorOneCore<T>(PrimitiveDataViewType type)
@@ -77,8 +76,7 @@ namespace Microsoft.ML.Data
 
             private Func<RowSet, ColumnPipe> GetCreatorVecCore(PrimitiveDataViewType type)
             {
-                MethodInfo meth = _methVec.MakeGenericMethod(type.RawType);
-                return (Func<RowSet, ColumnPipe>)meth.Invoke(this, new object[] { type });
+                return Utils.MarshalInvoke(_getCreatorVecCoreMethodInfo, this, type.RawType, type);
             }
 
             private Func<RowSet, ColumnPipe> GetCreatorVecCore<T>(PrimitiveDataViewType type)
@@ -92,15 +90,13 @@ namespace Microsoft.ML.Data
             public Func<RowSet, ColumnPipe> GetCreatorOne(KeyDataViewType key)
             {
                 // Have to produce a specific one - can't use a cached one.
-                MethodInfo meth = _methOne.MakeGenericMethod(key.RawType);
-                return (Func<RowSet, ColumnPipe>)meth.Invoke(this, new object[] { key });
+                return Utils.MarshalInvoke(_getCreatorOneCoreMethodInfo, this, key.RawType, key);
             }
 
             public Func<RowSet, ColumnPipe> GetCreatorVec(KeyDataViewType key)
             {
                 // Have to produce a specific one - can't use a cached one.
-                MethodInfo meth = _methVec.MakeGenericMethod(key.RawType);
-                return (Func<RowSet, ColumnPipe>)meth.Invoke(this, new object[] { key });
+                return Utils.MarshalInvoke(_getCreatorVecCoreMethodInfo, this, key.RawType, key);
             }
 
             public Func<RowSet, ColumnPipe> GetCreatorOne(InternalDataKind kind)

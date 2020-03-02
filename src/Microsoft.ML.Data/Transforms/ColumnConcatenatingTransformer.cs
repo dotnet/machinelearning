@@ -521,6 +521,12 @@ namespace Microsoft.ML.Data
             /// </summary>
             private sealed class BoundColumn
             {
+                private static readonly FuncInstanceMethodInfo1<BoundColumn, DataViewRow, Delegate> _makeIdentityGetterMethodInfo
+                    = FuncInstanceMethodInfo1<BoundColumn, DataViewRow, Delegate>.Create(target => target.MakeIdentityGetter<int>);
+
+                private static readonly FuncInstanceMethodInfo1<BoundColumn, DataViewRow, Delegate> _makeGetterMethodInfo
+                    = FuncInstanceMethodInfo1<BoundColumn, DataViewRow, Delegate>.Create(target => target.MakeGetter<int>);
+
                 public readonly int[] SrcIndices;
 
                 private readonly ColumnOptions _columnOptions;
@@ -669,9 +675,9 @@ namespace Microsoft.ML.Data
                 public Delegate MakeGetter(DataViewRow input)
                 {
                     if (_isIdentity)
-                        return Utils.MarshalInvoke(MakeIdentityGetter<int>, OutputType.RawType, input);
+                        return Utils.MarshalInvoke(_makeIdentityGetterMethodInfo, this, OutputType.RawType, input);
 
-                    return Utils.MarshalInvoke(MakeGetter<int>, OutputType.ItemType.RawType, input);
+                    return Utils.MarshalInvoke(_makeGetterMethodInfo, this, OutputType.ItemType.RawType, input);
                 }
 
                 private Delegate MakeIdentityGetter<T>(DataViewRow input)

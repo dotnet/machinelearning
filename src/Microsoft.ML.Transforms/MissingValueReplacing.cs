@@ -122,6 +122,12 @@ namespace Microsoft.ML.Transforms
             public bool ImputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot;
         }
 
+        private static readonly FuncStaticMethodInfo1<DataViewType, string> _testTypeMethodInfo
+            = new FuncStaticMethodInfo1<DataViewType, string>(TestType<int>);
+
+        private static readonly FuncInstanceMethodInfo1<MissingValueReplacingTransformer, DataViewType, Delegate> _getIsNADelegateMethodInfo
+            = FuncInstanceMethodInfo1<MissingValueReplacingTransformer, DataViewType, Delegate>.Create(target => target.GetIsNADelegate<int>);
+
         internal const string LoadName = "NAReplaceTransform";
 
         private static VersionInfo GetVersionInfo()
@@ -146,9 +152,8 @@ namespace Microsoft.ML.Transforms
         internal static string TestType(DataViewType type)
         {
             // Item type must have an NA value that exists and is not equal to its default value.
-            Func<DataViewType, string> func = TestType<int>;
             var itemType = type.GetItemType();
-            return Utils.MarshalInvoke(func, itemType.RawType, itemType);
+            return Utils.MarshalInvoke(_testTypeMethodInfo, itemType.RawType, itemType);
         }
 
         private static string TestType<T>(DataViewType type)
@@ -383,8 +388,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         private Delegate GetIsNADelegate(DataViewType type)
         {
-            Func<DataViewType, Delegate> func = GetIsNADelegate<int>;
-            return Utils.MarshalInvoke(func, type.GetItemType().RawType, type);
+            return Utils.MarshalInvoke(_getIsNADelegateMethodInfo, this, type.GetItemType().RawType, type);
         }
 
         private Delegate GetIsNADelegate<T>(DataViewType type)
