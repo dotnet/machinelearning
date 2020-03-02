@@ -928,6 +928,8 @@ namespace Microsoft.ML.Trainers
                 var sumOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "SumOutput");
                 var sumNode = ctx.CreateNode(opType, expOutput, sumOutput, ctx.GetNodeName(opType), "");
                 sumNode.AddAttribute("keepdims", 1);
+                long[] list = { 1 };
+                sumNode.AddAttribute("axes", list);
 
                 opType = "Div";
                 var divOutput = ctx.AddIntermediateVariable(type, "DivOutput");
