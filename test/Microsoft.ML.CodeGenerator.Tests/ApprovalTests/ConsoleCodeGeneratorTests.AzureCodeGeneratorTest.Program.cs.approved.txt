@@ -30,7 +30,7 @@ namespace Test.ConsoleApp
             Console.WriteLine($"Capital_loss: {sampleData.Capital_loss}");
             Console.WriteLine($"Hours_per_week: {sampleData.Hours_per_week}");
             Console.WriteLine($"Native_country: {sampleData.Native_country}");
-            Console.WriteLine($"\n\nActual Label: {sampleData.Label} \nPredicted Label value {predictionResult.Prediction} \nPredicted Label scores: [{String.Join(",", predictionResult.Score)}]\n\n");
+            Console.WriteLine($"\n\nPredicted Label value {predictionResult.Prediction} \nPredicted Label scores: [{String.Join(",", predictionResult.Score)}]\n\n");
             Console.WriteLine("=============== End of process, hit any key to finish ===============");
             Console.ReadKey();
         }

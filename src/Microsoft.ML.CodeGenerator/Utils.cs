@@ -69,7 +69,7 @@ namespace Microsoft.ML.CodeGenerator.Utilities
             // wrap string in quotes
             if (typeof(T) == typeof(ReadOnlyMemory<Char>))
             {
-                return $"\"{val.ToString().Replace("\"", "\\\"")}\"";
+                return $"@\"{val.ToString().Replace("\"", "\\\"")}\"";
             }
 
             if (val is null)
@@ -79,7 +79,29 @@ namespace Microsoft.ML.CodeGenerator.Utilities
 
             if (val is float)
             {
-                return val.ToString() + "F";
+                var f = val as float?;
+                if (Single.IsNaN(f.GetValueOrDefault()))
+                {
+                    return "Single.NaN";
+                }
+
+                if (Single.IsPositiveInfinity(f.GetValueOrDefault()))
+                {
+                    return "Single.PositiveInfinity";
+                }
+
+                if (Single.IsNegativeInfinity(f.GetValueOrDefault()))
+                {
+                    return "Single.NegativeInfinity";
+                }
+
+                return f?.ToString() + "F";
+            }
+
+            if (val is bool)
+            {
+                var f = val as bool?;
+                return f.GetValueOrDefault() ? "true" : "false";
             }
 
             return val.ToString();
@@ -90,8 +112,8 @@ namespace Microsoft.ML.CodeGenerator.Utilities
             //check if first character is int
             if (!string.IsNullOrEmpty(input) && int.TryParse(input.Substring(0, 1), out int val))
             {
-                input = "Col" + input;
-                return input;
+                input = "_" + input;
+                return Normalize(input);
             }
             switch (input)
             {
