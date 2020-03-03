@@ -26,10 +26,17 @@ namespace Microsoft.ML.CodeGenerator.Utilities
 
         internal static IDictionary<string, string> GenerateSampleData(string inputFile, ColumnInferenceResults columnInference)
         {
-            var mlContext = new MLContext();
-            var textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderOptions);
-            var trainData = textLoader.Load(inputFile);
-            return Utils.GenerateSampleData(trainData, columnInference);
+            try
+            {
+                var mlContext = new MLContext();
+                var textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+                var trainData = textLoader.Load(inputFile);
+                return Utils.GenerateSampleData(trainData, columnInference);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         internal static IDictionary<string, string> GenerateSampleData(IDataView dataView, ColumnInferenceResults columnInference)
@@ -62,7 +69,7 @@ namespace Microsoft.ML.CodeGenerator.Utilities
             // wrap string in quotes
             if (typeof(T) == typeof(ReadOnlyMemory<Char>))
             {
-                return $"\"{val.ToString()}\"";
+                return $"\"{val.ToString().Replace("\"", "\\\"")}\"";
             }
 
             if (val is null)

@@ -48,16 +48,24 @@ if(string.IsNullOrEmpty(TestDataPath)){
             this.Write(this.ToStringHelper.ToStringWithCulture(TestDataPath));
             this.Write("\";\r\n");
  } 
-            this.Write(@"
-        static void Main(string[] args)
-        {
-			// Create single instance of sample data from first line of dataset for model input
-            ModelInput sampleData = CreateSingleDataSample(DATA_FILEPATH);
-
-			// Make a single prediction on the sample data and print results
-			var predictionResult = ConsumeModel.Predict(sampleData);
-
-			Console.WriteLine(""Using model to make single prediction -- Comparing actual ");
+            this.Write("\r\n        static void Main(string[] args)\r\n        {\r\n            // Create singl" +
+                    "e instance of sample data from first line of dataset for model input\r\n");
+ if(SampleData != null) {
+            this.Write("            ModelInput sampleData = new ModelInput()\r\n            {\r\n");
+ foreach(var kv in SampleData){ 
+            this.Write("                ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(kv.Key));
+            this.Write("=");
+            this.Write(this.ToStringHelper.ToStringWithCulture(kv.Value));
+            this.Write(",\r\n");
+}
+            this.Write("            };\r\n");
+}else{
+            this.Write("            ModelInput sampleData = new ModelInput();\r\n");
+}
+            this.Write("\r\n\t\t\t// Make a single prediction on the sample data and print results\r\n\t\t\tvar pre" +
+                    "dictionResult = ConsumeModel.Predict(sampleData);\r\n\r\n\t\t\tConsole.WriteLine(\"Using" +
+                    " model to make single prediction -- Comparing actual ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(" with predicted ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
@@ -96,41 +104,8 @@ if("BinaryClassification".Equals(TaskType) ){
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(" scores: [{String.Join(\",\", predictionResult.Score)}]\\n\\n\");\r\n");
 } 
-            this.Write(@"            Console.WriteLine(""=============== End of process, hit any key to finish ==============="");
-            Console.ReadKey();
-        }
-
-        // Change this code to create your own sample data
-		#region CreateSingleDataSample
-        // Method to load single row of dataset to try a single prediction
-        private static ModelInput CreateSingleDataSample(string dataFilePath)
-        {
-            // Create MLContext
-			MLContext mlContext = new MLContext();
-
-			// Load dataset
-            IDataView dataView = mlContext.Data.LoadFromTextFile<ModelInput>(
-                                            path: dataFilePath,
-                                            hasHeader : ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(HasHeader.ToString().ToLowerInvariant()));
-            this.Write(",\r\n                                            separatorChar : \'");
-            this.Write(this.ToStringHelper.ToStringWithCulture(Regex.Escape(Separator.ToString())));
-            this.Write("\',\r\n                                            allowQuoting : ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(AllowQuoting.ToString().ToLowerInvariant()));
-            this.Write(",\r\n                                            allowSparse: ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(AllowSparse.ToString().ToLowerInvariant()));
-            this.Write(@");
-
-            // Use first line of dataset as model input
-			// You can replace this with new test data (hardcoded or from end-user application)
-            ModelInput sampleForPrediction = mlContext.Data.CreateEnumerable<ModelInput>(dataView, false)
-                                                                        .First();
-            return sampleForPrediction;
-        }
-		#endregion
-    }
-}
-");
+            this.Write("            Console.WriteLine(\"=============== End of process, hit any key to fin" +
+                    "ish ===============\");\r\n            Console.ReadKey();\r\n        }\r\n    }\r\n}\r\n");
             return this.GenerationEnvironment.ToString();
         }
 
@@ -145,6 +120,7 @@ public bool AllowSparse {get;set;}
 public bool HasHeader {get;set;}
 public IList<string> Features {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
+public IDictionary<string, string> SampleData {get;set;}
 
 
 void CLI_Annotation()

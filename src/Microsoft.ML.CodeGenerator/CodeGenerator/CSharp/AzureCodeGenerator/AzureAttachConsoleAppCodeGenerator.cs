@@ -14,7 +14,9 @@ using Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.Interface;
 using Microsoft.ML.CodeGenerator.CSharp;
 using Microsoft.ML.CodeGenerator.Templates.Azure.Console;
 using Microsoft.ML.CodeGenerator.Templates.Console;
+using Microsoft.ML.CodeGenerator.Utilities;
 using Microsoft.ML.Transforms;
+using Tensorflow.Operations.Losses;
 
 namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
 {
@@ -79,6 +81,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
 
             var columns = _columnInferenceResult.TextLoaderOptions.Columns;
             var featuresList = columns.Where((str) => str.Name != _settings.LabelName).Select((str) => str.Name).ToList();
+            var sampleResult = Utils.GenerateSampleData(_settings.TrainDataset, _columnInferenceResult);
             PredictProgram = new CSharpCodeFile()
             {
                 File = new PredictProgram()
@@ -94,6 +97,7 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
                     Separator = _columnInferenceResult.TextLoaderOptions.Separators.FirstOrDefault(),
                     Target = _settings.Target,
                     Features = featuresList,
+                    SampleData = sampleResult,
                 }.TransformText(),
                 Name = "Program.cs",
             };

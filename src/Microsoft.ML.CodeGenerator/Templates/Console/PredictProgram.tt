@@ -30,8 +30,17 @@ namespace <#= Namespace #>.ConsoleApp
 
         static void Main(string[] args)
         {
-			// Create single instance of sample data from first line of dataset for model input
-            ModelInput sampleData = CreateSingleDataSample(DATA_FILEPATH);
+            // Create single instance of sample data from first line of dataset for model input
+<# if(SampleData != null) {#>
+            ModelInput sampleData = new ModelInput()
+            {
+<# foreach(var kv in SampleData){ #>
+                <#= kv.Key #>=<#= kv.Value #>,
+<#}#>
+            };
+<#}else{#>
+            ModelInput sampleData = new ModelInput();
+<#}#>
 
 			// Make a single prediction on the sample data and print results
 			var predictionResult = ConsumeModel.Predict(sampleData);
@@ -50,30 +59,6 @@ namespace <#= Namespace #>.ConsoleApp
             Console.WriteLine("=============== End of process, hit any key to finish ===============");
             Console.ReadKey();
         }
-
-        // Change this code to create your own sample data
-		#region CreateSingleDataSample
-        // Method to load single row of dataset to try a single prediction
-        private static ModelInput CreateSingleDataSample(string dataFilePath)
-        {
-            // Create MLContext
-			MLContext mlContext = new MLContext();
-
-			// Load dataset
-            IDataView dataView = mlContext.Data.LoadFromTextFile<ModelInput>(
-                                            path: dataFilePath,
-                                            hasHeader : <#= HasHeader.ToString().ToLowerInvariant() #>,
-                                            separatorChar : '<#= Regex.Escape(Separator.ToString()) #>',
-                                            allowQuoting : <#= AllowQuoting.ToString().ToLowerInvariant() #>,
-                                            allowSparse: <#= AllowSparse.ToString().ToLowerInvariant() #>);
-
-            // Use first line of dataset as model input
-			// You can replace this with new test data (hardcoded or from end-user application)
-            ModelInput sampleForPrediction = mlContext.Data.CreateEnumerable<ModelInput>(dataView, false)
-                                                                        .First();
-            return sampleForPrediction;
-        }
-		#endregion
     }
 }
 <#+
@@ -88,4 +73,5 @@ public bool AllowSparse {get;set;}
 public bool HasHeader {get;set;}
 public IList<string> Features {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
+public IDictionary<string, string> SampleData {get;set;}
 #>

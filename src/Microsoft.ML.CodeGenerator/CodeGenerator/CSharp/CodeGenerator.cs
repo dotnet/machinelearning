@@ -434,6 +434,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
         {
             var columns = _columnInferenceResult.TextLoaderOptions.Columns;
             var featuresList = columns.Where((str) => str.Name != _settings.LabelName).Select((str) => str.Name).ToList();
+            var sampleData = Utils.GenerateSampleData(_settings.TrainDataset, _columnInferenceResult);
             PredictProgram predictProgram = new PredictProgram()
             {
                 TaskType = _settings.MlTask.ToString(),
@@ -447,6 +448,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 AllowSparse = _columnInferenceResult.TextLoaderOptions.AllowSparse,
                 Features = featuresList,
                 Target = _settings.Target,
+                SampleData = sampleData,
             };
             return predictProgram.TransformText();
         }
