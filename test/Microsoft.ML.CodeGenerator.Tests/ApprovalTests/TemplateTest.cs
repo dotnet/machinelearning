@@ -32,7 +32,6 @@ namespace Microsoft.ML.CodeGenerator.Tests
                 Features = new List<string>(),
                 Namespace = "Namespace",
                 LabelName = "LabelName",
-                TrainDataPath = "/path",
                 Separator = ','
             };
             Approvals.Verify(predictProgram.TransformText());

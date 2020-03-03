@@ -27,6 +27,7 @@ namespace Microsoft.ML.CodeGenerator.Tests
                     STR = "feature1",
                     INT = 2,
                     DOUBLE = 1.2,
+                    FLOAT = 1.223E+10F,
                     TrickySTR = "ab\"\';@#$%^&-++==",
                 }
             };
@@ -45,6 +46,7 @@ namespace Microsoft.ML.CodeGenerator.Tests
             Assert.Equal("\"feature1\"", sampleData["STR"]);
             Assert.Equal("2", sampleData["INT"]);
             Assert.Equal("1.2", sampleData["DOUBLE"]);
+            Assert.Equal("1.223E+10F", sampleData["FLOAT"]);
             Assert.Equal("\"ab\\\"\';@#$%^&-++==\"", sampleData["TrickySTR"]);
         }
     }

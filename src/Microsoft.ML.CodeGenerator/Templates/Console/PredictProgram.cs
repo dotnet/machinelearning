@@ -32,24 +32,13 @@ CLI_Annotation();
  } else if(Target == CSharp.GenerateTarget.ModelBuilder){ 
 MB_Annotation();
  } 
-            this.Write("\r\nusing System;\r\nusing System.IO;\r\nusing System.Linq;\r\nusing Microsoft.ML;\r\nusing" +
-                    " ");
+            this.Write("\r\nusing System;\r\nusing ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             this.Write(".Model;\r\n\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".ConsoleApp\r\n{\r\n    class Program\r\n    {\r\n        //Dataset to use for prediction" +
-                    "s \r\n");
-if(string.IsNullOrEmpty(TestDataPath)){ 
-            this.Write("        private const string DATA_FILEPATH = @\"");
-            this.Write(this.ToStringHelper.ToStringWithCulture(TrainDataPath));
-            this.Write("\";\r\n");
- } else{ 
-            this.Write("        private const string DATA_FILEPATH = @\"");
-            this.Write(this.ToStringHelper.ToStringWithCulture(TestDataPath));
-            this.Write("\";\r\n");
- } 
-            this.Write("\r\n        static void Main(string[] args)\r\n        {\r\n            // Create singl" +
-                    "e instance of sample data from first line of dataset for model input\r\n");
+            this.Write(".ConsoleApp\r\n{\r\n    class Program\r\n    {\r\n        static void Main(string[] args)" +
+                    "\r\n        {\r\n            // Create single instance of sample data from first lin" +
+                    "e of dataset for model input\r\n");
  if(SampleData != null) {
             this.Write("            ModelInput sampleData = new ModelInput()\r\n            {\r\n");
  foreach(var kv in SampleData){ 
@@ -112,8 +101,6 @@ if("BinaryClassification".Equals(TaskType) ){
 public string TaskType {get;set;}
 public string Namespace {get;set;}
 public string LabelName {get;set;}
-public string TestDataPath {get;set;}
-public string TrainDataPath {get;set;}
 public char Separator {get;set;}
 public bool AllowQuoting {get;set;}
 public bool AllowSparse {get;set;}

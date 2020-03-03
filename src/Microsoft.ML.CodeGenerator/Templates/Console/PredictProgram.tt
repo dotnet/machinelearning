@@ -12,22 +12,12 @@
 <# } #>
 
 using System;
-using System.IO;
-using System.Linq;
-using Microsoft.ML;
 using <#= Namespace #>.Model;
 
 namespace <#= Namespace #>.ConsoleApp
 {
     class Program
     {
-        //Dataset to use for predictions 
-<#if(string.IsNullOrEmpty(TestDataPath)){ #>
-        private const string DATA_FILEPATH = @"<#= TrainDataPath #>";
-<# } else{ #>
-        private const string DATA_FILEPATH = @"<#= TestDataPath #>";
-<# } #>
-
         static void Main(string[] args)
         {
             // Create single instance of sample data from first line of dataset for model input
@@ -65,8 +55,6 @@ namespace <#= Namespace #>.ConsoleApp
 public string TaskType {get;set;}
 public string Namespace {get;set;}
 public string LabelName {get;set;}
-public string TestDataPath {get;set;}
-public string TrainDataPath {get;set;}
 public char Separator {get;set;}
 public bool AllowQuoting {get;set;}
 public bool AllowSparse {get;set;}

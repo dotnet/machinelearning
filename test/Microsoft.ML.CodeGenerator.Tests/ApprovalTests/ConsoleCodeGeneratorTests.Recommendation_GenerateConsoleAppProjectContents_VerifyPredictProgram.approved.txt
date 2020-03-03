@@ -5,18 +5,12 @@
 //*****************************************************************************************
 
 using System;
-using System.IO;
-using System.Linq;
-using Microsoft.ML;
 using TestNamespace.Model;
 
 namespace TestNamespace.ConsoleApp
 {
     class Program
     {
-        //Dataset to use for predictions 
-        private const string DATA_FILEPATH = @"x:\dummypath\dummy_test.csv";
-
         static void Main(string[] args)
         {
             // Create single instance of sample data from first line of dataset for model input

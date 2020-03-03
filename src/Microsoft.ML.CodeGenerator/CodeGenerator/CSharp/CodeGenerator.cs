@@ -440,8 +440,6 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 TaskType = _settings.MlTask.ToString(),
                 LabelName = _settings.LabelName,
                 Namespace = namespaceValue,
-                TestDataPath = _settings.TestDataset,
-                TrainDataPath = _settings.TrainDataset,
                 HasHeader = _columnInferenceResult.TextLoaderOptions.HasHeader,
                 Separator = _columnInferenceResult.TextLoaderOptions.Separators.FirstOrDefault(),
                 AllowQuoting = _columnInferenceResult.TextLoaderOptions.AllowQuoting,

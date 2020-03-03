@@ -89,8 +89,6 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp
                     TaskType = _settings.MlTask.ToString(),
                     LabelName = _settings.LabelName,
                     Namespace = _nameSpaceValue,
-                    TestDataPath = _settings.TestDataset,
-                    TrainDataPath = _settings.TrainDataset,
                     AllowQuoting = _columnInferenceResult.TextLoaderOptions.AllowQuoting,
                     AllowSparse = _columnInferenceResult.TextLoaderOptions.AllowSparse,
                     HasHeader = _columnInferenceResult.TextLoaderOptions.HasHeader,

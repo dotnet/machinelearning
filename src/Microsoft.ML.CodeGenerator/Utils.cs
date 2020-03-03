@@ -41,7 +41,7 @@ namespace Microsoft.ML.CodeGenerator.Utilities
 
         internal static IDictionary<string, string> GenerateSampleData(IDataView dataView, ColumnInferenceResults columnInference)
         {
-            var featureColumns = dataView.Schema.AsEnumerable().Where(col => col.Name != columnInference.ColumnInformation.LabelColumnName);
+            var featureColumns = dataView.Schema.AsEnumerable().Where(col => col.Name != columnInference.ColumnInformation.LabelColumnName && !columnInference.ColumnInformation.IgnoredColumnNames.Contains(col.Name));
             var rowCursor = dataView.GetRowCursor(featureColumns);
 
             var sampleData = featureColumns.Select(column => new { key = Utils.Normalize(column.Name), val = "null" }).ToDictionary(x => x.key, x => x.val);
@@ -76,6 +76,12 @@ namespace Microsoft.ML.CodeGenerator.Utilities
             {
                 return "\"null\"";
             }
+
+            if (val is float)
+            {
+                return val.ToString() + "F";
+            }
+
             return val.ToString();
         }
 
