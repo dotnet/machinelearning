@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 using ApprovalTests;
 using ApprovalTests.Reporters;
@@ -10,6 +11,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.CodeGenerator.Tests
 {
+    [UseReporter(typeof(DiffReporter))]
     public class TemplateTest : BaseTestClass
     {
         public TemplateTest(ITestOutputHelper output) : base(output)
@@ -18,6 +20,7 @@ namespace Microsoft.ML.CodeGenerator.Tests
 
         [Fact]
         [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void TestPredictProgram_WithSampleData()
         {
             var predictProgram = new PredictProgram()
