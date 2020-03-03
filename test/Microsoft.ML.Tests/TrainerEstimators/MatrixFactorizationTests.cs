@@ -486,7 +486,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var testResults = mlContext.Data.CreateEnumerable<OneClassMatrixElementZeroBasedForScore>(testPrediction, false).ToList();
 
-            // REVIEW: We are seeing lower precision on non-Windows platforms
+            // TODO TEST_STABILITY: We are seeing lower precision on non-Windows platforms
             int precision = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 5 : 3;
 
             // Positive example (i.e., examples can be found in dataMatrix) is close to 1.
