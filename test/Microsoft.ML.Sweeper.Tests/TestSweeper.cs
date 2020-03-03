@@ -145,7 +145,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             var paramSets = new List<ParameterSet>();
             for (int i = 0; i < sweeps; i++)
             {
-                var task = sweeper.Propose();
+                var task = sweeper.ProposeAsync();
                 Assert.True(task.IsCompleted);
                 paramSets.Add(task.Result.ParameterSet);
                 var result = new RunResult(task.Result.ParameterSet, random.NextDouble(), true);
@@ -166,7 +166,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             paramSets.Clear();
             for (int i = 0; i < sweeps; i++)
             {
-                var task = gridSweeper.Propose();
+                var task = gridSweeper.ProposeAsync();
                 Assert.True(task.IsCompleted);
                 paramSets.Add(task.Result.ParameterSet);
             }
@@ -202,7 +202,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             int numCompleted = 0;
             for (int i = 0; i < sweeps; i++)
             {
-                var task = sweeper.Propose();
+                var task = sweeper.ProposeAsync();
                 if (i < args.BatchSize - args.Relaxation)
                 {
                     Assert.True(task.IsCompleted);
@@ -252,7 +252,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             var paramSets = new List<ParameterSet>();
             for (int i = 0; i < sweeps; i++)
             {
-                var task = sweeper.Propose();
+                var task = sweeper.ProposeAsync();
                 Assert.True(task.IsCompleted);
                 paramSets.Add(task.CompletedResult().ParameterSet);
                 var result = new RunResult(task.CompletedResult().ParameterSet, random.NextDouble(), true);
@@ -270,7 +270,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             var results = new List<KeyValuePair<int, IRunResult>>();
             for (int i = 0; i < args.BatchSize; i++)
             {
-                var task = sweeper.Propose();
+                var task = sweeper.ProposeAsync();
                 Assert.True(task.IsCompleted);
                 tasks[i] = task;
                 if (task.CompletedResult() == null)
@@ -281,7 +281,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             // in the previous batch has been posted to the sweeper.
             for (int i = args.BatchSize; i < 2 * args.BatchSize; i++)
             {
-                var task = sweeper.Propose();
+                var task = sweeper.ProposeAsync();
                 Assert.False(task.IsCompleted);
                 tasks[i] = task;
             }
@@ -328,7 +328,7 @@ namespace Microsoft.ML.Sweeper.RunTests
                 sleeps[i] = random.Next(10, 100);
             var r = Task.Run(() => Parallel.For(0, sweeps, options, (int i) =>
             {
-                var task = sweeper.Propose();
+                var task = sweeper.ProposeAsync();
                 task.Wait();
                 Assert.Equal(TaskStatus.RanToCompletion, task.Status);
                 var paramWithId = task.Result;
@@ -386,7 +386,7 @@ namespace Microsoft.ML.Sweeper.RunTests
 
             for (int i = 0; i < sweeps; i++)
             {
-                var paramWithId = await sweeper.Propose();
+                var paramWithId = await sweeper.ProposeAsync();
                 if (paramWithId == null)
                     return;
                 var result = new RunResult(paramWithId.ParameterSet, metrics[i], true);

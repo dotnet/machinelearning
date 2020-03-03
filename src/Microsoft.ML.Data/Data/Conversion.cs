@@ -48,6 +48,9 @@ namespace Microsoft.ML.Data.Conversion
     [BestFriend]
     internal sealed class Conversions
     {
+        private static readonly FuncInstanceMethodInfo1<Conversions, KeyDataViewType, Delegate> _getKeyParseMethodInfo
+            = FuncInstanceMethodInfo1<Conversions, KeyDataViewType, Delegate>.Create(target => target.GetKeyParse<int>);
+
         // REVIEW: Reconcile implementations with TypeUtils, and clarify the distinction.
 
         // Singleton pattern.
@@ -546,9 +549,7 @@ namespace Microsoft.ML.Data.Conversion
 
         private Delegate GetKeyParse(KeyDataViewType key)
         {
-            Func<KeyDataViewType, ValueMapper<TX, int>> del = GetKeyParse<int>;
-            var meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(key.RawType);
-            return (Delegate)meth.Invoke(this, new object[] { key });
+            return Utils.MarshalInvoke(_getKeyParseMethodInfo, this, key.RawType, key);
         }
 
         private ValueMapper<TX, TDst> GetKeyParse<TDst>(KeyDataViewType key)

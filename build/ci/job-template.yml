@@ -47,7 +47,7 @@ jobs:
       container: ${{ parameters.container }}
 
     steps:
-    - ${{ if eq(parameters.pool.name, 'Hosted macOS High Sierra') }}:
+    - ${{ if eq(parameters.pool.name, 'Hosted macOS') }}:
       - script: brew update && brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/f5b1ac99a7fba27c19cee0bc4f036775c889b359/Formula/libomp.rb && brew unlink python@2 && brew install mono-libgdiplus gettext && brew link gettext --force && brew link libomp --force
         displayName: Install build dependencies
     - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.pool.name, 'Hosted Ubuntu 1604')) }}:

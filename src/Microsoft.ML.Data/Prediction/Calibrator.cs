@@ -1581,10 +1581,10 @@ namespace Microsoft.ML.Calibrators
         [TlcModule.Component(Name = "FixedPlattCalibrator", FriendlyName = "Fixed Platt Calibrator", Aliases = new[] { "FixedPlatt", "FixedSigmoid" })]
         public sealed class Arguments : ICalibratorTrainerFactory
         {
-            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The slope parameter of f(x) = 1 / (1 + exp(-slope * x + offset)", ShortName = "a")]
-            public Double Slope = 1;
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The slope parameter of f(x) = 1 / (1 + exp(slope * x + offset)", ShortName = "a")]
+            public Double Slope = -1;
 
-            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The offset parameter of f(x) = 1 / (1 + exp(-slope * x + offset)", ShortName = "b")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The offset parameter of f(x) = 1 / (1 + exp(slope * x + offset)", ShortName = "b")]
             public Double Offset = 0;
 
             public ICalibratorTrainer CreateComponent(IHostEnvironment env)
@@ -1618,7 +1618,7 @@ namespace Microsoft.ML.Calibrators
 
     ///<summary>
     /// The Platt calibrator calculates the probability following:
-    /// P(x) = 1 / (1 + exp(-<see cref="PlattCalibrator.Slope"/> * x + <see cref="PlattCalibrator.Offset"/>)
+    /// P(x) = 1 / (1 + exp(<see cref="PlattCalibrator.Slope"/> * x + <see cref="PlattCalibrator.Offset"/>)
     /// </summary>.
     public sealed class PlattCalibrator : ICalibrator, IParameterMixer, ICanSaveModel, ISingleCanSavePfa, ISingleCanSaveOnnx
     {
@@ -2085,10 +2085,10 @@ namespace Microsoft.ML.Calibrators
 
         public sealed class FixedPlattInput : CalibrateInputBase
         {
-            [Argument(ArgumentType.AtMostOnce, ShortName = "slope", HelpText = "The slope parameter of the calibration function 1 / (1 + exp(-slope * x + offset)", SortOrder = 1)]
-            public Double Slope = 1;
+            [Argument(ArgumentType.AtMostOnce, ShortName = "slope", HelpText = "The slope parameter of the calibration function 1 / (1 + exp(slope * x + offset)", SortOrder = 1)]
+            public Double Slope = -1;
 
-            [Argument(ArgumentType.AtMostOnce, ShortName = "offset", HelpText = "The offset parameter of the calibration function 1 / (1 + exp(-slope * x + offset)", SortOrder = 3)]
+            [Argument(ArgumentType.AtMostOnce, ShortName = "offset", HelpText = "The offset parameter of the calibration function 1 / (1 + exp(slope * x + offset)", SortOrder = 3)]
             public Double Offset = 0;
         }
 

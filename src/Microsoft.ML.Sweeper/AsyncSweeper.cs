@@ -47,7 +47,7 @@ namespace Microsoft.ML.Sweeper
         /// Propose a <see cref="ParameterSet"/>.
         /// </summary>
         /// <returns>A future <see cref="ParameterSet"/> and its id. Null if unavailable or cancelled.</returns>
-        Task<ParameterSetWithId> Propose();
+        Task<ParameterSetWithId> ProposeAsync();
 
         /// <summary>
         /// Notify the sweeper of a finished run.
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Sweeper
             }
         }
 
-        public Task<ParameterSetWithId> Propose()
+        public Task<ParameterSetWithId> ProposeAsync()
         {
             if (_canceled)
                 return Task.FromResult<ParameterSetWithId>(null);
@@ -272,7 +272,7 @@ namespace Microsoft.ML.Sweeper
             }
         }
 
-        public async Task<ParameterSetWithId> Propose()
+        public async Task<ParameterSetWithId> ProposeAsync()
         {
             if (_cts.IsCancellationRequested)
                 return null;

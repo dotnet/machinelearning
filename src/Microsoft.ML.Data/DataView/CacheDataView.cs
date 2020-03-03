@@ -364,7 +364,7 @@ namespace Microsoft.ML.Data
             // They will not be caught by the big catch in the main thread, as filler is not running
             // in the main thread. Some sort of scheme by which these exceptions could be
             // cleanly handled would be more appropriate. See task 3740.
-            var fillerThread = Utils.RunOnBackgroundThread(() => Filler(cursor, caches, waiter));
+            var fillerThread = Utils.RunOnBackgroundThreadAsync(() => Filler(cursor, caches, waiter));
             _cacheFillerThreads.Add(fillerThread);
         }
 
@@ -1136,6 +1136,9 @@ namespace Microsoft.ML.Data
 
         private abstract class RowCursorSeekerBase : DataViewRowCursor
         {
+            private static readonly FuncInstanceMethodInfo1<RowCursorSeekerBase, int, Delegate> _createGetterDelegateMethodInfo
+                = FuncInstanceMethodInfo1<RowCursorSeekerBase, int, Delegate>.Create(target => target.CreateGetterDelegate<int>);
+
             protected readonly CacheDataView Parent;
             protected readonly IChannel Ch;
             protected long PositionCore;
@@ -1213,7 +1216,7 @@ namespace Microsoft.ML.Data
             {
                 Ch.Assert(0 <= col && col < _colToActivesIndex.Length);
                 Ch.Assert(_colToActivesIndex[col] >= 0);
-                return Utils.MarshalInvoke(CreateGetterDelegate<int>, Schema[col].Type.RawType, col);
+                return Utils.MarshalInvoke(_createGetterDelegateMethodInfo, this, Schema[col].Type.RawType, col);
             }
 
             private Delegate CreateGetterDelegate<TValue>(int col)

@@ -37,6 +37,12 @@ namespace Microsoft.ML.EntryPoints
             }
         }
 
+        private static readonly FuncStaticMethodInfo1<object, object> _makeNullableMethodInfo
+            = new FuncStaticMethodInfo1<object, object>(MakeNullable<int>);
+
+        private static readonly FuncStaticMethodInfo1<object, object> _makeOptionalMethodInfo
+            = new FuncStaticMethodInfo1<object, object>(MakeOptional<int>);
+
         private readonly IExceptionContext _ectx;
         private readonly object _instance;
         private readonly Type _type;
@@ -622,13 +628,13 @@ namespace Microsoft.ML.EntryPoints
             }
 
             bool isOptional = outerType.GetGenericTypeDefinition() == typeof(Optional<>);
-            Func<object, object> creator;
+            FuncStaticMethodInfo1<object, object> creator;
             if (isOptional)
-                creator = MakeOptional<int>;
+                creator = _makeOptionalMethodInfo;
             else
             {
                 ectx.Assert(genericType == typeof(Nullable<>));
-                creator = MakeNullable<int>;
+                creator = _makeNullableMethodInfo;
             }
 
             return Utils.MarshalInvoke(creator, outerType.GetGenericArguments()[0], innerValue);

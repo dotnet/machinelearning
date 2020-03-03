@@ -339,8 +339,6 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void PlattCalibratorOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1);
@@ -1202,12 +1200,18 @@ namespace Microsoft.ML.Tests
         [Theory]
         [InlineData(DataKind.Single)]
         [InlineData(DataKind.Int64)]
+        [InlineData(DataKind.Int32)]
+        [InlineData(DataKind.Int16)]
+        [InlineData(DataKind.UInt64)]
+        [InlineData(DataKind.UInt32)]
+        [InlineData(DataKind.UInt16)]
         [InlineData(DataKind.Double)]
         [InlineData(DataKind.String)]
+        [InlineData(DataKind.Boolean)]
         public void ValueToKeyMappingOnnxConversionTest(DataKind valueType)
         {
             var mlContext = new MLContext(seed: 1);
-            string filePath = GetDataPath("type-conversion.txt");
+            string filePath = (valueType == DataKind.Boolean) ? GetDataPath("type-conversion-boolean.txt") : GetDataPath("type-conversion.txt");
 
             TextLoader.Column[] columns = new[]
             {
@@ -1237,12 +1241,18 @@ namespace Microsoft.ML.Tests
         [Theory]
         [InlineData(DataKind.Single)]
         [InlineData(DataKind.Int64)]
+        [InlineData(DataKind.Int32)]
+        [InlineData(DataKind.Int16)]
+        [InlineData(DataKind.UInt64)]
+        [InlineData(DataKind.UInt32)]
+        [InlineData(DataKind.UInt16)]
         [InlineData(DataKind.Double)]
         [InlineData(DataKind.String)]
+        [InlineData(DataKind.Boolean)]
         public void KeyToValueMappingOnnxConversionTest(DataKind valueType)
         {
             var mlContext = new MLContext(seed: 1);
-            string filePath = GetDataPath("type-conversion.txt");
+            string filePath = (valueType == DataKind.Boolean) ? GetDataPath("type-conversion-boolean.txt") : GetDataPath("type-conversion.txt");
 
             TextLoader.Column[] columns = new[]
             {

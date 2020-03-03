@@ -83,7 +83,8 @@ namespace Microsoft.ML.RunTests
         {
             var ml = new MLContext(1);
             ml.AddStandardComponents();
-            var classes = Utils.MarshalInvoke(ml.ComponentCatalog.FindLoadableClasses<int>, typeof(SignatureCalibrator));
+            var findLoadableClassesMethodInfo = new FuncInstanceMethodInfo1<ComponentCatalog, ComponentCatalog.LoadableClassInfo[]>(ml.ComponentCatalog.FindLoadableClasses<int>);
+            var classes = Utils.MarshalInvoke(findLoadableClassesMethodInfo, ml.ComponentCatalog, typeof(SignatureCalibrator));
             foreach (var cls in classes)
             {
                 var factory = CmdParser.CreateComponentFactory(typeof(IComponentFactory<ICalibratorTrainer>), typeof(SignatureCalibrator), cls.LoadNames[0]);

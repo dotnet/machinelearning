@@ -714,6 +714,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
+        [Trait("Category", "SkipInCI")]
         public void LdaWorkoutEstimatorCore()
         {
             var ml = new MLContext(1);

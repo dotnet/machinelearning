@@ -825,6 +825,12 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         private class ValueMap<TKey, TValue> : ValueMap
         {
+            private static readonly FuncStaticMethodInfo1<TValue, TValue> _getVectorMethodInfo
+                = new FuncStaticMethodInfo1<TValue, TValue>(GetVector<int>);
+
+            private static readonly FuncStaticMethodInfo1<TValue, TValue> _getValueMethodInfo
+                = new FuncStaticMethodInfo1<TValue, TValue>(GetValue<int>);
+
             private Dictionary<TKey, TValue> _mapping;
             private TValue _missingValue;
 
@@ -889,9 +895,9 @@ namespace Microsoft.ML.Transforms
                 if (_mapping.ContainsKey(key))
                 {
                     if (ValueColumn.Type is VectorDataViewType vectorType)
-                        return Utils.MarshalInvoke(GetVector<int>, vectorType.ItemType.RawType, _mapping[key]);
+                        return Utils.MarshalInvoke(_getVectorMethodInfo, vectorType.ItemType.RawType, _mapping[key]);
                     else
-                        return Utils.MarshalInvoke(GetValue<int>, ValueColumn.Type.RawType, _mapping[key]);
+                        return Utils.MarshalInvoke(_getValueMethodInfo, ValueColumn.Type.RawType, _mapping[key]);
                 }
                 else
                     return _missingValue;

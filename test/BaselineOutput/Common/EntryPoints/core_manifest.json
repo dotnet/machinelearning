@@ -1731,14 +1731,14 @@
         {
           "Name": "Slope",
           "Type": "Float",
-          "Desc": "The slope parameter of the calibration function 1 / (1 + exp(-slope * x + offset)",
+          "Desc": "The slope parameter of the calibration function 1 / (1 + exp(slope * x + offset)",
           "Aliases": [
             "slope"
           ],
           "Required": false,
           "SortOrder": 1.0,
           "IsNullable": false,
-          "Default": 1.0
+          "Default": -1.0
         },
         {
           "Name": "Data",
@@ -1762,7 +1762,7 @@
         {
           "Name": "Offset",
           "Type": "Float",
-          "Desc": "The offset parameter of the calibration function 1 / (1 + exp(-slope * x + offset)",
+          "Desc": "The offset parameter of the calibration function 1 / (1 + exp(slope * x + offset)",
           "Aliases": [
             "offset"
           ],
@@ -25072,19 +25072,19 @@
             {
               "Name": "Slope",
               "Type": "Float",
-              "Desc": "The slope parameter of f(x) = 1 / (1 + exp(-slope * x + offset)",
+              "Desc": "The slope parameter of f(x) = 1 / (1 + exp(slope * x + offset)",
               "Aliases": [
                 "a"
               ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
-              "Default": 1.0
+              "Default": -1.0
             },
             {
               "Name": "Offset",
               "Type": "Float",
-              "Desc": "The offset parameter of f(x) = 1 / (1 + exp(-slope * x + offset)",
+              "Desc": "The offset parameter of f(x) = 1 / (1 + exp(slope * x + offset)",
               "Aliases": [
                 "b"
               ],
