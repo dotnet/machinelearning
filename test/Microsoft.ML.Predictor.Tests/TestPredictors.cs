@@ -791,6 +791,7 @@ namespace Microsoft.ML.RunTests
             };
 
             CombineAndTestEnsembles(dataView, "pe", "oc=average", PredictionKind.BinaryClassification, predictors);
+            Done();
         }
 
         [X64Fact("x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216")]
@@ -941,7 +942,7 @@ namespace Microsoft.ML.RunTests
                             predGetters[i](ref preds[i]);
                         }
                         if (scores.All(s => !float.IsNaN(s)))
-                            CompareNumbersWithTolerance(score, scores.Sum() / predCount);
+                            CompareNumbersWithTolerance(score, scores.Sum() / predCount, digitsOfPrecision: 5);
                         for (int i = 0; i < predCount; i++)
                             Assert.Equal(vectorScore.Length, vectorScores[i].Length);
                         for (int i = 0; i < vectorScore.Length; i++)

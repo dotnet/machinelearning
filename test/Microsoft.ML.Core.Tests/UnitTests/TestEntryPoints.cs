@@ -1536,6 +1536,7 @@ namespace Microsoft.ML.RunTests
             var twiceCalibratedFfModel = Calibrate.Platt(Env,
                 new Calibrate.NoArgumentsInput() { Data = splitOutput.TestData[0], UncalibratedPredictorModel = calibratedFfModel }).PredictorModel;
             var scoredFf = ScoreModel.Score(Env, new ScoreModel.Input() { Data = splitOutput.TestData[2], PredictorModel = twiceCalibratedFfModel }).ScoredData;
+            Done();
         }
 
         [Fact]
