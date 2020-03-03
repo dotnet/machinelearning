@@ -5,22 +5,16 @@
 //*****************************************************************************************
 
 using System;
-using System.IO;
-using System.Linq;
-using Microsoft.ML;
 using TestNamespace.Model;
 
 namespace TestNamespace.ConsoleApp
 {
     class Program
     {
-        //Dataset to use for predictions 
-        private const string DATA_FILEPATH = @"x:\dummypath\dummy_test.csv";
-
         static void Main(string[] args)
         {
             // Create single instance of sample data from first line of dataset for model input
-            ModelInput sampleData = CreateSingleDataSample(DATA_FILEPATH);
+            ModelInput sampleData = new ModelInput();
 
             // Make a single prediction on the sample data and print results
             var predictionResult = ConsumeModel.Predict(sampleData);
@@ -31,33 +25,9 @@ namespace TestNamespace.ConsoleApp
             Console.WriteLine($"col3: {sampleData.Col3}");
             Console.WriteLine($"col4: {sampleData.Col4}");
             Console.WriteLine($"col5: {sampleData.Col5}");
-            Console.WriteLine($"\n\nActual Label: {sampleData.Label} \nPredicted Label: {predictionResult.Prediction}\n\n");
+            Console.WriteLine($"\n\nPredicted Label: {predictionResult.Prediction}\n\n");
             Console.WriteLine("=============== End of process, hit any key to finish ===============");
             Console.ReadKey();
         }
-
-        // Change this code to create your own sample data
-        #region CreateSingleDataSample
-        // Method to load single row of dataset to try a single prediction
-        private static ModelInput CreateSingleDataSample(string dataFilePath)
-        {
-            // Create MLContext
-            MLContext mlContext = new MLContext();
-
-            // Load dataset
-            IDataView dataView = mlContext.Data.LoadFromTextFile<ModelInput>(
-                                            path: dataFilePath,
-                                            hasHeader: true,
-                                            separatorChar: ',',
-                                            allowQuoting: true,
-                                            allowSparse: true);
-
-            // Use first line of dataset as model input
-            // You can replace this with new test data (hardcoded or from end-user application)
-            ModelInput sampleForPrediction = mlContext.Data.CreateEnumerable<ModelInput>(dataView, false)
-                                                                        .First();
-            return sampleForPrediction;
-        }
-        #endregion
     }
 }

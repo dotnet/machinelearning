@@ -139,16 +139,6 @@ namespace mlnet.Tests
             Assert.Equal(expectedUsings, actual.Item2[0]);
         }
 
-        [Fact]
-        public void NormalizeTest()
-        {
-            var testStrArray = new string[] { "Abc Abc", "abc ABC" };
-            var expectedStrArray = new string[] { "Abc_Abc", "Abc_ABC" };
-            for (int i = 0; i != expectedStrArray.Count(); ++i)
-            {
-                var actualStr = Microsoft.ML.CodeGenerator.Utilities.Utils.Normalize(testStrArray[i]);
-                Assert.Equal(expectedStrArray[i], actualStr);
-            }
-        }
+
     }
 }
