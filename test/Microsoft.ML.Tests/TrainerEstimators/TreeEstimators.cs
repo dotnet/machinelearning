@@ -55,7 +55,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var trainer = ML.BinaryClassification.Trainers.LightGbm(new LightGbmBinaryTrainer.Options
             {
                 NumberOfLeaves = 10,
-                NumberOfThreads = 1,
                 MinimumExampleCountPerLeaf = 2,
                 UnbalancedSets = false, // default value
             });
@@ -76,7 +75,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var trainer = ML.BinaryClassification.Trainers.LightGbm(new LightGbmBinaryTrainer.Options
             {
                 NumberOfLeaves = 10,
-                NumberOfThreads = 1,
                 MinimumExampleCountPerLeaf = 2,
                 UnbalancedSets = true,
             });
@@ -101,7 +99,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var trainer = ML.BinaryClassification.Trainers.LightGbm(new LightGbmBinaryTrainer.Options
             {
                 NumberOfLeaves = 10,
-                NumberOfThreads = 1,
                 MinimumExampleCountPerLeaf = 2,
                 Sigmoid = sigmoid
             });
@@ -220,7 +217,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var dataView = GetRegressionPipeline();
             var trainer = ML.Regression.Trainers.LightGbm(new LightGbmRegressionTrainer.Options
             {
-                NumberOfThreads = 1,
                 NormalizeFeatures = NormalizeOption.Warn,
                 L2CategoricalRegularization = 5,
             });
@@ -931,7 +927,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var dataView = GetRegressionPipeline();
             var trainer = ML.Regression.Trainers.LightGbm(
-                new LightGbmRegressionTrainer.Options { NumberOfIterations = 10, NumberOfThreads = 1, NumberOfLeaves = 5});
+                new LightGbmRegressionTrainer.Options 
+                { 
+                    NumberOfIterations = 10, 
+                    NumberOfLeaves = 5 
+                });
 
             var transformer = trainer.Fit(dataView);
 
@@ -985,7 +985,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipeline, dataView) = GetOneHotBinaryClassificationPipeline();
             var trainer = pipeline.Append(ML.BinaryClassification.Trainers.LightGbm(
-                new LightGbmBinaryTrainer.Options { NumberOfIterations = 10, NumberOfThreads = 1, NumberOfLeaves = 5, UseCategoricalSplit = true }));
+                new LightGbmBinaryTrainer.Options 
+                { 
+                    NumberOfIterations = 10, 
+                    NumberOfLeaves = 5, 
+                    UseCategoricalSplit = true 
+                }));
 
             var transformer = trainer.Fit(dataView);
 

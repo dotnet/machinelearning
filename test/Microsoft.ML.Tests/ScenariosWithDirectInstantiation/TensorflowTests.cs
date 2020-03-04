@@ -816,7 +816,6 @@ namespace Microsoft.ML.Scenarios
                         LabelColumnName = "Label",
                         FeatureColumnName = "Features",
                         Seed = 1,
-                        NumberOfThreads = 1,
                         NumberOfIterations = 1
                     }));
 
