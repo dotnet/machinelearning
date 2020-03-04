@@ -11,6 +11,14 @@
     <PackageReleaseNotes>Initial preview of robust and extensible types and algorithms for manipulating structured data that supports aggregations, statistical funtions, sorting, grouping, joins, merges, handling missing values and more. </PackageReleaseNotes>
     <PackageTags>ML.NET ML Machine Learning Data Science DataFrame Preparation DataView Analytics Exploration</PackageTags>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <None Include="Converters.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Converters.tt</DependentUpon>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Apache.Arrow" Version="0.14.1" />
@@ -22,6 +30,14 @@
   </ItemGroup>
   
   <ItemGroup>
+    <None Update="Converters.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Converters.cs</LastGenOutput>
+    </None>
+    <None Update="DataFrameColumn.BinaryOperations.ExplodedColumns.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>DataFrameColumn.BinaryOperations.ExplodedColumns.cs</LastGenOutput>
+    </None>
     <None Update="DataFrameColumn.BinaryOperations.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>DataFrameColumn.BinaryOperations.cs</LastGenOutput>
@@ -50,9 +66,22 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ColumnArithmeticTemplate.cs</LastGenOutput>
     </None>
+    <None Update="PrimitiveDataFrameColumn.BinaryOperations.Combinations.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PrimitiveDataFrameColumn.BinaryOperations.Combinations.ttinclude</LastGenOutput>
+    </None>
+    <None Update="PrimitiveDataFrameColumn.BinaryOperations.Combinations.ttinclude">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PrimitiveDataFrameColumn.BinaryOperations.Combinations.tt</DependentUpon>
+    </None>
     <None Update="PrimitiveDataFrameColumn.BinaryOperations.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PrimitiveDataFrameColumn.BinaryOperations.cs</LastGenOutput>
+    </None>
+    <None Update="PrimitiveDataFrameColumn.BinaryOperators.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PrimitiveDataFrameColumn.BinaryOperators.cs</LastGenOutput>
     </None>
     <None Update="PrimitiveDataFrameColumn.Computations.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -89,6 +118,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="ColumnArithmeticTemplate.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ColumnArithmeticTemplate.ttinclude</DependentUpon>
+    </Compile>
+    <Compile Update="Converters.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Converters.tt</DependentUpon>
+    </Compile>
     <Compile Update="DataFrameColumn.BinaryOperations.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -123,6 +162,11 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>PrimitiveDataFrameColumn.BinaryOperations.tt</DependentUpon>
+    </Compile>
+    <Compile Update="PrimitiveDataFrameColumn.BinaryOperators.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PrimitiveDataFrameColumn.BinaryOperators.tt</DependentUpon>
     </Compile>
     <Compile Update="PrimitiveDataFrameColumn.Computations.cs">
       <DesignTime>True</DesignTime>

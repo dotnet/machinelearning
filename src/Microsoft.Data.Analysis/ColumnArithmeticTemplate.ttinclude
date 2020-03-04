@@ -38,6 +38,56 @@
         return $"{keyword} (typeof(T) == typeof({type.TypeName}))";
     }
 
+        // A way to discern implicit conversions. For ex: short has primitivitty 2. int has primitivitty 3. primitivitty(short) + primitivitty(int) > 2 * primitivitty(short) implying that a conversion has to take place 
+    public Dictionary<string, int> primitiveTypeToPrimitivityLevelMap = new Dictionary<string, int> {
+        {"byte", 1},
+        {"sbyte", 1},
+        {"short", 2},
+        {"ushort", 2},
+        {"int", 3},
+        {"uint", 3},
+        {"long", 4},
+        {"ulong", 4},
+        {"float", 5},
+        {"double", 6},
+        {"decimal", 7}
+    };
+
+    public string GetCapitalizedPrimitiveTypes(string type)
+    {
+        string typeFirstCharUpper;
+        if (type.First() == 'u' || type == "sbyte")
+        {
+            typeFirstCharUpper = type[0].ToString().ToUpper() + type[1].ToString().ToUpper() + type.Substring(2);
+        }
+        else
+        {
+            typeFirstCharUpper = type[0].ToString().ToUpper() + type.Substring(1);
+        }
+        return typeFirstCharUpper;
+    }
+
+    public bool IsMixedSignedAndUnsignedTypePair(string t1, string t2)
+    {
+        if (t1 == "byte" && t2 == "sbyte")
+        {
+            return true;
+        }
+        if (t2 == "byte" && t1 == "sbyte")
+        {
+            return true;
+        }
+        if (("u" + t1) == t2)
+        {
+            return true;
+        }
+        if (("u" + t2) == t1)
+        {
+            return true;
+        }
+        return false;
+    }
+
     public TypeConfiguration[] typeConfiguration = new []
     {
         new TypeConfiguration("bool", oneLiteral:"true", zeroLiteral:"false", supportsNumeric: false, unsupportedMethods: new[] {"LeftShift", "RightShift"}),
@@ -54,6 +104,30 @@
         new TypeConfiguration("ulong", classPrefix:"ULong", unsupportedMethods: new[] {"UnaryMinus", "All", "Any"}),
         new TypeConfiguration("ushort", classPrefix:"UShort", unsupportedMethods: new[] {"UnaryMinus", "All", "Any"})
     };
+
+    public string GetBinaryOperationReturnType(TypeConfiguration t1, TypeConfiguration t2)
+    {
+        int t1Level;
+        if (!primitiveTypeToPrimitivityLevelMap.TryGetValue(t1.TypeName, out t1Level))
+        {
+            throw new Exception("Unknown type");
+        }
+        int t2Level;
+        if (!primitiveTypeToPrimitivityLevelMap.TryGetValue(t2.TypeName, out t2Level))
+        {
+            throw new Exception("Unknown type");
+        }
+        if (t1Level + t2Level <= 2 * t1Level)
+        {
+            return t1.TypeName;
+        }
+        if (t1Level + t2Level <= 2 * t2Level)
+        {
+            return t2.TypeName;
+        }
+        throw new Exception("Bug in GetBinaryOperationReturnType");
+        return "";
+    }
 
     public enum MethodType
     {
