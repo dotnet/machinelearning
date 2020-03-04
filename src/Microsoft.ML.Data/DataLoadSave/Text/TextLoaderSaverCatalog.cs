@@ -21,20 +21,19 @@ namespace Microsoft.ML
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="columns">Array of columns <see cref="TextLoader.Column"/> defining the schema.</param>
         /// <param name="separatorChar">The character used as separator between data points in a row. By default the tab character is used as separator.</param>
-        /// <param name="hasHeader">Whether the file has a header with feature names. When <see langword="true"/>, the loader will skip the first line when
-        /// <see cref="TextLoader.Load(IMultiStreamSource)"/> is called. In addition, when <paramref name="hasHeader"/> is <see langword="true"/> but
-        /// <paramref name="dataSample"/> is not provided, vector columns created by the loader will not contain slot name annotations (slots being the elements of the given vector column),
+        /// <param name="hasHeader">Whether the file has a header with feature names. When a <see paramref="dataSample"/> is provided, <see langword="true"/>
+        /// indicates that the first line in the <see paramref="dataSample"/> will be used for feature names, and that when <see cref="TextLoader.Load(IMultiStreamSource)"/>
+        /// is called, the first line will be skipped. When there is no <see paramref="dataSample"/> provided, <see langword="true"/> just indicates that the loader should
+        /// skip the first line when <see cref="TextLoader.Load(IMultiStreamSource)"/> is called, but columns will not have slot names annotations. This is
         /// because the output schema is made when the loader is created, and not when <see cref="TextLoader.Load(IMultiStreamSource)"/> is called.</param>
         /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer slot name annotations if present, and also the number
         /// of slots in a column defined with <see cref="TextLoader.Range"/> with <see langword="null"/> maximum index.
         /// If the sample has been saved with ML.NET's <see cref="SaveAsText(DataOperationsCatalog, IDataView, Stream, char, bool, bool, bool, bool)"/>,
-        /// it will also contain the schema information in the header that the loader can read even if <paramref name="columns"/> is <see langword="null"/>.</param>
+        /// it will also contain the schema information in the header that the loader can read even if <paramref name="columns"/> is <see langword="null"/>.
+        /// In order to use the schema defined in the file, all other arguments sould be left with their default values.</param>
         /// <param name="allowQuoting">Whether the input may include double-quoted values. This parameter is used to distinguish separator characters
-        /// in an input value from actual separators. When <see langword="true"/>, separators within double quotes are treated as part of the
-        /// input value. When <see langword="false"/>, all separators, even those whitin quotes, are treated as delimiting a new column.
-        /// It is also used to distinguish empty values from missing values. When <see langword="true"/>, missing value are denoted by consecutive
-        /// separators and empty values by \"\". When <see langword="false"/>, empty values are denoted by consecutive separators and missing
-        /// values by the default missing value for each type documented in <see cref="DataKind"/>.</param>
+        /// in an input value from actual separators and colons. When <see langword="true"/>, separators within double quotes are treated as part of the
+        /// input value. When <see langword="false"/>, all separators, even those within quotes, are treated as delimiting a new column.</param>
         /// <param name="trimWhitespace">Remove trailing whitespace from lines.</param>
         /// <param name="allowSparse">Whether the input may include sparse representations. For example, a row containing
         /// "5 2:6 4:3" means that there are 5 columns, and the only non-zero are columns 2 and 4, which have values 6 and 3,
@@ -76,7 +75,8 @@ namespace Microsoft.ML
         /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer slot name annotations if present, and also the number
         /// of slots in <see cref="TextLoader.Options.Columns"/> defined with <see cref="TextLoader.Range"/> with <see langword="null"/> maximum index.
         /// If the sample has been saved with ML.NET's <see cref="SaveAsText(DataOperationsCatalog, IDataView, Stream, char, bool, bool, bool, bool)"/>,
-        /// it will also contain the schema information in the header that the loader can read even if <see cref="TextLoader.Options.Columns"/> are not specified.</param>
+        /// it will also contain the schema information in the header that the loader can read even if <see cref="TextLoader.Options.Columns"/> are not specified.
+        /// In order to use the schema defined in the file, all other <see cref="TextLoader.Options"/> sould be left with their default values.</param>
         public static TextLoader CreateTextLoader(this DataOperationsCatalog catalog,
             TextLoader.Options options,
             IMultiStreamSource dataSample = null)
@@ -90,17 +90,15 @@ namespace Microsoft.ML
         /// names and their data types in the schema of the loaded data.</typeparam>
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="separatorChar">Column separator character. Default is '\t'</param>
-        /// <param name="hasHeader">Whether the file has a header with feature names. When <see langword="true"/>, the loader will skip the first line when
-        /// <see cref="TextLoader.Load(IMultiStreamSource)"/> is called. In addition, when <paramref name="hasHeader"/> is <see langword="true"/> but
-        /// <paramref name="dataSample"/> is not provided, vector columns created by the loader will not contain slot name annotations (slots being the elements of the given vector column),
+        /// <param name="hasHeader">Whether the file has a header with feature names. When a <see paramref="dataSample"/> is provided, <see langword="true"/>
+        /// indicates that the first line in the <see paramref="dataSample"/> will be used for feature names, and that when <see cref="TextLoader.Load(IMultiStreamSource)"/>
+        /// is called, the first line will be skipped. When there is no <see paramref="dataSample"/> provided, <see langword="true"/> just indicates that the loader should
+        /// skip the first line when <see cref="TextLoader.Load(IMultiStreamSource)"/> is called, but columns will not have slot names annotations. This is
         /// because the output schema is made when the loader is created, and not when <see cref="TextLoader.Load(IMultiStreamSource)"/> is called.</param>
         /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer slot name annotations if present.</param>
         /// <param name="allowQuoting">Whether the input may include double-quoted values. This parameter is used to distinguish separator characters
         /// in an input value from actual separators. When <see langword="true"/>, separators within double quotes are treated as part of the
-        /// input value. When <see langword="false"/>, all separators, even those whitin quotes, are treated as delimiting a new column.
-        /// It is also used to distinguish empty values from missing values. When <see langword="true"/>, missing value are denoted by consecutive
-        /// separators and empty values by \"\". When <see langword="false"/>, empty values are denoted by consecutive separators and missing
-        /// values by the default missing value for each type documented in <see cref="DataKind"/>.</param>
+        /// input value. When <see langword="false"/>, all separators, even those whitin quotes, are treated as delimiting a new column.</param>
         /// <param name="trimWhitespace">Remove trailing whitespace from lines.</param>
         /// <param name="allowSparse">Whether the input may include sparse representations. For example, a row containing
         /// "5 2:6 4:3" means that there are 5 columns, and the only non-zero are columns 2 and 4, which have values 6 and 3,
@@ -123,7 +121,7 @@ namespace Microsoft.ML
         /// <param name="path">The path to the file.</param>
         /// <param name="columns">The columns of the schema.</param>
         /// <param name="separatorChar">The character used as separator between data points in a row. By default the tab character is used as separator.</param>
-        /// <param name="hasHeader">Whether the file has a header with feature names. When <see langword="true"/>, the loader will skip the first line when
+        /// <param name="hasHeader">Whether the file has a header. When <see langword="true"/>, the loader will skip the first line when
         /// <see cref="TextLoader.Load(IMultiStreamSource)"/> is called.</param>
         /// <param name="allowQuoting">Whether the input may include double-quoted values. This parameter is used to distinguish separator characters
         /// in an input value from actual separators. When <see langword="true"/>, separators within double quotes are treated as part of the
@@ -170,7 +168,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="path">The path to the file.</param>
         /// <param name="separatorChar">Column separator character. Default is '\t'</param>
-        /// <param name="hasHeader">Whether the file has a header with feature names. When <see langword="true"/>, the loader will skip the first line when
+        /// <param name="hasHeader">Whether the file has a header. When <see langword="true"/>, the loader will skip the first line when
         /// <see cref="TextLoader.Load(IMultiStreamSource)"/> is called.</param>
         /// <param name="allowQuoting">Whether the input may include double-quoted values. This parameter is used to distinguish separator characters
         /// in an input value from actual separators. When <see langword="true"/>, separators within double quotes are treated as part of the

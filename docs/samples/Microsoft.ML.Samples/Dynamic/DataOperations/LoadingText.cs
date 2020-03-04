@@ -85,22 +85,32 @@ namespace Samples.Dynamic.DataOperations
             //   10
 
 
-            // Create a TextLoader with unknown column length to illutrate
+            // Create a TextLoader with unknown column length to illustrate
             // how a data sample may be used to infer column size.
             var dataSample = new MultiFileSource(dataFiles[0]);
             var loaderWithUnknownLength = mlContext.Data.CreateTextLoader(
                 columns: new[]
                 {
                     new TextLoader.Column("Features",
-                                            DataKind.Single,
-                                            new[] { new TextLoader.Range(0, null) })
+                                          DataKind.Single,
+                                          new[] { new TextLoader.Range(0, null) })
                 },
                 dataSample: dataSample
             );
 
             var dataWithInferredLength = loaderWithUnknownLength.Load(dataFiles[0]);
-            PrintRowCount(dataWithInferredLength);
+            var featuresColumn = dataWithInferredLength.Schema.GetColumnOrNull("Features");
+            if (featuresColumn.HasValue)
+                Console.WriteLine(featuresColumn.Value.ToString());
 
+            // Expected Output:
+            //   Features: Vector<Single, 10>
+            //
+            // ML.NET infers the correct length of 10 for the Features column,
+            // which is of type Vector<Single>.
+
+            PrintRowCount(dataWithInferredLength);
+            
             // Expected Output:
             //   10
 

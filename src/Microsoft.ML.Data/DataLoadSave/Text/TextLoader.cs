@@ -428,11 +428,8 @@ namespace Microsoft.ML.Data
         {
             /// <summary>
             /// Whether the input may include double-quoted values. This parameter is used to distinguish separator characters
-            /// in an input value from actual separators. When true, separators within double quotes are treated as part of the
-            /// input value. When false, all separators, even those whitin quotes, are treated as delimiting a new column.
-            /// It is also used to distinguish empty values from missing values. When true, missing value are denoted by consecutive
-            /// separators and empty values by \"\". When false, empty values are denoted by consecutive separators and missing
-            /// values by the default missing value for each type documented in <see cref="DataKind"/>.
+            /// in an input value from actual separators. When <see langword="true"/>, separators within double quotes are treated as part of the
+            /// input value. When <see langword="false"/>, all separators, even those within quotes, are treated as delimiting a new column.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce,
                 HelpText =
@@ -484,7 +481,7 @@ namespace Microsoft.ML.Data
 
             /// <summary>
             /// Whether the file has a header with feature names. When <see langword="true"/>, the loader will skip the first line when
-            /// <see cref="TextLoader.Load(IMultiStreamSource)"/> is called.
+            /// <see cref="TextLoader.Load(IMultiStreamSource)"/> is called. The sample can be used to infer slot name annotations if present.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, ShortName = "header",
                 HelpText = "Data file has header with feature names. Header is read only if options 'hs' and 'hf' are not specified.")]
