@@ -23,7 +23,6 @@ namespace Namespace.Model
 
         public static PredictionEngine<ModelInput, ModelOutput> CreatePredictionEngine()
         {
-		
             // Create new MLContext
             MLContext mlContext = new MLContext();
  
