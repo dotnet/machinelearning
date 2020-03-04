@@ -17,7 +17,7 @@ namespace TestNamespace.Model
     {
         private static Lazy<PredictionEngine<ModelInput, ModelOutput>> PredictionEngine = new Lazy<PredictionEngine<ModelInput, ModelOutput>>(CreatePredictionEngine);
 
-        // For more info on consuming ML.NET models, visit https://aka.ms/model-builder-consume
+        // For more info on consuming ML.NET models, visit https://aka.ms/mlnet-consume
         // Method for consuming model in your app
         public static ModelOutput Predict(ModelInput input)
         {

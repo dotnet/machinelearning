@@ -13,7 +13,7 @@ namespace Namespace.Model
     {
         private static Lazy<PredictionEngine<ModelInput, ModelOutput>> PredictionEngine = new Lazy<PredictionEngine<ModelInput, ModelOutput>>(CreatePredictionEngine);
 
-        // For more info on consuming ML.NET models, visit https://aka.ms/model-builder-consume
+        // For more info on consuming ML.NET models, visit https://aka.ms/mlnet-consume
         // Method for consuming model in your app
         public static ModelOutput Predict(ModelInput input)
         {
@@ -26,10 +26,10 @@ namespace Namespace.Model
             // Create new MLContext
             MLContext mlContext = new MLContext();
  
-			// Register NormalizeMapping
+			// Register NormalizeMapping to calculate probabilities for each Label.
             mlContext.ComponentCatalog.RegisterAssembly(typeof(NormalizeMapping).Assembly);
  
-			// Register LabelMapping
+			// Register LabelMapping to map predicted Labels to their corresponding probabilities (likelihood of specified Labels)
             mlContext.ComponentCatalog.RegisterAssembly(typeof(LabelMapping).Assembly);
 
             // Load model & create prediction engine
