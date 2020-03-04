@@ -39,5 +39,21 @@ namespace Microsoft.ML.CodeGenerator.Tests
             };
             Approvals.Verify(predictProgram.TransformText());
         }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void TestConsumeModel()
+        {
+            var consumeModel = new ConsumeModel()
+            {
+                Namespace = "Namespace",
+                HasNormalizeMapping = true,
+                HasLabelMapping = true,
+                MLNetModelpath = @"/path/to/model",
+            };
+
+            Approvals.Verify(consumeModel.TransformText());
+        }
     }
 }
