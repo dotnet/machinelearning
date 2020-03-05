@@ -86,7 +86,7 @@ namespace Microsoft.ML.RunTests
             DataViewSchema loadedInputSchema;
             using (var fs = File.OpenRead(modelPath))
                 loadedTransformer = ML.Model.Load(fs, out loadedInputSchema);
-            DeleteOutputPath(modelPath);
+            //DeleteOutputPath(modelPath);
 
             // Run on train data.
             Action<IDataView> checkOnData = (IDataView data) =>
