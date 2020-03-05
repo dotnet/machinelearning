@@ -52,6 +52,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
 
+            // Attention: Do not set NumberOfThreads here, left this to use default value to avoid test crash.
+            // Details can be found here: https://github.com/dotnet/machinelearning/pull/4918
             var trainer = ML.BinaryClassification.Trainers.LightGbm(new LightGbmBinaryTrainer.Options
             {
                 NumberOfLeaves = 10,
@@ -72,6 +74,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
 
+            // Attention: Do not set NumberOfThreads here, left this to use default value to avoid test crash.
+            // Details can be found here: https://github.com/dotnet/machinelearning/pull/4918
             var trainer = ML.BinaryClassification.Trainers.LightGbm(new LightGbmBinaryTrainer.Options
             {
                 NumberOfLeaves = 10,
@@ -96,6 +100,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var (pipe, dataView) = GetBinaryClassificationPipeline();
             var sigmoid = .789;
 
+            // Attention: Do not set NumberOfThreads here, left this to use default value to avoid test crash.
+            // Details can be found here: https://github.com/dotnet/machinelearning/pull/4918
             var trainer = ML.BinaryClassification.Trainers.LightGbm(new LightGbmBinaryTrainer.Options
             {
                 NumberOfLeaves = 10,
@@ -215,6 +221,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void LightGBMRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
+
+            // Attention: Do not set NumberOfThreads here, left this to use default value to avoid test crash.
+            // Details can be found here: https://github.com/dotnet/machinelearning/pull/4918
             var trainer = ML.Regression.Trainers.LightGbm(new LightGbmRegressionTrainer.Options
             {
                 NormalizeFeatures = NormalizeOption.Warn,
@@ -926,6 +935,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void LightGbmRegressorTestSummary()
         {
             var dataView = GetRegressionPipeline();
+
+            // Attention: Do not set NumberOfThreads here, left this to use default value to avoid test crash.
+            // Details can be found here: https://github.com/dotnet/machinelearning/pull/4918
             var trainer = ML.Regression.Trainers.LightGbm(
                 new LightGbmRegressionTrainer.Options 
                 { 
@@ -984,6 +996,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void LightGbmBinaryClassificationTestSummary()
         {
             var (pipeline, dataView) = GetOneHotBinaryClassificationPipeline();
+
+            // Attention: Do not set NumberOfThreads here, left this to use default value to avoid test crash.
+            // Details can be found here: https://github.com/dotnet/machinelearning/pull/4918
             var trainer = pipeline.Append(ML.BinaryClassification.Trainers.LightGbm(
                 new LightGbmBinaryTrainer.Options 
                 { 
