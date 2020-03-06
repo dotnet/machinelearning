@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
@@ -89,6 +90,35 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Single(result.ColumnInformation.NumericColumnNames);
             Assert.Equal("Bool", result.ColumnInformation.NumericColumnNames.First());
             Assert.Equal(DefaultColumnNames.Label, result.ColumnInformation.LabelColumnName);
+        }
+
+        [Fact]
+        public void InferDatasetWithoutHeader()
+        {
+            var context = new MLContext(1);
+            var filePath = Path.Combine("TestData", "DatasetWithoutHeader.txt");
+            var columnInfo = new ColumnInformation()
+            {
+                LabelColumnName = "col0",
+                UserIdColumnName = "col1",
+                ItemIdColumnName = "col2",
+            };
+            columnInfo.IgnoredColumnNames.Add("col4");
+            var result = ColumnInferenceApi.InferColumns(context, filePath, columnInfo, ',', null, null, false, false, false);
+            Assert.Equal(6, result.TextLoaderOptions.Columns.Count());
+
+            var labelColumn = result.TextLoaderOptions.Columns.First(c => c.Name == "col0");
+            var userColumn = result.TextLoaderOptions.Columns.First(c => c.Name == "col1");
+            var itemColumn = result.TextLoaderOptions.Columns.First(c => c.Name == "col2");
+            var ignoreColumn = result.TextLoaderOptions.Columns.First(c => c.Name == "col4");
+
+            Assert.Equal(DataKind.String, labelColumn.DataKind);
+            Assert.Equal(DataKind.Single, userColumn.DataKind);
+            Assert.Equal(DataKind.Single, itemColumn.DataKind);
+            Assert.Equal(DataKind.Single, ignoreColumn.DataKind);
+
+            Assert.Single(result.ColumnInformation.CategoricalColumnNames);
+            Assert.Empty(result.ColumnInformation.TextColumnNames);
         }
 
         [Fact]
