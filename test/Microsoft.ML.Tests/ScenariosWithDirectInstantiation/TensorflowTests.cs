@@ -811,12 +811,13 @@ namespace Microsoft.ML.Scenarios
                         batchSize: 20))
                     .Append(mlContext.Transforms.Concatenate("Features", "Prediction"))
                     .AppendCacheCheckpoint(mlContext)
+                    // Attention: Do not set NumberOfThreads here, left this to use default value to avoid test crash.
+                    // Details can be found here: https://github.com/dotnet/machinelearning/pull/4918
                     .Append(mlContext.MulticlassClassification.Trainers.LightGbm(new Trainers.LightGbm.LightGbmMulticlassTrainer.Options()
                     {
                         LabelColumnName = "Label",
                         FeatureColumnName = "Features",
                         Seed = 1,
-                        NumberOfThreads = 1,
                         NumberOfIterations = 1
                     }));
 
