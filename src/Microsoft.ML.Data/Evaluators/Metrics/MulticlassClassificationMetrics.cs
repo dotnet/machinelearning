@@ -14,27 +14,37 @@ namespace Microsoft.ML.Data
     public sealed class MulticlassClassificationMetrics
     {
         /// <summary>
-        /// Gets the average log-loss of the classifier.
+        /// Gets the average log-loss of the classifier. Log-loss measures the performance of a classifier
+        /// with respect to how much the predicted probabilities diverge from the true class label. Lower
+        /// log-loss indicates a better model. A perfect model, which predicts a probability of 1 for the
+        /// true class, will have a log-loss of 0.
         /// </summary>
         /// <remarks>
-        /// The log-loss metric, is computed as follows:
-        /// LL = - (1/m) * sum( log(p[i]))
-        /// where m is the number of instances in the test set.
-        /// p[i] is the probability returned by the classifier if the instance belongs to class 1,
-        /// and 1 minus the probability returned by the classifier if the instance belongs to class 0.
+        /// <format type="text/markdown"><![CDATA[
+        /// The log-loss metric is computed as follows:
+        /// $LogLoss = - \frac{1}{m} \sum_{i = 1}^m log(p_i),
+        /// where $m$ is the number of instances in the test set and
+        /// $p_i$ is the probability returned by the classifier
+        /// of the instance belonging to the true class.
+        /// ]]>
+        /// </format>
         /// </remarks>
         public double LogLoss { get; }
 
         /// <summary>
         /// Gets the log-loss reduction (also known as relative log-loss, or reduction in information gain - RIG)
-        /// of the classifier.
+        /// of the classifier. It gives a measure of how much a model improves on a model that gives random predictions.
+        /// Log-loss reduction closer to 1 indicates a better model.
         /// </summary>
         /// <remarks>
+        /// <format type="text/markdown"><![CDATA[
         /// The log-loss reduction is scaled relative to a classifier that predicts the prior for every example:
-        /// (LL(prior) - LL(classifier)) / LL(prior)
+        /// $LogLossReduction = \frac{LogLoss(prior) - LogLoss(classifier)}{LogLoss(prior)}
         /// This metric can be interpreted as the advantage of the classifier over a random prediction.
         /// For example, if the RIG equals 0.2, it can be interpreted as "the probability of a correct prediction is
         /// 20% better than random guessing".
+        /// ]]>
+        /// </format>
         /// </remarks>
         public double LogLossReduction { get; private set; }
 
@@ -54,8 +64,9 @@ namespace Microsoft.ML.Data
         /// Gets the micro-average accuracy of the model.
         /// </summary>
         /// <remarks>
-        /// The micro-average is the fraction of instances predicted correctly.
-        /// The micro-average does not take class membership into account.
+        /// The micro-average is the fraction of instances predicted correctly across all classes. Micro-average can
+        /// be a more useful metric than macro-average if class imbalance is suspected (i.e. one class has many more
+        /// instances than the rest).
         /// </remarks>
         public double MicroAccuracy { get; }
 
@@ -71,7 +82,10 @@ namespace Microsoft.ML.Data
         public int TopKPredictionCount { get; }
 
         /// <summary>
-        /// Gets the log-loss of the classifier for each class.
+        /// Gets the log-loss of the classifier for each class. Log-loss measures the performance of a classifier
+        /// with respect to how much the predicted probabilities diverge from the true class label. Lower
+        /// log-loss indicates a better model. A perfect model, which predicts a probability of 1 for the
+        /// true class, will have a log-loss of 0.
         /// </summary>
         /// <remarks>
         /// The log-loss metric is computed as $-\frac{1}{m} \sum_{i=1}^m \log(p_i)$,
