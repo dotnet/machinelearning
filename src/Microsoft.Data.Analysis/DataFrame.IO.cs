@@ -90,18 +90,19 @@ namespace Microsoft.Data.Analysis
         /// <param name="numRows">number of rows to read</param>
         /// <param name="guessRows">number of rows used to guess types</param>
         /// <param name="addIndexColumn">add one column with the row index</param>
+        /// <param name="encoding">The character encoding. Defaults to UTF8 if not specified</param>
         /// <returns>DataFrame</returns>
         public static DataFrame LoadCsv(string filename,
                                 char separator = ',', bool header = true,
                                 string[] columnNames = null, Type[] dataTypes = null,
                                 int numRows = -1, int guessRows = 10,
-                                bool addIndexColumn = false)
+                                bool addIndexColumn = false, Encoding encoding = null)
         {
             using (Stream fileStream = new FileStream(filename, FileMode.Open))
             {
                 return LoadCsv(fileStream,
                                   separator: separator, header: header, columnNames: columnNames, dataTypes: dataTypes, numberOfRowsToRead: numRows,
-                                  guessRows: guessRows, addIndexColumn: addIndexColumn);
+                                  guessRows: guessRows, addIndexColumn: addIndexColumn, encoding: encoding);
             }
         }
 
@@ -188,11 +189,13 @@ namespace Microsoft.Data.Analysis
         /// <param name="numberOfRowsToRead">number of rows to read not including the header(if present)</param>
         /// <param name="guessRows">number of rows used to guess types</param>
         /// <param name="addIndexColumn">add one column with the row index</param>
+        /// <param name="encoding">The character encoding. Defaults to UTF8 if not specified</param>
         /// <returns><see cref="DataFrame"/></returns>
         public static DataFrame LoadCsv(Stream csvStream,
                                 char separator = ',', bool header = true,
                                 string[] columnNames = null, Type[] dataTypes = null,
-                                long numberOfRowsToRead = -1, int guessRows = 10, bool addIndexColumn = false)
+                                long numberOfRowsToRead = -1, int guessRows = 10, bool addIndexColumn = false,
+                                Encoding encoding = null)
         {
             if (!csvStream.CanSeek)
                 throw new ArgumentException(Strings.NonSeekableStream, nameof(csvStream));
@@ -207,7 +210,7 @@ namespace Microsoft.Data.Analysis
             List<DataFrameColumn> columns;
             long streamStart = csvStream.Position;
             // First pass: schema and number of rows.
-            using (var streamReader = new StreamReader(csvStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, DefaultStreamReaderBufferSize, leaveOpen: true))
+            using (var streamReader = new StreamReader(csvStream, encoding ?? Encoding.UTF8, detectEncodingFromByteOrderMarks: true, DefaultStreamReaderBufferSize, leaveOpen: true))
             {
                 string line = null;
                 if (dataTypes == null)

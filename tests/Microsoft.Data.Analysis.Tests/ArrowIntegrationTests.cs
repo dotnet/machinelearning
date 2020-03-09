@@ -94,10 +94,10 @@ namespace Microsoft.Data.Analysis.Tests
             RecordBatch originalBatch = new RecordBatch.Builder()
                 .Append("Column1", false, col => col.Int32(array => array.AppendRange(Enumerable.Range(0, 10)))).Build();
             DataFrame df = DataFrame.FromArrowRecordBatch(originalBatch);
-            Assert.Equal(1, df["Column1"][1]);
-            df["Column1"][1] = 100;
-            Assert.Equal(100, df["Column1"][1]);
-            Assert.Equal(0, df["Column1"].NullCount);
+            Assert.Equal(1, df.Columns["Column1"][1]);
+            df.Columns["Column1"][1] = 100;
+            Assert.Equal(100, df.Columns["Column1"][1]);
+            Assert.Equal(0, df.Columns["Column1"].NullCount);
         }
 
         [Fact]
@@ -116,27 +116,27 @@ namespace Microsoft.Data.Analysis.Tests
                     nullCount: 10,
                     offset: 0)).Build();
             DataFrame df = DataFrame.FromArrowRecordBatch(originalBatch);
-            Assert.Equal(0, df["EmptyNullBitMapColumn"].NullCount);
-            Assert.Equal(10, df["EmptyNullBitMapColumn"].Length);
-            df["EmptyNullBitMapColumn"][9] = null;
-            Assert.Equal(1, df["EmptyNullBitMapColumn"].NullCount);
-            Assert.Equal(10, df["EmptyDataColumn"].NullCount);
-            Assert.Equal(10, df["EmptyDataColumn"].Length);
-            df["EmptyDataColumn"][9] = 9;
-            Assert.Equal(9, df["EmptyDataColumn"].NullCount);
-            Assert.Equal(10, df["EmptyDataColumn"].Length);
+            Assert.Equal(0, df.Columns["EmptyNullBitMapColumn"].NullCount);
+            Assert.Equal(10, df.Columns["EmptyNullBitMapColumn"].Length);
+            df.Columns["EmptyNullBitMapColumn"][9] = null;
+            Assert.Equal(1, df.Columns["EmptyNullBitMapColumn"].NullCount);
+            Assert.Equal(10, df.Columns["EmptyDataColumn"].NullCount);
+            Assert.Equal(10, df.Columns["EmptyDataColumn"].Length);
+            df.Columns["EmptyDataColumn"][9] = 9;
+            Assert.Equal(9, df.Columns["EmptyDataColumn"].NullCount);
+            Assert.Equal(10, df.Columns["EmptyDataColumn"].Length);
             for (int i = 0; i < 9; i++)
             {
-                Assert.Equal(i, (int)df["EmptyNullBitMapColumn"][i]);
-                Assert.Null(df["EmptyDataColumn"][i]);
+                Assert.Equal(i, (int)df.Columns["EmptyNullBitMapColumn"][i]);
+                Assert.Null(df.Columns["EmptyDataColumn"][i]);
             }
 
             RecordBatch batch1 = new RecordBatch.Builder()
                 .Append("EmptyDataAndNullColumns", false, col => col.Int32(array => array.Clear())).Build();
             DataFrame emptyDataFrame = DataFrame.FromArrowRecordBatch(batch1);
             Assert.Equal(0, emptyDataFrame.Rows.Count);
-            Assert.Equal(0, emptyDataFrame["EmptyDataAndNullColumns"].Length);
-            Assert.Equal(0, emptyDataFrame["EmptyDataAndNullColumns"].NullCount);
+            Assert.Equal(0, emptyDataFrame.Columns["EmptyDataAndNullColumns"].Length);
+            Assert.Equal(0, emptyDataFrame.Columns["EmptyDataAndNullColumns"].NullCount);
         }
 
         [Fact]

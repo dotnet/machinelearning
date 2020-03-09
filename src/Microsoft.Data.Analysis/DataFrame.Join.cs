@@ -159,11 +159,11 @@ namespace Microsoft.Data.Analysis
             if (joinAlgorithm == JoinAlgorithm.Left)
             {
                 // First hash other dataframe on the rightJoinColumn 
-                DataFrameColumn otherColumn = other[rightJoinColumn];
+                DataFrameColumn otherColumn = other.Columns[rightJoinColumn];
                 Dictionary<TKey, ICollection<long>> multimap = otherColumn.GroupColumnValues<TKey>();
 
                 // Go over the records in this dataframe and match with the dictionary 
-                DataFrameColumn thisColumn = this[leftJoinColumn];
+                DataFrameColumn thisColumn = Columns[leftJoinColumn];
 
                 for (long i = 0; i < thisColumn.Length; i++)
                 {
@@ -202,10 +202,10 @@ namespace Microsoft.Data.Analysis
             }
             else if (joinAlgorithm == JoinAlgorithm.Right)
             {
-                DataFrameColumn thisColumn = this[leftJoinColumn];
+                DataFrameColumn thisColumn = Columns[leftJoinColumn];
                 Dictionary<TKey, ICollection<long>> multimap = thisColumn.GroupColumnValues<TKey>();
 
-                DataFrameColumn otherColumn = other[rightJoinColumn];
+                DataFrameColumn otherColumn = other.Columns[rightJoinColumn];
                 for (long i = 0; i < otherColumn.Length; i++)
                 {
                     var otherColumnValue = otherColumn[i];
@@ -246,8 +246,8 @@ namespace Microsoft.Data.Analysis
                 long rightRowCount = other.Rows.Count;
                 DataFrame longerDataFrame = leftRowCount <= rightRowCount ? other : this;
                 DataFrame shorterDataFrame = ReferenceEquals(longerDataFrame, this) ? other : this;
-                DataFrameColumn hashColumn = (leftRowCount <= rightRowCount) ? this[leftJoinColumn] : other[rightJoinColumn];
-                DataFrameColumn otherColumn = ReferenceEquals(hashColumn, this[leftJoinColumn]) ? other[rightJoinColumn] : this[leftJoinColumn];
+                DataFrameColumn hashColumn = (leftRowCount <= rightRowCount) ? Columns[leftJoinColumn] : other.Columns[rightJoinColumn];
+                DataFrameColumn otherColumn = ReferenceEquals(hashColumn, Columns[leftJoinColumn]) ? other.Columns[rightJoinColumn] : Columns[leftJoinColumn];
                 Dictionary<TKey, ICollection<long>> multimap = hashColumn.GroupColumnValues<TKey>();
 
                 for (long i = 0; i < otherColumn.Length; i++)
@@ -282,12 +282,12 @@ namespace Microsoft.Data.Analysis
             }
             else if (joinAlgorithm == JoinAlgorithm.FullOuter)
             {
-                DataFrameColumn otherColumn = other[rightJoinColumn];
+                DataFrameColumn otherColumn = other.Columns[rightJoinColumn];
                 Dictionary<TKey, ICollection<long>> multimap = otherColumn.GroupColumnValues<TKey>();
                 Dictionary<TKey, long> intersection = new Dictionary<TKey, long>(EqualityComparer<TKey>.Default);
 
                 // Go over the records in this dataframe and match with the dictionary 
-                DataFrameColumn thisColumn = this[leftJoinColumn];
+                DataFrameColumn thisColumn = Columns[leftJoinColumn];
 
                 for (long i = 0; i < thisColumn.Length; i++)
                 {

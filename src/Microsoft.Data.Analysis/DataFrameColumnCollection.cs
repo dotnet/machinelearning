@@ -141,5 +141,39 @@ namespace Microsoft.Data.Analysis
             _columnNames.Clear();
             _columnNameToIndexDictionary.Clear();
         }
+
+        /// <summary>
+        /// An indexer based on <see cref="DataFrameColumn.Name"/>
+        /// </summary>
+        /// <param name="columnName">The name of a <see cref="DataFrameColumn"/></param>
+        /// <returns>A <see cref="DataFrameColumn"/> if it exists.</returns>
+        /// <exception cref="ArgumentException">Throws if <paramref name="columnName"/> is not present in this <see cref="DataFrame"/></exception>
+        public DataFrameColumn this[string columnName]
+        {
+            get
+            {
+                int columnIndex = IndexOf(columnName);
+                if (columnIndex == -1)
+                {
+                    throw new ArgumentException(Strings.InvalidColumnName, nameof(columnName));
+                }
+                return this[columnIndex];
+            }
+            set
+            {
+                int columnIndex = IndexOf(columnName);
+                DataFrameColumn newColumn = value;
+                newColumn.SetName(columnName);
+                if (columnIndex == -1)
+                {
+                    Insert(Count, newColumn);
+                }
+                else
+                {
+                    this[columnIndex] = newColumn;
+                }
+            }
+        }
+
     }
 }

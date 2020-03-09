@@ -556,11 +556,11 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Clips values beyond the specified thresholds
+        /// Clamps values beyond the specified thresholds
         /// </summary>
-        /// <param name="lower">Minimum value. All values below this threshold will be set to it</param>
-        /// <param name="upper">Maximum value. All values above this threshold will be set to it</param>
-        public PrimitiveDataFrameColumn<T> Clip(T lower, T upper, bool inPlace = false)
+        /// <param name="min">Minimum value. All values below this threshold will be set to it</param>
+        /// <param name="max">Maximum value. All values above this threshold will be set to it</param>
+        public PrimitiveDataFrameColumn<T> Clamp(T min, T max, bool inPlace = false)
         {
             PrimitiveDataFrameColumn<T> ret = inPlace ? this : Clone();
 
@@ -571,20 +571,20 @@ namespace Microsoft.Data.Analysis
                 if (value == null)
                     continue;
 
-                if (comparer.Compare(value.Value, lower) < 0)
-                    ret[i] = lower;
+                if (comparer.Compare(value.Value, min) < 0)
+                    ret[i] = min;
 
-                if (comparer.Compare(value.Value, upper) > 0)
-                    ret[i] = upper;
+                if (comparer.Compare(value.Value, max) > 0)
+                    ret[i] = max;
             }
             return ret;
         }
 
-        protected override DataFrameColumn ClipImplementation<U>(U lower, U upper, bool inPlace)
+        protected override DataFrameColumn ClampImplementation<U>(U min, U max, bool inPlace)
         {
-            object convertedLower = Convert.ChangeType(lower, typeof(T));
+            object convertedLower = Convert.ChangeType(min, typeof(T));
             if (typeof(T) == typeof(U) || convertedLower != null)
-                return Clip((T)convertedLower, (T)Convert.ChangeType(upper, typeof(T)), inPlace);
+                return Clamp((T)convertedLower, (T)Convert.ChangeType(max, typeof(T)), inPlace);
             else
                 throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(U));
         }
@@ -592,9 +592,9 @@ namespace Microsoft.Data.Analysis
         /// <summary>
         /// Returns a new column filtered by the lower and upper bounds
         /// </summary>
-        /// <param name="lower"></param>
-        /// <param name="upper"></param>
-        public PrimitiveDataFrameColumn<T> Filter(T lower, T upper)
+        /// <param name="min">The minimum value in the resulting column</param>
+        /// <param name="max">The maximum value in the resulting column</param>
+        public PrimitiveDataFrameColumn<T> Filter(T min, T max)
         {
             PrimitiveDataFrameColumn<T> ret = new PrimitiveDataFrameColumn<T>(Name);
             Comparer<T> comparer = Comparer<T>.Default;
@@ -604,17 +604,17 @@ namespace Microsoft.Data.Analysis
                 if (value == null)
                     continue;
 
-                if (comparer.Compare(value.Value, lower) >= 0 && comparer.Compare(value.Value, upper) <= 0)
+                if (comparer.Compare(value.Value, min) >= 0 && comparer.Compare(value.Value, max) <= 0)
                     ret.Append(value);
             }
             return ret;
         }
 
-        protected override DataFrameColumn FilterImplementation<U>(U lower, U upper)
+        protected override DataFrameColumn FilterImplementation<U>(U min, U max)
         {
-            object convertedLower = Convert.ChangeType(lower, typeof(T));
+            object convertedLower = Convert.ChangeType(min, typeof(T));
             if (typeof(T) == typeof(U) || convertedLower != null)
-                return Filter((T)convertedLower, (T)Convert.ChangeType(upper, typeof(T)));
+                return Filter((T)convertedLower, (T)Convert.ChangeType(max, typeof(T)));
             else
                 throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(U));
         }

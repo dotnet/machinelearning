@@ -141,7 +141,7 @@ namespace Microsoft.Data.Analysis
                 else
                 {
                     // Assuming non duplicate column names
-                    retColumn = ret[column.Name];
+                    retColumn = ret.Columns[column.Name];
                 }
                 retColumn.Resize(rowIndex + 1);
                 retColumn[rowIndex] = count;
@@ -182,7 +182,7 @@ namespace Microsoft.Data.Analysis
                     else
                     {
                         // Assuming non duplicate column names
-                        retColumn = ret[column.Name];
+                        retColumn = ret.Columns[column.Name];
                     }
                     retColumn.Resize(rowIndex + 1);
                     retColumn[rowIndex] = column[row];
@@ -227,7 +227,7 @@ namespace Microsoft.Data.Analysis
                         else
                         {
                             // Assuming non duplicate column names
-                            retColumn = ret[column.Name];
+                            retColumn = ret.Columns[column.Name];
                         }
                         long retColumnLength = retColumn.Length;
                         retColumn.Resize(retColumnLength + 1);
@@ -283,7 +283,7 @@ namespace Microsoft.Data.Analysis
                         else
                         {
                             // Assuming non duplicate column names
-                            retColumn = ret[column.Name];
+                            retColumn = ret.Columns[column.Name];
                         }
                         long retColumnLength = retColumn.Length;
                         if (firstColumn.Length <= retColumnLength)
@@ -317,7 +317,7 @@ namespace Microsoft.Data.Analysis
             else
             {
                 // Assuming unique column names
-                retColumn = ret[column.Name];
+                retColumn = ret.Columns[column.Name];
             }
             retColumn.Resize(rowIndex + 1);
             return retColumn;

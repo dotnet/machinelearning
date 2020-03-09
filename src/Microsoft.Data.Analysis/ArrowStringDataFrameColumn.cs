@@ -453,9 +453,9 @@ namespace Microsoft.Data.Analysis
 
         public override DataFrameColumn FillNulls(object value, bool inPlace = false) => throw new NotSupportedException();
 
-        public override DataFrameColumn Clip<U>(U lower, U upper, bool inPlace = false) => throw new NotSupportedException();
+        public override DataFrameColumn Clamp<U>(U min, U max, bool inPlace = false) => throw new NotSupportedException();
 
-        public override DataFrameColumn Filter<U>(U lower, U upper) => throw new NotSupportedException();
+        public override DataFrameColumn Filter<U>(U min, U max) => throw new NotSupportedException();
 
         protected internal override void AddDataViewColumn(DataViewSchema.Builder builder)
         {

@@ -183,24 +183,24 @@ namespace Microsoft.Data.Analysis
         protected internal virtual void AddDataViewColumn(DataViewSchema.Builder builder) => throw new NotImplementedException();
 
         /// <summary>
-        /// Clips values beyond the specified thresholds
+        /// Clamps values beyond the specified thresholds
         /// </summary>
         /// <typeparam name="U"></typeparam>
-        /// <param name="lower">Minimum value. All values below this threshold will be set to it</param>
-        /// <param name="upper">Maximum value. All values above this threshold will be set to it</param>
-        public virtual DataFrameColumn Clip<U>(U lower, U upper, bool inPlace = false) => ClipImplementation(lower, upper, inPlace);
+        /// <param name="min">Minimum value. All values below this threshold will be set to it</param>
+        /// <param name="max">Maximum value. All values above this threshold will be set to it</param>
+        public virtual DataFrameColumn Clamp<U>(U min, U max, bool inPlace = false) => ClampImplementation(min, max, inPlace);
 
-        protected virtual DataFrameColumn ClipImplementation<U>(U lower, U upper, bool inPlace) => throw new NotImplementedException();
+        protected virtual DataFrameColumn ClampImplementation<U>(U min, U max, bool inPlace) => throw new NotImplementedException();
 
         /// <summary>
         /// Returns a new column filtered by the lower and upper bounds
         /// </summary>
         /// <typeparam name="U"></typeparam>
-        /// <param name="lower"></param>
-        /// <param name="upper"></param>
-        public virtual DataFrameColumn Filter<U>(U lower, U upper) => FilterImplementation(lower, upper);
+        /// <param name="min">The minimum value in the resulting column</param>
+        /// <param name="max">The maximum value in the resulting column</param>
+        public virtual DataFrameColumn Filter<U>(U min, U max) => FilterImplementation(min, max);
 
-        protected virtual DataFrameColumn FilterImplementation<U>(U lower, U upper) => throw new NotImplementedException();
+        protected virtual DataFrameColumn FilterImplementation<U>(U min, U max) => throw new NotImplementedException();
 
         /// <summary>
         /// Determines if the column is of a numeric type

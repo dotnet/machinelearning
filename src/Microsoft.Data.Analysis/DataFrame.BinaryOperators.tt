@@ -21,18 +21,12 @@ namespace Microsoft.Data.Analysis
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
 <# if (method.MethodType == MethodType.BinaryScalar) { #>
 <# if (method.IsBitwise == true) { #>
-        public static DataFrame operator <#=method.Operator#>(DataFrame df, bool value)
-        {
-            return df.<#=method.MethodName#>(value);
-        }
-
-        public static DataFrame operator <#=method.Operator#>(bool value, DataFrame df)
-        {
-            return df.Reverse<#=method.MethodName#>(value, inPlace: false);
-        }
-
+<#      // There seem to be very few use cases for an API such as df.And/Or/Xor(true). #>
+<#      continue; #>
 <# } else { #>
 <# foreach (TypeConfiguration type in typeConfiguration) { #>
+<#      if (method.IsNumeric != type.SupportsNumeric) continue; #>
+<#      if (method.IsNumeric && type.TypeName == "char") continue; #>
         public static DataFrame operator <#=method.Operator#>(DataFrame df, <#=type.TypeName#> value)
         {
             return df.<#=method.MethodName#>(value);

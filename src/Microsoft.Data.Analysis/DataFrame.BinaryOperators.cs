@@ -12,32 +12,12 @@ namespace Microsoft.Data.Analysis
 {
     public partial class DataFrame
     {
-        public static DataFrame operator +(DataFrame df, bool value)
-        {
-            return df.Add(value);
-        }
-        
-        public static DataFrame operator +(bool value, DataFrame df)
-        {
-            return df.ReverseAdd(value);
-        }
-
         public static DataFrame operator +(DataFrame df, byte value)
         {
             return df.Add(value);
         }
         
         public static DataFrame operator +(byte value, DataFrame df)
-        {
-            return df.ReverseAdd(value);
-        }
-
-        public static DataFrame operator +(DataFrame df, char value)
-        {
-            return df.Add(value);
-        }
-        
-        public static DataFrame operator +(char value, DataFrame df)
         {
             return df.ReverseAdd(value);
         }
@@ -142,32 +122,12 @@ namespace Microsoft.Data.Analysis
             return df.ReverseAdd(value);
         }
 
-        public static DataFrame operator -(DataFrame df, bool value)
-        {
-            return df.Subtract(value);
-        }
-        
-        public static DataFrame operator -(bool value, DataFrame df)
-        {
-            return df.ReverseSubtract(value);
-        }
-
         public static DataFrame operator -(DataFrame df, byte value)
         {
             return df.Subtract(value);
         }
         
         public static DataFrame operator -(byte value, DataFrame df)
-        {
-            return df.ReverseSubtract(value);
-        }
-
-        public static DataFrame operator -(DataFrame df, char value)
-        {
-            return df.Subtract(value);
-        }
-        
-        public static DataFrame operator -(char value, DataFrame df)
         {
             return df.ReverseSubtract(value);
         }
@@ -272,32 +232,12 @@ namespace Microsoft.Data.Analysis
             return df.ReverseSubtract(value);
         }
 
-        public static DataFrame operator *(DataFrame df, bool value)
-        {
-            return df.Multiply(value);
-        }
-        
-        public static DataFrame operator *(bool value, DataFrame df)
-        {
-            return df.ReverseMultiply(value);
-        }
-
         public static DataFrame operator *(DataFrame df, byte value)
         {
             return df.Multiply(value);
         }
         
         public static DataFrame operator *(byte value, DataFrame df)
-        {
-            return df.ReverseMultiply(value);
-        }
-
-        public static DataFrame operator *(DataFrame df, char value)
-        {
-            return df.Multiply(value);
-        }
-        
-        public static DataFrame operator *(char value, DataFrame df)
         {
             return df.ReverseMultiply(value);
         }
@@ -402,32 +342,12 @@ namespace Microsoft.Data.Analysis
             return df.ReverseMultiply(value);
         }
 
-        public static DataFrame operator /(DataFrame df, bool value)
-        {
-            return df.Divide(value);
-        }
-        
-        public static DataFrame operator /(bool value, DataFrame df)
-        {
-            return df.ReverseDivide(value);
-        }
-
         public static DataFrame operator /(DataFrame df, byte value)
         {
             return df.Divide(value);
         }
         
         public static DataFrame operator /(byte value, DataFrame df)
-        {
-            return df.ReverseDivide(value);
-        }
-
-        public static DataFrame operator /(DataFrame df, char value)
-        {
-            return df.Divide(value);
-        }
-        
-        public static DataFrame operator /(char value, DataFrame df)
         {
             return df.ReverseDivide(value);
         }
@@ -532,32 +452,12 @@ namespace Microsoft.Data.Analysis
             return df.ReverseDivide(value);
         }
 
-        public static DataFrame operator %(DataFrame df, bool value)
-        {
-            return df.Modulo(value);
-        }
-        
-        public static DataFrame operator %(bool value, DataFrame df)
-        {
-            return df.ReverseModulo(value);
-        }
-
         public static DataFrame operator %(DataFrame df, byte value)
         {
             return df.Modulo(value);
         }
         
         public static DataFrame operator %(byte value, DataFrame df)
-        {
-            return df.ReverseModulo(value);
-        }
-
-        public static DataFrame operator %(DataFrame df, char value)
-        {
-            return df.Modulo(value);
-        }
-        
-        public static DataFrame operator %(char value, DataFrame df)
         {
             return df.ReverseModulo(value);
         }
@@ -660,36 +560,6 @@ namespace Microsoft.Data.Analysis
         public static DataFrame operator %(ushort value, DataFrame df)
         {
             return df.ReverseModulo(value);
-        }
-
-        public static DataFrame operator &(DataFrame df, bool value)
-        {
-            return df.And(value);
-        }
-
-        public static DataFrame operator &(bool value, DataFrame df)
-        {
-            return df.ReverseAnd(value, inPlace: false);
-        }
-
-        public static DataFrame operator |(DataFrame df, bool value)
-        {
-            return df.Or(value);
-        }
-
-        public static DataFrame operator |(bool value, DataFrame df)
-        {
-            return df.ReverseOr(value, inPlace: false);
-        }
-
-        public static DataFrame operator ^(DataFrame df, bool value)
-        {
-            return df.Xor(value);
-        }
-
-        public static DataFrame operator ^(bool value, DataFrame df)
-        {
-            return df.ReverseXor(value, inPlace: false);
         }
 
         public static DataFrame operator <<(DataFrame df, int value)

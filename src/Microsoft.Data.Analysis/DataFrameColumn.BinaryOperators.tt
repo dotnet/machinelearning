@@ -33,6 +33,8 @@ namespace Microsoft.Data.Analysis
 
 <# } else { #>
 <# foreach (TypeConfiguration type in typeConfiguration) { #>
+<#      if (method.IsNumeric != type.SupportsNumeric) continue; #>
+<#      if (method.IsNumeric && type.TypeName == "char") continue; #>
         public static DataFrameColumn operator <#=method.Operator#>(DataFrameColumn column, <#=type.TypeName#> value)
         {
             return column.<#=method.MethodName#>(value);

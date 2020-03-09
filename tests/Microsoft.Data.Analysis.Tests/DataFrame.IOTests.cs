@@ -27,12 +27,12 @@ CMT,1,1,181,0.6,CSH,4.5";
             DataFrame df = DataFrame.LoadCsv(GetStream(data));
             Assert.Equal(4, df.Rows.Count);
             Assert.Equal(7, df.Columns.Count);
-            Assert.Equal("CMT", df["vendor_id"][3]);
+            Assert.Equal("CMT", df.Columns["vendor_id"][3]);
 
             DataFrame reducedRows = DataFrame.LoadCsv(GetStream(data), numberOfRowsToRead: 3);
             Assert.Equal(3, reducedRows.Rows.Count);
             Assert.Equal(7, reducedRows.Columns.Count);
-            Assert.Equal("CMT", reducedRows["vendor_id"][2]);
+            Assert.Equal("CMT", reducedRows.Columns["vendor_id"][2]);
         }
 
         [Fact]
@@ -50,12 +50,12 @@ CMT,1,1,181,0.6,CSH,4.5";
             DataFrame df = DataFrame.LoadCsv(GetStream(data), header: false);
             Assert.Equal(4, df.Rows.Count);
             Assert.Equal(7, df.Columns.Count);
-            Assert.Equal("CMT", df["Column0"][3]);
+            Assert.Equal("CMT", df.Columns["Column0"][3]);
 
             DataFrame reducedRows = DataFrame.LoadCsv(GetStream(data), header: false, numberOfRowsToRead: 3);
             Assert.Equal(3, reducedRows.Rows.Count);
             Assert.Equal(7, reducedRows.Columns.Count);
-            Assert.Equal("CMT", reducedRows["Column0"][2]);
+            Assert.Equal("CMT", reducedRows.Columns["Column0"][2]);
         }
 
         [Fact]
@@ -123,12 +123,12 @@ CMT|1|1|181|0.6|CSH|4.5";
 
             Assert.Equal(5, df.Rows.Count);
             Assert.Equal(7, df.Columns.Count);
-            Assert.Equal("CMT", df["vendor_id"][4]);
+            Assert.Equal("CMT", df.Columns["vendor_id"][4]);
 
             DataFrame reducedRows = DataFrame.LoadCsv(GetStream(data), separator: '|', numberOfRowsToRead: 3);
             Assert.Equal(3, reducedRows.Rows.Count);
             Assert.Equal(7, reducedRows.Columns.Count);
-            Assert.Equal("CMT", reducedRows["vendor_id"][2]);
+            Assert.Equal("CMT", reducedRows.Columns["vendor_id"][2]);
 
             var nullRow = df.Rows[3];
             Assert.Equal("", nullRow[0]);
@@ -158,12 +158,12 @@ CMT;1;1;181;0.6;CSH;4.5";
 
             Assert.Equal(5, df.Rows.Count);
             Assert.Equal(7, df.Columns.Count);
-            Assert.Equal("CMT", df["vendor_id"][4]);
+            Assert.Equal("CMT", df.Columns["vendor_id"][4]);
 
             DataFrame reducedRows = DataFrame.LoadCsv(GetStream(data), separator: ';', numberOfRowsToRead: 3);
             Assert.Equal(3, reducedRows.Rows.Count);
             Assert.Equal(7, reducedRows.Columns.Count);
-            Assert.Equal("CMT", reducedRows["vendor_id"][2]);
+            Assert.Equal("CMT", reducedRows.Columns["vendor_id"][2]);
 
             var nullRow = df.Rows[3];
             Assert.Equal("", nullRow[0]);
@@ -192,12 +192,12 @@ CMT,1,1,181,0.6,CSH,4.5";
 
             Assert.Equal(4, df.Rows.Count);
             Assert.Equal(7, df.Columns.Count);
-            Assert.Equal("CMT", df["vendor_id"][3]);
+            Assert.Equal("CMT", df.Columns["vendor_id"][3]);
 
             DataFrame reducedRows = DataFrame.LoadCsv(GetStream(data), numberOfRowsToRead: 3);
             Assert.Equal(3, reducedRows.Rows.Count);
             Assert.Equal(7, reducedRows.Columns.Count);
-            Assert.Equal("CMT", reducedRows["vendor_id"][2]);
+            Assert.Equal("CMT", reducedRows.Columns["vendor_id"][2]);
         }
 
         [Fact]
@@ -234,12 +234,12 @@ CMT,1,1,181,0.6,CSH";
             DataFrame df = DataFrame.LoadCsv(GetStream(data));
             Assert.Equal(4, df.Rows.Count);
             Assert.Equal(6, df.Columns.Count);
-            Assert.Equal("CMT", df["vendor_id"][3]);
+            Assert.Equal("CMT", df.Columns["vendor_id"][3]);
 
             DataFrame reducedRows = DataFrame.LoadCsv(GetStream(data), numberOfRowsToRead: 3);
             Assert.Equal(3, reducedRows.Rows.Count);
             Assert.Equal(6, reducedRows.Columns.Count);
-            Assert.Equal("CMT", reducedRows["vendor_id"][2]);
+            Assert.Equal("CMT", reducedRows.Columns["vendor_id"][2]);
 
         }
     }
