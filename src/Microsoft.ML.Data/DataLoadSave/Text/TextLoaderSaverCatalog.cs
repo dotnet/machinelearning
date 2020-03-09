@@ -32,12 +32,15 @@ namespace Microsoft.ML
         /// it will also contain the schema information in the header that the loader can read even if <paramref name="columns"/> is <see langword="null"/>.
         /// In order to use the schema defined in the file, all other arguments sould be left with their default values.</param>
         /// <param name="allowQuoting">Whether the input may include double-quoted values. This parameter is used to distinguish separator characters
-        /// in an input value from actual separators and colons. When <see langword="true"/>, separators within double quotes are treated as part of the
+        /// in an input value from actual separators. When <see langword="true"/>, separators within double quotes are treated as part of the
         /// input value. When <see langword="false"/>, all separators, even those within quotes, are treated as delimiting a new column.</param>
         /// <param name="trimWhitespace">Remove trailing whitespace from lines.</param>
         /// <param name="allowSparse">Whether the input may include sparse representations. For example, a row containing
         /// "5 2:6 4:3" means that there are 5 columns, and the only non-zero are columns 2 and 4, which have values 6 and 3,
-        /// respectively. Column indices are zero-based, so columns 2 and 4 represent the 3rd and 5th columns.</param>
+        /// respectively. Column indices are zero-based, so columns 2 and 4 represent the 3rd and 5th columns.
+        /// A column may also have dense values followed by sparse values represented in this fashion. For example,
+        /// a row containing "1 2 5 2:6 4:3" represents two dense columns with values 1 and 2, followed by 5 sparsely represented
+        /// columns with values 0, 0, 6, 0, and 3. The indices of the sparse columns start from 0, even though 0 represents the third column.
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -102,7 +105,10 @@ namespace Microsoft.ML
         /// <param name="trimWhitespace">Remove trailing whitespace from lines.</param>
         /// <param name="allowSparse">Whether the input may include sparse representations. For example, a row containing
         /// "5 2:6 4:3" means that there are 5 columns, and the only non-zero are columns 2 and 4, which have values 6 and 3,
-        /// respectively. Column indices are zero-based, so columns 2 and 4 represent the 3rd and 5th columns.</param>
+        /// respectively. Column indices are zero-based, so columns 2 and 4 represent the 3rd and 5th columns.
+        /// A column may also have dense values followed by sparse values represented in this fashion. For example,
+        /// a row containing "1 2 5 2:6 4:3" represents two dense columns with values 1 and 2, followed by 5 sparsely represented
+        /// columns with values 0, 0, 6, 0, and 3. The indices of the sparse columns start from 0, even though 0 represents the third column.
         public static TextLoader CreateTextLoader<TInput>(this DataOperationsCatalog catalog,
             char separatorChar = TextLoader.Defaults.Separator,
             bool hasHeader = TextLoader.Defaults.HasHeader,
@@ -130,7 +136,12 @@ namespace Microsoft.ML
         /// separators and empty values by \"\". When <see langword="false"/>, empty values are denoted by consecutive separators and missing
         /// values by the default missing value for each type documented in <see cref="DataKind"/>.</param>
         /// <param name="trimWhitespace">Remove trailing whitespace from lines.</param>
-        /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format.</param>
+        /// <param name="allowSparse">Whether the input may include sparse representations. For example, a row containing
+        /// "5 2:6 4:3" means that there are 5 columns, and the only non-zero are columns 2 and 4, which have values 6 and 3,
+        /// respectively. Column indices are zero-based, so columns 2 and 4 represent the 3rd and 5th columns.
+        /// A column may also have dense values followed by sparse values represented in this fashion. For example,
+        /// a row containing "1 2 5 2:6 4:3" represents two dense columns with values 1 and 2, followed by 5 sparsely represented
+        /// columns with values 0, 0, 6, 0, and 3. The indices of the sparse columns start from 0, even though 0 represents the third column.</param>
         /// <returns>The data view.</returns>
         public static IDataView LoadFromTextFile(this DataOperationsCatalog catalog,
             string path,
@@ -179,7 +190,10 @@ namespace Microsoft.ML
         /// <param name="trimWhitespace">Remove trailing whitespace from lines.</param>
         /// <param name="allowSparse">Whether the input may include sparse representations. For example, a row containing
         /// "5 2:6 4:3" means that there are 5 columns, and the only non-zero are columns 2 and 4, which have values 6 and 3,
-        /// respectively. Column indices are zero-based, so columns 2 and 4 represent the 3rd and 5th columns.</param>
+        /// respectively. Column indices are zero-based, so columns 2 and 4 represent the 3rd and 5th columns.
+        /// A column may also have dense values followed by sparse values represented in this fashion. For example,
+        /// a row containing "1 2 5 2:6 4:3" represents two dense columns with values 1 and 2, followed by 5 sparsely represented
+        /// columns with values 0, 0, 6, 0, and 3. The indices of the sparse columns start from 0, even though 0 represents the third column.</param>
         /// <returns>The data view.</returns>
         public static IDataView LoadFromTextFile<TInput>(this DataOperationsCatalog catalog,
             string path,

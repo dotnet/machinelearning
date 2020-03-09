@@ -444,6 +444,14 @@ namespace Microsoft.ML.Data
             /// Whether the input may include sparse representations. For example, a row containing
             /// "5 2:6 4:3" means that there are 5 columns, and the only non-zero are columns 2 and 4, which have values 6 and 3,
             /// respectively. Column indices are zero-based, so columns 2 and 4 represent the 3rd and 5th columns.
+            /// A column may also have dense values followed by sparse values represented in this fashion. For example,
+            /// a row containing "1 2 5 2:6 4:3" represents two dense columns with values 1 and 2, followed by 5 sparsely represented
+            /// columns with values 0, 0, 6, 0, and 3. The indices of the sparse columns start from 0, even though 0 represents the third column.
+            ///
+            /// In addition, <see cref="InputSize"/> should be used when the number of sparse elements (5 in this example) is not present in each line.
+            /// It should specify the total size, not just the size of the sparse part. However, indices of the spars part are relative to where the sparse part begins.
+            /// If <see cref="InputSize"/> is set to 7, the line "1 2 2:6 4:3" will be mapped to "1 2 0 0 6 0 4", but if set to 10, the same line will
+            /// be mapped to "1 2 0 0 6 0 4 0 0 0".
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the input may include sparse representations", ShortName = "sparse")]
             public bool AllowSparse = Defaults.AllowSparse;
