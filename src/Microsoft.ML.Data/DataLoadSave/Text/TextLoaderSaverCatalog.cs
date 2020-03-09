@@ -40,7 +40,7 @@ namespace Microsoft.ML
         /// respectively. Column indices are zero-based, so columns 2 and 4 represent the 3rd and 5th columns.
         /// A column may also have dense values followed by sparse values represented in this fashion. For example,
         /// a row containing "1 2 5 2:6 4:3" represents two dense columns with values 1 and 2, followed by 5 sparsely represented
-        /// columns with values 0, 0, 6, 0, and 3. The indices of the sparse columns start from 0, even though 0 represents the third column.
+        /// columns with values 0, 0, 6, 0, and 3. The indices of the sparse columns start from 0, even though 0 represents the third column.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -108,7 +108,7 @@ namespace Microsoft.ML
         /// respectively. Column indices are zero-based, so columns 2 and 4 represent the 3rd and 5th columns.
         /// A column may also have dense values followed by sparse values represented in this fashion. For example,
         /// a row containing "1 2 5 2:6 4:3" represents two dense columns with values 1 and 2, followed by 5 sparsely represented
-        /// columns with values 0, 0, 6, 0, and 3. The indices of the sparse columns start from 0, even though 0 represents the third column.
+        /// columns with values 0, 0, 6, 0, and 3. The indices of the sparse columns start from 0, even though 0 represents the third column.</param>
         public static TextLoader CreateTextLoader<TInput>(this DataOperationsCatalog catalog,
             char separatorChar = TextLoader.Defaults.Separator,
             bool hasHeader = TextLoader.Defaults.HasHeader,
