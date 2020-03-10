@@ -15,11 +15,16 @@ namespace Microsoft.ML.Data
         /// Gets the absolute loss of the model.
         /// </summary>
         /// <remarks>
+        /// <format type="text/markdown"><![CDATA[
         /// The absolute loss is defined as
-        /// L1 = (1/m) * sum( abs( yi - y&apos;i))
-        /// where m is the number of instances in the test set.
-        /// y&apos;i are the predicted labels for each instance.
-        /// yi are the correct labels of each instance.
+        /// $L1 = \frac{1}{m} \sum_{i = 1}^m | y_i - \hat{y}_i |$,
+        /// where $m$ is the number of instances in the test set,
+        /// $\hat{y}_i$ are the predicted labels for each instance,
+        /// and $y_i$ are the correct labels of each instance.
+        ///
+        /// L1 loss is a non-negative, decreasing metric. Smaller values indicate a better model with respect to this metric.
+        /// ]]>
+        /// </format>
         /// </remarks>
         public double MeanAbsoluteError { get; }
 
@@ -27,16 +32,21 @@ namespace Microsoft.ML.Data
         /// Gets the squared loss of the model.
         /// </summary>
         /// <remarks>
+        /// <format type="text/markdown"><![CDATA[
         /// The squared loss is defined as
-        /// L2 = (1/m) * sum(( yi - y&apos;i)^2)
-        /// where m is the number of instances in the test set.
-        /// y&apos;i are the predicted labels for each instance.
-        /// yi are the correct labels of each instance.
+        /// $L2 = \frac{1}{m} \sum_{i = 1}^m (y_i - \hat{y}_i)^2$,
+        /// where $m$ is the number of instances in the test set,
+        /// \hat{y}_i are the predicted labels for each instance,
+        /// and y_i are the correct labels of each instance.
+        ///
+        /// L2 loss is a non-negative, decreasing metric. Smaller values indicate a better model with respect to this metric.
+        /// ]]>
+        /// </format>
         /// </remarks>
         public double MeanSquaredError { get; }
 
         /// <summary>
-        /// Gets the root mean square loss (or RMS) which is the square root of the L2 loss.
+        /// Gets the root mean square loss (or RMS) which is the square root of the L2 loss <see cref="MeanSquaredError"/>.
         /// </summary>
         public double RootMeanSquaredError { get; }
 
@@ -50,8 +60,9 @@ namespace Microsoft.ML.Data
         public double LossFunction { get; }
 
         /// <summary>
-        /// Gets the R squared value of the model, which is also known as
-        /// the coefficient of determination​.
+        /// Gets the R-squared value of the model, which is also known as
+        /// the <a href="https://en.wikipedia.org/wiki/Coefficient_of_determination">coefficient of determination​</a>.
+        /// R-Squared closer to 1 indicates a better fitted model.
         /// </summary>
         public double RSquared { get; }
 

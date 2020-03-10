@@ -39,11 +39,12 @@ namespace Microsoft.ML
         long? GetRowCount();
 
         /// <summary>
-        /// Get a row cursor. The active column indices are those for which needCol(col) returns true.
-        /// The schema of the returned cursor will be the same as the schema of the IDataView, but getting
-        /// a getter for inactive columns will throw. The <paramref name="columnsNeeded"/> indicate the columns that are needed
-        /// to iterate over.If set to an empty <see cref="IEnumerable"/> no column is requested.
+        /// Get a row cursor. The <paramref name="columnsNeeded"/> indicate the active columns that are needed
+        /// to iterate over. If set to an empty <see cref="IEnumerable"/> no column is requested. The schema of the returned
+        /// cursor will be the same as the schema of the IDataView, but getting a getter for inactive columns will throw.
         /// </summary>
+        /// <param name="columnsNeeded">The active columns needed. If passed an empty <see cref="IEnumerable"/> no column is requested.</param>
+        /// <param name="rand">An instance of <see cref="Random"/> to seed randomizing the access for a shuffled cursor.</param>
         DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null);
 
         /// <summary>
@@ -103,7 +104,7 @@ namespace Microsoft.ML
         /// This provides a means for reconciling multiple rows that have been produced generally from
         /// <see cref="IDataView.GetRowCursorSet(IEnumerable{DataViewSchema.Column}, int, Random)"/>. When getting a set, there is a need
         /// to, while allowing parallel processing to proceed, always have an aim that the original order should be
-        /// recoverable. Note, whether or not a user cares about that original order in ones specific application is
+        /// recoverable. Note, whether or not a user cares about that original order in one's specific application is
         /// another story altogether (most callers of this as a practical matter do not, otherwise they would not call
         /// it), but at least in principle it should be possible to reconstruct the original order one would get from an
         /// identically configured <see cref="IDataView.GetRowCursor(IEnumerable{DataViewSchema.Column}, Random)"/>. So: for any cursor

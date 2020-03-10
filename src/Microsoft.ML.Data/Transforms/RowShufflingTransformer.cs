@@ -229,7 +229,7 @@ namespace Microsoft.ML.Transforms
             provider.CheckValue(cursor, nameof(cursor));
             // REVIEW: In principle, we could limit this check to only active columns,
             // if we extend the use of this utility.
-            provider.CheckParam(CanShuffleAll(cursor.Schema), nameof(cursor), "Cannot shuffle a cursor with some uncachable columns");
+            provider.CheckParam(CanShuffleAll(cursor.Schema), nameof(cursor), "Cannot shuffle a cursor with some uncacheable columns");
             provider.CheckValue(rand, nameof(rand));
 
             if (poolRows == 1)

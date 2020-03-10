@@ -14,19 +14,36 @@ namespace Microsoft.ML.Data
     public sealed class RankingMetrics
     {
         /// <summary>
-        /// Array of normalized discounted cumulative gains where i-th element represent NDCG@i.
-        /// <image src="https://github.com/dotnet/machinelearning/blob/3cdd3c8b32705e91dcf46c429ee34196163af6da/docs/images/NDCG.png?raw=true"></image>
+        /// <format type="text/markdown"><![CDATA[
+        /// List of normalized discounted cumulative gains (NDCG), where the N-th element represents NDCG@N.
+        /// Search resuls vary in length depending on query, so different rankers cannot be consistently compared
+        /// using DCG alone unless the DCG is normalized. This is done by calculating the maximum DCG (also known
+        /// as Ideal DCG), which is the DCG for the ideal ordering of search results sorted by their relative relevance.
+        ///
+        /// $NDCG@N = \frac{DCG@N}{MaxDCG@N}$
+        /// ]]>
+        /// </format>
         /// </summary>
+        /// <remarks>
+        /// <a href="https://en.wikipedia.org/wiki/Discounted_cumulative_gain#Normalized_DCG">Normalized Discounted Cumulative Gain</a>
+        /// </remarks>
         public IReadOnlyList<double> NormalizedDiscountedCumulativeGains { get; }
 
         /// <summary>
-        /// Array of discounted cumulative gains where i-th element represent DCG@i.
-        /// Discounted Cumulative gain is the sum of the gains, for all the instances i,
-        /// normalized by the natural logarithm of the instance + 1.
-        /// Note that unline the Wikipedia article, ML.Net uses the natural logarithm.
-        /// <image src="https://github.com/dotnet/machinelearning/blob/3cdd3c8b32705e91dcf46c429ee34196163af6da/docs/images/DCG.png?raw=true"></image>
+        /// <format type="text/markdown"><![CDATA[
+        /// List of discounted cumulative gains (DCG), where the N-th element represents DCG@N.
+        /// Discounted Cumulative Gain is the sum of the relevance gains up to the N-th position for all the instances i,
+        /// normalized by the natural logarithm of the instance + 1. DCG is an increasing metric,
+        /// with a higher value indicating a better model.
+        /// Note that unlike the Wikipedia article, ML.NET uses the natural logarithm.
+        ///
+        /// $DCG@N = \sum_{i = 1}^N \frac{g_i}{ln(i + 1)}$, where $g_i$ is the relevance gain at the i-th position.
+        /// ]]>
+        /// </format>
         /// </summary>
-        /// <remarks><a href="https://en.wikipedia.org/wiki/Discounted_cumulative_gain">Discounted Cumulative gain.</a></remarks>
+        /// <remarks>
+        /// <a href="https://en.wikipedia.org/wiki/Discounted_cumulative_gain">Discounted Cumulative Gain</a>
+        /// </remarks>
         public IReadOnlyList<double> DiscountedCumulativeGains { get; }
 
         private static T Fetch<T>(IExceptionContext ectx, DataViewRow row, string name)
