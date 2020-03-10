@@ -147,6 +147,23 @@ namespace Microsoft.ML
             => new SrCnnAnomalyEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, windowSize, backAddWindowSize, lookaheadWindowSize, averageingWindowSize, judgementWindowSize, threshold, inputColumnName);
 
         /// <summary>
+        /// Create <see cref="DTRootCauseLocalizationEstimator"/>, which localizes root causess using decision tree algorithm.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of column to transform.</param>
+        /// <param name="beta">The weight parameter in score. The range of the parameter should be in [0,1].</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[LocalizeRootCauseByDT](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/LocalizeRootCauseByDT.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static DTRootCauseLocalizationEstimator LocalizeRootCauseByDT(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null, double beta=0.5)
+             => new DTRootCauseLocalizationEstimator(CatalogUtils.GetEnvironment(catalog),beta,  new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
+
+        /// <summary>
         /// Singular Spectrum Analysis (SSA) model for univariate time-series forecasting.
         /// For the details of the model, refer to http://arxiv.org/pdf/1206.6910.pdf.
         /// </summary>
