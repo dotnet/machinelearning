@@ -490,22 +490,16 @@ namespace Microsoft.ML.TensorFlow
                     try
                     {
                         c_api.TF_SessionRun(_session, null, _inputs, _inputValues,
-                             _inputs.Length, _outputs, _outputValues, _outputValues.Length, _operations,
-                            _operations.Length, IntPtr.Zero, _status);
+                         _inputs.Length, _outputs, _outputValues, _outputValues.Length, _operations,
+                        _operations.Length, IntPtr.Zero, _status);
                     }
-                    catch (Exception ex)
+                    catch (RuntimeWrappedException e)
                     {
-                        try
+                        String s = e.WrappedException as String;
+                        if (s != null)
                         {
-                            _status.Check(throwException: true);
+                            Console.WriteLine("TF error details:" + s);
                         }
-                        catch (Exception statusException)
-                        {
-                            throw new AggregateException(statusException, ex);
-                        }
-
-                        // _status didn't provide more information, so just rethrow the original exception
-                        throw;
                     }
                 }
 
