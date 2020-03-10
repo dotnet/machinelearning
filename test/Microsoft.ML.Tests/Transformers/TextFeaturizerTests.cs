@@ -714,7 +714,6 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        [Trait("Category", "SkipInCI")]
         public void LdaWorkoutEstimatorCore()
         {
             var ml = new MLContext(1);
@@ -729,7 +728,13 @@ namespace Microsoft.ML.Tests.Transformers
             builder.AddColumn("F1V", NumberDataViewType.Single, data);
             var srcView = builder.GetDataView();
 
-            var est = ml.Transforms.Text.LatentDirichletAllocation("F1V");
+            //Attention: resetRandomGenerator needs to be true here as multiple compare will be performed later.
+            //In lda_engine, a queue of samples with size of (num_of_threads - 2) will be created at first,
+            //each time a compare is performed the internal status of one sample (random number: rng_) is changed,
+            //so if size of queue is smaller the number of compare performed, dirty data will be used again for calculation
+            //and cause issue. set resetRandomGenerator to true will reset the random number rng_ every time
+            //before lda calculation.
+            var est = ml.Transforms.Text.LatentDirichletAllocation("F1V", resetRandomGenerator: true);
             TestEstimatorCore(est, srcView);
         }
 
