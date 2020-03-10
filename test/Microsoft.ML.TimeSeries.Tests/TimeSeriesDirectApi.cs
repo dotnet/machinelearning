@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
