@@ -714,7 +714,6 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        [Trait("Category", "SkipInCI")]
         public void LdaWorkoutEstimatorCore()
         {
             var ml = new MLContext(1);
@@ -729,7 +728,7 @@ namespace Microsoft.ML.Tests.Transformers
             builder.AddColumn("F1V", NumberDataViewType.Single, data);
             var srcView = builder.GetDataView();
 
-            var est = ml.Transforms.Text.LatentDirichletAllocation("F1V");
+            var est = ml.Transforms.Text.LatentDirichletAllocation("F1V", resetRandomGenerator: true);
             TestEstimatorCore(est, srcView);
         }
 
