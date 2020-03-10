@@ -440,7 +440,7 @@ namespace Microsoft.ML.Trainers
 
             //log1
             opType = "Sum";
-            var sumOutput = ctx.AddIntermediateVariable(_inputType, "SumOutput", true);
+            var sumOutput = ctx.AddIntermediateVariable(_inputType, "SumOutput");
             ctx.CreateNode(opType, new[] { featureHistogramName, one }, new[] { sumOutput }, ctx.GetNodeName(opType), "");
 
             var logOutput1 = ctx.AddIntermediateVariable(_inputType, "LogOutput", true);
@@ -491,7 +491,7 @@ namespace Microsoft.ML.Trainers
             node.AddAttribute("axes", list);
 
             opType = "Cast";
-            castOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "CastOutput2", true);
+            castOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "CastOutput2");
             node = ctx.CreateNode(opType, learnedAbsentFeatureLogProb, castOutput, ctx.GetNodeName(opType), "");
             t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Single).ToType();
             node.AddAttribute("to", t);
@@ -505,7 +505,6 @@ namespace Microsoft.ML.Trainers
             ctx.CreateNode(opType, new[] { subOutput, logProbReduceSum, logOutput }, new[] { sumOutput }, ctx.GetNodeName(opType), "");
 
             opType = "Squeeze";
-            var squeezeOutput = ctx.AddIntermediateVariable(_inputType, "SqueezeOutput", true);
             var squeezeNode = ctx.CreateNode(opType, sumOutput, outputNames[1], ctx.GetNodeName(opType), "");
             squeezeNode.AddAttribute("axes", new long[] { 2 });
 
@@ -515,7 +514,7 @@ namespace Microsoft.ML.Trainers
             node.AddAttribute("axis", 1);
 
             opType = "Squeeze";
-            squeezeOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "SqueezeOutput", true);
+            var squeezeOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "SqueezeOutput");
             squeezeNode = ctx.CreateNode(opType, scoreIndex, squeezeOutput, ctx.GetNodeName(opType), "");
             squeezeNode.AddAttribute("axes", new long[] { 2 });
 
