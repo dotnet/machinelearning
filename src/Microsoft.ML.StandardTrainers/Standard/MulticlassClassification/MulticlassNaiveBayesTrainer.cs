@@ -415,27 +415,27 @@ namespace Microsoft.ML.Trainers
             var labelHistogramName = ctx.AddInitializer(labelHistogramExpanded, new long[] { _featureHistogram[0].Length, _labelHistogram.Length }, "labelHistogramExpanded");
             var learnedAbsentFeatureLogProb = ctx.AddInitializer(_absentFeaturesLogProb, new long[] { _absentFeaturesLogProb.Length, 1 }, "absentFeaturesLogProb");
 
-            var greaterOutput = ctx.AddIntermediateVariable(BooleanDataViewType.Instance, "greaterOutput", true);
+            var greaterOutput = ctx.AddIntermediateVariable(new VectorDataViewType(BooleanDataViewType.Instance, _featureHistogram[0].Length), "greaterOutput");
             var opType = "Greater";
             ctx.CreateNode(opType, new[] { featureColumn, zero }, new[] { greaterOutput }, ctx.GetNodeName(opType), "");
 
             opType = "Cast";
-            var castOutput = ctx.AddIntermediateVariable(NumberDataViewType.Single, "castOutput", true);
+            var castOutput = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, _featureHistogram[0].Length), "castOutput");
             var node = ctx.CreateNode(opType, greaterOutput, castOutput, ctx.GetNodeName(opType), "");
             var t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Single).ToType();
             node.AddAttribute("to", t);
 
             opType = "ExpandDims";
-            var isFeaturePresent = ctx.AddIntermediateVariable(NumberDataViewType.Single, "isFeaturePresent", true);
+            var isFeaturePresent = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, 1 ,_featureHistogram[0].Length), "isFeaturePresent");
             ctx.CreateNode(opType, new[] { castOutput, oneInt }, new[] { isFeaturePresent }, ctx.GetNodeName(opType), "com.microsoft");
 
             //initialize logProb
             opType = "Div";
-            var divOutput = ctx.AddIntermediateVariable(_inputType, "DivOutput", true);
+            var divOutput = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, 1), "DivOutput");
             ctx.CreateNode(opType, new[] { labelHistogram, trainingCount }, new[] { divOutput }, ctx.GetNodeName(opType), "");
 
             opType = "Log";
-            var logOutput = ctx.AddIntermediateVariable(_inputType, "LogOutput", true);
+            var logOutput = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, 1), "LogOutput");
             ctx.CreateNode(opType, divOutput, logOutput, ctx.GetNodeName(opType), "");
 
             //log1
@@ -443,50 +443,50 @@ namespace Microsoft.ML.Trainers
             var sumOutput = ctx.AddIntermediateVariable(_inputType, "SumOutput");
             ctx.CreateNode(opType, new[] { featureHistogramName, one }, new[] { sumOutput }, ctx.GetNodeName(opType), "");
 
-            var logOutput1 = ctx.AddIntermediateVariable(_inputType, "LogOutput", true);
+            var logOutput1 = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, _labelHistogram.Length, _featureHistogram[0].Length), "LogOutput");
             LogMul(ctx, sumOutput, isFeaturePresent, logOutput1);
 
             //log2
             opType = "Transpose";
-            var labelHistogramTrans = ctx.AddIntermediateVariable(_inputType, "transpose", true);
+            var labelHistogramTrans = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, _featureHistogram[0].Length), "transpose");
             ctx.CreateNode(opType, labelHistogramName, labelHistogramTrans, ctx.GetNodeName(opType), "");
 
             opType = "Sub";
-            var absentFeatureCount = ctx.AddIntermediateVariable(_inputType, "AbsentFeatureCounts", true);
+            var absentFeatureCount = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, _featureHistogram[0].Length), "AbsentFeatureCounts");
             ctx.CreateNode(opType, new[] { labelHistogramTrans, featureHistogramName }, new[] { absentFeatureCount }, ctx.GetNodeName(opType), "");
 
             opType = "Sum";
-            sumOutput = ctx.AddIntermediateVariable(_inputType, "SumOutput", true);
+            sumOutput = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, _featureHistogram[0].Length), "SumOutput");
             ctx.CreateNode(opType, new[] { labelHistogramTrans, labelCount }, new[] { sumOutput }, ctx.GetNodeName(opType), "");
 
-            var logOutput2 = ctx.AddIntermediateVariable(_inputType, "LogOutput", true);
+            var logOutput2 = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, _labelHistogram.Length, _featureHistogram[0].Length), "LogOutput");
             LogMul(ctx, sumOutput, isFeaturePresent, logOutput2);
 
             //log3
             opType = "Sum";
-            sumOutput = ctx.AddIntermediateVariable(_inputType, "SumOutput", true);
+            sumOutput = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single,_featureHistogram[0].Length), "SumOutput");
             ctx.CreateNode(opType, new[] { absentFeatureCount, one }, new[] { sumOutput }, ctx.GetNodeName(opType), "");
 
-            var logOutput3 = ctx.AddIntermediateVariable(_inputType, "LogOutput", true);
+            var logOutput3 = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, _labelHistogram.Length, _featureHistogram[0].Length), "LogOutput");
             LogMul(ctx, sumOutput, isFeaturePresent, logOutput3);
 
             //result
             opType = "Sub";
-            var logProb = ctx.AddIntermediateVariable(_inputType, "LogProb", true);
+            var logProb = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, _labelHistogram.Length, _featureHistogram[0].Length), "LogProb");
             ctx.CreateNode(opType, new[] { logOutput1, logOutput2 }, new[] { logProb }, ctx.GetNodeName(opType), "");
 
             opType = "Sub";
-            var absentFeatureLogProb = ctx.AddIntermediateVariable(_inputType, "AbsentFeatureLogProb", true);
+            var absentFeatureLogProb = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, _labelHistogram.Length, _featureHistogram[0].Length), "AbsentFeatureLogProb");
             ctx.CreateNode(opType, new[] { logOutput3, logOutput2 }, new[] { absentFeatureLogProb }, ctx.GetNodeName(opType), "");
 
             opType = "ReduceSum";
-            var logProbReduceSum = ctx.AddIntermediateVariable(_inputType, "ReduceSum", true);
+            var logProbReduceSum = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, _labelHistogram.Length, 1), "ReduceSum");
             node = ctx.CreateNode(opType, new[] { logProb }, new[] { logProbReduceSum }, ctx.GetNodeName(opType), "");
             long[] list = { 2 };
             node.AddAttribute("axes", list);
 
             opType = "ReduceSum";
-            var absentFeatureLogProbReduceSum = ctx.AddIntermediateVariable(_inputType, "ReduceSum", true);
+            var absentFeatureLogProbReduceSum = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, _labelHistogram.Length, 1), "ReduceSum");
             node = ctx.CreateNode(opType, new[] { absentFeatureLogProb }, new[] { absentFeatureLogProbReduceSum }, ctx.GetNodeName(opType), "");
             node.AddAttribute("axes", list);
 
@@ -497,11 +497,11 @@ namespace Microsoft.ML.Trainers
             node.AddAttribute("to", t);
 
             opType = "Sub";
-            var subOutput = ctx.AddIntermediateVariable(_inputType, "SubOutput", true);
+            var subOutput = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, _labelHistogram.Length, 1), "SubOutput");
             ctx.CreateNode(opType, new[] { castOutput, absentFeatureLogProbReduceSum }, new[] { subOutput }, ctx.GetNodeName(opType), "");
 
             opType = "Sum";
-            sumOutput = ctx.AddIntermediateVariable(_inputType, "SumOutput", true);
+            sumOutput = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, _labelHistogram.Length, 1), "SumOutput");
             ctx.CreateNode(opType, new[] { subOutput, logProbReduceSum, logOutput }, new[] { sumOutput }, ctx.GetNodeName(opType), "");
 
             opType = "Squeeze";
@@ -509,24 +509,20 @@ namespace Microsoft.ML.Trainers
             squeezeNode.AddAttribute("axes", new long[] { 2 });
 
             opType = "ArgMax";
-            var scoreIndex = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "ScoreIndex", true);
+            var scoreIndex = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Int64, 1), "ScoreIndex");
             node = ctx.CreateNode(opType, new[] { sumOutput }, new[] { scoreIndex }, ctx.GetNodeName(opType), "");
             node.AddAttribute("axis", 1);
-
-            opType = "Squeeze";
-            var squeezeOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "SqueezeOutput");
-            squeezeNode = ctx.CreateNode(opType, scoreIndex, squeezeOutput, ctx.GetNodeName(opType), "");
-            squeezeNode.AddAttribute("axes", new long[] { 2 });
+            node.AddAttribute("keepdims", 0);
 
             opType = "Cast";
-            castOutput = ctx.AddIntermediateVariable(_inputType, "CastOutput3", true);
-            node = ctx.CreateNode(opType, squeezeOutput, castOutput, ctx.GetNodeName(opType), "");
+            castOutput = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, 1), "CastOutput3");
+            node = ctx.CreateNode(opType, scoreIndex, castOutput, ctx.GetNodeName(opType), "");
             t = InternalDataKindExtensions.ToInternalDataKind(DataKind.Single).ToType();
             node.AddAttribute("to", t);
 
             //log3
             opType = "Sum";
-            sumOutput = ctx.AddIntermediateVariable(_inputType, "SumOutput", true);
+            sumOutput = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, 1), "SumOutput");
             ctx.CreateNode(opType, new[] { castOutput, one }, new[] { sumOutput }, ctx.GetNodeName(opType), "");
 
             opType = "Cast";
@@ -540,7 +536,7 @@ namespace Microsoft.ML.Trainers
         private void LogMul(OnnxContext ctx, string input, string isFeaturePresent, string output)
         {
             var opType = "Log";
-            var logOutput = ctx.AddIntermediateVariable(null, "LogOutput", true);
+            var logOutput = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, _featureHistogram[0].Length), "LogOutput");
             ctx.CreateNode(opType, input, logOutput, ctx.GetNodeName(opType), "");
 
             opType = "Mul";
