@@ -9,6 +9,7 @@ parameters:
   innerLoop: false
   runSpecific: false
   container: ''
+  useVSTestTask: false
 
 jobs:
   - job: ${{ parameters.name }}
@@ -83,8 +84,36 @@ jobs:
           - script: ${{ parameters.buildScript }} -$(_configuration) -runtests -coverage=${{ parameters.codeCoverage }}
             displayName: Run All Tests.
         - ${{ if eq(parameters.runSpecific, 'true') }}:
-          - script: ${{ parameters.buildScript }} -$(_configuration) -runSpecificTests -coverage=${{ parameters.codeCoverage }}
-            displayName: Run Specific Tests.
+          - ${{ if and(eq(parameters.useVSTestTask, 'true'), eq(parameters.buildScript, 'build.cmd')) }}:
+            - bash: echo "##vso[task.setvariable variable=PROCDUMP_PATH]D:/a/1/s/tools-local/procdump"
+              displayName: Set $(PROCDUMP_PATH) - D:/a/1/s/tools-local/procdump
+            - bash: dir $(PROCDUMP_PATH)
+              displayName: Check $(PROCDUMP_PATH)
+            - task: VSTest@2
+              displayName: Run Specific Tests with VSTest
+              inputs:
+                testSelector: testAssemblies
+                testAssemblyVer2: |
+                  **\*test.dll
+                  **\*tests.dll
+                  !**\obj\** 
+                runSettingsFile: D:/a/1/s/tools-local/procdump/vstest.runsettings
+                searchFolder: '$(System.DefaultWorkingDirectory)'
+                testFiltercriteria: "TestCategory=RunSpecificTest"
+                vstestLocationMethod: 'version' 
+                vsTestVersion: 'latest'
+                runInParallel: False
+                runTestsInIsolation: False
+                codeCoverageEnabled: ${{ parameters.codeCoverage }}
+                otherConsoleOptions: | 
+                  ${{ parameters.vsTestConfiguration }} /ResultsDirectory:$(Build.ArtifactStagingDirectory) 
+                dontDistribute: True
+                diagnosticsEnabled: False
+                collectDumpOn: never
+                publishRunAttachments: true
+          - ${{ if eq(parameters.useVSTestTask, 'false') }}:
+            - script: ${{ parameters.buildScript }} -$(_configuration) -runSpecificTests -coverage=${{ parameters.codeCoverage }}
+              displayName: Run Specific Tests.
       - ${{ if eq(parameters.innerLoop, 'true') }}:
         - script: ${{ parameters.buildScript }} -$(_configuration) -runCITests -coverage=${{ parameters.codeCoverage }}
           displayName: Run CI Tests.
@@ -123,7 +152,7 @@ jobs:
       inputs:
         sourceFolder: $(Build.SourcesDirectory)
         contents: |
-          CrashDumps/*.dmp
+          *.dmp
           bin/**/*.pdb
         targetFolder: $(Build.ArtifactStagingDirectory)
     - task: PublishBuildArtifacts@1

@@ -1,0 +1,115 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using Microsoft.ML.Data;
+using Microsoft.ML.Transforms.Image;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+namespace Microsoft.ML.RunTests
+{
+    [TestClass]
+    public sealed class ColumnTypesVSTask
+    {
+        public ColumnTypesVSTask()
+        {
+        }
+
+        [TestMethod]
+        // [TestCategory("RunSpecificTest")]
+        public void TestEqualAndGetHashCode_VSTest()
+        {
+            var dict = new Dictionary<DataViewType, string>();
+            // add PrimitiveTypes, KeyType & corresponding VectorTypes
+            VectorDataViewType tmp1;
+            VectorDataViewType tmp2;
+            var types = new PrimitiveDataViewType[] { NumberDataViewType.SByte, NumberDataViewType.Int16, NumberDataViewType.Int32, NumberDataViewType.Int64,
+                NumberDataViewType.Byte, NumberDataViewType.UInt16, NumberDataViewType.UInt32, NumberDataViewType.UInt64, RowIdDataViewType.Instance,
+                TextDataViewType.Instance, BooleanDataViewType.Instance, DateTimeDataViewType.Instance, DateTimeOffsetDataViewType.Instance, TimeSpanDataViewType.Instance };
+
+            foreach (var type in types)
+            {
+                var tmp = type;
+                if (dict.ContainsKey(tmp) && dict[tmp] != tmp.ToString())
+                    Assert.IsTrue(false, dict[tmp] + " and " + tmp.ToString() + " are duplicates.");
+                dict[tmp] = tmp.ToString();
+                for (int size = 0; size < 5; size++)
+                {
+                    tmp1 = new VectorDataViewType(tmp, size);
+                    if (dict.ContainsKey(tmp1) && dict[tmp1] != tmp1.ToString())
+                        Assert.IsTrue(false, dict[tmp1] + " and " + tmp1.ToString() + " are duplicates.");
+                    dict[tmp1] = tmp1.ToString();
+                    for (int size1 = 0; size1 < 5; size1++)
+                    {
+                        tmp2 = new VectorDataViewType(tmp, size, size1);
+                        if (dict.ContainsKey(tmp2) && dict[tmp2] != tmp2.ToString())
+                            Assert.IsTrue(false, dict[tmp2] + " and " + tmp2.ToString() + " are duplicates.");
+                        dict[tmp2] = tmp2.ToString();
+                    }
+                }
+
+                // KeyType & Vector
+                var rawType = tmp.RawType;
+                if (!KeyDataViewType.IsValidDataType(rawType))
+                    continue;
+                for (ulong min = 0; min < 5; min++)
+                {
+                    for (var count = 1; count < 5; count++)
+                    {
+                        tmp = new KeyDataViewType(rawType, count);
+                        if (dict.ContainsKey(tmp) && dict[tmp] != tmp.ToString())
+                            Assert.IsTrue(false, dict[tmp] + " and " + tmp.ToString() + " are duplicates.");
+                        dict[tmp] = tmp.ToString();
+                        for (int size = 0; size < 5; size++)
+                        {
+                            tmp1 = new VectorDataViewType(tmp, size);
+                            if (dict.ContainsKey(tmp1) && dict[tmp1] != tmp1.ToString())
+                                Assert.IsTrue(false, dict[tmp1] + " and " + tmp1.ToString() + " are duplicates.");
+                            dict[tmp1] = tmp1.ToString();
+                            for (int size1 = 0; size1 < 5; size1++)
+                            {
+                                tmp2 = new VectorDataViewType(tmp, size, size1);
+                                if (dict.ContainsKey(tmp2) && dict[tmp2] != tmp2.ToString())
+                                    Assert.IsTrue(false, dict[tmp2] + " and " + tmp2.ToString() + " are duplicates.");
+                                dict[tmp2] = tmp2.ToString();
+                            }
+                        }
+                    }
+                    Assert.IsTrue(rawType.TryGetDataKind(out var kind));
+                    tmp = new KeyDataViewType(rawType, kind.ToMaxInt());
+                    if (dict.ContainsKey(tmp) && dict[tmp] != tmp.ToString())
+                        Assert.IsTrue(false, dict[tmp] + " and " + tmp.ToString() + " are duplicates.");
+                    dict[tmp] = tmp.ToString();
+                    for (int size = 0; size < 5; size++)
+                    {
+                        tmp1 = new VectorDataViewType(tmp, size);
+                        if (dict.ContainsKey(tmp1) && dict[tmp1] != tmp1.ToString())
+                            Assert.IsTrue(false, dict[tmp1] + " and " + tmp1.ToString() + " are duplicates.");
+                        dict[tmp1] = tmp1.ToString();
+                        for (int size1 = 0; size1 < 5; size1++)
+                        {
+                            tmp2 = new VectorDataViewType(tmp, size, size1);
+                            if (dict.ContainsKey(tmp2) && dict[tmp2] != tmp2.ToString())
+                                Assert.IsTrue(false, dict[tmp2] + " and " + tmp2.ToString() + " are duplicates.");
+                            dict[tmp2] = tmp2.ToString();
+                        }
+                    }
+                }
+            }
+
+            // add ImageTypes
+            for (int height = 1; height < 5; height++)
+                for (int width = 1; width < 5; width++)
+                {
+                    var tmp4 = new ImageDataViewType(height, width);
+                    if (dict.ContainsKey(tmp4))
+                        Assert.IsTrue(false, dict[tmp4] + " and " + tmp4.ToString() + " are duplicates.");
+                    dict[tmp4] = tmp4.ToString();
+                }
+        }
+    }
+}
