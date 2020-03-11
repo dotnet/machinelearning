@@ -23,7 +23,7 @@ jobs:
       dotnetPath: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet
       nugetFeed: https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json
       nightlyBuildProjPath: $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj
-      nightlyBuildRunPath: (Build.SourcesDirectory)/bin/AnyCPU.(_configuration)/Microsoft.ML.NightlyBuild.Tests/(_targetFramework)
+      nightlyBuildRunPath: $(Build.SourcesDirectory)/bin/AnyCPU.(_configuration)/Microsoft.ML.NightlyBuild.Tests/(_targetFramework)
       packageUpdaterProjPath: $(Build.SourcesDirectory)/test/Microsoft.ML.NugetPackageVersionUpdater/Microsoft.ML.NugetPackageVersionUpdater.csproj
       versionFilePath: $(Build.SourcesDirectory)/test/Microsoft.ML.NugetPackageVersionUpdater/latest_versions.txt
     strategy:
@@ -62,6 +62,14 @@ jobs:
         displayName: List latest package versions
       - script: $(dotnetPath) run --project $(packageUpdaterProjPath)
         displayName: Update package versions for nightly build
+      - powershell: |
+                  Get-ChildItem -Path  '.\bin' -Recurse -exclude |
+                  Select -ExpandProperty FullName |
+                  Where {$_ -notlike '.\bin\*\Microsoft.ML.NightlyBuild.Tests*'} |
+                  sort length -Descending |
+                  Remove-Item -force 
+                  Write-Output "Done cleaning up usless project..."
+        displayName: Clean up usless project
       - script: $(dotnetPath) msbuild -restore $(nightlyBuildProjPath) /p:ReferenceTypeForTestFramework="Nuget" /p:Configuration=$(_configuration) /p:TargetArchitecture=${{ parameters.architecture }}
         displayName: Build Nightly-Build Project with latest package versions
       - script: ${{ parameters.buildScript }} -$(_configuration) -runnightlybuildtests
