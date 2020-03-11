@@ -26,11 +26,42 @@ using Microsoft.ML.Trainers;
 namespace Microsoft.ML.Trainers
 {
     /// <summary>
-    /// Non-Linear SVM that implements Local Deep SVM based on paper :
-    /// C. Jose, P. Goyal, P. Aggrwal, and M. Varma, Local deep
-    /// kernel learning for efficient non-linear svm prediction, in ICML, 2013.
-    /// http://research.microsoft.com/en-us/um/people/manik/code/LDKL/download.html
+    /// The <see cref="IEstimator{TTransformer}"/> to predict a target using a non-linear binary classification model
+    /// trained with Local Deep SVM.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [LdSvm](xref:Microsoft.ML.StandardTrainersCatalog.LdSvm(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, int, int, bool, bool))
+    /// or [LdSvm(Options)](xref:Microsoft.ML.StandardTrainersCatalog.LdSvm(BinaryClassificationCatalog.BinaryClassificationTrainers, LdSvmTrainer.Options)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification-no-prob.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Binary classification |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | None |
+    /// | Exportable to ONNX | No |
+    ///
+    /// ### Training Algorithm Details
+    /// Local Deep SVM (LD-SVM) is a generalization of Localized Multiple Kernel Learning for non-linear SVM. Multiple kernel methods learn a different
+    /// kernel, and hence a different classifier, for each point in the feature space. The prediction time cost for multiple kernal methods can be prohibitively
+    /// expensive for large training sets because it is proportional to the number of support vectors, and these grow linearly with the size of the training
+    /// set. LD-SVM reduces the prediction cost by learning a tree-based local feature embedding that is high dimensional and sparse, efficiently encoding
+    /// non-linearities. Using LD-SVM, the prediction cost grows logarithmically with the size of the training set, rather than linearly, with a tolerable loss
+    /// in classification accuracy.
+    ///
+    /// Local Deep SVM is an implementation of the algorithm decribed in [C. Jose, P. Goyal, P. Aggrwal, and M. Varma, Local Deep
+    /// Kernel Learning for Efficient Non-linear SVM Prediction, ICML, 2013](http://proceedings.mlr.press/v28/jose13.pdf).
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="StandardTrainersCatalog.LdSvm(BinaryClassificationCatalog.BinaryClassificationTrainers, LdSvmTrainer.Options)"/>
+    /// <seealso cref="StandardTrainersCatalog.LdSvm(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, int, int, bool, bool)"/>
     public sealed class LdSvmTrainer : TrainerEstimatorBase<BinaryPredictionTransformer<LdSvmModelParameters>, LdSvmModelParameters>
     {
         internal const string LoadNameValue = "LDSVM";
