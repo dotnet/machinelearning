@@ -1,7 +1,7 @@
 <RunSettings>
     <RunConfiguration>
-        <MaxCpuCount>1</MaxCpuCount>
         <BatchSize>1000</BatchSize>
+        <ResultsDirectory>D:\a\1\a</ResultsDirectory>
     </RunConfiguration>
     <LoggerRunSettings>
         <Loggers>

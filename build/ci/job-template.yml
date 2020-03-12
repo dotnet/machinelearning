@@ -103,13 +103,12 @@ jobs:
                 vstestLocationMethod: 'version' 
                 vsTestVersion: 'latest'
                 runInParallel: False
-                runTestsInIsolation: False
+                runTestsInIsolation: True
                 codeCoverageEnabled: ${{ parameters.codeCoverage }}
-                otherConsoleOptions: | 
-                  ${{ parameters.vsTestConfiguration }} /ResultsDirectory:$(Build.ArtifactStagingDirectory) 
+                otherConsoleOptions: ${{ parameters.vsTestConfiguration }}
                 dontDistribute: True
                 diagnosticsEnabled: False
-                collectDumpOn: never
+                collectDumpOn: onAbortOnly
                 publishRunAttachments: true
           - ${{ if eq(parameters.useVSTestTask, 'false') }}:
             - script: ${{ parameters.buildScript }} -$(_configuration) -runSpecificTests -coverage=${{ parameters.codeCoverage }}
