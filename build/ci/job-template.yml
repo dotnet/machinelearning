@@ -70,7 +70,7 @@ jobs:
                     sort length -Descending | 
                     Remove-Item -force 
                     Write-Output "Done cleaning up usless project..."
-          displayName: Clean up usless project
+          displayName: Clean up useless project
       - script: $(dotnetPath) msbuild -restore $(nightlyBuildProjPath) /p:ReferenceTypeForTestFramework="Nuget" /p:Configuration=$(_configuration) /p:TargetArchitecture=${{ parameters.architecture }}
         displayName: Build Nightly-Build Project with latest package versions
       - script: ${{ parameters.buildScript }} -$(_configuration) -runnightlybuildtests
