@@ -49,7 +49,8 @@ namespace Microsoft.ML.AutoML.Test
 
         private static string DownloadIfNotExists(string baseGitPath, string dataFile)
         {
-            foreach (var nextIteration in Enumerable.Range(0, 10))
+            int numIterationAttemps = 10;
+            for(int nextIteration = 1; nextIteration <= numIterationAttemps; nextIteration++)
             {
                 // if file doesn't already exist, download it
                 if (!File.Exists(dataFile))
@@ -69,12 +70,16 @@ namespace Microsoft.ML.AutoML.Test
                             }
                         }
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
+                        Console.WriteLine(String.Format(
+                            "Exception caught while trying to download test file " +
+                            "{0} on iteration {1}/{2}. Exception details: {3}", 
+                            dataFile, nextIteration, numIterationAttemps, e.Message));
                     }
                 }
 
-                if (File.Exists(dataFile) && (new FileInfo(dataFile).Length > 0))
+                if (File.Exists(dataFile) && IsFileAvailableForAccess(dataFile))
                 {
                     return dataFile;
                 }
@@ -83,6 +88,23 @@ namespace Microsoft.ML.AutoML.Test
             }
 
             throw new Exception($"Failed to download test file {dataFile}.");
+        }
+
+        public static bool IsFileAvailableForAccess(string filePath)
+        {
+            FileInfo fileInfo = new FileInfo(filePath);
+            try
+            {
+                using FileStream stream = fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.None);
+                stream.Close();
+            }
+
+            catch (IOException)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         public static string GetFlowersDataset()
