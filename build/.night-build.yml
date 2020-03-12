@@ -38,10 +38,12 @@ jobs:
       Debug_Build:
         _configuration: Debug-netcoreapp3_0
         _config_short: DI
+        _targetFramework: netcoreapp3.0
         _includeBenchmarkData: false
       Release_Build:
         _configuration: Release-netcoreapp3_0
         _config_short: RI
+        _targetFramework: netcoreapp3.0
         _includeBenchmarkData: true
     nightlyBuild: true
     pool:

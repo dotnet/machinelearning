@@ -13,7 +13,7 @@ parameters:
 jobs:
   - job: ${{ parameters.name }}
     ${{ if eq(parameters.nightlyBuild, 'true') }}:
-      timeoutInMinutes: 20
+      timeoutInMinutes: 30
     ${{ if and(eq(parameters.nightlyBuild, 'false'), eq(parameters.codeCoverage, 'false')) }}:
       timeoutInMinutes: 75
     ${{ if eq(parameters.codeCoverage, 'true') }}:
@@ -23,7 +23,7 @@ jobs:
       dotnetPath: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet
       nugetFeed: https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json
       nightlyBuildProjPath: $(Build.SourcesDirectory)/test/Microsoft.ML.NightlyBuild.Tests/Microsoft.ML.NightlyBuild.Tests.csproj
-      nightlyBuildRunPath: (Build.SourcesDirectory)/bin/AnyCPU.(_configuration)/Microsoft.ML.NightlyBuild.Tests/(_targetFramework)
+      nightlyBuildRunPath: $(Build.SourcesDirectory)/bin/AnyCPU.$(_configuration)/Microsoft.ML.NightlyBuild.Tests/$(_targetFramework)
       packageUpdaterProjPath: $(Build.SourcesDirectory)/test/Microsoft.ML.NugetPackageVersionUpdater/Microsoft.ML.NugetPackageVersionUpdater.csproj
       versionFilePath: $(Build.SourcesDirectory)/test/Microsoft.ML.NugetPackageVersionUpdater/latest_versions.txt
     strategy:
@@ -52,7 +52,7 @@ jobs:
         displayName: Install build dependencies
     - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.pool.name, 'Hosted Ubuntu 1604')) }}:
       - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"
-        displayName: Set LD_LIBRARY_PATH for Ubuntu to locate Native shared library in current running path
+        displayName: Set LD_LIBRARY_PATH for Ubuntu and CentOS to locate Native shared library in current running path
     - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }}
       displayName: Build
     - ${{ if eq(parameters.nightlyBuild, 'true') }}:
@@ -62,6 +62,15 @@ jobs:
         displayName: List latest package versions
       - script: $(dotnetPath) run --project $(packageUpdaterProjPath)
         displayName: Update package versions for nightly build
+      - ${{ if eq(parameters.buildScript, 'build.cmd') }}:
+        - powershell: |
+                    Get-ChildItem -Path  '.\bin\AnyCPU.*' -Recurse |
+                    Select -ExpandProperty FullName |
+                    Where {$_ -notlike '*\Microsoft.ML.NightlyBuild.Tests*'} |
+                    sort length -Descending | 
+                    Remove-Item -force 
+                    Write-Output "Done cleaning up usless project..."
+          displayName: Clean up useless project
       - script: $(dotnetPath) msbuild -restore $(nightlyBuildProjPath) /p:ReferenceTypeForTestFramework="Nuget" /p:Configuration=$(_configuration) /p:TargetArchitecture=${{ parameters.architecture }}
         displayName: Build Nightly-Build Project with latest package versions
       - script: ${{ parameters.buildScript }} -$(_configuration) -runnightlybuildtests
