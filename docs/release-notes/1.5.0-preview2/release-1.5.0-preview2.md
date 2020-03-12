@@ -3,6 +3,7 @@
 ## **New Features (IN-PREVIEW, please provide feedback)**
 - **TimeSeriesImputer** ([#4623](https://github.com/dotnet/machinelearning/pull/4623)) This data transformer can be used to impute missing rows in time series data.
 - **LDSVM Trainer** ([#4060](https://github.com/dotnet/machinelearning/pull/4060)) The "Local Deep SVM" usess trees as its SVM kernel to create a non-linear binary trainer. A sample can be found [here](https://github.com/dotnet/machinelearning/blob/c819d77e9250c68883713d5f1cd79b8971a11faf/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/LdSvm.cs).
+- **Onnxruntime updated to v1.2** This also includes support for GPU execution of onnx models
 - **Export-to-ONNX for below components:**
     - SlotsDroppingTransformer ([#4562](https://github.com/dotnet/machinelearning/pull/4562))
     - ColumnSelectingTransformer ([#4590](https://github.com/dotnet/machinelearning/pull/4590))
