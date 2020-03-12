@@ -12,6 +12,7 @@ using Xunit;
 using static Microsoft.ML.DataOperationsCatalog;
 using Microsoft.ML.TestFramework;
 using Xunit.Abstractions;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.AutoML.Test
 {
@@ -25,7 +26,7 @@ namespace Microsoft.ML.AutoML.Test
         public void AutoFitBinaryTest()
         {
             var context = new MLContext(1);
-            var dataPath = DatasetUtil.DownloadUciAdultDataset();
+            var dataPath = DatasetUtil.DownloadUciAdultDataset(context);
             var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(dataPath);
@@ -107,7 +108,7 @@ namespace Microsoft.ML.AutoML.Test
         public void AutoFitRegressionTest()
         {
             var context = new MLContext(1);
-            var dataPath = DatasetUtil.DownloadMlNetGeneratedRegressionDataset();
+            var dataPath = DatasetUtil.DownloadMlNetGeneratedRegressionDataset(context);
             var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.MlNetGeneratedRegressionLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(dataPath);

@@ -10,6 +10,8 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.AutoML.Test
 {
@@ -29,7 +31,7 @@ namespace Microsoft.ML.AutoML.Test
             if (_uciAdultDataView == null)
             {
                 var context = new MLContext(1);
-                var uciAdultDataFile = DownloadUciAdultDataset();
+                var uciAdultDataFile = DownloadUciAdultDataset(context);
                 var columnInferenceResult = context.Auto().InferColumns(uciAdultDataFile, UciAdultLabel);
                 var textLoader = context.Data.CreateTextLoader(columnInferenceResult.TextLoaderOptions);
                 _uciAdultDataView = textLoader.Load(uciAdultDataFile);
@@ -38,56 +40,34 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         // downloads the UCI Adult dataset from the ML.Net repo
-        public static string DownloadUciAdultDataset() =>
-            DownloadIfNotExists("https://raw.githubusercontent.com/dotnet/machinelearning/f0e639af5ffdc839aae8e65d19b5a9a1f0db634a/test/data/adult.tiny.with-schema.txt", "uciadult.dataset");
+        public static string DownloadUciAdultDataset(IHostEnvironment env) =>
+            DownloadIfNotExists(env, "https://raw.githubusercontent.com/dotnet/machinelearning/f0e639af5ffdc839aae8e65d19b5a9a1f0db634a/test/data/adult.tiny.with-schema.txt", "uciadult.dataset");
 
-        public static string DownloadMlNetGeneratedRegressionDataset() =>
-            DownloadIfNotExists("https://raw.githubusercontent.com/dotnet/machinelearning/e78971ea6fd736038b4c355b840e5cbabae8cb55/test/data/generated_regression_dataset.csv", "mlnet_generated_regression.dataset");
+        public static string DownloadMlNetGeneratedRegressionDataset(IHostEnvironment env) =>
+            DownloadIfNotExists(env, "https://raw.githubusercontent.com/dotnet/machinelearning/e78971ea6fd736038b4c355b840e5cbabae8cb55/test/data/generated_regression_dataset.csv", "mlnet_generated_regression.dataset");
 
-        public static string DownloadIrisDataset() =>
-            DownloadIfNotExists("https://raw.githubusercontent.com/dotnet/machinelearning/54596ac/test/data/iris.txt", "iris.dataset");
+        public static string DownloadIrisDataset(IHostEnvironment env) =>
+            DownloadIfNotExists(env, "https://raw.githubusercontent.com/dotnet/machinelearning/54596ac/test/data/iris.txt", "iris.dataset");
 
-        private static string DownloadIfNotExists(string baseGitPath, string dataFile)
+        private static string DownloadIfNotExists(IHostEnvironment env, string baseGitPathUrl, string dataFile)
         {
-            int numIterationAttemps = 10;
-            for(int nextIteration = 1; nextIteration <= numIterationAttemps; nextIteration++)
+            using (var ch = env.Start("Ensuring meta files are present."))
             {
-                // if file doesn't already exist, download it
-                if (!File.Exists(dataFile))
+                int timeout = 60 * 1000; // 1 minute timeout
+                var ensureModel = ResourceManagerUtils.Instance.EnsureResourceAsync(env, ch, baseGitPathUrl, dataFile, Path.GetTempPath(), timeout);
+                ensureModel.Wait();
+                var errorResult = ResourceManagerUtils.GetErrorMessage(out var errorMessage, ensureModel.Result);
+                if (errorResult != null)
                 {
-                    var tempFile = Path.GetTempFileName();
-
-                    try
-                    {
-                        using (var client = new WebClient())
-                        {
-                            client.DownloadFile(new Uri($"{baseGitPath}"), tempFile);
-
-                            if (!File.Exists(dataFile))
-                            {
-                                File.Copy(tempFile, dataFile);
-                                File.Delete(tempFile);
-                            }
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(String.Format(
-                            "Exception caught while trying to download test file " +
-                            "{0} on iteration {1}/{2}. Exception details: {3}", 
-                            dataFile, nextIteration, numIterationAttemps, e.Message));
-                    }
+                    var directory = Path.GetDirectoryName(errorResult.FileName);
+                    var name = Path.GetFileName(errorResult.FileName);
+                    throw ch.Except($"{errorMessage}\n file could not be downloaded.");
                 }
-
-                if (File.Exists(dataFile) && IsFileAvailableForAccess(dataFile))
+                else
                 {
-                    return dataFile;
+                    return Path.GetFileName(ensureModel.Result.FileName);
                 }
-
-                Thread.Sleep(300);
             }
-
-            throw new Exception($"Failed to download test file {dataFile}.");
         }
 
         public static bool IsFileAvailableForAccess(string filePath)

@@ -19,8 +19,8 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void UnGroupReturnsMoreColumnsThanGroup()
         {
-            var dataPath = DatasetUtil.DownloadUciAdultDataset();
             var context = new MLContext(1);
+            var dataPath = DatasetUtil.DownloadUciAdultDataset(context);
             var columnInferenceWithoutGrouping = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel, groupColumns: false);
             foreach (var col in columnInferenceWithoutGrouping.TextLoaderOptions.Columns)
             {
@@ -34,21 +34,25 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void IncorrectLabelColumnThrows()
         {
-            var dataPath = DatasetUtil.DownloadUciAdultDataset();
             var context = new MLContext(1);
+            var dataPath = DatasetUtil.DownloadUciAdultDataset(context);
             Assert.Throws<ArgumentException>(new System.Action(() => context.Auto().InferColumns(dataPath, "Junk", groupColumns: false)));
         }
 
         [Fact]
         public void LabelIndexOutOfBoundsThrows()
         {
-            Assert.Throws<ArgumentOutOfRangeException>(() => new MLContext(1).Auto().InferColumns(DatasetUtil.DownloadUciAdultDataset(), 100));
+            var context = new MLContext(1);
+            var dataPath = DatasetUtil.DownloadUciAdultDataset(context);
+            Assert.Throws<ArgumentOutOfRangeException>(() => new MLContext(1).Auto().InferColumns(dataPath, 100));
         }
 
         [Fact]
         public void IdentifyLabelColumnThroughIndexWithHeader()
         {
-            var result = new MLContext(1).Auto().InferColumns(DatasetUtil.DownloadUciAdultDataset(), 14, hasHeader: true);
+            var context = new MLContext(1);
+            var dataPath = DatasetUtil.DownloadUciAdultDataset(context);
+            var result = context.Auto().InferColumns(dataPath, 14, hasHeader: true);
             Assert.True(result.TextLoaderOptions.HasHeader);
             var labelCol = result.TextLoaderOptions.Columns.First(c => c.Source[0].Min == 14 && c.Source[0].Max == 14);
             Assert.Equal("hours-per-week", labelCol.Name);
@@ -58,7 +62,9 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void IdentifyLabelColumnThroughIndexWithoutHeader()
         {
-            var result = new MLContext(1).Auto().InferColumns(DatasetUtil.DownloadIrisDataset(), DatasetUtil.IrisDatasetLabelColIndex);
+            var context = new MLContext(1);
+            var dataPath = DatasetUtil.DownloadIrisDataset(context);
+            var result = context.Auto().InferColumns(dataPath, DatasetUtil.IrisDatasetLabelColIndex);
             Assert.False(result.TextLoaderOptions.HasHeader);
             var labelCol = result.TextLoaderOptions.Columns.First(c => c.Source[0].Min == DatasetUtil.IrisDatasetLabelColIndex &&
                 c.Source[0].Max == DatasetUtil.IrisDatasetLabelColIndex);
@@ -176,9 +182,10 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void InferColumnsColumnInfoParam()
         {
+            var context = new MLContext(1);
+            var dataPath = DatasetUtil.DownloadMlNetGeneratedRegressionDataset(context);
             var columnInfo = new ColumnInformation() { LabelColumnName = DatasetUtil.MlNetGeneratedRegressionLabel };
-            var result = new MLContext(1).Auto().InferColumns(DatasetUtil.DownloadMlNetGeneratedRegressionDataset(), 
-                columnInfo);
+            var result = context.Auto().InferColumns(dataPath, columnInfo);
             var labelCol = result.TextLoaderOptions.Columns.First(c => c.Name == DatasetUtil.MlNetGeneratedRegressionLabel);
             Assert.Equal(DataKind.Single, labelCol.DataKind);
             Assert.Equal(DatasetUtil.MlNetGeneratedRegressionLabel, result.ColumnInformation.LabelColumnName);
