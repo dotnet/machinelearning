@@ -9,6 +9,7 @@ parameters:
   innerLoop: false
   runSpecific: false
   container: ''
+  useVSTestTask: false
 
 jobs:
   - job: ${{ parameters.name }}
@@ -26,6 +27,7 @@ jobs:
       nightlyBuildRunPath: $(Build.SourcesDirectory)/bin/AnyCPU.$(_configuration)/Microsoft.ML.NightlyBuild.Tests/$(_targetFramework)
       packageUpdaterProjPath: $(Build.SourcesDirectory)/test/Microsoft.ML.NugetPackageVersionUpdater/Microsoft.ML.NugetPackageVersionUpdater.csproj
       versionFilePath: $(Build.SourcesDirectory)/test/Microsoft.ML.NugetPackageVersionUpdater/latest_versions.txt
+      PROCDUMP_PATH: '$(Build.SourcesDirectory)/Tools/procdump/'
     strategy:
       matrix:
         ${{ if eq(parameters.customMatrixes, '') }}:
@@ -79,12 +81,33 @@ jobs:
       - script: ${{ parameters.buildScript }} -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=$(_includeBenchmarkData)
         displayName: Download Benchmark Data
       - ${{ if eq(parameters.innerLoop, 'false') }}:
-        - ${{ if eq(parameters.runSpecific, 'false') }}:
+        - ${{ if and(eq(parameters.runSpecific, 'false'), eq(parameters.useVSTestTask, 'false')) }}:
           - script: ${{ parameters.buildScript }} -$(_configuration) -runtests -coverage=${{ parameters.codeCoverage }}
             displayName: Run All Tests.
-        - ${{ if eq(parameters.runSpecific, 'true') }}:
+        - ${{ if and(eq(parameters.runSpecific, 'true'), eq(parameters.useVSTestTask, 'false')) }}:
           - script: ${{ parameters.buildScript }} -$(_configuration) -runSpecificTests -coverage=${{ parameters.codeCoverage }}
             displayName: Run Specific Tests.
+        - ${{ if and(eq(parameters.buildScript, 'build.cmd'), eq(parameters.useVSTestTask, 'true')) }}:
+          - task: VSTest@2
+            displayName: Run Tests with VSTest
+            inputs:
+              testSelector: testAssemblies
+              testAssemblyVer2: |
+                **\*test.dll
+                **\*tests.dll
+                !**\obj\** 
+              runSettingsFile: $(Build.SourcesDirectory)/tools-local/vstest.runsettings
+              searchFolder: '$(System.DefaultWorkingDirectory)'
+              vstestLocationMethod: 'version' 
+              vsTestVersion: 'latest'
+              runInParallel: False
+              runTestsInIsolation: True
+              codeCoverageEnabled: ${{ parameters.codeCoverage }}
+              otherConsoleOptions: ${{ parameters.vsTestConfiguration }}
+              dontDistribute: True
+              diagnosticsEnabled: False
+              collectDumpOn: onAbortOnly
+              publishRunAttachments: true
       - ${{ if eq(parameters.innerLoop, 'true') }}:
         - script: ${{ parameters.buildScript }} -$(_configuration) -runCITests -coverage=${{ parameters.codeCoverage }}
           displayName: Run CI Tests.
@@ -123,7 +146,7 @@ jobs:
       inputs:
         sourceFolder: $(Build.SourcesDirectory)
         contents: |
-          CrashDumps/*.dmp
+          *.dmp
           bin/**/*.pdb
         targetFolder: $(Build.ArtifactStagingDirectory)
     - task: PublishBuildArtifacts@1

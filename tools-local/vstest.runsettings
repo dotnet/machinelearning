@@ -1,0 +1,21 @@
+<RunSettings>
+    <RunConfiguration>
+        <BatchSize>1000</BatchSize>
+        <ResultsDirectory>D:\a\1\a</ResultsDirectory>
+    </RunConfiguration>
+    <LoggerRunSettings>
+        <Loggers>
+            <Logger friendlyName="blame" enabled="True" />
+        </Loggers>
+    </LoggerRunSettings>
+    <DataCollectionRunSettings>
+        <DataCollectors>
+            <DataCollector friendlyName="blame" enabled="True">
+                <Configuration>
+                    <CollectDump CollectAlways="false" DumpType="full" />
+                    <CollectDumpOnTestSessionHang TestTimeout="300000" DumpType="full" />
+                </Configuration>
+            </DataCollector>
+        </DataCollectors>
+    </DataCollectionRunSettings>
+</RunSettings>

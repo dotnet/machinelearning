@@ -64,6 +64,7 @@ jobs:
         _includeBenchmarkData: true
         _targetFramework: netcoreapp3.0
     innerLoop: true
+    vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.0"
     pool:
       name: Hosted VS2017
 
@@ -72,6 +73,7 @@ jobs:
     name: Windows_x64_NetCoreApp21
     buildScript: build.cmd
     innerLoop: true
+    vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
     pool:
       name: Hosted VS2017
 
@@ -91,6 +93,7 @@ jobs:
         _includeBenchmarkData: false
         _targetFramework: win-x64
     innerLoop: true
+    vsTestConfiguration: "/Framework:.NETCoreApp,Version=v4.0"
     pool:
       name: Hosted VS2017
 
@@ -100,5 +103,6 @@ jobs:
     architecture: x86
     buildScript: build.cmd
     innerLoop: true
+    vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
     pool:
       name: Hosted VS2017
