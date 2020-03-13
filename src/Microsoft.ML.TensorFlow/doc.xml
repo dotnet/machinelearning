@@ -62,6 +62,8 @@
             The inputs and outputs of a TensorFlow model can be obtained using the <see cref="TensorFlowModel.GetModelSchema()"/> or <a href="https://github.com/tensorflow/tensorflow/tree/master/tensorflow/tools/graph_transforms/README.md#inspecting-graphs">summarize_graph</a> tools.
         </para>
       </remarks>
+      <altmember cref="M:Microsoft.ML.Transforms.TensorFlowModel.ScoreTensorFlowModel(System.String,System.String,System.Boolean)" />
+      <altmember cref="M:Microsoft.ML.Transforms.TensorFlowModel.ScoreTensorFlowModel(System.String[],System.String[],System.Boolean)" />
     </member>
   </members>
 </doc>
