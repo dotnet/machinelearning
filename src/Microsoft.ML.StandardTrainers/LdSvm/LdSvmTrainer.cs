@@ -47,13 +47,13 @@ namespace Microsoft.ML.Trainers
     ///
     /// ### Training Algorithm Details
     /// Local Deep SVM (LD-SVM) is a generalization of Localized Multiple Kernel Learning for non-linear SVM. Multiple kernel methods learn a different
-    /// kernel, and hence a different classifier, for each point in the feature space. The prediction time cost for multiple kernal methods can be prohibitively
+    /// kernel, and hence a different classifier, for each point in the feature space. The prediction time cost for multiple kernel methods can be prohibitively
     /// expensive for large training sets because it is proportional to the number of support vectors, and these grow linearly with the size of the training
     /// set. LD-SVM reduces the prediction cost by learning a tree-based local feature embedding that is high dimensional and sparse, efficiently encoding
     /// non-linearities. Using LD-SVM, the prediction cost grows logarithmically with the size of the training set, rather than linearly, with a tolerable loss
     /// in classification accuracy.
     ///
-    /// Local Deep SVM is an implementation of the algorithm decribed in [C. Jose, P. Goyal, P. Aggrwal, and M. Varma, Local Deep
+    /// Local Deep SVM is an implementation of the algorithm described in [C. Jose, P. Goyal, P. Aggrwal, and M. Varma, Local Deep
     /// Kernel Learning for Efficient Non-linear SVM Prediction, ICML, 2013](http://proceedings.mlr.press/v28/jose13.pdf).
     ///
     /// Check the See Also section for links to usage examples.
