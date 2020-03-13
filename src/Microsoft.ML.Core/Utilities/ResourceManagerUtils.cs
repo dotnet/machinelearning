@@ -161,22 +161,19 @@ namespace Microsoft.ML.Internal.Utilities
                     return (await t).Message;
                 }
 
-                return CheckValidDownload(ch, filePath, url, ref deleteNeeded);
+                return CheckValidDownload(filePath, url, ref deleteNeeded);
             }
         }
 
-        private static string CheckValidDownload(IChannel ch, string filePath, string url, ref bool deleteNeeded)
+        private static string CheckValidDownload(string filePath, string url, ref bool deleteNeeded)
         {
             // If the relative url does not exist, aka.ms redirects to www.microsoft.com. Make sure this did not happen.
-            // If the file is big then it is definitely not the redirect.
             var info = new FileInfo(filePath);
-            if (info.Length > 4096)
-                return null;
             string error = null;
             using (var r = new StreamReader(filePath))
             {
                 var text = r.ReadToEnd();
-                if (text.Contains("<head>") && text.Contains("<body>") && text.Contains("microsoft.com"))
+                if (text.Contains("<head") && text.Contains("<body") && text.Contains("microsoft.com"))
                     error = $"The url '{url}' does not exist. Url was redirected to www.microsoft.com.";
             }
             deleteNeeded = error != null;
