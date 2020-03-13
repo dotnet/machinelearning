@@ -24,6 +24,9 @@ using static Microsoft.ML.DataOperationsCatalog;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.TestFrameworkCommon.Attributes;
 
+#pragma warning disable 0649
+#pragma warning disable xUnit1026
+
 namespace Microsoft.ML.Scenarios
 {
 
@@ -103,8 +106,10 @@ namespace Microsoft.ML.Scenarios
             public float[] PredictedLabels;
         }
 
-        [TensorFlowFact]
-        public void TensorFlowTransforCifarEndToEndTest2()
+        //[TensorFlowFact]
+        [Theory, IterationData(50)]
+        [Trait("Category", "RunSpecificTest")]
+        public void TensorFlowTransforCifarEndToEndTest2(int iteration)
         {
             var imageHeight = 32;
             var imageWidth = 32;
@@ -156,8 +161,10 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(1, prediction.PredictedScores[2], 2);
         }
 
-        [TensorFlowFact]
-        public void TensorFlowTransformMatrixMultiplicationTest()
+        //[TensorFlowFact]
+        [Theory, IterationData(50)]
+        [Trait("Category", "RunSpecificTest")]
+        public void TensorFlowTransformMatrixMultiplicationTest(int iteration)
         {
             var modelLocation = "model_matmul/frozen_saved_model.pb";
             var mlContext = new MLContext(seed: 1);
@@ -341,8 +348,10 @@ namespace Microsoft.ML.Scenarios
         /// <summary>
         /// Test to ensure the supported datatypes can passed to TensorFlow .
         /// </summary>
-        [TensorFlowFact]
-        public void TensorFlowTransformInputOutputTypesTest()
+        //[TensorFlowFact]
+        [Theory, IterationData(50)]
+        [Trait("Category", "RunSpecificTest")]
+        public void TensorFlowTransformInputOutputTypesTest(int iteration)
         {
             // This an identity model which returns the same output as input.
             var modelLocation = "model_types_test";
@@ -542,8 +551,10 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [TensorFlowFact]
-        public void TensorFlowInputsOutputsSchemaTest()
+        //[TensorFlowFact]
+        [Theory, IterationData(50)]
+        [Trait("Category", "RunSpecificTest")]
+        public void TensorFlowInputsOutputsSchemaTest(int iteration)
         {
             var mlContext = new MLContext(seed: 1);
             var modelLocation = "mnist_model/frozen_saved_model.pb";
@@ -619,8 +630,10 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [TensorFlowFact]
-        public void TensorFlowTransformMNISTConvTest()
+        //[TensorFlowFact]
+        [Theory, IterationData(50)]
+        [Trait("Category", "RunSpecificTest")]
+        public void TensorFlowTransformMNISTConvTest(int iteration)
         {
             var mlContext = new MLContext(seed: 1);
             var reader = mlContext.Data.CreateTextLoader(
@@ -658,8 +671,10 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(5, GetMaxIndexForOnePrediction(onePrediction));
         }
 
-        [TensorFlowFact]
-        public void TensorFlowTransformMNISTLRTrainingTest()
+        //[TensorFlowFact]
+        [Theory, IterationData(50)]
+        [Trait("Category", "RunSpecificTest")]
+        public void TensorFlowTransformMNISTLRTrainingTest(int iteration)
         {
             const double expectedMicroAccuracy = 0.72173913043478266;
             const double expectedMacroAccruacy = 0.67482993197278918;
@@ -740,10 +755,12 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [TensorFlowFact]
+        //[TensorFlowFact]
+        [Theory, IterationData(50)]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         [Trait("Category", "SkipInCI")]
-        public void TensorFlowTransformMNISTConvTrainingTest()
+        [Trait("Category", "RunSpecificTest")]
+        public void TensorFlowTransformMNISTConvTrainingTest(int iteration)
         {
             double expectedMicro = 0.73304347826086956;
             double expectedMacro = 0.677551020408163;
@@ -844,8 +861,10 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [TensorFlowFact]
-        public void TensorFlowTransformMNISTConvSavedModelTest()
+        //[TensorFlowFact]
+        [Theory, IterationData(50)]
+        [Trait("Category", "RunSpecificTest")]
+        public void TensorFlowTransformMNISTConvSavedModelTest(int iteration)
         {
             // This test trains a multi-class classifier pipeline where a pre-trained Tenroflow model is used for featurization.
             // Two group of test criteria are checked. One group contains micro and macro accuracies. The other group is the range
@@ -967,8 +986,10 @@ namespace Microsoft.ML.Scenarios
             public float[] PredictedLabels;
         }
 
-        [TensorFlowFact]
-        public void TensorFlowTransformCifar()
+        //[TensorFlowFact]
+        [Theory, IterationData(50)]
+        [Trait("Category", "RunSpecificTest")]
+        public void TensorFlowTransformCifar(int iteration)
         {
             var modelLocation = "cifar_model/frozen_model.pb";
             var mlContext = new MLContext(seed: 1);
@@ -1056,8 +1077,10 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [TensorFlowFact]
-        public void TensorFlowTransformCifarSavedModel()
+        //[TensorFlowFact]
+        [Theory, IterationData(50)]
+        [Trait("Category", "RunSpecificTest")]
+        public void TensorFlowTransformCifarSavedModel(int iteration)
         {
             var modelLocation = "cifar_saved_model";
             var mlContext = new MLContext(seed: 1);
@@ -1097,8 +1120,10 @@ namespace Microsoft.ML.Scenarios
         }
 
         // This test has been created as result of https://github.com/dotnet/machinelearning/issues/2156.
-        [TensorFlowFact]
-        public void TensorFlowGettingSchemaMultipleTimes()
+        //[TensorFlowFact]
+        [Theory, IterationData(50)]
+        [Trait("Category", "RunSpecificTest")]
+        public void TensorFlowGettingSchemaMultipleTimes(int iteration)
         {
             var modelLocation = "cifar_saved_model";
             var mlContext = new MLContext(seed: 1);
@@ -1110,8 +1135,10 @@ namespace Microsoft.ML.Scenarios
         }
 
 
-        [TensorFlowFact]
-        public void TensorFlowTransformCifarInvalidShape()
+        //[TensorFlowFact]
+        [Theory, IterationData(50)]
+        [Trait("Category", "RunSpecificTest")]
+        public void TensorFlowTransformCifarInvalidShape(int iteration)
         {
             var modelLocation = "cifar_model/frozen_model.pb";
 
@@ -1155,8 +1182,10 @@ namespace Microsoft.ML.Scenarios
             public float[] Prediction;
         }
 
-        [TensorFlowFact]
-        public void TensorFlowSentimentClassificationTest()
+        //[TensorFlowFact]
+        [Theory, IterationData(50)]
+        [Trait("Category", "RunSpecificTest")]
+        public void TensorFlowSentimentClassificationTest(int iteration)
         {
             var mlContext = new MLContext(seed: 1);
             var data = new[] { new TensorFlowSentiment() { Sentiment_Text = "this film was just brilliant casting location scenery story direction everyone's really suited the part they played and you could just imagine being there robert  is an amazing actor and now the same being director  father came from the same scottish island as myself so i loved the fact there was a real connection with this film the witty remarks throughout the film were great it was just brilliant so much that i bought the film as soon as it was released for  and would recommend it to everyone to watch and the fly fishing was amazing really cried at the end it was so sad and you know what they say if you cry at a film it must have been good and this definitely was also  to the two little boy's that played the  of norman and paul they were just brilliant children are often left out of the  list i think because the stars that play them all grown up are such a big profile for the whole film but these children are amazing and should be praised for what they have done don't you think the whole story was so lovely because it was true and was someone's life after all that was shared with us all" } };
@@ -1218,8 +1247,10 @@ namespace Microsoft.ML.Scenarios
             public string[] BOut { get; set; }
         }
 
-        [TensorFlowFact]
-        public void TensorFlowStringTest()
+        //[TensorFlowFact]
+        [Theory, IterationData(50)]
+        [Trait("Category", "RunSpecificTest")]
+        public void TensorFlowStringTest(int iteration)
         {
             var mlContext = new MLContext(seed: 1);
             var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(@"model_string_test");
@@ -1245,10 +1276,12 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(string.Join(" ", input.B).Replace("/", " "), textOutput.BOut[0]);
         }
 
-        [TensorFlowFact]
+        //[TensorFlowFact]
+        [Theory, IterationData(50)]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         [Trait("Category", "SkipInCI")]
-        public void TensorFlowImageClassificationDefault()
+        [Trait("Category", "RunSpecificTest")]
+        public void TensorFlowImageClassificationDefault(int iteration)
         {
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
@@ -1464,18 +1497,22 @@ namespace Microsoft.ML.Scenarios
             Assert.True(Array.IndexOf(labels, predictionSecond.PredictedLabel) > -1);
         }
 
-        [TensorFlowFact]
+        //[TensorFlowFact]
+        [Theory, IterationData(50)]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        [Trait("Category", "RunSpecificTest")]
         [Trait("Category", "SkipInCI")]
-        public void TensorFlowImageClassificationWithExponentialLRScheduling()
+        public void TensorFlowImageClassificationWithExponentialLRScheduling(int iteration)
         {
             TensorFlowImageClassificationWithLRScheduling(new ExponentialLRDecay(), 50);
         }
 
-        [TensorFlowFact]
+        //[TensorFlowFact]
+        [Theory, IterationData(50)]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        [Trait("Category", "RunSpecificTest")]
         [Trait("Category", "SkipInCI")]
-        public void TensorFlowImageClassificationWithPolynomialLRScheduling()
+        public void TensorFlowImageClassificationWithPolynomialLRScheduling(int iteration)
         {
 
             TensorFlowImageClassificationWithLRScheduling(new PolynomialLRDecay(), 50);
@@ -1709,10 +1746,12 @@ namespace Microsoft.ML.Scenarios
             Assert.InRange(lastEpoch, 1, 49);
         }
 
-        [TensorFlowFact]
+        //[TensorFlowFact]
+        [Theory, IterationData(50)]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
+        [Trait("Category", "RunSpecificTest")]
         [Trait("Category", "SkipInCI")]
-        public void TensorFlowImageClassificationBadImages()
+        public void TensorFlowImageClassificationBadImages(int iteration)
         {
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
