@@ -758,7 +758,7 @@ namespace Microsoft.ML.Scenarios
         //[TensorFlowFact]
         [Theory, IterationData(50)]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
+        //[Trait("Category", "SkipInCI")]
         [Trait("Category", "RunSpecificTest")]
         public void TensorFlowTransformMNISTConvTrainingTest(int iteration)
         {
@@ -1279,7 +1279,7 @@ namespace Microsoft.ML.Scenarios
         //[TensorFlowFact]
         [Theory, IterationData(50)]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
+        //[Trait("Category", "SkipInCI")]
         [Trait("Category", "RunSpecificTest")]
         public void TensorFlowImageClassificationDefault(int iteration)
         {
@@ -1367,7 +1367,7 @@ namespace Microsoft.ML.Scenarios
         [InlineData(ImageClassificationTrainer.Architecture.ResnetV250)]
         [InlineData(ImageClassificationTrainer.Architecture.InceptionV3)]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
+        //[Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassification(ImageClassificationTrainer.Architecture arch)
         {
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
@@ -1501,7 +1501,7 @@ namespace Microsoft.ML.Scenarios
         [Theory, IterationData(50)]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         [Trait("Category", "RunSpecificTest")]
-        [Trait("Category", "SkipInCI")]
+        //[Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassificationWithExponentialLRScheduling(int iteration)
         {
             TensorFlowImageClassificationWithLRScheduling(new ExponentialLRDecay(), 50);
@@ -1511,7 +1511,7 @@ namespace Microsoft.ML.Scenarios
         [Theory, IterationData(50)]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         [Trait("Category", "RunSpecificTest")]
-        [Trait("Category", "SkipInCI")]
+        //[Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassificationWithPolynomialLRScheduling(int iteration)
         {
 
@@ -1657,7 +1657,7 @@ namespace Microsoft.ML.Scenarios
         [InlineData(ImageClassificationTrainer.EarlyStoppingMetric.Accuracy)]
         [InlineData(ImageClassificationTrainer.EarlyStoppingMetric.Loss)]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
+        //[Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassificationEarlyStopping(ImageClassificationTrainer.EarlyStoppingMetric earlyStoppingMetric)
         {
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
@@ -1750,7 +1750,7 @@ namespace Microsoft.ML.Scenarios
         [Theory, IterationData(50)]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         [Trait("Category", "RunSpecificTest")]
-        [Trait("Category", "SkipInCI")]
+        //[Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassificationBadImages(int iteration)
         {
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
