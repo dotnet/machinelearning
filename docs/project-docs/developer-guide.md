@@ -78,3 +78,13 @@ Steps to update `core_manifest.json` and `core_ep-list.tsv`:
 3. Verify the changes to `core_manifest.json` and `core_ep-list.tsv` are correct.
 4. Re-enable the skip attribute on the `RegenerateEntryPointCatalog` test.
 5. Commit the updated `core_manifest.json` and `core_ep-list.tsv` files to your branch.
+
+### Running unit tests through VSTest Task & Collecting memory dumps
+
+During development, there may also arise a need to debug hanging tests. In this scenario, it can be beneficial to collect the memory dump while a given test is hanging.
+
+In this case, the given needs needs to be implemented according to the Microsoft test framework. Please check out the [Microsoft test framework walkthrough](https://docs.microsoft.com/en-us/visualstudio/test/walkthrough-creating-and-running-unit-tests-for-managed-code?view=vs-2019) and the VSTest [sample](https://github.com/dotnet/samples/tree/master/core/getting-started/unit-testing-using-mstest) demonstrating the "TestClass", "TestMethod", "DataTestMethod", and "DataRow" attributes.
+
+Once the unit test(s) are implemented according to VSTest and ready to be debugged, the `useVSTestTask` parameter in `build\ci\job-template.yml` needs to be set to `True`. Once these steps are completed and pushed in your pull request, the unit test(s) will run and produce a full memory dump. At the end of a run, the memory dump `.dmp` file will be availible for downloading and inspection in the published artifacts of the build, in the folder `TestResults`.
+
+Note: this is only supported on Windows builds, as [ProcDump](https://docs.microsoft.com/en-us/sysinternals/downloads/procdump) is officially only available on Windows.
