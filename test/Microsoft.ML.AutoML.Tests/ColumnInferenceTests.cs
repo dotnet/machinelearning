@@ -44,7 +44,7 @@ namespace Microsoft.ML.AutoML.Test
         {
             var context = new MLContext(1);
             var dataPath = DatasetUtil.DownloadUciAdultDataset(context);
-            Assert.Throws<ArgumentOutOfRangeException>(() => new MLContext(1).Auto().InferColumns(dataPath, 100));
+            Assert.Throws<ArgumentOutOfRangeException>(() => context.Auto().InferColumns(dataPath, 100));
         }
 
         [Fact]

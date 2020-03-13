@@ -98,7 +98,9 @@ namespace Microsoft.ML.Internal.Utilities
         /// <param name="timeout">An integer indicating the number of milliseconds to wait before timing out while downloading a resource.</param>
         /// <returns>The download results, containing the file path where the resources was (or should have been) downloaded to, and an error message
         /// (or null if there was no error).</returns>
-        public async Task<ResourceDownloadResults> EnsureResourceAsync(IHostEnvironment env, IChannel ch, string relativeUrl, string fileName, string dir, int timeout)
+        /// <param name="appendToRelativeUrl">A boolean indicating whether or not to append <paramref name="relativeUrl"/> to the url defined in <see cref="MlNetResourcesUrl"/>.
+        /// True by default.</param>
+        public async Task<ResourceDownloadResults> EnsureResourceAsync(IHostEnvironment env, IChannel ch, string relativeUrl, string fileName, string dir, int timeout, bool appendToRelativeUrl = true)
         {
             var filePath = GetFilePath(ch, fileName, dir, out var error);
             if (File.Exists(filePath) || !string.IsNullOrEmpty(error))
@@ -109,8 +111,12 @@ namespace Microsoft.ML.Internal.Utilities
                 return new ResourceDownloadResults(filePath,
                     $"Could not create a valid URI from the base URI '{MlNetResourcesUrl}' and the relative URI '{relativeUrl}'");
             }
+            if (!appendToRelativeUrl)
+            {
+                absoluteUrl = new Uri(relativeUrl);
+            }
             return new ResourceDownloadResults(filePath,
-                await DownloadFromUrlWithRetryAsync(env, ch, absoluteUrl.AbsoluteUri, fileName, timeout, filePath), absoluteUrl.AbsoluteUri);
+                    await DownloadFromUrlWithRetryAsync(env, ch, absoluteUrl.AbsoluteUri, fileName, timeout, filePath), absoluteUrl.AbsoluteUri);
         }
 
         private async Task<string> DownloadFromUrlWithRetryAsync(IHostEnvironment env, IChannel ch, string url, string fileName,

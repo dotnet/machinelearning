@@ -54,7 +54,7 @@ namespace Microsoft.ML.AutoML.Test
             using (var ch = env.Start("Ensuring meta files are present."))
             {
                 int timeout = 60 * 1000; // 1 minute timeout
-                var ensureModel = ResourceManagerUtils.Instance.EnsureResourceAsync(env, ch, baseGitPathUrl, dataFile, Path.GetTempPath(), timeout);
+                var ensureModel = ResourceManagerUtils.Instance.EnsureResourceAsync(env, ch, baseGitPathUrl, dataFile, Path.GetTempPath(), timeout, false);
                 ensureModel.Wait();
                 var errorResult = ResourceManagerUtils.GetErrorMessage(out var errorMessage, ensureModel.Result);
                 if (errorResult != null)
@@ -65,7 +65,7 @@ namespace Microsoft.ML.AutoML.Test
                 }
                 else
                 {
-                    return Path.GetFileName(ensureModel.Result.FileName);
+                    return ensureModel.Result.FileName;
                 }
             }
         }
