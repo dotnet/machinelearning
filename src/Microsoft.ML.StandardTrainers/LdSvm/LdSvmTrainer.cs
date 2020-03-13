@@ -31,8 +31,8 @@ namespace Microsoft.ML.Trainers
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
-    /// To create this trainer, use [LdSvm](xref:Microsoft.ML.StandardTrainersCatalog.LdSvm(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, int, int, bool, bool))
-    /// or [LdSvm(Options)](xref:Microsoft.ML.StandardTrainersCatalog.LdSvm(BinaryClassificationCatalog.BinaryClassificationTrainers, LdSvmTrainer.Options)).
+    /// To create this trainer, use [LdSvm](xref:Microsoft.ML.StandardTrainersCatalog.LdSvm(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,System.Int32,System.Int32,System.Boolean,System.Boolean))
+    /// or [LdSvm(Options)](xref:Microsoft.ML.StandardTrainersCatalog.LdSvm(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.LdSvmTrainer.Options)).
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification-no-prob.md)]
     ///
