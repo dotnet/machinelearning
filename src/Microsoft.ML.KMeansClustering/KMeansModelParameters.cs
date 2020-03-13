@@ -337,14 +337,15 @@ namespace Microsoft.ML.Trainers
 
             // Compute -2XC^T. Note that Gemm always takes three inputs. Since we only have two here,
             // a dummy one, named zero, is created.
+            var dataViewType = new VectorDataViewType(NumberDataViewType.Single, _centroids.Length);
             var zeroName = ctx.AddInitializer(new float[] { 0f }, null, "zero");
-            var nameXC2 = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, _centroids.Length), "XC2");
+            var nameXC2 = ctx.AddIntermediateVariable(dataViewType, "XC2");
             var gemmNodeXC2 = ctx.CreateNode("Gemm", new[] { nameX, nameC, zeroName }, new[] { nameXC2 }, ctx.GetNodeName("Gemm"), "");
             gemmNodeXC2.AddAttribute("alpha", -2f);
             gemmNodeXC2.AddAttribute("transB", 1);
 
             // Compute Z = X^2 - 2XC^T
-            var nameZ = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, _centroids.Length), "Z");
+            var nameZ = ctx.AddIntermediateVariable(dataViewType, "Z");
             var addNodeZ = ctx.CreateNode("Add", new[] { nameX2, nameXC2 }, new[] { nameZ }, ctx.GetNodeName("Add"), "");
 
             // Compute Y = Z + C^2
