@@ -56,7 +56,16 @@
           "X2"
         ],
         "name": "ReduceSumSquare",
-        "opType": "ReduceSumSquare"
+        "opType": "ReduceSumSquare",
+        "attribute": [
+          {
+            "name": "axes",
+            "ints": [
+              "1"
+            ],
+            "type": "INTS"
+          }
+        ]
       },
       {
         "input": [
@@ -361,6 +370,60 @@
       },
       {
         "name": "Score",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "4"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "X2",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "XC2",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "4"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Z",
         "type": {
           "tensorType": {
             "elemType": 1,
