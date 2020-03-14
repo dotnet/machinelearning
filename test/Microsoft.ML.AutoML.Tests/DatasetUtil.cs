@@ -26,11 +26,10 @@ namespace Microsoft.ML.AutoML.Test
 
         private static IDataView _uciAdultDataView;
 
-        public static IDataView GetUciAdultDataView()
+        public static IDataView GetUciAdultDataView(MLContext context)
         {
             if (_uciAdultDataView == null)
             {
-                var context = new MLContext(1);
                 var uciAdultDataFile = DownloadUciAdultDataset(context);
                 var columnInferenceResult = context.Auto().InferColumns(uciAdultDataFile, UciAdultLabel);
                 var textLoader = context.Data.CreateTextLoader(columnInferenceResult.TextLoaderOptions);
@@ -40,17 +39,18 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         // downloads the UCI Adult dataset from the ML.Net repo
-        public static string DownloadUciAdultDataset(IHostEnvironment env) =>
-            DownloadIfNotExists(env, "https://raw.githubusercontent.com/dotnet/machinelearning/f0e639af5ffdc839aae8e65d19b5a9a1f0db634a/test/data/adult.tiny.with-schema.txt", "uciadult.dataset");
+        public static string DownloadUciAdultDataset(MLContext context) =>
+            DownloadIfNotExists(context, "https://raw.githubusercontent.com/dotnet/machinelearning/f0e639af5ffdc839aae8e65d19b5a9a1f0db634a/test/data/adult.tiny.with-schema.txt", "uciadult.dataset");
 
-        public static string DownloadMlNetGeneratedRegressionDataset(IHostEnvironment env) =>
-            DownloadIfNotExists(env, "https://raw.githubusercontent.com/dotnet/machinelearning/e78971ea6fd736038b4c355b840e5cbabae8cb55/test/data/generated_regression_dataset.csv", "mlnet_generated_regression.dataset");
+        public static string DownloadMlNetGeneratedRegressionDataset(MLContext context) =>
+            DownloadIfNotExists(context, "https://raw.githubusercontent.com/dotnet/machinelearning/e78971ea6fd736038b4c355b840e5cbabae8cb55/test/data/generated_regression_dataset.csv", "mlnet_generated_regression.dataset");
 
-        public static string DownloadIrisDataset(IHostEnvironment env) =>
-            DownloadIfNotExists(env, "https://raw.githubusercontent.com/dotnet/machinelearning/54596ac/test/data/iris.txt", "iris.dataset");
+        public static string DownloadIrisDataset(MLContext context) =>
+            DownloadIfNotExists(context, "https://raw.githubusercontent.com/dotnet/machinelearning/54596ac/test/data/iris.txt", "iris.dataset");
 
-        private static string DownloadIfNotExists(IHostEnvironment env, string baseGitPathUrl, string dataFile)
+        private static string DownloadIfNotExists(MLContext context, string baseGitPathUrl, string dataFile)
         {
+            var env = context.Data.GetEnvironment();
             using (var ch = env.Start("Ensuring meta files are present."))
             {
                 int timeout = 60 * 1000; // 1 minute timeout

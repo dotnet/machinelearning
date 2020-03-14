@@ -116,7 +116,7 @@ namespace Microsoft.ML.Internal.Utilities
                 absoluteUrl = new Uri(relativeUrl);
             }
             return new ResourceDownloadResults(filePath,
-                    await DownloadFromUrlWithRetryAsync(env, ch, absoluteUrl.AbsoluteUri, fileName, timeout, filePath), absoluteUrl.AbsoluteUri);
+                await DownloadFromUrlWithRetryAsync(env, ch, absoluteUrl.AbsoluteUri, fileName, timeout, filePath), absoluteUrl.AbsoluteUri);
         }
 
         private async Task<string> DownloadFromUrlWithRetryAsync(IHostEnvironment env, IChannel ch, string url, string fileName,
