@@ -4,9 +4,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.Runtime;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -298,6 +301,62 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             // Nulls
             Assert.False(Utils.AreEqual(null, y));
             Assert.False(Utils.AreEqual(x, null));
+        }
+
+        [Fact]
+        [TestCategory("Utilities")]
+        public void TestDownloadFromLocal()
+        {
+            var envVarOld = Environment.GetEnvironmentVariable(ResourceManagerUtils.CustomResourcesUrlEnvVariable);
+            var resourcePathVarOld = Environment.GetEnvironmentVariable(Utils.CustomSearchDirEnvVariable);
+            Environment.SetEnvironmentVariable(Utils.CustomSearchDirEnvVariable, null);
+
+            var baseDir = GetOutputPath("resources");
+            Assert.True(Uri.TryCreate(baseDir, UriKind.Absolute, out var baseDirUri), "Uri.TryCreate failed");
+            Environment.SetEnvironmentVariable(ResourceManagerUtils.CustomResourcesUrlEnvVariable, baseDirUri.AbsoluteUri);
+            var envVar = Environment.GetEnvironmentVariable(ResourceManagerUtils.CustomResourcesUrlEnvVariable);
+            Assert.True(envVar == baseDirUri.AbsoluteUri);
+            var path = DeleteOutputPath(Path.Combine("resources", "subdir"), "breast-cancer.txt");
+
+            var bc = GetDataPath("breast-cancer.txt");
+            File.Copy(bc, path);
+
+            var saveToDir = GetOutputPath("copyto");
+            DeleteOutputPath("copyto", "breast-cancer.txt");
+            var sbOut = new StringBuilder();
+            var sbErr = new StringBuilder();
+            using (var outWriter = new StringWriter(sbOut))
+            using (var errWriter = new StringWriter(sbErr))
+            {
+                var env = new ConsoleEnvironment(42, outWriter: outWriter);
+                using (var ch = env.Start("Downloading"))
+                {
+                    try
+                    {
+                        var t = ResourceManagerUtils.Instance.EnsureResourceAsync(env, ch, "subdir/breast-cancer.txt", "breast-cancer.txt", saveToDir, 1 * 60 * 1000);
+                        t.Wait();
+
+                        if (t.Result.ErrorMessage != null)
+                            Fail(String.Format("Expected zero length error string. Received error: {0}", t.Result.ErrorMessage));
+                        var output = sbOut.ToString();
+                        if (!output.Contains("Download complete"))
+                            Fail("Expected output to contain the string \"Download complete\"");
+                        if (!File.Exists(GetOutputPath("copyto", "breast-cancer.txt")))
+                        {
+                            Fail($"File '{GetOutputPath("copyto", "breast-cancer.txt")}' does not exist. " +
+                                $"File was downloaded to '{t.Result.FileName}' instead." +
+                                $"MICROSOFTML_RESOURCE_PATH is set to {Environment.GetEnvironmentVariable(Utils.CustomSearchDirEnvVariable)}");
+                        }
+                        Done();
+                    }
+                    finally
+                    {
+                        // Set environment variable back to its old value.
+                        Environment.SetEnvironmentVariable(ResourceManagerUtils.CustomResourcesUrlEnvVariable, envVarOld);
+                        Environment.SetEnvironmentVariable(Utils.CustomSearchDirEnvVariable, resourcePathVarOld);
+                    }
+                }
+            }
         }
     }
 }
