@@ -305,8 +305,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
         }
 
         [Fact]
-        //[TestCategory("ResourceDownload")]
-        [TestCategory("SkipInCi")]
+        [TestCategory("ResourceDownload")]
         public void TestDownloadFromLocal()
         {
             var envVarOld = Environment.GetEnvironmentVariable(ResourceManagerUtils.CustomResourcesUrlEnvVariable);
@@ -356,8 +355,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
         }
 
         [Fact]
-        //[TestCategory("ResourceDownload")]
-        [TestCategory("SkipInCi")]
+        [TestCategory("ResourceDownload")]
         public void TestDownloadError()
         {
             var envVarOld = Environment.GetEnvironmentVariable(ResourceManagerUtils.CustomResourcesUrlEnvVariable);
