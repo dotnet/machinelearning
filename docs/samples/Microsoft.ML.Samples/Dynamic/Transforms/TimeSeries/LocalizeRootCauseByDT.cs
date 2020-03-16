@@ -37,7 +37,7 @@ namespace Samples.Dynamic
                 RootCauseLocalizationTransformedData>(localizeTransformer);
 
             // Call the prediction API.
-            var data = new RootCauseLocalizationData(new DateTime(), new Dictionary<String, String>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Microsoft.ML.Transforms.TimeSeries.Point>()) }, "SUM", "SUM");
+            var data = new RootCauseLocalizationData(new DateTime(), new Dictionary<String, String>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Microsoft.ML.TimeSeries.Point>()) }, "SUM", "SUM");
 
             var prediction = predictionEngine.Predict(data);
 
