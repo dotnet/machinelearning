@@ -253,16 +253,15 @@ namespace Microsoft.ML.Internal.Utilities
             string tempPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(path), "temp-resource-" + guid.ToString()));
             try
             {
+                Console.WriteLine(String.Format("Trying to view file through the url: {0}", uri.ToString()));
                 using (var s = webClient.OpenRead(uri))
                 using (var fh = env.CreateOutputFile(tempPath))
                 using (var ws = fh.CreateWriteStream())
                 {
                     var headers = webClient.ResponseHeaders.GetValues("Content-Length");
                     var requestUri = webClient.ResponseUri;
-                    Console.WriteLine("requestUri = " + requestUri);
                     if (requestUri.Host == "www.microsoft.com" && requestUri.ToString().Length < 60)
                     {
-                        Console.WriteLine($"The url '{uri}' does not exist. Url was redirected to '{requestUri}'.");
                         return new ArgumentException($"The url '{uri}' does not exist. Url was redirected to '{requestUri}'.");
                     }
 

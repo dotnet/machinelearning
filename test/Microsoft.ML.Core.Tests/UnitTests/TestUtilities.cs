@@ -463,7 +463,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 }
 
                 // Good url, bad page.
-                if (!Uri.TryCreate("http://cnn.com/", UriKind.Absolute, out var cnn))
+                if (!Uri.TryCreate("https://cnn.com/", UriKind.Absolute, out var cnn))
                     Fail("Uri could not be created");
                 Environment.SetEnvironmentVariable(ResourceManagerUtils.CustomResourcesUrlEnvVariable, cnn.AbsoluteUri);
                 envVar = Environment.GetEnvironmentVariable(ResourceManagerUtils.CustomResourcesUrlEnvVariable);
