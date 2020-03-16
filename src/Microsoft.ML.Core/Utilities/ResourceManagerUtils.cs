@@ -88,8 +88,6 @@ namespace Microsoft.ML.Internal.Utilities
         /// Returns a <see cref="Task"/> that tries to download a resource from a specified url, and returns the path to which it was
         /// downloaded, and an exception if one was thrown.
         /// </summary>
-        /// <param name="env">The host environment.</param>
-        /// <param name="ch">A channel to provide information about the download.</param>
         /// <param name="relativeUrl">The relative url from which to download.
         /// This is appended to the url defined in <see cref="MlNetResourcesUrl"/>.</param>
         /// <param name="fileName">The name of the file to save.</param>
@@ -98,9 +96,9 @@ namespace Microsoft.ML.Internal.Utilities
         /// <param name="timeout">An integer indicating the number of milliseconds to wait before timing out while downloading a resource.</param>
         /// <returns>The download results, containing the file path where the resources was (or should have been) downloaded to, and an error message
         /// (or null if there was no error).</returns>
-        public async Task<ResourceDownloadResults> EnsureResourceAsync(IHostEnvironment env, IChannel ch, string relativeUrl, string fileName, string dir, int timeout)
+        public async Task<ResourceDownloadResults> EnsureResourceAsync(string relativeUrl, string fileName, string dir, int timeout)
         {
-            var filePath = GetFilePath(ch, fileName, dir, out var error);
+            var filePath = GetFilePath(fileName, dir, out var error);
             if (File.Exists(filePath) || !string.IsNullOrEmpty(error))
                 return new ResourceDownloadResults(filePath, error);
 
@@ -110,23 +108,26 @@ namespace Microsoft.ML.Internal.Utilities
                     $"Could not create a valid URI from the base URI '{MlNetResourcesUrl}' and the relative URI '{relativeUrl}'");
             }
             return new ResourceDownloadResults(filePath,
-                await DownloadFromUrlWithRetryAsync(env, ch, absoluteUrl.AbsoluteUri, fileName, timeout, filePath), absoluteUrl.AbsoluteUri);
+                await DownloadFromUrlWithRetryAsync(absoluteUrl.AbsoluteUri, fileName, timeout, filePath), absoluteUrl.AbsoluteUri);
         }
 
-        private async Task<string> DownloadFromUrlWithRetryAsync(IHostEnvironment env, IChannel ch, string url, string fileName,
-            int timeout, string filePath, int retryTimes = 5)
+        private async Task<string> DownloadFromUrlWithRetryAsync(string url, string fileName, int timeout, string filePath, int retryTimes = 5)
         {
             var downloadResult = "";
 
             for (int i = 0; i < retryTimes; ++i)
             {
-                var thisDownloadResult = await DownloadFromUrlAsync(env, ch, url, fileName, timeout, filePath);
+                var thisDownloadResult = await DownloadFromUrlAsync(url, fileName, timeout, filePath);
 
                 if (string.IsNullOrEmpty(thisDownloadResult))
                     return thisDownloadResult;
                 else
+                {
                     downloadResult += thisDownloadResult + @"\n";
-
+                    // Do not retry if the URL does not exist
+                    if (thisDownloadResult.Contains("does not exist"))
+                        return downloadResult;
+                }
                 await Task.Delay(10 * 1000);
             }
 
@@ -134,9 +135,9 @@ namespace Microsoft.ML.Internal.Utilities
         }
 
         /// <returns>Returns the error message if an error occurred, null if download was successful.</returns>
-        private async Task<string> DownloadFromUrlAsync(IHostEnvironment env, IChannel ch, string url, string fileName, int timeout, string filePath)
+        private async Task<string> DownloadFromUrlAsync(string url, string fileName, int timeout, string filePath)
         {
-            using (var webClient = new WebClient())
+            using (var webClient = new WebClientResponseUri())
             using (var downloadCancel = new CancellationTokenSource())
             {
                 bool deleteNeeded = false;
@@ -144,15 +145,15 @@ namespace Microsoft.ML.Internal.Utilities
                     (object sender, EventArgs e) =>
                     {
                         if (File.Exists(filePath) && deleteNeeded)
-                            TryDelete(ch, filePath);
+                            TryDelete(filePath);
                     };
 
                 webClient.Disposed += disposed;
-                var t = Task.Run(() => DownloadResource(env, ch, webClient, new Uri(url), filePath, fileName, downloadCancel.Token));
+                var t = Task.Run(() => DownloadResource(webClient, new Uri(url), filePath, fileName, downloadCancel.Token));
 
                 UpdateTimeout(ref timeout);
                 var timeoutTask = Task.Delay(timeout).ContinueWith(task => default(Exception), TaskScheduler.Default);
-                ch.Info($"Downloading {fileName} from {url} to {filePath}");
+                Console.WriteLine($"Downloading {fileName} from {url} to {filePath}");
                 var completedTask = await Task.WhenAny(t, timeoutTask);
                 if (completedTask != t || completedTask.CompletedResult() != null)
                 {
@@ -160,27 +161,11 @@ namespace Microsoft.ML.Internal.Utilities
                     deleteNeeded = true;
                     return (await t).Message;
                 }
-
-                return CheckValidDownload(filePath, url, ref deleteNeeded);
+                return null;
             }
         }
 
-        private static string CheckValidDownload(string filePath, string url, ref bool deleteNeeded)
-        {
-            // If the relative url does not exist, aka.ms redirects to www.microsoft.com. Make sure this did not happen.
-            var info = new FileInfo(filePath);
-            string error = null;
-            using (var r = new StreamReader(filePath))
-            {
-                var text = r.ReadToEnd();
-                if (text.Contains("<head") && text.Contains("<body") && text.Contains("microsoft.com"))
-                    error = $"The url '{url}' does not exist. Url was redirected to www.microsoft.com.";
-            }
-            deleteNeeded = error != null;
-            return error;
-        }
-
-        private static void TryDelete(IChannel ch, string filePath, bool warn = true)
+        private static void TryDelete(string filePath, bool warn = true)
         {
             try
             {
@@ -189,7 +174,7 @@ namespace Microsoft.ML.Internal.Utilities
             catch (Exception e)
             {
                 if (warn)
-                    ch.Warning($"File '{filePath}' could not be deleted: {e.Message}");
+                    Console.WriteLine($"File '{filePath}' could not be deleted: {e.Message}");
             }
         }
 
@@ -205,7 +190,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// is defined, download to the location defined there. Otherwise, download to the "dir" directory
         /// inside <see cref="Environment.SpecialFolder.LocalApplicationData"/>\mlnet-resources\.
         /// </summary>
-        private static string GetFilePath(IChannel ch, string fileName, string dir, out string error)
+        private static string GetFilePath(string fileName, string dir, out string error)
         {
             var envDir = Environment.GetEnvironmentVariable(Utils.CustomSearchDirEnvVariable);
             var appDataBaseDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
@@ -249,7 +234,7 @@ namespace Microsoft.ML.Internal.Utilities
             return filePath;
         }
 
-        private Exception DownloadResource(IHostEnvironment env, IChannel ch, WebClient webClient, Uri uri, string path, string fileName, CancellationToken ct)
+        private Exception DownloadResource(WebClientResponseUri webClient, Uri uri, string path, string fileName, CancellationToken ct)
         {
             if (File.Exists(path))
                 return null;
@@ -267,11 +252,19 @@ namespace Microsoft.ML.Internal.Utilities
             try
             {
                 using (var s = webClient.OpenRead(uri))
-                using (var fh = env.CreateOutputFile(tempPath))
-                using (var ws = fh.CreateWriteStream())
+                using (var fs = File.Create(tempPath))
+                using (var ws = new StreamWriter(fs))
                 {
                     var headers = webClient.ResponseHeaders.GetValues("Content-Length");
-                    if (Utils.Size(headers) == 0 || !long.TryParse(headers[0], out var size))
+                    var requestUri = webClient.ResponseUri;
+                    Console.WriteLine("requestUri = " + requestUri);
+                    if (requestUri.Host == "www.microsoft.com" && requestUri.ToString().Length < 60)
+                    {
+                        Console.WriteLine($"The url '{uri}' does not exist. Url was redirected to '{requestUri}'.");
+                        return new ArgumentException($"The url '{uri}' does not exist. Url was redirected to '{requestUri}'.");
+                    }
+
+                    if (!long.TryParse(headers[0], out var size))
                         size = 10000000;
 
                     long printFreq = (long)(size / 10.0);
@@ -281,29 +274,29 @@ namespace Microsoft.ML.Internal.Utilities
                     // REVIEW: use a progress channel instead.
                     while ((count = s.Read(buffer, 0, 4096)) > 0)
                     {
-                        ws.Write(buffer, 0, count);
+                        ws.Write(buffer.ToString(), 0, count);
                         total += count;
                         if ((total - (total / printFreq) * printFreq) <= 4096)
-                            ch.Info($"{fileName}: Downloaded {total} bytes out of {size}");
+                            Console.WriteLine($"{fileName}: Downloaded {total} bytes out of {size}");
                         if (ct.IsCancellationRequested)
                         {
-                            ch.Error($"{fileName}: Download timed out");
-                            return ch.Except("Download timed out");
+                            Console.WriteLine($"{fileName}: Download timed out");
+                            return new TimeoutException("Download timed out");
                         }
                     }
                 }
                 File.Move(tempPath, path);
-                ch.Info($"{fileName}: Download complete");
+                Console.WriteLine($"{fileName}: Download complete");
                 return null;
             }
             catch (WebException e)
             {
-                ch.Error($"{fileName}: Could not download. WebClient returned the following error: {e.Message}");
+                Console.WriteLine($"{fileName}: Could not download. WebClient returned the following error: {e.Message}");
                 return e;
             }
             finally
             {
-                TryDelete(ch, tempPath, warn: false);
+                TryDelete(tempPath, warn: false);
                 mutex.ReleaseMutex();
             }
         }
@@ -324,5 +317,26 @@ namespace Microsoft.ML.Internal.Utilities
         [DllImport("libc", SetLastError = true)]
         private static extern int chmod(string pathname, int mode);
 #pragma warning restore IDE1006
+    }
+
+    public class WebClientResponseUri : WebClient
+    {
+        public Uri ResponseUri { get; private set; }
+
+        protected override WebResponse GetWebResponse(WebRequest request)
+        {
+            WebResponse response = null;
+
+            try
+            {
+                response = base.GetWebResponse(request);
+                ResponseUri = response.ResponseUri;
+            }
+            catch
+            {
+            }
+
+            return response;
+        }
     }
 }
