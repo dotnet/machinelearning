@@ -331,7 +331,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             {
                 try
                 {
-                    var t = ResourceManagerUtils.Instance.EnsureResourceAsync("subdir/breast-cancer.txt", "breast-cancer.txt", saveToDir, 1 * 60 * 1000);
+                    var t = ResourceManagerUtils.Instance.EnsureResourceAsync(env, ch, "subdir/breast-cancer.txt", "breast-cancer.txt", saveToDir, 1 * 60 * 1000);
                     t.Wait();
 
                     if (t.Result.ErrorMessage != null)
@@ -385,7 +385,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                     var env = new ConsoleEnvironment(42, outWriter: outWriter, errWriter: errWriter);
                     using (var ch = env.Start("Downloading"))
                     {
-                        var t = ResourceManagerUtils.Instance.EnsureResourceAsync("breast-cancer.txt", "breast-cancer.txt", saveToDir, 10 * 1000);
+                        var t = ResourceManagerUtils.Instance.EnsureResourceAsync(env, ch, "breast-cancer.txt", "breast-cancer.txt", saveToDir, 10 * 1000);
                         t.Wait();
 
                         Log("Bad path");
@@ -417,7 +417,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
 
                     using (var ch = env.Start("Downloading"))
                     {
-                        var t = ResourceManagerUtils.Instance.EnsureResourceAsync("breast-cancer1.txt", "breast-cancer.txt", saveToDir, 10 * 1000);
+                        var t = ResourceManagerUtils.Instance.EnsureResourceAsync(env, ch, "breast-cancer1.txt", "breast-cancer.txt", saveToDir, 10 * 1000);
                         t.Wait();
 
                         Log("Good path, bad file name");
@@ -450,7 +450,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                     using (var ch = env.Start("Downloading"))
                     {
                         var fileName = "test_bad_url.model";
-                        var t = ResourceManagerUtils.Instance.EnsureResourceAsync("Image/ResNet_18_Updated.model", fileName, saveToDir, 10 * 1000);
+                        var t = ResourceManagerUtils.Instance.EnsureResourceAsync(env, ch, "Image/ResNet_18_Updated.model", fileName, saveToDir, 10 * 1000);
                         t.Wait();
 
                         Log("Bad url");
@@ -482,7 +482,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                     using (var ch = env.Start("Downloading"))
                     {
                         var fileName = "test_cnn_page_does_not_exist.model";
-                        var t = ResourceManagerUtils.Instance.EnsureResourceAsync("Image/ResNet_18_Updated.model", fileName, saveToDir, 10 * 1000);
+                        var t = ResourceManagerUtils.Instance.EnsureResourceAsync(env, ch, "Image/ResNet_18_Updated.model", fileName, saveToDir, 10 * 1000);
                         t.Wait();
 
                         Log("Good url, bad page");
@@ -533,7 +533,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                     using (var ch = env.Start("Downloading"))
                     {
                         var fileName = "test_short_timeout.model";
-                        var t = ResourceManagerUtils.Instance.EnsureResourceAsync("Image/AlexNet_Updated.model", fileName, saveToDir, 10 * 1000);
+                        var t = ResourceManagerUtils.Instance.EnsureResourceAsync(env, ch, "Image/AlexNet_Updated.model", fileName, saveToDir, 10 * 1000);
                         t.Wait();
 
                         Log("Default url, short time out");
