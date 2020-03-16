@@ -267,7 +267,7 @@ namespace Microsoft.ML.Internal.Utilities
 
                     if (!long.TryParse(headers[0], out var size))
                         size = 10000000;
-                    Console.WriteLine(String.Format("2 - Trying to view file through the url: {0}", uri.ToString()));
+                    Console.WriteLine(String.Format("2 - Trying to view file through the url: {0} - ResponseUri: {1}", uri.ToString(), requestUri.ToString()));
                     long printFreq = (long)(size / 10.0);
                     var buffer = new byte[4096];
                     long total = 0;
