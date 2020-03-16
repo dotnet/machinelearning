@@ -253,7 +253,7 @@ namespace Microsoft.ML.Internal.Utilities
             string tempPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(path), "temp-resource-" + guid.ToString()));
             try
             {
-                Console.WriteLine(String.Format("Trying to view file through the url: {0}", uri.ToString()));
+                Console.WriteLine(String.Format("1 - Trying to view file through the url: {0}", uri.ToString()));
                 using (var s = webClient.OpenRead(uri))
                 using (var fh = env.CreateOutputFile(tempPath))
                 using (var ws = fh.CreateWriteStream())
@@ -267,7 +267,7 @@ namespace Microsoft.ML.Internal.Utilities
 
                     if (!long.TryParse(headers[0], out var size))
                         size = 10000000;
-
+                    Console.WriteLine(String.Format("2 - Trying to view file through the url: {0}", uri.ToString()));
                     long printFreq = (long)(size / 10.0);
                     var buffer = new byte[4096];
                     long total = 0;
