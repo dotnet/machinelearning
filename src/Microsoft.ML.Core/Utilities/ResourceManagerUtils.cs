@@ -253,21 +253,23 @@ namespace Microsoft.ML.Internal.Utilities
             string tempPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(path), "temp-resource-" + guid.ToString()));
             try
             {
-                Console.WriteLine(String.Format("1 - Trying to view file through the url: {0}", uri.ToString()));
-                using (var s = webClient.OpenRead(uri))
+                Console.WriteLine(String.Format("0 - Trying to view file through the url: {0}", uri.ToString()));
                 using (var fh = env.CreateOutputFile(tempPath))
                 using (var ws = fh.CreateWriteStream())
+                using (var s = webClient.OpenRead(uri))
                 {
+                    Console.WriteLine("At line 261 - s: {0}");
                     var headers = webClient.ResponseHeaders.GetValues("Content-Length");
                     var requestUri = webClient.ResponseUri;
+                    Console.WriteLine(String.Format("2 - Trying to view file through the url: {0} - ResponseUri: {1}", uri.ToString(), requestUri.ToString()));
                     if (requestUri.Host == "www.microsoft.com" && requestUri.ToString().Length < 60)
                     {
                         return new ArgumentException($"The url '{uri}' does not exist. Url was redirected to '{requestUri}'.");
                     }
-
+                    Console.WriteLine("At line 269 - s: {0}");
                     if (!long.TryParse(headers[0], out var size))
                         size = 10000000;
-                    Console.WriteLine(String.Format("2 - Trying to view file through the url: {0} - ResponseUri: {1}", uri.ToString(), requestUri.ToString()));
+                    Console.WriteLine(String.Format("3 - Trying to view file through the url: {0} - ResponseUri: {1}", uri.ToString(), requestUri.ToString()));
                     long printFreq = (long)(size / 10.0);
                     var buffer = new byte[4096];
                     long total = 0;
