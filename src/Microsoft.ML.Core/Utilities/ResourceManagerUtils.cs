@@ -329,7 +329,7 @@ namespace Microsoft.ML.Internal.Utilities
         protected override WebResponse GetWebResponse(WebRequest request)
         {
             WebResponse response = null;
-            Console.WriteLine(String.Format("ResourceManagerUtils.cs - Line 332"));
+            Console.WriteLine(String.Format("ResourceManagerUtils.cs - Line 332 - Data: {0}", request.ToString()));
             response = base.GetWebResponse(request);
             Console.WriteLine(String.Format("ResourceManagerUtils.cs - Line 334 - response.ResponseUri: {0}", response.ResponseUri.ToString()));
             ResponseUri = response.ResponseUri;
