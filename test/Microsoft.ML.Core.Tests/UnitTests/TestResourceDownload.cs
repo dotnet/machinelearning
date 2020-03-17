@@ -79,18 +79,21 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             var resourcePathVarOld = Environment.GetEnvironmentVariable(Utils.CustomSearchDirEnvVariable);
             Environment.SetEnvironmentVariable(Utils.CustomSearchDirEnvVariable, null);
 
-            // Bad path.
+            // Bad local path.
             try
             {
-                if (!Uri.TryCreate($@"\\ct01\public\{Guid.NewGuid()}\", UriKind.Absolute, out var badUri))
+                if (!Uri.TryCreate(GetDataPath("breast-cancer.txt"), UriKind.Absolute, out var badUri))
                     Fail("Uri could not be created");
                 Environment.SetEnvironmentVariable(ResourceManagerUtils.CustomResourcesUrlEnvVariable, badUri.AbsoluteUri);
                 var envVar = Environment.GetEnvironmentVariable(ResourceManagerUtils.CustomResourcesUrlEnvVariable);
                 if (envVar != badUri.AbsoluteUri)
                     Fail("Environment variable not set properly");
 
-                var saveToDir = GetOutputPath("copyto");
-                DeleteOutputPath("copyto", "breast-cancer.txt");
+                var saveToDir = GetOutputPath("copyto")+"badLocalPathAddition";
+                if (Directory.Exists(saveToDir))
+                {
+                    Fail("Bad local path should not exist.");
+                }
                 var sbOut = new StringBuilder();
                 var sbErr = new StringBuilder();
                 using (var outWriter = new StringWriter(sbOut))
@@ -112,7 +115,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                     }
                 }
 
-                // Good path, bad file name.
+                // Good local path, bad file name.
                 if (!Uri.TryCreate(GetDataPath("breast-cancer.txt") + "bad_addition", UriKind.Absolute, out var goodUri))
                     Fail("Uri could not be created");
 
@@ -146,7 +149,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 }
 
                 // Bad url.
-                if (!Uri.TryCreate("https://fake-website/fake-model.model/", UriKind.Absolute, out badUri))
+                if (!Uri.TryCreate(String.Format("http://aka.ms/mlnet/badurltest/{0}", Guid.NewGuid()), UriKind.Absolute, out badUri))
                     Fail("Uri could not be created");
 
                 Environment.SetEnvironmentVariable(ResourceManagerUtils.CustomResourcesUrlEnvVariable, badUri.AbsoluteUri);
