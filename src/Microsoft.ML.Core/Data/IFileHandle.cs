@@ -71,7 +71,7 @@ namespace Microsoft.ML.Data
 
             _ectx = ectx;
             _fullPath = Path.GetFullPath(path);
-
+            Console.WriteLine(String.Format("IFileHandle.cs - Line 74 - _fullPath: {0}", _fullPath));
             _autoDelete = autoDelete;
 
             // The file has already been written to iff needsWrite is false.
@@ -156,10 +156,12 @@ namespace Microsoft.ML.Data
 
         public Stream CreateWriteStream()
         {
+            Console.WriteLine("IFileHandle.cs - Line 159");
             lock (_lock)
             {
+                Console.WriteLine("IFileHandle.cs - Line 162");
                 CheckNotDisposed();
-
+                Console.WriteLine("IFileHandle.cs - Line 164");
                 if (_wrote)
                     throw _ectx.Except("CreateWriteStream called multiple times on SimpleFileHandle");
 

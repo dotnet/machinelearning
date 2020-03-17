@@ -44,6 +44,7 @@ namespace Microsoft.ML.Runtime
         /// </summary>
         public static IFileHandle CreateOutputFile(this IHostEnvironment env, string path)
         {
+            Console.WriteLine(String.Format("IHostEnvironment.cs - Line 47 - path: {0}", path));
             Contracts.AssertValue(env);
             Contracts.CheckNonWhiteSpace(path, nameof(path));
             return new SimpleFileHandle(env, path, needsWrite: true, autoDelete: false);
