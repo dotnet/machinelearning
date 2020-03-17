@@ -629,7 +629,7 @@ namespace Microsoft.ML.Transforms.Text
                     string dir = kind == WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding ? Path.Combine("Text", "Sswe") : "WordVectors";
                     var url = $"{dir}/{modelFileName}";
                     var ensureModel = ResourceManagerUtils.Instance.EnsureResourceAsync(env, ch, url, modelFileName, dir, Timeout);
-                    ensureModel.Wait(5 * 60 * 1000); // 5 minute timeout period
+                    ensureModel.Wait();
                     var errorResult = ResourceManagerUtils.GetErrorMessage(out var errorMessage, ensureModel.Result);
                     if (errorResult != null)
                     {
