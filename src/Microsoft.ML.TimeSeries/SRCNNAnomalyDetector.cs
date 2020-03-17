@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
@@ -67,6 +68,14 @@ namespace Microsoft.ML.Transforms.TimeSeries
             [Argument(ArgumentType.Required, HelpText = "The threshold to determine anomaly, score larger than the threshold is considered as anomaly.",
                 ShortName = "thre", SortOrder = 106)]
             public double Threshold = 0.3;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The detection mode, affect output vector length",
+                ShortName = "mode", SortOrder = 107)]
+            public SrCnnDetectMode SrCnnDetectMode = SrCnnDetectMode.AnomalyOnly;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The sensitivity of boundary",
+                ShortName = "sens", SortOrder = 108)]
+            public Double Sensitivity = 99;
         }
 
         private sealed class SrCnnArgument : SrCnnArgumentBase
@@ -82,6 +91,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 AvergingWindowSize = options.AvergingWindowSize;
                 JudgementWindowSize = options.JudgementWindowSize;
                 Threshold = options.Threshold;
+                SrCnnDetectMode = options.SrCnnDetectMode;
+                Sensitivity = options.Sensitivity;
             }
 
             public SrCnnArgument(SrCnnAnomalyDetector transform)
@@ -95,6 +106,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 AvergingWindowSize = transform.InternalTransform.AvergingWindowSize;
                 JudgementWindowSize = transform.InternalTransform.JudgementWindowSize;
                 Threshold = transform.InternalTransform.AlertThreshold;
+                SrCnnDetectMode = transform.InternalTransform.SrCnnDetectMode;
+                Sensitivity = transform.InternalTransform.Sensitivity;
             }
         }
 
@@ -225,7 +238,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.TimeSeriesCatalog.DetectAnomalyBySrCnn(TransformsCatalog, string, string, int, int, int, int, int, double)"/>
+    /// <seealso cref="Microsoft.ML.TimeSeriesCatalog.DetectAnomalyBySrCnn(TransformsCatalog, string, string, int, int, int, int, int, double, SrCnnDetectMode, double)"/>
     public sealed class SrCnnAnomalyEstimator : TrivialEstimator<SrCnnAnomalyDetector>
     {
         /// <param name="env">Host environment.</param>
@@ -237,6 +250,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="judgementWindowSize">The size of sliding window to calculate the anomaly score for each data point.</param>
         /// <param name="threshold">The threshold to determine anomaly, score larger than the threshold is considered as anomaly.</param>
         /// <param name="inputColumnName">Name of column to transform. The column data must be <see cref="System.Single"/>.</param>
+        /// <param name="srCnnDetectMode">The detect mode, decide output vector schema.</param>
+        /// <param name="sensitivity">Sensitivity of boundary, only useful when detect mode is AnomalyAndMargin.</param>
         internal SrCnnAnomalyEstimator(IHostEnvironment env,
             string outputColumnName,
             int windowSize,
@@ -245,7 +260,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
             int averagingWindowSize,
             int judgementWindowSize,
             double threshold = 0.3,
-            string inputColumnName = null)
+            string inputColumnName = null,
+            SrCnnDetectMode srCnnDetectMode = SrCnnDetectMode.AnomalyOnly,
+            double sensitivity = 99.0)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(SrCnnAnomalyEstimator)),
                   new SrCnnAnomalyDetector(env, new SrCnnAnomalyDetector.Options
                   {
@@ -256,7 +273,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
                       LookaheadWindowSize = lookaheadWindowSize,
                       AvergingWindowSize = averagingWindowSize,
                       JudgementWindowSize = judgementWindowSize,
-                      Threshold = threshold
+                      Threshold = threshold,
+                      SrCnnDetectMode = srCnnDetectMode,
+                      Sensitivity = sensitivity
                   }))
         {
         }

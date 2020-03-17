@@ -12,6 +12,12 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms.TimeSeries
 {
+    public enum SrCnnDetectMode
+    {
+        AnomalyOnly = 0,
+        AnomalyAndMargin = 1
+    }
+
     internal abstract class SrCnnArgumentBase
     {
         [Argument(ArgumentType.Required, HelpText = "The name of the source column.", ShortName = "src",
@@ -49,6 +55,14 @@ namespace Microsoft.ML.Transforms.TimeSeries
         [Argument(ArgumentType.AtMostOnce, HelpText = "The threshold to determine anomaly, score larger than the threshold is considered as anomaly.",
             ShortName = "thre", SortOrder = 9)]
         public double Threshold = 0.3;
+
+        [Argument(ArgumentType.AtMostOnce, HelpText = "The detection mode, affect output vector length",
+            ShortName = "mode", SortOrder = 10)]
+        public SrCnnDetectMode SrCnnDetectMode = SrCnnDetectMode.AnomalyOnly;
+
+        [Argument(ArgumentType.AtMostOnce, HelpText = "The sensitivity of boundary",
+            ShortName = "sens", SortOrder = 11)]
+        public Double Sensitivity = 99;
     }
 
     internal abstract class SrCnnTransformBase<TInput, TState> : SequentialTransformerBase<TInput, VBuffer<Double>, TState>
@@ -64,17 +78,21 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         internal double AlertThreshold { get; }
 
+        internal SrCnnDetectMode SrCnnDetectMode { get; }
+
+        internal double Sensitivity { get; }
+
         internal int OutputLength { get; }
 
         private protected SrCnnTransformBase(int windowSize, int initialWindowSize, string inputColumnName, string outputColumnName, string name, IHostEnvironment env,
-            int backAddWindowSize, int lookaheadWindowSize, int averagingWindowSize, int judgementWindowSize, Double alertThreshold)
+            int backAddWindowSize, int lookaheadWindowSize, int averagingWindowSize, int judgementWindowSize, Double alertThreshold, SrCnnDetectMode srCnnDetectMode, Double sensitivity)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), windowSize, initialWindowSize, outputColumnName, inputColumnName, new VectorDataViewType(NumberDataViewType.Double, 3))
         {
             Host.CheckUserArg(backAddWindowSize > 0, nameof(SrCnnArgumentBase.BackAddWindowSize), "Must be non-negative");
             Host.CheckUserArg(lookaheadWindowSize > 0 && lookaheadWindowSize <= windowSize, nameof(SrCnnArgumentBase.LookaheadWindowSize), "Must be non-negative and not larger than window size");
             Host.CheckUserArg(averagingWindowSize > 0 && averagingWindowSize <= windowSize, nameof(SrCnnArgumentBase.AvergingWindowSize), "Must be non-negative and not larger than window size");
             Host.CheckUserArg(judgementWindowSize > 0 && judgementWindowSize <= windowSize, nameof(SrCnnArgumentBase.JudgementWindowSize), "Must be non-negative and not larger than window size");
-            Host.CheckUserArg(alertThreshold > 0 && alertThreshold < 1, nameof(SrCnnArgumentBase.Threshold), "Must be in (0,1)");
+            Host.CheckUserArg(alertThreshold >= 0 && alertThreshold <= 1, nameof(SrCnnArgumentBase.Threshold), "Must be in [0,1]");
 
             BackAddWindowSize = backAddWindowSize;
             LookaheadWindowSize = lookaheadWindowSize;
@@ -82,14 +100,22 @@ namespace Microsoft.ML.Transforms.TimeSeries
             JudgementWindowSize = judgementWindowSize;
             AlertThreshold = alertThreshold;
 
-            OutputLength = 3;
+            if (srCnnDetectMode.Equals(SrCnnDetectMode.AnomalyOnly))
+            {
+                Sensitivity = sensitivity;
+                OutputLength = 3;
+            }
+            else if (srCnnDetectMode.Equals(SrCnnDetectMode.AnomalyAndMargin))
+            {
+                Host.CheckUserArg(sensitivity >= 0 && sensitivity <= 100, nameof(SrCnnArgumentBase.Sensitivity), "Must be in [0,100]");
+                Sensitivity = sensitivity;
+                OutputLength = 7;
+            }
         }
 
         private protected SrCnnTransformBase(IHostEnvironment env, ModelLoadContext ctx, string name)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), ctx)
         {
-            OutputLength = 3;
-
             byte temp;
             temp = ctx.Reader.ReadByte();
             BackAddWindowSize = (int)temp;
@@ -109,11 +135,22 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             AlertThreshold = ctx.Reader.ReadDouble();
             Host.CheckDecode(AlertThreshold >= 0 && AlertThreshold <= 1);
+
+            temp = ctx.Reader.ReadByte();
+            SrCnnDetectMode = (SrCnnDetectMode)temp;
+
+            Sensitivity = ctx.Reader.ReadDouble();
+            Host.CheckDecode(Sensitivity >= 0 && Sensitivity <= 100);
+
+            temp = ctx.Reader.ReadByte();
+            OutputLength = (int)temp;
+            Host.CheckDecode(OutputLength == 3 || OutputLength == 7);
         }
 
         private protected SrCnnTransformBase(SrCnnArgumentBase args, string name, IHostEnvironment env)
             : this(args.WindowSize, args.InitialWindowSize, args.Source, args.Name,
-                  name, env, args.BackAddWindowSize, args.LookaheadWindowSize, args.AvergingWindowSize, args.JudgementWindowSize, args.Threshold)
+                  name, env, args.BackAddWindowSize, args.LookaheadWindowSize, args.AvergingWindowSize, args.JudgementWindowSize, args.Threshold,
+                  args.SrCnnDetectMode, args.Sensitivity)
         {
         }
 
@@ -129,6 +166,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             Host.Assert(AvergingWindowSize > 0);
             Host.Assert(JudgementWindowSize > 0);
             Host.Assert(AlertThreshold >= 0 && AlertThreshold <= 1);
+            Host.Assert(Sensitivity >= 0 && Sensitivity <= 100);
 
             base.SaveModel(ctx);
             ctx.Writer.Write((byte)BackAddWindowSize);
@@ -136,6 +174,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
             ctx.Writer.Write((byte)AvergingWindowSize);
             ctx.Writer.Write((byte)JudgementWindowSize);
             ctx.Writer.Write(AlertThreshold);
+            ctx.Writer.Write((byte)SrCnnDetectMode);
+            ctx.Writer.Write(Sensitivity);
+            ctx.Writer.Write((byte)OutputLength);
         }
 
         internal override IStatefulRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(Host, this, schema);
@@ -165,9 +206,15 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
                 _parent = parent;
                 _parentSchema = inputSchema;
-                _slotNames = new VBuffer<ReadOnlyMemory<char>>(_parent.OutputLength, new[] { "Alert".AsMemory(), "Raw Score".AsMemory(),
-                    "Mag".AsMemory()});
-
+                if (_parent.OutputLength == 3)
+                {
+                    _slotNames = new VBuffer<ReadOnlyMemory<char>>(_parent.OutputLength, new[] { "Alert".AsMemory(), "Raw Score".AsMemory(), "Mag".AsMemory()});
+                }
+                else if (_parent.OutputLength == 7)
+                {
+                    _slotNames = new VBuffer<ReadOnlyMemory<char>>(_parent.OutputLength, new[] { "Alert".AsMemory(), "Anomaly Score".AsMemory(), "Mag".AsMemory(),
+                        "Expected Value".AsMemory(), "Boundary Unit".AsMemory(), "Upper Boundary".AsMemory(), "Lower Boundary".AsMemory() });
+                }
                 State = (SrCnnStateBase)_parent.StateRef;
             }
 

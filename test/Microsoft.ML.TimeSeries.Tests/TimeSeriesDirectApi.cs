@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
@@ -508,6 +509,49 @@ namespace Microsoft.ML.Tests
             int k = 0;
             foreach (var prediction in predictionColumn)
             {
+                Assert.Equal(3, prediction.Prediction.Length);
+                if (k == 20)
+                    Assert.Equal(1, prediction.Prediction[0]);
+                else
+                    Assert.Equal(0, prediction.Prediction[0]);
+                k += 1;
+            }
+        }
+
+        [Fact]
+        public void AnomalyDetectionAndMarginWithSrCnn()
+        {
+            var ml = new MLContext(1);
+
+            // Generate sample series data with an anomaly
+            var data = new List<TimeSeriesData>();
+            for (int index = 0; index < 20; index++)
+            {
+                data.Add(new TimeSeriesData(5));
+            }
+            data.Add(new TimeSeriesData(10));
+            for (int index = 0; index < 5; index++)
+            {
+                data.Add(new TimeSeriesData(5));
+            }
+
+            // Convert data to IDataView.
+            var dataView = ml.Data.LoadFromEnumerable(data);
+
+            // Setup the estimator arguments
+            string outputColumnName = nameof(SrCnnAnomalyDetection.Prediction);
+            string inputColumnName = nameof(TimeSeriesData.Value);
+
+            // The transformed data.
+            var transformedData = ml.Transforms.DetectAnomalyBySrCnn(outputColumnName, inputColumnName, 16, 5, 5, 3, 8, 0.35, SrCnnDetectMode.AnomalyAndMargin, 98.0).Fit(dataView).Transform(dataView);
+
+            // Getting the data of the newly created column as an IEnumerable of SrCnnAnomalyDetection.
+            var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetection>(transformedData, reuseRowObject: false);
+
+            int k = 0;
+            foreach (var prediction in predictionColumn)
+            {
+                Assert.Equal(7, prediction.Prediction.Length);
                 if (k == 20)
                     Assert.Equal(1, prediction.Prediction[0]);
                 else

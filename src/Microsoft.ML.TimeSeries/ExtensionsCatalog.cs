@@ -135,6 +135,8 @@ namespace Microsoft.ML
         /// <param name="averageingWindowSize">The size of sliding window to generate a saliency map for the series. No more than <paramref name="windowSize"/>, usually keep default value.</param>
         /// <param name="judgementWindowSize">The size of sliding window to calculate the anomaly score for each data point. No more than <paramref name="windowSize"/>.</param>
         /// <param name="threshold">The threshold to determine anomaly, score larger than the threshold is considered as anomaly. Should be in (0,1)</param>
+        /// <param name="srCnnDetectMode">The detect mode, decide output vector schema.</param>
+        /// <param name="sensitivity">Sensitivity of boundary, only useful when detect mode is AnomalyAndMargin.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -143,8 +145,9 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static SrCnnAnomalyEstimator DetectAnomalyBySrCnn(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
-            int windowSize=64, int backAddWindowSize=5, int lookaheadWindowSize=5, int averageingWindowSize=3, int judgementWindowSize=21, double threshold=0.3)
-            => new SrCnnAnomalyEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, windowSize, backAddWindowSize, lookaheadWindowSize, averageingWindowSize, judgementWindowSize, threshold, inputColumnName);
+            int windowSize=64, int backAddWindowSize=5, int lookaheadWindowSize=5, int averageingWindowSize=3, int judgementWindowSize=21, double threshold=0.3,
+            SrCnnDetectMode srCnnDetectMode=SrCnnDetectMode.AnomalyOnly, double sensitivity=99.0)
+            => new SrCnnAnomalyEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, windowSize, backAddWindowSize, lookaheadWindowSize, averageingWindowSize, judgementWindowSize, threshold, inputColumnName, srCnnDetectMode, sensitivity);
 
         /// <summary>
         /// Singular Spectrum Analysis (SSA) model for univariate time-series forecasting.

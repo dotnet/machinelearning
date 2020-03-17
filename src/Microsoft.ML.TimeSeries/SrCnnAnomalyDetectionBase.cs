@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
@@ -139,6 +140,42 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             internal sealed class State : SrCnnStateBase
             {
+                internal class ForecastResult
+                {
+                    public float[] Forecast { get; set; }
+                }
+
+                internal class TimeSeriesData
+                {
+                    public float Value;
+
+                    public TimeSeriesData(float value)
+                    {
+                        Value = value;
+                    }
+                }
+
+                private static readonly Double[] _factors = new Double[]{
+                    184331.62871148242, 141902.71648305038, 109324.12672037778, 84289.9974713784, 65038.57829581667, 50222.84038287002,
+                    38812.08684920403, 30017.081863266845, 23233.035497884553, 17996.15452973242, 13950.50738738947, 10822.736530170265,
+                    8402.745753237783, 6528.939979205737, 5076.93622022219, 3950.92312857758, 3077.042935029268, 2398.318733460069,
+                    1870.7634426365591, 1460.393007522685, 1140.9320371270976, 892.0500681212648, 698.0047481387048, 546.5972968979678,
+                    428.36778753759233, 335.97473532360186, 263.71643275007995, 207.16137686573444, 162.8627176617409, 128.13746472206208,
+                    100.8956415134347, 79.50799173635517, 62.70346351447568, 49.48971074544253, 39.09139869308257, 30.90229145698227,
+                    24.448015393182175, 19.35709849024717, 15.338429865489042, 12.163703303322, 9.653732780414286, 7.667778221139226,
+                    6.095213212352326, 4.8490160798347866, 3.8606815922251485, 3.076240312529999, 2.4531421949999994, 1.9578149999999996,
+                    1.5637499999999998, 1.25, 1.0, 0.8695652173913044, 0.7554867223208555, 0.655804446459076, 0.5687809596349316,
+                    0.4928777813127657, 0.4267340097946024, 0.36914706729636887, 0.3190553736355825, 0.27552277516026125, 0.23772456873189068,
+                    0.20493497304473338, 0.17651591132190647, 0.1519069804835684, 0.13061649224726435, 0.11221348131208278, 0.09632058481723846,
+                    0.08260770567516164, 0.0707863801843716, 0.06060477755511267, 0.051843265658779024, 0.0443104834690419, 0.03783986632710667,
+                    0.03228657536442549, 0.027524787181948417, 0.02344530424356765, 0.019953450420057577, 0.01696721974494692, 0.014415649740821513,
+                    0.012237393667929978, 0.010379468759906684, 0.008796159966022614, 0.0074480609365136455, 0.006301235986898177,
+                    0.00532648857725966, 0.004498723460523362, 0.0037963911059268884, 0.0032010043051660104, 0.002696718032995797,
+                    0.0022699646742388863, 0.0019091376570554135, 0.0011570531254881296, 0.000697019955113331, 0.00041737721863073713,
+                    0.000248438820613534, 0.00014700521929794912, 8.647365841055832e-05, 5.056939088336744e-05, 2.9400808653120604e-05,
+                    1.6994687082728674e-05, 9.767061541798089e-06
+                };
+
                 public State()
                 {
                 }
@@ -237,6 +274,33 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
                     var mag = ifftMagList[data.Count - 1];
                     result.Values[2] = mag;
+
+                    if (result.Values.Length == 3)
+                        return;
+
+                    //Optional Steps
+                    //Step 8: Calculate Expected Value
+                    List<Single> dataList = new List<Single>();
+                    for (int i = 0; i < data.Count; ++i)
+                    {
+                        dataList.Add(data[i]);
+                    }
+                    //var exp = CalculateExpectedValueByFft(dataList);
+                    var exp = CalculateExpectedValueBySsa(dataList);
+                    result.Values[3] = exp;
+
+                    //Step 9: Calculate Boundary Unit
+                    var unit = CalculateBoundaryUnit(dataList.Select(x => (double)x).ToList());
+                    result.Values[4] = unit;
+
+                    //Step 10: Calculate UpperBound and LowerBound
+                    var margin = CalculateMargin(unit, Parent.Sensitivity);
+                    result.Values[5] = exp + margin;
+                    result.Values[6] = exp - margin;
+
+                    //Step 11: Update Anomaly Score
+                    var anomalyScore = CalculateAnomalyScore((double)dataList[dataList.Count - 1], exp, unit, detres > 0);
+                    result.Values[1] = anomalyScore;
                 }
 
                 private List<Single> BackAdd(FixedSizeQueue<Single> data)
@@ -291,6 +355,221 @@ namespace Microsoft.ML.Transforms.TimeSeries
                         safeDivisor = 1e-8;
                     }
                     return (float)(Math.Abs(mag - avgMag) / safeDivisor);
+                }
+
+                private Single CalculateExpectedValueByFft(List<Single> data)
+                {
+                    int length = data.Count;
+                    float[] fftRe = new float[length];
+                    float[] fftIm = new float[length];
+                    FftUtils.ComputeForwardFft(data.ToArray(), Enumerable.Repeat(0.0f, length).ToArray(), fftRe, fftIm, length);
+
+                    for (int i = 0; i < length; ++i)
+                    {
+                        if (i > length*3/8 && i < length*5/8)
+                        {
+                            fftRe[i] = 0.0f;
+                            fftIm[i] = 0.0f;
+                        }
+                    }
+
+                    float[] ifftRe = new float[length];
+                    float[] ifftIm = new float[length];
+                    FftUtils.ComputeBackwardFft(fftRe, fftIm, ifftRe, ifftIm, length);
+
+                    return ifftRe[length-1];
+                }
+
+                private Single CalculateExpectedValueBySsa(List<Single> data)
+                {
+                    var ml = new MLContext();
+
+                    var tsData = data.GetRange(0, data.Count-1).Select(x => new TimeSeriesData(x)).ToList();
+                    var dataView = ml.Data.LoadFromEnumerable(tsData);
+
+                    var inputColumnName = nameof(TimeSeriesData.Value);
+                    var outputColumnName = nameof(ForecastResult.Forecast);
+                    var model = ml.Forecasting.ForecastBySsa(outputColumnName, inputColumnName, tsData.Count / 3, tsData.Count, tsData.Count, 1);
+                    var transformer = model.Fit(dataView);
+                    var forecastEngine = transformer.CreateTimeSeriesEngine<TimeSeriesData, ForecastResult>(ml);
+                    var forecast = forecastEngine.Predict();
+
+                    return forecast.Forecast[0];
+                }
+
+                private double CalculateBoundaryUnit(List<Double> data)
+                {
+                    if (data.Count == 0)
+                    {
+                        return 0.0f;
+                    }
+
+                    double unit = 0.0f;
+                    int calculationSize = data.Count - 1;
+                    int window = Math.Min(calculationSize / 3, 512);
+
+                    List<Double> trend = MedianFilter(data.GetRange(0, calculationSize), window, true);
+                    foreach (var val in trend)
+                    {
+                        unit += Math.Abs(val);
+                    }
+
+                    unit = Math.Max(unit / calculationSize, 1.0);
+                    return unit;
+                }
+
+                private List<Double> MedianFilter(List<Double> data, int window, bool needTwoEnd)
+                {
+                    int wLen = window / 2 * 2 + 1;
+                    int tLen = data.Count;
+                    List<Double> val = new List<Double>(data);
+                    List<Double> ans = new List<Double>(data);
+                    List<Double> curWindow = new List<Double>(data).GetRange(0, wLen);
+                    if (tLen < wLen)
+                    {
+                        return ans;
+                    }
+
+                    for (int i = 0; i < wLen; i++)
+                    {
+                        int index = i;
+                        int addId = UpperBound(curWindow, 0, i, val[i]);
+                        while (index > addId)
+                        {
+                            curWindow[index] = curWindow[index - 1];
+                            index -= 1;
+                        }
+                        curWindow[addId] = data[i];
+                        if (i >= wLen / 2 && needTwoEnd)
+                            ans[i - wLen / 2] = SortedMedian(curWindow, 0, i + 1);
+                    }
+
+                    ans[window / 2] = SortedMedian(curWindow, 0, wLen);
+
+                    for (int i = window / 2 + 1; i < tLen - window / 2; i++)
+                    {
+                        int deleteId = UpperBound(curWindow, 0, wLen, val[i - window / 2 - 1]) - 1;
+                        int index = deleteId;
+                        while (index < wLen - 1)
+                        {
+                            curWindow[index] = curWindow[index + 1];
+                            index += 1;
+                        }
+                        int addId = UpperBound(curWindow, 0, wLen - 1, val[i + window / 2]);
+                        index = wLen - 1;
+                        while (index > addId)
+                        {
+                            curWindow[index] = curWindow[index - 1];
+                            index -= 1;
+                        }
+                        curWindow[addId] = data[i + window / 2];
+                        ans[i] = SortedMedian(curWindow, 0, wLen);
+                    }
+
+                    if (needTwoEnd)
+                    {
+                        for (int i = tLen - window / 2; i < tLen; i++)
+                        {
+                            int deleteId = UpperBound(curWindow, 0, wLen, data[i - window / 2 - 1]) - 1;
+                            int index = deleteId;
+                            while (index < wLen - 1)
+                            {
+                                curWindow[index] = curWindow[index + 1];
+                                index += 1;
+                            }
+                            wLen -= 1;
+                            ans[i] = SortedMedian(curWindow, 0, wLen);
+                        }
+                    }
+
+                    return ans;
+                }
+
+                private int UpperBound(List<Double> arr, int begin, int end, double tar)
+                {
+                    while (begin < end)
+                    {
+                        int mid = begin + (end - begin) / 2;
+                        if (arr[mid] <= tar)
+                            begin = mid + 1;
+                        else
+                            end = mid;
+                    }
+                    return begin;
+                }
+
+                private double SortedMedian(List<Double> sortedValues, int begin, int end)
+                {
+                    int n = end - begin;
+                    if (n % 2 == 1)
+                        return sortedValues[begin + n / 2];
+                    else
+                    {
+                        int mid = begin + n / 2;
+                        return (sortedValues[mid - 1] + sortedValues[mid]) / 2;
+                    }
+                }
+
+                private double CalculateMargin(double unit, double sensitivity)
+                {
+                    if (unit <= 0)
+                    {
+                        throw Host.Except("Get negative boundary unit");
+                    }
+                    if (Math.Floor(sensitivity) == sensitivity)
+                    {
+                        return unit * _factors[(int)sensitivity];
+                    }
+                    else
+                    {
+                        int lb = (int)sensitivity;
+                        return (_factors[lb + 1] + (_factors[lb] - _factors[lb + 1]) * (1 - sensitivity + lb)) * unit;
+                    }
+                }
+
+                private double CalculateAnomalyScore(double value, double exp, double unit, bool isAnomaly)
+                {
+                    double anomalyScore = 0.0f;
+
+                    if (isAnomaly.Equals(false))
+                    {
+                        return anomalyScore;
+                    }
+
+                    double distance = Math.Abs(exp - value);
+                    List<Double> margins = new List<Double>();
+                    for (int i = 100; i >= 0; --i)
+                    {
+                        margins.Add(CalculateMargin(unit, i));
+                    }
+
+                    int lb = 0;
+                    int ub = 100;
+                    while(lb < ub)
+                    {
+                        int mid = (lb + ub) / 2;
+                        if (margins[mid] < distance)
+                        {
+                            lb = mid + 1;
+                        }
+                        else
+                        {
+                            ub = mid;
+                        }
+                    }
+
+                    if (Math.Abs(margins[lb] - distance) <1e-8 || lb == 0)
+                    {
+                        anomalyScore = lb;
+                    }
+                    else
+                    {
+                        double lowerMargin = margins[lb - 1];
+                        double upperMargin = margins[lb];
+                        anomalyScore = lb - 1 + (distance - lowerMargin) / (upperMargin - lowerMargin);
+                    }
+
+                    return anomalyScore / 100.0f;
                 }
             }
         }
