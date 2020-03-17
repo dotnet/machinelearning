@@ -305,7 +305,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
         }
 
         [Fact]
-        [TestCategory("SkipInCI")]
+        [TestCategory("Utilities")]
         public void TestDownloadFromLocal()
         {
             var envVarOld = Environment.GetEnvironmentVariable(ResourceManagerUtils.CustomResourcesUrlEnvVariable);
