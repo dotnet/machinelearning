@@ -301,7 +301,6 @@ namespace Microsoft.ML.Internal.Utilities
         {
             try
             {
-                uri = new Uri("https://aka.ms/mlnet-resources/Text/Sswe/sentimenttt.emd");
                 HttpWebRequest myHttpWebRequest = (HttpWebRequest)WebRequest.Create(uri.AbsoluteUri);
                 myHttpWebRequest.AllowAutoRedirect = false;
                 HttpWebResponse myHttpWebResponse = (HttpWebResponse)myHttpWebRequest.GetResponse();
