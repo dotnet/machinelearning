@@ -398,8 +398,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
             dst = new RootCause();
             dst.Items = new List<RootCauseItem> {  };
 
+            //todo - get total points
             GetRootCauseList(src, ref dst);
-            GetRootCauseScore(src, ref dst);
+            //todo - need to update, temp for test
+            GetRootCauseScore(new List<Point>(), src.AnomalyDimensions, ref dst);
         }
 
         private static void GetRootCauseList(RootCauseLocalizationInput src, ref RootCause dst) {
@@ -480,17 +482,94 @@ namespace Microsoft.ML.Transforms.TimeSeries
             }
         }
 
-        private static void GetRootCauseScore(RootCauseLocalizationInput src, ref RootCause dst) {
+        private static void GetRootCauseScore(List<Point> points, Dictionary<string, string> anomalyRoot, ref RootCause dst)
+        {
 
             if (dst.Items.Count > 1)
             {
-            //    for each, get surprise
+                //get surprise value and explanary power value
+                Point anomalyPoint = DTRootCauseLocalizationUtils.FindPointByDimension(anomalyRoot, points);
 
-            //            then normalize
+                double sumSurprise = 0;
+                double sumEp = 0;
+                List<RootCauseScore> scoreList = new List<RootCauseScore>();
+
+                foreach (RootCauseItem item in dst.Items)
+                {
+                    Point rootCausePoint = DTRootCauseLocalizationUtils.FindPointByDimension(item.RootCause, points);
+                    if (rootCausePoint != null)
+                    {
+                        if (rootCausePoint.ExpectedValue < rootCausePoint.Value)
+                        {
+                            item.Direction = AnomalyDirection.Up;
+                        }
+                        else
+                        {
+                            item.Direction = AnomalyDirection.Down;
+                        }
+                    }
+
+                    if (anomalyPoint != null && rootCausePoint != null)
+                    {
+                        double surprise = GetSurpriseScore(rootCausePoint, anomalyPoint);
+
+                        double ep = (rootCausePoint.Value - rootCausePoint.ExpectedValue) / (anomalyPoint.Value  - anomalyPoint.ExpectedValue);
+
+                        scoreList.Add(new RootCauseScore(surprise, ep));
+                        sumSurprise += surprise;
+                        sumEp += Math.Abs(ep);
+                    }
+                }
+
+                //normalize and get final score
+                for (int i = 0; i < scoreList.Count; i++)
+                {
+                    dst.Items[i].Score = GetFinalScore(scoreList[i].Surprise / sumSurprise, Math.Abs(scoreList[i].ExplainaryScore) / sumEp);
+
+                }
             }
-            else if (dst.Items.Count == 1) {
+            else if (dst.Items.Count == 1)
+            {
                 //surprise and expananory , max is 1
+                Point rootCausePoint = DTRootCauseLocalizationUtils.FindPointByDimension(dst.Items[0].RootCause, points);
+                if (rootCausePoint != null)
+                {
+                    if (rootCausePoint.ExpectedValue < rootCausePoint.Value)
+                    {
+                        dst.Items[0].Direction = AnomalyDirection.Up;
+                    }
+                    else
+                    {
+                        dst.Items[0].Direction = AnomalyDirection.Down;
+                    }
+                }
+
+                Point anomalyPoint = DTRootCauseLocalizationUtils.FindPointByDimension(anomalyRoot, points);
+                if (anomalyPoint != null && rootCausePoint != null)
+                {
+                    double surprise = GetSurpriseScore(rootCausePoint, anomalyPoint);
+
+                    double ep = (rootCausePoint.Value - rootCausePoint.ExpectedValue) / (anomalyPoint.Value - anomalyPoint.ExpectedValue);
+                    dst.Items[0].Score = GetFinalScore(surprise, ep);
+                }
+
             }
+
+        }
+
+        private static  double GetSurpriseScore(Point rootCausePoint, Point anomalyPoint)
+        {
+            double p = rootCausePoint.ExpectedValue / anomalyPoint.ExpectedValue;
+            double q = rootCausePoint.Value / anomalyPoint.Value;
+            double surprise = 0.5 * (p * DTRootCauseLocalizationUtils.Log2(2 * p / (p + q)) + q * DTRootCauseLocalizationUtils.Log2(2 * q / (p + q)));
+
+            return surprise;
+        }
+
+        private static double GetFinalScore(double surprise, double ep)
+        {
+            //return Math.Max(1, Parent.Beta * surprise + (1 - Parent.Beta) * ep);
+            return 0;
         }
     }
 

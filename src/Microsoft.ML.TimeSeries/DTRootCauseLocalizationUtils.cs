@@ -366,6 +366,19 @@ namespace Microsoft.ML.TimeSeries
             return (double)anomalySize / pointSize > 0.5;
         }
 
+        public static Point FindPointByDimension(Dictionary<string, string> dim, List<Point> points)
+        {
+            foreach (Point p in points)
+            {
+                if (p.Dimensions.Equals(dim))
+                {
+                    return p;
+                }
+            }
+
+            return null;
+        }
+
         private static Dictionary<string, string> UpdateDimensionValue(Dictionary<string, string> dimension, string key, string value) {
             Dictionary<string, string> newDim = new Dictionary<string, string>(dimension);
             newDim[key] = value;
@@ -448,7 +461,7 @@ namespace Microsoft.ML.TimeSeries
             return total - dimEntropy > 0.3;
         }
 
-        private static double Log2(double val) {
+        public static double Log2(double val) {
             return Math.Log(val) / Math.Log(2);
         }
 
@@ -583,5 +596,17 @@ namespace Microsoft.ML.TimeSeries
         /// the value is lower than expected value.
         ///  </summary>
         Down = 1
+    }
+
+    public class RootCauseScore
+    {
+        public double Surprise;
+        public double ExplainaryScore;
+
+        public RootCauseScore(double surprise, double explainaryScore)
+        {
+            Surprise = surprise;
+            ExplainaryScore = explainaryScore;
+        }
     }
 }
