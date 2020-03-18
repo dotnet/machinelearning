@@ -113,22 +113,19 @@ namespace Microsoft.ML.Internal.Utilities
                 await DownloadFromUrlWithRetryAsync(env, ch, absoluteUrl.AbsoluteUri, fileName, timeout, filePath), absoluteUrl.AbsoluteUri);
         }
 
-        private async Task<string> DownloadFromUrlWithRetryAsync(IHostEnvironment env, IChannel ch, string url, string fileName, int timeout, string filePath, int retryTimes = 5)
+        private async Task<string> DownloadFromUrlWithRetryAsync(IHostEnvironment env, IChannel ch, string url, string fileName,
+            int timeout, string filePath, int retryTimes = 5)
         {
             var downloadResult = "";
 
             for (int i = 0; i < retryTimes; ++i)
             {
                 var thisDownloadResult = await DownloadFromUrlAsync(env, ch, url, fileName, timeout, filePath);
-
                 if (string.IsNullOrEmpty(thisDownloadResult))
                     return thisDownloadResult;
                 else
                 {
                     downloadResult += thisDownloadResult + @"\n";
-                    // Do not retry if the URL does not exist
-                    if (thisDownloadResult.Contains("does not exist"))
-                        return downloadResult;
                 }
                 await Task.Delay(10 * 1000);
             }
@@ -139,7 +136,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// <returns>Returns the error message if an error occurred, null if download was successful.</returns>
         private async Task<string> DownloadFromUrlAsync(IHostEnvironment env, IChannel ch, string url, string fileName, int timeout, string filePath)
         {
-            using (var webClient = new WebClientResponse())
+            using (var webClient = new WebClient())
             using (var downloadCancel = new CancellationTokenSource())
             {
                 bool deleteNeeded = false;
@@ -236,7 +233,7 @@ namespace Microsoft.ML.Internal.Utilities
             return filePath;
         }
 
-        private Exception DownloadResource(IHostEnvironment env, IChannel ch, WebClientResponse webClient, Uri uri, string path, string fileName, CancellationToken ct)
+        private Exception DownloadResource(IHostEnvironment env, IChannel ch, WebClient webClient, Uri uri, string path, string fileName, CancellationToken ct)
         {
             if (File.Exists(path))
                 return null;
@@ -258,8 +255,8 @@ namespace Microsoft.ML.Internal.Utilities
                 using (var ws = fh.CreateWriteStream())
                 {
                     var headers = webClient.ResponseHeaders.GetValues("Content-Length");
-                    if (IsRedirectToDefaultPage(uri))
-                        return ch.Except($"Invalid aka.ms url: {uri}");
+                    if (IsRedirectToDefaultPage(uri.AbsoluteUri))
+                        return ch.Except($"The provided url ({uri}) redirects to the default url ({DefaultUrl})");
                     if (Utils.Size(headers) == 0 || !long.TryParse(headers[0], out var size))
                         size = 10000000;
 
@@ -297,21 +294,29 @@ namespace Microsoft.ML.Internal.Utilities
             }
         }
 
-        public bool IsRedirectToDefaultPage(Uri uri)
+        /// <summary>This method checks whether or not the provided url redirects to
+        /// the default url <see cref="ResourceManagerUtils.DefaultUrl"/>.</summary>
+        /// <param name="url"> The provided url to check </param>
+        public bool IsRedirectToDefaultPage(string url)
         {
             try
             {
-                HttpWebRequest myHttpWebRequest = (HttpWebRequest)WebRequest.Create(uri.AbsoluteUri);
-                myHttpWebRequest.AllowAutoRedirect = false;
-                HttpWebResponse myHttpWebResponse = (HttpWebResponse)myHttpWebRequest.GetResponse();
+                var request = WebRequest.Create(url);
+                // FileWebRequests cannot be redirected to default aka.ms webpage <see cref="Default"/>
+                if (request.GetType() == typeof(FileWebRequest))
+                    return false;
+                HttpWebRequest httpWebRequest = (HttpWebRequest)request;
+                httpWebRequest.AllowAutoRedirect = false;
+                HttpWebResponse httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse();
             }
             catch (WebException e)
             {
-                // Redirects to https://www.microsoft.com/en-us/?ref=aka
-                if (e.Message == "The remote server returned an error: (302) Moved Temporarily.")
+                HttpStatusCode statusCode = ((HttpWebResponse)e.Response).StatusCode;
+                // Redirects to default url
+                if (statusCode == HttpStatusCode.Redirect)
                     return true;
                 // Redirects to another url
-                else if (e.Message == "The remote server returned an error: (301) Moved Permanently.")
+                else if (statusCode == HttpStatusCode.MovedPermanently)
                     return false;
                 else
                     return false;
