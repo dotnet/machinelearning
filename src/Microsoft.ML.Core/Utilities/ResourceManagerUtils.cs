@@ -124,9 +124,7 @@ namespace Microsoft.ML.Internal.Utilities
                 if (string.IsNullOrEmpty(thisDownloadResult))
                     return thisDownloadResult;
                 else
-                {
                     downloadResult += thisDownloadResult + @"\n";
-                }
                 await Task.Delay(10 * 1000);
             }
 

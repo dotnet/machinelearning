@@ -82,16 +82,15 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             // Bad local path.
             try
             {
-                if (!Uri.TryCreate(GetDataPath("breast-cancer.txt"), UriKind.Absolute, out var badUri))
+                if (!Uri.TryCreate($@"\\ct01\public\{Guid.NewGuid()}\", UriKind.Absolute, out var badUri))
                     Fail("Uri could not be created");
                 Environment.SetEnvironmentVariable(ResourceManagerUtils.CustomResourcesUrlEnvVariable, badUri.AbsoluteUri);
                 var envVar = Environment.GetEnvironmentVariable(ResourceManagerUtils.CustomResourcesUrlEnvVariable);
                 if (envVar != badUri.AbsoluteUri)
                     Fail("Environment variable not set properly");
 
-                var saveToDir = GetOutputPath("copyto") + "badLocalPathAddition";
-                if (Directory.Exists(saveToDir))
-                    Fail("Bad local path should not exist.");
+                var saveToDir = GetOutputPath("copyto");
+                DeleteOutputPath("copyto", "breast-cancer.txt");
                 var sbOut = new StringBuilder();
                 var sbErr = new StringBuilder();
                 using (var outWriter = new StringWriter(sbOut))
