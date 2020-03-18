@@ -118,11 +118,9 @@ namespace Microsoft.ML.TimeSeries
         }
 
         public static List<RootCauseItem>  LocalizeRootCauseByDimension(List<Point> totalPoints, PointTree anomalyTree, PointTree pointTree, double totoalEntropy, Dictionary<string, string> anomalyDimension) {
-
             var set =  anomalyTree.ChildrenNodes.Keys;
 
             BestDimension best = null;
-
             if (anomalyTree.Leaves.Count > 0)
             {
                 best =SelectBestDimension(totalPoints, anomalyTree.Leaves, set.ToList(), totoalEntropy);
@@ -130,6 +128,10 @@ namespace Microsoft.ML.TimeSeries
             else {
                 //has no leaves information, should calculate the entropy information according to the children nodes
                 best = SelectBestDimension(pointTree.ChildrenNodes, anomalyTree.ChildrenNodes, set.ToList(), totoalEntropy);
+            }
+
+            if (best == null) {
+                return new List<RootCauseItem>() { new RootCauseItem(anomalyDimension) };
             }
 
             if (IsLargeEntropyGain(totoalEntropy, best.Entropy) || best.AnomalyDis.Count == 1)
@@ -465,7 +467,7 @@ namespace Microsoft.ML.TimeSeries
             return Math.Log(val) / Math.Log(2);
         }
 
-        private static bool ContainsAll(Dictionary<String, String> bigDic, Dictionary<String, String> smallDic) {
+        public static bool ContainsAll(Dictionary<string, string> bigDic, Dictionary<string, string> smallDic) {
             foreach (var item in smallDic) {
                 if (!bigDic.ContainsKey(item.Key)) {
                     return false;
@@ -567,7 +569,7 @@ namespace Microsoft.ML.TimeSeries
         public AnomalyCause() {}
     }
 
-    public sealed class RootCauseItem
+    public sealed class RootCauseItem: IEquatable<RootCauseItem>
     {
         public double Score;
         public string Path;
@@ -583,6 +585,18 @@ namespace Microsoft.ML.TimeSeries
         {
             RootCause = rootCause;
             Path= path;
+        }
+        public bool Equals(RootCauseItem other)
+        {
+            if (RootCause.Count == other.RootCause.Count) {
+                foreach (KeyValuePair<string, string> item in RootCause) {
+                    if (!other.RootCause[item.Key].Equals(item.Value)) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            return false;
         }
     }
 

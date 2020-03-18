@@ -430,16 +430,17 @@ namespace Microsoft.ML.Transforms.TimeSeries
             if (anomalyTree.ParentNode == null) {
                 return;
             }
-
+            List<RootCauseItem> rootCauses = new List<RootCauseItem>();
             // no point under anomaly dimension
             if (totalPoints.Count == 0) {
                 if (anomalyTree.Leaves.Count != 0) {
                     throw new Exception("point leaves not match with anomaly leaves");
                 }
+
+                rootCauses.AddRange(DTRootCauseLocalizationUtils.LocalizeRootCauseByAnomaly(totalPoints, anomalyTree, src.AnomalyDimensions));
             }
             else
             {
-                List<RootCauseItem> rootCauses = new List<RootCauseItem>();
                 double totalEntropy = 1;
                 if (anomalyTree.Leaves.Count > 0)
                 {
@@ -465,7 +466,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     else
                     {
                         rootCauses.AddRange(DTRootCauseLocalizationUtils.LocalizeRootCauseByAnomaly(totalPoints, anomalyTree,src.AnomalyDimensions));
-
                     }
                 }
                 else {

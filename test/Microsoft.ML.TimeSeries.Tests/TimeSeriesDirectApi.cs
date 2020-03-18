@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
@@ -12,9 +11,6 @@ using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.VisualBasic.CompilerServices;
-
-using Microsoft.VisualBasic.FileIO;
 
 namespace Microsoft.ML.Tests
 {
@@ -477,7 +473,7 @@ namespace Microsoft.ML.Tests
             // The forecasted results should be the same because the state of the models
             // is the same.
             Assert.Equal(result.Forecast, resultCopy.Forecast);
-            
+
         }
 
         [Fact]
@@ -525,7 +521,7 @@ namespace Microsoft.ML.Tests
         {
             [RootCauseLocalizationInputType]
             public RootCauseLocalizationInput Input { get; set; }
-     
+
             public RootCauseLocalizationData()
             {
                 Input = null;
@@ -539,7 +535,7 @@ namespace Microsoft.ML.Tests
 
         private class RootCauseLocalizationTransformedData
         {
-          [RootCauseType()]
+            [RootCauseType()]
             public RootCause RootCause { get; set; }
 
             public RootCauseLocalizationTransformedData()
@@ -552,7 +548,7 @@ namespace Microsoft.ML.Tests
         public void RootCauseLocalizationWithDT()
         {
             // Create an root cause localizatiom input list.
-            var rootCauseLocalizationData = new List<RootCauseLocalizationData>() { new RootCauseLocalizationData(new DateTime(),new Dictionary<String, String>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Microsoft.ML.TimeSeries.Point>()) }, DTRootCauseLocalizationEstimator.AggregateType.Sum, "SUM"), new RootCauseLocalizationData(new DateTime(), new Dictionary<String, String>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Microsoft.ML.TimeSeries.Point>()) }, DTRootCauseLocalizationEstimator.AggregateType.Avg, "AVG") };
+            var rootCauseLocalizationData = new List<RootCauseLocalizationData>() { new RootCauseLocalizationData(new DateTime(), new Dictionary<String, String>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Microsoft.ML.TimeSeries.Point>()) }, DTRootCauseLocalizationEstimator.AggregateType.Sum, "SUM"), new RootCauseLocalizationData(new DateTime(), new Dictionary<String, String>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Microsoft.ML.TimeSeries.Point>()) }, DTRootCauseLocalizationEstimator.AggregateType.Avg, "AVG") };
 
             var ml = new MLContext(1);
             // Convert the list of root cause data to an IDataView object, which is consumable by ML.NET API.
@@ -578,148 +574,11 @@ namespace Microsoft.ML.Tests
             }
 
             var engine = ml.Model.CreatePredictionEngine<RootCauseLocalizationData, RootCauseLocalizationTransformedData>(model);
-            var newRootCauseInput = new RootCauseLocalizationData(new DateTime(), new Dictionary<String, String>(), new List<MetricSlice>() {new MetricSlice(new DateTime(), new List<Microsoft.ML.TimeSeries.Point>())}, DTRootCauseLocalizationEstimator.AggregateType.Sum, "SUM");
+            var newRootCauseInput = new RootCauseLocalizationData(new DateTime(), new Dictionary<String, String>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Microsoft.ML.TimeSeries.Point>()) }, DTRootCauseLocalizationEstimator.AggregateType.Sum, "SUM");
             var transformedRootCause = engine.Predict(newRootCauseInput);
 
             Assert.NotNull(transformedRootCause);
             //todo - will add more tests here when onboarding mock data
         }
-
-        [Fact]
-        public void RootCauseLocalizationWithCSV()
-        {
-            string ocsdatacenter = "OCSDatacenter";
-            string appType = "AppType";
-            string releaseAudienceGroup = "Release_AudienceGroup";
-            string wacDatacenter = "WACDatacenter";
-            string requestType = "RequestType";
-            string statusCode = "StatusCode";
-
-            var anomalyRootData = GetDataTabletFromCSVFile("C:/excel/anomaly_root.csv");
-
-            var inputData = GetDataTabletFromCSVFile("C:/excel/input/1563224400.csv");
-
-            Dictionary<DateTime, Dictionary<string, string>> rootNodeMap = new Dictionary<DateTime, Dictionary<string, string>>();
-            foreach (DataRow row in anomalyRootData.Rows)
-            {
-                // load the data, build the RootCauseInput, take care of empty value
-                long seconds = long.Parse(row["TimeStamp"].ToString());
-                DateTime t = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(seconds);
-        
-                Dictionary<string, string> dimension = new Dictionary<string, string>();
-                dimension.Add(ocsdatacenter, row[ocsdatacenter].ToString());
-                dimension.Add(appType, row[appType].ToString());
-                dimension.Add(releaseAudienceGroup, row[releaseAudienceGroup].ToString());
-                dimension.Add(wacDatacenter, row[wacDatacenter].ToString());
-                dimension.Add(statusCode, row[statusCode].ToString());
-                dimension.Add(requestType, row[requestType].ToString());
-
-                rootNodeMap.Add(t, dimension);
-            }
-            Console.WriteLine(rootNodeMap);
-
-     
-
-
-            DateTime timeStamp = new DateTime();
-
-            List<Microsoft.ML.TimeSeries.Point> points = new List<Microsoft.ML.TimeSeries.Point>();
-            foreach (DataRow row in inputData.Rows) {
-                // load the data, build the RootCauseInput, take care of empty value
-                long seconds = long.Parse(row["TimeStamp"].ToString());
-                 timeStamp = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(seconds);
-                double value = Double.Parse(row["Value"].ToString());
-                double expectedValue = 0;
-                if (!row["ExpectedValue"].ToString().Equals("")) { 
-                    expectedValue = Double.Parse(row["ExpectedValue"].ToString());
-                }
-                bool isAnomaly = Boolean.Parse(row["IsAnomaly"].ToString());
-                Dictionary<string, string> dimension = new Dictionary<string, string>();
-                dimension.Add(ocsdatacenter, row[ocsdatacenter].ToString());
-                dimension.Add(appType, row[appType].ToString());
-                dimension.Add(releaseAudienceGroup, row[releaseAudienceGroup].ToString());
-                dimension.Add(wacDatacenter, row[wacDatacenter].ToString());
-                dimension.Add(statusCode, row[statusCode].ToString());
-                dimension.Add(requestType, row[requestType].ToString());
-
-                points.Add(new Microsoft.ML.TimeSeries.Point(value, expectedValue, isAnomaly, dimension)); ;
-            }
-
-            List<MetricSlice> slices = new List<MetricSlice>();
-            slices.Add(new MetricSlice(timeStamp, points));
-
-            //// Create an root cause localizatiom input list from csv.
-            var rootCauseLocalizationData = new List<RootCauseLocalizationData>() { new RootCauseLocalizationData(new DateTime(), new Dictionary<String, String>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Microsoft.ML.TimeSeries.Point>()) }, DTRootCauseLocalizationEstimator.AggregateType.Sum, "SUM")};
-
-
-            var ml = new MLContext(1);
-            // Convert the list of root cause data to an IDataView object, which is consumable by ML.NET API.
-            var data = ml.Data.LoadFromEnumerable(rootCauseLocalizationData);
-
-            // Create pipeline to localize root cause by decision tree.
-            var pipeline = ml.Transforms.LocalizeRootCauseByDT(nameof(RootCauseLocalizationTransformedData.RootCause), nameof(RootCauseLocalizationData.Input));
-
-            // Fit the model.
-            var model = pipeline.Fit(data);
-
-            // Test path:  input list -> IDataView -> Enumerable of RootCauseLocalizationInputs.
-            var transformedData = model.Transform(data);
-
-            // Load input list in DataView back to Enumerable.
-            var transformedDataPoints = ml.Data.CreateEnumerable<RootCauseLocalizationTransformedData>(transformedData, false);
-
-            foreach (var dataPoint in transformedDataPoints)
-            {
-                var rootCause = dataPoint.RootCause;
-
-                Assert.NotNull(rootCause);
-            }
-
-            var engine = ml.Model.CreatePredictionEngine<RootCauseLocalizationData, RootCauseLocalizationTransformedData>(model);
-
-            var newRootCauseInput = new RootCauseLocalizationData(timeStamp, rootNodeMap[timeStamp], new List<MetricSlice>() { new MetricSlice(timeStamp, points) }, DTRootCauseLocalizationEstimator.AggregateType.Sum, "##EMPTY##awqegp##");
-            var transformedRootCause = engine.Predict(newRootCauseInput);
-
-            Assert.NotNull(transformedRootCause);
-            ////todo - will add more tests here when onboarding mock data
-
-        }
-
-
-        private static DataTable GetDataTabletFromCSVFile(string filePath)
-        {
-            DataTable csvData = new DataTable();
-
-
-            using (TextFieldParser csvReader = new TextFieldParser(filePath))
-            {
-                csvReader.SetDelimiters(new string[] { "," });
-                csvReader.HasFieldsEnclosedInQuotes = true;
-                string[] colFields = csvReader.ReadFields();
-                foreach (string column in colFields)
-                {
-                    DataColumn datecolumn = new DataColumn(column);
-                    datecolumn.AllowDBNull = true;
-                    csvData.Columns.Add(datecolumn);
-                }
-
-                while (!csvReader.EndOfData)
-                {
-                    string[] fieldData = csvReader.ReadFields();
-                    //Making empty value as null
-                    for (int i = 0; i < fieldData.Length; i++)
-                    {
-                        if (fieldData[i] == "")
-                        {
-                            fieldData[i] = null;
-                        }
-                    }
-                    csvData.Rows.Add(fieldData);
-                }
-            }
-
-            return csvData;
-        }
-
     }
 }

@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
 using Microsoft.ML;
-using Microsoft.ML.Data;
 using Microsoft.ML.Transforms.TimeSeries;
 
 namespace Samples.Dynamic

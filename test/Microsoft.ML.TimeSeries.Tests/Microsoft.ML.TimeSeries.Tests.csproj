@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <DefineConstants>CORECLR</DefineConstants>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
@@ -14,9 +13,6 @@
     <NativeAssemblyReference Include="MklProxyNative" />
     <NativeAssemblyReference Include="MklImports" />
     <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="TextFieldParserCore" Version="1.0.0" />
   </ItemGroup>
   <ItemGroup>
     <None Update="xunit.runner.json">
