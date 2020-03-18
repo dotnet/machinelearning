@@ -91,9 +91,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
 
                 var saveToDir = GetOutputPath("copyto")+"badLocalPathAddition";
                 if (Directory.Exists(saveToDir))
-                {
                     Fail("Bad local path should not exist.");
-                }
                 var sbOut = new StringBuilder();
                 var sbErr = new StringBuilder();
                 using (var outWriter = new StringWriter(sbOut))
