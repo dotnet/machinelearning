@@ -224,6 +224,10 @@ namespace Microsoft.ML.AutoML
             }
         }
 
+        /// <summary>
+        /// Get Experts for parsing raw values.
+        /// </summary>
+        /// <returns></returns>
         private static IEnumerable<ITypeInferenceExpert> GetExperts()
         {
             // Current logic is pretty primitive: if every value (except the first) of a column
@@ -236,12 +240,12 @@ namespace Microsoft.ML.AutoML
         /// <summary>
         /// Auto-detect column types of the file.
         /// </summary>
-        public static InferenceResult InferTextFileColumnTypes(MLContext context, IMultiStreamSource fileSource, Arguments args)
+        public static InferenceResult InferTextFileColumnTypes(MLContext context, IMultiStreamSource fileSource, Arguments args, bool allowBinary = true)
         {
-            return InferTextFileColumnTypesCore(context, fileSource, args);
+            return InferTextFileColumnTypesCore(context, fileSource, args, allowBinary);
         }
 
-        private static InferenceResult InferTextFileColumnTypesCore(MLContext context, IMultiStreamSource fileSource, Arguments args)
+        private static InferenceResult InferTextFileColumnTypesCore(MLContext context, IMultiStreamSource fileSource, Arguments args, bool allowBinary = true)
         {
             if (args.ColumnCount == 0)
             {
@@ -357,10 +361,16 @@ namespace Microsoft.ML.AutoML
             // validate & retrieve label column
             var labelColumn = GetAndValidateLabelColumn(args, cols);
 
-            // if label column has all Boolean values, set its type as Boolean
-            if (labelColumn.HasAllBooleanValues())
+            // if label column has all Boolean values and allowBinary is true, set its type as Boolean
+            if (labelColumn.HasAllBooleanValues() && allowBinary)
             {
                 labelColumn.SuggestedType = BooleanDataViewType.Instance;
+            }
+
+            // if labelColumn has Boolean values and allowBianry is false, set its type to Text because it's raw type must be string (or it will be parse as single).
+            if(labelColumn.SuggestedType == BooleanDataViewType.Instance && !allowBinary)
+            {
+                labelColumn.SuggestedType = TextDataViewType.Instance;
             }
 
             var outCols = cols.Select(x => new Column(x.ColumnId, x.Name, x.SuggestedType)).ToArray();

@@ -78,18 +78,63 @@ namespace Microsoft.ML.AutoML.Test
         public void DatasetWithBoolColumn()
         {
             var result = new MLContext(1).Auto().InferColumns(Path.Combine("TestData", "BinaryDatasetWithBoolColumn.txt"), DefaultColumnNames.Label);
-            Assert.Equal(2, result.TextLoaderOptions.Columns.Count());
+            Assert.Equal(3, result.TextLoaderOptions.Columns.Count());
 
             var boolColumn = result.TextLoaderOptions.Columns.First(c => c.Name == "Bool");
+            var boolFeaturesColumn = result.TextLoaderOptions.Columns.First(c => c.Name == "BooleanFeatures");
             var labelColumn = result.TextLoaderOptions.Columns.First(c => c.Name == DefaultColumnNames.Label);
+
             // ensure non-label Boolean column is detected as R4
             Assert.Equal(DataKind.Single, boolColumn.DataKind);
+            Assert.Equal(DataKind.Boolean, boolFeaturesColumn.DataKind);
+
             Assert.Equal(DataKind.Boolean, labelColumn.DataKind);
 
             // ensure non-label Boolean column is detected as R4
-            Assert.Single(result.ColumnInformation.NumericColumnNames);
+            Assert.Equal(2, result.ColumnInformation.NumericColumnNames.Count);
             Assert.Equal("Bool", result.ColumnInformation.NumericColumnNames.First());
             Assert.Equal(DefaultColumnNames.Label, result.ColumnInformation.LabelColumnName);
+        }
+
+        [Fact]
+        public void Should_parse_as_numeric_if_allowBinary_is_false()
+        {
+            var context = new MLContext(1);
+            var filePath = Path.Combine("TestData", "BinaryDatasetWithBoolColumn.txt");
+            var columnInfo = new ColumnInformation()
+            {
+                LabelColumnName = "Label",
+            };
+            var result = ColumnInferenceApi.InferColumns(context, filePath, columnInfo, ',', null, null, false, false, true, false);
+            Assert.Equal(4, result.TextLoaderOptions.Columns.Count());
+
+            var boolColumn = result.TextLoaderOptions.Columns.First(c => c.Name == "Bool");
+            var bool1Column = result.TextLoaderOptions.Columns.First(c => c.Name == "Bool1");
+            var bool2Column = result.TextLoaderOptions.Columns.First(c => c.Name == "Bool2");
+
+            var labelColumn = result.TextLoaderOptions.Columns.First(c => c.Name == "Label");
+
+            Assert.Equal(DataKind.Single, labelColumn.DataKind);
+            Assert.Equal(DataKind.Boolean, bool1Column.DataKind);
+            Assert.Equal(DataKind.Boolean, bool2Column.DataKind);
+            Assert.Equal(DataKind.Single, boolColumn.DataKind);
+        }
+
+        [Fact]
+        public void Should_parse_as_text_if_allowBinary_is_false()
+        {
+            var context = new MLContext(1);
+            var filePath = Path.Combine("TestData", "BinaryDatasetWithBoolColumn.txt");
+            var columnInfo = new ColumnInformation()
+            {
+                LabelColumnName = "Bool1",
+            };
+            var result = ColumnInferenceApi.InferColumns(context, filePath, columnInfo, ',', null, null, false, false, true, false);
+            Assert.Equal(4, result.TextLoaderOptions.Columns.Count());
+
+            var labelColumn = result.TextLoaderOptions.Columns.First(c => c.Name == "Bool1");
+
+            Assert.Equal(DataKind.String, labelColumn.DataKind);
         }
 
         [Fact]

@@ -1,5 +1,5 @@
-﻿Label,Bool
-0,1
-0,0
-1,1
-1,0
+﻿Label,Bool, Bool1, Bool2
+0,1,T,true
+0,0,F,false
+1,1,T,true
+1,0,F,false

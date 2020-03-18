@@ -36,11 +36,11 @@ namespace Microsoft.ML.AutoML
         }
 
         public static ColumnInferenceResults InferColumns(MLContext context, string path, ColumnInformation columnInfo,
-            char? separatorChar, bool? allowQuotedStrings, bool? supportSparse, bool trimWhitespace, bool groupColumns, bool hasHeader = true)
+            char? separatorChar, bool? allowQuotedStrings, bool? supportSparse, bool trimWhitespace, bool groupColumns, bool hasHeader = true, bool allowBinary = true)
         {
             var sample = TextFileSample.CreateFromFullFile(path);
             var splitInference = InferSplit(context, sample, separatorChar, allowQuotedStrings, supportSparse);
-            var typeInference = InferColumnTypes(context, sample, splitInference, hasHeader, null, columnInfo.LabelColumnName);
+            var typeInference = InferColumnTypes(context, sample, splitInference, hasHeader, null, columnInfo.LabelColumnName, allowBinary);
             return InferColumns(context, path, columnInfo, hasHeader, splitInference, typeInference, trimWhitespace, groupColumns);
         }
 
@@ -126,7 +126,7 @@ namespace Microsoft.ML.AutoML
         }
 
         private static ColumnTypeInference.InferenceResult InferColumnTypes(MLContext context, TextFileSample sample,
-            TextFileContents.ColumnSplitResult splitInference, bool hasHeader, uint? labelColumnIndex, string label)
+            TextFileContents.ColumnSplitResult splitInference, bool hasHeader, uint? labelColumnIndex, string label, bool allowBinary = true)
         {
             // infer column types
             var typeInferenceResult = ColumnTypeInference.InferTextFileColumnTypes(context, sample,
@@ -139,7 +139,7 @@ namespace Microsoft.ML.AutoML
                     HasHeader = hasHeader,
                     LabelColumnIndex = labelColumnIndex,
                     Label = label
-                });
+                }, allowBinary);
 
             if (!typeInferenceResult.IsSuccess)
             {
