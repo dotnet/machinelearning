@@ -150,13 +150,13 @@ namespace Microsoft.ML.SamplesUtils
         /// </summary>
         /// <remarks>
         /// The model is downloaded from
-        /// https://github.com/dotnet/machinelearning-testdata/blob/master/Microsoft.ML.TensorFlow.TestModels/sentiment_model
+        /// https://github.com/dotnet/machinelearning-testdata/blob/296625f4e49d50fcd6a48a0d92bea7584e198c0f/Microsoft.ML.TensorFlow.TestModels/sentiment_model
         /// The model is in 'SavedModel' format. For further explanation on how was the `sentiment_model` created
-        /// c.f. https://github.com/dotnet/machinelearning-testdata/blob/master/Microsoft.ML.TensorFlow.TestModels/sentiment_model/README.md
+        /// c.f. https://github.com/dotnet/machinelearning-testdata/blob/296625f4e49d50fcd6a48a0d92bea7584e198c0f/Microsoft.ML.TensorFlow.TestModels/sentiment_model/README.md
         /// </remarks>
         public static string DownloadTensorFlowSentimentModel()
         {
-            string remotePath = "https://github.com/dotnet/machinelearning-testdata/raw/master/Microsoft.ML.TensorFlow.TestModels/sentiment_model/";
+            string remotePath = "https://github.com/dotnet/machinelearning-testdata/raw/296625f4e49d50fcd6a48a0d92bea7584e198c0f/Microsoft.ML.TensorFlow.TestModels/sentiment_model/";
 
             string path = "sentiment_model";
             if (!Directory.Exists(path))
