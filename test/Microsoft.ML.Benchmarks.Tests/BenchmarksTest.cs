@@ -42,15 +42,16 @@ namespace Microsoft.ML.Benchmarks.Tests
 
             foreach (Type type in types)
             {
-                benchmarks.Add(type);
+                for (int i = 0; i < 100; i++)
+                {
+                    benchmarks.Add(type);
+                }
             }
             return benchmarks;
         }
 
         [BenchmarkTheory]
         [MemberData(nameof(GetBenchmarks))]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void BenchmarksProjectIsNotBroken(Type type)
         {
             var summary = BenchmarkRunner.Run(type, new TestConfig().With(new OutputLogger(output)));
