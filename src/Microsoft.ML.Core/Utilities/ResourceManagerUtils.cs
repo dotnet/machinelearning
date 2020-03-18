@@ -341,15 +341,4 @@ namespace Microsoft.ML.Internal.Utilities
         private static extern int chmod(string pathname, int mode);
 #pragma warning restore IDE1006
     }
-
-    public class WebClientResponse : WebClient
-    {
-        public WebResponse Response { get; private set; }
-
-        protected override WebResponse GetWebResponse(WebRequest request)
-        {
-            Response = base.GetWebResponse(request);
-            return Response;
-        }
-    }
 }
