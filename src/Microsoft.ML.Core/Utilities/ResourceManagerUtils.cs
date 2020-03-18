@@ -294,8 +294,8 @@ namespace Microsoft.ML.Internal.Utilities
             }
         }
 
-        /// <summary>This method checks whether or not the provided url redirects to
-        /// the default url <see cref="ResourceManagerUtils.DefaultUrl"/>.</summary>
+        /// <summary>This method checks whether or not the provided aka.ms url redirects to
+        /// Microsoft's homepage, as faulty aka.ms URLs redirect to https://www.microsoft.com/?ref=aka .</summary>
         /// <param name="url"> The provided url to check </param>
         public bool IsRedirectToDefaultPage(string url)
         {
@@ -311,12 +311,12 @@ namespace Microsoft.ML.Internal.Utilities
             }
             catch (WebException e)
             {
-                HttpStatusCode statusCode = ((HttpWebResponse)e.Response).StatusCode;
+                HttpWebResponse webResponse = (HttpWebResponse)e.Response;
                 // Redirects to default url
-                if (statusCode == HttpStatusCode.Redirect)
+                if (webResponse.StatusCode == HttpStatusCode.Redirect && webResponse.Headers["Location"] == "https://www.microsoft.com/?ref=aka")
                     return true;
                 // Redirects to another url
-                else if (statusCode == HttpStatusCode.MovedPermanently)
+                else if (webResponse.StatusCode == HttpStatusCode.MovedPermanently)
                     return false;
                 else
                     return false;
