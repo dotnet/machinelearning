@@ -742,8 +742,9 @@ namespace Microsoft.ML.Data
                 mapper =
                     (in TInput src, ref Single dst) =>
                     {
-                        // Attention: this method will be used in multipe threading,
-                        // don't put temp variable outside of this method to avoid race condition
+                        //Attention: This method is called from multiple threads.
+                        //Do not move the temp variable outside this method.
+                        //If you do, the variable is shared between the threads and results in a race condition.
                         ulong temp = 0;
                         if (isNa(in src))
                         {
@@ -761,8 +762,9 @@ namespace Microsoft.ML.Data
                 mapper =
                     (in TInput src, ref Single dst) =>
                     {
-                        // Attention: this method will be used in multipe threading,
-                        // don't put temp variable outside of this method to avoid race condition
+                        //Attention: This method is called from multiple threads.
+                        //Do not move the temp variable outside this method.
+                        //If you do, the variable is shared between the threads and results in a race condition.
                         ulong temp = 0;
                         if (isNa(in src))
                         {
