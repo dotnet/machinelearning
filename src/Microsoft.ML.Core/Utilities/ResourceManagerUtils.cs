@@ -139,7 +139,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// <returns>Returns the error message if an error occurred, null if download was successful.</returns>
         private async Task<string> DownloadFromUrlAsync(IHostEnvironment env, IChannel ch, string url, string fileName, int timeout, string filePath)
         {
-            using (var webClient = new WebClientResponseUri())
+            using (var webClient = new WebClientResponse())
             using (var downloadCancel = new CancellationTokenSource())
             {
                 bool deleteNeeded = false;
@@ -236,7 +236,7 @@ namespace Microsoft.ML.Internal.Utilities
             return filePath;
         }
 
-        private Exception DownloadResource(IHostEnvironment env, IChannel ch, WebClientResponseUri webClient, Uri uri, string path, string fileName, CancellationToken ct)
+        private Exception DownloadResource(IHostEnvironment env, IChannel ch, WebClientResponse webClient, Uri uri, string path, string fileName, CancellationToken ct)
         {
             if (File.Exists(path))
                 return null;
@@ -258,13 +258,9 @@ namespace Microsoft.ML.Internal.Utilities
                 using (var ws = fh.CreateWriteStream())
                 {
                     var headers = webClient.ResponseHeaders.GetValues("Content-Length");
-                    var requestUri = webClient.ResponseUri;
-                    if (requestUri.Host == "www.microsoft.com" && requestUri.ToString().Length < 60)
-                    {
-                        return new ArgumentException($"The url '{uri}' does not exist. Url was redirected to '{requestUri}'.");
-                    }
-
-                    if (!long.TryParse(headers[0], out var size))
+                    if (IsRedirectToDefaultPage(uri))
+                        return ch.Except($"Invalid aka.ms url: {uri}");
+                    if (Utils.Size(headers) == 0 || !long.TryParse(headers[0], out var size))
                         size = 10000000;
 
                     long printFreq = (long)(size / 10.0);
@@ -301,6 +297,29 @@ namespace Microsoft.ML.Internal.Utilities
             }
         }
 
+        public bool IsRedirectToDefaultPage(Uri uri)
+        {
+            try
+            {
+                uri = new Uri("https://aka.ms/mlnet-resources/Text/Sswe/sentimenttt.emd");
+                HttpWebRequest myHttpWebRequest = (HttpWebRequest)WebRequest.Create(uri.AbsoluteUri);
+                myHttpWebRequest.AllowAutoRedirect = false;
+                HttpWebResponse myHttpWebResponse = (HttpWebResponse)myHttpWebRequest.GetResponse();
+            }
+            catch (WebException e)
+            {
+                // Redirects to https://www.microsoft.com/en-us/?ref=aka
+                if (e.Message == "The remote server returned an error: (302) Moved Temporarily.")
+                    return true;
+                // Redirects to another url
+                else if (e.Message == "The remote server returned an error: (301) Moved Permanently.")
+                    return false;
+                else
+                    return false;
+            }
+            return false;
+        }
+
         public static ResourceDownloadResults GetErrorMessage(out string errorMessage, params ResourceDownloadResults[] result)
         {
             var errorResult = result.FirstOrDefault(res => !string.IsNullOrEmpty(res.ErrorMessage));
@@ -319,15 +338,14 @@ namespace Microsoft.ML.Internal.Utilities
 #pragma warning restore IDE1006
     }
 
-    public class WebClientResponseUri : WebClient
+    public class WebClientResponse : WebClient
     {
-        public Uri ResponseUri { get; private set; }
+        public WebResponse Response { get; private set; }
 
         protected override WebResponse GetWebResponse(WebRequest request)
         {
-            WebResponse response = base.GetWebResponse(request);
-            ResponseUri = response.ResponseUri;
-            return response;
+            Response = base.GetWebResponse(request);
+            return Response;
         }
     }
 }
