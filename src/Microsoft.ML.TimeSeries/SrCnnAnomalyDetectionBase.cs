@@ -285,8 +285,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     {
                         dataList.Add(data[i]);
                     }
-                    //var exp = CalculateExpectedValueByFft(dataList);
-                    var exp = CalculateExpectedValueBySsa(dataList);
+                    //var exp = CalculateExpectedValueByFft(dataList.GetRange(0, dataList.Count-1));
+                    var exp = CalculateExpectedValueBySsa(dataList.GetRange(0, dataList.Count - 1));
                     result.Values[3] = exp;
 
                     //Step 9: Calculate Boundary Unit
@@ -384,7 +384,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 {
                     var ml = new MLContext();
 
-                    var tsData = data.GetRange(0, data.Count-1).Select(x => new TimeSeriesData(x)).ToList();
+                    var tsData = data.Select(x => new TimeSeriesData(x)).ToList();
                     var dataView = ml.Data.LoadFromEnumerable(tsData);
 
                     var inputColumnName = nameof(TimeSeriesData.Value);

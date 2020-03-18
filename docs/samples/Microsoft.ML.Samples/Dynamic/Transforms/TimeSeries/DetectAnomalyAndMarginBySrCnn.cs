@@ -86,7 +86,7 @@ namespace Samples.Dynamic.Transforms.TimeSeries
             // Anomaly.
             PrintPrediction(10, engine.Predict(new TimeSeriesData(10)));
 
-            //10      1       0.38            0.93    9.06            5.00            9.07            9.05    <-- alert is on, predicted anomaly
+            //10      1       0.50            0.93    5.00            5.00            5.01            4.99  < -- alert is on, predicted anomaly
 
             // Checkpoint the model.
             var modelPath = "temp.zip";
