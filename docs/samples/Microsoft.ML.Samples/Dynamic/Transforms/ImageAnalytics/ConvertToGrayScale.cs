@@ -22,7 +22,7 @@ namespace Samples.Dynamic
             // folder will be created, containing 4 images, and a .tsv file
             // enumerating the images. 
             var imagesDataFile = Microsoft.ML.SamplesUtils.DatasetUtils
-                .DownloadImages();
+                .GetSampleImages();
 
             // Preview of the content of the images.tsv file
             //

@@ -12,21 +12,35 @@ namespace Microsoft.ML.SamplesUtils
 {
     public static class DatasetUtils
     {
-        /// <summary>
-        /// Downloads the housing dataset from the ML.NET repo.
-        /// </summary>
-        public static string DownloadHousingRegressionDataset()
+        public static string GetFilePathFromDataDirectory(string fileName)
         {
-            var fileName = "housing.txt";
-            if (!File.Exists(fileName))
-                Download("https://raw.githubusercontent.com/dotnet/machinelearning/024bd4452e1d3660214c757237a19d6123f951ca/test/data/housing.txt", fileName);
-            return fileName;
+#if NETFRAMEWORK
+            string directory = AppDomain.CurrentDomain.BaseDirectory;
+#else
+            string directory = AppContext.BaseDirectory;
+#endif
+
+            while (!Directory.Exists(Path.Combine(directory, ".git")) && directory != null)
+            {
+                directory = Directory.GetParent(directory).FullName;
+            }
+
+            if (directory == null)
+            {
+                throw new DirectoryNotFoundException("Could not find the ML.NET repository");
+            }
+            return Path.Combine(directory, "test", "data", fileName);
         }
+
+        /// <summary>
+        /// Returns the path to the housing dataset from the ML.NET repo.
+        /// </summary>
+        public static string GetHousingRegressionDataset() => GetFilePathFromDataDirectory("housing.txt");
 
         public static IDataView LoadHousingRegressionDataset(MLContext mlContext)
         {
-            // Download the file
-            string dataFile = DownloadHousingRegressionDataset();
+            // Obtains the path to the file
+            string dataFile = GetHousingRegressionDataset();
 
             // Define the columns to load
             var loader = mlContext.Data.CreateTextLoader(
@@ -55,13 +69,12 @@ namespace Microsoft.ML.SamplesUtils
         }
 
         /// <summary>
-        /// Downloads the adult dataset from the ML.NET repo.
+        /// Returns the path to the adult dataset from the ML.NET repo.
         /// </summary>
-        public static string DownloadAdultDataset()
-        => Download("https://raw.githubusercontent.com/dotnet/machinelearning/244a8c2ac832657af282aa312d568211698790aa/test/data/adult.train", "adult.txt");
+        public static string GetAdultDataset() => GetFilePathFromDataDirectory("adult.txt");
 
         /// <summary>
-        /// Downloads the Adult UCI dataset and featurizes it to be suitable for classification tasks.
+        /// Returns the path to the Adult UCI dataset and featurizes it to be suitable for classification tasks.
         /// </summary>
         /// <param name="mlContext"><see cref="MLContext"/> used for data loading and processing.</param>
         /// <returns>Featurized dataset.</returns>
@@ -70,8 +83,8 @@ namespace Microsoft.ML.SamplesUtils
         /// </remarks>
         public static IDataView LoadFeaturizedAdultDataset(MLContext mlContext)
         {
-            // Download the file
-            string dataFile = DownloadAdultDataset();
+            // Obtains the path to the file
+            string dataFile = GetAdultDataset();
 
             // Define the columns to load
             var loader = mlContext.Data.CreateTextLoader(
@@ -120,30 +133,14 @@ namespace Microsoft.ML.SamplesUtils
         }
 
         /// <summary>
-        /// Downloads the breast cancer dataset from the ML.NET repo.
+        /// Returns the path to the breast cancer dataset from the ML.NET repo.
         /// </summary>
-        public static string DownloadBreastCancerDataset()
-            => Download("https://raw.githubusercontent.com/dotnet/machinelearning/76cb2cdf5cc8b6c88ca44b8969153836e589df04/test/data/breast-cancer.txt", "breast-cancer.txt");
+        public static string GetBreastCancerDataset() => GetFilePathFromDataDirectory("breast-cancer.txt");
 
         /// <summary>
-        /// Downloads 4 images, and a tsv file with their names from the dotnet/machinelearning repo.
+        /// Returns the path to 4 sample images, and a tsv file with their names from the dotnet/machinelearning repo.
         /// </summary>
-        public static string DownloadImages()
-        {
-            string path = "images";
-
-            var dirInfo = Directory.CreateDirectory(path);
-
-            string pathEscaped = $"{path}{Path.DirectorySeparatorChar}";
-
-            Download("https://raw.githubusercontent.com/dotnet/machinelearning/284e02cadf5342aa0c36f31d62fc6fa15bc06885/test/data/images/banana.jpg", $"{pathEscaped}banana.jpg");
-            Download("https://raw.githubusercontent.com/dotnet/machinelearning/284e02cadf5342aa0c36f31d62fc6fa15bc06885/test/data/images/hotdog.jpg", $"{pathEscaped}hotdog.jpg");
-            Download("https://raw.githubusercontent.com/dotnet/machinelearning/284e02cadf5342aa0c36f31d62fc6fa15bc06885/test/data/images/images.tsv", $"{pathEscaped}images.tsv");
-            Download("https://raw.githubusercontent.com/dotnet/machinelearning/284e02cadf5342aa0c36f31d62fc6fa15bc06885/test/data/images/tomato.bmp", $"{pathEscaped}tomato.bmp");
-            Download("https://raw.githubusercontent.com/dotnet/machinelearning/284e02cadf5342aa0c36f31d62fc6fa15bc06885/test/data/images/tomato.jpg", $"{pathEscaped}tomato.jpg");
-
-            return $"{path}{Path.DirectorySeparatorChar}images.tsv";
-        }
+        public static string GetSampleImages() => GetFilePathFromDataDirectory("images/images.tsv");
 
         /// <summary>
         /// Downloads sentiment_model from the dotnet/machinelearning-testdata repo.
