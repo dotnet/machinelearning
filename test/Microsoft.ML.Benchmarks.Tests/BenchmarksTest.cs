@@ -9,9 +9,11 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Running;
+using micro;
 using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -42,13 +44,160 @@ namespace Microsoft.ML.Benchmarks.Tests
 
             foreach (Type type in types)
             {
-                for (int i = 0; i < 100; i++)
-                {
-                    benchmarks.Add(type);
-                }
+                benchmarks.Add(type);
             }
             return benchmarks;
         }
+
+        //[Theory]
+        //[IterationData(iterations: 1)]
+        //[Trait("Category", "RunSpecificTest")]
+        //public void TestBenchmarkHangingSetupSentimentPipeline(int iteration)
+        //{
+        //    Output.WriteLine($"{iteration} -th");
+        //    PredictionEngineBench predictionEngineBench = new PredictionEngineBench();
+        //    predictionEngineBench.SetupSentimentPipeline();
+        //}
+
+        //[Theory]
+        //[IterationData(iterations: 1)]
+        //[Trait("Category", "RunSpecificTest")]
+        //public void TestBenchmarkHangingSetupIrisPipeline(int iteration)
+        //{
+        //    Output.WriteLine($"{iteration} -th");
+        //    PredictionEngineBench predictionEngineBench = new PredictionEngineBench();
+        //    predictionEngineBench.SetupIrisPipeline();
+        //}
+
+        //[Theory]
+        //[IterationData(iterations: 1)]
+        //[Trait("Category", "RunSpecificTest")]
+        //public void TestBenchmarkHangingSetupBreastCancerPipeline(int iteration)
+        //{
+        //    Output.WriteLine($"{iteration} -th");
+        //    PredictionEngineBench predictionEngineBench = new PredictionEngineBench();
+        //    predictionEngineBench.SetupBreastCancerPipeline();
+        //}
+
+        //[Theory]
+        //[IterationData(iterations: 1)]
+        //[Trait("Category", "RunSpecificTest")]
+        //public void TestBenchmarkHangingSetup(int iteration)
+        //{
+        //    Output.WriteLine($"{iteration} -th");
+        //    CacheDataViewBench cacheDataViewBench = new CacheDataViewBench();
+        //    cacheDataViewBench.Setup();
+        //}
+
+        //[Theory]
+        //[IterationData(iterations: 1)]
+        //[Trait("Category", "RunSpecificTest")]
+        //public void TestBenchmarkHangingSetupHashScalarString(int iteration)
+        //{
+        //    Output.WriteLine($"{iteration} -th");
+        //    HashBench hashBench = new HashBench();
+        //    hashBench.SetupHashScalarString();
+        //}
+
+        //[Theory]
+        //[IterationData(iterations: 1)]
+        //[Trait("Category", "RunSpecificTest")]
+        //public void TestBenchmarkHangingSetupHashScalarFloat(int iteration)
+        //{
+        //    Output.WriteLine($"{iteration} -th");
+        //    HashBench hashBench = new HashBench();
+        //    hashBench.SetupHashScalarFloat();
+        //}
+
+        //[Theory]
+        //[IterationData(iterations: 1)]
+        //[Trait("Category", "RunSpecificTest")]
+        //public void TestBenchmarkHangingSetupHashScalarDouble(int iteration)
+        //{
+        //    Output.WriteLine($"{iteration} -th");
+        //    HashBench hashBench = new HashBench();
+        //    hashBench.SetupHashScalarDouble();
+        //}
+
+        //[Theory]
+        //[IterationData(iterations: 1)]
+        //[Trait("Category", "RunSpecificTest")]
+        //public void TestBenchmarkHangingSetupHashScalarKey(int iteration)
+        //{
+        //    Output.WriteLine($"{iteration} -th");
+        //    HashBench hashBench = new HashBench();
+        //    hashBench.SetupHashScalarKey();
+        //}
+
+        //[Theory]
+        //[IterationData(iterations: 1)]
+        //[Trait("Category", "RunSpecificTest")]
+        //public void TestBenchmarkHangingSetupHashVectorString(int iteration)
+        //{
+        //    Output.WriteLine($"{iteration} -th");
+        //    HashBench hashBench = new HashBench();
+        //    hashBench.SetupHashVectorString();
+        //}
+
+        //[Theory]
+        //[IterationData(iterations: 1)]
+        //[Trait("Category", "RunSpecificTest")]
+        //public void TestBenchmarkHangingSetupHashVectorFloat(int iteration)
+        //{
+        //    Output.WriteLine($"{iteration} -th");
+        //    HashBench hashBench = new HashBench();
+        //    hashBench.SetupHashVectorFloat();
+        //}
+
+        //[Theory]
+        //[IterationData(iterations: 1)]
+        //[Trait("Category", "RunSpecificTest")]
+        //public void TestBenchmarkHangingSetupHashVectorDouble(int iteration)
+        //{
+        //    Output.WriteLine($"{iteration} -th");
+        //    HashBench hashBench = new HashBench();
+        //    hashBench.SetupHashVectorDouble();
+        //}
+
+        //[Theory]
+        //[IterationData(iterations: 1)]
+        //[Trait("Category", "RunSpecificTest")]
+        //public void TestBenchmarkHangingSetupHashVectorKey(int iteration)
+        //{
+        //    Output.WriteLine($"{iteration} -th");
+        //    HashBench hashBench = new HashBench();
+        //    hashBench.SetupHashVectorKey();
+        //}
+
+        //[Theory]
+        //[IterationData(iterations: 1)]
+        //[Trait("Category", "RunSpecificTest")]
+        //public void TestBenchmarkHangingSetupTrainingSpeedTestsRff(int iteration)
+        //{
+        //    Output.WriteLine($"{iteration} -th");
+        //    RffTransformTrain rffTransformTrain = new RffTransformTrain();
+        //    rffTransformTrain.SetupTrainingSpeedTests();
+        //}
+
+        //[Theory]
+        //[IterationData(iterations: 1)]
+        //[Trait("Category", "RunSpecificTest")]
+        //public void TestBenchmarkHangingSetupPredictBenchmarks(int iteration)
+        //{
+        //    Output.WriteLine($"{iteration} -th");
+        //    StochasticDualCoordinateAscentClassifierBench stochasticDualCoordinateAscentClassifierBench = 
+        //        new StochasticDualCoordinateAscentClassifierBench();
+        //    stochasticDualCoordinateAscentClassifierBench.SetupPredictBenchmarks();
+        //}
+
+
+
+
+
+
+
+
+
 
         [BenchmarkTheory]
         [MemberData(nameof(GetBenchmarks))]

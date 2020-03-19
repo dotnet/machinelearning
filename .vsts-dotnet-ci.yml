@@ -66,7 +66,7 @@ jobs:
     innerLoop: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.0"
     pool:
-      name: MachineLearning Test
+      name: Hosted VS2017
 
 # - template: /build/ci/job-template.yml
 #   parameters:
