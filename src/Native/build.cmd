@@ -21,7 +21,7 @@ if /i [%1] == [Release]     ( set CMAKE_BUILD_TYPE=Release&&shift&goto Arg_Loop)
 if /i [%1] == [Release-netcoreapp3_1]     ( set CMAKE_BUILD_TYPE=Release-netcoreapp3_1&&shift&goto Arg_Loop)
 if /i [%1] == [Release-netfx]     ( set CMAKE_BUILD_TYPE=Release-netfx&&shift&goto Arg_Loop)
 if /i [%1] == [Debug]       ( set CMAKE_BUILD_TYPE=Debug&&shift&goto Arg_Loop)
-if /i [%1] == [Debug-netcoreapp3_]       ( set CMAKE_BUILD_TYPE=Debug-netcoreapp3_1&&shift&goto Arg_Loop)
+if /i [%1] == [Debug-netcoreapp3_1]       ( set CMAKE_BUILD_TYPE=Debug-netcoreapp3_1&&shift&goto Arg_Loop)
 if /i [%1] == [Debug-netfx]       ( set CMAKE_BUILD_TYPE=Debug-netfx&&shift&goto Arg_Loop)
 
 if /i [%1] == [x86]         ( set __BuildArch=x86&&set __VCBuildArch=x86&&shift&goto Arg_Loop)
