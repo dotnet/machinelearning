@@ -23,7 +23,7 @@ namespace Microsoft.ML.AutoML.Test
         public void GetNextPipeline()
         {
             var context = new MLContext(1);
-            var uciAdult = DatasetUtil.GetUciAdultDataView(context);
+            var uciAdult = DatasetUtil.GetUciAdultDataView();
             var columns = DatasetColumnInfoUtil.GetDatasetColumnInfo(context, uciAdult, new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel });
 
             // get next pipeline
@@ -47,7 +47,7 @@ namespace Microsoft.ML.AutoML.Test
         public void GetNextPipelineMock()
         {
             var context = new MLContext(1);
-            var uciAdult = DatasetUtil.GetUciAdultDataView(context);
+            var uciAdult = DatasetUtil.GetUciAdultDataView();
             var columns = DatasetColumnInfoUtil.GetDatasetColumnInfo(context, uciAdult, new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel });
 
             // Get next pipeline loop
