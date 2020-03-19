@@ -255,7 +255,7 @@ namespace Microsoft.ML.Internal.Utilities
                 using (var ws = fh.CreateWriteStream())
                 {
                     var headers = webClient.ResponseHeaders.GetValues("Content-Length");
-                    if (IsRedirectToDefaultPage(uri.AbsoluteUri))
+                    if (uri.Host == "aka.ms" && IsRedirectToDefaultPage(uri.AbsoluteUri))
                         return ch.Except($"The provided url ({uri}) redirects to the default url ({DefaultUrl})");
                     if (Utils.Size(headers) == 0 || !long.TryParse(headers[0], out var size))
                         size = 10000000;
@@ -295,14 +295,14 @@ namespace Microsoft.ML.Internal.Utilities
         }
 
         /// <summary>This method checks whether or not the provided aka.ms url redirects to
-        /// Microsoft's homepage, as faulty aka.ms URLs redirect to https://www.microsoft.com/?ref=aka .</summary>
+        /// Microsoft's homepage, as the default faulty aka.ms URLs redirect to https://www.microsoft.com/?ref=aka .</summary>
         /// <param name="url"> The provided url to check </param>
         public bool IsRedirectToDefaultPage(string url)
         {
             try
             {
                 var request = WebRequest.Create(url);
-                // FileWebRequests cannot be redirected to default aka.ms webpage <see cref="Default"/>
+                // FileWebRequests cannot be redirected to default aka.ms webpage
                 if (request.GetType() == typeof(FileWebRequest))
                     return false;
                 HttpWebRequest httpWebRequest = (HttpWebRequest)request;
