@@ -173,7 +173,7 @@ namespace Microsoft.Data.Analysis
                         throw new NotSupportedException();
                     }
 <# if (method.MethodType == MethodType.ComparisonScalar || method.MethodType == MethodType.Comparison) { #>
-                    PrimitiveDataFrameColumn<bool> retColumn = CloneAsBoolColumn();
+                    PrimitiveDataFrameColumn<bool> retColumn = CloneAsBooleanColumn();
 <# if (method.MethodType == MethodType.ComparisonScalar) { #>
                     (this as PrimitiveDataFrameColumn<bool>)._columnContainer.<#=method.MethodName#>(Unsafe.As<U, bool>(ref value), retColumn._columnContainer);
 <# } else { #>
@@ -202,12 +202,12 @@ namespace Microsoft.Data.Analysis
 <# if (method.MethodType == MethodType.ComparisonScalar || method.MethodType == MethodType.Comparison) { #>
 <# if (method.MethodType == MethodType.ComparisonScalar) { #>
                         PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBoolColumn();
+                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         primitiveColumn._columnContainer.<#=method.MethodName#>(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
                         return newColumn;
 <# } else { #>
                         PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBoolColumn();
+                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         primitiveColumn._columnContainer.<#=method.MethodName#>(column._columnContainer, newColumn._columnContainer);
                         return newColumn;
 <# } #>
@@ -239,7 +239,7 @@ namespace Microsoft.Data.Analysis
                         }
 <# } #>
 <# if (method.MethodType == MethodType.ComparisonScalar || method.MethodType == MethodType.Comparison) { #>
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBoolColumn();
+                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
 <# if (method.MethodType == MethodType.ComparisonScalar) { #>
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
                         decimalColumn._columnContainer.<#=method.MethodName#>(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
@@ -285,12 +285,12 @@ namespace Microsoft.Data.Analysis
 <# if (method.MethodType == MethodType.ComparisonScalar || method.MethodType == MethodType.Comparison) { #>
 <# if (method.MethodType == MethodType.ComparisonScalar) { #>
                         PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBoolColumn();
+                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         primitiveColumn._columnContainer.<#=method.MethodName#>(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
                         return newColumn;
 <# } else { #>
                         PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBoolColumn();
+                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         primitiveColumn._columnContainer.<#=method.MethodName#>(column._columnContainer, newColumn._columnContainer);
                         return newColumn;
 <# } #>
@@ -324,7 +324,7 @@ namespace Microsoft.Data.Analysis
                         if (typeof(U) == typeof(decimal))
                         {
 <# if (method.MethodType == MethodType.ComparisonScalar || method.MethodType == MethodType.Comparison) { #>
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBoolColumn();
+                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
 <# if (method.MethodType == MethodType.ComparisonScalar) { #>
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
                             decimalColumn._columnContainer.<#=method.MethodName#>(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
@@ -349,7 +349,7 @@ namespace Microsoft.Data.Analysis
                         else
                         {
 <# if (method.MethodType == MethodType.ComparisonScalar || method.MethodType == MethodType.Comparison) { #>
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBoolColumn();
+                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
 <# if (method.MethodType == MethodType.ComparisonScalar) { #>
                             PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
                             doubleColumn._columnContainer.<#=method.MethodName#>(DoubleConverter<U>.Instance.GetDouble(value), newColumn._columnContainer);

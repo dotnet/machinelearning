@@ -1,0 +1,626 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+<#@ include file="..\..\src\Microsoft.Data.Analysis\ColumnArithmeticTemplate.ttinclude"#>
+<#@ include file="..\..\src\Microsoft.Data.Analysis\PrimitiveDataFrameColumn.BinaryOperations.Combinations.ttinclude" #>
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+// Generated from DataFrameColumn.BinaryOperationTests.tt. Do not modify directly
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Xunit;
+
+namespace Microsoft.Data.Analysis.Tests
+{
+    public partial class DataFrameColumnTests
+    {
+<# 
+bool supportedInPlace(string type1, string type2)
+{
+    primitiveTypeToPrimitivityLevelMap.TryGetValue(type1, out int columnTypeLevel);
+    primitiveTypeToPrimitivityLevelMap.TryGetValue(type2, out int otherColumnTypeLevel);
+    if (columnTypeLevel < otherColumnTypeLevel)
+    {
+        return false;
+    }
+    return true;
+}
+#>
+<#
+void GenerateBinaryVerify(string methodName, string fullReturnType, string returnType)
+{
+#>
+<#
+            if (methodName == "Add")
+            {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)(2 * x));
+            var verifyColumn = new <#=fullReturnType#>("Verify", verify);
+<#
+            }
+            else if (methodName == "Subtract")
+            {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)0);
+            var verifyColumn = new <#=fullReturnType#>("Verify", verify);
+<#
+            }
+            else if (methodName == "Multiply")
+            {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)(x * x));
+            var verifyColumn = new <#=fullReturnType#>("Verify", verify);
+<#
+            }
+            else if (methodName == "Divide")
+            {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)(1));
+            var verifyColumn = new <#=fullReturnType#>("Verify", verify);
+<#
+            }
+            else if (methodName == "Modulo")
+            {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)(0));
+            var verifyColumn = new <#=fullReturnType#>("Verify", verify);
+<#
+            }
+#>
+<#
+}
+#>
+<# 
+// Only generate the tests for ByteDataFrameColumn. It exercises all the possible paths since it includes cloning the non byte columns and keeps the number of tests low enough.
+void GenerateAllBinaryTestsForMethod(string methodName, string methodOperator)
+{
+ foreach (TypeCombination types in BinaryOperationCombinations.binaryOperationCombinations) 
+{ 
+    string returnType = types.ReturnColumnType;
+    string columnType = types.ThisColumnType;
+    if (columnType != "byte")
+    {
+        continue;
+    }
+    string otherColumnType = types.OtherColumnType;
+
+    string fullColumnType = GetCapitalizedPrimitiveTypes(columnType) + "DataFrameColumn";
+    string fullReturnType = GetCapitalizedPrimitiveTypes(returnType) + "DataFrameColumn";
+    string fullOtherColumnType = GetCapitalizedPrimitiveTypes(otherColumnType) + "DataFrameColumn";
+
+    string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
+    string capitalizedColumnType = GetCapitalizedPrimitiveTypes(columnType);
+    string capitalizedOtherColumnType = GetCapitalizedPrimitiveTypes(otherColumnType);
+#>
+        [Fact]
+        public void <#=methodName#><#=fullOtherColumnType#>To<#=fullColumnType#>()
+        {
+            var columnEnumerable = Enumerable.Range(1, 10).Select(x => (<#=columnType#>)x);
+            <#=fullColumnType#> column = new <#=fullColumnType#>("<#=capitalizedColumnType#>", columnEnumerable);
+            var otherColumnEnumerable = Enumerable.Range(1, 10).Select(x => (<#=otherColumnType#>)x);
+            <#=fullOtherColumnType#> otherColumn = new <#=fullOtherColumnType#>("<#=capitalizedOtherColumnType#>", otherColumnEnumerable);
+            <#=fullReturnType#> columnResult = column <#=methodOperator#> otherColumn;
+<#GenerateBinaryVerify(methodName, fullReturnType, returnType); #>
+            Assert.Equal(columnResult.Length, verify.Count());
+            Assert.True(columnResult.ElementwiseEquals(verifyColumn).All());
+        }
+<# 
+} 
+}
+#>
+<#
+void GenerateBinaryScalarVerify(string methodName, string fullReturnType, string returnType, int value, bool isReverse)
+{
+            if (methodName.Contains("Add"))
+            {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)((<#=returnType#>)x + (<#=returnType#>)value));
+            var verifyColumn = new <#=fullReturnType#>("Verify", verify);
+<#
+            }
+            else if (methodName.Contains("Subtract"))
+            {
+                if (!isReverse)
+                {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)((<#=returnType#>)x - (<#=returnType#>)value));
+<#
+                }
+                else
+                {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)((<#=returnType#>)value - (<#=returnType#>)x));
+<#
+                }
+#>
+            var verifyColumn = new <#=fullReturnType#>("Verify", verify);
+<#
+            }
+            else if (methodName.Contains("Multiply"))
+            {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)((<#=returnType#>)x * (<#=returnType#>)value));
+            var verifyColumn = new <#=fullReturnType#>("Verify", verify);
+<#
+            }
+            else if (methodName.Contains("Divide"))
+            {
+                if (!isReverse)
+                {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)((<#=returnType#>)x / (<#=returnType#>)value));
+<#
+                }
+                else
+                {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)((<#=returnType#>)value / (<#=returnType#>)x));
+<#
+                }
+#>
+            var verifyColumn = new <#=fullReturnType#>("Verify", verify);
+<#
+            }
+            else if (methodName.Contains("Modulo"))
+            {
+                if (!isReverse)
+                {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)((<#=returnType#>)x % (<#=returnType#>)value));
+<#
+                }
+                else
+                {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)((<#=returnType#>)value % (<#=returnType#>)x));
+<#
+                }
+#>
+            var verifyColumn = new <#=fullReturnType#>("Verify", verify);
+<#
+            }
+#>
+<#
+}
+#>
+<#
+void GenerateBinaryComparisonScalarVerify(string methodName, string fullReturnType, string returnType, int value, bool isReverse)
+{
+            if (methodName.Contains("ElementwiseEquals"))
+            {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)(false));
+            var verifyColumn = new <#=fullReturnType#>("Verify", verify);
+<#
+            }
+            else if (methodName.Contains("ElementwiseNotEquals"))
+            {
+                if (!isReverse)
+                {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)(false));
+<#
+                }
+                else
+                {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)(false));
+<#
+                }
+#>
+            var verifyColumn = new <#=fullReturnType#>("Verify", verify);
+<#
+            }
+            else if (methodName.Contains("Multiply"))
+            {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)((<#=returnType#>)x * (<#=returnType#>)value));
+            var verifyColumn = new <#=fullReturnType#>("Verify", verify);
+<#
+            }
+            else if (methodName.Contains("Divide"))
+            {
+                if (!isReverse)
+                {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)((<#=returnType#>)x / (<#=returnType#>)value));
+<#
+                }
+                else
+                {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)((<#=returnType#>)value / (<#=returnType#>)x));
+<#
+                }
+#>
+            var verifyColumn = new <#=fullReturnType#>("Verify", verify);
+<#
+            }
+            else if (methodName.Contains("Modulo"))
+            {
+                if (!isReverse)
+                {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)((<#=returnType#>)x % (<#=returnType#>)value));
+<#
+                }
+                else
+                {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)((<#=returnType#>)value % (<#=returnType#>)x));
+<#
+                }
+#>
+            var verifyColumn = new <#=fullReturnType#>("Verify", verify);
+<#
+            }
+#>
+<#
+}
+#>
+<#
+void GenerateBinaryComparisonVerify(string methodName, string fullReturnType, string returnType, int value, bool isReverse)
+{
+            if (methodName.Contains("ElementwiseEquals"))
+            {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => true);
+            var verifyColumn = new <#=fullReturnType#>("Verify", verify);
+<#
+            }
+            else if (methodName.Contains("ElementwiseNotEquals"))
+            {
+                if (!isReverse)
+                {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => true);
+<#
+                }
+                else
+                {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => true);
+<#
+                }
+#>
+            var verifyColumn = new <#=fullReturnType#>("Verify", verify);
+<#
+            }
+            else if (methodName.Contains("Multiply"))
+            {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)((<#=returnType#>)x * (<#=returnType#>)value));
+            var verifyColumn = new <#=fullReturnType#>("Verify", verify);
+<#
+            }
+            else if (methodName.Contains("Divide"))
+            {
+                if (!isReverse)
+                {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)((<#=returnType#>)x / (<#=returnType#>)value));
+<#
+                }
+                else
+                {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)((<#=returnType#>)value / (<#=returnType#>)x));
+<#
+                }
+#>
+            var verifyColumn = new <#=fullReturnType#>("Verify", verify);
+<#
+            }
+            else if (methodName.Contains("Modulo"))
+            {
+                if (!isReverse)
+                {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)((<#=returnType#>)x % (<#=returnType#>)value));
+<#
+                }
+                else
+                {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)((<#=returnType#>)value % (<#=returnType#>)x));
+<#
+                }
+#>
+            var verifyColumn = new <#=fullReturnType#>("Verify", verify);
+<#
+            }
+#>
+<#
+}
+#>
+<#
+void GenerateBinaryBitwiseScalarVerify(string methodName, string fullReturnType, string returnType, bool value, bool isReverse)
+{
+            if (methodName.Contains("And"))
+            {
+                if (!isReverse)
+                {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)((<#=returnType#>)x & (<#=returnType#>)value));
+<#
+                }
+                else
+                {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)((<#=returnType#>)value & (<#=returnType#>)x));
+<#
+                }
+#>
+            var verifyColumn = new <#=fullReturnType#>("Verify", verify);
+<#
+            }
+            else if (methodName.Contains("Or"))
+            {
+                if (!isReverse)
+                {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)((<#=returnType#>)x | (<#=returnType#>)value));
+<#
+                }
+                else
+                {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)((<#=returnType#>)value | (<#=returnType#>)x));
+<#
+                }
+#>
+            var verifyColumn = new <#=fullReturnType#>("Verify", verify);
+<#
+            }
+            else if (methodName.Contains("Xor"))
+            {
+                if (!isReverse)
+                {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)((<#=returnType#>)x ^ (<#=returnType#>)value));
+<#
+                }
+                else
+                {
+#>
+            var verify = Enumerable.Range(1, 10).Select(x => (<#=returnType#>)((<#=returnType#>)value ^ (<#=returnType#>)x));
+<#
+                }
+#>
+            var verifyColumn = new <#=fullReturnType#>("Verify", verify);
+<#
+            }
+#>
+<#
+}
+#>
+<#
+// Only generate the tests for ByteDataFrameColumn. It exercises all the possible paths since it includes cloning the non byte columns and keeps the number of tests low enough.
+void GenerateAllBinaryScalarTestsForMethod(string methodName, string methodOperator)
+{
+ foreach (TypeCombination types in BinaryOperationCombinations.binaryOperationCombinations) 
+{ 
+    string returnType = types.ReturnColumnType;
+    string columnType = types.ThisColumnType;
+    if (columnType != "byte")
+    {
+        continue;
+    }
+    string otherColumnType = types.OtherColumnType;
+
+    string fullColumnType = GetCapitalizedPrimitiveTypes(columnType) + "DataFrameColumn";
+    string fullReturnType = GetCapitalizedPrimitiveTypes(returnType) + "DataFrameColumn";
+    string fullOtherColumnType = GetCapitalizedPrimitiveTypes(otherColumnType) + "DataFrameColumn";
+
+    string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
+    string capitalizedColumnType = GetCapitalizedPrimitiveTypes(columnType);
+    string capitalizedOtherColumnType = GetCapitalizedPrimitiveTypes(otherColumnType);
+#>
+        [Fact]
+        public void <#=methodName#><#=capitalizedOtherColumnType#>To<#=fullColumnType#>()
+        {
+            var columnEnumerable = Enumerable.Range(1, 10).Select(x => (<#=columnType#>)x);
+            <#=fullColumnType#> column = new <#=fullColumnType#>("<#=capitalizedColumnType#>", columnEnumerable);
+            <#=otherColumnType#> value = 5;
+<#
+            if (methodName.Contains("Reverse"))
+            {
+#>
+            <#=fullReturnType#> columnResult = value <#=methodOperator#> column;
+<#
+            }
+            else
+            {
+#>
+            <#=fullReturnType#> columnResult = column <#=methodOperator#> value;
+<#
+            }
+#>
+<#GenerateBinaryScalarVerify(methodName, fullReturnType, returnType, (byte)5, methodName.Contains("Reverse") ? true : false); #>
+            Assert.Equal(columnResult.Length, verify.Count());
+            Assert.True(columnResult.ElementwiseEquals(verifyColumn).All());
+        }
+<# 
+} 
+}
+#>
+<#
+// Only generate the tests for BooleanDataFrameColumn.
+void GenerateAllBinaryScalarBitwiseTestsForMethod(string methodName, string methodOperator)
+{
+ foreach (TypeCombination types in BinaryOperationCombinations.binaryOperationCombinations) 
+{ 
+    string returnType = types.ReturnColumnType;
+    string columnType = types.ThisColumnType;
+    if (columnType != "byte")
+    {
+        continue;
+    }
+    string otherColumnType = types.OtherColumnType;
+
+    string fullColumnType = GetCapitalizedPrimitiveTypes(columnType) + "DataFrameColumn";
+    string fullReturnType = GetCapitalizedPrimitiveTypes(returnType) + "DataFrameColumn";
+    string fullOtherColumnType = GetCapitalizedPrimitiveTypes(otherColumnType) + "DataFrameColumn";
+
+    string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
+    string capitalizedColumnType = GetCapitalizedPrimitiveTypes(columnType);
+    string capitalizedOtherColumnType = GetCapitalizedPrimitiveTypes(otherColumnType);
+#>
+        [Fact]
+        public void TestScalar<#=methodName#>On<#=fullColumnType#>()
+        {
+            var columnEnumerable = Enumerable.Range(1, 10).Select(x => (<#=columnType#>)false);
+            <#=fullColumnType#> column = new <#=fullColumnType#>("<#=capitalizedColumnType#>", columnEnumerable);
+            <#=otherColumnType#> value = true;
+<#
+            if (methodName.Contains("Reverse"))
+            {
+#>
+            <#=fullReturnType#> columnResult = value <#=methodOperator#> column;
+<#
+            }
+            else
+            {
+#>
+            <#=fullReturnType#> columnResult = column <#=methodOperator#> value;
+<#
+            }
+#>
+<#GenerateBinaryBitwiseScalarVerify(methodName, fullReturnType, returnType, true, methodName.Contains("Reverse") ? true : false); #>
+            Assert.Equal(columnResult.Length, verify.Count());
+            Assert.True(columnResult.ElementwiseEquals(verifyColumn).All());
+        }
+<# 
+} 
+}
+#>
+<#
+// Only generate the tests for ByteDataFrameColumn. It exercises all the possible paths since it includes cloning the non byte columns and keeps the number of tests low enough.
+void GenerateAllBinaryScalarComparisonTestsForMethod(string methodName, string methodOperator)
+{
+ foreach (TypeCombination types in ComparisonOperationCombinations.comparisonOperationCombinations) 
+{ 
+    string returnType = types.ReturnColumnType;
+    string columnType = types.ThisColumnType;
+    if (columnType != "byte")
+    {
+        continue;
+    }
+    string otherColumnType = types.OtherColumnType;
+
+    string fullColumnType = GetCapitalizedPrimitiveTypes(columnType) + "DataFrameColumn";
+    string fullReturnType = GetCapitalizedPrimitiveTypes(returnType) + "DataFrameColumn";
+    string fullOtherColumnType = GetCapitalizedPrimitiveTypes(otherColumnType) + "DataFrameColumn";
+
+    string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
+    string capitalizedColumnType = GetCapitalizedPrimitiveTypes(columnType);
+    string capitalizedOtherColumnType = GetCapitalizedPrimitiveTypes(otherColumnType);
+#>
+        [Fact]
+        public void <#=methodName#><#=capitalizedReturnType#>ToScalar<#=capitalizedOtherColumnType#>()
+        {
+            var columnEnumerable = Enumerable.Range(1, 10).Select(x => (<#=columnType#>)x);
+            <#=fullColumnType#> column = new <#=fullColumnType#>("<#=capitalizedColumnType#>", columnEnumerable);
+            <#=otherColumnType#> value = 100;
+            BooleanDataFrameColumn columnResult = column.<#=methodName#>(value);
+<#GenerateBinaryComparisonScalarVerify(methodName, fullReturnType, returnType, (byte)5, methodName.Contains("Reverse") ? true : false); #>
+            Assert.Equal(columnResult.Length, verify.Count());
+<# if (!methodName.Contains("Not")) { #>
+            Assert.True(columnResult.ElementwiseEquals(verifyColumn).All());
+<# } else { #>
+            Assert.True(columnResult.ElementwiseNotEquals(verifyColumn).All());
+<# } #>
+        }
+<# 
+} 
+}
+#>
+<#
+// Only generate the tests for ByteDataFrameColumn. It exercises all the possible paths since it includes cloning the non byte columns and keeps the number of tests low enough.
+void GenerateAllBinaryComparisonTestsForMethod(string methodName, string methodOperator)
+{
+ foreach (TypeCombination types in ComparisonOperationCombinations.comparisonOperationCombinations) 
+{ 
+    string returnType = types.ReturnColumnType;
+    string columnType = types.ThisColumnType;
+    if (columnType != "byte")
+    {
+        continue;
+    }
+    string otherColumnType = types.OtherColumnType;
+
+    string fullColumnType = GetCapitalizedPrimitiveTypes(columnType) + "DataFrameColumn";
+    string fullReturnType = GetCapitalizedPrimitiveTypes(returnType) + "DataFrameColumn";
+    string fullOtherColumnType = GetCapitalizedPrimitiveTypes(otherColumnType) + "DataFrameColumn";
+
+    string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
+    string capitalizedColumnType = GetCapitalizedPrimitiveTypes(columnType);
+    string capitalizedOtherColumnType = GetCapitalizedPrimitiveTypes(otherColumnType);
+#>
+        [Fact]
+        public void <#=methodName#><#=capitalizedReturnType#>To<#=capitalizedOtherColumnType#>()
+        {
+            var columnEnumerable = Enumerable.Range(1, 10).Select(x => (<#=columnType#>)x);
+            <#=fullColumnType#> column = new <#=fullColumnType#>("<#=capitalizedColumnType#>", columnEnumerable);
+            var otherColumnEnumerable = Enumerable.Range(1, 10).Select(x => (<#=otherColumnType#>)x);
+            <#=fullOtherColumnType#> otherColumn = new <#=fullOtherColumnType#>("<#=capitalizedOtherColumnType#>", otherColumnEnumerable);
+            BooleanDataFrameColumn columnResult = column.<#=methodName#>(otherColumn);
+<#GenerateBinaryComparisonVerify(methodName, fullReturnType, returnType, (byte)5, methodName.Contains("Reverse") ? true : false); #>
+            Assert.Equal(columnResult.Length, verify.Count());
+
+            // If this is equals, change thisx to false
+<# if (!methodName.Contains("Not")) { #>
+            Assert.True(columnResult.ElementwiseEquals(verifyColumn).All());
+<# } else { #>
+            Assert.True(columnResult.ElementwiseNotEquals(verifyColumn).All());
+<# } #>
+        }
+<# 
+} 
+}
+#>
+<#
+    foreach (MethodConfiguration method in methodConfiguration)
+    {
+        if (method.MethodType == MethodType.Binary && method.IsNumeric)
+        {
+            GenerateAllBinaryTestsForMethod(method.MethodName, method.Operator);
+        }
+        else if (method.MethodType == MethodType.BinaryScalar && method.IsNumeric)
+        {
+            GenerateAllBinaryScalarTestsForMethod(method.MethodName, method.Operator);
+            GenerateAllBinaryScalarTestsForMethod("Reverse" + method.MethodName, method.Operator);
+        }
+        else if (method.MethodType == MethodType.ComparisonScalar)
+        {
+            // Test only the ElementwiseEquals and ElementwiseNotEquals methods to reduce the number of unit tests
+            if ((method.MethodName == "ElementwiseEquals") || (method.MethodName == "ElementwiseNotEquals"))
+            {
+                GenerateAllBinaryScalarComparisonTestsForMethod(method.MethodName, method.Operator);
+            }
+        }
+        else if (method.MethodType == MethodType.Comparison)
+        {
+            // Test only the ElementwiseEquals and ElementwiseNotEquals methods to reduce the number of unit tests
+            if ((method.MethodName == "ElementwiseEquals") || (method.MethodName == "ElementwiseNotEquals"))
+            {
+                GenerateAllBinaryComparisonTestsForMethod(method.MethodName, method.Operator);
+            }
+        }
+        /*
+        else if (method.MethodType == MethodType.BinaryScalar && method.IsBitwise)
+        {
+            GenerateAllBinaryScalarBitwiseTestsForMethod(method.MethodName, method.Operator);
+        }
+        */
+    }
+#>
+    }
+}

@@ -92,12 +92,15 @@ namespace Microsoft.Data.Analysis.Tests
             return df;
         }
 
-        public static DataFrame MakeDataFrameWithNumericAndBoolColumns(int length)
+        public static DataFrame MakeDataFrameWithNumericAndBoolColumns(int length, bool withNulls = true)
         {
-            DataFrame df = MakeDataFrameWithNumericColumns(length);
+            DataFrame df = MakeDataFrameWithNumericColumns(length, withNulls);
             DataFrameColumn boolColumn = new BooleanDataFrameColumn("Bool", Enumerable.Range(0, length).Select(x => x % 2 == 0));
             df.Columns.Insert(df.Columns.Count, boolColumn);
-            boolColumn[length / 2] = null;
+            if (withNulls)
+            {
+                boolColumn[length / 2] = null;
+            }
             return df;
         }
 
@@ -2127,6 +2130,54 @@ namespace Microsoft.Data.Analysis.Tests
             AssertLengthTypeAndValues(ulongColumn, typeof(ulong));
             DataFrameColumn ushortColumn = DataFrameColumn.Create("Ushort", Enumerable.Range(0, length).Select(x => (ushort)x));
             AssertLengthTypeAndValues(ushortColumn, typeof(ushort));
+        }
+
+        [Fact]
+        public void TestBinaryOperationsOnExplodedNumericColumns()
+        {
+            DataFrame df = MakeDataFrameWithNumericAndBoolColumns(10, withNulls: false);
+            Int32DataFrameColumn ints = df.Columns["Int"] as Int32DataFrameColumn;
+            Int32DataFrameColumn res = ints.Add(1).Subtract(1).Multiply(10).Divide(10).LeftShift(2).RightShift(2);
+            Assert.True(res.ElementwiseEquals(ints).All());
+            Assert.True(res.ElementwiseGreaterThanOrEqual(ints).All());
+            Assert.True(res.ElementwiseLessThanOrEqual(ints).All());
+            Assert.False(res.ElementwiseNotEquals(ints).All());
+            Assert.False(res.ElementwiseGreaterThan(ints).All());
+            Assert.False(res.ElementwiseLessThan(ints).All());
+
+            // Test inPlace
+            Int32DataFrameColumn inPlace = ints.Add(1, inPlace: true).Subtract(1, inPlace: true).Multiply(10, inPlace: true).Divide(10, inPlace: true).LeftShift(2, inPlace: true).RightShift(2, inPlace: true).Add(100, inPlace: true);
+            Assert.True(inPlace.ElementwiseEquals(ints).All());
+            Assert.True(inPlace.ElementwiseGreaterThanOrEqual(ints).All());
+            Assert.True(inPlace.ElementwiseLessThanOrEqual(ints).All());
+            Assert.False(inPlace.ElementwiseNotEquals(ints).All());
+            Assert.False(inPlace.ElementwiseGreaterThan(ints).All());
+            Assert.False(inPlace.ElementwiseLessThan(ints).All());
+
+            Assert.False(inPlace.ElementwiseEquals(res).All());
+            Assert.True(inPlace.ElementwiseGreaterThanOrEqual(res).All());
+            Assert.False(inPlace.ElementwiseLessThanOrEqual(res).All());
+            Assert.True(inPlace.ElementwiseNotEquals(res).All());
+            Assert.True(inPlace.ElementwiseGreaterThan(res).All());
+            Assert.False(inPlace.ElementwiseLessThan(res).All());
+
+            // Test Bool column
+            BooleanDataFrameColumn bools = df.Columns["Bool"] as BooleanDataFrameColumn;
+            BooleanDataFrameColumn allFalse = bools.Or(true).And(true).Xor(true);
+            Assert.True(allFalse.ElementwiseEquals(false).All());
+
+            // Test inPlace
+            BooleanDataFrameColumn inPlaceAllFalse = bools.Or(true, inPlace: true).And(true, inPlace: true).Xor(true, inPlace: true);
+            Assert.True(inPlaceAllFalse.ElementwiseEquals(bools).All());
+
+            // Test Reverse Operations
+            Int32DataFrameColumn reverse = ints.ReverseAdd(1).ReverseSubtract(1).ReverseMultiply(-1);
+            Assert.True(reverse.ElementwiseEquals(ints).All());
+
+            // Test inPlace
+            Int32DataFrameColumn reverseInPlace = ints.ReverseAdd(1, inPlace: true).ReverseSubtract(1, inPlace: true).ReverseMultiply(-1, inPlace: true).ReverseDivide(100, inPlace: true);
+            Assert.True(reverseInPlace.ElementwiseEquals(ints).All());
+            Assert.False(reverseInPlace.ElementwiseEquals(reverse).All());
         }
     }
 }

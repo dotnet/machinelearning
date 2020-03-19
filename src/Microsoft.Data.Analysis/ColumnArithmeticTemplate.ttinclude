@@ -64,6 +64,38 @@
         {
             typeFirstCharUpper = type[0].ToString().ToUpper() + type.Substring(1);
         }
+        if (typeFirstCharUpper == "Bool")
+        {
+            return "Boolean";
+        }
+        else if (typeFirstCharUpper == "Float")
+        {
+            return "Single";
+        }
+        else if (typeFirstCharUpper == "Int")
+        {
+            return "Int32";
+        }
+        else if (typeFirstCharUpper == "Short")
+        {
+            return "Int16";
+        }
+        else if (typeFirstCharUpper == "Long")
+        {
+            return "Int64";
+        }
+        else if (typeFirstCharUpper == "UInt")
+        {
+            return "UInt32";
+        }
+        else if (typeFirstCharUpper == "UShort")
+        {
+            return "UInt16";
+        }
+        else if (typeFirstCharUpper == "ULong")
+        {
+            return "UInt64";
+        }
         return typeFirstCharUpper;
     }
 
@@ -88,6 +120,22 @@
         return false;
     }
 
+    // These are a subset of the implicit conversions allowed in C#. They are used to generate the return type for binary ops
+    // https://github.com/dotnet/csharplang/blob/master/spec/conversions.md#implicit-numeric-conversions
+    public Dictionary<string, IReadOnlyList<string>> primitiveTypeToImplicitConversions = new Dictionary<string, IReadOnlyList<string>> {
+        {"sbyte", new List<string> {"int", "long", "float", "double", "decimal"}},
+        {"byte", new List<string> {"int", "uint", "long", "ulong", "float", "double", "decimal"}},
+        {"short", new List<string> {"int", "long", "float", "double", "decimal"}},
+        {"ushort", new List<string> {"int", "uint", "long", "ulong", "float", "double", "decimal"}},
+        {"int", new List<string> {"int", "long", "float", "double", "decimal"}},
+        {"uint", new List<string> {"uint", "long", "ulong", "float", "double", "decimal"}},
+        {"long", new List<string> {"long", "float", "double", "decimal"}},
+        {"ulong", new List<string> {"ulong", "float", "double", "decimal"}},
+        {"float", new List<string> {"float", "double"}},
+        {"double", new List<string> {"double"}},
+        {"decimal", new List<string> {"decimal"}},
+    };
+
     public TypeConfiguration[] typeConfiguration = new []
     {
         new TypeConfiguration("bool", oneLiteral:"true", zeroLiteral:"false", supportsNumeric: false, unsupportedMethods: new[] {"LeftShift", "RightShift"}),
@@ -105,28 +153,40 @@
         new TypeConfiguration("ushort", classPrefix:"UShort", unsupportedMethods: new[] {"UnaryMinus", "All", "Any"})
     };
 
+    public string GetBinaryShiftOperationReturnType(TypeConfiguration t1)
+    {
+        primitiveTypeToImplicitConversions.TryGetValue(t1.TypeName, out IReadOnlyList<string> t1ImplicitConversions);
+        return t1ImplicitConversions.First() ?? string.Empty;
+    }
+
+    public string GetBinaryOperationReturnType(string t1, string t2)
+    {
+        if (t1 == "long" && t2 == "ulong" || t1 == "ulong" && t2 == "long")
+        {
+            return string.Empty;
+        }
+        primitiveTypeToImplicitConversions.TryGetValue(t1, out IReadOnlyList<string> t1ImplicitConversions);
+        primitiveTypeToImplicitConversions.TryGetValue(t2, out IReadOnlyList<string> t2ImplicitConversions);
+        var intersection = t1ImplicitConversions.Intersect(t2ImplicitConversions);
+        string ret;
+        if (intersection.Count() == 0)
+        {
+            ret = string.Empty;
+        }
+        else
+        {
+            ret = intersection.First();
+        }
+        return ret;
+    }
+
+    // Returns an empty string for binary ops that are not valid: For ex: float + decimal is NOT allowed. 
+    // Special case: long + ulong is NOT allowed. The other mixed signed and unsigned are valid
     public string GetBinaryOperationReturnType(TypeConfiguration t1, TypeConfiguration t2)
     {
-        int t1Level;
-        if (!primitiveTypeToPrimitivityLevelMap.TryGetValue(t1.TypeName, out t1Level))
-        {
-            throw new Exception("Unknown type");
-        }
-        int t2Level;
-        if (!primitiveTypeToPrimitivityLevelMap.TryGetValue(t2.TypeName, out t2Level))
-        {
-            throw new Exception("Unknown type");
-        }
-        if (t1Level + t2Level <= 2 * t1Level)
-        {
-            return t1.TypeName;
-        }
-        if (t1Level + t2Level <= 2 * t2Level)
-        {
-            return t2.TypeName;
-        }
-        throw new Exception("Bug in GetBinaryOperationReturnType");
-        return "";
+        string t1Type = t1.TypeName;
+        string t2Type = t2.TypeName;
+        return GetBinaryOperationReturnType(t1Type, t2Type);
     }
 
     public enum MethodType

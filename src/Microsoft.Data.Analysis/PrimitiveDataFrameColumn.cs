@@ -22,6 +22,8 @@ namespace Microsoft.Data.Analysis
     {
         private PrimitiveColumnContainer<T> _columnContainer;
 
+        internal PrimitiveColumnContainer<T> ColumnContainer => _columnContainer;
+
         internal PrimitiveDataFrameColumn(string name, PrimitiveColumnContainer<T> column) : base(name, column.Length, typeof(T))
         {
             _columnContainer = column;
@@ -429,7 +431,7 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        internal BooleanDataFrameColumn CloneAsBoolColumn()
+        internal BooleanDataFrameColumn CloneAsBooleanColumn()
         {
             PrimitiveColumnContainer<bool> newColumnContainer = _columnContainer.CloneAsBoolContainer();
             return new BooleanDataFrameColumn(Name, newColumnContainer);
@@ -459,44 +461,44 @@ namespace Microsoft.Data.Analysis
             return new DecimalDataFrameColumn(Name, newColumnContainer);
         }
 
-        internal Int16DataFrameColumn CloneAsShortColumn()
+        internal Int16DataFrameColumn CloneAsInt16Column()
         {
             PrimitiveColumnContainer<short> newColumnContainer = _columnContainer.CloneAsShortContainer();
             return new Int16DataFrameColumn(Name, newColumnContainer);
         }
 
 
-        internal UInt16DataFrameColumn CloneAsUShortColumn()
+        internal UInt16DataFrameColumn CloneAsUInt16Column()
         {
             PrimitiveColumnContainer<ushort> newColumnContainer = _columnContainer.CloneAsUShortContainer();
             return new UInt16DataFrameColumn(Name, newColumnContainer);
         }
 
-        internal Int32DataFrameColumn CloneAsIntColumn()
+        internal Int32DataFrameColumn CloneAsInt32Column()
         {
             PrimitiveColumnContainer<int> newColumnContainer = _columnContainer.CloneAsIntContainer();
             return new Int32DataFrameColumn(Name, newColumnContainer);
         }
 
-        internal UInt32DataFrameColumn CloneAsUIntColumn()
+        internal UInt32DataFrameColumn CloneAsUInt32Column()
         {
             PrimitiveColumnContainer<uint> newColumnContainer = _columnContainer.CloneAsUIntContainer();
             return new UInt32DataFrameColumn(Name, newColumnContainer);
         }
 
-        internal Int64DataFrameColumn CloneAsLongColumn()
+        internal Int64DataFrameColumn CloneAsInt64Column()
         {
             PrimitiveColumnContainer<long> newColumnContainer = _columnContainer.CloneAsLongContainer();
             return new Int64DataFrameColumn(Name, newColumnContainer);
         }
 
-        internal UInt64DataFrameColumn CloneAsULongColumn()
+        internal UInt64DataFrameColumn CloneAsUInt64Column()
         {
             PrimitiveColumnContainer<ulong> newColumnContainer = _columnContainer.CloneAsULongContainer();
             return new UInt64DataFrameColumn(Name, newColumnContainer);
         }
 
-        internal SingleDataFrameColumn CloneAsFloatColumn()
+        internal SingleDataFrameColumn CloneAsSingleColumn()
         {
             PrimitiveColumnContainer<float> newColumnContainer = _columnContainer.CloneAsFloatContainer();
             return new SingleDataFrameColumn(Name, newColumnContainer);

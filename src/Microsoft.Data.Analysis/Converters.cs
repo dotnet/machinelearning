@@ -84,602 +84,602 @@ namespace Microsoft.Data.Analysis
             return (sbyte)value;
         }
     }
-    internal interface IShortConverter<T>
+    internal interface IInt16Converter<T>
     {
-        short GetShort(T value);
+        short GetInt16(T value);
     }
-    internal static class ShortConverter<T>
+    internal static class Int16Converter<T>
     {
-        public static IShortConverter<T> Instance { get; } = ShortConverter.GetShortConverter<T>();
+        public static IInt16Converter<T> Instance { get; } = Int16Converter.GetInt16Converter<T>();
     }
-    internal static class ShortConverter
+    internal static class Int16Converter
     {
-        public static IShortConverter<T> GetShortConverter<T>()
+        public static IInt16Converter<T> GetInt16Converter<T>()
         {
             if (typeof(T) == typeof(byte))
             {
-                return (IShortConverter<T>)new ByteShortConverter();
+                return (IInt16Converter<T>)new ByteInt16Converter();
             }
             if (typeof(T) == typeof(sbyte))
             {
-                return (IShortConverter<T>)new SByteShortConverter();
+                return (IInt16Converter<T>)new SByteInt16Converter();
             }
             if (typeof(T) == typeof(short))
             {
-                return (IShortConverter<T>)new ShortShortConverter();
+                return (IInt16Converter<T>)new Int16Int16Converter();
             }
             if (typeof(T) == typeof(ushort))
             {
-                return (IShortConverter<T>)new UShortShortConverter();
+                return (IInt16Converter<T>)new UInt16Int16Converter();
             }
             throw new NotSupportedException();
         }
     }
-    internal class ByteShortConverter : IShortConverter<byte>
+    internal class ByteInt16Converter : IInt16Converter<byte>
     {
-        public short GetShort(byte value)
+        public short GetInt16(byte value)
         {
             return (short)value;
         }
     }
-    internal class SByteShortConverter : IShortConverter<sbyte>
+    internal class SByteInt16Converter : IInt16Converter<sbyte>
     {
-        public short GetShort(sbyte value)
+        public short GetInt16(sbyte value)
         {
             return (short)value;
         }
     }
-    internal class ShortShortConverter : IShortConverter<short>
+    internal class Int16Int16Converter : IInt16Converter<short>
     {
-        public short GetShort(short value)
+        public short GetInt16(short value)
         {
             return (short)value;
         }
     }
-    internal class UShortShortConverter : IShortConverter<ushort>
+    internal class UInt16Int16Converter : IInt16Converter<ushort>
     {
-        public short GetShort(ushort value)
+        public short GetInt16(ushort value)
         {
             return (short)value;
         }
     }
-    internal interface IUShortConverter<T>
+    internal interface IUInt16Converter<T>
     {
-        ushort GetUShort(T value);
+        ushort GetUInt16(T value);
     }
-    internal static class UShortConverter<T>
+    internal static class UInt16Converter<T>
     {
-        public static IUShortConverter<T> Instance { get; } = UShortConverter.GetUShortConverter<T>();
+        public static IUInt16Converter<T> Instance { get; } = UInt16Converter.GetUInt16Converter<T>();
     }
-    internal static class UShortConverter
+    internal static class UInt16Converter
     {
-        public static IUShortConverter<T> GetUShortConverter<T>()
+        public static IUInt16Converter<T> GetUInt16Converter<T>()
         {
             if (typeof(T) == typeof(byte))
             {
-                return (IUShortConverter<T>)new ByteUShortConverter();
+                return (IUInt16Converter<T>)new ByteUInt16Converter();
             }
             if (typeof(T) == typeof(sbyte))
             {
-                return (IUShortConverter<T>)new SByteUShortConverter();
+                return (IUInt16Converter<T>)new SByteUInt16Converter();
             }
             if (typeof(T) == typeof(short))
             {
-                return (IUShortConverter<T>)new ShortUShortConverter();
+                return (IUInt16Converter<T>)new Int16UInt16Converter();
             }
             if (typeof(T) == typeof(ushort))
             {
-                return (IUShortConverter<T>)new UShortUShortConverter();
+                return (IUInt16Converter<T>)new UInt16UInt16Converter();
             }
             throw new NotSupportedException();
         }
     }
-    internal class ByteUShortConverter : IUShortConverter<byte>
+    internal class ByteUInt16Converter : IUInt16Converter<byte>
     {
-        public ushort GetUShort(byte value)
+        public ushort GetUInt16(byte value)
         {
             return (ushort)value;
         }
     }
-    internal class SByteUShortConverter : IUShortConverter<sbyte>
+    internal class SByteUInt16Converter : IUInt16Converter<sbyte>
     {
-        public ushort GetUShort(sbyte value)
+        public ushort GetUInt16(sbyte value)
         {
             return (ushort)value;
         }
     }
-    internal class ShortUShortConverter : IUShortConverter<short>
+    internal class Int16UInt16Converter : IUInt16Converter<short>
     {
-        public ushort GetUShort(short value)
+        public ushort GetUInt16(short value)
         {
             return (ushort)value;
         }
     }
-    internal class UShortUShortConverter : IUShortConverter<ushort>
+    internal class UInt16UInt16Converter : IUInt16Converter<ushort>
     {
-        public ushort GetUShort(ushort value)
+        public ushort GetUInt16(ushort value)
         {
             return (ushort)value;
         }
     }
-    internal interface IIntConverter<T>
+    internal interface IInt32Converter<T>
     {
-        int GetInt(T value);
+        int GetInt32(T value);
     }
-    internal static class IntConverter<T>
+    internal static class Int32Converter<T>
     {
-        public static IIntConverter<T> Instance { get; } = IntConverter.GetIntConverter<T>();
+        public static IInt32Converter<T> Instance { get; } = Int32Converter.GetInt32Converter<T>();
     }
-    internal static class IntConverter
+    internal static class Int32Converter
     {
-        public static IIntConverter<T> GetIntConverter<T>()
+        public static IInt32Converter<T> GetInt32Converter<T>()
         {
             if (typeof(T) == typeof(byte))
             {
-                return (IIntConverter<T>)new ByteIntConverter();
+                return (IInt32Converter<T>)new ByteInt32Converter();
             }
             if (typeof(T) == typeof(sbyte))
             {
-                return (IIntConverter<T>)new SByteIntConverter();
+                return (IInt32Converter<T>)new SByteInt32Converter();
             }
             if (typeof(T) == typeof(short))
             {
-                return (IIntConverter<T>)new ShortIntConverter();
+                return (IInt32Converter<T>)new Int16Int32Converter();
             }
             if (typeof(T) == typeof(ushort))
             {
-                return (IIntConverter<T>)new UShortIntConverter();
+                return (IInt32Converter<T>)new UInt16Int32Converter();
             }
             if (typeof(T) == typeof(int))
             {
-                return (IIntConverter<T>)new IntIntConverter();
+                return (IInt32Converter<T>)new Int32Int32Converter();
             }
             if (typeof(T) == typeof(uint))
             {
-                return (IIntConverter<T>)new UIntIntConverter();
+                return (IInt32Converter<T>)new UInt32Int32Converter();
             }
             throw new NotSupportedException();
         }
     }
-    internal class ByteIntConverter : IIntConverter<byte>
+    internal class ByteInt32Converter : IInt32Converter<byte>
     {
-        public int GetInt(byte value)
+        public int GetInt32(byte value)
         {
             return (int)value;
         }
     }
-    internal class SByteIntConverter : IIntConverter<sbyte>
+    internal class SByteInt32Converter : IInt32Converter<sbyte>
     {
-        public int GetInt(sbyte value)
+        public int GetInt32(sbyte value)
         {
             return (int)value;
         }
     }
-    internal class ShortIntConverter : IIntConverter<short>
+    internal class Int16Int32Converter : IInt32Converter<short>
     {
-        public int GetInt(short value)
+        public int GetInt32(short value)
         {
             return (int)value;
         }
     }
-    internal class UShortIntConverter : IIntConverter<ushort>
+    internal class UInt16Int32Converter : IInt32Converter<ushort>
     {
-        public int GetInt(ushort value)
+        public int GetInt32(ushort value)
         {
             return (int)value;
         }
     }
-    internal class IntIntConverter : IIntConverter<int>
+    internal class Int32Int32Converter : IInt32Converter<int>
     {
-        public int GetInt(int value)
+        public int GetInt32(int value)
         {
             return (int)value;
         }
     }
-    internal class UIntIntConverter : IIntConverter<uint>
+    internal class UInt32Int32Converter : IInt32Converter<uint>
     {
-        public int GetInt(uint value)
+        public int GetInt32(uint value)
         {
             return (int)value;
         }
     }
-    internal interface IUIntConverter<T>
+    internal interface IUInt32Converter<T>
     {
-        uint GetUInt(T value);
+        uint GetUInt32(T value);
     }
-    internal static class UIntConverter<T>
+    internal static class UInt32Converter<T>
     {
-        public static IUIntConverter<T> Instance { get; } = UIntConverter.GetUIntConverter<T>();
+        public static IUInt32Converter<T> Instance { get; } = UInt32Converter.GetUInt32Converter<T>();
     }
-    internal static class UIntConverter
+    internal static class UInt32Converter
     {
-        public static IUIntConverter<T> GetUIntConverter<T>()
+        public static IUInt32Converter<T> GetUInt32Converter<T>()
         {
             if (typeof(T) == typeof(byte))
             {
-                return (IUIntConverter<T>)new ByteUIntConverter();
+                return (IUInt32Converter<T>)new ByteUInt32Converter();
             }
             if (typeof(T) == typeof(sbyte))
             {
-                return (IUIntConverter<T>)new SByteUIntConverter();
+                return (IUInt32Converter<T>)new SByteUInt32Converter();
             }
             if (typeof(T) == typeof(short))
             {
-                return (IUIntConverter<T>)new ShortUIntConverter();
+                return (IUInt32Converter<T>)new Int16UInt32Converter();
             }
             if (typeof(T) == typeof(ushort))
             {
-                return (IUIntConverter<T>)new UShortUIntConverter();
+                return (IUInt32Converter<T>)new UInt16UInt32Converter();
             }
             if (typeof(T) == typeof(int))
             {
-                return (IUIntConverter<T>)new IntUIntConverter();
+                return (IUInt32Converter<T>)new Int32UInt32Converter();
             }
             if (typeof(T) == typeof(uint))
             {
-                return (IUIntConverter<T>)new UIntUIntConverter();
+                return (IUInt32Converter<T>)new UInt32UInt32Converter();
             }
             throw new NotSupportedException();
         }
     }
-    internal class ByteUIntConverter : IUIntConverter<byte>
+    internal class ByteUInt32Converter : IUInt32Converter<byte>
     {
-        public uint GetUInt(byte value)
+        public uint GetUInt32(byte value)
         {
             return (uint)value;
         }
     }
-    internal class SByteUIntConverter : IUIntConverter<sbyte>
+    internal class SByteUInt32Converter : IUInt32Converter<sbyte>
     {
-        public uint GetUInt(sbyte value)
+        public uint GetUInt32(sbyte value)
         {
             return (uint)value;
         }
     }
-    internal class ShortUIntConverter : IUIntConverter<short>
+    internal class Int16UInt32Converter : IUInt32Converter<short>
     {
-        public uint GetUInt(short value)
+        public uint GetUInt32(short value)
         {
             return (uint)value;
         }
     }
-    internal class UShortUIntConverter : IUIntConverter<ushort>
+    internal class UInt16UInt32Converter : IUInt32Converter<ushort>
     {
-        public uint GetUInt(ushort value)
+        public uint GetUInt32(ushort value)
         {
             return (uint)value;
         }
     }
-    internal class IntUIntConverter : IUIntConverter<int>
+    internal class Int32UInt32Converter : IUInt32Converter<int>
     {
-        public uint GetUInt(int value)
+        public uint GetUInt32(int value)
         {
             return (uint)value;
         }
     }
-    internal class UIntUIntConverter : IUIntConverter<uint>
+    internal class UInt32UInt32Converter : IUInt32Converter<uint>
     {
-        public uint GetUInt(uint value)
+        public uint GetUInt32(uint value)
         {
             return (uint)value;
         }
     }
-    internal interface ILongConverter<T>
+    internal interface IInt64Converter<T>
     {
-        long GetLong(T value);
+        long GetInt64(T value);
     }
-    internal static class LongConverter<T>
+    internal static class Int64Converter<T>
     {
-        public static ILongConverter<T> Instance { get; } = LongConverter.GetLongConverter<T>();
+        public static IInt64Converter<T> Instance { get; } = Int64Converter.GetInt64Converter<T>();
     }
-    internal static class LongConverter
+    internal static class Int64Converter
     {
-        public static ILongConverter<T> GetLongConverter<T>()
+        public static IInt64Converter<T> GetInt64Converter<T>()
         {
             if (typeof(T) == typeof(byte))
             {
-                return (ILongConverter<T>)new ByteLongConverter();
+                return (IInt64Converter<T>)new ByteInt64Converter();
             }
             if (typeof(T) == typeof(sbyte))
             {
-                return (ILongConverter<T>)new SByteLongConverter();
+                return (IInt64Converter<T>)new SByteInt64Converter();
             }
             if (typeof(T) == typeof(short))
             {
-                return (ILongConverter<T>)new ShortLongConverter();
+                return (IInt64Converter<T>)new Int16Int64Converter();
             }
             if (typeof(T) == typeof(ushort))
             {
-                return (ILongConverter<T>)new UShortLongConverter();
+                return (IInt64Converter<T>)new UInt16Int64Converter();
             }
             if (typeof(T) == typeof(int))
             {
-                return (ILongConverter<T>)new IntLongConverter();
+                return (IInt64Converter<T>)new Int32Int64Converter();
             }
             if (typeof(T) == typeof(uint))
             {
-                return (ILongConverter<T>)new UIntLongConverter();
+                return (IInt64Converter<T>)new UInt32Int64Converter();
             }
             if (typeof(T) == typeof(long))
             {
-                return (ILongConverter<T>)new LongLongConverter();
+                return (IInt64Converter<T>)new Int64Int64Converter();
             }
             if (typeof(T) == typeof(ulong))
             {
-                return (ILongConverter<T>)new ULongLongConverter();
+                return (IInt64Converter<T>)new UInt64Int64Converter();
             }
             throw new NotSupportedException();
         }
     }
-    internal class ByteLongConverter : ILongConverter<byte>
+    internal class ByteInt64Converter : IInt64Converter<byte>
     {
-        public long GetLong(byte value)
+        public long GetInt64(byte value)
         {
             return (long)value;
         }
     }
-    internal class SByteLongConverter : ILongConverter<sbyte>
+    internal class SByteInt64Converter : IInt64Converter<sbyte>
     {
-        public long GetLong(sbyte value)
+        public long GetInt64(sbyte value)
         {
             return (long)value;
         }
     }
-    internal class ShortLongConverter : ILongConverter<short>
+    internal class Int16Int64Converter : IInt64Converter<short>
     {
-        public long GetLong(short value)
+        public long GetInt64(short value)
         {
             return (long)value;
         }
     }
-    internal class UShortLongConverter : ILongConverter<ushort>
+    internal class UInt16Int64Converter : IInt64Converter<ushort>
     {
-        public long GetLong(ushort value)
+        public long GetInt64(ushort value)
         {
             return (long)value;
         }
     }
-    internal class IntLongConverter : ILongConverter<int>
+    internal class Int32Int64Converter : IInt64Converter<int>
     {
-        public long GetLong(int value)
+        public long GetInt64(int value)
         {
             return (long)value;
         }
     }
-    internal class UIntLongConverter : ILongConverter<uint>
+    internal class UInt32Int64Converter : IInt64Converter<uint>
     {
-        public long GetLong(uint value)
+        public long GetInt64(uint value)
         {
             return (long)value;
         }
     }
-    internal class LongLongConverter : ILongConverter<long>
+    internal class Int64Int64Converter : IInt64Converter<long>
     {
-        public long GetLong(long value)
+        public long GetInt64(long value)
         {
             return (long)value;
         }
     }
-    internal class ULongLongConverter : ILongConverter<ulong>
+    internal class UInt64Int64Converter : IInt64Converter<ulong>
     {
-        public long GetLong(ulong value)
+        public long GetInt64(ulong value)
         {
             return (long)value;
         }
     }
-    internal interface IULongConverter<T>
+    internal interface IUInt64Converter<T>
     {
-        ulong GetULong(T value);
+        ulong GetUInt64(T value);
     }
-    internal static class ULongConverter<T>
+    internal static class UInt64Converter<T>
     {
-        public static IULongConverter<T> Instance { get; } = ULongConverter.GetULongConverter<T>();
+        public static IUInt64Converter<T> Instance { get; } = UInt64Converter.GetUInt64Converter<T>();
     }
-    internal static class ULongConverter
+    internal static class UInt64Converter
     {
-        public static IULongConverter<T> GetULongConverter<T>()
+        public static IUInt64Converter<T> GetUInt64Converter<T>()
         {
             if (typeof(T) == typeof(byte))
             {
-                return (IULongConverter<T>)new ByteULongConverter();
+                return (IUInt64Converter<T>)new ByteUInt64Converter();
             }
             if (typeof(T) == typeof(sbyte))
             {
-                return (IULongConverter<T>)new SByteULongConverter();
+                return (IUInt64Converter<T>)new SByteUInt64Converter();
             }
             if (typeof(T) == typeof(short))
             {
-                return (IULongConverter<T>)new ShortULongConverter();
+                return (IUInt64Converter<T>)new Int16UInt64Converter();
             }
             if (typeof(T) == typeof(ushort))
             {
-                return (IULongConverter<T>)new UShortULongConverter();
+                return (IUInt64Converter<T>)new UInt16UInt64Converter();
             }
             if (typeof(T) == typeof(int))
             {
-                return (IULongConverter<T>)new IntULongConverter();
+                return (IUInt64Converter<T>)new Int32UInt64Converter();
             }
             if (typeof(T) == typeof(uint))
             {
-                return (IULongConverter<T>)new UIntULongConverter();
+                return (IUInt64Converter<T>)new UInt32UInt64Converter();
             }
             if (typeof(T) == typeof(long))
             {
-                return (IULongConverter<T>)new LongULongConverter();
+                return (IUInt64Converter<T>)new Int64UInt64Converter();
             }
             if (typeof(T) == typeof(ulong))
             {
-                return (IULongConverter<T>)new ULongULongConverter();
+                return (IUInt64Converter<T>)new UInt64UInt64Converter();
             }
             throw new NotSupportedException();
         }
     }
-    internal class ByteULongConverter : IULongConverter<byte>
+    internal class ByteUInt64Converter : IUInt64Converter<byte>
     {
-        public ulong GetULong(byte value)
+        public ulong GetUInt64(byte value)
         {
             return (ulong)value;
         }
     }
-    internal class SByteULongConverter : IULongConverter<sbyte>
+    internal class SByteUInt64Converter : IUInt64Converter<sbyte>
     {
-        public ulong GetULong(sbyte value)
+        public ulong GetUInt64(sbyte value)
         {
             return (ulong)value;
         }
     }
-    internal class ShortULongConverter : IULongConverter<short>
+    internal class Int16UInt64Converter : IUInt64Converter<short>
     {
-        public ulong GetULong(short value)
+        public ulong GetUInt64(short value)
         {
             return (ulong)value;
         }
     }
-    internal class UShortULongConverter : IULongConverter<ushort>
+    internal class UInt16UInt64Converter : IUInt64Converter<ushort>
     {
-        public ulong GetULong(ushort value)
+        public ulong GetUInt64(ushort value)
         {
             return (ulong)value;
         }
     }
-    internal class IntULongConverter : IULongConverter<int>
+    internal class Int32UInt64Converter : IUInt64Converter<int>
     {
-        public ulong GetULong(int value)
+        public ulong GetUInt64(int value)
         {
             return (ulong)value;
         }
     }
-    internal class UIntULongConverter : IULongConverter<uint>
+    internal class UInt32UInt64Converter : IUInt64Converter<uint>
     {
-        public ulong GetULong(uint value)
+        public ulong GetUInt64(uint value)
         {
             return (ulong)value;
         }
     }
-    internal class LongULongConverter : IULongConverter<long>
+    internal class Int64UInt64Converter : IUInt64Converter<long>
     {
-        public ulong GetULong(long value)
+        public ulong GetUInt64(long value)
         {
             return (ulong)value;
         }
     }
-    internal class ULongULongConverter : IULongConverter<ulong>
+    internal class UInt64UInt64Converter : IUInt64Converter<ulong>
     {
-        public ulong GetULong(ulong value)
+        public ulong GetUInt64(ulong value)
         {
             return (ulong)value;
         }
     }
-    internal interface IFloatConverter<T>
+    internal interface ISingleConverter<T>
     {
-        float GetFloat(T value);
+        float GetSingle(T value);
     }
-    internal static class FloatConverter<T>
+    internal static class SingleConverter<T>
     {
-        public static IFloatConverter<T> Instance { get; } = FloatConverter.GetFloatConverter<T>();
+        public static ISingleConverter<T> Instance { get; } = SingleConverter.GetSingleConverter<T>();
     }
-    internal static class FloatConverter
+    internal static class SingleConverter
     {
-        public static IFloatConverter<T> GetFloatConverter<T>()
+        public static ISingleConverter<T> GetSingleConverter<T>()
         {
             if (typeof(T) == typeof(byte))
             {
-                return (IFloatConverter<T>)new ByteFloatConverter();
+                return (ISingleConverter<T>)new ByteSingleConverter();
             }
             if (typeof(T) == typeof(sbyte))
             {
-                return (IFloatConverter<T>)new SByteFloatConverter();
+                return (ISingleConverter<T>)new SByteSingleConverter();
             }
             if (typeof(T) == typeof(short))
             {
-                return (IFloatConverter<T>)new ShortFloatConverter();
+                return (ISingleConverter<T>)new Int16SingleConverter();
             }
             if (typeof(T) == typeof(ushort))
             {
-                return (IFloatConverter<T>)new UShortFloatConverter();
+                return (ISingleConverter<T>)new UInt16SingleConverter();
             }
             if (typeof(T) == typeof(int))
             {
-                return (IFloatConverter<T>)new IntFloatConverter();
+                return (ISingleConverter<T>)new Int32SingleConverter();
             }
             if (typeof(T) == typeof(uint))
             {
-                return (IFloatConverter<T>)new UIntFloatConverter();
+                return (ISingleConverter<T>)new UInt32SingleConverter();
             }
             if (typeof(T) == typeof(long))
             {
-                return (IFloatConverter<T>)new LongFloatConverter();
+                return (ISingleConverter<T>)new Int64SingleConverter();
             }
             if (typeof(T) == typeof(ulong))
             {
-                return (IFloatConverter<T>)new ULongFloatConverter();
+                return (ISingleConverter<T>)new UInt64SingleConverter();
             }
             if (typeof(T) == typeof(float))
             {
-                return (IFloatConverter<T>)new FloatFloatConverter();
+                return (ISingleConverter<T>)new SingleSingleConverter();
             }
             throw new NotSupportedException();
         }
     }
-    internal class ByteFloatConverter : IFloatConverter<byte>
+    internal class ByteSingleConverter : ISingleConverter<byte>
     {
-        public float GetFloat(byte value)
+        public float GetSingle(byte value)
         {
             return (float)value;
         }
     }
-    internal class SByteFloatConverter : IFloatConverter<sbyte>
+    internal class SByteSingleConverter : ISingleConverter<sbyte>
     {
-        public float GetFloat(sbyte value)
+        public float GetSingle(sbyte value)
         {
             return (float)value;
         }
     }
-    internal class ShortFloatConverter : IFloatConverter<short>
+    internal class Int16SingleConverter : ISingleConverter<short>
     {
-        public float GetFloat(short value)
+        public float GetSingle(short value)
         {
             return (float)value;
         }
     }
-    internal class UShortFloatConverter : IFloatConverter<ushort>
+    internal class UInt16SingleConverter : ISingleConverter<ushort>
     {
-        public float GetFloat(ushort value)
+        public float GetSingle(ushort value)
         {
             return (float)value;
         }
     }
-    internal class IntFloatConverter : IFloatConverter<int>
+    internal class Int32SingleConverter : ISingleConverter<int>
     {
-        public float GetFloat(int value)
+        public float GetSingle(int value)
         {
             return (float)value;
         }
     }
-    internal class UIntFloatConverter : IFloatConverter<uint>
+    internal class UInt32SingleConverter : ISingleConverter<uint>
     {
-        public float GetFloat(uint value)
+        public float GetSingle(uint value)
         {
             return (float)value;
         }
     }
-    internal class LongFloatConverter : IFloatConverter<long>
+    internal class Int64SingleConverter : ISingleConverter<long>
     {
-        public float GetFloat(long value)
+        public float GetSingle(long value)
         {
             return (float)value;
         }
     }
-    internal class ULongFloatConverter : IFloatConverter<ulong>
+    internal class UInt64SingleConverter : ISingleConverter<ulong>
     {
-        public float GetFloat(ulong value)
+        public float GetSingle(ulong value)
         {
             return (float)value;
         }
     }
-    internal class FloatFloatConverter : IFloatConverter<float>
+    internal class SingleSingleConverter : ISingleConverter<float>
     {
-        public float GetFloat(float value)
+        public float GetSingle(float value)
         {
             return (float)value;
         }
@@ -706,31 +706,31 @@ namespace Microsoft.Data.Analysis
             }
             if (typeof(T) == typeof(short))
             {
-                return (IDoubleConverter<T>)new ShortDoubleConverter();
+                return (IDoubleConverter<T>)new Int16DoubleConverter();
             }
             if (typeof(T) == typeof(ushort))
             {
-                return (IDoubleConverter<T>)new UShortDoubleConverter();
+                return (IDoubleConverter<T>)new UInt16DoubleConverter();
             }
             if (typeof(T) == typeof(int))
             {
-                return (IDoubleConverter<T>)new IntDoubleConverter();
+                return (IDoubleConverter<T>)new Int32DoubleConverter();
             }
             if (typeof(T) == typeof(uint))
             {
-                return (IDoubleConverter<T>)new UIntDoubleConverter();
+                return (IDoubleConverter<T>)new UInt32DoubleConverter();
             }
             if (typeof(T) == typeof(long))
             {
-                return (IDoubleConverter<T>)new LongDoubleConverter();
+                return (IDoubleConverter<T>)new Int64DoubleConverter();
             }
             if (typeof(T) == typeof(ulong))
             {
-                return (IDoubleConverter<T>)new ULongDoubleConverter();
+                return (IDoubleConverter<T>)new UInt64DoubleConverter();
             }
             if (typeof(T) == typeof(float))
             {
-                return (IDoubleConverter<T>)new FloatDoubleConverter();
+                return (IDoubleConverter<T>)new SingleDoubleConverter();
             }
             if (typeof(T) == typeof(double))
             {
@@ -753,49 +753,49 @@ namespace Microsoft.Data.Analysis
             return (double)value;
         }
     }
-    internal class ShortDoubleConverter : IDoubleConverter<short>
+    internal class Int16DoubleConverter : IDoubleConverter<short>
     {
         public double GetDouble(short value)
         {
             return (double)value;
         }
     }
-    internal class UShortDoubleConverter : IDoubleConverter<ushort>
+    internal class UInt16DoubleConverter : IDoubleConverter<ushort>
     {
         public double GetDouble(ushort value)
         {
             return (double)value;
         }
     }
-    internal class IntDoubleConverter : IDoubleConverter<int>
+    internal class Int32DoubleConverter : IDoubleConverter<int>
     {
         public double GetDouble(int value)
         {
             return (double)value;
         }
     }
-    internal class UIntDoubleConverter : IDoubleConverter<uint>
+    internal class UInt32DoubleConverter : IDoubleConverter<uint>
     {
         public double GetDouble(uint value)
         {
             return (double)value;
         }
     }
-    internal class LongDoubleConverter : IDoubleConverter<long>
+    internal class Int64DoubleConverter : IDoubleConverter<long>
     {
         public double GetDouble(long value)
         {
             return (double)value;
         }
     }
-    internal class ULongDoubleConverter : IDoubleConverter<ulong>
+    internal class UInt64DoubleConverter : IDoubleConverter<ulong>
     {
         public double GetDouble(ulong value)
         {
             return (double)value;
         }
     }
-    internal class FloatDoubleConverter : IDoubleConverter<float>
+    internal class SingleDoubleConverter : IDoubleConverter<float>
     {
         public double GetDouble(float value)
         {
@@ -831,31 +831,31 @@ namespace Microsoft.Data.Analysis
             }
             if (typeof(T) == typeof(short))
             {
-                return (IDecimalConverter<T>)new ShortDecimalConverter();
+                return (IDecimalConverter<T>)new Int16DecimalConverter();
             }
             if (typeof(T) == typeof(ushort))
             {
-                return (IDecimalConverter<T>)new UShortDecimalConverter();
+                return (IDecimalConverter<T>)new UInt16DecimalConverter();
             }
             if (typeof(T) == typeof(int))
             {
-                return (IDecimalConverter<T>)new IntDecimalConverter();
+                return (IDecimalConverter<T>)new Int32DecimalConverter();
             }
             if (typeof(T) == typeof(uint))
             {
-                return (IDecimalConverter<T>)new UIntDecimalConverter();
+                return (IDecimalConverter<T>)new UInt32DecimalConverter();
             }
             if (typeof(T) == typeof(long))
             {
-                return (IDecimalConverter<T>)new LongDecimalConverter();
+                return (IDecimalConverter<T>)new Int64DecimalConverter();
             }
             if (typeof(T) == typeof(ulong))
             {
-                return (IDecimalConverter<T>)new ULongDecimalConverter();
+                return (IDecimalConverter<T>)new UInt64DecimalConverter();
             }
             if (typeof(T) == typeof(float))
             {
-                return (IDecimalConverter<T>)new FloatDecimalConverter();
+                return (IDecimalConverter<T>)new SingleDecimalConverter();
             }
             if (typeof(T) == typeof(double))
             {
@@ -882,49 +882,49 @@ namespace Microsoft.Data.Analysis
             return (decimal)value;
         }
     }
-    internal class ShortDecimalConverter : IDecimalConverter<short>
+    internal class Int16DecimalConverter : IDecimalConverter<short>
     {
         public decimal GetDecimal(short value)
         {
             return (decimal)value;
         }
     }
-    internal class UShortDecimalConverter : IDecimalConverter<ushort>
+    internal class UInt16DecimalConverter : IDecimalConverter<ushort>
     {
         public decimal GetDecimal(ushort value)
         {
             return (decimal)value;
         }
     }
-    internal class IntDecimalConverter : IDecimalConverter<int>
+    internal class Int32DecimalConverter : IDecimalConverter<int>
     {
         public decimal GetDecimal(int value)
         {
             return (decimal)value;
         }
     }
-    internal class UIntDecimalConverter : IDecimalConverter<uint>
+    internal class UInt32DecimalConverter : IDecimalConverter<uint>
     {
         public decimal GetDecimal(uint value)
         {
             return (decimal)value;
         }
     }
-    internal class LongDecimalConverter : IDecimalConverter<long>
+    internal class Int64DecimalConverter : IDecimalConverter<long>
     {
         public decimal GetDecimal(long value)
         {
             return (decimal)value;
         }
     }
-    internal class ULongDecimalConverter : IDecimalConverter<ulong>
+    internal class UInt64DecimalConverter : IDecimalConverter<ulong>
     {
         public decimal GetDecimal(ulong value)
         {
             return (decimal)value;
         }
     }
-    internal class FloatDecimalConverter : IDecimalConverter<float>
+    internal class SingleDecimalConverter : IDecimalConverter<float>
     {
         public decimal GetDecimal(float value)
         {
