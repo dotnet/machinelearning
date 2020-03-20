@@ -1094,7 +1094,17 @@ namespace Microsoft.ML.Data
                         // consuming enumerables would exit immediately, despite the underlying collection not
                         // being add completed? The below "Take" based mechanism with a sentinel does work, but I
                         // find the fact that the first solution did not work very troubling.
-                        var nextBatch = _batchInputs.Take();
+
+                        Batch nextBatch;
+                        var takeResult = _batchInputs.TryTake(out nextBatch, 5 * 60 * 1000);
+
+                        if(!takeResult)
+                        {
+                            Console.WriteLine("Hanging: fail to take in 5 minutes");
+                            Environment.FailFast("Fail here to take memory dump");
+                        }
+
+                        //var nextBatch = _batchInputs.Take();
                         if (nextBatch == null)
                             return false;
                         Ch.Assert(nextBatch.HasException || nextBatch.BatchId > Batch);
