@@ -16,6 +16,7 @@ using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon.Attributes;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -26,6 +27,7 @@ namespace Microsoft.ML.Benchmarks.Tests
         protected override Job GetJobDefinition() => Job.Dry; // Job.Dry runs the benchmark just once
     }
 
+    [TestClass]
     public class BenchmarksTest : BaseTestClass
     {
         public BenchmarksTest(ITestOutputHelper output) : base(output)
@@ -35,9 +37,9 @@ namespace Microsoft.ML.Benchmarks.Tests
 
         private ITestOutputHelper output { get; }
 
-        public static TheoryData<Type> GetBenchmarks()
+        public static IList<Type> GetBenchmarks()
         {
-            TheoryData<Type> benchmarks = new TheoryData<Type>();
+            IList<Type> benchmarks = new List<Type>();
             Assembly asm = typeof(StochasticDualCoordinateAscentClassifierBench).Assembly;
 
             var types = from type in asm.GetTypes()
@@ -51,15 +53,43 @@ namespace Microsoft.ML.Benchmarks.Tests
             return benchmarks;
         }
 
-        [Theory]
-        [IterationData(iterations: 1)]
-        [Trait("Category", "RunSpecificTest")]
-        public void TestBenchmarkHangingSetupSentimentPipeline(int iteration)
+        [TestMethod]
+        public void BenchmarksProjectIsNotBroken()
         {
-            Output.WriteLine($"{iteration} -th");
-            PredictionEngineBench predictionEngineBench = new PredictionEngineBench();
-            predictionEngineBench.SetupSentimentPipeline();
+            var types = GetBenchmarks();
+            foreach (var type in types)
+            {
+                var summary = BenchmarkRunner.Run(type, new TestConfig().With(new OutputLogger(output)));
+
+                VisualStudio.TestTools.UnitTesting.Assert.IsFalse(summary.HasCriticalValidationErrors, "The \"Summary\" should have NOT \"HasCriticalValidationErrors\"");
+
+                VisualStudio.TestTools.UnitTesting.Assert.IsTrue(summary.Reports.Any(), "The \"Summary\" should contain at least one \"BenchmarkReport\" in the \"Reports\" collection");
+
+                VisualStudio.TestTools.UnitTesting.Assert.IsTrue(summary.Reports.All(r => r.BuildResult.IsBuildSuccess),
+                    "The following benchmarks failed to build: " +
+                    string.Join(", ", summary.Reports.Where(r => !r.BuildResult.IsBuildSuccess).Select(r => r.BenchmarkCase.DisplayInfo)));
+
+                VisualStudio.TestTools.UnitTesting.Assert.IsTrue(summary.Reports.All(r => r.ExecuteResults != null),
+                    "The following benchmarks don't have any execution results: " +
+                    string.Join(", ", summary.Reports.Where(r => r.ExecuteResults == null).Select(r => r.BenchmarkCase.DisplayInfo)));
+
+                VisualStudio.TestTools.UnitTesting.Assert.IsTrue(summary.Reports.All(r => r.ExecuteResults.Any(er => er.FoundExecutable && er.Data.Any())),
+                    "All reports should have at least one \"ExecuteResult\" with \"FoundExecutable\" = true and at least one \"Data\" item");
+
+                VisualStudio.TestTools.UnitTesting.Assert.IsTrue(summary.Reports.All(report => report.AllMeasurements.Any()),
+                    "All reports should have at least one \"Measurement\" in the \"AllMeasurements\" collection");
+            }
         }
+
+        //[Theory]
+        //[IterationData(iterations: 1)]
+        //[Trait("Category", "RunSpecificTest")]
+        //public void TestBenchmarkHangingSetupSentimentPipeline(int iteration)
+        //{
+        //    Output.WriteLine($"{iteration} -th");
+        //    PredictionEngineBench predictionEngineBench = new PredictionEngineBench();
+        //    predictionEngineBench.SetupSentimentPipeline();
+        //}
 
         //[Theory]
         //[IterationData(iterations: 1)]
@@ -191,40 +221,6 @@ namespace Microsoft.ML.Benchmarks.Tests
         //        new StochasticDualCoordinateAscentClassifierBench();
         //    stochasticDualCoordinateAscentClassifierBench.SetupPredictBenchmarks();
         //}
-
-
-
-
-
-
-
-
-
-
-        [BenchmarkTheory]
-        [MemberData(nameof(GetBenchmarks))]
-        public void BenchmarksProjectIsNotBroken(Type type)
-        {
-            var summary = BenchmarkRunner.Run(type, new TestConfig().With(new OutputLogger(output)));
-
-            Assert.False(summary.HasCriticalValidationErrors, "The \"Summary\" should have NOT \"HasCriticalValidationErrors\"");
-
-            Assert.True(summary.Reports.Any(), "The \"Summary\" should contain at least one \"BenchmarkReport\" in the \"Reports\" collection");
-
-            Assert.True(summary.Reports.All(r => r.BuildResult.IsBuildSuccess),
-                "The following benchmarks failed to build: " +
-                string.Join(", ", summary.Reports.Where(r => !r.BuildResult.IsBuildSuccess).Select(r => r.BenchmarkCase.DisplayInfo)));
-
-            Assert.True(summary.Reports.All(r => r.ExecuteResults != null),
-                "The following benchmarks don't have any execution results: " +
-                string.Join(", ", summary.Reports.Where(r => r.ExecuteResults == null).Select(r => r.BenchmarkCase.DisplayInfo)));
-
-            Assert.True(summary.Reports.All(r => r.ExecuteResults.Any(er => er.FoundExecutable && er.Data.Any())),
-                "All reports should have at least one \"ExecuteResult\" with \"FoundExecutable\" = true and at least one \"Data\" item");
-
-            Assert.True(summary.Reports.All(report => report.AllMeasurements.Any()),
-                "All reports should have at least one \"Measurement\" in the \"AllMeasurements\" collection");
-        }
     }
 
     public class OutputLogger : AccumulationLogger
