@@ -83,7 +83,7 @@ namespace Microsoft.ML.Benchmarks.Tests
         [Theory]
         [IterationData(iterations:10)]
         [Trait("Category", "RunSpecificTest")]
-        public async Task CompletesBenchmarkInTimeAsync(int iterations)
+        public void CompletesBenchmarkInTime(int iterations)
         {
             Output.WriteLine($"{iterations} - th");
 
@@ -92,10 +92,10 @@ namespace Microsoft.ML.Benchmarks.Tests
             var runTask = Task.Run(BenchmarksProjectIsNotBroken);
             var timeoutTask = Task.Delay(timeout);
 
-            var finishedTask = await Task.WhenAny(timeoutTask, runTask);
+            var finishedTask = Task.WhenAny(timeoutTask, runTask).Result;
             if (finishedTask == timeoutTask)
             {
-                Console.WriteLine("Benchmark Hanging: fail to complete in 10 minutes");
+                Console.WriteLine("Benchmark Hanging: fail to complete in 5 minutes");
                 Environment.FailFast("Fail here to take memory dump");
 
                 VisualStudio.TestTools.UnitTesting.Assert.Fail("Benchmark Hanging: fail to complete in 10 minutes");
