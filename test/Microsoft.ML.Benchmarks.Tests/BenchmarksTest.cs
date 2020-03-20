@@ -80,9 +80,13 @@ namespace Microsoft.ML.Benchmarks.Tests
             }
         }
 
-        [Fact]
-        public async Task CompletesBenchmarkInTimeAsync()
+        [Theory]
+        [IterationData(iterations:10)]
+        [Trait("Category", "RunSpecificTest")]
+        public async Task CompletesBenchmarkInTimeAsync(int iterations)
         {
+            Output.WriteLine($"{iterations} - th");
+
             int timeout = 10 * 60 * 1000;
 
             var runTask = Task.Run(BenchmarksProjectIsNotBroken);
