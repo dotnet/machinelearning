@@ -116,7 +116,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(host, nameof(host));
             host.CheckValue(view, nameof(view));
 
-            int cthd = GetThreadCount();
+            int cthd = 2;// GetThreadCount();
             host.Assert(cthd > 0);
             if (cthd == 1 || !AllCacheable(columnsNeeded))
             {
@@ -385,9 +385,9 @@ namespace Microsoft.ML.Data
 
                                 long oldBatch = 0;
                                 int count = 0;
-                                    // This event is used to synchronize ourselves using a MinWaiter
-                                    // so that we add batches to the consumer queue at the appropriate time.
-                                    ManualResetEventSlim waiterEvent = null;
+                                // This event is used to synchronize ourselves using a MinWaiter
+                                // so that we add batches to the consumer queue at the appropriate time.
+                                ManualResetEventSlim waiterEvent = null;
 
                                 Action pushBatch = () =>
                                 {
@@ -396,26 +396,33 @@ namespace Microsoft.ML.Data
                                         var batchColumns = batchColumnPool.Get();
                                         for (int i = 0; i < inPipes.Length; ++i)
                                             batchColumns[i] = inPipes[i].GetBatchColumnAndReset();
-                                            // REVIEW: Is it worth not allocating new Batch object for each batch?
-                                            var batch = new Batch(batchColumnPool, batchColumns, count, oldBatch);
+                                        // REVIEW: Is it worth not allocating new Batch object for each batch?
+                                        var batch = new Batch(batchColumnPool, batchColumns, count, oldBatch);
                                         count = 0;
-                                            // The waiter event should never be null since this is only
-                                            // called after a point where waiter.Register has been called.
-                                            ch.AssertValue(waiterEvent);
-                                        waiterEvent.Wait();
+                                        // The waiter event should never be null since this is only
+                                        // called after a point where waiter.Register has been called.
+                                        ch.AssertValue(waiterEvent);
+                                        var waitResult = waiterEvent.Wait(5*60*1000);
+
+                                        if(!waitResult)
+                                        {
+                                            Console.WriteLine("Hanging: wait for 5 minutes but not success");
+                                            Environment.FailFast("Take memory dump here");
+                                        }
+
                                         waiterEvent = null;
                                         toConsume.Add(batch);
                                     }
                                 };
-                                    // Handle the first one separately, then go into the main loop.
-                                    if (localCursor.MoveNext() && !done)
+                                // Handle the first one separately, then go into the main loop.
+                                if (localCursor.MoveNext() && !done)
                                 {
                                     oldBatch = localCursor.Batch;
                                     foreach (var pipe in inPipes)
                                         pipe.Fill();
                                     count++;
-                                        // Register with the min waiter that we want to wait on this batch number.
-                                        waiterEvent = waiter.Register(oldBatch);
+                                    // Register with the min waiter that we want to wait on this batch number.
+                                    waiterEvent = waiter.Register(oldBatch);
 
                                     while (localCursor.MoveNext() && !done)
                                     {
@@ -436,8 +443,8 @@ namespace Microsoft.ML.Data
                         }
                         catch (Exception ex)
                         {
-                                // Whoops, we won't be sending null as the sentinel now.
-                                lastBatch = new Batch(ex);
+                            // Whoops, we won't be sending null as the sentinel now.
+                            lastBatch = new Batch(ex);
                             toConsume.Add(new Batch(ex));
                         }
                         finally
@@ -446,9 +453,9 @@ namespace Microsoft.ML.Data
                             {
                                 if (lastBatch == null)
                                 {
-                                        // If it wasn't null, this already sent along an exception bearing batch, in which
-                                        // case sending the sentinel is unnecessary and unhelpful.
-                                        toConsume.Add(null);
+                                    // If it wasn't null, this already sent along an exception bearing batch, in which
+                                    // case sending the sentinel is unnecessary and unhelpful.
+                                    toConsume.Add(null);
                                 }
                                 toConsume.CompleteAdding();
                             }
