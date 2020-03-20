@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Loggers;
@@ -52,8 +53,7 @@ namespace Microsoft.ML.Benchmarks.Tests
             return benchmarks;
         }
 
-        [Fact]
-        public void BenchmarksProjectIsNotBroken()
+        private void BenchmarksProjectIsNotBroken()
         {
             var types = GetBenchmarks();
             foreach (var type in types)
@@ -77,6 +77,24 @@ namespace Microsoft.ML.Benchmarks.Tests
 
                 VisualStudio.TestTools.UnitTesting.Assert.IsTrue(summary.Reports.All(report => report.AllMeasurements.Any()),
                     "All reports should have at least one \"Measurement\" in the \"AllMeasurements\" collection");
+            }
+        }
+
+        [Fact]
+        public async Task CompletesBenchmarkInTimeAsync()
+        {
+            int timeout = 10 * 60 * 1000;
+
+            var runTask = Task.Run(BenchmarksProjectIsNotBroken);
+            var timeoutTask = Task.Delay(timeout);
+
+            var finishedTask = await Task.WhenAny(timeoutTask, runTask);
+            if (finishedTask == timeoutTask)
+            {
+                Console.WriteLine("Benchmark Hanging: fail to complete in 10 minutes");
+                Environment.FailFast("Fail here to take memory dump");
+
+                VisualStudio.TestTools.UnitTesting.Assert.Fail("Benchmark Hanging: fail to complete in 10 minutes");
             }
         }
 
