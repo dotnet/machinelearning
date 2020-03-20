@@ -13,7 +13,7 @@
             <DataCollector friendlyName="blame" enabled="True">
                 <Configuration>
                     <CollectDump CollectAlways="false" DumpType="full" />
-                    <CollectDumpOnTestSessionHang TestTimeout="300000" DumpType="full" />
+                    <CollectDumpOnTestSessionHang TestTimeout="600000" DumpType="full" />
                 </Configuration>
             </DataCollector>
         </DataCollectors>
