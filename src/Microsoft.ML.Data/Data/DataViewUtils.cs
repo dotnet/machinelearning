@@ -97,7 +97,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         public static int GetThreadCount(int num = 0, bool preferOne = false)
         {
-            int conc = Math.Max(2, Environment.ProcessorCount - 1);
+            int conc = Math.Max(2, 2 - 1);
 
             if (num > 0)
                 return Math.Min(num, 2 * conc);

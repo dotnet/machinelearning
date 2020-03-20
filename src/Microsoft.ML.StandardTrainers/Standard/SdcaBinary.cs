@@ -137,7 +137,7 @@ namespace Microsoft.ML.Trainers
         }
 
         private protected virtual int ComputeNumThreads(FloatLabelCursor.Factory cursorFactory)
-            => Math.Min(8, Math.Max(1, Environment.ProcessorCount / 2));
+            => Math.Min(8, Math.Max(1, 2 / 2));
     }
 
     public abstract class SdcaTrainerBase<TOptions, TTransformer, TModel> : StochasticTrainerBase<TTransformer, TModel>

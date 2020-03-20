@@ -96,7 +96,7 @@ namespace Microsoft.ML.Trainers.FastTree
             _len = args.Length;
             _count = args.Count;
             _bins = args.Bins;
-            _parallel = args.Parallel ?? Environment.ProcessorCount;
+            _parallel = args.Parallel ?? 2;
             _param = args.Parameter;
             _seconds = args.Seconds;
         }

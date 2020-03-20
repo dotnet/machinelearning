@@ -87,7 +87,7 @@ namespace Microsoft.ML.Benchmarks.Tests
         {
             Output.WriteLine($"{iterations} - th");
 
-            int timeout = 10 * 60 * 1000;
+            int timeout = 5 * 60 * 1000;
 
             var runTask = Task.Run(BenchmarksProjectIsNotBroken);
             var timeoutTask = Task.Delay(timeout);

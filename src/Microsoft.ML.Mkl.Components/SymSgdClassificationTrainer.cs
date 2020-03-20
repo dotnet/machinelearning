@@ -702,7 +702,7 @@ namespace Microsoft.ML.Trainers
         {
             int numFeatures = data.Schema.Feature.Value.Type.GetVectorSize();
             var cursorFactory = new FloatLabelCursor.Factory(data, CursOpt.Label | CursOpt.Features);
-            int numThreads = _options.NumberOfThreads ?? Environment.ProcessorCount;
+            int numThreads = _options.NumberOfThreads ?? 2;
 
             ch.CheckUserArg(numThreads > 0, nameof(_options.NumberOfThreads),
                 "The number of threads must be either null or a positive integer.");

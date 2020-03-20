@@ -661,7 +661,7 @@ namespace Microsoft.ML.Data.IO
                 if (activeColumns.Length > 0)
                 {
                     OrderedWaiter waiter = _deterministicBlockOrder ? new OrderedWaiter() : null;
-                    Task[] compressionThreads = new Task[Environment.ProcessorCount];
+                    Task[] compressionThreads = new Task[2];
                     for (int i = 0; i < compressionThreads.Length; ++i)
                     {
                         compressionThreads[i] = Utils.RunOnBackgroundThreadAsync(

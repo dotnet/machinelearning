@@ -363,7 +363,7 @@ namespace Microsoft.ML.Trainers
             _eta = options.LearningRate;
             _alpha = options.Alpha;
             _c = options.C;
-            _threads = options.NumberOfThreads ?? Environment.ProcessorCount;
+            _threads = options.NumberOfThreads ?? 2;
             _quiet = options.Quiet;
             _doNmf = options.NonNegative;
 
@@ -405,7 +405,7 @@ namespace Microsoft.ML.Trainers
             _alpha = args.Alpha;
             _lambda = args.Lambda;
             _c = args.C;
-            _threads = args.NumberOfThreads ?? Environment.ProcessorCount;
+            _threads = args.NumberOfThreads ?? 2;
             _quiet = args.Quiet;
             _doNmf = args.NonNegative;
 

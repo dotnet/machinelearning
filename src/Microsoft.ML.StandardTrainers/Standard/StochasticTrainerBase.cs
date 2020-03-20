@@ -45,7 +45,7 @@ namespace Microsoft.ML.Trainers
         }
 
         private protected virtual int ComputeNumThreads(FloatLabelCursor.Factory cursorFactory)
-            => Math.Min(8, Math.Max(1, Environment.ProcessorCount / 2));
+            => Math.Min(8, Math.Max(1, 2 / 2));
 
         /// <summary>
         /// This method ensures that the data meets the requirements of this trainer and its

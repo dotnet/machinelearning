@@ -782,7 +782,7 @@ namespace Microsoft.ML.Data.IO
 
                 _header = InitHeader();
                 _autodeterminedThreads = args.Threads == null;
-                _threads = Math.Max(1, args.Threads ?? (Environment.ProcessorCount / 2));
+                _threads = Math.Max(1, args.Threads ?? (2 / 2));
                 _generatedRowIndexName = string.IsNullOrWhiteSpace(args.RowIndexName) ? null : args.RowIndexName;
                 InitToc(ch, out _aliveColumns, out _deadColumns, out _rowsPerBlock, out _tocEndLim);
                 _outputSchema = ComputeOutputSchema();
@@ -849,7 +849,7 @@ namespace Microsoft.ML.Data.IO
                     if (_threads == 0)
                     {
                         _autodeterminedThreads = true;
-                        _threads = Math.Max(1, Environment.ProcessorCount / 2);
+                        _threads = Math.Max(1, 2 / 2);
                     }
 
                     _generatedRowIndexName = ctx.LoadStringOrNull();
@@ -857,7 +857,7 @@ namespace Microsoft.ML.Data.IO
                 }
                 else
                 {
-                    _threads = Math.Max(1, Environment.ProcessorCount / 2);
+                    _threads = Math.Max(1, 2 / 2);
                     _generatedRowIndexName = null;
                 }
 

@@ -441,7 +441,7 @@ namespace Microsoft.ML.Trainers
 
             // Compute the number of threads to use. The ctor should have verified that this will
             // produce a positive value.
-            int numThreads = !UseThreads ? 1 : (NumThreads ?? Environment.ProcessorCount);
+            int numThreads = !UseThreads ? 1 : (NumThreads ?? 2);
 
             ch.Assert(numThreads > 0);
 

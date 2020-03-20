@@ -601,7 +601,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private void InitializeThreads()
         {
             ParallelTraining = new SingleTrainer();
-            ThreadTaskManager.Initialize(GamTrainerOptions.NumberOfThreads ?? Environment.ProcessorCount);
+            ThreadTaskManager.Initialize(GamTrainerOptions.NumberOfThreads ?? 2);
         }
 
         private protected abstract ObjectiveFunctionBase CreateObjectiveFunction();
