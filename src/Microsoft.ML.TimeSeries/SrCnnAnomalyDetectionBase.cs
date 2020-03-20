@@ -285,8 +285,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     {
                         dataList.Add(data[i]);
                     }
-                    //var exp = CalculateExpectedValueByFft(dataList.GetRange(0, dataList.Count-1));
-                    var exp = CalculateExpectedValueBySsa(dataList.GetRange(0, dataList.Count - 1));
+                    var deAnomalyDataList = GetDeanomalyData(dataList, GetAnomalyIndex(ifftMagList.GetRange(0, dataList.Count), filteredIfftMagList.GetRange(0, dataList.Count)));
+                    var exp = CalculateExpectedValueByFft(deAnomalyDataList.GetRange(0, deAnomalyDataList.Count-1));
                     result.Values[3] = exp;
 
                     //Step 9: Calculate Boundary Unit
@@ -355,6 +355,92 @@ namespace Microsoft.ML.Transforms.TimeSeries
                         safeDivisor = 1e-8;
                     }
                     return (float)(Math.Abs(mag - avgMag) / safeDivisor);
+                }
+
+                private List<int> GetAnomalyIndex(List<Single> magList, List<Single> avgMagList)
+                {
+                    List<int> anomalyIdxList = new List<int>();
+                    for (var i = 0; i < magList.Count; ++i)
+                    {
+                        double safeDivisor = avgMagList[i];
+                        if (safeDivisor < 1e-8)
+                        {
+                            safeDivisor = 1e-8;
+                        }
+                        var score = (Math.Abs(magList[i] - avgMagList[i]) / safeDivisor) / 10.0f;
+                        score = Math.Min(score, 1);
+                        score = Math.Max(score, 0);
+                        if (score > 0.25f)
+                        {
+                            anomalyIdxList.Add(i);
+                        }
+                    }
+
+                    return anomalyIdxList;
+                }
+
+                private List<Single> GetDeanomalyData(List<Single> data, List<int> anomalyIdxList)
+                {
+                    List<Single> deAnomalyData = new List<Single>(data);
+                    int minPointsToFit = 4;
+                    foreach (var idx in anomalyIdxList)
+                    {
+                        int step = 1;
+                        int start = Math.Max(idx - step, 0);
+                        int end = Math.Min(data.Count - 1, idx + step);
+
+                        List<Tuple<int, float>> fitValues = new List<Tuple<int, float>>();
+                        for (int i = start; i <= end; ++i)
+                        {
+                            if (!anomalyIdxList.Contains(i))
+                            {
+                                fitValues.Add(new Tuple<int, float>(i, data[i]));
+                            }
+                        }
+
+                        while(fitValues.Count < minPointsToFit && (start > 0 || end < data.Count - 1))
+                        {
+                            step += 2;
+                            start = Math.Max(idx - step, 0);
+                            end = Math.Min(data.Count - 1, idx + step);
+                            fitValues.Clear();
+                            for (int i = start; i <= end; ++i)
+                            {
+                                if (!anomalyIdxList.Contains(i))
+                                {
+                                    fitValues.Add(new Tuple<int, float>(i, data[i]));
+                                }
+                            }
+                        }
+
+                        if (fitValues.Count > 1)
+                        {
+                            deAnomalyData[idx] = CalculateInterplate(fitValues, idx);
+                        }
+                    }
+
+                    return deAnomalyData;
+                }
+
+                private float CalculateInterplate(List<Tuple<int, float>> values, int idx)
+                {
+                    //n = len(x)
+                    //sum_x = np.sum(x)
+                    //sum_y = np.sum(y)
+                    //sum_xx = np.sum(np.multiply(x, x))
+                    //sum_xy = np.sum(np.multiply(x, y))
+                    //a = (n * sum_xy - sum_x * sum_y) / (n * sum_xx - sum_x * sum_x)
+                    //b = (sum_xx * sum_y - sum_x * sum_xy) / (n * sum_xx - sum_x * sum_x)
+                    var n = values.Count;
+                    var sumX = values.Sum(item => item.Item1);
+                    var sumY = values.Sum(item => item.Item2);
+                    var sumXX = values.Sum(item => item.Item1 * item.Item1);
+                    var sumXY = values.Sum(item => item.Item1 * item.Item2);
+
+                    var a = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+                    var b = (sumXX * sumY - sumX * sumXY) / (n * sumXX - sumX * sumX);
+
+                    return a * idx + b;
                 }
 
                 private Single CalculateExpectedValueByFft(List<Single> data)
