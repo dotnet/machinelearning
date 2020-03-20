@@ -51,15 +51,15 @@ namespace Microsoft.ML.Benchmarks.Tests
             return benchmarks;
         }
 
-        //[Theory]
-        //[IterationData(iterations: 1)]
-        //[Trait("Category", "RunSpecificTest")]
-        //public void TestBenchmarkHangingSetupSentimentPipeline(int iteration)
-        //{
-        //    Output.WriteLine($"{iteration} -th");
-        //    PredictionEngineBench predictionEngineBench = new PredictionEngineBench();
-        //    predictionEngineBench.SetupSentimentPipeline();
-        //}
+        [Theory]
+        [IterationData(iterations: 1)]
+        [Trait("Category", "RunSpecificTest")]
+        public void TestBenchmarkHangingSetupSentimentPipeline(int iteration)
+        {
+            Output.WriteLine($"{iteration} -th");
+            PredictionEngineBench predictionEngineBench = new PredictionEngineBench();
+            predictionEngineBench.SetupSentimentPipeline();
+        }
 
         //[Theory]
         //[IterationData(iterations: 1)]
@@ -203,8 +203,6 @@ namespace Microsoft.ML.Benchmarks.Tests
 
         [BenchmarkTheory]
         [MemberData(nameof(GetBenchmarks))]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void BenchmarksProjectIsNotBroken(Type type)
         {
             var summary = BenchmarkRunner.Run(type, new TestConfig().With(new OutputLogger(output)));
