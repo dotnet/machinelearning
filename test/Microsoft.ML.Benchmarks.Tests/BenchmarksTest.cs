@@ -90,7 +90,7 @@ namespace Microsoft.ML.Benchmarks.Tests
         {
             Output.WriteLine($"{iterations} - th");
 
-            int timeout = 5 * 60 * 1000;
+            int timeout = 20 * 60 * 1000;
 
             var runTask = Task.Run(BenchmarksProjectIsNotBroken);
             var timeoutTask = Task.Delay(timeout);
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Benchmarks.Tests
             var finishedTask = Task.WhenAny(timeoutTask, runTask).Result;
             if (finishedTask == timeoutTask)
             {
-                Console.WriteLine("Benchmark Hanging: fail to complete in 5 minutes");
+                Console.WriteLine("Benchmark Hanging: fail to complete in 20 minutes");
                 Environment.FailFast("Fail here to take memory dump");
             }
         }
