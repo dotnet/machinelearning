@@ -71,9 +71,10 @@ namespace Samples.Dynamic.Transforms.TimeSeries
                 string tpCause = FindTruePositive(cause, labeledRootCause, exactly);
                 if (tpCause == null)
                 {
-                    //todo - seriesalize the root cause
+                    fp++;
                     Console.WriteLine(String.Format("FP : timestamp - {0}, detected root cause ", timeStamp));
                     Console.WriteLine(string.Join(Environment.NewLine, cause));
+                    Console.WriteLine(" ");
                 }
                 else
                 {
@@ -86,14 +87,15 @@ namespace Samples.Dynamic.Transforms.TimeSeries
             if (fn != 0)
             {
                 List<Dictionary<string, string>> nCause = GetNegtiveCause(labeledRootCause, labelSet);
-                //todo seralize
                 if (nCause.Count > 0)
                 {
                     Console.WriteLine(String.Format("FN : timestamp - {0}", timeStamp));
                     foreach (Dictionary<string, string> cause in nCause)
                     {
-                        Console.WriteLine(string.Join(Environment.NewLine, nCause));
+                        Console.WriteLine(string.Join(Environment.NewLine, cause));
+                        Console.WriteLine("---------------------");
                     }
+
                 }
             }
 
@@ -199,11 +201,6 @@ namespace Samples.Dynamic.Transforms.TimeSeries
 
             // Load input list in DataView back to Enumerable.
             var transformedDataPoints = ml.Data.CreateEnumerable<RootCauseLocalizationTransformedData>(transformedData, false);
-
-            foreach (var dataPoint in transformedDataPoints)
-            {
-                var rootCause = dataPoint.RootCause;
-            }
 
             var engine = ml.Model.CreatePredictionEngine<RootCauseLocalizationData, RootCauseLocalizationTransformedData>(model);
             return engine;

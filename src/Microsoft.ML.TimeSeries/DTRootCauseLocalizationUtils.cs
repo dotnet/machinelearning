@@ -372,8 +372,14 @@ namespace Microsoft.ML.TimeSeries
         {
             foreach (Point p in points)
             {
-                if (p.Dimensions.Equals(dim))
-                {
+                bool isEqual = true;
+                foreach (KeyValuePair<string, string> item in p.Dimensions) {
+                    if (!dim[item.Key].Equals(item.Value)) {
+                        isEqual = false;
+                    }
+                }
+
+                if (isEqual) {
                     return p;
                 }
             }
