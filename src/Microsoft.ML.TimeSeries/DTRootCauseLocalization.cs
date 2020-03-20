@@ -370,7 +370,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                         if (src == null)
                             return;
 
-                        CheckInput(src, Host);
+                        CheckRootCauseInput(src, Host);
 
                         LocalizeRootCauses(src, ref dst);
                     };
@@ -378,7 +378,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return del;
             }
 
-            private void CheckInput(RootCauseLocalizationInput src, IHost host)
+            private void CheckRootCauseInput(RootCauseLocalizationInput src, IHost host)
             {
                 if (src.Slices.Count < 1)
                 {
