@@ -61,6 +61,15 @@ namespace Microsoft.Data {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot cast column holding {0} values to type {1}.
+        /// </summary>
+        internal static string BadColumnCast {
+            get {
+                return ResourceManager.GetString("BadColumnCast", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot resize down.
         /// </summary>
         internal static string CannotResizeDown {

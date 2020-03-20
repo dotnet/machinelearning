@@ -2179,5 +2179,75 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.True(reverseInPlace.ElementwiseEquals(ints).All());
             Assert.False(reverseInPlace.ElementwiseEquals(reverse).All());
         }
+
+        [Fact]
+        public void GetColumnTests()
+        {
+            DataFrame dataFrame = MakeDataFrameWithAllColumnTypes(10);
+            PrimitiveDataFrameColumn<int> primitiveInts = dataFrame.Columns.GetPrimitiveColumn<int>("Int");
+            Assert.NotNull(primitiveInts);
+            Assert.Throws<ArgumentException>(() => dataFrame.Columns.GetPrimitiveColumn<float>("Int"));
+
+            StringDataFrameColumn strings = dataFrame.Columns.GetStringColumn("String");
+            Assert.NotNull(strings);
+            Assert.Throws<ArgumentException>(() => dataFrame.Columns.GetStringColumn("ArrowString"));
+
+            ArrowStringDataFrameColumn arrowStrings = dataFrame.Columns.GetArrowStringColumn("ArrowString");
+            Assert.NotNull(arrowStrings);
+            Assert.Throws<ArgumentException>(() => dataFrame.Columns.GetArrowStringColumn("String"));
+
+            ByteDataFrameColumn bytes = dataFrame.Columns.GetByteColumn("Byte");
+            Assert.NotNull(bytes);
+            Assert.Throws<ArgumentException>(() => dataFrame.Columns.GetSingleColumn("Byte"));
+
+            Int32DataFrameColumn ints = dataFrame.Columns.GetInt32Column("Int");
+            Assert.NotNull(ints);
+            Assert.Throws<ArgumentException>(() => dataFrame.Columns.GetSingleColumn("Int"));
+
+            BooleanDataFrameColumn bools = dataFrame.Columns.GetBooleanColumn("Bool");
+            Assert.NotNull(bools);
+            Assert.Throws<ArgumentException>(() => dataFrame.Columns.GetSingleColumn("Bool"));
+
+            CharDataFrameColumn chars = dataFrame.Columns.GetCharColumn("Char");
+            Assert.NotNull(chars);
+            Assert.Throws<ArgumentException>(() => dataFrame.Columns.GetSingleColumn("Char"));
+
+            DecimalDataFrameColumn decimals = dataFrame.Columns.GetDecimalColumn("Decimal");
+            Assert.NotNull(decimals);
+            Assert.Throws<ArgumentException>(() => dataFrame.Columns.GetSingleColumn("Decimal"));
+
+            DoubleDataFrameColumn doubles = dataFrame.Columns.GetDoubleColumn("Double");
+            Assert.NotNull(doubles);
+            Assert.Throws<ArgumentException>(() => dataFrame.Columns.GetSingleColumn("Double"));
+
+            SingleDataFrameColumn singles = dataFrame.Columns.GetSingleColumn("Float");
+            Assert.NotNull(singles);
+            Assert.Throws<ArgumentException>(() => dataFrame.Columns.GetDoubleColumn("Float"));
+
+            Int64DataFrameColumn longs = dataFrame.Columns.GetInt64Column("Long");
+            Assert.NotNull(longs);
+            Assert.Throws<ArgumentException>(() => dataFrame.Columns.GetSingleColumn("Long"));
+
+            SByteDataFrameColumn sbytes = dataFrame.Columns.GetSByteColumn("Sbyte");
+            Assert.NotNull(sbytes);
+            Assert.Throws<ArgumentException>(() => dataFrame.Columns.GetSingleColumn("Sbyte"));
+
+            Int16DataFrameColumn shorts = dataFrame.Columns.GetInt16Column("Short");
+            Assert.NotNull(shorts);
+            Assert.Throws<ArgumentException>(() => dataFrame.Columns.GetSingleColumn("Short"));
+
+            UInt32DataFrameColumn uints = dataFrame.Columns.GetUInt32Column("Uint");
+            Assert.NotNull(uints);
+            Assert.Throws<ArgumentException>(() => dataFrame.Columns.GetSingleColumn("Uint"));
+
+            UInt64DataFrameColumn ulongs = dataFrame.Columns.GetUInt64Column("Ulong");
+            Assert.NotNull(ulongs);
+            Assert.Throws<ArgumentException>(() => dataFrame.Columns.GetSingleColumn("Ulong"));
+
+            UInt16DataFrameColumn ushorts = dataFrame.Columns.GetUInt16Column("Ushort");
+            Assert.NotNull(ushorts);
+            Assert.Throws<ArgumentException>(() => dataFrame.Columns.GetSingleColumn("Ushort"));
+
+        }
     }
 }
