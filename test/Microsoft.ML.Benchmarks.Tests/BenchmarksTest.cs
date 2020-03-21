@@ -59,7 +59,8 @@ namespace Microsoft.ML.Benchmarks.Tests
             var types = GetBenchmarks();
             foreach (var type in types)
             {
-                var summary = BenchmarkRunner.Run(type, new TestConfig().With(new OutputLogger(output)));
+                var summary = BenchmarkRunner.Run(type, new TestConfig()/*.With(new OutputLogger(output))*/);
+                
 
                 VisualStudio.TestTools.UnitTesting.Assert.IsFalse(summary.HasCriticalValidationErrors, "The \"Summary\" should have NOT \"HasCriticalValidationErrors\"");
 
@@ -78,8 +79,6 @@ namespace Microsoft.ML.Benchmarks.Tests
 
                 VisualStudio.TestTools.UnitTesting.Assert.IsTrue(summary.Reports.All(report => report.AllMeasurements.Any()),
                     "All reports should have at least one \"Measurement\" in the \"AllMeasurements\" collection");
-
-                //Thread.Sleep(5 * 60 * 1000);
             }
         }
 
