@@ -738,6 +738,8 @@ namespace Microsoft.ML.Transforms
             {
                 if (_session != null && _session != IntPtr.Zero)
                 {
+                    if (_session.graph != null)
+                        _session.graph.Dispose();
                     _session.close();
                 }
             }

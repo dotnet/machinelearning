@@ -50,7 +50,7 @@ namespace Microsoft.ML.Data
     /// A chain of transformers (possibly empty) that end with a <typeparamref name="TLastTransformer"/>.
     /// For an empty chain, <typeparamref name="TLastTransformer"/> is always <see cref="ITransformer"/>.
     /// </summary>
-    public sealed class TransformerChain<TLastTransformer> : ITransformer, IEnumerable<ITransformer>, ITransformerChainAccessor
+    public sealed class TransformerChain<TLastTransformer> : ITransformer, IEnumerable<ITransformer>, ITransformerChainAccessor, IDisposable
     where TLastTransformer : class, ITransformer
     {
         private readonly ITransformer[] _transformers;
@@ -232,6 +232,31 @@ namespace Microsoft.ML.Data
             }
             return new CompositeRowToRowMapper(inputSchema, mappers);
         }
+
+        #region IDisposable Support
+        private bool _disposed = false;
+
+        private void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+
+            if (disposing)
+            {
+                foreach (var transformer in _transformers)
+                    (transformer as IDisposable)?.Dispose();
+
+                (LastTransformer as IDisposable)?.Dispose();
+            }
+
+            _disposed = true;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        #endregion
     }
 
     /// <summary>

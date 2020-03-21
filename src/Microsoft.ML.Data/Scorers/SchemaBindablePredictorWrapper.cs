@@ -32,7 +32,7 @@ namespace Microsoft.ML.Data
     /// This is a base class for wrapping <see cref="IPredictor"/>s in an <see cref="ISchemaBindableMapper"/>.
     /// </summary>
     internal abstract class SchemaBindablePredictorWrapperBase : ISchemaBindableMapper, ICanSaveModel, ICanSaveSummary,
-        IBindableCanSavePfa, IBindableCanSaveOnnx
+        IBindableCanSavePfa, IBindableCanSaveOnnx, IDisposable
     {
         // The ctor guarantees that Predictor is non-null. It also ensures that either
         // ValueMapper or FloatPredictor is non-null (or both). With these guarantees,
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Data
         /// This class doesn't care. It DOES care that the role mapped schema specifies a unique Feature column.
         /// It also requires that the output schema has ColumnCount == 1.
         /// </summary>
-        protected sealed class SingleValueRowMapper : ISchemaBoundRowMapper
+        protected sealed class SingleValueRowMapper : ISchemaBoundRowMapper, IDisposable
         {
             private readonly SchemaBindablePredictorWrapperBase _parent;
 
@@ -241,7 +241,47 @@ namespace Microsoft.ML.Data
                     getters[0] = _parent.GetPredictionGetter(input, InputRoleMappedSchema.Feature.Value.Index);
                 return new SimpleRow(OutputSchema, input, getters);
             }
+
+            #region IDisposable Support
+            private bool _disposed = false;
+
+            private void Dispose(bool disposing)
+            {
+                if (_disposed)
+                    return;
+
+                if (disposing)
+                    (_parent as IDisposable)?.Dispose();
+
+                _disposed = true;
+            }
+
+            void IDisposable.Dispose()
+            {
+                Dispose(true);
+            }
+            #endregion
         }
+
+        #region IDisposable Support
+        private bool _disposed = false;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+
+            if (disposing)
+                (Predictor as IDisposable)?.Dispose();
+
+            _disposed = true;
+        }
+
+        void IDisposable.Dispose()
+        {
+            Dispose(true);
+        }
+        #endregion
     }
 
     /// <summary>

@@ -40,7 +40,7 @@ namespace Microsoft.ML.Data
     /// Base class for transformers with no feature column, or more than one feature columns.
     /// </summary>
     /// <typeparam name="TModel">The type of the model parameters used by this prediction transformer.</typeparam>
-    public abstract class PredictionTransformerBase<TModel> : IPredictionTransformer<TModel>
+    public abstract class PredictionTransformerBase<TModel> : IPredictionTransformer<TModel>, IDisposable
         where TModel : class
     {
         /// <summary>
@@ -181,6 +181,30 @@ namespace Microsoft.ML.Data
                 }
             });
         }
+
+        #region IDisposable Support
+        private bool _disposed = false;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+
+            if (disposing)
+            {
+                (Model as IDisposable)?.Dispose();
+                (BindableMapper as IDisposable)?.Dispose();
+                (Scorer as IDisposable)?.Dispose();
+            }
+
+            _disposed = true;
+        }
+
+        void IDisposable.Dispose()
+        {
+            Dispose(true);
+        }
+        #endregion
     }
 
     /// <summary>

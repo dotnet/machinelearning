@@ -147,6 +147,7 @@ namespace Microsoft.ML
             var outputRowLocal = mapper.GetRow(inputRow, mapper.OutputSchema);
             outputRow = cursorable.GetRow(outputRowLocal);
             disposer = inputRow.Dispose;
+            //(mapper as IDisposable)?.Dispose();
         }
 
         private protected virtual Func<DataViewSchema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
@@ -168,7 +169,10 @@ namespace Microsoft.ML
             if (_disposed)
                 return;
             if (disposing)
+            {
                 _disposer?.Invoke();
+                (Transformer as IDisposable)?.Dispose();
+            }
             _disposed = true;
         }
 

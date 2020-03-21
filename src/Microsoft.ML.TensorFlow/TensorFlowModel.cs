@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TensorFlow;
 using Tensorflow;
@@ -13,7 +14,7 @@ namespace Microsoft.ML.Transforms
     /// It provides some convenient methods to query model schema as well as
     /// creation of <see cref="TensorFlowEstimator"/> object.
     /// </summary>
-    public sealed class TensorFlowModel
+    public sealed class TensorFlowModel : IDisposable
     {
         internal Session Session { get; }
         internal string ModelPath { get; }
@@ -83,5 +84,25 @@ namespace Microsoft.ML.Transforms
         /// </example>
         public TensorFlowEstimator ScoreTensorFlowModel(string[] outputColumnNames, string[] inputColumnNames, bool addBatchDimensionInput = false)
             => new TensorFlowEstimator(_env, outputColumnNames, inputColumnNames, this, addBatchDimensionInput);
+
+        #region IDisposable Support
+        private bool _disposed = false;
+
+        private void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+            if (disposing)
+            {
+                Session.Dispose();
+            }
+            _disposed = true;
+        }
+
+        void IDisposable.Dispose()
+        {
+            Dispose(true);
+        }
+        #endregion
     }
 }
