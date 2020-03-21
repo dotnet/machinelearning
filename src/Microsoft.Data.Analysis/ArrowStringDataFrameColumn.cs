@@ -24,6 +24,10 @@ namespace Microsoft.Data.Analysis
         private IList<ReadOnlyDataFrameBuffer<int>> _offsetsBuffers;
         private IList<ReadOnlyDataFrameBuffer<byte>> _nullBitMapBuffers;
 
+        /// <summary>
+        /// Constructs an empty <see cref="ArrowStringDataFrameColumn"/> with the given <paramref name="name"/>.
+        /// </summary>
+        /// <param name="name">The name of the column.</param>
         public ArrowStringDataFrameColumn(string name) : base(name, 0, typeof(string))
         {
             _dataBuffers = new List<ReadOnlyDataFrameBuffer<byte>>();
@@ -31,6 +35,15 @@ namespace Microsoft.Data.Analysis
             _nullBitMapBuffers = new List<ReadOnlyDataFrameBuffer<byte>>();
         }
 
+        /// <summary>
+        /// Constructs an <see cref="ArrowStringDataFrameColumn"/> with the given <paramref name="name"/>, <paramref name="length"/> and <paramref name="nullCount"/>. The <paramref name="values"/>, <paramref name="offsets"/> and <paramref name="nullBits"/> are the contents of the column in the Arrow format.
+        /// </summary>
+        /// <param name="name">The name of the column.</param>
+        /// <param name="values">The Arrow formatted string values in this column.</param>
+        /// <param name="offsets">The Arrow formatted offets in this column.</param>
+        /// <param name="nullBits">The Arrow formatted null bits in this column.</param>
+        /// <param name="length">The length of the column.</param>
+        /// <param name="nullCount">The number of <see langword="null" /> values in this column.</param>
         public ArrowStringDataFrameColumn(string name, ReadOnlyMemory<byte> values, ReadOnlyMemory<byte> offsets, ReadOnlyMemory<byte> nullBits, int length, int nullCount) : base(name, length, typeof(string))
         {
             ReadOnlyDataFrameBuffer<byte> dataBuffer = new ReadOnlyDataFrameBuffer<byte>(values, values.Length);
@@ -53,11 +66,18 @@ namespace Microsoft.Data.Analysis
         }
 
         private long _nullCount;
+
+        /// <inheritdoc/>
         public override long NullCount => _nullCount;
 
+        /// <summary>
+        /// Indicates if the value at this <paramref name="index"/> is <see langword="null" />.
+        /// </summary>
+        /// <param name="index">The index to look up.</param>
+        /// <returns>A boolean value indicating the validity at this <paramref name="index"/>.</returns>
         public bool IsValid(long index) => NullCount == 0 || GetValidityBit(index);
 
-        public bool GetValidityBit(long index)
+        private bool GetValidityBit(long index)
         {
             if ((ulong)index > (ulong)Length)
             {
@@ -118,11 +138,11 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Returns an enumerable of immutable buffers representing the underlying values in the Apache Arrow format
+        /// Returns an enumeration of immutable buffers representing the underlying values in the Apache Arrow format
         /// </summary>
-        /// <remarks>Null values are encoded in the buffers returned by GetReadOnlyNullBitmapBuffers in the Apache Arrow format</remarks>
+        /// <remarks><see langword="null" /> values are encoded in the buffers returned by GetReadOnlyNullBitmapBuffers in the Apache Arrow format</remarks>
         /// <remarks>The offsets buffers returned by GetReadOnlyOffsetBuffers can be used to delineate each value</remarks>
-        /// <returns>IEnumerable<ReadOnlyMemory<byte>></returns>
+        /// <returns>An enumeration of <see cref="ReadOnlyMemory{Byte}"/> whose elements are the raw data buffers for the UTF8 string values.</returns>
         public IEnumerable<ReadOnlyMemory<byte>> GetReadOnlyDataBuffers()
         {
             for (int i = 0; i < _dataBuffers.Count; i++)
@@ -133,10 +153,10 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Returns an enumerable of immutable ReadOnlyMemory<byte> buffers representing null values in the Apache Arrow format
+        /// Returns an enumeration of immutable <see cref="ReadOnlyMemory{Byte}"/> buffers representing <see langword="null" /> values in the Apache Arrow format
         /// </summary>
-        /// <remarks>Each ReadOnlyMemory<byte> encodes the indices of null values in its corresponding Data buffer</remarks>
-        /// <returns>IEnumerable<ReadOnlyMemory<byte>></returns>
+        /// <remarks>Each <see cref="ReadOnlyMemory{Byte}"/> encodes the indices of <see langword="null" /> values in its corresponding Data buffer</remarks>
+        /// <returns>An enumeration of <see cref="ReadOnlyMemory{Byte}"/> objects whose elements encode the null bit maps for the column's values</returns>
         public IEnumerable<ReadOnlyMemory<byte>> GetReadOnlyNullBitMapBuffers()
         {
             for (int i = 0; i < _nullBitMapBuffers.Count; i++)
@@ -147,10 +167,10 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Returns an enumerable of immutable ReadOnlyMemory<int> representing offsets into its corresponding Data buffer.
+        /// Returns an enumeration of immutable <see cref="ReadOnlyMemory{Int32}"/> representing offsets into its corresponding Data buffer.
         /// The Apache Arrow format specifies how the offset buffer encodes the length of each value in the Data buffer
         /// </summary>
-        /// <returns>IEnumerable<ReadOnlyMemory<int>></returns>
+        /// <returns>An enumeration of <see cref="ReadOnlyMemory{Int32}"/> objects.</returns>
         public IEnumerable<ReadOnlyMemory<int>> GetReadOnlyOffsetsBuffers()
         {
             for (int i = 0; i < _offsetsBuffers.Count; i++)
@@ -231,6 +251,7 @@ namespace Microsoft.Data.Analysis
             return _dataBuffers[offsetsBufferIndex].ReadOnlySpan.Slice(currentOffset, numberOfBytes);
         }
 
+        /// <inheritdoc/>
         protected override object GetValue(long rowIndex) => GetValueImplementation(rowIndex);
 
         private string GetValueImplementation(long rowIndex)
@@ -247,6 +268,7 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        /// <inheritdoc/>
         protected override IReadOnlyList<object> GetValues(long startIndex, int length)
         {
             var ret = new List<object>();
@@ -257,14 +279,27 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
+        /// <inheritdoc/>
         protected override void SetValue(long rowIndex, object value) => throw new NotSupportedException(Strings.ImmutableColumn);
 
+
+        /// <summary>
+        /// Indexer to get values. This is an immutable column
+        /// </summary>
+        /// <param name="rowIndex">Zero based row index</param>
+        /// <returns>The value stored at this <paramref name="rowIndex"/></returns>
         public new string this[long rowIndex]
         {
             get => GetValueImplementation(rowIndex);
             set => throw new NotSupportedException(Strings.ImmutableColumn);
         }
 
+        /// <summary>
+        /// Returns <paramref name="length"/> number of values starting from <paramref name="startIndex"/>.
+        /// </summary>
+        /// <param name="startIndex">The index of the first value to return.</param>
+        /// <param name="length">The number of values to return starting from <paramref name="startIndex"/></param>
+        /// <returns>A new list of string values</returns>
         public new List<string> this[long startIndex, int length]
         {
             get
@@ -278,6 +313,9 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        /// <summary>
+        /// Returns an enumerator that iterates through the string values in this column.
+        /// </summary>
         public IEnumerator<string> GetEnumerator()
         {
             for (long i = 0; i < Length; i++)
@@ -286,10 +324,13 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        /// <inheritdoc/>
         protected override IEnumerator GetEnumeratorCore() => GetEnumerator();
 
+        /// <inheritdoc/>
         protected internal override Field GetArrowField() => new Field(Name, StringType.Default, NullCount != 0);
 
+        /// <inheritdoc/>
         protected internal override int GetMaxRecordBatchLength(long startIndex)
         {
             if (Length == 0)
@@ -310,6 +351,7 @@ namespace Microsoft.Data.Analysis
             return nullCount;
         }
 
+        /// <inheritdoc/>
         protected internal override Apache.Arrow.Array ToArrowArray(long startIndex, int numberOfRows)
         {
             if (numberOfRows == 0)
@@ -326,8 +368,10 @@ namespace Microsoft.Data.Analysis
             return new StringArray(numberOfRows, offsetsBuffer, dataBuffer, nullBuffer, nullCount, indexInBuffer);
         }
 
+        /// <inheritdoc/>
         public override DataFrameColumn Sort(bool ascending = true) => throw new NotSupportedException();
 
+        /// <inheritdoc/>
         public override DataFrameColumn Clone(DataFrameColumn mapIndices = null, bool invertMapIndices = false, long numberOfNullsToAppend = 0)
         {
             ArrowStringDataFrameColumn clone;
@@ -413,18 +457,21 @@ namespace Microsoft.Data.Analysis
             return CloneImplementation(mapIndices, invertMapIndex);
         }
 
+        /// <inheritdoc/>
         public override DataFrame ValueCounts()
         {
             Dictionary<string, ICollection<long>> groupedValues = GroupColumnValues<string>();
             return StringDataFrameColumn.ValueCountsImplementation(groupedValues);
         }
 
+        /// <inheritdoc/>
         public override GroupBy GroupBy(int columnIndex, DataFrame parent)
         {
             Dictionary<string, ICollection<long>> dictionary = GroupColumnValues<string>();
             return new GroupBy<string>(parent, columnIndex, dictionary);
         }
 
+        /// <inheritdoc/>
         public override Dictionary<TKey, ICollection<long>> GroupColumnValues<TKey>()
         {
             if (typeof(TKey) == typeof(string))
@@ -451,17 +498,20 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        /// <inheritdoc/>
         public override DataFrameColumn FillNulls(object value, bool inPlace = false) => throw new NotSupportedException();
 
         public override DataFrameColumn Clamp<U>(U min, U max, bool inPlace = false) => throw new NotSupportedException();
 
         public override DataFrameColumn Filter<U>(U min, U max) => throw new NotSupportedException();
 
+        /// <inheritdoc/>
         protected internal override void AddDataViewColumn(DataViewSchema.Builder builder)
         {
             builder.AddColumn(Name, TextDataViewType.Instance);
         }
 
+        /// <inheritdoc/>
         protected internal override Delegate GetDataViewGetter(DataViewRowCursor cursor)
         {
             return CreateValueGetterDelegate(cursor);
@@ -495,6 +545,7 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
+        /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> ElementwiseEquals<T>(T value)
         {
             if (value is DataFrameColumn column)
@@ -504,6 +555,7 @@ namespace Microsoft.Data.Analysis
             return ElementwiseEquals(value.ToString());
         }
 
+        /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> ElementwiseEquals(DataFrameColumn column)
         {
             return StringDataFrameColumn.ElementwiseEqualsImplementation(this, column);
@@ -534,6 +586,7 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
+        /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> ElementwiseNotEquals<T>(T value)
         {
             if (value is DataFrameColumn column)
@@ -543,6 +596,7 @@ namespace Microsoft.Data.Analysis
             return ElementwiseNotEquals(value.ToString());
         }
 
+        /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> ElementwiseNotEquals(DataFrameColumn column)
         {
             return StringDataFrameColumn.ElementwiseNotEqualsImplementation(this, column);

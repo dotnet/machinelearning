@@ -54,8 +54,8 @@ namespace Microsoft.Data.Analysis
         /// <summary>
         /// Returns an enumerable of immutable memory buffers representing the underlying values
         /// </summary>
-        /// <remarks>Null values are encoded in the buffers returned by GetReadOnlyNullBitmapBuffers in the Apache Arrow format</remarks>
-        /// <returns>IEnumerable<ReadOnlyMemory<typeparamref name="T"/>></returns>
+        /// <remarks><see langword="null" /> values are encoded in the buffers returned by GetReadOnlyNullBitmapBuffers in the Apache Arrow format</remarks>
+        /// <returns>IEnumerable<see cref="ReadOnlyMemory{T}"/></returns>
         public IEnumerable<ReadOnlyMemory<T>> GetReadOnlyDataBuffers()
         {
             for (int i = 0; i < _columnContainer.Buffers.Count; i++)
@@ -66,10 +66,10 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Returns an enumerable of immutable ReadOnlyMemory<byte> buffers representing null values in the Apache Arrow format
+        /// Returns an enumerable of immutable <see cref="ReadOnlyMemory{Byte}"/> buffers representing <see langword="null" /> values in the Apache Arrow format
         /// </summary>
-        /// <remarks>Each ReadOnlyMemory<byte> encodes the null values for its corresponding Data buffer</remarks>
-        /// <returns>IEnumerable<ReadOnlyMemory<byte>></returns>
+        /// <remarks>Each <see cref="ReadOnlyMemory{Byte}"/> encodes the <see langword="null" /> values for its corresponding Data buffer</remarks>
+        /// <returns>IEnumerable<see cref="ReadOnlyMemory{Byte}"/></returns>
         public IEnumerable<ReadOnlyMemory<byte>> GetReadOnlyNullBitMapBuffers()
         {
             for (int i = 0; i < _columnContainer.NullBitMapBuffers.Count; i++)
@@ -291,6 +291,7 @@ namespace Microsoft.Data.Analysis
         /// Returns a new column with nulls replaced by value
         /// </summary>
         /// <param name="value"></param>
+        /// <param name="inPlace">Indicates if the operation should be performed in place</param>
         public PrimitiveDataFrameColumn<T> FillNulls(T value, bool inPlace = false)
         {
             PrimitiveDataFrameColumn<T> column = inPlace ? this : Clone();
@@ -323,13 +324,24 @@ namespace Microsoft.Data.Analysis
             return new DataFrame(new List<DataFrameColumn> { keys, counts });
         }
 
+        /// <inheritdoc/>
         public override bool HasDescription() => IsNumericColumn();
 
+        /// <summary>
+        /// Returns a preview of the column contents as a formatted string.
+        /// </summary>
         public override string ToString()
         {
             return $"{Name}: {_columnContainer.ToString()}";
         }
 
+        /// <summary>
+        /// Returns a clone of this column
+        /// </summary>
+        /// <param name="mapIndices">A column who values are used as indices </param>
+        /// <param name="invertMapIndices"></param>
+        /// <param name="numberOfNullsToAppend"></param>
+        /// <returns></returns>
         public new PrimitiveDataFrameColumn<T> Clone(DataFrameColumn mapIndices, bool invertMapIndices, long numberOfNullsToAppend)
         {
             PrimitiveDataFrameColumn<T> clone;
@@ -354,6 +366,7 @@ namespace Microsoft.Data.Analysis
             return clone;
         }
 
+        /// <inheritdoc/>
         protected override DataFrameColumn CloneImplementation(DataFrameColumn mapIndices, bool invertMapIndices, long numberOfNullsToAppend)
         {
             return Clone(mapIndices, invertMapIndices, numberOfNullsToAppend);
@@ -504,6 +517,7 @@ namespace Microsoft.Data.Analysis
             return new SingleDataFrameColumn(Name, newColumnContainer);
         }
 
+        /// <inheritdoc/>
         public override GroupBy GroupBy(int columnIndex, DataFrame parent)
         {
             Dictionary<T, ICollection<long>> dictionary = GroupColumnValues<T>();
@@ -562,6 +576,7 @@ namespace Microsoft.Data.Analysis
         /// </summary>
         /// <param name="min">Minimum value. All values below this threshold will be set to it</param>
         /// <param name="max">Maximum value. All values above this threshold will be set to it</param>
+        /// <param name="inPlace">Indicates if the operation should be performed in place</param>
         public PrimitiveDataFrameColumn<T> Clamp(T min, T max, bool inPlace = false)
         {
             PrimitiveDataFrameColumn<T> ret = inPlace ? this : Clone();

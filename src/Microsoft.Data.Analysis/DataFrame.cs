@@ -34,6 +34,10 @@ namespace Microsoft.Data.Analysis
         private readonly DataFrameColumnCollection _columnCollection;
         private readonly DataFrameRowCollection _rowCollection;
 
+        /// <summary>
+        /// Constructs a <see cref="DataFrame"/> with <paramref name="columns"/>.
+        /// </summary>
+        /// <param name="columns">The columns of this <see cref="DataFrame"/>.</param>
         public DataFrame(IEnumerable<DataFrameColumn> columns)
         {
             _columnCollection = new DataFrameColumnCollection(columns, OnColumnsChanged);
@@ -46,6 +50,9 @@ namespace Microsoft.Data.Analysis
             _rowCollection = new DataFrameRowCollection(this);
         }
 
+        /// <summary>
+        /// Returns the columns contained in the <see cref="DataFrame"/> as a <see cref="DataFrameColumnCollection"/>
+        /// </summary>
         public DataFrameColumnCollection Columns => _columnCollection;
 
         /// <summary>
@@ -56,6 +63,12 @@ namespace Microsoft.Data.Analysis
         internal IReadOnlyList<string> GetColumnNames() => _columnCollection.GetColumnNames();
 
         #region Operators
+        /// <summary>
+        /// An Indexer to get or set values.
+        /// </summary>
+        /// <param name="rowIndex">Zero based row index</param>
+        /// <param name="columnIndex">Zero based column index</param>
+        /// <returns>The value stored at the intersection of <paramref name="rowIndex"/> and <paramref name="columnIndex"/></returns>
         public object this[long rowIndex, int columnIndex]
         {
             get => _columnCollection[columnIndex][rowIndex];
@@ -253,6 +266,7 @@ namespace Microsoft.Data.Analysis
         /// <typeparam name="U"></typeparam>
         /// <param name="min">Minimum value. All values below this threshold will be set to it</param>
         /// <param name="max">Maximum value. All values above this threshold will be set to it</param>
+        /// <param name="inPlace">Indicates if the operation should be performed in place</param>
         public DataFrame Clamp<U>(U min, U max, bool inPlace = false)
         {
             DataFrame ret = inPlace ? this : Clone();
@@ -313,6 +327,11 @@ namespace Microsoft.Data.Analysis
             return Clone(indices);
         }
 
+        /// <summary>
+        /// Groups the rows of the <see cref="DataFrame"/> by unique values in the <paramref name="columnName"/> column.
+        /// </summary>
+        /// <param name="columnName">The column used to group unique values</param>
+        /// <returns>A GroupBy object that stores the group information.</returns>
         public GroupBy GroupBy(string columnName)
         {
             int columnIndex = _columnCollection.IndexOf(columnName);
@@ -371,6 +390,12 @@ namespace Microsoft.Data.Analysis
             return this[filter];
         }
 
+        /// <summary>
+        /// Fills <see langword="null" /> values with <paramref name="value"/>.
+        /// </summary>
+        /// <param name="value">The value to replace <see langword="null" /> with.</param>
+        /// <param name="inPlace">A boolean flag to indicate if the operation should be in place</param>
+        /// <returns>A new <see cref="DataFrame"/> if <paramref name="inPlace"/> is not set. Returns this <see cref="DataFrame"/> otherwise.</returns>
         public DataFrame FillNulls(object value, bool inPlace = false)
         {
             DataFrame ret = inPlace ? this : Clone();
@@ -381,6 +406,12 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
+        /// <summary>
+        /// Fills <see langword="null" /> values in each column with values from <paramref name="values"/>.
+        /// </summary>
+        /// <param name="values">The values to replace <see langword="null" /> with, one value per column. Should be equal to the number of columns in this <see cref="DataFrame"/>. </param>
+        /// <param name="inPlace">A boolean flag to indicate if the operation should be in place</param>
+        /// <returns>A new <see cref="DataFrame"/> if <paramref name="inPlace"/> is not set. Returns this <see cref="DataFrame"/> otherwise.</returns>
         public DataFrame FillNulls(IList<object> values, bool inPlace = false)
         {
             if (values.Count != Columns.Count)
@@ -571,6 +602,10 @@ namespace Microsoft.Data.Analysis
             return new DataFrame(newColumns);
         }
 
+        /// <summary>
+        /// A preview of the contents of this <see cref="DataFrame"/> as a string.
+        /// </summary>
+        /// <returns>A preview of the contents of this <see cref="DataFrame"/>.</returns>
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();

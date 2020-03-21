@@ -12,6 +12,7 @@ namespace Microsoft.Data.Analysis
 {
     public abstract partial class DataFrameColumn
     {
+        #pragma warning disable 1591
         public static DataFrameColumn operator +(DataFrameColumn left, DataFrameColumn right)
         {
             return left.Add(right);

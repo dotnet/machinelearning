@@ -24,8 +24,10 @@ namespace Microsoft.Data.Analysis
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
 <# if (method.MethodType == MethodType.BinaryScalar) {#>
 <# if (method.IsBitwise == true) { #>
+        /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> Reverse<#=method.MethodName#>(bool value, bool inPlace = false)
 <# } else { #>
+        /// <inheritdoc/>
         public override DataFrameColumn Reverse<#=method.MethodName#><U>(U value, bool inPlace = false)
 <# } #>
         {

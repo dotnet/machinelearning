@@ -10,6 +10,9 @@
     <Description>This package contains easy-to-use and high-performance libraries for data analysis and transformation.</Description>
     <PackageReleaseNotes>Initial preview of robust and extensible types and algorithms for manipulating structured data that supports aggregations, statistical funtions, sorting, grouping, joins, merges, handling missing values and more. </PackageReleaseNotes>
     <PackageTags>ML.NET ML Machine Learning Data Science DataFrame Preparation DataView Analytics Exploration</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Documentation warnings -->
+    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
   
   <ItemGroup>
@@ -70,10 +73,6 @@
     <None Update="DataFrameBinaryOperators.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>DataFrameBinaryOperators.cs</LastGenOutput>
-    </None>
-    <None Update="ColumnArithmeticTemplate.ttinclude">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>ColumnArithmeticTemplate.cs</LastGenOutput>
     </None>
     <None Update="PrimitiveDataFrameColumn.BinaryOperations.Combinations.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
