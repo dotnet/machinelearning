@@ -87,12 +87,12 @@ namespace Microsoft.ML.Benchmarks.Tests
         [Trait("Category", "RunSpecificTest")]
         public void CompletesBenchmarkInTime(int iterations)
         {
-            Output.WriteLine($"{iterations} - th");
+            //Output.WriteLine($"{iterations} - th");
 
             int timeout = 20 * 60 * 1000;
 
             var runTask = Task.Run(BenchmarksProjectIsNotBroken);
-            var timeoutTask = Task.Delay(timeout);
+            var timeoutTask = Task.Delay(timeout + iterations);
 
             var finishedTask = Task.WhenAny(timeoutTask, runTask).Result;
             if (finishedTask == timeoutTask)
