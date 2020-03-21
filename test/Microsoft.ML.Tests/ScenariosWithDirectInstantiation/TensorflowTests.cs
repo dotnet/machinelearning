@@ -1270,6 +1270,7 @@ namespace Microsoft.ML.Scenarios
         }
 
         [TensorFlowFact]
+        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassificationDefault()
         {
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
