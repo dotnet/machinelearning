@@ -32,6 +32,7 @@ namespace Microsoft.ML.Transforms
             Session = session;
             ModelPath = modelLocation;
             _env = env;
+            _disposed = false;
         }
 
         /// <summary>
@@ -86,7 +87,7 @@ namespace Microsoft.ML.Transforms
             => new TensorFlowEstimator(_env, outputColumnNames, inputColumnNames, this, addBatchDimensionInput);
 
         #region IDisposable Support
-        private bool _disposed = false;
+        private bool _disposed;
 
         private void Dispose(bool disposing)
         {

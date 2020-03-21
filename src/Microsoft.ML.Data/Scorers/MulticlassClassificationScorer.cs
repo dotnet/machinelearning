@@ -126,6 +126,7 @@ namespace Microsoft.ML.Data
                 _getter = getter;
                 _metadataKind = metadataKind;
                 _canWrap = canWrap;
+                _disposed = false;
             }
 
             private LabelNameBindableMapper(IHost host, ModelLoadContext ctx)
@@ -145,6 +146,7 @@ namespace Microsoft.ML.Data
                 _getter = Utils.MarshalInvoke(_decodeInitMethodInfo, this, _type.ItemType.RawType, value);
                 _metadataKind = ctx.Header.ModelVerReadable >= VersionAddedMetadataKind ?
                     ctx.LoadNonEmptyString() : AnnotationUtils.Kinds.SlotNames;
+                _disposed = false;
             }
 
             private Delegate DecodeInit<T>(object value)
@@ -382,7 +384,7 @@ namespace Microsoft.ML.Data
             }
 
             #region IDisposable Support
-            private bool _disposed = false;
+            private bool _disposed;
 
             private void Dispose(bool disposing)
             {

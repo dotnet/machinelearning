@@ -89,6 +89,7 @@ namespace Microsoft.ML.Data
 
             Host.CheckValue(trainSchema, nameof(trainSchema));
             TrainSchema = trainSchema;
+            _disposed = false;
         }
 
         [BestFriend]
@@ -103,6 +104,7 @@ namespace Microsoft.ML.Data
             Model = model;
 
             InitializeLogic(host, ctx);
+            _disposed = false;
         }
 
         [BestFriend]
@@ -111,6 +113,7 @@ namespace Microsoft.ML.Data
             Host = host;
             Model = model; // prediction model
             InitializeLogic(host, ctx);
+            _disposed = false;
         }
 
         private void InitializeLogic(IHost host, ModelLoadContext ctx)
@@ -183,7 +186,7 @@ namespace Microsoft.ML.Data
         }
 
         #region IDisposable Support
-        private bool _disposed = false;
+        private bool _disposed;
 
         protected virtual void Dispose(bool disposing)
         {
