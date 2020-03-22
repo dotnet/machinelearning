@@ -203,7 +203,7 @@ namespace Microsoft.ML.Scenarios
 
                 Assert.False(cursor.MoveNext());
             }
-            (tfModel as IDisposable).Dispose();
+            (tfModel as IDisposable)?.Dispose();
         }
 
         private class ShapeData
@@ -316,7 +316,7 @@ namespace Microsoft.ML.Scenarios
                 }
                 Assert.False(cursor.MoveNext());
             }
-            (tfModel as IDisposable).Dispose();
+            (tfModel as IDisposable)?.Dispose();
         }
 
         private class TypesData
@@ -507,7 +507,7 @@ namespace Microsoft.ML.Scenarios
                     getClasses(ref buffer);
                 }
             }
-            (tfModel as IDisposable).Dispose();
+            (tfModel as IDisposable)?.Dispose();
         }
 
         [Fact(Skip = "Model files are not available yet")]
@@ -551,7 +551,7 @@ namespace Microsoft.ML.Scenarios
                     get(ref buffer);
                 }
             }
-            (tfModel as IDisposable).Dispose();
+            (tfModel as IDisposable)?.Dispose();
         }
 
         [TensorFlowFact]
@@ -1070,7 +1070,7 @@ namespace Microsoft.ML.Scenarios
                     " of unsupported pixel format 8207 but converting it to Format32bppArgb.",
                     logMessages);
             }
-            (tensorFlowModel as IDisposable).Dispose();
+            (tensorFlowModel as IDisposable)?.Dispose();
         }
 
         [TensorFlowFact]
@@ -1111,7 +1111,7 @@ namespace Microsoft.ML.Scenarios
                 }
                 Assert.Equal(4, numRows);
             }
-            (tensorFlowModel as IDisposable).Dispose();
+            (tensorFlowModel as IDisposable)?.Dispose();
         }
 
         // This test has been created as result of https://github.com/dotnet/machinelearning/issues/2156.
@@ -1160,7 +1160,7 @@ namespace Microsoft.ML.Scenarios
                 thrown = true;
             }
             Assert.True(thrown);
-            (model as IDisposable).Dispose();
+            (model as IDisposable)?.Dispose();
         }
 
         /// <summary>
@@ -1266,10 +1266,12 @@ namespace Microsoft.ML.Scenarios
             for (int i = 0; i < input.A.Length; i++)
                 Assert.Equal(input.A[i], textOutput.AOut[i]);
             Assert.Equal(string.Join(" ", input.B).Replace("/", " "), textOutput.BOut[0]);
-            (tensorFlowModel as IDisposable).Dispose();
+            (tensorFlowModel as IDisposable)?.Dispose();
         }
 
         [TensorFlowFact]
+        // The memory leaks seem to be fixed, but these tests are still hanging occasionally
+        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassificationDefault()
         {
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
@@ -1357,6 +1359,7 @@ namespace Microsoft.ML.Scenarios
         [InlineData(ImageClassificationTrainer.Architecture.MobilenetV2)]
         [InlineData(ImageClassificationTrainer.Architecture.ResnetV250)]
         [InlineData(ImageClassificationTrainer.Architecture.InceptionV3)]
+        // The memory leaks seem to be fixed, but these tests are still hanging occasionally
         [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassification(ImageClassificationTrainer.Architecture arch)
         {
@@ -1806,7 +1809,7 @@ namespace Microsoft.ML.Scenarios
             Assert.InRange(metrics.MicroAccuracy, 0.3, 1);
             Assert.InRange(metrics.MacroAccuracy, 0.3, 1);
 
-            //trainedModel.Dispose();
+            (trainedModel as IDisposable)?.Dispose();
             (loadedModel as IDisposable)?.Dispose();
         }
 
