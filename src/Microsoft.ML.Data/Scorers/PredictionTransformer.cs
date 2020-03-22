@@ -188,24 +188,16 @@ namespace Microsoft.ML.Data
         #region IDisposable Support
         private bool _disposed;
 
-        protected virtual void Dispose(bool disposing)
+        void IDisposable.Dispose()
         {
             if (_disposed)
                 return;
 
-            if (disposing)
-            {
-                (Model as IDisposable)?.Dispose();
-                (BindableMapper as IDisposable)?.Dispose();
-                (Scorer as IDisposable)?.Dispose();
-            }
+            (Model as IDisposable)?.Dispose();
+            (BindableMapper as IDisposable)?.Dispose();
+            (Scorer as IDisposable)?.Dispose();
 
             _disposed = true;
-        }
-
-        void IDisposable.Dispose()
-        {
-            Dispose(true);
         }
         #endregion
     }

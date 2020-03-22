@@ -668,7 +668,7 @@ namespace Microsoft.ML.Scenarios
             var onePrediction = predictFunction.Predict(oneSample);
 
             Assert.Equal(5, GetMaxIndexForOnePrediction(onePrediction));
-            
+
             trainedModel.Dispose();
         }
 

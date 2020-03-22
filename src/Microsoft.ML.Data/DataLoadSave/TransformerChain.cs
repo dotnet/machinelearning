@@ -238,25 +238,15 @@ namespace Microsoft.ML.Data
         #region IDisposable Support
         private bool _disposed;
 
-        private void Dispose(bool disposing)
+        public void Dispose()
         {
             if (_disposed)
                 return;
 
-            if (disposing)
-            {
-                foreach (var transformer in _transformers)
-                    (transformer as IDisposable)?.Dispose();
-
-                (LastTransformer as IDisposable)?.Dispose();
-            }
+            foreach (var transformer in _transformers)
+                (transformer as IDisposable)?.Dispose();
 
             _disposed = true;
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
         }
         #endregion
     }

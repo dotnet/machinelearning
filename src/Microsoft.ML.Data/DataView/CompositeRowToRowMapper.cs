@@ -123,23 +123,15 @@ namespace Microsoft.ML.Data
         #region IDisposable Support
         private bool _disposed;
 
-        private void Dispose(bool disposing)
+        void IDisposable.Dispose()
         {
             if (_disposed)
                 return;
 
-            if (disposing)
-            {
-                foreach (var mapper in InnerMappers)
-                    (mapper as IDisposable)?.Dispose();
-            }
+            foreach (var mapper in InnerMappers)
+                (mapper as IDisposable)?.Dispose();
 
             _disposed = true;
-        }
-
-        void IDisposable.Dispose()
-        {
-            Dispose(true);
         }
         #endregion
     }

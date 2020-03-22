@@ -248,20 +248,14 @@ namespace Microsoft.ML.Data
             #region IDisposable Support
             private bool _disposed;
 
-            private void Dispose(bool disposing)
+            void IDisposable.Dispose()
             {
                 if (_disposed)
                     return;
 
-                if (disposing)
-                    (_parent as IDisposable)?.Dispose();
+                (_parent as IDisposable)?.Dispose();
 
                 _disposed = true;
-            }
-
-            void IDisposable.Dispose()
-            {
-                Dispose(true);
             }
             #endregion
         }
@@ -269,20 +263,14 @@ namespace Microsoft.ML.Data
         #region IDisposable Support
         private bool _disposed;
 
-        protected virtual void Dispose(bool disposing)
+        void IDisposable.Dispose()
         {
             if (_disposed)
                 return;
 
-            if (disposing)
-                (Predictor as IDisposable)?.Dispose();
+            (Predictor as IDisposable)?.Dispose();
 
             _disposed = true;
-        }
-
-        void IDisposable.Dispose()
-        {
-            Dispose(true);
         }
         #endregion
     }

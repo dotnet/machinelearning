@@ -386,21 +386,15 @@ namespace Microsoft.ML.Data
             #region IDisposable Support
             private bool _disposed;
 
-            private void Dispose(bool disposing)
+            void IDisposable.Dispose()
             {
                 // TODO: Is it necessary to call the base class Dispose()?
                 if (_disposed)
                     return;
 
-                if (disposing)
-                    (_bindable as IDisposable)?.Dispose();
+                (_bindable as IDisposable)?.Dispose();
 
                 _disposed = true;
-            }
-
-            void IDisposable.Dispose()
-            {
-                Dispose(true);
             }
             #endregion
         }
