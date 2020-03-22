@@ -55,7 +55,7 @@ namespace Samples.Dynamic
 
             public RootCauseLocalizationData(DateTime anomalyTimestamp, Dictionary<string, string> anomalyDimensions, List<MetricSlice> slices,String aggregateType, string aggregateSymbol)
             {
-                Input = new RootCauseLocalizationInput(anomalyTimestamp, anomalyDimensions, slices, DTRootCauseLocalizationEstimator.AggregateType.Sum, aggregateSymbol);
+                Input = new RootCauseLocalizationInput(anomalyTimestamp, anomalyDimensions, slices, Microsoft.ML.TimeSeries.AggregateType.Sum, aggregateSymbol);
             }
         }
 

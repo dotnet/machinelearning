@@ -31,7 +31,7 @@ namespace Samples.Dynamic.Transforms.TimeSeries
 
                 DateTime filterTime = DateTime.ParseExact("2019-11-13 13:00:00,000", "yyyy-MM-dd HH:mm:ss,fff",
                                        System.Globalization.CultureInfo.InvariantCulture);
-                if (timeStamp.CompareTo(filterTime).Equals(0))
+                //if (timeStamp.CompareTo(filterTime).Equals(0))
                 {
                     int seconds = Convert.ToInt32(timeStamp.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds);
                     string path = String.Format("D:/rootcause/Dataset_yaniv/raw_data_201908_202002/{0}.csv", seconds);
@@ -41,7 +41,7 @@ namespace Samples.Dynamic.Transforms.TimeSeries
 
                     PredictionEngine<RootCauseLocalizationData, RootCauseLocalizationTransformedData> engine = GetRootCausePredictionEngine();
 
-                    var newRootCauseInput = new RootCauseLocalizationData(timeStamp, rootNodeMap[timeStamp], new List<MetricSlice>() { new MetricSlice(timeStamp, points) }, DTRootCauseLocalizationEstimator.AggregateType.Sum, aggSymbol);
+                    var newRootCauseInput = new RootCauseLocalizationData(timeStamp, rootNodeMap[timeStamp], new List<MetricSlice>() { new MetricSlice(timeStamp, points) }, AggregateType.Sum, aggSymbol);
 
                     List<RootCauseItem> list = new List<RootCauseItem>();
                     GetRootCause(list, newRootCauseInput, engine);
@@ -187,7 +187,7 @@ namespace Samples.Dynamic.Transforms.TimeSeries
         private static PredictionEngine<RootCauseLocalizationData, RootCauseLocalizationTransformedData> GetRootCausePredictionEngine()
         {
             //// Create an root cause localizatiom input list from csv.
-            var rootCauseLocalizationData = new List<RootCauseLocalizationData>() { new RootCauseLocalizationData(new DateTime(), new Dictionary<String, String>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Microsoft.ML.TimeSeries.Point>()) }, DTRootCauseLocalizationEstimator.AggregateType.Sum, "SUM") };
+            var rootCauseLocalizationData = new List<RootCauseLocalizationData>() { new RootCauseLocalizationData(new DateTime(), new Dictionary<String, String>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Microsoft.ML.TimeSeries.Point>()) }, AggregateType.Sum, "SUM") };
 
 
             var ml = new MLContext(1);
@@ -384,7 +384,7 @@ namespace Samples.Dynamic.Transforms.TimeSeries
                 Input = null;
             }
 
-            public RootCauseLocalizationData(DateTime anomalyTimestamp, Dictionary<string, string> anomalyDimensions, List<MetricSlice> slices, DTRootCauseLocalizationEstimator.AggregateType aggregateteType, string aggregateSymbol)
+            public RootCauseLocalizationData(DateTime anomalyTimestamp, Dictionary<string, string> anomalyDimensions, List<MetricSlice> slices, AggregateType aggregateteType, string aggregateSymbol)
             {
                 Input = new RootCauseLocalizationInput(anomalyTimestamp, anomalyDimensions, slices, aggregateteType, aggregateSymbol);
             }

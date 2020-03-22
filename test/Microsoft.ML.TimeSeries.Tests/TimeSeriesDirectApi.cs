@@ -8,6 +8,7 @@ using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TimeSeries;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
 using Xunit.Abstractions;
@@ -527,7 +528,7 @@ namespace Microsoft.ML.Tests
                 Input = null;
             }
 
-            public RootCauseLocalizationData(DateTime anomalyTimestamp, Dictionary<string, string> anomalyDimensions, List<MetricSlice> slices, DTRootCauseLocalizationEstimator.AggregateType aggregateteType, string aggregateSymbol)
+            public RootCauseLocalizationData(DateTime anomalyTimestamp, Dictionary<string, string> anomalyDimensions, List<MetricSlice> slices, AggregateType aggregateteType, string aggregateSymbol)
             {
                 Input = new RootCauseLocalizationInput(anomalyTimestamp, anomalyDimensions, slices, aggregateteType, aggregateSymbol);
             }
@@ -548,7 +549,7 @@ namespace Microsoft.ML.Tests
         public void RootCauseLocalizationWithDT()
         {
             // Create an root cause localizatiom input list.
-            var rootCauseLocalizationData = new List<RootCauseLocalizationData>() { new RootCauseLocalizationData(new DateTime(), new Dictionary<String, String>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Microsoft.ML.TimeSeries.Point>()) }, DTRootCauseLocalizationEstimator.AggregateType.Sum, "SUM"), new RootCauseLocalizationData(new DateTime(), new Dictionary<String, String>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Microsoft.ML.TimeSeries.Point>()) }, DTRootCauseLocalizationEstimator.AggregateType.Avg, "AVG") };
+            var rootCauseLocalizationData = new List<RootCauseLocalizationData>() { new RootCauseLocalizationData(new DateTime(), new Dictionary<String, String>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Microsoft.ML.TimeSeries.Point>()) }, AggregateType.Sum, "SUM"), new RootCauseLocalizationData(new DateTime(), new Dictionary<String, String>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Microsoft.ML.TimeSeries.Point>()) }, AggregateType.Avg, "AVG") };
 
             var ml = new MLContext(1);
             // Convert the list of root cause data to an IDataView object, which is consumable by ML.NET API.
@@ -574,7 +575,7 @@ namespace Microsoft.ML.Tests
             }
 
             var engine = ml.Model.CreatePredictionEngine<RootCauseLocalizationData, RootCauseLocalizationTransformedData>(model);
-            var newRootCauseInput = new RootCauseLocalizationData(new DateTime(), new Dictionary<String, String>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Microsoft.ML.TimeSeries.Point>()) }, DTRootCauseLocalizationEstimator.AggregateType.Sum, "SUM");
+            var newRootCauseInput = new RootCauseLocalizationData(new DateTime(), new Dictionary<String, String>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Microsoft.ML.TimeSeries.Point>()) }, AggregateType.Sum, "SUM");
             var transformedRootCause = engine.Predict(newRootCauseInput);
 
             Assert.NotNull(transformedRootCause);

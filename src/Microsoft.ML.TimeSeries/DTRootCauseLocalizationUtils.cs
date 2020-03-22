@@ -26,9 +26,8 @@ namespace Microsoft.ML.TimeSeries
             return info;
         }
 
-        public static PointTree BuildPointTree(List<Point> pointList, List<string> aggDims, Dictionary<string, string> subDim, string aggSymbol,AggregateType aggType, bool filterByAnomaly = false)
+        public static PointTree BuildPointTree(List<Point> pointList, List<string> aggDims, Dictionary<string, string> subDim, string aggSymbol, AggregateType aggType, bool filterByAnomaly = false)
         {
-            //todo- would be better to add check and fix for child point and leaves point
             PointTree tree = PointTree.CreateDefaultInstance();
 
             foreach (Point point in pointList)
@@ -86,43 +85,58 @@ namespace Microsoft.ML.TimeSeries
             }
 
             // rebuild the tree from bottom to up incase the child node data is incomplete
+            //CompleteTreeBottomUp(tree, aggType, aggSymbol, aggDims);
+
+            // todo- rebuild the tree from top to down incase the leaves node data is incomplete, including the other aggregate dims in middle level
 
             return tree;
         }
 
-        private static PointTree CompleteTreeBottomUp(PointTree  tree, AggregateType aggType, string aggSymbol) {
+        private static PointTree CompleteTreeBottomUp(PointTree tree, AggregateType aggType, string aggSymbol, List<string> aggDims)
+        {
 
             if (tree.Leaves.Count == 0) return tree;
 
             Dictionary<string, HashSet<string>> map = new Dictionary<string, HashSet<string>>();
-            foreach (Point p in tree.Leaves) {
-                foreach (KeyValuePair<string, string> keyValuePair in p.Dimensions) {
-                    if (map.ContainsKey(keyValuePair.Key))
+            foreach (Point p in tree.Leaves)
+            {
+                foreach (KeyValuePair<string, string> keyValuePair in p.Dimensions)
+                {
+                    if (aggDims.Contains(keyValuePair.Key))
                     {
-                        map[keyValuePair.Key].Add(keyValuePair.Value);
-                    }
-                    else {
-                        map.Add(keyValuePair.Key, new HashSet<string>() { keyValuePair.Value});
+                        if (map.ContainsKey(keyValuePair.Key))
+                        {
+                            map[keyValuePair.Key].Add(keyValuePair.Value);
+                        }
+                        else
+                        {
+                            map.Add(keyValuePair.Key, new HashSet<string>() { keyValuePair.Value });
+                        }
                     }
                 }
             }
 
-            foreach (KeyValuePair<string, HashSet<string>> pair in map) {
+            foreach (KeyValuePair<string, HashSet<string>> pair in map)
+            {
                 if (tree.ChildrenNodes.ContainsKey(pair.Key))
                 {
-                    if (tree.ChildrenNodes[pair.Key].Count < pair.Value.Count) {
-                        foreach(string value in pair.Value)
+                    if (tree.ChildrenNodes[pair.Key].Count < pair.Value.Count)
+                    {
+                        foreach (string value in pair.Value)
                         {
-                            if (!IsAggDimensionExisted(pair.Key, value, tree.ChildrenNodes[pair.Key])) {
+                            if (!IsAggDimensionExisted(pair.Key, value, tree.ChildrenNodes[pair.Key]))
+                            {
                                 Point p = SimulateBottomUpValue(tree.Leaves, pair.Key, value, aggType, aggSymbol);
                                 tree.ChildrenNodes[pair.Key].Add(p);
                             }
                         }
                     }
                 }
-                else {
+                else
+                {
                     List<Point> childPoints = new List<Point>();
-                    foreach (string value in pair.Value) {
+                    foreach (string value in pair.Value)
+                    {
                         //simulate the aggregation value
                         Point p = SimulateBottomUpValue(tree.Leaves, pair.Key, value, aggType, aggSymbol);
                         childPoints.Add(p);
@@ -135,16 +149,20 @@ namespace Microsoft.ML.TimeSeries
             return tree;
         }
 
-        private static bool IsAggDimensionExisted(string key, string value, List<Point> points) {
-            foreach (Point p in points) {
-                if (p.Dimensions[key].Equals(value)) {
+        private static bool IsAggDimensionExisted(string key, string value, List<Point> points)
+        {
+            foreach (Point p in points)
+            {
+                if (p.Dimensions[key].Equals(value))
+                {
                     return true;
                 }
             }
             return false;
         }
 
-        private static Point SimulateBottomUpValue(List<Point> leaves, string key, string keyValue, AggregateType type, string aggSymbol) {
+        private static Point SimulateBottomUpValue(List<Point> leaves, string key, string keyValue, AggregateType type, string aggSymbol)
+        {
             Point p = null;
 
             Dictionary<string, string> dimension = new Dictionary<string, string>();
@@ -159,14 +177,17 @@ namespace Microsoft.ML.TimeSeries
                 }
             }
 
-            if (type.Equals(AggregateType.Sum)) {
+            if (type.Equals(AggregateType.Sum))
+            {
 
                 bool isAnomaly = false;
                 double value = 0;
                 double expectedValue = 0;
-                foreach (Point leave in leaves) {
+                foreach (Point leave in leaves)
+                {
 
-                    if (leave.Dimensions.ContainsKey(key) && leave.Dimensions[key].Equals(keyValue)) {
+                    if (leave.Dimensions.ContainsKey(key) && leave.Dimensions[key].Equals(keyValue))
+                    {
                         value += leave.Value;
                         expectedValue = leave.ExpectedValue;
                         isAnomaly = isAnomaly || leave.IsAnomaly;
@@ -366,7 +387,6 @@ namespace Microsoft.ML.TimeSeries
             Dictionary<BestDimension, double> entroyGainMap = new Dictionary<BestDimension, double>();
             Dictionary<BestDimension, double> entroyGainRatioMap = new Dictionary<BestDimension, double>();
             double sumGain = 0;
-            //double maxGain = Int32.MinValue;
 
             BestDimension best = null;
             foreach (string dimKey in aggDim)
@@ -383,18 +403,6 @@ namespace Microsoft.ML.TimeSeries
 
                 double gainRatio = gain / GetDimensionInstrinsicValue(dimension.PointDis, dimension.AnomalyDis, totalEntropy);
                 entroyGainRatioMap.Add(dimension, gainRatio);
-
-                //todo = get anomaly value range, if range = 1, choose best dim
-                // score reduces after adding this part, need analyze
-                //int valueCount = dimension.AnomalyDis.Count;
-                //if (valueCount == 1)
-                //{
-                //    if (maxGain < gain)
-                //    {
-                //        best = dimension;
-                //        maxGain = gain;
-                //    }
-                //}
 
                 sumGain += gain;
             }
@@ -416,7 +424,6 @@ namespace Microsoft.ML.TimeSeries
             Dictionary<BestDimension, double> entroyGainRatioMap = new Dictionary<BestDimension, double>();
             double sumGain = 0;
 
-            //double maxGain = Int32.MinValue;
             BestDimension best = null;
 
             foreach (String dimKey in aggDim)
@@ -434,17 +441,6 @@ namespace Microsoft.ML.TimeSeries
                 double gainRatio = gain / GetDimensionInstrinsicValue(dimension.PointDis, dimension.AnomalyDis, totalEntropy);
                 entroyGainRatioMap.Add(dimension, gainRatio);
 
-                ////get anomaly value range, if range = 1, choose best dim
-                //int valueCount = GetValueCountInDimKey(anomalyChildren[dimKey], dimKey);
-                //if (valueCount == 1)
-                //{
-                //    if (maxGain < gain)
-                //    {
-                //        best = dimension;
-                //        maxGain = gain;
-                //    }
-                //}
-
                 sumGain += gain;
             }
 
@@ -455,7 +451,7 @@ namespace Microsoft.ML.TimeSeries
                 return best;
             }
 
-             best = FindBestDimension(entroyGainMap, entroyGainRatioMap, meanGain);
+            best = FindBestDimension(entroyGainMap, entroyGainRatioMap, meanGain);
 
             return best;
         }
