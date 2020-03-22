@@ -280,17 +280,18 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
                     //Optional Steps
                     //Step 8: Calculate Expected Value
-                    List<Single> dataList = new List<Single>();
+                    List<Double> dataList = new List<Double>();
                     for (int i = 0; i < data.Count; ++i)
                     {
                         dataList.Add(data[i]);
                     }
                     var deAnomalyDataList = GetDeanomalyData(dataList, GetAnomalyIndex(ifftMagList.GetRange(0, dataList.Count), filteredIfftMagList.GetRange(0, dataList.Count)));
-                    var exp = CalculateExpectedValueByFft(deAnomalyDataList.GetRange(0, deAnomalyDataList.Count-1));
+                    var exp = CalculateExpectedValueByFft(deAnomalyDataList);
+                    //var exp = CalculateExpectedValueByFft(dataList);
                     result.Values[3] = exp;
 
                     //Step 9: Calculate Boundary Unit
-                    var unit = CalculateBoundaryUnit(dataList.Select(x => (double)x).ToList());
+                    var unit = CalculateBoundaryUnit(dataList);
                     result.Values[4] = unit;
 
                     //Step 10: Calculate UpperBound and LowerBound
@@ -379,9 +380,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     return anomalyIdxList;
                 }
 
-                private List<Single> GetDeanomalyData(List<Single> data, List<int> anomalyIdxList)
+                private List<Double> GetDeanomalyData(List<Double> data, List<int> anomalyIdxList)
                 {
-                    List<Single> deAnomalyData = new List<Single>(data);
+                    List<Double> deAnomalyData = new List<Double>(data);
                     int minPointsToFit = 4;
                     foreach (var idx in anomalyIdxList)
                     {
@@ -389,12 +390,12 @@ namespace Microsoft.ML.Transforms.TimeSeries
                         int start = Math.Max(idx - step, 0);
                         int end = Math.Min(data.Count - 1, idx + step);
 
-                        List<Tuple<int, float>> fitValues = new List<Tuple<int, float>>();
+                        List<Tuple<int, double>> fitValues = new List<Tuple<int, double>>();
                         for (int i = start; i <= end; ++i)
                         {
                             if (!anomalyIdxList.Contains(i))
                             {
-                                fitValues.Add(new Tuple<int, float>(i, data[i]));
+                                fitValues.Add(new Tuple<int, double>(i, data[i]));
                             }
                         }
 
@@ -408,7 +409,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                             {
                                 if (!anomalyIdxList.Contains(i))
                                 {
-                                    fitValues.Add(new Tuple<int, float>(i, data[i]));
+                                    fitValues.Add(new Tuple<int, double>(i, data[i]));
                                 }
                             }
                         }
@@ -422,15 +423,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     return deAnomalyData;
                 }
 
-                private float CalculateInterplate(List<Tuple<int, float>> values, int idx)
+                private double CalculateInterplate(List<Tuple<int, double>> values, int idx)
                 {
-                    //n = len(x)
-                    //sum_x = np.sum(x)
-                    //sum_y = np.sum(y)
-                    //sum_xx = np.sum(np.multiply(x, x))
-                    //sum_xy = np.sum(np.multiply(x, y))
-                    //a = (n * sum_xy - sum_x * sum_y) / (n * sum_xx - sum_x * sum_x)
-                    //b = (sum_xx * sum_y - sum_x * sum_xy) / (n * sum_xx - sum_x * sum_x)
                     var n = values.Count;
                     var sumX = values.Sum(item => item.Item1);
                     var sumY = values.Sum(item => item.Item2);
@@ -443,24 +437,24 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     return a * idx + b;
                 }
 
-                private Single CalculateExpectedValueByFft(List<Single> data)
+                private double CalculateExpectedValueByFft(List<double> data)
                 {
                     int length = data.Count;
-                    float[] fftRe = new float[length];
-                    float[] fftIm = new float[length];
-                    FftUtils.ComputeForwardFft(data.ToArray(), Enumerable.Repeat(0.0f, length).ToArray(), fftRe, fftIm, length);
+                    double[] fftRe = new double[length];
+                    double[] fftIm = new double[length];
+                    FftUtils.ComputeForwardFft(data.ToArray(), Enumerable.Repeat((double)0.0f, length).ToArray(), fftRe, fftIm, length);
 
                     for (int i = 0; i < length; ++i)
                     {
-                        if (i > length*3/8 && i < length*5/8)
+                        if (i > (double)length*3/8 && i < (double)length*5/8)
                         {
                             fftRe[i] = 0.0f;
                             fftIm[i] = 0.0f;
                         }
                     }
 
-                    float[] ifftRe = new float[length];
-                    float[] ifftIm = new float[length];
+                    double[] ifftRe = new double[length];
+                    double[] ifftIm = new double[length];
                     FftUtils.ComputeBackwardFft(fftRe, fftIm, ifftRe, ifftIm, length);
 
                     return ifftRe[length-1];
