@@ -107,11 +107,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         public List<MetricSlice> Slices { get; set; }
 
-        public DTRootCauseLocalizationEstimator.AggregateType AggType { get; set; }
+        public AggregateType AggType { get; set; }
 
         public string AggSymbol { get; set; }
 
-        public RootCauseLocalizationInput(DateTime anomalyTimestamp, Dictionary<string, string> anomalyDimensions, List<MetricSlice> slices, DTRootCauseLocalizationEstimator.AggregateType aggregateType, string aggregateSymbol)
+        public RootCauseLocalizationInput(DateTime anomalyTimestamp, Dictionary<string, string> anomalyDimensions, List<MetricSlice> slices, AggregateType aggregateType, string aggregateSymbol)
         {
             AnomalyTimestamp = anomalyTimestamp;
             AnomalyDimensions = anomalyDimensions;
@@ -436,17 +436,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             private void GetRootCauseList(RootCauseLocalizationInput src, ref RootCause dst, DimensionInfo dimensionInfo, List<Point> totalPoints, Dictionary<string, string> subDim)
             {
-                List<Point> points = new List<Point>();
-                foreach (MetricSlice slice in src.Slices)
-                {
-                    if (slice.TimeStamp.Equals(src.AnomalyTimestamp))
-                    {
-                        points = slice.Points;
-                    }
-                }
-
-                PointTree pointTree = DTRootCauseLocalizationUtils.BuildPointTree(totalPoints, dimensionInfo.AggDim, subDim, src.AggSymbol);
-                PointTree anomalyTree = DTRootCauseLocalizationUtils.BuildPointTree(totalPoints, dimensionInfo.AggDim, subDim, src.AggSymbol, true);
+                PointTree pointTree = DTRootCauseLocalizationUtils.BuildPointTree(totalPoints, dimensionInfo.AggDim, subDim, src.AggSymbol, src.AggType);
+                PointTree anomalyTree = DTRootCauseLocalizationUtils.BuildPointTree(totalPoints, dimensionInfo.AggDim, subDim, src.AggSymbol, src.AggType, true);
 
                 // which means there is no all up here, we would return empty list; in ML.net , should we do the same thing？ todo
                 if (anomalyTree.ParentNode == null)
@@ -469,7 +460,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     double totalEntropy = 1;
                     if (anomalyTree.Leaves.Count > 0)
                     {
-                        totalEntropy = DTRootCauseLocalizationUtils.GetEntropy(totalPoints.Count, anomalyTree.Leaves.Count);
+                        // update from total points to pointTree.Leaves.Count
+                        totalEntropy = DTRootCauseLocalizationUtils.GetEntropy(pointTree.Leaves.Count, anomalyTree.Leaves.Count);
                     }
 
                     if (totalEntropy > 0.9)
@@ -481,31 +473,38 @@ namespace Microsoft.ML.Transforms.TimeSeries
                         }
                         else
                         {
-                            rootCauses.AddRange(DTRootCauseLocalizationUtils.LocalizeRootCauseByDimension(totalPoints, anomalyTree, pointTree, totalEntropy, src.AnomalyDimensions));
+                            // update from total points to pointTree.Leaves
+                            rootCauses.AddRange(DTRootCauseLocalizationUtils.LocalizeRootCauseByDimension(pointTree.Leaves, anomalyTree, pointTree, totalEntropy, src.AnomalyDimensions));
                         }
                     }
-                    else if (totalEntropy < 0.5)
-                    {
-                        if (DTRootCauseLocalizationUtils.IsAnomalous(totalPoints.Count, anomalyTree.Leaves.Count))
-                        {
-                            //root cause is itself;
-                            dst.Items.Add(new RootCauseItem(src.AnomalyDimensions));
-                        }
-                        else
-                        {
-                            rootCauses.AddRange(DTRootCauseLocalizationUtils.LocalizeRootCauseByAnomaly(totalPoints, anomalyTree, src.AnomalyDimensions));
-                        }
-                    }
+                    //comment here, as LocalizeRootCauseByAnomaly is not right, for example, data 2019-08-08T19:30:00Z seconds - 1566383400
+                    //else if (totalEntropy < 0.5)
+                    //{
+                    //    // todo- need improve, if anomalytree.leave.count == 0, need to filter by all up level
+                    //    //if (DTRootCauseLocalizationUtils.IsAnomalous(pointTree.Leaves.Count, anomalyTree.Leaves.Count))
+                    //    //{
+                    //    //    //root cause is itself;
+                    //    //    dst.Items.Add(new RootCauseItem(src.AnomalyDimensions));
+                    //    //}
+                    //    //else
+                    //    //{
+                    //        rootCauses.AddRange(DTRootCauseLocalizationUtils.LocalizeRootCauseByAnomaly(totalPoints, anomalyTree, src.AnomalyDimensions));
+                    //    //}
+                    //}
                     else
                     {
-                        if (dimensionInfo.AggDim.Count == 1)
+                        // remove this part, has no different to the result
+                        //if (dimensionInfo.AggDim.Count == 1)
+                        //{
+                        //    //update totalPoints to .leaves
+                        //    //because we have known the dimension, so by anomaly
+                        //    //rootCauses.AddRange(DTRootCauseLocalizationUtils.LocalizeRootCauseByAnomaly(totalPoints, anomalyTree, src.AnomalyDimensions));
+                        //    rootCauses.AddRange(DTRootCauseLocalizationUtils.LocalizeRootCauseByAnomaly(pointTree.Leaves, anomalyTree, src.AnomalyDimensions));
+                        //}
+                        //else
                         {
-                            //because we have known the dimension, so by anomaly
-                            rootCauses.AddRange(DTRootCauseLocalizationUtils.LocalizeRootCauseByAnomaly(totalPoints, anomalyTree, src.AnomalyDimensions));
-                        }
-                        else
-                        {
-                            rootCauses.AddRange(DTRootCauseLocalizationUtils.LocalizeRootCauseByDimension(totalPoints, anomalyTree, pointTree, totalEntropy, src.AnomalyDimensions));
+                            //update totalPoints to .leaves
+                            rootCauses.AddRange(DTRootCauseLocalizationUtils.LocalizeRootCauseByDimension(pointTree.Leaves, anomalyTree, pointTree, totalEntropy, src.AnomalyDimensions));
                         }
                     }
 
@@ -626,26 +625,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
         internal static class Defaults
         {
             public const double Beta = 0.5;
-        }
-
-        public enum AggregateType
-        {
-            /// <summary>
-            /// Make the aggregate type as sum.
-            /// </summary>
-            Sum = 0,
-            /// <summary>
-            /// Make the aggregate type as average.
-            ///  </summary>
-            Avg = 1,
-            /// <summary>
-            /// Make the aggregate type as min.
-            /// </summary>
-            Min = 2,
-            /// <summary>
-            /// Make the aggregate type as max.
-            /// </summary>
-            Max = 3
         }
 
         /// <summary>

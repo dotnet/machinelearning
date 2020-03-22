@@ -29,28 +29,33 @@ namespace Samples.Dynamic.Transforms.TimeSeries
             {
                 DateTime timeStamp = item.Key;
 
-                int seconds = Convert.ToInt32(timeStamp.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds);
-                string path = String.Format("D:/rootcause/Dataset_yaniv/raw_data_201908_202002/{0}.csv", seconds);
-                List<Point> points = GetPoints(path);
-                List<MetricSlice> slices = new List<MetricSlice>();
-                slices.Add(new MetricSlice(timeStamp, points));
+                DateTime filterTime = DateTime.ParseExact("2019-11-13 13:00:00,000", "yyyy-MM-dd HH:mm:ss,fff",
+                                       System.Globalization.CultureInfo.InvariantCulture);
+                if (timeStamp.CompareTo(filterTime).Equals(0))
+                {
+                    int seconds = Convert.ToInt32(timeStamp.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds);
+                    string path = String.Format("D:/rootcause/Dataset_yaniv/raw_data_201908_202002/{0}.csv", seconds);
+                    List<Point> points = GetPoints(path);
+                    List<MetricSlice> slices = new List<MetricSlice>();
+                    slices.Add(new MetricSlice(timeStamp, points));
 
-                PredictionEngine<RootCauseLocalizationData, RootCauseLocalizationTransformedData> engine = GetRootCausePredictionEngine();
+                    PredictionEngine<RootCauseLocalizationData, RootCauseLocalizationTransformedData> engine = GetRootCausePredictionEngine();
 
-                var newRootCauseInput = new RootCauseLocalizationData(timeStamp, rootNodeMap[timeStamp], new List<MetricSlice>() { new MetricSlice(timeStamp, points) }, DTRootCauseLocalizationEstimator.AggregateType.Sum, aggSymbol);
+                    var newRootCauseInput = new RootCauseLocalizationData(timeStamp, rootNodeMap[timeStamp], new List<MetricSlice>() { new MetricSlice(timeStamp, points) }, DTRootCauseLocalizationEstimator.AggregateType.Sum, aggSymbol);
 
-                List<RootCauseItem> list = new List<RootCauseItem>();
-                GetRootCause(list, newRootCauseInput, engine);
+                    List<RootCauseItem> list = new List<RootCauseItem>();
+                    GetRootCause(list, newRootCauseInput, engine);
 
-                List<Dictionary<string, string>> labeledRootCause = labeledRootCauseMap[timeStamp];
-                List<Dictionary<string, string>> detectedRootCause = ConvertRootCauseItemToDic(list);
-                RemoveAggSymbol(detectedRootCause, aggSymbol);
+                    List<Dictionary<string, string>> labeledRootCause = labeledRootCauseMap[timeStamp];
+                    List<Dictionary<string, string>> detectedRootCause = ConvertRootCauseItemToDic(list);
+                    RemoveAggSymbol(detectedRootCause, aggSymbol);
 
-                Tuple<int, int, int> evaluation = ScoreRootCause(detectedRootCause, labeledRootCause, exactly, timeStamp);
-                totalTp += evaluation.Item1;
-                totalFp += evaluation.Item2;
-                totalFn += evaluation.Item3;
-                totalCount++;
+                    Tuple<int, int, int> evaluation = ScoreRootCause(detectedRootCause, labeledRootCause, exactly, timeStamp);
+                    totalTp += evaluation.Item1;
+                    totalFp += evaluation.Item2;
+                    totalFn += evaluation.Item3;
+                    totalCount++;
+                }
             }
 
             double precision = (double)totalTp / (totalTp + totalFp);
@@ -64,7 +69,7 @@ namespace Samples.Dynamic.Transforms.TimeSeries
         {
             int tp = 0;
             int fp = 0;
-            int fn; ;
+            int fn; 
             List<string> labelSet = new List<string>();
             foreach (Dictionary<string, string> cause in detectedRootCause)
             {
@@ -86,10 +91,10 @@ namespace Samples.Dynamic.Transforms.TimeSeries
             fn = labeledRootCause.Count - labelSet.Count;
             if (fn != 0)
             {
-                List<Dictionary<string, string>> nCause = GetNegtiveCause(labeledRootCause, labelSet);
+                List<Dictionary<string, string>> nCause = GetFNegtiveCause(labeledRootCause, labelSet);
                 if (nCause.Count > 0)
                 {
-                    Console.WriteLine(String.Format("FN : timestamp - {0}", timeStamp));
+                    Console.WriteLine(String.Format("FN : timestamp - {0}, labeled root cause", timeStamp));
                     foreach (Dictionary<string, string> cause in nCause)
                     {
                         Console.WriteLine(string.Join(Environment.NewLine, cause));
@@ -102,7 +107,7 @@ namespace Samples.Dynamic.Transforms.TimeSeries
             return new Tuple<int, int, int>(tp, fp, fn);
         }
 
-        private static List<Dictionary<string, string>> GetNegtiveCause(List<Dictionary<string, string>> labelCauses, List<string> labelSet)
+        private static List<Dictionary<string, string>> GetFNegtiveCause(List<Dictionary<string, string>> labelCauses, List<string> labelSet)
         {
             List<Dictionary<string, string>> causeList = new List<Dictionary<string, string>>();
             foreach (Dictionary<string, string> cause in labelCauses)
@@ -141,7 +146,6 @@ namespace Samples.Dynamic.Transforms.TimeSeries
 
         private static int CompareCause(Dictionary<string, string> detect, Dictionary<string, string> label)
         {
-
             if (detect.Equals(label))
             {
                 return 0;
