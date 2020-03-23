@@ -11,6 +11,8 @@ namespace Microsoft.ML.TimeSeries
 {
     public class DTRootCauseAnalyzer
     {
+        private static double _anomalyRatioThreshold = 0.5;
+
         private RootCauseLocalizationInput _src;
         private double _beta;
         public DTRootCauseAnalyzer(RootCauseLocalizationInput src, double beta)
@@ -23,15 +25,18 @@ namespace Microsoft.ML.TimeSeries
         {
             RootCause dst = new RootCause();
             DimensionInfo dimensionInfo = SeperateDimension(_src.AnomalyDimensions, _src.AggSymbol);
+            //no aggregation dimension
             if (dimensionInfo.AggDim.Count == 0)
             {
-                dst.Items.Add(new RootCauseItem(_src.AnomalyDimensions));
+                return dst;
             }
             Dictionary<string, string> subDim = GetSubDim(_src.AnomalyDimensions, dimensionInfo.DetailDim);
             List<Point> totalPoints = GetTotalPointsForAnomalyTimestamp(_src, subDim);
 
             GetRootCauseList(_src, ref dst, dimensionInfo, totalPoints, subDim);
             UpdateRootCauseDirection(totalPoints, ref dst);
+            GetRootCauseScore(totalPoints, _src.AnomalyDimensions, ref dst, _beta);
+
             return dst;
         }
 
@@ -56,7 +61,7 @@ namespace Microsoft.ML.TimeSeries
             PointTree pointTree = BuildPointTree(totalPoints, dimensionInfo.AggDim, subDim, src.AggSymbol, src.AggType);
             PointTree anomalyTree = BuildPointTree(totalPoints, dimensionInfo.AggDim, subDim, src.AggSymbol, src.AggType, true);
 
-            //which means there is no aggregation in the input anomaly dimension
+            //which means there is no anomaly point with the anomaly dimension
             if (anomalyTree.ParentNode == null)
             {
                 return;
@@ -81,15 +86,7 @@ namespace Microsoft.ML.TimeSeries
                     totalEntropy = GetEntropy(pointTree.Leaves.Count, anomalyTree.Leaves.Count);
                 }
 
-                if (totalEntropy > 0.9)
-                {
-                    rootCauses.AddRange(LocalizeRootCauseByDimension(pointTree.Leaves, anomalyTree, pointTree, totalEntropy, src.AnomalyDimensions));
-                }
-                else
-                {
-                    rootCauses.AddRange(LocalizeRootCauseByDimension(pointTree.Leaves, anomalyTree, pointTree, totalEntropy, src.AnomalyDimensions));
-                }
-
+                rootCauses.AddRange(LocalizeRootCauseByDimension(pointTree.Leaves, anomalyTree, pointTree, totalEntropy, src.AnomalyDimensions));
                 dst.Items = rootCauses;
             }
         }
@@ -171,6 +168,7 @@ namespace Microsoft.ML.TimeSeries
 
             return tree;
         }
+
         private PointTree CompleteTreeBottomUp(PointTree tree, AggregateType aggType, string aggSymbol, List<string> aggDims)
         {
 
@@ -283,7 +281,7 @@ namespace Microsoft.ML.TimeSeries
         {
             Dictionary<string, string> subDim = new Dictionary<string, string>();
 
-            foreach (String dim in keyList)
+            foreach (string dim in keyList)
             {
                 subDim.Add(dim, dimension[dim]);
             }
@@ -434,7 +432,7 @@ namespace Microsoft.ML.TimeSeries
                 dimension.Entropy = totalEntropy - gain;
                 entroyGainMap.Add(dimension, gain);
 
-                double gainRatio = gain / GetDimensionInstrinsicValue(dimension.PointDis, dimension.AnomalyDis, totalEntropy);
+                double gainRatio = gain / GetDimensionInstrinsicValue(dimension.PointDis, dimension.AnomalyDis);
                 entroyGainRatioMap.Add(dimension, gainRatio);
 
                 sumGain += gain;
@@ -464,7 +462,7 @@ namespace Microsoft.ML.TimeSeries
                 dimension.Entropy = totalEntropy - gain;
                 entroyGainMap.Add(dimension, gain);
 
-                double gainRatio = gain / GetDimensionInstrinsicValue(dimension.PointDis, dimension.AnomalyDis, totalEntropy);
+                double gainRatio = gain / GetDimensionInstrinsicValue(dimension.PointDis, dimension.AnomalyDis);
                 entroyGainRatioMap.Add(dimension, gainRatio);
 
                 sumGain += gain;
@@ -645,7 +643,7 @@ namespace Microsoft.ML.TimeSeries
                 return true;
             }
 
-            return size <= totalSize * 0.5;
+            return size <= totalSize * _anomalyRatioThreshold;
         }
 
         private double GetDimensionEntropyGain(Dictionary<string, int> pointDis, Dictionary<string, int> anomalyDis, double totalEntropy)
@@ -660,7 +658,7 @@ namespace Microsoft.ML.TimeSeries
             return totalEntropy - entropy;
         }
 
-        private double GetDimensionInstrinsicValue(Dictionary<string, int> pointDis, Dictionary<string, int> anomalyDis, double totalEntropy)
+        private double GetDimensionInstrinsicValue(Dictionary<string, int> pointDis, Dictionary<string, int> anomalyDis)
         {
             double instrinsicValue = 0;
 
@@ -772,58 +770,6 @@ namespace Microsoft.ML.TimeSeries
         }
     }
 
-    public sealed class Point : IEquatable<Point>
-    {
-        public double Value { get; set; }
-        public double ExpectedValue { get; set; }
-        public bool IsAnomaly { get; set; }
-        public Dictionary<string, string> Dimensions { get; set; }
-
-        public double Delta { get; set; }
-
-        public Point(double value, double expectedValue, bool isAnomaly, Dictionary<string, string> dimensions)
-        {
-            Value = value;
-            ExpectedValue = expectedValue;
-            IsAnomaly = isAnomaly;
-            Dimensions = dimensions;
-            Delta = (value - expectedValue) / expectedValue;
-            if (expectedValue == 0)
-            {
-                Delta = 0;
-            }
-        }
-
-        public bool Equals(Point other)
-        {
-            foreach (KeyValuePair<string, string> item in Dimensions)
-            {
-                if (!other.Dimensions[item.Key].Equals(item.Value))
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public override int GetHashCode()
-        {
-            return Dimensions.GetHashCode();
-        }
-    }
-
-    public sealed class MetricSlice
-    {
-        public DateTime TimeStamp { get; set; }
-        public List<Point> Points { get; set; }
-
-        public MetricSlice(DateTime timeStamp, List<Point> points)
-        {
-            TimeStamp = timeStamp;
-            Points = points;
-        }
-    }
-
     public sealed class BestDimension
     {
         public string DimensionKey;
@@ -841,59 +787,13 @@ namespace Microsoft.ML.TimeSeries
         }
     }
 
-    public sealed class AnomalyCause
-    {
-        public string DimensionKey;
-        public List<Point> Anomalies;
+    //public sealed class AnomalyCause
+    //{
+    //    public string DimensionKey;
+    //    public List<Point> Anomalies;
 
-        public AnomalyCause() { }
-    }
-
-    public sealed class RootCauseItem : IEquatable<RootCauseItem>
-    {
-        public double Score;
-        public string Path;
-        public Dictionary<string, string> Dimension;
-        public AnomalyDirection Direction;
-
-        public RootCauseItem(Dictionary<string, string> rootCause)
-        {
-            Dimension = rootCause;
-        }
-
-        public RootCauseItem(Dictionary<string, string> rootCause, string path)
-        {
-            Dimension = rootCause;
-            Path = path;
-        }
-        public bool Equals(RootCauseItem other)
-        {
-            if (Dimension.Count == other.Dimension.Count)
-            {
-                foreach (KeyValuePair<string, string> item in Dimension)
-                {
-                    if (!other.Dimension[item.Key].Equals(item.Value))
-                    {
-                        return false;
-                    }
-                }
-                return true;
-            }
-            return false;
-        }
-    }
-
-    public enum AnomalyDirection
-    {
-        /// <summary>
-        /// the value is larger than expected value.
-        /// </summary>
-        Up = 0,
-        /// <summary>
-        /// the value is lower than expected value.
-        ///  </summary>
-        Down = 1
-    }
+    //    public AnomalyCause() { }
+    //}
 
     public class RootCauseScore
     {
@@ -905,25 +805,5 @@ namespace Microsoft.ML.TimeSeries
             Surprise = surprise;
             ExplainaryScore = explainaryScore;
         }
-    }
-
-    public enum AggregateType
-    {
-        /// <summary>
-        /// Make the aggregate type as sum.
-        /// </summary>
-        Sum = 0,
-        /// <summary>
-        /// Make the aggregate type as average.
-        ///  </summary>
-        Avg = 1,
-        /// <summary>
-        /// Make the aggregate type as min.
-        /// </summary>
-        Min = 2,
-        /// <summary>
-        /// Make the aggregate type as max.
-        /// </summary>
-        Max = 3
     }
 }
