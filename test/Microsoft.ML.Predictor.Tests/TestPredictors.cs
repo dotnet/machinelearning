@@ -149,8 +149,6 @@ namespace Microsoft.ML.RunTests
         [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void MulticlassLRTest()
         {
             RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.iris, digitsOfPrecision: 4);
@@ -332,8 +330,6 @@ namespace Microsoft.ML.RunTests
         ///</summary>
         [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         [TestCategory("Binary")]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void BinaryClassifierLogisticRegressionBinNormTest()
         {
             var binaryPredictors = new[] { TestLearners.logisticRegressionBinNorm };
