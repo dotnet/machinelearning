@@ -471,7 +471,7 @@ namespace Microsoft.ML.Scenarios
                 }
                 Assert.False(cursor.MoveNext());
             }
-            (tfModel as IDisposable).Dispose();
+            (tfModel as IDisposable)?.Dispose();
         }
 
         [Fact(Skip = "Model files are not available yet")]
@@ -1272,9 +1272,9 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowImageClassificationDefault()
         {
-            if (NotCentOS7FactAttribute.IsCentOS7())
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                Output.WriteLine("TODO TEST_STABILITY: TensorFlowImageClassificationDefault hangs on CentOS 7.");
+                Output.WriteLine("TODO TEST_STABILITY: TensorFlowImageClassificationDefault hangs on Linux.");
                 return;
             }
 
@@ -1365,9 +1365,9 @@ namespace Microsoft.ML.Scenarios
         [InlineData(ImageClassificationTrainer.Architecture.InceptionV3)]
         public void TensorFlowImageClassification(ImageClassificationTrainer.Architecture arch)
         {
-            if (NotCentOS7FactAttribute.IsCentOS7())
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                Output.WriteLine("TODO TEST_STABILITY: TensorFlowImageClassification hangs on CentOS 7.");
+                Output.WriteLine("TODO TEST_STABILITY: TensorFlowImageClassification hangs on Linux.");
                 return;
             }
 
