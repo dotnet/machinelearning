@@ -5,7 +5,7 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.TimeSeries
 {
-    public class DTRootCauseLocalizationUtils
+    public class DTRootCauseAnalyzer
     {
         public static DimensionInfo SeperateDimension(Dictionary<string, string> dimensions, string aggSymbol)
         {
@@ -91,7 +91,6 @@ namespace Microsoft.ML.TimeSeries
 
             return tree;
         }
-
         private static PointTree CompleteTreeBottomUp(PointTree tree, AggregateType aggType, string aggSymbol, List<string> aggDims)
         {
 
@@ -219,7 +218,7 @@ namespace Microsoft.ML.TimeSeries
             {
                 if (ContainsAll(point.Dimensions, subDim))
                 {
-                    //needs to remove duplicate
+                    //remove duplicated points
                     if (!list.Contains(point))
                     {
                         list.Add(point);
@@ -278,32 +277,22 @@ namespace Microsoft.ML.TimeSeries
                 return new List<RootCauseItem>() { new RootCauseItem(anomalyDimension) };
             }
 
-            // when total and best.entroy all equals 0, do we need to go deep down? would it be better if we remove the else logic, yes- remove the else logic will improve tp, reduce fn, and improve accuracy
-            //if (IsLargeEntropyGain(totoalEntropy, best.Entropy) || best.AnomalyDis.Count == 1)
+            List<Point> children = GetTopAnomaly(anomalyTree.ChildrenNodes[best.DimensionKey], anomalyTree.ParentNode, totalPoints, best.DimensionKey);
+            if (children == null)
             {
-                // need to improve here, whether can go deeper
-                List<Point> children = GetTopAnomaly(anomalyTree.ChildrenNodes[best.DimensionKey], anomalyTree.ParentNode, totalPoints, best.DimensionKey);
-                if (children == null)
-                {
-                    //As the cause couldn't be found, the root cause should be itself
-                    return new List<RootCauseItem>() { new RootCauseItem(anomalyDimension, best.DimensionKey) };
-                }
-                else
-                {
-                    List<RootCauseItem> causes = new List<RootCauseItem>();
-                    // For the found causes, we return the result
-                    foreach (Point anomaly in children)
-                    {
-                        causes.Add(new RootCauseItem(UpdateDimensionValue(anomalyDimension, best.DimensionKey, anomaly.Dimensions[best.DimensionKey]), best.DimensionKey));
-                    }
-                    return causes;
-                }
+                //As the cause couldn't be found, the root cause should be itself
+                return new List<RootCauseItem>() { new RootCauseItem(anomalyDimension, best.DimensionKey) };
             }
-            //else
-            //{
-            //    //As the entropy gain for this best dimension is small, the root cause should be itself
-            //    return new List<RootCauseItem>() { new RootCauseItem(anomalyDimension) };
-            //}
+            else
+            {
+                List<RootCauseItem> causes = new List<RootCauseItem>();
+                // For the found causes, we return the result
+                foreach (Point anomaly in children)
+                {
+                    causes.Add(new RootCauseItem(UpdateDimensionValue(anomalyDimension, best.DimensionKey, anomaly.Dimensions[best.DimensionKey]), best.DimensionKey));
+                }
+                return causes;
+            }
         }
 
         public static double GetEntropy(int totalNum, int anomalyNum)

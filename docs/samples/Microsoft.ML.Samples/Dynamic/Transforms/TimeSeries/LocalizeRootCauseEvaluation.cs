@@ -23,7 +23,7 @@ namespace Samples.Dynamic.Transforms.TimeSeries
             int totalFn = 0;
             int totalCount = 0;
 
-            bool exactly = false;
+            bool exactly = true;
 
             foreach (KeyValuePair<DateTime, Dictionary<string, string>> item in rootNodeMap)
             {
@@ -150,11 +150,11 @@ namespace Samples.Dynamic.Transforms.TimeSeries
             {
                 return 0;
             }
-            else if (DTRootCauseLocalizationUtils.ContainsAll(detect, label))
+            else if (DTRootCauseAnalyzer.ContainsAll(detect, label))
             {
                 return 1;
             }
-            else if (DTRootCauseLocalizationUtils.ContainsAll(label, detect))
+            else if (DTRootCauseAnalyzer.ContainsAll(label, detect))
             {
                 return 2;
             }
