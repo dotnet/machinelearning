@@ -19,12 +19,17 @@ namespace Microsoft.ML.TestFramework.Attributes
         }
         protected override bool IsEnvironmentSupported()
         {
+            return !IsCentOS7();
+        }
+
+        public static bool IsCentOS7()
+        {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 using (Process process = new Process())
                 {
                     process.StartInfo.FileName = "/bin/bash";
-                    process.StartInfo.Arguments= "-c \"cat /etc/*-release\"";
+                    process.StartInfo.Arguments = "-c \"cat /etc/*-release\"";
                     process.StartInfo.UseShellExecute = false;
                     process.StartInfo.RedirectStandardOutput = true;
                     process.StartInfo.CreateNoWindow = true;
@@ -35,11 +40,11 @@ namespace Microsoft.ML.TestFramework.Attributes
                     process.WaitForExit();
                     if (distro.Contains("CentOS Linux 7"))
                     {
-                        return false;
+                        return true;
                     }
                 }
             }
-            return true;
+            return false;
         }
     }
 }

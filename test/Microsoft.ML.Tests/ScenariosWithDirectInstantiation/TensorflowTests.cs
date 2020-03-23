@@ -1270,10 +1270,14 @@ namespace Microsoft.ML.Scenarios
         }
 
         [TensorFlowFact]
-        // The memory leaks seem to be fixed, but these tests are still hanging occasionally
-        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassificationDefault()
         {
+            if (NotCentOS7FactAttribute.IsCentOS7())
+            {
+                Output.WriteLine("TODO TEST_STABILITY: TensorFlowImageClassificationDefault hangs on CentOS 7.");
+                return;
+            }
+
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
 
@@ -1359,10 +1363,14 @@ namespace Microsoft.ML.Scenarios
         [InlineData(ImageClassificationTrainer.Architecture.MobilenetV2)]
         [InlineData(ImageClassificationTrainer.Architecture.ResnetV250)]
         [InlineData(ImageClassificationTrainer.Architecture.InceptionV3)]
-        // The memory leaks seem to be fixed, but these tests are still hanging occasionally
-        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassification(ImageClassificationTrainer.Architecture arch)
         {
+            if (NotCentOS7FactAttribute.IsCentOS7())
+            {
+                Output.WriteLine("TODO TEST_STABILITY: TensorFlowImageClassification hangs on CentOS 7.");
+                return;
+            }
+
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
 
