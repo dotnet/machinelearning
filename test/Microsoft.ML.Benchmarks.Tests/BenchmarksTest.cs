@@ -59,7 +59,7 @@ namespace Microsoft.ML.Benchmarks.Tests
             var types = GetBenchmarks();
             foreach (var type in types)
             {
-                var summary = BenchmarkRunner.Run(type, new TestConfig()/*.With(new OutputLogger(output))*/);
+                var summary = BenchmarkRunner.Run(type, new TestConfig().With(new OutputLogger(output)));
                 
 
                 VisualStudio.TestTools.UnitTesting.Assert.IsFalse(summary.HasCriticalValidationErrors, "The \"Summary\" should have NOT \"HasCriticalValidationErrors\"");
@@ -101,147 +101,6 @@ namespace Microsoft.ML.Benchmarks.Tests
                 Environment.FailFast("Fail here to take memory dump");
             }
         }
-
-        //[Theory]
-        //[IterationData(iterations: 1)]
-        //[Trait("Category", "RunSpecificTest")]
-        //public void TestBenchmarkHangingSetupSentimentPipeline(int iteration)
-        //{
-        //    Output.WriteLine($"{iteration} -th");
-        //    PredictionEngineBench predictionEngineBench = new PredictionEngineBench();
-        //    predictionEngineBench.SetupSentimentPipeline();
-        //}
-
-        //[Theory]
-        //[IterationData(iterations: 1)]
-        //[Trait("Category", "RunSpecificTest")]
-        //public void TestBenchmarkHangingSetupIrisPipeline(int iteration)
-        //{
-        //    Output.WriteLine($"{iteration} -th");
-        //    PredictionEngineBench predictionEngineBench = new PredictionEngineBench();
-        //    predictionEngineBench.SetupIrisPipeline();
-        //}
-
-        //[Theory]
-        //[IterationData(iterations: 1)]
-        //[Trait("Category", "RunSpecificTest")]
-        //public void TestBenchmarkHangingSetupBreastCancerPipeline(int iteration)
-        //{
-        //    Output.WriteLine($"{iteration} -th");
-        //    PredictionEngineBench predictionEngineBench = new PredictionEngineBench();
-        //    predictionEngineBench.SetupBreastCancerPipeline();
-        //}
-
-        //[Theory]
-        //[IterationData(iterations: 1)]
-        //[Trait("Category", "RunSpecificTest")]
-        //public void TestBenchmarkHangingSetup(int iteration)
-        //{
-        //    Output.WriteLine($"{iteration} -th");
-        //    CacheDataViewBench cacheDataViewBench = new CacheDataViewBench();
-        //    cacheDataViewBench.Setup();
-        //}
-
-        //[Theory]
-        //[IterationData(iterations: 1)]
-        //[Trait("Category", "RunSpecificTest")]
-        //public void TestBenchmarkHangingSetupHashScalarString(int iteration)
-        //{
-        //    Output.WriteLine($"{iteration} -th");
-        //    HashBench hashBench = new HashBench();
-        //    hashBench.SetupHashScalarString();
-        //}
-
-        //[Theory]
-        //[IterationData(iterations: 1)]
-        //[Trait("Category", "RunSpecificTest")]
-        //public void TestBenchmarkHangingSetupHashScalarFloat(int iteration)
-        //{
-        //    Output.WriteLine($"{iteration} -th");
-        //    HashBench hashBench = new HashBench();
-        //    hashBench.SetupHashScalarFloat();
-        //}
-
-        //[Theory]
-        //[IterationData(iterations: 1)]
-        //[Trait("Category", "RunSpecificTest")]
-        //public void TestBenchmarkHangingSetupHashScalarDouble(int iteration)
-        //{
-        //    Output.WriteLine($"{iteration} -th");
-        //    HashBench hashBench = new HashBench();
-        //    hashBench.SetupHashScalarDouble();
-        //}
-
-        //[Theory]
-        //[IterationData(iterations: 1)]
-        //[Trait("Category", "RunSpecificTest")]
-        //public void TestBenchmarkHangingSetupHashScalarKey(int iteration)
-        //{
-        //    Output.WriteLine($"{iteration} -th");
-        //    HashBench hashBench = new HashBench();
-        //    hashBench.SetupHashScalarKey();
-        //}
-
-        //[Theory]
-        //[IterationData(iterations: 1)]
-        //[Trait("Category", "RunSpecificTest")]
-        //public void TestBenchmarkHangingSetupHashVectorString(int iteration)
-        //{
-        //    Output.WriteLine($"{iteration} -th");
-        //    HashBench hashBench = new HashBench();
-        //    hashBench.SetupHashVectorString();
-        //}
-
-        //[Theory]
-        //[IterationData(iterations: 1)]
-        //[Trait("Category", "RunSpecificTest")]
-        //public void TestBenchmarkHangingSetupHashVectorFloat(int iteration)
-        //{
-        //    Output.WriteLine($"{iteration} -th");
-        //    HashBench hashBench = new HashBench();
-        //    hashBench.SetupHashVectorFloat();
-        //}
-
-        //[Theory]
-        //[IterationData(iterations: 1)]
-        //[Trait("Category", "RunSpecificTest")]
-        //public void TestBenchmarkHangingSetupHashVectorDouble(int iteration)
-        //{
-        //    Output.WriteLine($"{iteration} -th");
-        //    HashBench hashBench = new HashBench();
-        //    hashBench.SetupHashVectorDouble();
-        //}
-
-        //[Theory]
-        //[IterationData(iterations: 1)]
-        //[Trait("Category", "RunSpecificTest")]
-        //public void TestBenchmarkHangingSetupHashVectorKey(int iteration)
-        //{
-        //    Output.WriteLine($"{iteration} -th");
-        //    HashBench hashBench = new HashBench();
-        //    hashBench.SetupHashVectorKey();
-        //}
-
-        //[Theory]
-        //[IterationData(iterations: 1)]
-        //[Trait("Category", "RunSpecificTest")]
-        //public void TestBenchmarkHangingSetupTrainingSpeedTestsRff(int iteration)
-        //{
-        //    Output.WriteLine($"{iteration} -th");
-        //    RffTransformTrain rffTransformTrain = new RffTransformTrain();
-        //    rffTransformTrain.SetupTrainingSpeedTests();
-        //}
-
-        //[Theory]
-        //[IterationData(iterations: 1)]
-        //[Trait("Category", "RunSpecificTest")]
-        //public void TestBenchmarkHangingSetupPredictBenchmarks(int iteration)
-        //{
-        //    Output.WriteLine($"{iteration} -th");
-        //    StochasticDualCoordinateAscentClassifierBench stochasticDualCoordinateAscentClassifierBench = 
-        //        new StochasticDualCoordinateAscentClassifierBench();
-        //    stochasticDualCoordinateAscentClassifierBench.SetupPredictBenchmarks();
-        //}
     }
 
     public class OutputLogger : AccumulationLogger
@@ -258,6 +117,7 @@ namespace Microsoft.ML.Benchmarks.Tests
         {
             _currentLine += text;
             base.Write(logKind, text);
+            base.Flush();
         }
 
         public override void WriteLine()
@@ -265,6 +125,7 @@ namespace Microsoft.ML.Benchmarks.Tests
             _testOutputHelper.WriteLine(_currentLine);
             _currentLine = "";
             base.WriteLine();
+            base.Flush();
         }
 
         public override void WriteLine(LogKind logKind, string text)
@@ -272,6 +133,7 @@ namespace Microsoft.ML.Benchmarks.Tests
             _testOutputHelper.WriteLine(_currentLine + text);
             _currentLine = "";
             base.WriteLine(logKind, text);
+            base.Flush();
         }
     }
 }
