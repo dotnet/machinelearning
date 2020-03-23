@@ -13,20 +13,20 @@ resources:
 jobs:
 - template: /build/ci/job-template.yml
   parameters:
-    name: Centos_x64_NetCoreApp30
+    name: Centos_x64_NetCoreApp31
     buildScript: ./build.sh
     container: CentosContainer
     customMatrixes:
       Debug_Build:
-        _configuration: Debug-netcoreapp3_0
+        _configuration: Debug-netcoreapp3_1
         _config_short: DI
         _includeBenchmarkData: false
-        _targetFramework: netcoreapp3.0
+        _targetFramework: netcoreapp3.1
       Release_Build:
-        _configuration: Release-netcoreapp3_0
+        _configuration: Release-netcoreapp3_1
         _config_short: RI
         _includeBenchmarkData: true
-        _targetFramework: netcoreapp3.0
+        _targetFramework: netcoreapp3.1
     innerLoop: true
     pool:
       name: Hosted Ubuntu 1604
@@ -50,19 +50,19 @@ jobs:
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: Windows_x64_NetCoreApp30
+    name: Windows_x64_NetCoreApp31
     buildScript: build.cmd
     customMatrixes:
       Debug_Build:
-        _configuration: Debug-netcoreapp3_0
+        _configuration: Debug-netcoreapp3_1
         _config_short: DI
         _includeBenchmarkData: false
-        _targetFramework: netcoreapp3.0
+        _targetFramework: netcoreapp3.1
       Release_Build:
-        _configuration: Release-netcoreapp3_0
+        _configuration: Release-netcoreapp3_1
         _config_short: RI
         _includeBenchmarkData: true
-        _targetFramework: netcoreapp3.0
+        _targetFramework: netcoreapp3.1
     innerLoop: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.0"
     pool:

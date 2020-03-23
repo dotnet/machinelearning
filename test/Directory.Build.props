@@ -4,7 +4,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <TargetFramework Condition="$(Configuration.EndsWith('-netfx'))">net461</TargetFramework>
-    <TargetFramework Condition="$(Configuration.EndsWith('-netcoreapp3_0'))">netcoreapp3.0</TargetFramework>
+    <TargetFramework Condition="$(Configuration.EndsWith('-netcoreapp3_1'))">netcoreapp3.1</TargetFramework>
     <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net461'">win-x64</RuntimeIdentifier>
     <IsPackable>false</IsPackable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -23,7 +23,7 @@
     <VSTestLogger>trx</VSTestLogger>
     <VSTestResultsDirectory>$(OutputPath)</VSTestResultsDirectory>
     <AssemblyOriginatorKeyFile>$(ToolsDir)Test.snk</AssemblyOriginatorKeyFile>
-    <CopyLocalLockFileAssemblies Condition="'$(TargetFramework)' == 'netcoreapp3.0'">false</CopyLocalLockFileAssemblies>
+    <CopyLocalLockFileAssemblies Condition="'$(TargetFramework)' == 'netcoreapp3.1'">false</CopyLocalLockFileAssemblies>
   </PropertyGroup>
   
   <ItemGroup>
