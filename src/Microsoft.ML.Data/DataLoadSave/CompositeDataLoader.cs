@@ -39,7 +39,6 @@ namespace Microsoft.ML.Data
 
             Loader = loader;
             Transformer = transformerChain ?? new TransformerChain<TLastTransformer>();
-            _disposed = false;
         }
 
         private CompositeDataLoader(IHost host, ModelLoadContext ctx)
@@ -47,7 +46,6 @@ namespace Microsoft.ML.Data
             if (!ctx.LoadModelOrNull<IDataLoader<TSource>, SignatureLoadModel>(host, out Loader, LegacyLoaderDirectory))
                 ctx.LoadModel<IDataLoader<TSource>, SignatureLoadModel>(host, out Loader, LoaderDirectory);
             ctx.LoadModel<TransformerChain<TLastTransformer>, SignatureLoadModel>(host, out Transformer, TransformerDirectory);
-            _disposed = false;
         }
 
         private static CompositeDataLoader<TSource, TLastTransformer> Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -117,20 +115,14 @@ namespace Microsoft.ML.Data
         #region IDisposable Support
         private bool _disposed;
 
-        private void Dispose(bool disposing)
+        public void Dispose()
         {
             if (_disposed)
                 return;
 
-            if (disposing)
                 Transformer.Dispose();
 
             _disposed = true;
-        }
-
-        void IDisposable.Dispose()
-        {
-            Dispose(true);
         }
         #endregion
     }

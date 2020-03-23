@@ -92,7 +92,6 @@ namespace Microsoft.ML.Data
 
             Contracts.Check((_transformers.Length > 0) == (LastTransformer != null));
             Contracts.Check(_transformers.Length == _scopes.Length);
-            _disposed = false;
         }
 
         /// <summary>
@@ -117,7 +116,6 @@ namespace Microsoft.ML.Data
                 LastTransformer = transformers.Last() as TLastTransformer;
                 Contracts.Check(LastTransformer != null);
             }
-            _disposed = false;
         }
 
         public DataViewSchema GetOutputSchema(DataViewSchema inputSchema)

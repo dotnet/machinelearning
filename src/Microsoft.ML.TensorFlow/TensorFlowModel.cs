@@ -89,7 +89,7 @@ namespace Microsoft.ML.Transforms
         #region IDisposable Support
         private bool _disposed;
 
-        void IDisposable.Dispose()
+        public void Dispose()
         {
             if (_disposed)
                 return;

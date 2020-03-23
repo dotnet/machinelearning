@@ -51,7 +51,6 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(predictor, nameof(predictor));
             Predictor = predictor;
             ScoreType = GetScoreType(Predictor, out ValueMapper);
-            _disposed = false;
         }
 
         private static DataViewType GetScoreType(IPredictor predictor, out IValueMapper valueMapper)
@@ -74,7 +73,6 @@ namespace Microsoft.ML.Data
 
             ctx.LoadModel<IPredictor, SignatureLoadModel>(env, out Predictor, ModelFileUtils.DirPredictor);
             ScoreType = GetScoreType(Predictor, out ValueMapper);
-            _disposed = false;
         }
 
         void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
@@ -213,7 +211,6 @@ namespace Microsoft.ML.Data
                 _parent = parent;
                 InputRoleMappedSchema = schema;
                 OutputSchema = outputSchema;
-                _disposed = false;
             }
 
             /// <summary>
@@ -248,7 +245,7 @@ namespace Microsoft.ML.Data
             #region IDisposable Support
             private bool _disposed;
 
-            void IDisposable.Dispose()
+            public void Dispose()
             {
                 if (_disposed)
                     return;
@@ -263,7 +260,7 @@ namespace Microsoft.ML.Data
         #region IDisposable Support
         private bool _disposed;
 
-        void IDisposable.Dispose()
+        public void Dispose()
         {
             if (_disposed)
                 return;

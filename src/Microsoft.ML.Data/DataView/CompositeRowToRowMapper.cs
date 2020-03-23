@@ -36,7 +36,6 @@ namespace Microsoft.ML.Data
             InnerMappers = Utils.Size(mappers) > 0 ? mappers : _empty;
             InputSchema = inputSchema;
             OutputSchema = Utils.Size(mappers) > 0 ? mappers[mappers.Length - 1].OutputSchema : inputSchema;
-            _disposed = false;
         }
 
         /// <summary>
@@ -123,7 +122,7 @@ namespace Microsoft.ML.Data
         #region IDisposable Support
         private bool _disposed;
 
-        void IDisposable.Dispose()
+        public void Dispose()
         {
             if (_disposed)
                 return;

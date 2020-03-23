@@ -294,7 +294,6 @@ namespace Microsoft.ML.Data
 
             Bindings = BindingsImpl.Create(data.Schema, rowMapper, args.Suffix, scoreColKind, scoreColIndex, predColType, predictedLabelColumnName);
             OutputSchema = Bindings.AsSchema;
-            _disposed = false;
         }
 
         protected PredictedLabelScorerBase(IHostEnvironment env, PredictedLabelScorerBase transform,
@@ -303,7 +302,6 @@ namespace Microsoft.ML.Data
         {
             Bindings = transform.Bindings.ApplyToSchema(newSource.Schema, Bindable, env);
             OutputSchema = Bindings.AsSchema;
-            _disposed = false;
         }
 
         [BestFriend]
@@ -318,7 +316,6 @@ namespace Microsoft.ML.Data
 
             Bindings = BindingsImpl.Create(ctx, input.Schema, host, Bindable, outputTypeMatches, getPredColType);
             OutputSchema = Bindings.AsSchema;
-            _disposed = false;
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)
@@ -442,7 +439,7 @@ namespace Microsoft.ML.Data
         #region IDisposable Support
         private bool _disposed;
 
-        void IDisposable.Dispose()
+        public void Dispose()
         {
             if (_disposed)
                 return;
