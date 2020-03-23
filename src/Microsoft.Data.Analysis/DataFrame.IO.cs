@@ -106,69 +106,69 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        private static string GetColumnName(string[] columnNames, int columnIndex)
+        {
+            return columnNames == null ? "Column" + columnIndex.ToString() : columnNames[columnIndex];
+        }
+
         private static DataFrameColumn CreateColumn(Type kind, string[] columnNames, int columnIndex)
         {
-            PrimitiveDataFrameColumn<T> CreatePrimitiveDataFrameColumn<T>()
-                where T : unmanaged
-            {
-                return new PrimitiveDataFrameColumn<T>(columnNames == null ? "Column" + columnIndex.ToString() : columnNames[columnIndex]);
-            }
             DataFrameColumn ret;
             if (kind == typeof(bool))
             {
-                ret = CreatePrimitiveDataFrameColumn<bool>();
+                ret = new BooleanDataFrameColumn(GetColumnName(columnNames, columnIndex));
             }
             else if (kind == typeof(int))
             {
-                ret = CreatePrimitiveDataFrameColumn<int>();
+                ret = new Int32DataFrameColumn(GetColumnName(columnNames, columnIndex));
             }
             else if (kind == typeof(float))
             {
-                ret = CreatePrimitiveDataFrameColumn<float>();
+                ret = new SingleDataFrameColumn(GetColumnName(columnNames, columnIndex));
             }
             else if (kind == typeof(string))
             {
-                ret = new StringDataFrameColumn(columnNames == null ? "Column" + columnIndex.ToString() : columnNames[columnIndex], 0);
+                ret = new StringDataFrameColumn(GetColumnName(columnNames, columnIndex), 0);
             }
             else if (kind == typeof(long))
             {
-                ret = CreatePrimitiveDataFrameColumn<long>();
+                ret = new Int64DataFrameColumn(GetColumnName(columnNames, columnIndex));
             }
             else if (kind == typeof(decimal))
             {
-                ret = CreatePrimitiveDataFrameColumn<decimal>();
+                ret = new DecimalDataFrameColumn(GetColumnName(columnNames, columnIndex));
             }
             else if (kind == typeof(byte))
             {
-                ret = CreatePrimitiveDataFrameColumn<byte>();
+                ret = new ByteDataFrameColumn(GetColumnName(columnNames, columnIndex));
             }
             else if (kind == typeof(char))
             {
-                ret = CreatePrimitiveDataFrameColumn<char>();
+                ret = new CharDataFrameColumn(GetColumnName(columnNames, columnIndex));
             }
             else if (kind == typeof(double))
             {
-                ret = CreatePrimitiveDataFrameColumn<double>();
+                ret = new DoubleDataFrameColumn(GetColumnName(columnNames, columnIndex));
             }
             else if (kind == typeof(sbyte))
             {
-                ret = CreatePrimitiveDataFrameColumn<sbyte>();
+                ret = new SByteDataFrameColumn(GetColumnName(columnNames, columnIndex));
             }
             else if (kind == typeof(short))
             {
-                ret = CreatePrimitiveDataFrameColumn<short>();
+                ret = new Int16DataFrameColumn(GetColumnName(columnNames, columnIndex));
             }
             else if (kind == typeof(uint))
             {
-                ret = CreatePrimitiveDataFrameColumn<uint>();
+                ret = new UInt32DataFrameColumn(GetColumnName(columnNames, columnIndex));
             }
             else if (kind == typeof(ulong))
             {
-                ret = CreatePrimitiveDataFrameColumn<ulong>();
+                ret = new UInt64DataFrameColumn(GetColumnName(columnNames, columnIndex));
             }
             else if (kind == typeof(ushort))
             {
-                ret = CreatePrimitiveDataFrameColumn<ushort>();
+                ret = new UInt16DataFrameColumn(GetColumnName(columnNames, columnIndex));
             }
             else
             {

@@ -50,6 +50,7 @@ namespace Microsoft.Data.Analysis.Tests
                 .Build();
 
             DataFrame df = DataFrame.FromArrowRecordBatch(originalBatch);
+            DataFrameTests.VerifyColumnTypes(df, testArrowStringColumn: true);
 
             IEnumerable<RecordBatch> recordBatches = df.ToArrowRecordBatches();
 
