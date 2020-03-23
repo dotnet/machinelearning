@@ -59,7 +59,9 @@ namespace Microsoft.ML.Benchmarks.Tests
             var types = GetBenchmarks();
             foreach (var type in types)
             {
-                var summary = BenchmarkRunner.Run(type, new TestConfig().With(new OutputLogger(output)));
+                var config = new TestConfig();
+                var c = config.With(new OutputLogger(output));
+                var summary = BenchmarkRunner.Run(type, c);
                 
 
                 VisualStudio.TestTools.UnitTesting.Assert.IsFalse(summary.HasCriticalValidationErrors, "The \"Summary\" should have NOT \"HasCriticalValidationErrors\"");
@@ -117,7 +119,7 @@ namespace Microsoft.ML.Benchmarks.Tests
         {
             _currentLine += text;
             base.Write(logKind, text);
-            base.Flush();
+            Flush();
         }
 
         public override void WriteLine()
@@ -125,7 +127,7 @@ namespace Microsoft.ML.Benchmarks.Tests
             _testOutputHelper.WriteLine(_currentLine);
             _currentLine = "";
             base.WriteLine();
-            base.Flush();
+            Flush();
         }
 
         public override void WriteLine(LogKind logKind, string text)
@@ -133,7 +135,7 @@ namespace Microsoft.ML.Benchmarks.Tests
             _testOutputHelper.WriteLine(_currentLine + text);
             _currentLine = "";
             base.WriteLine(logKind, text);
-            base.Flush();
+            Flush();
         }
     }
 }

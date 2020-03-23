@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
@@ -69,6 +70,6 @@ namespace Microsoft.ML.Benchmarks
         protected override Job GetJobDefinition()
             => Job.Dry // the "Dry" job runs the benchmark exactly once, without any warmup to mimic real-world scenario
                   .With(msbuildArguments)
-                  .WithLaunchCount(3); // BDN will run 3 dedicated processes, sequentially
+                  .WithLaunchCount(Environment.ProcessorCount); // BDN will run 3 dedicated processes, sequentially
     }
 }
