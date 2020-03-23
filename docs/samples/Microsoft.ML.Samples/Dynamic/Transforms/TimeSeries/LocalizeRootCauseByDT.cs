@@ -42,18 +42,15 @@ namespace Samples.Dynamic
 
             // Print the localization result.
             int count = 0;
-            foreach (RootCauseItem item in prediction.RootCause.Items) {
+            foreach (RootCauseItem item in prediction.RootCause.Items)
+            {
                 count++;
                 Console.WriteLine($"Root cause item #{count} ...");
-                foreach (KeyValuePair<string, string> pair in item.Dimension) {
-                    Console.WriteLine($"{pair.Key} = {pair.Value}");
-                }
+                Console.WriteLine($"Score: {item.Score}, Path: {item.Path}, Direction: {item.Direction}, Dimension:{String.Join(" ", item.Dimension)}");
             }
 
             //Item #1 ...
-            //Country = UK
-            //DeviceType = ##SUM##
-            //DataCenter = DC1
+            //Score: 1, Path: DataCenter, Direction: Up, Dimension:[Country, UK] [DeviceType, ##SUM##] [DataCenter, DC1]
         }
 
         private static List<Point> GetPoints() {
