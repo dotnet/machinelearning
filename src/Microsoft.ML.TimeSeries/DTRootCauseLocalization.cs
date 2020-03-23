@@ -236,20 +236,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             private void LocalizeRootCauses(RootCauseLocalizationInput src, ref RootCause dst)
             {
-                dst = new RootCause();
-                dst.Items = new List<RootCauseItem> { };
-
-                DimensionInfo dimensionInfo = DTRootCauseAnalyzer.SeperateDimension(src.AnomalyDimensions, src.AggSymbol);
-                if (dimensionInfo.AggDim.Count == 0)
-                {
-                    return;
-                }
-                Dictionary<string, string> subDim = DTRootCauseAnalyzer.GetSubDim(src.AnomalyDimensions, dimensionInfo.DetailDim);
-                List<Point> totalPoints = DTRootCauseAnalyzer.GetTotalPointsForAnomalyTimestamp(src, subDim);
-
-                DTRootCauseAnalyzer.GetRootCauseList(src, ref dst, dimensionInfo, totalPoints, subDim);
-                DTRootCauseAnalyzer.UpdateRootCauseDirection(totalPoints,ref dst);
-                DTRootCauseAnalyzer.GetRootCauseScore(totalPoints, src.AnomalyDimensions, ref dst, _parent._beta);
+                DTRootCauseAnalyzer analyzer = new DTRootCauseAnalyzer(src, _parent._beta) ;
+                dst = analyzer.Analyze();
             }
         }
     }

@@ -53,11 +53,12 @@ namespace Samples.Dynamic
             //Score: 1, Path: DataCenter, Direction: Up, Dimension:[Country, UK] [DeviceType, ##SUM##] [DataCenter, DC1]
         }
 
-        private static List<Point> GetPoints() {
+        private static List<Point> GetPoints()
+        {
             List<Point> points = new List<Point>();
 
             Dictionary<string, string> dic1 = new Dictionary<string, string>();
-            dic1.Add("Country","UK");
+            dic1.Add("Country", "UK");
             dic1.Add("DeviceType", "Laptop");
             dic1.Add("DataCenter", "DC1");
             points.Add(new Point(200, 100, true, dic1));
@@ -113,7 +114,8 @@ namespace Samples.Dynamic
             return points;
         }
 
-        private static Dictionary<string, string> GetAnomalyDimension() {
+        private static Dictionary<string, string> GetAnomalyDimension()
+        {
             Dictionary<string, string> dim = new Dictionary<string, string>();
             dim.Add("Country", "UK");
             dim.Add("DeviceType", AGG_SYMBOL);
@@ -124,7 +126,7 @@ namespace Samples.Dynamic
 
         private static DateTime GetTimestamp()
         {
-            return new DateTime();
+            return new DateTime(2020, 3, 23, 0, 0, 0);
         }
 
         private class RootCauseLocalizationData
