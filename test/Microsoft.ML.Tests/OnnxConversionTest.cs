@@ -144,7 +144,7 @@ namespace Microsoft.ML.Tests
             public float[] Features;
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline. Tracked by https://github.com/dotnet/machinelearning/issues/2087")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline. Tracked by https://github.com/dotnet/machinelearning/issues/2087")]
         public void KmeansOnnxConversionTest()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 

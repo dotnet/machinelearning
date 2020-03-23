@@ -3,7 +3,7 @@
     "Configuration": {
       "description": "Sets the optimization level for the Build Configuration you want to build.",
       "valueType": "property",
-      "values": [ "Debug", "Release", "Debug-netcoreapp3_0", "Release-netcoreapp3_0", "Debug-netfx", "Release-netfx" ],
+      "values": [ "Debug", "Release", "Debug-netcoreapp3_1", "Release-netcoreapp3_1", "Debug-netfx", "Release-netfx" ],
       "defaultValue": "Debug"
     },
     "TargetArchitecture": {
@@ -124,16 +124,16 @@
             "Configuration": "Release"
           }
         },
-        "debug-netcoreapp3_0": {
-          "description": "Sets optimization level to debug for managed build configuration and builds against netcoreapp3.0. (/p:Configuration=Debug-netcoreapp3_0)",
+        "debug-netcoreapp3_1": {
+          "description": "Sets optimization level to debug for managed build configuration and builds against netcoreapp3.1. (/p:Configuration=Debug-netcoreapp3_1)",
           "settings": {
-            "Configuration": "Debug-netcoreapp3_0"
+            "Configuration": "Debug-netcoreapp3_1"
           }
         },
-        "release-netcoreapp3_0": {
-          "description": "Sets optimization level to release for managed build configuration and builds against netcoreapp3.0. (/p:Configuration=Release-netcoreapp3_0)",
+        "release-netcoreapp3_1": {
+          "description": "Sets optimization level to release for managed build configuration and builds against netcoreapp3.1. (/p:Configuration=Release-netcoreapp3_1)",
           "settings": {
-            "Configuration": "Release-netcoreapp3_0"
+            "Configuration": "Release-netcoreapp3_1"
           }
         },
         "debug-netfx": {

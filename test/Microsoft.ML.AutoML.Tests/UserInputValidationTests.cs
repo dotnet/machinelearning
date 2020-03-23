@@ -175,7 +175,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         public void ValidateInferColsPath()
         {
-            UserInputValidationUtil.ValidateInferColumnsArgs(DatasetUtil.DownloadUciAdultDataset());
+            UserInputValidationUtil.ValidateInferColumnsArgs(DatasetUtil.GetUciAdultDataset());
         }
 
         [Fact]

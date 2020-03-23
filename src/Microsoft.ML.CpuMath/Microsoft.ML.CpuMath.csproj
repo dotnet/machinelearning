@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netcoreapp3.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netcoreapp3.1</TargetFrameworks>
     <IncludeInPackage>Microsoft.ML.CpuMath</IncludeInPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);CPUMATH_INFRASTRUCTURE</DefineConstants>
@@ -16,7 +16,7 @@
     <None Include="**/*.cs" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
     <Compile Remove="CpuMathUtils.netstandard.cs" />
     <Compile Remove="FactorizationMachine/FactorizationMachineInterface.netstandard.cs" />
   </ItemGroup>

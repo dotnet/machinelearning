@@ -55,8 +55,8 @@ namespace Microsoft.ML.Benchmarks
 
         private static string GetBuildConfigurationName()
         {
-#if NETCOREAPP3_0
-            return "Release-netcoreapp3_0";
+#if NETCOREAPP3_1
+            return "Release-netcoreapp3_1";
 #elif NET461
             return "Release-netfx";
 #else
@@ -70,6 +70,6 @@ namespace Microsoft.ML.Benchmarks
         protected override Job GetJobDefinition()
             => Job.Dry // the "Dry" job runs the benchmark exactly once, without any warmup to mimic real-world scenario
                   .With(msbuildArguments)
-                  .WithLaunchCount(Environment.ProcessorCount+1); // BDN will run 3 dedicated processes, sequentially
+                  .WithLaunchCount(Environment.ProcessorCount); // BDN will run 3 dedicated processes, sequentially
     }
 }

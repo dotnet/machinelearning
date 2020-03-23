@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <GenerateProgramFile>false</GenerateProgramFile>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <!--
     work around https://github.com/dotnet/sdk/issues/3044
     The netfx configuration will set the RuntimeIdentifier, but this causes restore issues on 3.0.
