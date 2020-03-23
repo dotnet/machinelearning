@@ -28,175 +28,28 @@ using Microsoft.ML.Transforms.TimeSeries;
 
 namespace Microsoft.ML.Transforms.TimeSeries
 {
-    public sealed class RootCauseLocalizationInputTypeAttribute : DataViewTypeAttribute
-    {
-        /// <summary>
-        /// Create a root cause localizagin input type.
-        /// </summary>
-        public RootCauseLocalizationInputTypeAttribute()
-        {
-        }
-
-        /// <summary>
-        /// Equal function.
-        /// </summary>
-        public override bool Equals(DataViewTypeAttribute other)
-        {
-            if (!(other is RootCauseLocalizationInputTypeAttribute otherAttribute))
-                return false;
-            return true;
-        }
-
-        /// <summary>
-        /// Produce the same hash code for all RootCauseLocalizationInputTypeAttribute.
-        /// </summary>
-        public override int GetHashCode()
-        {
-            return 0;
-        }
-
-        public override void Register()
-        {
-            DataViewTypeManager.Register(new RootCauseLocalizationInputDataViewType(), typeof(RootCauseLocalizationInput), this);
-        }
-    }
-
-    public sealed class RootCauseTypeAttribute : DataViewTypeAttribute
-    {
-        /// <summary>
-        /// Create an root cause type.
-        /// </summary>
-        public RootCauseTypeAttribute()
-        {
-        }
-
-        /// <summary>
-        /// RootCauseTypeAttribute with the same type should equal.
-        /// </summary>
-        public override bool Equals(DataViewTypeAttribute other)
-        {
-            if (other is RootCauseTypeAttribute otherAttribute)
-                return true;
-            return false;
-        }
-
-        /// <summary>
-        /// Produce the same hash code for all RootCauseTypeAttribute.
-        /// </summary>
-        public override int GetHashCode()
-        {
-            return 0;
-        }
-
-        public override void Register()
-        {
-            DataViewTypeManager.Register(new RootCauseDataViewType(), typeof(RootCause), this);
-        }
-    }
-
-    public sealed class RootCause
-    {
-        public List<RootCauseItem> Items { get; set; }
-    }
-
-    public sealed class RootCauseLocalizationInput
-    {
-        public DateTime AnomalyTimestamp { get; set; }
-
-        public Dictionary<string, string> AnomalyDimensions { get; set; }
-
-        public List<MetricSlice> Slices { get; set; }
-
-        public AggregateType AggType { get; set; }
-
-        public string AggSymbol { get; set; }
-
-        public RootCauseLocalizationInput(DateTime anomalyTimestamp, Dictionary<string, string> anomalyDimensions, List<MetricSlice> slices, AggregateType aggregateType, string aggregateSymbol)
-        {
-            AnomalyTimestamp = anomalyTimestamp;
-            AnomalyDimensions = anomalyDimensions;
-            Slices = slices;
-            AggType = aggregateType;
-            AggSymbol = aggregateSymbol;
-        }
-        public void Dispose()
-        {
-            AnomalyDimensions = null;
-            Slices = null;
-        }
-    }
-
-    public sealed class MetricSlice
-    {
-        public DateTime TimeStamp { get; set; }
-        public List<Point> Points { get; set; }
-
-        public MetricSlice(DateTime timeStamp, List<Point> points)
-        {
-            TimeStamp = timeStamp;
-            Points = points;
-        }
-    }
-
-    public sealed class RootCauseDataViewType : StructuredDataViewType
-    {
-        public RootCauseDataViewType()
-           : base(typeof(RootCause))
-        {
-        }
-
-        public override bool Equals(DataViewType other)
-        {
-            if (other == this)
-                return true;
-            if (!(other is RootCauseDataViewType tmp))
-                return false;
-            return true;
-        }
-
-        public override int GetHashCode()
-        {
-            return 0;
-        }
-
-        public override string ToString()
-        {
-            return typeof(RootCauseDataViewType).Name;
-        }
-    }
-
-    public sealed class RootCauseLocalizationInputDataViewType : StructuredDataViewType
-    {
-        public RootCauseLocalizationInputDataViewType()
-           : base(typeof(RootCauseLocalizationInput))
-        {
-        }
-
-        public override bool Equals(DataViewType other)
-        {
-            if (!(other is RootCauseLocalizationInputDataViewType tmp))
-                return false;
-            return true;
-        }
-
-        public override int GetHashCode()
-        {
-            return 0;
-        }
-
-        public override string ToString()
-        {
-            return typeof(RootCauseLocalizationInputDataViewType).Name;
-        }
-    }
-
-    // REVIEW: Rewrite as LambdaTransform to simplify.
-    // REVIEW: Should it be separate transform or part of ImageResizerTransform?
     /// <summary>
     /// <see cref="ITransformer"/> resulting from fitting an <see cref="DTRootCauseLocalizationTransformer"/>.
     /// </summary>
     public sealed class DTRootCauseLocalizationTransformer : OneToOneTransformerBase
     {
+        internal const string Summary = "Localize root cause for anomaly.";
+        internal const string UserName = "DT Root Cause Localization Transform";
+        internal const string LoaderSignature = "DTRootCauseLTransform";
+
+        private static VersionInfo GetVersionInfo()
+        {
+            return new VersionInfo(
+                modelSignature: "DTRCL",
+                verWrittenCur: 0x00010001, // Initial
+                verReadableCur: 0x00010001,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(DTRootCauseLocalizationTransformer).Assembly.FullName);
+        }
+
+        private const string RegistrationName = "RootCauseLocalization";
+
         internal sealed class Column : OneToOneColumn
         {
             internal static Column Parse(string str)
@@ -223,24 +76,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
             public double Beta = DTRootCauseLocalizationEstimator.Defaults.Beta;
 
         }
-
-        internal const string Summary = "Localize root cause for anomaly.";
-
-        internal const string UserName = "DT Root Cause Localization Transform";
-        internal const string LoaderSignature = "DTRootCauseLTransform";
-
-        private static VersionInfo GetVersionInfo()
-        {
-            return new VersionInfo(
-                modelSignature: "DTRCL",
-                verWrittenCur: 0x00010001, // Initial
-                verReadableCur: 0x00010001,
-                verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(DTRootCauseLocalizationTransformer).Assembly.FullName);
-        }
-
-        private const string RegistrationName = "RootCauseLocalization";
 
         /// <summary>
         /// The input and output column pairs passed to this <see cref="ITransformer"/>.
@@ -409,193 +244,12 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 {
                     return;
                 }
-                Dictionary<string, string> subDim = DTRootCauseAnalyzer.GetsubDim(src.AnomalyDimensions, dimensionInfo.DetailDim);
+                Dictionary<string, string> subDim = DTRootCauseAnalyzer.GetSubDim(src.AnomalyDimensions, dimensionInfo.DetailDim);
+                List<Point> totalPoints = DTRootCauseAnalyzer.GetTotalPointsForAnomalyTimestamp(src, subDim);
 
-                List<Point> totalPoints = GetTotalPointsForAnomalyTimestamp(src, subDim);
-
-                GetRootCauseList(src, ref dst, dimensionInfo, totalPoints, subDim);
-
-                GetRootCauseScore(totalPoints, src.AnomalyDimensions, ref dst);
-            }
-
-            private List<Point> GetTotalPointsForAnomalyTimestamp(RootCauseLocalizationInput src, Dictionary<string, string> subDim)
-            {
-                List<Point> points = new List<Point>();
-                foreach (MetricSlice slice in src.Slices)
-                {
-                    if (slice.TimeStamp.Equals(src.AnomalyTimestamp))
-                    {
-                        points = slice.Points;
-                    }
-                }
-
-                List<Point> totalPoints = DTRootCauseAnalyzer.SelectPoints(points, subDim);
-
-                return totalPoints;
-            }
-
-            private void GetRootCauseList(RootCauseLocalizationInput src, ref RootCause dst, DimensionInfo dimensionInfo, List<Point> totalPoints, Dictionary<string, string> subDim)
-            {
-                PointTree pointTree = DTRootCauseAnalyzer.BuildPointTree(totalPoints, dimensionInfo.AggDim, subDim, src.AggSymbol, src.AggType);
-                PointTree anomalyTree = DTRootCauseAnalyzer.BuildPointTree(totalPoints, dimensionInfo.AggDim, subDim, src.AggSymbol, src.AggType, true);
-
-                // which means there is no all up here, we would return empty list; in ML.net , should we do the same thing？ todo
-                if (anomalyTree.ParentNode == null)
-                {
-                    return;
-                }
-                List<RootCauseItem> rootCauses = new List<RootCauseItem>();
-                // no point under anomaly dimension
-                if (totalPoints.Count == 0)
-                {
-                    if (anomalyTree.Leaves.Count != 0)
-                    {
-                        throw new Exception("point leaves not match with anomaly leaves");
-                    }
-
-                    rootCauses.AddRange(DTRootCauseAnalyzer.LocalizeRootCauseByAnomaly(totalPoints, anomalyTree, src.AnomalyDimensions));
-                }
-                else
-                {
-                    double totalEntropy = 1;
-                    if (anomalyTree.Leaves.Count > 0)
-                    {
-                        // update from total points to pointTree.Leaves.Count
-                        totalEntropy = DTRootCauseAnalyzer.GetEntropy(pointTree.Leaves.Count, anomalyTree.Leaves.Count);
-                    }
-
-                    if (totalEntropy > 0.9)
-                    {
-                        if (dimensionInfo.AggDim.Count == 1)
-                        {
-                            //root cause is itself;
-                            rootCauses.Add(new RootCauseItem(src.AnomalyDimensions));
-                        }
-                        else
-                        {
-                            // update from total points to pointTree.Leaves
-                            rootCauses.AddRange(DTRootCauseAnalyzer.LocalizeRootCauseByDimension(pointTree.Leaves, anomalyTree, pointTree, totalEntropy, src.AnomalyDimensions));
-                        }
-                    }
-                    //comment here, as LocalizeRootCauseByAnomaly is not right, for example, data 2019-08-08T19:30:00Z seconds - 1566383400
-                    //else if (totalEntropy < 0.5)
-                    //{
-                    //    // todo- need improve, if anomalytree.leave.count == 0, need to filter by all up level
-                    //    //if (DTRootCauseLocalizationUtils.IsAnomalous(pointTree.Leaves.Count, anomalyTree.Leaves.Count))
-                    //    //{
-                    //    //    //root cause is itself;
-                    //    //    dst.Items.Add(new RootCauseItem(src.AnomalyDimensions));
-                    //    //}
-                    //    //else
-                    //    //{
-                    //        rootCauses.AddRange(DTRootCauseLocalizationUtils.LocalizeRootCauseByAnomaly(totalPoints, anomalyTree, src.AnomalyDimensions));
-                    //    //}
-                    //}
-                    else
-                    {
-                        // remove this part, has no different to the result
-                        //if (dimensionInfo.AggDim.Count == 1)
-                        //{
-                        //    //update totalPoints to .leaves
-                        //    //because we have known the dimension, so by anomaly
-                        //    //rootCauses.AddRange(DTRootCauseLocalizationUtils.LocalizeRootCauseByAnomaly(totalPoints, anomalyTree, src.AnomalyDimensions));
-                        //    rootCauses.AddRange(DTRootCauseLocalizationUtils.LocalizeRootCauseByAnomaly(pointTree.Leaves, anomalyTree, src.AnomalyDimensions));
-                        //}
-                        //else
-                        {
-                            //update totalPoints to .leaves
-                            rootCauses.AddRange(DTRootCauseAnalyzer.LocalizeRootCauseByDimension(pointTree.Leaves, anomalyTree, pointTree, totalEntropy, src.AnomalyDimensions));
-                        }
-                    }
-
-                    dst.Items = rootCauses;
-                }
-            }
-
-            private void GetRootCauseScore(List<Point> points, Dictionary<string, string> anomalyRoot, ref RootCause dst)
-            {
-
-                if (dst.Items.Count > 1)
-                {
-                    //get surprise value and explanary power value
-                    Point anomalyPoint = DTRootCauseAnalyzer.FindPointByDimension(anomalyRoot, points);
-
-                    double sumSurprise = 0;
-                    double sumEp = 0;
-                    List<RootCauseScore> scoreList = new List<RootCauseScore>();
-
-                    foreach (RootCauseItem item in dst.Items)
-                    {
-                        Point rootCausePoint = DTRootCauseAnalyzer.FindPointByDimension(item.RootCause, points);
-                        if (rootCausePoint != null)
-                        {
-                            if (rootCausePoint.ExpectedValue < rootCausePoint.Value)
-                            {
-                                item.Direction = AnomalyDirection.Up;
-                            }
-                            else
-                            {
-                                item.Direction = AnomalyDirection.Down;
-                            }
-                        }
-
-                        if (anomalyPoint != null && rootCausePoint != null)
-                        {
-                            double surprise = GetSurpriseScore(rootCausePoint, anomalyPoint);
-
-                            double ep = (rootCausePoint.Value - rootCausePoint.ExpectedValue) / (anomalyPoint.Value - anomalyPoint.ExpectedValue);
-
-                            scoreList.Add(new RootCauseScore(surprise, ep));
-                            sumSurprise += surprise;
-                            sumEp += Math.Abs(ep);
-                        }
-                    }
-
-                    //normalize and get final score
-                    for (int i = 0; i < scoreList.Count; i++)
-                    {
-                        dst.Items[i].Score = GetFinalScore(scoreList[i].Surprise / sumSurprise, Math.Abs(scoreList[i].ExplainaryScore) / sumEp);
-
-                    }
-                }
-                else if (dst.Items.Count == 1)
-                {
-                    //surprise and expananory , max is 1
-                    Point rootCausePoint = DTRootCauseAnalyzer.FindPointByDimension(dst.Items[0].RootCause, points);
-                    if (rootCausePoint != null)
-                    {
-                        if (rootCausePoint.ExpectedValue < rootCausePoint.Value)
-                        {
-                            dst.Items[0].Direction = AnomalyDirection.Up;
-                        }
-                        else
-                        {
-                            dst.Items[0].Direction = AnomalyDirection.Down;
-                        }
-                    }
-
-                    Point anomalyPoint = DTRootCauseAnalyzer.FindPointByDimension(anomalyRoot, points);
-                    if (anomalyPoint != null && rootCausePoint != null)
-                    {
-                        double surprise = GetSurpriseScore(rootCausePoint, anomalyPoint);
-                        double ep = (rootCausePoint.Value - rootCausePoint.ExpectedValue) / (anomalyPoint.Value - anomalyPoint.ExpectedValue);
-                        dst.Items[0].Score = GetFinalScore(surprise, ep);
-                    }
-                }
-            }
-
-            private double GetSurpriseScore(Point rootCausePoint, Point anomalyPoint)
-            {
-                double p = rootCausePoint.ExpectedValue / anomalyPoint.ExpectedValue;
-                double q = rootCausePoint.Value / anomalyPoint.Value;
-                double surprise = 0.5 * (p * DTRootCauseAnalyzer.Log2(2 * p / (p + q)) + q * DTRootCauseAnalyzer.Log2(2 * q / (p + q)));
-
-                return surprise;
-            }
-
-            private double GetFinalScore(double surprise, double ep)
-            {
-                return Math.Max(1, _parent._beta * surprise + (1 - _parent._beta) * ep);
+                DTRootCauseAnalyzer.GetRootCauseList(src, ref dst, dimensionInfo, totalPoints, subDim);
+                DTRootCauseAnalyzer.UpdateRootCauseDirection(totalPoints,ref dst);
+                DTRootCauseAnalyzer.GetRootCauseScore(totalPoints, src.AnomalyDimensions, ref dst, _parent._beta);
             }
         }
     }

@@ -23,7 +23,9 @@ namespace Samples.Dynamic.Transforms.TimeSeries
             int totalFn = 0;
             int totalCount = 0;
 
-            bool exactly = true;
+            bool exactly = false;
+
+            int totalRunTime = 0;
 
             foreach (KeyValuePair<DateTime, Dictionary<string, string>> item in rootNodeMap)
             {
@@ -31,6 +33,7 @@ namespace Samples.Dynamic.Transforms.TimeSeries
 
                 DateTime filterTime = DateTime.ParseExact("2019-11-13 13:00:00,000", "yyyy-MM-dd HH:mm:ss,fff",
                                        System.Globalization.CultureInfo.InvariantCulture);
+
                 //if (timeStamp.CompareTo(filterTime).Equals(0))
                 {
                     int seconds = Convert.ToInt32(timeStamp.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds);
@@ -44,13 +47,17 @@ namespace Samples.Dynamic.Transforms.TimeSeries
                     var newRootCauseInput = new RootCauseLocalizationData(timeStamp, rootNodeMap[timeStamp], new List<MetricSlice>() { new MetricSlice(timeStamp, points) }, AggregateType.Sum, aggSymbol);
 
                     List<RootCauseItem> list = new List<RootCauseItem>();
+                    int startTime = System.Environment.TickCount;
                     GetRootCause(list, newRootCauseInput, engine);
+                    int endTime = System.Environment.TickCount;
+                    int runTime = endTime - startTime;
+                    totalRunTime += runTime;
 
                     List<Dictionary<string, string>> labeledRootCause = labeledRootCauseMap[timeStamp];
                     List<Dictionary<string, string>> detectedRootCause = ConvertRootCauseItemToDic(list);
                     RemoveAggSymbol(detectedRootCause, aggSymbol);
 
-                    Tuple<int, int, int> evaluation = ScoreRootCause(detectedRootCause, labeledRootCause, exactly, timeStamp);
+                    Tuple<int, int, int> evaluation = EvaluateRootCauseResult(detectedRootCause, labeledRootCause, exactly, timeStamp);
                     totalTp += evaluation.Item1;
                     totalFp += evaluation.Item2;
                     totalFn += evaluation.Item3;
@@ -63,13 +70,14 @@ namespace Samples.Dynamic.Transforms.TimeSeries
             double f1 = 2 * precision * recall / (precision + recall);
             Console.WriteLine(String.Format("Total Count : {0}, TP: {1}, FP: {2}, FN: {3}", totalCount, totalTp, totalFp, totalFn));
             Console.WriteLine(String.Format("Precision : {0}, Recall: {1}, F1: {2}", precision, recall, f1));
+            Console.WriteLine(String.Format("Mean calculation time is  : {0} ms", (double)totalRunTime / totalCount));
         }
 
-        private static Tuple<int, int, int> ScoreRootCause(List<Dictionary<string, string>> detectedRootCause, List<Dictionary<string, string>> labeledRootCause, bool exactly, DateTime timeStamp)
+        private static Tuple<int, int, int> EvaluateRootCauseResult(List<Dictionary<string, string>> detectedRootCause, List<Dictionary<string, string>> labeledRootCause, bool exactly, DateTime timeStamp)
         {
             int tp = 0;
             int fp = 0;
-            int fn; 
+            int fn;
             List<string> labelSet = new List<string>();
             foreach (Dictionary<string, string> cause in detectedRootCause)
             {
@@ -165,7 +173,7 @@ namespace Samples.Dynamic.Transforms.TimeSeries
             List<Dictionary<string, string>> list = new List<Dictionary<string, string>>();
             foreach (RootCauseItem item in items)
             {
-                list.Add(item.RootCause);
+                list.Add(item.Dimension);
             }
             return list;
         }
@@ -278,8 +286,6 @@ namespace Samples.Dynamic.Transforms.TimeSeries
 
         private static List<Point> GetPoints(string path)
         {
-
-
             var inputData = GetDataTabletFromCSVFile(path);
 
             DateTime timeStamp = new DateTime();
@@ -314,11 +320,10 @@ namespace Samples.Dynamic.Transforms.TimeSeries
 
         private static void GetRootCause(List<RootCauseItem> rootCauseList, RootCauseLocalizationData inputData, PredictionEngine<RootCauseLocalizationData, RootCauseLocalizationTransformedData> engine)
         {
-
             RootCauseLocalizationTransformedData incrementalResult = engine.Predict(inputData);
 
             if (incrementalResult.RootCause.Items.Count == 0 || (
-                incrementalResult.RootCause.Items.Count == 1 && incrementalResult.RootCause.Items[0].RootCause.Equals(inputData.Input.AnomalyDimensions)
+                incrementalResult.RootCause.Items.Count == 1 && incrementalResult.RootCause.Items[0].Dimension.Equals(inputData.Input.AnomalyDimensions)
                 ))
             {
                 if (!rootCauseList.Contains(new RootCauseItem(inputData.Input.AnomalyDimensions)))
@@ -333,7 +338,7 @@ namespace Samples.Dynamic.Transforms.TimeSeries
                 foreach (RootCauseItem item in incrementalResult.RootCause.Items)
                 {
                     RootCauseLocalizationData newData = new RootCauseLocalizationData(inputData.Input.AnomalyTimestamp,
-                       item.RootCause, inputData.Input.Slices, inputData.Input.AggType, inputData.Input.AggSymbol);
+                       item.Dimension, inputData.Input.Slices, inputData.Input.AggType, inputData.Input.AggSymbol);
                     GetRootCause(rootCauseList, newData, engine);
                 }
             }

@@ -1,21 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.ComTypes;
 using Microsoft.ML;
-using Microsoft.ML.Transforms.TimeSeries;
+using Microsoft.ML.TimeSeries;
 
 namespace Samples.Dynamic
 {
-    public static class LocalizeRootCause
+    public static class LocalizeRootCauseByDT
     {
+        private static string AGG_SYMBOL = "##SUM##";
         public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for
             // exception tracking and logging, as well as the source of randomness.
             var mlContext = new MLContext();
 
-            // Create an empty list as the dataset. The 'NormalizeText' API does not
-            // require training data as the estimator ('TextNormalizingEstimator')
-            // created by 'NormalizeText' API is not a trainable estimator. The
+            // Create an empty list as the dataset. The 'DTRootCauseLocalization' API does not
+            // require training data as the estimator ('DTRootCauseLocalizationEstimator')
+            // created by 'DTRootCauseLocalization' API is not a trainable estimator. The
             // empty list is only needed to pass input schema to the pipeline.
             var emptySamples = new List<RootCauseLocalizationData>();
 
@@ -28,21 +30,106 @@ namespace Samples.Dynamic
             // Fit to data.
             var localizeTransformer = localizePipeline.Fit(emptyDataView);
 
-            // Create the prediction engine to get the root cause result from the
-            // input data.
+            // Create the prediction engine to get the root cause result from the input data.
             var predictionEngine = mlContext.Model.CreatePredictionEngine<RootCauseLocalizationData,
                 RootCauseLocalizationTransformedData>(localizeTransformer);
 
             // Call the prediction API.
-            var data = new RootCauseLocalizationData(new DateTime(), new Dictionary<String, String>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Microsoft.ML.TimeSeries.Point>()) }, "SUM", "SUM");
+            DateTime timestamp = GetTimestamp();
+            var data = new RootCauseLocalizationData(timestamp, GetAnomalyDimension(), new List<MetricSlice>() { new MetricSlice(timestamp, GetPoints()) }, AggregateType.Sum, AGG_SYMBOL);
 
             var prediction = predictionEngine.Predict(data);
 
             // Print the localization result.
-            Console.WriteLine($"Localized result: {prediction.RootCause}");
+            int count = 0;
+            foreach (RootCauseItem item in prediction.RootCause.Items) {
+                count++;
+                Console.WriteLine($"Root cause item #{count} ...");
+                foreach (KeyValuePair<string, string> pair in item.Dimension) {
+                    Console.WriteLine($"{pair.Key} = {pair.Value}");
+                }
+            }
+
+            //Item #1 ...
+            //Country = UK
+            //DeviceType = ##SUM##
+            //DataCenter = DC1
         }
 
-      
+        private static List<Point> GetPoints() {
+            List<Point> points = new List<Point>();
+
+            Dictionary<string, string> dic1 = new Dictionary<string, string>();
+            dic1.Add("Country","UK");
+            dic1.Add("DeviceType", "Laptop");
+            dic1.Add("DataCenter", "DC1");
+            points.Add(new Point(200, 100, true, dic1));
+
+            Dictionary<string, string> dic2 = new Dictionary<string, string>();
+            dic2.Add("Country", "UK");
+            dic2.Add("DeviceType", "Mobile");
+            dic2.Add("DataCenter", "DC1");
+            points.Add(new Point(1000, 100, true, dic2));
+
+            Dictionary<string, string> dic3 = new Dictionary<string, string>();
+            dic3.Add("Country", "UK");
+            dic3.Add("DeviceType", AGG_SYMBOL);
+            dic3.Add("DataCenter", "DC1");
+            points.Add(new Point(1200, 200, true, dic3));
+
+            Dictionary<string, string> dic4 = new Dictionary<string, string>();
+            dic4.Add("Country", "UK");
+            dic4.Add("DeviceType", "Laptop");
+            dic4.Add("DataCenter", "DC2");
+            points.Add(new Point(100, 100, false, dic4));
+
+            Dictionary<string, string> dic5 = new Dictionary<string, string>();
+            dic5.Add("Country", "UK");
+            dic5.Add("DeviceType", "Mobile");
+            dic5.Add("DataCenter", "DC2");
+            points.Add(new Point(200, 200, false, dic5));
+
+            Dictionary<string, string> dic6 = new Dictionary<string, string>();
+            dic6.Add("Country", "UK");
+            dic6.Add("DeviceType", AGG_SYMBOL);
+            dic6.Add("DataCenter", "DC2");
+            points.Add(new Point(300, 300, false, dic6));
+
+            Dictionary<string, string> dic7 = new Dictionary<string, string>();
+            dic7.Add("Country", "UK");
+            dic7.Add("DeviceType", AGG_SYMBOL);
+            dic7.Add("DataCenter", AGG_SYMBOL);
+            points.Add(new Point(1500, 500, true, dic7));
+
+            Dictionary<string, string> dic8 = new Dictionary<string, string>();
+            dic8.Add("Country", "UK");
+            dic8.Add("DeviceType", "Laptop");
+            dic8.Add("DataCenter", AGG_SYMBOL);
+            points.Add(new Point(300, 200, true, dic8));
+
+            Dictionary<string, string> dic9 = new Dictionary<string, string>();
+            dic9.Add("Country", "UK");
+            dic9.Add("DeviceType", "Mobile");
+            dic9.Add("DataCenter", AGG_SYMBOL);
+            points.Add(new Point(1200, 300, true, dic9));
+
+            return points;
+        }
+
+        private static Dictionary<string, string> GetAnomalyDimension() {
+            Dictionary<string, string> dim = new Dictionary<string, string>();
+            dim.Add("Country", "UK");
+            dim.Add("DeviceType", AGG_SYMBOL);
+            dim.Add("DataCenter", AGG_SYMBOL);
+
+            return dim;
+        }
+
+        private static DateTime GetTimestamp()
+        {
+            return new DateTime();
+        }
+
         private class RootCauseLocalizationData
         {
             [RootCauseLocalizationInputType]
@@ -53,9 +140,10 @@ namespace Samples.Dynamic
                 Input = null;
             }
 
-            public RootCauseLocalizationData(DateTime anomalyTimestamp, Dictionary<string, string> anomalyDimensions, List<MetricSlice> slices,String aggregateType, string aggregateSymbol)
+            public RootCauseLocalizationData(DateTime anomalyTimestamp, Dictionary<string, string> anomalyDimensions, List<MetricSlice> slices, AggregateType aggregateType, string aggregateSymbol)
             {
-                Input = new RootCauseLocalizationInput(anomalyTimestamp, anomalyDimensions, slices, Microsoft.ML.TimeSeries.AggregateType.Sum, aggregateSymbol);
+                Input = new RootCauseLocalizationInput(anomalyTimestamp, anomalyDimensions, slices, aggregateType,
+                     aggregateSymbol);
             }
         }
 
