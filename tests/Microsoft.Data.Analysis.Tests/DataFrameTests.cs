@@ -29,7 +29,7 @@ namespace Microsoft.Data.Analysis.Tests
             return dataFrame;
         }
 
-        public static DataFrameColumn CreateArrowStringColumn(int length, bool withNulls = true)
+        public static ArrowStringDataFrameColumn CreateArrowStringColumn(int length, bool withNulls = true)
         {
             byte[] dataMemory = new byte[length * 3];
             byte[] nullMemory = new byte[BitUtility.ByteCount(length)];
@@ -2178,6 +2178,39 @@ namespace Microsoft.Data.Analysis.Tests
             Int32DataFrameColumn reverseInPlace = ints.ReverseAdd(1, inPlace: true).ReverseSubtract(1, inPlace: true).ReverseMultiply(-1, inPlace: true).ReverseDivide(100, inPlace: true);
             Assert.True(reverseInPlace.ElementwiseEquals(ints).All());
             Assert.False(reverseInPlace.ElementwiseEquals(reverse).All());
+        }
+
+        [Fact]
+        public void TestArrowStringApply()
+        {
+            ArrowStringDataFrameColumn column = CreateArrowStringColumn(10);
+            ArrowStringDataFrameColumn ret = column.Apply((string cur) =>
+            {
+                if (cur != null)
+                {
+                    return cur + "123";
+                }
+                return null;
+            });
+            for (long i = 0; i < column.Length; i++)
+            {
+                if (column[i] != null)
+                {
+                    Assert.Equal(column[i] + "123", ret[i]);
+                }
+                else
+                {
+                    Assert.Null(ret[i]);
+                }
+            }
+            Assert.Equal(1, ret.NullCount);
+
+            // Test null counts
+            ret = column.Apply((string cur) =>
+            {
+                return null;
+            });
+            Assert.Equal(column.Length, ret.NullCount);
         }
 
         [Fact]

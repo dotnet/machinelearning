@@ -601,5 +601,24 @@ namespace Microsoft.Data.Analysis
         {
             return StringDataFrameColumn.ElementwiseNotEqualsImplementation(this, column);
         }
+
+        /// <summary>
+        /// Applies a function to all the values
+        /// </summary>
+        /// <param name="func">The function to apply</param>
+        /// <returns>A <see cref="ArrowStringDataFrameColumn"/> containing the new string values</returns>
+        /// <remarks>This function converts from UTF-8 to UTF-16 strings</remarks>
+        public ArrowStringDataFrameColumn Apply(Func<string, string> func)
+        {
+            ArrowStringDataFrameColumn ret = new ArrowStringDataFrameColumn(Name);
+            Encoding encoding = Encoding.UTF8;
+            for (long i = 0; i < Length; i++)
+            {
+                string cur = this[i];
+                string funcResult = func(cur);
+                ret.Append(funcResult != null ? encoding.GetBytes(funcResult) : default(ReadOnlySpan<byte>));
+            }
+            return ret;
+        }
     }
 }
