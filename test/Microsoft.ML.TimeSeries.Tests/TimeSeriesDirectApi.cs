@@ -1,14 +1,14 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TimeSeries;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
 using Xunit.Abstractions;
@@ -91,6 +91,8 @@ namespace Microsoft.ML.Tests
             [VectorType(3)]
             public double[] Prediction { get; set; }
         }
+
+        private static string _aggSymbol = "##SUM##";
 
         [Fact]
         public void ChangeDetection()
@@ -474,7 +476,7 @@ namespace Microsoft.ML.Tests
             // The forecasted results should be the same because the state of the models
             // is the same.
             Assert.Equal(result.Forecast, resultCopy.Forecast);
-            
+
         }
 
         [Fact]
@@ -522,13 +524,13 @@ namespace Microsoft.ML.Tests
         {
             [RootCauseLocalizationInputType]
             public RootCauseLocalizationInput Input { get; set; }
-     
+
             public RootCauseLocalizationData()
             {
                 Input = null;
             }
 
-            public RootCauseLocalizationData(DateTime anomalyTimestamp, Dictionary<string, string> anomalyDimensions, List<MetricSlice> slices, DTRootCauseLocalizationEstimator.AggregateType aggregateteType, string aggregateSymbol)
+            public RootCauseLocalizationData(DateTime anomalyTimestamp, Dictionary<string, string> anomalyDimensions, List<MetricSlice> slices, AggregateType aggregateteType, string aggregateSymbol)
             {
                 Input = new RootCauseLocalizationInput(anomalyTimestamp, anomalyDimensions, slices, aggregateteType, aggregateSymbol);
             }
@@ -536,7 +538,7 @@ namespace Microsoft.ML.Tests
 
         private class RootCauseLocalizationTransformedData
         {
-          [RootCauseType()]
+            [RootCauseType()]
             public RootCause RootCause { get; set; }
 
             public RootCauseLocalizationTransformedData()
@@ -549,7 +551,7 @@ namespace Microsoft.ML.Tests
         public void RootCauseLocalizationWithDT()
         {
             // Create an root cause localizatiom input list.
-            var rootCauseLocalizationData = new List<RootCauseLocalizationData>() { new RootCauseLocalizationData(new DateTime(),new Dictionary<String, String>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Transforms.TimeSeries.Point>()) }, DTRootCauseLocalizationEstimator.AggregateType.Sum, "SUM"), new RootCauseLocalizationData(new DateTime(), new Dictionary<String, String>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Transforms.TimeSeries.Point>()) }, DTRootCauseLocalizationEstimator.AggregateType.Avg, "AVG") };
+            var rootCauseLocalizationData = new List<RootCauseLocalizationData>() { new RootCauseLocalizationData(new DateTime(), new Dictionary<String, String>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Microsoft.ML.TimeSeries.Point>()) }, AggregateType.Sum, "##SUM##") };
 
             var ml = new MLContext(1);
             // Convert the list of root cause data to an IDataView object, which is consumable by ML.NET API.
@@ -570,16 +572,103 @@ namespace Microsoft.ML.Tests
             foreach (var dataPoint in transformedDataPoints)
             {
                 var rootCause = dataPoint.RootCause;
-
                 Assert.NotNull(rootCause);
             }
 
             var engine = ml.Model.CreatePredictionEngine<RootCauseLocalizationData, RootCauseLocalizationTransformedData>(model);
-            var newRootCauseInput = new RootCauseLocalizationData(new DateTime(), new Dictionary<String, String>(), new List<MetricSlice>() {new MetricSlice(new DateTime(), new List<Transforms.TimeSeries.Point>())}, DTRootCauseLocalizationEstimator.AggregateType.Sum, "SUM");
+            DateTime timeStamp = GetCurrentTimestamp();
+            var newRootCauseInput = new RootCauseLocalizationData(timeStamp, GetAnomalyDimension(), new List<MetricSlice>() { new MetricSlice(timeStamp, GetRootCauseLocalizationPoints()) }, AggregateType.Sum, _aggSymbol);
             var transformedRootCause = engine.Predict(newRootCauseInput);
 
             Assert.NotNull(transformedRootCause);
-            //todo - will add more tests here when onboarding mock data
+            Assert.Equal(1,(int)transformedRootCause.RootCause.Items.Count);
+
+            Dictionary<string, string> expectedDim = new Dictionary<string, string>();
+            expectedDim.Add("Country","UK");
+            expectedDim.Add("DeviceType",_aggSymbol);
+            expectedDim.Add("DataCenter","DC1");
+
+            foreach (KeyValuePair<string, string> pair in transformedRootCause.RootCause.Items[0].Dimension) {
+                Assert.Equal(expectedDim[pair.Key], pair.Value);
+            }
         }
+
+
+        private static List<Point> GetRootCauseLocalizationPoints()
+        {
+            List<Point> points = new List<Point>();
+
+            Dictionary<string, string> dic1 = new Dictionary<string, string>();
+            dic1.Add("Country", "UK");
+            dic1.Add("DeviceType", "Laptop");
+            dic1.Add("DataCenter", "DC1");
+            points.Add(new Point(200, 100, true, dic1));
+
+            Dictionary<string, string> dic2 = new Dictionary<string, string>();
+            dic2.Add("Country", "UK");
+            dic2.Add("DeviceType", "Mobile");
+            dic2.Add("DataCenter", "DC1");
+            points.Add(new Point(1000, 100, true, dic2));
+
+            Dictionary<string, string> dic3 = new Dictionary<string, string>();
+            dic3.Add("Country", "UK");
+            dic3.Add("DeviceType", _aggSymbol);
+            dic3.Add("DataCenter", "DC1");
+            points.Add(new Point(1200, 200, true, dic3));
+
+            Dictionary<string, string> dic4 = new Dictionary<string, string>();
+            dic4.Add("Country", "UK");
+            dic4.Add("DeviceType", "Laptop");
+            dic4.Add("DataCenter", "DC2");
+            points.Add(new Point(100, 100, false, dic4));
+
+            Dictionary<string, string> dic5 = new Dictionary<string, string>();
+            dic5.Add("Country", "UK");
+            dic5.Add("DeviceType", "Mobile");
+            dic5.Add("DataCenter", "DC2");
+            points.Add(new Point(200, 200, false, dic5));
+
+            Dictionary<string, string> dic6 = new Dictionary<string, string>();
+            dic6.Add("Country", "UK");
+            dic6.Add("DeviceType", _aggSymbol);
+            dic6.Add("DataCenter", "DC2");
+            points.Add(new Point(300, 300, false, dic6));
+
+            Dictionary<string, string> dic7 = new Dictionary<string, string>();
+            dic7.Add("Country", "UK");
+            dic7.Add("DeviceType", _aggSymbol);
+            dic7.Add("DataCenter", _aggSymbol);
+            points.Add(new Point(1500, 500, true, dic7));
+
+            Dictionary<string, string> dic8 = new Dictionary<string, string>();
+            dic8.Add("Country", "UK");
+            dic8.Add("DeviceType", "Laptop");
+            dic8.Add("DataCenter", _aggSymbol);
+            points.Add(new Point(300, 200, true, dic8));
+
+            Dictionary<string, string> dic9 = new Dictionary<string, string>();
+            dic9.Add("Country", "UK");
+            dic9.Add("DeviceType", "Mobile");
+            dic9.Add("DataCenter", _aggSymbol);
+            points.Add(new Point(1200, 300, true, dic9));
+
+            return points;
+        }
+
+        private static Dictionary<string, string> GetAnomalyDimension()
+        {
+            Dictionary<string, string> dim = new Dictionary<string, string>();
+            dim.Add("Country", "UK");
+            dim.Add("DeviceType", _aggSymbol);
+            dim.Add("DataCenter", _aggSymbol);
+
+            return dim;
+        }
+
+        private static DateTime GetCurrentTimestamp()
+        {
+            return new DateTime();
+        }
+
     }
 }

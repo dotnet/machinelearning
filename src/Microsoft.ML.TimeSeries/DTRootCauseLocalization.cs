@@ -11,6 +11,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.TimeSeries;
 using Microsoft.ML.Transforms.TimeSeries;
 
 [assembly: LoadableClass(DTRootCauseLocalizationTransformer.Summary, typeof(IDataTransform), typeof(DTRootCauseLocalizationTransformer), typeof(DTRootCauseLocalizationTransformer.Options), typeof(SignatureDataTransform),
@@ -27,198 +28,28 @@ using Microsoft.ML.Transforms.TimeSeries;
 
 namespace Microsoft.ML.Transforms.TimeSeries
 {
-    public sealed class RootCauseLocalizationInputTypeAttribute : DataViewTypeAttribute
-    {
-        /// <summary>
-        /// Create a root cause localizagin input type.
-        /// </summary>
-        public RootCauseLocalizationInputTypeAttribute()
-        {
-        }
-
-        /// <summary>
-        /// Equal function.
-        /// </summary>
-        public override bool Equals(DataViewTypeAttribute other)
-        {
-            if (!(other is RootCauseLocalizationInputTypeAttribute otherAttribute))
-                return false;
-            return true;
-        }
-
-        /// <summary>
-        /// Produce the same hash code for all RootCauseLocalizationInputTypeAttribute.
-        /// </summary>
-        public override int GetHashCode()
-        {
-            return 0;
-        }
-
-        public override void Register()
-        {
-            DataViewTypeManager.Register(new RootCauseLocalizationInputDataViewType(), typeof(RootCauseLocalizationInput), this);
-        }
-    }
-
-    public sealed class RootCauseTypeAttribute : DataViewTypeAttribute
-    {
-        /// <summary>
-        /// Create an root cause type.
-        /// </summary>
-        public RootCauseTypeAttribute()
-        {
-        }
-
-        /// <summary>
-        /// RootCauseTypeAttribute with the same type should equal.
-        /// </summary>
-        public override bool Equals(DataViewTypeAttribute other)
-        {
-            if (other is RootCauseTypeAttribute otherAttribute)
-                return true;
-            return false;
-        }
-
-        /// <summary>
-        /// Produce the same hash code for all RootCauseTypeAttribute.
-        /// </summary>
-        public override int GetHashCode()
-        {
-            return 0;
-        }
-
-        public override void Register()
-        {
-            DataViewTypeManager.Register(new RootCauseDataViewType(), typeof(RootCause), this);
-        }
-    }
-
-    public sealed class RootCause
-    {
-        public List<RootCauseItems> Items { get; set; }
-    }
-
-    public sealed class RootCauseItems {
-        public double Score;
-        public List<string> Path;
-        public Dictionary<string, string> RootCause;
-        public AnomalyDirection Direction;
-    }
-
-    public enum AnomalyDirection {
-        /// <summary>
-        /// the value is larger than expected value.
-        /// </summary>
-        Up = 0,
-        /// <summary>
-        /// the value is lower than expected value.
-        ///  </summary>
-        Down = 1
-    }
-
-    public sealed class RootCauseLocalizationInput
-    {
-        public DateTime AnomalyTimestamp { get; set; }
-
-        public Dictionary<string, string> AnomalyDimensions { get; set; }
-
-        public List<MetricSlice> Slices { get; set; }
-
-        public DTRootCauseLocalizationEstimator.AggregateType  AggType{ get; set; }
-
-        public string AggSymbol { get; set; }
-
-        public RootCauseLocalizationInput(DateTime anomalyTimestamp, Dictionary<string, string> anomalyDimensions, List<MetricSlice> slices, DTRootCauseLocalizationEstimator.AggregateType aggregateType, string aggregateSymbol) {
-            AnomalyTimestamp = anomalyTimestamp;
-            AnomalyDimensions = anomalyDimensions;
-            Slices = slices;
-            AggType = aggregateType;
-            AggSymbol = aggregateSymbol;
-        }
-        public void Dispose()
-        {
-            AnomalyDimensions = null;
-            Slices = null;
-        }
-    }
-
-    public sealed class MetricSlice
-    {
-        public DateTime TimeStamp { get; set; }
-        public List<Point> Points { get; set; }
-
-        public MetricSlice(DateTime timeStamp, List<Point> points) {
-            TimeStamp = timeStamp;
-            Points = points;
-        }
-    }
-
-    public sealed class Point {
-        public double Value { get; set; }
-        public double ExpectedValue { get; set; }
-        public bool IsAnomaly { get; set; }
-        public Dictionary<string, string> Dimensions{ get; set; }
-    }
-
-    public sealed class RootCauseDataViewType : StructuredDataViewType
-    {
-        public RootCauseDataViewType()
-           : base(typeof(RootCause))
-        {
-        }
-
-        public override bool Equals(DataViewType other)
-        {
-            if (other == this)
-                return true;
-            if (!(other is RootCauseDataViewType tmp))
-                return false;
-            return true;
-        }
-
-        public override int GetHashCode()
-        {
-            return 0;
-        }
-
-        public override string ToString()
-        {
-            return typeof(RootCauseDataViewType).Name;
-        }
-    }
-
-    public sealed class RootCauseLocalizationInputDataViewType : StructuredDataViewType
-    {
-        public RootCauseLocalizationInputDataViewType()
-           : base(typeof(RootCauseLocalizationInput))
-        {
-        }
-
-        public override bool Equals(DataViewType other)
-        {
-            if (!(other is RootCauseLocalizationInputDataViewType tmp))
-                return false;
-            return true;
-        }
-
-        public override int GetHashCode()
-        {
-            return 0;
-        }
-
-        public override string ToString()
-        {
-            return typeof(RootCauseLocalizationInputDataViewType).Name;
-        }
-    }
-
-    // REVIEW: Rewrite as LambdaTransform to simplify.
-    // REVIEW: Should it be separate transform or part of ImageResizerTransform?
     /// <summary>
     /// <see cref="ITransformer"/> resulting from fitting an <see cref="DTRootCauseLocalizationTransformer"/>.
     /// </summary>
     public sealed class DTRootCauseLocalizationTransformer : OneToOneTransformerBase
     {
+        internal const string Summary = "Localize root cause for anomaly.";
+        internal const string UserName = "DT Root Cause Localization Transform";
+        internal const string LoaderSignature = "DTRootCauseLTransform";
+
+        private static VersionInfo GetVersionInfo()
+        {
+            return new VersionInfo(
+                modelSignature: "DTRCL",
+                verWrittenCur: 0x00010001, // Initial
+                verReadableCur: 0x00010001,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(DTRootCauseLocalizationTransformer).Assembly.FullName);
+        }
+
+        private const string RegistrationName = "RootCauseLocalization";
+
         internal sealed class Column : OneToOneColumn
         {
             internal static Column Parse(string str)
@@ -246,24 +77,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         }
 
-        internal const string Summary = "Localize root cause for anomaly.";
-
-        internal const string UserName = "DT Root Cause Localization Transform";
-        internal const string LoaderSignature = "DTRootCauseLTransform";
-
-        private static VersionInfo GetVersionInfo()
-        {
-            return new VersionInfo(
-                modelSignature: "DTRCL",
-                verWrittenCur: 0x00010001, // Initial
-                verReadableCur: 0x00010001,
-                verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(DTRootCauseLocalizationTransformer).Assembly.FullName);
-        }
-
-        private const string RegistrationName = "RootCauseLocalization";
-
         /// <summary>
         /// The input and output column pairs passed to this <see cref="ITransformer"/>.
         /// </summary>
@@ -278,10 +91,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="beta">Weight for generating score.</param>
         /// <param name="columns">The name of the columns (first item of the tuple), and the name of the resulting output column (second item of the tuple).</param>
 
-        internal DTRootCauseLocalizationTransformer(IHostEnvironment env,double beta = DTRootCauseLocalizationEstimator.Defaults.Beta, params (string outputColumnName, string inputColumnName)[] columns)
+        internal DTRootCauseLocalizationTransformer(IHostEnvironment env, double beta = DTRootCauseLocalizationEstimator.Defaults.Beta, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), columns)
         {
-            Host.CheckUserArg(beta >=0 && beta <= 1, nameof(Options.Beta), "Must be in [0,1]");
+            Host.CheckUserArg(beta >= 0 && beta <= 1, nameof(Options.Beta), "Must be in [0,1]");
 
             _beta = beta;
         }
@@ -294,7 +107,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             env.CheckValue(input, nameof(input));
             env.CheckValue(options.Columns, nameof(options.Columns));
 
-            return new DTRootCauseLocalizationTransformer(env,options.Beta, options.Columns.Select(x => (x.Name, x.Source ?? x.Name)).ToArray())
+            return new DTRootCauseLocalizationTransformer(env, options.Beta, options.Columns.Select(x => (x.Name, x.Source ?? x.Name)).ToArray())
                 .MakeDataTransform(input);
         }
 
@@ -343,7 +156,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         private sealed class Mapper : OneToOneMapperBase
         {
-            private DTRootCauseLocalizationTransformer _parent;
+            private readonly DTRootCauseLocalizationTransformer _parent;
 
             public Mapper(DTRootCauseLocalizationTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
@@ -392,17 +205,51 @@ namespace Microsoft.ML.Transforms.TimeSeries
                         if (src == null)
                             return;
 
-                        if (src.Slices.Count < 1) {
-                            throw Host.Except($"Length of Slices must be larger than 0");
-                        }
-                        //todo- more checks will be added here for the input
+                        CheckRootCauseInput(src, Host);
 
-                        dst = new RootCause();
-                        //dst.Items = new List<RootCauseItems>{ new RootCauseItems() };
-                        //todo- algorithms would be implememted here
+                        LocalizeRootCauses(src, ref dst);
                     };
 
                 return del;
+            }
+
+            private void CheckRootCauseInput(RootCauseLocalizationInput src, IHost host)
+            {
+                if (src.Slices.Count < 1)
+                {
+                    throw host.Except($"Length of Slices must be larger than 0");
+                }
+
+                bool containsAnomalyTimestamp = false;
+                foreach (MetricSlice slice in src.Slices)
+                {
+                    if (slice.TimeStamp.Equals(src.AnomalyTimestamp))
+                    {
+                        containsAnomalyTimestamp = true;
+                    }
+                }
+                if (!containsAnomalyTimestamp)
+                {
+                    throw host.Except($"Has no points in the given anomaly timestamp");
+                }
+            }
+
+            private void LocalizeRootCauses(RootCauseLocalizationInput src, ref RootCause dst)
+            {
+                dst = new RootCause();
+                dst.Items = new List<RootCauseItem> { };
+
+                DimensionInfo dimensionInfo = DTRootCauseAnalyzer.SeperateDimension(src.AnomalyDimensions, src.AggSymbol);
+                if (dimensionInfo.AggDim.Count == 0)
+                {
+                    return;
+                }
+                Dictionary<string, string> subDim = DTRootCauseAnalyzer.GetSubDim(src.AnomalyDimensions, dimensionInfo.DetailDim);
+                List<Point> totalPoints = DTRootCauseAnalyzer.GetTotalPointsForAnomalyTimestamp(src, subDim);
+
+                DTRootCauseAnalyzer.GetRootCauseList(src, ref dst, dimensionInfo, totalPoints, subDim);
+                DTRootCauseAnalyzer.UpdateRootCauseDirection(totalPoints,ref dst);
+                DTRootCauseAnalyzer.GetRootCauseScore(totalPoints, src.AnomalyDimensions, ref dst, _parent._beta);
             }
         }
     }
@@ -434,26 +281,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
             public const double Beta = 0.5;
         }
 
-        public enum AggregateType
-        {
-            /// <summary>
-            /// Make the aggregate type as sum.
-            /// </summary>
-            Sum = 0,
-            /// <summary>
-            /// Make the aggregate type as average.
-            ///  </summary>
-            Avg = 1,
-            /// <summary>
-            /// Make the aggregate type as min.
-            /// </summary>
-            Min = 2,
-            /// <summary>
-            /// Make the aggregate type as max.
-            /// </summary>
-            Max = 3
-        }
-
         /// <summary>
         /// Localize root cause.
         /// </summary>
@@ -461,8 +288,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="columns">The name of the columns (first item of the tuple), and the name of the resulting output column (second item of the tuple).</param>
         /// <param name="beta">The weight for generating score in output result.</param>
         [BestFriend]
-        internal DTRootCauseLocalizationEstimator(IHostEnvironment env, double beta = Defaults.Beta,params(string outputColumnName, string inputColumnName)[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(DTRootCauseLocalizationEstimator)), new DTRootCauseLocalizationTransformer(env, beta,columns))
+        internal DTRootCauseLocalizationEstimator(IHostEnvironment env, double beta = Defaults.Beta, params (string outputColumnName, string inputColumnName)[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(DTRootCauseLocalizationEstimator)), new DTRootCauseLocalizationTransformer(env, beta, columns))
         {
         }
 
