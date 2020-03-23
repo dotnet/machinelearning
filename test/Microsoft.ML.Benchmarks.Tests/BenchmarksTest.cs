@@ -85,7 +85,7 @@ namespace Microsoft.ML.Benchmarks.Tests
         }
 
         [Theory]
-        [IterationData(iterations:10)]
+        [IterationData(iterations:20)]
         [Trait("Category", "RunSpecificTest")]
         public void CompletesBenchmarkInTime(int iterations)
         {
