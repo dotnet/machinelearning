@@ -42,25 +42,23 @@ namespace Samples.Dynamic
 
             // Print the localization result.
             int count = 0;
-            foreach (RootCauseItem item in prediction.RootCause.Items) {
+            foreach (RootCauseItem item in prediction.RootCause.Items)
+            {
                 count++;
                 Console.WriteLine($"Root cause item #{count} ...");
-                foreach (KeyValuePair<string, string> pair in item.Dimension) {
-                    Console.WriteLine($"{pair.Key} = {pair.Value}");
-                }
+                Console.WriteLine($"Score: {item.Score}, Path: {item.Path}, Direction: {item.Direction}, Dimension:{String.Join(" ", item.Dimension)}");
             }
 
             //Item #1 ...
-            //Country = UK
-            //DeviceType = ##SUM##
-            //DataCenter = DC1
+            //Score: 1, Path: DataCenter, Direction: Up, Dimension:[Country, UK] [DeviceType, ##SUM##] [DataCenter, DC1]
         }
 
-        private static List<Point> GetPoints() {
+        private static List<Point> GetPoints()
+        {
             List<Point> points = new List<Point>();
 
             Dictionary<string, string> dic1 = new Dictionary<string, string>();
-            dic1.Add("Country","UK");
+            dic1.Add("Country", "UK");
             dic1.Add("DeviceType", "Laptop");
             dic1.Add("DataCenter", "DC1");
             points.Add(new Point(200, 100, true, dic1));
@@ -116,7 +114,8 @@ namespace Samples.Dynamic
             return points;
         }
 
-        private static Dictionary<string, string> GetAnomalyDimension() {
+        private static Dictionary<string, string> GetAnomalyDimension()
+        {
             Dictionary<string, string> dim = new Dictionary<string, string>();
             dim.Add("Country", "UK");
             dim.Add("DeviceType", AGG_SYMBOL);
