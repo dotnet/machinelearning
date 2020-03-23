@@ -736,7 +736,8 @@ namespace Microsoft.ML.Tests
                 separatorChar: '\t',
                 hasHeader: true);
 
-            var pipeline = mlContext.Transforms.NormalizeMinMax("Features").
+            var pipeline = mlContext.Transforms.ReplaceMissingValues("Features").
+                Append(mlContext.Transforms.NormalizeMinMax("Features")).
                 Append(mlContext.Transforms.Conversion.MapValueToKey("Label")).
                 Append(mlContext.MulticlassClassification.Trainers.LbfgsMaximumEntropy(new LbfgsMaximumEntropyMulticlassTrainer.Options() { NumberOfThreads = 1 }));
 
@@ -751,6 +752,17 @@ namespace Microsoft.ML.Tests
             var onnxTextPath = GetOutputPath(subDir, onnxTextName);
 
             SaveOnnxModel(onnxModel, onnxFilePath, onnxTextPath);
+
+            // Compare results produced by ML.NET and ONNX's runtime.
+            if (IsOnnxRuntimeSupported())
+            {
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxFilePath);
+                var onnxTransformer = onnxEstimator.Fit(data);
+                var onnxResult = onnxTransformer.Transform(data);
+                CompareSelectedColumns<UInt32>("PredictedLabel", "PredictedLabel", transformedData, onnxResult);
+                CompareSelectedColumns<float>("Score", "Score", transformedData, onnxResult);
+            }
 
             CheckEquality(subDir, onnxTextName, digitsOfPrecision: 2);
             Done();
