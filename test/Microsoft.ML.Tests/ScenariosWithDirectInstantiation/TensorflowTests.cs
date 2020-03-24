@@ -132,7 +132,7 @@ namespace Microsoft.ML.Scenarios
                     .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy());
 
 
-            var transformer = pipeEstimator.Fit(data);
+            using var transformer = pipeEstimator.Fit(data);
             var predictions = transformer.Transform(data);
 
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
@@ -172,7 +172,9 @@ namespace Microsoft.ML.Scenarios
                                                      2.0f, 2.0f },
                                          b = new[] { 3.0f, 3.0f,
                                                      3.0f, 3.0f } } }));
-            var trans = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(new[] { "c" }, new[] { "a", "b" }).Fit(loader).Transform(loader);
+
+            using var tfModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
+            var trans = tfModel.ScoreTensorFlowModel(new[] { "c" }, new[] { "a", "b" }).Fit(loader).Transform(loader);
 
             using (var cursor = trans.GetRowCursorForAllColumns())
             {
@@ -262,7 +264,8 @@ namespace Microsoft.ML.Scenarios
             var inputs = new string[] { "OneDim", "TwoDim", "ThreeDim", "FourDim", "FourDimKnown" };
             var outputs = new string[] { "o_OneDim", "o_TwoDim", "o_ThreeDim", "o_FourDim", "o_FourDimKnown" };
 
-            var trans = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(outputs, inputs).Fit(loader).Transform(loader);
+            using var tfModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
+            var trans = tfModel.ScoreTensorFlowModel(outputs, inputs).Fit(loader).Transform(loader);
 
             using (var cursor = trans.GetRowCursorForAllColumns())
             {
@@ -382,7 +385,8 @@ namespace Microsoft.ML.Scenarios
 
             var inputs = new string[] { "f64", "f32", "i64", "i32", "i16", "i8", "u64", "u32", "u16", "u8", "b" };
             var outputs = new string[] { "o_f64", "o_f32", "o_i64", "o_i32", "o_i16", "o_i8", "o_u64", "o_u32", "o_u16", "o_u8", "o_b" };
-            var trans = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(outputs, inputs).Fit(loader).Transform(loader); ;
+            using var tfModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
+            var trans = tfModel.ScoreTensorFlowModel(outputs, inputs).Fit(loader).Transform(loader);
 
             using (var cursor = trans.GetRowCursorForAllColumns())
             {
@@ -477,8 +481,8 @@ namespace Microsoft.ML.Scenarios
             var cropped = new ImageResizingTransformer(mlContext, "ImageCropped", 32, 32, "ImageReal").Transform(images);
 
             var pixels = mlContext.Transforms.ExtractPixels("image_tensor", "ImageCropped", outputAsFloatArray: false).Fit(cropped).Transform(cropped);
-            var tf = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(
-                new[] { "detection_boxes", "detection_scores", "num_detections", "detection_classes" }, new[] { "image_tensor" }).Fit(pixels).Transform(pixels);
+            using var tfModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
+            var tf = tfModel.ScoreTensorFlowModel(new[] { "detection_boxes", "detection_scores", "num_detections", "detection_classes" }, new[] { "image_tensor" }).Fit(pixels).Transform(pixels);
 
             using (var curs = tf.GetRowCursor(tf.Schema["image_tensor"], tf.Schema["detection_boxes"], tf.Schema["detection_scores"], tf.Schema["detection_classes"], tf.Schema["num_detections"]))
             {
@@ -524,7 +528,8 @@ namespace Microsoft.ML.Scenarios
             var images = mlContext.Transforms.LoadImages("ImageReal", "ImagePath", imageFolder).Fit(data).Transform(data);
             var cropped = mlContext.Transforms.ResizeImages("ImageCropped", 224, 224, "ImageReal").Fit(images).Transform(images);
             var pixels = mlContext.Transforms.ExtractPixels(inputName, "ImageCropped", interleavePixelColors: true).Fit(cropped).Transform(cropped);
-            var tf = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(outputName, inputName, true).Fit(pixels).Transform(pixels);
+            using var tfModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
+            var tf = tfModel.ScoreTensorFlowModel(outputName, inputName, true).Fit(pixels).Transform(pixels);
 
             tf.Schema.TryGetColumnIndex(inputName, out int input);
             tf.Schema.TryGetColumnIndex(outputName, out int b);
@@ -642,7 +647,7 @@ namespace Microsoft.ML.Scenarios
                 .Append(mlContext.Transforms.Concatenate("Features", "Softmax", "dense/Relu"))
                 .Append(mlContext.MulticlassClassification.Trainers.LightGbm("Label", "Features"));
 
-            var trainedModel = pipe.Fit(trainData);
+            using var trainedModel = pipe.Fit(trainData);
             var predicted = trainedModel.Transform(testData);
             var metrics = mlContext.MulticlassClassification.Evaluate(predicted);
 
@@ -696,7 +701,7 @@ namespace Microsoft.ML.Scenarios
                     .Append(mlContext.Transforms.Conversion.MapValueToKey("KeyLabel", "Label", maximumNumberOfKeys: 10))
                     .Append(mlContext.MulticlassClassification.Trainers.LightGbm("KeyLabel", "Features"));
 
-                var trainedModel = pipe.Fit(trainData);
+                using var trainedModel = pipe.Fit(trainData);
                 var predicted = trainedModel.Transform(testData);
                 var metrics = mlContext.MulticlassClassification.Evaluate(predicted, labelColumnName: "KeyLabel");
                 Assert.InRange(metrics.MicroAccuracy, expectedMicroAccuracy, 1);
@@ -741,8 +746,6 @@ namespace Microsoft.ML.Scenarios
         }
 
         [TensorFlowFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void TensorFlowTransformMNISTConvTrainingTest()
         {
             double expectedMicro = 0.73304347826086956;
@@ -821,7 +824,7 @@ namespace Microsoft.ML.Scenarios
                         NumberOfIterations = 1
                     }));
 
-                var trainedModel = pipe.Fit(preprocessedTrainData);
+                using var trainedModel = pipe.Fit(preprocessedTrainData);
                 var predicted = trainedModel.Transform(preprocessedTestData);
                 var metrics = mlContext.MulticlassClassification.Evaluate(predicted);
                 Assert.InRange(metrics.MicroAccuracy, expectedMicroAccuracy - 0.1, expectedMicroAccuracy + 0.1);
@@ -869,7 +872,7 @@ namespace Microsoft.ML.Scenarios
                 .Append(mlContext.Transforms.Concatenate("Features", new[] { "Softmax", "dense/Relu" }))
                 .Append(mlContext.MulticlassClassification.Trainers.LightGbm("Label", "Features"));
 
-            var trainedModel = pipe.Fit(trainData);
+            using var trainedModel = pipe.Fit(trainData);
             var predicted = trainedModel.Transform(testData);
             var metrics = mlContext.MulticlassClassification.Evaluate(predicted);
 
@@ -974,7 +977,7 @@ namespace Microsoft.ML.Scenarios
             var mlContext = new MLContext(seed: 1);
             List<string> logMessages = new List<string>();
             mlContext.Log += (sender, e) => logMessages.Add(e.Message);
-            var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
+            using var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
             var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
             var type = (VectorDataViewType)schema[column].Type;
@@ -1061,7 +1064,7 @@ namespace Microsoft.ML.Scenarios
         {
             var modelLocation = "cifar_saved_model";
             var mlContext = new MLContext(seed: 1);
-            var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
+            using var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
             var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
             var type = (VectorDataViewType)schema[column].Type;
@@ -1131,10 +1134,11 @@ namespace Microsoft.ML.Scenarios
             var cropped = new ImageResizingTransformer(mlContext, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
             var pixels = new ImagePixelExtractingTransformer(mlContext, "Input", "ImageCropped").Transform(cropped);
 
+            using TensorFlowModel model = mlContext.Model.LoadTensorFlowModel(modelLocation);
             var thrown = false;
             try
             {
-                IDataView trans = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel("Output", "Input").Fit(pixels).Transform(pixels);
+                IDataView trans = model.ScoreTensorFlowModel("Output", "Input").Fit(pixels).Transform(pixels);
             }
             catch
             {
@@ -1185,10 +1189,10 @@ namespace Microsoft.ML.Scenarios
             // For explanation on how was the `sentiment_model` created 
             // c.f. https://github.com/dotnet/machinelearning-testdata/blob/master/Microsoft.ML.TensorFlow.TestModels/sentiment_model/README.md
             string modelLocation = @"sentiment_model";
-            var pipelineModel = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(new[] { "Prediction/Softmax" }, new[] { "Features" })
+            using var pipelineModel = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(new[] { "Prediction/Softmax" }, new[] { "Features" })
                 .Append(mlContext.Transforms.CopyColumns("Prediction", "Prediction/Softmax"))
                 .Fit(dataView);
-            var tfEnginePipe = mlContext.Model.CreatePredictionEngine<TensorFlowSentiment, TensorFlowSentiment>(pipelineModel);
+            using var tfEnginePipe = mlContext.Model.CreatePredictionEngine<TensorFlowSentiment, TensorFlowSentiment>(pipelineModel);
 
             var processedData = dataPipe.Predict(data[0]);
             Array.Resize(ref processedData.Features, 600);
@@ -1222,7 +1226,7 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowStringTest()
         {
             var mlContext = new MLContext(seed: 1);
-            var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(@"model_string_test");
+            using var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(@"model_string_test");
             var schema = tensorFlowModel.GetModelSchema();
             Assert.True(schema.TryGetColumnIndex("A", out var colIndex));
             Assert.True(schema.TryGetColumnIndex("B", out colIndex));
@@ -1246,10 +1250,14 @@ namespace Microsoft.ML.Scenarios
         }
 
         [TensorFlowFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassificationDefault()
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Output.WriteLine("TODO TEST_STABILITY: TensorFlowImageClassificationDefault hangs on Linux.");
+                return;
+            }
+
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
 
@@ -1285,7 +1293,7 @@ namespace Microsoft.ML.Scenarios
                 .Append(mlContext.MulticlassClassification.Trainers.ImageClassification("Label", "Image")
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel"))); ;
 
-            var trainedModel = pipeline.Fit(trainDataset);
+            using var trainedModel = pipeline.Fit(trainDataset);
 
             mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
                 "model.zip");
@@ -1302,6 +1310,7 @@ namespace Microsoft.ML.Scenarios
             Assert.InRange(metrics.MicroAccuracy, 0.8, 1);
             Assert.InRange(metrics.MacroAccuracy, 0.8, 1);
 
+            (loadedModel as IDisposable)?.Dispose();
         }
 
         internal bool ShouldReuse(string workspacePath, string trainSetBottleneckCachedValuesFileName, string validationSetBottleneckCachedValuesFileName)
@@ -1333,10 +1342,14 @@ namespace Microsoft.ML.Scenarios
         [InlineData(ImageClassificationTrainer.Architecture.MobilenetV2)]
         [InlineData(ImageClassificationTrainer.Architecture.ResnetV250)]
         [InlineData(ImageClassificationTrainer.Architecture.InceptionV3)]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassification(ImageClassificationTrainer.Architecture arch)
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Output.WriteLine("TODO TEST_STABILITY: TensorFlowImageClassification hangs on Linux.");
+                return;
+            }
+
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
 
@@ -1400,7 +1413,7 @@ namespace Microsoft.ML.Scenarios
                 .Append(mlContext.MulticlassClassification.Trainers.ImageClassification(options)
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel")));
 
-            var trainedModel = pipeline.Fit(trainDataset);
+            using var trainedModel = pipeline.Fit(trainDataset);
 
             mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
                 "model.zip");
@@ -1420,7 +1433,7 @@ namespace Microsoft.ML.Scenarios
             // Testing TrySinglePrediction: Utilizing PredictionEngine for single
             // predictions. Here, two pre-selected images are utilized in testing
             // the Prediction engine.
-            var predictionEngine = mlContext.Model
+            using var predictionEngine = mlContext.Model
                 .CreatePredictionEngine<ImageData, ImagePrediction>(loadedModel);
 
             IEnumerable<ImageData> testImages = LoadImagesFromDirectory(
@@ -1462,19 +1475,17 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal("roses", predictionSecond.PredictedLabel);
             Assert.True(Array.IndexOf(labels, predictionFirst.PredictedLabel) > -1);
             Assert.True(Array.IndexOf(labels, predictionSecond.PredictedLabel) > -1);
+
+            (loadedModel as IDisposable)?.Dispose();
         }
 
         [TensorFlowFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassificationWithExponentialLRScheduling()
         {
             TensorFlowImageClassificationWithLRScheduling(new ExponentialLRDecay(), 50);
         }
 
         [TensorFlowFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassificationWithPolynomialLRScheduling()
         {
 
@@ -1548,7 +1559,7 @@ namespace Microsoft.ML.Scenarios
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(
                         outputColumnName: "PredictedLabel",
                         inputColumnName: "PredictedLabel"));
-            var trainedModel = pipeline.Fit(trainDataset);
+            using var trainedModel = pipeline.Fit(trainDataset);
 
             mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
                 "model.zip");
@@ -1568,7 +1579,7 @@ namespace Microsoft.ML.Scenarios
             // Testing TrySinglePrediction: Utilizing PredictionEngine for single
             // predictions. Here, two pre-selected images are utilized in testing
             // the Prediction engine.
-            var predictionEngine = mlContext.Model
+            using var predictionEngine = mlContext.Model
                 .CreatePredictionEngine<ImageData, ImagePrediction>(loadedModel);
 
             IEnumerable<ImageData> testImages = LoadImagesFromDirectory(
@@ -1614,13 +1625,13 @@ namespace Microsoft.ML.Scenarios
             Assert.True(File.Exists(Path.Combine(options.WorkspacePath, options.TrainSetBottleneckCachedValuesFileName)));
             Assert.True(File.Exists(Path.Combine(options.WorkspacePath, options.ValidationSetBottleneckCachedValuesFileName)));
             Assert.True(File.Exists(Path.Combine(Path.GetTempPath(), "MLNET", ImageClassificationTrainer.ModelFileName[options.Arch])));
+
+            (loadedModel as IDisposable)?.Dispose();
         }
 
         [TensorFlowTheory]
         [InlineData(ImageClassificationTrainer.EarlyStoppingMetric.Accuracy)]
         [InlineData(ImageClassificationTrainer.EarlyStoppingMetric.Loss)]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassificationEarlyStopping(ImageClassificationTrainer.EarlyStoppingMetric earlyStoppingMetric)
         {
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
@@ -1690,7 +1701,7 @@ namespace Microsoft.ML.Scenarios
             var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
                 .Append(mlContext.MulticlassClassification.Trainers.ImageClassification(options));
 
-            var trainedModel = pipeline.Fit(trainDataset);
+            using var trainedModel = pipeline.Fit(trainDataset);
             mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
                 "model.zip");
 
@@ -1707,11 +1718,11 @@ namespace Microsoft.ML.Scenarios
 
             //Assert that the training ran and stopped within half epochs due to EarlyStopping
             Assert.InRange(lastEpoch, 1, 49);
+
+            (loadedModel as IDisposable)?.Dispose();
         }
 
         [TensorFlowFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassificationBadImages()
         {
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
@@ -1763,7 +1774,7 @@ namespace Microsoft.ML.Scenarios
 
             var pipeline = mlContext.MulticlassClassification.Trainers.ImageClassification(options);
 
-            var trainedModel = pipeline.Fit(trainDataset);
+            using var trainedModel = pipeline.Fit(trainDataset);
             mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
                 "model.zip");
 
@@ -1779,6 +1790,8 @@ namespace Microsoft.ML.Scenarios
             // by skipping bad images.
             Assert.InRange(metrics.MicroAccuracy, 0.3, 1);
             Assert.InRange(metrics.MacroAccuracy, 0.3, 1);
+
+            (loadedModel as IDisposable)?.Dispose();
         }
 
         public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,

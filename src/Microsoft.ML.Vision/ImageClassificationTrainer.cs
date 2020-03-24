@@ -77,10 +77,8 @@ namespace Microsoft.ML.Vision
     /// </remarks>
     public sealed class ImageClassificationTrainer :
         TrainerEstimatorBase<MulticlassPredictionTransformer<ImageClassificationModelParameters>,
-            ImageClassificationModelParameters>, IDisposable
+            ImageClassificationModelParameters>
     {
-        private bool _isDisposed;
-
         internal const string LoadName = "ImageClassificationTrainer";
         internal const string UserName = "Image Classification Trainer";
         internal const string ShortName = "IMGCLSS";
@@ -1206,6 +1204,9 @@ namespace Microsoft.ML.Vision
             _session.graph.Dispose();
             _session.Dispose();
             _session = LoadTFSessionByModelFilePath(Host, frozenModelPath, false);
+
+            sess.graph.Dispose();
+            sess.Dispose();
         }
 
         private void VariableSummaries(RefVariable var)
@@ -1320,24 +1321,6 @@ namespace Microsoft.ML.Vision
             int timeout = 10 * 60 * 1000;
             DownloadIfNeeded(env, modelFileName, _resourcePath, modelFileName, timeout);
             return new TensorFlowSessionWrapper(GetSession(env, modelFilePath, true), modelFilePath);
-        }
-
-        public void Dispose()
-        {
-            if (_isDisposed)
-                return;
-
-            if (_session?.graph != IntPtr.Zero)
-            {
-                _session.graph.Dispose();
-            }
-
-            if (_session != null && _session != IntPtr.Zero)
-            {
-                _session.close();
-            }
-
-            _isDisposed = true;
         }
 
         /// <summary>

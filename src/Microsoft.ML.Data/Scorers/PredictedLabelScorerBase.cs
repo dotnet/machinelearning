@@ -17,7 +17,7 @@ namespace Microsoft.ML.Data
     /// Class for scorers that compute on additional "PredictedLabel" column from the score column.
     /// Currently, this scorer is used for binary classification, multi-class classification, and clustering.
     /// </summary>
-    internal abstract class PredictedLabelScorerBase : RowToRowScorerBase, ITransformCanSavePfa, ITransformCanSaveOnnx
+    internal abstract class PredictedLabelScorerBase : RowToRowScorerBase, ITransformCanSavePfa, ITransformCanSaveOnnx, IDisposable
     {
         public abstract class ThresholdArgumentsBase : ScorerArgumentsBase
         {
@@ -435,5 +435,20 @@ namespace Microsoft.ML.Data
                 cachedPosition = boundRow.Position;
             }
         }
+
+        #region IDisposable Support
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+            (Bindings.RowMapper as IDisposable)?.Dispose();
+            (Bindable as IDisposable)?.Dispose();
+
+            _disposed = true;
+        }
+        #endregion
     }
 }

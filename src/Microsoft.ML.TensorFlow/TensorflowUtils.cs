@@ -98,7 +98,7 @@ namespace Microsoft.ML.TensorFlow
         /// <param name="modelPath">Model to load.</param>
         internal static DataViewSchema GetModelSchema(IHostEnvironment env, string modelPath)
         {
-            var model = LoadTensorFlowModel(env, modelPath);
+            using var model = LoadTensorFlowModel(env, modelPath);
             return GetModelSchema(env, model.Session.graph);
         }
 

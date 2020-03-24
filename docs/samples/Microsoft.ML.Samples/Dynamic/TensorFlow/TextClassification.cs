@@ -60,7 +60,7 @@ namespace Samples.Dynamic
             // Unfrozen (SavedModel format) models are loaded by providing the
             // path to the directory containing the model file and other model
             // artifacts like pre-trained weights.
-            var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(
+            using var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(
                 modelLocation);
             var schema = tensorFlowModel.GetModelSchema();
             var featuresType = (VectorDataViewType)schema["Features"].Type;
