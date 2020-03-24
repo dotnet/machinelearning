@@ -70,7 +70,7 @@ if NOT [%AGENT_ID%] == [] (
 :: install procdump.exe to take process dump when test crashes, hangs or fails
 echo Installing procdump.exe
 powershell -Command "Invoke-WebRequest https://download.sysinternals.com/files/Procdump.zip -UseBasicParsing -outfile procdump.zip | Out-Null"
-powershell -Command "Expand-Archive -Force procdump.zip Tools"
+powershell -Command "Expand-Archive -Force procdump.zip Tools\ProcDump"
 del /f procdump.zip
 echo Finish install procdump.exe
 

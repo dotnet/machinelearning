@@ -735,7 +735,6 @@ namespace Microsoft.ML.Data
             bool identity;
             var converter = Conversions.Instance.GetStandardConversion<TInput, ulong>(type, dstType, out identity);
             var isNa = Conversions.Instance.GetIsNAPredicate<TInput>(type);
-            ulong temp = 0;
 
             ValueMapper<TInput, Single> mapper;
             if (seed == 0)
@@ -743,6 +742,10 @@ namespace Microsoft.ML.Data
                 mapper =
                     (in TInput src, ref Single dst) =>
                     {
+                        //Attention: This method is called from multiple threads.
+                        //Do not move the temp variable outside this method.
+                        //If you do, the variable is shared between the threads and results in a race condition.
+                        ulong temp = 0;
                         if (isNa(in src))
                         {
                             dst = Single.NaN;
@@ -759,6 +762,10 @@ namespace Microsoft.ML.Data
                 mapper =
                     (in TInput src, ref Single dst) =>
                     {
+                        //Attention: This method is called from multiple threads.
+                        //Do not move the temp variable outside this method.
+                        //If you do, the variable is shared between the threads and results in a race condition.
+                        ulong temp = 0;
                         if (isNa(in src))
                         {
                             dst = Single.NaN;

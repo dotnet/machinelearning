@@ -31,17 +31,17 @@ resources:
 jobs:
 - template: /build/ci/job-template.yml
   parameters:
-    name: Centos_x64_NetCoreApp30
+    name: Centos_x64_NetCoreApp31
     buildScript: ./build.sh
     container: CentosContainer
     customMatrixes:
       Debug_Build:
-        _configuration: Debug-netcoreapp3_0
+        _configuration: Debug-netcoreapp3_1
         _config_short: DI
         _targetFramework: netcoreapp3.0
         _includeBenchmarkData: false
       Release_Build:
-        _configuration: Release-netcoreapp3_0
+        _configuration: Release-netcoreapp3_1
         _config_short: RI
         _targetFramework: netcoreapp3.0
         _includeBenchmarkData: true
@@ -68,15 +68,15 @@ jobs:
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: Windows_x64_NetCoreApp30
+    name: Windows_x64_NetCoreApp31
     buildScript: build.cmd
     customMatrixes:
       Debug_Build:
-        _configuration: Debug-netcoreapp3_0
+        _configuration: Debug-netcoreapp3_1
         _config_short: DI
         _includeBenchmarkData: false
       Release_Build:
-        _configuration: Release-netcoreapp3_0
+        _configuration: Release-netcoreapp3_1
         _config_short: RI
         _includeBenchmarkData: true
     nightlyBuild: true

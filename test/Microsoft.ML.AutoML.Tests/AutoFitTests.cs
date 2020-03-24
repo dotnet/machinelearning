@@ -25,7 +25,7 @@ namespace Microsoft.ML.AutoML.Test
         public void AutoFitBinaryTest()
         {
             var context = new MLContext(1);
-            var dataPath = DatasetUtil.DownloadUciAdultDataset();
+            var dataPath = DatasetUtil.GetUciAdultDataset();
             var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(dataPath);
@@ -54,8 +54,6 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [TensorFlowFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void AutoFitImageClassificationTrainTest()
         {
             var context = new MLContext(seed: 1);
@@ -107,7 +105,7 @@ namespace Microsoft.ML.AutoML.Test
         public void AutoFitRegressionTest()
         {
             var context = new MLContext(1);
-            var dataPath = DatasetUtil.DownloadMlNetGeneratedRegressionDataset();
+            var dataPath = DatasetUtil.GetMlNetGeneratedRegressionDataset();
             var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.MlNetGeneratedRegressionLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(dataPath);

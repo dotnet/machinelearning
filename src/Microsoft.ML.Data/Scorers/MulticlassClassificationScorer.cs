@@ -64,7 +64,8 @@ namespace Microsoft.ML.Data
         /// </summary>
         // REVIEW: It seems like the attachment of metadata should be solvable in a manner
         // less ridiculously verbose than this.
-        public sealed class LabelNameBindableMapper : ISchemaBindableMapper, ICanSaveModel, IBindableCanSavePfa, IBindableCanSaveOnnx
+        public sealed class LabelNameBindableMapper : ISchemaBindableMapper, ICanSaveModel, IBindableCanSavePfa,
+            IBindableCanSaveOnnx, IDisposable
         {
             private static readonly FuncInstanceMethodInfo1<LabelNameBindableMapper, object, Delegate> _decodeInitMethodInfo
                 = FuncInstanceMethodInfo1<LabelNameBindableMapper, object, Delegate>.Create(target => target.DecodeInit<int>);
@@ -379,6 +380,21 @@ namespace Microsoft.ML.Data
                     public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column) => Input.GetGetter<TValue>(column);
                 }
             }
+
+            #region IDisposable Support
+            private bool _disposed;
+
+            public void Dispose()
+            {
+                // TODO: Is it necessary to call the base class Dispose()?
+                if (_disposed)
+                    return;
+
+                (_bindable as IDisposable)?.Dispose();
+
+                _disposed = true;
+            }
+            #endregion
         }
 
         /// <summary>

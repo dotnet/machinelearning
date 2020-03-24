@@ -146,11 +146,9 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Multiclass Logistic Regression test.
         /// </summary>
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void MulticlassLRTest()
         {
             RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.iris, digitsOfPrecision: 4);
@@ -160,7 +158,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Multiclass Logistic Regression with non-negative coefficients test.
         /// </summary>
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         public void MulticlassLRNonNegativeTest()
@@ -317,7 +315,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for binary classifiers with non-negative coefficients
         ///</summary>
-        [LessThanNetCore30OrNotNetCoreAndX64Fact("netcoreapp3.0 and x86 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreAndX64Fact("netcoreapp3.1 and x86 output differs from Baseline")]
         [TestCategory("Binary")]
         public void BinaryClassifierLogisticRegressionNonNegativeTest()
         {
@@ -330,10 +328,8 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         [TestCategory("Binary")]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void BinaryClassifierLogisticRegressionBinNormTest()
         {
             var binaryPredictors = new[] { TestLearners.logisticRegressionBinNorm };
@@ -1599,7 +1595,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for no calibrators
         ///</summary>
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         [TestCategory("Calibrator")]
         public void DefaultCalibratorPerceptronTest()
         {
@@ -1611,7 +1607,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for PAV calibrators
         ///</summary>
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         [TestCategory("Calibrator")]
         public void PAVCalibratorPerceptronTest()
         {
@@ -1623,7 +1619,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for random calibrators
         ///</summary>
-        [LessThanNetCore30OrNotNetCoreAndX64Fact("netcoreapp3.0 and x86 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreAndX64Fact("netcoreapp3.1 and x86 output differs from Baseline")]
         [TestCategory("Calibrator")]
         public void RandomCalibratorPerceptronTest()
         {
@@ -2141,7 +2137,7 @@ output Out [3] from H all;
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         [TestCategory("Binary")]
         [TestCategory("LDSVM")]
         public void BinaryClassifierLDSvmTest()
@@ -2155,7 +2151,7 @@ output Out [3] from H all;
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         [TestCategory("Binary")]
         [TestCategory("LDSVM")]
         public void BinaryClassifierLDSvmNoBiasTest()
