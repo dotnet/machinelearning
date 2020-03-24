@@ -70,15 +70,6 @@ jobs:
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: Windows_x64_NetCoreApp21
-    buildScript: build.cmd
-    innerLoop: true
-    vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
-    pool:
-      name: Hosted VS2017
-
-- template: /build/ci/job-template.yml
-  parameters:
     name: Windows_x64_NetFx461
     buildScript: build.cmd
     customMatrixes:
