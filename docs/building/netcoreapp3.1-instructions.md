@@ -1,4 +1,4 @@
-ML.NET source code files build for .NET Core 3.1 and .NET Core 2.0. However, ML.NET test files only build on one target framework below at a time:
+ML.NET source code files build for .NET Core 3.1 and .NET Standard 2.0. However, ML.NET test files only build on one target framework below at a time:
 - .NET Core 2.1
 - .NET Core 3.1
 - .NET Framework 4.6.1
