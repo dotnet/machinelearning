@@ -29,9 +29,9 @@ namespace Microsoft.ML.Benchmarks.Tests
         protected override Job GetJobDefinition() => Job.Dry; // Job.Dry runs the benchmark just once
     }
 
-    public class BenchmarksTest : BaseTestClass
+    public class BenchmarksTest
     {
-        public BenchmarksTest(ITestOutputHelper output) : base(output)
+        public BenchmarksTest(ITestOutputHelper output) //: base(output)
         {
             this.output = output;
         }
