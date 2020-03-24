@@ -263,7 +263,7 @@ namespace Microsoft.ML.Internal.Utilities
                 {
                     var headers = webClient.ResponseHeaders.GetValues("Content-Length");
                     if (uri.Host == "aka.ms" && IsRedirectToDefaultPage(uri.AbsoluteUri))
-                        return ch.Except($"The provided url ({uri}) redirects to the default url ({DefaultUrl})");
+                        throw new NotSupportedException($"The provided url ({uri}) redirects to the default url ({DefaultUrl})");
                     if (Utils.Size(headers) == 0 || !long.TryParse(headers[0], out var size))
                         size = 10000000;
 
