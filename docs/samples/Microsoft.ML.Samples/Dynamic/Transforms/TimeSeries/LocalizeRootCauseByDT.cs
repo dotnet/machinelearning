@@ -126,7 +126,7 @@ namespace Samples.Dynamic
 
         private static DateTime GetTimestamp()
         {
-            return new DateTime();
+            return new DateTime(2020, 3, 23, 0, 0, 0);
         }
 
         private class RootCauseLocalizationData
