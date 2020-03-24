@@ -66,7 +66,7 @@ jobs:
     runSpecific: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.0"
     pool:
-      name: Hosted VS2017
+      name: MachineLearning Test
 
 # - template: /build/ci/job-template.yml
 #   parameters:
