@@ -43,12 +43,14 @@ namespace Microsoft.ML.Benchmarks
             var tfm = "net461";
             var csProj = CsProjClassicNetToolchain.Net461;
 #else
-            var tfm = NetCoreAppSettings.Current.Value.TargetFrameworkMoniker;
-            var csProj = CsProjCoreToolchain.Current.Value;
+            var tfm = AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") == null ? 
+                NetCoreAppSettings.NetCoreApp31.TargetFrameworkMoniker : NetCoreAppSettings.NetCoreApp21.TargetFrameworkMoniker;
+            var csProj = AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") == null ? 
+                CsProjCoreToolchain.NetCoreApp31 : CsProjCoreToolchain.NetCoreApp21;
 #endif
             return new Toolchain(
                 tfm,
-                new ProjectGenerator(tfm), // custom generator that copies native dependencies
+                new ProjectGenerator("netcoreapp3.1"), // custom generator that copies native dependencies
                 csProj.Builder,
                 csProj.Executor);
         }
