@@ -978,11 +978,13 @@ namespace Microsoft.ML.Trainers
         private bool SaveAsOnnxCore(OnnxContext ctx, string[] outputs, string featureColumn)
         {
             Host.CheckValue(ctx, nameof(ctx));
+            Host.Assert(outputs[0] == DefaultColumnNames.PredictedLabel);
+            Host.Assert(outputs[1] == DefaultColumnNames.Score);
 
-            string labels = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "Labels", true);
+            string classifierLabelOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "ClassifierLabelOutput", true);
 
             string opType = "LinearClassifier";
-            var node = ctx.CreateNode(opType, new[] { featureColumn }, new[] { labels, outputs[1] }, ctx.GetNodeName(opType));
+            var node = ctx.CreateNode(opType, new[] { featureColumn }, new[] { classifierLabelOutput, outputs[1] }, ctx.GetNodeName(opType));
             node.AddAttribute("post_transform", GetOnnxPostTransform());
             node.AddAttribute("multi_class", true);
             node.AddAttribute("coefficients", Weights.SelectMany(w => w.DenseValues()));
@@ -991,7 +993,7 @@ namespace Microsoft.ML.Trainers
 
             opType = "Unsqueeze";
             var unsqueezeOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, "CastNodeOutput");
-            var unsqueezeNode = ctx.CreateNode(opType, labels, unsqueezeOutput, ctx.GetNodeName(opType), "");
+            var unsqueezeNode = ctx.CreateNode(opType, classifierLabelOutput, unsqueezeOutput, ctx.GetNodeName(opType), "");
             unsqueezeNode.AddAttribute("axes", new long[] { 1 });
 
             // Onnx outputs an Int64, but ML.NET outputs UInt32. So cast the Onnx output here
