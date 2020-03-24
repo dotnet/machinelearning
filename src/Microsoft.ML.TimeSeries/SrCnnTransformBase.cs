@@ -224,7 +224,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 }
                 else if (_parent.OutputLength == 7)
                 {
-                    _slotNames = new VBuffer<ReadOnlyMemory<char>>(_parent.OutputLength, new[] { "Alert".AsMemory(), "Anomaly Score".AsMemory(), "Mag".AsMemory(),
+                    _slotNames = new VBuffer<ReadOnlyMemory<char>>(_parent.OutputLength, new[] { "Is Anomaly".AsMemory(), "Anomaly Score".AsMemory(), "Mag".AsMemory(),
                         "Expected Value".AsMemory(), "Boundary Unit".AsMemory(), "Upper Boundary".AsMemory(), "Lower Boundary".AsMemory() });
                 }
                 State = (SrCnnStateBase)_parent.StateRef;

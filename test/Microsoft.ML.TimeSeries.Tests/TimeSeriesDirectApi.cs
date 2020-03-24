@@ -543,7 +543,7 @@ namespace Microsoft.ML.Tests
             string inputColumnName = nameof(TimeSeriesData.Value);
 
             // The transformed data.
-            var transformedData = ml.Transforms.DetectAnomalyBySrCnn(outputColumnName, inputColumnName, 16, 5, 5, 3, 8, 0.35, SrCnnDetectMode.AnomalyAndMargin, 98.0).Fit(dataView).Transform(dataView);
+            var transformedData = ml.Transforms.DetectAnomalyBySrCnn(outputColumnName, inputColumnName, 16, 5, 5, 3, 8, 0.35, SrCnnDetectMode.AnomalyAndMargin, 90.0).Fit(dataView).Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of SrCnnAnomalyDetection.
             var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetection>(transformedData, reuseRowObject: false);
@@ -553,7 +553,13 @@ namespace Microsoft.ML.Tests
             {
                 Assert.Equal(7, prediction.Prediction.Length);
                 if (k == 20)
+                {
                     Assert.Equal(1, prediction.Prediction[0]);
+                    Assert.Equal("5.00", prediction.Prediction[3].ToString("0.00"));
+                    Assert.Equal("5.00", prediction.Prediction[4].ToString("0.00"));
+                    Assert.Equal("5.01", prediction.Prediction[5].ToString("0.00"));
+                    Assert.Equal("4.99", prediction.Prediction[6].ToString("0.00"));
+                }
                 else
                     Assert.Equal(0, prediction.Prediction[0]);
                 k += 1;
