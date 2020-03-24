@@ -11,7 +11,7 @@ using Microsoft.ML.Trainers;
 
 namespace micro
 {
-    [CoreJob]
+    [SimpleJob]
     public class TextPredictionEngineCreationBenchmark
     {
         private MLContext _context;

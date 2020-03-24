@@ -50,7 +50,7 @@
 
   <!-- Test-only Dependencies -->
   <PropertyGroup>
-    <BenchmarkDotNetVersion>0.11.3</BenchmarkDotNetVersion>
+    <BenchmarkDotNetVersion>0.12.0</BenchmarkDotNetVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.20080.1</MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftMLTestDatabasesPackageVersion>0.0.5-test</MicrosoftMLTestDatabasesPackageVersion>
     <MicrosoftMLTestModelsPackageVersion>0.0.6-test</MicrosoftMLTestModelsPackageVersion>
