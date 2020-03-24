@@ -88,6 +88,11 @@ namespace Microsoft.ML.Internal.Utilities
         /// Returns a <see cref="Task"/> that tries to download a resource from a specified url, and returns the path to which it was
         /// downloaded, and an exception if one was thrown.
         /// </summary>
+        /// <remarks>
+        /// The function <see cref="ResourceManagerUtils.DownloadResource"/> checks whether or not the absolute URL with the
+        /// default host "aka.ms" formed from <paramref name="relativeUrl"/> redirects to the default Microsoft homepage.
+        /// As such, only absolute URLs with the host "aka.ms" is supported with <see cref="ResourceManagerUtils.EnsureResourceAsync"/>.
+        /// </remarks>
         /// <param name="env">The host environment.</param>
         /// <param name="ch">A channel to provide information about the download.</param>
         /// <param name="relativeUrl">The relative url from which to download.
@@ -109,6 +114,8 @@ namespace Microsoft.ML.Internal.Utilities
                 return new ResourceDownloadResults(filePath,
                     $"Could not create a valid URI from the base URI '{MlNetResourcesUrl}' and the relative URI '{relativeUrl}'");
             }
+            if (absoluteUrl.Host != "aka.ms")
+                throw new NotSupportedException("The function ResourceManagerUtils.EnsureResourceAsync only supports downloading from URLs of the host \"aka.ms\"");
             return new ResourceDownloadResults(filePath,
                 await DownloadFromUrlWithRetryAsync(env, ch, absoluteUrl.AbsoluteUri, fileName, timeout, filePath), absoluteUrl.AbsoluteUri);
         }
