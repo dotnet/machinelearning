@@ -702,17 +702,17 @@ namespace Microsoft.ML.Transforms.Onnx
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Known-sized vector of <xref:System.Single> or <xref:System.Double> types |
     /// | Output column data type | As specified by the ONNX model |
-    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.OnnxTransformer (always),  Microsoft.ML.OnnxRuntime.Gpu (only if GPU processing is used) |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.OnnxTransformer (always),  either Microsoft.ML.OnnxRuntime 1.2.0 (for CPU processing) or Microsoft.ML.OnnxRuntime.Gpu 1.2.0 (only if GPU processing is desired) |
     /// | Exportable to ONNX | No |
     ///
-    /// Supports inferencing of models in ONNX 1.2 and 1.3 format (opset 7, 8 and 9), using the
-    /// [Microsoft.ML.OnnxRuntime](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/) library.
+    /// Supports inferencing of models in ONNX 1.6 format (opset 11), using the
+    /// [Microsoft.ML.OnnxRuntime](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/) library (version 1.2.0).
     /// Models are scored on CPU by default. If GPU execution is needed (optional), use the
-    /// NuGet package available at [Microsoft.ML.OnnxRuntime.Gpu](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/)
-    /// and download [CUDA 9.1 Toolkit](https://developer.nvidia.com/cuda-downloads) and [cuDNN](https://developer.nvidia.com/cudnn).
+    /// NuGet package available at [Microsoft.ML.OnnxRuntime.Gpu](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/) 1.2.0 instead
+    /// and download [CUDA Toolkit](https://developer.nvidia.com/cuda-downloads) and [cuDNN](https://developer.nvidia.com/cudnn) (use the versions indicated on [Onnxruntime's documentation](https://github.com/Microsoft/onnxruntime#default-gpu-cuda)).
     /// Set parameter 'gpuDeviceId' to a valid non-negative integer. Typical device ID values are 0 or 1.
     /// The inputs and outputs of the ONNX models must be Tensor type. Sequence and Maps are not yet supported.
-    /// OnnxRuntime currently works on Windows and Ubuntu 16.04 Linux 64-bit platforms. Mac OS to be supported soon.
+    /// OnnxRuntime works on Windows, MacOS and Ubuntu 16.04 Linux 64-bit platforms.
     /// Visit [ONNX Models](https://github.com/onnx/models) to see a list of readily available models to get started with.
     /// Refer to [ONNX](http://onnx.ai) for more information.
     ///
