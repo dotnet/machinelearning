@@ -1,4 +1,4 @@
-ML.NET now builds for .NET Core 3.0 by default. However to run tests on .NET Core 3.0, you need to do a few manual steps.
+ML.NET now builds for .NET Core 3.1 by default. However to run tests on .NET Core 3.1, you need to do a few manual steps.
 
 1. Run `.\build.cmd -- /p:Configuration=Release-netcoreapp3_1` or `.\build.cmd -Release-netcoreapp3_1` from the root of the repo.
 2. If you want to build the NuGet packages, `.\build.cmd -buildPackages` after step 1.

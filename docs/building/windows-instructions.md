@@ -5,11 +5,11 @@ You can build ML.NET either via the command line or by using Visual Studio.
 
 ## Required Software
 
-1. **[Visual Studio 2019 Version 16.3](https://www.visualstudio.com/downloads/) (Community, Professional, Enterprise)** The Community version is completely free. The below build instructions were verified for VS 16.3.
+1. **[Visual Studio 2019 Version 16.4+](https://www.visualstudio.com/downloads/) (Community, Professional, Enterprise)** The Community version is completely free. The below build instructions were verified for VS 16.4.
 2. **[CMake](https://cmake.org/)** must be installed from [the CMake download page](https://cmake.org/download/#latest) and added to your path.
 
 ### Visual Studio 2019 Installation
-We have successfully verified the below build instructions for Visual Studio version 16.3 and higher. 
+We have successfully verified the below build instructions for Visual Studio version 16.4 and higher. 
 
 #### Visual Studio 2019 - 'Workloads' based install
 
@@ -28,7 +28,7 @@ The following are the minimum requirements:
 
 The following are the minimum requirements:
   * C# and Visual Basic Roslyn Compilers
-  * .NET Core 3.0 SDK
+  * .NET Core 3.1 SDK
   * Static Analysis Tools
   * .NET Portable Library Targeting Pack
   * Visual Studio C++ Core Features
