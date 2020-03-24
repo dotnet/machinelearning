@@ -115,8 +115,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
         {
             return new VersionInfo(
                 modelSignature: "SRCNTRNS",
-                verWrittenCur: 0x00010001, // Initial
-                verReadableCur: 0x00010001,
+                verWrittenCur: 0x00010010, // Initial
+                verReadableCur: 0x00010010,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(SrCnnAnomalyDetector).Assembly.FullName);

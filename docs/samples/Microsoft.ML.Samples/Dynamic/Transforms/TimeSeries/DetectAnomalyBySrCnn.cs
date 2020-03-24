@@ -94,6 +94,7 @@ namespace Samples.Dynamic
             // Load the model.
             using (var file = File.OpenRead(modelPath))
                 model = ml.Model.Load(file, out DataViewSchema schema);
+            engine = model.CreateTimeSeriesEngine<TimeSeriesData, SrCnnAnomalyDetection>(ml);
 
             for (int index = 0; index < 5; index++)
             {

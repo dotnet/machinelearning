@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
@@ -368,10 +369,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                         {
                             safeDivisor = 1e-8;
                         }
-                        var score = (Math.Abs(magList[i] - avgMagList[i]) / safeDivisor) / 10.0f;
-                        score = Math.Min(score, 1);
-                        score = Math.Max(score, 0);
-                        if (score > 0.25f)
+                        var score = (Math.Abs((double)magList[i] - (double)avgMagList[i]) / safeDivisor);
+                        if (score > 3.5f)
                         {
                             anomalyIdxList.Add(i);
                         }
@@ -382,6 +381,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
                 private List<Double> GetDeanomalyData(List<Double> data, List<int> anomalyIdxList)
                 {
+                    //Console.WriteLine("data: " + string.Join(",", data));
                     List<Double> deAnomalyData = new List<Double>(data);
                     int minPointsToFit = 4;
                     foreach (var idx in anomalyIdxList)
@@ -426,15 +426,15 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 private double CalculateInterplate(List<Tuple<int, double>> values, int idx)
                 {
                     var n = values.Count;
-                    var sumX = values.Sum(item => item.Item1);
-                    var sumY = values.Sum(item => item.Item2);
-                    var sumXX = values.Sum(item => item.Item1 * item.Item1);
-                    var sumXY = values.Sum(item => item.Item1 * item.Item2);
+                    double sumX = values.Sum(item => item.Item1);
+                    double sumY = values.Sum(item => item.Item2);
+                    double sumXX = values.Sum(item => item.Item1 * item.Item1);
+                    double sumXY = values.Sum(item => item.Item1 * item.Item2);
 
-                    var a = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
-                    var b = (sumXX * sumY - sumX * sumXY) / (n * sumXX - sumX * sumX);
+                    var a = ((double)n * sumXY - sumX * sumY) / ((double)n * sumXX - sumX * sumX);
+                    var b = (sumXX * sumY - sumX * sumXY) / ((double)n * sumXX - sumX * sumX);
 
-                    return a * idx + b;
+                    return a * (double)idx + b;
                 }
 
                 private double CalculateExpectedValueByFft(List<double> data)
@@ -458,23 +458,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     FftUtils.ComputeBackwardFft(fftRe, fftIm, ifftRe, ifftIm, length);
 
                     return ifftRe[length-1];
-                }
-
-                private Single CalculateExpectedValueBySsa(List<Single> data)
-                {
-                    var ml = new MLContext();
-
-                    var tsData = data.Select(x => new TimeSeriesData(x)).ToList();
-                    var dataView = ml.Data.LoadFromEnumerable(tsData);
-
-                    var inputColumnName = nameof(TimeSeriesData.Value);
-                    var outputColumnName = nameof(ForecastResult.Forecast);
-                    var model = ml.Forecasting.ForecastBySsa(outputColumnName, inputColumnName, tsData.Count / 3, tsData.Count, tsData.Count, 1);
-                    var transformer = model.Fit(dataView);
-                    var forecastEngine = transformer.CreateTimeSeriesEngine<TimeSeriesData, ForecastResult>(ml);
-                    var forecast = forecastEngine.Predict();
-
-                    return forecast.Forecast[0];
                 }
 
                 private double CalculateBoundaryUnit(List<Double> data)

@@ -47,14 +47,14 @@ namespace Samples.Dynamic.Transforms.TimeSeries
             Console.WriteLine($"{outputColumnName} column obtained post-" +
                 $"transformation.");
 
-            Console.WriteLine("Data\tAlert\tAnomalyScore\tMag\tExpectedValue\tBoundaryUnit\tUpperBoundary\tLowerBoundary");
+            Console.WriteLine("Data\tAnomaly\tAnomalyScore\tMag\tExpectedValue\tBoundaryUnit\tUpperBoundary\tLowerBoundary");
 
             int k = 0;
             foreach (var prediction in predictionColumn)
                 PrintPrediction(data[k++].Value, prediction);
 
             //Prediction column obtained post-transformation.
-            // Data	Alert	Score	            Mag ExpectedValue   BoundaryUnit    UpperBoundary   LowerBoundary
+            //Data	Anomaly   AnomalyScore    Mag ExpectedValue   BoundaryUnit    UpperBoundary   LowerBoundary
             //5       0       0.00            0.00    0.00            0.00            0.00            0.00
             //5       0       0.00            0.00    0.00            0.00            0.00            0.00
             //5       0       0.00            0.00    0.00            0.00            0.00            0.00
@@ -76,8 +76,8 @@ namespace Samples.Dynamic.Transforms.TimeSeries
             //5       0       0.00            0.18    5.00            5.00            5.01            4.99
             //5       0       0.00            0.18    5.00            5.00            5.01            4.99
             //10      1       0.50            0.93    5.00            5.00            5.01            4.99
-            //5       0       0.00            0.50    5.00            5.00            5.01            4.99
-            //5       0       0.00            0.30    5.00            5.00            5.01            4.99
+            //5       0       0.00            0.50    5.89            5.00            5.90            5.88
+            //5       0       0.00            0.30    4.25            5.00            4.26            4.24
             //5       0       0.00            0.23    5.00            5.00            5.01            4.99
             //5       0       0.00            0.21    5.00            5.00            5.01            4.99
             //5       0       0.00            0.25    5.00            5.00            5.01            4.99

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Threading;
 using Microsoft.ML.CommandLine;
@@ -111,6 +112,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 Sensitivity = sensitivity;
                 OutputLength = 7;
             }
+            SrCnnDetectMode = srCnnDetectMode;
         }
 
         private protected SrCnnTransformBase(IHostEnvironment env, ModelLoadContext ctx, string name)
@@ -136,15 +138,25 @@ namespace Microsoft.ML.Transforms.TimeSeries
             AlertThreshold = ctx.Reader.ReadDouble();
             Host.CheckDecode(AlertThreshold >= 0 && AlertThreshold <= 1);
 
-            temp = ctx.Reader.ReadByte();
-            SrCnnDetectMode = (SrCnnDetectMode)temp;
+            if (ctx.Header.ModelVerWritten >= 0x00010010)
+            {
+                temp = ctx.Reader.ReadByte();
+                SrCnnDetectMode = (SrCnnDetectMode)temp;
 
-            Sensitivity = ctx.Reader.ReadDouble();
-            Host.CheckDecode(Sensitivity >= 0 && Sensitivity <= 100);
+                Sensitivity = ctx.Reader.ReadDouble();
+                Host.CheckDecode(Sensitivity >= 0 && Sensitivity <= 100);
 
-            temp = ctx.Reader.ReadByte();
-            OutputLength = (int)temp;
-            Host.CheckDecode(OutputLength == 3 || OutputLength == 7);
+                temp = ctx.Reader.ReadByte();
+                OutputLength = (int)temp;
+                Host.CheckDecode(OutputLength == 3 || OutputLength == 7);
+            }
+            else
+            {
+                SrCnnDetectMode = SrCnnDetectMode.AnomalyOnly;
+                Sensitivity = 0;
+                OutputLength = 3;
+            }
+
         }
 
         private protected SrCnnTransformBase(SrCnnArgumentBase args, string name, IHostEnvironment env)

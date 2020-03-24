@@ -50,10 +50,10 @@ namespace Samples.Dynamic.Transforms.TimeSeries
             Console.WriteLine($"{outputColumnName} column obtained post-" +
                 $"transformation.");
 
-            Console.WriteLine("Data\tAlert\tAnomalyScore\tMag\tExpectedValue\tBoundaryUnit\tUpperBoundary\tLowerBoundary");
+            Console.WriteLine("Data\tAnomaly\tAnomalyScore\tMag\tExpectedValue\tBoundaryUnit\tUpperBoundary\tLowerBoundary");
 
             // Prediction column obtained post-transformation.
-            // Data	Alert	Score	        Mag ExpectedValue   BoundaryUnit    UpperBoundary   LowerBoundary
+            //Data	Anomaly   AnomalyScore    Mag ExpectedValue   BoundaryUnit    UpperBoundary   LowerBoundary
 
             // Create non-anomalous data and check for anomaly.
             for (int index = 0; index < 20; index++)
@@ -86,7 +86,7 @@ namespace Samples.Dynamic.Transforms.TimeSeries
             // Anomaly.
             PrintPrediction(10, engine.Predict(new TimeSeriesData(10)));
 
-            //10      1       0.50            0.93    5.00            5.00            5.01            4.99  < -- alert is on, predicted anomaly
+            //10      1       0.50            0.93    5.00            5.00            5.01            4.99  < -- predicted anomaly, and margin is [4.99,5.01], when value out of this range, should be an alert
 
             // Checkpoint the model.
             var modelPath = "temp.zip";
@@ -95,6 +95,7 @@ namespace Samples.Dynamic.Transforms.TimeSeries
             // Load the model.
             using (var file = File.OpenRead(modelPath))
                 model = ml.Model.Load(file, out DataViewSchema schema);
+            engine = model.CreateTimeSeriesEngine<TimeSeriesData, SrCnnAnomalyDetection>(ml);
 
             for (int index = 0; index < 5; index++)
             {
@@ -102,8 +103,8 @@ namespace Samples.Dynamic.Transforms.TimeSeries
                 PrintPrediction(5, engine.Predict(new TimeSeriesData(5)));
             }
 
-            //5       0       0.00            0.50    5.00            5.00            5.01            4.99
-            //5       0       0.00            0.30    5.00            5.00            5.01            4.99
+            //5       0       0.00            0.50    5.89            5.00            5.90            5.88
+            //5       0       0.00            0.30    4.25            5.00            4.26            4.24
             //5       0       0.00            0.23    5.00            5.00            5.01            4.99
             //5       0       0.00            0.21    5.00            5.00            5.01            4.99
             //5       0       0.00            0.25    5.00            5.00            5.01            4.99
