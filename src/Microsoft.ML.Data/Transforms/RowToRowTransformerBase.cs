@@ -37,18 +37,14 @@ namespace Microsoft.ML.Data
         [BestFriend]
         private protected abstract IRowMapper MakeRowMapper(DataViewSchema schema);
 
-        public DataViewSchema GetOutputSchema(DataViewSchema inputSchema) => GetOutputSchemaCore(inputSchema);
-
-        protected virtual DataViewSchema GetOutputSchemaCore(DataViewSchema inputSchema)
+        public DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             var mapper = MakeRowMapper(inputSchema);
             return RowToRowMapperTransform.GetOutputSchema(inputSchema, mapper);
         }
 
-        public IDataView Transform(IDataView input) => MakeDataTransformCore(input);
-
-        private protected virtual IDataView MakeDataTransformCore(IDataView input) => MakeDataTransform(input);
+        public IDataView Transform(IDataView input) => MakeDataTransform(input);
 
         [BestFriend]
         private protected RowToRowMapperTransform MakeDataTransform(IDataView input)
