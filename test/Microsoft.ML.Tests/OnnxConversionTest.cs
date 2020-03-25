@@ -1743,7 +1743,9 @@ namespace Microsoft.ML.Tests
                 var onnxResult = onnxTransformer.Transform(dataView);
 
                 // Verify that onnx output has only the four columns we selected from the input
+                // And the the output of the onnxmodel has the same length as the output schema
                 Assert.Equal(4, outputNames.Length);
+                Assert.Equal(outputNames.Length, onnxResult.Schema.Count);
                 Assert.Equal("Size.output", outputNames[0]);
                 Assert.Equal("Shape.output", outputNames[1]);
                 Assert.Equal("Thickness.output", outputNames[2]);
