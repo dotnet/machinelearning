@@ -365,12 +365,6 @@ namespace Microsoft.ML.Tests
             [ImageType(Height, Width)]
             public Bitmap Image { get; set; }
 
-            /// <summary>
-            /// Output of ONNX model. It contains probabilities of all classes.
-            /// </summary>
-            [ColumnName("softmaxout_1")]
-            public float[] Scores { get; set; }
-
             public ImageDataPoint()
             {
                 Image = null;
@@ -383,6 +377,15 @@ namespace Microsoft.ML.Tests
                     for (int j = 0; j < Height; ++j)
                         Image.SetPixel(i, j, color);
             }
+        }
+
+        private class OutputImageDataPoint
+        {
+            /// <summary>
+            /// Output of ONNX model. It contains probabilities of all classes.
+            /// </summary>
+            [ColumnName("softmaxout_1")]
+            public float[] Scores { get; set; }
         }
 
         /// <summary>
@@ -416,7 +419,7 @@ namespace Microsoft.ML.Tests
             // Convert IDataView back to IEnumerable<ImageDataPoint> so that user can inspect the output, column "softmaxout_1", of the ONNX transform.
             // Note that Column "softmaxout_1" would be stored in ImageDataPont.Scores because the added attributed [ColumnName("softmaxout_1")]
             // tells that ImageDataPont.Scores is equivalent to column "softmaxout_1".
-            var transformedDataPoints = ML.Data.CreateEnumerable<ImageDataPoint>(onnx, false).ToList();
+            var transformedDataPoints = ML.Data.CreateEnumerable<OutputImageDataPoint>(onnx, false).ToList();
 
             // The scores are probabilities of all possible classes, so they should all be positive.
             foreach (var dataPoint in transformedDataPoints)
