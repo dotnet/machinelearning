@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Loggers;
@@ -49,10 +50,15 @@ namespace Microsoft.ML.Benchmarks.Tests
 
         [BenchmarkTheory]
         [MemberData(nameof(GetBenchmarks))]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void BenchmarksProjectIsNotBroken(Type type)
         {
+            // TODO: [TEST_STABILITY]: Benchmark test sometime hangs on windows of dotnet core 3.1
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
+                AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
+            {
+                return;
+            }
+
             var summary = BenchmarkRunner.Run(type, new TestConfig().With(new OutputLogger(output)));
 
             Assert.False(summary.HasCriticalValidationErrors, "The \"Summary\" should have NOT \"HasCriticalValidationErrors\"");

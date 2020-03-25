@@ -147,6 +147,7 @@ jobs:
         sourceFolder: $(Build.SourcesDirectory)
         contents: |
           *.dmp
+          CrashDumps/*.dmp
           bin/**/*.pdb
         targetFolder: $(Build.ArtifactStagingDirectory)
     - task: PublishBuildArtifacts@1
