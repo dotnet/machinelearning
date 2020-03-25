@@ -43,9 +43,6 @@ namespace Microsoft.ML.Data.IO
             [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The number of worker decompressor threads to use", ShortName = "t")]
             public int? Threads;
 
-            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "If specified, the name of a column to generate and append, providing a U8 key-value indicating the index of the row within the binary file", ShortName = "rowIndex", Hide = true)]
-            public string RowIndexName;
-
             // REVIEW: Is this the right knob? The other thing we could do is have a bound on number
             // of MB, based on an analysis of average block size.
             [Argument(ArgumentType.LastOccurrenceWins, HelpText = "When shuffling, the number of blocks worth of data to keep in the shuffle pool. " +
@@ -755,8 +752,9 @@ namespace Microsoft.ML.Data.IO
                 modelSignature: "BINLOADR",
                 //verWrittenCur: 0x00010001, // Initial
                 //verWrittenCur: 0x00010002, // Generated row index column
-                verWrittenCur: 0x00010003, // Number of blocks to put in the shuffle pool
-                verReadableCur: 0x00010003,
+                //verWrittenCur: 0x00010003, // Number of blocks to put in the shuffle pool
+                verWrittenCur: 0x00010004, // Row index column no longer being generated
+                verReadableCur: 0x00010004,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(BinaryLoader).Assembly.FullName);
@@ -783,7 +781,7 @@ namespace Microsoft.ML.Data.IO
                 _header = InitHeader();
                 _autodeterminedThreads = args.Threads == null;
                 _threads = Math.Max(1, args.Threads ?? (Environment.ProcessorCount / 2));
-                _generatedRowIndexName = string.IsNullOrWhiteSpace(args.RowIndexName) ? null : args.RowIndexName;
+                _generatedRowIndexName = null;
                 InitToc(ch, out _aliveColumns, out _deadColumns, out _rowsPerBlock, out _tocEndLim);
                 _outputSchema = ComputeOutputSchema();
                 _host.Assert(_outputSchema.Count == Utils.Size(_aliveColumns));
@@ -852,8 +850,11 @@ namespace Microsoft.ML.Data.IO
                         _threads = Math.Max(1, Environment.ProcessorCount / 2);
                     }
 
-                    _generatedRowIndexName = ctx.LoadStringOrNull();
-                    ch.CheckDecode(_generatedRowIndexName == null || !string.IsNullOrWhiteSpace(_generatedRowIndexName));
+                    if (ctx.Header.ModelVerWritten == 0x00010002 || ctx.Header.ModelVerWritten == 0x00010003)
+                    {
+                        _generatedRowIndexName = ctx.LoadStringOrNull();
+                        ch.CheckDecode(_generatedRowIndexName == null || !string.IsNullOrWhiteSpace(_generatedRowIndexName));
+                    }
                 }
                 else
                 {
@@ -948,7 +949,7 @@ namespace Microsoft.ML.Data.IO
             ctx.SetVersionInfo(GetVersionInfo());
 
             _host.Assert(_threads >= 1);
-            SaveParameters(ctx, _autodeterminedThreads ? 0 : _threads, _generatedRowIndexName, _shuffleBlocks);
+            SaveParameters(ctx, _autodeterminedThreads ? 0 : _threads, _shuffleBlocks);
 
             int[] unsavable;
             SaveSchema(_host, ctx, Schema, out unsavable);
@@ -959,18 +960,15 @@ namespace Microsoft.ML.Data.IO
         /// Write the parameters of a loader to the save context. Can be called by <see cref="SaveInstance"/>, where there's no actual
         /// loader, only default parameters.
         /// </summary>
-        private static void SaveParameters(ModelSaveContext ctx, int threads, string generatedRowIndexName, Double shuffleBlocks)
+        private static void SaveParameters(ModelSaveContext ctx, int threads, Double shuffleBlocks)
         {
             // *** Binary format **
             // int: Number of threads if explicitly defined, or 0 if the
             //      number of threads was automatically determined
-            // int: Id of the generated row index name (can be null)
             // Double: The randomness coefficient.
 
             Contracts.Assert(threads >= 0);
             ctx.Writer.Write(threads);
-            Contracts.Assert(generatedRowIndexName == null || !string.IsNullOrWhiteSpace(generatedRowIndexName));
-            ctx.SaveStringOrNull(generatedRowIndexName);
             Contracts.Assert(0 <= shuffleBlocks);
             ctx.Writer.Write(shuffleBlocks);
         }
@@ -1022,7 +1020,7 @@ namespace Microsoft.ML.Data.IO
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
-            SaveParameters(ctx, 0, null, _defaultShuffleBlocks);
+            SaveParameters(ctx, 0, _defaultShuffleBlocks);
 
             int[] unsavable;
             SaveSchema(env, ctx, schema, out unsavable);
@@ -1152,11 +1150,6 @@ namespace Microsoft.ML.Data.IO
                 }
             }
             tocEndOffset = _stream.Position;
-            if (_generatedRowIndexName != null)
-            {
-                ch.Trace("Creating generated column to hold row index, named '{0}'", _generatedRowIndexName);
-                aliveList.Add(CreateRowIndexEntry(_generatedRowIndexName));
-            }
             aliveColumns = aliveList.ToArray();
             deadColumns = deadList.ToArray();
         }
@@ -1196,25 +1189,6 @@ namespace Microsoft.ML.Data.IO
                 poolSize = _header.RowCount;
             poolRows = checked((int)poolSize);
             ch.Trace("Implicit shuffle will have pool size {0}", poolRows);
-        }
-
-        private TableOfContentsEntry CreateRowIndexEntry(string rowIndexName)
-        {
-            _host.Assert(!string.IsNullOrWhiteSpace(rowIndexName));
-            // REVIEW: Having a row count of 0 means that there are no valid output key values here,
-            // so this should be a key with *genuinely* a count of 0. However, a count of a key of 0 means
-            // that the key length is unknown, which also causes an error with KeyDataViewType, as in this case
-            // a count of 0 is not allowed. So count is set to 1 to avoid this error.
-            ulong count;
-            if (_header.RowCount == 0)
-                count = 1;
-            else
-                count = (ulong)_header.RowCount <= ulong.MaxValue ? (ulong)_header.RowCount : 0;
-            KeyDataViewType type = new KeyDataViewType(typeof(ulong), count);
-            // We are mapping the row index as expressed as a long, into a key value, so we must increment by one.
-            ValueMapper<long, ulong> mapper = (in long src, ref ulong dst) => dst = (ulong)(src + 1);
-            var entry = new TableOfContentsEntry(this, rowIndexName, type, mapper);
-            return entry;
         }
 
         private DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
