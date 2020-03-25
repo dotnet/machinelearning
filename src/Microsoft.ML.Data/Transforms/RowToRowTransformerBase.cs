@@ -28,7 +28,9 @@ namespace Microsoft.ML.Data
 
         bool ITransformer.IsRowToRowMapper => true;
 
-        IRowToRowMapper ITransformer.GetRowToRowMapper(DataViewSchema inputSchema)
+        IRowToRowMapper ITransformer.GetRowToRowMapper(DataViewSchema inputSchema) => GetRowToRowMapperCore(inputSchema);
+
+        protected virtual IRowToRowMapper GetRowToRowMapperCore(DataViewSchema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             return new RowToRowMapperTransform(Host, new EmptyDataView(Host, inputSchema), MakeRowMapper(inputSchema), MakeRowMapper);

@@ -340,7 +340,16 @@ namespace Microsoft.ML.Transforms.Onnx
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema inputSchema) => new Mapper(this, inputSchema);
 
-        protected override DataViewSchema GetOutputSchemaCore(DataViewSchema inputSchema) => OutputSchema;
+        protected override IRowToRowMapper GetRowToRowMapperCore(DataViewSchema inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+            return new OnnxDataTransform(Host, new EmptyDataView(Host, inputSchema), new Mapper(this, inputSchema));
+        }
+
+        protected override DataViewSchema GetOutputSchemaCore(DataViewSchema inputSchema)
+        {
+            return new OnnxDataTransform(Host, new EmptyDataView(Host, inputSchema), new Mapper(this, inputSchema)).OutputSchema;
+        }
 
         private protected override IDataView MakeDataTransformCore(IDataView input)
         {
@@ -378,7 +387,10 @@ namespace Microsoft.ML.Transforms.Onnx
             /// </summary>
             private readonly Type[] _inputOnnxTypes;
 
-            public DataViewSchema OutputSchema => _parent.GetOutputSchema(InputSchema);
+            private readonly DataViewSchema _outputSchema;
+
+            //public DataViewSchema OutputSchema => _parent.GetOutputSchema(InputSchema);
+            public DataViewSchema OutputSchema => _outputSchema;
 
             public Mapper(OnnxTransformer parent, DataViewSchema inputSchema) :
                  base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema, parent)
@@ -430,6 +442,8 @@ namespace Microsoft.ML.Transforms.Onnx
                     if (typeValueCount % valCount != 0)
                         throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {String.Join(",", inputShape)}, but input data is of length {typeValueCount}.");
                 }
+
+                _outputSchema = GetOutputSchema();
             }
 
             public DataViewSchema.DetachedColumn[] GetOutputColumns() => GetOutputColumnsCore();
@@ -449,6 +463,15 @@ namespace Microsoft.ML.Transforms.Onnx
                     info[i] = new DataViewSchema.DetachedColumn(columnName, _parent.OutputTypes[i], builder.ToAnnotations());
                 }
                 return info;
+            }
+
+            private DataViewSchema GetOutputSchema()
+            {
+                var infos = GetOutputColumnsCore();
+                var schemaBuilder = new DataViewSchema.Builder();
+                schemaBuilder.AddColumns(infos);
+
+                return schemaBuilder.ToSchema();
             }
 
             private void AddSlotNames(string columnName, DataViewSchema.Annotations.Builder builder)
@@ -856,7 +879,7 @@ namespace Microsoft.ML.Transforms.Onnx
                     _active = active;
                 }
 
-                public override DataViewSchema Schema => _parent._mapper.OutputSchema;
+                public override DataViewSchema Schema => _parent.OutputSchema;
 
                 public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
                 {
@@ -965,7 +988,6 @@ namespace Microsoft.ML.Transforms.Onnx
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             var result = inputSchema.ToDictionary(x => x.Name);
-            var resultDic = inputSchema.ToDictionary(x => x.Name);
 
             // This loop checks if all input columns needed in the underlying transformer can be found
             // in inputSchema.
@@ -995,6 +1017,7 @@ namespace Microsoft.ML.Transforms.Onnx
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());
             }
 
+            var resultDic = new Dictionary<string, SchemaShape.Column>();
             for (var i = 0; i < Transformer.Outputs.Length; i++)
             {
                 resultDic[Transformer.Outputs[i]] = new SchemaShape.Column(Transformer.Outputs[i],
