@@ -21,6 +21,9 @@ namespace Namespace.ConsoleApp
 			var predictionResult = ConsumeModel.Predict(sampleData);
 
 			Console.WriteLine("Using model to make single prediction -- Comparing actual LabelName with predicted LabelName from sample data...\n\n");
+			Console.WriteLine($"key1: {sampleData.key1}");
+			Console.WriteLine($"key2: {sampleData.key2}");
+			Console.WriteLine($"key3: {sampleData.key3}");
             Console.WriteLine("=============== End of process, hit any key to finish ===============");
             Console.ReadKey();
         }

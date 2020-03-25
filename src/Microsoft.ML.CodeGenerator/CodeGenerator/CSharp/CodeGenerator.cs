@@ -432,8 +432,6 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         private string GeneratePredictProgramCSFileContent(string namespaceValue)
         {
-            var columns = _columnInferenceResult.TextLoaderOptions.Columns;
-            var featuresList = columns.Where((str) => str.Name != _settings.LabelName).Select((str) => str.Name).ToList();
             var sampleData = Utils.GenerateSampleData(_settings.TrainDataset, _columnInferenceResult);
             PredictProgram predictProgram = new PredictProgram()
             {
@@ -444,7 +442,6 @@ namespace Microsoft.ML.CodeGenerator.CSharp
                 Separator = _columnInferenceResult.TextLoaderOptions.Separators.FirstOrDefault(),
                 AllowQuoting = _columnInferenceResult.TextLoaderOptions.AllowQuoting,
                 AllowSparse = _columnInferenceResult.TextLoaderOptions.AllowSparse,
-                Features = featuresList,
                 Target = _settings.Target,
                 SampleData = sampleData,
             };

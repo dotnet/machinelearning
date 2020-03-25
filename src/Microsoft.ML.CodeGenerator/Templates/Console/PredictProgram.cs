@@ -59,12 +59,14 @@ MB_Annotation();
             this.Write(" with predicted ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write(" from sample data...\\n\\n\");\r\n");
-foreach(var label in Features){
+ if(SampleData != null) {
+foreach(var kv in SampleData){
             this.Write("\t\t\tConsole.WriteLine($\"");
-            this.Write(this.ToStringHelper.ToStringWithCulture(label));
+            this.Write(this.ToStringHelper.ToStringWithCulture(kv.Key));
             this.Write(": {sampleData.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(label)));
+            this.Write(this.ToStringHelper.ToStringWithCulture(kv.Key));
             this.Write("}\");\r\n");
+}
 }
 if("BinaryClassification".Equals(TaskType) ){ 
             this.Write("\t\t\tConsole.WriteLine($\"\\n\\nPredicted ");
