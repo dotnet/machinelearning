@@ -130,8 +130,8 @@
         "output": [
           "F21"
         ],
-        "name": "ReduceSum",
-        "opType": "ReduceSum",
+        "name": "Squeeze",
+        "opType": "Squeeze",
         "attribute": [
           {
             "name": "axes",
@@ -139,10 +139,6 @@
               "1"
             ],
             "type": "INTS"
-          },
-          {
-            "name": "keepdims",
-            "type": "INT"
           }
         ]
       },
