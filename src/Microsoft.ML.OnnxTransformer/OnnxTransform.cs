@@ -118,8 +118,6 @@ namespace Microsoft.ML.Transforms.Onnx
         /// </summary>
         internal DataViewType[] OutputTypes { get; }
 
-        public readonly DataViewSchema OutputSchema;
-
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -251,12 +249,6 @@ namespace Microsoft.ML.Transforms.Onnx
                 OutputTypes[i] = outputInfo.DataViewType;
             }
             _options = options;
-
-            var schemaBuilder = new DataViewSchema.Builder();
-            for (var i = 0; i < Outputs.Length; i++)
-                schemaBuilder.AddColumn(Outputs[i], OutputTypes[i]);
-
-            OutputSchema = schemaBuilder.ToSchema();
         }
 
         /// <summary>
