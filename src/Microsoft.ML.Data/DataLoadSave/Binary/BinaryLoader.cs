@@ -674,7 +674,6 @@ namespace Microsoft.ML.Data.IO
         private readonly DataViewSchema _outputSchema;
         private readonly bool _autodeterminedThreads;
         private readonly int _threads;
-        private readonly string _generatedRowIndexName;
         private bool _disposed;
 
         private readonly TableOfContentsEntry[] _aliveColumns;
@@ -781,7 +780,6 @@ namespace Microsoft.ML.Data.IO
                 _header = InitHeader();
                 _autodeterminedThreads = args.Threads == null;
                 _threads = Math.Max(1, args.Threads ?? (Environment.ProcessorCount / 2));
-                _generatedRowIndexName = null;
                 InitToc(ch, out _aliveColumns, out _deadColumns, out _rowsPerBlock, out _tocEndLim);
                 _outputSchema = ComputeOutputSchema();
                 _host.Assert(_outputSchema.Count == Utils.Size(_aliveColumns));
@@ -835,7 +833,7 @@ namespace Microsoft.ML.Data.IO
             // *** Binary format **
             // int: Number of threads if explicitly defined, or 0 if the
             //      number of threads was automatically determined
-            // int: Id of the generated row index name (can be null)
+            // Double: The randomness coefficient.
 
             using (var ch = _host.Start("Initializing"))
             {
@@ -851,15 +849,11 @@ namespace Microsoft.ML.Data.IO
                     }
 
                     if (ctx.Header.ModelVerWritten == 0x00010002 || ctx.Header.ModelVerWritten == 0x00010003)
-                    {
-                        _generatedRowIndexName = ctx.LoadStringOrNull();
-                        ch.CheckDecode(_generatedRowIndexName == null || !string.IsNullOrWhiteSpace(_generatedRowIndexName));
-                    }
+                        ctx.LoadStringOrNull(); // for for _generatedRowIndexName in previous model versions
                 }
                 else
                 {
                     _threads = Math.Max(1, Environment.ProcessorCount / 2);
-                    _generatedRowIndexName = null;
                 }
 
                 if (ctx.Header.ModelVerWritten >= 0x00010003)
