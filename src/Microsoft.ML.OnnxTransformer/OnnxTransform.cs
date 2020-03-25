@@ -710,7 +710,7 @@ namespace Microsoft.ML.Transforms.Onnx
     /// Models are scored on CPU by default.
     ///
     /// To run on a GPU, use the
-    /// NuGet package available at [Microsoft.ML.OnnxRuntime.Gpu](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/) (version 1.2.0) instead of the Microsoft.ML.OnnxRuntime nuget (which is for CPU processing). To use Microsoft.ML.OnnxRuntime.Gpu
+    /// NuGet package [Microsoft.ML.OnnxRuntime.Gpu](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/) (version 1.2.0) instead of the Microsoft.ML.OnnxRuntime nuget (which is for CPU processing). Microsoft.ML.OnnxRuntime.Gpu
     /// you need to have a CUDA supported GPU (for reference see this list of [supported GPUs](https://developer.nvidia.com/cuda-gpus#compute)), then download [CUDA 10.1 Toolkit](https://developer.nvidia.com/cuda-downloads) and [cuDNN 7.6.5](https://developer.nvidia.com/cudnn) (as indicated on [Onnxruntime's documentation](https://github.com/Microsoft/onnxruntime#default-gpu-cuda)).
     /// Set parameter 'gpuDeviceId' to a valid non-negative integer. Typical device ID values are 0 or 1.
     ///
