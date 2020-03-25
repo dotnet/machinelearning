@@ -87,8 +87,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// HogwildSGD TrainerEstimator test (logistic regression).
         /// </summary>
         [Fact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void TestEstimatorHogwildSGD()
         {
             var trainers = new[] { ML.BinaryClassification.Trainers.SgdCalibrated(l2Regularization: 0, numberOfIterations: 80),

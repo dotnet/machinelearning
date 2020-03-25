@@ -6,7 +6,7 @@
         Trains a tree ensemble, or loads it from a file, then maps a numeric feature vector to outputs.
       </summary>
       <remarks>
-        In machine learning​ it is a pretty common and powerful approach to utilize the already trained model in the process of defining features.
+        In machine learning it is a pretty common and powerful approach to utilize the already trained model in the process of defining features.
         <para>One such example would be the use of model&apos;s scores as features to downstream models. For example, we might run clustering on the original features, 
         and use the cluster distances as the new feature set.
         Instead of consuming the model&apos;s output, we could go deeper, and extract the &apos;intermediate outputs&apos; that are used to produce the final score. </para>

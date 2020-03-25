@@ -46,7 +46,7 @@ namespace Microsoft.Extensions.ML
         {
             _timerPeriod = period;
             _uri = uri;
-            if (LoadModel().ConfigureAwait(false).GetAwaiter().GetResult())
+            if (LoadModelAsync().ConfigureAwait(false).GetAwaiter().GetResult())
             {
                 StartReloadTimer();
             }
@@ -78,10 +78,10 @@ namespace Microsoft.Extensions.ML
                 cancellation.CancelAfter(TimeoutMilliseconds);
                 Logger.UriReloadBegin(_logger, _uri);
 
-                var eTagMatches = await MatchEtag(_uri, _eTag);
+                var eTagMatches = await MatchEtagAsync(_uri, _eTag);
                 if (!eTagMatches)
                 {
-                    await LoadModel();
+                    await LoadModelAsync();
                     var previousToken = Interlocked.Exchange(ref _reloadToken, new ModelReloadToken());
                     previousToken.OnReload();
                 }
@@ -102,7 +102,7 @@ namespace Microsoft.Extensions.ML
             }
         }
 
-        internal virtual async Task<bool> MatchEtag(Uri uri, string eTag)
+        internal virtual async Task<bool> MatchEtagAsync(Uri uri, string eTag)
         {
             using (var client = new HttpClient())
             {
@@ -133,7 +133,7 @@ namespace Microsoft.Extensions.ML
             }
         }
 
-        internal virtual async Task<bool> LoadModel()
+        internal virtual async Task<bool> LoadModelAsync()
         {
             //TODO: We probably need some sort of retry policy for this.
             try

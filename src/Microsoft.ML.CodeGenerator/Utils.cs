@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -23,13 +24,96 @@ namespace Microsoft.ML.CodeGenerator.Utilities
             return string.Join("", name.Select(x => Char.IsLetterOrDigit(x) ? x : '_'));
         }
 
+        internal static IDictionary<string, string> GenerateSampleData(string inputFile, ColumnInferenceResults columnInference)
+        {
+            try
+            {
+                var mlContext = new MLContext();
+                var textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+                var trainData = textLoader.Load(inputFile);
+                return Utils.GenerateSampleData(trainData, columnInference);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        internal static IDictionary<string, string> GenerateSampleData(IDataView dataView, ColumnInferenceResults columnInference)
+        {
+            var featureColumns = dataView.Schema.AsEnumerable().Where(col => col.Name != columnInference.ColumnInformation.LabelColumnName && !columnInference.ColumnInformation.IgnoredColumnNames.Contains(col.Name));
+            var rowCursor = dataView.GetRowCursor(featureColumns);
+
+            var sampleData = featureColumns.Select(column => new { key = Utils.Normalize(column.Name), val = "null" }).ToDictionary(x => x.key, x => x.val);
+            if (rowCursor.MoveNext())
+            {
+                var getGetGetterMethod = typeof(Utils).GetMethod(nameof(Utils.GetValueFromColumn), BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+
+                foreach (var column in featureColumns)
+                {
+                    var getGeneraicGetGetterMethod = getGetGetterMethod.MakeGenericMethod(column.Type.RawType);
+                    string val = getGeneraicGetGetterMethod.Invoke(null, new object[] { rowCursor, column }) as string;
+                    sampleData[Utils.Normalize(column.Name)] = val;
+                }
+            }
+
+            return sampleData;
+        }
+
+        internal static string GetValueFromColumn<T>(DataViewRowCursor rowCursor, DataViewSchema.Column column)
+        {
+            T val = default;
+            var getter = rowCursor.GetGetter<T>(column);
+            getter(ref val);
+
+            // wrap string in quotes
+            if (typeof(T) == typeof(ReadOnlyMemory<Char>))
+            {
+                return $"@\"{val.ToString().Replace("\"", "\\\"")}\"";
+            }
+
+            if (val is null)
+            {
+                return "\"null\"";
+            }
+
+            if (val is float)
+            {
+                var f = val as float?;
+                if (Single.IsNaN(f.GetValueOrDefault()))
+                {
+                    return "Single.NaN";
+                }
+
+                if (Single.IsPositiveInfinity(f.GetValueOrDefault()))
+                {
+                    return "Single.PositiveInfinity";
+                }
+
+                if (Single.IsNegativeInfinity(f.GetValueOrDefault()))
+                {
+                    return "Single.NegativeInfinity";
+                }
+
+                return f?.ToString() + "F";
+            }
+
+            if (val is bool)
+            {
+                var f = val as bool?;
+                return f.GetValueOrDefault() ? "true" : "false";
+            }
+
+            return val.ToString();
+        }
+
         internal static string Normalize(string input)
         {
             //check if first character is int
             if (!string.IsNullOrEmpty(input) && int.TryParse(input.Substring(0, 1), out int val))
             {
-                input = "Col" + input;
-                return input;
+                input = "_" + input;
+                return Normalize(input);
             }
             switch (input)
             {

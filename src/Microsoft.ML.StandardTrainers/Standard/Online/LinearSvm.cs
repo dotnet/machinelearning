@@ -52,7 +52,7 @@ namespace Microsoft.ML.Trainers
     /// That is the same as the sign of the feautures' weighted sum, i.e. $\sum_{i = 0}^{D-1} \left(w_i * f_i \right) + b$, where $w_0, w_1,..., w_{D-1}$
     /// are the weights computed by the algorithm, and $b$ is the bias computed by the algorithm.
     ///
-    /// This algorithm implemented is the PEGASOS method, which alternates between stochastic gradient descent steps and projection steps,
+    /// Linear SVM implements the PEGASOS method, which alternates between stochastic gradient descent steps and projection steps,
     /// introduced in [this paper](http://ttic.uchicago.edu/~shai/papers/ShalevSiSr07.pdf) by Shalev-Shwartz, Singer and Srebro.
     ///
     /// Check the See Also section for links to usage examples.

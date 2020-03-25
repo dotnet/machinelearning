@@ -4,8 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
-using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -81,7 +81,7 @@ namespace Microsoft.ML.RunTests
         protected IHostEnvironment Env => _env;
         protected MLContext ML;
         private bool _normal;
-        private readonly List<Exception> _failures = new List<Exception>();
+        private int _failures = 0;
 
         protected override void Initialize()
         {
@@ -126,6 +126,9 @@ namespace Microsoft.ML.RunTests
                 _normal ? "completed normally" : "aborted",
                 IsPassing ? "passed" : "failed");
 
+            if (!_normal)
+                Assert.Equal(0, _failures);
+
             Contracts.AssertValue(LogWriter);
             LogWriter.Dispose();
             LogWriter = null;
@@ -135,7 +138,7 @@ namespace Microsoft.ML.RunTests
 
         protected bool IsActive { get { return LogWriter != null; } }
 
-        protected bool IsPassing { get { return _failures.Count == 0; } }
+        protected bool IsPassing { get { return _failures == 0; } }
 
         // Called by a test to signal normal completion. If this is not called before the
         // TestScope is disposed, we assume the test was aborted.
@@ -145,18 +148,7 @@ namespace Microsoft.ML.RunTests
             Contracts.Assert(!_normal, "Done() should only be called once!");
             _normal = true;
 
-            switch (_failures.Count)
-            {
-                case 0:
-                    break;
-
-                case 1:
-                    ExceptionDispatchInfo.Capture(_failures[0]).Throw();
-                    break;
-
-                default:
-                    throw new AggregateException(_failures.ToArray());
-            }
+            Assert.Equal(0, _failures);
         }
 
         protected bool Check(bool f, string msg)
@@ -176,16 +168,16 @@ namespace Microsoft.ML.RunTests
         protected void Fail(string fmt, params object[] args)
         {
             Contracts.Assert(IsActive);
-            try
+            _failures++;
+            Log($"*** Failure #{_failures}: " + fmt, args);
+
+            var stackTrace = new StackTrace(true);
+            for (int i = 0; i < stackTrace.FrameCount; i++)
             {
-                throw new InvalidOperationException(string.Format(fmt, args));
-            }
-            catch (Exception ex)
-            {
-                _failures.Add(ex);
+                var frame = stackTrace.GetFrame(i);
+                Log($"\t\t{frame.GetMethod()} {frame.GetFileName()} {frame.GetFileLineNumber()}");
             }
 
-            Log("*** Failure: " + fmt, args);
         }
 
         protected void Log(string msg)

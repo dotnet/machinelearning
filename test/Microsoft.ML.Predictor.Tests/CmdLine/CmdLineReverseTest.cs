@@ -9,10 +9,11 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.RunTests
 {
-    public class CmdLineReverseTests
+    public class CmdLineReverseTests : BaseTestClass
     {
         /// <summary>
         /// This tests CmdParser.GetSettings
@@ -82,7 +83,8 @@ namespace Microsoft.ML.RunTests
         {
             var ml = new MLContext(1);
             ml.AddStandardComponents();
-            var classes = Utils.MarshalInvoke(ml.ComponentCatalog.FindLoadableClasses<int>, typeof(SignatureCalibrator));
+            var findLoadableClassesMethodInfo = new FuncInstanceMethodInfo1<ComponentCatalog, ComponentCatalog.LoadableClassInfo[]>(ml.ComponentCatalog.FindLoadableClasses<int>);
+            var classes = Utils.MarshalInvoke(findLoadableClassesMethodInfo, ml.ComponentCatalog, typeof(SignatureCalibrator));
             foreach (var cls in classes)
             {
                 var factory = CmdParser.CreateComponentFactory(typeof(IComponentFactory<ICalibratorTrainer>), typeof(SignatureCalibrator), cls.LoadNames[0]);
@@ -188,6 +190,10 @@ namespace Microsoft.ML.RunTests
         private static readonly MethodInfo _createComponentFactoryMethod = typeof(CmdParser)
             .GetNestedType("ComponentFactoryFactory", BindingFlags.NonPublic)
             .GetMethod("CreateComponentFactory");
+
+        public CmdLineReverseTests(ITestOutputHelper output) : base(output)
+        {
+        }
 
         private static IComponentFactory<SimpleArg> CreateComponentFactory(string name, string settings)
         {

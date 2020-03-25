@@ -364,6 +364,9 @@ namespace Microsoft.ML.Data
 
         private sealed class Cursor : RootCursorBase
         {
+            private static readonly FuncInstanceMethodInfo1<Cursor, int, Delegate> _createSubGetterDelegateCoreMethodInfo
+                = FuncInstanceMethodInfo1<Cursor, int, Delegate>.Create(target => target.CreateSubGetterDelegateCore<int>);
+
             private PartitionedFileLoader _parent;
 
             private readonly bool[] _active;
@@ -581,7 +584,7 @@ namespace Microsoft.ML.Data
                     // Use sub-cursor for all sub-columns.
                     if (IsSubColumn(i))
                     {
-                        getters[i] = Utils.MarshalInvoke(CreateSubGetterDelegateCore<int>, type.RawType, i);
+                        getters[i] = Utils.MarshalInvoke(_createSubGetterDelegateCoreMethodInfo, this, type.RawType, i);
                     }
                     else
                     {
@@ -712,7 +715,7 @@ namespace Microsoft.ML.Data
             /// </summary>
             /// <param name="path">The directory path to parse for name/value pairs.</param>
             /// <param name="results">The resulting name value pairs.</param>
-            /// <returns>true if the parsing was successfull.</returns>
+            /// <returns>true if the parsing was successful.</returns>
             private bool TryParseValuesFromPath(string path, out List<string> results)
             {
                 Contracts.CheckNonWhiteSpace(path, nameof(path));

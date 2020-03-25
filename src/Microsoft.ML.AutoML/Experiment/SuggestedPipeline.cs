@@ -11,7 +11,7 @@ namespace Microsoft.ML.AutoML
 {
     /// <summary>
     /// A runnable pipeline. Contains a learner and set of transforms,
-    /// along with a RunSummary if it has already been exectued.
+    /// along with a RunSummary if it has already been executed.
     /// </summary>
     internal class SuggestedPipeline
     {

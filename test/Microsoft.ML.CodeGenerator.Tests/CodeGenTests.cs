@@ -8,12 +8,18 @@ using Microsoft.ML;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.CodeGenerator.CSharp;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace mlnet.Tests
 {
-    public class CodeGeneratorTests
+    public class CodeGeneratorTests : BaseTestClass
     {
+        public CodeGeneratorTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void TrainerGeneratorBasicNamedParameterTest()
         {
@@ -133,16 +139,6 @@ namespace mlnet.Tests
             Assert.Equal(expectedUsings, actual.Item2[0]);
         }
 
-        [Fact]
-        public void NormalizeTest()
-        {
-            var testStrArray = new string[] { "Abc Abc", "abc ABC" };
-            var expectedStrArray = new string[] { "Abc_Abc", "Abc_ABC" };
-            for (int i = 0; i != expectedStrArray.Count(); ++i)
-            {
-                var actualStr = Microsoft.ML.CodeGenerator.Utilities.Utils.Normalize(testStrArray[i]);
-                Assert.Equal(expectedStrArray[i], actualStr);
-            }
-        }
+
     }
 }

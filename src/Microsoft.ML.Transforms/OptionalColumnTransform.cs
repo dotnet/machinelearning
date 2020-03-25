@@ -245,6 +245,12 @@ namespace Microsoft.ML.Transforms
                 loaderAssemblyName: typeof(OptionalColumnTransform).Assembly.FullName);
         }
 
+        private static readonly FuncInstanceMethodInfo1<OptionalColumnTransform, Delegate> _makeGetterOneMethodInfo
+            = FuncInstanceMethodInfo1<OptionalColumnTransform, Delegate>.Create(target => target.MakeGetterOne<int>);
+
+        private static readonly FuncInstanceMethodInfo1<OptionalColumnTransform, int, Delegate> _makeGetterVecMethodInfo
+            = FuncInstanceMethodInfo1<OptionalColumnTransform, int, Delegate>.Create(target => target.MakeGetterVec<int>);
+
         private readonly Bindings _bindings;
 
         private const string RegistrationName = "OptionalColumn";
@@ -403,8 +409,8 @@ namespace Microsoft.ML.Transforms
         {
             var columnType = _bindings.ColumnTypes[iinfo];
             if (columnType is VectorDataViewType vectorType)
-                return Utils.MarshalInvoke(MakeGetterVec<int>, vectorType.ItemType.RawType, vectorType.Size);
-            return Utils.MarshalInvoke(MakeGetterOne<int>, columnType.RawType);
+                return Utils.MarshalInvoke(_makeGetterVecMethodInfo, this, vectorType.ItemType.RawType, vectorType.Size);
+            return Utils.MarshalInvoke(_makeGetterOneMethodInfo, this, columnType.RawType);
         }
 
         private Delegate MakeGetterOne<T>()
@@ -420,6 +426,12 @@ namespace Microsoft.ML.Transforms
 
         private sealed class Cursor : SynchronizedCursorBase
         {
+            private static readonly FuncInstanceMethodInfo1<Cursor, Delegate> _makeGetterOneMethodInfo
+                = FuncInstanceMethodInfo1<Cursor, Delegate>.Create(target => target.MakeGetterOne<int>);
+
+            private static readonly FuncInstanceMethodInfo1<Cursor, int, Delegate> _makeGetterVecMethodInfo
+                = FuncInstanceMethodInfo1<Cursor, int, Delegate>.Create(target => target.MakeGetterVec<int>);
+
             private readonly Bindings _bindings;
             private readonly bool[] _active;
             private readonly Delegate[] _getters;
@@ -483,8 +495,8 @@ namespace Microsoft.ML.Transforms
             {
                 var columnType = _bindings.ColumnTypes[iinfo];
                 if (columnType is VectorDataViewType vectorType)
-                    return Utils.MarshalInvoke(MakeGetterVec<int>, vectorType.ItemType.RawType, vectorType.Size);
-                return Utils.MarshalInvoke(MakeGetterOne<int>, columnType.RawType);
+                    return Utils.MarshalInvoke(_makeGetterVecMethodInfo, this, vectorType.ItemType.RawType, vectorType.Size);
+                return Utils.MarshalInvoke(_makeGetterOneMethodInfo, this, columnType.RawType);
             }
 
             private Delegate MakeGetterOne<T>()
@@ -511,21 +523,20 @@ namespace Microsoft.ML.Transforms
                 if (!ctx.ContainsColumn(inputColumnName))
                     continue;
 
-                if (!SaveAsOnnxCore(ctx, iinfo, ctx.GetVariableName(inputColumnName),
-                    ctx.AddIntermediateVariable(OutputSchema[_bindings.MapIinfoToCol(iinfo)].Type, inputColumnName)))
-                {
+                // If there is already a column of this name, don't add this column as an OptionalColumn/Initializer
+                var srcVariableName = ctx.GetVariableName(inputColumnName);
+                if (srcVariableName != inputColumnName)
+                    continue;
+
+                if (!SaveAsOnnxCore(ctx, srcVariableName, _bindings.ColumnTypes[iinfo]))
                     ctx.RemoveColumn(inputColumnName, true);
-                }
             }
         }
 
         public bool CanSaveOnnx(OnnxContext ctx) => true;
 
-        private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
+        private bool SaveAsOnnxCore(OnnxContext ctx, string srcVariableName, DataViewType columnType)
         {
-            var columnType = _bindings.ColumnTypes[iinfo];
-            string inputColumnName = Source.Schema[_bindings.SrcCols[iinfo]].Name;
-
             Type type = columnType.RawType;
 
             int size;
@@ -537,24 +548,24 @@ namespace Microsoft.ML.Transforms
             if ((type == typeof(int)) ||
                 (type == typeof(short)) || (type == typeof(ushort)) ||
                 (type == typeof(sbyte)) || (type == typeof(byte)))
-                ctx.AddInitializer(new int[size], type, new long[] { 1, size }, inputColumnName, false);
+                ctx.AddInitializer(new int[size], type, new long[] { 1, size }, srcVariableName, false);
             else if (type == typeof(uint) || (type == typeof(ulong)))
-                ctx.AddInitializer(new ulong[size], type == typeof(ulong), new long[] { 1, size }, inputColumnName, false);
+                ctx.AddInitializer(new ulong[size], type == typeof(ulong), new long[] { 1, size }, srcVariableName, false);
             else if (type == typeof(bool))
-                ctx.AddInitializer(new bool[size], new long[] { 1, size }, inputColumnName, false);
+                ctx.AddInitializer(new bool[size], new long[] { 1, size }, srcVariableName, false);
             else if (type == typeof(long))
-                ctx.AddInitializer(new long[size], new long[] { 1, size }, inputColumnName, false);
+                ctx.AddInitializer(new long[size], new long[] { 1, size }, srcVariableName, false);
             else if (type == typeof(float))
-                ctx.AddInitializer(new float[size], new long[] { 1, size }, inputColumnName, false);
+                ctx.AddInitializer(new float[size], new long[] { 1, size }, srcVariableName, false);
             else if (type == typeof(double))
-                ctx.AddInitializer(new double[size], new long[] { 1, size }, inputColumnName, false);
+                ctx.AddInitializer(new double[size], new long[] { 1, size }, srcVariableName, false);
             else if ((type == typeof(string)) || (columnType is TextDataViewType))
             {
                 string[] values = new string[size];
                 for (int i = 0; i < size; i++)
                     values[i] = "";
 
-                ctx.AddInitializer(values, new long[] { 1, size }, inputColumnName, false);
+                ctx.AddInitializer(values, new long[] { 1, size }, srcVariableName, false);
             }
             else
                 return false;

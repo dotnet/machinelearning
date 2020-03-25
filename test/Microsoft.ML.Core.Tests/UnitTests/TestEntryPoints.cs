@@ -1536,6 +1536,7 @@ namespace Microsoft.ML.RunTests
             var twiceCalibratedFfModel = Calibrate.Platt(Env,
                 new Calibrate.NoArgumentsInput() { Data = splitOutput.TestData[0], UncalibratedPredictorModel = calibratedFfModel }).PredictorModel;
             var scoredFf = ScoreModel.Score(Env, new ScoreModel.Input() { Data = splitOutput.TestData[2], PredictorModel = twiceCalibratedFfModel }).ScoredData;
+            Done();
         }
 
         [Fact]
@@ -2122,9 +2123,8 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void EntryPointPipelineEnsembleGetSummary()
         {
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
@@ -4906,7 +4906,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         public void TestCrossValidationMacro()
         {
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename);
@@ -6194,7 +6194,6 @@ namespace Microsoft.ML.RunTests
 
         [Fact]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void TestOvaMacroWithUncalibratedLearner()
         {
             var dataPath = GetDataPath(@"iris.txt");
@@ -6366,8 +6365,6 @@ namespace Microsoft.ML.RunTests
         }
 
         [TensorFlowFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void EntryPointTensorFlowTransform()
         {
             Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransformer).Assembly);
@@ -6383,8 +6380,6 @@ namespace Microsoft.ML.RunTests
         }
 
         [TensorFlowFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void TestTensorFlowEntryPoint()
         {
             var dataPath = GetDataPath("Train-Tiny-28x28.txt");

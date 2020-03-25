@@ -5,23 +5,27 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
-using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 using static Microsoft.ML.DataOperationsCatalog;
+using Microsoft.ML.TestFramework;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    public class AutoFitTests
+    public class AutoFitTests : BaseTestClass
     {
+        public AutoFitTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void AutoFitBinaryTest()
         {
             var context = new MLContext(1);
-            var dataPath = DatasetUtil.DownloadUciAdultDataset();
+            var dataPath = DatasetUtil.GetUciAdultDataset();
             var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(dataPath);
@@ -50,8 +54,6 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [TensorFlowFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void AutoFitImageClassificationTrainTest()
         {
             var context = new MLContext(seed: 1);
@@ -103,7 +105,7 @@ namespace Microsoft.ML.AutoML.Test
         public void AutoFitRegressionTest()
         {
             var context = new MLContext(1);
-            var dataPath = DatasetUtil.DownloadMlNetGeneratedRegressionDataset();
+            var dataPath = DatasetUtil.GetMlNetGeneratedRegressionDataset();
             var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.MlNetGeneratedRegressionLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(dataPath);
@@ -176,33 +178,6 @@ namespace Microsoft.ML.AutoML.Test
                     new TextLoader.Column(itemIdColumnName, DataKind.UInt32, new [] { new TextLoader.Range(2) }, new KeyCount(40)),
                 }
             };
-        }
-
-        private static string GetRepoRoot()
-        {
-#if NETFRAMEWORK
-            string directory = AppDomain.CurrentDomain.BaseDirectory;
-#else
-            string directory = AppContext.BaseDirectory;
-#endif
-
-            while (!Directory.Exists(Path.Combine(directory, ".git")) && directory != null)
-            {
-                directory = Directory.GetParent(directory).FullName;
-            }
-
-            if (directory == null)
-            {
-                return null;
-            }
-            return directory;
-        }
-
-        public static string GetDataPath(string name)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-                return null;
-            return Path.GetFullPath(Path.Combine(Path.Combine(GetRepoRoot(), "test", "data"), name));
         }
     }
 }

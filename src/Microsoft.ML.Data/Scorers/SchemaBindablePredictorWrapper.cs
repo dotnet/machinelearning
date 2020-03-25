@@ -32,7 +32,7 @@ namespace Microsoft.ML.Data
     /// This is a base class for wrapping <see cref="IPredictor"/>s in an <see cref="ISchemaBindableMapper"/>.
     /// </summary>
     internal abstract class SchemaBindablePredictorWrapperBase : ISchemaBindableMapper, ICanSaveModel, ICanSaveSummary,
-        IBindableCanSavePfa, IBindableCanSaveOnnx
+        IBindableCanSavePfa, IBindableCanSaveOnnx, IDisposable
     {
         // The ctor guarantees that Predictor is non-null. It also ensures that either
         // ValueMapper or FloatPredictor is non-null (or both). With these guarantees,
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Data
         /// This class doesn't care. It DOES care that the role mapped schema specifies a unique Feature column.
         /// It also requires that the output schema has ColumnCount == 1.
         /// </summary>
-        protected sealed class SingleValueRowMapper : ISchemaBoundRowMapper
+        protected sealed class SingleValueRowMapper : ISchemaBoundRowMapper, IDisposable
         {
             private readonly SchemaBindablePredictorWrapperBase _parent;
 
@@ -241,7 +241,35 @@ namespace Microsoft.ML.Data
                     getters[0] = _parent.GetPredictionGetter(input, InputRoleMappedSchema.Feature.Value.Index);
                 return new SimpleRow(OutputSchema, input, getters);
             }
+
+            #region IDisposable Support
+            private bool _disposed;
+
+            public void Dispose()
+            {
+                if (_disposed)
+                    return;
+
+                (_parent as IDisposable)?.Dispose();
+
+                _disposed = true;
+            }
+            #endregion
         }
+
+        #region IDisposable Support
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+            (Predictor as IDisposable)?.Dispose();
+
+            _disposed = true;
+        }
+        #endregion
     }
 
     /// <summary>
@@ -426,7 +454,7 @@ namespace Microsoft.ML.Data
 
             var mapper = ValueMapper as ISingleCanSaveOnnx;
             Contracts.CheckValue(mapper, nameof(mapper));
-            Contracts.Assert(Utils.Size(outputNames) == 3); // Predicted Label, Score and Probablity.
+            Contracts.Assert(Utils.Size(outputNames) == 3); // Predicted Label, Score and Probability.
 
             // Prior doesn't have a feature column and uses the training label column to determine predicted labels
             if (!schema.Feature.HasValue)

@@ -260,7 +260,7 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Back-compatibilty function that handles loading the DropColumns Transform.
+        /// Back-compatibility function that handles loading the DropColumns Transform.
         /// </summary>
         private static ColumnSelectingTransformer LoadDropColumnsTransform(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
@@ -298,7 +298,7 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Back-compatibilty that is handling the HiddenColumnOption from ChooseColumns.
+        /// Back-compatibility that is handling the HiddenColumnOption from ChooseColumns.
         /// </summary>
         private enum HiddenColumnOption : byte
         {
@@ -732,19 +732,18 @@ namespace Microsoft.ML.Transforms
 
             public void SaveAsOnnx(OnnxContext ctx)
             {
-                var droppedCols = new HashSet<int>(Enumerable.Range(0, InputSchema.Count));
-
                 var outputToInputMap = _mapper.OutputToInputMap;
                 for(int i = 0; i < outputToInputMap.Length; i++)
                 {
                     var srcCol = InputSchema[outputToInputMap[i]];
                     var dstCol = OutputSchema[i];
+                    if (!ctx.ContainsColumn(srcCol.Name) || dstCol.IsHidden)
+                        continue;
+
                     var srcVariable = ctx.GetVariableName(srcCol.Name);
                     var dstVariable = ctx.AddIntermediateVariable(dstCol.Type, dstCol.Name, true);
                     string opType = "Identity";
                     ctx.CreateNode(opType, srcVariable, dstVariable, ctx.GetNodeName(opType), "");
-
-                    droppedCols.Remove(srcCol.Index);
                 }
             }
         }

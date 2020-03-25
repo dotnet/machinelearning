@@ -143,6 +143,9 @@ namespace Microsoft.ML.Transforms
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
         {
+            private static readonly FuncStaticMethodInfo1<DataViewType, Delegate> _getIsNADelegateMethodInfo
+                = new FuncStaticMethodInfo1<DataViewType, Delegate>(GetIsNADelegate<int>);
+
             private readonly MissingValueIndicatorTransformer _parent;
             private readonly ColInfo[] _infos;
 
@@ -215,8 +218,7 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             private static Delegate GetIsNADelegate(DataViewType type)
             {
-                Func<DataViewType, Delegate> func = GetIsNADelegate<int>;
-                return Utils.MarshalInvoke(func, type.GetItemType().RawType, type);
+                return Utils.MarshalInvoke(_getIsNADelegateMethodInfo, type.GetItemType().RawType, type);
             }
 
             private static Delegate GetIsNADelegate<T>(DataViewType type)

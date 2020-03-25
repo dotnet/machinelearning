@@ -8,10 +8,11 @@ using System.Globalization;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.CpuMath.UnitTests
 {
-    public class CpuMathUtilsUnitTests
+    public class CpuMathUtilsUnitTests : BaseTestClass
     {
         private static readonly float[][] _testArrays;
         private static readonly int[] _testIndexArray;
@@ -22,7 +23,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
         private static readonly FloatEqualityComparer _comparer;
         private static readonly FloatEqualityComparerForMatMul _matMulComparer;
         private static readonly string _defaultMode = "defaultMode";
-#if NETCOREAPP3_0
+#if NETCOREAPP3_1
         private static Dictionary<string, string> _disableAvxEnvironmentVariables;
         private static Dictionary<string, string> _disableAvxAndSseEnvironmentVariables;
         private static readonly string _disableAvx = "COMPlus_EnableAVX";
@@ -88,7 +89,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
             _testDstVectors = new AlignedArray[] { testDstVectorAligned1, testDstVectorAligned2 };
 
-#if NETCOREAPP3_0
+#if NETCOREAPP3_1
             _disableAvxEnvironmentVariables = new Dictionary<string, string>()
             {
                 { _disableAvx , "0" }
@@ -102,9 +103,13 @@ namespace Microsoft.ML.CpuMath.UnitTests
 #endif
         }
 
+        public CpuMathUtilsUnitTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         private static void CheckProperFlag(string mode)
         {
-#if NETCOREAPP3_0
+#if NETCOREAPP3_1
             if (mode == _defaultMode)
             {
                 Assert.True(System.Runtime.Intrinsics.X86.Avx.IsSupported);
@@ -128,7 +133,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             {  _defaultMode, "0", null },
             {  _defaultMode, "1", null },
             {  _defaultMode, "2", null },
-#if NETCOREAPP3_0
+#if NETCOREAPP3_1
             { _disableAvx, "0", _disableAvxEnvironmentVariables },
             { _disableAvx, "1", _disableAvxEnvironmentVariables },
 
@@ -145,7 +150,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             {  _defaultMode, "0", "-1.7", null },
             {  _defaultMode, "1", "-1.7", null },
             {  _defaultMode, "2", "-1.7", null },
-#if NETCOREAPP3_0
+#if NETCOREAPP3_1
             {  _disableAvx, "0", "1.7", _disableAvxEnvironmentVariables },
             {  _disableAvx, "1", "1.7", _disableAvxEnvironmentVariables },
             {  _disableAvx, "0", "-1.7", _disableAvxEnvironmentVariables },
@@ -163,7 +168,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             { _defaultMode, "0", "0", "0", null },
             { _defaultMode, "1", "1", "0", null },
             { _defaultMode, "1", "0", "1", null },
-#if NETCOREAPP3_0
+#if NETCOREAPP3_1
             { _disableAvx, "0", "0", "0", _disableAvxEnvironmentVariables },
             { _disableAvx, "1", "1", "0", _disableAvxEnvironmentVariables },
             { _disableAvx, "1", "0", "1", _disableAvxEnvironmentVariables },

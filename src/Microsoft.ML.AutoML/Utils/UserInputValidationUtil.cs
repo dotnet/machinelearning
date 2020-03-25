@@ -191,7 +191,7 @@ namespace Microsoft.ML.AutoML
 
             // Validate that every active column in the train data corresponds to an active column in the validation data.
             // (Indirectly, since we asserted above that the train and validation data have the same number of active columns, this also
-            // esnures the reverse -- that every active column in the validation data corresponds to an active column in the train data.)
+            // ensures the reverse -- that every active column in the validation data corresponds to an active column in the train data.)
             foreach (var trainCol in trainData.Schema)
             {
                 if (trainCol.IsHidden)
@@ -202,7 +202,7 @@ namespace Microsoft.ML.AutoML
                 var validCol = validationData.Schema.GetColumnOrNull(trainCol.Name);
                 if (validCol == null)
                 {
-                    throw new ArgumentException($"{schemaMismatchError} Column '{trainCol.Name}' exsits in train data, but not in validation data.", nameof(validationData));
+                    throw new ArgumentException($"{schemaMismatchError} Column '{trainCol.Name}' exists in train data, but not in validation data.", nameof(validationData));
                 }
 
                 if (trainCol.Type != validCol.Value.Type)

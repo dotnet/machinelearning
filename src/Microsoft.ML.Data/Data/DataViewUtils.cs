@@ -367,9 +367,9 @@ namespace Microsoft.ML.Data
                     ch.Assert(localCursor.Position < 0);
                     // Note that these all take ownership of their respective cursors,
                     // so they all handle their disposal internal to the thread.
-                    workers[t] = Utils.RunOnBackgroundThread(() =>
+                    workers[t] = Utils.RunOnBackgroundThreadAsync(() =>
                     {
-                            // This will be the last batch sent in the finally. If iteration procedes without
+                            // This will be the last batch sent in the finally. If iteration proceeds without
                             // error, it will remain null, and be sent as a sentinel. If iteration results in
                             // an exception that we catch, the exception catching block will set this to an
                             // exception bearing block, and that will be passed along as the last block instead.
@@ -557,7 +557,7 @@ namespace Microsoft.ML.Data
                 // Set up and start the thread that consumes the input, and utilizes the InPipe
                 // instances to compose the Batch objects. The thread takes ownership of the
                 // cursor, and so handles its disposal.
-                Task thread = Utils.RunOnBackgroundThread(
+                Task thread = Utils.RunOnBackgroundThreadAsync(
                     () =>
                     {
                         Batch lastBatch = null;
@@ -1138,6 +1138,9 @@ namespace Microsoft.ML.Data
         /// </summary>
         internal sealed class SynchronousConsolidatingCursor : RootCursorBase
         {
+            private static readonly FuncInstanceMethodInfo1<SynchronousConsolidatingCursor, int, Delegate> _createGetterMethodInfo
+                = FuncInstanceMethodInfo1<SynchronousConsolidatingCursor, int, Delegate>.Create(target => target.CreateGetter<int>);
+
             private readonly DataViewRowCursor[] _cursors;
             private readonly Delegate[] _getters;
 
@@ -1145,7 +1148,6 @@ namespace Microsoft.ML.Data
             private readonly Heap<CursorStats> _mins;
             private readonly int[] _activeToCol;
             private readonly int[] _colToActive;
-            private readonly MethodInfo _methInfo;
 
             // The batch number of the current input cursor, or -1 if this cursor is not in Good state.
             private long _batch;
@@ -1181,9 +1183,6 @@ namespace Microsoft.ML.Data
                 _schema = _cursors[0].Schema;
 
                 Utils.BuildSubsetMaps(_schema, _cursors[0].IsColumnActive, out _activeToCol, out _colToActive);
-
-                Func<int, Delegate> func = CreateGetter<int>;
-                _methInfo = func.GetMethodInfo().GetGenericMethodDefinition();
 
                 _getters = new Delegate[_activeToCol.Length];
                 for (int i = 0; i < _activeToCol.Length; ++i)
@@ -1238,8 +1237,7 @@ namespace Microsoft.ML.Data
 
             private Delegate CreateGetter(int col)
             {
-                var methInfo = _methInfo.MakeGenericMethod(Schema[col].Type.RawType);
-                return (Delegate)methInfo.Invoke(this, new object[] { col });
+                return Utils.MarshalInvoke(_createGetterMethodInfo, this, Schema[col].Type.RawType, col);
             }
 
             private Delegate CreateGetter<T>(int col)

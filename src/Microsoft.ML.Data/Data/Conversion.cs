@@ -39,7 +39,7 @@ namespace Microsoft.ML.Data.Conversion
     /// This type exists to provide efficient delegates for conversion between standard ColumnTypes,
     /// as discussed in the IDataView Type System Specification. This is a singleton class.
     /// Some conversions are "standard" conversions, conforming to the details in the spec.
-    /// Others are auxilliary conversions. The use of auxilliary conversions should be limited to
+    /// Others are auxiliary conversions. The use of auxiliary conversions should be limited to
     /// situations that genuinely require them and have been well designed in the particular context.
     /// For example, this contains non-standard conversions from the standard primitive types to
     /// text (and StringBuilder). These are needed by the standard TextSaver, which handles
@@ -48,6 +48,9 @@ namespace Microsoft.ML.Data.Conversion
     [BestFriend]
     internal sealed class Conversions
     {
+        private static readonly FuncInstanceMethodInfo1<Conversions, KeyDataViewType, Delegate> _getKeyParseMethodInfo
+            = FuncInstanceMethodInfo1<Conversions, KeyDataViewType, Delegate>.Create(target => target.GetKeyParse<int>);
+
         // REVIEW: Reconcile implementations with TypeUtils, and clarify the distinction.
 
         // Singleton pattern.
@@ -396,7 +399,7 @@ namespace Microsoft.ML.Data.Conversion
             identity = false;
             if (typeSrc is KeyDataViewType keySrc)
             {
-                // Key types are only convertable to compatible key types or unsigned integer
+                // Key types are only convertible to compatible key types or unsigned integer
                 // types that are large enough.
                 if (typeDst is KeyDataViewType keyDst)
                 {
@@ -546,9 +549,7 @@ namespace Microsoft.ML.Data.Conversion
 
         private Delegate GetKeyParse(KeyDataViewType key)
         {
-            Func<KeyDataViewType, ValueMapper<TX, int>> del = GetKeyParse<int>;
-            var meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(key.RawType);
-            return (Delegate)meth.Invoke(this, new object[] { key });
+            return Utils.MarshalInvoke(_getKeyParseMethodInfo, this, key.RawType, key);
         }
 
         private ValueMapper<TX, TDst> GetKeyParse<TDst>(KeyDataViewType key)

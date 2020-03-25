@@ -39,21 +39,30 @@ MB_Annotation();
 {
 	public class ConsumeModel
     {
-        // For more info on consuming ML.NET models, visit https://aka.ms/model-builder-consume
+        private static Lazy<PredictionEngine<ModelInput, ModelOutput>> PredictionEngine = new Lazy<PredictionEngine<ModelInput, ModelOutput>>(CreatePredictionEngine);
+
+        // For more info on consuming ML.NET models, visit https://aka.ms/mlnet-consume
         // Method for consuming model in your app
         public static ModelOutput Predict(ModelInput input)
         {
-		
+            ModelOutput result = PredictionEngine.Value.Predict(input);
+            return result;
+        }
+
+        public static PredictionEngine<ModelInput, ModelOutput> CreatePredictionEngine()
+        {
             // Create new MLContext
             MLContext mlContext = new MLContext();
 ");
 if(HasNormalizeMapping){ 
-            this.Write(" \r\n\t\t\t// Register NormalizeMapping\r\n            mlContext.ComponentCatalog.Regist" +
-                    "erAssembly(typeof(NormalizeMapping).Assembly);\r\n");
+            this.Write(" \r\n\t\t\t// Register NormalizeMapping to calculate probabilities for each Label.\r\n  " +
+                    "          mlContext.ComponentCatalog.RegisterAssembly(typeof(NormalizeMapping).A" +
+                    "ssembly);\r\n");
 } 
 if(HasLabelMapping){ 
-            this.Write(" \r\n\t\t\t// Register LabelMapping\r\n            mlContext.ComponentCatalog.RegisterAs" +
-                    "sembly(typeof(LabelMapping).Assembly);\r\n");
+            this.Write(" \r\n\t\t\t// Register LabelMapping to map predicted Labels to their corresponding pro" +
+                    "babilities (likelihood of specified Labels)\r\n            mlContext.ComponentCata" +
+                    "log.RegisterAssembly(typeof(LabelMapping).Assembly);\r\n");
 } 
             this.Write("\r\n            // Load model & create prediction engine\r\n            string modelP" +
                     "ath = @\"");
@@ -61,10 +70,8 @@ if(HasLabelMapping){
             this.Write(@""";
             ITransformer mlModel = mlContext.Model.Load(modelPath, out var modelInputSchema);
             var predEngine = mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(mlModel);
-
-            // Use model to make prediction on input data
-            ModelOutput result = predEngine.Predict(input);
-            return result;
+            
+            return predEngine;
         }
     }
 }

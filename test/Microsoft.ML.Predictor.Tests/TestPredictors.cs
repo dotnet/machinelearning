@@ -146,11 +146,9 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Multiclass Logistic Regression test.
         /// </summary>
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void MulticlassLRTest()
         {
             RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.iris, digitsOfPrecision: 4);
@@ -160,7 +158,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Multiclass Logistic Regression with non-negative coefficients test.
         /// </summary>
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         public void MulticlassLRNonNegativeTest()
@@ -189,7 +187,6 @@ namespace Microsoft.ML.RunTests
         [TestCategory("Logistic Regression")]
         [TestCategory("FastTree")]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void MulticlassTreeFeaturizedLRTest()
         {
             RunMTAThread(() =>
@@ -277,16 +274,14 @@ namespace Microsoft.ML.RunTests
 
         [X64Fact("x86 output differs from Baseline")]
         [TestCategory("Binary")]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void BinaryClassifierSymSgdTest()
         {
-            // Linux uses a version of MKL that doesn't support conditional numerical reproducibility the same way as
+            // TODO: Linux uses a version of MKL that doesn't support conditional numerical reproducibility the same way as
             // Windows runs.
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 return;
 
-            //Results sometimes go out of error tolerance on OS X.
+            // TODO: Results sometimes go out of error tolerance on OS X.
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 return;
 
@@ -320,7 +315,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for binary classifiers with non-negative coefficients
         ///</summary>
-        [LessThanNetCore30OrNotNetCoreAndX64Fact("netcoreapp3.0 and x86 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreAndX64Fact("netcoreapp3.1 and x86 output differs from Baseline")]
         [TestCategory("Binary")]
         public void BinaryClassifierLogisticRegressionNonNegativeTest()
         {
@@ -333,10 +328,8 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         [TestCategory("Binary")]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void BinaryClassifierLogisticRegressionBinNormTest()
         {
             var binaryPredictors = new[] { TestLearners.logisticRegressionBinNorm };
@@ -794,6 +787,7 @@ namespace Microsoft.ML.RunTests
             };
 
             CombineAndTestEnsembles(dataView, "pe", "oc=average", PredictionKind.BinaryClassification, predictors);
+            Done();
         }
 
         [X64Fact("x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216")]
@@ -944,7 +938,7 @@ namespace Microsoft.ML.RunTests
                             predGetters[i](ref preds[i]);
                         }
                         if (scores.All(s => !float.IsNaN(s)))
-                            CompareNumbersWithTolerance(score, scores.Sum() / predCount);
+                            CompareNumbersWithTolerance(score, scores.Sum() / predCount, digitsOfPrecision: 5);
                         for (int i = 0; i < predCount; i++)
                             Assert.Equal(vectorScore.Length, vectorScores[i].Length);
                         for (int i = 0; i < vectorScore.Length; i++)
@@ -1601,7 +1595,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for no calibrators
         ///</summary>
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         [TestCategory("Calibrator")]
         public void DefaultCalibratorPerceptronTest()
         {
@@ -1613,7 +1607,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for PAV calibrators
         ///</summary>
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         [TestCategory("Calibrator")]
         public void PAVCalibratorPerceptronTest()
         {
@@ -1625,7 +1619,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for random calibrators
         ///</summary>
-        [LessThanNetCore30OrNotNetCoreAndX64Fact("netcoreapp3.0 and x86 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreAndX64Fact("netcoreapp3.1 and x86 output differs from Baseline")]
         [TestCategory("Calibrator")]
         public void RandomCalibratorPerceptronTest()
         {
@@ -2143,7 +2137,7 @@ output Out [3] from H all;
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         [TestCategory("Binary")]
         [TestCategory("LDSVM")]
         public void BinaryClassifierLDSvmTest()
@@ -2157,7 +2151,7 @@ output Out [3] from H all;
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         [TestCategory("Binary")]
         [TestCategory("LDSVM")]
         public void BinaryClassifierLDSvmNoBiasTest()

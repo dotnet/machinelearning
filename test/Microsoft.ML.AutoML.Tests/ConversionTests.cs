@@ -4,17 +4,18 @@
 
 using System;
 using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.TestFramework;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class ConversionTests
+    public class ConversionTests : BaseTestClass
     {
         private readonly ITestOutputHelper _output;
 
-        public ConversionTests(ITestOutputHelper output)
+        public ConversionTests(ITestOutputHelper output) : base(output)
         {
             this._output = output;
         }

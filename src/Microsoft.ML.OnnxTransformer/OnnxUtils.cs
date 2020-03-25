@@ -165,7 +165,7 @@ namespace Microsoft.ML.Transforms.Onnx
         /// </summary>
         /// <param name="modelFile">Model file path.</param>
         /// <param name="gpuDeviceId">GPU device ID to execute on. Null for CPU.</param>
-        /// <param name="fallbackToCpu">If true, resumes CPU execution quitely upon GPU error.</param>
+        /// <param name="fallbackToCpu">If true, resumes CPU execution quietly upon GPU error.</param>
         /// <param name="ownModelFile">If true, the <paramref name="modelFile"/> will be deleted when <see cref="OnnxModel"/> is
         /// no longer needed.</param>
         /// <param name="shapeDictionary"></param>
@@ -179,9 +179,19 @@ namespace Microsoft.ML.Transforms.Onnx
 
             if (gpuDeviceId != null)
             {
-                // The onnxruntime v1.0 currently does not support running on the GPU on all of ML.NET's supported platforms.
-                // This code path will be re-enabled when there is appropriate support in onnxruntime
-                throw new NotSupportedException("Running Onnx models on a GPU is temporarily not supported!");
+                try
+                {
+                    _session = new InferenceSession(modelFile,
+                        SessionOptions.MakeSessionOptionWithCudaProvider(gpuDeviceId.Value));
+                }
+                catch(OnnxRuntimeException)
+                {
+                    if (fallbackToCpu)
+                        _session = new InferenceSession(modelFile);
+                    else
+                        // If called from OnnxTransform, is caught and rethrown
+                        throw;
+                }
             }
             else
             {

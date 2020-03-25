@@ -2,22 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class InferredPipelineTests
+    public class InferredPipelineTests : BaseTestClass
     {
+        public InferredPipelineTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void InferredPipelinesHashTest()
         {
             var context = new MLContext(1);
             var columnInfo = new ColumnInformation();
 
-            // test same learners with no hyperparams have the same hash code
+            // test same learners with no hyperparameters have the same hash code
             var trainer1 = new SuggestedTrainer(context, new LightGbmBinaryExtension(), columnInfo);
             var trainer2 = new SuggestedTrainer(context, new LightGbmBinaryExtension(), columnInfo);
             var transforms1 = new List<SuggestedTransform>();
@@ -26,7 +31,7 @@ namespace Microsoft.ML.AutoML.Test
             var inferredPipeline2 = new SuggestedPipeline(transforms2, new List<SuggestedTransform>(), trainer2, context, false);
             Assert.Equal(inferredPipeline1.GetHashCode(), inferredPipeline2.GetHashCode());
 
-            // test same learners with hyperparams set vs empty hyperparams have different hash codes
+            // test same learners with hyperparameters set vs empty hyperparameters have different hash codes
             var hyperparams1 = new ParameterSet(new List<IParameterValue>() { new LongParameterValue("NumberOfLeaves", 2) });
             trainer1 = new SuggestedTrainer(context, new LightGbmBinaryExtension(), columnInfo, hyperparams1);
             trainer2 = new SuggestedTrainer(context, new LightGbmBinaryExtension(), columnInfo);
@@ -34,7 +39,7 @@ namespace Microsoft.ML.AutoML.Test
             inferredPipeline2 = new SuggestedPipeline(transforms2, new List<SuggestedTransform>(), trainer2, context, false);
             Assert.NotEqual(inferredPipeline1.GetHashCode(), inferredPipeline2.GetHashCode());
 
-            // same learners with different hyperparams
+            // same learners with different hyperparameters
             hyperparams1 = new ParameterSet(new List<IParameterValue>() { new LongParameterValue("NumberOfLeaves", 2) });
             var hyperparams2 = new ParameterSet(new List<IParameterValue>() { new LongParameterValue("NumberOfLeaves", 6) });
             trainer1 = new SuggestedTrainer(context, new LightGbmBinaryExtension(), columnInfo, hyperparams1);

@@ -445,6 +445,9 @@ namespace Microsoft.ML.Transforms
 
         private sealed class Cursor : LinkedRootCursorBase
         {
+            private static readonly FuncInstanceMethodInfo1<Cursor, int, Func<int>> _makeSizeGetterMethodInfo
+                = FuncInstanceMethodInfo1<Cursor, int, Func<int>>.Create(target => target.MakeSizeGetter<int>);
+
             private readonly UngroupBinding _ungroupBinding;
 
             // The size of the pivot column in the current row. If the cursor is in good state, this is positive.
@@ -501,9 +504,7 @@ namespace Microsoft.ML.Transforms
                         // This will also create and cache a getter for the pivot column.
                         // That's why MakeSizeGetter is an instance method.
                         var rawItemType = info.ItemType.RawType;
-                        Func<int, Func<int>> del = MakeSizeGetter<int>;
-                        var mi = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(rawItemType);
-                        var sizeGetter = (Func<int>)mi.Invoke(this, new object[] { info.Index });
+                        var sizeGetter = Utils.MarshalInvoke(_makeSizeGetterMethodInfo, this, rawItemType, info.Index);
                         needed.Add(sizeGetter);
                     }
                 }

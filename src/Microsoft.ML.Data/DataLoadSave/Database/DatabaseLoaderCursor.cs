@@ -13,6 +13,9 @@ namespace Microsoft.ML.Data
     {
         private sealed class Cursor : RootCursorBase
         {
+            private static readonly FuncInstanceMethodInfo1<Cursor, int, Delegate> _createGetterDelegateMethodInfo
+                = FuncInstanceMethodInfo1<Cursor, int, Delegate>.Create(target => target.CreateGetterDelegate<int>);
+
             private readonly Bindings _bindings;
             private readonly bool[] _active; // Which columns are active.
             private readonly DatabaseSource _source;
@@ -163,7 +166,7 @@ namespace Microsoft.ML.Data
 
             private Delegate CreateGetterDelegate(int col)
             {
-                return Utils.MarshalInvoke(CreateGetterDelegate<int>, _bindings.Infos[col].ColType.RawType, col);
+                return Utils.MarshalInvoke(_createGetterDelegateMethodInfo, this, _bindings.Infos[col].ColType.RawType, col);
             }
 
             private Delegate CreateGetterDelegate<TValue>(int col)

@@ -427,7 +427,7 @@ namespace Microsoft.ML.Data
                     _cref = cref;
 
                     _queue = new BlockingQueue<LineBatch>(bufSize);
-                    _thdRead = Utils.RunOnBackgroundThread(ThreadProc);
+                    _thdRead = Utils.RunOnBackgroundThreadAsync(ThreadProc);
                 }
 
                 public void Release()
@@ -691,7 +691,7 @@ namespace Microsoft.ML.Data
 
                     for (int tid = 0; tid < _threads.Length; tid++)
                     {
-                        _threads[tid] = Utils.RunOnBackgroundThread(ThreadProc, tid);
+                        _threads[tid] = Utils.RunOnBackgroundThreadAsync(ThreadProc, tid);
                     }
                 }
 

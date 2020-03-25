@@ -102,7 +102,7 @@ namespace Microsoft.ML.Internal.Utilities
 
         /// <summary>
         /// Applies the <paramref name="visitor "/>to each corresponding pair of elements
-        /// where the item is emplicitly defined in the vector. By explicitly defined,
+        /// where the item is implicitly defined in the vector. By explicitly defined,
         /// we mean that for a given index <c>i</c>, both vectors have an entry in
         /// <see cref="VBuffer{T}.GetValues"/> corresponding to that index.
         /// </summary>

@@ -18,6 +18,7 @@ namespace Microsoft.ML.AutoML
             options.LabelColumnName = columnInfo.LabelColumnName;
             options.MatrixColumnIndexColumnName = columnInfo.UserIdColumnName;
             options.MatrixRowIndexColumnName = columnInfo.ItemIdColumnName;
+            options.Quiet = true;
             return mlContext.Recommendation().Trainers.MatrixFactorization(options);
         }
 

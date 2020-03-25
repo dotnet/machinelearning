@@ -7,6 +7,12 @@ namespace Samples.Dynamic
 {
     public static class CustomMappingSaveAndLoad
     {
+        // This example shows how to define and apply a custom mapping of input
+        // columns to output columns with a contract name. The contract name is
+        // used in the CustomMappingFactoryAttribute that decorates the custom
+        // mapping action. The pipeline containing the custom mapping can then be
+        // saved to disk, and it can be loaded back after the assembly containing
+        // the custom mapping action is registered.
         public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for
@@ -24,7 +30,11 @@ namespace Samples.Dynamic
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
             // Custom transformations can be used to transform data directly, or as
-            // part of a pipeline of estimators.
+            // part of a pipeline of estimators. The contractName must be provided
+            // in order for a pipeline containing a CustomMapping estimator to be
+            // saved and loaded back. The contractName must be the same as in the
+            // CustomMappingFactoryAttribute used to decorate the custom action
+            // defined by the user.
             var pipeline = mlContext.Transforms.CustomMapping(new
                 IsUnderThirtyCustomAction().GetMapping(), contractName:
                 "IsUnderThirty");

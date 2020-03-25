@@ -244,7 +244,7 @@ namespace Microsoft.ML.Data
     /// Base class that abstracts passing input columns through (with possibly different indices) and adding
     /// InfoCount additional columns. If an added column has the same name as a non-hidden input column, it hides
     /// the input column, and is placed immediately after the input column. Otherwise, the added column is placed
-    /// at the end. By default, newly added columns have no annotations (but this can be overriden).
+    /// at the end. By default, newly added columns have no annotations (but this can be overridden).
     /// </summary>
     [BestFriend]
     internal abstract class ColumnBindingsBase

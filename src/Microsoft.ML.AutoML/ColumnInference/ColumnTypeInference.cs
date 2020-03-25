@@ -12,7 +12,7 @@ using Microsoft.ML.Data.Conversion;
 namespace Microsoft.ML.AutoML
 {
     /// <summary>
-    /// This class incapsulates logic for automatic inference of column types for the text file.
+    /// This class encapsulates logic for automatic inference of column types for the text file.
     /// It also attempts to guess whether there is a header row.
     /// </summary>
     internal static class ColumnTypeInference

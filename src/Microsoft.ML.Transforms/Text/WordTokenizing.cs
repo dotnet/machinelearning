@@ -416,9 +416,9 @@ namespace Microsoft.ML.Transforms.Text
                     tokenizerNode.AddAttribute("separators", separators);
 
                     opType = "Squeeze";
-                    var squeezeOutput = ctx.AddIntermediateVariable(_type, column.Name, true);
+                    var squeezeOutput = ctx.AddIntermediateVariable(_type, column.Name);
                     var squeezeNode = ctx.CreateNode(opType, intermediateVar, squeezeOutput, ctx.GetNodeName(opType), "");
-                    squeezeNode.AddAttribute("axes", new long[] { 0 });
+                    squeezeNode.AddAttribute("axes", new long[] { 1 });
                 }
             }
         }

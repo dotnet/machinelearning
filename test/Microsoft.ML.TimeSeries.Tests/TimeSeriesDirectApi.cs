@@ -5,15 +5,19 @@
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
-using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests
 {
-    public sealed class TimeSeries
+    public sealed class TimeSeriesDirectApi : BaseTestClass
     {
+        public TimeSeriesDirectApi(ITestOutputHelper output) : base(output)
+        {
+        }
 
         private sealed class Prediction
         {
@@ -127,7 +131,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         public void ChangePointDetectionWithSeasonality()
         {
             var env = new MLContext(1);
@@ -177,7 +181,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         public void ChangePointDetectionWithSeasonalityPredictionEngineNoColumn()
         {
             const int changeHistorySize = 10;
@@ -253,7 +257,7 @@ namespace Microsoft.ML.Tests
             Assert.Equal(0.12216401100158691, prediction2.Change[1], precision: 5); // Raw score
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         public void ChangePointDetectionWithSeasonalityPredictionEngine()
         {
             const int changeHistorySize = 10;
@@ -323,7 +327,7 @@ namespace Microsoft.ML.Tests
             Assert.Equal(1.5292508189989167E-07, prediction.Change[3], precision: 5); // Martingale score
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         [Trait("Category", "SkipInCI")]
         public void SsaForecast()
@@ -379,7 +383,7 @@ namespace Microsoft.ML.Tests
 
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
         [Trait("Category", "SkipInCI")]
         public void SsaForecastPredictionEngine()

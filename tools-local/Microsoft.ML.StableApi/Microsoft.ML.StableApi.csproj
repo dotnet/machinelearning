@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <!-- needs to contain all frameworks which src projects wish to restore -->
-    <TargetFrameworks>netstandard2.0;netcoreapp3.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netcoreapp3.1</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

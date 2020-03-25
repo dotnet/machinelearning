@@ -31,12 +31,12 @@
     <MajorVersion>1</MajorVersion>
     <MinorVersion>5</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseLabel>preview2</PreReleaseLabel>
+    <PreReleaseLabel>preview3</PreReleaseLabel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(IsStableProject)' != 'true'">
     <MajorVersion>0</MajorVersion>
     <MinorVersion>17</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseLabel>preview2</PreReleaseLabel>
+    <PreReleaseLabel>preview3</PreReleaseLabel>
   </PropertyGroup>
 </Project>

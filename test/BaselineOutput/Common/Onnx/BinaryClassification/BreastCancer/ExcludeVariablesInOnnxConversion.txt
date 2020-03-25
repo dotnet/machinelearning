@@ -177,7 +177,7 @@
           "F22"
         ],
         "output": [
-          "Features"
+          "VectorFeaturizerOutput"
         ],
         "name": "FeatureVectorizer",
         "opType": "FeatureVectorizer",
@@ -192,6 +192,23 @@
           }
         ],
         "domain": "ai.onnx.ml"
+      },
+      {
+        "input": [
+          "VectorFeaturizerOutput"
+        ],
+        "output": [
+          "Features"
+        ],
+        "name": "Cast1",
+        "opType": "Cast",
+        "attribute": [
+          {
+            "name": "to",
+            "i": "1",
+            "type": "INT"
+          }
+        ]
       },
       {
         "input": [
@@ -435,7 +452,7 @@
         "output": [
           "PredictedLabel"
         ],
-        "name": "Cast1",
+        "name": "Cast2",
         "opType": "Cast",
         "attribute": [
           {
@@ -607,6 +624,24 @@
         }
       },
       {
+        "name": "LabelEncoderOutput",
+        "type": {
+          "tensorType": {
+            "elemType": 7,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
         "name": "F21",
         "type": {
           "tensorType": {
@@ -643,6 +678,24 @@
         }
       },
       {
+        "name": "VectorFeaturizerOutput",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "11"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
         "name": "Features",
         "type": {
           "tensorType": {
@@ -672,6 +725,132 @@
                 },
                 {
                   "dimValue": "11"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "PredictedLabel",
+        "type": {
+          "tensorType": {
+            "elemType": 9,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Score",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Probability",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "BinarizerOutput",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "PredictedLabel.output",
+        "type": {
+          "tensorType": {
+            "elemType": 9,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Score.output",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Probability.output",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
                 }
               ]
             }

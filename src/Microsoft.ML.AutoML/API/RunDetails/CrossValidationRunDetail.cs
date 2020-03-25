@@ -58,7 +58,7 @@ namespace Microsoft.ML.AutoML
         /// <see langword="null"/> if no exception was encountered.
         /// </summary>
         /// <remarks>
-        /// If an exception occurred, it's possible some properties in ths object
+        /// If an exception occurred, it's possible some properties in this object
         /// (like <see cref="Model"/>) could be <see langword="null"/>.
         /// </remarks>
         public Exception Exception { get; private set; }
