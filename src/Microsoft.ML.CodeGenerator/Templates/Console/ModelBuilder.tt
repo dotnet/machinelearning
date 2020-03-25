@@ -56,19 +56,19 @@ namespace <#= Namespace #>.ConsoleApp
             // Build training pipeline
             IEstimator<ITransformer> trainingPipeline = BuildTrainingPipeline(mlContext);
 
+            // Train Model
+            ITransformer mlModel = TrainModel(mlContext, trainingDataView, trainingPipeline);
+
 <# if(string.IsNullOrEmpty(TestPath) && !HasOnnxModel){ #>
             // Evaluate quality of Model
             Evaluate(mlContext, trainingDataView, trainingPipeline);
 
 <#}#>
-            // Train Model
-            ITransformer mlModel = TrainModel(mlContext, trainingDataView, trainingPipeline);
 <# if(!string.IsNullOrEmpty(TestPath) && !HasOnnxModel){ #>
-
             // Evaluate quality of Model
             EvaluateModel(mlContext, mlModel, testDataView);
-<#}#>
 
+<#}#>
             // Save model
             SaveModel(mlContext, mlModel, MODEL_FILEPATH, trainingDataView.Schema);
         }
