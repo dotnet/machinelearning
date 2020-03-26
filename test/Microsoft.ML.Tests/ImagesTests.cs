@@ -99,6 +99,38 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
+        public void TestLoadImages()
+        {
+            var env = new MLContext(1);
+            var dataFile = GetDataPath("images/images.tsv");
+            var correctImageFolder = Path.GetDirectoryName(dataFile);
+            var data = TextLoader.Create(env, new TextLoader.Options()
+            {
+                Columns = new[]
+                {
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
+                    }
+            }, new MultiFileSource(dataFile));
+
+            // Testing for invalid imageFolder path, should throw an ArgumentException 
+            var incorrectImageFolder = correctImageFolder + "-nonExistantDirectory";
+            Assert.Throws<ArgumentException>(() => new ImageLoadingTransformer(env, incorrectImageFolder, ("ImageReal", "ImagePath")).Transform(data));
+
+            // Testing for empty imageFolder path, should not throw an exception
+            var emptyImageFolder = String.Empty;
+            var imagesEmptyImageFolder = new ImageLoadingTransformer(env, emptyImageFolder, ("ImageReal", "ImagePath")).Transform(data);
+
+            // Testing for null imageFolder path, should not throw an exception
+            var imagesNullImageFolder = new ImageLoadingTransformer(env, null, ("ImageReal", "ImagePath")).Transform(data);
+
+            // Testing for correct imageFolder path, should not throw an exception
+            var imagesCorrectImageFolder = new ImageLoadingTransformer(env, correctImageFolder, ("ImageReal", "ImagePath")).Transform(data);
+
+            Done();
+        }
+
+        [Fact]
         public void TestSaveImages()
         {
             var env = new MLContext(1);
