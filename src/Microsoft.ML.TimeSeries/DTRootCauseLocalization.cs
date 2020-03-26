@@ -247,6 +247,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
+    /// To create this estimator, use
+    /// [LocalizeRootCauseByDT](xref:Microsoft.ML.TimeSeriesCatalog.LocalizeRootCauseByDT(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Double))
     /// ###  Estimator Characteristics
     /// |  |  |
     /// | -- | -- |
