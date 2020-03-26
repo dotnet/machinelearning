@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
 using Xunit.Abstractions;
@@ -327,10 +329,13 @@ namespace Microsoft.ML.Tests
             Assert.Equal(1.5292508189989167E-07, prediction.Change[3], precision: 5); // Martingale score
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        public void SsaForecast()
+        [Theory]
+        [IterationData(iterations: 100)]
+        [Trait("Category", "RunSpecificTest")]
+        public void SsaForecast(int iterations)
         {
+            Console.WriteLine($"SsaForecast - Iteration: {iterations}");
+
             var env = new MLContext(1);
             const int changeHistorySize = 10;
             const int seasonalitySize = 10;
@@ -375,17 +380,28 @@ namespace Microsoft.ML.Tests
 
             for (int localIndex = 0; localIndex < 4; localIndex++)
             {
-                Assert.Equal(expectedForecast[localIndex], row.Forecast[localIndex], precision: 7);
-                Assert.Equal(minCnf[localIndex], row.MinCnf[localIndex], precision: 7);
-                Assert.Equal(maxCnf[localIndex], row.MaxCnf[localIndex], precision: 7);
+                try
+                {
+                    Assert.Equal(expectedForecast[localIndex], row.Forecast[localIndex], precision: 7);
+                    Assert.Equal(minCnf[localIndex], row.MinCnf[localIndex], precision: 7);
+                    Assert.Equal(maxCnf[localIndex], row.MaxCnf[localIndex], precision: 7);
+                }
+                catch(Exception e)
+                {
+                    Console.WriteLine(String.Format("SsaForecast() fails - Exception details: {0}", e.Message));
+                    Environment.FailFast("Fail here to take memory dump");
+                }
             }
 
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        public void SsaForecastPredictionEngine()
+        [Theory]
+        [IterationData(iterations: 100)]
+        [Trait("Category", "RunSpecificTest")]
+        public void SsaForecastPredictionEngine(int iterations)
         {
+            Console.WriteLine($"SsaForecastPredictionEngine - Iteration: {iterations}");
+
             const int changeHistorySize = 10;
             const int seasonalitySize = 10;
             const int numberOfSeasonsInTraining = 5;
@@ -442,35 +458,43 @@ namespace Microsoft.ML.Tests
             engine.Predict(new Data(2), ref result);
 
             engine.CheckPoint(ml, "model.zip");
-            // [Forecast, ConfidenceLowerBound, ConfidenceUpperBound]
-            Assert.Equal(result.Forecast, new float[] { 4.310587f, 6.39716768f, 7.73934f, 8.029469f, 0.144895911f,
+
+            try
+            {
+                // [Forecast, ConfidenceLowerBound, ConfidenceUpperBound]
+                Assert.Equal(result.Forecast, new float[] { 4.310587f, 6.39716768f, 7.73934f, 8.029469f, 0.144895911f,
                 1.48849952f, 2.568874f, 2.84532261f, 8.476278f, 11.3058357f, 12.9098063f, 13.2136145f });
 
-            // Checkpoint the model.
-            ITransformer modelCopy;
-            using (var file = File.OpenRead("model.zip"))
-                modelCopy = ml.Model.Load(file, out DataViewSchema schema);
+                // Checkpoint the model.
+                ITransformer modelCopy;
+                using (var file = File.OpenRead("model.zip"))
+                    modelCopy = ml.Model.Load(file, out DataViewSchema schema);
 
-            // We must create a new prediction engine from the persisted model.
-            var forecastEngineCopy = modelCopy.CreateTimeSeriesEngine<Data, ForecastResultArray>(ml);
-            ForecastResultArray resultCopy = new ForecastResultArray();
+                // We must create a new prediction engine from the persisted model.
+                var forecastEngineCopy = modelCopy.CreateTimeSeriesEngine<Data, ForecastResultArray>(ml);
+                ForecastResultArray resultCopy = new ForecastResultArray();
 
-            // Update both the models.
-            engine.Predict(new Data(3));
-            forecastEngineCopy.Predict(new Data(3));
+                // Update both the models.
+                engine.Predict(new Data(3));
+                forecastEngineCopy.Predict(new Data(3));
 
-            // Forecast values with the original and check-pointed model.
-            forecastEngineCopy.Predict(null, ref resultCopy, horizon: 5);
-            engine.Predict(null, ref result, horizon: 5);
-            // [Forecast, ConfidenceLowerBound, ConfidenceUpperBound]
-            Assert.Equal(result.Forecast, new float[] { 6.00658846f, 7.506871f, 7.96424866f, 7.17514229f,
+                // Forecast values with the original and check-pointed model.
+                forecastEngineCopy.Predict(null, ref resultCopy, horizon: 5);
+                engine.Predict(null, ref result, horizon: 5);
+                // [Forecast, ConfidenceLowerBound, ConfidenceUpperBound]
+                Assert.Equal(result.Forecast, new float[] { 6.00658846f, 7.506871f, 7.96424866f, 7.17514229f,
                 5.02655172f, 1.84089744f, 2.59820318f, 2.79378271f, 1.99099624f,
                 -0.181109816f, 10.1722794f, 12.41554f, 13.1347151f, 12.3592882f, 10.2342129f});
 
-            // The forecasted results should be the same because the state of the models
-            // is the same.
-            Assert.Equal(result.Forecast, resultCopy.Forecast);
-            
+                // The forecasted results should be the same because the state of the models
+                // is the same.
+                Assert.Equal(result.Forecast, resultCopy.Forecast);
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(String.Format("SsaForecastPredictionEngine() fails - Exception details: {0}", e.Message));
+                Environment.FailFast("Fail here to take memory dump");
+            }
         }
 
         [Fact]
