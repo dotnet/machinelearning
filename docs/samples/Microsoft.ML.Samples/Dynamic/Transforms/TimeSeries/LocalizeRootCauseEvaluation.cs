@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using Microsoft.ML;
 using Microsoft.ML.TimeSeries;
 using Microsoft.ML.Transforms.TimeSeries;
@@ -23,7 +24,7 @@ namespace Samples.Dynamic.Transforms.TimeSeries
             int totalFn = 0;
             int totalCount = 0;
 
-            bool exactly = false;
+            bool exactly =  false;
 
             int totalRunTime = 0;
 
@@ -31,7 +32,7 @@ namespace Samples.Dynamic.Transforms.TimeSeries
             {
                 DateTime timeStamp = item.Key;
 
-                DateTime filterTime = DateTime.ParseExact("2019-11-13 13:00:00,000", "yyyy-MM-dd HH:mm:ss,fff",
+                DateTime filterTime = DateTime.ParseExact("2019-11-07 11:30:00,000", "yyyy-MM-dd HH:mm:ss,fff",
                                        System.Globalization.CultureInfo.InvariantCulture);
 
                 //if (timeStamp.CompareTo(filterTime).Equals(0))
@@ -85,7 +86,8 @@ namespace Samples.Dynamic.Transforms.TimeSeries
                 if (tpCause == null)
                 {
                     fp++;
-                    Console.WriteLine(String.Format("FP : timestamp - {0}, detected root cause ", timeStamp));
+                    int seconds = Convert.ToInt32(timeStamp.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds);
+                    Console.WriteLine(String.Format("FP : timestamp - {0}, - {1} detected root cause ", timeStamp.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'", DateTimeFormatInfo.InvariantInfo), seconds));
                     Console.WriteLine(string.Join(Environment.NewLine, cause));
                     Console.WriteLine(" ");
                 }
@@ -102,7 +104,8 @@ namespace Samples.Dynamic.Transforms.TimeSeries
                 List<Dictionary<string, string>> nCause = GetFNegtiveCause(labeledRootCause, labelSet);
                 if (nCause.Count > 0)
                 {
-                    Console.WriteLine(String.Format("FN : timestamp - {0}, labeled root cause", timeStamp));
+                    int seconds = Convert.ToInt32(timeStamp.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds);
+                    Console.WriteLine(String.Format("FN : timestamp - {0} - {1} labeled root cause", timeStamp.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'", DateTimeFormatInfo.InvariantInfo), seconds));
                     foreach (Dictionary<string, string> cause in nCause)
                     {
                         Console.WriteLine(string.Join(Environment.NewLine, cause));
@@ -154,7 +157,7 @@ namespace Samples.Dynamic.Transforms.TimeSeries
 
         private static int CompareCause(Dictionary<string, string> detect, Dictionary<string, string> label)
         {
-            if (detect.Equals(label))
+            if (DTRootCauseAnalyzer.ContainsAll(detect, label) && DTRootCauseAnalyzer.ContainsAll(label, detect))
             {
                 return 0;
             }
