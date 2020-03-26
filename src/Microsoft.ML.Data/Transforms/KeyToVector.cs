@@ -694,29 +694,22 @@ namespace Microsoft.ML.Transforms
                 // because inputs and outputs of a transform are declared with shapes.
                 Contracts.CheckValue(shape, nameof(shape));
 
-                // If Bag is true, the output of ONNX LabelEncoder needs to be fed into ONNX ReduceSum because
-                // default ONNX LabelEncoder just matches the behavior of Bag=false.
-                var encodedVariableName = _parent._columns[iinfo].OutputCountVector ? ctx.AddIntermediateVariable(null, "encoded", true) : dstVariableName;
-
                 string opType = "Cast";
-                var castOutput = ctx.AddIntermediateVariable(info.TypeSrc, opType, true);
+                var castOutput = ctx.AddIntermediateVariable(NumberDataViewType.Int64, opType);
                 var castNode = ctx.CreateNode(opType, srcVariableName, castOutput, ctx.GetNodeName(opType), "");
                 castNode.AddAttribute("to", typeof(long));
 
                 opType = "OneHotEncoder";
+                var categoryRange = info.TypeSrc.GetItemType().GetKeyCountAsInt32(Host);
+                var encodedVariableName = ctx.AddIntermediateVariable(new VectorDataViewType(NumberDataViewType.Single, 1, categoryRange), "encoded");
                 var node = ctx.CreateNode(opType, castOutput, encodedVariableName, ctx.GetNodeName(opType));
-                node.AddAttribute("cats_int64s", Enumerable.Range(1, info.TypeSrc.GetItemType().GetKeyCountAsInt32(Host)).Select(x => (long)x));
+                node.AddAttribute("cats_int64s", Enumerable.Range(1, categoryRange).Select(x => (long)x));
                 node.AddAttribute("zeros", true);
-                if (_parent._columns[iinfo].OutputCountVector)
-                {
-                    // If input shape is [1, 3], then OneHotEncoder may produce a 3-D tensor. Thus, we need to do a
-                    // reduction along the second last axis to merge the one-hot vectors produced by all input features.
-                    // Note that one input feature got expended to an one-hot vector.
-                    opType = "ReduceSum";
-                    var reduceNode = ctx.CreateNode(opType, encodedVariableName, dstVariableName, ctx.GetNodeName(opType), "");
-                    reduceNode.AddAttribute("axes", new long[] { shape.Count - 1 });
-                    reduceNode.AddAttribute("keepdims", 0);
-                }
+
+                // OneHotEncoder adds one additional dimension, so we remove it below
+                opType = "Squeeze";
+                var reduceNode = ctx.CreateNode(opType, encodedVariableName, dstVariableName, ctx.GetNodeName(opType), "");
+                reduceNode.AddAttribute("axes", new long[] { shape.Count - 1 });
             }
         }
     }

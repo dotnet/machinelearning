@@ -545,8 +545,9 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
-        public void KeyToVectorWithBagOnnxConversionTest()
+        [Theory]
+        [CombinatorialData]
+        public void KeyToVectorTest(OneHotEncodingEstimator.OutputKind outputKind)
         {
             var mlContext = new MLContext(seed: 1);
 
@@ -556,10 +557,7 @@ namespace Microsoft.ML.Tests
                 separatorChar: '\t',
                 hasHeader: true);
 
-            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.OneHotEncodingEstimator.OutputKind.Bag)
-            .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnOptions("F2")))
-            .Append(mlContext.Transforms.Concatenate("Features", "F1", "F2"))
-            .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numberOfLeaves: 2, numberOfTrees: 1, minimumExampleCountPerLeaf: 2));
+            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", outputKind);
 
             var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);
@@ -569,23 +567,21 @@ namespace Microsoft.ML.Tests
             // the associated file in ML.NET repo. Such a comparison can be retired if ONNXRuntime ported to ML.NET
             // can support Linux and Mac.
             var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
-            var onnxTextName = "OneHotBagPipeline.txt";
-            var onnxFileName = "OneHotBagPipeline.onnx";
+            var onnxTextName = "KeyToVector.txt";
+            var onnxFileName = "KeyToVector.onnx";
             var onnxTextPath = GetOutputPath(subDir, onnxTextName);
             var onnxModelPath = GetOutputPath(subDir, onnxFileName);
             SaveOnnxModel(onnxModel, onnxModelPath, onnxTextPath);
-            // Compare results produced by ML.NET and ONNX's runtime.
-            if (IsOnnxRuntimeSupported())
+
+            // Binary OutputKind is currently not supported. 
+            if (IsOnnxRuntimeSupported() && OneHotEncodingEstimator.OutputKind.Binary != outputKind)
             {
                 // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
                 var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(data);
                 var onnxResult = onnxTransformer.Transform(data);
-                CompareSelectedColumns<float>("Score", "Score", transformedData, onnxResult);
-                CompareSelectedColumns<float>("Probability", "Probability", transformedData, onnxResult);
-                CompareSelectedColumns<bool>("PredictedLabel", "PredictedLabel", transformedData, onnxResult);
+                CompareResults("F2", "F2", transformedData, onnxResult);
             }
-            CheckEquality(subDir, onnxTextName);
             Done();
         }
 
@@ -1770,7 +1766,6 @@ namespace Microsoft.ML.Tests
             var rightColumn = right.Schema[rightColumnName];
             var leftType = leftColumn.Type.GetItemType();
             var rightType = rightColumn.Type.GetItemType();
-            Assert.Equal(leftType, rightType);
 
             if (leftType == NumberDataViewType.SByte)
                 CompareSelectedColumns<sbyte>(leftColumnName, rightColumnName, left, right);

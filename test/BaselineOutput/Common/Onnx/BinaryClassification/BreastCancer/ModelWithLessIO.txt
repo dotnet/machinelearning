@@ -92,7 +92,7 @@
           "Cast"
         ],
         "output": [
-          "F21"
+          "encoded"
         ],
         "name": "OneHotEncoder",
         "opType": "OneHotEncoder",
@@ -119,6 +119,25 @@
           }
         ],
         "domain": "ai.onnx.ml"
+      },
+      {
+        "input": [
+          "encoded"
+        ],
+        "output": [
+          "F21"
+        ],
+        "name": "Squeeze",
+        "opType": "Squeeze",
+        "attribute": [
+          {
+            "name": "axes",
+            "ints": [
+              "1"
+            ],
+            "type": "INTS"
+          }
+        ]
       },
       {
         "input": [
@@ -976,6 +995,45 @@
               "dim": [
                 {
                   "dimValue": "-1"
+                },
+                {
+                  "dimValue": "9"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Cast",
+        "type": {
+          "tensorType": {
+            "elemType": 7,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "encoded",
+        "type": {
+          "tensorType": {
+            "elemType": 1,
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "-1"
+                },
+                {
+                  "dimValue": "1"
                 },
                 {
                   "dimValue": "9"
