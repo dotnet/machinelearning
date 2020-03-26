@@ -16,7 +16,8 @@ jobs:
     name: Ubuntu_x64_NetCoreApp21
     buildScript: ./build.sh
     container: UbuntuContainer
-    innerLoop: true
+    innerLoop: false
+    runSpecific: true
     pool:
       name: Hosted Ubuntu 1604
 
@@ -24,7 +25,8 @@ jobs:
   parameters:
     name: MacOS_x64_NetCoreApp21
     buildScript: ./build.sh
-    innerLoop: true
+    innerLoop: false
+    runSpecific: true
     pool:
       name: Hosted macOS
 
@@ -32,7 +34,8 @@ jobs:
   parameters:
     name: Windows_x64_NetCoreApp21_1
     buildScript: build.cmd
-    innerLoop: true
+    innerLoop: false
+    runSpecific: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
     pool:
       name: Hosted VS2017
@@ -41,7 +44,8 @@ jobs:
   parameters:
     name: Windows_x64_NetCoreApp21_2
     buildScript: build.cmd
-    innerLoop: true
+    innerLoop: false
+    runSpecific: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
     pool:
       name: Hosted VS2017
@@ -61,7 +65,8 @@ jobs:
         _config_short: RFX
         _includeBenchmarkData: false
         _targetFramework: win-x64
-    innerLoop: true
+    innerLoop: false
+    runSpecific: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v4.0"
     pool:
       name: Hosted VS2017
@@ -71,7 +76,8 @@ jobs:
     name: Windows_x86_NetCoreApp21
     architecture: x86
     buildScript: build.cmd
-    innerLoop: true
+    innerLoop: false
+    runSpecific: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v2.1"
     pool:
       name: Hosted VS2017
