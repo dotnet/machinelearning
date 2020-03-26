@@ -51,7 +51,7 @@ namespace Microsoft.ML.Tests.Transformers
             public string dataA;
         }
 
-        [NotCentOS7Fact]
+        [Fact]
         public void NotImputeOneColumn()
         {
             MLContext mlContext = new MLContext(1);
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
         
-        [NotCentOS7Fact]
+        [Fact]
         public void ImputeOnlyOneColumn()
         {
             MLContext mlContext = new MLContext(1);
@@ -135,7 +135,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [NotCentOS7Fact]
+        [Fact]
         public void Forwardfill()
         {
             MLContext mlContext = new MLContext(1);
@@ -190,7 +190,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
         
-        [NotCentOS7Fact]
+        [Fact]
         public void DateTimeSupportForwardfill()
         {
             MLContext mlContext = new MLContext(1);
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
         
-        [NotCentOS7Fact]
+        [Fact]
         public void EntryPoint()
         {
             MLContext mlContext = new MLContext(1);
@@ -298,7 +298,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [NotCentOS7Fact]
+        [Fact]
         public void Median()
         {
             MLContext mlContext = new MLContext(1);
@@ -355,7 +355,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [NotCentOS7Fact]
+        [Fact]
         public void DateTimeTypeSupportMedian()
         {
             MLContext mlContext = new MLContext(1);
@@ -398,7 +398,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [NotCentOS7Fact]
+        [Fact]
         public void Backfill()
         {
             MLContext mlContext = new MLContext(1);
@@ -453,7 +453,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [NotCentOS7Fact]
+        [Fact]
         public void BackfillTwoGrain()
         {
             MLContext mlContext = new MLContext(1);
@@ -505,7 +505,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [NotCentOS7Fact]
+        [Fact]
         public void InvalidTypeForImputationStrategy()
         {
             MLContext mlContext = new MLContext(1);

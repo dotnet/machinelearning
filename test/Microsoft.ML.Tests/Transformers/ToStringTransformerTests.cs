@@ -77,7 +77,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
         }
 
-        [NotCentOS7Fact]
+        [Fact]
         public void TestBool()
         {
             MLContext mlContext = new MLContext(1);            
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         
-        [NotCentOS7Fact]
+        [Fact]
         public void TestByte()
         {
             MLContext mlContext = new MLContext(1);
@@ -117,7 +117,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [NotCentOS7Fact]
+        [Fact]
         public void TestSByte()
         {
             MLContext mlContext = new MLContext(1);
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
         
-        [NotCentOS7Fact]
+        [Fact]
         public void TestUShort()
         {
             MLContext mlContext = new MLContext(1);
@@ -157,7 +157,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
         
-        [NotCentOS7Fact]
+        [Fact]
         public void TestInt()
         {
             MLContext mlContext = new MLContext(1);
@@ -177,7 +177,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
         
-        [NotCentOS7Fact]
+        [Fact]
         public void TestUInt()
         {
             MLContext mlContext = new MLContext(1);
@@ -197,7 +197,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }        
         
-        [NotCentOS7Fact]
+        [Fact]
         public void TestLong()
         {
             MLContext mlContext = new MLContext(1);
@@ -217,7 +217,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [NotCentOS7Fact]
+        [Fact]
         public void TestULong()
         {
             MLContext mlContext = new MLContext(1);
@@ -237,7 +237,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [NotCentOS7Fact]
+        [Fact]
         public void TestFloat()
         {
             MLContext mlContext = new MLContext(1);
@@ -257,7 +257,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
         
-        [NotCentOS7Fact]
+        [Fact]
         public void TestShort()
         {
             MLContext mlContext = new MLContext(1);
@@ -277,7 +277,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
         
-        [NotCentOS7Fact]
+        [Fact]
         public void TestDouble()
         {
             MLContext mlContext = new MLContext(1);
@@ -299,7 +299,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [NotCentOS7Fact]
+        [Fact]
         public void TestString()
         {
             MLContext mlContext = new MLContext(1);
@@ -322,7 +322,7 @@ namespace Microsoft.ML.Tests.Transformers
 
         }
         
-        [NotCentOS7Fact]
+        [Fact]
         public void TestEntryPoint()
         {
             MLContext mlContext = new MLContext(1);

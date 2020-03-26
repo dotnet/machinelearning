@@ -184,11 +184,9 @@ namespace Microsoft.ML.Featurizers
         internal TimeSeriesImputerEstimator(IHostEnvironment env, string timeSeriesColumn, string[] grainColumns, string[] filterColumns, FilterMode filterMode, ImputationStrategy imputeMode, bool supressTypeErrors)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
             _host = Contracts.CheckRef(env, nameof(env)).Register("TimeSeriesImputerEstimator");
             _host.CheckValue(timeSeriesColumn, nameof(timeSeriesColumn), "TimePoint column should not be null.");
             _host.CheckNonEmpty(grainColumns, nameof(grainColumns), "Need at least one grain column.");
-            _host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
             if (filterMode == FilterMode.Include)
                 _host.CheckNonEmpty(filterColumns, nameof(filterColumns), "Need at least 1 filter column if a FilterMode is specified");
 
@@ -206,12 +204,10 @@ namespace Microsoft.ML.Featurizers
         internal TimeSeriesImputerEstimator(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
             _host = Contracts.CheckRef(env, nameof(env)).Register("TimeSeriesImputerEstimator");
             _host.CheckValue(options.TimeSeriesColumn, nameof(options.TimeSeriesColumn), "TimePoint column should not be null.");
             _host.CheckValue(options.GrainColumns, nameof(options.GrainColumns), "Grain columns should not be null.");
             _host.CheckNonEmpty(options.GrainColumns, nameof(options.GrainColumns), "Need at least one grain column.");
-            _host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
             if (options.FilterMode != FilterMode.NoFilter)
                 _host.CheckNonEmpty(options.FilterColumns, nameof(options.FilterColumns), "Need at least 1 filter column if a FilterMode is specified");
 
@@ -272,8 +268,6 @@ namespace Microsoft.ML.Featurizers
         // Normal constructor.
         internal TimeSeriesImputerTransformer(IHostEnvironment host, TimeSeriesImputerEstimator.Options options, IDataView input)
         {
-            _host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
-
             _host = host.Register(nameof(TimeSeriesImputerTransformer));
             _timeSeriesColumn = options.TimeSeriesColumn;
             _grainColumns = options.GrainColumns;
@@ -305,7 +299,6 @@ namespace Microsoft.ML.Featurizers
         // Factory method for SignatureLoadModel.
         internal TimeSeriesImputerTransformer(IHostEnvironment host, ModelLoadContext ctx)
         {
-            _host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
             _host = host.Register(nameof(TimeSeriesImputerTransformer));
 
             // *** Binary format ***
@@ -359,17 +352,12 @@ namespace Microsoft.ML.Featurizers
             return (IDataTransform)(new TimeSeriesImputerTransformer(env, ctx).Transform(input));
         }
 
-        private unsafe TransformerEstimatorSafeHandle CreateTransformerFromEstimator(IDataView input)
-        {
+        private unsafe TransformerEstimatorSafeHandle CreateTransformerFromEstimator(IDataView input) {
             IntPtr estimator;
             IntPtr errorHandle;
             bool success;
 
             var allColumns = input.Schema.Where(x => _allColumnNames.Contains(x.Name)).Select(x => TypedColumn.CreateTypedColumn(x, _dataColumns)).ToDictionary(x => x.Column.Name);
-
-            // Create buffer to hold binary data
-            var memoryStream = new MemoryStream(4096);
-            var binaryWriter = new BinaryWriter(memoryStream, Encoding.UTF8);
 
             // Create TypeId[] for types of grain and data columns;
             var dataColumnTypes = new TypeId[_dataColumns.Length];
@@ -383,51 +371,94 @@ namespace Microsoft.ML.Featurizers
 
             fixed (bool* suppressErrors = &_suppressTypeErrors)
             fixed (TypeId* rawDataColumnTypes = dataColumnTypes)
-            fixed (TypeId* rawGrainColumnTypes = grainColumnTypes)
-            {
+            fixed (TypeId* rawGrainColumnTypes = grainColumnTypes) {
                 success = CreateEstimatorNative(rawGrainColumnTypes, new IntPtr(grainColumnTypes.Length), rawDataColumnTypes, new IntPtr(dataColumnTypes.Length), _imputeMode, suppressErrors, out estimator, out errorHandle);
             }
             if (!success)
                 throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
-            using (var estimatorHandler = new TransformerEstimatorSafeHandle(estimator, DestroyEstimatorNative))
-            {
-                var fitResult = FitResult.Continue;
-                while (fitResult != FitResult.Complete)
-                {
-                    using (var cursor = input.GetRowCursorForAllColumns())
-                    {
-                        // Initialize getters for start of loop
-                        foreach (var column in allColumns.Values)
-                            column.InitializeGetter(cursor);
+            using (var estimatorHandle = new TransformerEstimatorSafeHandle(estimator, DestroyEstimatorNative)) {
+                TrainingState trainingState;
+                FitResult fitResult;
 
-                        while ((fitResult == FitResult.Continue || fitResult == FitResult.ResetAndContinue) && cursor.MoveNext())
-                        {
-                            BuildColumnByteArray(allColumns, ref binaryWriter);
+                // Create buffer to hold binary data
+                var memoryStream = new MemoryStream(4096);
+                var binaryWriter = new BinaryWriter(memoryStream, Encoding.UTF8);
 
-                            fixed (byte* bufferPointer = memoryStream.GetBuffer())
-                            {
-                                var binaryArchiveData = new NativeBinaryArchiveData() { Data = bufferPointer, DataSize = new IntPtr(memoryStream.Position) };
-                                success = FitNative(estimatorHandler, binaryArchiveData, out fitResult, out errorHandle);
-                            }
-                            if (!success)
-                                throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
+                // Can't use a using with this because it potentially needs to be reset. Manually disposing as needed.
+                var cursor = input.GetRowCursorForAllColumns();
+                // Initialize getters
+                foreach (var column in allColumns.Values)
+                    column.InitializeGetter(cursor);
 
-                            memoryStream.Position = 0;
-                        }
+                // Start the loop with the cursor in a valid state already.
+                cursor.MoveNext();
+                while (true) {
+                    // Get the state of the native estimator.
+                    success = GetStateNative(estimatorHandle, out trainingState, out errorHandle);
+                    if (!success)
+                        throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
-                        success = CompleteTrainingNative(estimatorHandler, out fitResult, out errorHandle);
+                    // If we are no longer training then exit loop.
+                    if (trainingState != TrainingState.Training)
+                        break;
+
+                    // Build byte array to send column data to native featurizer
+                    BuildColumnByteArray(allColumns, ref binaryWriter);
+
+                    // Fit the estimator
+                    fixed (byte* bufferPointer = memoryStream.GetBuffer()) {
+                        var binaryArchiveData = new NativeBinaryArchiveData() { Data = bufferPointer, DataSize = new IntPtr(memoryStream.Position) };
+                        success = FitNative(estimatorHandle, binaryArchiveData, out fitResult, out errorHandle);
+                    }
+
+                    // Reset memory stream to 0
+                    memoryStream.Position = 0;
+
+                    if (!success)
+                        throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
+
+                    // If we need to reset the data to the beginning.
+                    if (fitResult == FitResult.ResetAndContinue)
+                        ResetCursor(input, ref cursor, allColumns);
+
+                    // If we are at the end of the data.
+                    if (!cursor.MoveNext()) {
+                        OnDataCompletedNative(estimatorHandle, out errorHandle);
                         if (!success)
                             throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
+
+                        ResetCursor(input, ref cursor, allColumns);
                     }
                 }
 
-                success = CreateTransformerFromEstimatorNative(estimatorHandler, out IntPtr transformer, out errorHandle);
+                // When done training complete the estimator.
+                success = CompleteTrainingNative(estimatorHandle, out errorHandle);
                 if (!success)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
+                // Create the native transformer from the estimator;
+                success = CreateTransformerFromEstimatorNative(estimatorHandle, out IntPtr transformer, out errorHandle);
+                if (!success)
+                    throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
+
+                // Manually dispose of the IEnumerator since we dont have a using statement;
+                cursor.Dispose();
+
                 return new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
             }
+        }
+
+        private void ResetCursor(IDataView input, ref DataViewRowCursor cursor, Dictionary<string, TypedColumn> allColumns) {
+            cursor.Dispose();
+            cursor = input.GetRowCursorForAllColumns();
+
+            // Initialize getters
+            foreach (var column in allColumns.Values)
+                column.InitializeGetter(cursor);
+
+            // Move cursor to valid position
+            cursor.MoveNext();
         }
 
         private void BuildColumnByteArray(Dictionary<string, TypedColumn> allColumns, ref BinaryWriter binaryWriter)
@@ -537,7 +568,7 @@ namespace Microsoft.ML.Featurizers
         private static extern bool DestroyTransformerNative(IntPtr transformer, out IntPtr errorHandle);
 
         [DllImport("Featurizers", EntryPoint = "TimeSeriesImputerFeaturizer_BinaryArchive_CompleteTraining", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-        private static extern bool CompleteTrainingNative(TransformerEstimatorSafeHandle estimator, out FitResult fitResult, out IntPtr errorHandle);
+        private static extern bool CompleteTrainingNative(TransformerEstimatorSafeHandle estimator, out IntPtr errorHandle);
 
         [DllImport("Featurizers", EntryPoint = "TimeSeriesImputerFeaturizer_BinaryArchive_Fit", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
         private static unsafe extern bool FitNative(TransformerEstimatorSafeHandle estimator, NativeBinaryArchiveData data, out FitResult fitResult, out IntPtr errorHandle);
@@ -548,8 +579,17 @@ namespace Microsoft.ML.Featurizers
         [DllImport("Featurizers", EntryPoint = "TimeSeriesImputerFeaturizer_BinaryArchive_CreateTransformerSaveData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
         private static extern bool CreateTransformerSaveDataNative(TransformerEstimatorSafeHandle transformer, out IntPtr buffer, out IntPtr bufferSize, out IntPtr error);
 
+        [DllImport("Featurizers", EntryPoint = "TimeSeriesImputerFeaturizer_BinaryArchive_CreateONNXSaveData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+        private static extern bool CreateOnnxSaveDataNative(TransformerEstimatorSafeHandle transformer, out IntPtr buffer, out IntPtr bufferSize, out IntPtr error);
+
         [DllImport("Featurizers", EntryPoint = "TimeSeriesImputerFeaturizer_BinaryArchive_CreateTransformerFromSavedData"), SuppressUnmanagedCodeSecurity]
         private static unsafe extern bool CreateTransformerFromSavedDataNative(byte* rawData, IntPtr bufferSize, out IntPtr transformer, out IntPtr errorHandle);
+
+        [DllImport("Featurizers", EntryPoint = "TimeSeriesImputerFeaturizer_BinaryArchive_OnDataCompleted"), SuppressUnmanagedCodeSecurity]
+        private static unsafe extern bool OnDataCompletedNative(TransformerEstimatorSafeHandle estimator, out IntPtr errorHandle);
+
+        [DllImport("Featurizers", EntryPoint = "TimeSeriesImputerFeaturizer_BinaryArchive_GetState"), SuppressUnmanagedCodeSecurity]
+        private static unsafe extern bool GetStateNative(TransformerEstimatorSafeHandle estimator, out TrainingState trainingState, out IntPtr errorHandle);
 
         #endregion
 

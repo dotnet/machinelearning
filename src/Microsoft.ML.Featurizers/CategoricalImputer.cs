@@ -6,6 +6,7 @@
 // This functionality will be integrated into the MissingValueReplacer over the next several weeks.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -16,6 +17,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Featurizers;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 using static Microsoft.ML.Featurizers.CommonExtensions;
@@ -133,7 +135,6 @@ namespace Microsoft.ML.Featurizers
         internal CategoricalImputerEstimator(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
             _host = env.Register(nameof(CategoricalImputerEstimator));
 
             foreach (var columnPair in options.Columns)
@@ -181,7 +182,6 @@ namespace Microsoft.ML.Featurizers
         internal CategoricalImputerTransformer(IHostEnvironment host, IDataView input, CategoricalImputerEstimator.Column[] columns) :
             base(host.Register(nameof(CategoricalImputerEstimator)))
         {
-            host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
             var schema = input.Schema;
 
             _columns = columns.Select(x => TypedColumn.CreateTypedColumn(x.Name, x.Source, schema[x.Source].Type.RawType.ToString())).ToArray();
@@ -195,7 +195,6 @@ namespace Microsoft.ML.Featurizers
         internal CategoricalImputerTransformer(IHostEnvironment host, ModelLoadContext ctx) :
             base(host.Register(nameof(CategoricalImputerTransformer)))
         {
-            host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
             // *** Binary format ***
@@ -308,6 +307,8 @@ namespace Microsoft.ML.Featurizers
             internal abstract void CreateTransformerFromEstimator(IDataView input);
             private protected abstract unsafe TransformerEstimatorSafeHandle CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize);
             private protected abstract bool CreateTransformerSaveDataHelper(out IntPtr buffer, out IntPtr bufferSize, out IntPtr errorHandle);
+            private protected abstract bool GetStateHelper(TransformerEstimatorSafeHandle estimator, out TrainingState trainingState, out IntPtr errorHandle);
+            private protected abstract bool OnDataCompletedHelper(TransformerEstimatorSafeHandle estimator, out IntPtr errorHandle);
             public abstract void Dispose();
 
             internal static bool IsColumnTypeSupported(Type type)
@@ -358,22 +359,22 @@ namespace Microsoft.ML.Featurizers
             }
         }
 
-        internal abstract class TypedColumn<T> : TypedColumn
+        internal abstract class TypedColumn<TSourceType> : TypedColumn
         {
-            private protected T Result;
+            private protected TSourceType Result;
 
             internal TypedColumn(string name, string source, Type type) :
                 base(name, source, type)
             {
             }
 
-            internal abstract T Transform(T input);
+            internal abstract TSourceType Transform(TSourceType input);
             private protected abstract bool CreateEstimatorHelper(out IntPtr estimator, out IntPtr errorHandle);
             private protected abstract bool CreateTransformerFromEstimatorHelper(TransformerEstimatorSafeHandle estimator, out IntPtr transformer, out IntPtr errorHandle);
             private protected abstract bool DestroyEstimatorHelper(IntPtr estimator, out IntPtr errorHandle);
             private protected abstract bool DestroyTransformerHelper(IntPtr transformer, out IntPtr errorHandle);
-            private protected abstract bool FitHelper(TransformerEstimatorSafeHandle estimator, T input, out FitResult fitResult, out IntPtr errorHandle);
-            private protected abstract bool CompleteTrainingHelper(TransformerEstimatorSafeHandle estimator, out FitResult fitResult, out IntPtr errorHandle);
+            private protected abstract bool FitHelper(TransformerEstimatorSafeHandle estimator, TSourceType input, out FitResult fitResult, out IntPtr errorHandle);
+            private protected abstract bool CompleteTrainingHelper(TransformerEstimatorSafeHandle estimator, out IntPtr errorHandle);
 
             private protected TransformerEstimatorSafeHandle CreateTransformerFromEstimatorBase(IDataView input)
             {
@@ -381,29 +382,62 @@ namespace Microsoft.ML.Featurizers
                 if (!success)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
-                using (var estimatorHandler = new TransformerEstimatorSafeHandle(estimator, DestroyEstimatorHelper))
+                using (var estimatorHandle = new TransformerEstimatorSafeHandle(estimator, DestroyEstimatorHelper))
                 {
-                    var fitResult = FitResult.Continue;
-                    while (fitResult != FitResult.Complete)
-                    {
-                        using (var data = input.GetColumn<T>(Source).GetEnumerator())
-                        {
-                            while (fitResult == FitResult.Continue && data.MoveNext())
-                            {
-                                success = FitHelper(estimatorHandler, data.Current, out fitResult, out errorHandle);
-                                if (!success)
-                                    throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
-                            }
+                    TrainingState trainingState;
+                    FitResult fitResult;
 
-                            success = CompleteTrainingHelper(estimatorHandler, out fitResult, out errorHandle);
+                    // Can't use a using with this because it potentially needs to be reset. Manually disposing as needed.
+                    var data = input.GetColumn<TSourceType>(Source).GetEnumerator();
+                    data.MoveNext();
+                    while (true)
+                    {
+                        // Get the state of the native estimator.
+                        success = GetStateHelper(estimatorHandle, out trainingState, out errorHandle);
+                        if (!success)
+                            throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
+
+                        // If we are no longer training then exit loop.
+                        if (trainingState != TrainingState.Training)
+                            break;
+
+                        // Fit the estimator
+                        success = FitHelper(estimatorHandle, data.Current, out fitResult, out errorHandle);
+                        if (!success)
+                            throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
+
+                        // If we need to reset the data to the beginning.
+                        if (fitResult == FitResult.ResetAndContinue)
+                        {
+                            data.Dispose();
+                            data = input.GetColumn<TSourceType>(Source).GetEnumerator();
+                        }
+
+                        // If we are at the end of the data.
+                        if (!data.MoveNext())
+                        {
+                            OnDataCompletedHelper(estimatorHandle, out errorHandle);
                             if (!success)
                                 throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
+
+                            data.Dispose();
+                            data = input.GetColumn<TSourceType>(Source).GetEnumerator();
+                            data.MoveNext();
                         }
                     }
 
-                    success = CreateTransformerFromEstimatorHelper(estimatorHandler, out IntPtr transformer, out errorHandle);
+                    // When done training complete the estimator.
+                    success = CompleteTrainingHelper(estimatorHandle, out errorHandle);
                     if (!success)
                         throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
+
+                    // Create the native transformer from the estimator;
+                    success = CreateTransformerFromEstimatorHelper(estimatorHandle, out IntPtr transformer, out errorHandle);
+                    if (!success)
+                        throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
+
+                    // Manually dispose of the IEnumerator since we dont have a using statement;
+                    data.Dispose();
 
                     return new TransformerEstimatorSafeHandle(transformer, DestroyTransformerHelper);
                 }
@@ -421,13 +455,13 @@ namespace Microsoft.ML.Featurizers
             {
             }
 
-            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_float_t_CreateEstimator", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_float_CreateEstimator", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool CreateEstimatorNative(out IntPtr estimator, out IntPtr errorHandle);
 
-            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_float_t_DestroyEstimator", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_float_DestroyEstimator", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool DestroyEstimatorNative(IntPtr estimator, out IntPtr errorHandle); // Should ONLY be called by safe handle
 
-            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_float_t_CreateTransformerFromEstimator", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_float_CreateTransformerFromEstimator", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool CreateTransformerFromEstimatorNative(TransformerEstimatorSafeHandle estimator, out IntPtr transformer, out IntPtr errorHandle);
             internal override void CreateTransformerFromEstimator(IDataView input)
             {
@@ -441,7 +475,7 @@ namespace Microsoft.ML.Featurizers
                 Result = output;
             }
 
-            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_float_t_CreateTransformerFromSavedData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_float_CreateTransformerFromSavedData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static unsafe extern bool CreateTransformerFromSavedDataNative(byte* rawData, IntPtr bufferSize, out IntPtr transformer, out IntPtr errorHandle);
             private protected override unsafe TransformerEstimatorSafeHandle CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
             {
@@ -461,10 +495,10 @@ namespace Microsoft.ML.Featurizers
                 return handle;
             }
 
-            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_float_t_DestroyTransformer", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_float_DestroyTransformer", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool DestroyTransformerNative(IntPtr transformer, out IntPtr errorHandle);
-            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_float_t_Transform", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-            private static unsafe extern bool TransformDataNative(TransformerEstimatorSafeHandle transformer, in float input, out float output, out IntPtr errorHandle);
+            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_float_Transform", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            private static unsafe extern bool TransformDataNative(TransformerEstimatorSafeHandle transformer, float input, out float output, out IntPtr errorHandle);
             internal override float Transform(float input)
             {
                 if (!float.IsNaN(input))
@@ -472,6 +506,16 @@ namespace Microsoft.ML.Featurizers
 
                 return Result;
             }
+
+            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_float_GetState", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            private static extern bool GetStateNative(TransformerEstimatorSafeHandle estimator, out TrainingState trainingState, out IntPtr errorHandle);
+            private protected override bool GetStateHelper(TransformerEstimatorSafeHandle estimator, out TrainingState trainingState, out IntPtr errorHandle) =>
+                    GetStateNative(estimator, out trainingState, out errorHandle);
+
+            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_float_OnDataCompleted", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            private static extern bool OnDataCompletedNative(TransformerEstimatorSafeHandle estimator, out IntPtr errorHandle);
+            private protected override bool OnDataCompletedHelper(TransformerEstimatorSafeHandle estimator, out IntPtr errorHandle) =>
+                    OnDataCompletedNative(estimator, out errorHandle);
 
             public override void Dispose()
             {
@@ -491,17 +535,17 @@ namespace Microsoft.ML.Featurizers
             private protected override bool DestroyTransformerHelper(IntPtr transformer, out IntPtr errorHandle) =>
                 DestroyTransformerNative(transformer, out errorHandle);
 
-            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_float_t_Fit", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-            private static extern bool FitNative(TransformerEstimatorSafeHandle estimator, in float input, out FitResult fitResult, out IntPtr errorHandle);
+            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_float_Fit", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            private static extern bool FitNative(TransformerEstimatorSafeHandle estimator, float input, out FitResult fitResult, out IntPtr errorHandle);
             private protected override bool FitHelper(TransformerEstimatorSafeHandle estimator, float input, out FitResult fitResult, out IntPtr errorHandle) =>
                 FitNative(estimator, input, out fitResult, out errorHandle);
 
-            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_float_t_CompleteTraining", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-            private static extern bool CompleteTrainingNative(TransformerEstimatorSafeHandle estimator, out FitResult fitResult, out IntPtr errorHandle);
-            private protected override bool CompleteTrainingHelper(TransformerEstimatorSafeHandle estimator, out FitResult fitResult, out IntPtr errorHandle) =>
-                   CompleteTrainingNative(estimator, out fitResult, out errorHandle);
+            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_float_CompleteTraining", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            private static extern bool CompleteTrainingNative(TransformerEstimatorSafeHandle estimator, out IntPtr errorHandle);
+            private protected override bool CompleteTrainingHelper(TransformerEstimatorSafeHandle estimator, out IntPtr errorHandle) =>
+                   CompleteTrainingNative(estimator, out errorHandle);
 
-            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_float_t_CreateTransformerSaveData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_float_CreateTransformerSaveData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool CreateTransformerSaveDataNative(TransformerEstimatorSafeHandle transformer, out IntPtr buffer, out IntPtr bufferSize, out IntPtr error);
             private protected override bool CreateTransformerSaveDataHelper(out IntPtr buffer, out IntPtr bufferSize, out IntPtr errorHandle) =>
                 CreateTransformerSaveDataNative(TransformerHandler, out buffer, out bufferSize, out errorHandle);
@@ -518,13 +562,13 @@ namespace Microsoft.ML.Featurizers
             {
             }
 
-            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_double_t_CreateEstimator", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_double_CreateEstimator", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool CreateEstimatorNative(out IntPtr estimator, out IntPtr errorHandle);
 
-            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_double_t_DestroyEstimator", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_double_DestroyEstimator", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool DestroyEstimatorNative(IntPtr estimator, out IntPtr errorHandle); // Should ONLY be called by safe handle
 
-            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_double_t_CreateTransformerFromEstimator", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_double_CreateTransformerFromEstimator", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool CreateTransformerFromEstimatorNative(TransformerEstimatorSafeHandle estimator, out IntPtr transformer, out IntPtr errorHandle);
             internal override void CreateTransformerFromEstimator(IDataView input)
             {
@@ -538,7 +582,7 @@ namespace Microsoft.ML.Featurizers
                 Result = output;
             }
 
-            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_double_t_CreateTransformerFromSavedData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_double_CreateTransformerFromSavedData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static unsafe extern bool CreateTransformerFromSavedDataNative(byte* rawData, IntPtr bufferSize, out IntPtr transformer, out IntPtr errorHandle);
             private protected override unsafe TransformerEstimatorSafeHandle CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
             {
@@ -558,11 +602,11 @@ namespace Microsoft.ML.Featurizers
                 return handle;
             }
 
-            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_double_t_DestroyTransformer", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_double_DestroyTransformer", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool DestroyTransformerNative(IntPtr transformer, out IntPtr errorHandle);
 
-            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_double_t_Transform", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-            private static unsafe extern bool TransformDataNative(TransformerEstimatorSafeHandle transformer, in double input, out double output, out IntPtr errorHandle);
+            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_double_Transform", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            private static unsafe extern bool TransformDataNative(TransformerEstimatorSafeHandle transformer, double input, out double output, out IntPtr errorHandle);
             internal override double Transform(double input)
             {
                 if (!double.IsNaN(input))
@@ -570,6 +614,16 @@ namespace Microsoft.ML.Featurizers
 
                 return Result;
             }
+
+            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_double_GetState", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            private static extern bool GetStateNative(TransformerEstimatorSafeHandle estimator, out TrainingState trainingState, out IntPtr errorHandle);
+            private protected override bool GetStateHelper(TransformerEstimatorSafeHandle estimator, out TrainingState trainingState, out IntPtr errorHandle) =>
+                    GetStateNative(estimator, out trainingState, out errorHandle);
+
+            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_double_OnDataCompleted", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            private static extern bool OnDataCompletedNative(TransformerEstimatorSafeHandle estimator, out IntPtr errorHandle);
+            private protected override bool OnDataCompletedHelper(TransformerEstimatorSafeHandle estimator, out IntPtr errorHandle) =>
+                    OnDataCompletedNative(estimator, out errorHandle);
 
             public override void Dispose()
             {
@@ -589,17 +643,17 @@ namespace Microsoft.ML.Featurizers
             private protected override bool DestroyTransformerHelper(IntPtr transformer, out IntPtr errorHandle) =>
                 DestroyTransformerNative(transformer, out errorHandle);
 
-            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_double_t_Fit", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-            private static extern bool FitNative(TransformerEstimatorSafeHandle estimator, in double input, out FitResult fitResult, out IntPtr errorHandle);
+            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_double_Fit", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            private static extern bool FitNative(TransformerEstimatorSafeHandle estimator, double input, out FitResult fitResult, out IntPtr errorHandle);
             private protected override bool FitHelper(TransformerEstimatorSafeHandle estimator, double input, out FitResult fitResult, out IntPtr errorHandle) =>
                 FitNative(estimator, input, out fitResult, out errorHandle);
 
-            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_double_t_CompleteTraining", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-            private static extern bool CompleteTrainingNative(TransformerEstimatorSafeHandle estimator, out FitResult fitResult, out IntPtr errorHandle);
-            private protected override bool CompleteTrainingHelper(TransformerEstimatorSafeHandle estimator, out FitResult fitResult, out IntPtr errorHandle) =>
-                   CompleteTrainingNative(estimator, out fitResult, out errorHandle);
+            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_double_CompleteTraining", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            private static extern bool CompleteTrainingNative(TransformerEstimatorSafeHandle estimator, out IntPtr errorHandle);
+            private protected override bool CompleteTrainingHelper(TransformerEstimatorSafeHandle estimator, out IntPtr errorHandle) =>
+                   CompleteTrainingNative(estimator, out errorHandle);
 
-            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_double_t_CreateTransformerSaveData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_double_CreateTransformerSaveData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool CreateTransformerSaveDataNative(TransformerEstimatorSafeHandle transformer, out IntPtr buffer, out IntPtr bufferSize, out IntPtr error);
             private protected override bool CreateTransformerSaveDataHelper(out IntPtr buffer, out IntPtr bufferSize, out IntPtr errorHandle) =>
                 CreateTransformerSaveDataNative(TransformerHandler, out buffer, out bufferSize, out errorHandle);
@@ -629,20 +683,13 @@ namespace Microsoft.ML.Featurizers
                 TransformerHandler = CreateTransformerFromEstimatorBase(input);
 
                 // Get the result of the transform and cache it. Pass in null so we get the Mode back.
-                var result = TransformDataNative(TransformerHandler, null, out IntPtr output, out IntPtr outputSize, out IntPtr errorHandle);
+                var result = TransformDataNative(TransformerHandler, null, out IntPtr output, out IntPtr errorHandle);
                 if (!result)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
-                using (var handler = new TransformedDataSafeHandle(output, outputSize, DestroyTransformedDataNative))
+                using (var handler = new TransformedDataSafeHandle(output, DestroyTransformedDataNative))
                 {
-#if NETSTANDARD2_0
-                    byte[] buffer = new byte[outputSize.ToInt32()];
-                    Marshal.Copy(output, buffer, 0, buffer.Length);
-                    Result = new ReadOnlyMemory<char>(Encoding.UTF8.GetString(buffer).ToArray());
-#else
-                    var buffer = new ReadOnlySpan<byte>(output.ToPointer(), outputSize.ToInt32());
-                    Result = new ReadOnlyMemory<char>(Encoding.UTF8.GetString(buffer).ToArray());
-#endif
+                    Result = PointerToString(output).AsMemory();
                 }
             }
 
@@ -657,20 +704,13 @@ namespace Microsoft.ML.Featurizers
                 var handle = new TransformerEstimatorSafeHandle(transformer, DestroyTransformerNative);
 
                 // Get the result of the transform and cache it. Pass in null so we get the Mode back.
-                result = TransformDataNative(handle, null, out IntPtr output, out IntPtr outputSize, out errorHandle);
+                result = TransformDataNative(handle, null, out IntPtr output, out errorHandle);
                 if (!result)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
-                using (var handler = new TransformedDataSafeHandle(output, outputSize, DestroyTransformedDataNative))
+                using (var handler = new TransformedDataSafeHandle(output, DestroyTransformedDataNative))
                 {
-#if NETSTANDARD2_0
-                    byte[] buffer = new byte[outputSize.ToInt32()];
-                    Marshal.Copy(output, buffer, 0, buffer.Length);
-                    Result = new ReadOnlyMemory<char>(Encoding.UTF8.GetString(buffer).ToArray());
-#else
-                    var buffer = new ReadOnlySpan<byte>(output.ToPointer(), outputSize.ToInt32());
-                    Result = new ReadOnlyMemory<char>(Encoding.UTF8.GetString(buffer).ToArray());
-#endif
+                    Result = PointerToString(output).AsMemory();
                 }
 
                 return handle;
@@ -680,9 +720,9 @@ namespace Microsoft.ML.Featurizers
             private static extern bool DestroyTransformerNative(IntPtr transformer, out IntPtr errorHandle);
 
             [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_string_Transform", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-            private static unsafe extern bool TransformDataNative(TransformerEstimatorSafeHandle transformer, byte* input, out IntPtr output, out IntPtr outputSize, out IntPtr errorHandle);
+            private static unsafe extern bool TransformDataNative(TransformerEstimatorSafeHandle transformer, byte* input, out IntPtr output, out IntPtr errorHandle);
             [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_string_DestroyTransformedData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-            private static extern bool DestroyTransformedDataNative(IntPtr output, IntPtr outputSize, out IntPtr errorHandle);
+            private static extern bool DestroyTransformedDataNative(IntPtr output, out IntPtr errorHandle);
             internal unsafe override ReadOnlyMemory<char> Transform(ReadOnlyMemory<char> input)
             {
                 if (!input.IsEmpty)
@@ -690,6 +730,16 @@ namespace Microsoft.ML.Featurizers
 
                 return Result;
             }
+
+            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_string_GetState", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            private static extern bool GetStateNative(TransformerEstimatorSafeHandle estimator, out TrainingState trainingState, out IntPtr errorHandle);
+            private protected override bool GetStateHelper(TransformerEstimatorSafeHandle estimator, out TrainingState trainingState, out IntPtr errorHandle) =>
+                    GetStateNative(estimator, out trainingState, out errorHandle);
+
+            [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_string_OnDataCompleted", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            private static extern bool OnDataCompletedNative(TransformerEstimatorSafeHandle estimator, out IntPtr errorHandle);
+            private protected override bool OnDataCompletedHelper(TransformerEstimatorSafeHandle estimator, out IntPtr errorHandle) =>
+                    OnDataCompletedNative(estimator, out errorHandle);
 
             public override void Dispose()
             {
@@ -721,9 +771,9 @@ namespace Microsoft.ML.Featurizers
             }
 
             [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_string_CompleteTraining", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-            private static extern bool CompleteTrainingNative(TransformerEstimatorSafeHandle estimator, out FitResult fitResult, out IntPtr errorHandle);
-            private protected override bool CompleteTrainingHelper(TransformerEstimatorSafeHandle estimator, out FitResult fitResult, out IntPtr errorHandle) =>
-                   CompleteTrainingNative(estimator, out fitResult, out errorHandle);
+            private static extern bool CompleteTrainingNative(TransformerEstimatorSafeHandle estimator, out IntPtr errorHandle);
+            private protected override bool CompleteTrainingHelper(TransformerEstimatorSafeHandle estimator, out IntPtr errorHandle) =>
+                   CompleteTrainingNative(estimator, out errorHandle);
 
             [DllImport("Featurizers", EntryPoint = "CatImputerFeaturizer_string_CreateTransformerSaveData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern bool CreateTransformerSaveDataNative(TransformerEstimatorSafeHandle transformer, out IntPtr buffer, out IntPtr bufferSize, out IntPtr error);
@@ -743,13 +793,14 @@ namespace Microsoft.ML.Featurizers
 #region Class data members
 
             private readonly CategoricalImputerTransformer _parent;
-
+            private readonly DataViewSchema _schema;
 #endregion
 
             public Mapper(CategoricalImputerTransformer parent, DataViewSchema inputSchema) :
                 base(parent.Host.Register(nameof(Mapper)), inputSchema, parent)
             {
                 _parent = parent;
+                _schema = inputSchema;
             }
 
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()

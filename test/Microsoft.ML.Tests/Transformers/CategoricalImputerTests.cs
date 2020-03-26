@@ -89,7 +89,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(mostFrequentValue, transformedColData[11]);
         }
 
-        [NotCentOS7Fact]
+        [Fact]
         public void TestAllTypes()
         {
             Test("float_t", false, 1.5f);

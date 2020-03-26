@@ -127,7 +127,6 @@ namespace Microsoft.ML.Featurizers
             Contracts.CheckValue(env, nameof(env));
             _host = Contracts.CheckRef(env, nameof(env)).Register("DateTimeTransformerEstimator");
             _host.CheckValue(inputColumnName, nameof(inputColumnName), "Input column should not be null.");
-            _host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
 
             _options = new Options
             {
@@ -141,7 +140,6 @@ namespace Microsoft.ML.Featurizers
         {
             Contracts.CheckValue(env, nameof(env));
             _host = Contracts.CheckRef(env, nameof(env)).Register("DateTimeTransformerEstimator");
-            _host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
 
             _options = options;
         }
@@ -253,8 +251,6 @@ namespace Microsoft.ML.Featurizers
         internal DateTimeTransformer(IHostEnvironment host, string inputColumnName, string columnPrefix, DateTimeEstimator.HolidayList country, DataViewSchema schema) :
             base(host.Register(nameof(DateTimeTransformer)))
         {
-            host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
-
             _schema = schema;
             if (_schema[inputColumnName].Type.RawType != typeof(long) &&
                 _schema[inputColumnName].Type.RawType != typeof(DateTime))
@@ -272,7 +268,6 @@ namespace Microsoft.ML.Featurizers
         {
 
             Host.CheckValue(ctx, nameof(ctx));
-            host.Check(!CommonExtensions.OsIsCentOS7(), "CentOS7 is not supported");
 
             ctx.CheckAtModel(GetVersionInfo());
             // *** Binary format ***
@@ -331,7 +326,7 @@ namespace Microsoft.ML.Featurizers
             _column.Dispose();
         }
 
-        #region C++ Safe handle classes
+        #region Native Safe handle classes
 
         internal class TransformedDataSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
         {
@@ -346,46 +341,17 @@ namespace Microsoft.ML.Featurizers
             protected override bool ReleaseHandle()
             {
                 // Not sure what to do with error stuff here.  There shouldn't ever be one though.
-                return _destroyTransformedDataHandler(handle, out IntPtr errorHandle);
+                var success = _destroyTransformedDataHandler(handle, out IntPtr errorHandle);
+                Marshal.FreeHGlobal(handle); // Free the memory allocated in C#.
+                return success;
             }
         }
 
         #endregion
 
-        #region TimePoint
+        #region Structs
 
-        // Exact native representation
-        [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        internal struct NativeTimePoint
-        {
-            public int Year;
-            public byte Month;
-            public byte Day;
-            public byte Hour;
-            public byte Minute;
-            public byte Second;
-            public byte AmPm;
-            public byte Hour12;
-            public byte DayOfWeek;
-            public byte DayOfQuarter;
-            public ushort DayOfYear;
-            public ushort WeekOfMonth;
-            public byte QuarterOfYear;
-            public byte HalfOfYear;
-            public byte WeekIso;
-            public int YearIso;
-            public IntPtr MonthLabelPointer;
-            public IntPtr MonthLabelSize;
-            public IntPtr AmPmLabelPointer;
-            public IntPtr AmPmLabelSize;
-            public IntPtr DayOfWeekLabelPointer;
-            public IntPtr DayOfWeekLabelSize;
-            public IntPtr HolidayNamePointer;
-            public IntPtr HolidayNameSize;
-            public byte IsPaidTimeOff;
-        }
-
-        [StructLayoutAttribute(LayoutKind.Sequential)]
+        [StructLayout(LayoutKind.Sequential)]
         internal struct TimePoint
         {
             public int Year;
@@ -451,38 +417,88 @@ namespace Microsoft.ML.Featurizers
             // The length of the string is stored at byte* + sizeof(IntPtr).
             private static unsafe string GetStringFromPointer(ref ReadOnlySpan<byte> rawData, ref int index, int intPtrSize)
             {
-                ulong stringLength;
-                ReadOnlySpan<byte> buffer;
+                string result;
+
                 if (intPtrSize == 4)  // 32 bit machine
                 {
-                    stringLength = MemoryMarshal.Read<uint>(rawData.Slice(index + intPtrSize));
                     IntPtr stringData = new IntPtr(MemoryMarshal.Read<int>(rawData.Slice(index)));
-                    buffer = new ReadOnlySpan<byte>(stringData.ToPointer(), (int)stringLength);
+                    result = PointerToString(stringData);
                 }
                 else // 64 bit machine
                 {
-                    stringLength = MemoryMarshal.Read<ulong>(rawData.Slice(index + intPtrSize));
                     IntPtr stringData = new IntPtr(MemoryMarshal.Read<long>(rawData.Slice(index)));
-                    buffer = new ReadOnlySpan<byte>(stringData.ToPointer(), (int)stringLength);
+                    result = PointerToString(stringData);
                 }
 
-                if (stringLength == 0)
-                {
-                    index += intPtrSize * 2;
-                    return string.Empty;
-                }
+                index += intPtrSize;
 
-                index += intPtrSize * 2;
-#if NETSTANDARD2_0
-                return Encoding.UTF8.GetString(buffer.ToArray());
-#else
-                return Encoding.UTF8.GetString(buffer);
-#endif
+                return result;
             }
 
         };
 
-        #endregion
+        #region Union
+        // The folowing structs/enums are to enable us to simulate Unions on the Native side
+
+        // The Type of data in the union
+        private enum DateTimeTypeValue : byte
+        {
+            DateTimeInt64 = 1,  // Posix time
+            DateTimeString = 2     // ISO 8601
+        };
+
+        // Struct to be able to send string data in the union
+        [StructLayout(LayoutKind.Sequential)]
+        private struct StringDataType
+        {
+            internal IntPtr Buffer;
+            internal IntPtr BufferSize;
+        }
+
+        // Struct to simulate the Union for 32 bit machines. Need to have it defined since the size of the
+        // struct will change based on 32/64 bit.
+        [StructLayout(LayoutKind.Explicit, Size = 8)]
+        private struct DataTypeX32
+        {
+            [FieldOffset(0)]
+            internal long PosixData;
+
+            [FieldOffset(0)]
+            internal StringDataType StringData;
+
+        }
+
+        // Struct to simulate the Union for 64 bit machines. Need to have it defined since the size of the
+        // struct will change based on 32/64 bit.
+        [StructLayout(LayoutKind.Explicit, Size = 16)]
+        private struct DataTypeX64
+        {
+            [FieldOffset(0)]
+            internal long PosixData;
+
+            [FieldOffset(0)]
+            internal StringDataType StringData;
+        }
+
+        // Final struct to send to native code, 32 bit
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        private struct NativeDateTimeParameterX32
+        {
+            internal DateTimeTypeValue DataType;
+            internal DataTypeX32 Data;
+        }
+
+        // Final struct to send to native code, 64 bit
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        private struct NativeDateTimeParameterX64
+        {
+            internal DateTimeTypeValue DataType;
+            internal DataTypeX64 Data;
+        }
+
+        #endregion Union
+
+        #endregion Structs
 
         #region ColumnInfo
 
@@ -496,16 +512,11 @@ namespace Microsoft.ML.Featurizers
         {
             internal readonly string Source;
             internal readonly string Prefix;
-            internal readonly int IntPtrSize;
-            internal readonly int StructSize;
 
             internal unsafe TypedColumn(string source, string prefix)
             {
                 Source = source;
                 Prefix = prefix;
-                IntPtrSize = IntPtr.Size;
-
-                StructSize = sizeof(NativeTimePoint);
             }
 
             internal abstract void CreateTransformerFromEstimator(DateTimeEstimator.HolidayList country);
@@ -515,6 +526,8 @@ namespace Microsoft.ML.Featurizers
             private protected abstract bool DestroyEstimatorHelper(IntPtr estimator, out IntPtr errorHandle);
             private protected abstract bool DestroyTransformerHelper(IntPtr transformer, out IntPtr errorHandle);
             private protected abstract bool CreateTransformerSaveDataHelper(out IntPtr buffer, out IntPtr bufferSize, out IntPtr errorHandle);
+            private protected abstract bool CompleteTrainingHelper(TransformerEstimatorSafeHandle estimator, out IntPtr errorHandle);
+
             public abstract void Dispose();
 
             private protected unsafe TransformerEstimatorSafeHandle CreateTransformerFromEstimatorBase(DateTimeEstimator.HolidayList country)
@@ -525,21 +538,9 @@ namespace Microsoft.ML.Featurizers
                 if (country == DateTimeEstimator.HolidayList.None)
                 {
                     success = CreateEstimatorHelper(null, null, out estimator, out errorHandle);
-                }
-                else
+                } else
                 {
-                    byte[] dataRoot;
-
-                    if (Directory.Exists(AppDomain.CurrentDomain.BaseDirectory + "/Data/DateTimeFeaturizer"))
-                    {
-                        dataRoot = Encoding.UTF8.GetBytes(AppDomain.CurrentDomain.BaseDirectory + char.MinValue);
-                    }
-                    else
-                    {
-                        dataRoot = Encoding.UTF8.GetBytes(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + char.MinValue);
-                    }
-
-                    fixed (byte* dataRootDir = dataRoot)
+                    fixed (byte* dataRootDir = Encoding.UTF8.GetBytes(AppDomain.CurrentDomain.BaseDirectory + char.MinValue))
                     fixed (byte* countryPointer = Encoding.UTF8.GetBytes(Enum.GetName(typeof(DateTimeEstimator.HolidayList), country) + char.MinValue))
                     {
                         success = CreateEstimatorHelper(countryPointer, dataRootDir, out estimator, out errorHandle);
@@ -552,12 +553,13 @@ namespace Microsoft.ML.Featurizers
 
                 using (var estimatorHandler = new TransformerEstimatorSafeHandle(estimator, DestroyEstimatorHelper))
                 {
+                    success = CompleteTrainingHelper(estimatorHandler, out errorHandle);
+                    if (!success)
+                        throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
                     success = CreateTransformerFromEstimatorHelper(estimatorHandler, out IntPtr transformer, out errorHandle);
                     if (!success)
-                    {
                         throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
-                    }
 
                     return new TransformerEstimatorSafeHandle(transformer, DestroyTransformerHelper);
                 }
@@ -570,8 +572,7 @@ namespace Microsoft.ML.Featurizers
                 if (!success)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
-                using (var savedDataHandle = new SaveDataSafeHandle(buffer, bufferSize))
-                {
+                using (var savedDataHandle = new SaveDataSafeHandle(buffer, bufferSize)) {
                     byte[] savedData = new byte[bufferSize.ToInt32()];
                     Marshal.Copy(buffer, savedData, 0, savedData.Length);
                     return savedData;
@@ -580,8 +581,7 @@ namespace Microsoft.ML.Featurizers
 
             internal unsafe void CreateTransformerFromSavedData(byte[] data)
             {
-                fixed (byte* rawData = data)
-                {
+                fixed (byte* rawData = data) {
                     IntPtr dataSize = new IntPtr(data.Count());
                     CreateTransformerFromSavedDataHelper(rawData, dataSize);
                 }
@@ -606,10 +606,15 @@ namespace Microsoft.ML.Featurizers
         internal sealed class LongTypedColumn : TypedColumn<long>
         {
             private TransformerEstimatorSafeHandle _transformerHandler;
-
+            private readonly int _intPtrSize;
+            private readonly int _structSize;
             internal LongTypedColumn(string source, string prefix) :
                 base(source, prefix)
             {
+                _intPtrSize = IntPtr.Size;
+
+                // The native struct is 25 bytes + 4 size_t.
+                _structSize = 25 + (_intPtrSize * 4);
             }
 
             [DllImport("Featurizers", EntryPoint = "DateTimeFeaturizer_CreateEstimator"), SuppressUnmanagedCodeSecurity]
@@ -631,18 +636,7 @@ namespace Microsoft.ML.Featurizers
             private static unsafe extern bool CreateTransformerFromSavedDataNative(byte* rawData, IntPtr bufferSize, byte* dataRootDir, out IntPtr transformer, out IntPtr errorHandle);
             private protected override unsafe void CreateTransformerFromSavedDataHelper(byte* rawData, IntPtr dataSize)
             {
-                byte[] dataRoot;
-
-                if (Directory.Exists(AppDomain.CurrentDomain.BaseDirectory + "/Data/DateTimeFeaturizer"))
-                {
-                    dataRoot = Encoding.UTF8.GetBytes(AppDomain.CurrentDomain.BaseDirectory + char.MinValue);
-                }
-                else
-                {
-                    dataRoot = Encoding.UTF8.GetBytes(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + char.MinValue);
-                }
-
-                fixed (byte* dataRootDir = dataRoot)
+                fixed (byte* dataRootDir = Encoding.UTF8.GetBytes(AppDomain.CurrentDomain.BaseDirectory + char.MinValue))
                 {
                     var result = CreateTransformerFromSavedDataNative(rawData, dataSize, dataRootDir, out IntPtr transformer, out IntPtr errorHandle);
                     if (!result)
@@ -653,20 +647,35 @@ namespace Microsoft.ML.Featurizers
             }
 
             [DllImport("Featurizers", EntryPoint = "DateTimeFeaturizer_Transform"), SuppressUnmanagedCodeSecurity]
-            private static extern bool TransformDataNative(TransformerEstimatorSafeHandle transformer, long input, out IntPtr output, out IntPtr errorHandle);
+            private static extern bool TransformDataNativeX32(TransformerEstimatorSafeHandle transformer, NativeDateTimeParameterX32 input, IntPtr output, out IntPtr errorHandle);
+
+            [DllImport("Featurizers", EntryPoint = "DateTimeFeaturizer_Transform"), SuppressUnmanagedCodeSecurity]
+            private static extern bool TransformDataNativeX64(TransformerEstimatorSafeHandle transformer, in NativeDateTimeParameterX64 input, IntPtr output, out IntPtr errorHandle);
+
             [DllImport("Featurizers", EntryPoint = "DateTimeFeaturizer_DestroyTransformedData"), SuppressUnmanagedCodeSecurity]
             private static extern bool DestroyTransformedDataNative(IntPtr output, out IntPtr errorHandle);
-            internal override TimePoint Transform(long input)
+            internal override unsafe TimePoint Transform(long input)
             {
-                var success = TransformDataNative(_transformerHandler, input, out IntPtr output, out IntPtr errorHandle);
+                bool success;
+                IntPtr errorHandle;
+                IntPtr output = Marshal.AllocHGlobal(_structSize);
+
+                if (IntPtr.Size == 4)
+                    success = TransformDataNativeX32(_transformerHandler, new NativeDateTimeParameterX32() { DataType = DateTimeTypeValue.DateTimeInt64, Data = new DataTypeX32() { PosixData = input } }, output, out errorHandle);
+                else
+                    success = TransformDataNativeX64(_transformerHandler, new NativeDateTimeParameterX64() { DataType = DateTimeTypeValue.DateTimeInt64, Data = new DataTypeX64() { PosixData = input } }, output, out errorHandle);
+
                 if (!success)
+                {
+                    Marshal.FreeHGlobal(output);
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
+                }
 
                 using (var handler = new TransformedDataSafeHandle(output, DestroyTransformedDataNative))
                 {
                     unsafe
                     {
-                        return new TimePoint(new ReadOnlySpan<byte>(output.ToPointer(), StructSize), IntPtrSize);
+                        return new TimePoint(new ReadOnlySpan<byte>(output.ToPointer(), _structSize), _intPtrSize);
                     }
                 }
             }
@@ -693,6 +702,11 @@ namespace Microsoft.ML.Featurizers
             private static extern bool CreateTransformerSaveDataNative(TransformerEstimatorSafeHandle transformer, out IntPtr buffer, out IntPtr bufferSize, out IntPtr error);
             private protected override bool CreateTransformerSaveDataHelper(out IntPtr buffer, out IntPtr bufferSize, out IntPtr errorHandle) =>
                 CreateTransformerSaveDataNative(_transformerHandler, out buffer, out bufferSize, out errorHandle);
+
+            [DllImport("Featurizers", EntryPoint = "DateTimeFeaturizer_CompleteTraining", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            private static extern bool CompleteTrainingNative(TransformerEstimatorSafeHandle estimator, out IntPtr errorHandle);
+            private protected override bool CompleteTrainingHelper(TransformerEstimatorSafeHandle estimator, out IntPtr errorHandle) =>
+                   CompleteTrainingNative(estimator, out errorHandle);
         }
 
         #endregion LongTypedColumn
@@ -708,8 +722,6 @@ namespace Microsoft.ML.Featurizers
             private static readonly DateTime _unixEpoch = new DateTime(1970, 1, 1);
 
             private readonly DateTimeTransformer _parent;
-            private ConcurrentDictionary<long, TimePoint> _cache;
-            private ConcurrentQueue<long> _oldestKeys;
 
             #endregion
 
@@ -717,8 +729,6 @@ namespace Microsoft.ML.Featurizers
                 base(parent.Host.Register(nameof(Mapper)), inputSchema, parent)
             {
                 _parent = parent;
-                _cache = new ConcurrentDictionary<long, TimePoint>();
-                _oldestKeys = new ConcurrentQueue<long>();
             }
 
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()

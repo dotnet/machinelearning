@@ -20,7 +20,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
         }
 
-        [NotCentOS7Fact]
+        [Fact]
         public void TestInvalidType()
         {
             MLContext mlContext = new MLContext(1);
@@ -36,7 +36,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [NotCentOS7Fact]
+        [Fact]
         public void TestNoScale()
         {
             MLContext mlContext = new MLContext(1);
@@ -68,7 +68,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [NotCentOS7Fact]
+        [Fact]
         public void TestNoScaleNoCenter()
         {
             MLContext mlContext = new MLContext(1);
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [NotCentOS7Fact]
+        [Fact]
         public void TestFloat()
         {
             MLContext mlContext = new MLContext(1);
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [NotCentOS7Fact]
+        [Fact]
         public void TestInt64()
         {
             MLContext mlContext = new MLContext(1);
@@ -165,7 +165,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [NotCentOS7Fact]
+        [Fact]
         public void TestInt32()
         {
             MLContext mlContext = new MLContext(1);
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [NotCentOS7Fact]
+        [Fact]
         public void TestInt16()
         {
             MLContext mlContext = new MLContext(1);
@@ -231,7 +231,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [NotCentOS7Fact]
+        [Fact]
         public void TestInt8()
         {
             MLContext mlContext = new MLContext(1);
@@ -264,7 +264,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [NotCentOS7Fact]
+        [Fact]
         public void TestDouble()
         {
             MLContext mlContext = new MLContext(1);
@@ -296,7 +296,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [NotCentOS7Fact]
+        [Fact]
         public void TestUInt64()
         {
             MLContext mlContext = new MLContext(1);
@@ -329,7 +329,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [NotCentOS7Fact]
+        [Fact]
         public void TestUInt32()
         {
             MLContext mlContext = new MLContext(1);
@@ -362,7 +362,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [NotCentOS7Fact]
+        [Fact]
         public void TestUInt16()
         {
             MLContext mlContext = new MLContext(1);
@@ -395,7 +395,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [NotCentOS7Fact]
+        [Fact]
         public void TestUInt8()
         {
             MLContext mlContext = new MLContext(1);
