@@ -144,6 +144,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
             // *** Binary format ***
             // <base>
             base.SaveColumns(ctx);
+
+            ctx.Writer.Write((byte)_beta);
         }
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
@@ -191,11 +193,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 disposer =
                     () =>
                     {
-                        if (src != null)
-                        {
-                            src.Dispose();
-                            src = null;
-                        }
                     };
 
                 ValueGetter<RootCause> del =
@@ -236,7 +233,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             private void LocalizeRootCauses(RootCauseLocalizationInput src, ref RootCause dst)
             {
-                DTRootCauseAnalyzer analyzer = new DTRootCauseAnalyzer(src, _parent._beta) ;
+                DTRootCauseAnalyzer analyzer = new DTRootCauseAnalyzer(src, _parent._beta);
                 dst = analyzer.Analyze();
             }
         }
@@ -257,6 +254,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// | Output column data type | <xref:System.Drawing.RootCause> |
     /// | Exportable to ONNX | No |
     ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/time-series-root-cause-localization-dt.md)]
+    ///
     /// The resulting <xref:Microsoft.ML.Transforms.Image.DTRootCauseLocalizationTransformer> creates a new column, named as specified in the output column name parameters, and
     /// localize the root causes which contribute most to the anomaly.
     /// Check the See Also section for links to usage examples.
@@ -275,8 +274,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// Localize root cause.
         /// </summary>
         /// <param name="env">The estimator's local <see cref="IHostEnvironment"/>.</param>
-        /// <param name="columns">The name of the columns (first item of the tuple), and the name of the resulting output column (second item of the tuple).</param>
         /// <param name="beta">The weight for generating score in output result.</param>
+        /// <param name="columns">Pairs of columns to run the root cause localization.</param>
         [BestFriend]
         internal DTRootCauseLocalizationEstimator(IHostEnvironment env, double beta = Defaults.Beta, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(DTRootCauseLocalizationEstimator)), new DTRootCauseLocalizationTransformer(env, beta, columns))
@@ -295,7 +294,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             {
                 if (!inputSchema.TryFindColumn(colInfo.inputColumnName, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName);
-                if (!(col.ItemType is RootCauseLocalizationInputDataViewType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
+                if (!(col.ItemType is RootCauseLocalizationInputDataViewType))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName, new RootCauseLocalizationInputDataViewType().ToString(), col.GetTypeString());
 
                 result[colInfo.outputColumnName] = new SchemaShape.Column(colInfo.outputColumnName, col.Kind, col.ItemType, col.IsKey, col.Annotations);

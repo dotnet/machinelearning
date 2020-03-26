@@ -94,6 +94,33 @@ namespace Microsoft.ML.Tests
 
         private static string _aggSymbol = "##SUM##";
 
+        private class RootCauseLocalizationData
+        {
+            [RootCauseLocalizationInputType]
+            public RootCauseLocalizationInput Input { get; set; }
+
+            public RootCauseLocalizationData()
+            {
+                Input = null;
+            }
+
+            public RootCauseLocalizationData(DateTime anomalyTimestamp, Dictionary<string, string> anomalyDimensions, List<MetricSlice> slices, AggregateType aggregateteType, string aggregateSymbol)
+            {
+                Input = new RootCauseLocalizationInput(anomalyTimestamp, anomalyDimensions, slices, aggregateteType, aggregateSymbol);
+            }
+        }
+
+        private class RootCauseLocalizationTransformedData
+        {
+            [RootCauseType()]
+            public RootCause RootCause { get; set; }
+
+            public RootCauseLocalizationTransformedData()
+            {
+                RootCause = null;
+            }
+        }
+
         [Fact]
         public void ChangeDetection()
         {
@@ -520,33 +547,6 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        private class RootCauseLocalizationData
-        {
-            [RootCauseLocalizationInputType]
-            public RootCauseLocalizationInput Input { get; set; }
-
-            public RootCauseLocalizationData()
-            {
-                Input = null;
-            }
-
-            public RootCauseLocalizationData(DateTime anomalyTimestamp, Dictionary<string, string> anomalyDimensions, List<MetricSlice> slices, AggregateType aggregateteType, string aggregateSymbol)
-            {
-                Input = new RootCauseLocalizationInput(anomalyTimestamp, anomalyDimensions, slices, aggregateteType, aggregateSymbol);
-            }
-        }
-
-        private class RootCauseLocalizationTransformedData
-        {
-            [RootCauseType()]
-            public RootCause RootCause { get; set; }
-
-            public RootCauseLocalizationTransformedData()
-            {
-                RootCause = null;
-            }
-        }
-
         [Fact]
         public void RootCauseLocalizationWithDT()
         {
@@ -576,6 +576,7 @@ namespace Microsoft.ML.Tests
             }
 
             var engine = ml.Model.CreatePredictionEngine<RootCauseLocalizationData, RootCauseLocalizationTransformedData>(model);
+
             DateTime timeStamp = GetCurrentTimestamp();
             var newRootCauseInput = new RootCauseLocalizationData(timeStamp, GetAnomalyDimension(), new List<MetricSlice>() { new MetricSlice(timeStamp, GetRootCauseLocalizationPoints()) }, AggregateType.Sum, _aggSymbol);
             var transformedRootCause = engine.Predict(newRootCauseInput);

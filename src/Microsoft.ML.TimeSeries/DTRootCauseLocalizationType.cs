@@ -111,11 +111,6 @@ namespace Microsoft.ML.TimeSeries
             AggType = aggregateType;
             AggSymbol = aggregateSymbol;
         }
-        public void Dispose()
-        {
-            AnomalyDimensions = null;
-            Slices = null;
-        }
     }
 
     public sealed class RootCauseDataViewType : StructuredDataViewType

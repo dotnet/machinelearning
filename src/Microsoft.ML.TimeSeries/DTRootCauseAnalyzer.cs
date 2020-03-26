@@ -562,11 +562,10 @@ namespace Microsoft.ML.TimeSeries
 
         private double GetDimensionEntropyGain(Dictionary<string, int> pointDis, Dictionary<string, int> anomalyDis, double totalEntropy, bool isChildren = false)
         {
-            //todo - update
             int total = GetTotalNumber(pointDis);
             double entropy = 0;
 
-            if (!isChildren)
+            //if (!isChildren)
             {
                 foreach (string key in anomalyDis.Keys)
                 {
@@ -575,10 +574,10 @@ namespace Microsoft.ML.TimeSeries
                 }
 
             }
-            else
-            {
-                entropy = GetEntropy(pointDis.Count, anomalyDis.Count);
-            }
+            //else
+            //{
+            //    entropy = GetEntropy(pointDis.Count, anomalyDis.Count);
+            //}
             return totalEntropy - entropy;
         }
 
