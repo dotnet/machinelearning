@@ -10,6 +10,8 @@ namespace Microsoft.ML.AutoML
 {
     internal static class RunnerUtil
     {
+        private static ITransformer _estimatorModel;
+
         public static (ModelContainer model, TMetrics metrics, Exception exception, double score)
             TrainAndScorePipeline<TMetrics>(MLContext context,
             SuggestedPipeline pipeline,
@@ -25,21 +27,21 @@ namespace Microsoft.ML.AutoML
             try
             {
                 var estimator = pipeline.ToEstimator(trainData, validData);
-                var model = estimator.Fit(trainData);
+                _estimatorModel = estimator.Fit(trainData);
 
-                var scoredData = model.Transform(validData);
+                var scoredData = _estimatorModel.Transform(validData);
                 var metrics = metricsAgent.EvaluateMetrics(scoredData, labelColumn);
                 var score = metricsAgent.GetScore(metrics);
 
                 if (preprocessorTransform != null)
                 {
-                    model = preprocessorTransform.Append(model);
+                    _estimatorModel = preprocessorTransform.Append(_estimatorModel);
                 }
 
                 // Build container for model
                 var modelContainer = modelFileInfo == null ?
-                    new ModelContainer(context, model) :
-                    new ModelContainer(context, modelFileInfo, model, modelInputSchema);
+                    new ModelContainer(context, _estimatorModel) :
+                    new ModelContainer(context, modelFileInfo, _estimatorModel, modelInputSchema);
 
                 return (modelContainer, metrics, null, score);
             }
@@ -47,6 +49,12 @@ namespace Microsoft.ML.AutoML
             {
                 logger.Error($"Pipeline crashed: {pipeline.ToString()} . Exception: {ex}");
                 return (null, null, ex, double.NaN);
+            }
+            finally
+            {
+                // Free Tensor objects in model. Tensor objects made in TensorFlow's C
+                // libraries are not automatically cleaned up by C#'s Garbage Collector.
+                (_estimatorModel as IDisposable)?.Dispose();
             }
         }
 
