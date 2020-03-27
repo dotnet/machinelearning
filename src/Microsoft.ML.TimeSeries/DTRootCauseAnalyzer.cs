@@ -32,7 +32,7 @@ namespace Microsoft.ML.TimeSeries
             {
                 return dst;
             }
-            Dictionary<string, string> subDim = GetSubDim(_src.AnomalyDimensions, dimensionInfo.DetailDim);
+            Dictionary<string, string> subDim = GetSubDim(_src.AnomalyDimensions, dimensionInfo.DetailDims);
             List<Point> totalPoints = GetTotalPointsForAnomalyTimestamp(_src, subDim);
             GetRootCauseList(_src, ref dst, dimensionInfo, totalPoints, subDim, dimensionInfo.AggDims);
             UpdateRootCauseDirection(totalPoints, ref dst);
@@ -104,7 +104,7 @@ namespace Microsoft.ML.TimeSeries
                 }
                 else
                 {
-                    info.DetailDim.Add(key);
+                    info.DetailDims.Add(key);
                 }
             }
 
@@ -113,11 +113,9 @@ namespace Microsoft.ML.TimeSeries
 
         protected Tuple<PointTree, PointTree, List<Point>> BuildPointInfo(List<Point> pointList, List<string> aggDims, Dictionary<string, string> subDim, string aggSymbol, AggregateType aggType)
         {
-
-            List<Point> uniquePointList = new List<Point>();
-
             PointTree pointTree = PointTree.CreateDefaultInstance();
             PointTree anomalyTree = PointTree.CreateDefaultInstance();
+            List<Point> uniquePointList = new List<Point>();
 
             foreach (Point point in pointList)
             {
@@ -155,36 +153,17 @@ namespace Microsoft.ML.TimeSeries
             return subDim;
         }
 
-        protected List<Point> SelectPoints(List<Point> points, Dictionary<string, string> subDim)
-        {
-            List<Point> list = new List<Point>();
-
-            foreach (Point point in points)
-            {
-                if (ContainsAll(point.Dimension, subDim))
-                {
-                    //remove duplicated points
-                    if (!list.Contains(point))
-                    {
-                        list.Add(point);
-                    }
-                }
-            }
-
-            return list;
-        }
-
-        protected List<RootCauseItem> LocalizeRootCauseByDimension(PointTree anomalyTree, PointTree pointTree, double totoalEntropy, Dictionary<string, string> anomalyDimension, List<string> aggDims)
+        protected List<RootCauseItem> LocalizeRootCauseByDimension(PointTree anomalyTree, PointTree pointTree, double totalEntropy, Dictionary<string, string> anomalyDimension, List<string> aggDims)
         {
             BestDimension best = null;
             if (anomalyTree.ChildrenNodes.Count == 0)
             {
-                best = SelectBestDimension(pointTree.Leaves, anomalyTree.Leaves, aggDims, totoalEntropy);
+                best = SelectBestDimension(pointTree.Leaves, anomalyTree.Leaves, aggDims, totalEntropy);
             }
             else
             {
                 //has no leaves information, should calculate the entropy information according to the children nodes
-                best = SelectBestDimension(pointTree.ChildrenNodes, anomalyTree.ChildrenNodes, aggDims, totoalEntropy);
+                best = SelectBestDimension(pointTree.ChildrenNodes, anomalyTree.ChildrenNodes, aggDims, totalEntropy);
             }
 
             if (best == null)
@@ -504,6 +483,7 @@ namespace Microsoft.ML.TimeSeries
                     }
                 }
             }
+
             return best;
         }
 
@@ -641,13 +621,13 @@ namespace Microsoft.ML.TimeSeries
 
     public class DimensionInfo
     {
-        public List<string> DetailDim { get; set; }
+        public List<string> DetailDims { get; set; }
         public List<string> AggDims { get; set; }
 
         public static DimensionInfo CreateDefaultInstance()
         {
             DimensionInfo instance = new DimensionInfo();
-            instance.DetailDim = new List<string>();
+            instance.DetailDims = new List<string>();
             instance.AggDims = new List<string>();
             return instance;
         }
