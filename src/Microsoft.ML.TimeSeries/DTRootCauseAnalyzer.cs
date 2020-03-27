@@ -565,29 +565,23 @@ namespace Microsoft.ML.TimeSeries
             int total = GetTotalNumber(pointDis);
             double entropy = 0;
 
-            //if (!isChildren)
+            foreach (string key in anomalyDis.Keys)
             {
-                foreach (string key in anomalyDis.Keys)
-                {
-                    double dimEntropy = GetEntropy(pointDis[key], anomalyDis[key]);
-                    entropy += dimEntropy * pointDis[key] / total;
-                }
-
+                double dimEntropy = GetEntropy(pointDis[key], anomalyDis[key]);
+                entropy += dimEntropy * pointDis[key] / total;
             }
-            //else
-            //{
-            //    entropy = GetEntropy(pointDis.Count, anomalyDis.Count);
-            //}
+
             return totalEntropy - entropy;
         }
 
         private double GetDimensionInstrinsicValue(Dictionary<string, int> pointDis, Dictionary<string, int> anomalyDis)
         {
+            int total = GetTotalNumber(pointDis);
             double instrinsicValue = 0;
 
-            foreach (string key in anomalyDis.Keys)
+            foreach (string key in pointDis.Keys)
             {
-                instrinsicValue -= Log2((double)anomalyDis[key] / pointDis[key]) * anomalyDis[key] / pointDis[key];
+                instrinsicValue -= Log2((double)pointDis[key] / total) * (double)pointDis[key] / total;
             }
 
             return instrinsicValue;
