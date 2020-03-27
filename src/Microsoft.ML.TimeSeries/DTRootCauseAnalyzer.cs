@@ -684,14 +684,6 @@ namespace Microsoft.ML.TimeSeries
         }
     }
 
-    //public sealed class AnomalyCause
-    //{
-    //    public string DimensionKey;
-    //    public List<Point> Anomalies;
-
-    //    public AnomalyCause() { }
-    //}
-
     public class RootCauseScore
     {
         public double Surprise;
