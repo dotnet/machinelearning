@@ -282,5 +282,4 @@ namespace Microsoft.ML.TimeSeries
             return Dimension.GetHashCode();
         }
     }
-
 }
