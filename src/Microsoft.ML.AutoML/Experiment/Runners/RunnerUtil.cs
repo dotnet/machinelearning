@@ -10,8 +10,6 @@ namespace Microsoft.ML.AutoML
 {
     internal static class RunnerUtil
     {
-        private static ITransformer _estimatorModel;
-
         public static (ModelContainer model, TMetrics metrics, Exception exception, double score)
             TrainAndScorePipeline<TMetrics>(MLContext context,
             SuggestedPipeline pipeline,
@@ -24,24 +22,25 @@ namespace Microsoft.ML.AutoML
             DataViewSchema modelInputSchema,
             IChannel logger) where TMetrics : class
         {
+            ITransformer estimatorModel = null;
             try
             {
                 var estimator = pipeline.ToEstimator(trainData, validData);
-                _estimatorModel = estimator.Fit(trainData);
+                estimatorModel = estimator.Fit(trainData);
 
-                var scoredData = _estimatorModel.Transform(validData);
+                var scoredData = estimatorModel.Transform(validData);
                 var metrics = metricsAgent.EvaluateMetrics(scoredData, labelColumn);
                 var score = metricsAgent.GetScore(metrics);
 
                 if (preprocessorTransform != null)
                 {
-                    _estimatorModel = preprocessorTransform.Append(_estimatorModel);
+                    estimatorModel = preprocessorTransform.Append(estimatorModel);
                 }
 
                 // Build container for model
                 var modelContainer = modelFileInfo == null ?
-                    new ModelContainer(context, _estimatorModel) :
-                    new ModelContainer(context, modelFileInfo, _estimatorModel, modelInputSchema);
+                    new ModelContainer(context, estimatorModel) :
+                    new ModelContainer(context, modelFileInfo, estimatorModel, modelInputSchema);
 
                 return (modelContainer, metrics, null, score);
             }
@@ -54,7 +53,7 @@ namespace Microsoft.ML.AutoML
             {
                 // Free Tensor objects in model. Tensor objects made in TensorFlow's C
                 // libraries are not automatically cleaned up by C#'s Garbage Collector.
-                (_estimatorModel as IDisposable)?.Dispose();
+                (estimatorModel as IDisposable)?.Dispose();
             }
         }
 
