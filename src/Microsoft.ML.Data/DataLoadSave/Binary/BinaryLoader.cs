@@ -849,7 +849,7 @@ namespace Microsoft.ML.Data.IO
                     }
 
                     if (ctx.Header.ModelVerWritten == 0x00010002 || ctx.Header.ModelVerWritten == 0x00010003)
-                        ctx.LoadStringOrNull(); // for for _generatedRowIndexName in previous model versions
+                        ctx.LoadStringOrNull(); // for _generatedRowIndexName in previous model versions
                 }
                 else
                 {
