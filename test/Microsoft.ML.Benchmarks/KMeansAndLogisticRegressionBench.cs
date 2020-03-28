@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.IO;
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Benchmarks
@@ -14,11 +16,12 @@ namespace Microsoft.ML.Benchmarks
     [CIBenchmark]
     public class KMeansAndLogisticRegressionBench
     {
-        private readonly string _dataPath = BaseTestClass.GetDataPath("adult.tiny.with-schema.txt");
+        private string _dataPath;
 
         [Benchmark]
         public CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> TrainKMeansAndLR()
         {
+            _dataPath = GetDataPath("adult.tiny.with-schema.txt");
             var ml = new MLContext(seed: 1);
             // Pipeline
 
@@ -45,6 +48,15 @@ namespace Microsoft.ML.Benchmarks
             var model = estimatorPipeline.Fit(input);
             // Return the last model in the chain.
             return model.LastTransformer.Model;
+        }
+
+        private string GetDataPath(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return null;
+
+            var dataDir = Path.Combine(TestCommon.GetRepoRoot(), "test", "data");
+            return Path.GetFullPath(Path.Combine(dataDir, name));
         }
     }
 }

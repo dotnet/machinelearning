@@ -4,11 +4,13 @@
 
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
 using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
@@ -18,8 +20,8 @@ namespace Microsoft.ML.Benchmarks
     [CIBenchmark]
     public class StochasticDualCoordinateAscentClassifierBench : WithExtraMetrics
     {
-        private readonly string _dataPath = BaseTestClass.GetDataPath("iris.txt");
-        private readonly string _sentimentDataPath = BaseTestClass.GetDataPath("wikipedia-detox-250-line-data.tsv");
+        private string _dataPath;
+        private string _sentimentDataPath;
         private readonly Consumer _consumer = new Consumer(); // BenchmarkDotNet utility type used to prevent dead code elimination
 
         private readonly MLContext _mlContext = new MLContext(seed: 1);
@@ -81,6 +83,15 @@ namespace Microsoft.ML.Benchmarks
             return pipeline.Fit(data);
         }
 
+        private string GetDataPath(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return null;
+
+            var dataDir = Path.Combine(TestCommon.GetRepoRoot(), "test", "data");
+            return Path.GetFullPath(Path.Combine(dataDir, name));
+        }
+
         [Benchmark]
         public void TrainSentiment()
         {
@@ -122,6 +133,9 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup(Targets = new string[] { nameof(PredictIris), nameof(PredictIrisBatchOf1), nameof(PredictIrisBatchOf2), nameof(PredictIrisBatchOf5) })]
         public void SetupPredictBenchmarks()
         {
+            _dataPath = GetDataPath("iris.txt");
+            _sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+
             _trainedModel = Train(_dataPath);
             _predictionEngine = _mlContext.Model.CreatePredictionEngine<IrisData, IrisPrediction>(_trainedModel);
             _consumer.Consume(_predictionEngine.Predict(_example));

@@ -18,10 +18,19 @@ namespace Microsoft.ML.Benchmarks
     {
         private string _dataPathDigits;
 
+        private string GetDataPath(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return null;
+
+            var dataDir = Path.Combine(TestCommon.GetRepoRoot(), "test", "data");
+            return Path.GetFullPath(Path.Combine(dataDir, name));
+        }
+
         [GlobalSetup]
         public void SetupTrainingSpeedTests()
         {
-            _dataPathDigits = BaseTestClass.GetDataPath(TestDatasets.Digits.trainFilename);
+            _dataPathDigits = GetDataPath(TestDatasets.Digits.trainFilename);
 
             if (!File.Exists(_dataPathDigits))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPathDigits));

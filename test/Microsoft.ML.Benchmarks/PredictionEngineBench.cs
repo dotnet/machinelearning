@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.IO;
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 
@@ -23,6 +25,15 @@ namespace Microsoft.ML.Benchmarks
         private BreastCancerData _breastCancerExample;
         private PredictionEngine<BreastCancerData, BreastCancerPrediction> _breastCancerModel;
 
+        private string GetDataPath(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return null;
+
+            var dataDir = Path.Combine(TestCommon.GetRepoRoot(), "test", "data");
+            return Path.GetFullPath(Path.Combine(dataDir, name));
+        }
+
         [GlobalSetup(Target = nameof(MakeIrisPredictions))]
         public void SetupIrisPipeline()
         {
@@ -34,7 +45,7 @@ namespace Microsoft.ML.Benchmarks
                 PetalWidth = 5.1f,
             };
 
-            string irisDataPath = BaseTestClass.GetDataPath("iris.txt");
+            string irisDataPath = GetDataPath("iris.txt");
 
             var env = new MLContext(seed: 1);
 
@@ -73,7 +84,7 @@ namespace Microsoft.ML.Benchmarks
                 SentimentText = "Not a big fan of this."
             };
 
-            string sentimentDataPath = BaseTestClass.GetDataPath("wikipedia-detox-250-line-data.tsv");
+            string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
 
             var mlContext = new MLContext(seed: 1);
 
@@ -108,7 +119,7 @@ namespace Microsoft.ML.Benchmarks
                 Features = new[] { 5f, 1f, 1f, 1f, 2f, 1f, 3f, 1f, 1f }
             };
 
-            string breastCancerDataPath = BaseTestClass.GetDataPath("breast-cancer.txt");
+            string breastCancerDataPath = GetDataPath("breast-cancer.txt");
 
             var env = new MLContext(seed: 1);
 
