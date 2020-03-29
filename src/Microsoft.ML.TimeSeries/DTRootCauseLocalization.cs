@@ -35,12 +35,12 @@ namespace Microsoft.ML.Transforms.TimeSeries
     {
         internal const string Summary = "Localize root cause for anomaly.";
         internal const string UserName = "DT Root Cause Localization Transform";
-        internal const string LoaderSignature = "DTRootCauseLTransform";
+        internal const string LoaderSignature = "DTRootCauseTransform";
 
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
-                modelSignature: "DTRCL",
+                modelSignature: "DTROOTCL",
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
@@ -124,6 +124,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
         private DTRootCauseLocalizationTransformer(IHost host, ModelLoadContext ctx)
             : base(host, ctx)
         {
+            var columnsLength = ColumnPairs.Length;
+            // *** Binary format ***
+            // <base>
+            // double: beta
+            _beta = ctx.Reader.ReadByte();
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -145,7 +150,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             // <base>
             base.SaveColumns(ctx);
 
-            ctx.Writer.Write((byte)_beta);
+            ctx.Writer.Write(_beta);
         }
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
@@ -190,10 +195,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 var src = default(RootCauseLocalizationInput);
                 var getSrc = input.GetGetter<RootCauseLocalizationInput>(input.Schema[ColMapNewToOld[iinfo]]);
 
-                disposer =
-                    () =>
-                    {
-                    };
+                disposer = null;
 
                 ValueGetter<RootCause> del =
                     (ref RootCause dst) =>
@@ -294,10 +296,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
             {
                 if (!inputSchema.TryFindColumn(colInfo.inputColumnName, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName);
-                if (!(col.ItemType is RootCauseLocalizationInputDataViewType))
+                if (!(col.ItemType is RootCauseLocalizationInputDataViewType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName, new RootCauseLocalizationInputDataViewType().ToString(), col.GetTypeString());
 
-                result[colInfo.outputColumnName] = new SchemaShape.Column(colInfo.outputColumnName, col.Kind, col.ItemType, col.IsKey, col.Annotations);
+                result[colInfo.outputColumnName] = new SchemaShape.Column(colInfo.outputColumnName, SchemaShape.Column.VectorKind.Scalar, new RootCauseDataViewType(), false);
             }
 
             return new SchemaShape(result.Values);
