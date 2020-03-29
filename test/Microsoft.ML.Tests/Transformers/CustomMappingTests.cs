@@ -137,9 +137,9 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [CustomMappingFactoryAttribute(nameof(MyStatefulLambda))]
-        public class MyStatefulLambda : StatefulCustomMappingFactory<MyStatefulInput, MyState, MyStatefulOutput>
+        public class MyStatefulLambda : StatefulCustomMappingFactory<MyStatefulInput, MyStatefulOutput, MyState>
         {
-            public override Action<MyStatefulInput, MyState, MyStatefulOutput> GetMapping()
+            public override Action<MyStatefulInput, MyStatefulOutput, MyState> GetMapping()
             {
                 return MyStatefulAction;
             }
@@ -149,7 +149,7 @@ namespace Microsoft.ML.Tests.Transformers
                 return MyStateInit;
             }
 
-            public static void MyStatefulAction(MyStatefulInput input, MyState state, MyStatefulOutput output)
+            public static void MyStatefulAction(MyStatefulInput input, MyStatefulOutput output, MyState state)
             {
                 output.FirstAppearance = !state.SeenValues.Contains(input.Value);
                 state.SeenValues.Add(input.Value);
@@ -176,7 +176,7 @@ namespace Microsoft.ML.Tests.Transformers
             // We create a temporary environment to instantiate the custom transformer. This is to ensure that we don't need the same
             // environment for saving and loading.
             var tempoEnv = new MLContext();
-            var customEst = tempoEnv.Transforms.StatefulCustomMapping<MyStatefulInput, MyState, MyStatefulOutput>(MyStatefulLambda.MyStatefulAction, MyStatefulLambda.MyStateInit, nameof(MyStatefulLambda));
+            var customEst = tempoEnv.Transforms.StatefulCustomMapping<MyStatefulInput, MyStatefulOutput, MyState>(MyStatefulLambda.MyStatefulAction, MyStatefulLambda.MyStateInit, nameof(MyStatefulLambda));
 
             ML.ComponentCatalog.RegisterAssembly(typeof(MyStatefulLambda).Assembly);
             TestEstimatorCore(customEst, data);
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Tests.Transformers
             });
             var data = loader.Load(source);
 
-            var filteredData = ML.Data.CustomFilter<MyInput>(data, input => input.Float1 % 2 == 0);
+            var filteredData = ML.Data.FilterByCustomPredicate<MyInput>(data, input => input.Float1 % 2 == 0);
             Assert.True(filteredData.GetColumn<float>(filteredData.Schema[nameof(MyInput.Float1)]).All(x => x % 2 == 1));
         }
 
@@ -229,7 +229,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new MyFilterInput() { Counter = 8, Value = 2 },
             });
 
-            var filteredData = ML.Data.StatefulCustomFilter<MyFilterInput, MyFilterState>(data,
+            var filteredData = ML.Data.FilterByStatefulCustomPredicate<MyFilterInput, MyFilterState>(data,
                 (input, state) =>
                 {
                     if (state.Count++ % 2 == 0)

@@ -15,15 +15,15 @@ namespace Microsoft.ML.Transforms
     /// <see cref="ITransformer"/> resulting from fitting an <see cref="StatefulCustomMappingEstimator{TSrc, TState, TDst}"/>.
     /// </summary>
     /// <typeparam name="TSrc">The class defining which columns to take from the incoming data.</typeparam>
-    /// <typeparam name="TState">The type that describes per-cursor state.</typeparam>
     /// <typeparam name="TDst">The class defining which new columns are added to the data.</typeparam>
-    public sealed class StatefulCustomMappingTransformer<TSrc, TState, TDst> : ITransformer
+    /// <typeparam name="TState">The type that describes per-cursor state.</typeparam>
+    public sealed class StatefulCustomMappingTransformer<TSrc, TDst, TState> : ITransformer
         where TSrc : class, new()
-        where TState : class, new()
         where TDst : class, new()
+        where TState : class, new()
     {
         private readonly IHost _host;
-        private readonly Action<TSrc, TState, TDst> _mapAction;
+        private readonly Action<TSrc, TDst, TState> _mapAction;
         private readonly Action<TState> _stateInitAction;
         private readonly string _contractName;
 
@@ -45,11 +45,11 @@ namespace Microsoft.ML.Transforms
         /// <param name="stateInitAction">The action to initialize the state object, that is called once before the cursor is initialized.</param>
         /// <param name="inputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TSrc"/> and input data.</param>
         /// <param name="outputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TDst"/> and output data.</param>
-        internal StatefulCustomMappingTransformer(IHostEnvironment env, Action<TSrc, TState, TDst> mapAction, string contractName,
+        internal StatefulCustomMappingTransformer(IHostEnvironment env, Action<TSrc, TDst, TState> mapAction, string contractName,
             Action<TState> stateInitAction, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(CustomMappingTransformer<TSrc, TDst>));
+            _host = env.Register(nameof(StatefulCustomMappingTransformer<TSrc, TDst, TState>));
             _host.CheckValue(mapAction, nameof(mapAction));
             _host.CheckValue(stateInitAction, nameof(stateInitAction));
             _host.CheckValueOrNull(contractName);
@@ -111,13 +111,13 @@ namespace Microsoft.ML.Transforms
 
         private sealed class RowToRowMapper : RowToRowMapperTransformBase
         {
-            private readonly StatefulCustomMappingTransformer<TSrc, TState, TDst> _parent;
+            private readonly StatefulCustomMappingTransformer<TSrc, TDst, TState> _parent;
             private readonly ColumnBindings _bindings;
             private readonly TypedCursorable<TSrc> _typedSrc;
 
             public override DataViewSchema OutputSchema => _bindings.Schema;
 
-            public RowToRowMapper(IHostEnvironment env, StatefulCustomMappingTransformer<TSrc, TState, TDst> parent, IDataView input)
+            public RowToRowMapper(IHostEnvironment env, StatefulCustomMappingTransformer<TSrc, TDst, TState> parent, IDataView input)
                 : base(env, "StatefulCustom", input)
             {
                 Host.CheckValue(parent, nameof(parent));
@@ -135,7 +135,7 @@ namespace Microsoft.ML.Transforms
 
             public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
             {
-                return new[] { GetRowCursor(columnsNeeded, rand) };
+                return new[] { GetRowCursorCore(columnsNeeded, rand) };
             }
 
             protected override Delegate[] CreateGetters(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns, out Action disp)
@@ -157,7 +157,7 @@ namespace Microsoft.ML.Transforms
                     if (lastServedPosition != input.Position)
                     {
                         inputRow.FillValues(src);
-                        _parent._mapAction(src, state, dst);
+                        _parent._mapAction(src, dst, state);
                         dstRow.ExtractValues(dst);
 
                         lastServedPosition = input.Position;
@@ -226,7 +226,16 @@ namespace Microsoft.ML.Transforms
 
             protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
             {
-                return false;
+                for (int i = 0; i < _bindings.Schema.Count; i++)
+                {
+                    if (predicate(i))
+                    {
+                        _bindings.MapColumnIndex(out var isSrc, i);
+                        if (!isSrc)
+                            return false;
+                    }
+                }
+                return null;
             }
 
             private protected override void SaveModel(ModelSaveContext ctx)
@@ -267,7 +276,7 @@ namespace Microsoft.ML.Transforms
                         if (lastServedPosition != input.Position)
                         {
                             inputRow.FillValues(src);
-                            _parent._parent._mapAction(src, state, dst);
+                            _parent._parent._mapAction(src, dst, state);
                             dstRow.ExtractValues(dst);
 
                             lastServedPosition = input.Position;
@@ -331,11 +340,11 @@ namespace Microsoft.ML.Transforms
     /// Check the See Also section for links to usage examples.
     /// ]]></format>
     /// </remarks>
-    /// <seealso cref="CustomMappingCatalog.CustomMapping{TSrc, TDst}(TransformsCatalog, Action{TSrc, TDst}, string, SchemaDefinition, SchemaDefinition)"/>
-    public sealed class StatefulCustomMappingEstimator<TSrc, TState, TDst> : TrivialEstimator<StatefulCustomMappingTransformer<TSrc, TState, TDst>>
+    /// <seealso cref="CustomMappingCatalog.StatefulCustomMapping{TSrc, TDst, TState}(TransformsCatalog, Action{TSrc, TDst, TState}, Action{TState}, string, SchemaDefinition, SchemaDefinition)"/>
+    public sealed class StatefulCustomMappingEstimator<TSrc, TDst, TState> : TrivialEstimator<StatefulCustomMappingTransformer<TSrc, TDst, TState>>
         where TSrc : class, new()
-        where TState : class, new()
         where TDst : class, new()
+        where TState : class, new()
     {
         /// <summary>
         /// Create a custom mapping of input columns to output columns.
@@ -346,10 +355,10 @@ namespace Microsoft.ML.Transforms
         /// <param name="stateInitAction">The action to initialize the state object, that is called once before the cursor is initialized.</param>
         /// <param name="inputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TSrc"/> and input data.</param>
         /// <param name="outputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TDst"/> and output data.</param>
-        internal StatefulCustomMappingEstimator(IHostEnvironment env, Action<TSrc, TState, TDst> mapAction, string contractName,
+        internal StatefulCustomMappingEstimator(IHostEnvironment env, Action<TSrc, TDst, TState> mapAction, string contractName,
             Action<TState> stateInitAction, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(CustomMappingEstimator<TSrc, TDst>)),
-                 new StatefulCustomMappingTransformer<TSrc, TState, TDst>(env, mapAction, contractName, stateInitAction, inputSchemaDefinition, outputSchemaDefinition))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(StatefulCustomMappingEstimator<TSrc, TDst, TState>)),
+                 new StatefulCustomMappingTransformer<TSrc, TDst, TState>(env, mapAction, contractName, stateInitAction, inputSchemaDefinition, outputSchemaDefinition))
         {
         }
 

@@ -57,7 +57,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform catalog.</param>
         /// <param name="mapAction">The mapping action. In addition to the input and output objects, the action is given a state object that it can look at and/or modify.
         /// If the resulting transformer needs to be save-able, the class defining <paramref name="mapAction"/> should implement
-        /// <see cref="StatefulCustomMappingFactory{TSrc, TState, TDst}"/> and needs to be decorated with
+        /// <see cref="StatefulCustomMappingFactory{TSrc, TDst, TState}"/> and needs to be decorated with
         /// <see cref="CustomMappingFactoryAttributeAttribute"/> with the provided <paramref name="contractName"/>.
         /// The assembly containing the class should be registered in the environment where it is loaded back
         /// using <see cref="ComponentCatalog.RegisterAssembly(System.Reflection.Assembly, bool)"/>.</param>
@@ -68,12 +68,12 @@ namespace Microsoft.ML
         /// Useful when dealing with annotations.</param>
         /// <param name="outputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TDst"/> and output data.
         /// Useful when dealing with annotations.</param>
-        public static StatefulCustomMappingEstimator<TSrc, TState, TDst> StatefulCustomMapping<TSrc, TState, TDst>(this TransformsCatalog catalog, Action<TSrc, TState, TDst> mapAction,
+        public static StatefulCustomMappingEstimator<TSrc, TDst, TState> StatefulCustomMapping<TSrc, TDst, TState>(this TransformsCatalog catalog, Action<TSrc, TDst, TState> mapAction,
             Action<TState> stateInitAction, string contractName, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
             where TSrc : class, new()
-            where TState : class, new()
             where TDst : class, new()
-            => new StatefulCustomMappingEstimator<TSrc, TState, TDst>(catalog.GetEnvironment(), mapAction, contractName, stateInitAction, inputSchemaDefinition, outputSchemaDefinition);
+            where TState : class, new()
+            => new StatefulCustomMappingEstimator<TSrc, TDst, TState>(catalog.GetEnvironment(), mapAction, contractName, stateInitAction, inputSchemaDefinition, outputSchemaDefinition);
 
         /// <summary>
         /// Drop rows where a specified predicate returns true.
@@ -84,7 +84,7 @@ namespace Microsoft.ML
         /// <param name="filterPredicate">A predicate, that takes an input of type <typeparamref name="TSrc"/> and returns true if the row should be filtered (dropped) and false otherwise.</param>
         /// <param name="inputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TSrc"/> and input data. Useful
         /// when dealing with annotations.</param>
-        public static IDataView CustomFilter<TSrc>(this DataOperationsCatalog catalog, IDataView input, Func<TSrc, bool> filterPredicate, SchemaDefinition inputSchemaDefinition = null)
+        public static IDataView FilterByCustomPredicate<TSrc>(this DataOperationsCatalog catalog, IDataView input, Func<TSrc, bool> filterPredicate, SchemaDefinition inputSchemaDefinition = null)
             where TSrc : class, new()
             => new CustomMappingFilter<TSrc>(catalog.GetEnvironment(), input, filterPredicate, inputSchemaDefinition);
 
@@ -100,7 +100,7 @@ namespace Microsoft.ML
         /// <param name="stateInitAction">The action to initialize the state object, that is called once before the cursor is initialized.</param>
         /// <param name="inputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TSrc"/> and input data. Useful
         /// when dealing with annotations.</param>
-        public static IDataView StatefulCustomFilter<TSrc, TState>(this DataOperationsCatalog catalog, IDataView input, Func<TSrc, TState, bool> filterPredicate,
+        public static IDataView FilterByStatefulCustomPredicate<TSrc, TState>(this DataOperationsCatalog catalog, IDataView input, Func<TSrc, TState, bool> filterPredicate,
             Action<TState> stateInitAction, SchemaDefinition inputSchemaDefinition = null)
             where TSrc : class, new()
             where TState : class, new()
