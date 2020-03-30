@@ -26,7 +26,7 @@ namespace Microsoft.ML.Transforms.Onnx
     {
         /// <summary>
         /// OnnxModelInfo contains the data that we should get from
-        /// OnnxRuntime API once that functionality is added.
+        /// OnnxRuntime API once that functionality is added. // MYTODO: Should we remove this "once that functionality is added"??
         /// </summary>
         public sealed class OnnxModelInfo
         {
