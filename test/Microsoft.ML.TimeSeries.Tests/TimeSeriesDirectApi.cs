@@ -330,7 +330,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Theory]
-        [IterationData(iterations: 100)]
+        [IterationData(iterations: 500)]
         public void SsaForecast(int iterations)
         {
             Console.WriteLine($"SsaForecast - Iteration: {iterations}");
@@ -395,7 +395,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Theory]
-        [IterationData(iterations: 100)]
+        [IterationData(iterations: 500)]
         public void SsaForecastPredictionEngine(int iterations)
         {
             Console.WriteLine($"SsaForecastPredictionEngine - Iteration: {iterations}");
