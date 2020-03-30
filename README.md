@@ -2,8 +2,6 @@
 
 # Machine Learning for .NET
 
-> Note: Want to share your feedback on ML.NET? Please take [this survey](https://aka.ms/feb2020-mlnet-survey)
-
 [ML.NET](https://www.microsoft.com/net/learn/apps/machine-learning-and-ai/ml-dotnet) is a cross-platform open-source machine learning framework which makes machine learning accessible to .NET developers while offering a production high quality. 
 
 ML.NET allows .NET developers to develop/train their own models and infuse custom machine learning into their applications, using .NET, even without prior expertise in developing or tuning machine learning models while having a powerful end-to-end ML platform covering data loading from dataset files and databases, data transformations and many ML algorithms.
@@ -111,15 +109,15 @@ Here is a snippet code for training a model to predict sentiment from text sampl
 var dataPath = "sentiment.csv";
 var mlContext = new MLContext();
 var loader = mlContext.Data.CreateTextLoader(new[]
-	{
-		new TextLoader.Column("SentimentText", DataKind.String, 1),
-		new TextLoader.Column("Label", DataKind.Boolean, 0),
-	},
-	hasHeader: true,
-	separatorChar: ',');
+    {
+        new TextLoader.Column("SentimentText", DataKind.String, 1),
+        new TextLoader.Column("Label", DataKind.Boolean, 0),
+    },
+    hasHeader: true,
+    separatorChar: ',');
 var data = loader.Load(dataPath);
 var learningPipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
-		.Append(mlContext.BinaryClassification.Trainers.FastTree());
+        .Append(mlContext.BinaryClassification.Trainers.FastTree());
 var model = learningPipeline.Fit(data);
 ```
 
