@@ -330,7 +330,7 @@ namespace Microsoft.ML.Transforms.Onnx
             }
         }
 
-        private protected override IRowMapper MakeRowMapper(DataViewSchema inputSchema) => new Mapper(this, inputSchema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema inputSchema) => new Mapper(this, inputSchema); // MYTODO: Should I also worry avout this?
 
         protected override IRowToRowMapper GetRowToRowMapperCore(DataViewSchema inputSchema)
         {
@@ -379,10 +379,10 @@ namespace Microsoft.ML.Transforms.Onnx
             /// </summary>
             private readonly Type[] _inputOnnxTypes;
 
-            private readonly DataViewSchema _outputSchema;
+            //private readonly DataViewSchema _outputSchema;
 
             //public DataViewSchema OutputSchema => _parent.GetOutputSchema(InputSchema);
-            public DataViewSchema OutputSchema => _outputSchema;
+            // public DataViewSchema OutputSchema => _outputSchema;
 
             public Mapper(OnnxTransformer parent, DataViewSchema inputSchema) :
                  base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema, parent)
@@ -435,7 +435,7 @@ namespace Microsoft.ML.Transforms.Onnx
                         throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {String.Join(",", inputShape)}, but input data is of length {typeValueCount}.");
                 }
 
-                _outputSchema = GetOutputSchema();
+                // _outputSchema = GetOutputSchema();
             }
 
             public DataViewSchema.DetachedColumn[] GetOutputColumns() => GetOutputColumnsCore();
@@ -457,7 +457,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 return info;
             }
 
-            private DataViewSchema GetOutputSchema()
+            internal DataViewSchema GetOutputSchema() // MYTODO: Consider moving this to the OnnxDataTransform to avoid making this internal
             {
                 var infos = GetOutputColumnsCore();
                 var schemaBuilder = new DataViewSchema.Builder();
@@ -734,21 +734,23 @@ namespace Microsoft.ML.Transforms.Onnx
         {
             private readonly Mapper _mapper;
             private readonly IRowMapper _mapperIf;
+            private readonly DataViewSchema _outputSchema;
 
             public OnnxDataTransform(IHostEnvironment env, IDataView input, Mapper mapper)
                 :base(env.Register(nameof(OnnxDataTransform)), input)
             {
                 _mapper = mapper;
                 _mapperIf = mapper as IRowMapper;
+                _outputSchema = _mapper.GetOutputSchema();
             }
 
             public DataViewSchema Schema => OutputSchema;
 
             public DataViewSchema InputSchema => Source.Schema;
 
-            public override DataViewSchema OutputSchema => _mapper.OutputSchema;
-
             public override long? GetRowCount() => Source.GetRowCount();
+
+            public override DataViewSchema OutputSchema => _outputSchema;
 
             public void Save(ModelSaveContext ctx) => _mapperIf.Save(ctx);
 
