@@ -733,16 +733,20 @@ namespace Microsoft.ML.Transforms.Onnx
         private class OnnxDataTransform : TransformBase, IRowToRowMapper
         {
             private readonly Mapper _mapper;
-            private readonly IRowMapper _mapperIf;
-            private readonly DataViewSchema _outputSchema;
+            //private readonly DataViewSchema _outputSchema;
+            private readonly ColumnBindings _bindings;
+            private readonly ColumnSelectingTransformer _columnDropper;
 
             public OnnxDataTransform(IHostEnvironment env, IDataView input, Mapper mapper)
                 :base(env.Register(nameof(OnnxDataTransform)), input)
             {
                 _mapper = mapper;
-                _mapperIf = mapper as IRowMapper;
-                _outputSchema = _mapper.GetOutputSchema();
+                //_outputSchema = _mapper.GetOutputSchema();
+                _columnDropper = new ColumnSelectingTransformer(env, null, new[] { "Size", "Shape", "Thickness", "Label" }, false, false);
+                _bindings = new ColumnBindings(_columnDropper.Transform(input).Schema, mapper.GetOutputColumns());
             }
+
+            public override DataViewSchema OutputSchema => _bindings.Schema;
 
             public DataViewSchema Schema => OutputSchema;
 
@@ -750,34 +754,60 @@ namespace Microsoft.ML.Transforms.Onnx
 
             public override long? GetRowCount() => Source.GetRowCount();
 
-            public override DataViewSchema OutputSchema => _outputSchema;
+            // public void Save(ModelSaveContext ctx) => (_mapper as IRowMapper).Save(ctx);
 
-            public void Save(ModelSaveContext ctx) => _mapperIf.Save(ctx);
-
-            public IEnumerable<DataViewSchema.Column> GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
+            private Func<int, bool> GetActiveOutputColumns(bool[] active)
             {
-                return Source.Schema;
+                Contracts.AssertValue(active);
+                Contracts.Assert(active.Length == _bindings.Schema.Count);
+
+                return
+                    col =>
+                    {
+                        Contracts.Assert(0 <= col && col < _bindings.AddedColumnIndices.Count);
+                        return 0 <= col && col < _bindings.AddedColumnIndices.Count && active[_bindings.AddedColumnIndices[col]];
+                    };
             }
 
-            public DataViewRow GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
+            /// <summary>
+            /// Produces the set of active columns for the data view (as a bool[] of length bindings.ColumnCount),
+            /// and the needed active input columns, given a predicate for the needed active output columns.
+            /// </summary>
+            private bool[] GetActive(Func<int, bool> predicate, out IEnumerable<DataViewSchema.Column> inputColumns)
             {
-                Host.CheckValue(input, nameof(input));
-                Host.CheckValue(activeColumns, nameof(activeColumns));
-                Host.Check(input.Schema == Source.Schema, "Schema of input row must be the same as the schema the mapper is bound to");
+                int n = _bindings.Schema.Count;
+                var active = Utils.BuildArray(n, predicate);
+                Contracts.Assert(active.Length == n);
 
-                using (var ch = Host.Start("GetEntireRow"))
-                {
-                    var pred = RowCursorUtils.FromColumnsToPredicate(activeColumns, Schema);
-                    var getters = _mapperIf.CreateGetters(input, pred, out Action disp);
-                    return new RowImpl(input, this, Schema, getters, disp);
-                }
+                var activeInput = _bindings.GetActiveInput(predicate);
+                Contracts.Assert(activeInput.Length == _bindings.InputSchema.Count);
+
+                // Get a predicate that determines which outputs are active.
+                var predicateOut = GetActiveOutputColumns(active);
+
+                // Now map those to active input columns.
+                var predicateIn = _mapper.GetDependencies(predicateOut);
+
+                // Combine the two sets of input columns.
+                inputColumns = _bindings.InputSchema.Where(col => activeInput[col.Index] || predicateIn(col.Index));
+
+                return active;
+            }
+
+            protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
+            {
+                Host.AssertValue(predicate, "predicate");
+                if (_bindings.AddedColumnIndices.Any(predicate))
+                    return true;
+                return null;
             }
 
             protected override DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
             {
-                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
-                var active = Utils.BuildArray(Schema.Count, predicate);
-                return new Cursor(Host, Source.GetRowCursor(Source.Schema, rand), this, active);
+                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
+                var active = GetActive(predicate, out IEnumerable<DataViewSchema.Column> inputCols);
+
+                return new Cursor(Host, Source.GetRowCursor(inputCols, rand), this, active);
             }
 
             public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
@@ -785,12 +815,12 @@ namespace Microsoft.ML.Transforms.Onnx
                 Host.CheckValueOrNull(rand);
 
                 var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
-                var active = Utils.BuildArray(Schema.Count, predicate);
+                var active = GetActive(predicate, out IEnumerable<DataViewSchema.Column> inputCols);
 
-                var inputs = Source.GetRowCursorSet(Source.Schema, n, rand);
+                var inputs = Source.GetRowCursorSet(inputCols, n, rand);
                 Host.AssertNonEmpty(inputs);
 
-                if (inputs.Length == 1 && n > 1 && Enumerable.Range(0, Schema.Count).Any(predicate))
+                if (inputs.Length == 1 && n > 1 && _bindings.AddedColumnIndices.Any(predicate))
                     inputs = DataViewUtils.CreateSplitCursors(Host, inputs[0], n);
                 Host.AssertNonEmpty(inputs);
 
@@ -800,12 +830,37 @@ namespace Microsoft.ML.Transforms.Onnx
                 return cursors;
             }
 
-            private protected override void SaveModel(ModelSaveContext ctx) => _mapperIf.Save(ctx);
-
-            protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
+            /// <summary>
+            /// Given a set of output columns, return the input columns that are needed to generate those output columns.
+            /// </summary>
+            IEnumerable<DataViewSchema.Column> IRowToRowMapper.GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
             {
-                return true;
+                var predicate = RowCursorUtils.FromColumnsToPredicate(dependingColumns, OutputSchema);
+                GetActive(predicate, out var inputColumns);
+                return inputColumns;
             }
+
+            DataViewRow IRowToRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
+            {
+                Host.CheckValue(input, nameof(input));
+                Host.CheckValue(activeColumns, nameof(activeColumns));
+                Host.Check(input.Schema == Source.Schema, "Schema of input row must be the same as the schema the mapper is bound to");
+
+                using (var ch = Host.Start("GetEntireRow"))
+                {
+                    var activeArr = new bool[OutputSchema.Count];
+                    foreach (var column in activeColumns)
+                    {
+                        Host.Assert(column.Index < activeArr.Length, $"The columns {activeColumns.Select(c => c.Name)} are not suitable for the OutputSchema.");
+                        activeArr[column.Index] = true;
+                    }
+                    var pred = GetActiveOutputColumns(activeArr);
+                    var getters = (_mapper as IRowMapper).CreateGetters(input, pred, out Action disp);
+                    return new RowImpl(input, this, OutputSchema, getters, disp);
+                }
+            }
+
+            private protected override void SaveModel(ModelSaveContext ctx) => (_mapper as IRowMapper).Save(ctx);
 
             private sealed class RowImpl : WrappingRow
             {
@@ -839,7 +894,11 @@ namespace Microsoft.ML.Transforms.Onnx
                 /// <param name="column"> is the output column whose getter should be returned.</param>
                 public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
                 {
-                    int index = column.Index;
+                    bool isSrc;
+                    int index = _parent._bindings.MapColumnIndex(out isSrc, column.Index);
+                    if (isSrc)
+                        return Input.GetGetter<TValue>(Input.Schema[index]);
+
                     Contracts.Assert(_getters[index] != null);
                     var fn = _getters[index] as ValueGetter<TValue>;
                     if (fn == null)
@@ -852,32 +911,60 @@ namespace Microsoft.ML.Transforms.Onnx
                 /// </summary>
                 public override bool IsColumnActive(DataViewSchema.Column column)
                 {
-                    return _getters[column.Index] != null;
+                    bool isSrc;
+                    int index = _parent._bindings.MapColumnIndex(out isSrc, column.Index);
+                    if (isSrc)
+                        return Input.IsColumnActive(Schema[index]);
+                    return _getters[index] != null;
                 }
             }
 
             private sealed class Cursor : SynchronizedCursorBase
             {
-                private readonly OnnxDataTransform _parent;
                 private readonly Delegate[] _getters;
                 private readonly bool[] _active;
+                private readonly ColumnBindings _bindings;
                 private readonly Action _disposer;
                 private bool _disposed;
+
+                public override DataViewSchema Schema => _bindings.Schema;
 
                 public Cursor(IChannelProvider provider, DataViewRowCursor input, OnnxDataTransform parent, bool[] active)
                     : base(provider, input)
                 {
-                    _parent = parent;
-                    Func<int, bool> pred = c => active[c];
-                    _getters = parent._mapperIf.CreateGetters(input, pred, out _disposer);
+                    var pred = parent.GetActiveOutputColumns(active);
+                    _getters = (parent._mapper as IRowMapper).CreateGetters(input, pred, out _disposer);
                     _active = active;
+                    _bindings = parent._bindings;
                 }
 
-                public override DataViewSchema Schema => _parent.OutputSchema;
+                /// <summary>
+                /// Returns whether the given column is active in this row.
+                /// </summary>
+                public override bool IsColumnActive(DataViewSchema.Column column)
+                {
+                    Ch.Check(column.Index < _bindings.Schema.Count);
+                    return _active[column.Index];
+                }
 
+                /// <summary>
+                /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+                /// This throws if the column is not active in this row, or if the type
+                /// <typeparamref name="TValue"/> differs from this column's type.
+                /// </summary>
+                /// <typeparam name="TValue"> is the column's content type.</typeparam>
+                /// <param name="column"> is the output column whose getter should be returned.</param>
                 public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
                 {
-                    var getter = _getters[column.Index];
+                    Ch.Check(IsColumnActive(column));
+
+                    bool isSrc;
+                    int index = _bindings.MapColumnIndex(out isSrc, column.Index);
+                    if (isSrc)
+                        return Input.GetGetter<TValue>(Input.Schema[index]);
+
+                    Ch.AssertValue(_getters);
+                    var getter = _getters[index];
                     Ch.Assert(getter != null);
                     var fn = getter as ValueGetter<TValue>;
                     if (fn == null)
@@ -894,8 +981,6 @@ namespace Microsoft.ML.Transforms.Onnx
                     _disposed = true;
                     base.Dispose(disposing);
                 }
-
-                public override bool IsColumnActive(DataViewSchema.Column column) => _active[column.Index];
             }
         }
     }
