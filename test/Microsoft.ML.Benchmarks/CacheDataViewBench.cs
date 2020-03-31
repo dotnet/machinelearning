@@ -10,7 +10,7 @@ using Microsoft.ML.Data;
 namespace Microsoft.ML.Benchmarks
 {
     [CIBenchmark]
-    public class CacheDataViewBench
+    public class CacheDataViewBench : BenchmarkBase
     {
         private const int Length = 100000;
 

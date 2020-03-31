@@ -18,7 +18,7 @@ using Microsoft.ML.Vision;
 namespace Microsoft.ML.Benchmarks
 {
     [Config(typeof(TrainConfig))]
-    public class ImageClassificationBench
+    public class ImageClassificationBench : BenchmarkBase
     {
         private MLContext _mlContext;
         private IDataView _trainDataset;
