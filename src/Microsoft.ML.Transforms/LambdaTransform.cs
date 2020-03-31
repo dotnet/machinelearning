@@ -69,8 +69,7 @@ namespace Microsoft.ML.Transforms
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
-            var versionInfo = GetVersionInfo();
-            ctx.CheckAtModel(versionInfo);
+            ctx.CheckAtModel(GetVersionInfo());
 
             var contractName = ctx.LoadString();
             if (ctx.Header.ModelVerWritten >= VerAssemblyNameSaved)
