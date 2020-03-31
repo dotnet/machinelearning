@@ -184,6 +184,10 @@ namespace Microsoft.ML.RunTests
             var tribeTransformed = model.Transform(tribeDataView);
             var tribeEnumerable = ML.Data.CreateEnumerable<SuperAlienHero>(tribeTransformed, false).ToList();
 
+            // save and reload the model
+            ML.Model.Save(model, tribeDataView.Schema, "customTransform.zip");
+            var modelSaved = ML.Model.Load("customTransform.zip", out var tribeDataViewSaved);
+
             // Make sure the pipeline output is correct.
             Assert.Equal(tribeEnumerable[0].Name, "Super " + tribe[0].Name);
             Assert.Equal(tribeEnumerable[0].Merged.Age, tribe[0].One.Age + tribe[0].Two.Age);
@@ -192,7 +196,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(tribeEnumerable[0].Merged.HandCount, tribe[0].One.HandCount + tribe[0].Two.HandCount);
 
             // Build prediction engine from the trained pipeline.
-            var engine = ML.Model.CreatePredictionEngine<AlienHero, SuperAlienHero>(model);
+            var engine = ML.Model.CreatePredictionEngine<AlienHero, SuperAlienHero>(modelSaved);
             var alien = new AlienHero("TEN.LM", 1, 2, 3, 4, 5, 6, 7, 8);
             var superAlien = engine.Predict(alien);
 
