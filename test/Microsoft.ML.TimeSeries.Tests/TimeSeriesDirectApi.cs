@@ -384,8 +384,6 @@ namespace Microsoft.ML.Tests
         }
 
         [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void SsaForecastPredictionEngine()
         {
             const int changeHistorySize = 10;
