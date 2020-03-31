@@ -13,7 +13,7 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML.Benchmarks
 {
     [CIBenchmark]
-    public class HashBench
+    public class HashBench : BenchmarkBase
     {
         private sealed class RowImpl : DataViewRow
         {

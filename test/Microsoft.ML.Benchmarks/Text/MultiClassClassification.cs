@@ -6,8 +6,6 @@ using System.IO;
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers.LightGbm;
-using Microsoft.ML.RunTests;
-using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.TestFrameworkCommon;
@@ -15,14 +13,14 @@ using Microsoft.ML.TestFrameworkCommon;
 namespace Microsoft.ML.Benchmarks
 {
     [Config(typeof(TrainConfig))]
-    public class MulticlassClassificationTrain
+    public class MulticlassClassificationTrain : BenchmarkBase
     {
         private string _dataPathWiki;
 
         [GlobalSetup]
         public void SetupTrainingSpeedTests()
         {
-            _dataPathWiki = BaseTestClass.GetDataPath(TestDatasets.WikiDetox.trainFilename);
+            _dataPathWiki = GetBenchmarkDataPath(TestDatasets.WikiDetox.trainFilename);
 
             if (!File.Exists(_dataPathWiki))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPathWiki));
@@ -91,7 +89,7 @@ namespace Microsoft.ML.Benchmarks
         }
     }
 
-    public class MulticlassClassificationTest
+    public class MulticlassClassificationTest : BenchmarkBase
     {
         private string _dataPathWiki;
         private string _modelPathWiki;
@@ -99,7 +97,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup]
         public void SetupScoringSpeedTests()
         {
-            _dataPathWiki = BaseTestClass.GetDataPath(TestDatasets.WikiDetox.trainFilename);
+            _dataPathWiki = GetBenchmarkDataPath(TestDatasets.WikiDetox.trainFilename);
 
             if (!File.Exists(_dataPathWiki))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPathWiki));

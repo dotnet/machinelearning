@@ -6,7 +6,6 @@ using System.IO;
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers.LightGbm;
-using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms;
@@ -15,7 +14,7 @@ using Microsoft.ML.TestFrameworkCommon;
 namespace Microsoft.ML.Benchmarks
 {
     [Config(typeof(TrainConfig))]
-    public class RankingTrain
+    public class RankingTrain : BenchmarkBase
     {
         private string _mslrWeb10kValidate;
         private string _mslrWeb10kTrain;
@@ -23,8 +22,8 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup]
         public void SetupTrainingSpeedTests()
         {
-            _mslrWeb10kValidate = BaseTestClass.GetDataPath(TestDatasets.MSLRWeb.validFilename);
-            _mslrWeb10kTrain = BaseTestClass.GetDataPath(TestDatasets.MSLRWeb.trainFilename);
+            _mslrWeb10kValidate = GetBenchmarkDataPath(TestDatasets.MSLRWeb.validFilename);
+            _mslrWeb10kTrain = GetBenchmarkDataPath(TestDatasets.MSLRWeb.trainFilename);
 
             if (!File.Exists(_mslrWeb10kValidate))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10kValidate));
@@ -63,7 +62,7 @@ namespace Microsoft.ML.Benchmarks
         }
     }
 
-    public class RankingTest
+    public class RankingTest : BenchmarkBase
     {
         private string _mslrWeb10kValidate;
         private string _mslrWeb10kTrain;
@@ -73,9 +72,9 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup]
         public void SetupScoringSpeedTests()
         {
-            _mslrWeb10kTest = BaseTestClass.GetDataPath(TestDatasets.MSLRWeb.testFilename);
-            _mslrWeb10kValidate = BaseTestClass.GetDataPath(TestDatasets.MSLRWeb.validFilename);
-            _mslrWeb10kTrain = BaseTestClass.GetDataPath(TestDatasets.MSLRWeb.trainFilename);
+            _mslrWeb10kTest = GetBenchmarkDataPath(TestDatasets.MSLRWeb.testFilename);
+            _mslrWeb10kValidate = GetBenchmarkDataPath(TestDatasets.MSLRWeb.validFilename);
+            _mslrWeb10kTrain = GetBenchmarkDataPath(TestDatasets.MSLRWeb.trainFilename);
 
             if (!File.Exists(_mslrWeb10kTest))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10kTest));
