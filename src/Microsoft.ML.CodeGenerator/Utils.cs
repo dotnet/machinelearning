@@ -24,6 +24,12 @@ namespace Microsoft.ML.CodeGenerator.Utilities
             return string.Join("", name.Select(x => Char.IsLetterOrDigit(x) ? x : '_'));
         }
 
+        /// <summary>
+        /// Take the first line of data from inputFile and parse it as a dictionary using schema from columnInference.
+        /// </summary>
+        /// <param name="inputFile">path to input file.</param>
+        /// <param name="columnInference">Column Inferernce Result.</param>
+        /// <returns>A dictionary which key is sanitized column name and value is first line of data.</returns>
         internal static IDictionary<string, string> GenerateSampleData(string inputFile, ColumnInferenceResults columnInference)
         {
             try

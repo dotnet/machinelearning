@@ -87,21 +87,24 @@ if(!string.IsNullOrEmpty(TestPath)){
             this.Write(this.ToStringHelper.ToStringWithCulture(AllowSparse.ToString().ToLowerInvariant()));
             this.Write(");\r\n");
 }
-            this.Write("            // Build training pipeline\r\n            IEstimator<ITransformer> trai" +
-                    "ningPipeline = BuildTrainingPipeline(mlContext);\r\n\r\n");
+            this.Write(@"            // Build training pipeline
+            IEstimator<ITransformer> trainingPipeline = BuildTrainingPipeline(mlContext);
+
+            // Train Model
+            ITransformer mlModel = TrainModel(mlContext, trainingDataView, trainingPipeline);
+
+");
  if(string.IsNullOrEmpty(TestPath) && !HasOnnxModel){ 
             this.Write("            // Evaluate quality of Model\r\n            Evaluate(mlContext, trainin" +
                     "gDataView, trainingPipeline);\r\n\r\n");
 }
-            this.Write("            // Train Model\r\n            ITransformer mlModel = TrainModel(mlConte" +
-                    "xt, trainingDataView, trainingPipeline);\r\n");
  if(!string.IsNullOrEmpty(TestPath) && !HasOnnxModel){ 
-            this.Write("\r\n            // Evaluate quality of Model\r\n            EvaluateModel(mlContext, " +
-                    "mlModel, testDataView);\r\n");
+            this.Write("            // Evaluate quality of Model\r\n            EvaluateModel(mlContext, ml" +
+                    "Model, testDataView);\r\n\r\n");
 }
-            this.Write("\r\n            // Save model\r\n            SaveModel(mlContext, mlModel, MODEL_FILE" +
-                    "PATH, trainingDataView.Schema);\r\n        }\r\n\r\n        public static IEstimator<I" +
-                    "Transformer> BuildTrainingPipeline(MLContext mlContext)\r\n        {\r\n");
+            this.Write("            // Save model\r\n            SaveModel(mlContext, mlModel, MODEL_FILEPA" +
+                    "TH, trainingDataView.Schema);\r\n        }\r\n\r\n        public static IEstimator<ITr" +
+                    "ansformer> BuildTrainingPipeline(MLContext mlContext)\r\n        {\r\n");
  if(PreTrainerTransforms.Count >0 ) {
             this.Write("            // Data process configuration with pipeline data transformations \r\n  " +
                     "          var dataProcessPipeline = ");

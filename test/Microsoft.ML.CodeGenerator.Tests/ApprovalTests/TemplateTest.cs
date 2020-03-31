@@ -55,5 +55,31 @@ namespace Microsoft.ML.CodeGenerator.Tests
 
             Approvals.Verify(consumeModel.TransformText());
         }
+
+        [Fact]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void TestModelBuilder_noOnnx_noTestData()
+        {
+            var modelBuilder = new ModelBuilder()
+            {
+                Namespace = "Namespace",
+                HasOnnxModel = false,
+                Path = "Path",
+                Separator = ',',
+                PreTrainerTransforms = new string[] { "PreTrainerTransformer1" },
+                Trainer = "Trainer",
+                TaskType = "Task1",
+                GeneratedUsings = "Using package1",
+                AllowQuoting = true,
+                AllowSparse = true,
+                LabelName = "Label",
+                CacheBeforeTrainer = true,
+                PostTrainerTransforms = new string[] { "PostTrainerTransformer1" },
+                MLNetModelpath = "/path/to/model",
+            };
+
+            Approvals.Verify(modelBuilder.TransformText());
+        }
     }
 }

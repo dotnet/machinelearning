@@ -36,8 +36,10 @@ namespace <#= Namespace #>.ConsoleApp
 			var predictionResult = ConsumeModel.Predict(sampleData);
 
 			Console.WriteLine("Using model to make single prediction -- Comparing actual <#= Utils.Normalize(LabelName) #> with predicted <#= Utils.Normalize(LabelName) #> from sample data...\n\n");
-<#foreach(var label in Features){#>
-			Console.WriteLine($"<#= label #>: {sampleData.<#= Utils.Normalize(label) #>}");
+<# if(SampleData != null) {#>
+<#foreach(var kv in SampleData){#>
+			Console.WriteLine($"<#= kv.Key #>: {sampleData.<#= kv.Key #>}");
+<#}#>
 <#}#>
 <#if("BinaryClassification".Equals(TaskType) ){ #>
 			Console.WriteLine($"\n\nPredicted <#= Utils.Normalize(LabelName) #>: {predictionResult.Prediction}\n\n");
