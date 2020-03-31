@@ -1,18 +1,10 @@
-
-
 # Machine Learning for .NET
 
-> Note: Want to share your feedback on ML.NET? Please take [this survey](https://aka.ms/feb2020-mlnet-survey)
+[ML.NET](https://www.microsoft.com/net/learn/apps/machine-learning-and-ai/ml-dotnet) is a cross-platform open-source machine learning framework which makes machine learning accessible to .NET developers with the same code that powers machine learning across many Microsoft products, including Power BI, Windows Defender, and Azure. 
 
-[ML.NET](https://www.microsoft.com/net/learn/apps/machine-learning-and-ai/ml-dotnet) is a cross-platform open-source machine learning framework which makes machine learning accessible to .NET developers while offering a production high quality. 
+ML.NET allows .NET developers to develop/train their own models and infuse custom machine learning into their applications using .NET, even without prior expertise in developing or tuning machine learning models. It provides data loading from files and databases, enables data transformations and includes many ML algorithms.
 
-ML.NET allows .NET developers to develop/train their own models and infuse custom machine learning into their applications, using .NET, even without prior expertise in developing or tuning machine learning models while having a powerful end-to-end ML platform covering data loading from dataset files and databases, data transformations and many ML algorithms.
-
-ML.NET was originally developed in Microsoft Research and evolved into a Microsoft internal framework over the last decade being used across many product groups in Microsoft like Windows, Bing, PowerPoint, Excel and more.
-
-ML.NET enables machine learning tasks like classification (for example, support text classification, sentiment analysis), regression (for example, price-prediction), and many other ML tasks such as anomaly detection, time-series-forecast, clustering, ranking, etc.
-
-ML.NET also brings .NET APIs for training models, using models for predictions, as well as the core components of this framework such as learning algorithms, transforms, and ML data structures.
+ML.NET enables machine learning (ML) tasks like classification (for example, text classification, sentiment analysis), regression (for example, price prediction), and many other ML tasks such as anomaly detection, time-series-forecast, clustering, ranking, etc.
 
 ## Getting started with machine learning by using ML.NET
 
@@ -111,15 +103,15 @@ Here is a snippet code for training a model to predict sentiment from text sampl
 var dataPath = "sentiment.csv";
 var mlContext = new MLContext();
 var loader = mlContext.Data.CreateTextLoader(new[]
-	{
-		new TextLoader.Column("SentimentText", DataKind.String, 1),
-		new TextLoader.Column("Label", DataKind.Boolean, 0),
-	},
-	hasHeader: true,
-	separatorChar: ',');
+    {
+        new TextLoader.Column("SentimentText", DataKind.String, 1),
+        new TextLoader.Column("Label", DataKind.Boolean, 0),
+    },
+    hasHeader: true,
+    separatorChar: ',');
 var data = loader.Load(dataPath);
 var learningPipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
-		.Append(mlContext.BinaryClassification.Trainers.FastTree());
+        .Append(mlContext.BinaryClassification.Trainers.FastTree());
 var model = learningPipeline.Fit(data);
 ```
 
