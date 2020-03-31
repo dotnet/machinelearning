@@ -62,17 +62,6 @@ namespace Microsoft.ML.Tests.Transformers
             var tempoEnv = new MLContext(1);
             var customEst = new CustomMappingEstimator<MyInput, MyOutput>(tempoEnv, MyLambda.MyAction, "MyLambda");
 
-            try
-            {
-                TestEstimatorCore(customEst, data);
-                Assert.True(false, "Cannot work without RegisterAssembly");
-            }
-            catch (InvalidOperationException ex)
-            {
-                if (!ex.IsMarked())
-                    throw;
-            }
-            ML.ComponentCatalog.RegisterAssembly(typeof(MyLambda).Assembly);
             TestEstimatorCore(customEst, data);
             transformedData = customEst.Fit(data).Transform(data);
 
