@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
 using Xunit.Abstractions;
@@ -327,11 +329,17 @@ namespace Microsoft.ML.Tests
             Assert.Equal(1.5292508189989167E-07, prediction.Change[3], precision: 5); // Martingale score
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
-        public void SsaForecast()
+        //[LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
+        [Theory]
+        [IterationData(iterations: 1000)]
+        public void SsaForecast(int iterations)
         {
+            if (AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
+            {
+                return;
+            }
+
+            Output.WriteLine($"{iterations} - th");
             var env = new MLContext(1);
             const int changeHistorySize = 10;
             const int seasonalitySize = 10;
@@ -339,6 +347,9 @@ namespace Microsoft.ML.Tests
 
             List<Data> data = new List<Data>();
             var dataView = env.Data.LoadFromEnumerable(data);
+
+            List<string> logMessages = new List<string>();
+            env.Log += (sender, e) => logMessages.Add(e.Message);
 
             var args = new SsaForecastingTransformer.Options()
             {
@@ -373,6 +384,11 @@ namespace Microsoft.ML.Tests
             List<float> maxCnf = new List<float>() { 4.3571825f, 7.448609f, 10.435009f, 12.5572853f };
             enumerator.MoveNext();
             row = enumerator.Current;
+
+            foreach (var logMessage in logMessages)
+            {
+                Output.WriteLine($"Debug SsaForecast: {logMessage}.");
+            }
 
             for (int localIndex = 0; localIndex < 4; localIndex++)
             {
@@ -470,7 +486,7 @@ namespace Microsoft.ML.Tests
             // The forecasted results should be the same because the state of the models
             // is the same.
             Assert.Equal(result.Forecast, resultCopy.Forecast);
-            
+
         }
 
         [Fact]
