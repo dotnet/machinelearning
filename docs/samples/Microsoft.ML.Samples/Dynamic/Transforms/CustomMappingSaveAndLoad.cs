@@ -45,6 +45,7 @@ namespace Samples.Dynamic
             // the custom action is defined needs to be registered in the
             // environment. The following registers the assembly where
             // IsUnderThirtyCustomAction is defined.    
+            // This is necessary only in versions v1.5-preview2 and earlier
             mlContext.ComponentCatalog.RegisterAssembly(typeof(
                 IsUnderThirtyCustomAction).Assembly);
 
