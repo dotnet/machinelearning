@@ -238,8 +238,10 @@ namespace Microsoft.ML.Data
                                 path = Path.Combine(_parent.ImageFolder, path);
 
                             // to avoid locking file, use the construct below to load bitmap
-                            using(var bmpTemp = new Bitmap(path))
-                                dst = new Bitmap(bmpTemp) { Tag = path };
+                            var bytes = File.ReadAllBytes(path);
+                            var ms = new MemoryStream(bytes);
+                            dst = (Bitmap)Image.FromStream(ms);
+                            dst.Tag = path;
 
                             // Check for an incorrect pixel format which indicates the loading failed
                             if (dst.PixelFormat == System.Drawing.Imaging.PixelFormat.DontCare)
