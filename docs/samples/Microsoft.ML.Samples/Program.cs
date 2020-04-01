@@ -23,7 +23,6 @@ namespace Microsoft.ML.Samples
                 }
             }
 
-
             Console.WriteLine("Number of samples that ran without any exception: " + samples);
         }
     }

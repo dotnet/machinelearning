@@ -239,8 +239,8 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static DTRootCauseLocalizationEstimator LocalizeRootCauseByDT(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null, double beta=0.5)
-             => new DTRootCauseLocalizationEstimator(CatalogUtils.GetEnvironment(catalog),beta,  new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
+        public static DTRootCauseLocalizationEstimator LocalizeRootCauseByDT(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null, double beta = 0.5)
+             => new DTRootCauseLocalizationEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName ?? outputColumnName, beta);
 
         /// <summary>
         /// Singular Spectrum Analysis (SSA) model for univariate time-series forecasting.
