@@ -387,7 +387,7 @@ namespace Microsoft.ML.Tests
 
             foreach (var logMessage in logMessages)
             {
-                Console.WriteLine($"Debug SsaForecast: {logMessage}.");
+                Console.WriteLine($"Debug SsaForecast: {iterations} : {logMessage}.");
             }
 
             for (int localIndex = 0; localIndex < 4; localIndex++)
