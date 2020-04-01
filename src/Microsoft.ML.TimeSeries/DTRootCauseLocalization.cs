@@ -14,12 +14,6 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.TimeSeries;
 using Microsoft.ML.Transforms.TimeSeries;
 
-[assembly: LoadableClass(DTRootCauseLocalizationTransformer.Summary, typeof(IDataTransform), typeof(DTRootCauseLocalizationTransformer), typeof(DTRootCauseLocalizationTransformer.Options), typeof(SignatureDataTransform),
-    DTRootCauseLocalizationTransformer.UserName, "DTRootCauseLocalizationTransform", "DTRootCauseLocalization")]
-
-[assembly: LoadableClass(DTRootCauseLocalizationTransformer.Summary, typeof(IDataTransform), typeof(DTRootCauseLocalizationTransformer), null, typeof(SignatureLoadDataTransform),
-    DTRootCauseLocalizationTransformer.UserName, DTRootCauseLocalizationTransformer.LoaderSignature)]
-
 [assembly: LoadableClass(typeof(DTRootCauseLocalizationTransformer), null, typeof(SignatureLoadModel),
     DTRootCauseLocalizationTransformer.UserName, DTRootCauseLocalizationTransformer.LoaderSignature)]
 
@@ -69,8 +63,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         internal class Options : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
-            public Column[] Columns;
+            [Argument(ArgumentType.Required, HelpText = "The name of the source column.", ShortName = "src", SortOrder = 1, Purpose = SpecialPurpose.ColumnName)]
+            public string Source;
+
+            [Argument(ArgumentType.Required, HelpText = "The name of the output column.", SortOrder = 2)]
+            public string Output;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Weight for getting the score for the root cause item.", ShortName = "Beta", SortOrder = 2)]
             public double Beta = DTRootCauseLocalizationEstimator.Defaults.Beta;
@@ -97,18 +94,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
             Host.CheckUserArg(beta >= 0 && beta <= 1, nameof(Options.Beta), "Must be in [0,1]");
 
             _beta = beta;
-        }
-
-        // Factory method for SignatureDataTransform.
-        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(options, nameof(options));
-            env.CheckValue(input, nameof(input));
-            env.CheckValue(options.Columns, nameof(options.Columns));
-
-            return new DTRootCauseLocalizationTransformer(env, options.Beta, options.Columns.Select(x => (x.Name, x.Source ?? x.Name)).ToArray())
-                .MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadModel.
@@ -149,7 +134,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             // *** Binary format ***
             // <base>
             base.SaveColumns(ctx);
-
+            // double: beta
             ctx.Writer.Write(_beta);
         }
 
