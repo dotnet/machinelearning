@@ -127,8 +127,14 @@ namespace Microsoft.ML.Runtime
                 Depth = source.Depth + 1;
             }
 
+            /// <summary>
+            /// This method registers and returns the host for the calling component. The generated host is also
+            /// added to <see cref="_children"/> and encapsulated by <see cref="WeakReference"/>. It becomes
+            /// necessary to remove these hosts when they are reclaimed by the Garbage Collector.
+            /// </summary>
             public new IHost Register(string name, int? seed = null, bool? verbose = null)
             {
+                _children.RemoveAll(r => r.TryGetTarget(out IHost _) == false);
                 Contracts.CheckNonEmpty(name, nameof(name));
                 IHost host;
                 lock (_cancelLock)
