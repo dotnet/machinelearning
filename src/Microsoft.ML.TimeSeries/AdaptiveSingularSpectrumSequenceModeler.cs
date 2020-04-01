@@ -1105,12 +1105,12 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 if (callStack.Contains("SsaForecast"))
                 {
                     channel.Info($"Start Consume.");
-                    channel.Info($"_rank is : {_rank}.");
-                    PrintQueue(channel, _buffer, "_buffer");
-                    channel.Info($"_windowSize is : {_windowSize}.");
-                    PrintArray(channel, _state, "_state");
+                    //channel.Info($"_rank is : {_rank}.");
+                    //PrintQueue(channel, _buffer, "_buffer");
+                    //channel.Info($"_windowSize is : {_windowSize}.");
+                    //PrintArray(channel, _state, "_state");
                     PrintArray(channel, _alpha, "_alpha");
-                    channel.Info($"_wTrans == null is : {_wTrans == null}.");
+                    //channel.Info($"_wTrans == null is : {_wTrans == null}.");
                 }
 
                 if (Single.IsNaN(input))
@@ -1135,11 +1135,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
                 if (callStack.Contains("SsaForecast"))
                 {
-                    PrintVector(channel, _x, "_x");
-                    PrintVector(channel, _y, "_y");
+                    //PrintVector(channel, _x, "_x");
+                    //PrintVector(channel, _y, "_y");
 
-                    channel.Info("In Consume, check _buffer");
-                    PrintQueue(channel, _buffer, "_buffer");
+                    //channel.Info("In Consume, check _buffer");
+                    //PrintQueue(channel, _buffer, "_buffer");
                 }
 
                 if (_buffer.Count == 0)
@@ -1167,9 +1167,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 {
                     channel.Info($"_autoregressionNoiseMean is : {_autoregressionNoiseMean}.");
                     channel.Info($"_observationNoiseMean is : {_observationNoiseMean}.");
-                    PrintVector(channel, _xSmooth, "_xSmooth");
-                    PrintVector(channel, _x, "_x");
-                    PrintVector(channel, _y, "_y");
+                    //PrintVector(channel, _xSmooth, "_xSmooth");
+                    //PrintVector(channel, _x, "_x");
+                    //PrintVector(channel, _y, "_y");
                     channel.Info($"_nextPrediction is : {_nextPrediction}.");
                 }
 
@@ -1192,7 +1192,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 if (callStack.Contains("SsaForecast"))
                 {
                     channel.Info($"_nextPrediction is : {_nextPrediction}.");
-                    PrintQueue(channel, _buffer, "_buffer");
+                    //PrintQueue(channel, _buffer, "_buffer");
                     channel.Info($"Finish Consume.");
                 }
             }
@@ -1297,7 +1297,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 {
                     channel.Info($"Start TrainCore.");
                     channel.Info($"originalSeriesLength: {originalSeriesLength}.");
-                    PrintArray(channel, dataArray, "dataArray");
+                    //PrintArray(channel, dataArray, "dataArray");
                 }
 
                 _host.Assert(Utils.Size(dataArray) > 0);
@@ -1329,8 +1329,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
                 if (callStack.Contains("SsaForecast"))
                 {
-                    PrintArray(channel, singularVals, "singularVals");
-                    PrintArray(channel, leftSingularVecs, "leftSingularVecs");
+                    //PrintArray(channel, singularVals, "singularVals");
+                    //PrintArray(channel, leftSingularVecs, "leftSingularVecs");
                 }
 
                 // Checking for standard eigenvectors, if found reduce the window size and reset training.
@@ -1403,6 +1403,15 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 for (i = 0; i < _windowSize - 1; ++i)
                     _alpha[i] = _xSmooth[i] / (1 - nu);
 
+                if (callStack.Contains("SsaForecast"))
+                {
+                    channel.Info($"nu: {nu}.");
+                    PrintVector(channel, _y, "_y");
+                    PrintArray(channel, _wTrans.Items.Items, "_wTrans");
+                    PrintVector(channel, _xSmooth, "_xSmooth");
+                    PrintArray(channel, _alpha, "_alpha before stabilize");
+                }
+
                 // Stabilizing the model
                 if (_shouldStablize && !learnNaiveModel)
                 {
@@ -1413,6 +1422,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
 #endif
                     }
                 }
+
+                if (callStack.Contains("SsaForecast"))
+                    PrintArray(channel, _alpha, "_alpha after stabilize");
 
                 // Computing the noise moments
                 if (ShouldComputeForecastIntervals)
@@ -1429,8 +1441,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 // Setting the state
                 _nextPrediction = _autoregressionNoiseMean + _observationNoiseMean;
 
-                if (callStack.Contains("SsaForecast"))
-                    PrintQueue(channel, _buffer, "_buffer");
+                //if (callStack.Contains("SsaForecast"))
+                //    PrintQueue(channel, _buffer, "_buffer");
 
                 if (_buffer.Count > 0) // Use the buffer to set the state when there are data points pushed into the buffer using the Consume() method
                 {
@@ -1468,7 +1480,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
                 if (callStack.Contains("SsaForecast"))
                 {
-                    PrintQueue(channel, _buffer, "_buffer");
+                    //PrintQueue(channel, _buffer, "_buffer");
                     channel.Info($"Finish TrainCore.");
                 }
             }
