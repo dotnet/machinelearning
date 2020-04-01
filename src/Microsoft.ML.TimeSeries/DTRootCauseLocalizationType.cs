@@ -111,6 +111,15 @@ namespace Microsoft.ML.TimeSeries
             AggType = aggregateType;
             AggSymbol = aggregateSymbol;
         }
+        
+        public RootCauseLocalizationInput(DateTime anomalyTimestamp, Dictionary<string, string> anomalyDimensions, List<MetricSlice> slices, string aggregateSymbol)
+        {
+            AnomalyTimestamp = anomalyTimestamp;
+            AnomalyDimensions = anomalyDimensions;
+            Slices = slices;
+            AggType = AggregateType.Unknow;
+            AggSymbol = aggregateSymbol;
+        }
     }
 
     public sealed class RootCauseDataViewType : StructuredDataViewType
@@ -170,19 +179,27 @@ namespace Microsoft.ML.TimeSeries
         /// <summary>
         /// Make the aggregate type as sum.
         /// </summary>
-        Sum = 0,
+        Unknow = 0,
+        /// <summary>
+        /// Make the aggregate type as sum.
+        /// </summary>
+        Sum = 1,
         /// <summary>
         /// Make the aggregate type as average.
         ///  </summary>
-        Avg = 1,
+        Avg = 2,
         /// <summary>
         /// Make the aggregate type as min.
         /// </summary>
-        Min = 2,
+        Min = 3,
         /// <summary>
         /// Make the aggregate type as max.
         /// </summary>
-        Max = 3
+        Max = 4,
+        /// <summary>
+        /// Make the aggregate type as count.
+        /// </summary>
+        Count = 4
     }
 
     public enum AnomalyDirection

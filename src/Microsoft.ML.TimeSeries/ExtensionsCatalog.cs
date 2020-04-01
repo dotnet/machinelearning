@@ -143,7 +143,7 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static SrCnnAnomalyEstimator DetectAnomalyBySrCnn(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
-            int windowSize=64, int backAddWindowSize=5, int lookaheadWindowSize=5, int averageingWindowSize=3, int judgementWindowSize=21, double threshold=0.3)
+            int windowSize = 64, int backAddWindowSize = 5, int lookaheadWindowSize = 5, int averageingWindowSize = 3, int judgementWindowSize = 21, double threshold = 0.3)
             => new SrCnnAnomalyEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, windowSize, backAddWindowSize, lookaheadWindowSize, averageingWindowSize, judgementWindowSize, threshold, inputColumnName);
 
         /// <summary>
@@ -160,8 +160,8 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static DTRootCauseLocalizationEstimator LocalizeRootCauseByDT(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null, double beta=0.5)
-             => new DTRootCauseLocalizationEstimator(CatalogUtils.GetEnvironment(catalog),beta,  new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
+        public static DTRootCauseLocalizationEstimator LocalizeRootCauseByDT(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null, double beta = 0.5)
+             => new DTRootCauseLocalizationEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName ?? outputColumnName, beta);
 
         /// <summary>
         /// Singular Spectrum Analysis (SSA) model for univariate time-series forecasting.
