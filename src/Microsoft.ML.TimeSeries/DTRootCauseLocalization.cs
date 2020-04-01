@@ -261,11 +261,12 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// Localize root cause.
         /// </summary>
         /// <param name="env">The estimator's local <see cref="IHostEnvironment"/>.</param>
+        /// <param name="outputColumnName">Name of output column to run the root cause localization.</param>
+        /// <param name="inputColumnName">Name of input column to run the root cause localization.</param>
         /// <param name="beta">The weight for generating score in output result.</param>
-        /// <param name="columns">Pairs of columns to run the root cause localization.</param>
         [BestFriend]
-        internal DTRootCauseLocalizationEstimator(IHostEnvironment env, double beta = Defaults.Beta, params (string outputColumnName, string inputColumnName)[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(DTRootCauseLocalizationEstimator)), new DTRootCauseLocalizationTransformer(env, beta, columns))
+        internal DTRootCauseLocalizationEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName, double beta = Defaults.Beta)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(DTRootCauseLocalizationEstimator)), new DTRootCauseLocalizationTransformer(env, beta, new[] { (outputColumnName, inputColumnName ?? outputColumnName) }))
         {
         }
 
