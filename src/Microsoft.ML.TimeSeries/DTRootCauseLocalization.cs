@@ -124,11 +124,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
         private DTRootCauseLocalizationTransformer(IHost host, ModelLoadContext ctx)
             : base(host, ctx)
         {
-            var columnsLength = ColumnPairs.Length;
             // *** Binary format ***
             // <base>
             // double: beta
-            _beta = ctx.Reader.ReadByte();
+            _beta = ctx.Reader.ReadDouble();
+            Host.CheckDecode(_beta >= 0 && _beta <= 1);
         }
 
         // Factory method for SignatureLoadDataTransform.
