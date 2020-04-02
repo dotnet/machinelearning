@@ -1263,7 +1263,7 @@ namespace Microsoft.ML.Scenarios
             string fullImagesetFolderPath = Path.Combine(
                 imagesDownloadFolderPath, finalImagesFolderName);
 
-            Console.WriteLine("TensorFlowImageClassificationDefault - finish download image");
+            Console.WriteLine("TensorFlowImageClassificationDefault - download");
 
             MLContext mlContext = new MLContext(seed: 1);
 
@@ -1355,7 +1355,7 @@ namespace Microsoft.ML.Scenarios
             string fullImagesetFolderPath = Path.Combine(
                 imagesDownloadFolderPath, finalImagesFolderName);
 
-            Console.WriteLine($"TensorFlowImageClassification {arch} - finish download image");
+            Console.WriteLine($"TensorFlowImageClassification {arch} - download");
 
             MLContext mlContext = new MLContext(seed: 1);
 
@@ -1505,7 +1505,7 @@ namespace Microsoft.ML.Scenarios
             string fullImagesetFolderPath = Path.Combine(
                 imagesDownloadFolderPath, finalImagesFolderName);
 
-            Console.WriteLine("TensorFlowImageClassificationWithLRScheduling - finish download");
+            Console.WriteLine("TensorFlowImageClassificationWithLRScheduling - download");
 
             MLContext mlContext = new MLContext(seed: 1);
 
@@ -1651,7 +1651,7 @@ namespace Microsoft.ML.Scenarios
             string fullImagesetFolderPath = Path.Combine(
                 imagesDownloadFolderPath, finalImagesFolderName);
 
-            Console.WriteLine("TensorFlowImageClassificationEarlyStopping - finish download");
+            Console.WriteLine("TensorFlowImageClassificationEarlyStopping - download");
 
             MLContext mlContext = new MLContext(seed: 1);
 
