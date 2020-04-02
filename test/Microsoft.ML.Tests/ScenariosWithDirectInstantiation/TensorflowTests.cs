@@ -1251,7 +1251,7 @@ namespace Microsoft.ML.Scenarios
         }
 
         [Theory]
-        [IterationData(iterations: 5)]
+        [IterationData(iterations: 10)]
         [Trait("Category", "RunSpecificTest")]
         public void CompletesTensorflowTestDefaultInTime(int iterations)
         {
@@ -1357,7 +1357,7 @@ namespace Microsoft.ML.Scenarios
         }
 
         [Theory]
-        [IterationData(iterations: 5)]
+        [IterationData(iterations: 10)]
         [Trait("Category", "RunSpecificTest")]
         public void CompletesTensorflowTestImageClassificationInTime(int iterations)
         {
@@ -1676,7 +1676,7 @@ namespace Microsoft.ML.Scenarios
         }
 
         [Theory]
-        [IterationData(iterations: 5)]
+        [IterationData(iterations: 10)]
         [Trait("Category", "RunSpecificTest")]
         public void CompletesTensorflowTestEarlyStopInTime(int iterations)
         {
