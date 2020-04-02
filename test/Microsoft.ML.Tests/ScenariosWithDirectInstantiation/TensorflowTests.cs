@@ -1262,8 +1262,6 @@ namespace Microsoft.ML.Scenarios
         }
 
         [TensorFlowFact]
-        // This test hangs occasionally
-        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassificationDefault()
         {
             MLContext mlContext = new MLContext(seed: 1);
@@ -1294,11 +1292,11 @@ namespace Microsoft.ML.Scenarios
             using var trainedModel = pipeline.Fit(trainDataset);
 
             mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
-                "model.zip");
+                $"model-{new Guid()}.zip");
 
             ITransformer loadedModel;
             DataViewSchema schema;
-            using (var file = File.OpenRead("model.zip"))
+            using (var file = File.OpenRead($"model-{new Guid()}.zip"))
                 loadedModel = mlContext.Model.Load(file, out schema);
 
             // Testing EvaluateModel: group testing on test dataset
@@ -1398,11 +1396,11 @@ namespace Microsoft.ML.Scenarios
             using var trainedModel = pipeline.Fit(trainDataset);
 
             mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
-                "model.zip");
+                $"model-{new Guid()}.zip");
 
             ITransformer loadedModel;
             DataViewSchema schema;
-            using (var file = File.OpenRead("model.zip"))
+            using (var file = File.OpenRead($"model-{new Guid()}.zip"))
                 loadedModel = mlContext.Model.Load(file, out schema);
 
             // Testing EvaluateModel: group testing on test dataset
@@ -1534,11 +1532,11 @@ namespace Microsoft.ML.Scenarios
             using var trainedModel = pipeline.Fit(trainDataset);
 
             mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
-                "model.zip");
+                $"model-{new Guid()}.zip");
 
             ITransformer loadedModel;
             DataViewSchema schema;
-            using (var file = File.OpenRead("model.zip"))
+            using (var file = File.OpenRead($"model-{new Guid()}.zip"))
                 loadedModel = mlContext.Model.Load(file, out schema);
 
             // Testing EvaluateModel: group testing on test dataset
@@ -1604,8 +1602,6 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowTheory]
         [InlineData(ImageClassificationTrainer.EarlyStoppingMetric.Accuracy)]
         [InlineData(ImageClassificationTrainer.EarlyStoppingMetric.Loss)]
-        // This test hangs ocassionally
-        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassificationEarlyStopping(ImageClassificationTrainer.EarlyStoppingMetric earlyStoppingMetric)
         {
             MLContext mlContext = new MLContext(seed: 1);
@@ -1667,11 +1663,11 @@ namespace Microsoft.ML.Scenarios
 
             using var trainedModel = pipeline.Fit(trainDataset);
             mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
-                "model.zip");
+                $"model-{new Guid()}.zip");
 
             ITransformer loadedModel;
             DataViewSchema schema;
-            using (var file = File.OpenRead("model.zip"))
+            using (var file = File.OpenRead($"model-{new Guid()}.zip"))
                 loadedModel = mlContext.Model.Load(file, out schema);
 
             IDataView predictions = trainedModel.Transform(testDataset);
@@ -1740,11 +1736,11 @@ namespace Microsoft.ML.Scenarios
 
             using var trainedModel = pipeline.Fit(trainDataset);
             mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
-                "model.zip");
+                $"model-{new Guid()}.zip");
 
             ITransformer loadedModel;
             DataViewSchema schema;
-            using (var file = File.OpenRead("model.zip"))
+            using (var file = File.OpenRead($"model-{new Guid()}.zip"))
                 loadedModel = mlContext.Model.Load(file, out schema);
 
             IDataView predictions = trainedModel.Transform(testDataset);
