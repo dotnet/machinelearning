@@ -111,7 +111,7 @@ namespace Microsoft.ML.TimeSeries
             AggType = aggregateType;
             AggSymbol = aggregateSymbol;
         }
-        
+
         public RootCauseLocalizationInput(DateTime anomalyTimestamp, Dictionary<string, string> anomalyDimensions, List<MetricSlice> slices, string aggregateSymbol)
         {
             AnomalyTimestamp = anomalyTimestamp;
