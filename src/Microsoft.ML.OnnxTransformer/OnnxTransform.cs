@@ -362,6 +362,19 @@ namespace Microsoft.ML.Transforms.Onnx
             return new[] { 1 };
         }
 
+        /// <summary>
+        /// In order to fully support onnx exportability from <see cref="ColumnSelectingTransformer"/>, it was decided
+        /// that the <see cref="OnnxTransformer"/> should drop all columns that are used as input of the Onnx model,
+        /// but which aren't part of the Onnx model's output.
+        ///
+        /// Any column that was already inside the input schema, but which isn't used by the onnx model itself,
+        /// should simply propagate to the output.
+        /// </summary>
+        internal string[] GetDropColumnsNames()
+        {
+            return Model.ModelInfo.InputNames.ToArray();
+        }
+
         private sealed class Mapper : MapperBase
         {
             private readonly OnnxTransformer _parent;
@@ -728,6 +741,19 @@ namespace Microsoft.ML.Transforms.Onnx
                     return OnnxUtils.CreateNamedOnnxValue(_colName, _vBufferDense.GetValues(), _tensorShape);
                 }
             }
+
+            /// <summary>
+            /// In order to fully support onnx exportability from <see cref="ColumnSelectingTransformer"/>, it was decided
+            /// that the <see cref="OnnxTransformer"/> should drop all columns that are used as input of the Onnx model,
+            /// but which aren't part of the Onnx model's output.
+            ///
+            /// Any column that was already inside the input schema, but which isn't used by the onnx model itself,
+            /// should simply propagate to the output.
+            /// </summary>
+            public string[] GetDropColumnsNames()
+            {
+                return _parent.GetDropColumnsNames();
+            }
         }
 
         private class OnnxDataTransform : TransformBase, IRowToRowMapper
@@ -742,8 +768,9 @@ namespace Microsoft.ML.Transforms.Onnx
             {
                 _mapper = mapper;
                 //_outputSchema = _mapper.GetOutputSchema();
-                _columnDropper = new ColumnSelectingTransformer(env, null, new[] { "Size", "Shape", "Thickness", "Label" }, false, false);
-                _bindings = new ColumnBindings(_columnDropper.Transform(input).Schema, mapper.GetOutputColumns());
+                _columnDropper = new ColumnSelectingTransformer(env, null, _mapper.GetDropColumnsNames(), false, false);
+                var droppedSchema = _columnDropper.Transform(input).Schema;
+                _bindings = new ColumnBindings(droppedSchema, mapper.GetOutputColumns());
             }
 
             public override DataViewSchema OutputSchema => _bindings.Schema;
@@ -784,9 +811,11 @@ namespace Microsoft.ML.Transforms.Onnx
 
                 // Get a predicate that determines which outputs are active.
                 var predicateOut = GetActiveOutputColumns(active);
+                var predicateOutArray = Utils.BuildArray(_mapper.GetOutputColumns().Length, predicateOut);
 
                 // Now map those to active input columns.
                 var predicateIn = _mapper.GetDependencies(predicateOut);
+                var predicateInArray = Utils.BuildArray(10, predicateIn);
 
                 // Combine the two sets of input columns.
                 inputColumns = _bindings.InputSchema.Where(col => activeInput[col.Index] || predicateIn(col.Index));
@@ -807,7 +836,9 @@ namespace Microsoft.ML.Transforms.Onnx
                 var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
                 var active = GetActive(predicate, out IEnumerable<DataViewSchema.Column> inputCols);
 
-                return new Cursor(Host, Source.GetRowCursor(inputCols, rand), this, active);
+                var realInputCursor = Source.GetRowCursor(inputCols, rand);
+                var droppedInputCursor = _columnDropper.Transform(Source).GetRowCursor(inputCols, rand);
+                return new Cursor(Host, realInputCursor, droppedInputCursor, this, active);
             }
 
             public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
@@ -818,6 +849,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 var active = GetActive(predicate, out IEnumerable<DataViewSchema.Column> inputCols);
 
                 var inputs = Source.GetRowCursorSet(inputCols, n, rand);
+                var droppedInputs = _columnDropper.Transform(Source).GetRowCursorSet(inputCols, n, rand);
                 Host.AssertNonEmpty(inputs);
 
                 if (inputs.Length == 1 && n > 1 && _bindings.AddedColumnIndices.Any(predicate))
@@ -826,7 +858,7 @@ namespace Microsoft.ML.Transforms.Onnx
 
                 var cursors = new DataViewRowCursor[inputs.Length];
                 for (int i = 0; i < inputs.Length; i++)
-                    cursors[i] = new Cursor(Host, inputs[i], this, active);
+                    cursors[i] = new Cursor(Host, inputs[i], droppedInputs[i], this, active);
                 return cursors;
             }
 
@@ -924,18 +956,22 @@ namespace Microsoft.ML.Transforms.Onnx
                 private readonly Delegate[] _getters;
                 private readonly bool[] _active;
                 private readonly ColumnBindings _bindings;
+                private readonly ColumnSelectingTransformer _columnDropper;
                 private readonly Action _disposer;
+                private readonly DataViewRowCursor _droppedInput;
                 private bool _disposed;
 
                 public override DataViewSchema Schema => _bindings.Schema;
 
-                public Cursor(IChannelProvider provider, DataViewRowCursor input, OnnxDataTransform parent, bool[] active)
-                    : base(provider, input)
+                public Cursor(IChannelProvider provider, DataViewRowCursor realInput, DataViewRowCursor droppedInput, OnnxDataTransform parent, bool[] active)
+                    : base(provider, realInput)
                 {
                     var pred = parent.GetActiveOutputColumns(active);
-                    _getters = (parent._mapper as IRowMapper).CreateGetters(input, pred, out _disposer);
+                    _getters = (parent._mapper as IRowMapper).CreateGetters(realInput, pred, out _disposer);
                     _active = active;
                     _bindings = parent._bindings;
+                    _columnDropper = parent._columnDropper;
+                    _droppedInput = droppedInput;
                 }
 
                 /// <summary>
@@ -961,7 +997,7 @@ namespace Microsoft.ML.Transforms.Onnx
                     bool isSrc;
                     int index = _bindings.MapColumnIndex(out isSrc, column.Index);
                     if (isSrc)
-                        return Input.GetGetter<TValue>(Input.Schema[index]);
+                        return _droppedInput.GetGetter<TValue>(_droppedInput.Schema[index]);
 
                     Ch.AssertValue(_getters);
                     var getter = _getters[index];
@@ -1066,7 +1102,6 @@ namespace Microsoft.ML.Transforms.Onnx
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.ToDictionary(x => x.Name);
 
             // This loop checks if all input columns needed in the underlying transformer can be found
             // in inputSchema.
@@ -1096,7 +1131,9 @@ namespace Microsoft.ML.Transforms.Onnx
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());
             }
 
-            var resultDic = new Dictionary<string, SchemaShape.Column>();
+            var droppedInputs = new List<string>(Transformer.GetDropColumnsNames());
+            var resultDic = inputSchema.Where(col => !droppedInputs.Contains(col.Name)).ToDictionary(x => x.Name);
+
             for (var i = 0; i < Transformer.Outputs.Length; i++)
             {
                 resultDic[Transformer.Outputs[i]] = new SchemaShape.Column(Transformer.Outputs[i],
