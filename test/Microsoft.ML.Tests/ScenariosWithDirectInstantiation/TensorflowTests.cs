@@ -1262,6 +1262,8 @@ namespace Microsoft.ML.Scenarios
         }
 
         [TensorFlowFact]
+        // This test hangs occasionally
+        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassificationDefault()
         {
             MLContext mlContext = new MLContext(seed: 1);
@@ -1602,6 +1604,8 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowTheory]
         [InlineData(ImageClassificationTrainer.EarlyStoppingMetric.Accuracy)]
         [InlineData(ImageClassificationTrainer.EarlyStoppingMetric.Loss)]
+        // This test hangs ocassionally
+        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassificationEarlyStopping(ImageClassificationTrainer.EarlyStoppingMetric earlyStoppingMetric)
         {
             MLContext mlContext = new MLContext(seed: 1);

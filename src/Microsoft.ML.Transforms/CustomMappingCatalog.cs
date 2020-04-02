@@ -25,7 +25,7 @@ namespace Microsoft.ML
         /// If the resulting transformer needs to be save-able, the class defining <paramref name="mapAction"/> should implement
         /// <see cref="CustomMappingFactory{TSrc, TDst}"/> and needs to be decorated with
         /// <see cref="CustomMappingFactoryAttributeAttribute"/> with the provided <paramref name="contractName"/>.
-        /// The assembly containing the class should be registered in the environment where it is loaded back
+        /// In versions v1.5-preview2 and earlier, the assembly containing the class should be registered in the environment where it is loaded back
         /// using <see cref="ComponentCatalog.RegisterAssembly(System.Reflection.Assembly, bool)"/>.</param>
         /// <param name="contractName">The contract name, used by ML.NET for loading the model.
         /// If <see langword="null"/> is specified, resulting transformer would not be save-able.</param>
