@@ -1252,12 +1252,7 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowImageClassificationDefault()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                Output.WriteLine("TODO TEST_STABILITY: TensorFlowImageClassificationDefault hangs on Linux.");
-                return;
-            }
-
+            Console.WriteLine("TensorFlowImageClassificationDefault - init");
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
 
@@ -1267,6 +1262,8 @@ namespace Microsoft.ML.Scenarios
 
             string fullImagesetFolderPath = Path.Combine(
                 imagesDownloadFolderPath, finalImagesFolderName);
+
+            Console.WriteLine("TensorFlowImageClassificationDefault - finish download image");
 
             MLContext mlContext = new MLContext(seed: 1);
 
@@ -1296,11 +1293,11 @@ namespace Microsoft.ML.Scenarios
             using var trainedModel = pipeline.Fit(trainDataset);
 
             mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
-                "model.zip");
+                $"model-{new Guid()}.zip");
 
             ITransformer loadedModel;
             DataViewSchema schema;
-            using (var file = File.OpenRead("model.zip"))
+            using (var file = File.OpenRead($"model-{new Guid()}.zip"))
                 loadedModel = mlContext.Model.Load(file, out schema);
 
             // Testing EvaluateModel: group testing on test dataset
@@ -1311,6 +1308,8 @@ namespace Microsoft.ML.Scenarios
             Assert.InRange(metrics.MacroAccuracy, 0.8, 1);
 
             (loadedModel as IDisposable)?.Dispose();
+
+            Console.WriteLine("TensorFlowImageClassificationDefault - finish");
         }
 
         internal bool ShouldReuse(string workspacePath, string trainSetBottleneckCachedValuesFileName, string validationSetBottleneckCachedValuesFileName)
@@ -1342,10 +1341,10 @@ namespace Microsoft.ML.Scenarios
         [InlineData(ImageClassificationTrainer.Architecture.MobilenetV2)]
         [InlineData(ImageClassificationTrainer.Architecture.ResnetV250)]
         [InlineData(ImageClassificationTrainer.Architecture.InceptionV3)]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassification(ImageClassificationTrainer.Architecture arch)
         {
+            Console.WriteLine($"TensorFlowImageClassification {arch} - init");
+
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
 
@@ -1355,6 +1354,8 @@ namespace Microsoft.ML.Scenarios
 
             string fullImagesetFolderPath = Path.Combine(
                 imagesDownloadFolderPath, finalImagesFolderName);
+
+            Console.WriteLine($"TensorFlowImageClassification {arch} - finish download image");
 
             MLContext mlContext = new MLContext(seed: 1);
 
@@ -1412,11 +1413,11 @@ namespace Microsoft.ML.Scenarios
             using var trainedModel = pipeline.Fit(trainDataset);
 
             mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
-                "model.zip");
+                $"model-{new Guid()}.zip");
 
             ITransformer loadedModel;
             DataViewSchema schema;
-            using (var file = File.OpenRead("model.zip"))
+            using (var file = File.OpenRead($"model-{new Guid()}.zip"))
                 loadedModel = mlContext.Model.Load(file, out schema);
 
             // Testing EvaluateModel: group testing on test dataset
@@ -1473,6 +1474,8 @@ namespace Microsoft.ML.Scenarios
             Assert.True(Array.IndexOf(labels, predictionSecond.PredictedLabel) > -1);
 
             (loadedModel as IDisposable)?.Dispose();
+
+            Console.WriteLine($"TensorFlowImageClassification {arch} - finish");
         }
 
         [TensorFlowFact]
@@ -1490,6 +1493,8 @@ namespace Microsoft.ML.Scenarios
 
         internal void TensorFlowImageClassificationWithLRScheduling(LearningRateScheduler learningRateScheduler, int epoch)
         {
+            Console.WriteLine("TensorFlowImageClassificationWithLRScheduling - init");
+
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
 
@@ -1499,6 +1504,8 @@ namespace Microsoft.ML.Scenarios
 
             string fullImagesetFolderPath = Path.Combine(
                 imagesDownloadFolderPath, finalImagesFolderName);
+
+            Console.WriteLine("TensorFlowImageClassificationWithLRScheduling - finish download");
 
             MLContext mlContext = new MLContext(seed: 1);
 
@@ -1558,11 +1565,11 @@ namespace Microsoft.ML.Scenarios
             using var trainedModel = pipeline.Fit(trainDataset);
 
             mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
-                "model.zip");
+                $"model-{new Guid()}.zip");
 
             ITransformer loadedModel;
             DataViewSchema schema;
-            using (var file = File.OpenRead("model.zip"))
+            using (var file = File.OpenRead($"model-{new Guid()}.zip"))
                 loadedModel = mlContext.Model.Load(file, out schema);
 
             // Testing EvaluateModel: group testing on test dataset
@@ -1623,6 +1630,8 @@ namespace Microsoft.ML.Scenarios
             Assert.True(File.Exists(Path.Combine(Path.GetTempPath(), "MLNET", ImageClassificationTrainer.ModelFileName[options.Arch])));
 
             (loadedModel as IDisposable)?.Dispose();
+
+            Console.WriteLine("TensorFlowImageClassificationWithLRScheduling - finish");
         }
 
         [TensorFlowTheory]
@@ -1630,11 +1639,8 @@ namespace Microsoft.ML.Scenarios
         [InlineData(ImageClassificationTrainer.EarlyStoppingMetric.Loss)]
         public void TensorFlowImageClassificationEarlyStopping(ImageClassificationTrainer.EarlyStoppingMetric earlyStoppingMetric)
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                Output.WriteLine("TODO TEST_STABILITY: TensorFlowImageClassificationEarlyStopping hangs on Linux.");
-                return;
-            }
+            Console.WriteLine("TensorFlowImageClassificationEarlyStopping - init");
+
             string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
                 "images");
 
@@ -1644,6 +1650,8 @@ namespace Microsoft.ML.Scenarios
 
             string fullImagesetFolderPath = Path.Combine(
                 imagesDownloadFolderPath, finalImagesFolderName);
+
+            Console.WriteLine("TensorFlowImageClassificationEarlyStopping - finish download");
 
             MLContext mlContext = new MLContext(seed: 1);
 
@@ -1704,11 +1712,11 @@ namespace Microsoft.ML.Scenarios
 
             using var trainedModel = pipeline.Fit(trainDataset);
             mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
-                "model.zip");
+                $"model-{new Guid()}.zip");
 
             ITransformer loadedModel;
             DataViewSchema schema;
-            using (var file = File.OpenRead("model.zip"))
+            using (var file = File.OpenRead($"model-{new Guid()}.zip"))
                 loadedModel = mlContext.Model.Load(file, out schema);
 
             IDataView predictions = trainedModel.Transform(testDataset);
@@ -1721,6 +1729,8 @@ namespace Microsoft.ML.Scenarios
             Assert.InRange(lastEpoch, 1, 49);
 
             (loadedModel as IDisposable)?.Dispose();
+
+            Console.WriteLine("TensorFlowImageClassificationEarlyStopping - finish");
         }
 
         [TensorFlowFact]
@@ -1777,11 +1787,11 @@ namespace Microsoft.ML.Scenarios
 
             using var trainedModel = pipeline.Fit(trainDataset);
             mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
-                "model.zip");
+                $"model-{new Guid()}.zip");
 
             ITransformer loadedModel;
             DataViewSchema schema;
-            using (var file = File.OpenRead("model.zip"))
+            using (var file = File.OpenRead($"model-{new Guid()}.zip"))
                 loadedModel = mlContext.Model.Load(file, out schema);
 
             IDataView predictions = trainedModel.Transform(testDataset);
