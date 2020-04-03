@@ -64,6 +64,7 @@ namespace Microsoft.ML.Scenarios
     {
         private readonly string _fullImagesetFolderPath;
         private readonly string _finalImagesFolderName;
+        private string _timeOutOldValue;
 
         public TensorFlowScenariosTests(ITestOutputHelper output) : base(output)
         {
@@ -76,6 +77,19 @@ namespace Microsoft.ML.Scenarios
 
             _fullImagesetFolderPath = Path.Combine(
                 imagesDownloadFolderPath, _finalImagesFolderName);
+        }
+
+        protected override void Initialize()
+        {
+            // set timeout to 3 minutes, download sometimes will stuck so set smaller timeout to fail fast and retry download
+            _timeOutOldValue = Environment.GetEnvironmentVariable(ResourceManagerUtils.TimeoutEnvVariable);
+            Environment.SetEnvironmentVariable(ResourceManagerUtils.TimeoutEnvVariable, (3 * 60 * 1000).ToString());
+        }
+
+        protected override void Cleanup()
+        {
+            // set back timeout value
+            Environment.SetEnvironmentVariable(ResourceManagerUtils.TimeoutEnvVariable, _timeOutOldValue);
         }
 
         private class TestData

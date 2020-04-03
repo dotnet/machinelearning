@@ -8,7 +8,6 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using Microsoft.ML.Internal.Internallearn.Test;
-using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.TestFrameworkCommon.Attributes;
@@ -80,22 +79,15 @@ namespace Microsoft.ML.TestFramework
 
         protected virtual void Initialize()
         {
-            // set timeout to 3 minutes, download sometimes will stuck so set smaller timeout to fail fast and retry download
-            _timeOutOldValue = Environment.GetEnvironmentVariable(ResourceManagerUtils.TimeoutEnvVariable);
-            Environment.SetEnvironmentVariable(ResourceManagerUtils.TimeoutEnvVariable, (3 * 60 * 1000).ToString());
         }
 
         protected virtual void Cleanup()
         {
-            // set back timeout value
-            Environment.SetEnvironmentVariable(ResourceManagerUtils.TimeoutEnvVariable, _timeOutOldValue);
         }
 
         protected static string RootDir { get; }
         protected string OutDir { get; }
         protected static string DataDir { get; }
-
-        private string _timeOutOldValue;
 
         protected ITestOutputHelper Output { get; }
 
