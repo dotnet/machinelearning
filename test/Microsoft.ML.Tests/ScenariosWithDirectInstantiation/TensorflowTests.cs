@@ -1265,10 +1265,6 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowImageClassificationDefault()
         {
-            // set timeout to 3 minutes, download sometimes will stuck so set smaller timeout to retry download
-            string timoOutOldValue = Environment.GetEnvironmentVariable(ResourceManagerUtils.TimeoutEnvVariable);
-            Environment.SetEnvironmentVariable(ResourceManagerUtils.TimeoutEnvVariable, (3 * 60 * 1000).ToString());
-
             MLContext mlContext = new MLContext(seed: 1);
 
             //Load all the original images info
@@ -1312,9 +1308,6 @@ namespace Microsoft.ML.Scenarios
             Assert.InRange(metrics.MacroAccuracy, 0.8, 1);
 
             (loadedModel as IDisposable)?.Dispose();
-
-            // set back timeout value
-            Environment.SetEnvironmentVariable(ResourceManagerUtils.TimeoutEnvVariable, timoOutOldValue);
         }
 
         internal bool ShouldReuse(string workspacePath, string trainSetBottleneckCachedValuesFileName, string validationSetBottleneckCachedValuesFileName)
@@ -1348,10 +1341,6 @@ namespace Microsoft.ML.Scenarios
         [InlineData(ImageClassificationTrainer.Architecture.InceptionV3)]
         public void TensorFlowImageClassification(ImageClassificationTrainer.Architecture arch)
         {
-            // set timeout to 3 minutes, download sometimes will stuck so set smaller timeout to retry download
-            string timoOutOldValue = Environment.GetEnvironmentVariable(ResourceManagerUtils.TimeoutEnvVariable);
-            Environment.SetEnvironmentVariable(ResourceManagerUtils.TimeoutEnvVariable, (3 * 60 * 1000).ToString());
-
             MLContext mlContext = new MLContext(seed: 1);
 
             //Load all the original images info
@@ -1469,9 +1458,6 @@ namespace Microsoft.ML.Scenarios
             Assert.True(Array.IndexOf(labels, predictionSecond.PredictedLabel) > -1);
 
             (loadedModel as IDisposable)?.Dispose();
-
-            // set back timeout value
-            Environment.SetEnvironmentVariable(ResourceManagerUtils.TimeoutEnvVariable, timoOutOldValue);
         }
 
         [TensorFlowFact]
@@ -1619,10 +1605,6 @@ namespace Microsoft.ML.Scenarios
         [InlineData(ImageClassificationTrainer.EarlyStoppingMetric.Loss)]
         public void TensorFlowImageClassificationEarlyStopping(ImageClassificationTrainer.EarlyStoppingMetric earlyStoppingMetric)
         {
-            // set timeout to 3 minutes, download sometimes will stuck so set smaller timeout to retry download
-            string timoOutOldValue = Environment.GetEnvironmentVariable(ResourceManagerUtils.TimeoutEnvVariable);
-            Environment.SetEnvironmentVariable(ResourceManagerUtils.TimeoutEnvVariable, (3 * 60 * 1000).ToString());
-
             MLContext mlContext = new MLContext(seed: 1);
 
             //Load all the original images info
@@ -1699,9 +1681,6 @@ namespace Microsoft.ML.Scenarios
             Assert.InRange(lastEpoch, 1, 49);
 
             (loadedModel as IDisposable)?.Dispose();
-
-            // set back timeout value
-            Environment.SetEnvironmentVariable(ResourceManagerUtils.TimeoutEnvVariable, timoOutOldValue);
         }
 
         [TensorFlowFact]

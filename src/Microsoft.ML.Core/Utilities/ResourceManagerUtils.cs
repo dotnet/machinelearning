@@ -281,12 +281,18 @@ namespace Microsoft.ML.Internal.Utilities
                     var buffer = new byte[blockSize];
                     long total = 0;
 
-                    var task = s.ReadAsync(buffer, 0, blockSize);
-                    task.Wait(ct);
-                    int count = task.Result;
                     // REVIEW: use a progress channel instead.
-                    while (count > 0)
+                    while (true)
                     {
+                        var task = s.ReadAsync(buffer, 0, blockSize, ct);
+                        task.Wait();
+                        int count = task.Result;
+
+                        if(count <= 0)
+                        {
+                            break;
+                        }
+
                         ws.Write(buffer, 0, count);
                         total += count;
                         if ((total - (total / printFreq) * printFreq) <= blockSize)
@@ -296,10 +302,6 @@ namespace Microsoft.ML.Internal.Utilities
                             ch.Error($"{fileName}: Download timed out");
                             return ch.Except("Download timed out");
                         }
-
-                        task = s.ReadAsync(buffer, 0, blockSize);
-                        task.Wait(ct);
-                        count = task.Result;
                     }
                 }
                 File.Move(tempPath, path);
