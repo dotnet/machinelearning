@@ -127,14 +127,22 @@ namespace Microsoft.ML.Internal.Utilities
 
             for (int i = 0; i < retryTimes; ++i)
             {
-                var thisDownloadResult = await DownloadFromUrlAsync(env, ch, url, fileName, timeout, filePath);
+                try
+                {
+                    var thisDownloadResult = await DownloadFromUrlAsync(env, ch, url, fileName, timeout, filePath);
 
-                if (string.IsNullOrEmpty(thisDownloadResult))
-                    return thisDownloadResult;
-                else
-                    downloadResult += thisDownloadResult + @"\n";
+                    if (string.IsNullOrEmpty(thisDownloadResult))
+                        return thisDownloadResult;
+                    else
+                        downloadResult += thisDownloadResult + @"\n";
 
-                await Task.Delay(10 * 1000);
+                    await Task.Delay(10 * 1000);
+                }
+                catch (Exception ex)
+                {
+                    // ignore any Exception and retrying download
+                    ch.Warning($"{i+1} - th try: Dowload {fileName} from {url} fail with exception {ex.Message}");
+                }
             }
 
             return downloadResult;
