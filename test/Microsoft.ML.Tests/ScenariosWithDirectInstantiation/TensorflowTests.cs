@@ -61,8 +61,20 @@ namespace Microsoft.ML.Scenarios
     [Collection("NoParallelization")]
     public sealed class TensorFlowScenariosTests : BaseTestClass, IClassFixture<TensorFlowScenariosTestsFixture>
     {
+        private readonly string _fullImagesetFolderPath;
+        private readonly string _finalImagesFolderName;
+
         public TensorFlowScenariosTests(ITestOutputHelper output) : base(output)
         {
+            string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
+                "images");
+
+            //Download the image set and unzip
+            _finalImagesFolderName = DownloadImageSet(
+                imagesDownloadFolderPath);
+
+            _fullImagesetFolderPath = Path.Combine(
+                imagesDownloadFolderPath, _finalImagesFolderName);
         }
 
         private class TestData
@@ -1250,25 +1262,13 @@ namespace Microsoft.ML.Scenarios
         }
 
         [TensorFlowFact]
-        // This test hangs occasionally
-        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassificationDefault()
         {
-            string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
-                "images");
-
-            //Download the image set and unzip
-            string finalImagesFolderName = DownloadImageSet(
-                imagesDownloadFolderPath);
-
-            string fullImagesetFolderPath = Path.Combine(
-                imagesDownloadFolderPath, finalImagesFolderName);
-
             MLContext mlContext = new MLContext(seed: 1);
 
             //Load all the original images info
             IEnumerable<ImageData> images = LoadImagesFromDirectory(
-                folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
+                folder: _fullImagesetFolderPath, useFolderNameAsLabel: true);
 
             IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
                 mlContext.Data.LoadFromEnumerable(images), seed: 1);
@@ -1285,7 +1285,7 @@ namespace Microsoft.ML.Scenarios
             IDataView trainDataset = trainTestData.TrainSet;
             IDataView testDataset = trainTestData.TestSet;
 
-            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
+            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", _fullImagesetFolderPath, "ImagePath")
                 .Append(mlContext.MulticlassClassification.Trainers.ImageClassification("Label", "Image")
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel"))); ;
 
@@ -1338,25 +1338,13 @@ namespace Microsoft.ML.Scenarios
         [InlineData(ImageClassificationTrainer.Architecture.MobilenetV2)]
         [InlineData(ImageClassificationTrainer.Architecture.ResnetV250)]
         [InlineData(ImageClassificationTrainer.Architecture.InceptionV3)]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassification(ImageClassificationTrainer.Architecture arch)
         {
-            string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
-                "images");
-
-            //Download the image set and unzip
-            string finalImagesFolderName = DownloadImageSet(
-                imagesDownloadFolderPath);
-
-            string fullImagesetFolderPath = Path.Combine(
-                imagesDownloadFolderPath, finalImagesFolderName);
-
             MLContext mlContext = new MLContext(seed: 1);
 
             //Load all the original images info
             IEnumerable<ImageData> images = LoadImagesFromDirectory(
-                folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
+                folder: _fullImagesetFolderPath, useFolderNameAsLabel: true);
 
             IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
                 mlContext.Data.LoadFromEnumerable(images), seed: 1);
@@ -1372,13 +1360,13 @@ namespace Microsoft.ML.Scenarios
 
             IDataView trainDataset = trainTestData.TrainSet;
             IDataView testDataset = trainTestData.TestSet;
-            var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
+            var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", _fullImagesetFolderPath, "ImagePath")
                     .Fit(testDataset)
                     .Transform(testDataset);
 
             // Check if the bottleneck cached values already exist
             var (trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName,
-                workspacePath, isReuse) = getInitialParameters(arch, finalImagesFolderName);
+                workspacePath, isReuse) = getInitialParameters(arch, _finalImagesFolderName);
 
             var options = new ImageClassificationTrainer.Options()
             {
@@ -1401,7 +1389,7 @@ namespace Microsoft.ML.Scenarios
                 ValidationSet = validationSet
             };
 
-            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
+            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", _fullImagesetFolderPath, "ImagePath")
                 .Append(mlContext.MulticlassClassification.Trainers.ImageClassification(options)
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel")));
 
@@ -1429,9 +1417,9 @@ namespace Microsoft.ML.Scenarios
                 .CreatePredictionEngine<ImageData, ImagePrediction>(loadedModel);
 
             IEnumerable<ImageData> testImages = LoadImagesFromDirectory(
-                fullImagesetFolderPath, true);
+                _fullImagesetFolderPath, true);
 
-            string[] directories = Directory.GetDirectories(fullImagesetFolderPath);
+            string[] directories = Directory.GetDirectories(_fullImagesetFolderPath);
             string[] labels = new string[directories.Length];
             for (int j = 0; j < labels.Length; j++)
             {
@@ -1442,13 +1430,13 @@ namespace Microsoft.ML.Scenarios
             // Test daisy image
             ImageData firstImageToPredict = new ImageData
             {
-                ImagePath = Path.Combine(fullImagesetFolderPath, "daisy", "5794835_d15905c7c8_n.jpg")
+                ImagePath = Path.Combine(_fullImagesetFolderPath, "daisy", "5794835_d15905c7c8_n.jpg")
             };
 
             // Test rose image
             ImageData secondImageToPredict = new ImageData
             {
-                ImagePath = Path.Combine(fullImagesetFolderPath, "roses", "12240303_80d87f77a3_n.jpg")
+                ImagePath = Path.Combine(_fullImagesetFolderPath, "roses", "12240303_80d87f77a3_n.jpg")
             };
 
             var predictionFirst = predictionEngine.Predict(firstImageToPredict);
@@ -1486,21 +1474,11 @@ namespace Microsoft.ML.Scenarios
 
         internal void TensorFlowImageClassificationWithLRScheduling(LearningRateScheduler learningRateScheduler, int epoch)
         {
-            string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
-                "images");
-
-            //Download the image set and unzip
-            string finalImagesFolderName = DownloadImageSet(
-                imagesDownloadFolderPath);
-
-            string fullImagesetFolderPath = Path.Combine(
-                imagesDownloadFolderPath, finalImagesFolderName);
-
             MLContext mlContext = new MLContext(seed: 1);
 
             //Load all the original images info
             IEnumerable<ImageData> images = LoadImagesFromDirectory(
-                folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
+                folder: _fullImagesetFolderPath, useFolderNameAsLabel: true);
 
             IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
                 mlContext.Data.LoadFromEnumerable(images), seed: 1);
@@ -1516,13 +1494,13 @@ namespace Microsoft.ML.Scenarios
 
             IDataView trainDataset = trainTestData.TrainSet;
             IDataView testDataset = trainTestData.TestSet;
-            var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
+            var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", _fullImagesetFolderPath, "ImagePath")
                     .Fit(testDataset)
                     .Transform(testDataset);
 
             // Check if the bottleneck cached values already exist
             var (trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName,
-                workspacePath, isReuse) = getInitialParameters(ImageClassificationTrainer.Architecture.ResnetV2101, finalImagesFolderName);
+                workspacePath, isReuse) = getInitialParameters(ImageClassificationTrainer.Architecture.ResnetV2101, _finalImagesFolderName);
 
             var options = new ImageClassificationTrainer.Options()
             {
@@ -1546,7 +1524,7 @@ namespace Microsoft.ML.Scenarios
                 LearningRateScheduler = learningRateScheduler
             };
 
-            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
+            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", _fullImagesetFolderPath, "ImagePath")
                     .Append(mlContext.MulticlassClassification.Trainers.ImageClassification(options))
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(
                         outputColumnName: "PredictedLabel",
@@ -1575,9 +1553,9 @@ namespace Microsoft.ML.Scenarios
                 .CreatePredictionEngine<ImageData, ImagePrediction>(loadedModel);
 
             IEnumerable<ImageData> testImages = LoadImagesFromDirectory(
-                fullImagesetFolderPath, true);
+                _fullImagesetFolderPath, true);
 
-            string[] directories = Directory.GetDirectories(fullImagesetFolderPath);
+            string[] directories = Directory.GetDirectories(_fullImagesetFolderPath);
             string[] labels = new string[directories.Length];
             for (int j = 0; j < labels.Length; j++)
             {
@@ -1588,13 +1566,13 @@ namespace Microsoft.ML.Scenarios
             // Test daisy image
             ImageData firstImageToPredict = new ImageData
             {
-                ImagePath = Path.Combine(fullImagesetFolderPath, "daisy", "5794835_d15905c7c8_n.jpg")
+                ImagePath = Path.Combine(_fullImagesetFolderPath, "daisy", "5794835_d15905c7c8_n.jpg")
             };
 
             // Test rose image
             ImageData secondImageToPredict = new ImageData
             {
-                ImagePath = Path.Combine(fullImagesetFolderPath, "roses", "12240303_80d87f77a3_n.jpg")
+                ImagePath = Path.Combine(_fullImagesetFolderPath, "roses", "12240303_80d87f77a3_n.jpg")
             };
 
             var predictionFirst = predictionEngine.Predict(firstImageToPredict);
@@ -1624,25 +1602,13 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowTheory]
         [InlineData(ImageClassificationTrainer.EarlyStoppingMetric.Accuracy)]
         [InlineData(ImageClassificationTrainer.EarlyStoppingMetric.Loss)]
-        // This test hangs ocassionally
-        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassificationEarlyStopping(ImageClassificationTrainer.EarlyStoppingMetric earlyStoppingMetric)
         {
-            string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
-                "images");
-
-            //Download the image set and unzip
-            string finalImagesFolderName = DownloadImageSet(
-                imagesDownloadFolderPath);
-
-            string fullImagesetFolderPath = Path.Combine(
-                imagesDownloadFolderPath, finalImagesFolderName);
-
             MLContext mlContext = new MLContext(seed: 1);
 
             //Load all the original images info
             IEnumerable<ImageData> images = LoadImagesFromDirectory(
-                folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
+                folder: _fullImagesetFolderPath, useFolderNameAsLabel: true);
 
             IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
                 mlContext.Data.LoadFromEnumerable(images), seed: 1);
@@ -1660,13 +1626,13 @@ namespace Microsoft.ML.Scenarios
             IDataView testDataset = trainTestData.TestSet;
 
             int lastEpoch = 0;
-            var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
+            var validationSet = mlContext.Transforms.LoadRawImageBytes("Image", _fullImagesetFolderPath, "ImagePath")
                     .Fit(testDataset)
                     .Transform(testDataset);
 
             // Check if the bottleneck cached values already exist
             var (trainSetBottleneckCachedValuesFileName, validationSetBottleneckCachedValuesFileName,
-                workspacePath, isReuse) = getInitialParameters(ImageClassificationTrainer.Architecture.ResnetV2101, finalImagesFolderName);
+                workspacePath, isReuse) = getInitialParameters(ImageClassificationTrainer.Architecture.ResnetV2101, _finalImagesFolderName);
 
 
 
@@ -1692,7 +1658,7 @@ namespace Microsoft.ML.Scenarios
                 ValidationSet = validationSet
             };
 
-            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
+            var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", _fullImagesetFolderPath, "ImagePath")
                 .Append(mlContext.MulticlassClassification.Trainers.ImageClassification(options));
 
             using var trainedModel = pipeline.Fit(trainDataset);

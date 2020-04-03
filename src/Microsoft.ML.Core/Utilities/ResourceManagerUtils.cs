@@ -257,6 +257,8 @@ namespace Microsoft.ML.Internal.Utilities
             string tempPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(path), "temp-resource-" + guid.ToString()));
             try
             {
+                int blockSize = 4096;
+
                 using (var s = webClient.OpenRead(uri))
                 using (var fh = env.CreateOutputFile(tempPath))
                 using (var ws = fh.CreateWriteStream())
@@ -268,21 +270,28 @@ namespace Microsoft.ML.Internal.Utilities
                         size = 10000000;
 
                     long printFreq = (long)(size / 10.0);
-                    var buffer = new byte[4096];
+                    var buffer = new byte[blockSize];
                     long total = 0;
-                    int count;
+
+                    var task = s.ReadAsync(buffer, 0, blockSize);
+                    task.Wait(ct);
+                    int count = task.Result;
                     // REVIEW: use a progress channel instead.
-                    while ((count = s.Read(buffer, 0, 4096)) > 0)
+                    while (count > 0)
                     {
                         ws.Write(buffer, 0, count);
                         total += count;
-                        if ((total - (total / printFreq) * printFreq) <= 4096)
+                        if ((total - (total / printFreq) * printFreq) <= blockSize)
                             ch.Info($"{fileName}: Downloaded {total} bytes out of {size}");
                         if (ct.IsCancellationRequested)
                         {
                             ch.Error($"{fileName}: Download timed out");
                             return ch.Except("Download timed out");
                         }
+
+                        task = s.ReadAsync(buffer, 0, blockSize);
+                        task.Wait(ct);
+                        count = task.Result;
                     }
                 }
                 File.Move(tempPath, path);
