@@ -187,5 +187,9 @@ namespace Microsoft.ML
             new SsaForecastingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, windowSize, seriesLength, trainSize,
                 horizon, isAdaptive, discountFactor, rankSelectionMethod, rank, maxRank, shouldStabilize, shouldMaintainInfo, maxGrowth, confidenceLowerBoundColumn,
                 confidenceUpperBoundColumn, confidenceLevel, variableHorizon);
+
+        public static SrCnnEntireAnomalyEstimator DetectEntireAnomalyBySrCnn(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
+            double threshold = 0.3, SrCnnDetectMode srCnnDetectMode = SrCnnDetectMode.AnomalyOnly, double sensitivity = 99.0)
+            => new SrCnnEntireAnomalyEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, threshold, srCnnDetectMode, sensitivity);
     }
 }
