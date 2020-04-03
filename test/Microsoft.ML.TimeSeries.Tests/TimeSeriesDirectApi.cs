@@ -332,6 +332,7 @@ namespace Microsoft.ML.Tests
         //[LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         [Theory]
         [IterationData(iterations: 5000)]
+        [Trait("Category", "RunSpecificTest")]
         public void SsaForecast(int iterations)
         {
             if (AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
