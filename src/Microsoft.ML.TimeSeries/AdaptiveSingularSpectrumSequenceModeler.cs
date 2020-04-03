@@ -830,8 +830,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
             }
         }
 
-        private bool Stabilize()
+        private bool Stabilize(IChannel ch)
         {
+            var callStack = new System.Diagnostics.StackTrace().ToString();
+
             if (Utils.Size(_alpha) == 1)
             {
                 if (_shouldMaintainInfo)
@@ -871,6 +873,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             if (!PolynomialUtils.FindPolynomialRoots(coeff, ref roots))
                 return false;
+
+            if (callStack.Contains("SsaForecast"))
+                PrintComplex(ch, roots, "roots-0");
 
             if (_shouldMaintainInfo)
             {
@@ -1009,6 +1014,12 @@ namespace Microsoft.ML.Transforms.TimeSeries
                         roots[ind2] = Complex.FromPolarCoordinates(1, 0);
                         polynomialTrendFound = true;
                     }
+
+                    if (callStack.Contains("SsaForecast"))
+                    {
+                        ch.Info($"ind1: {ind1}, ind2: {ind2}");
+                        ch.Info($"polynomialTrendFound: {polynomialTrendFound}");
+                    }
                 }
             }
 
@@ -1038,6 +1049,12 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 maxTrendMagnitude = Math.Min(maxTrendMagnitude, _maxTrendRatio);
             }
 
+            if (callStack.Contains("SsaForecast"))
+            {
+                PrintComplex(ch, roots, "roots-1");
+                ch.Info($"maxTrendMagnitude: {maxTrendMagnitude}");
+            }
+
             // Squeezing all components below the maximum trend magnitude
             var smallTrendMagnitude = Math.Min(maxTrendMagnitude, (maxTrendMagnitude + 1) / 2);
             for (i = 0; i < _windowSize - 1; ++i)
@@ -1052,6 +1069,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 }
             }
 
+            if (callStack.Contains("SsaForecast"))
+                PrintComplex(ch, roots, "roots-2");
+
             // Correcting all the other trend components
             for (i = 0; i < _windowSize - 1; ++i)
             {
@@ -1063,6 +1083,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 else if (Math.Abs(phase + Math.PI) <= eps)
                     roots[i] = new Complex(-roots[i].Magnitude, 0);
             }
+
+            if (callStack.Contains("SsaForecast"))
+                PrintComplex(ch, roots, "roots-3");
 
             // Computing the characteristic polynomial from the modified roots
             try
@@ -1104,7 +1127,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 //add log to trouble shoot flaky test SsaForecast
                 if (callStack.Contains("SsaForecast"))
                 {
-                    channel.Info($"Start Consume.");
+                    //channel.Info($"Start Consume.");
                     //channel.Info($"_rank is : {_rank}.");
                     //PrintQueue(channel, _buffer, "_buffer");
                     //channel.Info($"_windowSize is : {_windowSize}.");
@@ -1133,15 +1156,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
                 // Forming vector x
 
-                if (callStack.Contains("SsaForecast"))
-                {
-                    //PrintVector(channel, _x, "_x");
-                    //PrintVector(channel, _y, "_y");
-
-                    //channel.Info("In Consume, check _buffer");
-                    //PrintQueue(channel, _buffer, "_buffer");
-                }
-
                 if (_buffer.Count == 0)
                 {
                     for (i = 0; i < _windowSize - 1; ++i)
@@ -1163,16 +1177,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
                 _nextPrediction = _autoregressionNoiseMean + _observationNoiseMean;
 
-                if (callStack.Contains("SsaForecast"))
-                {
-                    channel.Info($"_autoregressionNoiseMean is : {_autoregressionNoiseMean}.");
-                    channel.Info($"_observationNoiseMean is : {_observationNoiseMean}.");
-                    //PrintVector(channel, _xSmooth, "_xSmooth");
-                    //PrintVector(channel, _x, "_x");
-                    //PrintVector(channel, _y, "_y");
-                    channel.Info($"_nextPrediction is : {_nextPrediction}.");
-                }
-
                 for (i = 0; i < _windowSize - 2; ++i)
                 {
                     _state[i] = ((_windowSize - 2 - i) * _state[i + 1] + _xSmooth[i + 1]) / (_windowSize - 1 - i);
@@ -1188,13 +1192,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 }
 
                 _buffer.AddLast(input);
-
-                if (callStack.Contains("SsaForecast"))
-                {
-                    channel.Info($"_nextPrediction is : {_nextPrediction}.");
-                    //PrintQueue(channel, _buffer, "_buffer");
-                    channel.Info($"Finish Consume.");
-                }
             }
         }
 
@@ -1293,13 +1290,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
             {
                 var callStack = new System.Diagnostics.StackTrace().ToString();
 
-                if (callStack.Contains("SsaForecast"))
-                {
-                    channel.Info($"Start TrainCore.");
-                    channel.Info($"originalSeriesLength: {originalSeriesLength}.");
-                    //PrintArray(channel, dataArray, "dataArray");
-                }
-
                 _host.Assert(Utils.Size(dataArray) > 0);
                 Single[] singularVals;
                 Single[] leftSingularVecs;
@@ -1325,12 +1315,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
                             break;
                         }
                     }
-                }
-
-                if (callStack.Contains("SsaForecast"))
-                {
-                    //PrintArray(channel, singularVals, "singularVals");
-                    //PrintArray(channel, leftSingularVecs, "leftSingularVecs");
                 }
 
                 // Checking for standard eigenvectors, if found reduce the window size and reset training.
@@ -1403,19 +1387,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 for (i = 0; i < _windowSize - 1; ++i)
                     _alpha[i] = _xSmooth[i] / (1 - nu);
 
-                if (callStack.Contains("SsaForecast"))
-                {
-                    channel.Info($"nu: {nu}.");
-                    PrintVector(channel, _y, "_y");
-                    PrintArray(channel, _wTrans.Items.Items, "_wTrans");
-                    PrintVector(channel, _xSmooth, "_xSmooth");
-                    PrintArray(channel, _alpha, "_alpha before stabilize");
-                }
-
                 // Stabilizing the model
                 if (_shouldStablize && !learnNaiveModel)
                 {
-                    if (!Stabilize())
+                    if (!Stabilize(channel))
                     {
 #if !TLCSSA
                         channel.Warning("The trained model cannot be stablized.");
@@ -1476,12 +1451,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     _info.Rank = _rank;
                     _info.IsNaiveModelTrained = learnNaiveModel;
                     _info.Spectrum = singularVals;
-                }
-
-                if (callStack.Contains("SsaForecast"))
-                {
-                    //PrintQueue(channel, _buffer, "_buffer");
-                    channel.Info($"Finish TrainCore.");
                 }
             }
         }
@@ -1679,6 +1648,18 @@ namespace Microsoft.ML.Transforms.TimeSeries
             for (int i = 0; i < queue.Count; ++i)
             {
                 arrayItem += queue[i] + ";";
+            }
+
+            ch.Info($"{name} items: {arrayItem}.");
+        }
+
+        private void PrintComplex(IChannel ch, Complex[] items, string name)
+        {
+            ch.Info($"{name} length: {items.Length}.");
+            string arrayItem = "";
+            for (int i = 0; i < items.Length; ++i)
+            {
+                arrayItem += items[i].Imaginary + "," + items[i].Real + "," + items[i].Magnitude + "," + items[i].Phase + ";";
             }
 
             ch.Info($"{name} items: {arrayItem}.");
