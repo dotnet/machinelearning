@@ -896,27 +896,25 @@ namespace Microsoft.ML.Transforms
             public bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, string srcVariableName, string dstVariableName)
             {
                 string opType;
-                if (_srcTypes[iinfo] is VectorDataViewType)
+                var slots = _slotDropper[iinfo].GetPreservedSlots();
+                if (_srcTypes[iinfo] is VectorDataViewType && slots.Count() > 0)
                 {
                     opType = "GatherElements";
-                    IEnumerable<long> slots = _slotDropper[iinfo].GetPreservedSlots();
                     var slotsVar = ctx.AddInitializer(slots, new long[] { 1, slots.Count() }, "PreservedSlots");
                     var node = ctx.CreateNode(opType, new[] { srcVariableName, slotsVar }, new[] { dstVariableName }, ctx.GetNodeName(opType), "");
                     node.AddAttribute("axis", 1);
+
                 }
                 else
                 {
                     string constVal;
-                    long[] dims = { 1, 1 };
-                    float[] floatVals = { 0.0f };
-                    long[] keyVals = { 0 };
-                    string[] stringVals = { "" };
-                    if (_rawTypes[iinfo] is TextDataViewType)
-                        constVal = ctx.AddInitializer(stringVals, dims);
-                    else if (_rawTypes[iinfo] is KeyDataViewType)
-                        constVal = ctx.AddInitializer(keyVals, dims);
+                    var type = _srcTypes[iinfo].GetItemType();
+                    if (type == TextDataViewType.Instance)
+                        return false;
+                    else if (type == NumberDataViewType.Single)
+                        constVal = ctx.AddInitializer(new float[] { 0 }, new long[] { 1, 1 });
                     else
-                        constVal = ctx.AddInitializer(floatVals, dims);
+                        constVal = ctx.AddInitializer(new double[] { 0 }, new long[] { 1, 1 });
 
                     opType = "Identity";
                     ctx.CreateNode(opType, constVal, dstVariableName, ctx.GetNodeName(opType), "");
