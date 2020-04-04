@@ -146,6 +146,12 @@ namespace Microsoft.ML.Transforms
             private static readonly FuncStaticMethodInfo1<DataViewType, Delegate> _getIsNADelegateMethodInfo
                 = new FuncStaticMethodInfo1<DataViewType, Delegate>(GetIsNADelegate<int>);
 
+            private static readonly FuncInstanceMethodInfo1<Mapper, DataViewRow, int, ValueGetter<bool>> _composeGetterOneMethodInfo
+                = FuncInstanceMethodInfo1<Mapper, DataViewRow, int, ValueGetter<bool>>.Create(target => target.ComposeGetterOne<int>);
+
+            private static readonly FuncInstanceMethodInfo1<Mapper, DataViewRow, int, ValueGetter<VBuffer<bool>>> _composeGetterVecMethodInfo
+                = FuncInstanceMethodInfo1<Mapper, DataViewRow, int, ValueGetter<VBuffer<bool>>>.Create(target => target.ComposeGetterVec<int>);
+
             private readonly MissingValueIndicatorTransformer _parent;
             private readonly ColInfo[] _infos;
 
@@ -241,7 +247,7 @@ namespace Microsoft.ML.Transforms
             /// Getter generator for single valued inputs.
             /// </summary>
             private ValueGetter<bool> ComposeGetterOne(DataViewRow input, int iinfo)
-                => Utils.MarshalInvoke(ComposeGetterOne<int>, _infos[iinfo].InputType.RawType, input, iinfo);
+                => Utils.MarshalInvoke(_composeGetterOneMethodInfo, this, _infos[iinfo].InputType.RawType, input, iinfo);
 
             private ValueGetter<bool> ComposeGetterOne<T>(DataViewRow input, int iinfo)
             {
@@ -263,7 +269,7 @@ namespace Microsoft.ML.Transforms
             /// Getter generator for vector valued inputs.
             /// </summary>
             private ValueGetter<VBuffer<bool>> ComposeGetterVec(DataViewRow input, int iinfo)
-                => Utils.MarshalInvoke(ComposeGetterVec<int>, _infos[iinfo].InputType.GetItemType().RawType, input, iinfo);
+                => Utils.MarshalInvoke(_composeGetterVecMethodInfo, this, _infos[iinfo].InputType.GetItemType().RawType, input, iinfo);
 
             private ValueGetter<VBuffer<bool>> ComposeGetterVec<T>(DataViewRow input, int iinfo)
             {

@@ -171,6 +171,9 @@ namespace Microsoft.ML.Transforms
 
         private sealed class Mapper : OneToOneMapperBase
         {
+            private static readonly FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate> _makeVecGetterMethodInfo
+                = FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate>.Create(target => target.MakeVecGetter<int>);
+
             private readonly MissingValueDroppingTransformer _parent;
 
             private readonly DataViewType[] _srcTypes;
@@ -210,15 +213,14 @@ namespace Microsoft.ML.Transforms
                 }
                 return result;
             }
+
             protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
 
-                Func<DataViewRow, int, ValueGetter<VBuffer<int>>> del = MakeVecGetter<int>;
-                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_srcTypes[iinfo].GetItemType().RawType);
-                return (Delegate)methodInfo.Invoke(this, new object[] { input, iinfo });
+                return Utils.MarshalInvoke(_makeVecGetterMethodInfo, this, _srcTypes[iinfo].GetItemType().RawType, input, iinfo);
             }
 
             private ValueGetter<VBuffer<TDst>> MakeVecGetter<TDst>(DataViewRow input, int iinfo)

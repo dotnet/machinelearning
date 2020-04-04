@@ -701,6 +701,9 @@ namespace Microsoft.ML.Transforms
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx, ISaveAsPfa
         {
+            private static readonly FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate> _makeGetterMethodInfo
+                = FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate>.Create(target => target.MakeGetter<int>);
+
             private readonly DataViewType[] _types;
             private readonly ValueToKeyMappingTransformer _parent;
             private readonly ColInfo[] _infos;
@@ -756,7 +759,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
                 var type = _termMap[iinfo].Map.OutputType;
-                return Utils.MarshalInvoke(MakeGetter<int>, type.RawType, input, iinfo);
+                return Utils.MarshalInvoke(_makeGetterMethodInfo, this, type.RawType, input, iinfo);
             }
 
             private Delegate MakeGetter<T>(DataViewRow row, int src) => _termMap[src].GetMappingGetter(row);

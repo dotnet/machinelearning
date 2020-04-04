@@ -1559,6 +1559,8 @@ namespace Microsoft.ML.Featurizers
 
         private sealed class Mapper : MapperBase
         {
+            private static readonly FuncInstanceMethodInfo2<Mapper, DataViewRow, int, Delegate> _makeGetterMethodInfo
+                = FuncInstanceMethodInfo2<Mapper, DataViewRow, int, Delegate>.Create(target => target.MakeGetter<int, int>);
 
             #region Class data members
 
@@ -1599,7 +1601,7 @@ namespace Microsoft.ML.Featurizers
                 Type inputType = input.Schema[_parent._columns[iinfo].Source].Type.RawType;
                 Type outputType = _parent._columns[iinfo].ReturnType();
 
-                return Utils.MarshalInvoke(MakeGetter<int, int>, new Type[] { inputType, outputType }, input, iinfo);
+                return Utils.MarshalInvoke(_makeGetterMethodInfo, this, inputType, outputType, input, iinfo);
             }
 
             private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)

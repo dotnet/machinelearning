@@ -701,6 +701,8 @@ namespace Microsoft.ML.Featurizers
 
         private sealed class Mapper : MapperBase
         {
+            private static readonly FuncInstanceMethodInfo2<Mapper, DataViewRow, int, Delegate> _makeGetterMethodInfo
+                = FuncInstanceMethodInfo2<Mapper, DataViewRow, int, Delegate>.Create(target => target.MakeGetter<int, int>);
 
             #region Class data members
             private static readonly DateTime _unixEpoch = new DateTime(1970, 1, 1);
@@ -825,7 +827,7 @@ namespace Microsoft.ML.Featurizers
                 disposer = null;
 
                 // Have to add 1 to iinfo since the enum starts at 1
-                return Utils.MarshalInvoke(MakeGetter<int, int>, new Type[] { input.Schema[_parent._column.Source].Type.RawType, ((DateTimeEstimator.ColumnsProduced)iinfo + 1).GetRawColumnType() }, input, iinfo);
+                return Utils.MarshalInvoke(_makeGetterMethodInfo, this, input.Schema[_parent._column.Source].Type.RawType, ((DateTimeEstimator.ColumnsProduced)iinfo + 1).GetRawColumnType(), input, iinfo);
 
             }
 

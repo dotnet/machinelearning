@@ -451,6 +451,12 @@ namespace Microsoft.ML.Transforms
             private static readonly FuncInstanceMethodInfo1<Mapper, Delegate> _makeVecTrivialGetterMethodInfo
                 = FuncInstanceMethodInfo1<Mapper, Delegate>.Create(target => target.MakeVecTrivialGetter<int>);
 
+            private static readonly FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate> _makeVecGetterMethodInfo
+                = FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate>.Create(target => target.MakeVecGetter<int>);
+
+            private static readonly FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate> _getSrcGetterMethodInfo
+                = FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate>.Create(target => target.GetSrcGetter<int>);
+
             private readonly SlotsDroppingTransformer _parent;
             private readonly int[] _cols;
             private readonly DataViewType[] _srcTypes;
@@ -780,9 +786,7 @@ namespace Microsoft.ML.Transforms
                 VectorDataViewType vectorType = (VectorDataViewType)_srcTypes[iinfo];
                 Host.Assert(!_suppressed[iinfo]);
 
-                Func<DataViewRow, int, ValueGetter<VBuffer<int>>> del = MakeVecGetter<int>;
-                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(vectorType.ItemType.RawType);
-                return (Delegate)methodInfo.Invoke(this, new object[] { input, iinfo });
+                return Utils.MarshalInvoke(_makeVecGetterMethodInfo, this, vectorType.ItemType.RawType, input, iinfo);
             }
 
             private ValueGetter<VBuffer<TDst>> MakeVecGetter<TDst>(DataViewRow input, int iinfo)
@@ -816,9 +820,7 @@ namespace Microsoft.ML.Transforms
                 Host.CheckValue(typeDst, nameof(typeDst));
                 Host.CheckValue(row, nameof(row));
 
-                Func<DataViewRow, int, ValueGetter<int>> del = GetSrcGetter<int>;
-                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeDst.RawType);
-                return (Delegate)methodInfo.Invoke(this, new object[] { row, iinfo });
+                return Utils.MarshalInvoke(_getSrcGetterMethodInfo, this, typeDst.RawType, row, iinfo);
             }
 
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
