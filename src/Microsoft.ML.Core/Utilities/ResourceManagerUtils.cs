@@ -127,14 +127,22 @@ namespace Microsoft.ML.Internal.Utilities
 
             for (int i = 0; i < retryTimes; ++i)
             {
-                var thisDownloadResult = await DownloadFromUrlAsync(env, ch, url, fileName, timeout, filePath);
+                try
+                {
+                    var thisDownloadResult = await DownloadFromUrlAsync(env, ch, url, fileName, timeout, filePath);
 
-                if (string.IsNullOrEmpty(thisDownloadResult))
-                    return thisDownloadResult;
-                else
-                    downloadResult += thisDownloadResult + @"\n";
+                    if (string.IsNullOrEmpty(thisDownloadResult))
+                        return thisDownloadResult;
+                    else
+                        downloadResult += thisDownloadResult + @"\n";
 
-                await Task.Delay(10 * 1000);
+                    await Task.Delay(10 * 1000);
+                }
+                catch (Exception ex)
+                {
+                    // ignore any Exception and retrying download
+                    ch.Warning($"{i+1} - th try: Dowload {fileName} from {url} fail with exception {ex.Message}");
+                }
             }
 
             return downloadResult;
@@ -257,6 +265,8 @@ namespace Microsoft.ML.Internal.Utilities
             string tempPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(path), "temp-resource-" + guid.ToString()));
             try
             {
+                int blockSize = 4096;
+
                 using (var s = webClient.OpenRead(uri))
                 using (var fh = env.CreateOutputFile(tempPath))
                 using (var ws = fh.CreateWriteStream())
@@ -268,15 +278,24 @@ namespace Microsoft.ML.Internal.Utilities
                         size = 10000000;
 
                     long printFreq = (long)(size / 10.0);
-                    var buffer = new byte[4096];
+                    var buffer = new byte[blockSize];
                     long total = 0;
-                    int count;
+
                     // REVIEW: use a progress channel instead.
-                    while ((count = s.Read(buffer, 0, 4096)) > 0)
+                    while (true)
                     {
+                        var task = s.ReadAsync(buffer, 0, blockSize, ct);
+                        task.Wait();
+                        int count = task.Result;
+
+                        if(count <= 0)
+                        {
+                            break;
+                        }
+
                         ws.Write(buffer, 0, count);
                         total += count;
-                        if ((total - (total / printFreq) * printFreq) <= 4096)
+                        if ((total - (total / printFreq) * printFreq) <= blockSize)
                             ch.Info($"{fileName}: Downloaded {total} bytes out of {size}");
                         if (ct.IsCancellationRequested)
                         {
