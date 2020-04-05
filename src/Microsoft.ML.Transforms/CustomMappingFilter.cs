@@ -22,14 +22,14 @@ namespace Microsoft.ML.Transforms
 
         public DataViewSchema Schema => Input.Schema;
 
-        private protected CustomMappingFilterBase(IHostEnvironment env, IDataView input, SchemaDefinition inputSchemaDefinition = null)
+        private protected CustomMappingFilterBase(IHostEnvironment env, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             Host = env.Register("CustomFilter");
             Host.CheckValue(input, nameof(input));
 
             Input = input;
-            TypedSrc = TypedCursorable<TSrc>.Create(Host, input, false, inputSchemaDefinition);
+            TypedSrc = TypedCursorable<TSrc>.Create(Host, input, false, null);
         }
 
         public long? GetRowCount() => null;
@@ -58,8 +58,8 @@ namespace Microsoft.ML.Transforms
 
         public override bool CanShuffle => Input.CanShuffle;
 
-        public CustomMappingFilter(IHostEnvironment env, IDataView input, Func<TSrc, bool> predicate, SchemaDefinition inputSchemaDefinition = null)
-            : base(env, input, inputSchemaDefinition)
+        public CustomMappingFilter(IHostEnvironment env, IDataView input, Func<TSrc, bool> predicate)
+            : base(env, input)
         {
             Host.CheckValue(predicate, nameof(predicate));
             _predicate = predicate;
@@ -135,8 +135,8 @@ namespace Microsoft.ML.Transforms
 
         public override bool CanShuffle => false;
 
-        public StatefulCustomMappingFilter(IHostEnvironment env, IDataView input, Func<TSrc, TState, bool> predicate, Action<TState> stateInitAction, SchemaDefinition inputSchemaDefinition = null)
-            : base(env, input, inputSchemaDefinition)
+        public StatefulCustomMappingFilter(IHostEnvironment env, IDataView input, Func<TSrc, TState, bool> predicate, Action<TState> stateInitAction)
+            : base(env, input)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValue(stateInitAction, nameof(stateInitAction));

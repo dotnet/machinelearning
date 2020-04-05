@@ -64,16 +64,12 @@ namespace Microsoft.ML
         /// <param name="stateInitAction">The action to initialize the state object, that is called once before the cursor is initialized.</param>
         /// <param name="contractName">The contract name, used by ML.NET for loading the model.
         /// If <see langword="null"/> is specified, resulting transformer would not be save-able.</param>
-        /// <param name="inputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TSrc"/> and input data.
-        /// Useful when dealing with annotations.</param>
-        /// <param name="outputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TDst"/> and output data.
-        /// Useful when dealing with annotations.</param>
         public static StatefulCustomMappingEstimator<TSrc, TDst, TState> StatefulCustomMapping<TSrc, TDst, TState>(this TransformsCatalog catalog, Action<TSrc, TDst, TState> mapAction,
-            Action<TState> stateInitAction, string contractName, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
+            Action<TState> stateInitAction, string contractName)
             where TSrc : class, new()
             where TDst : class, new()
             where TState : class, new()
-            => new StatefulCustomMappingEstimator<TSrc, TDst, TState>(catalog.GetEnvironment(), mapAction, contractName, stateInitAction, inputSchemaDefinition, outputSchemaDefinition);
+            => new StatefulCustomMappingEstimator<TSrc, TDst, TState>(catalog.GetEnvironment(), mapAction, contractName, stateInitAction);
 
         /// <summary>
         /// Drop rows where a specified predicate returns true.
@@ -82,11 +78,9 @@ namespace Microsoft.ML
         /// <param name="catalog">The data operations catalog.</param>
         /// <param name="input">The input data.</param>
         /// <param name="filterPredicate">A predicate, that takes an input of type <typeparamref name="TSrc"/> and returns true if the row should be filtered (dropped) and false otherwise.</param>
-        /// <param name="inputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TSrc"/> and input data. Useful
-        /// when dealing with annotations.</param>
-        public static IDataView FilterByCustomPredicate<TSrc>(this DataOperationsCatalog catalog, IDataView input, Func<TSrc, bool> filterPredicate, SchemaDefinition inputSchemaDefinition = null)
+        public static IDataView FilterByCustomPredicate<TSrc>(this DataOperationsCatalog catalog, IDataView input, Func<TSrc, bool> filterPredicate)
             where TSrc : class, new()
-            => new CustomMappingFilter<TSrc>(catalog.GetEnvironment(), input, filterPredicate, inputSchemaDefinition);
+            => new CustomMappingFilter<TSrc>(catalog.GetEnvironment(), input, filterPredicate);
 
         /// <summary>
         /// Drop rows where a specified predicate returns true. This filter allows to maintain a per-cursor state.
@@ -98,12 +92,10 @@ namespace Microsoft.ML
         /// <param name="filterPredicate">A predicate, that takes an input of type <typeparamref name="TSrc"/> and a state object of type
         /// <typeparamref name="TState"/>, and returns true if the row should be filtered (dropped) and false otherwise.</param>
         /// <param name="stateInitAction">The action to initialize the state object, that is called once before the cursor is initialized.</param>
-        /// <param name="inputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TSrc"/> and input data. Useful
-        /// when dealing with annotations.</param>
         public static IDataView FilterByStatefulCustomPredicate<TSrc, TState>(this DataOperationsCatalog catalog, IDataView input, Func<TSrc, TState, bool> filterPredicate,
-            Action<TState> stateInitAction, SchemaDefinition inputSchemaDefinition = null)
+            Action<TState> stateInitAction)
             where TSrc : class, new()
             where TState : class, new()
-            => new StatefulCustomMappingFilter<TSrc, TState>(catalog.GetEnvironment(), input, filterPredicate, stateInitAction, inputSchemaDefinition);
+            => new StatefulCustomMappingFilter<TSrc, TState>(catalog.GetEnvironment(), input, filterPredicate, stateInitAction);
     }
 }

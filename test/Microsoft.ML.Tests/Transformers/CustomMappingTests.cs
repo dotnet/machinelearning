@@ -178,7 +178,6 @@ namespace Microsoft.ML.Tests.Transformers
             var tempoEnv = new MLContext();
             var customEst = tempoEnv.Transforms.StatefulCustomMapping<MyStatefulInput, MyStatefulOutput, MyState>(MyStatefulLambda.MyStatefulAction, MyStatefulLambda.MyStateInit, nameof(MyStatefulLambda));
 
-            ML.ComponentCatalog.RegisterAssembly(typeof(MyStatefulLambda).Assembly);
             TestEstimatorCore(customEst, data);
             var transformedData = customEst.Fit(data).Transform(data);
             var outputs = transformedData.GetColumn<bool>(transformedData.Schema[nameof(MyStatefulOutput.FirstAppearance)]);

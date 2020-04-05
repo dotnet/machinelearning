@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
@@ -26,9 +27,9 @@ namespace Microsoft.ML.Transforms
         private readonly Action<TSrc, TDst, TState> _mapAction;
         private readonly Action<TState> _stateInitAction;
         private readonly string _contractName;
+        private readonly string _contractAssembly;
 
         internal InternalSchemaDefinition AddedSchema { get; }
-        internal SchemaDefinition InputSchemaDefinition { get; }
 
         /// <summary>
         /// Whether a call to <see cref="ITransformer.GetRowToRowMapper(DataViewSchema)"/> should succeed, on an
@@ -43,29 +44,21 @@ namespace Microsoft.ML.Transforms
         /// <param name="mapAction">The action by which we map source to destination columns</param>
         /// <param name="contractName">The name of the action (will be saved to the model).</param>
         /// <param name="stateInitAction">The action to initialize the state object, that is called once before the cursor is initialized.</param>
-        /// <param name="inputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TSrc"/> and input data.</param>
-        /// <param name="outputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TDst"/> and output data.</param>
         internal StatefulCustomMappingTransformer(IHostEnvironment env, Action<TSrc, TDst, TState> mapAction, string contractName,
-            Action<TState> stateInitAction, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
+            Action<TState> stateInitAction)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(StatefulCustomMappingTransformer<TSrc, TDst, TState>));
             _host.CheckValue(mapAction, nameof(mapAction));
             _host.CheckValue(stateInitAction, nameof(stateInitAction));
             _host.CheckValueOrNull(contractName);
-            _host.CheckValueOrNull(inputSchemaDefinition);
-            _host.CheckValueOrNull(outputSchemaDefinition);
 
             _mapAction = mapAction;
             _stateInitAction = stateInitAction;
-            InputSchemaDefinition = inputSchemaDefinition;
-
-            var outSchema = outputSchemaDefinition == null
-               ? InternalSchemaDefinition.Create(typeof(TDst), SchemaDefinition.Direction.Write)
-               : InternalSchemaDefinition.Create(typeof(TDst), outputSchemaDefinition);
 
             _contractName = contractName;
-            AddedSchema = outSchema;
+            _contractAssembly = _mapAction.Method.DeclaringType.Assembly.FullName;
+            AddedSchema = InternalSchemaDefinition.Create(typeof(TDst), SchemaDefinition.Direction.Write);
         }
 
         void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
@@ -74,7 +67,7 @@ namespace Microsoft.ML.Transforms
         {
             if (_contractName == null)
                 throw _host.Except("Empty contract name for a transform: the transform cannot be saved");
-            LambdaTransform.SaveCustomTransformer(_host, ctx, _contractName);
+            LambdaTransform.SaveCustomTransformer(_host, ctx, _contractName, _contractAssembly);
         }
 
         /// <summary>
@@ -130,12 +123,36 @@ namespace Microsoft.ML.Transforms
 
                 _bindings = new ColumnBindings(input.Schema, cols);
 
-                _typedSrc = TypedCursorable<TSrc>.Create(Host, input, false, _parent.InputSchemaDefinition);
+                _typedSrc = TypedCursorable<TSrc>.Create(Host, input, false, null);
             }
 
             public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
             {
-                return new[] { GetRowCursorCore(columnsNeeded, rand) };
+                Func<int, bool> needCol = c => columnsNeeded == null ? false : columnsNeeded.Any(x => x.Index == c);
+                var active = Utils.BuildArray(_bindings.Schema.Count, needCol);
+
+                var inputCols = GetDependenciesCore(columnsNeeded);
+                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
+
+                DataViewRowCursor input;
+                if (n > 1 && ShouldUseParallelCursors(predicate) != false)
+                {
+                    var inputs = Source.GetRowCursorSet(inputCols, n);
+                    Host.AssertNonEmpty(inputs);
+
+                    if (inputs.Length != 1)
+                    {
+                        var cursors = new DataViewRowCursor[inputs.Length];
+                        for (int i = 0; i < inputs.Length; i++)
+                            cursors[i] = new Cursor(this, inputs[i], active);
+                        return cursors;
+                    }
+                    input = inputs[0];
+                }
+                else
+                    input = Source.GetRowCursor(inputCols);
+
+                return new DataViewRowCursor[] { new Cursor(this, input, active) };
             }
 
             protected override Delegate[] CreateGetters(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns, out Action disp)
@@ -340,7 +357,7 @@ namespace Microsoft.ML.Transforms
     /// Check the See Also section for links to usage examples.
     /// ]]></format>
     /// </remarks>
-    /// <seealso cref="CustomMappingCatalog.StatefulCustomMapping{TSrc, TDst, TState}(TransformsCatalog, Action{TSrc, TDst, TState}, Action{TState}, string, SchemaDefinition, SchemaDefinition)"/>
+    /// <seealso cref="CustomMappingCatalog.StatefulCustomMapping{TSrc, TDst, TState}(TransformsCatalog, Action{TSrc, TDst, TState}, Action{TState}, string)"/>
     public sealed class StatefulCustomMappingEstimator<TSrc, TDst, TState> : TrivialEstimator<StatefulCustomMappingTransformer<TSrc, TDst, TState>>
         where TSrc : class, new()
         where TDst : class, new()
@@ -353,12 +370,10 @@ namespace Microsoft.ML.Transforms
         /// <param name="mapAction">The mapping action. This must be thread-safe and free from side effects.</param>
         /// <param name="contractName">The contract name, used by ML.NET for loading the model. If <c>null</c> is specified, such a trained model would not be save-able.</param>
         /// <param name="stateInitAction">The action to initialize the state object, that is called once before the cursor is initialized.</param>
-        /// <param name="inputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TSrc"/> and input data.</param>
-        /// <param name="outputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TDst"/> and output data.</param>
         internal StatefulCustomMappingEstimator(IHostEnvironment env, Action<TSrc, TDst, TState> mapAction, string contractName,
-            Action<TState> stateInitAction, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
+            Action<TState> stateInitAction)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(StatefulCustomMappingEstimator<TSrc, TDst, TState>)),
-                 new StatefulCustomMappingTransformer<TSrc, TDst, TState>(env, mapAction, contractName, stateInitAction, inputSchemaDefinition, outputSchemaDefinition))
+                 new StatefulCustomMappingTransformer<TSrc, TDst, TState>(env, mapAction, contractName, stateInitAction))
         {
         }
 
@@ -372,7 +387,7 @@ namespace Microsoft.ML.Transforms
             var addedSchemaShape = SchemaShape.Create(SchemaExtensions.MakeSchema(addedCols));
 
             var result = inputSchema.ToDictionary(x => x.Name);
-            var inputDef = InternalSchemaDefinition.Create(typeof(TSrc), Transformer.InputSchemaDefinition);
+            var inputDef = InternalSchemaDefinition.Create(typeof(TSrc), SchemaDefinition.Direction.Read);
             foreach (var col in inputDef.Columns)
             {
                 if (!result.TryGetValue(col.ColumnName, out var column))
