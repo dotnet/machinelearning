@@ -1098,6 +1098,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return false;
             }
 
+            if (callStack.Contains("SsaForecast"))
+                PrintDouble(ch, coeff, "coeff");
+
             // Updating alpha
             for (i = 0; i < _windowSize - 1; ++i)
                 _alpha[i] = (Single)(-coeff[i]);
@@ -1618,6 +1621,18 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
 
         private void PrintArray(IChannel ch, Single[] array, string name)
+        {
+            ch.Info($"{name} length: {array.Length}.");
+            string arrayItem = "";
+            foreach (var item in array)
+            {
+                arrayItem += item.ToString() + ";";
+            }
+
+            ch.Info($"{name} items: {arrayItem}.");
+        }
+
+        private void PrintDouble(IChannel ch, double[] array, string name)
         {
             ch.Info($"{name} length: {array.Length}.");
             string arrayItem = "";
