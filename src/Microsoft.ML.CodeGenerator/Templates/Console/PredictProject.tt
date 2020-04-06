@@ -41,6 +41,14 @@
   <ItemGroup>
     <ProjectReference Include="..\\<#= Namespace #>.Model\\<#= Namespace #>.Model.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+<# if (Target==CSharp.GenerateTarget.Cli) {#>
+    <ProjectCapability Include="MLNETCLIGenerated" />
+<#}else{#>
+    <ProjectCapability Include="ModelBuilderGenerated" />
+<#}#>
+  </ItemGroup>
 </Project>
 <#+
 public string Namespace {get;set;}
@@ -54,4 +62,5 @@ public bool IncludeResNet18Package {get; set;}
 public bool IncludeRecommenderPackage {get;set;}
 public string StablePackageVersion {get;set;}
 public string UnstablePackageVersion {get;set;}
+internal CSharp.GenerateTarget Target {get;set;}
 #>
