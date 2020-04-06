@@ -454,7 +454,6 @@ namespace Microsoft.ML.Transforms
             private readonly SlotsDroppingTransformer _parent;
             private readonly int[] _cols;
             private readonly DataViewType[] _srcTypes;
-            private readonly DataViewType[] _rawTypes;
             private readonly DataViewType[] _dstTypes;
             private readonly SlotDropper[] _slotDropper;
             // Track if all the slots of the column are to be dropped.
@@ -467,7 +466,6 @@ namespace Microsoft.ML.Transforms
                 _parent = parent;
                 _cols = new int[_parent.ColumnPairs.Length];
                 _srcTypes = new DataViewType[_parent.ColumnPairs.Length];
-                _rawTypes = new DataViewType[_parent.ColumnPairs.Length];
                 _dstTypes = new DataViewType[_parent.ColumnPairs.Length];
                 _slotDropper = new SlotDropper[_parent.ColumnPairs.Length];
                 _suppressed = new bool[_parent.ColumnPairs.Length];
@@ -480,8 +478,8 @@ namespace Microsoft.ML.Transforms
                     _srcTypes[i] = inputSchema[_cols[i]].Type;
                     VectorDataViewType srcVectorType = _srcTypes[i] as VectorDataViewType;
 
-                    _rawTypes[i] = srcVectorType?.ItemType ?? _srcTypes[i];
-                    if (!IsValidColumnType(_rawTypes[i]))
+                    var rawType = srcVectorType?.ItemType ?? _srcTypes[i];
+                    if (!IsValidColumnType(rawType))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].inputColumnName);
 
                     int valueCount = srcVectorType?.Size ?? 1;
@@ -903,14 +901,13 @@ namespace Microsoft.ML.Transforms
                     var slotsVar = ctx.AddInitializer(slots, new long[] { 1, slots.Count() }, "PreservedSlots");
                     var node = ctx.CreateNode(opType, new[] { srcVariableName, slotsVar }, new[] { dstVariableName }, ctx.GetNodeName(opType), "");
                     node.AddAttribute("axis", 1);
-
                 }
                 else
                 {
                     string constVal;
                     var type = _srcTypes[iinfo].GetItemType();
                     if (type == TextDataViewType.Instance)
-                        return false;
+                        constVal = ctx.AddInitializer(new string[] { "" }, new long[] { 1, 1 });
                     else if (type == NumberDataViewType.Single)
                         constVal = ctx.AddInitializer(new float[] { 0 }, new long[] { 1, 1 });
                     else
