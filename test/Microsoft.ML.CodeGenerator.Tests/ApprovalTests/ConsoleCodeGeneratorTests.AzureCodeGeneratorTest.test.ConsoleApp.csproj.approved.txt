@@ -11,4 +11,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Test.Model\Test.Model.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectCapability Include="ModelBuilderGenerated" />
+  </ItemGroup>
 </Project>
