@@ -1277,6 +1277,8 @@ namespace Microsoft.ML.Scenarios
         }
 
         [TensorFlowFact]
+        // skip tensorflow as we run out of disk on CI
+        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassificationDefault()
         {
             MLContext mlContext = new MLContext(seed: 1);
@@ -1353,6 +1355,8 @@ namespace Microsoft.ML.Scenarios
         [InlineData(ImageClassificationTrainer.Architecture.MobilenetV2)]
         [InlineData(ImageClassificationTrainer.Architecture.ResnetV250)]
         [InlineData(ImageClassificationTrainer.Architecture.InceptionV3)]
+        // skip tensorflow as we run out of disk on CI
+        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassification(ImageClassificationTrainer.Architecture arch)
         {
             MLContext mlContext = new MLContext(seed: 1);
@@ -1475,12 +1479,16 @@ namespace Microsoft.ML.Scenarios
         }
 
         [TensorFlowFact]
+        // skip tensorflow as we run out of disk on CI
+        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassificationWithExponentialLRScheduling()
         {
             TensorFlowImageClassificationWithLRScheduling(new ExponentialLRDecay(), 50);
         }
 
         [TensorFlowFact]
+        // skip tensorflow as we run out of disk on CI
+        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassificationWithPolynomialLRScheduling()
         {
 
@@ -1617,6 +1625,8 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowTheory]
         [InlineData(ImageClassificationTrainer.EarlyStoppingMetric.Accuracy)]
         [InlineData(ImageClassificationTrainer.EarlyStoppingMetric.Loss)]
+        // skip tensorflow as we run out of disk on CI
+        [Trait("Category", "SkipInCI")]
         public void TensorFlowImageClassificationEarlyStopping(ImageClassificationTrainer.EarlyStoppingMetric earlyStoppingMetric)
         {
             MLContext mlContext = new MLContext(seed: 1);
