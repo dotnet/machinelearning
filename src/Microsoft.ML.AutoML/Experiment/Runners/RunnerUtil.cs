@@ -10,7 +10,7 @@ namespace Microsoft.ML.AutoML
 {
     internal static class RunnerUtil
     {
-        public static (ModelContainer model, TMetrics metrics, Exception exception, double score)
+        public static (ModelContainer modelContainer, TMetrics metrics, Exception exception, double score)
             TrainAndScorePipeline<TMetrics>(MLContext context,
             SuggestedPipeline pipeline,
             IDataView trainData,

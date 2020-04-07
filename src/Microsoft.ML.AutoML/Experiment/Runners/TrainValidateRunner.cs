@@ -50,7 +50,7 @@ namespace Microsoft.ML.AutoML
                 trainResult.score,
                 trainResult.exception == null,
                 trainResult.metrics,
-                trainResult.model,
+                trainResult.modelContainer,
                 trainResult.exception);
             var runDetail = suggestedPipelineRunDetail.ToIterationResult(_preFeaturizer);
             return (suggestedPipelineRunDetail, runDetail);
