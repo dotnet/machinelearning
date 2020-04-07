@@ -756,21 +756,155 @@ namespace Microsoft.ML.Transforms.Onnx
             }
         }
 
+        /// <summary>
+        /// Similar to <see cref="ColumnBindings"/>, but this class will enable dropping columns from the input
+        /// schema, in order to let OnnxTransformer support the <see cref="ColumnSelectingTransformer"/> onnx export.
+        /// </summary>
+        [BestFriend]
+        internal sealed class Bindings
+        {
+            // Indices of columns in the merged schema. Old indices are as is, new indices are stored as ~idx.
+            private readonly int[] _colMap;
+
+            /// <summary>
+            /// The indices of added columns in the <see cref="Schema"/>.
+            /// </summary>
+            public IReadOnlyList<int> AddedColumnIndices { get; }
+
+            /// <summary>
+            /// The input schema.
+            /// </summary>
+            public DataViewSchema InputSchema { get; }
+
+            /// <summary>
+            /// The merged schema.
+            /// </summary>
+            public DataViewSchema Schema { get; }
+
+            /// <summary>
+            /// Create a new instance of <see cref="Bindings"/>.
+            /// </summary>
+            /// <param name="input">The input schema that we're adding columns to.</param>
+            /// <param name="addedColumns">The columns being added.</param>
+            public Bindings(DataViewSchema input, DataViewSchema.DetachedColumn[] addedColumns)
+            {
+                Contracts.CheckValue(input, nameof(input));
+                Contracts.CheckValue(addedColumns, nameof(addedColumns));
+
+                InputSchema = input;
+
+                // Construct the indices.
+                var indices = new List<int>();
+                var namesUsed = new HashSet<string>();
+                for (int i = 0; i < input.Count; i++)
+                {
+                    namesUsed.Add(input[i].Name);
+                    indices.Add(i);
+                }
+
+                for (int i = 0; i < addedColumns.Length; i++)
+                {
+                    string name = addedColumns[i].Name;
+                    if (namesUsed.Add(name))
+                    {
+                        // New name. Append to the end.
+                        indices.Add(~i);
+                    }
+                    else
+                    {
+                        // Old name. Find last instance and add after it.
+                        for (int j = indices.Count - 1; j >= 0; j--)
+                        {
+                            var colName = indices[j] >= 0 ? input[indices[j]].Name : addedColumns[~indices[j]].Name;
+                            if (colName == name)
+                            {
+                                indices.Insert(j + 1, ~i);
+                                break;
+                            }
+                        }
+                    }
+                }
+                Contracts.Assert(indices.Count == addedColumns.Length + input.Count);
+
+                // Create the output schema.
+                var schemaColumns = indices.Select(idx => idx >= 0 ? new DataViewSchema.DetachedColumn(input[idx]) : addedColumns[~idx]);
+                Schema = SchemaExtensions.MakeSchema(schemaColumns);
+
+                // Memorize column maps.
+                _colMap = indices.ToArray();
+                var addedIndices = new int[addedColumns.Length];
+                for (int i = 0; i < _colMap.Length; i++)
+                {
+                    int colIndex = _colMap[i];
+                    if (colIndex < 0)
+                    {
+                        Contracts.Assert(addedIndices[~colIndex] == 0);
+                        addedIndices[~colIndex] = i;
+                    }
+                }
+
+                AddedColumnIndices = addedIndices.AsReadOnly();
+            }
+
+            /// <summary>
+            /// This maps a column index for this schema to either a source column index (when
+            /// <paramref name="isSrcColumn"/> is true), or to an "iinfo" index of an added column
+            /// (when <paramref name="isSrcColumn"/> is false).
+            /// </summary>
+            /// <param name="isSrcColumn">Whether the return index is for a source column</param>
+            /// <param name="col">The column index for this schema</param>
+            /// <returns>The index (either source index or iinfo index)</returns>
+            public int MapColumnIndex(out bool isSrcColumn, int col)
+            {
+                Contracts.Assert(0 <= col && col < _colMap.Length);
+                int index = _colMap[col];
+                if (index < 0)
+                {
+                    index = ~index;
+                    Contracts.Assert(index < AddedColumnIndices.Count);
+                    isSrcColumn = false;
+                }
+                else
+                {
+                    Contracts.Assert(index < InputSchema.Count);
+                    isSrcColumn = true;
+                }
+                return index;
+            }
+
+            /// <summary>
+            /// The given predicate maps from output column index to whether the column is active.
+            /// This builds an array of bools of length Input.ColumnCount containing the results of calling
+            /// predicate on the output column index corresponding to each input column index.
+            /// </summary>
+            public bool[] GetActiveInput(Func<int, bool> predicate)
+            {
+                Contracts.AssertValue(predicate);
+
+                var active = new bool[InputSchema.Count];
+                for (int dst = 0; dst < _colMap.Length; dst++)
+                {
+                    int src = _colMap[dst];
+                    Contracts.Assert(-AddedColumnIndices.Count <= src && src < InputSchema.Count);
+                    if (src >= 0 && predicate(dst))
+                        active[src] = true;
+                }
+                return active;
+            }
+        }
+
         private class OnnxDataTransform : TransformBase, IRowToRowMapper
         {
             private readonly Mapper _mapper;
             //private readonly DataViewSchema _outputSchema;
-            private readonly ColumnBindings _bindings;
-            private readonly ColumnSelectingTransformer _columnDropper;
+            private readonly Bindings _bindings;
 
             public OnnxDataTransform(IHostEnvironment env, IDataView input, Mapper mapper)
                 :base(env.Register(nameof(OnnxDataTransform)), input)
             {
                 _mapper = mapper;
                 //_outputSchema = _mapper.GetOutputSchema();
-                _columnDropper = new ColumnSelectingTransformer(env, null, _mapper.GetDropColumnsNames(), false, false);
-                var droppedSchema = _columnDropper.Transform(input).Schema;
-                _bindings = new ColumnBindings(droppedSchema, mapper.GetOutputColumns());
+                _bindings = new Bindings(input.Schema, mapper.GetOutputColumns());
             }
 
             public override DataViewSchema OutputSchema => _bindings.Schema;
@@ -811,11 +945,9 @@ namespace Microsoft.ML.Transforms.Onnx
 
                 // Get a predicate that determines which outputs are active.
                 var predicateOut = GetActiveOutputColumns(active);
-                var predicateOutArray = Utils.BuildArray(_mapper.GetOutputColumns().Length, predicateOut);
 
                 // Now map those to active input columns.
                 var predicateIn = _mapper.GetDependencies(predicateOut);
-                var predicateInArray = Utils.BuildArray(10, predicateIn);
 
                 // Combine the two sets of input columns.
                 inputColumns = _bindings.InputSchema.Where(col => activeInput[col.Index] || predicateIn(col.Index));
@@ -826,7 +958,7 @@ namespace Microsoft.ML.Transforms.Onnx
             protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
             {
                 Host.AssertValue(predicate, "predicate");
-                if (_bindings.AddedColumnIndices.Any(predicate))
+                if (_bindings.AddedColumnIndices.Any(predicate)) // MYTODO: This is copied from RowToRowMapperTransform. Why is this the case, and it ignores all the other columns that propagate from the input?
                     return true;
                 return null;
             }
@@ -836,9 +968,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
                 var active = GetActive(predicate, out IEnumerable<DataViewSchema.Column> inputCols);
 
-                var realInputCursor = Source.GetRowCursor(inputCols, rand);
-                var droppedInputCursor = _columnDropper.Transform(Source).GetRowCursor(inputCols, rand);
-                return new Cursor(Host, realInputCursor, droppedInputCursor, this, active);
+                return new Cursor(Host, Source.GetRowCursor(inputCols, rand), this, active);
             }
 
             public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
@@ -849,16 +979,15 @@ namespace Microsoft.ML.Transforms.Onnx
                 var active = GetActive(predicate, out IEnumerable<DataViewSchema.Column> inputCols);
 
                 var inputs = Source.GetRowCursorSet(inputCols, n, rand);
-                var droppedInputs = _columnDropper.Transform(Source).GetRowCursorSet(inputCols, n, rand);
                 Host.AssertNonEmpty(inputs);
 
-                if (inputs.Length == 1 && n > 1 && _bindings.AddedColumnIndices.Any(predicate))
+                if (inputs.Length == 1 && n > 1 && _bindings.AddedColumnIndices.Any(predicate)) // MYTODO: This is copied from TowToRowMapperTransform. Shouldn't the last check actually call ShouldUseParallel?
                     inputs = DataViewUtils.CreateSplitCursors(Host, inputs[0], n);
                 Host.AssertNonEmpty(inputs);
 
                 var cursors = new DataViewRowCursor[inputs.Length];
                 for (int i = 0; i < inputs.Length; i++)
-                    cursors[i] = new Cursor(Host, inputs[i], droppedInputs[i], this, active);
+                    cursors[i] = new Cursor(Host, inputs[i], this, active);
                 return cursors;
             }
 
@@ -893,6 +1022,8 @@ namespace Microsoft.ML.Transforms.Onnx
             }
 
             private protected override void SaveModel(ModelSaveContext ctx) => (_mapper as IRowMapper).Save(ctx);
+
+            // MYTODO: Should I also copy in here the ApplyToData method on RowToRowMapperTransform?
 
             private sealed class RowImpl : WrappingRow
             {
@@ -955,23 +1086,19 @@ namespace Microsoft.ML.Transforms.Onnx
             {
                 private readonly Delegate[] _getters;
                 private readonly bool[] _active;
-                private readonly ColumnBindings _bindings;
-                private readonly ColumnSelectingTransformer _columnDropper;
+                private readonly Bindings _bindings;
                 private readonly Action _disposer;
-                private readonly DataViewRowCursor _droppedInput;
                 private bool _disposed;
 
                 public override DataViewSchema Schema => _bindings.Schema;
 
-                public Cursor(IChannelProvider provider, DataViewRowCursor realInput, DataViewRowCursor droppedInput, OnnxDataTransform parent, bool[] active)
+                public Cursor(IChannelProvider provider, DataViewRowCursor realInput, OnnxDataTransform parent, bool[] active)
                     : base(provider, realInput)
                 {
                     var pred = parent.GetActiveOutputColumns(active);
                     _getters = (parent._mapper as IRowMapper).CreateGetters(realInput, pred, out _disposer);
                     _active = active;
                     _bindings = parent._bindings;
-                    _columnDropper = parent._columnDropper;
-                    _droppedInput = droppedInput;
                 }
 
                 /// <summary>
@@ -997,7 +1124,7 @@ namespace Microsoft.ML.Transforms.Onnx
                     bool isSrc;
                     int index = _bindings.MapColumnIndex(out isSrc, column.Index);
                     if (isSrc)
-                        return _droppedInput.GetGetter<TValue>(_droppedInput.Schema[index]);
+                        return Input.GetGetter<TValue>(Input.Schema[index]);
 
                     Ch.AssertValue(_getters);
                     var getter = _getters[index];
