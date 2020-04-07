@@ -68,15 +68,20 @@ namespace Microsoft.ML.Scenarios
 
         public TensorFlowScenariosTests(ITestOutputHelper output) : base(output)
         {
-            string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
-                "images");
+            // TODO: [TEST_STABILITY]: don't download to save disk space
+            //string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
+            //    "images");
 
-            //Download the image set and unzip
-            _finalImagesFolderName = DownloadImageSet(
-                imagesDownloadFolderPath);
+            ////Download the image set and unzip
+            //_finalImagesFolderName = DownloadImageSet(
+            //    imagesDownloadFolderPath);
 
-            _fullImagesetFolderPath = Path.Combine(
-                imagesDownloadFolderPath, _finalImagesFolderName);
+            //_fullImagesetFolderPath = Path.Combine(
+            //    imagesDownloadFolderPath, _finalImagesFolderName);
+
+            _finalImagesFolderName = "";
+            _fullImagesetFolderPath = "";
+
         }
 
         protected override void Initialize()
