@@ -23,26 +23,8 @@ namespace Microsoft.ML.RunTests
         {
         }
 
-        [Theory]
-        [IterationData(iterations: 100)]
-        [Trait("Category", "RunSpecificTest")]
-        public void CompletesTestCancellationInTime(int iterations)
-        {
-            Output.WriteLine($"{iterations} - th");
-
-            int timeout = 10 * 60 * 1000;
-
-            var runTask = Task.Run(TestCancellation);
-            var timeoutTask = Task.Delay(timeout + iterations);
-            var finishedTask = Task.WhenAny(timeoutTask, runTask).Result;
-            if (finishedTask == timeoutTask)
-            {
-                Console.WriteLine("TestCancellation test Hanging: fail to complete in 10 minutes");
-                Environment.FailFast("Fail here to take memory dump");
-            }
-        }
-
-        private void TestCancellation()
+        [Fact]
+        public void TestCancellation()
         {
             IHostEnvironment env = new MLContext(seed: 42);
             for (int z = 0; z < 1000; z++)
@@ -81,7 +63,8 @@ namespace Microsoft.ML.RunTests
                     do
                     {
                         index = rand.Next(hosts.Count);
-                    } while ((hosts.ElementAt(index).Item1 as ICancelable).IsCanceled || hosts.ElementAt(index).Item2 < 3);
+                    } while ((hosts.ElementAt(index).Item1 as ICancelable).IsCanceled || 
+                              hosts.ElementAt(index).Item2 > 1);
                     (hosts.ElementAt(index).Item1 as ICancelable).CancelExecution();
                     rootHost = hosts.ElementAt(index).Item1;
                     queue.Enqueue(rootHost);
