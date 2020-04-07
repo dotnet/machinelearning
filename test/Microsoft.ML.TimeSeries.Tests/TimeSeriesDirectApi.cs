@@ -401,6 +401,7 @@ namespace Microsoft.ML.Tests
         }
 
         [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
+        [Trait("Category", "RunSpecificTest")]
         public void SsaForecastPredictionEngine()
         {
             const int changeHistorySize = 10;
