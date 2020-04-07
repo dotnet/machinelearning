@@ -57,6 +57,10 @@ jobs:
         displayName: Set LD_LIBRARY_PATH for Ubuntu and CentOS to locate Native shared library in current running path
     - script: ${{ parameters.buildScript }} -$(_configuration) -buildArch=${{ parameters.architecture }}
       displayName: Build
+    - powershell: |
+                Get-ChildItem -Path .\packages -recurse -include *.pdb | remove-item
+                Write-Output "Done cleaning up pdb files..."
+      displayName: Clean up pdb files of NuGet Packages to save disk space
     - ${{ if eq(parameters.nightlyBuild, 'true') }}:
       - script: $(dotnetPath) restore $(nightlyBuildProjPath)
         displayName: Restore nightly build project
