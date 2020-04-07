@@ -95,7 +95,7 @@ namespace Microsoft.ML.TimeSeries
     {
         public DateTime AnomalyTimestamp { get; set; }
 
-        public Dictionary<string, string> AnomalyDimensions { get; set; }
+        public Dictionary<string, Object> AnomalyDimension { get; set; }
 
         public List<MetricSlice> Slices { get; set; }
 
@@ -103,21 +103,21 @@ namespace Microsoft.ML.TimeSeries
 
         public string AggSymbol { get; set; }
 
-        public RootCauseLocalizationInput(DateTime anomalyTimestamp, Dictionary<string, string> anomalyDimensions, List<MetricSlice> slices, AggregateType aggregateType, string aggregateSymbol)
+        public RootCauseLocalizationInput(DateTime anomalyTimestamp, Dictionary<string, Object> anomalyDimension, List<MetricSlice> slices, AggregateType aggregateType, string aggregateSymbol)
         {
             AnomalyTimestamp = anomalyTimestamp;
-            AnomalyDimensions = anomalyDimensions;
+            AnomalyDimension = anomalyDimension;
             Slices = slices;
             AggType = aggregateType;
             AggSymbol = aggregateSymbol;
         }
 
-        public RootCauseLocalizationInput(DateTime anomalyTimestamp, Dictionary<string, string> anomalyDimensions, List<MetricSlice> slices, string aggregateSymbol)
+        public RootCauseLocalizationInput(DateTime anomalyTimestamp, Dictionary<string, Object> anomalyDimension, List<MetricSlice> slices, string aggregateSymbol)
         {
             AnomalyTimestamp = anomalyTimestamp;
-            AnomalyDimensions = anomalyDimensions;
+            AnomalyDimension = anomalyDimension;
             Slices = slices;
-            AggType = AggregateType.Unknow;
+            AggType = AggregateType.Unknown;
             AggSymbol = aggregateSymbol;
         }
     }
@@ -179,7 +179,7 @@ namespace Microsoft.ML.TimeSeries
         /// <summary>
         /// Make the aggregate type as sum.
         /// </summary>
-        Unknow = 0,
+        Unknown = 0,
         /// <summary>
         /// Make the aggregate type as sum.
         /// </summary>
@@ -217,16 +217,17 @@ namespace Microsoft.ML.TimeSeries
     public sealed class RootCauseItem : IEquatable<RootCauseItem>
     {
         public double Score;
-        public string Path;
-        public Dictionary<string, string> Dimension;
+        public List<string> Path;
+        public Dictionary<string, Object> Dimension;
         public AnomalyDirection Direction;
 
-        public RootCauseItem(Dictionary<string, string> rootCause)
+        public RootCauseItem(Dictionary<string, Object> rootCause)
         {
             Dimension = rootCause;
+            Path = new List<string>();
         }
 
-        public RootCauseItem(Dictionary<string, string> rootCause, string path)
+        public RootCauseItem(Dictionary<string, Object> rootCause, List<string> path)
         {
             Dimension = rootCause;
             Path = path;
@@ -235,7 +236,7 @@ namespace Microsoft.ML.TimeSeries
         {
             if (Dimension.Count == other.Dimension.Count)
             {
-                foreach (KeyValuePair<string, string> item in Dimension)
+                foreach (KeyValuePair<string, Object> item in Dimension)
                 {
                     if (!other.Dimension[item.Key].Equals(item.Value))
                     {
@@ -265,26 +266,25 @@ namespace Microsoft.ML.TimeSeries
         public double Value { get; set; }
         public double ExpectedValue { get; set; }
         public bool IsAnomaly { get; set; }
-        public Dictionary<string, string> Dimension { get; set; }
-
+        public Dictionary<string, Object> Dimension { get; set; }
         public double Delta { get; set; }
 
-        public Point( Dictionary<string, string> dimensions)
+        public Point(Dictionary<string, Object> dimension)
         {
-            Dimension = dimensions;
+            Dimension = dimension;
         }
-        public Point(double value, double expectedValue, bool isAnomaly, Dictionary<string, string> dimensions)
+        public Point(double value, double expectedValue, bool isAnomaly, Dictionary<string, Object> dimension)
         {
             Value = value;
             ExpectedValue = expectedValue;
             IsAnomaly = isAnomaly;
-            Dimension = dimensions;
+            Dimension = dimension;
             Delta = value - expectedValue;
         }
 
         public bool Equals(Point other)
         {
-            foreach (KeyValuePair<string, string> item in Dimension)
+            foreach (KeyValuePair<string, Object> item in Dimension)
             {
                 if (!other.Dimension[item.Key].Equals(item.Value))
                 {

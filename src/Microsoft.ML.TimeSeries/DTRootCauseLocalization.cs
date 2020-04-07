@@ -237,13 +237,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | <xref: Microsoft.ML.Transforms.TimeSeries.RootCauseLocalizationInput> |
-    /// | Output column data type | <xref:System.Drawing.RootCause> |
+    /// | Input column data type | <xref: Microsoft.ML.TimeSeries.RootCauseLocalizationInput> |
+    /// | Output column data type | <xref:Microsoft.ML.TimeSeries.RootCause> |
     /// | Exportable to ONNX | No |
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/time-series-root-cause-localization-dt.md)]
     ///
-    /// The resulting <xref:Microsoft.ML.Transforms.Image.DTRootCauseLocalizationTransformer> creates a new column, named as specified in the output column name parameters, and
+    /// The resulting <xref:Microsoft.ML.Transforms.TimeSeries.DTRootCauseLocalizationTransformer> creates a new column, named as specified in the output column name parameters, and
     /// localize the root causes which contribute most to the anomaly.
     /// Check the See Also section for links to usage examples.
     /// ]]>

@@ -8,6 +8,7 @@ using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon;
 using Microsoft.ML.TimeSeries;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
@@ -104,7 +105,7 @@ namespace Microsoft.ML.Tests
                 Input = null;
             }
 
-            public RootCauseLocalizationData(DateTime anomalyTimestamp, Dictionary<string, string> anomalyDimensions, List<MetricSlice> slices, AggregateType aggregateteType, string aggregateSymbol)
+            public RootCauseLocalizationData(DateTime anomalyTimestamp, Dictionary<string, Object> anomalyDimensions, List<MetricSlice> slices, AggregateType aggregateteType, string aggregateSymbol)
             {
                 Input = new RootCauseLocalizationInput(anomalyTimestamp, anomalyDimensions, slices, aggregateteType, aggregateSymbol);
             }
@@ -551,7 +552,7 @@ namespace Microsoft.ML.Tests
         public void RootCauseLocalizationWithDT()
         {
             // Create an root cause localizatiom input list.
-            var rootCauseLocalizationData = new List<RootCauseLocalizationData>() { new RootCauseLocalizationData(new DateTime(), new Dictionary<String, String>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Microsoft.ML.TimeSeries.Point>()) }, AggregateType.Sum, "##SUM##") };
+            var rootCauseLocalizationData = new List<RootCauseLocalizationData>() { new RootCauseLocalizationData(new DateTime(), new Dictionary<string, Object>(), new List<MetricSlice>() { new MetricSlice(new DateTime(), new List<Microsoft.ML.TimeSeries.Point>()) }, AggregateType.Sum, _aggSymbol) };
 
             var ml = new MLContext(1);
             // Convert the list of root cause data to an IDataView object, which is consumable by ML.NET API.
@@ -584,14 +585,29 @@ namespace Microsoft.ML.Tests
             Assert.NotNull(transformedRootCause);
             Assert.Equal(1, (int)transformedRootCause.RootCause.Items.Count);
 
-            Dictionary<string, string> expectedDim = new Dictionary<string, string>();
+            Dictionary<string, Object> expectedDim = new Dictionary<string, Object>();
             expectedDim.Add("Country", "UK");
             expectedDim.Add("DeviceType", _aggSymbol);
             expectedDim.Add("DataCenter", "DC1");
 
-            foreach (KeyValuePair<string, string> pair in transformedRootCause.RootCause.Items[0].Dimension)
+            foreach (KeyValuePair<string, object> pair in transformedRootCause.RootCause.Items[0].Dimension)
             {
                 Assert.Equal(expectedDim[pair.Key], pair.Value);
+            }
+
+            var dummyData = ml.Data.LoadFromEnumerable(new List<String>() { "Test"});
+
+            //Create path
+            var modelPath = "temp.zip";
+            //Save model to a file
+            ml.Model.Save(model, dummyData.Schema, modelPath);
+
+            //Load model from a file
+            ITransformer serializedModel;
+            using (var file = File.OpenRead(modelPath))
+            {
+                serializedModel = ml.Model.Load(file, out var serializedSchema);
+                TestCommon.CheckSameSchemas(dummyData.Schema, serializedSchema);
             }
         }
 
@@ -599,55 +615,55 @@ namespace Microsoft.ML.Tests
         {
             List<Point> points = new List<Point>();
 
-            Dictionary<string, string> dic1 = new Dictionary<string, string>();
+            Dictionary<string, Object> dic1 = new Dictionary<string, Object>();
             dic1.Add("Country", "UK");
             dic1.Add("DeviceType", "Laptop");
             dic1.Add("DataCenter", "DC1");
             points.Add(new Point(200, 100, true, dic1));
 
-            Dictionary<string, string> dic2 = new Dictionary<string, string>();
+            Dictionary<string, Object> dic2 = new Dictionary<string, Object>();
             dic2.Add("Country", "UK");
             dic2.Add("DeviceType", "Mobile");
             dic2.Add("DataCenter", "DC1");
             points.Add(new Point(1000, 100, true, dic2));
 
-            Dictionary<string, string> dic3 = new Dictionary<string, string>();
+            Dictionary<string, Object> dic3 = new Dictionary<string, Object>();
             dic3.Add("Country", "UK");
             dic3.Add("DeviceType", _aggSymbol);
             dic3.Add("DataCenter", "DC1");
             points.Add(new Point(1200, 200, true, dic3));
 
-            Dictionary<string, string> dic4 = new Dictionary<string, string>();
+            Dictionary<string, Object> dic4 = new Dictionary<string, Object>();
             dic4.Add("Country", "UK");
             dic4.Add("DeviceType", "Laptop");
             dic4.Add("DataCenter", "DC2");
             points.Add(new Point(100, 100, false, dic4));
 
-            Dictionary<string, string> dic5 = new Dictionary<string, string>();
+            Dictionary<string, Object> dic5 = new Dictionary<string, Object>();
             dic5.Add("Country", "UK");
             dic5.Add("DeviceType", "Mobile");
             dic5.Add("DataCenter", "DC2");
             points.Add(new Point(200, 200, false, dic5));
 
-            Dictionary<string, string> dic6 = new Dictionary<string, string>();
+            Dictionary<string, Object> dic6 = new Dictionary<string, Object>();
             dic6.Add("Country", "UK");
             dic6.Add("DeviceType", _aggSymbol);
             dic6.Add("DataCenter", "DC2");
             points.Add(new Point(300, 300, false, dic6));
 
-            Dictionary<string, string> dic7 = new Dictionary<string, string>();
+            Dictionary<string, Object> dic7 = new Dictionary<string, Object>();
             dic7.Add("Country", "UK");
             dic7.Add("DeviceType", _aggSymbol);
             dic7.Add("DataCenter", _aggSymbol);
             points.Add(new Point(1500, 500, true, dic7));
 
-            Dictionary<string, string> dic8 = new Dictionary<string, string>();
+            Dictionary<string, Object> dic8 = new Dictionary<string, Object>();
             dic8.Add("Country", "UK");
             dic8.Add("DeviceType", "Laptop");
             dic8.Add("DataCenter", _aggSymbol);
             points.Add(new Point(300, 200, true, dic8));
 
-            Dictionary<string, string> dic9 = new Dictionary<string, string>();
+            Dictionary<string, Object> dic9 = new Dictionary<string, Object>();
             dic9.Add("Country", "UK");
             dic9.Add("DeviceType", "Mobile");
             dic9.Add("DataCenter", _aggSymbol);
@@ -656,9 +672,9 @@ namespace Microsoft.ML.Tests
             return points;
         }
 
-        private static Dictionary<string, string> GetAnomalyDimension()
+        private static Dictionary<string, Object> GetAnomalyDimension()
         {
-            Dictionary<string, string> dim = new Dictionary<string, string>();
+            Dictionary<string, Object> dim = new Dictionary<string, Object>();
             dim.Add("Country", "UK");
             dim.Add("DeviceType", _aggSymbol);
             dim.Add("DataCenter", _aggSymbol);
