@@ -20,6 +20,9 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         private abstract class Builder
         {
+            private static readonly FuncStaticMethodInfo1<PrimitiveDataViewType, bool, Builder> _createCoreMethodInfo
+                = new FuncStaticMethodInfo1<PrimitiveDataViewType, bool, Builder>(CreateCore<int>);
+
             /// <summary>
             /// The item type we are building into a term map.
             /// </summary>
@@ -51,7 +54,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.AssertValue(itemType);
                 if (itemType is TextDataViewType)
                     return new TextImpl(sorted);
-                return Utils.MarshalInvoke(CreateCore<int>, itemType.RawType, itemType, sorted);
+                return Utils.MarshalInvoke(_createCoreMethodInfo, itemType.RawType, itemType, sorted);
             }
 
             private static Builder CreateCore<T>(PrimitiveDataViewType type, bool sorted)
@@ -1074,6 +1077,12 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             private sealed class KeyImpl<T> : Base<T>
             {
+                private static readonly FuncInstanceMethodInfo1<KeyImpl<T>, DataViewType, DataViewSchema.Annotations.Builder, bool> _addMetadataCoreMethodInfo
+                    = FuncInstanceMethodInfo1<KeyImpl<T>, DataViewType, DataViewSchema.Annotations.Builder, bool>.Create(target => target.AddMetadataCore<int>);
+
+                private static readonly FuncInstanceMethodInfo1<KeyImpl<T>, PrimitiveDataViewType, TextWriter, bool> _writeTextTermsCoreMethodInfo
+                    = FuncInstanceMethodInfo1<KeyImpl<T>, PrimitiveDataViewType, TextWriter, bool>.Create(target => target.WriteTextTermsCore<int>);
+
                 public KeyImpl(IHostEnvironment env, DataViewSchema schema, TermMap<T> map, ColInfo[] infos, bool[] textMetadata, int iinfo)
                     : base(env, schema, map, infos, textMetadata, iinfo)
                 {
@@ -1088,7 +1097,7 @@ namespace Microsoft.ML.Transforms
                     _schema.TryGetColumnIndex(_infos[_iinfo].InputColumnName, out int srcCol);
                     VectorDataViewType srcMetaType = _schema[srcCol].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorDataViewType;
                     if (srcMetaType == null || srcMetaType.Size != TypedMap.ItemType.GetKeyCountAsInt32(_host) ||
-                        TypedMap.ItemType.GetKeyCountAsInt32(_host) == 0 || !Utils.MarshalInvoke(AddMetadataCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, builder))
+                        TypedMap.ItemType.GetKeyCountAsInt32(_host) == 0 || !Utils.MarshalInvoke(_addMetadataCoreMethodInfo, this, srcMetaType.ItemType.RawType, srcMetaType.ItemType, builder))
                     {
                         // No valid input key-value metadata. Back off to the base implementation.
                         base.AddMetadata(builder);
@@ -1169,7 +1178,7 @@ namespace Microsoft.ML.Transforms
                     _schema.TryGetColumnIndex(_infos[_iinfo].InputColumnName, out int srcCol);
                     VectorDataViewType srcMetaType = _schema[srcCol].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorDataViewType;
                     if (srcMetaType == null || srcMetaType.Size != TypedMap.ItemType.GetKeyCountAsInt32(_host) ||
-                        TypedMap.ItemType.GetKeyCountAsInt32(_host) == 0 || !Utils.MarshalInvoke(WriteTextTermsCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, writer))
+                        TypedMap.ItemType.GetKeyCountAsInt32(_host) == 0 || !Utils.MarshalInvoke(_writeTextTermsCoreMethodInfo, this, srcMetaType.ItemType.RawType, srcMetaType.ItemType, writer))
                     {
                         // No valid input key-value metadata. Back off to the base implementation.
                         base.WriteTextTerms(writer);

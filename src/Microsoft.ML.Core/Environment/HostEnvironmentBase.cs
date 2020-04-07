@@ -127,12 +127,18 @@ namespace Microsoft.ML.Runtime
                 Depth = source.Depth + 1;
             }
 
+            /// <summary>
+            /// This method registers and returns the host for the calling component. The generated host is also
+            /// added to <see cref="_children"/> and encapsulated by <see cref="WeakReference"/>. It becomes
+            /// necessary to remove these hosts when they are reclaimed by the Garbage Collector.
+            /// </summary>
             public new IHost Register(string name, int? seed = null, bool? verbose = null)
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
                 IHost host;
                 lock (_cancelLock)
                 {
+                    _children.RemoveAll(r => r.TryGetTarget(out IHost _) == false);
                     Random rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
                     host = RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose);
                     if (!IsCanceled)
@@ -385,12 +391,18 @@ namespace Microsoft.ML.Runtime
             _children = new List<WeakReference<IHost>>();
         }
 
+        /// <summary>
+        /// This method registers and returns the host for the calling component. The generated host is also
+        /// added to <see cref="_children"/> and encapsulated by <see cref="WeakReference"/>. It becomes
+        /// necessary to remove these hosts when they are reclaimed by the Garbage Collector.
+        /// </summary>
         public IHost Register(string name, int? seed = null, bool? verbose = null)
         {
             Contracts.CheckNonEmpty(name, nameof(name));
             IHost host;
             lock (_cancelLock)
             {
+                _children.RemoveAll(r => r.TryGetTarget(out IHost _) == false);
                 Random rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
                 host = RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose);
                 _children.Add(new WeakReference<IHost>(host));

@@ -23,6 +23,7 @@ using Xunit.Abstractions;
 using static Microsoft.ML.DataOperationsCatalog;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.TestFrameworkCommon.Attributes;
+using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Scenarios
 {
@@ -61,8 +62,34 @@ namespace Microsoft.ML.Scenarios
     [Collection("NoParallelization")]
     public sealed class TensorFlowScenariosTests : BaseTestClass, IClassFixture<TensorFlowScenariosTestsFixture>
     {
+        private readonly string _fullImagesetFolderPath;
+        private readonly string _finalImagesFolderName;
+        private string _timeOutOldValue;
+
         public TensorFlowScenariosTests(ITestOutputHelper output) : base(output)
         {
+            string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
+                "images");
+
+            //Download the image set and unzip
+            _finalImagesFolderName = DownloadImageSet(
+                imagesDownloadFolderPath);
+
+            _fullImagesetFolderPath = Path.Combine(
+                imagesDownloadFolderPath, _finalImagesFolderName);
+        }
+
+        protected override void Initialize()
+        {
+            // set timeout to 3 minutes, download sometimes will stuck so set smaller timeout to fail fast and retry download
+            _timeOutOldValue = Environment.GetEnvironmentVariable(ResourceManagerUtils.TimeoutEnvVariable);
+            Environment.SetEnvironmentVariable(ResourceManagerUtils.TimeoutEnvVariable, (3 * 60 * 1000).ToString());
+        }
+
+        protected override void Cleanup()
+        {
+            // set back timeout value
+            Environment.SetEnvironmentVariable(ResourceManagerUtils.TimeoutEnvVariable, _timeOutOldValue);
         }
 
         private class TestData
@@ -1289,10 +1316,6 @@ namespace Microsoft.ML.Scenarios
         //    IDataView trainDataset = trainTestData.TrainSet;
         //    IDataView testDataset = trainTestData.TestSet;
 
-        //    var pipeline = mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath")
-        //        .Append(mlContext.MulticlassClassification.Trainers.ImageClassification("Label", "Image")
-        //        .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName: "PredictedLabel", inputColumnName: "PredictedLabel"))); ;
-
         //    using var trainedModel = pipeline.Fit(trainDataset);
 
         //    mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
@@ -1794,6 +1817,80 @@ namespace Microsoft.ML.Scenarios
 
         //    (loadedModel as IDisposable)?.Dispose();
         //}
+
+        
+
+        [TensorFlowFact]
+        public void TensorFlowImageClassificationBadImages()
+        {
+            string imagesDownloadFolderPath = Path.Combine(TensorFlowScenariosTestsFixture.assetsPath, "inputs",
+                "images");
+
+            //Download the image set and unzip
+            string finalImagesFolderName = DownloadBadImageSet(
+                imagesDownloadFolderPath);
+
+            string fullImagesetFolderPath = Path.Combine(
+                imagesDownloadFolderPath, finalImagesFolderName);
+
+            MLContext mlContext = new MLContext(seed: 1);
+
+            //Load all the original images info
+            IEnumerable<ImageData> images = LoadImagesFromDirectory(
+                folder: fullImagesetFolderPath, useFolderNameAsLabel: true);
+
+            IDataView shuffledFullImagesDataset = mlContext.Data.ShuffleRows(
+                mlContext.Data.LoadFromEnumerable(images), seed: 1);
+
+            shuffledFullImagesDataset = mlContext.Transforms.Conversion
+                .MapValueToKey("Label")
+                .Append(mlContext.Transforms.LoadRawImageBytes("Image", fullImagesetFolderPath, "ImagePath"))
+                .Fit(shuffledFullImagesDataset)
+                .Transform(shuffledFullImagesDataset);
+
+            // Split the data 90:10 into train and test sets, train and evaluate.
+            TrainTestData trainTestData = mlContext.Data.TrainTestSplit(
+                shuffledFullImagesDataset, testFraction: 0.1, seed: 1);
+
+            IDataView trainDataset = trainTestData.TrainSet;
+            IDataView testDataset = trainTestData.TestSet;
+
+            var options = new ImageClassificationTrainer.Options()
+            {
+                FeatureColumnName = "Image",
+                LabelColumnName = "Label",
+                // Just by changing/selecting InceptionV3/MobilenetV2 here instead of 
+                // ResnetV2101 you can try a different architecture/
+                // pre-trained model. 
+                Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
+                Epoch = 5,
+                BatchSize = 32,
+                LearningRate = 0.0001f,
+                ValidationSet = testDataset,
+                EarlyStoppingCriteria = null
+            };
+
+            var pipeline = mlContext.MulticlassClassification.Trainers.ImageClassification(options);
+
+            using var trainedModel = pipeline.Fit(trainDataset);
+            mlContext.Model.Save(trainedModel, shuffledFullImagesDataset.Schema,
+                "model.zip");
+
+            ITransformer loadedModel;
+            DataViewSchema schema;
+            using (var file = File.OpenRead("model.zip"))
+                loadedModel = mlContext.Model.Load(file, out schema);
+
+            IDataView predictions = trainedModel.Transform(testDataset);
+            var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
+
+            // Assert accuracy was returned meaning training completed
+            // by skipping bad images.
+            Assert.InRange(metrics.MicroAccuracy, 0.3, 1);
+            Assert.InRange(metrics.MacroAccuracy, 0.3, 1);
+
+            (loadedModel as IDisposable)?.Dispose();
+        }
 
         public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,
             bool useFolderNameAsLabel = true)

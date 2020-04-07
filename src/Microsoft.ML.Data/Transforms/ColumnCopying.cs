@@ -195,6 +195,9 @@ namespace Microsoft.ML.Transforms
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
         {
+            private static readonly FuncStaticMethodInfo1<DataViewRow, int, Delegate> _makeGetterMethodInfo
+                = new FuncStaticMethodInfo1<DataViewRow, int, Delegate>(MakeGetter<int>);
+
             private readonly DataViewSchema _schema;
             private readonly (string outputColumnName, string inputColumnName)[] _columns;
 
@@ -213,13 +216,13 @@ namespace Microsoft.ML.Transforms
                 Host.Assert(0 <= iinfo && iinfo < _columns.Length);
                 disposer = null;
 
-                Delegate MakeGetter<T>(DataViewRow row, int index)
-                    => input.GetGetter<T>(input.Schema[index]);
-
                 input.Schema.TryGetColumnIndex(_columns[iinfo].inputColumnName, out int colIndex);
                 var type = input.Schema[colIndex].Type;
-                return Utils.MarshalInvoke(MakeGetter<int>, type.RawType, input, colIndex);
+                return Utils.MarshalInvoke(_makeGetterMethodInfo, type.RawType, input, colIndex);
             }
+
+            private static Delegate MakeGetter<T>(DataViewRow row, int index)
+                => row.GetGetter<T>(row.Schema[index]);
 
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {

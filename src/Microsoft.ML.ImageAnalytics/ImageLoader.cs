@@ -237,7 +237,11 @@ namespace Microsoft.ML.Data
                             if (!string.IsNullOrWhiteSpace(_parent.ImageFolder))
                                 path = Path.Combine(_parent.ImageFolder, path);
 
-                            dst = new Bitmap(path) { Tag = path };
+                            // to avoid locking file, use the construct below to load bitmap
+                            var bytes = File.ReadAllBytes(path);
+                            var ms = new MemoryStream(bytes);
+                            dst = (Bitmap)Image.FromStream(ms);
+                            dst.Tag = path;
 
                             // Check for an incorrect pixel format which indicates the loading failed
                             if (dst.PixelFormat == System.Drawing.Imaging.PixelFormat.DontCare)

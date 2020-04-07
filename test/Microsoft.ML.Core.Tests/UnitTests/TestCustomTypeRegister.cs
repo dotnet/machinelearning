@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
@@ -151,7 +152,7 @@ namespace Microsoft.ML.RunTests
 
         /// <summary>
         /// A mapping from <see cref="AlienHero"/> to <see cref="SuperAlienHero"/>. It is used to create a
-        /// <see cref="CustomMappingEstimator{TSrc, TDst}"/> in <see cref="RegisterTypeWithAttribute()"/>.
+        /// <see cref="CustomMappingEstimator{TSrc, TDst}"/> in <see cref="RegisterTypeWithAttribute(bool)"/>.
         /// </summary>
         [CustomMappingFactoryAttribute("LambdaAlienHero")]
         private class AlienFusionProcess : CustomMappingFactory<AlienHero, SuperAlienHero>
@@ -171,8 +172,10 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [Fact]
-        public void RegisterTypeWithAttribute()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void RegisterTypeWithAttribute(bool saveModel)
         {
             // Build in-memory data.
             var tribe = new List<AlienHero>() { new AlienHero("ML.NET", 2, 1000, 2000, 3000, 4000, 5000, 6000, 7000) };
@@ -184,6 +187,13 @@ namespace Microsoft.ML.RunTests
             var tribeTransformed = model.Transform(tribeDataView);
             var tribeEnumerable = ML.Data.CreateEnumerable<SuperAlienHero>(tribeTransformed, false).ToList();
 
+            ITransformer modelForPrediction = model;
+            if (saveModel)
+            {
+                ML.Model.Save(model, tribeDataView.Schema, "customTransform.zip");
+                modelForPrediction = ML.Model.Load("customTransform.zip", out var tribeDataViewSchema);
+            }
+
             // Make sure the pipeline output is correct.
             Assert.Equal(tribeEnumerable[0].Name, "Super " + tribe[0].Name);
             Assert.Equal(tribeEnumerable[0].Merged.Age, tribe[0].One.Age + tribe[0].Two.Age);
@@ -192,7 +202,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(tribeEnumerable[0].Merged.HandCount, tribe[0].One.HandCount + tribe[0].Two.HandCount);
 
             // Build prediction engine from the trained pipeline.
-            var engine = ML.Model.CreatePredictionEngine<AlienHero, SuperAlienHero>(model);
+            var engine = ML.Model.CreatePredictionEngine<AlienHero, SuperAlienHero>(modelForPrediction);
             var alien = new AlienHero("TEN.LM", 1, 2, 3, 4, 5, 6, 7, 8);
             var superAlien = engine.Predict(alien);
 
@@ -202,6 +212,31 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(superAlien.Merged.Height, alien.One.Height + alien.Two.Height);
             Assert.Equal(superAlien.Merged.Weight, alien.One.Weight + alien.Two.Weight);
             Assert.Equal(superAlien.Merged.HandCount, alien.One.HandCount + alien.Two.HandCount);
+
+            Done();
+        }
+
+        [Fact]
+        void TestCustomTransformBackcompat()
+        {
+            // With older versions, it is necessary to register the assembly
+            ML.ComponentCatalog.RegisterAssembly(typeof(AlienFusionProcess).Assembly);
+
+            var modelPath = Path.Combine(DataDir, "backcompat", "customTransform.zip");
+            var trainedModel = ML.Model.Load(modelPath, out var dataViewSchema);
+
+            var engine = ML.Model.CreatePredictionEngine<AlienHero, SuperAlienHero>(trainedModel);
+            var alien = new AlienHero("TEN.LM", 1, 2, 3, 4, 5, 6, 7, 8);
+            var superAlien = engine.Predict(alien);
+
+            // Make sure the prediction engine produces expected result.
+            Assert.Equal(superAlien.Name, "Super " + alien.Name);
+            Assert.Equal(superAlien.Merged.Age, alien.One.Age + alien.Two.Age);
+            Assert.Equal(superAlien.Merged.Height, alien.One.Height + alien.Two.Height);
+            Assert.Equal(superAlien.Merged.Weight, alien.One.Weight + alien.Two.Weight);
+            Assert.Equal(superAlien.Merged.HandCount, alien.One.HandCount + alien.Two.HandCount);
+
+            Done();
         }
 
         [Fact]
