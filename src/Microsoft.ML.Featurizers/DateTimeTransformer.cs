@@ -349,6 +349,37 @@ namespace Microsoft.ML.Featurizers
 
         #endregion
 
+        #region TimePoint
+
+        // Exact native representation to get the correct struct size.
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        internal struct NativeTimePoint
+        {
+            public int Year;
+            public byte Month;
+            public byte Day;
+            public byte Hour;
+            public byte Minute;
+            public byte Second;
+            public byte AmPm;
+            public byte Hour12;
+            public byte DayOfWeek;
+            public byte DayOfQuarter;
+            public ushort DayOfYear;
+            public ushort WeekOfMonth;
+            public byte QuarterOfYear;
+            public byte HalfOfYear;
+            public byte WeekIso;
+            public int YearIso;
+            public IntPtr MonthLabelPointer;
+            public IntPtr AmPmLabelPointer;
+            public IntPtr DayOfWeekLabelPointer;
+            public IntPtr HolidayNamePointer;
+            public byte IsPaidTimeOff;
+        }
+
+        #endregion TimePoint
+
         #region Structs
 
         [StructLayout(LayoutKind.Sequential)]
@@ -538,7 +569,8 @@ namespace Microsoft.ML.Featurizers
                 if (country == DateTimeEstimator.HolidayList.None)
                 {
                     success = CreateEstimatorHelper(null, null, out estimator, out errorHandle);
-                } else
+                }
+                else
                 {
                     fixed (byte* dataRootDir = Encoding.UTF8.GetBytes(AppDomain.CurrentDomain.BaseDirectory + char.MinValue))
                     fixed (byte* countryPointer = Encoding.UTF8.GetBytes(Enum.GetName(typeof(DateTimeEstimator.HolidayList), country) + char.MinValue))
@@ -572,7 +604,8 @@ namespace Microsoft.ML.Featurizers
                 if (!success)
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
-                using (var savedDataHandle = new SaveDataSafeHandle(buffer, bufferSize)) {
+                using (var savedDataHandle = new SaveDataSafeHandle(buffer, bufferSize))
+                {
                     byte[] savedData = new byte[bufferSize.ToInt32()];
                     Marshal.Copy(buffer, savedData, 0, savedData.Length);
                     return savedData;
@@ -581,7 +614,8 @@ namespace Microsoft.ML.Featurizers
 
             internal unsafe void CreateTransformerFromSavedData(byte[] data)
             {
-                fixed (byte* rawData = data) {
+                fixed (byte* rawData = data)
+                {
                     IntPtr dataSize = new IntPtr(data.Count());
                     CreateTransformerFromSavedDataHelper(rawData, dataSize);
                 }
@@ -614,7 +648,10 @@ namespace Microsoft.ML.Featurizers
                 _intPtrSize = IntPtr.Size;
 
                 // The native struct is 25 bytes + 4 size_t.
-                _structSize = 25 + (_intPtrSize * 4);
+                unsafe
+                {
+                    _structSize = sizeof(NativeTimePoint);
+                }
             }
 
             [DllImport("Featurizers", EntryPoint = "DateTimeFeaturizer_CreateEstimator"), SuppressUnmanagedCodeSecurity]
@@ -667,6 +704,7 @@ namespace Microsoft.ML.Featurizers
 
                 if (!success)
                 {
+                    // If we error on the native side, make sure to free allocated memory.
                     Marshal.FreeHGlobal(output);
                     throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
                 }

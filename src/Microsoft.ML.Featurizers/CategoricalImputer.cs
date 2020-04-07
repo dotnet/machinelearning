@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -67,7 +68,7 @@ namespace Microsoft.ML.Featurizers
             var options = new CategoricalImputerEstimator.Options
             {
                 Columns = columns.Select(x => new CategoricalImputerEstimator.Column
-                    { Name = x.OutputColumnName, Source = x.InputColumnName ?? x.OutputColumnName }).ToArray(),
+                { Name = x.OutputColumnName, Source = x.InputColumnName ?? x.OutputColumnName }).ToArray(),
             };
 
             return new CategoricalImputerEstimator(CatalogUtils.GetEnvironment(catalog), options);
@@ -389,7 +390,11 @@ namespace Microsoft.ML.Featurizers
 
                     // Can't use a using with this because it potentially needs to be reset. Manually disposing as needed.
                     var data = input.GetColumn<TSourceType>(Source).GetEnumerator();
-                    data.MoveNext();
+                    var valid = data.MoveNext();
+
+                    // Make sure its not an empty data frame
+                    Debug.Assert(valid);
+
                     while (true)
                     {
                         // Get the state of the native estimator.
@@ -416,13 +421,17 @@ namespace Microsoft.ML.Featurizers
                         // If we are at the end of the data.
                         if (!data.MoveNext())
                         {
+                            // If we get here fitResult should never be ResetAndContinue
+                            Debug.Assert(fitResult != FitResult.ResetAndContinue);
+
                             OnDataCompletedHelper(estimatorHandle, out errorHandle);
                             if (!success)
                                 throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
                             data.Dispose();
                             data = input.GetColumn<TSourceType>(Source).GetEnumerator();
-                            data.MoveNext();
+                            valid = data.MoveNext();
+                            Debug.Assert(valid);
                         }
                     }
 
@@ -781,20 +790,20 @@ namespace Microsoft.ML.Featurizers
                 CreateTransformerSaveDataNative(TransformerHandler, out buffer, out bufferSize, out errorHandle);
         }
 
-#endregion
+        #endregion
 
-#endregion
+        #endregion
 
         private sealed class Mapper : MapperBase
         {
             private static readonly FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate> _makeGetterMethodInfo
                 = FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate>.Create(target => target.MakeGetter<int>);
 
-#region Class data members
+            #region Class data members
 
             private readonly CategoricalImputerTransformer _parent;
             private readonly DataViewSchema _schema;
-#endregion
+            #endregion
 
             public Mapper(CategoricalImputerTransformer parent, DataViewSchema inputSchema) :
                 base(parent.Host.Register(nameof(Mapper)), inputSchema, parent)

@@ -146,7 +146,7 @@ namespace Microsoft.ML.Featurizers
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(ToStringTransformerEstimator));
 
-            foreach(var columnPair in options.Columns)
+            foreach (var columnPair in options.Columns)
             {
                 columnPair.Source = columnPair.Source ?? columnPair.Name;
             }

@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -454,7 +454,10 @@ namespace Microsoft.ML.Featurizers
 
                     // Can't use a using with this because it potentially needs to be reset. Manually disposing as needed.
                     var data = input.GetColumn<TSourceType>(Source).GetEnumerator();
-                    data.MoveNext();
+                    var valid = data.MoveNext();
+
+                    // Make sure its not an empty data frame
+                    Debug.Assert(valid);
                     while (true)
                     {
                         // Get the state of the native estimator.
@@ -481,13 +484,17 @@ namespace Microsoft.ML.Featurizers
                         // If we are at the end of the data.
                         if (!data.MoveNext())
                         {
+                            // If we get here fitResult should never be ResetAndContinue
+                            Debug.Assert(fitResult != FitResult.ResetAndContinue);
+
                             OnDataCompletedHelper(estimatorHandle, out errorHandle);
                             if (!success)
                                 throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
                             data.Dispose();
                             data = input.GetColumn<TSourceType>(Source).GetEnumerator();
-                            data.MoveNext();
+                            valid = data.MoveNext();
+                            Debug.Assert(valid);
                         }
                     }
 

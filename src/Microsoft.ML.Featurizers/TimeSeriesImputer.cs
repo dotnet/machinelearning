@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -352,7 +353,8 @@ namespace Microsoft.ML.Featurizers
             return (IDataTransform)(new TimeSeriesImputerTransformer(env, ctx).Transform(input));
         }
 
-        private unsafe TransformerEstimatorSafeHandle CreateTransformerFromEstimator(IDataView input) {
+        private unsafe TransformerEstimatorSafeHandle CreateTransformerFromEstimator(IDataView input)
+        {
             IntPtr estimator;
             IntPtr errorHandle;
             bool success;
@@ -371,13 +373,15 @@ namespace Microsoft.ML.Featurizers
 
             fixed (bool* suppressErrors = &_suppressTypeErrors)
             fixed (TypeId* rawDataColumnTypes = dataColumnTypes)
-            fixed (TypeId* rawGrainColumnTypes = grainColumnTypes) {
+            fixed (TypeId* rawGrainColumnTypes = grainColumnTypes)
+            {
                 success = CreateEstimatorNative(rawGrainColumnTypes, new IntPtr(grainColumnTypes.Length), rawDataColumnTypes, new IntPtr(dataColumnTypes.Length), _imputeMode, suppressErrors, out estimator, out errorHandle);
             }
             if (!success)
                 throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
 
-            using (var estimatorHandle = new TransformerEstimatorSafeHandle(estimator, DestroyEstimatorNative)) {
+            using (var estimatorHandle = new TransformerEstimatorSafeHandle(estimator, DestroyEstimatorNative))
+            {
                 TrainingState trainingState;
                 FitResult fitResult;
 
@@ -392,8 +396,12 @@ namespace Microsoft.ML.Featurizers
                     column.InitializeGetter(cursor);
 
                 // Start the loop with the cursor in a valid state already.
-                cursor.MoveNext();
-                while (true) {
+                var valid = cursor.MoveNext();
+
+                // Make sure its not an empty data frame
+                Debug.Assert(valid);
+                while (true)
+                {
                     // Get the state of the native estimator.
                     success = GetStateNative(estimatorHandle, out trainingState, out errorHandle);
                     if (!success)
@@ -407,7 +415,8 @@ namespace Microsoft.ML.Featurizers
                     BuildColumnByteArray(allColumns, ref binaryWriter);
 
                     // Fit the estimator
-                    fixed (byte* bufferPointer = memoryStream.GetBuffer()) {
+                    fixed (byte* bufferPointer = memoryStream.GetBuffer())
+                    {
                         var binaryArchiveData = new NativeBinaryArchiveData() { Data = bufferPointer, DataSize = new IntPtr(memoryStream.Position) };
                         success = FitNative(estimatorHandle, binaryArchiveData, out fitResult, out errorHandle);
                     }
@@ -423,7 +432,11 @@ namespace Microsoft.ML.Featurizers
                         ResetCursor(input, ref cursor, allColumns);
 
                     // If we are at the end of the data.
-                    if (!cursor.MoveNext()) {
+                    if (!cursor.MoveNext())
+                    {
+                        // If we get here fitResult should never be ResetAndContinue
+                        Debug.Assert(fitResult != FitResult.ResetAndContinue);
+
                         OnDataCompletedNative(estimatorHandle, out errorHandle);
                         if (!success)
                             throw new Exception(GetErrorDetailsAndFreeNativeMemory(errorHandle));
@@ -449,7 +462,8 @@ namespace Microsoft.ML.Featurizers
             }
         }
 
-        private void ResetCursor(IDataView input, ref DataViewRowCursor cursor, Dictionary<string, TypedColumn> allColumns) {
+        private void ResetCursor(IDataView input, ref DataViewRowCursor cursor, Dictionary<string, TypedColumn> allColumns)
+        {
             cursor.Dispose();
             cursor = input.GetRowCursorForAllColumns();
 
@@ -458,7 +472,8 @@ namespace Microsoft.ML.Featurizers
                 column.InitializeGetter(cursor);
 
             // Move cursor to valid position
-            cursor.MoveNext();
+            var valid = cursor.MoveNext();
+            Debug.Assert(valid);
         }
 
         private void BuildColumnByteArray(Dictionary<string, TypedColumn> allColumns, ref BinaryWriter binaryWriter)
