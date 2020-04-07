@@ -61,13 +61,13 @@ jobs:
       - task: Bash@3
         inputs:
           targetType: inline
-          script: cd packages;find . -type d -path "*/runtimes/osx-*" -exec rm -rv {} +;cd ..
+          script: cd packages;find . -type d -path "*/runtimes/linux-*"  -exec rm -rv {} +;find . -type d -path "*/runtimes/win-*"  -exec rm -rv {} +;cd ..
         displayName: Clean up non-MacOS runtime folders of NuGet Packages to save disk space
     - ${{ if eq(parameters.pool.name, 'Hosted Ubuntu 1604') }}:
       - task: Bash@3
         inputs:
           targetType: inline
-          script: cd packages;find . -type d -path "*/runtimes/linux-*" -exec rm -rv {} +;cd ..
+          script: cd packages;find . -type d -path "*/runtimes/osx-*"  -exec rm -rv {} +;find . -type d -path "*/runtimes/win-*"  -exec rm -rv {} +;cd ..
         displayName: Clean up non-Linux runtime folders of NuGet Packages to save disk space
     - ${{ if eq(parameters.buildScript, 'build.cmd') }}:
       - task: PowerShell@2
