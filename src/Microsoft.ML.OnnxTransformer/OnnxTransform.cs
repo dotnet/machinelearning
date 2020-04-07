@@ -1266,7 +1266,7 @@ namespace Microsoft.ML.Transforms.Onnx
             }
 
             var droppedInputs = new List<string>(Transformer.GetDropColumnsNames());
-            var resultDic = inputSchema.Where(col => !droppedInputs.Contains(col.Name)).ToDictionary(x => x.Name);
+            var resultDic = inputSchema.Where(col => !droppedInputs.Contains(col.Name)).ToDictionary(x => x.Name); // MYTODO: Is this enough?
 
             for (var i = 0; i < Transformer.Outputs.Length; i++)
             {
