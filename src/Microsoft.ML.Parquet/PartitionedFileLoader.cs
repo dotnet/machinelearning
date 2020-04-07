@@ -367,6 +367,9 @@ namespace Microsoft.ML.Data
             private static readonly FuncInstanceMethodInfo1<Cursor, int, Delegate> _createSubGetterDelegateCoreMethodInfo
                 = FuncInstanceMethodInfo1<Cursor, int, Delegate>.Create(target => target.CreateSubGetterDelegateCore<int>);
 
+            private static readonly FuncInstanceMethodInfo1<Cursor, int, DataViewType, Delegate> _createGetterDelegateCoreMethodInfo
+                = FuncInstanceMethodInfo1<Cursor, int, DataViewType, Delegate>.Create(target => target.CreateGetterDelegateCore<int>);
+
             private PartitionedFileLoader _parent;
 
             private readonly bool[] _active;
@@ -589,7 +592,7 @@ namespace Microsoft.ML.Data
                     else
                     {
                         int idx = i - SubColumnCount;
-                        getters[i] = Utils.MarshalInvoke(CreateGetterDelegateCore<int>, type.RawType, idx, type);
+                        getters[i] = Utils.MarshalInvoke(_createGetterDelegateCoreMethodInfo, this, type.RawType, idx, type);
                     }
                 }
 

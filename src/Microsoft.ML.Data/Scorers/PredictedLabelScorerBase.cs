@@ -31,6 +31,9 @@ namespace Microsoft.ML.Data
         [BestFriend]
         private protected sealed class BindingsImpl : BindingsBase
         {
+            private static readonly FuncStaticMethodInfo1<DataViewSchema.Annotations, DataViewSchema.Column, DataViewSchema.Annotations> _keyValueMetadataFromMetadataMethodInfo
+                = new FuncStaticMethodInfo1<DataViewSchema.Annotations, DataViewSchema.Column, DataViewSchema.Annotations>(KeyValueMetadataFromMetadata<int>);
+
             // Column index of the score column in Mapper's schema.
             public readonly int ScoreColumnIndex;
             // The type of the derived column.
@@ -66,7 +69,7 @@ namespace Microsoft.ML.Data
                     if (trainLabelColumn?.Type is VectorDataViewType trainLabelColVecType && (ulong)trainLabelColVecType.Size == predColKeyType.Count)
                     {
                         Contracts.Assert(trainLabelColVecType.Size > 0);
-                        _predColMetadata = Utils.MarshalInvoke(KeyValueMetadataFromMetadata<int>, trainLabelColVecType.RawType,
+                        _predColMetadata = Utils.MarshalInvoke(_keyValueMetadataFromMetadataMethodInfo, trainLabelColVecType.RawType,
                             scoreColMetadata, trainLabelColumn.Value);
                     }
                 }

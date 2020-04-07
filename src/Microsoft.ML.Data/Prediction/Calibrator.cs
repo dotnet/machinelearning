@@ -644,6 +644,9 @@ namespace Microsoft.ML.Calibrators
     {
         private sealed class Bound : ISchemaBoundRowMapper
         {
+            private static readonly FuncInstanceMethodInfo1<Bound, DataViewRow, int, Delegate> _getPredictorGetterMethodInfo
+                = FuncInstanceMethodInfo1<Bound, DataViewRow, int, Delegate>.Create(target => target.GetPredictorGetter<int>);
+
             private readonly SchemaBindableCalibratedModelParameters<TSubModel, TCalibrator> _parent;
             private readonly ISchemaBoundRowMapper _predictor;
             private readonly int _scoreCol;
@@ -697,7 +700,7 @@ namespace Microsoft.ML.Calibrators
                         continue;
                     }
                     var type = predictorRow.Schema[column.Index].Type;
-                    getters[column.Index] = Utils.MarshalInvoke(GetPredictorGetter<int>, type.RawType, predictorRow, column.Index);
+                    getters[column.Index] = Utils.MarshalInvoke(_getPredictorGetterMethodInfo, this, type.RawType, predictorRow, column.Index);
                 }
 
                 if (hasProbabilityColumn)
