@@ -761,7 +761,7 @@ namespace Microsoft.ML.Transforms.Onnx
         /// schema, in order to let OnnxTransformer support the <see cref="ColumnSelectingTransformer"/> onnx export.
         /// </summary>
         [BestFriend]
-        internal sealed class Bindings
+        internal sealed class Bindings // MYTODO: Should I move this inside OnnxDataTransform?
         {
             // Indices of columns in the merged schema. Old indices are as is, new indices are stored as ~idx.
             private readonly int[] _colMap;
@@ -785,8 +785,9 @@ namespace Microsoft.ML.Transforms.Onnx
             /// Create a new instance of <see cref="Bindings"/>.
             /// </summary>
             /// <param name="input">The input schema that we're adding columns to.</param>
+            /// <param name="dropColumnsNames">Names of the columns to drop, so that they don't propagate from the input schema</param>
             /// <param name="addedColumns">The columns being added.</param>
-            public Bindings(DataViewSchema input, DataViewSchema.DetachedColumn[] addedColumns)
+            public Bindings(DataViewSchema input, List<string> dropColumnsNames, DataViewSchema.DetachedColumn[] addedColumns)
             {
                 Contracts.CheckValue(input, nameof(input));
                 Contracts.CheckValue(addedColumns, nameof(addedColumns));
@@ -794,10 +795,15 @@ namespace Microsoft.ML.Transforms.Onnx
                 InputSchema = input;
 
                 // Construct the indices.
+                // Drop the indicated columns
+                // And drop all hidden columns
                 var indices = new List<int>();
                 var namesUsed = new HashSet<string>();
                 for (int i = 0; i < input.Count; i++)
                 {
+                    if (InputSchema[i].IsHidden || dropColumnsNames.Contains(InputSchema[i].Name))
+                        continue;
+
                     namesUsed.Add(input[i].Name);
                     indices.Add(i);
                 }
@@ -810,7 +816,7 @@ namespace Microsoft.ML.Transforms.Onnx
                         // New name. Append to the end.
                         indices.Add(~i);
                     }
-                    else
+                    else //MYTODO: This else statement might be modified depending if we'll let input columns with the same names of the outputs to propagate or not
                     {
                         // Old name. Find last instance and add after it.
                         for (int j = indices.Count - 1; j >= 0; j--)
@@ -824,7 +830,8 @@ namespace Microsoft.ML.Transforms.Onnx
                         }
                     }
                 }
-                Contracts.Assert(indices.Count == addedColumns.Length + input.Count);
+
+                // Contracts.Assert(indices.Count == addedColumns.Length + input.Count); // MYTODO: This assertion is no longer valid, and I can't think of a better one
 
                 // Create the output schema.
                 var schemaColumns = indices.Select(idx => idx >= 0 ? new DataViewSchema.DetachedColumn(input[idx]) : addedColumns[~idx]);
@@ -904,7 +911,7 @@ namespace Microsoft.ML.Transforms.Onnx
             {
                 _mapper = mapper;
                 //_outputSchema = _mapper.GetOutputSchema();
-                _bindings = new Bindings(input.Schema, mapper.GetOutputColumns());
+                _bindings = new Bindings(input.Schema, mapper.GetDropColumnsNames().ToList(), mapper.GetOutputColumns());
             }
 
             public override DataViewSchema OutputSchema => _bindings.Schema;
@@ -1023,7 +1030,7 @@ namespace Microsoft.ML.Transforms.Onnx
 
             private protected override void SaveModel(ModelSaveContext ctx) => (_mapper as IRowMapper).Save(ctx);
 
-            // MYTODO: Should I also copy in here the ApplyToData method on RowToRowMapperTransform?
+            // MYTODO: Should I also copy in here the ApplyToData method from RowToRowMapperTransform?
 
             private sealed class RowImpl : WrappingRow
             {
