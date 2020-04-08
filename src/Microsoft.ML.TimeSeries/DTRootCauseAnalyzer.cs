@@ -46,7 +46,11 @@ namespace Microsoft.ML.TimeSeries
             Dictionary<string, Point> dimPointMapping = pointInfo.Item3;
 
             //which means there is no anomaly point with the anomaly dimension or no point under anomaly dimension
-            if (anomalyTree.ParentNode == null || dimPointMapping.Count == 0)
+            if (anomalyTree.ParentNode == null)
+            {
+                return dst;
+            }
+            if (dimPointMapping.Count == 0)
             {
                 return dst;
             }
@@ -54,7 +58,7 @@ namespace Microsoft.ML.TimeSeries
             dst.Items = new List<RootCauseItem>();
             dst.Items.AddRange(LocalizeRootCauseByDimension(anomalyTree, pointTree, src.AnomalyDimension, dimensionInfo.AggDims));
 
-            GetRootCauseDirectionAndScore(dimPointMapping, src.AnomalyDimension, dst, _beta);
+            GetRootCauseDirectionAndScore(dimPointMapping, src.AnomalyDimension, dst, _beta, pointTree);
 
             return dst;
         }
@@ -319,9 +323,9 @@ namespace Microsoft.ML.TimeSeries
             }
         }
 
-        private void GetRootCauseDirectionAndScore(Dictionary<string, Point> dimPointMapping, Dictionary<string, Object> anomalyRoot, RootCause dst, double beta)
+        private void GetRootCauseDirectionAndScore(Dictionary<string, Point> dimPointMapping, Dictionary<string, Object> anomalyRoot, RootCause dst, double beta, PointTree pointTree)
         {
-            Point anomalyPoint = dimPointMapping[GetDicCode(anomalyRoot)];
+            Point anomalyPoint = GetPointByDimenstion(dimPointMapping, anomalyRoot, _src.AggType, _src.AggSymbol, pointTree);
             if (dst.Items.Count > 1)
             {
                 //get surprise value and explanary power value
@@ -331,7 +335,7 @@ namespace Microsoft.ML.TimeSeries
 
                 foreach (RootCauseItem item in dst.Items)
                 {
-                    Point rootCausePoint = dimPointMapping[GetDicCode(item.Dimension)];
+                    Point rootCausePoint = GetPointByDimenstion(dimPointMapping, item.Dimension, _src.AggType, _src.AggSymbol, pointTree);
                     if (anomalyPoint != null && rootCausePoint != null)
                     {
                         Tuple<double, double> scores = GetSupriseAndExplainaryScore(rootCausePoint, anomalyPoint);
@@ -352,7 +356,7 @@ namespace Microsoft.ML.TimeSeries
             }
             else if (dst.Items.Count == 1)
             {
-                Point rootCausePoint = dimPointMapping[GetDicCode(dst.Items[0].Dimension)];
+                Point rootCausePoint = GetPointByDimenstion(dimPointMapping, dst.Items[0].Dimension, _src.AggType, _src.AggSymbol, pointTree);
                 if (anomalyPoint != null && rootCausePoint != null)
                 {
                     Tuple<double, double> scores = GetSupriseAndExplainaryScore(rootCausePoint, anomalyPoint);
@@ -360,6 +364,15 @@ namespace Microsoft.ML.TimeSeries
                     dst.Items[0].Direction = GetRootCauseDirection(rootCausePoint);
                 }
             }
+        }
+
+        private Point GetPointByDimenstion(Dictionary<string, Point> dimPointMapping, Dictionary<string, Object> dimension, AggregateType aggType, String aggSymbol, PointTree pointTree)
+        {
+            if (dimPointMapping.ContainsKey(GetDicCode(dimension)))
+            {
+                return dimPointMapping[GetDicCode(dimension)];
+            }
+            return null;
         }
 
         private static string GetDicCode(Dictionary<string, Object> dic)
