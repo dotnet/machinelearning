@@ -274,9 +274,12 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// </summary>
         /// <param name="roots">The input (complex) roots</param>
         /// <param name="coefficients">The output real coefficients</param>
+        /// <param name="ch">Channel</param>
         /// <returns>A boolean flag indicating whether the algorithm was successful.</returns>
-        public static bool FindPolynomialCoefficients(Complex[] roots, ref Double[] coefficients)
+        public static bool FindPolynomialCoefficients(Complex[] roots, ref Double[] coefficients, IChannel ch)
         {
+            var callStack = new System.Diagnostics.StackTrace().ToString();
+
             Contracts.CheckParam(Utils.Size(roots) > 0, nameof(roots), "There must be at least 1 input root.");
 
             int i;
@@ -373,6 +376,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
                         factors.Insert(~ind, f1);
                 }
             }
+
+            if (callStack.Contains("SsaForecast"))
+                ch.Info($"destinationOffset : {destinationOffset}");
 
             if (Utils.Size(coefficients) < n)
                 coefficients = new Double[n];

@@ -51,6 +51,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     internal sealed class AdaptiveSingularSpectrumSequenceModelerInternal : SequenceModelerBase<Single, Single>
     {
         internal const string LoaderSignature = "SSAModel";
+        private readonly object _lock;
 
         internal sealed class SsaForecastResult : ForecastResultBase<Single>
         {
@@ -226,6 +227,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
             bool shouldComputeForecastIntervals = true, bool shouldstablize = true, bool shouldMaintainInfo = false, GrowthRatio? maxGrowth = null)
             : base()
         {
+            _lock = new object();
+
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(LoaderSignature);
             _host.CheckParam(windowSize >= 2, nameof(windowSize), "The window size should be at least 2."); // ...because otherwise we have nothing to autoregress on
@@ -290,6 +293,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="model">An object whose contents are copied to the current object.</param>
         private AdaptiveSingularSpectrumSequenceModelerInternal(AdaptiveSingularSpectrumSequenceModelerInternal model)
         {
+            _lock = new object();
+
             _host = model._host.Register(LoaderSignature);
             _host.Assert(model._windowSize >= 2);
             _host.Assert(model._seriesLength > model._windowSize);
@@ -333,6 +338,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         public AdaptiveSingularSpectrumSequenceModelerInternal(IHostEnvironment env, ModelLoadContext ctx)
         {
+            _lock = new object();
+
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(LoaderSignature);
 
@@ -1072,8 +1079,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
             // Computing the characteristic polynomial from the modified roots
             try
             {
-                if (!PolynomialUtils.FindPolynomialCoefficients(roots, ref coeff))
-                    return false;
+                lock (_lock)
+                {
+                    if (!PolynomialUtils.FindPolynomialCoefficients(roots, ref coeff, ch))
+                        return false;
+                }
             }
             catch (OverflowException)
             {
