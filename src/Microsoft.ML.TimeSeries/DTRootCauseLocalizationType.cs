@@ -199,7 +199,7 @@ namespace Microsoft.ML.TimeSeries
         /// <summary>
         /// Make the aggregate type as count.
         /// </summary>
-        Count = 4
+        Count = 5
     }
 
     public enum AnomalyDirection
