@@ -874,9 +874,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
             if (!PolynomialUtils.FindPolynomialRoots(coeff, ref roots))
                 return false;
 
-            if (callStack.Contains("SsaForecast"))
-                PrintComplex(ch, roots, "roots-0");
-
             if (_shouldMaintainInfo)
             {
                 _info.RootsBeforeStabilization = new Complex[_windowSize - 1];
@@ -1014,12 +1011,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
                         roots[ind2] = Complex.FromPolarCoordinates(1, 0);
                         polynomialTrendFound = true;
                     }
-
-                    if (callStack.Contains("SsaForecast"))
-                    {
-                        ch.Info($"ind1: {ind1}, ind2: {ind2}");
-                        ch.Info($"polynomialTrendFound: {polynomialTrendFound}");
-                    }
                 }
             }
 
@@ -1049,12 +1040,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 maxTrendMagnitude = Math.Min(maxTrendMagnitude, _maxTrendRatio);
             }
 
-            if (callStack.Contains("SsaForecast"))
-            {
-                PrintComplex(ch, roots, "roots-1");
-                ch.Info($"maxTrendMagnitude: {maxTrendMagnitude}");
-            }
-
             // Squeezing all components below the maximum trend magnitude
             var smallTrendMagnitude = Math.Min(maxTrendMagnitude, (maxTrendMagnitude + 1) / 2);
             for (i = 0; i < _windowSize - 1; ++i)
@@ -1069,9 +1054,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 }
             }
 
-            if (callStack.Contains("SsaForecast"))
-                PrintComplex(ch, roots, "roots-2");
-
             // Correcting all the other trend components
             for (i = 0; i < _windowSize - 1; ++i)
             {
@@ -1085,7 +1067,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             }
 
             if (callStack.Contains("SsaForecast"))
-                PrintComplex(ch, roots, "roots-3");
+                PrintComplex(ch, roots, "roots");
 
             // Computing the characteristic polynomial from the modified roots
             try
