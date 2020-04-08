@@ -25,6 +25,12 @@ namespace Microsoft.ML.Data
         /// In case of usage from Maml, the paths would be wildcard concatenated in the first string of <paramref name="paths"/>.
         /// </summary>
         /// <param name="paths">The paths of the files to load.</param>
+        /// <remarks>
+        /// The provided <paramref name="paths"/> can utilize wildcards to load all source files. For example:
+        /// paths = "Data/*" includes all files in directory Data
+        /// paths = "DataFolder/.../*" includes all files in all subdirectories inside directory Data.
+        /// paths = "Data1/*", "Data2/*" includes all files in directories Data1 and Data2
+        /// </remarks>
         public MultiFileSource(params string[] paths)
         {
             Contracts.CheckValueOrNull(paths);

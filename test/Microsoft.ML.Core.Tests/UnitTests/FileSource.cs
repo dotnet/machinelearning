@@ -75,6 +75,9 @@ namespace Microsoft.ML.RunTests
 
             fileSource = new MultiFileSource(dataFolderDir + "/.../*");
             Assert.True(fileSource.Count == 2, $"Error passing concatenated paths to {nameof(MultiFileSource)}");
+
+            //Delete test folder and files for test clean-up
+            Directory.Delete(dirName, true);
         }
     }
 }
