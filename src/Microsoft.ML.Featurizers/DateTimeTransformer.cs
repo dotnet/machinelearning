@@ -687,7 +687,7 @@ namespace Microsoft.ML.Featurizers
             private static extern bool TransformDataNativeX32(TransformerEstimatorSafeHandle transformer, NativeDateTimeParameterX32 input, IntPtr output, out IntPtr errorHandle);
 
             [DllImport("Featurizers", EntryPoint = "DateTimeFeaturizer_Transform"), SuppressUnmanagedCodeSecurity]
-            private static extern bool TransformDataNativeX64(TransformerEstimatorSafeHandle transformer, in NativeDateTimeParameterX64 input, IntPtr output, out IntPtr errorHandle);
+            private static extern bool TransformDataNativeX64(TransformerEstimatorSafeHandle transformer, NativeDateTimeParameterX64 input, IntPtr output, out IntPtr errorHandle);
 
             [DllImport("Featurizers", EntryPoint = "DateTimeFeaturizer_DestroyTransformedData"), SuppressUnmanagedCodeSecurity]
             private static extern bool DestroyTransformedDataNative(IntPtr output, out IntPtr errorHandle);
