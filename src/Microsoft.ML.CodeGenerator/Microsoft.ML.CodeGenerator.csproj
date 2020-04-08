@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj" />
+    <PackageReference Include="Microsoft.ML.AutoML" Version="0.17.0-preview2-28706-1" />
   </ItemGroup>
   
   <ItemGroup>
