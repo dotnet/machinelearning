@@ -2,4 +2,10 @@
 
   <Import Project="..\TestFrameworkDependency.props" />
 
+  <ItemGroup>
+    <None Update="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

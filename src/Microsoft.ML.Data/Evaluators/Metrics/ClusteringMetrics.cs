@@ -15,14 +15,14 @@ namespace Microsoft.ML.Data
         /// Normalized Mutual Information is a measure of the mutual dependence of the variables.
         /// This metric is only calculated if the Label column is provided.
         /// </summary>
-        /// <value> Its value ranged from 0 to 1, where higher numbers are better.</value>
+        /// <value> Its value ranges from 0 to 1, where higher numbers are better.</value>
         /// <remarks><a href="http://en.wikipedia.org/wiki/Mutual_information#Normalized_variants">Normalized variants.</a></remarks>
         public double NormalizedMutualInformation { get; }
 
         /// <summary>
         /// Average Score. For the K-Means algorithm, the &apos;score&apos; is the distance from the centroid to the example.
         /// The average score is, therefore, a measure of proximity of the examples to cluster centroids.
-        /// In other words, it&apos;s the &apos;cluster tightness&apos; measure.
+        /// In other words, it is a measure of &apos;cluster tightness&apos;.
         /// Note however, that this metric will only decrease if the number of clusters is increased,
         /// and in the extreme case (where each distinct example is its own cluster) it will be equal to zero.
         /// </summary>

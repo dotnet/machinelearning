@@ -15,6 +15,9 @@ namespace Microsoft.ML
         /// Load TensorFlow model into memory. This is the convenience method that allows the model to be loaded once and subsequently use it for querying schema and creation of
         /// <see cref="TensorFlowEstimator"/> using <see cref="TensorFlowModel.ScoreTensorFlowModel(string, string, bool)"/>.
         /// usage of this API requires additional NuGet dependencies on TensorFlow redist, see linked document for more information.
+        /// <see cref="TensorFlowModel"/> also holds references to unmanaged resources that need to be freed either with an explicit
+        /// call to Dispose() or implicitly by declaring the variable with the "using" syntax/>
+        ///
         /// <format type="text/markdown">
         /// <![CDATA[
         /// [!include[io](~/../docs/samples/docs/api-reference/tensorflow-usage.md)]

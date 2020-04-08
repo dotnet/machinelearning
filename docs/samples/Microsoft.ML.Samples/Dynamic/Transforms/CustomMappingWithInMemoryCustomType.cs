@@ -8,6 +8,16 @@ namespace Samples.Dynamic
 {
     class CustomMappingWithInMemoryCustomType
     {
+        // This example shows how custom mapping actions can be performed on custom data
+        // types that ML.NET doesn't know yet. The example tells a story of how two alien
+        // bodies are merged to form a super alien with a single body.
+        //
+        // Here, the type AlienHero represents a single alien entity with a member "Name"
+        // of type string and members "One" and "Two" of type AlienBody. It defines a custom
+        // mapping action AlienFusionProcess that takes an AlienHero and "fuses" its two
+        // AlienBody members to produce a SuperAlienHero entity with a "Name" member of type
+        // string and a single "Merged" member of type AlienBody, where the merger is just
+        // the addition of the various members of AlienBody.
         static public void Example()
         {
             var mlContext = new MLContext();
@@ -33,7 +43,7 @@ namespace Samples.Dynamic
                 + firstAlien.Merged.HandCount + " hands.");
 
             // Expected output:
-            //   We got a super alien with name Super Unknown, age 4002, height 6000, weight 8000, and 10000 hands.
+            //   We got a super alien with name Super ML.NET, age 4002, height 6000, weight 8000, and 10000 hands.
 
             // Create a prediction engine and print out its prediction.
             var engine = mlContext.Model.CreatePredictionEngine<AlienHero,
@@ -47,11 +57,14 @@ namespace Samples.Dynamic
                 ", and " + superAlien.Merged.HandCount + " hands.");
 
             // Expected output:
-            //   We got a super alien with name Super Unknown, age 6, height 8, weight 10, and 12 hands.
+            //   We got a super alien with name Super TEN.LM, age 6, height 8, weight 10, and 12 hands.
         }
 
         // A custom type which ML.NET doesn't know yet. Its value will be loaded as
-        // a DataView column in this test.
+        // a DataView column in this example.
+        //
+        // The type members represent the characteristics of an alien body that will
+        // be merged in the AlienFusionProcess.
         private class AlienBody
         {
             public int Age { get; set; }
@@ -68,7 +81,11 @@ namespace Samples.Dynamic
             }
         }
 
-        // DataViewTypeAttribute applied to class AlienBody members.
+        // DataViewTypeAttribute applied to class AlienBody members. This attribute
+        // defines how class AlienBody is registered in ML.NET's type system. In this
+        // case, AlienBody is registered as DataViewAlienBodyType in ML.NET. The RaceId
+        // property allows different members of type AlienBody to be registered with
+        // different types in ML.NEt (see usage in class AlienHero).
         private sealed class AlienTypeAttributeAttribute : DataViewTypeAttribute
         {
             public int RaceId { get; }
@@ -98,15 +115,18 @@ namespace Samples.Dynamic
         }
 
         // A custom class with a type which ML.NET doesn't know yet. Its value will
-        // be loaded as a DataView row in this test. It will be the input of
+        // be loaded as a DataView row in this example. It will be the input of
         // AlienFusionProcess.MergeBody(AlienHero, SuperAlienHero).
         //
-        // The members One> and Two" would be mapped to different types inside
+        // The members One and Two would be mapped to different types inside
         // ML.NET type system because they have different 
         // AlienTypeAttributeAttribute's. For example, the column type of One would
-        // be DataViewAlienBodyType
-        // with RaceId=100.
-        // </summary>
+        // be DataViewAlienBodyType with RaceId=100.
+        //
+        // This type represents a "Hero" Alien that is a single entity with two bodies.
+        // The "Hero" undergoes a fusion process defined in AlienFusionProcess to
+        // become a SuperAlienHero with a single body that is a merger of the two
+        // bodies.
         private class AlienHero
         {
             public string Name { get; set; }
@@ -129,14 +149,16 @@ namespace Samples.Dynamic
                 int anotherAge, float anotherHeight, float anotherWeight, int
                     anotherHandCount)
             {
-                Name = "Unknown";
+                Name = name;
                 One = new AlienBody(age, height, weight, handCount);
                 Two = new AlienBody(anotherAge, anotherHeight, anotherWeight,
                     anotherHandCount);
             }
         }
 
-        // Type of AlienBody in ML.NET's type system.
+        // Type of AlienBody in ML.NET's type system. This is the data view type that
+        // will represent AlienBody in ML.NET's type system when it is registered as
+        // such in AlienTypeAttributeAttribute.
         // It usually shows up as DataViewSchema.Column.Type among IDataView.Schema.
         private class DataViewAlienBodyType : StructuredDataViewType
         {
@@ -162,6 +184,8 @@ namespace Samples.Dynamic
 
         // The output type of processing AlienHero using AlienFusionProcess
         // .MergeBody(AlienHero, SuperAlienHero).
+        // This is a "fused" alien whose body is a merger of the two bodies
+        // of AlienHero.
         private class SuperAlienHero
         {
             public string Name { get; set; }
@@ -194,6 +218,5 @@ namespace Samples.Dynamic
                 return MergeBody;
             }
         }
-
     }
 }

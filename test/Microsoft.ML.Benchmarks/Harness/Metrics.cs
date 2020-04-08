@@ -13,12 +13,12 @@ using BenchmarkDotNet.Running;
 
 namespace Microsoft.ML.Benchmarks
 {
-    public abstract class WithExtraMetrics
+    public abstract class WithExtraMetrics : BenchmarkBase
     {
         protected abstract IEnumerable<Metric> GetMetrics();
 
         /// <summary>
-        ///  this method is executed after running the benchmrks
+        ///  this method is executed after running the benchmarks
         ///  we use it as hack to simply print to console so ExtraMetricColumn can parse the output
         /// </summary>
         [GlobalCleanup]
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Benchmarks
         public string GetValue(Summary summary, BenchmarkCase benchmark) => GetValue(summary, benchmark, null);
         public override string ToString() => ColumnName;
 
-        public string GetValue(Summary summary, BenchmarkCase benchmark, ISummaryStyle style)
+        public string GetValue(Summary summary, BenchmarkCase benchmark, SummaryStyle style)
         {
             if (!summary.HasReport(benchmark))
                 return "-";

@@ -1165,7 +1165,7 @@ namespace Microsoft.ML.Trainers.FastTree
 #endif
                 double[] bub = BinUpperBounds[fi];
                 ch.Assert(bub.Length == 2);
-                //REVIEW: leaving out check for the value to reduced memory consuption and going with
+                //REVIEW: leaving out check for the value to reduced memory consumption and going with
                 //leap of faith based on what the user told.
                 binnedValues[i] = hotFeatureStarts[subfeature] + 1;
                 hotCount++;

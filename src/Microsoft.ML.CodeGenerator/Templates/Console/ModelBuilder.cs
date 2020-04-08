@@ -48,11 +48,15 @@ if(!string.IsNullOrEmpty(TestPath)){
             this.Write(this.ToStringHelper.ToStringWithCulture(TestPath));
             this.Write("\";\r\n");
  } 
-            this.Write("        private static string MODEL_FILEPATH = @\"../../../../");
+            this.Write("        private static string MODEL_FILEPATH = @\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(MLNetModelpath));
+            this.Write("\";\r\n");
+ if(HasOnnxModel) {
+            this.Write("\t\tprivate static string ONNX_MODEL = @\"../../../../");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(@".Model/MLModel.zip"";
-
-        // Create MLContext to be shared across the model creation workflow objects 
+            this.Write(".Model/bestModel.onnx\";\r\n");
+ } 
+            this.Write(@"        // Create MLContext to be shared across the model creation workflow objects 
         // Set a random seed for repeatable/deterministic results across multiple trainings.
         private static MLContext mlContext = new MLContext(seed: 1);
 
@@ -83,21 +87,24 @@ if(!string.IsNullOrEmpty(TestPath)){
             this.Write(this.ToStringHelper.ToStringWithCulture(AllowSparse.ToString().ToLowerInvariant()));
             this.Write(");\r\n");
 }
-            this.Write("            // Build training pipeline\r\n            IEstimator<ITransformer> trai" +
-                    "ningPipeline = BuildTrainingPipeline(mlContext);\r\n\r\n");
- if(string.IsNullOrEmpty(TestPath)){ 
+            this.Write(@"            // Build training pipeline
+            IEstimator<ITransformer> trainingPipeline = BuildTrainingPipeline(mlContext);
+
+            // Train Model
+            ITransformer mlModel = TrainModel(mlContext, trainingDataView, trainingPipeline);
+
+");
+ if(string.IsNullOrEmpty(TestPath) && !HasOnnxModel){ 
             this.Write("            // Evaluate quality of Model\r\n            Evaluate(mlContext, trainin" +
                     "gDataView, trainingPipeline);\r\n\r\n");
 }
-            this.Write("            // Train Model\r\n            ITransformer mlModel = TrainModel(mlConte" +
-                    "xt, trainingDataView, trainingPipeline);\r\n");
- if(!string.IsNullOrEmpty(TestPath)){ 
-            this.Write("\r\n            // Evaluate quality of Model\r\n            EvaluateModel(mlContext, " +
-                    "mlModel, testDataView);\r\n");
+ if(!string.IsNullOrEmpty(TestPath) && !HasOnnxModel){ 
+            this.Write("            // Evaluate quality of Model\r\n            EvaluateModel(mlContext, ml" +
+                    "Model, testDataView);\r\n\r\n");
 }
-            this.Write("\r\n            // Save model\r\n            SaveModel(mlContext, mlModel, MODEL_FILE" +
-                    "PATH, trainingDataView.Schema);\r\n        }\r\n\r\n        public static IEstimator<I" +
-                    "Transformer> BuildTrainingPipeline(MLContext mlContext)\r\n        {\r\n");
+            this.Write("            // Save model\r\n            SaveModel(mlContext, mlModel, MODEL_FILEPA" +
+                    "TH, trainingDataView.Schema);\r\n        }\r\n\r\n        public static IEstimator<ITr" +
+                    "ansformer> BuildTrainingPipeline(MLContext mlContext)\r\n        {\r\n");
  if(PreTrainerTransforms.Count >0 ) {
             this.Write("            // Data process configuration with pipeline data transformations \r\n  " +
                     "          var dataProcessPipeline = ");
@@ -116,8 +123,8 @@ if(!string.IsNullOrEmpty(TestPath)){
                                            } 
             this.Write(";\r\n");
 }
-            this.Write("\r\n            // Set the training algorithm \r\n            var trainer = mlContext" +
-                    ".");
+ if(Trainer != String.Empty ) {
+            this.Write("            // Set the training algorithm \r\n            var trainer = mlContext.");
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
 if("Recommendation".Equals(TaskType)){ 
             this.Write("()");
@@ -131,8 +138,13 @@ if("Recommendation".Equals(TaskType)){
                                              Write(")");
                                          }
             this.Write(";\r\n");
- if(PreTrainerTransforms.Count >0 ) {
+}
+            this.Write("\r\n");
+ if(PreTrainerTransforms.Count >0 && Trainer != String.Empty ) {
             this.Write("            var trainingPipeline = dataProcessPipeline.Append(trainer);\r\n");
+ }
+else if (PreTrainerTransforms.Count >0 && Trainer == String.Empty) {
+            this.Write("\t\t\tvar trainingPipeline = dataProcessPipeline;\r\n");
  }
 else{
             this.Write("            var trainingPipeline = trainer;\r\n");
@@ -396,6 +408,8 @@ public string LabelName {get;set;}
 public bool CacheBeforeTrainer {get;set;}
 public IList<string> PostTrainerTransforms {get;set;}
 internal CSharp.GenerateTarget Target {get;set;}
+public bool HasOnnxModel {get;set;} = false;
+public string MLNetModelpath {get; set;}
 
 
 void CLI_Annotation()

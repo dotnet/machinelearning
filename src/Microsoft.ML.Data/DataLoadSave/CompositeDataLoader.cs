@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
@@ -15,7 +16,7 @@ namespace Microsoft.ML.Data
     /// This class represents a data loader that applies a transformer chain after loading.
     /// It also has methods to save itself to a repository.
     /// </summary>
-    public sealed class CompositeDataLoader<TSource, TLastTransformer> : IDataLoader<TSource>
+    public sealed class CompositeDataLoader<TSource, TLastTransformer> : IDataLoader<TSource>, IDisposable
         where TLastTransformer : class, ITransformer
     {
         internal const string TransformerDirectory = TransformerChain.LoaderSignature;
@@ -110,5 +111,19 @@ namespace Microsoft.ML.Data
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(CompositeDataLoader<,>).Assembly.FullName);
         }
+
+        #region IDisposable Support
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+                Transformer.Dispose();
+
+            _disposed = true;
+        }
+        #endregion
     }
 }

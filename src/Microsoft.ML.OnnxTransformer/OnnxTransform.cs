@@ -15,6 +15,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Onnx;
+using static Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper;
 using OnnxShape = System.Collections.Generic.List<int>;
 
 [assembly: LoadableClass(OnnxTransformer.Summary, typeof(IDataTransform), typeof(OnnxTransformer),
@@ -79,7 +80,7 @@ namespace Microsoft.ML.Transforms.Onnx
             [Argument(ArgumentType.AtMostOnce, HelpText = "GPU device id to run on (e.g. 0,1,..). Null for CPU. Requires CUDA 9.1.", SortOrder = 3)]
             public int? GpuDeviceId = null;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "If true, resumes execution on CPU upon GPU error. If false, will raise the GPU execption.", SortOrder = 4)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "If true, resumes execution on CPU upon GPU error. If false, will raise the GPU exception.", SortOrder = 4)]
             public bool FallbackToCpu = false;
 
             [Argument(ArgumentType.Multiple, HelpText = "Shapes used to overwrite shapes loaded from ONNX file.", SortOrder = 5)]
@@ -389,7 +390,14 @@ namespace Microsoft.ML.Transforms.Onnx
                         throw Host.Except($"Variable length input columns not supported");
 
                     if (type.GetItemType() != inputNodeInfo.DataViewType.GetItemType())
-                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Inputs[i], inputNodeInfo.DataViewType.GetItemType().ToString(), type.ToString());
+                    {
+                        // If the ONNX model input node expects a type that mismatches with the type of the input IDataView column that is provided
+                        // then throw an exception.
+                        // This is done except in the case where the ONNX model input node expects a UInt32 but the input column is actually KeyDataViewType
+                        // This is done to support a corner case originated in NimbusML. For more info, see: https://github.com/microsoft/NimbusML/issues/426
+                        if (!(type.GetItemType() is KeyDataViewType && inputNodeInfo.DataViewType.GetItemType().RawType == typeof(UInt32)))
+                            throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Inputs[i], inputNodeInfo.DataViewType.GetItemType().ToString(), type.ToString());
+                    }
 
                     // If the column is one dimension we make sure that the total size of the Onnx shape matches.
                     // Compute the total size of the known dimensions of the shape.
@@ -403,10 +411,44 @@ namespace Microsoft.ML.Transforms.Onnx
 
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
+                var stdSuffix = ".output";
                 var info = new DataViewSchema.DetachedColumn[_parent.Outputs.Length];
                 for (int i = 0; i < _parent.Outputs.Length; i++)
-                    info[i] = new DataViewSchema.DetachedColumn(_parent.Outputs[i], _parent.OutputTypes[i], null);
+                {
+                    var onnxOutputName = _parent.Outputs[i];
+                    var columnName = onnxOutputName.EndsWith(stdSuffix) ? onnxOutputName.Replace(stdSuffix, "") : onnxOutputName;
+
+                    var builder = new DataViewSchema.Annotations.Builder();
+                    AddSlotNames(columnName, builder);
+
+                    info[i] = new DataViewSchema.DetachedColumn(columnName, _parent.OutputTypes[i], builder.ToAnnotations());
+                }
                 return info;
+            }
+
+            private void AddSlotNames(string columnName, DataViewSchema.Annotations.Builder builder)
+            {
+                var graph = _parent.Model.Graph;
+                var nodes = graph.Node;
+
+                var slotNamesNodeName = $"mlnet.{columnName}.SlotNames";
+                var slotsNode = nodes.FirstOrDefault(node => node.Name == slotNamesNodeName);
+                var slotsAttr = slotsNode?.Attribute.FirstOrDefault(attr => attr.Name == "keys_strings");
+                if (slotsAttr == null)
+                    return;
+
+                int count = slotsAttr.Strings.Count();
+                ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                {
+                    var dstEditor = VBufferEditor.Create(ref dst, count);
+                    for (int i = 0; i < count; i++)
+                    {
+                        dstEditor.Values[i] = slotsAttr.Strings[i].ToString(Encoding.UTF8).AsMemory();
+                    }
+                    dst = dstEditor.Commit();
+                };
+
+                builder.AddSlotNames(count, getter);
             }
 
             private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
@@ -660,17 +702,21 @@ namespace Microsoft.ML.Transforms.Onnx
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Known-sized vector of <xref:System.Single> or <xref:System.Double> types |
     /// | Output column data type | As specified by the ONNX model |
-    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.OnnxTransformer (always),  Microsoft.ML.OnnxRuntime.Gpu (only if GPU processing is used) |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.OnnxTransformer (always),  either Microsoft.ML.OnnxRuntime 1.2.0 (for CPU processing) or Microsoft.ML.OnnxRuntime.Gpu 1.2.0 (for GPU processing if GPU is available) |
     /// | Exportable to ONNX | No |
     ///
-    /// Supports inferencing of models in ONNX 1.2 and 1.3 format (opset 7, 8 and 9), using the
-    /// [Microsoft.ML.OnnxRuntime](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/) library.
-    /// Models are scored on CPU by default. If GPU execution is needed (optional), use the
-    /// NuGet package available at [Microsoft.ML.OnnxRuntime.Gpu](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/)
-    /// and download [CUDA 9.1 Toolkit](https://developer.nvidia.com/cuda-downloads) and [cuDNN](https://developer.nvidia.com/cudnn).
+    /// Supports inferencing of models in ONNX 1.6 format (opset 11), using the
+    /// [Microsoft.ML.OnnxRuntime](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/) library (version 1.2.0).
+    /// Models are scored on CPU by default.
+    ///
+    /// To run on a GPU, use the
+    /// NuGet package [Microsoft.ML.OnnxRuntime.Gpu](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/) (version 1.2.0) instead of the Microsoft.ML.OnnxRuntime nuget (which is for CPU processing). Microsoft.ML.OnnxRuntime.Gpu
+    /// requires a [CUDA supported GPU](https://developer.nvidia.com/cuda-gpus#compute), the [CUDA 10.1 Toolkit](https://developer.nvidia.com/cuda-downloads), and [cuDNN 7.6.5](https://developer.nvidia.com/cudnn) (as indicated on [Onnxruntime's documentation](https://github.com/Microsoft/onnxruntime#default-gpu-cuda)).
     /// Set parameter 'gpuDeviceId' to a valid non-negative integer. Typical device ID values are 0 or 1.
+    ///
     /// The inputs and outputs of the ONNX models must be Tensor type. Sequence and Maps are not yet supported.
-    /// OnnxRuntime currently works on Windows and Ubuntu 16.04 Linux 64-bit platforms. Mac OS to be supported soon.
+    ///
+    /// OnnxRuntime works on Windows, MacOS and Ubuntu 16.04 Linux 64-bit platforms.
     /// Visit [ONNX Models](https://github.com/onnx/models) to see a list of readily available models to get started with.
     /// Refer to [ONNX](http://onnx.ai) for more information.
     ///

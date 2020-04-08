@@ -35,7 +35,7 @@ namespace Microsoft.ML.Data.IO
     {
         public sealed class Arguments
         {
-            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The number of worker decompressor threads to use", ShortName = "t")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The number of worker decompresser threads to use", ShortName = "t")]
             public int? Threads;
         }
 
@@ -316,6 +316,9 @@ namespace Microsoft.ML.Data.IO
                 }
             }
         }
+
+        private static readonly FuncInstanceMethodInfo1<TransposeLoader, DataViewRowCursor, SlotCursor> _getSlotCursorCoreMethodInfo
+            = FuncInstanceMethodInfo1<TransposeLoader, DataViewRowCursor, SlotCursor>.Create(target => target.GetSlotCursorCore<int>);
 
         // Positive if explicit, otherwise let the sub-binary loader decide for themselves.
         private readonly int _threads;
@@ -647,7 +650,7 @@ namespace Microsoft.ML.Data.IO
             DataViewRowCursor inputCursor = view.GetRowCursorForAllColumns();
             try
             {
-                return Utils.MarshalInvoke(GetSlotCursorCore<int>, cursorType.RawType, inputCursor);
+                return Utils.MarshalInvoke(_getSlotCursorCoreMethodInfo, this, cursorType.RawType, inputCursor);
             }
             catch (Exception)
             {

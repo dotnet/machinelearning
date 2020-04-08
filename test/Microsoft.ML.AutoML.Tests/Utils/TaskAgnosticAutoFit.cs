@@ -21,8 +21,8 @@ namespace Microsoft.ML.AutoML.Test
     /// </summary>
     internal class TaskAgnosticAutoFit
     {
-        private TaskType taskType;
-        private MLContext context;
+        private TaskType _taskType;
+        private MLContext _context;
 
         internal interface IUniversalProgressHandler : IProgress<RunDetail<RegressionMetrics>>, IProgress<RunDetail<MulticlassClassificationMetrics>>
         {
@@ -30,8 +30,8 @@ namespace Microsoft.ML.AutoML.Test
 
         internal TaskAgnosticAutoFit(TaskType taskType, MLContext context)
         {
-            this.taskType = taskType;
-            this.context = context;
+            this._taskType = taskType;
+            this._context = context;
         }
 
         internal IEnumerable<TaskAgnosticIterationResult> AutoFit(
@@ -46,7 +46,7 @@ namespace Microsoft.ML.AutoML.Test
         {
             var columnInformation = new ColumnInformation() { LabelColumnName = label };
 
-            switch (this.taskType)
+            switch (this._taskType)
             {
                 case TaskType.Classification:
 
@@ -58,7 +58,7 @@ namespace Microsoft.ML.AutoML.Test
                         MaxModels = maxModels
                     };
 
-                    var classificationResult = this.context.Auto()
+                    var classificationResult = this._context.Auto()
                         .CreateMulticlassClassificationExperiment(mcs)
                         .Execute(
                             trainData,
@@ -80,7 +80,7 @@ namespace Microsoft.ML.AutoML.Test
                         MaxModels = maxModels
                     };
 
-                    var regressionResult = this.context.Auto()
+                    var regressionResult = this._context.Auto()
                         .CreateRegressionExperiment(rs)
                         .Execute(
                             trainData,
@@ -102,7 +102,7 @@ namespace Microsoft.ML.AutoML.Test
                         MaxModels = maxModels
                     };
 
-                    var recommendationResult = this.context.Auto()
+                    var recommendationResult = this._context.Auto()
                         .CreateRecommendationExperiment(recommendationSettings)
                         .Execute(
                             trainData,
@@ -115,7 +115,7 @@ namespace Microsoft.ML.AutoML.Test
                     return iterationResults;
 
                 default:
-                    throw new ArgumentException($"Unknown task type {this.taskType}.", "TaskType");
+                    throw new ArgumentException($"Unknown task type {this._taskType}.", "TaskType");
             }
         }
 
@@ -135,11 +135,11 @@ namespace Microsoft.ML.AutoML.Test
 
             result.ScoredTestData = model.Transform(testData);
 
-            switch (this.taskType)
+            switch (this._taskType)
             {
                 case TaskType.Classification:
 
-                    var classificationMetrics = context.MulticlassClassification.Evaluate(result.ScoredTestData, labelColumnName: label);
+                    var classificationMetrics = _context.MulticlassClassification.Evaluate(result.ScoredTestData, labelColumnName: label);
 
                     //var classificationMetrics = context.MulticlassClassification.(scoredTestData, labelColumnName: label);
                     result.PrimaryMetricResult = classificationMetrics.MicroAccuracy; // TODO: don't hardcode metric
@@ -149,7 +149,7 @@ namespace Microsoft.ML.AutoML.Test
 
                 case TaskType.Regression:
 
-                    var regressionMetrics = context.Regression.Evaluate(result.ScoredTestData, labelColumnName: label);
+                    var regressionMetrics = _context.Regression.Evaluate(result.ScoredTestData, labelColumnName: label);
 
                     result.PrimaryMetricResult = regressionMetrics.RSquared; // TODO: don't hardcode metric
                     result.Metrics = TaskAgnosticIterationResult.MetricValuesToDictionary(regressionMetrics);
@@ -157,7 +157,7 @@ namespace Microsoft.ML.AutoML.Test
                     break;
 
                 default:
-                    throw new ArgumentException($"Unknown task type {this.taskType}.", "TaskType");
+                    throw new ArgumentException($"Unknown task type {this._taskType}.", "TaskType");
             }
 
             return result;

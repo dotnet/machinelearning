@@ -18,7 +18,7 @@ namespace Samples.Dynamic.Trainers.Regression
         {
             // Downloading a regression dataset from
             // github.com/dotnet/machinelearning
-            string dataFile = DatasetUtils.DownloadHousingRegressionDataset();
+            string dataFile = DatasetUtils.GetHousingRegressionDataset();
 
             // Create a new ML context, for ML.NET operations. It can be used for
             // exception tracking and logging, as well as the source of randomness.

@@ -52,10 +52,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
 
+            // Attention: Do not set NumberOfThreads here, left this to use default value to avoid test crash.
+            // Details can be found here: https://github.com/dotnet/machinelearning/pull/4918
             var trainer = ML.BinaryClassification.Trainers.LightGbm(new LightGbmBinaryTrainer.Options
             {
                 NumberOfLeaves = 10,
-                NumberOfThreads = 1,
                 MinimumExampleCountPerLeaf = 2,
                 UnbalancedSets = false, // default value
             });
@@ -69,16 +70,15 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [LightGBMFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void LightGBMBinaryEstimatorUnbalanced()
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
 
+            // Attention: Do not set NumberOfThreads here, left this to use default value to avoid test crash.
+            // Details can be found here: https://github.com/dotnet/machinelearning/pull/4918
             var trainer = ML.BinaryClassification.Trainers.LightGbm(new LightGbmBinaryTrainer.Options
             {
                 NumberOfLeaves = 10,
-                NumberOfThreads = 1,
                 MinimumExampleCountPerLeaf = 2,
                 UnbalancedSets = true,
             });
@@ -95,17 +95,16 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// LightGBMBinaryTrainer CorrectSigmoid test
         /// </summary>
         [LightGBMFact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void LightGBMBinaryEstimatorCorrectSigmoid()
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
             var sigmoid = .789;
 
+            // Attention: Do not set NumberOfThreads here, left this to use default value to avoid test crash.
+            // Details can be found here: https://github.com/dotnet/machinelearning/pull/4918
             var trainer = ML.BinaryClassification.Trainers.LightGbm(new LightGbmBinaryTrainer.Options
             {
                 NumberOfLeaves = 10,
-                NumberOfThreads = 1,
                 MinimumExampleCountPerLeaf = 2,
                 Sigmoid = sigmoid
             });
@@ -222,9 +221,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void LightGBMRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
+
+            // Attention: Do not set NumberOfThreads here, left this to use default value to avoid test crash.
+            // Details can be found here: https://github.com/dotnet/machinelearning/pull/4918
             var trainer = ML.Regression.Trainers.LightGbm(new LightGbmRegressionTrainer.Options
             {
-                NumberOfThreads = 1,
                 NormalizeFeatures = NormalizeOption.Warn,
                 L2CategoricalRegularization = 5,
             });
@@ -934,8 +935,15 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void LightGbmRegressorTestSummary()
         {
             var dataView = GetRegressionPipeline();
+
+            // Attention: Do not set NumberOfThreads here, left this to use default value to avoid test crash.
+            // Details can be found here: https://github.com/dotnet/machinelearning/pull/4918
             var trainer = ML.Regression.Trainers.LightGbm(
-                new LightGbmRegressionTrainer.Options { NumberOfIterations = 10, NumberOfThreads = 1, NumberOfLeaves = 5});
+                new LightGbmRegressionTrainer.Options 
+                { 
+                    NumberOfIterations = 10, 
+                    NumberOfLeaves = 5 
+                });
 
             var transformer = trainer.Fit(dataView);
 
@@ -988,8 +996,16 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void LightGbmBinaryClassificationTestSummary()
         {
             var (pipeline, dataView) = GetOneHotBinaryClassificationPipeline();
+
+            // Attention: Do not set NumberOfThreads here, left this to use default value to avoid test crash.
+            // Details can be found here: https://github.com/dotnet/machinelearning/pull/4918
             var trainer = pipeline.Append(ML.BinaryClassification.Trainers.LightGbm(
-                new LightGbmBinaryTrainer.Options { NumberOfIterations = 10, NumberOfThreads = 1, NumberOfLeaves = 5, UseCategoricalSplit = true }));
+                new LightGbmBinaryTrainer.Options 
+                { 
+                    NumberOfIterations = 10, 
+                    NumberOfLeaves = 5, 
+                    UseCategoricalSplit = true 
+                }));
 
             var transformer = trainer.Fit(dataView);
 

@@ -197,9 +197,13 @@ namespace Microsoft.ML.Data
         /// </summary>
         public long? GetRowCount()
         {
-            if (_rowCount < 0)
+            // _rowCount may or may not be initialized at this point. Only read the value once
+            // to avoid race conditions.
+            long rowCount = _rowCount;
+
+            if (rowCount < 0)
                 return null;
-            return _rowCount;
+            return rowCount;
         }
 
         public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
@@ -360,7 +364,7 @@ namespace Microsoft.ML.Data
             // They will not be caught by the big catch in the main thread, as filler is not running
             // in the main thread. Some sort of scheme by which these exceptions could be
             // cleanly handled would be more appropriate. See task 3740.
-            var fillerThread = Utils.RunOnBackgroundThread(() => Filler(cursor, caches, waiter));
+            var fillerThread = Utils.RunOnBackgroundThreadAsync(() => Filler(cursor, caches, waiter));
             _cacheFillerThreads.Add(fillerThread);
         }
 
@@ -605,8 +609,9 @@ namespace Microsoft.ML.Data
 
             private TrivialWaiter(CacheDataView parent)
             {
-                Contracts.Assert(parent._rowCount >= 0);
-                _lim = parent._rowCount;
+                var rowCount = parent.GetRowCount();
+                Contracts.Assert(rowCount.HasValue);
+                _lim = rowCount.Value;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -669,7 +674,7 @@ namespace Microsoft.ML.Data
                         waiters.Add(waiter);
                 }
                 // Make the array of waiters.
-                if (_parent._rowCount < 0 && waiters.Count == 0)
+                if (!_parent.GetRowCount().HasValue && waiters.Count == 0)
                 {
                     Contracts.AssertValue(_parent._cacheDefaultWaiter);
                     waiters.Add(_parent._cacheDefaultWaiter);
@@ -682,7 +687,9 @@ namespace Microsoft.ML.Data
             {
                 foreach (var w in _waiters)
                     w.Wait(pos);
-                return pos < _parent._rowCount || _parent._rowCount == -1;
+
+                var rowCount = _parent.GetRowCount();
+                return !rowCount.HasValue || pos < rowCount.Value;
             }
 
             public static Wrapper Create(CacheDataView parent, Func<int, bool> pred)
@@ -1129,6 +1136,9 @@ namespace Microsoft.ML.Data
 
         private abstract class RowCursorSeekerBase : DataViewRowCursor
         {
+            private static readonly FuncInstanceMethodInfo1<RowCursorSeekerBase, int, Delegate> _createGetterDelegateMethodInfo
+                = FuncInstanceMethodInfo1<RowCursorSeekerBase, int, Delegate>.Create(target => target.CreateGetterDelegate<int>);
+
             protected readonly CacheDataView Parent;
             protected readonly IChannel Ch;
             protected long PositionCore;
@@ -1206,7 +1216,7 @@ namespace Microsoft.ML.Data
             {
                 Ch.Assert(0 <= col && col < _colToActivesIndex.Length);
                 Ch.Assert(_colToActivesIndex[col] >= 0);
-                return Utils.MarshalInvoke(CreateGetterDelegate<int>, Schema[col].Type.RawType, col);
+                return Utils.MarshalInvoke(_createGetterDelegateMethodInfo, this, Schema[col].Type.RawType, col);
             }
 
             private Delegate CreateGetterDelegate<TValue>(int col)
@@ -1419,8 +1429,8 @@ namespace Microsoft.ML.Data
                     : base(parent, input, srcCol, waiter)
                 {
                     _getter = input.GetGetter<T>(input.Schema[srcCol]);
-                    if (parent._rowCount >= 0)
-                        _values = new T[(int)parent._rowCount];
+                    if (parent.GetRowCount() is { } rowCount)
+                        _values = new T[rowCount];
                 }
 
                 public override void CacheCurrent()

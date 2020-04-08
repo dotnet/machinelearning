@@ -147,7 +147,7 @@ namespace Microsoft.ML.Tests
                 new DataPoint(){ Features = new float[3] {1, 0, 0} }
             };
 
-            // Convert the List<DataPoint> to IDataView, a consumble format to ML.NET functions.
+            // Convert the List<DataPoint> to IDataView, a consumable format to ML.NET functions.
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
             // Train the anomaly detector.

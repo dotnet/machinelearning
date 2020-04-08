@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Transforms;
-using Microsoft.VisualBasic.CompilerServices;
-using Tensorflow;
 
 namespace Samples.Dynamic.DataOperations
 {
@@ -31,9 +27,9 @@ namespace Samples.Dynamic.DataOperations
                     else
                         sb.Append("-1 ");
                     if (line % 2 == 0)
-                        sb.Append("cost:1");
+                        sb.Append("cost:1 ");
                     else
-                        sb.Append("cost:2");
+                        sb.Append("cost:2 ");
                     for (int i = 1; i <= 10; i++)
                     {
                         if (random.NextDouble() > 0.5)

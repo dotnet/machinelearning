@@ -38,6 +38,9 @@ namespace Microsoft.ML.Transforms
     // REVIEW: May make sense to implement the transform template interface.
     public sealed partial class MissingValueReplacingTransformer : OneToOneTransformerBase
     {
+        private static readonly FuncInstanceMethodInfo1<MissingValueReplacingTransformer, DataViewType, Array, BitArray> _computeDefaultSlotsMethodInfo
+            = FuncInstanceMethodInfo1<MissingValueReplacingTransformer, DataViewType, Array, BitArray>.Create(target => target.ComputeDefaultSlots<int>);
+
         internal enum ReplacementKind : byte
         {
             // REVIEW: What should the full list of options for this transform be?
@@ -122,6 +125,12 @@ namespace Microsoft.ML.Transforms
             public bool ImputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot;
         }
 
+        private static readonly FuncStaticMethodInfo1<DataViewType, string> _testTypeMethodInfo
+            = new FuncStaticMethodInfo1<DataViewType, string>(TestType<int>);
+
+        private static readonly FuncInstanceMethodInfo1<MissingValueReplacingTransformer, DataViewType, Delegate> _getIsNADelegateMethodInfo
+            = FuncInstanceMethodInfo1<MissingValueReplacingTransformer, DataViewType, Delegate>.Create(target => target.GetIsNADelegate<int>);
+
         internal const string LoadName = "NAReplaceTransform";
 
         private static VersionInfo GetVersionInfo()
@@ -146,9 +155,8 @@ namespace Microsoft.ML.Transforms
         internal static string TestType(DataViewType type)
         {
             // Item type must have an NA value that exists and is not equal to its default value.
-            Func<DataViewType, string> func = TestType<int>;
             var itemType = type.GetItemType();
-            return Utils.MarshalInvoke(func, itemType.RawType, itemType);
+            return Utils.MarshalInvoke(_testTypeMethodInfo, itemType.RawType, itemType);
         }
 
         private static string TestType<T>(DataViewType type)
@@ -349,21 +357,20 @@ namespace Microsoft.ML.Transforms
                 int slot = columnsToImpute[ii];
                 if (repValues[slot] is Array)
                 {
-                    Func<DataViewType, int[], BitArray> func = ComputeDefaultSlots<int>;
-                    var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(types[slot].GetItemType().RawType);
-                    slotIsDefault[slot] = (BitArray)meth.Invoke(this, new object[] { types[slot], repValues[slot] });
+                    slotIsDefault[slot] = Utils.MarshalInvoke(_computeDefaultSlotsMethodInfo, this, types[slot].GetItemType().RawType, types[slot], (Array)repValues[slot]);
                 }
             }
         }
 
-        private BitArray ComputeDefaultSlots<T>(DataViewType type, T[] values)
+        private BitArray ComputeDefaultSlots<T>(DataViewType type, Array values)
         {
             Host.Assert(values.Length == type.GetVectorSize());
             BitArray defaultSlots = new BitArray(values.Length);
             InPredicate<T> defaultPred = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type.GetItemType());
+            T[] typedValues = (T[])values;
             for (int slot = 0; slot < values.Length; slot++)
             {
-                if (defaultPred(in values[slot]))
+                if (defaultPred(in typedValues[slot]))
                     defaultSlots[slot] = true;
             }
             return defaultSlots;
@@ -371,14 +378,11 @@ namespace Microsoft.ML.Transforms
 
         private object GetDefault(DataViewType type)
         {
-            Func<object> func = GetDefault<int>;
-            var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.GetItemType().RawType);
-            return meth.Invoke(this, null);
-        }
+            var rawType = type.GetItemType().RawType;
+            if (rawType.IsValueType)
+                return Activator.CreateInstance(rawType);
 
-        private object GetDefault<T>()
-        {
-            return default(T);
+            return null;
         }
 
         /// <summary>
@@ -386,8 +390,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         private Delegate GetIsNADelegate(DataViewType type)
         {
-            Func<DataViewType, Delegate> func = GetIsNADelegate<int>;
-            return Utils.MarshalInvoke(func, type.GetItemType().RawType, type);
+            return Utils.MarshalInvoke(_getIsNADelegateMethodInfo, this, type.GetItemType().RawType, type);
         }
 
         private Delegate GetIsNADelegate<T>(DataViewType type)
@@ -535,6 +538,12 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
+            private static readonly FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate> _composeGetterOneMethodInfo
+                = FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate>.Create(target => target.ComposeGetterOne<int>);
+
+            private static readonly FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate> _composeGetterVecMethodInfo
+                = FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate>.Create(target => target.ComposeGetterVec<int>);
+
             private readonly MissingValueReplacingTransformer _parent;
             private readonly ColInfo[] _infos;
             private readonly DataViewType[] _types;
@@ -623,7 +632,7 @@ namespace Microsoft.ML.Transforms
             /// Getter generator for single valued inputs.
             /// </summary>
             private Delegate ComposeGetterOne(DataViewRow input, int iinfo)
-                => Utils.MarshalInvoke(ComposeGetterOne<int>, _infos[iinfo].TypeSrc.RawType, input, iinfo);
+                => Utils.MarshalInvoke(_composeGetterOneMethodInfo, this, _infos[iinfo].TypeSrc.RawType, input, iinfo);
 
             /// <summary>
             ///  Replaces NA values for scalars.
@@ -649,7 +658,7 @@ namespace Microsoft.ML.Transforms
             /// Getter generator for vector valued inputs.
             /// </summary>
             private Delegate ComposeGetterVec(DataViewRow input, int iinfo)
-                => Utils.MarshalInvoke(ComposeGetterVec<int>, _infos[iinfo].TypeSrc.GetItemType().RawType, input, iinfo);
+                => Utils.MarshalInvoke(_composeGetterVecMethodInfo, this, _infos[iinfo].TypeSrc.GetItemType().RawType, input, iinfo);
 
             /// <summary>
             ///  Replaces NA values for vectors.

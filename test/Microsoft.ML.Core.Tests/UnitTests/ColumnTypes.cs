@@ -4,18 +4,26 @@
 
 using System.Collections.Generic;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms.Image;
 using Xunit;
+using Xunit.Abstractions;
+
 namespace Microsoft.ML.RunTests
 {
-    public sealed class ColumnTypeTests
+    public sealed class ColumnTypeTests : BaseTestClass
     {
+        public ColumnTypeTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void TestEqualAndGetHashCode()
         {
             var dict = new Dictionary<DataViewType, string>();
             // add PrimitiveTypes, KeyType & corresponding VectorTypes
-            VectorDataViewType tmp1, tmp2;
+            VectorDataViewType tmp1;
+            VectorDataViewType tmp2;
             var types = new PrimitiveDataViewType[] { NumberDataViewType.SByte, NumberDataViewType.Int16, NumberDataViewType.Int32, NumberDataViewType.Int64,
                 NumberDataViewType.Byte, NumberDataViewType.UInt16, NumberDataViewType.UInt32, NumberDataViewType.UInt64, RowIdDataViewType.Instance,
                 TextDataViewType.Instance, BooleanDataViewType.Instance, DateTimeDataViewType.Instance, DateTimeOffsetDataViewType.Instance, TimeSpanDataViewType.Instance };

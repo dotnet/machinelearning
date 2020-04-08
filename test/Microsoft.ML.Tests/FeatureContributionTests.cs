@@ -91,8 +91,6 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void TestGAMRegression()
         {
             TestFeatureContribution(ML.Regression.Trainers.Gam(), GetSparseDataset(numberOfInstances: 100), "GAMRegression");
@@ -243,7 +241,7 @@ namespace Microsoft.ML.Tests
         }
 
         /// <summary>
-        /// Features: x1, x2vBuff(sparce vector), x3. 
+        /// Features: x1, x2vBuff(sparse vector), x3. 
         /// y = 10x1 + 10x2vBuff + 30x3 + e.
         /// Within xBuff feature  2nd slot will be sparse most of the time.
         /// 2nd slot of xBuff has the least importance: Evaluation metrics do not change a lot when this slot is permuted.
@@ -253,9 +251,9 @@ namespace Microsoft.ML.Tests
         {
             // Setup synthetic dataset.
             var rand = new Random(10);
-            float[] yArray = new float[numberOfInstances],
-                x1Array = new float[numberOfInstances],
-                x3Array = new float[numberOfInstances];
+            float[] yArray = new float[numberOfInstances];
+            float[] x1Array = new float[numberOfInstances];
+            float[] x3Array = new float[numberOfInstances];
 
             VBuffer<float>[] vbArray = new VBuffer<float>[numberOfInstances];
 

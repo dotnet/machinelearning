@@ -339,7 +339,7 @@ namespace Samples.Dynamic
             public string Label;
         }
 
-        // ImageData class holding the imagepath and label.
+        // ImageData class holding the image path and label.
         public class ImageData
         {
             [LoadColumn(0)]

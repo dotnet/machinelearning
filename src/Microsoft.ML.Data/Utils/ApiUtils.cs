@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML
@@ -18,6 +19,18 @@ namespace Microsoft.ML
 
     internal static class ApiUtils
     {
+        private static readonly FuncStaticMethodInfo3<FieldInfo, OpCode, Delegate> _generatePeekFieldMethodInfo
+            = new FuncStaticMethodInfo3<FieldInfo, OpCode, Delegate>(GeneratePeek<int, int, int>);
+
+        private static readonly FuncStaticMethodInfo3<PropertyInfo, OpCode, Delegate> _generatePeekPropertyMethodInfo
+            = new FuncStaticMethodInfo3<PropertyInfo, OpCode, Delegate>(GeneratePeek<int, int, int>);
+
+        private static readonly FuncStaticMethodInfo3<FieldInfo, OpCode, Delegate> _generatePokeFieldMethodInfo
+            = new FuncStaticMethodInfo3<FieldInfo, OpCode, Delegate>(GeneratePoke<int, int, int>);
+
+        private static readonly FuncStaticMethodInfo3<PropertyInfo, Delegate> _generatePokePropertyMethodInfo
+            = new FuncStaticMethodInfo3<PropertyInfo, Delegate>(GeneratePoke<int, int, int>);
+
         private static OpCode GetAssignmentOpCode(Type t, IEnumerable<Attribute> attributes)
         {
             // REVIEW: This should be a Dictionary<Type, OpCode> based solution.
@@ -58,21 +71,13 @@ namespace Microsoft.ML
             {
                 case FieldInfo fieldInfo:
                     Type fieldType = fieldInfo.FieldType;
-
                     var assignmentOpCode = GetAssignmentOpCode(fieldType, fieldInfo.GetCustomAttributes());
-                    Func<FieldInfo, OpCode, Delegate> func = GeneratePeek<TOwn, TRow, int>;
-                    var methInfo = func.GetMethodInfo().GetGenericMethodDefinition()
-                        .MakeGenericMethod(typeof(TOwn), typeof(TRow), fieldType);
-                    return (Delegate)methInfo.Invoke(null, new object[] { fieldInfo, assignmentOpCode });
+                    return Utils.MarshalInvoke(_generatePeekFieldMethodInfo, typeof(TOwn), typeof(TRow), fieldType, fieldInfo, assignmentOpCode);
 
                 case PropertyInfo propertyInfo:
                     Type propertyType = propertyInfo.PropertyType;
-
                     var assignmentOpCodeProp = GetAssignmentOpCode(propertyType, propertyInfo.GetCustomAttributes());
-                    Func<PropertyInfo, OpCode, Delegate> funcProp = GeneratePeek<TOwn, TRow, int>;
-                    var methInfoProp = funcProp.GetMethodInfo().GetGenericMethodDefinition()
-                        .MakeGenericMethod(typeof(TOwn), typeof(TRow), propertyType);
-                    return (Delegate)methInfoProp.Invoke(null, new object[] { propertyInfo, assignmentOpCodeProp });
+                    return Utils.MarshalInvoke(_generatePeekPropertyMethodInfo, typeof(TOwn), typeof(TRow), propertyType, propertyInfo, assignmentOpCodeProp);
 
                 default:
                     Contracts.Assert(false);
@@ -126,7 +131,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Each of the specialized 'poke' methods sets the appropriate field value of an instance of T
         /// to the provided value. So, the call is 'peek(userObject, providedValue)' and the logic is
-        /// indentical to 'userObject.##FIELD## = providedValue', where ##FIELD## is defined per poke method.
+        /// identical to 'userObject.##FIELD## = providedValue', where ##FIELD## is defined per poke method.
         /// </summary>
         internal static Delegate GeneratePoke<TOwn, TRow>(InternalSchemaDefinition.Column column)
         {
@@ -134,21 +139,13 @@ namespace Microsoft.ML
             {
                 case FieldInfo fieldInfo:
                     Type fieldType = fieldInfo.FieldType;
-
                     var assignmentOpCode = GetAssignmentOpCode(fieldType, fieldInfo.GetCustomAttributes());
-                    Func<FieldInfo, OpCode, Delegate> func = GeneratePoke<TOwn, TRow, int>;
-                    var methInfo = func.GetMethodInfo().GetGenericMethodDefinition()
-                        .MakeGenericMethod(typeof(TOwn), typeof(TRow), fieldType);
-                    return (Delegate)methInfo.Invoke(null, new object[] { fieldInfo, assignmentOpCode });
+                    return Utils.MarshalInvoke(_generatePokeFieldMethodInfo, typeof(TOwn), typeof(TRow), fieldType, fieldInfo, assignmentOpCode);
 
                 case PropertyInfo propertyInfo:
                     Type propertyType = propertyInfo.PropertyType;
-
                     var assignmentOpCodeProp = GetAssignmentOpCode(propertyType, propertyInfo.GetCustomAttributes());
-                    Func<PropertyInfo, Delegate> funcProp = GeneratePoke<TOwn, TRow, int>;
-                    var methInfoProp = funcProp.GetMethodInfo().GetGenericMethodDefinition()
-                        .MakeGenericMethod(typeof(TOwn), typeof(TRow), propertyType);
-                    return (Delegate)methInfoProp.Invoke(null, new object[] { propertyInfo });
+                    return Utils.MarshalInvoke(_generatePokePropertyMethodInfo, typeof(TOwn), typeof(TRow), propertyType, propertyInfo);
 
                 default:
                     Contracts.Assert(false);

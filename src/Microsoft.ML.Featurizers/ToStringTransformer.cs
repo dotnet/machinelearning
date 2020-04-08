@@ -75,7 +75,7 @@ namespace Microsoft.ML.Featurizers
     /// The <xref:Microsoft.ML.Transforms.ToStringTransformerEstimator> is a trivial estimator that doesn't need training.
     /// The resulting <xref:Microsoft.ML.Transforms.ToStringTransformer> converts one or more input columns into its appropriate string representation.
     ///
-    /// The ToStringTransformer can be applied to one or more columns, in which case it turns each input type into its appropriate string represenation.
+    /// The ToStringTransformer can be applied to one or more columns, in which case it turns each input type into its appropriate string representation.
     ///
     /// ]]>
     /// </format>
@@ -297,7 +297,7 @@ namespace Microsoft.ML.Featurizers
 
             protected override bool ReleaseHandle()
             {
-                // Not sure what to do with error stuff here.  There shoudln't ever be one though.
+                // Not sure what to do with error stuff here.  There shouldn't ever be one though.
                 return _destroySaveDataHandler(handle, _dataSize, out IntPtr errorHandle);
             }
         }
@@ -1456,6 +1456,8 @@ namespace Microsoft.ML.Featurizers
 
         private sealed class Mapper : MapperBase
         {
+            private static readonly FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate> _makeGetterMethodInfo
+                = FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate>.Create(target => target.MakeGetter<int>);
 
             #region Class data members
 
@@ -1495,7 +1497,7 @@ namespace Microsoft.ML.Featurizers
             {
                 disposer = null;
                 Type inputType = input.Schema[_parent._columns[iinfo].Source].Type.RawType;
-                return Utils.MarshalInvoke(MakeGetter<int>, inputType, input, iinfo);
+                return Utils.MarshalInvoke(_makeGetterMethodInfo, this, inputType, input, iinfo);
             }
 
             private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)

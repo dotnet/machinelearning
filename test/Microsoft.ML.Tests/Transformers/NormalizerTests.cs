@@ -717,7 +717,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.1 output differs from Baseline")]
         public void GcnWorkout()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
@@ -751,8 +751,6 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        //Skipping test temporarily. This test will be re-enabled once the cause of failures has been determined
-        [Trait("Category", "SkipInCI")]
         public void TestGcnNormCommandLine()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=GcnTransform{col=B:A} in=f:\2.txt" }), (int)0);
@@ -935,20 +933,20 @@ namespace Microsoft.ML.Tests.Transformers
 
         public class TensorData
         {
-            private const int dim1 = 2;
-            private const int dim2 = 3;
-            private const int dim3 = 4;
-            private const int size = dim1 * dim2 * dim3;
+            private const int Dim1 = 2;
+            private const int Dim2 = 3;
+            private const int Dim3 = 4;
+            private const int Size = Dim1 * Dim2 * Dim3;
 
-            [VectorType(dim1, dim2, dim3)]
+            [VectorType(Dim1, Dim2, Dim3)]
             public float[] input { get; set; }
 
             public static TensorData[] GetTensorData()
             {
-                var tensor1 = Enumerable.Range(0, size).Select(
+                var tensor1 = Enumerable.Range(0, Size).Select(
                 x => (float)x).ToArray();
 
-                var tensor2 = Enumerable.Range(0, size).Select(
+                var tensor2 = Enumerable.Range(0, Size).Select(
                 x => (float)(x + 10000)).ToArray();
 
                 return new TensorData[]

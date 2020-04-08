@@ -121,7 +121,7 @@ namespace Microsoft.ML.Featurizers
 
         protected override bool ReleaseHandle()
         {
-            // Not sure what to do with error stuff here.  There shoudln't ever be one though.
+            // Not sure what to do with error stuff here.  There shouldn't ever be one though.
             return _destroySaveDataHandler(handle, _dataSize, out IntPtr errorHandle);
         }
     }
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Featurizers
 
         protected override bool ReleaseHandle()
         {
-            // Not sure what to do with error stuff here.  There shoudln't ever be one though.
+            // Not sure what to do with error stuff here.  There shouldn't ever be one though.
             return DestroyTransformerSaveDataNative(handle, _dataSize, out _);
         }
     }

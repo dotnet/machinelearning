@@ -7,7 +7,9 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Threading;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.Functional.Tests
@@ -23,6 +25,8 @@ namespace Microsoft.ML.Functional.Tests
         public string TestName { get; set; }
         public string FullTestName { get; set; }
         public string OutDir { get; }
+        public ChannelMessageKind MessageKindToLog;
+
         protected static string RootDir { get; }
         protected static string DataDir { get; }
         protected ITestOutputHelper Output { get; }
@@ -50,9 +54,22 @@ namespace Microsoft.ML.Functional.Tests
             FullTestName = test.TestCase.TestMethod.TestClass.Class.Name + "." + test.TestCase.TestMethod.Method.Name;
             TestName = test.TestCase.TestMethod.Method.Name;
 
+            MessageKindToLog = ChannelMessageKind.Error;
+            var attributes = test.TestCase.TestMethod.Method.GetCustomAttributes(typeof(LogMessageKind));
+            foreach (var attrib in attributes)
+            {
+                MessageKindToLog = attrib.GetNamedArgument<ChannelMessageKind>("MessageKind");
+            }
+
             // write to the console when a test starts and stops so we can identify any test hangs/deadlocks in CI
             Console.WriteLine($"Starting test: {FullTestName}");
             Initialize();
+        }
+
+        public void LogTestOutput(object sender, LoggingEventArgs e)
+        {
+            if (e.Kind >= MessageKindToLog)
+                Output.WriteLine(e.Message);
         }
 
         void IDisposable.Dispose()

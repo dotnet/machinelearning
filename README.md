@@ -1,16 +1,10 @@
-
-
 # Machine Learning for .NET
 
-[ML.NET](https://www.microsoft.com/net/learn/apps/machine-learning-and-ai/ml-dotnet) is a cross-platform open-source machine learning framework which makes machine learning accessible to .NET developers while offering a production high quality. 
+[ML.NET](https://www.microsoft.com/net/learn/apps/machine-learning-and-ai/ml-dotnet) is a cross-platform open-source machine learning framework which makes machine learning accessible to .NET developers with the same code that powers machine learning across many Microsoft products, including Power BI, Windows Defender, and Azure. 
 
-ML.NET allows .NET developers to develop/train their own models and infuse custom machine learning into their applications, using .NET, even without prior expertise in developing or tuning machine learning models while having a powerful end-to-end ML platform covering data loading from dataset files and databases, data transformations and many ML algorithms.
+ML.NET allows .NET developers to develop/train their own models and infuse custom machine learning into their applications using .NET, even without prior expertise in developing or tuning machine learning models. It provides data loading from files and databases, enables data transformations and includes many ML algorithms.
 
-ML.NET was originally developed in Microsoft Research and evolved into a Microsoft internal framework over the last decade being used across many product groups in Microsoft like Windows, Bing, PowerPoint, Excel and more.
-
-ML.NET enables machine learning tasks like classification (for example: support text classification, sentiment analysis), regression (for example, price-prediction) and many other ML tasks such as anomaly detection, time-series-forecast, clustering, ranking, etc.
-
-ML.NET also brings .NET APIs for training models, using models for predictions, as well as the core components of this framework such as learning algorithms, transforms, and ML data structures.
+ML.NET enables machine learning (ML) tasks like classification (for example, text classification, sentiment analysis), regression (for example, price prediction), and many other ML tasks such as anomaly detection, time-series-forecast, clustering, ranking, etc.
 
 ## Getting started with machine learning by using ML.NET
 
@@ -28,13 +22,12 @@ See the [API Reference documentation](https://docs.microsoft.com/en-us/dotnet/ap
 
 We have a GitHub repo with [ML.NET sample apps](https://github.com/dotnet/machinelearning-samples) with many scenarios such as Sentiment analysis, Fraud detection, Product Recommender, Price Prediction, Anomaly Detection, Image Classification, Object Detection and many more. 
 
-In addition to the ML.NET samples provided by Microsoft, we're also highlighting many more samples created by the community showcased in this separated page [ML.NET Community Samples](https://github.com/dotnet/machinelearning-samples/blob/master/docs/COMMUNITY-SAMPLES.md)
+In addition to the ML.NET samples provided by Microsoft, we're also highlighting many more samples created by the community showcased in this separate page [ML.NET Community Samples](https://github.com/dotnet/machinelearning-samples/blob/master/docs/COMMUNITY-SAMPLES.md)
 
 
 ## ML.NET videos playlist at YouTube
 
-There a list of short videos each one focusing on a particular single topic of ML.NET at the [ML.NET videos playlist](https://aka.ms/mlnetyoutube) in YouTube.
-
+The [ML.NET videos playlist](https://aka.ms/mlnetyoutube) on YouTube contains several short videos. Each video focuses on a particular topic of ML.NET.
 
 ## Operating systems and processor architectures supported by ML.NET
 
@@ -64,7 +57,7 @@ or from the NuGet package manager:
 Install-Package Microsoft.ML
 ```
 
-Or alternatively, you can add the Microsoft.ML package from within Visual Studio's NuGet package manager or via [Paket](https://github.com/fsprojects/Paket).
+Alternatively, you can add the Microsoft.ML package from within Visual Studio's NuGet package manager or via [Paket](https://github.com/fsprojects/Paket).
 
 Daily NuGet builds of the project are also available in our Azure DevOps feed:
 
@@ -78,13 +71,13 @@ To build ML.NET from source please visit our [developers guide](docs/project-doc
 
 |    | Debug | Release |
 |:---|----------------:|------------------:|
-|**CentOS**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Centos_x64_NetCoreApp30&configuration=Centos_x64_NetCoreApp30%20Debug_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Centos_x64_NetCoreApp30&configuration=Centos_x64_NetCoreApp30%20Release_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|
+|**CentOS**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Centos_x64_NetCoreApp31&configuration=Centos_x64_NetCoreApp31%20Debug_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Centos_x64_NetCoreApp31&configuration=Centos_x64_NetCoreApp31%20Release_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|
 |**Ubuntu**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Ubuntu_x64_NetCoreApp21&configuration=Ubuntu_x64_NetCoreApp21%20Debug_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Ubuntu_x64_NetCoreApp21&configuration=Ubuntu_x64_NetCoreApp21%20Release_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|
 |**macOS**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=MacOS_x64_NetCoreApp21&configuration=MacOS_x64_NetCoreApp21%20Debug_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=MacOS_x64_NetCoreApp21&configuration=MacOS_x64_NetCoreApp21%20Release_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|
 |**Windows x64**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x64_NetCoreApp21&configuration=Windows_x64_NetCoreApp21%20Debug_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x64_NetCoreApp21&configuration=Windows_x64_NetCoreApp21%20Release_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|
 |**Windows FullFramework**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x64_NetFx461&configuration=Windows_x64_NetFx461%20Debug_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x64_NetFx461&configuration=Windows_x64_NetFx461%20Release_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|
 |**Windows x86**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x86_NetCoreApp21&configuration=Windows_x86_NetCoreApp21%20Debug_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x86_NetCoreApp21&configuration=Windows_x86_NetCoreApp21%20Release_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|
-|**Windows NetCore3.0**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x64_NetCoreApp30&configuration=Windows_x64_NetCoreApp30%20Debug_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x64_NetCoreApp30&configuration=Windows_x64_NetCoreApp30%20Release_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|
+|**Windows NetCore3.1**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x64_NetCoreApp31&configuration=Windows_x64_NetCoreApp31%20Debug_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x64_NetCoreApp31&configuration=Windows_x64_NetCoreApp31%20Release_Build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=104&branchName=master)|
 
 ## Release process and versioning
 
@@ -110,15 +103,15 @@ Here is a snippet code for training a model to predict sentiment from text sampl
 var dataPath = "sentiment.csv";
 var mlContext = new MLContext();
 var loader = mlContext.Data.CreateTextLoader(new[]
-	{
-		new TextLoader.Column("SentimentText", DataKind.String, 1),
-		new TextLoader.Column("Label", DataKind.Boolean, 0),
-	},
-	hasHeader: true,
-	separatorChar: ',');
+    {
+        new TextLoader.Column("SentimentText", DataKind.String, 1),
+        new TextLoader.Column("Label", DataKind.Boolean, 0),
+    },
+    hasHeader: true,
+    separatorChar: ',');
 var data = loader.Load(dataPath);
 var learningPipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
-		.Append(mlContext.BinaryClassification.Trainers.FastTree());
+        .Append(mlContext.BinaryClassification.Trainers.FastTree());
 var model = learningPipeline.Fit(data);
 ```
 

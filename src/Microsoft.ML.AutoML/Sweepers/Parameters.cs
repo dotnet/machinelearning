@@ -17,7 +17,7 @@ namespace Microsoft.ML.AutoML
 
     internal abstract class NumericParamArguments : BaseParamArguments
     {
-        // Number of steps for grid runthrough.
+        // Number of steps for grid run-through.
         public int NumSteps;
 
         // Amount of increment between steps (multiplicative if log).

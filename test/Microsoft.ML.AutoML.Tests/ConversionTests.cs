@@ -4,19 +4,20 @@
 
 using System;
 using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.TestFramework;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
     
-    public class ConversionTests
+    public class ConversionTests : BaseTestClass
     {
-        private readonly ITestOutputHelper output;
+        private readonly ITestOutputHelper _output;
 
-        public ConversionTests(ITestOutputHelper output)
+        public ConversionTests(ITestOutputHelper output) : base(output)
         {
-            this.output = output;
+            this._output = output;
         }
 
         [Fact]
@@ -34,7 +35,7 @@ namespace Microsoft.ML.AutoML.Test
             {
                 float value;
                 var success = Conversions.Instance.TryParse(missingValue.AsMemory(), out value);
-                output.WriteLine($"{missingValue} parsed as {value}");
+                _output.WriteLine($"{missingValue} parsed as {value}");
                 Assert.True(success);
                 //Assert.Equal(float.NaN, value);
             }

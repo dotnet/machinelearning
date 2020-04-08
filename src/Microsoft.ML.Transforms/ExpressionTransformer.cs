@@ -42,9 +42,9 @@ namespace Microsoft.ML.Transforms
     /// | Input column data type | float, double, int, long, bool or text.  |
     /// | Output column data type | Can be float, double, int, long, bool or text, depending on the expression. |
     ///
-    /// The resulting [ExpressionTransformer](xref:Microsoft.ML.Data.ExpressionTransformer) creates a new column,
+    /// The resulting [ExpressionTransformer](xref:Microsoft.ML.Transforms.ExpressionTransformer) creates a new column,
     /// named as specified in the output column name parameters, where the expression is applied to the input values.
-    /// At most one of the input columns can be of type [VectorDataViewType](xref:Microsof.ML.Data.VectorDataViewType), and when the input contains a vector column, the expression
+    /// At most one of the input columns can be of type [VectorDataViewType](xref:Microsoft.ML.Data.VectorDataViewType), and when the input contains a vector column, the expression
     /// is computed independently on each element of the vector, to create a vector output with the same length as that input.
     ///
     /// [!include[algorithm](~/../docs/samples/docs/api-reference/expression-estimator.md)]

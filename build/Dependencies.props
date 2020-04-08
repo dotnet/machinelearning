@@ -16,7 +16,7 @@
     <GoogleProtobufPackageVersion>3.10.1</GoogleProtobufPackageVersion>
     <LightGBMPackageVersion>2.2.3</LightGBMPackageVersion>
     <MicrosoftExtensionsPackageVersion>2.1.0</MicrosoftExtensionsPackageVersion>
-    <MicrosoftMLOnnxRuntimePackageVersion>1.0.0</MicrosoftMLOnnxRuntimePackageVersion>
+    <MicrosoftMLOnnxRuntimePackageVersion>1.2</MicrosoftMLOnnxRuntimePackageVersion>
     <MlNetMklDepsPackageVersion>0.0.0.9</MlNetMklDepsPackageVersion>
     <ParquetDotNetPackageVersion>2.1.3</ParquetDotNetPackageVersion>
     <SystemDrawingCommonPackageVersion>4.5.0</SystemDrawingCommonPackageVersion>
@@ -27,9 +27,14 @@
     <TensorflowDotNETVersion>0.11.8.1</TensorflowDotNETVersion>
   </PropertyGroup>
 
-  <!-- Code Analyzer Dependencies -->
+  <!-- Model Builder Dependencies -->
   <PropertyGroup>
     <MicrosoftCodeAnalysisCSharpVersion>2.9.0</MicrosoftCodeAnalysisCSharpVersion>
+  </PropertyGroup>
+
+  <!-- Code Analyzer Dependencies -->
+  <PropertyGroup>
+    <MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>3.3.1</MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>
     <MicrosoftCSharpVersion>4.5.0</MicrosoftCSharpVersion>
     <SystemCompositionVersion>1.2.0</SystemCompositionVersion>
   </PropertyGroup>
@@ -45,8 +50,9 @@
 
   <!-- Test-only Dependencies -->
   <PropertyGroup>
-    <BenchmarkDotNetVersion>0.11.3</BenchmarkDotNetVersion>
-    <MicrosoftCodeAnalysisTestingVersion>1.0.0-beta1-63812-02</MicrosoftCodeAnalysisTestingVersion>
+    <BenchmarkDotNetVersion>0.12.0</BenchmarkDotNetVersion>
+    <MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.20080.1</MicrosoftCodeAnalysisTestingVersion>
+    <MicrosoftExtensionsTestPackageVersion>3.0.1</MicrosoftExtensionsTestPackageVersion>
     <MicrosoftMLTestDatabasesPackageVersion>0.0.5-test</MicrosoftMLTestDatabasesPackageVersion>
     <MicrosoftMLTestModelsPackageVersion>0.0.6-test</MicrosoftMLTestModelsPackageVersion>
     <MicrosoftMLTensorFlowTestModelsVersion>0.0.11-test</MicrosoftMLTensorFlowTestModelsVersion>

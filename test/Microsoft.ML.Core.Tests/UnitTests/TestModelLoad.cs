@@ -7,18 +7,23 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.RunTests
 {
-    public class TestModelLoad
+    public class TestModelLoad : BaseTestClass
     {
+        public TestModelLoad(ITestOutputHelper output) : base(output)
+        {
+        }
+
         /// <summary>
         /// Tests loading a model file that was saved using version 3 (0x00010003) of BinaryLoader still loads correctly.
         /// </summary>
         [Fact]
         public void LoadBinaryLoaderModelVersion3()
         {
-            var env = new MLContext().AddStandardComponents();
+            var env = new MLContext(1).AddStandardComponents();
             using (var modelStream = File.OpenRead(Path.Combine("TestModels", "BinaryLoader-v3.11.0.0.zip")))
             using (var rep = RepositoryReader.Open(modelStream, env))
             {
@@ -36,7 +41,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void LoadOldConcatTransformModel()
         {
-            var env = new MLContext().AddStandardComponents();
+            var env = new MLContext(1).AddStandardComponents();
             using (var modelStream = File.OpenRead(Path.Combine("TestModels", "ConcatTransform.zip")))
             using (var rep = RepositoryReader.Open(modelStream, env))
             {

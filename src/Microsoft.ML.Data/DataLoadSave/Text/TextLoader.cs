@@ -427,9 +427,9 @@ namespace Microsoft.ML.Data
         public class Options
         {
             /// <summary>
-            /// Whether the input may include quoted values, which can contain separator characters, colons,
-            /// and distinguish empty values from missing values. When true, consecutive separators denote a
-            /// missing value and an empty value is denoted by \"\". When false, consecutive separators denote an empty value.
+            /// Whether the input may include double-quoted values. This parameter is used to distinguish separator characters
+            /// in an input value from actual separators. When <see langword="true"/>, separators within double quotes are treated as part of the
+            /// input value. When <see langword="false"/>, all separators, even those within quotes, are treated as delimiting a new column.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce,
                 HelpText =
@@ -441,7 +441,17 @@ namespace Microsoft.ML.Data
             public bool AllowQuoting = Defaults.AllowQuoting;
 
             /// <summary>
-            /// Whether the input may include sparse representations.
+            /// Whether the input may include sparse representations. For example, a row containing
+            /// "5 2:6 4:3" means that there are 5 columns, and the only non-zero are columns 2 and 4, which have values 6 and 3,
+            /// respectively. Column indices are zero-based, so columns 2 and 4 represent the 3rd and 5th columns.
+            /// A column may also have dense values followed by sparse values represented in this fashion. For example,
+            /// a row containing "1 2 5 2:6 4:3" represents two dense columns with values 1 and 2, followed by 5 sparsely represented
+            /// columns with values 0, 0, 6, 0, and 3. The indices of the sparse columns start from 0, even though 0 represents the third column.
+            ///
+            /// In addition, <see cref="InputSize"/> should be used when the number of sparse elements (5 in this example) is not present in each line.
+            /// It should specify the total size, not just the size of the sparse part. However, indices of the spars part are relative to where the sparse part begins.
+            /// If <see cref="InputSize"/> is set to 7, the line "1 2 2:6 4:3" will be mapped to "1 2 0 0 6 0 4", but if set to 10, the same line will
+            /// be mapped to "1 2 0 0 6 0 4 0 0 0".
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the input may include sparse representations", ShortName = "sparse")]
             public bool AllowSparse = Defaults.AllowSparse;
@@ -478,7 +488,8 @@ namespace Microsoft.ML.Data
             public bool TrimWhitespace = Defaults.TrimWhitespace;
 
             /// <summary>
-            /// Whether the data file has a header with feature names.
+            /// Whether the file has a header with feature names. When <see langword="true"/>, the loader will skip the first line when
+            /// <see cref="TextLoader.Load(IMultiStreamSource)"/> is called. The sample can be used to infer slot name annotations if present.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, ShortName = "header",
                 HelpText = "Data file has header with feature names. Header is read only if options 'hs' and 'hf' are not specified.")]

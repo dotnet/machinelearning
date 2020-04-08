@@ -272,7 +272,7 @@ namespace Microsoft.ML.Transforms
                         return false;
                     }
 
-                    // Move foward _skip + 1 rows to get to the "first" row of the input.
+                    // Move forward _skip + 1 rows to get to the "first" row of the input.
                     for (long i = 0; i <= _skip; ++i)
                     {
                         if (!Root.MoveNext())

@@ -34,13 +34,13 @@ namespace Samples.Dynamic.Trainers.Recommendation
             // Define trainer options.
             var options = new MatrixFactorizationTrainer.Options
             {
-                // Specify IDataView colum which stores matrix column indexes. 
+                // Specify IDataView column which stores matrix column indexes. 
                 MatrixColumnIndexColumnName = nameof(MatrixElement.MatrixColumnIndex
                     ),
 
-                // Specify IDataView colum which stores matrix row indexes. 
+                // Specify IDataView column which stores matrix row indexes. 
                 MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
-                // Specify IDataView colum which stores matrix elements' values. 
+                // Specify IDataView column which stores matrix elements' values. 
                 LabelColumnName = nameof(MatrixElement.Value),
                 // Time of going through the entire data set once.
                 NumberOfIterations = 10,
@@ -95,7 +95,7 @@ namespace Samples.Dynamic.Trainers.Recommendation
             //   Mean Absolute Error: 0.18
             //   Mean Squared Error: 0.05
             //   Root Mean Squared Error: 0.23
-            //   RSquared: 0.97 (closer to 1 is better. The worest case is 0)
+            //   RSquared: 0.97 (closer to 1 is better. The worst case is 0)
         }
 
         // The following variables are used to define the shape of the example

@@ -28,6 +28,9 @@ namespace Microsoft.ML.Data.IO
     [BestFriend]
     internal sealed class BinarySaver : IDataSaver
     {
+        private static readonly FuncInstanceMethodInfo1<BinarySaver, Stream, IValueCodec, object> _loadValueMethodInfo
+            = FuncInstanceMethodInfo1<BinarySaver, Stream, IValueCodec, object>.Create(target => target.LoadValue<int>);
+
         public sealed class Arguments
         {
             [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The compression scheme to use for the blocks", ShortName = "comp")]
@@ -36,7 +39,7 @@ namespace Microsoft.ML.Data.IO
             [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The block-size heuristic will choose no more than this many rows to have per block, can be set to null to indicate that there is no inherent limit", ShortName = "rpb")]
             public int? MaxRowsPerBlock = 1 << 13; // ~8 thousand.
 
-            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The block-size heuristic will attempt to have about this many bytes across all columns per block, can be set to null to accept the inidcated max-rows-per-block as the number of rows per block", ShortName = "bpb")]
+            [Argument(ArgumentType.LastOccurrenceWins, HelpText = "The block-size heuristic will attempt to have about this many bytes across all columns per block, can be set to null to accept the indicated max-rows-per-block as the number of rows per block", ShortName = "bpb")]
             public long? MaxBytesPerBlock = 80 << 20; // ~80 megabytes.
 
             [Argument(ArgumentType.LastOccurrenceWins, HelpText = "If true, this forces a deterministic block order during writing", ShortName = "det")]
@@ -664,7 +667,7 @@ namespace Microsoft.ML.Data.IO
                     Task[] compressionThreads = new Task[Environment.ProcessorCount];
                     for (int i = 0; i < compressionThreads.Length; ++i)
                     {
-                        compressionThreads[i] = Utils.RunOnBackgroundThread(
+                        compressionThreads[i] = Utils.RunOnBackgroundThreadAsync(
                             () => CompressionWorker(toCompress, toWrite, activeColumns.Length, waiter, exMarshaller));
                     }
                     compressionTask = Task.WhenAll(compressionThreads);
@@ -672,7 +675,7 @@ namespace Microsoft.ML.Data.IO
 
                 // While there is an advantage to putting the IO into a separate thread, there is not an
                 // advantage to having more than one worker.
-                Task writeThread = Utils.RunOnBackgroundThread(
+                Task writeThread = Utils.RunOnBackgroundThreadAsync(
                     () => WriteWorker(stream, toWrite, activeColumns, data.Schema, rowsPerBlock, _host, exMarshaller));
                 sw.Start();
 
@@ -696,7 +699,7 @@ namespace Microsoft.ML.Data.IO
                 if (!_silent)
                     ch.Info("Wrote {0} rows across {1} columns in {2}", _rowCount, activeColumns.Length, sw.Elapsed);
                 // When we dispose the exception marshaller, this will set the cancellation token when we internally
-                // dispose the cancellation token source, so one way or another those threads are being cancelled, even
+                // dispose the cancellation token source, so one way or another those threads are being canceled, even
                 // if an exception is thrown in the main body of this function.
             }
         }
@@ -887,22 +890,20 @@ namespace Microsoft.ML.Data.IO
                 value = null;
                 return false;
             }
-            type = codec.Type;
 
-            Func<Stream, IValueCodec<int>, object> func = LoadValue<int>;
-            var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(codec.Type.RawType);
-            value = (meth.Invoke(this, new object[] { stream, codec }));
+            type = codec.Type;
+            value = Utils.MarshalInvoke(_loadValueMethodInfo, this, type.RawType, stream, codec);
             return true;
         }
 
         /// <summary>
         /// Deserializes and returns a value given a stream and codec.
         /// </summary>
-        private object LoadValue<T>(Stream stream, IValueCodec<T> codec)
+        private object LoadValue<T>(Stream stream, IValueCodec codec)
         {
             _host.Assert(typeof(T) == codec.Type.RawType);
             T value = default(T);
-            using (var reader = codec.OpenReader(stream, 1))
+            using (var reader = ((IValueCodec<T>)codec).OpenReader(stream, 1))
             {
                 reader.MoveNext();
                 reader.Get(ref value);

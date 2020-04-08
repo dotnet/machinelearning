@@ -387,7 +387,7 @@ namespace Microsoft.ML.Data.IO
                         value = _text.AsMemory().Slice(start, (b & LengthMask) - start);
                     else
                     {
-                        //For backward compatiblity when NA values existed, treat them
+                        //For backward compatibility when NA values existed, treat them
                         //as empty string.
                         value = ReadOnlyMemory<char>.Empty;
                     }

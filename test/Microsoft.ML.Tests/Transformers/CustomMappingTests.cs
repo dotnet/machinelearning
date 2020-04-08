@@ -44,8 +44,10 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        [Fact]
-        public void TestCustomTransformer()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestCustomTransformer(bool registerAssembly)
         {
             string dataPath = GetDataPath("adult.tiny.with-schema.txt");
             var source = new MultiFileSource(dataPath);
@@ -59,20 +61,16 @@ namespace Microsoft.ML.Tests.Transformers
             IDataView transformedData;
             // We create a temporary environment to instantiate the custom transformer. This is to ensure that we don't need the same
             // environment for saving and loading.
-            var tempoEnv = new MLContext();
+            var tempoEnv = new MLContext(1);
             var customEst = new CustomMappingEstimator<MyInput, MyOutput>(tempoEnv, MyLambda.MyAction, "MyLambda");
 
-            try
-            {
-                TestEstimatorCore(customEst, data);
-                Assert.True(false, "Cannot work without RegisterAssembly");
-            }
-            catch (InvalidOperationException ex)
-            {
-                if (!ex.IsMarked())
-                    throw;
-            }
-            ML.ComponentCatalog.RegisterAssembly(typeof(MyLambda).Assembly);
+            // Before 1.5-preview3 it was required to register the assembly. 
+            // Now, the assembly information is automatically saved in the model and the assembly is registered
+            // when loading.
+            // This tests the case that the CustomTransformer still works even if you explicitly register the assembly
+            if (registerAssembly)
+                ML.ComponentCatalog.RegisterAssembly(typeof(MyLambda).Assembly);
+
             TestEstimatorCore(customEst, data);
             transformedData = customEst.Fit(data).Transform(data);
 

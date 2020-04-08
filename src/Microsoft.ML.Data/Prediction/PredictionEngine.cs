@@ -158,17 +158,12 @@ namespace Microsoft.ML
 
         public void Dispose()
         {
-            Disposing(true);
-            GC.SuppressFinalize(this);
-        }
-
-        [BestFriend]
-        private protected void Disposing(bool disposing)
-        {
             if (_disposed)
                 return;
-            if (disposing)
-                _disposer?.Invoke();
+
+            _disposer?.Invoke();
+            (Transformer as IDisposable)?.Dispose();
+
             _disposed = true;
         }
 

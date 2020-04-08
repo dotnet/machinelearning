@@ -6,13 +6,12 @@ using System.IO;
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML;
 using Microsoft.ML.Benchmarks;
-using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 
 namespace micro
 {
-    [CoreJob]
-    public class TextPredictionEngineCreationBenchmark
+    [SimpleJob]
+    public class TextPredictionEngineCreationBenchmark : BenchmarkBase
     {
         private MLContext _context;
         private ITransformer _trainedModel;
@@ -21,8 +20,9 @@ namespace micro
         [GlobalSetup]
         public void Setup()
         {
-            _context = new MLContext();
-            var data = _context.Data.LoadFromTextFile<SentimentData>(BaseTestClass.GetDataPath("wikipedia-detox-250-line-data.tsv"), hasHeader: true);
+            _context = new MLContext(1);
+            var data = _context.Data.LoadFromTextFile<SentimentData>(
+                GetBenchmarkDataPath("wikipedia-detox-250-line-data.tsv"), hasHeader: true);
 
             // Pipeline.
             var pipeline = _context.Transforms.Text.FeaturizeText("Features", "SentimentText")

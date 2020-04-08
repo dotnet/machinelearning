@@ -157,7 +157,7 @@ namespace Microsoft.ML.Transforms.Image
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="colorsToExtract">What colors to extract.</param>
         /// <param name="orderOfExtraction">In which order to extract colors from pixel.</param>
-        /// <param name="interleavePixelColors">Whether to interleave the pixels colors, meaning keep them in the <paramref name="orderOfExtraction"/> order, or leave them in the plannar form:
+        /// <param name="interleavePixelColors">Whether to interleave the pixels colors, meaning keep them in the <paramref name="orderOfExtraction"/> order, or leave them in the planner form:
         /// all the values for one color for all pixels, then all the values for another color and so on.</param>
         /// <param name="offsetImage">Offset each pixel's color value by this amount. Applied to color value first.</param>
         /// <param name="scaleImage">Scale each pixel's color value by this amount. Applied to color value second.</param>
@@ -496,7 +496,7 @@ namespace Microsoft.ML.Transforms.Image
     /// | Exportable to ONNX | No |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.Image.ImagePixelExtractingTransformer> creates a new column, named as specified in the output column name parameters, and
-    /// converts image into vector of known size of floats or bytes. Size and data type depends on specified paramaters.
+    /// converts image into vector of known size of floats or bytes. Size and data type depends on specified parameters.
     /// For end-to-end image processing pipelines, and scenarios in your applications, see the
     /// [examples](https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started) in the machinelearning-samples github repository.
     ///
@@ -602,7 +602,7 @@ namespace Microsoft.ML.Transforms.Image
             public readonly float ScaleImage;
 
             /// <summary>
-            /// Whether to interleave the pixels colors, meaning keep them in the <see cref="OrderOfExtraction"/> order, or leave them in the plannar form:
+            /// Whether to interleave the pixels colors, meaning keep them in the <see cref="OrderOfExtraction"/> order, or leave them in the planner form:
             /// all the values for one color for all pixels, then all the values for another color and so on.
             /// </summary>
             public readonly bool InterleavePixelColors;
@@ -650,7 +650,7 @@ namespace Microsoft.ML.Transforms.Image
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="colorsToExtract">What colors to extract.</param>
             /// <param name="orderOfExtraction">In which order to extract colors from pixel.</param>
-            /// <param name="interleavePixelColors">Whether to interleave the pixels, meaning keep them in the <paramref name="orderOfExtraction"/> order, or leave them in the plannar form:
+            /// <param name="interleavePixelColors">Whether to interleave the pixels, meaning keep them in the <paramref name="orderOfExtraction"/> order, or leave them in the planner form:
             /// all the values for one color for all pixels, then all the values for another color and so on.</param>
             /// <param name="offsetImage">Offset each pixel's color value by this amount. Applied to color value before <paramref name="scaleImage"/>.</param>
             /// <param name="scaleImage">Scale each pixel's color value by this amount. Applied to color value after <paramref name="offsetImage"/>.</param>
@@ -776,7 +776,7 @@ namespace Microsoft.ML.Transforms.Image
         /// <param name="inputColumnName">Name of the input column.</param>
         /// <param name="colorsToExtract">What colors to extract.</param>
         /// <param name="orderOfExtraction">In which order to extract colors from pixel.</param>
-        /// <param name="interleavePixelColors">Whether to interleave the pixels, meaning keep them in the <paramref name="orderOfExtraction"/> order, or leave them in the plannar form:
+        /// <param name="interleavePixelColors">Whether to interleave the pixels, meaning keep them in the <paramref name="orderOfExtraction"/> order, or leave them in the planner form:
         /// all the values for one color for all pixels, then all the values for another color and so on.</param>
         /// <param name="offsetImage">Offset each pixel's color value by this amount. Applied to color value before <paramref name="scaleImage"/>.</param>
         /// <param name="scaleImage">Scale each pixel's color value by this amount. Applied to color value after <paramref name="offsetImage"/>.</param>

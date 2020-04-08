@@ -72,7 +72,7 @@ namespace Microsoft.ML.Transforms
 
         /// <summary>
         /// Feature Contribution Calculation computes model-specific contribution scores for each feature.
-        /// Note that this functionality is not supported by all the models. See <see cref="FeatureContributionCalculatingTransformer"/> for a list of the suported models.
+        /// Note that this functionality is not supported by all the models. See <see cref="FeatureContributionCalculatingTransformer"/> for a list of the sported models.
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="modelParameters">Trained model parameters that support Feature Contribution Calculation and which will be used for scoring.</param>
@@ -164,6 +164,9 @@ namespace Microsoft.ML.Transforms
 
         private class Mapper : OneToOneMapperBase
         {
+            private static readonly FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate> _getValueGetterMethodInfo
+                = FuncInstanceMethodInfo1<Mapper, DataViewRow, int, Delegate>.Create(target => target.GetValueGetter<int>);
+
             private readonly FeatureContributionCalculatingTransformer _parent;
             private readonly VBuffer<ReadOnlyMemory<char>> _slotNames;
             private readonly int _featureColumnIndex;
@@ -204,7 +207,7 @@ namespace Microsoft.ML.Transforms
 
                 // REVIEW: Assuming Feature contributions will be VBuffer<float>.
                 // For multiclass LR it needs to be VBuffer<float>[].
-                return Utils.MarshalInvoke(GetValueGetter<int>, _featureColumnType.RawType, input, ColMapNewToOld[iinfo]);
+                return Utils.MarshalInvoke(_getValueGetterMethodInfo, this, _featureColumnType.RawType, input, ColMapNewToOld[iinfo]);
             }
 
             private Delegate GetValueGetter<TSrc>(DataViewRow input, int colSrc)
@@ -305,7 +308,7 @@ namespace Microsoft.ML.Transforms
 
         /// <summary>
         /// Feature Contribution Calculation computes model-specific contribution scores for each feature.
-        /// Note that this functionality is not supported by all the models. See <see cref="FeatureContributionCalculatingTransformer"/> for a list of the suported models.
+        /// Note that this functionality is not supported by all the models. See <see cref="FeatureContributionCalculatingTransformer"/> for a list of the sported models.
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="model">A <see cref="ISingleFeaturePredictionTransformer{TModel}"/> that supports Feature Contribution Calculation,

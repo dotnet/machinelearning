@@ -1212,6 +1212,9 @@ namespace Microsoft.ML.Data.IO
 
         private sealed class Cursor : RootCursorBase
         {
+            private static readonly FuncInstanceMethodInfo1<Cursor, Delegate> _noRowGetterMethodInfo
+                = FuncInstanceMethodInfo1<Cursor, Delegate>.Create(target => target.NoRowGetter<int>);
+
             private readonly BinaryLoader _parent;
             private readonly int[] _colToActivesIndex;
             private readonly TableOfContentsEntry[] _actives;
@@ -1302,9 +1305,9 @@ namespace Microsoft.ML.Data.IO
                     _pipeGetters[c] = _pipes[c].GetGetter();
                 }
                 // The data structures are initialized. Now set up the workers.
-                _readerThread = Utils.RunOnBackgroundThread(ReaderWorker);
+                _readerThread = Utils.RunOnBackgroundThreadAsync(ReaderWorker);
 
-                _pipeTask = SetupDecompressTask();
+                _pipeTask = DecompressAsync();
             }
 
             protected override void Dispose(bool disposing)
@@ -1374,14 +1377,14 @@ namespace Microsoft.ML.Data.IO
                 base.Dispose(disposing);
             }
 
-            private Task SetupDecompressTask()
+            private Task DecompressAsync()
             {
                 Task[] pipeWorkers = new Task[_parent._threads];
                 long decompressSequence = -1;
                 long decompressSequenceLim = (long)_numBlocks * _actives.Length;
                 for (int w = 0; w < pipeWorkers.Length; ++w)
                 {
-                    pipeWorkers[w] = Utils.RunOnBackgroundThread(() =>
+                    pipeWorkers[w] = Utils.RunOnBackgroundThreadAsync(() =>
                     {
                         try
                         {
@@ -1988,7 +1991,7 @@ namespace Microsoft.ML.Data.IO
                         // effort to recycle buffers since it would be exceptionally difficult
                         // to do so. All threads are already unblocked, one of them with the
                         // source exception that kicked off this process, the remaining with
-                        // other later exceptions or the operation cancelled exception. So we
+                        // other later exceptions or the operation canceled exception. So we
                         // are free to join. Still, given the exceptional nature, we won't
                         // wait forever to do it.
                         const int timeOut = 100;
@@ -2043,7 +2046,7 @@ namespace Microsoft.ML.Data.IO
             /// a delegate that simply always throws.
             /// </summary>
             private Delegate GetNoRowGetter(DataViewType type)
-                => Utils.MarshalInvoke(NoRowGetter<int>, type.RawType);
+                => Utils.MarshalInvoke(_noRowGetterMethodInfo, this, type.RawType);
 
             private Delegate NoRowGetter<T>()
             {

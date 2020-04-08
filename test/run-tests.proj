@@ -20,6 +20,13 @@
              Properties="VSTestNoBuild=true;VSTestBlame=true;VSTestTestCaseFilter=Category!=SkipInCI" />
   </Target>
 
+  <Target Name="RunSpecificTests">
+    <Message Importance="High" Text="Running Specific tests ..." />
+    <MSBuild Targets="VSTest"
+             Projects="@(Project)"
+             Properties="VSTestNoBuild=true;VSTestBlame=true;VSTestTestCaseFilter=Category=RunSpecificTest" />
+  </Target>
+
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.targets))\Directory.Build.targets" />
 
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.traversal.targets))\dir.traversal.targets" />

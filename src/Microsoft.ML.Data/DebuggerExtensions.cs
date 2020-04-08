@@ -34,7 +34,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Preview an effect of the <paramref name="estimator"/> on a given <paramref name="data"/>.
         /// </summary>
-        /// <param name="estimator">The estimnator which effect we are previewing</param>
+        /// <param name="estimator">The estimator which effect we are previewing</param>
         /// <param name="data">The data view to use for preview</param>
         /// <param name="maxRows">Maximum number of rows to show in preview</param>
         /// <param name="maxTrainingRows">Maximum number of rows to fit the estimator</param>

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.AccessControl;
@@ -99,7 +98,7 @@ namespace Microsoft.ML.TensorFlow
         /// <param name="modelPath">Model to load.</param>
         internal static DataViewSchema GetModelSchema(IHostEnvironment env, string modelPath)
         {
-            var model = LoadTensorFlowModel(env, modelPath);
+            using var model = LoadTensorFlowModel(env, modelPath);
             return GetModelSchema(env, model.Session.graph);
         }
 
@@ -181,7 +180,7 @@ namespace Microsoft.ML.TensorFlow
         {
             using (var ch = env.Start("Ensuring meta files are present."))
             {
-                var ensureModel = ResourceManagerUtils.Instance.EnsureResource(env, ch, url, fileName, dir, timeout);
+                var ensureModel = ResourceManagerUtils.Instance.EnsureResourceAsync(env, ch, url, fileName, dir, timeout);
                 ensureModel.Wait();
                 var errorResult = ResourceManagerUtils.GetErrorMessage(out var errorMessage, ensureModel.Result);
                 if (errorResult != null)
@@ -488,9 +487,26 @@ namespace Microsoft.ML.TensorFlow
 
                 unsafe
                 {
-                    c_api.TF_SessionRun(_session, null, _inputs, _inputValues,
-                         _inputs.Length, _outputs, _outputValues, _outputValues.Length, _operations,
-                        _operations.Length, IntPtr.Zero, _status);
+                    try
+                    {
+                        c_api.TF_SessionRun(_session, null, _inputs, _inputValues,
+                             _inputs.Length, _outputs, _outputValues, _outputValues.Length, _operations,
+                            _operations.Length, IntPtr.Zero, _status);
+                    }
+                    catch (Exception ex)
+                    {
+                        try
+                        {
+                            _status.Check(throwException: true);
+                        }
+                        catch (Exception statusException)
+                        {
+                            throw new AggregateException(statusException, ex);
+                        }
+
+                        // _status didn't provide more information, so just rethrow the original exception
+                        throw;
+                    }
                 }
 
                 _status.Check(true);

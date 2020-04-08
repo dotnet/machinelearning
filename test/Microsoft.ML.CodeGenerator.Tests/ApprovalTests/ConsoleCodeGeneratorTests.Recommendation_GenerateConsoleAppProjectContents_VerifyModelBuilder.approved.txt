@@ -11,6 +11,7 @@ using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using TestNamespace.Model;
+using Microsoft.ML.Trainers;
 
 namespace TestNamespace.ConsoleApp
 {
@@ -18,8 +19,7 @@ namespace TestNamespace.ConsoleApp
     {
         private static string TRAIN_DATA_FILEPATH = @"x:\dummypath\dummy_train.csv";
         private static string TEST_DATA_FILEPATH = @"x:\dummypath\dummy_test.csv";
-        private static string MODEL_FILEPATH = @"../../../../TestNamespace.Model/MLModel.zip";
-
+        private static string MODEL_FILEPATH = @"x:\models\model.zip";
         // Create MLContext to be shared across the model creation workflow objects 
         // Set a random seed for repeatable/deterministic results across multiple trainings.
         private static MLContext mlContext = new MLContext(seed: 1);
@@ -56,10 +56,11 @@ namespace TestNamespace.ConsoleApp
         public static IEstimator<ITransformer> BuildTrainingPipeline(MLContext mlContext)
         {
             // Data process configuration with pipeline data transformations 
-            var dataProcessPipeline = mlContext.Transforms.Concatenate("Out", new[] { "In" });
-
+            var dataProcessPipeline = mlContext.Transforms.Conversion.MapValueToKey("userId", "userId")
+                                      .Append(mlContext.Transforms.Conversion.MapValueToKey("movieId", "movieId"));
             // Set the training algorithm 
-            var trainer = mlContext.Recommendation().Trainers.MatrixFactorization(labelColumnName: "Label", matrixColumnIndexColumnName: "userId", matrixRowIndexColumnName: "movieId");
+            var trainer = mlContext.Recommendation().Trainers.MatrixFactorization(new MatrixFactorizationTrainer.Options() { MatrixColumnIndexColumnName = "userId", MatrixRowIndexColumnName = "movieId", LabelColumnName = "Label", NumberOfIterations = 10, LearningRate = 0.01f, ApproximationRank = 8, Lambda = 0.01f, LossFunction = MatrixFactorizationTrainer.LossFunctionType.SquareLossRegression, Alpha = 1f, C = 1E-05f });
+
             var trainingPipeline = dataProcessPipeline.Append(trainer);
 
             return trainingPipeline;

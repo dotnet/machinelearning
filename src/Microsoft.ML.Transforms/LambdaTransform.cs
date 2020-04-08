@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -40,14 +41,17 @@ namespace Microsoft.ML.Transforms
         {
             return new VersionInfo(
                 modelSignature: "CUSTOMXF",
-                verWrittenCur: 0x00010001,
-                verReadableCur: 0x00010001,
+                //verWrittenCur: 0x00010001,  // Initial
+                verWrittenCur: 0x00010002,  // Added name of assembly in which the contractName is present
+                verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(LambdaTransform).Assembly.FullName);
         }
 
-        internal static void SaveCustomTransformer(IExceptionContext ectx, ModelSaveContext ctx, string contractName)
+        private const uint VerAssemblyNameSaved = 0x00010002;
+
+        internal static void SaveCustomTransformer(IExceptionContext ectx, ModelSaveContext ctx, string contractName, string contractAssembly)
         {
             ectx.CheckValue(ctx, nameof(ctx));
             ectx.CheckValue(contractName, nameof(contractName));
@@ -56,6 +60,7 @@ namespace Microsoft.ML.Transforms
             ctx.SetVersionInfo(GetVersionInfo());
 
             ctx.SaveString(contractName);
+            ctx.SaveString(contractAssembly);
         }
 
         // Factory for SignatureLoadModel.
@@ -66,6 +71,12 @@ namespace Microsoft.ML.Transforms
             ctx.CheckAtModel(GetVersionInfo());
 
             var contractName = ctx.LoadString();
+            if (ctx.Header.ModelVerWritten >= VerAssemblyNameSaved)
+            {
+                var contractAssembly = ctx.LoadString();
+                Assembly assembly = Assembly.Load(contractAssembly);
+                env.ComponentCatalog.RegisterAssembly(assembly);
+            }
 
             object factoryObject = env.ComponentCatalog.GetExtensionValue(env, typeof(CustomMappingFactoryAttributeAttribute), contractName);
             if (!(factoryObject is ICustomMappingFactory mappingFactory))

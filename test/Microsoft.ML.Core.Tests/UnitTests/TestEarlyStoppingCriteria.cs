@@ -5,14 +5,19 @@
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers.FastTree;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.RunTests
 {
-    public sealed class TestEarlyStoppingCriteria
+    public sealed class TestEarlyStoppingCriteria : BaseTestClass
     {
+        public TestEarlyStoppingCriteria(ITestOutputHelper output) : base(output)
+        {
+        }
+
         private EarlyStoppingRuleBase CreateEarlyStoppingCriterion(string name, string args, bool lowerIsBetter)
         {
-            var env = new MLContext()
+            var env = new MLContext(1)
                 .AddStandardComponents();
             var sub = new SubComponent<EarlyStoppingRuleBase, SignatureEarlyStoppingCriterion>(name, args);
             return sub.CreateInstance(env, lowerIsBetter);
