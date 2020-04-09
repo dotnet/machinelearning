@@ -1703,8 +1703,10 @@ namespace Microsoft.ML.Tests
 
 
 
-        [Fact]
-        public void SelectColumnsOnnxTest()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void ColumnSelectingOnnxTest(bool keepColumns)
         {
             var mlContext = new MLContext(seed: 1);
 
@@ -1722,7 +1724,25 @@ namespace Microsoft.ML.Tests
                 new TextLoader.Column("Mitoses", DataKind.Int32, 9),
             });
 
-            var pipeline = mlContext.Transforms.ReplaceMissingValues("Size").Append(mlContext.Transforms.SelectColumns(new[] { "Size", "Shape", "Thickness", "Label" }));
+            var pipeline = mlContext.Transforms.ReplaceMissingValues("Size")
+                .Append(mlContext.Transforms.SelectColumns(new[] { "Size", "Shape", "Thickness", "Label" }));
+
+            if(!keepColumns)
+            {
+                // The ColumnSelectingTransformer can both select what columns to keep, as done above,
+                // or to choose what columns to drop.
+                //
+                // When keeping columns, it defaults to drop *all* hidden columns,
+                // when dropping columns it drops *all* the columns with the given names,
+                // but keeps the hidden columns with names not listed.
+                //
+                // Here, it drops columns:
+                pipeline = mlContext.Transforms.ReplaceMissingValues("Size")
+                .Append(mlContext.Transforms.DropColumns(new[] { "Adhesion", "EpithelialSize", "BlandChromatin", "NormalNucleoli", "Mitoses"}));
+
+                // Current implementation of OnnxTransformer drops *all* input columns that are used as inputs of
+                // the onnx model. So it will have a behavior similar to the SelectColumns, but will differ from DropColumns.
+            }
 
             var model = pipeline.Fit(dataView);
             var transformedData = model.Transform(dataView);
@@ -1745,11 +1765,27 @@ namespace Microsoft.ML.Tests
                 // Verify that onnx output has only the four columns we selected from the input
                 // And the the output of the onnxmodel has the same length as the output schema
                 Assert.Equal(4, outputNames.Length);
-                Assert.Equal(outputNames.Length, onnxResult.Schema.Count);
-                Assert.Equal("Size.output", outputNames[0]);
-                Assert.Equal("Shape.output", outputNames[1]);
-                Assert.Equal("Thickness.output", outputNames[2]);
-                Assert.Equal("Label.output", outputNames[3]);
+
+                if (keepColumns)
+                {
+                    // The order in the output of the onnx model is the same as in the SelectColumns parameters:
+                    Assert.Equal("Size.output", outputNames[0]);
+                    Assert.Equal("Shape.output", outputNames[1]);
+                    Assert.Equal("Thickness.output", outputNames[2]);
+                    Assert.Equal("Label.output", outputNames[3]);
+
+                    Assert.Equal(transformedData.Schema.Count, onnxResult.Schema.Count); // Both schemas have 4 columns
+                }
+                else
+                {
+                    // The order in the output of the onnx model is the same as in the text loader:
+                    Assert.Equal("Label.output", outputNames[0]);
+                    Assert.Equal("Thickness.output", outputNames[1]);
+                    Assert.Equal("Size.output", outputNames[2]);
+                    Assert.Equal("Shape.output", outputNames[3]);
+
+                    Assert.Equal(transformedData.Schema.Count - 1, onnxResult.Schema.Count); // transformedData schema keeps the column hidden by ReplaceMissingValues
+                }
 
                 CompareSelectedColumns<Single>("Size", "Size", transformedData, onnxResult);
                 CompareSelectedColumns<int>("Shape", "Shape", transformedData, onnxResult);
@@ -1757,11 +1793,14 @@ namespace Microsoft.ML.Tests
                 CompareSelectedColumns<bool>("Label", "Label", transformedData, onnxResult);
             }
 
-            onnxFileName = "SelectColumns.txt";
-            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "Transforms");
-            var onnxTextModelPath = GetOutputPath(subDir, onnxFileName);
-            SaveOnnxModel(onnxModel, null, onnxTextModelPath);
-            CheckEquality(subDir, onnxFileName, digitsOfPrecision: 1);
+            if(keepColumns)
+            {
+                onnxFileName = "SelectColumns.txt";
+                var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "Transforms");
+                var onnxTextModelPath = GetOutputPath(subDir, onnxFileName);
+                SaveOnnxModel(onnxModel, null, onnxTextModelPath);
+                CheckEquality(subDir, onnxFileName, digitsOfPrecision: 1);
+            }
 
             Done();
         }
@@ -1769,7 +1808,7 @@ namespace Microsoft.ML.Tests
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public void SelectColumnsOnnxTest2(bool saveToDisk)
+        public void ColumnSelectingOnnxTestColumnPropagation(bool saveToDisk)
         {
             // By default when exporting a ML.NET model to Onnx,
             // the onnx model will contain an "input node" for every
