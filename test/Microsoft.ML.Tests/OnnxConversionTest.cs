@@ -1749,6 +1749,9 @@ namespace Microsoft.ML.Tests
             var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
 
             var onnxFileName = "selectcolumns.onnx";
+            if (!keepColumns)
+                onnxFileName = "dropcolumns.onnx";
+
             var onnxModelPath = GetOutputPath(onnxFileName);
 
             SaveOnnxModel(onnxModel, onnxModelPath, null);
@@ -1873,7 +1876,8 @@ namespace Microsoft.ML.Tests
             var transformedData = model.Transform(dataView);
             var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, dataView);
 
-            var onnxModelPath = @"C:\Users\anvelazq\Desktop\selectcolumns.onnx";
+            var onnxFileName = "selectcolumns-columnpropagation.onnx";
+            var onnxModelPath = GetOutputPath(onnxFileName);
 
             SaveOnnxModel(onnxModel, onnxModelPath, null);
 
@@ -1888,10 +1892,9 @@ namespace Microsoft.ML.Tests
                 IDataView onnxResult = onnxTransformer.Transform(dataView);
                 if (saveToDisk)
                 {
-                    var path = @"C:\Users\anvelazq\Desktop\onnnnnx2.zip";
-                    var onnxTransformer2 = onnxTransformer.Append(mlContext.Transforms.SelectColumns("Shape").Fit(onnxResult));
-                    mlContext.Model.Save(onnxTransformer2, dataView.Schema, path);
-                    var loadedModel = mlContext.Model.Load(path, out _);
+                    var modelPath = GetOutputPath("selectcolumns - columnpropagation.zip");
+                    mlContext.Model.Save(onnxTransformer, dataView.Schema, modelPath);
+                    var loadedModel = mlContext.Model.Load(modelPath, out _);
                     onnxResult = loadedModel.Transform(dataView);
                 }
 
