@@ -37,7 +37,7 @@ namespace Microsoft.ML.Transforms.Onnx
     /// <summary>
     /// <see cref="ITransformer"/> resulting from fitting an <see cref="OnnxScoringEstimator"/>.
     /// </summary>
-    public sealed class OnnxTransformer : RowToRowTransformerBase
+    public sealed class OnnxTransformer : RowToRowTransformerBase // MYTODO: Should I consider not to inherit from this, since now OnnxTransformer would be able to drop columns and not use the RowToRowMapperTransform?
     {
         /// <summary>
         /// A class used for capturing shape information from command line.
@@ -194,7 +194,7 @@ namespace Microsoft.ML.Transforms.Onnx
         }
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema) => new Mapper(Create(env, ctx), inputSchema);
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema) => Create(env, ctx).MakeRowMapper(inputSchema); // MYTODO: In what scenario is this called? Should I worry that the mapper, only by itself, isn't capable of dropping columns?
 
         private OnnxTransformer(IHostEnvironment env, Options options, byte[] modelBytes = null) :
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(OnnxTransformer)))
@@ -330,7 +330,7 @@ namespace Microsoft.ML.Transforms.Onnx
             }
         }
 
-        private protected override IRowMapper MakeRowMapper(DataViewSchema inputSchema) => new Mapper(this, inputSchema); // MYTODO: Should I also worry about this since the Mapper, by itself, doesn't have the behavior of dropping the columns? In what cased is this used? Could erase this if I stop inheriting from RTRTB
+        private protected override IRowMapper MakeRowMapper(DataViewSchema inputSchema) => new Mapper(this, inputSchema); // MYTODO: Could I erase this? If I stop inheriting from RTRTB?
 
         protected override IRowToRowMapper GetRowToRowMapperCore(DataViewSchema inputSchema)
         {
@@ -340,7 +340,7 @@ namespace Microsoft.ML.Transforms.Onnx
 
         protected override DataViewSchema GetOutputSchemaCore(DataViewSchema inputSchema)
         {
-            return new OnnxDataTransform(Host, new EmptyDataView(Host, inputSchema), new Mapper(this, inputSchema)).OutputSchema;
+            return OnnxDataTransform.GetOutputSchema(inputSchema, new Mapper(this, inputSchema));
         }
 
         private protected override IDataView MakeDataTransformCore(IDataView input)
@@ -365,7 +365,7 @@ namespace Microsoft.ML.Transforms.Onnx
         /// <summary>
         /// In order to fully support onnx exportability from <see cref="ColumnSelectingTransformer"/>, it was decided
         /// that the <see cref="OnnxTransformer"/> should drop all columns that are used as input of the Onnx model,
-        /// but which aren't part of the Onnx model's output.
+        /// from the input schema.
         ///
         /// Any column that was already inside the input schema, but which isn't used by the onnx model itself,
         /// should simply propagate to the output.
@@ -391,11 +391,6 @@ namespace Microsoft.ML.Transforms.Onnx
             /// <see cref="_inputOnnxTypes"/>'s i-th element value tells if the <see cref="Type"/> of the i-th ONNX input.
             /// </summary>
             private readonly Type[] _inputOnnxTypes;
-
-            //private readonly DataViewSchema _outputSchema;
-
-            //public DataViewSchema OutputSchema => _parent.GetOutputSchema(InputSchema);
-            // public DataViewSchema OutputSchema => _outputSchema;
 
             public Mapper(OnnxTransformer parent, DataViewSchema inputSchema) :
                  base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema, parent)
@@ -448,10 +443,7 @@ namespace Microsoft.ML.Transforms.Onnx
                         throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {String.Join(",", inputShape)}, but input data is of length {typeValueCount}.");
                 }
 
-                // _outputSchema = GetOutputSchema();
             }
-
-            // public DataViewSchema.DetachedColumn[] GetOutputColumns() => GetOutputColumnsCore();
 
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
@@ -468,15 +460,6 @@ namespace Microsoft.ML.Transforms.Onnx
                     info[i] = new DataViewSchema.DetachedColumn(columnName, _parent.OutputTypes[i], builder.ToAnnotations());
                 }
                 return info;
-            }
-
-            internal DataViewSchema GetOutputSchema() // MYTODO: Consider moving this to the OnnxDataTransform to avoid making this internal
-            {
-                var infos = GetOutputColumnsCore();
-                var schemaBuilder = new DataViewSchema.Builder();
-                schemaBuilder.AddColumns(infos);
-
-                return schemaBuilder.ToSchema();
             }
 
             private void AddSlotNames(string columnName, DataViewSchema.Annotations.Builder builder)
@@ -503,7 +486,6 @@ namespace Microsoft.ML.Transforms.Onnx
 
                 builder.AddSlotNames(count, getter);
             }
-            public Func<int, bool> GetDependencies(Func<int, bool> activeOutput) => GetDependenciesCore(activeOutput);
 
             private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
             {
@@ -743,12 +725,7 @@ namespace Microsoft.ML.Transforms.Onnx
             }
 
             /// <summary>
-            /// In order to fully support onnx exportability from <see cref="ColumnSelectingTransformer"/>, it was decided
-            /// that the <see cref="OnnxTransformer"/> should drop all columns that are used as input of the Onnx model,
-            /// but which aren't part of the Onnx model's output.
-            ///
-            /// Any column that was already inside the input schema, but which isn't used by the onnx model itself,
-            /// should simply propagate to the output.
+            /// <see cref="OnnxTransformer.GetDropColumnsNames"/>
             /// </summary>
             public string[] GetDropColumnsNames()
             {
@@ -763,6 +740,8 @@ namespace Microsoft.ML.Transforms.Onnx
         [BestFriend] // MYTODO: Is this necessary?
         internal sealed class Bindings // MYTODO: Should I move this inside OnnxDataTransform?
         {
+            // MYTODO: Should I simply inherit from ColumnBindings, since everything is the same except for the constructor (specifically, only, the way it created the _colMap)?
+
             // Indices of columns in the merged schema. Old indices are as is, new indices are stored as ~idx.
             private readonly int[] _colMap;
 
@@ -900,41 +879,35 @@ namespace Microsoft.ML.Transforms.Onnx
             }
         }
 
-        private class OnnxDataTransform : TransformBase, IRowToRowMapper
+        private class OnnxDataTransform : RowToRowTransformBase, IRowToRowMapper
         {
-            private readonly Mapper _mapper;
-            //private readonly DataViewSchema _outputSchema;
-            private readonly Bindings _bindings;
+            // MYTODO: Is it even worth it to have this OnnxDataTransform class when it (including the RowImpl and Cursor)
+            // are identical to the RowToRowMapperTransform? The differences are:
+            // - This one expects specifically a OnnxTransformer.Mapper as _mapper from where to get the GetColumnsNames, whereas RTRMT expects a generic IRowMapper
+            // - This one has a _bindings object which is off type OnnxTransformer.Bindings, whereas RTRMT expects a generic ColumnsBindings
+            // - This one in here has a differend override for the Save method
+            // - This one in here doesn't have (but I don't know if it could have) methods related to SaveOnnx, SavePfa, ApplyToData, and VersionInfo of RTRMT.
+            // - RTRMT has an extra member called "_mapperFactory" that is used in ApplyToData
 
-            public OnnxDataTransform(IHostEnvironment env, IDataView input, Mapper mapper)
-                :base(env.Register(nameof(OnnxDataTransform)), input)
-            {
-                _mapper = mapper;
-                //_outputSchema = _mapper.GetOutputSchema();
-                _bindings = new Bindings(input.Schema, mapper.GetDropColumnsNames().ToList(), (mapper as IRowMapper).GetOutputColumns());
-            }
+            private protected override void SaveModel(ModelSaveContext ctx) => (_mapper as IRowMapper).Save(ctx); // MYTODO: This is the only thing that differ between this and RTRMT. Wonder if it would work if I used theirs instead?
+
+            private readonly Mapper _mapper;
+            private readonly Bindings _bindings;
 
             public override DataViewSchema OutputSchema => _bindings.Schema;
 
-            public DataViewSchema Schema => OutputSchema;
-
-            public DataViewSchema InputSchema => Source.Schema;
-
-            public override long? GetRowCount() => Source.GetRowCount();
-
-            // public void Save(ModelSaveContext ctx) => (_mapper as IRowMapper).Save(ctx);
-
-            private Func<int, bool> GetActiveOutputColumns(bool[] active)
+            public OnnxDataTransform(IHostEnvironment env, IDataView input, Mapper mapper)
+                : base(env.Register(nameof(OnnxDataTransform)), input)
             {
-                Contracts.AssertValue(active);
-                Contracts.Assert(active.Length == _bindings.Schema.Count);
+                _mapper = mapper;
+                _bindings = new Bindings(input.Schema, mapper.GetDropColumnsNames().ToList(), (mapper as IRowMapper).GetOutputColumns());
+            }
 
-                return
-                    col =>
-                    {
-                        Contracts.Assert(0 <= col && col < _bindings.AddedColumnIndices.Count);
-                        return 0 <= col && col < _bindings.AddedColumnIndices.Count && active[_bindings.AddedColumnIndices[col]];
-                    };
+            public static DataViewSchema GetOutputSchema(DataViewSchema inputSchema, Mapper mapper)
+            {
+                Contracts.CheckValue(inputSchema, nameof(inputSchema));
+                Contracts.CheckValue(mapper, nameof(mapper));
+                return new Bindings(inputSchema, mapper.GetDropColumnsNames().ToList(), (mapper as IRowMapper).GetOutputColumns()).Schema;
             }
 
             /// <summary>
@@ -954,12 +927,25 @@ namespace Microsoft.ML.Transforms.Onnx
                 var predicateOut = GetActiveOutputColumns(active);
 
                 // Now map those to active input columns.
-                var predicateIn = _mapper.GetDependencies(predicateOut);
+                var predicateIn = (_mapper as IRowMapper).GetDependencies(predicateOut);
 
                 // Combine the two sets of input columns.
                 inputColumns = _bindings.InputSchema.Where(col => activeInput[col.Index] || predicateIn(col.Index));
 
                 return active;
+            }
+
+            private Func<int, bool> GetActiveOutputColumns(bool[] active)
+            {
+                Contracts.AssertValue(active);
+                Contracts.Assert(active.Length == _bindings.Schema.Count);
+
+                return
+                    col =>
+                    {
+                        Contracts.Assert(0 <= col && col < _bindings.AddedColumnIndices.Count);
+                        return 0 <= col && col < _bindings.AddedColumnIndices.Count && active[_bindings.AddedColumnIndices[col]];
+                    };
             }
 
             protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
@@ -1008,6 +994,8 @@ namespace Microsoft.ML.Transforms.Onnx
                 return inputColumns;
             }
 
+            public DataViewSchema InputSchema => Source.Schema;
+
             DataViewRow IRowToRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
                 Host.CheckValue(input, nameof(input));
@@ -1024,11 +1012,10 @@ namespace Microsoft.ML.Transforms.Onnx
                     }
                     var pred = GetActiveOutputColumns(activeArr);
                     var getters = (_mapper as IRowMapper).CreateGetters(input, pred, out Action disp);
+
                     return new RowImpl(input, this, OutputSchema, getters, disp);
                 }
             }
-
-            private protected override void SaveModel(ModelSaveContext ctx) => (_mapper as IRowMapper).Save(ctx);
 
             // MYTODO: Should I also copy in here the ApplyToData method from RowToRowMapperTransform?
 

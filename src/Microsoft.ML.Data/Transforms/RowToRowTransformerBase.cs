@@ -52,7 +52,7 @@ namespace Microsoft.ML.Data
 
         private protected virtual IDataView MakeDataTransformCore(IDataView input) => MakeDataTransform(input);
 
-        [BestFriend]
+        [BestFriend] // MYTODO: Since this is "BestFriend" here, should I also make the MakeDataTransformCore in OnnxDataTransform a "BestFriend"? What's the purpose?
         private protected RowToRowMapperTransform MakeDataTransform(IDataView input)
         {
             Host.CheckValue(input, nameof(input));
