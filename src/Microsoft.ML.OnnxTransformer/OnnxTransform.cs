@@ -37,7 +37,7 @@ namespace Microsoft.ML.Transforms.Onnx
     /// <summary>
     /// <see cref="ITransformer"/> resulting from fitting an <see cref="OnnxScoringEstimator"/>.
     /// </summary>
-    public sealed class OnnxTransformer : RowToRowTransformerBase
+    public sealed class OnnxTransformer : RowToRowTransformerBase // MYTODO: Should I consider not to inherit from this, since now OnnxTransformer would be able to drop columns and not use the RowToRowMapperTransform?
     {
         /// <summary>
         /// A class used for capturing shape information from command line.
@@ -134,12 +134,18 @@ namespace Microsoft.ML.Transforms.Onnx
         // Factory method for SignatureDataTransform
         private static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
-            return new OnnxTransformer(env, options).MakeDataTransform(input);
+            var transformer = new OnnxTransformer(env, options);
+            var mapper = new Mapper(transformer, input.Schema);
+            return new OnnxDataTransform(env, input, mapper);
         }
 
         // Factory method for SignatureLoadDataTransform
         private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
-            => Create(env, ctx).MakeDataTransform(input);
+        {
+            var transformer = OnnxTransformer.Create(env, ctx);
+            var mapper = new Mapper(transformer, input.Schema);
+            return new OnnxDataTransform(env, input, mapper);
+        }
 
         // Factory method for SignatureLoadModel.
         private static OnnxTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -188,8 +194,7 @@ namespace Microsoft.ML.Transforms.Onnx
         }
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(inputSchema);
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema) => Create(env, ctx).MakeRowMapper(inputSchema); // MYTODO: In what scenario is this called? Should I worry that the mapper, only by itself, isn't capable of dropping columns?
 
         private OnnxTransformer(IHostEnvironment env, Options options, byte[] modelBytes = null) :
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(OnnxTransformer)))
@@ -325,7 +330,24 @@ namespace Microsoft.ML.Transforms.Onnx
             }
         }
 
-        private protected override IRowMapper MakeRowMapper(DataViewSchema inputSchema) => new Mapper(this, inputSchema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema inputSchema) => new Mapper(this, inputSchema); // MYTODO: Could I erase this? If I stop inheriting from RTRTB?
+
+        protected override IRowToRowMapper GetRowToRowMapperCore(DataViewSchema inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+            return new OnnxDataTransform(Host, new EmptyDataView(Host, inputSchema), new Mapper(this, inputSchema));
+        }
+
+        protected override DataViewSchema GetOutputSchemaCore(DataViewSchema inputSchema)
+        {
+            return OnnxDataTransform.GetOutputSchema(inputSchema, new Mapper(this, inputSchema));
+        }
+
+        private protected override IDataView MakeDataTransformCore(IDataView input)
+        {
+            Host.CheckValue(input, nameof(input));
+            return new OnnxDataTransform(Host, input, new Mapper(this, input.Schema));
+        }
 
         /// <summary>
         /// This design assumes that all unknown dimensions are 1s. It also convert scalar shape [] in ONNX to [1].
@@ -338,6 +360,19 @@ namespace Microsoft.ML.Transforms.Onnx
                 return shape.Select(x => (x <= 0) ? 1 : x);
             }
             return new[] { 1 };
+        }
+
+        /// <summary>
+        /// In order to fully support onnx exportability from <see cref="ColumnSelectingTransformer"/>, it was decided
+        /// that the <see cref="OnnxTransformer"/> should drop all columns that are used as input of the Onnx model,
+        /// from the input schema.
+        ///
+        /// Any column that was already inside the input schema, but which isn't used by the onnx model itself,
+        /// should simply propagate to the output.
+        /// </summary>
+        internal string[] GetDropColumnsNames()
+        {
+            return Model.ModelInfo.InputNames.ToArray();
         }
 
         private sealed class Mapper : MapperBase
@@ -407,6 +442,7 @@ namespace Microsoft.ML.Transforms.Onnx
                     if (typeValueCount % valCount != 0)
                         throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {String.Join(",", inputShape)}, but input data is of length {typeValueCount}.");
                 }
+
             }
 
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
@@ -687,6 +723,422 @@ namespace Microsoft.ML.Transforms.Onnx
                     return OnnxUtils.CreateNamedOnnxValue(_colName, _vBufferDense.GetValues(), _tensorShape);
                 }
             }
+
+            /// <summary>
+            /// <see cref="OnnxTransformer.GetDropColumnsNames"/>
+            /// </summary>
+            public string[] GetDropColumnsNames()
+            {
+                return _parent.GetDropColumnsNames();
+            }
+        }
+
+        /// <summary>
+        /// Similar to <see cref="ColumnBindings"/>, but this class will enable dropping columns from the input
+        /// schema, in order to let OnnxTransformer support the <see cref="ColumnSelectingTransformer"/> onnx export.
+        /// </summary>
+        [BestFriend] // MYTODO: Is this necessary?
+        internal sealed class Bindings // MYTODO: Should I move this inside OnnxDataTransform?
+        {
+            // MYTODO: Should I simply inherit from ColumnBindings, since everything is the same except for the constructor (specifically, only, the way it created the _colMap)?
+
+            // Indices of columns in the merged schema. Old indices are as is, new indices are stored as ~idx.
+            private readonly int[] _colMap;
+
+            /// <summary>
+            /// The indices of added columns in the <see cref="Schema"/>.
+            /// </summary>
+            public IReadOnlyList<int> AddedColumnIndices { get; }
+
+            /// <summary>
+            /// The input schema.
+            /// </summary>
+            public DataViewSchema InputSchema { get; }
+
+            /// <summary>
+            /// The merged schema.
+            /// </summary>
+            public DataViewSchema Schema { get; }
+
+            /// <summary>
+            /// Create a new instance of <see cref="Bindings"/>.
+            /// </summary>
+            /// <param name="input">The input schema that we're adding columns to.</param>
+            /// <param name="dropColumnsNames">Names of the columns to drop, so that they don't propagate from the input schema</param>
+            /// <param name="addedColumns">The columns being added.</param>
+            public Bindings(DataViewSchema input, List<string> dropColumnsNames, DataViewSchema.DetachedColumn[] addedColumns)
+            {
+                Contracts.CheckValue(input, nameof(input));
+                Contracts.CheckValue(addedColumns, nameof(addedColumns));
+
+                InputSchema = input;
+
+                // Construct the indices.
+                // Drop the indicated columns
+                // And drop all hidden columns
+                var indices = new List<int>();
+                var namesUsed = new HashSet<string>();
+                for (int i = 0; i < input.Count; i++)
+                {
+                    if (InputSchema[i].IsHidden || dropColumnsNames.Contains(InputSchema[i].Name)) // MYTODO: Should I drop all hidden columns? Only the ones that are inside the dropColumnsNames list?
+                        continue;
+
+                    namesUsed.Add(input[i].Name);
+                    indices.Add(i);
+                }
+
+                for (int i = 0; i < addedColumns.Length; i++)
+                {
+                    string name = addedColumns[i].Name;
+                    if (namesUsed.Add(name))
+                    {
+                        // New name. Append to the end.
+                        indices.Add(~i);
+                    }
+                    else
+                    {
+                        // Old name. Find last instance and add after it.
+                        for (int j = indices.Count - 1; j >= 0; j--)
+                        {
+                            var colName = indices[j] >= 0 ? input[indices[j]].Name : addedColumns[~indices[j]].Name;
+                            if (colName == name)
+                            {
+                                indices.Insert(j + 1, ~i);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // Contracts.Assert(indices.Count == addedColumns.Length + input.Count); // MYTODO: This assertion is no longer valid, and I can't think of a better one
+
+                // Create the output schema.
+                var schemaColumns = indices.Select(idx => idx >= 0 ? new DataViewSchema.DetachedColumn(input[idx]) : addedColumns[~idx]);
+                Schema = SchemaExtensions.MakeSchema(schemaColumns);
+
+                // Memorize column maps.
+                _colMap = indices.ToArray();
+                var addedIndices = new int[addedColumns.Length];
+                for (int i = 0; i < _colMap.Length; i++)
+                {
+                    int colIndex = _colMap[i];
+                    if (colIndex < 0)
+                    {
+                        Contracts.Assert(addedIndices[~colIndex] == 0);
+                        addedIndices[~colIndex] = i;
+                    }
+                }
+
+                AddedColumnIndices = addedIndices.AsReadOnly();
+            }
+
+            /// <summary>
+            /// This maps a column index for this schema to either a source column index (when
+            /// <paramref name="isSrcColumn"/> is true), or to an "iinfo" index of an added column
+            /// (when <paramref name="isSrcColumn"/> is false).
+            /// </summary>
+            /// <param name="isSrcColumn">Whether the return index is for a source column</param>
+            /// <param name="col">The column index for this schema</param>
+            /// <returns>The index (either source index or iinfo index)</returns>
+            public int MapColumnIndex(out bool isSrcColumn, int col)
+            {
+                Contracts.Assert(0 <= col && col < _colMap.Length);
+                int index = _colMap[col];
+                if (index < 0)
+                {
+                    index = ~index;
+                    Contracts.Assert(index < AddedColumnIndices.Count);
+                    isSrcColumn = false;
+                }
+                else
+                {
+                    Contracts.Assert(index < InputSchema.Count);
+                    isSrcColumn = true;
+                }
+                return index;
+            }
+
+            /// <summary>
+            /// The given predicate maps from output column index to whether the column is active.
+            /// This builds an array of bools of length Input.ColumnCount containing the results of calling
+            /// predicate on the output column index corresponding to each input column index.
+            /// </summary>
+            public bool[] GetActiveInput(Func<int, bool> predicate)
+            {
+                Contracts.AssertValue(predicate);
+
+                var active = new bool[InputSchema.Count];
+                for (int dst = 0; dst < _colMap.Length; dst++)
+                {
+                    int src = _colMap[dst];
+                    Contracts.Assert(-AddedColumnIndices.Count <= src && src < InputSchema.Count);
+                    if (src >= 0 && predicate(dst))
+                        active[src] = true;
+                }
+                return active;
+            }
+        }
+
+        private class OnnxDataTransform : RowToRowTransformBase, IRowToRowMapper
+        {
+            // MYTODO: Is it even worth it to have this OnnxDataTransform class when it (including the RowImpl and Cursor)
+            // are identical to the RowToRowMapperTransform? The differences are:
+            // - This one expects specifically a OnnxTransformer.Mapper as _mapper from where to get the GetColumnsNames, whereas RTRMT expects a generic IRowMapper
+            // - This one has a _bindings object which is off type OnnxTransformer.Bindings, whereas RTRMT expects a generic ColumnsBindings
+            // - This one in here has a differend override for the Save method
+            // - This one in here doesn't have (but I don't know if it could have) methods related to SaveOnnx, SavePfa, ApplyToData, and VersionInfo of RTRMT.
+            // - RTRMT has an extra member called "_mapperFactory" that is used in ApplyToData
+
+            private protected override void SaveModel(ModelSaveContext ctx) => (_mapper as IRowMapper).Save(ctx); // MYTODO: This is the only thing that differ between this and RTRMT. Wonder if it would work if I used theirs instead?
+
+            private readonly Mapper _mapper;
+            private readonly Bindings _bindings;
+
+            public override DataViewSchema OutputSchema => _bindings.Schema;
+
+            public OnnxDataTransform(IHostEnvironment env, IDataView input, Mapper mapper)
+                : base(env.Register(nameof(OnnxDataTransform)), input)
+            {
+                _mapper = mapper;
+                _bindings = new Bindings(input.Schema, mapper.GetDropColumnsNames().ToList(), (mapper as IRowMapper).GetOutputColumns());
+            }
+
+            public static DataViewSchema GetOutputSchema(DataViewSchema inputSchema, Mapper mapper)
+            {
+                Contracts.CheckValue(inputSchema, nameof(inputSchema));
+                Contracts.CheckValue(mapper, nameof(mapper));
+                return new Bindings(inputSchema, mapper.GetDropColumnsNames().ToList(), (mapper as IRowMapper).GetOutputColumns()).Schema;
+            }
+
+            /// <summary>
+            /// Produces the set of active columns for the data view (as a bool[] of length bindings.ColumnCount),
+            /// and the needed active input columns, given a predicate for the needed active output columns.
+            /// </summary>
+            private bool[] GetActive(Func<int, bool> predicate, out IEnumerable<DataViewSchema.Column> inputColumns)
+            {
+                int n = _bindings.Schema.Count;
+                var active = Utils.BuildArray(n, predicate);
+                Contracts.Assert(active.Length == n);
+
+                var activeInput = _bindings.GetActiveInput(predicate);
+                Contracts.Assert(activeInput.Length == _bindings.InputSchema.Count);
+
+                // Get a predicate that determines which outputs are active.
+                var predicateOut = GetActiveOutputColumns(active);
+
+                // Now map those to active input columns.
+                var predicateIn = (_mapper as IRowMapper).GetDependencies(predicateOut);
+
+                // Combine the two sets of input columns.
+                inputColumns = _bindings.InputSchema.Where(col => activeInput[col.Index] || predicateIn(col.Index));
+
+                return active;
+            }
+
+            private Func<int, bool> GetActiveOutputColumns(bool[] active)
+            {
+                Contracts.AssertValue(active);
+                Contracts.Assert(active.Length == _bindings.Schema.Count);
+
+                return
+                    col =>
+                    {
+                        Contracts.Assert(0 <= col && col < _bindings.AddedColumnIndices.Count);
+                        return 0 <= col && col < _bindings.AddedColumnIndices.Count && active[_bindings.AddedColumnIndices[col]];
+                    };
+            }
+
+            protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
+            {
+                Host.AssertValue(predicate, "predicate");
+                if (_bindings.AddedColumnIndices.Any(predicate)) // MYTODO: This is copied from RowToRowMapperTransform. Why is this the case, and it ignores all the other columns that propagate from the input?
+                    return true;
+                return null;
+            }
+
+            protected override DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
+            {
+                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
+                var active = GetActive(predicate, out IEnumerable<DataViewSchema.Column> inputCols);
+
+                return new Cursor(Host, Source.GetRowCursor(inputCols, rand), this, active);
+            }
+
+            public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
+            {
+                Host.CheckValueOrNull(rand);
+
+                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
+                var active = GetActive(predicate, out IEnumerable<DataViewSchema.Column> inputCols);
+
+                var inputs = Source.GetRowCursorSet(inputCols, n, rand);
+                Host.AssertNonEmpty(inputs);
+
+                if (inputs.Length == 1 && n > 1 && _bindings.AddedColumnIndices.Any(predicate)) // MYTODO: This is copied from TowToRowMapperTransform. Shouldn't the last check actually call ShouldUseParallel?
+                    inputs = DataViewUtils.CreateSplitCursors(Host, inputs[0], n);
+                Host.AssertNonEmpty(inputs);
+
+                var cursors = new DataViewRowCursor[inputs.Length];
+                for (int i = 0; i < inputs.Length; i++)
+                    cursors[i] = new Cursor(Host, inputs[i], this, active);
+                return cursors;
+            }
+
+            /// <summary>
+            /// Given a set of output columns, return the input columns that are needed to generate those output columns.
+            /// </summary>
+            IEnumerable<DataViewSchema.Column> IRowToRowMapper.GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
+            {
+                var predicate = RowCursorUtils.FromColumnsToPredicate(dependingColumns, OutputSchema);
+                GetActive(predicate, out var inputColumns);
+                return inputColumns;
+            }
+
+            public DataViewSchema InputSchema => Source.Schema;
+
+            DataViewRow IRowToRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
+            {
+                Host.CheckValue(input, nameof(input));
+                Host.CheckValue(activeColumns, nameof(activeColumns));
+                Host.Check(input.Schema == Source.Schema, "Schema of input row must be the same as the schema the mapper is bound to");
+
+                using (var ch = Host.Start("GetEntireRow"))
+                {
+                    var activeArr = new bool[OutputSchema.Count];
+                    foreach (var column in activeColumns)
+                    {
+                        Host.Assert(column.Index < activeArr.Length, $"The columns {activeColumns.Select(c => c.Name)} are not suitable for the OutputSchema.");
+                        activeArr[column.Index] = true;
+                    }
+                    var pred = GetActiveOutputColumns(activeArr);
+                    var getters = (_mapper as IRowMapper).CreateGetters(input, pred, out Action disp);
+
+                    return new RowImpl(input, this, OutputSchema, getters, disp);
+                }
+            }
+
+            // MYTODO: Should I also copy in here the ApplyToData method from RowToRowMapperTransform?
+
+            private sealed class RowImpl : WrappingRow
+            {
+                private readonly Delegate[] _getters;
+                private readonly OnnxDataTransform _parent;
+                private readonly Action _disposer;
+
+                public override DataViewSchema Schema { get; }
+
+                public RowImpl(DataViewRow input, OnnxDataTransform parent, DataViewSchema schema, Delegate[] getters, Action disposer)
+                    : base(input)
+                {
+                    _parent = parent;
+                    Schema = schema;
+                    _getters = getters;
+                    _disposer = disposer;
+                }
+
+                protected override void DisposeCore(bool disposing)
+                {
+                    if (disposing)
+                        _disposer?.Invoke();
+                }
+
+                /// <summary>
+                /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+                /// This throws if the column is not active in this row, or if the type
+                /// <typeparamref name="TValue"/> differs from this column's type.
+                /// </summary>
+                /// <typeparam name="TValue"> is the column's content type.</typeparam>
+                /// <param name="column"> is the output column whose getter should be returned.</param>
+                public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
+                {
+                    bool isSrc;
+                    int index = _parent._bindings.MapColumnIndex(out isSrc, column.Index);
+                    if (isSrc)
+                        return Input.GetGetter<TValue>(Input.Schema[index]);
+
+                    Contracts.Assert(_getters[index] != null);
+                    var fn = _getters[index] as ValueGetter<TValue>;
+                    if (fn == null)
+                        throw Contracts.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));
+                    return fn;
+                }
+
+                /// <summary>
+                /// Returns whether the given column is active in this row.
+                /// </summary>
+                public override bool IsColumnActive(DataViewSchema.Column column)
+                {
+                    bool isSrc;
+                    int index = _parent._bindings.MapColumnIndex(out isSrc, column.Index);
+                    if (isSrc)
+                        return Input.IsColumnActive(Schema[index]);
+                    return _getters[index] != null;
+                }
+            }
+
+            private sealed class Cursor : SynchronizedCursorBase
+            {
+                private readonly Delegate[] _getters;
+                private readonly bool[] _active;
+                private readonly Bindings _bindings;
+                private readonly Action _disposer;
+                private bool _disposed;
+
+                public override DataViewSchema Schema => _bindings.Schema;
+
+                public Cursor(IChannelProvider provider, DataViewRowCursor realInput, OnnxDataTransform parent, bool[] active)
+                    : base(provider, realInput)
+                {
+                    var pred = parent.GetActiveOutputColumns(active);
+                    _getters = (parent._mapper as IRowMapper).CreateGetters(realInput, pred, out _disposer);
+                    _active = active;
+                    _bindings = parent._bindings;
+                }
+
+                /// <summary>
+                /// Returns whether the given column is active in this row.
+                /// </summary>
+                public override bool IsColumnActive(DataViewSchema.Column column)
+                {
+                    Ch.Check(column.Index < _bindings.Schema.Count);
+                    return _active[column.Index];
+                }
+
+                /// <summary>
+                /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+                /// This throws if the column is not active in this row, or if the type
+                /// <typeparamref name="TValue"/> differs from this column's type.
+                /// </summary>
+                /// <typeparam name="TValue"> is the column's content type.</typeparam>
+                /// <param name="column"> is the output column whose getter should be returned.</param>
+                public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
+                {
+                    Ch.Check(IsColumnActive(column));
+
+                    bool isSrc;
+                    int index = _bindings.MapColumnIndex(out isSrc, column.Index);
+                    if (isSrc)
+                        return Input.GetGetter<TValue>(Input.Schema[index]);
+
+                    Ch.AssertValue(_getters);
+                    var getter = _getters[index];
+                    Ch.Assert(getter != null);
+                    var fn = getter as ValueGetter<TValue>;
+                    if (fn == null)
+                        throw Ch.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));
+                    return fn;
+                }
+
+                protected override void Dispose(bool disposing)
+                {
+                    if (_disposed)
+                        return;
+                    if (disposing)
+                        _disposer?.Invoke();
+                    _disposed = true;
+                    base.Dispose(disposing);
+                }
+            }
         }
     }
 
@@ -775,8 +1227,6 @@ namespace Microsoft.ML.Transforms.Onnx
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.ToDictionary(x => x.Name);
-            var resultDic = inputSchema.ToDictionary(x => x.Name);
 
             // This loop checks if all input columns needed in the underlying transformer can be found
             // in inputSchema.
@@ -805,6 +1255,9 @@ namespace Microsoft.ML.Transforms.Onnx
                 if (col.ItemType != expectedType)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());
             }
+
+            var droppedInputs = new List<string>(Transformer.GetDropColumnsNames());
+            var resultDic = inputSchema.Where(col => !droppedInputs.Contains(col.Name)).ToDictionary(x => x.Name); // MYTODO: Is this enough? Does SchemaShape should also worry about "hidden" columns?
 
             for (var i = 0; i < Transformer.Outputs.Length; i++)
             {

@@ -28,7 +28,9 @@ namespace Microsoft.ML.Data
 
         bool ITransformer.IsRowToRowMapper => true;
 
-        IRowToRowMapper ITransformer.GetRowToRowMapper(DataViewSchema inputSchema)
+        IRowToRowMapper ITransformer.GetRowToRowMapper(DataViewSchema inputSchema) => GetRowToRowMapperCore(inputSchema);
+
+        protected virtual IRowToRowMapper GetRowToRowMapperCore(DataViewSchema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             return new RowToRowMapperTransform(Host, new EmptyDataView(Host, inputSchema), MakeRowMapper(inputSchema), MakeRowMapper);
@@ -37,16 +39,20 @@ namespace Microsoft.ML.Data
         [BestFriend]
         private protected abstract IRowMapper MakeRowMapper(DataViewSchema schema);
 
-        public DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
+        public DataViewSchema GetOutputSchema(DataViewSchema inputSchema) => GetOutputSchemaCore(inputSchema);
+
+        protected virtual DataViewSchema GetOutputSchemaCore(DataViewSchema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             var mapper = MakeRowMapper(inputSchema);
             return RowToRowMapperTransform.GetOutputSchema(inputSchema, mapper);
         }
 
-        public IDataView Transform(IDataView input) => MakeDataTransform(input);
+        public IDataView Transform(IDataView input) => MakeDataTransformCore(input);
 
-        [BestFriend]
+        private protected virtual IDataView MakeDataTransformCore(IDataView input) => MakeDataTransform(input);
+
+        [BestFriend] // MYTODO: Since this is "BestFriend" here, should I also make the MakeDataTransformCore in OnnxDataTransform a "BestFriend"? What's the purpose?
         private protected RowToRowMapperTransform MakeDataTransform(IDataView input)
         {
             Host.CheckValue(input, nameof(input));
