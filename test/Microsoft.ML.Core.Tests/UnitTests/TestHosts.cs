@@ -5,11 +5,15 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,8 +25,26 @@ namespace Microsoft.ML.RunTests
         {
         }
 
-        [Fact]
-        public void TestCancellation()
+        [Theory]
+        [IterationData(iterations: 100)]
+        [Trait("Category", "RunSpecificTest")]
+        public void CompletesTestCancellationInTime(int iterations)
+        {
+            Output.WriteLine($"{iterations} - th");
+
+            int timeout = 10 * 60 * 1000;
+
+            var runTask = Task.Run(TestCancellation);
+            var timeoutTask = Task.Delay(timeout + iterations);
+            var finishedTask = Task.WhenAny(timeoutTask, runTask).Result;
+            if (finishedTask == timeoutTask)
+            {
+                Console.WriteLine("TestCancellation test Hanging: fail to complete in 10 minutes");
+                Environment.FailFast("Fail here to take memory dump");
+            }
+        }
+
+        private void TestCancellation()
         {
             IHostEnvironment env = new MLContext(seed: 42);
             for (int z = 0; z < 1000; z++)
@@ -50,7 +72,7 @@ namespace Microsoft.ML.RunTests
                             children[randHostTuple.Item1] = new List<IHost>();
                         else
                             children[randHostTuple.Item1].Add(newHost);
-                    }
+                        }
                 });
                 addThread.Start();
                 Queue<IHost> queue = new Queue<IHost>();
@@ -61,9 +83,12 @@ namespace Microsoft.ML.RunTests
                     do
                     {
                         index = rand.Next(hosts.Count);
-                    } while ((hosts.ElementAt(index).Item1 as ICancelable).IsCanceled || 
-                              hosts.ElementAt(index).Item2 > 1);
+                    } while ((hosts.ElementAt(index).Item1 as ICancelable).IsCanceled ||
+                              hosts.ElementAt(index).Item2 < 2);
                     (hosts.ElementAt(index).Item1 as ICancelable).CancelExecution();
+
+
+
                     rootHost = hosts.ElementAt(index).Item1;
                     queue.Enqueue(rootHost);
                 }
