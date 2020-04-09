@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.IO;
 
 namespace Microsoft.ML.AutoML
 {
-    internal class ModelContainer : IDisposable
+    internal class ModelContainer
     {
         private readonly MLContext _mlContext;
         private readonly FileInfo _fileInfo;
@@ -17,14 +16,12 @@ namespace Microsoft.ML.AutoML
         {
             _mlContext = mlContext;
             _model = model;
-            _disposed = false;
         }
 
         internal ModelContainer(MLContext mlContext, FileInfo fileInfo, ITransformer model, DataViewSchema modelInputSchema)
         {
             _mlContext = mlContext;
             _fileInfo = fileInfo;
-            _disposed = false;
 
             // Write model to disk
             using (var fs = File.Create(fileInfo.FullName))
@@ -49,17 +46,5 @@ namespace Microsoft.ML.AutoML
             }
             return model;
         }
-
-        #region IDisposable Support
-        private bool _disposed;
-
-        public void Dispose()
-        {
-            if (_disposed)
-                return;
-            (_model as IDisposable)?.Dispose();
-            _disposed = true;
-        }
-        #endregion
     }
 }
