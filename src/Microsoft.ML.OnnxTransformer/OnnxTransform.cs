@@ -330,7 +330,7 @@ namespace Microsoft.ML.Transforms.Onnx
             }
         }
 
-        private protected override IRowMapper MakeRowMapper(DataViewSchema inputSchema) => new Mapper(this, inputSchema); // MYTODO: Should I also worry avout this?
+        private protected override IRowMapper MakeRowMapper(DataViewSchema inputSchema) => new Mapper(this, inputSchema); // MYTODO: Should I also worry about this since the Mapper, by itself, doesn't have the behavior of dropping the columns? In what cased is this used? Could erase this if I stop inheriting from RTRTB
 
         protected override IRowToRowMapper GetRowToRowMapperCore(DataViewSchema inputSchema)
         {
@@ -451,7 +451,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 // _outputSchema = GetOutputSchema();
             }
 
-            public DataViewSchema.DetachedColumn[] GetOutputColumns() => GetOutputColumnsCore();
+            // public DataViewSchema.DetachedColumn[] GetOutputColumns() => GetOutputColumnsCore();
 
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
@@ -760,7 +760,7 @@ namespace Microsoft.ML.Transforms.Onnx
         /// Similar to <see cref="ColumnBindings"/>, but this class will enable dropping columns from the input
         /// schema, in order to let OnnxTransformer support the <see cref="ColumnSelectingTransformer"/> onnx export.
         /// </summary>
-        [BestFriend]
+        [BestFriend] // MYTODO: Is this necessary?
         internal sealed class Bindings // MYTODO: Should I move this inside OnnxDataTransform?
         {
             // Indices of columns in the merged schema. Old indices are as is, new indices are stored as ~idx.
@@ -801,7 +801,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 var namesUsed = new HashSet<string>();
                 for (int i = 0; i < input.Count; i++)
                 {
-                    if (InputSchema[i].IsHidden || dropColumnsNames.Contains(InputSchema[i].Name))
+                    if (InputSchema[i].IsHidden || dropColumnsNames.Contains(InputSchema[i].Name)) // MYTODO: Should I drop all hidden columns? Only the ones that are inside the dropColumnsNames list?
                         continue;
 
                     namesUsed.Add(input[i].Name);
@@ -816,7 +816,7 @@ namespace Microsoft.ML.Transforms.Onnx
                         // New name. Append to the end.
                         indices.Add(~i);
                     }
-                    else //MYTODO: This else statement might be modified depending if we'll let input columns with the same names of the outputs to propagate or not
+                    else
                     {
                         // Old name. Find last instance and add after it.
                         for (int j = indices.Count - 1; j >= 0; j--)
@@ -911,7 +911,7 @@ namespace Microsoft.ML.Transforms.Onnx
             {
                 _mapper = mapper;
                 //_outputSchema = _mapper.GetOutputSchema();
-                _bindings = new Bindings(input.Schema, mapper.GetDropColumnsNames().ToList(), mapper.GetOutputColumns());
+                _bindings = new Bindings(input.Schema, mapper.GetDropColumnsNames().ToList(), (mapper as IRowMapper).GetOutputColumns());
             }
 
             public override DataViewSchema OutputSchema => _bindings.Schema;
@@ -1266,7 +1266,7 @@ namespace Microsoft.ML.Transforms.Onnx
             }
 
             var droppedInputs = new List<string>(Transformer.GetDropColumnsNames());
-            var resultDic = inputSchema.Where(col => !droppedInputs.Contains(col.Name)).ToDictionary(x => x.Name); // MYTODO: Is this enough?
+            var resultDic = inputSchema.Where(col => !droppedInputs.Contains(col.Name)).ToDictionary(x => x.Name); // MYTODO: Is this enough? Does SchemaShape should also worry about "hidden" columns?
 
             for (var i = 0; i < Transformer.Outputs.Length; i++)
             {
