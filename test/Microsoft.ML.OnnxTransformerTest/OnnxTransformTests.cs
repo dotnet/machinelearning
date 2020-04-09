@@ -139,6 +139,19 @@ namespace Microsoft.ML.Tests
             }
             catch (ArgumentOutOfRangeException) { }
             catch (InvalidOperationException) { }
+
+            try
+            {
+                // MYTODO: Is this side effect acceptable? Should I remove this from this test?
+                // OnnxTransformer will drop all the columns in the input that have
+                // a corresponding input in the onnx model.
+                // A side effect of this, is that after applying a pretrained onnx model
+                // like the one in here, we won't be able to use or access the input
+                // columns of the model.
+                var transformedData = pipe.Fit(dataView).Transform(dataView);
+                var col = transformedData.Schema["data_0"];
+            }
+            catch (ArgumentOutOfRangeException) { }
         }
 
         [OnnxTheory]
