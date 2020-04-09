@@ -48,15 +48,15 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
     }
 
-    public sealed class SrCnnTsPointTypeAttrbute : DataViewTypeAttribute
+    public sealed class SrCnnTsPointTypeAttribute : DataViewTypeAttribute
     {
-        public SrCnnTsPointTypeAttrbute()
+        public SrCnnTsPointTypeAttribute()
         {
         }
 
         public override bool Equals(DataViewTypeAttribute other)
         {
-            if (!(other is SrCnnTsPointTypeAttrbute otherAttribute))
+            if (!(other is SrCnnTsPointTypeAttribute otherAttribute))
                 return false;
             return true;
         }
