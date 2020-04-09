@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
 
@@ -11,7 +12,7 @@ namespace Microsoft.ML.AutoML
     /// Result of an AutoML experiment.
     /// </summary>
     /// <typeparam name="TMetrics">Metrics type for the experiment (like <see cref="BinaryClassificationMetrics"/>).</typeparam>
-    public class ExperimentResult<TMetrics>
+    public class ExperimentResult<TMetrics> : IDisposable
     {
         /// <summary>
         /// Details of the runs in this experiment.
@@ -36,5 +37,25 @@ namespace Microsoft.ML.AutoML
             RunDetails = runDetails;
             BestRun = bestRun;
         }
+
+        #region IDisposable Support
+        private bool _disposed;
+
+        /// <summary>
+        /// Releases unmanaged resources in ExperimentResult instances
+        /// </summary>
+        /// <remarks>
+        /// Invocation of Dispoe() is necessary to clean up remaining C library Tensor objects and
+        /// avoid a memory leak
+        /// </remarks>
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+            (BestRun as IDisposable)?.Dispose();
+            (RunDetails as IDisposable)?.Dispose();
+            _disposed = true;
+        }
+        #endregion
     }
 }

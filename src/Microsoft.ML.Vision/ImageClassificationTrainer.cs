@@ -1509,9 +1509,5 @@ namespace Microsoft.ML.Vision
 
             _isDisposed = true;
         }
-
-        // Finalizer to clean-up remaining Tensor objects generated in TensorFlow C libraries
-        // not cleaned up by GC
-        ~ImageClassificationModelParameters() => Dispose();
     }
 }

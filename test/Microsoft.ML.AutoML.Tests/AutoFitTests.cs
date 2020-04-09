@@ -36,6 +36,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.NotNull(result.BestRun.Estimator);
             Assert.NotNull(result.BestRun.Model);
             Assert.NotNull(result.BestRun.TrainerName);
+            result.Dispose();
         }
 
         [Fact]
@@ -51,6 +52,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.True(result.BestRun.Results.First().ValidationMetrics.MicroAccuracy >= 0.7);
             var scoredData = result.BestRun.Results.First().Model.Transform(trainData);
             Assert.Equal(NumberDataViewType.Single, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
+            result.Dispose();
         }
 
         [TensorFlowFact]
@@ -73,6 +75,7 @@ namespace Microsoft.ML.AutoML.Test
 
             var scoredData = result.BestRun.Model.Transform(trainData);
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
+            result.Dispose();
         }
 
         [Fact(Skip ="Takes too much time, ~10 minutes.")]
@@ -94,6 +97,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.InRange(result.BestRun.ValidationMetrics.MicroAccuracy, 0.80, 0.9);
             var scoredData = result.BestRun.Model.Transform(trainData);
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
+            result.Dispose();
         }
 
         private void Context_Log(object sender, LoggingEventArgs e)
@@ -117,6 +121,7 @@ namespace Microsoft.ML.AutoML.Test
                     new ColumnInformation() { LabelColumnName = DatasetUtil.MlNetGeneratedRegressionLabel });
 
             Assert.True(result.RunDetails.Max(i => i.ValidationMetrics.RSquared > 0.9));
+            result.Dispose();
         }
 
         [Fact]
@@ -163,6 +168,7 @@ namespace Microsoft.ML.AutoML.Test
 
             var metrices = mlContext.Recommendation().Evaluate(testDataViewWithBestScore, labelColumnName: labelColumnName, scoreColumnName: scoreColumnName);
             Assert.NotEqual(0, metrices.MeanSquaredError);
+            experimentResult.Dispose();
         }
 
         private TextLoader.Options GetLoaderArgs(string labelColumnName, string userIdColumnName, string itemIdColumnName)
